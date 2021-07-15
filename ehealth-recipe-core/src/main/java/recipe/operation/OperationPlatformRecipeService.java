@@ -59,6 +59,7 @@ import recipe.service.RecipeServiceSub;
 import recipe.util.ByteUtils;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
+import recipe.vo.second.ApothecaryVO;
 
 import java.util.*;
 
@@ -434,7 +435,9 @@ public class OperationPlatformRecipeService {
             }
         }
         ApothecaryDTO apothecaryDTO = doctorClient.getApothecary(recipe);
-        map.put("apothecary", apothecaryDTO);
+        ApothecaryVO apothecaryVO = new ApothecaryVO();
+        org.springframework.beans.BeanUtils.copyProperties(apothecaryDTO, apothecaryVO);
+        map.put("apothecary", apothecaryVO);
         LOGGER.info("findRecipeAndDetailsAndCheckById.map={}", JSONUtils.toString(map));
         return map;
     }

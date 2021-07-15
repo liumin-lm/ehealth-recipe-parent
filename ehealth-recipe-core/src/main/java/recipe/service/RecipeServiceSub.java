@@ -783,12 +783,7 @@ public class RecipeServiceSub {
             }
             paramMap.put("recipeFee", recipe.getTotalMoney() + "元");
             paramMap.put("drugNum", i);
-
-            //水印
-//            Object waterPrintText = configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintText");
-//            if (null != waterPrintText) {
-//                paramMap.put("waterPrintText", waterPrintText.toString());
-//            }
+            
         } catch (Exception e) {
             LOGGER.error("createParamMap 组装参数错误. recipeId={}, error ", recipe.getRecipeId(), e);
         }
@@ -895,21 +890,11 @@ public class RecipeServiceSub {
                 }
 
                 paramMap.put("tcmUseDay", null != d.getUseDaysB() ? d.getUseDaysB() : d.getUseDays());
-//                Object canShowDrugCost = configService.getConfiguration(recipe.getClinicOrgan(), "canShowDrugCost");
-//                LOGGER.info("createParamMapForChineseMedicine recipeId:{} canShowDrugCost:{}",recipe.getRecipeId(),canShowDrugCost);
-//                if((boolean)canShowDrugCost){
-//                    paramMap.put("drugCost"+ i,d.getDrugCost().divide(BigDecimal.ONE, 2, RoundingMode.UP)+"元");
-//                }
                 i++;
             }
             paramMap.put("recipeFee", recipe.getTotalMoney() + "元");
             paramMap.put("drugNum", i);
 
-            //水印
-//            Object waterPrintText = configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintText");
-//            if (null != waterPrintText) {
-//                paramMap.put("waterPrintText", waterPrintText.toString());
-//            }
         } catch (Exception e) {
             LOGGER.error("createParamMapForChineseMedicine 组装参数错误. recipeId={}, error ", recipe.getRecipeId(), e);
         }
@@ -2162,28 +2147,6 @@ public class RecipeServiceSub {
         }
 
         map.put("showButton", showButton);
-    }
-
-    private static List<AuditMedicinesBean> handleAnalysisByType(List<AuditMedicinesBean> auditMedicines, String type) {
-        if (CollectionUtils.isNotEmpty(auditMedicines)) {
-            auditMedicines.forEach(auditMedicinesDTO -> {
-                List<AuditMedicineIssueBean> auditMedicineIssues = auditMedicinesDTO.getAuditMedicineIssues();
-                List<AuditMedicineIssueBean> resultAuditMedicineIssues = new ArrayList<>();
-                auditMedicineIssues.forEach(auditMedicineIssueDTO -> {
-                    if (type.equals("medicines")) {
-                        if (null == auditMedicineIssueDTO.getDetailUrl()) {
-                            resultAuditMedicineIssues.add(auditMedicineIssueDTO);
-                        }
-                    } else if (type.equals("recipeDangers")) {
-                        if (null != auditMedicineIssueDTO.getDetailUrl()) {
-                            resultAuditMedicineIssues.add(auditMedicineIssueDTO);
-                        }
-                    }
-                });
-                auditMedicinesDTO.setAuditMedicineIssues(resultAuditMedicineIssues);
-            });
-        }
-        return auditMedicines;
     }
 
     public static String getCancelReasonForChecker(int recipeId) {
