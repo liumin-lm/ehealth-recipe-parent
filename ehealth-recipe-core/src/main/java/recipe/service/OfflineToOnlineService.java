@@ -1428,7 +1428,7 @@ public class OfflineToOnlineService {
 
 
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                emrRecipeManager.getMedicalInfo(recipe, recipeExtend);
+                EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
                 recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
             }
         });
@@ -1765,7 +1765,7 @@ public class OfflineToOnlineService {
             throw new DAOException(DAOException.DAO_NOT_FOUND, "没有查询到来自医院的处方单,请刷新页面！");
         }
         if("2".equals(hisRecipe.getStatus())){
-            //recipeDetailMap= recipeService.getPatientRecipeByIdForOfflineRecipe(recipeId);
+            recipeDetailMap = recipeService.getPatientRecipeByIdForOfflineRecipe(recipeId);
         }else {
             recipeDetailMap = recipeService.getPatientRecipeById(recipeId);
         }
