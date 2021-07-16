@@ -2,8 +2,6 @@ package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.esign.model.CoOrdinateVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -19,9 +17,7 @@ import java.util.stream.Collectors;
  * @author fuzi
  */
 @Service
-public class RedisManager {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
+public class RedisManager extends BaseManager {
     @Autowired
     private RedisClient redisClient;
 

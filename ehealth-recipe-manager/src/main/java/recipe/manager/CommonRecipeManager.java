@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
  * @author fuzi
  */
 @Service
-public class CommonRecipeManager {
+public class CommonRecipeManager extends BaseManager {
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private CommonRecipeDAO commonRecipeDAO;

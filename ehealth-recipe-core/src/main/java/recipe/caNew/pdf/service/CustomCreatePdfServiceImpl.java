@@ -6,7 +6,10 @@ import com.itextpdf.text.Rectangle;
 import com.itextpdf.text.pdf.*;
 import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.base.esign.model.SignRecipePdfVO;
+import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.his.ca.model.CaSealRequestTO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.dto.RecipeLabelVO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -24,14 +27,13 @@ import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.IConfigurationClient;
 import recipe.constant.OperationConstant;
 import recipe.dao.RecipeExtendDAO;
-import com.ngari.recipe.dto.RecipeInfoDTO;
-import com.ngari.recipe.dto.RecipeLabelVO;
 import recipe.manager.RecipeManager;
 import recipe.manager.RedisManager;
 import recipe.util.ByteUtils;
 import recipe.util.DictionaryUtil;
 import recipe.util.MapValueUtil;
 
+import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -65,15 +67,23 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     private RecipeManager recipeManager;
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
-
+    @Resource
+    private IESignBaseService esignService;
 
     @Override
-    public SignRecipePdfVO queryPdfOssId(Recipe recipe) throws Exception {
+    public byte[] queryPdfOssId(Recipe recipe) throws Exception {
         byte[] data = generateTemplatePdf(recipe);
         CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), "doctorSignImg,doctorSignImgToken");
-        // ordinateVO.getX(), ordinateVO.getY(),
-        // SignRecipePdfVO signRecipePdfVO = signRecipePDFV2(signRecipePdfVO.getData(), recipe.getDoctor(), "recipe_" + recipe.getRecipeId() + ".pdf",x,y);
-        return null;
+        SignRecipePdfVO pdfEsign = new SignRecipePdfVO();
+        pdfEsign.setPosX(ordinateVO.getX().floatValue());
+        pdfEsign.setPosY(ordinateVO.getY().floatValue());
+        pdfEsign.setWidth(150f);
+        pdfEsign.setData(data);
+        pdfEsign.setFileName("recipe_" + recipe.getRecipeId() + ".pdf");
+        pdfEsign.setDoctorId(recipe.getDoctor());
+        data = esignService.signForRecipe2(pdfEsign);
+        logger.info("CustomCreatePdfServiceImpl queryPdfOssId data:{}", data.length);
+        return data;
     }
 
     @Override

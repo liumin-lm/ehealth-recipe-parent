@@ -43,7 +43,7 @@ import java.util.*;
  * @date 2020\8\18 0018 08:57
  */
 @Service
-public class EmrRecipeManager {
+public class EmrRecipeManager extends BaseManager {
     private static final Logger logger = LoggerFactory.getLogger(EmrRecipeManager.class);
     /**
      * 病历状态 2 暂存 4 已使用

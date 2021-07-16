@@ -2,7 +2,6 @@ package recipe.caNew.pdf;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.esign.model.CoOrdinateVO;
-import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.dto.AttachSealPicDTO;
@@ -66,12 +65,12 @@ public class CreatePdfFactory {
         logger.info("CreatePdfFactory queryPdfOssId recipe:{}", recipe.getRecipeId());
         CreatePdfService createPdfService = createPdfService(recipe);
         try {
-            SignRecipePdfVO signRecipePdfVO = createPdfService.queryPdfOssId(recipe);
-            if (null == signRecipePdfVO) {
+            byte[] data = createPdfService.queryPdfOssId(recipe);
+            if (null == data) {
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "获取pdf_oss_id格式生成失败");
                 return;
             }
-            String fileId = CreateRecipePdfUtil.signFileByte(signRecipePdfVO.getData(), "fileName");
+            String fileId = CreateRecipePdfUtil.signFileByte(data, "recipe_" + recipe.getRecipeId() + ".pdf");
             Recipe recipeUpdate = new Recipe();
             recipeUpdate.setRecipeId(recipe.getRecipeId());
             recipeUpdate.setSignFile(fileId);
