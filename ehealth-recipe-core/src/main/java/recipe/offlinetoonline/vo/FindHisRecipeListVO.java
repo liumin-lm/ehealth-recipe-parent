@@ -1,4 +1,4 @@
-package com.ngari.recipe.vo;
+package recipe.offlinetoonline.vo;
 
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,13 +23,13 @@ public class FindHisRecipeListVO implements Serializable {
     @NotNull
     private String mpiId;
 
-    //
+    //timeQuantum 时间段  1 代表一个月  3 代表三个月 6 代表6个月
     private Integer timeQuantum;
 
-    //
+    //卡号
     private String cardId;
 
-    //查询类型（1线上、2线下）
+    //onready（待处理）ongoing（进行中）isover（已完成）
     @NotNull
     private String status;
 

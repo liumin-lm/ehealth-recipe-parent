@@ -90,6 +90,7 @@ import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.GroupRecipeManager;
 import recipe.manager.SignManager;
+import recipe.offlinetoonline.service.third.FrontService;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.recipecancel.RecipeCancelService;
@@ -122,11 +123,13 @@ public class RecipeServiceSub {
 
     private static GroupRecipeManager groupRecipeManager = AppContextHolder.getBean("groupRecipeManager", GroupRecipeManager.class);
 
-    private static HisRecipeService hisRecipeService=ApplicationUtils.getRecipeService(HisRecipeService.class);
-
     private static PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
 
     private static DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
+
+    private static DoctorExtendService doctorExtendService = ApplicationUtils.getBasicService(DoctorExtendService.class);
+
+    private static FrontService frontService = AppContextHolder.getBean("frontService", FrontService.class);
 
     private static OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
     private static RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
@@ -784,11 +787,6 @@ public class RecipeServiceSub {
             paramMap.put("recipeFee", recipe.getTotalMoney() + "元");
             paramMap.put("drugNum", i);
 
-            //水印
-//            Object waterPrintText = configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintText");
-//            if (null != waterPrintText) {
-//                paramMap.put("waterPrintText", waterPrintText.toString());
-//            }
         } catch (Exception e) {
             LOGGER.error("createParamMap 组装参数错误. recipeId={}, error ", recipe.getRecipeId(), e);
         }
@@ -895,21 +893,11 @@ public class RecipeServiceSub {
                 }
 
                 paramMap.put("tcmUseDay", null != d.getUseDaysB() ? d.getUseDaysB() : d.getUseDays());
-//                Object canShowDrugCost = configService.getConfiguration(recipe.getClinicOrgan(), "canShowDrugCost");
-//                LOGGER.info("createParamMapForChineseMedicine recipeId:{} canShowDrugCost:{}",recipe.getRecipeId(),canShowDrugCost);
-//                if((boolean)canShowDrugCost){
-//                    paramMap.put("drugCost"+ i,d.getDrugCost().divide(BigDecimal.ONE, 2, RoundingMode.UP)+"元");
-//                }
                 i++;
             }
             paramMap.put("recipeFee", recipe.getTotalMoney() + "元");
             paramMap.put("drugNum", i);
 
-            //水印
-//            Object waterPrintText = configService.getConfiguration(recipe.getClinicOrgan(), "waterPrintText");
-//            if (null != waterPrintText) {
-//                paramMap.put("waterPrintText", waterPrintText.toString());
-//            }
         } catch (Exception e) {
             LOGGER.error("createParamMapForChineseMedicine 组装参数错误. recipeId={}, error ", recipe.getRecipeId(), e);
         }
@@ -2164,28 +2152,6 @@ public class RecipeServiceSub {
         map.put("showButton", showButton);
     }
 
-    private static List<AuditMedicinesBean> handleAnalysisByType(List<AuditMedicinesBean> auditMedicines, String type) {
-        if (CollectionUtils.isNotEmpty(auditMedicines)) {
-            auditMedicines.forEach(auditMedicinesDTO -> {
-                List<AuditMedicineIssueBean> auditMedicineIssues = auditMedicinesDTO.getAuditMedicineIssues();
-                List<AuditMedicineIssueBean> resultAuditMedicineIssues = new ArrayList<>();
-                auditMedicineIssues.forEach(auditMedicineIssueDTO -> {
-                    if (type.equals("medicines")) {
-                        if (null == auditMedicineIssueDTO.getDetailUrl()) {
-                            resultAuditMedicineIssues.add(auditMedicineIssueDTO);
-                        }
-                    } else if (type.equals("recipeDangers")) {
-                        if (null != auditMedicineIssueDTO.getDetailUrl()) {
-                            resultAuditMedicineIssues.add(auditMedicineIssueDTO);
-                        }
-                    }
-                });
-                auditMedicinesDTO.setAuditMedicineIssues(resultAuditMedicineIssues);
-            });
-        }
-        return auditMedicines;
-    }
-
     public static String getCancelReasonForChecker(int recipeId) {
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
         List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.READY_CHECK_YS);
@@ -2686,8 +2652,7 @@ public class RecipeServiceSub {
             recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO);
         }else{
             //获取当前处方详情
-            IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
-            HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = hisRecipeService.queryData(organId, patientDTO, null, 1, recipeCode);
+            HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = frontService.queryData(organId, patientDTO, null, 1, recipeCode);
             QueryHisRecipResTO queryHisRecipResTO = getRecipeInfoByRecipeCode(hisResponseTO, recipeCode);
             if(queryHisRecipResTO==null||StringUtils.isEmpty(queryHisRecipResTO.getRecipeCode())){
                 LOGGER.info("sendRecipeTagToPatientWithOfflineRecipe recipeCode：{} 根据recipeCode没查询到线下处方！！！",recipeCode);

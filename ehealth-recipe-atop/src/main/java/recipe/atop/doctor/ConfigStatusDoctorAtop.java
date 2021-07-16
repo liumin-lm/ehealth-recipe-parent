@@ -6,7 +6,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
-import recipe.core.api.doctor.IConfigStatusService;
+import recipe.core.api.IConfigStatusService;
 
 import java.util.List;
 

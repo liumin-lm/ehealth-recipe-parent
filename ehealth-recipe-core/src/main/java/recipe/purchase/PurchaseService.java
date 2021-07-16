@@ -11,6 +11,7 @@ import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.his.recipe.mode.MedicInsurSettleApplyReqTO;
 import com.ngari.his.recipe.mode.MedicInsurSettleApplyResTO;
+import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
@@ -39,6 +40,7 @@ import org.apache.http.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import recipe.ApplicationUtils;
 import recipe.bean.PltPurchaseResponse;
 import recipe.client.IConfigurationClient;
@@ -46,6 +48,8 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.givemode.business.GiveModeTextEnum;
+import recipe.offlinetoonline.constant.OfflineToOnlineEnum;
+import recipe.offlinetoonline.service.third.FrontService;
 import recipe.service.*;
 import recipe.manager.EmrRecipeManager;
 import recipe.util.MapValueUtil;
@@ -87,6 +91,19 @@ public class PurchaseService {
 
     @Autowired
     private IConfigurationClient configurationClient;
+
+    @Autowired
+    FrontService frontService;
+
+    @Autowired
+    @Qualifier("basic.patientService")
+    PatientService patientService;
+
+    @Autowired
+    OfflineToOnlineService offlineToOnlineService;
+
+    @Autowired
+    HisRecipeDetailDAO hisRecipeDetailDAO;
 
     /**
      * 获取可用购药方式------------已废弃---已改造成从处方单详情里获取
@@ -284,14 +301,13 @@ public class PurchaseService {
     }
 
     /**
-     *
+     *确认订单校验
      * @param recipeIds
-     * 确认订单校验
      * @param extInfo
      * @return
      */
     private OrderCreateResult checkOrderInfo(List<Integer> recipeIds, Map<String, String> extInfo) {
-        //确认页提交订单点击提交按钮时， 需要再次判断该处方单的状态, 若处方更新了诊断和药品信息或者删除了处方或处方已支付, 则提示患者该处方已做变更, 需要从新进入处理;
+        //在确认订单页，用户点击提交订单，需要再次判断该处方单状态，若更新了诊断或药品信息或者删除了处方或者处方已经支付，则提示患者该处方已做变更，需要重新进入处理。
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         //合并处方处理
@@ -300,6 +316,8 @@ public class PurchaseService {
         HisRecipe hisRecipe;
         for (Integer recipeId : recipeIds) {
             dbRecipe = recipeDAO.get(recipeId);
+            hisRecipe = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(dbRecipe.getMpiid(), dbRecipe.getClinicOrgan(), dbRecipe.getRecipeCode());
+            recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
             //判断是否删除处方
             if (null == dbRecipe) {
                 result.setCode(RecipeResultBean.CHECKFAIL);
@@ -307,8 +325,11 @@ public class PurchaseService {
                 LOG.info("checkOrderInfo recipeId:{} 处方不存在", recipeId);
                 return result;
             }
-            recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-            EmrRecipeManager.getMedicalInfo(dbRecipe, recipeExtend);
+            if (null == hisRecipe) {
+                result.setCode(RecipeResultBean.CHECKFAIL);
+                result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
+                LOG.info("checkOrderInfo recipeId:{} hisRecipe已被删除", recipeId);
+            }
             //判断是订单是否已支付
             if (StringUtils.isNotEmpty(dbRecipe.getOrderCode())) {
                 RecipeOrder order = recipeOrderDAO.getByOrderCode(dbRecipe.getOrderCode());
@@ -319,34 +340,51 @@ public class PurchaseService {
                 }
             }
             //判断诊断和药品信息是否已更改
-            if (null != dbRecipe) {
-                String organDiseaseId = MapValueUtil.getString(extInfo, "organDiseaseId");
-                String organDiseaseName = MapValueUtil.getString(extInfo, "organDiseaseName");
-                if (!organDiseaseId.equals(dbRecipe.getOrganDiseaseId()) || !organDiseaseName.equals(dbRecipe.getOrganDiseaseName())) {
-                    result.setCode(RecipeResultBean.CHECKFAIL);
-                    result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
-                    LOG.info("checkOrderInfo recipeId:{} 处方诊断已变更1", recipeId);
-                    return result;
-                }
-                hisRecipe = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(dbRecipe.getMpiid(), dbRecipe.getClinicOrgan(), dbRecipe.getRecipeCode());
-                if (hisRecipe != null) {
-                    if (!organDiseaseId.equals(hisRecipe.getDisease()) || !organDiseaseName.equals(hisRecipe.getDiseaseName())) {
-                        result.setCode(RecipeResultBean.CHECKFAIL);
-                        result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
-                        LOG.info("checkOrderInfo recipeId:{} 处方诊断已变更2", recipeId);
-                        return result;
-                    }
-                } else {
-                    result.setCode(RecipeResultBean.CHECKFAIL);
-                    result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
-                    LOG.info("checkOrderInfo recipeId:{} 处方诊断已变更2", recipeId);
-                    return result;
-                }
-
+            PatientDTO patientDTO = patientService.getPatientBeanByMpiId(dbRecipe.getMpiid());
+            if (null == patientDTO) {
+                throw new DAOException(609, "患者信息不存在");
             }
-
+            HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos= frontService.queryData(dbRecipe.getClinicOrgan(),patientDTO,null,OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType(),dbRecipe.getRecipeCode());
+            if (null == hisRecipeInfos || CollectionUtils.isEmpty(hisRecipeInfos.getData())) {
+                result.setCode(RecipeResultBean.CHECKFAIL);
+                result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
+                LOG.info("checkOrderInfo recipeId:{} hisRecipeInfos.getData() is null", recipeId);
+            }
+            QueryHisRecipResTO queryHisRecipResTO=hisRecipeInfos.getData().get(0);
+            if(queryHisRecipResTO==null){
+                result.setCode(RecipeResultBean.CHECKFAIL);
+                result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
+                LOG.info("checkOrderInfo recipeId:{} queryHisRecipResTO is null", recipeId);
+            }
+            //诊断
+            if (!queryHisRecipResTO.getDisease().equals(covertData(hisRecipe.getDisease())) || !covertData(queryHisRecipResTO.getDiseaseName()).equals(covertData(hisRecipe.getDiseaseName()))) {
+                result.setCode(RecipeResultBean.CHECKFAIL);
+                result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
+                LOG.info("checkOrderInfo recipeId:{} hisRecipe已被删除", recipeId);
+            }
+            //药品详情变更或数据是否由他人生成
+            List<Integer> hisRecipeIds=new ArrayList<>();
+            Map<String, HisRecipe> hisRecipeMap=new HashMap<>();
+            hisRecipeIds.add(hisRecipe.getHisRecipeID());
+            List<HisRecipeDetail> hisRecipeDetailList = hisRecipeDetailDAO.findByHisRecipeIds(hisRecipeIds);
+            hisRecipeMap.put(hisRecipe.getRecipeCode(),hisRecipe);
+            Set<String> deleteSetRecipeCode=offlineToOnlineService.attachDeleteRecipeCodes(hisRecipeInfos.getData(),hisRecipeMap,hisRecipeDetailList,dbRecipe.getMpiid());
+            if(!CollectionUtils.isEmpty(deleteSetRecipeCode)){
+                result.setCode(RecipeResultBean.CHECKFAIL);
+                result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
+                LOG.info("checkOrderInfo recipeId:{} 药品详情已变更或数据已经由他人生成", recipeId);
+            }
+            EmrRecipeManager.getMedicalInfo(dbRecipe, recipeExtend);
         }
         return result;
+    }
+
+    private String covertData(String str) {
+        if(StringUtils.isEmpty(str)){
+            return "";
+        }else{
+            return str;
+        }
     }
 
     /**

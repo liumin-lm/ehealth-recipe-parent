@@ -1,16 +1,16 @@
-package recipe.factory.status.constant;
+package recipe.offlinetoonline.constant;
 
 /**
  * 线下转线上查询方式 枚举
- *
- * @author fuzi
+ * type:[1:去his查未缴费处方 2:去his查未缴费处方]
+ * @author liumin
  */
 public enum OfflineToOnlineEnum {
 
     OFFLINE_TO_ONLINE_NO_PAY(1, "onready", "待处理"),
-    OFFLINE_TO_ONLINE_ALREADY_PAY(2, "onready", "已处理"),
-    OFFLINE_TO_ONLINE_ONGOING(1, "ongoing", "进行中")
-    ;
+    OFFLINE_TO_ONLINE_ALREADY_PAY(2, "isover", "已处理"),
+    OFFLINE_TO_ONLINE_ONGOING(1, "ongoing", "进行中");
+    //1表示未缴费 2表示已缴费
     private Integer type;
     private String name;
     private String desc;

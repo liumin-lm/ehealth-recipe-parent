@@ -26,7 +26,7 @@ public class HisPatientTabStatusMergeRecipeVO implements Serializable{
     private Boolean mergeRecipeFlag;
 
     /**
-     * 第一个处方单id 排序用
+     * 第一个处方单id 仅仅后台排序用
      */
     private Integer firstRecipeId;
 

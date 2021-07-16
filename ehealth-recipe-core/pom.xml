@@ -23,6 +23,11 @@
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>ehealth-recipe-atop</artifactId>
+            <version>${project.parent.version}</version>
+        </dependency>
+        <dependency>
             <groupId>ngari</groupId>
             <artifactId>easy-pay-entity</artifactId>
             <exclusions>
@@ -49,12 +54,6 @@
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-casign-api</artifactId>
         </dependency>
-        <dependency>
-            <groupId>${project.parent.groupId}</groupId>
-            <artifactId>ehealth-recipe-atop</artifactId>
-            <version>${project.parent.version}</version>
-        </dependency>
-
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-opbase-api</artifactId>

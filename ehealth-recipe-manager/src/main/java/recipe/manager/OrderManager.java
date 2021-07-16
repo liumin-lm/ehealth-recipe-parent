@@ -1,6 +1,5 @@
 package recipe.manager;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.currentuserinfo.model.SimpleThirdBean;
 import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
@@ -38,7 +37,7 @@ import javax.annotation.Resource;
  * @date 2021\6\30 0030 15:22
  */
 @Service
-public class OrderManager {
+public class OrderManager extends BaseManager {
 
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
@@ -51,22 +50,8 @@ public class OrderManager {
     private ICurrentUserInfoService userInfoService;
     @Autowired
     private IRecipeEnterpriseService hisService;
-
     @Resource
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
-
-    /**
-     * 根据订单编号获取订单信息
-     *
-     * @param orderCode 订单编号
-     * @return 订单信息
-     */
-    public RecipeOrder getOrderByOrderCode(String orderCode) {
-        logger.info("OrderManager getRecipeOrderByOrderCode orderCode:{}.", orderCode);
-        RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
-        logger.info("OrderManager getRecipeOrderByOrderCode Order:{}.", JSON.toJSON(order));
-        return order;
-    }
 
     /**
      * todo 迁移代码 需要优化 （尹盛）
@@ -76,19 +61,19 @@ public class OrderManager {
      * @param recipeId
      * @return
      */
-    public SkipThirdBean getThirdUrl(Integer recipeId) {
+    public SkipThirdBean getThirdUrl(Integer recipeId, Integer giveMode) {
         SkipThirdBean skipThirdBean = new SkipThirdBean();
         if (null == recipeId) {
             return new SkipThirdBean();
         }
         Recipe recipe = recipeDAO.get(recipeId);
         if (recipe.getClinicOrgan() == 1005683) {
-            return getUrl(recipe);
+            return getUrl(recipe, giveMode);
         }
         if (recipe.getEnterpriseId() != null) {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
             if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
-                return getUrl(recipe);
+                return getUrl(recipe, giveMode);
             }
             RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipeId);
             if (null == order) {
@@ -98,7 +83,7 @@ public class OrderManager {
         return skipThirdBean;
     }
 
-    public SkipThirdBean getUrl(Recipe recipe) {
+    private SkipThirdBean getUrl(Recipe recipe, Integer giveMode) {
         SkipThirdBean skipThirdBean = new SkipThirdBean();
         String thirdUrl;
         if (null != recipe) {
@@ -157,6 +142,7 @@ public class OrderManager {
             } catch (Exception e) {
                 logger.error("queryPatientChannelId error:", e);
             }
+            req.setSkipMode(giveMode);
             try {
                 //获取民科机构登记号
                 req.setOrgCode(patientClient.getMinkeOrganCodeByOrganId(recipe.getClinicOrgan()));

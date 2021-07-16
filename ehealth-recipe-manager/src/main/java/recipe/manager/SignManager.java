@@ -27,7 +27,7 @@ import java.util.List;
  * @author fuzi
  */
 @Service
-public class SignManager {
+public class SignManager extends BaseManager {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     /**
      * 第三方手签
@@ -46,7 +46,8 @@ public class SignManager {
     private IConfigurationClient configurationClient;
     @Autowired
     private DoctorClient doctorClient;
-
+    @Autowired
+    private SignDoctorRecipeInfoDAO signDoctorRecipeInfoDAO;
 
     /**
      * 获取全部药师签名信息
@@ -201,8 +202,6 @@ public class SignManager {
         }
     }
 
-    @Autowired
-    private SignDoctorRecipeInfoDAO signDoctorRecipeInfoDAO;
 
     /**
      * todo 新方法：thirdSealV1
