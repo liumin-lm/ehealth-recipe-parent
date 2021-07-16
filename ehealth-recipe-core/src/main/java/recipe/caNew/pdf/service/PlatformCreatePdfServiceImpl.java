@@ -375,15 +375,16 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         for (int i = 0; i < recipeDetailList.size(); i++) {
             Recipedetail detail = recipeDetailList.get(i);
             String dTotal;
+            String memo = "";
             if (StringUtils.isNotEmpty(detail.getUseDoseStr())) {
                 dTotal = detail.getUseDoseStr() + detail.getUseDoseUnit();
             } else {
                 dTotal = detail.getUseDose() + detail.getUseDoseUnit();
             }
             if (!StringUtils.isEmpty(detail.getMemo()) && !"无特殊煎法".equals(detail.getMemo())) {
-                dTotal = dTotal + "(" + detail.getMemo() + ")";
+                memo =  "(" + detail.getMemo() + ")";
             }
-            drugShowName = detail.getDrugName() + " " + dTotal;
+            drugShowName = detail.getDrugName() +memo+ " " + dTotal;
             list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, drugShowName));
         }
         Recipedetail detail = recipeDetailList.get(0);
