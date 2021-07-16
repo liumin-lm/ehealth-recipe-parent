@@ -289,15 +289,15 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
             //中药pdf参数
             map.put("templateType", "tcm");
-            createChineMedicinePDF(list, recipePdfDTO.getRecipeExtend(), recipePdfDTO.getRecipe());
+            createChineMedicinePDF(list, recipePdfDTO.getRecipeDetails(), recipePdfDTO.getRecipeExtend(), recipePdfDTO.getRecipe());
             //添加斜线位置 1,中间  2 下面
             String invalidInfoObject = configurationClient.getValueEnumCatch(recipe.getClinicOrgan(), "diagonalLineLayer", "1");
             map.put("diagonalLineLayer", Integer.valueOf(invalidInfoObject));
         } else {
             map.put("templateType", "wm");
-            createMedicinePDF(list, recipePdfDTO.getRecipe());
+            createMedicinePDF(list, recipePdfDTO.getRecipeDetails(), recipePdfDTO.getRecipe());
         }
-        map.put("rp", configurationClient.getValueEnumCatch(recipe.getClinicOrgan(), "rptorx", null));
+        map.put("rp", configurationClient.getValueEnumCatch(recipe.getClinicOrgan(), "rptorx", "Rp"));
         map.put("paramMap", result);
         SignRecipePdfVO signRecipePdfVO = esignService.createSignRecipePDF(map);
         logger.info("PlatformCreatePdfServiceImpl queryPdfRecipeLabelById map={},signRecipePdfVO={}", JSON.toJSONString(map), JSON.toJSONString(signRecipePdfVO));
@@ -311,17 +311,17 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
      * @param list
      * @param recipe
      */
-    private void createMedicinePDF(List<RecipeLabelVO> list, Recipe recipe) {
+    private void createMedicinePDF(List<RecipeLabelVO> list, List<Recipedetail> recipeDetails, Recipe recipe) {
         RecipeLabelVO recipeLabelVO = list.stream().filter(a -> OperationConstant.OP_RECIPE_DETAIL.equals(a.getEnglishName())).findAny().orElse(null);
         if (null == recipeLabelVO) {
             return;
         }
-        List<Recipedetail> recipeDetailList = (List<Recipedetail>) recipeLabelVO.getValue();
-        if (CollectionUtils.isEmpty(recipeDetailList)) {
+
+        if (CollectionUtils.isEmpty(recipeDetails)) {
             return;
         }
-        for (int i = 0; i < recipeDetailList.size(); i++) {
-            Recipedetail d = recipeDetailList.get(i);
+        for (int i = 0; i < recipeDetails.size(); i++) {
+            Recipedetail d = recipeDetails.get(i);
             //名称+规格+药品单位+开药总量+药品单位
             StringBuilder stringBuilder = new StringBuilder(i + 1);
             stringBuilder.append(i + 1).append("、");
@@ -362,31 +362,30 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
      * @param extend
      * @param recipe
      */
-    private void createChineMedicinePDF(List<RecipeLabelVO> list, RecipeExtend extend, Recipe recipe) {
+    private void createChineMedicinePDF(List<RecipeLabelVO> list, List<Recipedetail> recipeDetails, RecipeExtend extend, Recipe recipe) {
         RecipeLabelVO recipeLabelVO = list.stream().filter(a -> OperationConstant.OP_RECIPE_DETAIL.equals(a.getEnglishName())).findAny().orElse(null);
         if (null == recipeLabelVO) {
             return;
         }
-        List<Recipedetail> recipeDetailList = (List<Recipedetail>) recipeLabelVO.getValue();
-        if (CollectionUtils.isEmpty(recipeDetailList)) {
+        if (CollectionUtils.isEmpty(recipeDetails)) {
             return;
         }
-        String drugShowName;
-        for (int i = 0; i < recipeDetailList.size(); i++) {
-            Recipedetail detail = recipeDetailList.get(i);
+        for (int i = 0; i < recipeDetails.size(); i++) {
+            Recipedetail detail = recipeDetails.get(i);
             String dTotal;
             if (StringUtils.isNotEmpty(detail.getUseDoseStr())) {
                 dTotal = detail.getUseDoseStr() + detail.getUseDoseUnit();
             } else {
                 dTotal = detail.getUseDose() + detail.getUseDoseUnit();
             }
+            String memo = "";
             if (!StringUtils.isEmpty(detail.getMemo()) && !"无特殊煎法".equals(detail.getMemo())) {
-                dTotal = dTotal + "(" + detail.getMemo() + ")";
+                memo = "(" + detail.getMemo() + ")";
             }
-            drugShowName = detail.getDrugName() + " " + dTotal;
+            String drugShowName = detail.getDrugName() + memo + " " + dTotal;
             list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, drugShowName));
         }
-        Recipedetail detail = recipeDetailList.get(0);
+        Recipedetail detail = recipeDetails.get(0);
         list.add(new RecipeLabelVO("天数", "tcmUseDay", getUseDays(detail.getUseDaysB(), detail.getUseDays())));
         try {
             list.add(new RecipeLabelVO("用药途径", "tcmUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detail.getUsePathways())));
@@ -394,13 +393,13 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         } catch (Exception e) {
             logger.error("用药途径 用药频率有误");
         }
-        list.add(new RecipeLabelVO("贴数", "copyNum", recipe.getCopyNum() + "贴"));
         if (null != extend) {
             list.add(new RecipeLabelVO("煎法", "tcmDecoction", extend.getDecoctionText() == null ? "" : extend.getDecoctionText()));
             list.add(new RecipeLabelVO("每付取汁", "tcmJuice", extend.getJuice() + extend.getJuiceUnit()));
             list.add(new RecipeLabelVO("次量", "tcmMinor", extend.getMinor() + extend.getMinorUnit()));
             list.add(new RecipeLabelVO("制法", "tcmMakeMethod", extend.getMakeMethodText() == null ? "" : extend.getMakeMethodText()));
         }
+        list.add(new RecipeLabelVO("贴数", "copyNum", recipe.getCopyNum() + "贴"));
         list.add(new RecipeLabelVO("嘱托", "tcmRecipeMemo", recipe.getRecipeMemo() == null ? "" : recipe.getRecipeMemo()));
     }
 
