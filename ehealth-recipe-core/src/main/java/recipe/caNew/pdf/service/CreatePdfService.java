@@ -1,7 +1,6 @@
 package recipe.caNew.pdf.service;
 
 import com.ngari.base.esign.model.CoOrdinateVO;
-import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -22,7 +21,7 @@ public interface CreatePdfService {
      * @param recipe 处方信息
      * @return
      */
-    SignRecipePdfVO queryPdfOssId(Recipe recipe) throws Exception;
+    byte[] queryPdfOssId(Recipe recipe) throws Exception;
 
     /**
      * 获取pdf Byte字节 给前端SDK
