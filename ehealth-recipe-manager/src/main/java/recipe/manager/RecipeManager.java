@@ -9,6 +9,7 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.util.JSONUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.PatientClient;
@@ -78,10 +79,12 @@ public class RecipeManager extends BaseManager {
      * @return
      */
     public RecipeInfoDTO getRecipeInfoDTO(Integer recipeId) {
-        RecipeInfoDTO recipePdfDTO = (RecipeInfoDTO) getRecipeDTO(recipeId);
-        Recipe recipe = recipePdfDTO.getRecipe();
+        RecipeDTO recipeDTO = getRecipeDTO(recipeId);
+        RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
+        BeanUtils.copyProperties(recipeDTO, recipeInfoDTO);
+        Recipe recipe = recipeInfoDTO.getRecipe();
         PatientDTO patientBean = patientClient.getPatient(recipe.getMpiid());
-        recipePdfDTO.setPatientBean(patientBean);
-        return recipePdfDTO;
+        recipeInfoDTO.setPatientBean(patientBean);
+        return recipeInfoDTO;
     }
 }
