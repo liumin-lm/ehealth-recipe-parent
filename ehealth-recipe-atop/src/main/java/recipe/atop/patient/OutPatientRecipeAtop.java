@@ -1,5 +1,7 @@
 package recipe.atop.patient;
 
+import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.vo.OutPatientRecipeVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -22,7 +24,28 @@ public class OutPatientRecipeAtop extends BaseAtop {
     private IOutPatientRecipeService outPatientRecipeService;
 
     /**
-     * 查询线下门诊处方诊断信息
+     * 查询门诊处方信息
+     * @param outPatientRecipeVO 患者信息
+     */
+    public void queryOutPatientRecipe(OutPatientRecipeVO outPatientRecipeVO){
+        logger.info("OutPatientRecipeAtop queryOutPatientRecipe:{}.", JSON.toJSONString(outPatientRecipeVO));
+        validateAtop(outPatientRecipeVO);
+        if (ValidateUtil.integerIsEmpty(outPatientRecipeVO.getOrganId()) || StringUtils.isEmpty(outPatientRecipeVO.getMpiId())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
+        }
+        try {
+            outPatientRecipeService.queryOutPatientRecipe(outPatientRecipeVO);
+        } catch (DAOException e1) {
+            logger.error("OutPatientRecipeAtop getOutRecipeDisease error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("OutPatientRecipeAtop getOutRecipeDisease error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 获取线下门诊处方诊断信息
      * @param organId 机构ID
      * @param patientName 患者名称
      * @param registerID 挂号序号
@@ -47,4 +70,5 @@ public class OutPatientRecipeAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
+
 }

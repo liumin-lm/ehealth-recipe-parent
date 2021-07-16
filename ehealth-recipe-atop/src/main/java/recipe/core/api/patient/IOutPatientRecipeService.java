@@ -1,5 +1,7 @@
 package recipe.core.api.patient;
 
+import com.ngari.recipe.vo.OutPatientRecipeVO;
+
 /**
  * @author yinsheng
  * @date 2021\7\16 0016 17:16
@@ -15,4 +17,10 @@ public interface IOutPatientRecipeService {
      * @return  诊断列表
      */
     String getOutRecipeDisease(Integer organId, String patientName, String registerID, String patientId);
+
+    /**
+     * 查询门诊处方信息
+     * @param outPatientRecipeVO 患者信息
+     */
+    void queryOutPatientRecipe(OutPatientRecipeVO outPatientRecipeVO);
 }

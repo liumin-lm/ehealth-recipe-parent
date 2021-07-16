@@ -1,5 +1,6 @@
 package recipe.business;
 
+import com.ngari.recipe.vo.OutPatientRecipeVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.core.api.patient.IOutPatientRecipeService;
@@ -19,5 +20,10 @@ public class OutPatientRecipeService extends BaseService implements IOutPatientR
     @Override
     public String getOutRecipeDisease(Integer organId, String patientName, String registerID, String patientId) {
         return outPatientRecipeManager.getOutRecipeDisease(organId, patientName, registerID, patientId);
+    }
+
+    @Override
+    public void queryOutPatientRecipe(OutPatientRecipeVO outPatientRecipeVO) {
+
     }
 }
