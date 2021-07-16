@@ -3,7 +3,9 @@ package recipe.client;
 import com.alibaba.fastjson.JSON;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.CommonDTO;
+import com.ngari.his.recipe.mode.DiseaseInfo;
 import com.ngari.his.recipe.mode.OfflineCommonRecipeRequestTO;
+import com.ngari.his.recipe.mode.PatientDiseaseInfoTO;
 import com.ngari.patient.dto.DoctorDTO;
 import ctd.persistence.exception.DAOException;
 import org.springframework.stereotype.Service;
@@ -31,10 +33,26 @@ public class OfflineRecipeClient extends BaseClient {
         request.setJobNumber(doctorDTO.getJobNumber());
         request.setName(doctorDTO.getName());
         try {
-            HisResponseTO<List<com.ngari.his.recipe.mode.CommonDTO>> hisResponse = recipeHisService.offlineCommonRecipe(request);
+            HisResponseTO<List<CommonDTO>> hisResponse = recipeHisService.offlineCommonRecipe(request);
             return getResponse(hisResponse);
         } catch (Exception e) {
             logger.error("OfflineRecipeClient offlineCommonRecipe hisResponse", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 查询线下门诊处方诊断信息
+     * @param patientDiseaseInfoTO 门诊患者信息
+     * @return  诊断列表
+     */
+    public List<DiseaseInfo> queryPatientDisease(PatientDiseaseInfoTO patientDiseaseInfoTO){
+        logger.info("OfflineRecipeClient queryPatientDisease patientDiseaseInfoTO:{}", JSON.toJSONString(patientDiseaseInfoTO));
+        try{
+            HisResponseTO<List<DiseaseInfo>>  hisResponse = recipeHisService.queryDiseaseInfo(patientDiseaseInfoTO);
+            return getResponse(hisResponse);
+        } catch (Exception e){
+            logger.error("OfflineRecipeClient queryPatientDisease hisResponse", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
