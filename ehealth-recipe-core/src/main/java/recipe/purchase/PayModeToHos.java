@@ -117,6 +117,9 @@ public class PayModeToHos implements IPurchaseService{
         order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
         order.setExpectSendDate(MapValueUtil.getString(extInfo, "expectSendDate"));
         order.setExpectSendTime(MapValueUtil.getString(extInfo, "expectSendTime"));
+        //设置预约取药开始和结束时间
+        order.setExpectEndTakeTime(MapValueUtil.getString(extInfo, "expectStartTakeTime"));
+        order.setExpectStartTakeTime(MapValueUtil.getString(extInfo, "expectEndTakeTime"));
         //订单的状态统一到finishOrderPayWithoutPay中设置
         order.setStatus(OrderStatusConstant.READY_GET_DRUG);
         order.setRecipeIdList(JSONUtils.toString(recipeIdLists));
