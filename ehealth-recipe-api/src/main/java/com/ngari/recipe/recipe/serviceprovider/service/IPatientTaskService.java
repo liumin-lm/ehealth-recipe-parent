@@ -25,4 +25,6 @@ public interface IPatientTaskService {
     @RpcService
     List<PatientTask> findPatientTask(String mpiId, Integer organId, Integer start, Integer limit);
 
+    @RpcService
+    List<PatientTask> findPatientTask(String mpiId, List<Integer> organIds, Integer start, Integer limit);
 }
