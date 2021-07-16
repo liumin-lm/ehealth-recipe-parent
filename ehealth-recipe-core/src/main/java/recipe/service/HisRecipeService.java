@@ -60,6 +60,7 @@ import java.util.stream.Collectors;
  * @author yinsheng
  * @date 2020\3\10 0010 19:58
  */
+@Deprecated //offlineToOnlineAtop
 @RpcBean(value = "hisRecipeService", mvc_authentication = false)
 public class HisRecipeService {
     private static final Logger LOGGER = LoggerFactory.getLogger(HisRecipeService.class);
