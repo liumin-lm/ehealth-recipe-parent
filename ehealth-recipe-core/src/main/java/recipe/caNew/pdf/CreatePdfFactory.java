@@ -67,7 +67,7 @@ public class CreatePdfFactory {
         try {
             byte[] data = createPdfService.queryPdfOssId(recipe);
             if (null == data) {
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "获取pdf_oss_id格式生成失败");
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "获取pdf_oss_id格式生成null");
                 return;
             }
             String fileId = CreateRecipePdfUtil.signFileByte(data, "recipe_" + recipe.getRecipeId() + ".pdf");
@@ -94,7 +94,7 @@ public class CreatePdfFactory {
         try {
             CaSealRequestTO caSealRequest = createPdfService.queryPdfByte(recipe);
             if (null == caSealRequest) {
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "获取pdf_byte格式生成失败");
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "获取pdf_byte格式生成null");
             }
             return caSealRequest;
         } catch (Exception e) {
@@ -128,7 +128,7 @@ public class CreatePdfFactory {
             CreatePdfService createPdfService = createPdfService(recipe);
             String fileId = createPdfService.updateDoctorNamePdf(recipe, signImgNode);
             if (StringUtils.isEmpty(fileId)) {
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "平台医生部分pdf的生成失败");
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "平台医生部分pdf的生成null");
                 return;
             }
             Recipe recipeUpdate = new Recipe();
@@ -154,7 +154,7 @@ public class CreatePdfFactory {
         CreatePdfService createPdfService = createPdfService(recipe);
         CaSealRequestTO caSealRequestTO = createPdfService.queryCheckPdfByte(recipe);
         if (null == caSealRequestTO) {
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "获取药师pdf_byte格式生成失败");
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "获取药师pdf_byte格式生成null");
         }
         logger.info("CreatePdfFactory queryCheckPdfByte caSealRequestTO:{}", JSON.toJSONString(caSealRequestTO));
         return caSealRequestTO;
@@ -181,7 +181,7 @@ public class CreatePdfFactory {
             CreatePdfService createPdfService = createPdfService(recipe);
             String fileId = createPdfService.updateCheckNamePdf(recipe, signImageId);
             if (StringUtils.isEmpty(fileId)) {
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "药师签名部分生成失败");
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "药师签名部分生成null");
                 return;
             }
             Recipe recipeUpdate = new Recipe();
