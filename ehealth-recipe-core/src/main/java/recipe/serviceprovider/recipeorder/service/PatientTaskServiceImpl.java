@@ -133,12 +133,12 @@ public class PatientTaskServiceImpl implements IPatientTaskService {
 
         List<PatientTask> patientTaskArrayList = new ArrayList<>();
         // 获取对应的处方单
-        List<Recipe> recipes = recipeDAO.queryRecipeInfoByMpiIdAndOrganId(mpiId, organIds, start, limit);
+        List<Recipe> recipes = recipeDAO.queryRecipeInfoByMpiIdAndOrganIds(mpiId, organIds, start, limit);
         if (CollectionUtils.isEmpty(recipes)) {
             return patientTaskArrayList;
         }
         //将recipeOrder转为map
-        List<RecipeOrder> recipeOrders = recipeOrderDAO.queryRecipeOrderByMpiIdAndOrganId(mpiId, organIds);
+        List<RecipeOrder> recipeOrders = recipeOrderDAO.queryRecipeOrderByMpiIdAndOrganIds(mpiId, organIds);
         Map<String, RecipeOrder> recipeOrderMap = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, a -> a, (k1, k2) -> k1));
         //通过recipe集合获取recipeExtends对象集合
         List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());

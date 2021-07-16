@@ -3834,7 +3834,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "from Recipe where clinicOrgan=:clinicOrgan and mpiId=:mpiId order by signDate DESC")
     public abstract List<Recipe> queryRecipeInfoByMpiIdAndOrganId(@DAOParam("mpiId") String mpiId, @DAOParam("clinicOrgan") Integer clinicOrgan, @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
     @DAOMethod(sql = "from Recipe where clinicOrgan in(:clinicOrgans) and mpiId=:mpiId order by signDate DESC")
-    public abstract List<Recipe> queryRecipeInfoByMpiIdAndOrganId(@DAOParam("mpiId") String mpiId, @DAOParam("clinicOrgans") List<Integer> clinicOrgans, @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
+    public abstract List<Recipe> queryRecipeInfoByMpiIdAndOrganIds(@DAOParam("mpiId") String mpiId, @DAOParam("clinicOrgans") List<Integer> clinicOrgans, @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
 //    /**
 //     * 根据患者id和机构id查询对应的未支付的订单
 //     *

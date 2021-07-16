@@ -1664,8 +1664,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      */
     @DAOMethod(sql = "From RecipeOrder  where mpiId = :mpiId AND organId = :organId")
     public abstract List<RecipeOrder> queryRecipeOrderByMpiIdAndOrganId(@DAOParam("mpiId") String mpiId, @DAOParam("organId") Integer organId);
-    @DAOMethod(sql = "From RecipeOrder  where mpiId = :mpiId AND organId in (:organIds)")
-    public abstract List<RecipeOrder> queryRecipeOrderByMpiIdAndOrganId(@DAOParam("mpiId") String mpiId, @DAOParam("organIds") List<Integer> organIds);
+    @DAOMethod(sql = "From RecipeOrder  where mpiId = :mpiId AND organId in(:organIds)")
+    public abstract List<RecipeOrder> queryRecipeOrderByMpiIdAndOrganIds(@DAOParam("mpiId") String mpiId, @DAOParam("organIds") List<Integer> organIds);
 
 
     /**
