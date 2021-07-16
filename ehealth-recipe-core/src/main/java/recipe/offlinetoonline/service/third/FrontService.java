@@ -51,7 +51,9 @@ public class FrontService {
 
         QueryRecipeRequestTO queryRecipeRequestTo = new QueryRecipeRequestTO();
         queryRecipeRequestTo.setPatientInfo(patientBaseInfo);
-        queryRecipeRequestTo.setStartDate(tranDateByFlagNew(timeQuantum.toString()));
+        if (timeQuantum != null) {
+            queryRecipeRequestTo.setStartDate(tranDateByFlagNew(timeQuantum.toString()));
+        }
         queryRecipeRequestTo.setEndDate(new Date());
         queryRecipeRequestTo.setOrgan(organId);
         queryRecipeRequestTo.setQueryType(flag);
