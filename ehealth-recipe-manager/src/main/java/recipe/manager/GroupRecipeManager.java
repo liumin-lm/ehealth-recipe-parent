@@ -7,8 +7,6 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.IConfigurationClient;
@@ -26,8 +24,7 @@ import java.util.stream.Collectors;
  * @author fuzi
  */
 @Service
-public class GroupRecipeManager {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+public class GroupRecipeManager extends BaseManager {
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired

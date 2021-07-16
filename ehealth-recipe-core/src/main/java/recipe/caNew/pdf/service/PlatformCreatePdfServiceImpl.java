@@ -68,13 +68,19 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
 
 
     @Override
-    public SignRecipePdfVO queryPdfOssId(Recipe recipe) throws Exception {
+    public byte[] queryPdfOssId(Recipe recipe) throws Exception {
         //生成pdf
         SignRecipePdfVO signRecipePdfVO = queryPdfBytePdf(recipe);
-        //todo E签宝签名 base 待实现
-        // signRecipePdfVO = signRecipePDFV2(signRecipePdfVO.getData(), recipe.getDoctor(), "recipe_" + recipe.getRecipeId() + ".pdf",x,y);
-        logger.info("PlatformCreatePdfServiceImpl queryPdfOssId signRecipePdfVO:{}", JSON.toJSONString(signRecipePdfVO));
-        return signRecipePdfVO;
+        SignRecipePdfVO pdfEsign = new SignRecipePdfVO();
+        pdfEsign.setData(signRecipePdfVO.getData());
+        pdfEsign.setFileName("recipe_" + recipe.getRecipeId() + ".pdf");
+        pdfEsign.setDoctorId(recipe.getDoctor());
+        pdfEsign.setPosX(80f);
+        pdfEsign.setPosY(57f);
+        pdfEsign.setWidth(150f);
+        byte[] data = esignService.signForRecipe2(pdfEsign);
+        logger.info("PlatformCreatePdfServiceImpl queryPdfOssId data:{}", data.length);
+        return data;
     }
 
 

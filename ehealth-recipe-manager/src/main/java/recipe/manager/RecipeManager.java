@@ -9,8 +9,7 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.util.JSONUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.PatientClient;
@@ -23,13 +22,12 @@ import java.util.List;
 
 /**
  * 处方
+ *
  * @author yinsheng
  * @date 2021\6\30 0030 14:21
  */
 @Service
-public class RecipeManager {
-
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
+public class RecipeManager extends BaseManager {
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
@@ -81,10 +79,12 @@ public class RecipeManager {
      * @return
      */
     public RecipeInfoDTO getRecipeInfoDTO(Integer recipeId) {
-        RecipeInfoDTO recipePdfDTO = (RecipeInfoDTO) getRecipeDTO(recipeId);
-        Recipe recipe = recipePdfDTO.getRecipe();
+        RecipeDTO recipeDTO = getRecipeDTO(recipeId);
+        RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
+        BeanUtils.copyProperties(recipeDTO, recipeInfoDTO);
+        Recipe recipe = recipeInfoDTO.getRecipe();
         PatientDTO patientBean = patientClient.getPatient(recipe.getMpiid());
-        recipePdfDTO.setPatientBean(patientBean);
-        return recipePdfDTO;
+        recipeInfoDTO.setPatientBean(patientBean);
+        return recipeInfoDTO;
     }
 }

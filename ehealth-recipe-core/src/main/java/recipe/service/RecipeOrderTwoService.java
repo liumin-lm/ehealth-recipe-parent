@@ -4,13 +4,11 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.dto.SkipThirdBean;
 import com.ngari.recipe.entity.ConfigStatusCheck;
-import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.ResultBean;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
-import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -25,9 +23,8 @@ import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DoctorClient;
 import recipe.client.IConfigurationClient;
 import recipe.constant.ErrorCode;
-import recipe.core.api.IRecipeOrderService;
+import recipe.core.api.patient.IRecipeOrderService;
 import recipe.dao.ConfigStatusCheckDAO;
-import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
@@ -37,8 +34,6 @@ import recipe.manager.OrderManager;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 处方订单处理实现类 （新增）
@@ -144,11 +139,6 @@ public class RecipeOrderTwoService implements IRecipeOrderService {
     }
 
 
-    @Override
-    public SkipThirdBean getThirdUrl(Integer recipeId) {
-        return orderManager.getThirdUrl(recipeId);
-    }
-
     /**
      * 获取第三方跳转链接
      * TODO 七月大版本将会去掉bqEnterprise标志,会对此处代码进行重构,由于涉及改动较大,本次小版本不做处理
@@ -158,25 +148,7 @@ public class RecipeOrderTwoService implements IRecipeOrderService {
      */
     @Override
     public SkipThirdBean getSkipUrl(SkipThirdReqVO skipThirdReqVO) {
-        SkipThirdBean skipThirdBean = new SkipThirdBean();
-        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
-        Integer recipeId = skipThirdReqVO.getRecipeIds().get(0);
-        Recipe recipe = recipeDAO.get(recipeId);
-        if (recipe.getClinicOrgan() == 1005683) {
-            return orderManager.getUrl(recipe, 0);
-        }
-        if (recipe.getEnterpriseId() != null) {
-            DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-            DrugsEnterprise drugsEnterprise = dao.getById(recipe.getEnterpriseId());
-            if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {               return orderManager.getUrl(recipe, GiveModeTextEnum.getGiveMode(skipThirdReqVO.getGiveMode()));
-            }
-            RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipeId);
-            if (null == order) {
-                return skipThirdBean;
-            }
-        }
-        return skipThirdBean;
+        return orderManager.getThirdUrl(skipThirdReqVO.getRecipeIds().get(0), GiveModeTextEnum.getGiveMode(skipThirdReqVO.getGiveMode()));
     }
 
 

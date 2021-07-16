@@ -13,7 +13,6 @@ import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.dto.GroupRecipeConf;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
-import com.ngari.recipe.vo.FindHisRecipeListVO;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
@@ -41,13 +40,14 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.dao.bean.HisRecipeListBean;
-import recipe.factory.status.constant.OfflineToOnlineEnum;
 import recipe.factory.status.constant.RecipeOrderStatusEnum;
 import recipe.factory.status.constant.RecipeStatusEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.GroupRecipeManager;
+import recipe.offlinetoonline.constant.OfflineToOnlineEnum;
+import recipe.offlinetoonline.vo.FindHisRecipeListVO;
 import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
@@ -60,6 +60,7 @@ import java.util.stream.Collectors;
  * @author yinsheng
  * @date 2020\3\10 0010 19:58
  */
+@Deprecated //offlineToOnlineAtop
 @RpcBean(value = "hisRecipeService", mvc_authentication = false)
 public class HisRecipeService {
     private static final Logger LOGGER = LoggerFactory.getLogger(HisRecipeService.class);
@@ -156,29 +157,31 @@ public class HisRecipeService {
         }
         if ("ongoing".equals(status)) {
             //表示为进行中的处方
-            return findOngoingHisRecipe(hisResponseTO.getData(), patientDTO, giveModeButtonBean, start, limit);
+            return findOngoingHisRecipe(organId,hisResponseTO.getData(), patientDTO, giveModeButtonBean, start, limit);
         } else {
             if ("onready".equals(findHisRecipeListVO.getStatus())) {
                 List<HisRecipeVO> noPayFeeHisRecipeVO = covertToHisRecipeObject(hisResponseTO, patientDTO, OfflineToOnlineEnum.getOfflineToOnlineType(status));
                 return findOnReadyHisRecipe(noPayFeeHisRecipeVO, giveModeButtonBean);
             } else {
                 checkHisRecipeAndSave(status, patientDTO, hisResponseTO);
-                return findFinishHisRecipes(mpiId, giveModeButtonBean, start, limit);
+                return findFinishHisRecipes(organId,mpiId, giveModeButtonBean, start, limit);
             }
         }
     }
 
     /**
+     *
+     * @param organId
      * @param data 当前获取HIS的处方单集合
      * @return 前端需要展示的进行中的处方单集合, 先获取进行中的处方返回给前端展示, 然后对处方数据进行校验, 处方发生
      * 变更需要删除处方,当患者点击处方列表时如果订单已删除,会弹框提示"该处方单信息已变更，请退出重新获取处方信息"
      */
-    private List<HisPatientTabStatusMergeRecipeVO> findOngoingHisRecipe(List<QueryHisRecipResTO> data, PatientDTO patientDTO, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
+    private List<HisPatientTabStatusMergeRecipeVO> findOngoingHisRecipe(Integer organId, List<QueryHisRecipResTO> data, PatientDTO patientDTO, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
         LOGGER.info("hisRecipeService findOngoingHisRecipe request:{}", JSONUtils.toString(data));
         List<HisPatientTabStatusMergeRecipeVO> result = Lists.newArrayList();
         //先查询进行中处方(目前仅指的是待支付的处方单)
         //查询所有进行中的线下处方
-        List<HisRecipeListBean> hisRecipeListByMPIIds = hisRecipeDAO.findOngoingHisRecipeListByMPIId(patientDTO.getMpiId(), start, limit);
+        List<HisRecipeListBean> hisRecipeListByMPIIds = hisRecipeDAO.findOngoingHisRecipeListByMPIId(organId,patientDTO.getMpiId(), start, limit);
         if (CollectionUtils.isEmpty(hisRecipeListByMPIIds)) {
             return result;
         }
@@ -374,18 +377,19 @@ public class HisRecipeService {
     /**
      * 查询当前账号下所有线下已处理处方列表
      *
+     *
+     * @param organId
      * @param mpiId
      * @param start
      * @param limit
      * @return
      */
-    @RpcService
-    public List<HisPatientTabStatusMergeRecipeVO> findFinishHisRecipes(String mpiId, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
+    public List<HisPatientTabStatusMergeRecipeVO> findFinishHisRecipes(Integer organId, String mpiId, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
         LOGGER.info("findFinishHisRecipes mpiId:{} giveModeButtonBean : {} index:{} limit:{} ", mpiId, giveModeButtonBean, start, limit);
         Assert.hasLength(mpiId, "findFinishHisRecipes mpiId为空!");
         List<HisPatientTabStatusMergeRecipeVO> result = new ArrayList<>();
         // 所有所有已处理的线下处方
-        List<HisRecipeListBean> hisRecipeListByMPIIds = hisRecipeDAO.findHisRecipeListByMPIId(mpiId, start, limit);
+        List<HisRecipeListBean> hisRecipeListByMPIIds = hisRecipeDAO.findHisRecipeListByMPIId(organId,mpiId, start, limit);
         if (CollectionUtils.isEmpty(hisRecipeListByMPIIds)) {
             return result;
         }

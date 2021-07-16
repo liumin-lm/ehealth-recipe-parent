@@ -18,8 +18,8 @@ import org.slf4j.LoggerFactory;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.service.HisRecipeService;
 import recipe.manager.EmrRecipeManager;
+import recipe.service.OfflineToOnlineService;
 import recipe.serviceprovider.recipeorder.service.constant.RecipeTaskEnum;
 
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 
 @RpcBean("patientTaskService")
 public class PatientTaskServiceImpl implements IPatientTaskService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(HisRecipeService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OfflineToOnlineService.class);
     private RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
     private RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
     private RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -53,6 +53,7 @@ public class PatientTaskServiceImpl implements IPatientTaskService {
      */
     @Override
     @RpcService
+    @Deprecated //新方法是findPatientTask
     public List<PatientTask> findPatientTask(String mpiId, Integer organId, Integer start, Integer limit) {
         //打印日志， 校验参数
         LOGGER.info("PatientTaskServiceImpl findPatientTask mpiId={},organId={},start={},limit={}", mpiId, organId, start, limit);
@@ -89,6 +90,75 @@ public class PatientTaskServiceImpl implements IPatientTaskService {
             patientTask.setBusDate(recipe.getSignDate());
             params.put("cid", recipe.getRecipeId());
             params.put("organId", organId);
+            params.put("mpiId", mpiId);
+            moduleInfo.setParams(params);
+            moduleInfo.setInitFn("doHandle");
+            moduleInfo.setUrl("eh.wx.health.patientRecipe.RecipeDetail");
+            patientTask.setModuleInfo(moduleInfo);
+
+
+            if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                //根据recipe获取对应的order对象，再对order对像的状态进行判断
+                RecipeOrder recipeOrder = recipeOrderMap.get(recipe.getOrderCode());
+                RecipeTaskEnum recipeOrderStatusEnum = RecipeTaskEnum.getRecipeStatusEnum(recipeOrder.getStatus());
+                if (RecipeTaskEnum.NONE != recipeOrderStatusEnum) {
+                    patientTask.setTaskName(recipeOrderStatusEnum.getTaskName());
+                    patientTask.setBusStatusName(recipeOrderStatusEnum.getBusStatusName());
+                    patientTask.setButtonName(recipeOrderStatusEnum.getButtonName());
+                    patientTaskArrayList.add(patientTask);
+                    continue;
+                }
+            }
+
+            //判断待处理的状态
+            if (2 == recipe.getStatus()) {
+                patientTask.setTaskName(RecipeTaskEnum.RECIPE_TASK_STATUS_PENDING.getTaskName());
+                patientTask.setButtonName(RecipeTaskEnum.RECIPE_TASK_STATUS_PENDING.getButtonName());
+                patientTask.setBusStatusName(RecipeTaskEnum.RECIPE_TASK_STATUS_PENDING.getBusStatusName());
+                patientTaskArrayList.add(patientTask);
+
+            }
+        }
+        LOGGER.info("PatientTaskServiceImpl findPatientTask List<PatientTask>:{}", JSONUtils.toString(patientTaskArrayList));
+        return patientTaskArrayList;
+    }
+
+    @Override
+    public List<PatientTask> findPatientTask(String mpiId, List<Integer> organIds, Integer start, Integer limit) {
+        LOGGER.info("PatientTaskServiceImpl findPatientTask mpiId={},organIds={},start={},limit={}", mpiId, JSONUtils.toString(organIds), start, limit);
+        if (StringUtils.isEmpty(mpiId) && CollectionUtils.isEmpty(organIds)) {
+            LOGGER.warn("PatientTaskServiceImpl findPatientTask mpiId,organIds is null");
+            throw new DAOException(DAOException.VALUE_NEEDED, "mpiId is null or organIds is null");
+        }
+
+        List<PatientTask> patientTaskArrayList = new ArrayList<>();
+        // 获取对应的处方单
+        List<Recipe> recipes = recipeDAO.queryRecipeInfoByMpiIdAndOrganIds(mpiId, organIds, start, limit);
+        if (CollectionUtils.isEmpty(recipes)) {
+            return patientTaskArrayList;
+        }
+        //将recipeOrder转为map
+        List<RecipeOrder> recipeOrders = recipeOrderDAO.queryRecipeOrderByMpiIdAndOrganIds(mpiId, organIds);
+        Map<String, RecipeOrder> recipeOrderMap = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, a -> a, (k1, k2) -> k1));
+        //通过recipe集合获取recipeExtends对象集合
+        List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        List<RecipeExtend> recipeExtends = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
+        Map<Integer, RecipeExtend> recipeExtendMap = recipeExtends.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, a -> a));
+
+        for (Recipe recipe : recipes) {
+            PatientTask patientTask = new PatientTask();
+            Map<String, Object> params = new HashMap<>();
+            ModuleInfo moduleInfo = new ModuleInfo();
+            //调用电子病历进行获取病情名
+            EmrRecipeManager.getMedicalInfo(recipe, recipeExtendMap.get(recipe.getRecipeId()));
+            patientTask.setDiseaseName(recipe.getOrganDiseaseName());
+            patientTask.setBusType("recipe");
+            patientTask.setBusId(recipe.getRecipeId());
+            patientTask.setDoctorId(recipe.getDoctor());
+            patientTask.setDoctorName(recipe.getDoctorName());
+            patientTask.setBusDate(recipe.getSignDate());
+            params.put("cid", recipe.getRecipeId());
+            params.put("organId", recipe.getClinicOrgan());
             params.put("mpiId", mpiId);
             moduleInfo.setParams(params);
             moduleInfo.setInitFn("doHandle");

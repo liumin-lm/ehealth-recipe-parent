@@ -1,4 +1,4 @@
-package recipe.core.api;
+package recipe.core.api.patient;
 
 
 import com.ngari.recipe.dto.SkipThirdBean;
@@ -32,7 +32,5 @@ public interface IRecipeOrderService {
      *
      * @return
      */
-    SkipThirdBean getThirdUrl(Integer integer);
-
     SkipThirdBean getSkipUrl(SkipThirdReqVO skipThirdReqVO);
 }
