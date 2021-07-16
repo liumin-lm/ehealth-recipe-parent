@@ -68,7 +68,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
 
 
     @Override
-    public SignRecipePdfVO queryPdfOssId(Recipe recipe) throws Exception {
+    public byte[] queryPdfOssId(Recipe recipe) throws Exception {
         //生成pdf
         SignRecipePdfVO signRecipePdfVO = queryPdfBytePdf(recipe);
         SignRecipePdfVO pdfEsign = new SignRecipePdfVO();
@@ -80,8 +80,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         pdfEsign.setWidth(150f);
         byte[] data = esignService.signForRecipe2(pdfEsign);
         logger.info("PlatformCreatePdfServiceImpl queryPdfOssId data:{}", data.length);
-        signRecipePdfVO.setData(data);
-        return signRecipePdfVO;
+        return data;
     }
 
 

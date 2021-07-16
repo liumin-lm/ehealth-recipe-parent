@@ -71,21 +71,19 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     private IESignBaseService esignService;
 
     @Override
-    public SignRecipePdfVO queryPdfOssId(Recipe recipe) throws Exception {
+    public byte[] queryPdfOssId(Recipe recipe) throws Exception {
         byte[] data = generateTemplatePdf(recipe);
         CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), "doctorSignImg,doctorSignImgToken");
         SignRecipePdfVO pdfEsign = new SignRecipePdfVO();
-        pdfEsign.setData(data);
-        pdfEsign.setFileName("recipe_" + recipe.getRecipeId() + ".pdf");
-        pdfEsign.setDoctorId(recipe.getDoctor());
         pdfEsign.setPosX(ordinateVO.getX().floatValue());
         pdfEsign.setPosY(ordinateVO.getY().floatValue());
         pdfEsign.setWidth(150f);
+        pdfEsign.setData(data);
+        pdfEsign.setFileName("recipe_" + recipe.getRecipeId() + ".pdf");
+        pdfEsign.setDoctorId(recipe.getDoctor());
         data = esignService.signForRecipe2(pdfEsign);
         logger.info("CustomCreatePdfServiceImpl queryPdfOssId data:{}", data.length);
-        SignRecipePdfVO signRecipePdf = new SignRecipePdfVO();
-        signRecipePdf.setData(data);
-        return signRecipePdf;
+        return data;
     }
 
     @Override
