@@ -10,8 +10,8 @@ import recipe.constant.ErrorCode;
 
 /**
  * 处方二方服务入口类
- *
- * @author fuzi
+ * @Date: 2021/7/19
+ * @Author: zhaoh
  */
 @RpcBean("recipeTwoAtop")
 public class RecipeTwoDoctorAtop extends BaseAtop {
