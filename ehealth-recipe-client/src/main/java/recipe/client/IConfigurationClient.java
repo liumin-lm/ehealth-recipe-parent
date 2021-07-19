@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.exception.DAOException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,9 @@ import org.springframework.stereotype.Service;
 import recipe.constant.ErrorCode;
 import recipe.util.ByteUtils;
 import recipe.util.RecipeUtil;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * 获取配置项 交互处理类
@@ -143,6 +147,40 @@ public class IConfigurationClient extends BaseClient {
     }
 
     /**
+     * 判断是否需要对接HIS----根据运营平台配置处方类型是否跳过his
+     *
+     * @param recipe
+     * @return
+     */
+    public boolean skipHis(Recipe recipe) {
+        try {
+            String[] recipeTypes = (String[]) configService.getConfiguration(recipe.getClinicOrgan(), "getRecipeTypeToHis");
+            List<String> recipeTypelist = Arrays.asList(recipeTypes);
+            if (recipeTypelist.contains(Integer.toString(recipe.getRecipeType()))) {
+                return false;
+            }
+        } catch (Exception e) {
+            logger.error("skipHis error " + e.getMessage(), e);
+            //按原来流程走-西药中成药默认对接his
+            if (!RecipeUtil.isTcmType(recipe.getRecipeType())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
+    /**
+     * 【his管理的药企】
+     * @param organId
+     * @return
+     */
+    public Integer getOrganEnterprisesDockType(Integer organId) {
+        Object dockType = configService.getConfiguration(organId, "EnterprisesDockType");
+        return null != dockType ? Integer.parseInt(dockType.toString()) : new Integer(0);
+    }
+
+    /**
      * 获取限制开药天数
      *
      * @param organId
@@ -160,5 +198,7 @@ public class IConfigurationClient extends BaseClient {
         return useDaysRange.toString().split(ByteUtils.COMMA);
 
     }
+
+
 
 }

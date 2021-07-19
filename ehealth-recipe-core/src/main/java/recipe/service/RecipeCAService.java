@@ -583,7 +583,7 @@ public class RecipeCAService {
             }
             //第三步校验库存
             if (continueFlag == 0 || continueFlag == 4) {
-                rMap = recipeService.doSignRecipeCheck(recipeBean);
+                rMap = recipeService.doSignRecipeCheckAndGetGiveMode(recipeBean);
                 Boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
                 if (signResult != null && false == signResult) {
                     return rMap;
