@@ -46,6 +46,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.cqJgptBussData.AdditionalDiagnosis;
 import recipe.bean.cqJgptBussData.Drug;
 import recipe.bean.cqJgptBussData.RecipeDocSignatureXML;
+import recipe.business.RecipeBusinessService;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.XstreamUtil;
 import recipe.ca.vo.CaSignResultVo;
@@ -61,6 +62,7 @@ import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
@@ -100,6 +102,9 @@ public class RecipeCAService {
     OrganDrugListDAO organDrugDao;
     @Autowired
     private CreatePdfFactory createPdfFactory;
+
+    @Resource
+    private RecipeBusinessService recipeBusinessService;
 
     @RpcService
     public CommonSignRequest packageCAFromRecipe(Integer recipeId, Integer doctorId, Boolean isDoctor) {
@@ -583,7 +588,7 @@ public class RecipeCAService {
             }
             //第三步校验库存
             if (continueFlag == 0 || continueFlag == 4) {
-                rMap = recipeService.doSignRecipeCheck(recipeBean);
+                rMap = recipeBusinessService.doSignRecipeCheckAndGetGiveMode(recipeBean);
                 Boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
                 if (signResult != null && false == signResult) {
                     return rMap;

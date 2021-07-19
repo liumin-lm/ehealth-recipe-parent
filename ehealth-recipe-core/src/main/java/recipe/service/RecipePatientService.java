@@ -345,6 +345,73 @@ public class RecipePatientService extends RecipeBaseService {
         LOGGER.info("findUnSupportDepList recipeId={}, 无库存药企药品信息取交集结果[{}]", JSONUtils.toString(recipeId), JSONObject.toJSONString(resultBean));
         return resultBean;
     }
+    /**
+     * 查询处方无库存药企药品信息
+     *
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    public RecipeResultBean findUnSupportDepList(Integer recipeId,List<DrugEnterpriseResult> unDepList) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+
+
+        RecipeResultBean resultBean = RecipeResultBean.getSuccess();
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (recipe == null) {
+            resultBean.setCode(RecipeResultBean.FAIL);
+            resultBean.setMsg("处方不存在");
+            return resultBean;
+        }
+
+        if (CollectionUtils.isNotEmpty(unDepList)) {
+            resultBean.setCode(RecipeResultBean.FAIL);
+            List<String> drugList = new ArrayList<>();
+            for (DrugEnterpriseResult result : unDepList){
+                List<String> list = (List<String>) result.getObject();
+                if (CollectionUtils.isNotEmpty(list)){
+                    drugList.addAll((list));
+                    break;
+                }
+            }
+            for (DrugEnterpriseResult result : unDepList){
+                List<String> list = (List<String>) result.getObject();
+                // 有药品名称取交集
+                if (CollectionUtils.isNotEmpty(list)){
+                    drugList.retainAll(list);
+                }else {
+                    // 有一个不能返回具体无库存药品，不展示药品名称，返回药品信息为空
+                    LOGGER.info("findUnSupportDepList recipeId={}, 药企未返回具体无库存药品信息[{}]", JSONUtils.toString(recipeId), JSONObject.toJSONString(result));
+                    resultBean.setObject(null);
+                    break;
+                }
+            }
+            // 仅各药企库存不足药品是包含关系才展示，即交集不为空，且交集结果至少是某一个药企无库存药品
+            if (CollectionUtils.isNotEmpty(drugList)){
+                Collections.sort(drugList);
+                String retainStr = drugList.toString();
+                Boolean showDrug = false;
+                for (DrugEnterpriseResult result : unDepList){
+                    List<String> list = (List<String>) result.getObject();
+                    Collections.sort(list);
+                    String listStr = list.toString();
+                    if (retainStr.equals(listStr)){
+                        showDrug = true;
+                        break;
+                    }
+                }
+                if (showDrug){
+                    resultBean.setObject(drugList);
+                }else {
+                    resultBean.setObject(null);
+                }
+            }else {
+                resultBean.setObject(null);
+            }
+        }
+        LOGGER.info("findUnSupportDepList recipeId={}, 无库存药企药品信息取交集结果[{}]", JSONUtils.toString(recipeId), JSONObject.toJSONString(resultBean));
+        return resultBean;
+    }
 
     private void parseDrugsEnterprise(DrugsEnterprise dep, BigDecimal totalMoney, List<DepDetailBean> depDetailList) {
         RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
