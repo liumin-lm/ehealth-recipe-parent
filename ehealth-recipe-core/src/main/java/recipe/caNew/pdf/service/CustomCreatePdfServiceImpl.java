@@ -233,7 +233,13 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
      */
     private byte[] generateTemplatePdf(Recipe recipe) throws Exception {
         //模版pdfId
-        String organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), OperationConstant.OP_CONFIG_PDF, "");
+        String organSealId;
+        if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
+            organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), OperationConstant.OP_CONFIG_PDF_CHINA, "");
+        } else {
+            organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), OperationConstant.OP_CONFIG_PDF, "");
+        }
+
         @Cleanup InputStream input = new ByteArrayInputStream(CreateRecipePdfUtil.signFileByte(organSealId));
         @Cleanup ByteArrayOutputStream output = new ByteArrayOutputStream();
         PdfReader reader = new PdfReader(input);
@@ -274,7 +280,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         //获取pdf值对象
         RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDTO(recipe.getRecipeId());
         //获取模版填充字段
-        List<WordToPdfBean> generatePdfList = generatePdfList(map.keySet(), recipePdfDTO);
+        List<WordToPdfBean> generatePdfList = generatePdfList(recipe.getClinicOrgan(), map.keySet(), recipePdfDTO);
         //替换的模版字段
         for (WordToPdfBean wordToPdf : generatePdfList) {
             try {
@@ -303,7 +309,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
      * @param recipePdfDTO pdf值对象
      * @return 模版填充对象
      */
-    private List<WordToPdfBean> generatePdfList(Set<String> keySet, RecipeInfoDTO recipePdfDTO) {
+    private List<WordToPdfBean> generatePdfList(Integer organId, Set<String> keySet, RecipeInfoDTO recipePdfDTO) {
         List<WordToPdfBean> generatePdfList = new LinkedList<>();
         Map<String, Object> recipeDetailMap;
         if (RecipeUtil.isTcmType(recipePdfDTO.getRecipe().getRecipeType())) {
@@ -315,6 +321,13 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         }
         for (String key : keySet) {
             String[] keySplit = key.trim().split(ByteUtils.DOT);
+            //对象字段处理
+            if (2 == keySplit.length) {
+                String objectName = keySplit[0];
+                String fieldName = keySplit[1];
+                generatePdfList.add(invokeFieldName(key, objectName, fieldName, recipePdfDTO, recipeDetailMap));
+                continue;
+            }
             //特殊节点处理
             if (3 == keySplit.length) {
                 String identifyName = keySplit[0];
@@ -322,6 +335,12 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
                 String fieldName = keySplit[2];
                 //条形码
                 if (OperationConstant.OP_BARCODE.equals(identifyName)) {
+                    String barCode = configurationClient.getValueCatch(organId, OperationConstant.OP_BARCODE, "");
+                    if (StringUtils.isNotEmpty(barCode)) {
+                        String[] barCodes = barCode.trim().split(ByteUtils.DOT);
+                        objectName = barCodes[0];
+                        fieldName = barCodes[1];
+                    }
                     WordToPdfBean wordToPdf = invokeFieldName(key, objectName, fieldName, recipePdfDTO, null);
                     URI uri = BarCodeUtil.generateFileUrl(wordToPdf.getValue(), "barcode.png");
                     wordToPdf.setUri(uri);
@@ -331,13 +350,6 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
                 if (OperationConstant.OP_QRCODE.equals(identifyName)) {
                     generatePdfList.add(invokeFieldName(key, objectName, fieldName, recipePdfDTO, null));
                 }
-                continue;
-            }
-            //对象字段处理
-            if (2 == keySplit.length) {
-                String objectName = keySplit[0];
-                String fieldName = keySplit[1];
-                generatePdfList.add(invokeFieldName(key, objectName, fieldName, recipePdfDTO, recipeDetailMap));
             }
         }
         return generatePdfList;

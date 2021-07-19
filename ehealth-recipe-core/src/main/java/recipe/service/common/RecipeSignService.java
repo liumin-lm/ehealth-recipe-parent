@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
+import recipe.business.RecipeBusinessService;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.hisservice.HisMqRequestInit;
@@ -44,6 +45,7 @@ import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 import recipe.util.RegexUtils;
 
+import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
@@ -75,6 +77,9 @@ public class RecipeSignService {
     private DrugsEnterpriseService drugsEnterpriseService;
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
+
+    @Resource
+    private RecipeBusinessService recipeBusinessService;
 
     /**
      * 武昌模式签名方法
@@ -396,7 +401,7 @@ public class RecipeSignService {
             }
             //第三步校验库存
             if (continueFlag == 0 || continueFlag == 4) {
-                rMap = recipeService.doSignRecipeCheck(recipeBean);
+                rMap = recipeBusinessService.doSignRecipeCheckAndGetGiveMode(recipeBean);
                 Boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
                 if (signResult != null && false == signResult) {
                     return rMap;
@@ -406,13 +411,7 @@ public class RecipeSignService {
             //更新审方信息
             RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
 
-            // 药企有库存的情况下区分到店取药与药企配送
-            List<Integer> drugsEnterpriseContinue = drugsEnterpriseService.getDrugsEnterpriseContinue(recipeBean.getRecipeId(), recipeBean.getClinicOrgan());
-            Map<String, Object> mapAttr = new HashMap<>();
-            if (CollectionUtils.isNotEmpty(drugsEnterpriseContinue)) {
-                mapAttr.put("recipeSupportGiveMode", StringUtils.join(drugsEnterpriseContinue, ","));
-            }
-            recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.CHECKING_HOS, mapAttr);
+            recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.CHECKING_HOS,null);
 
             //发送HIS处方开具消息
             sendRecipeToHIS(recipeBean);

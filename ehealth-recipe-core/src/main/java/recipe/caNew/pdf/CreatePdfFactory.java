@@ -472,7 +472,13 @@ public class CreatePdfFactory {
      * @return
      */
     private CreatePdfService createPdfService(Recipe recipe) {
-        String organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), OperationConstant.OP_CONFIG_PDF, "");
+        String organSealId;
+        if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
+            organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), OperationConstant.OP_CONFIG_PDF_CHINA, "");
+        } else {
+            organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), OperationConstant.OP_CONFIG_PDF, "");
+        }
+
         CreatePdfService createPdfService;
         if (StringUtils.isNotEmpty(organSealId)) {
             createPdfService = customCreatePdfServiceImpl;
