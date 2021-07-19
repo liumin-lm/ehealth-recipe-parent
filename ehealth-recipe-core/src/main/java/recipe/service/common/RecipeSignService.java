@@ -396,7 +396,7 @@ public class RecipeSignService {
             }
             //第三步校验库存
             if (continueFlag == 0 || continueFlag == 4) {
-                rMap = recipeService.doSignRecipeCheck(recipeBean);
+                rMap = recipeService.doSignRecipeCheckAndGetGiveMode(recipeBean);
                 Boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
                 if (signResult != null && false == signResult) {
                     return rMap;
@@ -406,13 +406,7 @@ public class RecipeSignService {
             //更新审方信息
             RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
 
-            // 药企有库存的情况下区分到店取药与药企配送
-            List<Integer> drugsEnterpriseContinue = drugsEnterpriseService.getDrugsEnterpriseContinue(recipeBean.getRecipeId(), recipeBean.getClinicOrgan());
-            Map<String, Object> mapAttr = new HashMap<>();
-            if (CollectionUtils.isNotEmpty(drugsEnterpriseContinue)) {
-                mapAttr.put("recipeSupportGiveMode", StringUtils.join(drugsEnterpriseContinue, ","));
-            }
-            recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.CHECKING_HOS, mapAttr);
+            recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.CHECKING_HOS,null);
 
             //发送HIS处方开具消息
             sendRecipeToHIS(recipeBean);

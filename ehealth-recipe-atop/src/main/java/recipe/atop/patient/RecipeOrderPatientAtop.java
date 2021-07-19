@@ -3,6 +3,8 @@ package recipe.atop.patient;
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.SkipThirdBean;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
+import com.ngari.recipe.vo.ResultBean;
+import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -10,17 +12,65 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.patient.IRecipeOrderService;
+import recipe.util.ValidateUtil;
 
 /**
- * @author yinsheng
- * @description： 处方订单 患者端入口
- * @date 2021\6\20 0020 16:43
+ * 处方订单服务入口类
+ *
+ * @author fuzi
  */
-@RpcBean("recipeOrderPatientAtop")
+@RpcBean("recipeOrderAtop")
 public class RecipeOrderPatientAtop extends BaseAtop {
 
     @Autowired
     private IRecipeOrderService recipeOrderService;
+
+    /**
+     * 订单状态更新
+     */
+    @RpcService
+    public ResultBean updateRecipeOrderStatus(UpdateOrderStatusVO updateOrderStatusVO) {
+        logger.info("RecipeOrderAtop updateRecipeOrderStatus updateOrderStatusVO = {}", JSON.toJSONString(updateOrderStatusVO));
+        if (ValidateUtil.integerIsEmpty(updateOrderStatusVO.getRecipeId()) || null == updateOrderStatusVO.getTargetRecipeOrderStatus()) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
+        }
+        try {
+            ResultBean result = recipeOrderService.updateRecipeOrderStatus(updateOrderStatusVO);
+            logger.info("RecipeOrderAtop updateRecipeOrderStatus result = {}", JSON.toJSONString(result));
+            return result;
+        } catch (DAOException e1) {
+            logger.error("RecipeOrderAtop updateRecipeOrderStatus error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("RecipeOrderAtop updateRecipeOrderStatus error", e);
+            return ResultBean.serviceError(e.getMessage(), false);
+        }
+    }
+
+    /**
+     * 更新核发药师信息
+     *
+     * @param recipeId
+     * @param giveUser
+     * @return
+     */
+    @RpcService
+    public ResultBean updateRecipeGiveUser(Integer recipeId, Integer giveUser) {
+        logger.info("RecipeOrderAtop updateRecipeGiveUser recipeId = {} giveUser = {}", recipeId, giveUser);
+        validateAtop(recipeId, giveUser);
+        try {
+            ResultBean result = recipeOrderService.updateRecipeGiveUser(recipeId, giveUser);
+            logger.info("RecipeOrderAtop updateRecipeGiveUser result = {}", JSON.toJSONString(result));
+            return result;
+        } catch (DAOException e1) {
+            logger.error("RecipeOrderAtop updateRecipeGiveUser error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("RecipeOrderAtop updateRecipeGiveUser error", e);
+            return ResultBean.serviceError(e.getMessage(), false);
+        }
+    }
+
 
     /**
      * 跳转到第三方处方购药页面

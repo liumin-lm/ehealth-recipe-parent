@@ -707,6 +707,9 @@ public class HisRequestInit {
                 //期待配送时间
                 requestTO.setPlanDate(order.getExpectSendDate());
                 requestTO.setPlanTime(order.getExpectSendTime());
+                //设置预约取药开始和结束时间
+                requestTO.setExpectStartTakeTime(order.getExpectStartTakeTime());
+                requestTO.setExpectEndTakeTime(order.getExpectEndTakeTime());
                 //收货人
                 requestTO.setConsignee(order.getReceiver());
                 //联系电话

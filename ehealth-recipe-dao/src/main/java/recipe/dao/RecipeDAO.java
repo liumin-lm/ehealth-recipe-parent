@@ -4077,4 +4077,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+    /**
+    * @Description: 根据复诊ID查询状态为药师未审核的处方个数
+    * @Param: bussSource
+     * @Param: ClinicID
+    * @return:
+    * @Date: 2021/7/19
+    */
+    @DAOMethod(sql = "SELECT COUNT(1) FROM Recipe WHERE bussSource=:bussSource AND ClinicID=:ClinicID AND status IN (:recipeStatus)")
+    public abstract Long getRecipeCountByBussSourceAndClinicIdAndStatus(@DAOParam("bussSource") Integer bussSource, @DAOParam("ClinicID") Integer ClinicID, @DAOParam("recipeStatus") List<Integer> recipeStatus);
 }
