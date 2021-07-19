@@ -43,12 +43,20 @@ public class OfflineRecipeClient extends BaseClient {
 
     /**
      * 查询线下门诊处方诊断信息
-     * @param patientDiseaseInfoTO 门诊患者信息
+     * @param organId 机构ID
+     * @param patientName 患者名称
+     * @param registerID 挂号序号
+     * @param patientId 病历号
      * @return  诊断列表
      */
-    public List<DiseaseInfo> queryPatientDisease(PatientDiseaseInfoTO patientDiseaseInfoTO){
-        logger.info("OfflineRecipeClient queryPatientDisease patientDiseaseInfoTO:{}", JSON.toJSONString(patientDiseaseInfoTO));
+    public List<DiseaseInfo> queryPatientDisease(Integer organId, String patientName, String registerID, String patientId){
+        logger.info("OfflineRecipeClient queryPatientDisease organId:{}, patientName:{},registerID:{},patientId:{}.",organId, patientName, registerID, patientId);
         try{
+            PatientDiseaseInfoTO patientDiseaseInfoTO = new PatientDiseaseInfoTO();
+            patientDiseaseInfoTO.setOrganId(organId);
+            patientDiseaseInfoTO.setPatientName(patientName);
+            patientDiseaseInfoTO.setRegisterID(registerID);
+            patientDiseaseInfoTO.setPatientId(patientId);
             HisResponseTO<List<DiseaseInfo>>  hisResponse = recipeHisService.queryDiseaseInfo(patientDiseaseInfoTO);
             return getResponse(hisResponse);
         } catch (Exception e){

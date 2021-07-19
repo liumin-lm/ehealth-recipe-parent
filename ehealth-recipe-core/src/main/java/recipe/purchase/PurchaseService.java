@@ -329,6 +329,7 @@ public class PurchaseService {
                 result.setCode(RecipeResultBean.CHECKFAIL);
                 result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
                 LOG.info("checkOrderInfo recipeId:{} hisRecipe已被删除", recipeId);
+                return result;
             }
             //判断是订单是否已支付
             if (StringUtils.isNotEmpty(dbRecipe.getOrderCode())) {
@@ -350,7 +351,13 @@ public class PurchaseService {
                 result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
                 LOG.info("checkOrderInfo recipeId:{} hisRecipeInfos.getData() is null", recipeId);
             }
-            QueryHisRecipResTO queryHisRecipResTO=hisRecipeInfos.getData().get(0);
+            if (!CollectionUtils.isNotEmpty(hisRecipeInfos.getData())) {
+                result.setCode(RecipeResultBean.CHECKFAIL);
+                result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
+                LOG.info("checkOrderInfo recipeId:{} hisRecipeInfos.getData() is null", recipeId);
+                return result;
+            }
+            QueryHisRecipResTO queryHisRecipResTO = hisRecipeInfos.getData().get(0);
             if(queryHisRecipResTO==null){
                 result.setCode(RecipeResultBean.CHECKFAIL);
                 result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
