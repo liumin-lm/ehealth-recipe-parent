@@ -49,16 +49,16 @@ public class DrugManeger extends BaseManager {
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(drugType)) {
             StringBuilder stringBuilder = new StringBuilder();
             //所有页面中药药品显示统一“药品名称”和“剂量单位”以空格间隔
-            stringBuilder.append(recipedetail.getDrugName()).append(StringUtils.SPACE);
+            stringBuilder.append(recipedetail.getDrugName());
+            if (StringUtils.isNotEmpty(recipedetail.getMemo())) {
+                stringBuilder.append("(").append(recipedetail.getMemo()).append(")").append(StringUtils.SPACE);
+            }
             if (StringUtils.isNotEmpty(recipedetail.getUseDoseStr())) {
                 stringBuilder.append(recipedetail.getUseDoseStr());
             } else {
                 stringBuilder.append(recipedetail.getUseDose());
             }
             stringBuilder.append(recipedetail.getUseDoseUnit());
-            if (StringUtils.isNotEmpty(recipedetail.getMemo())) {
-                stringBuilder.append("(").append(recipedetail.getMemo()).append(")");
-            }
             return stringBuilder.toString();
         }
         if (StringUtils.isEmpty(recipedetail.getDrugDisplaySplicedName())) {
