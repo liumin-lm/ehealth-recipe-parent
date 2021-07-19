@@ -1,6 +1,5 @@
 package recipe.api.open;
 
-import ctd.util.annotation.RpcService;
 
 /**
 * 处方提供的二方服务接口
