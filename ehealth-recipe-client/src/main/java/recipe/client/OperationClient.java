@@ -124,6 +124,12 @@ public class OperationClient extends BaseClient {
             String fieldName = boxLink[2];
             //条形码
             if (OperationConstant.OP_BARCODE.equals(identifyName)) {
+                String barCode = (String) configService.getConfiguration(recipePdfDTO.getRecipe().getClinicOrgan(), OperationConstant.OP_BARCODE);
+                if (StringUtils.isNotEmpty(barCode)) {
+                    String[] barCodes = barCode.trim().split(ByteUtils.DOT);
+                    objectName = barCodes[0];
+                    fieldName = barCodes[1];
+                }
                 return invokeFieldName(objectName, fieldName, recipePdfDTO);
             }
             //二维码
