@@ -17,11 +17,11 @@ import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.bean.SupportDepListBean;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -50,10 +50,10 @@ public class RecipeBusinessService extends BaseService {
 
     @Resource
     private RecipeDAO recipeDAO;
-    
+
     @Resource
     private DrugsEnterpriseService drugsEnterpriseService;
-    
+
     @Resource
     private DrugStockManager drugStockManager;
 
@@ -71,9 +71,8 @@ public class RecipeBusinessService extends BaseService {
 
     @Resource
     private RecipePatientService recipePatientService;
-    
-    
-    
+
+
     /**
      * 开方时对库存的操作
      *
@@ -135,7 +134,7 @@ public class RecipeBusinessService extends BaseService {
         List<Integer> list = new ArrayList<>();
         list.add(recipeId);
         com.ngari.platform.recipe.mode.RecipeResultBean scanResult = null;
-        Map<Integer, Object> allSupportDepList = null;
+        SupportDepListBean allSupportDepList = null;
         switch (checkFlag) {
             case 1:
                 // 查询医院库存
@@ -155,24 +154,24 @@ public class RecipeBusinessService extends BaseService {
         }
 
         // 保存药品购药方式
-        if (MapUtils.isNotEmpty(allSupportDepList)) {
-            List<DrugsEnterprise> supportDepList = (List<DrugsEnterprise>) allSupportDepList.get(1);
-            List<Integer> recipeGiveMode = drugsEnterpriseService.getRecipeGiveMode(scanResult, supportDepList, checkFlag, recipeId, recipe.getClinicOrgan(), configurations);
-            if (CollectionUtils.isNotEmpty(recipeGiveMode)) {
-                Map<String, Object> attMap = new HashMap<>();
-                String join = StringUtils.join(recipeGiveMode, ",");
-                attMap.put("recipeSupportGiveMode", join);
-                recipeDAO.updateRecipeInfoByRecipeId(recipeId, attMap);
-            }
+        List<DrugsEnterprise> supportDepList = allSupportDepList.getHaveList();
+        List<Integer> recipeGiveMode = drugsEnterpriseService.getRecipeGiveMode(scanResult, supportDepList, checkFlag, recipeId, recipe.getClinicOrgan(), configurations);
+        if (CollectionUtils.isNotEmpty(recipeGiveMode)) {
+            Map<String, Object> attMap = new HashMap<>();
+            String join = StringUtils.join(recipeGiveMode, ",");
+            attMap.put("recipeSupportGiveMode", join);
+            recipeDAO.updateRecipeInfoByRecipeId(recipeId, attMap);
         }
+
         // 校验库存,看能否继续开方
-        getResMap(rMap,checkFlag,scanResult,recipe,allSupportDepList);
+        getResMap(rMap, checkFlag, scanResult, recipe, allSupportDepList);
         logger.info("doSignRecipeCheck execute ok! rMap:" + JSONUtils.toString(rMap));
         return rMap;
     }
 
     /**
-     *  校验库存,看能否继续开方
+     * 校验库存,看能否继续开方
+     *
      * @param rMap
      * @param checkFlag
      * @param scanResult
@@ -181,7 +180,7 @@ public class RecipeBusinessService extends BaseService {
      * @return
      */
     private Map<String, Object> getResMap(Map<String, Object> rMap, int checkFlag, com.ngari.platform.recipe.mode.RecipeResultBean scanResult
-            , RecipeBean recipe,Map<Integer, Object> allSupportDepList) {
+            , RecipeBean recipe, SupportDepListBean allSupportDepList) {
         Integer recipeId = recipe.getRecipeId();
         // 校验开方药品信息
         switch (checkFlag) {
@@ -216,23 +215,21 @@ public class RecipeBusinessService extends BaseService {
                         return rMap;
                     }
                     //药企库存实时查询判断药企库存
-                    if (MapUtils.isNotEmpty(allSupportDepList)) {
-                        List<DrugEnterpriseResult> drugEnterpriseResults = (List<DrugEnterpriseResult>) allSupportDepList.get(2);
-                        RecipeResultBean recipeResultBean = recipePatientService.findUnSupportDepList(recipeId, drugEnterpriseResults);
-                        if (RecipeResultBean.FAIL.equals(recipeResultBean.getCode())) {
-                            rMap.put("signResult", false);
-                            rMap.put("errorFlag", true);
-                            rMap.put("canContinueFlag", "-1");
-                            List<String> nameList = (List<String>) recipeResultBean.getObject();
-                            String nameStr = "";
-                            if (CollectionUtils.isNotEmpty(nameList)) {
-                                nameStr = "【" + Joiner.on("、").join(nameList) + "】";
-                            }
-                            rMap.put("msg", "由于该处方单上的" + nameStr + "药品库存不足，请更换其他药品后再试。");
-                            //药品医院有库存的情况
-                            logger.info("doSignRecipeCheck recipeId={},msg={}", recipeId, rMap.get("msg"));
-                            return rMap;
+                    List<DrugEnterpriseResult> drugEnterpriseResults = allSupportDepList.getNoHaveList();
+                    RecipeResultBean recipeResultBean = recipePatientService.findUnSupportDepList(recipeId, drugEnterpriseResults);
+                    if (RecipeResultBean.FAIL.equals(recipeResultBean.getCode())) {
+                        rMap.put("signResult", false);
+                        rMap.put("errorFlag", true);
+                        rMap.put("canContinueFlag", "-1");
+                        List<String> nameList = (List<String>) recipeResultBean.getObject();
+                        String nameStr = "";
+                        if (CollectionUtils.isNotEmpty(nameList)) {
+                            nameStr = "【" + Joiner.on("、").join(nameList) + "】";
                         }
+                        rMap.put("msg", "由于该处方单上的" + nameStr + "药品库存不足，请更换其他药品后再试。");
+                        //药品医院有库存的情况
+                        logger.info("doSignRecipeCheck recipeId={},msg={}", recipeId, rMap.get("msg"));
+                        return rMap;
                     }
                 }
                 break;
@@ -253,7 +250,7 @@ public class RecipeBusinessService extends BaseService {
                             rMap.put("msg", recipeResult3.getError());
                         } else {
                             //药企库存校验
-                            List<DrugEnterpriseResult> drugEnterpriseResults = (List<DrugEnterpriseResult>) allSupportDepList.get(2);
+                            List<DrugEnterpriseResult> drugEnterpriseResults = allSupportDepList.getNoHaveList();
                             RecipeResultBean recipeResultBean = recipePatientService.findUnSupportDepList(recipeId, drugEnterpriseResults);
                             if (RecipeResultBean.FAIL.equals(recipeResultBean.getCode())) {
                                 enterpriseDrugName = (List<String>) recipeResultBean.getObject();
@@ -327,6 +324,9 @@ public class RecipeBusinessService extends BaseService {
                     return rMap;
                 }
                 break;
+            default:
+                break;
+
         }
 
         // 校验开方是否可以继续
@@ -338,14 +338,15 @@ public class RecipeBusinessService extends BaseService {
 
     /**
      * 获取所有 药企 查询库存信息
+     *
      * @param recipeId
      * @param organId
      * @return
      */
-    public Map<Integer, Object> findAllSupportDepList(Integer recipeId, int organId) {
+    public SupportDepListBean findAllSupportDepList(Integer recipeId, int organId) {
         List<DrugsEnterprise> haveList = new ArrayList<>();
         List<DrugEnterpriseResult> noHaveList = new ArrayList<>();
-        Map<Integer, Object> map = new HashMap<>();
+        SupportDepListBean supportDepListBean = new SupportDepListBean();
 
         //线上支付能力判断
         boolean hisStatus = iHisConfigService.isHisEnable(organId);
@@ -368,13 +369,13 @@ public class RecipeBusinessService extends BaseService {
             }
         } else {
             logger.error("findUnSupportDepList 所有药品计量为null. recipeId=[{}]", recipeId);
-            return map;
+            return supportDepListBean;
         }
 
         List<Integer> drugIds = recipeDetailDAO.findDrugIdByRecipeId(recipeId);
         if (CollectionUtils.isEmpty(drugIds)) {
             logger.error("findUnSupportDepList 处方[{}]没有任何药品！", recipeId);
-            return map;
+            return supportDepListBean;
         }
 
         List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByOrganId(organId);
@@ -428,9 +429,9 @@ public class RecipeBusinessService extends BaseService {
             noHaveList.clear();
         }
 
-        map.put(1, haveList);
-        map.put(2, noHaveList);
-        return map;
+        supportDepListBean.setHaveList(haveList);
+        supportDepListBean.setNoHaveList(noHaveList);
+        return supportDepListBean;
     }
 
 
