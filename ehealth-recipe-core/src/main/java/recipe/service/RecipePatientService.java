@@ -613,14 +613,32 @@ public class RecipePatientService extends RecipeBaseService {
         if (patient == null) {
             throw new DAOException(609, "找不到该患者");
         }
+        //添加复诊ID
+        IRevisitExService consultExService = RevisitAPI.getService(IRevisitExService.class);
+        //TODO 72571 【实施】【上海市皮肤病医院】【A】【BUG】线上处方页患者医保类型不正确,临时个性化解决 机构ID：1003983
+        if (organId == 1003983)  {
+            if (null != clinicId) {
+                RevisitExDTO consultExDTO = consultExService.getByConsultId(clinicId);
+                if (consultExDTO != null) {
+                    PatientQueryRequestTO result = new PatientQueryRequestTO();
+                    if (null != consultExDTO.getMedicalFlag() && new Integer(1).equals(consultExDTO.getMedicalFlag())) {
+                        result.setMedicalType("2");
+                        result.setMedicalTypeText("医保");
+                    } else {
+                        result.setMedicalType("1");
+                        result.setMedicalTypeText("自费");
+                    }
+                    return result;
+                }
+            }
+        }
         try {
             PatientQueryRequestTO req = new PatientQueryRequestTO();
             req.setOrgan(organId);
             req.setPatientName(patient.getPatientName());
             req.setCertificateType(patient.getCertificateType());
             req.setCertificate(patient.getCertificate());
-            //添加复诊ID
-            IRevisitExService consultExService = RevisitAPI.getService(IRevisitExService.class);
+
             if (clinicId != null) {
                 RevisitExDTO consultExDTO = consultExService.getByConsultId(clinicId);
                 if (consultExDTO != null) {
