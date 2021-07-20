@@ -38,7 +38,7 @@ public class DrugStockClient extends BaseClient {
         // 拼装请求参数
         DrugInfoRequestTO request = scanDrugStockRequest(detailList, organId, organDrugList, pharmacyTcms);
         logger.info("scanDrugStock request={}", JSONUtils.toString(request));
-        DrugInfoResponseTO response = null;
+        DrugInfoResponseTO response;
         try {
             response = recipeHisService.scanDrugStock(request);
             logger.info("scanDrugStock response={}", JSONUtils.toString(response));
