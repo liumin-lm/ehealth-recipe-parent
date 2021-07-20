@@ -108,7 +108,7 @@ public class OfflineToOnlineAtop extends BaseAtop {
             //获取对应的status
             if(StringUtils.isEmpty(request.getStatus())){
                 String status=offlineToOnlineService.attachHisRecipeStatus(request.getMpiId(),request.getOrganId(), request.getRecipeCode());
-                request.setMpiId(status);
+                request.setStatus(status);
             }
             IOfflineToOnlineService offlineToOnlineService = offlineToOnlineFactory.getFactoryService(request.getStatus());
             return offlineToOnlineService.findHisRecipeDetail(request);
