@@ -3,17 +3,20 @@ package recipe.client;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
-import com.ngari.recipe.entity.Recipe;
+import com.ngari.patient.service.OrganConfigService;
 import ctd.persistence.exception.DAOException;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.constant.ErrorCode;
 import recipe.util.ByteUtils;
 import recipe.util.RecipeUtil;
 
+import javax.annotation.Resource;
 import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
@@ -24,8 +27,12 @@ import java.util.Objects;
  */
 @Service
 public class IConfigurationClient extends BaseClient {
-    @Autowired
+    @Resource
     private IConfigurationCenterUtilsService configService;
+    @Resource
+    private OrganConfigService organConfigService;
+    @Resource
+    private IHisConfigService hisConfigService;
 
     /**
      * 根据配置获取 配置项值，捕获异常时返回默认值
@@ -150,6 +157,54 @@ public class IConfigurationClient extends BaseClient {
     }
 
     /**
+     * 根据配置获取  数组类型 配置项值，捕获异常时返回默认值
+     *
+     * @param organId      机构id
+     * @param key          配置项建
+     * @param defaultValue 配置项默认值报错时返回
+     * @return list
+     */
+    public List<String> getValueListCatch(Integer organId, String key, List<String> defaultValue) {
+        if (CollectionUtils.isEmpty(defaultValue)) {
+            defaultValue = new LinkedList<>();
+        }
+        if (null == organId || StringUtils.isEmpty(key)) {
+            return defaultValue;
+        }
+        try {
+            String[] invalidInfoObject = (String[]) configService.getConfiguration(organId, key);
+            if (null == invalidInfoObject || 0 == invalidInfoObject.length) {
+                return defaultValue;
+            }
+            return Arrays.asList(invalidInfoObject);
+        } catch (Exception e) {
+            logger.error("IConfigurationClient getValueEnumCatch organId:{}, recipeId:{}", organId, key, e);
+            return defaultValue;
+        }
+    }
+
+    /**
+     * 获取 检察药企
+     *
+     * @param organId 机构id
+     * @return
+     */
+    public Integer getCheckEnterpriseByOrganId(Integer organId) {
+        return organConfigService.getCheckEnterpriseByOrganId(organId);
+    }
+
+
+    /**
+     * 医院HIS 是否 启用 F：未启用 T：启用
+     *
+     * @param organId
+     * @return
+     */
+    public boolean isHisEnable(Integer organId) {
+        return hisConfigService.isHisEnable(organId);
+    }
+
+    /**
      * 获取用药天数
      *
      * @param organId      机构id
@@ -193,29 +248,6 @@ public class IConfigurationClient extends BaseClient {
         }
         logger.info("IConfigurationClient recipeDay recipeDay= {}", JSON.toJSONString(recipeDay));
         return recipeDay;
-    }
-
-    /**
-     * 判断是否需要对接HIS----根据运营平台配置处方类型是否跳过his
-     *
-     * @param recipe
-     * @return
-     */
-    public boolean skipHis(Recipe recipe) {
-        try {
-            String[] recipeTypes = (String[]) configService.getConfiguration(recipe.getClinicOrgan(), "getRecipeTypeToHis");
-            List<String> recipeTypelist = Arrays.asList(recipeTypes);
-            if (recipeTypelist.contains(Integer.toString(recipe.getRecipeType()))) {
-                return false;
-            }
-        } catch (Exception e) {
-            logger.error("skipHis error " + e.getMessage(), e);
-            //按原来流程走-西药中成药默认对接his
-            if (!RecipeUtil.isTcmType(recipe.getRecipeType())) {
-                return false;
-            }
-        }
-        return true;
     }
 
     /**

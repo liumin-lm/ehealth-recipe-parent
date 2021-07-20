@@ -33,18 +33,17 @@ import java.util.stream.Collectors;
 @Service
 public class DrugStockManager extends BaseManager {
 
+    @Resource
+    private RecipeDAO recipeDAO;
+
+    @Resource
+    private RecipeDetailDAO recipeDetailDAO;
 
     @Resource
     private IConfigurationClient configurationClient;
 
     @Resource
-    private IHisConfigService iHisConfigService;
-
-    @Resource
     private DrugStockClient drugStockClient;
-
-    @Resource
-    private OrganDrugListDAO drugDao;
 
     @Resource
     private PharmacyTcmDAO pharmacyTcmDAO;
@@ -58,6 +57,12 @@ public class DrugStockManager extends BaseManager {
     @Autowired
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
 
+    /**
+     * 检查开处方是否需要进行药企库存校验
+     *
+     * @param organId
+     * @return true:需要校验  false:不需要校验
+     */
     @Resource
     private SaleDrugListDAO saleDrugListDAO;
 
@@ -87,16 +92,13 @@ public class DrugStockManager extends BaseManager {
      * @return
      */
     public boolean checkEnterprise(Integer organId) {
-        Integer checkEnterprise = organConfigService.getCheckEnterpriseByOrganId(organId);
+        Integer checkEnterprise = configurationClient.getCheckEnterpriseByOrganId(organId);
         if (ValidateUtil.integerIsEmpty(checkEnterprise)) {
             return false;
         }
         //获取机构配置的药企是否存在 如果有则需要校验 没有则不需要
         List<DrugsEnterprise> enterprise = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
-        if (CollectionUtils.isEmpty(enterprise)) {
-            return false;
-        }
-        return true;
+        return CollectionUtils.isNotEmpty(enterprise);
     }
 
 
@@ -142,57 +144,57 @@ public class DrugStockManager extends BaseManager {
         }
 
         // 判断是否需要对接HIS
-        if (configurationClient.skipHis(recipe)) {
+        List<String> recipeTypes = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "getRecipeTypeToHis", null);
+        if (!recipeTypes.contains(Integer.toString(recipe.getRecipeType()))) {
             return result;
         }
 
-        // 判断his 是否存在
-        if (iHisConfigService.isHisEnable(recipe.getClinicOrgan())) {
-            Set<Integer> pharmaIds = new HashSet<>();
-            AtomicReference<Boolean> organDrugCodeFlag = new AtomicReference<>(false);
-            List<Integer> drugIdList = detailList.stream().map(detail -> {
-                pharmaIds.add(detail.getPharmacyId());
-                if (StringUtils.isEmpty(detail.getOrganDrugCode())) {
-                    organDrugCodeFlag.set(true);
-                }
-                return detail.getDrugId();
-            }).collect(Collectors.toList());
-
-            // 医院配置药品不能存在机构药品编号为空的情况
-            if (organDrugCodeFlag.get()) {
-                logger.warn("scanDrugStock 医院配置药品存在编号为空的数据.");
-                result.setCode(RecipeResultBean.FAIL);
-                result.setError("医院配置药品存在编号为空的数据");
-                return result;
-            }
-
-            // 请求his
-            List<OrganDrugList> organDrugList = drugDao.findByOrganIdAndDrugIds(recipe.getClinicOrgan(), drugIdList);
-            List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(pharmaIds);
-            DrugInfoResponseTO response = drugStockClient.scanDrugStock(detailList, recipe.getClinicOrgan(), organDrugList, pharmacyTcmByIds);
-            if (null == response) {
-                //his未配置该服务则还是可以通过
-                result.setError("HIS返回为NULL");
-            } else {
-                if (!Integer.valueOf(0).equals(response.getMsgCode())) {
-                    String organCodeStr = response.getMsg();
-                    List<String> nameList = new ArrayList<>();
-                    if (StringUtils.isNotEmpty(organCodeStr)) {
-                        List<String> organCodes = Arrays.asList(organCodeStr.split(","));
-                        nameList = organDrugListDAO.findNameByOrganIdAndDrugCodes(recipe.getClinicOrgan(), organCodes);
-                    }
-                    String showMsg = "由于" + Joiner.on(",").join(nameList) + "门诊药房库存不足，该处方仅支持配送，无法到院取药，是否继续？";
-                    result.setCode(RecipeResultBean.FAIL);
-                    result.setError(showMsg);
-                    result.setExtendValue("1");
-                    result.setObject(nameList);
-                    logger.warn("scanDrugStock 存在无库存药品. response={} ", JSONUtils.toString(response));
-                }
-            }
-        } else {
+        if (!configurationClient.isHisEnable(recipe.getClinicOrgan())) {
             result.setCode(RecipeResultBean.FAIL);
             result.setError("医院HIS未启用。");
-            logger.warn("scanDrugStock 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
+            logger.info("scanDrugStock 医院HIS未启用 organId: {}", recipe.getClinicOrgan());
+            return result;
+        }
+        // 判断his 是否存在
+        Set<Integer> pharmaIds = new HashSet<>();
+        AtomicReference<Boolean> organDrugCodeFlag = new AtomicReference<>(false);
+        List<Integer> drugIdList = detailList.stream().map(detail -> {
+            pharmaIds.add(detail.getPharmacyId());
+            if (StringUtils.isEmpty(detail.getOrganDrugCode())) {
+                organDrugCodeFlag.set(true);
+            }
+            return detail.getDrugId();
+        }).collect(Collectors.toList());
+        // 医院配置药品不能存在机构药品编号为空的情况
+        if (organDrugCodeFlag.get()) {
+            logger.warn("scanDrugStock 医院配置药品存在编号为空的数据.");
+            result.setCode(RecipeResultBean.FAIL);
+            result.setError("医院配置药品存在编号为空的数据");
+            return result;
+        }
+
+        // 请求his
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(recipe.getClinicOrgan(), drugIdList);
+        List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(pharmaIds);
+        DrugInfoResponseTO response = drugStockClient.scanDrugStock(detailList, recipe.getClinicOrgan(), organDrugList, pharmacyTcmByIds);
+        if (null == response) {
+            //his未配置该服务则还是可以通过
+            result.setError("HIS返回为NULL");
+            return result;
+        }
+        if (0 != response.getMsgCode()) {
+            String organCodeStr = response.getMsg();
+            List<String> nameList = new ArrayList<>();
+            if (StringUtils.isNotEmpty(organCodeStr)) {
+                List<String> organCodes = Arrays.asList(organCodeStr.split(","));
+                nameList = organDrugListDAO.findNameByOrganIdAndDrugCodes(recipe.getClinicOrgan(), organCodes);
+            }
+            result.setObject(nameList);
+            String showMsg = "由于" + Joiner.on(",").join(nameList) + "门诊药房库存不足，该处方仅支持配送，无法到院取药，是否继续？";
+            result.setError(showMsg);
+            result.setExtendValue("1");
+            result.setCode(RecipeResultBean.FAIL);
+            logger.warn("scanDrugStock 存在无库存药品. response={} ", JSONUtils.toString(response));
         }
         logger.info("scanDrugStock 结果={}", JSONObject.toJSONString(result));
         return result;
