@@ -1,8 +1,10 @@
 package recipe.manager;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
 import com.ngari.base.hisconfig.service.IHisConfigService;
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoResponseTO;
 import com.ngari.patient.service.OrganConfigService;
 import com.ngari.platform.recipe.mode.RecipeResultBean;
@@ -31,11 +33,6 @@ import java.util.stream.Collectors;
 @Service
 public class DrugStockManager extends BaseManager {
 
-    @Resource
-    private RecipeDAO recipeDAO;
-
-    @Resource
-    private RecipeDetailDAO recipeDetailDAO;
 
     @Resource
     private IConfigurationClient configurationClient;
@@ -54,11 +51,41 @@ public class DrugStockManager extends BaseManager {
 
     @Resource
     private OrganDrugListDAO organDrugListDAO;
+
     @Autowired
     private OrganConfigService organConfigService;
+
     @Autowired
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
 
+    @Resource
+    private SaleDrugListDAO saleDrugListDAO;
+
+
+    /**
+     * 药企库存
+     * @param recipe
+     * @param drugsEnterprise
+     * @param recipeDetails
+     * @return
+     */
+    public Integer scanEnterpriseDrugStock(Recipe recipe,DrugsEnterprise drugsEnterprise,List<Recipedetail> recipeDetails){
+        List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds( drugsEnterprise.getId(),drugIds);
+        HisResponseTO hisResponseTO = drugStockClient.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails, saleDrugLists);
+        if (hisResponseTO != null && hisResponseTO.isSuccess()) {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
+
+
+    /**
+     * 检查机构配置下的药企
+     * @param organId
+     * @return
+     */
     public boolean checkEnterprise(Integer organId) {
         Integer checkEnterprise = organConfigService.getCheckEnterpriseByOrganId(organId);
         if (ValidateUtil.integerIsEmpty(checkEnterprise)) {
@@ -76,18 +103,19 @@ public class DrugStockManager extends BaseManager {
     /**
      * 校验医院库存
      *
-     * @param recipeId
+     * @param recipe
+     * @param recipeDetails
      * @return
      */
-    public RecipeResultBean scanDrugStockByRecipeId(Integer recipeId) {
-        logger.info("scanHisDrugStockByRecipeId req recipeId={}", recipeId);
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+    public RecipeResultBean scanDrugStockByRecipeId(Recipe recipe,List<Recipedetail> recipeDetails) {
+        logger.info("scanHisDrugStockByRecipeId req recipe={}  recipeDetails = {}", JSONArray.toJSONString(recipe),JSONArray.toJSONString(recipeDetails));
         if (Integer.valueOf(1).equals(recipe.getTakeMedicine())) {
             //外带药处方则不进行校验
             return RecipeResultBean.getSuccess();
         }
-        return scanDrugStock(recipe, recipeDetailDAO.findByRecipeId(recipeId));
+        return scanDrugStock(recipe, recipeDetails);
     }
+
 
 
     /**

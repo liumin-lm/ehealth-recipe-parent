@@ -15,6 +15,7 @@ import recipe.util.RecipeUtil;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 获取配置项 交互处理类
@@ -68,6 +69,30 @@ public class IConfigurationClient extends BaseClient {
                 return defaultValue;
             }
             return Integer.parseInt(value);
+        } catch (Exception e) {
+            logger.error("IConfigurationClient getValueCatch organId:{}, recipeId:{}", organId, key, e);
+            return defaultValue;
+        }
+    }
+
+    /**
+     * 根据配置获取 配置项值，捕获异常时返回默认值
+     *
+     * @param organId      机构id
+     * @param key          配置项建
+     * @param defaultValue 配置项默认值报错时返回
+     * @return
+     */
+    public Integer getValueCatchReturnInteger(Integer organId, String key, Integer defaultValue) {
+        if (null == organId || StringUtils.isEmpty(key)) {
+            return defaultValue;
+        }
+        try {
+            Integer value = (Integer) configService.getConfiguration(organId, key);
+            if (Objects.isNull(value)) {
+                return defaultValue;
+            }
+            return value;
         } catch (Exception e) {
             logger.error("IConfigurationClient getValueCatch organId:{}, recipeId:{}", organId, key, e);
             return defaultValue;

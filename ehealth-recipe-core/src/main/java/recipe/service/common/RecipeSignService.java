@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
-import recipe.business.RecipeBusinessService;
+import recipe.business.DrugStockBusinessService;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.hisservice.HisMqRequestInit;
@@ -79,7 +79,7 @@ public class RecipeSignService {
     private RecipeExtendDAO recipeExtendDAO;
 
     @Resource
-    private RecipeBusinessService recipeBusinessService;
+    private DrugStockBusinessService drugStockBusinessService;
 
     /**
      * 武昌模式签名方法
@@ -401,7 +401,7 @@ public class RecipeSignService {
             }
             //第三步校验库存
             if (continueFlag == 0 || continueFlag == 4) {
-                rMap = recipeBusinessService.doSignRecipeCheckAndGetGiveMode(recipeBean);
+                rMap = drugStockBusinessService.doSignRecipeCheckAndGetGiveMode(recipeBean);
                 Boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
                 if (signResult != null && false == signResult) {
                     return rMap;

@@ -1,20 +1,26 @@
 package recipe.client;
 
+import com.alibaba.fastjson.JSONObject;
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
-import com.ngari.recipe.entity.OrganDrugList;
-import com.ngari.recipe.entity.PharmacyTcm;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.his.recipe.service.IRecipeEnterpriseService;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.DrugsEnterpriseBean;
+import com.ngari.platform.recipe.mode.ScanDrugListBean;
+import com.ngari.platform.recipe.mode.ScanRequestBean;
+import com.ngari.recipe.entity.*;
+import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import javax.annotation.Resource;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 /**
@@ -24,6 +30,9 @@ import java.util.stream.Collectors;
  */
 @Service
 public class DrugStockClient extends BaseClient {
+
+    @Resource
+    private IRecipeEnterpriseService recipeEnterpriseService;
 
     /**
      * 调用his接口查询医院库存
@@ -49,6 +58,23 @@ public class DrugStockClient extends BaseClient {
             response.setMsgCode(1);
         }
         return response;
+    }
+
+    /**
+     * 查询由前置机对接的药企库存信息
+     *
+     * @param recipe
+     * @param drugsEnterprise
+     * @param recipeDetails
+     * @param saleDrugLists
+     * @return
+     */
+    public HisResponseTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, List<SaleDrugList> saleDrugLists) {
+        ScanRequestBean scanRequestBean = getScanRequestBean(recipe, drugsEnterprise, recipeDetails, saleDrugLists);
+        logger.info("findUnSupportDrugEnterprise-scanStock scanRequestBean:{}.", JSONUtils.toString(scanRequestBean));
+        HisResponseTO responseTO = recipeEnterpriseService.scanStock(scanRequestBean);
+        logger.info("findUnSupportDrugEnterprise recipeId={},前置机调用查询结果={}", recipe.getRecipeId(), JSONObject.toJSONString(responseTO));
+        return responseTO;
     }
 
 
@@ -99,6 +125,40 @@ public class DrugStockClient extends BaseClient {
         request.setData(data);
 
         return request;
+    }
+
+    /**
+     * 拼装 前置机请求 request
+     *
+     * @param recipe
+     * @param drugsEnterprise
+     * @return
+     */
+    private ScanRequestBean getScanRequestBean(Recipe recipe, DrugsEnterprise drugsEnterprise,
+                                               List<Recipedetail> recipedetails, List<SaleDrugList> saleDrugLists) {
+        ScanRequestBean scanRequestBean = new ScanRequestBean();
+        Map<Integer, List<SaleDrugList>> saleDrugListMap = new HashMap<>();
+        if (CollectionUtils.isNotEmpty(saleDrugLists)) {
+            saleDrugListMap = saleDrugLists.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
+        }
+        Map<Integer, List<SaleDrugList>> finalSaleDrugListMap = saleDrugListMap;
+        List<ScanDrugListBean> scanDrugListBeans = recipedetails.stream().map(recipedetail -> {
+            ScanDrugListBean scanDrugListBean = new ScanDrugListBean();
+            List<SaleDrugList> saleDrugLists1 = finalSaleDrugListMap.get(recipedetail.getDrugId());
+            if (CollectionUtils.isNotEmpty(saleDrugLists1) && Objects.nonNull(saleDrugLists1.get(0))) {
+                SaleDrugList saleDrugList = saleDrugLists1.get(0);
+                scanDrugListBean.setDrugCode(saleDrugList.getOrganDrugCode());
+                scanDrugListBean.setTotal(recipedetail.getUseTotalDose().toString());
+                scanDrugListBean.setUnit(recipedetail.getDrugUnit());
+            }
+            return scanDrugListBean;
+        }).collect(Collectors.toList());
+
+        scanRequestBean.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
+        scanRequestBean.setScanDrugListBeans(scanDrugListBeans);
+        scanRequestBean.setOrganId(recipe.getClinicOrgan());
+        logger.info("getScanRequestBean scanRequestBean:{}.", JSONUtils.toString(scanRequestBean));
+        return scanRequestBean;
     }
 
 }
