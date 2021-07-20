@@ -6,11 +6,13 @@ import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.his.recipe.mode.DrugInfoRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
+import com.ngari.patient.service.OrganConfigService;
 import com.ngari.platform.recipe.mode.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DrugStockClient;
 import recipe.client.IConfigurationClient;
@@ -52,7 +54,23 @@ public class DrugStockManager extends BaseManager {
 
     @Resource
     private OrganDrugListDAO organDrugListDAO;
+    @Autowired
+    private OrganConfigService organConfigService;
+    @Autowired
+    private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
 
+    public boolean checkEnterprise(Integer organId) {
+        Integer checkEnterprise = organConfigService.getCheckEnterpriseByOrganId(organId);
+        if (0 == checkEnterprise) {
+            return false;
+        }
+        //获取机构配置的药企是否存在 如果有则需要校验 没有则不需要
+        List<DrugsEnterprise> enterprise = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
+        if (CollectionUtils.isEmpty(enterprise)) {
+            return false;
+        }
+        return true;
+    }
 
     /**
      * 校验医院库存

@@ -2,10 +2,7 @@ package recipe.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
-import com.ngari.opbase.auth.service.ISecurityService;
 import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.OrganConfigService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
@@ -15,7 +12,6 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
 import com.ngari.recipe.recipe.constant.RecipeSupportGiveModeEnum;
-import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
 import ctd.account.UserRoleToken;
@@ -33,22 +29,20 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 import recipe.ApplicationUtils;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.ErrorCode;
-import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
+import recipe.manager.DrugStockManager;
 import recipe.service.drugs.IDrugEnterpriseLogisticsService;
 import recipe.serviceprovider.BaseService;
 
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * 药企相关接口
@@ -73,6 +67,8 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
     private OrganDrugListDAO organDrugListDAO;
     @Resource
     private RecipeService recipeService;
+    @Autowired
+    private DrugStockManager drugStockManager;
 
     /**
      * 有效药企查询 status为1
@@ -481,16 +477,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
      */
     @RpcService
     public boolean checkEnterprise(Integer organId) {
-        OrganConfigService organConfigService = BasicAPI.getService(OrganConfigService.class);
-        Integer checkEnterprise = organConfigService.getCheckEnterpriseByOrganId(organId);
-        //获取机构配置的药企是否存在 如果有则需要校验 没有则不需要
-        OrganAndDrugsepRelationDAO dao = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-        List<DrugsEnterprise> enterprise = dao.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
-        if (Integer.valueOf(0).equals(checkEnterprise) || CollectionUtils.isEmpty(enterprise)) {
-            return false;
-        }
-
-        return true;
+        return drugStockManager.checkEnterprise(organId);
     }
 
     /**
