@@ -37,6 +37,7 @@ import recipe.service.DrugsEnterpriseService;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipePatientService;
 import recipe.service.RecipeServiceSub;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
@@ -47,7 +48,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
- * @description：
+ * @description： 处方业务 service
  * @author： whf
  * @date： 2021-07-19 15:41
  */
@@ -149,16 +150,33 @@ public class RecipeBusinessService extends BaseService {
 
         // 保存药品购药方式
         List<DrugsEnterprise> supportDepList = allSupportDepList.getHaveList();
-        List<Integer> recipeGiveMode = drugsEnterpriseService.getRecipeGiveMode(scanResult, supportDepList, checkFlag, recipeId, recipe.getClinicOrgan(), configurations);
-        if (CollectionUtils.isNotEmpty(recipeGiveMode)) {
-            Map<String, Object> attMap = new HashMap<>();
-            String join = StringUtils.join(recipeGiveMode, ",");
-            attMap.put("recipeSupportGiveMode", join);
-            recipeDAO.updateRecipeInfoByRecipeId(recipeId, attMap);
-        }
+        saveGiveMode(scanResult, supportDepList, checkFlag, recipeId, recipe.getClinicOrgan(), configurations);
 
         // 校验库存,看能否继续开方
         return MapValueUtil.beanToMap(getResMap(checkFlag, scanResult, recipe, allSupportDepList));
+    }
+
+    /**
+     * 异步保存处方购药方式
+     *
+     * @param scanResult
+     * @param supportDepList
+     * @param checkFlag
+     * @param recipeId
+     * @param organId
+     * @param configurations
+     */
+    private void saveGiveMode(com.ngari.platform.recipe.mode.RecipeResultBean scanResult, List<DrugsEnterprise> supportDepList, int checkFlag, Integer recipeId, int organId, List<String> configurations) {
+        RecipeBusiThreadPool.execute(() -> {
+            List<Integer> recipeGiveMode = drugsEnterpriseService.getRecipeGiveMode(scanResult, supportDepList, checkFlag, recipeId, organId, configurations);
+            if (CollectionUtils.isNotEmpty(recipeGiveMode)) {
+                Map<String, Object> attMap = new HashMap<>();
+                String join = StringUtils.join(recipeGiveMode, ",");
+                attMap.put("recipeSupportGiveMode", join);
+                recipeDAO.updateRecipeInfoByRecipeId(recipeId, attMap);
+            }
+        });
+
     }
 
     /**
