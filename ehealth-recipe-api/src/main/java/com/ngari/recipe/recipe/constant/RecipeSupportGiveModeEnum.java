@@ -1,5 +1,10 @@
 package com.ngari.recipe.recipe.constant;
 
+import org.apache.commons.collections.CollectionUtils;
+
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * @description： 处方支持的购药方式
  * @author： whf
@@ -56,14 +61,6 @@ public enum RecipeSupportGiveModeEnum {
         this.name = name;
     }
 
-    public static RecipeSupportGiveModeEnum getRecipeSupportGiveModeEnum(Integer type) {
-        for (RecipeSupportGiveModeEnum e : RecipeSupportGiveModeEnum.values()) {
-            if (e.getType().equals(type)) {
-                return e;
-            }
-        }
-        return null;
-    }
 
     public String getText() {
         return text;
@@ -75,5 +72,30 @@ public enum RecipeSupportGiveModeEnum {
 
     public String getName() {
         return name;
+    }
+
+    private static List<String> enterpriseList = Arrays.asList(SHOW_SEND_TO_HOS.text, SHOW_SEND_TO_ENTERPRISES.text, SUPPORT_TFDS.text);
+
+    /**
+     * 校验何种类型库存
+     *
+     * @param configurations 按钮
+     * @return
+     */
+    public static Integer checkFlag(List<String> configurations) {
+        if (CollectionUtils.isEmpty(configurations)) {
+            return 0;
+        }
+        int hospital = 0;
+        int enterprise = 0;
+        for (String a : configurations) {
+            if (SUPPORT_TO_HOS.getText().equals(a)) {
+                hospital = 1;
+            }
+            if (enterpriseList.contains(a)) {
+                enterprise = 2;
+            }
+        }
+        return hospital + enterprise;
     }
 }

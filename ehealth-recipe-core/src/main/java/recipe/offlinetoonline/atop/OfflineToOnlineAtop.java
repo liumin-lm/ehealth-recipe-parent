@@ -24,6 +24,7 @@ import recipe.offlinetoonline.vo.FindHisRecipeDetailReqVO;
 import recipe.offlinetoonline.vo.FindHisRecipeDetailResVO;
 import recipe.offlinetoonline.vo.FindHisRecipeListVO;
 import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
+import recipe.service.OfflineToOnlineService;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import javax.validation.Valid;
@@ -48,6 +49,9 @@ public class OfflineToOnlineAtop extends BaseAtop {
     @Autowired
     @Qualifier("basic.patientService")
     PatientService patientService;
+
+    @Autowired
+    OfflineToOnlineService offlineToOnlineService;
 
     /**
      * 获取线下处方列表
@@ -101,6 +105,11 @@ public class OfflineToOnlineAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
         }
         try {
+            //获取对应的status
+            if(StringUtils.isEmpty(request.getStatus())){
+                String status=offlineToOnlineService.attachHisRecipeStatus(request.getMpiId(),request.getOrganId(), request.getRecipeCode());
+                request.setStatus(status);
+            }
             IOfflineToOnlineService offlineToOnlineService = offlineToOnlineFactory.getFactoryService(request.getStatus());
             return offlineToOnlineService.findHisRecipeDetail(request);
         } catch (DAOException e) {

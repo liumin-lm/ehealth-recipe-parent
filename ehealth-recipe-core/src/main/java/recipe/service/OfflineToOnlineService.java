@@ -1831,4 +1831,37 @@ public class OfflineToOnlineService {
     }
 
 
+    /**
+     * 根据处方号获取状态
+     * @param mpiId         患者mpiid
+     * @param organCode     查询机构
+     * @param recipeCode    查询处方号
+     * @return
+     */
+    public String attachHisRecipeStatus(String mpiId,Integer organCode, String recipeCode) {
+        LOGGER.info("attachHisRecipeStatus param mpiId:{},organCode:{},recipeCode:{}",mpiId,organCode,recipeCode);
+        String status="";
+        HisRecipe hisRecipe=hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId,organCode,recipeCode);
+        if(hisRecipe!=null){
+            //已处理
+            if(OfflineToOnlineEnum.OFFLINE_TO_ONLINE_ALREADY_PAY.getType().equals(hisRecipe.getStatus())){
+                status=OfflineToOnlineEnum.OFFLINE_TO_ONLINE_ALREADY_PAY.getName();
+            }
+            //待处理或进行中
+            if(OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType().equals(hisRecipe.getStatus())){
+                Recipe recipe=recipeDAO.getByHisRecipeCodeAndClinicOrganAndMpiid(mpiId,recipeCode,organCode);
+                if(recipe!=null&&!StringUtils.isEmpty(recipe.getOrderCode())){
+                    status=OfflineToOnlineEnum.OFFLINE_TO_ONLINE_ONGOING.getName();
+                }else{
+                    status=OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getName();
+                }
+            }
+        }
+        if(StringUtils.isEmpty(status)){
+            LOGGER.info("attachHisRecipeStatus 根据处方单号获取不到状态");
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "参数异常，请刷新页面后重试");
+        }
+        LOGGER.info("attachHisRecipeStatus res status:{}",status);
+        return status;
+    }
 }

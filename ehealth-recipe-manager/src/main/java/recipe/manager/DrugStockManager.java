@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import recipe.client.DrugStockClient;
 import recipe.client.IConfigurationClient;
 import recipe.dao.*;
+import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -60,7 +61,7 @@ public class DrugStockManager extends BaseManager {
 
     public boolean checkEnterprise(Integer organId) {
         Integer checkEnterprise = organConfigService.getCheckEnterpriseByOrganId(organId);
-        if (0 == checkEnterprise) {
+        if (ValidateUtil.integerIsEmpty(checkEnterprise)) {
             return false;
         }
         //获取机构配置的药企是否存在 如果有则需要校验 没有则不需要
@@ -70,6 +71,7 @@ public class DrugStockManager extends BaseManager {
         }
         return true;
     }
+
 
     /**
      * 校验医院库存
