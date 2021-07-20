@@ -104,7 +104,7 @@ public class DrugStockManager extends BaseManager {
             AtomicReference<Boolean> organDrugCodeFlag = new AtomicReference<>(false);
             List<Integer> drugIdList = detailList.stream().map(detail -> {
                 pharmaIds.add(detail.getPharmacyId());
-                if(StringUtils.isEmpty(detail.getOrganDrugCode())) {
+                if (StringUtils.isEmpty(detail.getOrganDrugCode())) {
                     organDrugCodeFlag.set(true);
                 }
                 return detail.getDrugId();
@@ -112,7 +112,7 @@ public class DrugStockManager extends BaseManager {
 
             // 医院配置药品不能存在机构药品编号为空的情况
             if (organDrugCodeFlag.get()) {
-                logger.error("scanDrugStock 医院配置药品存在编号为空的数据.");
+                logger.warn("scanDrugStock 医院配置药品存在编号为空的数据.");
                 result.setCode(RecipeResultBean.FAIL);
                 result.setError("医院配置药品存在编号为空的数据");
                 return result;
@@ -138,13 +138,13 @@ public class DrugStockManager extends BaseManager {
                     result.setError(showMsg);
                     result.setExtendValue("1");
                     result.setObject(nameList);
-                    logger.error("scanDrugStock 存在无库存药品. response={} ", JSONUtils.toString(response));
+                    logger.warn("scanDrugStock 存在无库存药品. response={} ", JSONUtils.toString(response));
                 }
             }
         } else {
             result.setCode(RecipeResultBean.FAIL);
             result.setError("医院HIS未启用。");
-            logger.error("scanDrugStock 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
+            logger.warn("scanDrugStock 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
         }
         logger.info("scanDrugStock 结果={}", JSONObject.toJSONString(result));
         return result;
