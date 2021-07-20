@@ -7,9 +7,13 @@ package recipe.constant;
  */
 public class OperationConstant {
     /**
-     * pdf模版配置项
+     * pdf模版配置项-中药
      */
-    public static final String OP_CONFIG_PDF = "xxxxxxpdf";
+    public static final String OP_CONFIG_PDF_CHINA = "chinaDrugRecipePdf";
+    /**
+     * pdf模版配置项-西药
+     */
+    public static final String OP_CONFIG_PDF = "drugRecipePdf";
     /**
      * 条形码
      */

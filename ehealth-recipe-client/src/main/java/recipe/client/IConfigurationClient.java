@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.exception.DAOException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,9 @@ import org.springframework.stereotype.Service;
 import recipe.constant.ErrorCode;
 import recipe.util.ByteUtils;
 import recipe.util.RecipeUtil;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * 获取配置项 交互处理类
@@ -40,6 +44,30 @@ public class IConfigurationClient extends BaseClient {
                 return defaultValue;
             }
             return value;
+        } catch (Exception e) {
+            logger.error("IConfigurationClient getValueCatch organId:{}, recipeId:{}", organId, key, e);
+            return defaultValue;
+        }
+    }
+
+    /**
+     * 根据配置获取 配置项值，捕获异常时返回默认值
+     *
+     * @param organId      机构id
+     * @param key          配置项建
+     * @param defaultValue 配置项默认值报错时返回
+     * @return
+     */
+    public Integer getValueCatch(Integer organId, String key, Integer defaultValue) {
+        if (null == organId || StringUtils.isEmpty(key)) {
+            return defaultValue;
+        }
+        try {
+            String value = (String) configService.getConfiguration(organId, key);
+            if (StringUtils.isEmpty(value)) {
+                return defaultValue;
+            }
+            return Integer.parseInt(value);
         } catch (Exception e) {
             logger.error("IConfigurationClient getValueCatch organId:{}, recipeId:{}", organId, key, e);
             return defaultValue;
@@ -143,6 +171,29 @@ public class IConfigurationClient extends BaseClient {
     }
 
     /**
+     * 判断是否需要对接HIS----根据运营平台配置处方类型是否跳过his
+     *
+     * @param recipe
+     * @return
+     */
+    public boolean skipHis(Recipe recipe) {
+        try {
+            String[] recipeTypes = (String[]) configService.getConfiguration(recipe.getClinicOrgan(), "getRecipeTypeToHis");
+            List<String> recipeTypelist = Arrays.asList(recipeTypes);
+            if (recipeTypelist.contains(Integer.toString(recipe.getRecipeType()))) {
+                return false;
+            }
+        } catch (Exception e) {
+            logger.error("skipHis error " + e.getMessage(), e);
+            //按原来流程走-西药中成药默认对接his
+            if (!RecipeUtil.isTcmType(recipe.getRecipeType())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
      * 获取限制开药天数
      *
      * @param organId
@@ -160,5 +211,7 @@ public class IConfigurationClient extends BaseClient {
         return useDaysRange.toString().split(ByteUtils.COMMA);
 
     }
+
+
 
 }

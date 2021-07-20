@@ -1,13 +1,15 @@
 package recipe.util;
 
+import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Maps;
 import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cglib.beans.BeanMap;
 
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
-import java.net.InetAddress;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -53,32 +55,6 @@ public class MapValueUtil {
             } catch (NumberFormatException e) {
                 return null;
             }
-        }
-
-        return null;
-    }
-
-    public static Date getDate(Map<String, ? extends Object> map, String key) {
-        Object obj = getObject(map, key);
-        if (null == obj) {
-            return null;
-        }
-
-        if (obj instanceof Date) {
-            return (Date) obj;
-        }
-
-        return null;
-    }
-
-    public static Float getFloat(Map<String, ? extends Object> map, String key) {
-        Object obj = getObject(map, key);
-        if (null == obj) {
-            return null;
-        }
-
-        if (obj instanceof Float) {
-            return (Float) obj;
         }
 
         return null;
@@ -162,62 +138,6 @@ public class MapValueUtil {
         return map.get(key);
     }
 
-    /**
-     * json 转换为 实体对象
-     *
-     * @param str
-     * @param type
-     * @param <T>
-     * @return
-     */
-    public static <T> T fromJson(String str, Class<T> type) {
-        try {
-            T t = JSONUtils.parse(str, type);
-            return t;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    /**
-     * asciicode 转为中文
-     *
-     * @param asciicode eg:{"code":400002,"msg":"\u7b7e\u540d\u9519\u8bef"}
-     * @return eg:{"code":400002,"msg":"签名错误"}
-     */
-    public static String ascii2native(String asciicode) {
-        String[] asciis = asciicode.split("\\\\u");
-        StringBuilder nativeValue = new StringBuilder(asciis[0]);
-        try {
-            for (int i = 1; i < asciis.length; i++) {
-                String code = asciis[i];
-                nativeValue.append((char) Integer.parseInt(code.substring(0, 4), 16));
-                if (code.length() > 4) {
-                    nativeValue.append(code.substring(4, code.length()));
-                }
-            }
-        } catch (NumberFormatException e) {
-            return asciicode;
-        }
-        return nativeValue.toString();
-    }
-
-    /**
-     * 获取当前执行程序的本机地址
-     *
-     * @return
-     */
-    public static String getLocalHostIP() {
-        String localhostIP = null;
-        try {
-            localhostIP = InetAddress.getLocalHost().getHostAddress();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return localhostIP;
-    }
-
 
     /**
      * 根据字段名获取 对象中的get值
@@ -273,6 +193,25 @@ public class MapValueUtil {
         Map<String, Integer> map = new HashMap<>(strArray.length);
         for (int i = 0; i < strArray.length; i++) {
             map.put(strArray[i], i);
+        }
+        return map;
+    }
+
+    /**
+     * 对象转map
+     *
+     * @param bean
+     * @param <T>
+     * @return
+     */
+    public static <T> Map<String, Object> beanToMap(T bean) {
+        logger.info("MapValueUtil beanToMap bean :{}", JSON.toJSONString(bean));
+        Map<String, Object> map = Maps.newHashMap();
+        if (bean != null) {
+            BeanMap beanMap = BeanMap.create(bean);
+            for (Object key : beanMap.keySet()) {
+                map.put(key.toString(), beanMap.get(key));
+            }
         }
         return map;
     }
