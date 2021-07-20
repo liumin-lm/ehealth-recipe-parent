@@ -3,9 +3,7 @@ package recipe.manager;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
 import com.ngari.base.hisconfig.service.IHisConfigService;
-import com.ngari.his.recipe.mode.DrugInfoRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoResponseTO;
-import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.platform.recipe.mode.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import ctd.util.JSONUtils;
@@ -18,6 +16,7 @@ import recipe.dao.*;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 
@@ -88,35 +87,41 @@ public class DrugStockManager extends BaseManager {
             return result;
         }
 
-        // 判断是否需要对接HIS
-        if (configurationClient.skipHis(recipe)) {
-            return result;
-        }
-
         if (CollectionUtils.isEmpty(detailList)) {
             result.setCode(RecipeResultBean.FAIL);
             result.setError("处方没有详情");
             return result;
         }
 
+        // 判断是否需要对接HIS
+        if (configurationClient.skipHis(recipe)) {
+            return result;
+        }
+
         // 判断his 是否存在
         if (iHisConfigService.isHisEnable(recipe.getClinicOrgan())) {
-            List<Integer> emptyOrganCode = new ArrayList<>();
-            for (Recipedetail detail : detailList) {
-                if (StringUtils.isEmpty(detail.getOrganDrugCode())) {
-                    emptyOrganCode.add(detail.getDrugId());
+            Set<Integer> pharmaIds = new HashSet<>();
+            AtomicReference<Boolean> organDrugCodeFlag = new AtomicReference<>(false);
+            List<Integer> drugIdList = detailList.stream().map(detail -> {
+                pharmaIds.add(detail.getPharmacyId());
+                if(StringUtils.isEmpty(detail.getOrganDrugCode())) {
+                    organDrugCodeFlag.set(true);
                 }
-            }
-            if (CollectionUtils.isNotEmpty(emptyOrganCode)) {
-                logger.error("scanDrugStock 医院配置药品存在编号为空的数据. drugIdList={}", JSONUtils.toString(emptyOrganCode));
+                return detail.getDrugId();
+            }).collect(Collectors.toList());
+
+            // 医院配置药品不能存在机构药品编号为空的情况
+            if (organDrugCodeFlag.get()) {
+                logger.error("scanDrugStock 医院配置药品存在编号为空的数据.");
                 result.setCode(RecipeResultBean.FAIL);
                 result.setError("医院配置药品存在编号为空的数据");
                 return result;
             }
 
-            DrugInfoRequestTO request = scanDrugStock(detailList, recipe.getClinicOrgan());
             // 请求his
-            DrugInfoResponseTO response = drugStockClient.scanDrugStock(request);
+            List<OrganDrugList> organDrugList = drugDao.findByOrganIdAndDrugIds(recipe.getClinicOrgan(), drugIdList);
+            List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(pharmaIds);
+            DrugInfoResponseTO response = drugStockClient.scanDrugStock(detailList, recipe.getClinicOrgan(), organDrugList, pharmacyTcmByIds);
             if (null == response) {
                 //his未配置该服务则还是可以通过
                 result.setError("HIS返回为NULL");
@@ -144,55 +149,4 @@ public class DrugStockManager extends BaseManager {
         logger.info("scanDrugStock 结果={}", JSONObject.toJSONString(result));
         return result;
     }
-
-
-    /**
-     * 拼装 his 库存请求参数
-     *
-     * @param detailList
-     * @param organId
-     * @return
-     */
-    private DrugInfoRequestTO scanDrugStock(List<Recipedetail> detailList, int organId) {
-        if (CollectionUtils.isEmpty(detailList)) {
-            return null;
-        }
-        DrugInfoRequestTO request = new DrugInfoRequestTO();
-        request.setOrganId(organId);
-        List<Integer> drugIdList = detailList.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
-
-        List<OrganDrugList> organDrugList = drugDao.findByOrganIdAndDrugIds(organId, drugIdList);
-        Map<String, List<OrganDrugList>> drugIdAndProduce =
-                organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
-
-        List<DrugInfoTO> data = new ArrayList<>(detailList.size());
-        detailList.forEach(a -> {
-            DrugInfoTO drugInfo = new DrugInfoTO(a.getOrganDrugCode());
-            drugInfo.setPack(a.getPack().toString());
-            drugInfo.setPackUnit(a.getDrugUnit());
-            drugInfo.setUseTotalDose(a.getUseTotalDose());
-            List<OrganDrugList> organDrugs = drugIdAndProduce.get(a.getOrganDrugCode());
-            if (CollectionUtils.isNotEmpty(organDrugs)) {
-                Map<Integer, String> producerCodeMap = organDrugs.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, OrganDrugList::getProducerCode));
-                String producerCode = producerCodeMap.get(a.getDrugId());
-                if (StringUtils.isNotEmpty(producerCode)) {
-                    drugInfo.setManfcode(producerCode);
-                }
-            }
-            //药房
-            if (a.getPharmacyId() != null) {
-                PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(a.getPharmacyId());
-                if (pharmacyTcm != null) {
-                    drugInfo.setPharmacyCode(pharmacyTcm.getPharmacyCode());
-                    drugInfo.setPharmacy(pharmacyTcm.getPharmacyName());
-                }
-            }
-            data.add(drugInfo);
-        });
-        request.setData(data);
-
-        return request;
-    }
-
-
 }
