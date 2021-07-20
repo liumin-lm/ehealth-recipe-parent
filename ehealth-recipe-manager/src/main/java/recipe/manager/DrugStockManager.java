@@ -34,12 +34,6 @@ import java.util.stream.Collectors;
 public class DrugStockManager extends BaseManager {
 
     @Resource
-    private RecipeDAO recipeDAO;
-
-    @Resource
-    private RecipeDetailDAO recipeDetailDAO;
-
-    @Resource
     private IConfigurationClient configurationClient;
 
     @Resource
@@ -50,9 +44,6 @@ public class DrugStockManager extends BaseManager {
 
     @Resource
     private OrganDrugListDAO organDrugListDAO;
-
-    @Autowired
-    private OrganConfigService organConfigService;
 
     @Autowired
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
