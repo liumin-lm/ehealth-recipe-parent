@@ -48,12 +48,6 @@ public class DrugStockManager extends BaseManager {
     @Autowired
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
 
-    /**
-     * 检查开处方是否需要进行药企库存校验
-     *
-     * @param organId
-     * @return true:需要校验  false:不需要校验
-     */
     @Resource
     private SaleDrugListDAO saleDrugListDAO;
 
@@ -78,9 +72,10 @@ public class DrugStockManager extends BaseManager {
 
 
     /**
-     * 检查机构配置下的药企
+     * 检查开处方是否需要进行药企库存校验
+     *
      * @param organId
-     * @return
+     * @return true:需要校验  false:不需要校验
      */
     public boolean checkEnterprise(Integer organId) {
         Integer checkEnterprise = configurationClient.getCheckEnterpriseByOrganId(organId);
