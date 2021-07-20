@@ -1110,4 +1110,20 @@ public class RecipeOrderBean implements Serializable {
     public void setDecoctionText(String decoctionText) {
         this.decoctionText = decoctionText;
     }
+
+    public String getExpectStartTakeTime() {
+        return expectStartTakeTime;
+    }
+
+    public void setExpectStartTakeTime(String expectStartTakeTime) {
+        this.expectStartTakeTime = expectStartTakeTime;
+    }
+
+    public String getExpectEndTakeTime() {
+        return expectEndTakeTime;
+    }
+
+    public void setExpectEndTakeTime(String expectEndTakeTime) {
+        this.expectEndTakeTime = expectEndTakeTime;
+    }
 }
