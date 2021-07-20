@@ -850,12 +850,14 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     }
 
     /**
+     * todo map更新方式作废 新方法 updateNonNullFieldByPrimaryKey
      * 更新处方自定义字段
      *
      * @param recipeId
      * @param changeAttr
      * @return
      */
+    @Deprecated
     public Boolean updateRecipeInfoByRecipeId(final int recipeId, final Map<String, ?> changeAttr) {
         if (null == changeAttr || changeAttr.isEmpty()) {
             return true;
