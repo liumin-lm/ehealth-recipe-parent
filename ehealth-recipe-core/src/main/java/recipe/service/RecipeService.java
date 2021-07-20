@@ -22,7 +22,6 @@ import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
-import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
@@ -31,7 +30,6 @@ import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.his.recipe.mode.OrganDrugInfoRequestTO;
 import com.ngari.his.recipe.mode.OrganDrugInfoResponseTO;
 import com.ngari.his.recipe.mode.OrganDrugInfoTO;
-import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.model.BussFinishEvent;
@@ -40,7 +38,6 @@ import com.ngari.patient.ds.PatientDS;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.recipe.mode.ScanRequestBean;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RequestVisitVO;
@@ -125,7 +122,6 @@ import recipe.givemode.business.IGiveModeBase;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
-import recipe.manager.DrugStockManager;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.RecipeManager;
 import recipe.manager.SignManager;
@@ -150,7 +146,6 @@ import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.Callable;
-import java.util.concurrent.FutureTask;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -756,7 +751,7 @@ public class RecipeService extends RecipeBaseService {
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         String memo;
         //todo shanghaiCA ParamUtils.getParam("SH_CA_ORGANID_WHITE_LIST") 配置到机构上
-        String thirdCASign = configurationClient.getValueCatch(recipe.getClinicOrgan(), "thirdCASign", null);
+        String thirdCASign = configurationClient.getValueCatch(recipe.getClinicOrgan(), "thirdCASign", "");
         if ("esign".equals(thirdCASign)) {
             createPdfFactory.queryPdfOssId(recipe);
             memo = "esign签名上传文件成功";
