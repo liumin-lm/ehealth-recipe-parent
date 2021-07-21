@@ -3,16 +3,17 @@ package recipe.business;
 import com.ngari.recipe.vo.OutPatientRecipeVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.core.api.patient.IOutPatientRecipeService;
+import recipe.core.api.IRecipeBusinessService;
 import recipe.manager.OutPatientRecipeManager;
 
 /**
- * 门诊处方
+ * 处方业务核心逻辑处理类
+ *
  * @author yinsheng
  * @date 2021\7\16 0016 17:30
  */
 @Service
-public class OutPatientRecipeService extends BaseService implements IOutPatientRecipeService{
+public class RecipeBusinessService extends BaseService implements IRecipeBusinessService {
 
     @Autowired
     private OutPatientRecipeManager outPatientRecipeManager;

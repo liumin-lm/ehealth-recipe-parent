@@ -9,7 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
-import recipe.core.api.patient.IOutPatientRecipeService;
+import recipe.core.api.IRecipeBusinessService;
 import recipe.util.ValidateUtil;
 
 /**
@@ -21,7 +21,7 @@ import recipe.util.ValidateUtil;
 public class OutPatientRecipeAtop extends BaseAtop {
 
     @Autowired
-    private IOutPatientRecipeService outPatientRecipeService;
+    private IRecipeBusinessService outPatientRecipeService;
 
     /**
      * 查询门诊处方信息
