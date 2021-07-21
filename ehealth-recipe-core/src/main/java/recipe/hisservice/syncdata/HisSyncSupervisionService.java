@@ -90,6 +90,14 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     private RecipeDAO recipeDAO;
     @Resource
     private IEmrPdfService emrPdfService;
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
+    @Autowired
+    private EmploymentService employmentService;
+    @Autowired
+    private OrganDrugListDAO organDrugDao;
+    @Autowired
+    private DoctorService doctorService;
     /**
      * logger
      */
@@ -740,7 +748,73 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
             //就诊人信息
             req.setPetient(pakRegulationBusPatientReq(recipe.getMpiid()));
+            req.setCardNo(recipeExtend.getCardNo());
 
+            //主诉
+            req.setMainDiseaseDescribe(StringUtils.isNotEmpty(recipeExtend.getMainDieaseDescribe()) ? recipeExtend.getMainDieaseDescribe() : "无");
+
+            //现病史
+            req.setHistoryOfPresentIllness(StringUtils.isNotEmpty(recipeExtend.getCurrentMedical()) ? recipeExtend.getCurrentMedical() : "无");
+            //时间
+            IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+            if(null!=recipe.getClinicId()){
+                RevisitBean revisitBean = iRevisitService.getById(recipe.getClinicId());
+                if (revisitBean != null) {
+                    //咨询开始时间
+                    req.setConsultStartDate(revisitBean.getStartDate() != null ? revisitBean.getStartDate() : revisitBean.getRequestTime());
+                }
+            }
+
+            // 科室相关
+            DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
+            DepartmentDTO departmentDTO = departmentService.getById(recipe.getDepart());
+            if (departmentDTO != null) {
+                req.setDeptCode(departmentDTO.getCode());
+                req.setDeptName(departmentDTO.getName());
+            }
+            //患者处理
+            PatientService patientService = BasicAPI.getService(PatientService.class);
+            PatientDTO patientDTO = patientService.get(recipe.getMpiid());
+            if (null == patientDTO) {
+                LOGGER.warn("uploadRecipeIndicators patient is null. recipe.patient={}", recipe.getMpiid());
+                continue;
+            }
+            //陪诊人信息
+            req.setGuardianName(patientDTO.getGuardianName());
+            req.setGuardianCertID(patientDTO.getGuardianCertificate());
+            //支付时间
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            req.setPayTime(recipeOrder.getPayTime());
+            req.setRcdDatetime(new Date()); //退费时间取当前时间
+            req.setMedicalPayFlag(recipe.getMedicalPayFlag());
+            req.setTotalFee(recipe.getTotalMoney() != null ? recipe.getTotalMoney().doubleValue() : 0);
+
+            //获取发药药师工号
+            if (recipe.getChecker() != null) {
+                EmploymentDTO employment = employmentService.getPrimaryEmpByDoctorId(recipe.getChecker());
+                if (employment != null) {
+                    req.setDispensingCheckerId(employment.getJobNumber());
+                }
+            }
+            //优先取运营平台处方详情设置的发药药师，如果没有取机构默认发药药师，都没有就为空
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            String doctorId = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "oragnDefaultDispensingApothecary");
+            ApothecaryDTO apothecaryDTO = doctorClient.getGiveUser(recipe);
+            if (StringUtils.isNotEmpty(apothecaryDTO.getGiveUserName())) {
+                req.setDispensingCheckerName(apothecaryDTO.getGiveUserName());
+            } else if (doctorId != null) {
+                //获取机构发药药师
+                DoctorDTO dispensingApothecary = doctorService.get(Integer.valueOf(doctorId));
+                req.setDispensingCheckerName(dispensingApothecary.getName());
+            }
+            //获取发药时间  订单表中进行获取
+            req.setDispensingTime(order.getDispensingTime());
+            //诊断编码
+            req.setOrganDiseaseId(recipe.getOrganDiseaseId());
+            //诊断名称
+            req.setOrganDiseaseName(recipe.getOrganDiseaseName());
+            //开方时间
+            req.setCreateDate(recipe.getCreateDate());
             request.add(req);
         }
 
@@ -1356,6 +1430,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             patient.setPatientSex(patientDto.getPatientSex());
             patient.setBirthday(patientDto.getBirthday());
             patient.setMobile(patientDto.getMobile());
+            patient.setIdcard(patientDto.getIdcard());
         }
 
         return patient;
@@ -1438,6 +1513,26 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             if (!list.isEmpty()) {
                 costDetailReq.setMedicalDrugCode(list.get(0).getMedicalDrugCode());
                 costDetailReq.setOrganDrugCode(list.get(0).getOrganDrugCode());
+            }
+            OrganDrugList organDrugList = organDrugDao.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), item.getOrganDrugCode(), item.getDrugId());
+            if (organDrugList == null) {
+                costDetailReq.setDrcode(item.getOrganDrugCode());
+            } else {
+                costDetailReq.setDrcode(StringUtils.isNotEmpty(organDrugList.getRegulationDrugCode()) ? organDrugList.getRegulationDrugCode() : organDrugList.getOrganDrugCode());
+
+            }
+            costDetailReq.setDrname(item.getDrugName());
+            Dictionary usingRateDic = null;
+            Dictionary usePathwaysDic = null;
+            try {
+                usingRateDic = DictionaryController.instance().get("eh.cdr.dictionary.UsingRate");
+                usePathwaysDic = DictionaryController.instance().get("eh.cdr.dictionary.UsePathways");
+            } catch (ControllerException e) {
+                LOGGER.error("uploadRecipeIndicators dic error.", e);
+            }
+            //药品频次名称
+            if (null != usingRateDic) {
+                costDetailReq.setFrequencyName(item.getUsingRateTextFromHis() != null ? item.getUsingRateTextFromHis() : usingRateDic.getText(item.getUsingRate()));
             }
             items.add(costDetailReq);
         }
