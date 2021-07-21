@@ -3,10 +3,8 @@ package recipe.manager;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
-import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoResponseTO;
-import com.ngari.patient.service.OrganConfigService;
 import com.ngari.platform.recipe.mode.RecipeResultBean;
 import com.ngari.recipe.entity.*;
 import ctd.util.JSONUtils;
@@ -135,13 +133,13 @@ public class DrugStockManager extends BaseManager {
             return result;
         }
 
+        // 判断his 是否存在
         if (!configurationClient.isHisEnable(recipe.getClinicOrgan())) {
             result.setCode(RecipeResultBean.FAIL);
             result.setError("医院HIS未启用。");
             logger.info("scanDrugStock 医院HIS未启用 organId: {}", recipe.getClinicOrgan());
             return result;
         }
-        // 判断his 是否存在
         Set<Integer> pharmaIds = new HashSet<>();
         AtomicReference<Boolean> organDrugCodeFlag = new AtomicReference<>(false);
         List<Integer> drugIdList = detailList.stream().map(detail -> {
