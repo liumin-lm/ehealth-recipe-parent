@@ -41,7 +41,6 @@ import java.io.InputStream;
 import java.math.BigDecimal;
 import java.net.URI;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * 自定义创建pdf
@@ -58,7 +57,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
      */
     private final List<String> ADDITIONAL_FIELDS = Arrays.asList("recipe.doctor", "recipe.check", "recipe.actualPrice",
             "recipe.patientID", "recipe.recipeCode", "address", "recipeExtend.decoctionText", "recipe.giveUser",
-            "recipeExtend.superviseRecipecode", "barCode.recipe.patientID", "barCode.recipe.recipeCode");
+            "recipeExtend.superviseRecipecode", "barCode.recipeExtend.cardNo");
     @Autowired
     private RedisManager redisManager;
     @Autowired
@@ -73,7 +72,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     @Override
     public byte[] queryPdfOssId(Recipe recipe) throws Exception {
         byte[] data = generateTemplatePdf(recipe);
-        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), "doctorSignImg,doctorSignImgToken");
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), "recipe.doctor");
         SignRecipePdfVO pdfEsign = new SignRecipePdfVO();
         pdfEsign.setPosX(ordinateVO.getX().floatValue());
         pdfEsign.setPosY(ordinateVO.getY().floatValue());
@@ -91,7 +90,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         logger.info("CustomCreatePdfServiceImpl queryPdfByte recipe = {}", recipe.getRecipeId());
         byte[] data = generateTemplatePdf(recipe);
         String pdfBase64Str = new String(Base64.encode(data));
-        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), "doctorSignImg,doctorSignImgToken");
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), "recipe.doctor");
         if (null == ordinateVO) {
             return null;
         }
@@ -102,7 +101,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     public String updateDoctorNamePdf(Recipe recipe, SignImgNode signImgNode) throws Exception {
         logger.info("CustomCreatePdfServiceImpl updateDoctorNamePdf recipe = {}", recipe.getRecipeId());
         byte[] data = generateTemplatePdf(recipe);
-        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), "doctorSignImg,doctorSignImgToken");
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), "recipe.doctor");
         if (null == ordinateVO) {
             return null;
         }
@@ -239,7 +238,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         } else {
             organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), OperationConstant.OP_CONFIG_PDF, "");
         }
-
+        //下载模版
         @Cleanup InputStream input = new ByteArrayInputStream(CreateRecipePdfUtil.signFileByte(organSealId));
         @Cleanup ByteArrayOutputStream output = new ByteArrayOutputStream();
         PdfReader reader = new PdfReader(input);
@@ -381,7 +380,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
             String value = ByteUtils.objValueOfString(recipeDetailMap.get(key));
             return new WordToPdfBean(key, value, null);
         }
-        return null;
+        return new WordToPdfBean();
     }
 
     /**
@@ -417,7 +416,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         list.add(new RecipeLabelVO("每付取汁", "recipeExtend.juice", recipeExtend.getJuice()));
         list.add(new RecipeLabelVO("每次用汁", "recipeExtend.minor", recipeExtend.getMinor()));
         logger.info("CreateRecipePdfUtil createChineMedicinePDF list :{} ", JSON.toJSONString(list));
-        return list.stream().collect(Collectors.toMap(RecipeLabelVO::getEnglishName, RecipeLabelVO::getValue));
+        return list.stream().collect(HashMap::new, (m, v) -> m.put(v.getEnglishName(), v.getValue()), HashMap::putAll);
     }
 
 
@@ -445,7 +444,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
             list.add(new RecipeLabelVO("用药天数", "recipeDetail.memo_" + i, detail.getMemo()));
         }
         logger.info("CreateRecipePdfUtil createMedicinePDF list :{} ", JSON.toJSONString(list));
-        return list.stream().collect(Collectors.toMap(RecipeLabelVO::getEnglishName, RecipeLabelVO::getValue));
+        return list.stream().collect(HashMap::new, (m, v) -> m.put(v.getEnglishName(), v.getValue()), HashMap::putAll);
     }
 
 
