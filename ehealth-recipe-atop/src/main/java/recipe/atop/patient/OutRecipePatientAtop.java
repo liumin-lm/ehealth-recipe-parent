@@ -11,7 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
-import recipe.core.api.patient.IOutPatientRecipeService;
+import recipe.core.api.IRecipeBusinessService;
 
 import java.util.List;
 
@@ -24,7 +24,7 @@ import java.util.List;
 public class OutRecipePatientAtop extends BaseAtop {
 
     @Autowired
-    private IOutPatientRecipeService outPatientRecipeService;
+    private IRecipeBusinessService recipeBusinessService;
 
     /**
      * 查询门诊处方信息
@@ -35,7 +35,7 @@ public class OutRecipePatientAtop extends BaseAtop {
         logger.info("OutPatientRecipeAtop queryOutPatientRecipe outPatientRecipeReq:{}.", JSON.toJSONString(outPatientRecipeReqVO));
         validateAtop(outPatientRecipeReqVO, outPatientRecipeReqVO.getOrganId(), outPatientRecipeReqVO.getMpiId());
         try {
-            List<OutPatientRecipeVO> result = outPatientRecipeService.queryOutPatientRecipe(outPatientRecipeReqVO);
+            List<OutPatientRecipeVO> result = recipeBusinessService.queryOutPatientRecipe(outPatientRecipeReqVO);
             logger.info("OutPatientRecipeAtop queryOutPatientRecipe result:{}.", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
@@ -60,7 +60,7 @@ public class OutRecipePatientAtop extends BaseAtop {
         logger.info("OutPatientRecipeAtop getOutRecipeDisease organId:{}, patientName:{},registerID:{},patientId:{}.",organId, patientName, registerID, patientId);
         validateAtop(organId, patientName, registerID, patientId);
         try {
-            List<DiseaseInfoDTO> result = outPatientRecipeService.getOutRecipeDisease(organId, patientName, registerID, patientId);
+            List<DiseaseInfoDTO> result = recipeBusinessService.getOutRecipeDisease(organId, patientName, registerID, patientId);
             final StringBuilder diseaseNames = new StringBuilder();
             result.forEach(diseaseInfoDTO -> diseaseNames.append(diseaseInfoDTO.getDiseaseName()).append(";"));
             if (StringUtils.isNotEmpty(diseaseNames)) {

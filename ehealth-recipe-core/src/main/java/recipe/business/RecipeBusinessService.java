@@ -1,6 +1,12 @@
 package recipe.business;
 
-import com.ngari.recipe.vo.OutPatientRecipeVO;
+import com.alibaba.fastjson.JSON;
+import com.ngari.follow.utils.ObjectCopyUtil;
+import com.ngari.his.recipe.mode.OutPatientRecipeReq;
+import com.ngari.recipe.dto.DiseaseInfoDTO;
+import com.ngari.recipe.dto.OutPatientRecipeDTO;
+import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
+import com.ngari.recipe.vo.OutPatientRecipeReqVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.core.api.IRecipeBusinessService;
@@ -32,13 +38,17 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private OutPatientRecipeManager outPatientRecipeManager;
 
     @Override
-    public String getOutRecipeDisease(Integer organId, String patientName, String registerID, String patientId) {
+    public List<DiseaseInfoDTO> getOutRecipeDisease(Integer organId, String patientName, String registerID, String patientId) {
         return outPatientRecipeManager.getOutRecipeDisease(organId, patientName, registerID, patientId);
     }
 
     @Override
-    public void queryOutPatientRecipe(OutPatientRecipeVO outPatientRecipeVO) {
-
+    public List<OutPatientRecipeVO> queryOutPatientRecipe(OutPatientRecipeReqVO outPatientRecipeReqVO) {
+        logger.info("OutPatientRecipeService queryOutPatientRecipe outPatientRecipeReq:{}.", JSON.toJSONString(outPatientRecipeReqVO));
+        OutPatientRecipeReq outPatientRecipeReq = ObjectCopyUtil.convert(outPatientRecipeReqVO, OutPatientRecipeReq.class);
+        List<OutPatientRecipeDTO> outPatientRecipeDTOS = outPatientRecipeManager.queryOutPatientRecipe(outPatientRecipeReq);
+        //TODO 业务逻辑处理
+        return ObjectCopyUtil.convert(outPatientRecipeDTOS, OutPatientRecipeVO.class);
     }
 
     /**
