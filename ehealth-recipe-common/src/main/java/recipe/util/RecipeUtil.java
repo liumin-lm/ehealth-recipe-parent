@@ -36,7 +36,13 @@ public class RecipeUtil {
         return false;
     }
 
-    public static String drugShowName(Recipedetail detail) {
+    /**
+     * 获取中药展示名称
+     *
+     * @param detail 处方明细
+     * @return
+     */
+    public static String drugChineShowName(Recipedetail detail) {
         String dTotal;
         if (StringUtils.isNotEmpty(detail.getUseDoseStr())) {
             dTotal = detail.getUseDoseStr();
@@ -50,6 +56,12 @@ public class RecipeUtil {
         return detail.getDrugName() + memo + " " + dTotal;
     }
 
+    /**
+     * 伤处图片文件
+     *
+     * @param picture
+     * @return
+     */
     public static String uploadPicture(String picture) {
         byte[] data = Base64.decodeBase64(picture.getBytes());
         if (data == null) {

@@ -10,8 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.HisInventoryClient;
-import recipe.factory.status.constant.RecipeOrderStatusEnum;
-import recipe.factory.status.constant.RecipeStatusEnum;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.thread.RecipeBusiThreadPool;
 
 import java.util.Date;

@@ -9,6 +9,7 @@ import java.util.Date;
 public class ByteUtils {
 	public static String COMMA = ",";
 	public static String DOT = "\\.";
+	public static String DOT_EN = ".";
 	public static String SEMI_COLON_EN = ";";
 	public static String SEMI_COLON_CH = "；";
 

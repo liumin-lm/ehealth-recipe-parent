@@ -371,7 +371,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             return;
         }
         for (int i = 0; i < recipeDetails.size(); i++) {
-            String drugShowName = RecipeUtil.drugShowName(recipeDetails.get(i));
+            String drugShowName = RecipeUtil.drugChineShowName(recipeDetails.get(i));
             list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, drugShowName));
         }
         Recipedetail detail = recipeDetails.get(0);

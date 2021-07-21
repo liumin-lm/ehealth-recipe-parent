@@ -29,7 +29,7 @@ import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
-import recipe.factory.status.constant.RecipeStatusEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.service.HisCallBackService;
 import recipe.service.RecipeLogService;
 

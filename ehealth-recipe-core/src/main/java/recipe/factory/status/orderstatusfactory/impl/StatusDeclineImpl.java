@@ -4,8 +4,8 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.springframework.stereotype.Service;
-import recipe.factory.status.constant.RecipeOrderStatusEnum;
-import recipe.factory.status.constant.RecipeStatusEnum;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
 
 /**
  * 已拒发

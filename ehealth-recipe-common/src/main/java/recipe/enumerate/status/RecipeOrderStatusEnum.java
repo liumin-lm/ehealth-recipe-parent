@@ -1,4 +1,4 @@
-package recipe.factory.status.constant;
+package recipe.enumerate.status;
 
 import java.util.Arrays;
 import java.util.List;

@@ -1,4 +1,4 @@
-package recipe.factory.status.constant;
+package recipe.enumerate.status;
 
 /**
  * 发药方式 枚举

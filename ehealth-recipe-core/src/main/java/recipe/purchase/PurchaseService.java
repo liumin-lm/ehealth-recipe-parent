@@ -46,12 +46,12 @@ import recipe.bean.PltPurchaseResponse;
 import recipe.client.IConfigurationClient;
 import recipe.constant.*;
 import recipe.dao.*;
-import recipe.factory.status.constant.RecipeStatusEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.givemode.business.GiveModeTextEnum;
+import recipe.manager.EmrRecipeManager;
 import recipe.offlinetoonline.constant.OfflineToOnlineEnum;
 import recipe.offlinetoonline.service.third.FrontService;
 import recipe.service.*;
-import recipe.manager.EmrRecipeManager;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 
