@@ -3108,7 +3108,7 @@ public class RecipeServiceSub {
      * @return
      */
     public static boolean isClinicOrgan(String organId) {
-        return RegexUtils.regular(organId, RegexEnum.NUMBER) && (organId.length() == 7);
+        return RegexEnum.regular(organId, RegexEnum.NUMBER) && (organId.length() == 7);
     }
 
     public static Integer getOrganEnterprisesDockType(Integer organId) {

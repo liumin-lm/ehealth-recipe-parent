@@ -1,9 +1,11 @@
 package recipe.util;
 
+import com.ngari.recipe.entity.Recipedetail;
 import ctd.mvc.upload.FileMetaRecord;
 import ctd.mvc.upload.FileService;
 import ctd.util.JSONUtils;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.constant.RecipeBussConstant;
@@ -34,6 +36,19 @@ public class RecipeUtil {
         return false;
     }
 
+    public static String drugShowName(Recipedetail detail) {
+        String dTotal;
+        if (StringUtils.isNotEmpty(detail.getUseDoseStr())) {
+            dTotal = detail.getUseDoseStr();
+        } else {
+            dTotal = detail.getUseDose() + detail.getUseDoseUnit();
+        }
+        String memo = "";
+        if (!StringUtils.isEmpty(detail.getMemo()) && !"无特殊煎法".equals(detail.getMemo())) {
+            memo = "(" + detail.getMemo() + ")";
+        }
+        return detail.getDrugName() + memo + " " + dTotal;
+    }
 
     public static String uploadPicture(String picture) {
         byte[] data = Base64.decodeBase64(picture.getBytes());

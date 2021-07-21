@@ -1,6 +1,5 @@
 package recipe.drugsenterprise;
 
-import com.alijk.bqhospital.alijk.conf.TaobaoConf;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableMap;
@@ -41,9 +40,9 @@ import recipe.drugsenterprise.bean.ZfbDrugDTO;
 import recipe.drugsenterprise.bean.ZfbRecipeDTO;
 import recipe.drugsenterprise.bean.ZfbTokenRequest;
 import recipe.drugsenterprise.bean.ZfbTokenResponse;
+import recipe.drugsenterprise.bean.yd.utils.RSAUtil;
 import recipe.service.RecipeOrderService;
 import recipe.util.DateConversion;
-import recipe.util.RSAUtil;
 import recipe.util.RedisClient;
 
 import javax.annotation.Nullable;
@@ -68,9 +67,6 @@ public class ZfbRemoteService extends AccessDrugEnterpriseService {
 
     @Autowired
     private RedisClient redisClient;
-
-    @Autowired
-    private TaobaoConf taobaoConf;
 
     @Autowired
     TmdyfRemoteService tmdyfRemoteService;

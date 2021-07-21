@@ -1,52 +1,28 @@
 package recipe.dao;
 
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.DoctorService;
-import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.common.RecipePatientRefundVO;
-import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.model.RecipesQueryVO;
+import com.ngari.recipe.entity.RecipeRefund;
 import ctd.dictionary.DictionaryController;
-import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
-import ctd.persistence.bean.QueryResult;
-import ctd.persistence.exception.DAOException;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
-import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcSupportDAO;
-import ctd.util.converter.ConversionUtils;
-import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.Query;
-import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
 import org.hibernate.transform.AliasToBeanResultTransformer;
-import org.hibernate.type.LongType;
 import org.hibernate.type.StandardBasicTypes;
 import org.hibernate.type.TimestampType;
-import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import recipe.constant.*;
-import recipe.dao.bean.PatientRecipeBean;
-import recipe.dao.bean.RecipeRollingInfo;
-import recipe.util.DateConversion;
-import recipe.util.SqlOperInfo;
 
-import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 /**
  * 处方退费DAO
@@ -88,13 +64,6 @@ public abstract class RecipeRefundDAO extends HibernateSupportDelegateDAO<Recipe
     @DAOMethod(sql = "from RecipeRefund where busId in (:recipeId) and node = 9 order by applyTime desc, node desc", limit = 0)
     public abstract List<RecipeRefund> findRefundListByRecipeIdsAndNode(@DAOParam("recipeId") List<Integer> recipeId);
 
-    /**
-     * 根据订单编号获取处方id集合
-     *
-     * @return
-     */
-    @DAOMethod(sql = "select count(*) from RecipeRefund")
-    public abstract Long getCountByAll();
 
     /**
      * 根据处方和node状态获取退费的一单信息
@@ -196,10 +165,6 @@ public abstract class RecipeRefundDAO extends HibernateSupportDelegateDAO<Recipe
         return null != o ? Double.parseDouble(o.toString()) : null;
     }
 
-    private BigDecimal getBigDecimalValue(Object o) {
-        return null != o ? new BigDecimal(o.toString()) : null;
-    }
-
     public RecipePatientRefundVO getDoctorPatientRefundByRecipeId(Integer busId) {
         HibernateStatelessResultAction<RecipePatientRefundVO> action = new AbstractHibernateStatelessResultAction<RecipePatientRefundVO>() {
             @Override
@@ -220,34 +185,6 @@ public abstract class RecipeRefundDAO extends HibernateSupportDelegateDAO<Recipe
                         "  node in (-1, 0) " +
                         " and  " +
                         "  r.BusId  = :busId " );
-//                StringBuilder sql = new StringBuilder("SELECT cr.BusId FROM `cdr_recipe_refund` cr ");
-//                //0：全部
-//                //1：待审核
-//                //2：审核通过
-//                //3：审核不通过
-//                if(null != refundType){
-//                    switch(refundType){
-//                        case 0:
-//                            sql.append("where cr.doctorId = :doctorId group by cr.BusId ");
-//                            break;
-//                        case 1:
-//                            sql.append("where cr.id in ( select MAX(id) from cdr_recipe_refund  r where r.doctorId = :doctorId GROUP BY BusId ) and node=-1 ");
-//                            break;
-//                        case 2:
-//                            sql.append("where cr.doctorId = :doctorId and cr.node = 0 and cr.status = 1 group by cr.BusId ");
-//                            break;
-//                        case 3:
-//                            sql.append("where cr.doctorId = :doctorId and cr.node = 0 and cr.status = 2 group by cr.BusId ");
-//                            break;
-//                        default:
-//                            LOGGER.warn("当前查询处方退费列表信息，没有传状态，不做筛选");
-//                            sql.append("group by cr.BusId ");
-//                            break;
-//                    }
-//
-//                }
-//                sql.append(" order by r.checkTime desc ");
-
                 Query query = ss.createSQLQuery(sqlNew.toString())
                         .addScalar("refundPrice", StandardBasicTypes.DOUBLE)
                         .addScalar("doctorId", StandardBasicTypes.INTEGER)

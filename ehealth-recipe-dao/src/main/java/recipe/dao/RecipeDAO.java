@@ -43,7 +43,6 @@ import recipe.dao.bean.RecipeRollingInfo;
 import recipe.dao.comment.ExtendDao;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
-import recipe.util.SqlOperInfo;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -152,15 +151,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public abstract List<Recipe> findByPayFlagAndReviewType(@DAOParam("payFlag") Integer payFlag, @DAOParam("reviewType") Integer reviewType);
 
     /**
-     * 通过交易流水号获取
-     *
-     * @param tradeNo
-     * @return
-     */
-    @DAOMethod
-    public abstract Recipe getByOutTradeNo(String tradeNo);
-
-    /**
      * 根据处方id获取状态
      *
      * @param recipeId
@@ -168,24 +158,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      */
     @DAOMethod(sql = "select status from Recipe where recipeId=:recipeId")
     public abstract Integer getStatusByRecipeId(@DAOParam("recipeId") Integer recipeId);
-
-    /**
-     * 根据处方id查询开方机构
-     *
-     * @param recipeId
-     * @return
-     */
-    @DAOMethod(sql = "select clinicOrgan from Recipe where recipeId=:recipeId")
-    public abstract Integer getOrganIdByRecipeId(@DAOParam("recipeId") Integer recipeId);
-
-    /**
-     * 通过支付标识查询处方集合
-     *
-     * @param payFlag
-     * @return
-     */
-    @DAOMethod
-    public abstract List<Recipe> findByPayFlag(Integer payFlag);
 
     /**
      * 根据订单编号及开放机构查询处方
@@ -233,16 +205,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public abstract Long getUnfinishedRecipe(@DAOParam("organId") Integer organId, @DAOParam("payFlag") Integer payFlag);
 
     /**
-     * 根据处方来源源处方号及处方来源机构查询处方详情
-     *
-     * @param originRecipeCode
-     * @param originClinicOrgan
-     * @return
-     */
-    @DAOMethod
-    public abstract Recipe getByOriginRecipeCodeAndOriginClinicOrgan(String originRecipeCode, Integer originClinicOrgan);
-
-    /**
      * 根据医生id处方id获取处方集合
      *
      * @param doctorId
@@ -262,14 +224,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      */
     @DAOMethod(sql = "update Recipe set orderCode=:orderCode where recipeId in :recipeIds")
     public abstract void updateOrderCodeByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds, @DAOParam("orderCode") String orderCode);
-
-    /**
-     * 根据订单编号更新订单编号为空
-     *
-     * @param orderCode
-     */
-    @DAOMethod(sql = "update Recipe set orderCode=null where orderCode=:orderCode")
-    public abstract void updateOrderCodeToNullByOrderCode(@DAOParam("orderCode") String orderCode);
 
     /**
      * 根据 第三方id 与 状态 获取最新处方id
@@ -881,43 +835,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
                 int flag = q.executeUpdate();
                 setResult(flag == 1);
-            }
-        };
-        HibernateSessionTemplate.instance().execute(action);
-        return action.getResult();
-    }
-
-    /**
-     * 根据条件查询sql
-     *
-     * @param searchAttr
-     * @return
-     */
-    public List<Recipe> findRecipeListWithConditions(final List<SqlOperInfo> searchAttr) {
-        if (CollectionUtils.isEmpty(searchAttr)) {
-            return null;
-        }
-
-        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
-            @Override
-            public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("from Recipe where 1=1 ");
-                for (SqlOperInfo info : searchAttr) {
-                    hql.append(" and " + info.getHqlCondition());
-                }
-                Query q = ss.createQuery(hql.toString());
-                for (SqlOperInfo info : searchAttr) {
-                    if (ConditionOperator.BETWEEN.equals(info.getOper())) {
-                        q.setParameter(info.getKey() + SqlOperInfo.BETWEEN_START, info.getValue());
-                        q.setParameter(info.getKey() + SqlOperInfo.BETWEEN_END, info.getExtValue());
-                    } else {
-                        q.setParameter(info.getKey(), info.getValue());
-                    }
-
-                }
-                q.setMaxResults(20);
-
-                setResult(q.list());
             }
         };
         HibernateSessionTemplate.instance().execute(action);

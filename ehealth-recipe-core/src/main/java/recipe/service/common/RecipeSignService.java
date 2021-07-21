@@ -43,7 +43,6 @@ import recipe.thread.SaveAutoReviewRunable;
 import recipe.util.DigestUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
-import recipe.util.RegexUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -149,7 +148,7 @@ public class RecipeSignService {
                     return response;
                 }
                 //校验参数准确性
-                if (!RegexUtils.regular(patientTel, RegexEnum.MOBILE)) {
+                if (!RegexEnum.regular(patientTel, RegexEnum.MOBILE)) {
                     response.setMsg("请输入有效手机号码");
                     return response;
                 }
