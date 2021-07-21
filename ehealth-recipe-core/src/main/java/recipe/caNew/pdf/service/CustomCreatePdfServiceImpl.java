@@ -22,7 +22,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import recipe.bussutil.*;
+import recipe.bussutil.BarCodeUtil;
+import recipe.bussutil.CreateRecipePdfUtil;
+import recipe.bussutil.SignImgNode;
+import recipe.bussutil.WordToPdfBean;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.IConfigurationClient;
 import recipe.constant.OperationConstant;
@@ -32,6 +35,7 @@ import recipe.manager.RedisManager;
 import recipe.util.ByteUtils;
 import recipe.util.DictionaryUtil;
 import recipe.util.MapValueUtil;
+import recipe.util.RecipeUtil;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
@@ -396,12 +400,8 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         }
         List<RecipeLabelVO> list = new LinkedList<>();
         for (int i = 0; i < recipeDetails.size(); i++) {
-            Recipedetail detail = recipeDetails.get(i);
-            String drugName = detail.getDrugName();
-            if (!StringUtils.isEmpty(detail.getMemo()) && !"无特殊煎法".equals(detail.getMemo())) {
-                drugName = drugName + "(" + detail.getMemo() + ")";
-            }
-            list.add(new RecipeLabelVO("药品名称", "recipeDetail.drugName_" + i, drugName));
+            String drugShowName = RecipeUtil.drugShowName(recipeDetails.get(i));
+            list.add(new RecipeLabelVO("药品名称", "recipeDetail.drugName_" + i, drugShowName));
         }
         Recipedetail recipedetail = recipeDetails.get(0);
         list.add(new RecipeLabelVO("天数", "recipeDetail.useDays", recipedetail.getUseDays()));

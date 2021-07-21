@@ -21,7 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
-import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.SignImgNode;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.IConfigurationClient;
@@ -32,6 +31,7 @@ import recipe.manager.RecipeManager;
 import recipe.manager.RedisManager;
 import recipe.manager.SignManager;
 import recipe.util.DictionaryUtil;
+import recipe.util.RecipeUtil;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
@@ -371,18 +371,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             return;
         }
         for (int i = 0; i < recipeDetails.size(); i++) {
-            Recipedetail detail = recipeDetails.get(i);
-            String dTotal;
-            if (StringUtils.isNotEmpty(detail.getUseDoseStr())) {
-                dTotal = detail.getUseDoseStr() + detail.getUseDoseUnit();
-            } else {
-                dTotal = detail.getUseDose() + detail.getUseDoseUnit();
-            }
-            String memo = "";
-            if (!StringUtils.isEmpty(detail.getMemo()) && !"无特殊煎法".equals(detail.getMemo())) {
-                memo = "(" + detail.getMemo() + ")";
-            }
-            String drugShowName = detail.getDrugName() + memo + " " + dTotal;
+            String drugShowName = RecipeUtil.drugShowName(recipeDetails.get(i));
             list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, drugShowName));
         }
         Recipedetail detail = recipeDetails.get(0);
