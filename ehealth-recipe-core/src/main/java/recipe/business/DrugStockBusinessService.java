@@ -1,5 +1,6 @@
 package recipe.business;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
 import com.ngari.base.hisconfig.service.IHisConfigService;
@@ -102,7 +103,7 @@ public class DrugStockBusinessService extends BaseService {
             doSignRecipe(doSignRecipe, null, "抱歉，机构未配置购药方式，无法开处方");
             return MapValueUtil.beanToMap(doSignRecipe);
         }
-        logger.info("doSignRecipeCheck recipeId={}, checkFlag={}", recipeId, checkFlag);
+        logger.info("doSignRecipeCheckAndGetGiveMode recipeId={}, checkFlag={}", recipeId, checkFlag);
         //校验各种情况的库存
         com.ngari.platform.recipe.mode.RecipeResultBean scanResult = null;
         SupportDepListBean allSupportDepList = null;
@@ -327,6 +328,7 @@ public class DrugStockBusinessService extends BaseService {
      * @return
      */
     private SupportDepListBean findAllSupportDepList(Recipe recipe,List<Recipedetail> recipeDetails) {
+        logger.info("findAllSupportDepList req recipe={} recipeDetail={}", JSONArray.toJSONString(recipe),JSONArray.toJSONString(recipeDetails));
         SupportDepListBean supportDepListBean = new SupportDepListBean();
 
         if (CollectionUtils.isEmpty(recipeDetails)) {
@@ -334,7 +336,7 @@ public class DrugStockBusinessService extends BaseService {
         }
         List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
         if (CollectionUtils.isEmpty(drugIds)) {
-            logger.warn("findUnSupportDepList 处方[{}]没有任何药品！", recipe.getRecipeId());
+            logger.warn("findAllSupportDepList 处方[{}]没有任何药品！", recipe.getRecipeId());
             return supportDepListBean;
         }
         List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByOrganId(recipe.getClinicOrgan());
@@ -363,17 +365,17 @@ public class DrugStockBusinessService extends BaseService {
                 }
             }
             if (!succFlag) {
-                logger.error("findUnSupportDepList 药企名称=[{}]存在不支持配送药品. 处方ID=[{}], 药企ID=[{}], drugIds={}", dep.getName(), recipe.getRecipeId(), depId, JSONUtils.toString(drugIds));
+                logger.error("findAllSupportDepList 药企名称=[{}]存在不支持配送药品. 处方ID=[{}], 药企ID=[{}], drugIds={}", dep.getName(), recipe.getRecipeId(), depId, JSONUtils.toString(drugIds));
                 noHaveList.add(new DrugEnterpriseResult(RecipeResultBean.FAIL));
             } else {
                 //通过查询该药企库存，最终确定能否配送
                 DrugEnterpriseResult result = findUnSupportDrugEnterprise(recipe,dep,recipeDetails);
                 if (DrugEnterpriseResult.SUCCESS.equals(result.getCode()) || 2 == dep.getCheckInventoryFlag()) {
                     haveList.add(dep);
-                    logger.info("findUnSupportDepList 药企名称=[{}]支持配送该处方所有药品. 处方ID=[{}], 药企ID=[{}], drugIds={}", dep.getName(), recipe.getRecipeId(), depId, JSONUtils.toString(drugIds));
+                    logger.info("findAllSupportDepList 药企名称=[{}]支持配送该处方所有药品. 处方ID=[{}], 药企ID=[{}], drugIds={}", dep.getName(), recipe.getRecipeId(), depId, JSONUtils.toString(drugIds));
                 } else {
                     noHaveList.add(result);
-                    logger.info("findUnSupportDepList  药企名称=[{}]药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}]", dep.getName(), recipe.getRecipeId(), depId);
+                    logger.info("findAllSupportDepList  药企名称=[{}]药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}]", dep.getName(), recipe.getRecipeId(), depId);
                 }
             }
         }
@@ -384,6 +386,8 @@ public class DrugStockBusinessService extends BaseService {
 
         supportDepListBean.setHaveList(haveList);
         supportDepListBean.setNoHaveList(noHaveList);
+
+        logger.info("findAllSupportDepList res supportDepListBean={}",JSONArray.toJSONString(supportDepListBean));
         return supportDepListBean;
     }
 
