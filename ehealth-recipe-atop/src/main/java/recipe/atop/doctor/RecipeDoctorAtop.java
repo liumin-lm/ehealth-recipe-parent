@@ -2,28 +2,31 @@ package recipe.atop.doctor;
 
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
-import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
-import recipe.api.open.IRecipeTwoService;
+import recipe.api.open.IRecipeAtopService;
 import recipe.constant.ErrorCode;
+import recipe.core.api.IRecipeBusinessService;
 
 /**
- * 处方二方服务入口类
+ * 处方服务入口类
+ *
  * @Date: 2021/7/19
  * @Author: zhaoh
  */
-@RpcBean("recipeTwoAtop")
-public class RecipeTwoDoctorAtop extends BaseAtop {
-    @Autowired
-    IRecipeTwoService recipeTwoService;
+@RpcBean("recipeAtop")
+public class RecipeDoctorAtop extends BaseAtop implements IRecipeAtopService {
 
-    @RpcService
-    public Boolean existUncheckRecipe(Integer bussSource, Integer clinicID) {
-        logger.info("existUncheckRecipe bussSource={} clinicID={}", bussSource, clinicID);
-        validateAtop(bussSource, clinicID);
+    @Autowired
+    private IRecipeBusinessService recipeBusinessService;
+
+    @Override
+    public Boolean existUncheckRecipe(Integer bussSource, Integer clinicId) {
+        logger.info("existUncheckRecipe bussSource={} clinicID={}", bussSource, clinicId);
+        validateAtop(bussSource, clinicId);
         try {
-            Boolean result = recipeTwoService.existUncheckRecipe(bussSource, clinicID);
+            //接口结果 True存在 False不存在
+            Boolean result = recipeBusinessService.existUncheckRecipe(bussSource, clinicId);
             logger.info("RecipeTwoAtop existUncheckRecipe result = {}", result);
             return result;
         } catch (DAOException e1) {
