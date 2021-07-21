@@ -106,16 +106,16 @@ public class CreateRecipePdfUtil {
         } else {
             signFileByte = signImgNode.getSignFileData();
         }
-        File signFilePDF = new File("recipe_" + signImgNode.getRecipeId() + ".pdf");
+        File signFilePdf = new File("recipe_" + signImgNode.getRecipeId() + ".pdf");
         @Cleanup InputStream input = new ByteArrayInputStream(signFileByte);
-        @Cleanup OutputStream output = new FileOutputStream(signFilePDF);
+        @Cleanup OutputStream output = new FileOutputStream(signFilePdf);
         addBarCodeImgForRecipePdfByCoordinates(input, output, url, signImgNode.getWidth(), signImgNode.getHeight(),
                 signImgNode.getX(), signImgNode.getY(), signImgNode.getRepeatWrite());
         //上传pdf文件
-        byte[] bytes = File2byte(signFilePDF);
-        String fileId = fileUploadService.uploadFileWithoutUrt(bytes, signFilePDF.getName());
+        byte[] bytes = File2byte(signFilePdf);
+        String fileId = fileUploadService.uploadFileWithoutUrt(bytes, signFilePdf.getName());
         //删除本地文件
-        signFilePDF.delete();
+        signFilePdf.delete();
         giveUserImage.delete();
         return fileId;
     }
