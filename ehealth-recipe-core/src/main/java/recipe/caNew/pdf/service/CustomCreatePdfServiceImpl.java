@@ -84,7 +84,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), RECIPE + OP_RECIPE_DOCTOR);
         SignRecipePdfVO pdfEsign = new SignRecipePdfVO();
         pdfEsign.setPosX(ordinateVO.getX().floatValue());
-        pdfEsign.setPosY(ordinateVO.getY().floatValue());
+        pdfEsign.setPosY((float) ordinateVO.getY() - 12);
         pdfEsign.setWidth(150f);
         pdfEsign.setData(data);
         pdfEsign.setFileName("recipe_" + recipe.getRecipeId() + ".pdf");
@@ -373,17 +373,23 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     private WordToPdfBean invokeFieldName(String key, String objectName, String fieldName, RecipeInfoDTO recipePdfDTO, Map<String, Object> recipeDetailMap) {
         if (OP_RECIPE.equals(objectName)) {
             String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipe());
+            if (OP_RECIPE_DOCTOR.equals(fieldName)) {
+                value = "";
+            }
             return new WordToPdfBean(key, value, null);
         }
-        if (OperationConstant.OP_PATIENT.equals(objectName)) {
+        if (OP_PATIENT.equals(objectName)) {
             String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getPatientBean());
+            if ("patientUserType".equals(fieldName)) {
+                value = StringUtils.isEmpty(value) || "0".equals(value) ? "成人处方" : "儿童处方";
+            }
             return new WordToPdfBean(key, value, null);
         }
-        if (OperationConstant.OP_RECIPE_EXTEND.equals(objectName)) {
+        if (OP_RECIPE_EXTEND.equals(objectName)) {
             String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipeExtend());
             return new WordToPdfBean(key, value, null);
         }
-        if (OperationConstant.OP_RECIPE_DETAIL.equals(objectName)) {
+        if (OP_RECIPE_DETAIL.equals(objectName)) {
             String value = ByteUtils.objValueOfString(recipeDetailMap.get(key));
             return new WordToPdfBean(key, value, null);
         }
@@ -407,6 +413,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
             list.add(new RecipeLabelVO("药品名称", "recipeDetail.drugName_" + i, drugShowName));
         }
         Recipedetail recipedetail = recipeDetails.get(0);
+        list.add(new RecipeLabelVO("药房", "recipeDetail.pharmacyName", recipedetail.getPharmacyName()));
         list.add(new RecipeLabelVO("天数", "recipeDetail.useDays", recipedetail.getUseDays()));
         list.add(new RecipeLabelVO("用药途径", "recipeDetail.usePathways", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", recipedetail.getUsePathways())));
         list.add(new RecipeLabelVO("用药频次", "recipeDetail.usingRate", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", recipedetail.getUsingRate())));
@@ -446,6 +453,8 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
             list.add(new RecipeLabelVO("用药天数", "recipeDetail.useDays_" + i, detail.getUseDays()));
             list.add(new RecipeLabelVO("用药天数", "recipeDetail.memo_" + i, detail.getMemo()));
         }
+        Recipedetail recipedetail = recipeDetails.get(0);
+        list.add(new RecipeLabelVO("药房", "recipeDetail.pharmacyName", recipedetail.getPharmacyName()));
         logger.info("CreateRecipePdfUtil createMedicinePDF list :{} ", JSON.toJSONString(list));
         return list.stream().collect(HashMap::new, (m, v) -> m.put(v.getEnglishName(), v.getValue()), HashMap::putAll);
     }
