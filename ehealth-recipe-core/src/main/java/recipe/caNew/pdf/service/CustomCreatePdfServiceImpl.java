@@ -59,12 +59,14 @@ import static recipe.util.ByteUtils.DOT_EN;
 public class CustomCreatePdfServiceImpl implements CreatePdfService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
+
     /**
      * 需要记录坐标的的字段
      */
-    private final List<String> ADDITIONAL_FIELDS = Arrays.asList(OP_RECIPE + DOT_EN + OP_RECIPE_DOCTOR, OP_RECIPE + DOT_EN + OP_RECIPE_CHECKER,
-            OP_RECIPE + DOT_EN + OP_RECIPE_GIVE_USER, "recipe.actualPrice", "recipe.patientID", "recipe.recipeCode",
-            "address", "recipeExtend.decoctionText", "recipeExtend.superviseRecipecode", "barCode.recipeExtend.cardNo");
+    private final String RECIPE = OP_RECIPE + DOT_EN;
+    private final List<String> ADDITIONAL_FIELDS = Arrays.asList(RECIPE + OP_RECIPE_DOCTOR, RECIPE + OP_RECIPE_CHECKER,
+            RECIPE + OP_RECIPE_GIVE_USER, RECIPE + OP_RECIPE_ACTUAL_PRICE, OP_BARCODE_ALL, "recipe.patientID", "recipe.recipeCode"
+            , "address", "recipeExtend.decoctionText", "recipeExtend.superviseRecipecode");
     @Autowired
     private RedisManager redisManager;
     @Autowired
@@ -79,7 +81,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     @Override
     public byte[] queryPdfOssId(Recipe recipe) throws Exception {
         byte[] data = generateTemplatePdf(recipe);
-        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), OP_RECIPE + DOT_EN + OP_RECIPE_DOCTOR);
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), RECIPE + OP_RECIPE_DOCTOR);
         SignRecipePdfVO pdfEsign = new SignRecipePdfVO();
         pdfEsign.setPosX(ordinateVO.getX().floatValue());
         pdfEsign.setPosY(ordinateVO.getY().floatValue());
@@ -97,7 +99,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         logger.info("CustomCreatePdfServiceImpl queryPdfByte recipe = {}", recipe.getRecipeId());
         byte[] data = generateTemplatePdf(recipe);
         String pdfBase64Str = new String(Base64.encode(data));
-        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), OP_RECIPE + DOT_EN + OP_RECIPE_DOCTOR);
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), RECIPE + OP_RECIPE_DOCTOR);
         if (null == ordinateVO) {
             return null;
         }
@@ -108,7 +110,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     public String updateDoctorNamePdf(Recipe recipe, SignImgNode signImgNode) throws Exception {
         logger.info("CustomCreatePdfServiceImpl updateDoctorNamePdf recipe = {}", recipe.getRecipeId());
         byte[] data = generateTemplatePdf(recipe);
-        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), OP_RECIPE + DOT_EN + OP_RECIPE_DOCTOR);
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), RECIPE + OP_RECIPE_DOCTOR);
         if (null == ordinateVO) {
             return null;
         }
@@ -120,7 +122,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
 
     @Override
     public CaSealRequestTO queryCheckPdfByte(Recipe recipe) {
-        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), OP_RECIPE + DOT_EN + OP_RECIPE_CHECKER);
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), RECIPE + OP_RECIPE_CHECKER);
         if (null == ordinateVO) {
             return null;
         }
@@ -132,7 +134,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         String recipeId = recipe.getRecipeId().toString();
         logger.info("CustomCreatePdfServiceImpl updateCheckNamePdf recipeId:{}", recipeId);
         //更新pdf文件
-        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), OP_RECIPE + DOT_EN + OP_RECIPE_CHECKER);
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), RECIPE + OP_RECIPE_CHECKER);
         if (null == ordinateVO) {
             return null;
         }
@@ -153,7 +155,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     @Override
     public CoOrdinateVO updateTotalPdf(Recipe recipe, BigDecimal recipeFee) {
         logger.info("CustomCreatePdfServiceImpl updateTotalPdf  recipeId={},recipeFee={}", recipe.getRecipeId(), recipeFee);
-        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), "recipe.actualPrice");
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), RECIPE + OP_RECIPE_ACTUAL_PRICE);
         if (null == ordinateVO) {
             return null;
         }
@@ -165,22 +167,19 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         return coords;
     }
 
-    /**
-     * todo
-     *
-     * @param recipe
-     * @return
-     * @throws Exception
-     */
+
     @Override
     public String updateCodePdf(Recipe recipe) throws Exception {
         Integer recipeId = recipe.getRecipeId();
         logger.info("CustomCreatePdfServiceImpl updateCodePdf  recipeId={}", recipeId);
-        CoOrdinateVO barcode = new CoOrdinateVO();
-        CoOrdinateVO barCodePatientId = redisManager.getPdfCoords(recipe.getRecipeId(), "barCode.recipeExtend.cardNo");
-        if (null != barCodePatientId) {
-            barcode = barCodePatientId;
-            barcode.setValue(recipe.getPatientID());
+        CoOrdinateVO barcode = redisManager.getPdfCoords(recipe.getRecipeId(), OP_BARCODE_ALL);
+        if (null != barcode) {
+            String barCode = configurationClient.getValueCatch(recipe.getClinicOrgan(), OperationConstant.OP_BARCODE, "");
+            String[] keySplit = barCode.trim().split(ByteUtils.DOT);
+            if (2 == keySplit.length) {
+                String fieldName = keySplit[1];
+                barcode.setValue(MapValueUtil.getFieldValueByName(fieldName, recipe));
+            }
         }
         List<CoOrdinateVO> coOrdinateList = new LinkedList<>();
         CoOrdinateVO patientId = redisManager.getPdfCoords(recipe.getRecipeId(), "recipe.patientID");
@@ -224,7 +223,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     public SignImgNode updateGiveUser(Recipe recipe) {
         logger.info("CustomCreatePdfServiceImpl updateGiveUser recipe={}", JSON.toJSONString(recipe));
         //修改pdf文件
-        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), OP_RECIPE + DOT_EN + OP_RECIPE_GIVE_USER);
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), RECIPE + OP_RECIPE_GIVE_USER);
         if (null == ordinateVO) {
             return null;
         }

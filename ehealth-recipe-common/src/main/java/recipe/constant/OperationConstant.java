@@ -18,6 +18,7 @@ public class OperationConstant {
      * 条形码
      */
     public static final String OP_BARCODE = "barCode";
+    public static final String OP_BARCODE_ALL = "barCode.recipeExtend.cardNo";
     /**
      * 二维码
      */
