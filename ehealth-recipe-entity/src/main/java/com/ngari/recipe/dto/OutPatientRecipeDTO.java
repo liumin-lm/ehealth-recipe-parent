@@ -1,11 +1,10 @@
-package com.ngari.recipe.recipe.model;
+package com.ngari.recipe.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serializable;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -16,9 +15,8 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class OutPatientRecipeVO implements Serializable{
-    private static final long serialVersionUID = -4388276725830720331L;
-
+public class OutPatientRecipeDTO implements Serializable{
+    private static final long serialVersionUID = 4355987451787480136L;
     /**
      * 挂号序号
      */
@@ -35,10 +33,6 @@ public class OutPatientRecipeVO implements Serializable{
     private String patientName;
 
     /**
-     * 患者性别
-     */
-    private String patientSex;
-    /**
      * 处方类型
      */
     private Integer recipeType;
@@ -54,14 +48,9 @@ public class OutPatientRecipeVO implements Serializable{
     private String patientId;
 
     /**
-     * 处方类型文本
-     */
-    private String recipeTypeText;
-
-    /**
      * 开方日期
      */
-    private Date createDate;
+    private String createDate;
 
     /**
      * 挂号科室代码
@@ -114,11 +103,6 @@ public class OutPatientRecipeVO implements Serializable{
     private Integer status;
 
     /**
-     * 状态文本
-     */
-    private String statusText;
-
-    /**
      * 长处方标志 0 普通处方 1 长处方
      */
     private Integer longRecipeFlag;
@@ -141,6 +125,6 @@ public class OutPatientRecipeVO implements Serializable{
     /**
      * 门诊处方项目药品明细
      */
-    private List<OutPatientRecipeDetailVO> outPatientRecipeDetails;
+    private List<OutPatientRecipeDetailDTO> outPatientRecipeDetails;
 
 }
