@@ -34,10 +34,7 @@ import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -82,6 +79,20 @@ public class DrugStockBusinessService extends BaseService {
     public Map<String, Object> doSignRecipeCheckAndGetGiveMode(RecipeBean recipe) {
         Integer recipeId = recipe.getRecipeId();
         DoSignRecipeDTO doSignRecipe = new DoSignRecipeDTO(true, false, null, "", recipeId, null);
+
+        // 校验数据
+        Recipe recipeNew = recipeDAO.get(recipeId);
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
+        if (Objects.isNull(recipeNew)) {
+            drugStockManager.doSignRecipe(doSignRecipe, null, "没有该处方");
+            return MapValueUtil.beanToMap(doSignRecipe);
+        }
+
+        if (CollectionUtils.isEmpty(recipeDetails)) {
+            drugStockManager.doSignRecipe(doSignRecipe, null, "处方没有详情");
+            return MapValueUtil.beanToMap(doSignRecipe);
+        }
+
         //获取按钮
         List<String> configurations = configurations(recipe);
         //获取校验何种类型库存
@@ -95,8 +106,7 @@ public class DrugStockBusinessService extends BaseService {
         com.ngari.platform.recipe.mode.RecipeResultBean scanResult = null;
         SupportDepListBean allSupportDepList = null;
         doSignRecipe.setCheckFlag(checkFlag);
-        Recipe recipeNew = recipeDAO.get(recipeId);
-        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
+
         if (1 == checkFlag) {
             //只校验医院库存
             scanResult = drugStockManager.scanDrugStockByRecipeId(recipeNew,recipeDetails);
@@ -234,9 +244,6 @@ public class DrugStockBusinessService extends BaseService {
         logger.info("findAllSupportDepList req recipe={} recipeDetail={}", JSONArray.toJSONString(recipe),JSONArray.toJSONString(recipeDetails));
         SupportDepListBean supportDepListBean = new SupportDepListBean();
 
-        if (CollectionUtils.isEmpty(recipeDetails)) {
-            return supportDepListBean;
-        }
         List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
         if (CollectionUtils.isEmpty(drugIds)) {
             logger.warn("findAllSupportDepList 处方[{}]没有任何药品！", recipe.getRecipeId());
@@ -283,7 +290,7 @@ public class DrugStockBusinessService extends BaseService {
             }
         }
         // 存在满足库存的药企
-        if (CollectionUtils.isNotEmpty(noHaveList) && CollectionUtils.isNotEmpty(drugsEnterpriseList) && noHaveList.size() < drugsEnterpriseList.size()) {
+        if (CollectionUtils.isNotEmpty(haveList)) {
             noHaveList.clear();
         }
 

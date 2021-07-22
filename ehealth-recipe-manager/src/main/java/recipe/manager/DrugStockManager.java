@@ -77,6 +77,7 @@ public class DrugStockManager extends BaseManager {
             result.setError("处方没有详情");
             return result;
         }
+
         // 判断是否需要对接HIS
         List<String> recipeTypes = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "getRecipeTypeToHis", null);
         if (!recipeTypes.contains(Integer.toString(recipe.getRecipeType()))) {
