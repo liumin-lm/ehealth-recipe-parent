@@ -119,18 +119,6 @@ public class DrugStockManager extends BaseManager {
         logger.info("scanDrugStock 入参 recipe={},recipedetail={}", JSONObject.toJSONString(recipe), JSONObject.toJSONString(detailList));
         RecipeResultBean result = RecipeResultBean.getSuccess();
 
-        if (Objects.isNull(recipe)) {
-            result.setCode(RecipeResultBean.FAIL);
-            result.setError("没有该处方");
-            return result;
-        }
-
-        if (CollectionUtils.isEmpty(detailList)) {
-            result.setCode(RecipeResultBean.FAIL);
-            result.setError("处方没有详情");
-            return result;
-        }
-
         // 判断是否需要对接HIS
         List<String> recipeTypes = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "getRecipeTypeToHis", null);
         if (!recipeTypes.contains(Integer.toString(recipe.getRecipeType()))) {
