@@ -290,7 +290,7 @@ public class DrugStockBusinessService extends BaseService {
             }
         }
         // 存在满足库存的药企
-        if (CollectionUtils.isNotEmpty(noHaveList) && CollectionUtils.isNotEmpty(drugsEnterpriseList) && noHaveList.size() < drugsEnterpriseList.size()) {
+        if (CollectionUtils.isNotEmpty(haveList)) {
             noHaveList.clear();
         }
 
