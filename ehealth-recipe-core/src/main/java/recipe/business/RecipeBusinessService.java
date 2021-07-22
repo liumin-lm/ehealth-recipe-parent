@@ -7,6 +7,7 @@ import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
 import com.ngari.recipe.vo.OutPatientRecipeReqVO;
+import com.ngari.recipe.vo.PatientInfoVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.core.api.IRecipeBusinessService;
@@ -39,15 +40,12 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     /**
      * 获取线下门诊处方诊断信息
-     * @param organId 机构ID
-     * @param patientName 患者名称
-     * @param registerID 挂号序号
-     * @param patientId 病历号
+     * @param patientInfoVO 患者信息
      * @return  诊断列表
      */
     @Override
-    public List<DiseaseInfoDTO> getOutRecipeDisease(Integer organId, String patientName, String registerID, String patientId) {
-        return outPatientRecipeManager.getOutRecipeDisease(organId, patientName, registerID, patientId);
+    public List<DiseaseInfoDTO> getOutRecipeDisease(PatientInfoVO patientInfoVO) {
+        return outPatientRecipeManager.getOutRecipeDisease(patientInfoVO.getOrganId(), patientInfoVO.getPatientName(), patientInfoVO.getRegisterID(), patientInfoVO.getPatientId());
     }
 
     /**
