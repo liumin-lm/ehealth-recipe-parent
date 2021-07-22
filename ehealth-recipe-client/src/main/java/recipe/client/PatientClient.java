@@ -12,7 +12,6 @@ import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
 import recipe.util.DictionaryUtil;
 import recipe.util.LocalStringUtil;
-
 import javax.annotation.Resource;
 
 /**
@@ -73,6 +72,18 @@ public class PatientClient extends BaseClient {
             logger.error("getMinkeOrganCodeByOrganId error", e);
         }
         return null;
+    }
+
+    /**
+     * 根据mpiid获取患者信息
+     * @param mpiId
+     * @return
+     */
+    public com.ngari.patient.dto.PatientDTO getPatientBeanByMpiId(String mpiId){
+        if(StringUtils.isEmpty(mpiId)){
+            return  null;
+        }
+        return patientService.getPatientBeanByMpiId(mpiId);
     }
 
 }

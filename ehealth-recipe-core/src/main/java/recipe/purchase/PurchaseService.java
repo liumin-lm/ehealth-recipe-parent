@@ -46,11 +46,11 @@ import recipe.bean.PltPurchaseResponse;
 import recipe.client.IConfigurationClient;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.givemode.business.GiveModeTextEnum;
 import recipe.manager.EmrRecipeManager;
-import recipe.offlinetoonline.constant.OfflineToOnlineEnum;
-import recipe.offlinetoonline.service.third.FrontService;
+import recipe.manager.HisRecipeManager;
 import recipe.service.*;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
@@ -93,14 +93,12 @@ public class PurchaseService {
     private IConfigurationClient configurationClient;
 
     @Autowired
-    FrontService frontService;
+    HisRecipeManager hisRecipeManager;
 
     @Autowired
     @Qualifier("basic.patientService")
     PatientService patientService;
 
-    @Autowired
-    OfflineToOnlineService offlineToOnlineService;
 
     @Autowired
     HisRecipeDetailDAO hisRecipeDetailDAO;
@@ -345,7 +343,7 @@ public class PurchaseService {
             if (null == patientDTO) {
                 throw new DAOException(609, "患者信息不存在");
             }
-            HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos= frontService.queryData(dbRecipe.getClinicOrgan(),patientDTO,null,OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType(),dbRecipe.getRecipeCode());
+            HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos= hisRecipeManager.queryData(dbRecipe.getClinicOrgan(),patientDTO,null, OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType(),dbRecipe.getRecipeCode());
             if (null == hisRecipeInfos || CollectionUtils.isEmpty(hisRecipeInfos.getData())) {
                 result.setCode(RecipeResultBean.CHECKFAIL);
                 result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
@@ -375,7 +373,7 @@ public class PurchaseService {
             hisRecipeIds.add(hisRecipe.getHisRecipeID());
             List<HisRecipeDetail> hisRecipeDetailList = hisRecipeDetailDAO.findByHisRecipeIds(hisRecipeIds);
             hisRecipeMap.put(hisRecipe.getRecipeCode(),hisRecipe);
-            Set<String> deleteSetRecipeCode=offlineToOnlineService.attachDeleteRecipeCodes(hisRecipeInfos.getData(),hisRecipeMap,hisRecipeDetailList,dbRecipe.getMpiid());
+            Set<String> deleteSetRecipeCode=hisRecipeManager.obtainDeleteRecipeCodes(hisRecipeInfos.getData(),hisRecipeMap,hisRecipeDetailList,dbRecipe.getMpiid());
             if(!CollectionUtils.isEmpty(deleteSetRecipeCode)){
                 result.setCode(RecipeResultBean.CHECKFAIL);
                 result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
