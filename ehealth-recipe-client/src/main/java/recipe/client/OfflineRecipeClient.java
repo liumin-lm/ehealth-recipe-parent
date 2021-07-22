@@ -7,6 +7,8 @@ import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.DiseaseInfoDTO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -14,6 +16,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import recipe.constant.ErrorCode;
+import com.ngari.recipe.dto.OutPatientRecipeDTO;
 
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -56,7 +59,7 @@ public class OfflineRecipeClient extends BaseClient {
      * @param patientId 病历号
      * @return  诊断列表
      */
-    public List<DiseaseInfo> queryPatientDisease(Integer organId, String patientName, String registerID, String patientId){
+    public List<DiseaseInfoDTO> queryPatientDisease(Integer organId, String patientName, String registerID, String patientId){
         logger.info("OfflineRecipeClient queryPatientDisease organId:{}, patientName:{},registerID:{},patientId:{}.",organId, patientName, registerID, patientId);
         try{
             PatientDiseaseInfoTO patientDiseaseInfoTO = new PatientDiseaseInfoTO();
@@ -65,9 +68,27 @@ public class OfflineRecipeClient extends BaseClient {
             patientDiseaseInfoTO.setRegisterID(registerID);
             patientDiseaseInfoTO.setPatientId(patientId);
             HisResponseTO<List<DiseaseInfo>>  hisResponse = recipeHisService.queryDiseaseInfo(patientDiseaseInfoTO);
-            return getResponse(hisResponse);
+            List<DiseaseInfo> result = getResponse(hisResponse);
+            return ObjectCopyUtils.convert(result, DiseaseInfoDTO.class);
         } catch (Exception e){
             logger.error("OfflineRecipeClient queryPatientDisease hisResponse", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 查询门诊处方
+     * @param outPatientRecipeReq 患者信息
+     * @return 门诊处方列表
+     */
+    public List<OutPatientRecipeDTO> queryOutPatientRecipe(OutPatientRecipeReq outPatientRecipeReq){
+        logger.info("OfflineRecipeClient queryOutPatientRecipe outPatientRecipeReq:{}.", JSON.toJSONString(outPatientRecipeReq));
+        try {
+            HisResponseTO<List<OutPatientRecipeTO>> hisResponse = recipeHisService.queryOutPatientRecipe(outPatientRecipeReq);
+            List<OutPatientRecipeTO> result = getResponse(hisResponse);
+            return ObjectCopyUtils.convert(result, OutPatientRecipeDTO.class);
+        } catch (Exception e) {
+            logger.error("OfflineRecipeClient queryOutPatientRecipe hisResponse", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }

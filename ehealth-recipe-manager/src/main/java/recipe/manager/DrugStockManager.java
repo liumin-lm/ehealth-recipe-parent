@@ -6,6 +6,7 @@ import com.google.common.base.Joiner;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoResponseTO;
 import com.ngari.platform.recipe.mode.RecipeResultBean;
+import com.ngari.recipe.dto.DoSignRecipeDTO;
 import com.ngari.recipe.entity.*;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import recipe.client.DrugStockClient;
 import recipe.client.IConfigurationClient;
 import recipe.dao.*;
+import recipe.util.ListValueUtil;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
@@ -45,21 +47,23 @@ public class DrugStockManager extends BaseManager {
 
     @Autowired
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
-
     @Resource
     private SaleDrugListDAO saleDrugListDAO;
+    @Autowired
+    private DrugListDAO drugListDAO;
 
 
     /**
      * 药企库存
+     *
      * @param recipe
      * @param drugsEnterprise
      * @param recipeDetails
      * @return
      */
-    public Integer scanEnterpriseDrugStock(Recipe recipe,DrugsEnterprise drugsEnterprise,List<Recipedetail> recipeDetails){
+    public Integer scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
         List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
-        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds( drugsEnterprise.getId(),drugIds);
+        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
         HisResponseTO hisResponseTO = drugStockClient.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails, saleDrugLists);
         if (hisResponseTO != null && hisResponseTO.isSuccess()) {
             return 1;
@@ -114,18 +118,6 @@ public class DrugStockManager extends BaseManager {
     public RecipeResultBean scanDrugStock(Recipe recipe, List<Recipedetail> detailList) {
         logger.info("scanDrugStock 入参 recipe={},recipedetail={}", JSONObject.toJSONString(recipe), JSONObject.toJSONString(detailList));
         RecipeResultBean result = RecipeResultBean.getSuccess();
-
-        if (Objects.isNull(recipe)) {
-            result.setCode(RecipeResultBean.FAIL);
-            result.setError("没有该处方");
-            return result;
-        }
-
-        if (CollectionUtils.isEmpty(detailList)) {
-            result.setCode(RecipeResultBean.FAIL);
-            result.setError("处方没有详情");
-            return result;
-        }
 
         // 判断是否需要对接HIS
         List<String> recipeTypes = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "getRecipeTypeToHis", null);
@@ -182,5 +174,178 @@ public class DrugStockManager extends BaseManager {
         }
         logger.info("scanDrugStock 结果={}", JSONObject.toJSONString(result));
         return result;
+    }
+
+
+    /**
+     * 校验药企库存
+     *
+     * @param doSignRecipe
+     * @param organId
+     * @param recipeId
+     * @param object
+     * @param recipeDetails
+     * @return
+     */
+    public List<String> checkEnterprise(DoSignRecipeDTO doSignRecipe, Integer organId, Integer recipeId, List<Object> object, List<Recipedetail> recipeDetails) {
+        //检查开处方是否需要进行药企库存校验
+        boolean checkEnterprise = checkEnterprise(organId);
+        if (!checkEnterprise) {
+            return null;
+        }
+        Integer enterprisesDockType = configurationClient.getValueCatch(organId, "EnterprisesDockType", 0);
+        if (0 != enterprisesDockType) {
+            return null;
+        }
+        List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+        //验证能否药品配送以及能否开具到一张处方单上
+        String msg = canOpenRecipeDrugs(organId, recipeId, drugIds);
+        if (StringUtils.isNotEmpty(msg)) {
+            doSignRecipe(doSignRecipe, null, msg);
+            return new LinkedList<>();
+        }
+        //药企库存实时查询判断药企库存
+        if (CollectionUtils.isEmpty(object)) {
+            return null;
+        }
+        //todo findUnSupportDepList 调整如下代码 需要确认
+        List<List<String>> groupList = new ArrayList<>();
+        object.forEach(a -> {
+            List<String> list = (List<String>) a;
+            if (CollectionUtils.isNotEmpty(list)) {
+                groupList.add(list);
+            }
+        });
+        List<String> resultBean = ListValueUtil.minIntersection(groupList);
+        doSignRecipe(doSignRecipe, resultBean, "药品库存不足，请更换其他药品后再试");
+        return resultBean;
+    }
+
+
+    private String canOpenRecipeDrugs(Integer clinicOrgan, Integer recipeId, List<Integer> drugIds) {
+        List<DrugList> drugList = drugListDAO.findByDrugIds(drugIds);
+        //list转map
+        Map<Integer, DrugList> drugListMap = drugList.stream().collect(Collectors.toMap(DrugList::getDrugId, a -> a));
+
+
+        //供应商一致性校验，取第一个药品能配送的药企作为标准
+        //应该按照机构配置了的药企作为条件来查找是否能配送
+        //获取该机构下配置的药企
+
+        List<DrugsEnterprise> enterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
+        List<Integer> deps = enterprises.stream().map(e -> e.getId()).collect(Collectors.toList());
+        //找到每一个药能支持的药企关系
+        Map<Integer, List<String>> drugDepRel = saleDrugListDAO.findDrugDepRelation(drugIds, deps);
+
+        //无法配送药品校验------有一个药企能支持就不会提示
+        List<String> noFilterDrugName = new ArrayList<>();
+        for (Integer drugId : drugIds) {
+            if (CollectionUtils.isEmpty(drugDepRel.get(drugId))) {
+                noFilterDrugName.add(drugListMap.get(drugId).getDrugName());
+            }
+        }
+        if (CollectionUtils.isNotEmpty(noFilterDrugName)) {
+            logger.warn("setDetailsInfo 存在无法配送的药品. recipeId=[{}], drugIds={}, noFilterDrugName={}", recipeId, JSONUtils.toString(drugIds), JSONUtils.toString(noFilterDrugName));
+            return Joiner.on(",").join(noFilterDrugName) + "不在该机构可配送药企的药品目录里面，无法进行配送";
+        }
+
+        noFilterDrugName.clear();
+        //取第一个药能支持的药企做标准来判断
+        List<String> firstDrugDepIds = drugDepRel.get(drugIds.get(0));
+        for (Integer drugId : drugDepRel.keySet()) {
+            List<String> depIds = drugDepRel.get(drugId);
+            boolean filterFlag = false;
+            for (String depId : depIds) {
+                //匹配到一个药企相同则可跳过
+                if (firstDrugDepIds.contains(depId)) {
+                    filterFlag = true;
+                    break;
+                }
+            }
+            if (!filterFlag) {
+                noFilterDrugName.add(drugListMap.get(drugId).getDrugName());
+            } else {
+                //取交集
+                firstDrugDepIds.retainAll(depIds);
+            }
+        }
+
+        if (CollectionUtils.isNotEmpty(noFilterDrugName)) {
+            List<DrugList> drugLists = new ArrayList<DrugList>(drugListMap.values());
+            List<String> drugNames = drugLists.stream().map(e -> e.getDrugName()).collect(Collectors.toList());
+            logger.error("setDetailsInfo 存在无法一起配送的药品. recipeId=[{}], drugIds={}, noFilterDrugName={}", recipeId, JSONUtils.toString(drugIds), JSONUtils.toString(noFilterDrugName));
+            //一张处方单上的药品不能同时支持同一家药企配送
+            return Joiner.on(",").join(drugNames) + "不支持同一家药企配送";
+        }
+        return null;
+    }
+
+
+    /**
+     * 医院药企 库存都 较验
+     *
+     * @param doSignRecipe
+     * @param organId
+     * @param enterpriseDrugName
+     * @param scanResult
+     * @return
+     */
+    public RecipeResultBean checkEnterpriseAndHospital(DoSignRecipeDTO doSignRecipe, Integer organId, List<String> enterpriseDrugName, RecipeResultBean scanResult) {
+        //医院有库存，药企有库存
+        if (RecipeResultBean.SUCCESS.equals(scanResult.getCode()) && null == enterpriseDrugName) {
+            return scanResult;
+        }
+        //医院有库存药企无库存
+        if (RecipeResultBean.SUCCESS.equals(scanResult.getCode()) && null != enterpriseDrugName) {
+            doSignRecipe(doSignRecipe, enterpriseDrugName, "药品配送药企库存不足，该处方仅支持到院取药，无法药企配送，是否继续？");
+            doSignRecipe.setCanContinueFlag("2");
+            return scanResult;
+        }
+
+        //医院无库存 特殊机构返回
+        if (1000899 == organId) {
+            doSignRecipe(doSignRecipe, scanResult.getObject(), "药品门诊药房库存不足，请更换其他药品后再试");
+            return scanResult;
+        }
+        //医院无库存，药企有库存
+        if (null == enterpriseDrugName) {
+            doSignRecipe(doSignRecipe, scanResult.getObject(), "药品医院库存不足，该处方仅支持药企配送，无法到院取药，是否继续？");
+            doSignRecipe.setCanContinueFlag("1");
+            return scanResult;
+        }
+        //医院无库存，药企无库存
+        List<String> hospitalDrugName = (List<String>) scanResult.getObject();
+        if (CollectionUtils.isNotEmpty(hospitalDrugName) && CollectionUtils.isNotEmpty(enterpriseDrugName)) {
+            Boolean hospital = hospitalDrugName.containsAll(enterpriseDrugName);
+            Boolean enterprise = enterpriseDrugName.containsAll(hospitalDrugName);
+            if (hospital || enterprise) {
+                doSignRecipe(doSignRecipe, scanResult.getObject(), "药品库存不足，请更换其他药品后再试");
+            }
+        }
+        return scanResult;
+    }
+
+
+    /**
+     * 组织返回结果msg
+     *
+     * @param doSignRecipe
+     * @param object
+     * @param msg
+     * @return
+     */
+    public void doSignRecipe(DoSignRecipeDTO doSignRecipe, Object object, String msg) {
+        doSignRecipe.setSignResult(false);
+        doSignRecipe.setErrorFlag(true);
+        doSignRecipe.setCanContinueFlag("-1");
+        if (null == object) {
+            doSignRecipe.setMsg(msg);
+            return;
+        }
+        List<String> nameList = (List<String>) object;
+        if (CollectionUtils.isNotEmpty(nameList)) {
+            String nameStr = "【" + Joiner.on("、").join(nameList) + "】";
+            doSignRecipe.setMsg("由于该处方单上的" + nameStr + msg);
+        }
     }
 }

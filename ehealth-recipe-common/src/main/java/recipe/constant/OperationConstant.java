@@ -18,6 +18,7 @@ public class OperationConstant {
      * 条形码
      */
     public static final String OP_BARCODE = "barCode";
+    public static final String OP_BARCODE_ALL = "barCode.recipeExtend.cardNo";
     /**
      * 二维码
      */
@@ -33,7 +34,7 @@ public class OperationConstant {
     /**
      * 处方明细
      */
-    public static final String OP_RECIPE_DETAIL = "recipeDetails";
+    public static final String OP_RECIPE_DETAIL = "recipeDetail";
     /**
      * 处方
      */

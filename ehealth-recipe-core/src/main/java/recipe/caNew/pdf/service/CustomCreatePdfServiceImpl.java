@@ -14,6 +14,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
+import ctd.persistence.exception.DAOException;
 import lombok.Cleanup;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Base64;
@@ -28,6 +29,7 @@ import recipe.bussutil.SignImgNode;
 import recipe.bussutil.WordToPdfBean;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.IConfigurationClient;
+import recipe.constant.ErrorCode;
 import recipe.constant.OperationConstant;
 import recipe.dao.RecipeExtendDAO;
 import recipe.manager.RecipeManager;
@@ -59,12 +61,14 @@ import static recipe.util.ByteUtils.DOT_EN;
 public class CustomCreatePdfServiceImpl implements CreatePdfService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
 
+
     /**
      * 需要记录坐标的的字段
      */
-    private final List<String> ADDITIONAL_FIELDS = Arrays.asList(OP_RECIPE + DOT_EN + OP_RECIPE_DOCTOR, OP_RECIPE + DOT_EN + OP_RECIPE_CHECKER,
-            OP_RECIPE + DOT_EN + OP_RECIPE_GIVE_USER, "recipe.actualPrice", "recipe.patientID", "recipe.recipeCode",
-            "address", "recipeExtend.decoctionText", "recipeExtend.superviseRecipecode", "barCode.recipeExtend.cardNo");
+    private final String RECIPE = OP_RECIPE + DOT_EN;
+    private final List<String> ADDITIONAL_FIELDS = Arrays.asList(RECIPE + OP_RECIPE_DOCTOR, RECIPE + OP_RECIPE_CHECKER,
+            RECIPE + OP_RECIPE_GIVE_USER, RECIPE + OP_RECIPE_ACTUAL_PRICE, OP_BARCODE_ALL, "recipe.patientID", "recipe.recipeCode"
+            , "address", "recipeExtend.decoctionText", "recipeExtend.superviseRecipecode");
     @Autowired
     private RedisManager redisManager;
     @Autowired
@@ -79,10 +83,13 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     @Override
     public byte[] queryPdfOssId(Recipe recipe) throws Exception {
         byte[] data = generateTemplatePdf(recipe);
-        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), OP_RECIPE + DOT_EN + OP_RECIPE_DOCTOR);
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), RECIPE + OP_RECIPE_DOCTOR);
+        if (null == ordinateVO) {
+            return null;
+        }
         SignRecipePdfVO pdfEsign = new SignRecipePdfVO();
         pdfEsign.setPosX(ordinateVO.getX().floatValue());
-        pdfEsign.setPosY(ordinateVO.getY().floatValue());
+        pdfEsign.setPosY((float) ordinateVO.getY() - 12);
         pdfEsign.setWidth(150f);
         pdfEsign.setData(data);
         pdfEsign.setFileName("recipe_" + recipe.getRecipeId() + ".pdf");
@@ -97,7 +104,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         logger.info("CustomCreatePdfServiceImpl queryPdfByte recipe = {}", recipe.getRecipeId());
         byte[] data = generateTemplatePdf(recipe);
         String pdfBase64Str = new String(Base64.encode(data));
-        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), OP_RECIPE + DOT_EN + OP_RECIPE_DOCTOR);
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), RECIPE + OP_RECIPE_DOCTOR);
         if (null == ordinateVO) {
             return null;
         }
@@ -108,7 +115,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     public String updateDoctorNamePdf(Recipe recipe, SignImgNode signImgNode) throws Exception {
         logger.info("CustomCreatePdfServiceImpl updateDoctorNamePdf recipe = {}", recipe.getRecipeId());
         byte[] data = generateTemplatePdf(recipe);
-        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), OP_RECIPE + DOT_EN + OP_RECIPE_DOCTOR);
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), RECIPE + OP_RECIPE_DOCTOR);
         if (null == ordinateVO) {
             return null;
         }
@@ -120,7 +127,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
 
     @Override
     public CaSealRequestTO queryCheckPdfByte(Recipe recipe) {
-        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), OP_RECIPE + DOT_EN + OP_RECIPE_CHECKER);
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), RECIPE + OP_RECIPE_CHECKER);
         if (null == ordinateVO) {
             return null;
         }
@@ -132,7 +139,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         String recipeId = recipe.getRecipeId().toString();
         logger.info("CustomCreatePdfServiceImpl updateCheckNamePdf recipeId:{}", recipeId);
         //更新pdf文件
-        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), OP_RECIPE + DOT_EN + OP_RECIPE_CHECKER);
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), RECIPE + OP_RECIPE_CHECKER);
         if (null == ordinateVO) {
             return null;
         }
@@ -153,7 +160,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     @Override
     public CoOrdinateVO updateTotalPdf(Recipe recipe, BigDecimal recipeFee) {
         logger.info("CustomCreatePdfServiceImpl updateTotalPdf  recipeId={},recipeFee={}", recipe.getRecipeId(), recipeFee);
-        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), "recipe.actualPrice");
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), RECIPE + OP_RECIPE_ACTUAL_PRICE);
         if (null == ordinateVO) {
             return null;
         }
@@ -165,22 +172,19 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         return coords;
     }
 
-    /**
-     * todo
-     *
-     * @param recipe
-     * @return
-     * @throws Exception
-     */
+
     @Override
     public String updateCodePdf(Recipe recipe) throws Exception {
         Integer recipeId = recipe.getRecipeId();
         logger.info("CustomCreatePdfServiceImpl updateCodePdf  recipeId={}", recipeId);
-        CoOrdinateVO barcode = new CoOrdinateVO();
-        CoOrdinateVO barCodePatientId = redisManager.getPdfCoords(recipe.getRecipeId(), "barCode.recipeExtend.cardNo");
-        if (null != barCodePatientId) {
-            barcode = barCodePatientId;
-            barcode.setValue(recipe.getPatientID());
+        CoOrdinateVO barcode = redisManager.getPdfCoords(recipe.getRecipeId(), OP_BARCODE_ALL);
+        if (null != barcode) {
+            String barCode = configurationClient.getValueCatch(recipe.getClinicOrgan(), OperationConstant.OP_BARCODE, "");
+            String[] keySplit = barCode.trim().split(ByteUtils.DOT);
+            if (2 == keySplit.length) {
+                String fieldName = keySplit[1];
+                barcode.setValue(MapValueUtil.getFieldValueByName(fieldName, recipe));
+            }
         }
         List<CoOrdinateVO> coOrdinateList = new LinkedList<>();
         CoOrdinateVO patientId = redisManager.getPdfCoords(recipe.getRecipeId(), "recipe.patientID");
@@ -224,7 +228,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     public SignImgNode updateGiveUser(Recipe recipe) {
         logger.info("CustomCreatePdfServiceImpl updateGiveUser recipe={}", JSON.toJSONString(recipe));
         //修改pdf文件
-        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), OP_RECIPE + DOT_EN + OP_RECIPE_GIVE_USER);
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), RECIPE + OP_RECIPE_GIVE_USER);
         if (null == ordinateVO) {
             return null;
         }
@@ -263,11 +267,11 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         //拷贝模版流 生成新pdf
         byte[] data = CreateRecipePdfUtil.generateTemplatePdf(recipe.getRecipeId(), output);
         //删除生成的图片
-        generatePdfList.forEach(a -> {
-            if (null != a.getUri()) {
-                new File(a.getUri()).delete();
-            }
-        });
+        try {
+            generatePdfList.stream().filter(a -> null != a.getUri()).forEach(a -> new File(a.getUri()).delete());
+        } catch (Exception e) {
+            logger.error("CustomCreatePdfServiceImpl generateTemplatePdf  error File ={}", JSON.toJSONString(generatePdfList), e);
+        }
         return data;
     }
 
@@ -282,7 +286,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         Map<String, AcroFields.Item> map = form.getFields();
         if (map.isEmpty()) {
             logger.warn("CustomCreatePdfServiceImpl generatePdfList map null");
-            return null;
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "模版错误");
         }
         //获取pdf值对象
         RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDTO(recipe.getRecipeId());
@@ -374,17 +378,23 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     private WordToPdfBean invokeFieldName(String key, String objectName, String fieldName, RecipeInfoDTO recipePdfDTO, Map<String, Object> recipeDetailMap) {
         if (OP_RECIPE.equals(objectName)) {
             String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipe());
+            if (OP_RECIPE_DOCTOR.equals(fieldName)) {
+                value = "";
+            }
             return new WordToPdfBean(key, value, null);
         }
-        if (OperationConstant.OP_PATIENT.equals(objectName)) {
+        if (OP_PATIENT.equals(objectName)) {
             String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getPatientBean());
+            if ("patientUserType".equals(fieldName)) {
+                value = StringUtils.isEmpty(value) || "0".equals(value) ? "成人处方" : "儿童处方";
+            }
             return new WordToPdfBean(key, value, null);
         }
-        if (OperationConstant.OP_RECIPE_EXTEND.equals(objectName)) {
+        if (OP_RECIPE_EXTEND.equals(objectName)) {
             String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipeExtend());
             return new WordToPdfBean(key, value, null);
         }
-        if (OperationConstant.OP_RECIPE_DETAIL.equals(objectName)) {
+        if (OP_RECIPE_DETAIL.equals(objectName)) {
             String value = ByteUtils.objValueOfString(recipeDetailMap.get(key));
             return new WordToPdfBean(key, value, null);
         }
@@ -408,6 +418,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
             list.add(new RecipeLabelVO("药品名称", "recipeDetail.drugName_" + i, drugShowName));
         }
         Recipedetail recipedetail = recipeDetails.get(0);
+        list.add(new RecipeLabelVO("药房", "recipeDetail.pharmacyName", recipedetail.getPharmacyName()));
         list.add(new RecipeLabelVO("天数", "recipeDetail.useDays", recipedetail.getUseDays()));
         list.add(new RecipeLabelVO("用药途径", "recipeDetail.usePathways", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", recipedetail.getUsePathways())));
         list.add(new RecipeLabelVO("用药频次", "recipeDetail.usingRate", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", recipedetail.getUsingRate())));
@@ -447,6 +458,8 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
             list.add(new RecipeLabelVO("用药天数", "recipeDetail.useDays_" + i, detail.getUseDays()));
             list.add(new RecipeLabelVO("用药天数", "recipeDetail.memo_" + i, detail.getMemo()));
         }
+        Recipedetail recipedetail = recipeDetails.get(0);
+        list.add(new RecipeLabelVO("药房", "recipeDetail.pharmacyName", recipedetail.getPharmacyName()));
         logger.info("CreateRecipePdfUtil createMedicinePDF list :{} ", JSON.toJSONString(list));
         return list.stream().collect(HashMap::new, (m, v) -> m.put(v.getEnglishName(), v.getValue()), HashMap::putAll);
     }

@@ -1,12 +1,15 @@
 package recipe.manager;
 
-import com.ngari.his.recipe.mode.DiseaseInfo;
-import org.apache.commons.lang3.StringUtils;
+import com.alibaba.fastjson.JSON;
+import com.ngari.his.recipe.mode.OutPatientRecipeReq;
+import com.ngari.recipe.dto.DiseaseInfoDTO;
+import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.OfflineRecipeClient;
 import recipe.util.ValidateUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,20 +29,31 @@ public class OutPatientRecipeManager extends BaseManager{
      * @param patientName 患者名称
      * @param registerID 挂号序号
      * @param patientId 病历号
-     * @return  诊断名称
+     * @return  诊断列表
      */
-    public String getOutRecipeDisease(Integer organId, String patientName, String registerID, String patientId){
+    public List<DiseaseInfoDTO> getOutRecipeDisease(Integer organId, String patientName, String registerID, String patientId){
         logger.info("OutPatientRecipeManager getOutRecipeDisease organId:{}, patientName:{},registerID:{},patientId:{}.",organId, patientName, registerID, patientId);
-        if (ValidateUtil.integerIsEmpty(organId) || StringUtils.isEmpty(patientName) || StringUtils.isEmpty(registerID) || StringUtils.isEmpty(patientId)) {
-            return "";
+        if (ValidateUtil.validateObjects(organId, patientName, registerID, patientId)) {
+            return new ArrayList<>();
         }
-        final StringBuilder diseaseName = new StringBuilder();
-        List<DiseaseInfo> response = offlineRecipeClient.queryPatientDisease(organId, patientName, registerID, patientId);
-        response.forEach(diseaseInfo ->
-            diseaseName.append(diseaseInfo.getDiseaseName()).append(";")
-        );
-        StringBuilder result = diseaseName.deleteCharAt(diseaseName.lastIndexOf(";"));
-        logger.info("OutPatientRecipeManager diseaseName:{}.", result);
-        return result.toString();
+        List<DiseaseInfoDTO> response = offlineRecipeClient.queryPatientDisease(organId, patientName, registerID, patientId);
+        logger.info("OutPatientRecipeManager getOutRecipeDisease response:{}.", JSON.toJSONString(response));
+        return response;
     }
+
+    /**
+     * 查询门诊处方信息
+     * @param outPatientRecipeReq 患者信息
+     * @return  门诊处方列表
+     */
+    public List<OutPatientRecipeDTO> queryOutPatientRecipe(OutPatientRecipeReq outPatientRecipeReq){
+        logger.info("OutPatientRecipeManager queryOutPatientRecipe outPatientRecipeReq:{}.", JSON.toJSONString(outPatientRecipeReq));
+        if (ValidateUtil.validateObjects(outPatientRecipeReq, outPatientRecipeReq.getOrganId(), outPatientRecipeReq.getPatientName())){
+            return new ArrayList<>();
+        }
+        List<OutPatientRecipeDTO> response = offlineRecipeClient.queryOutPatientRecipe(outPatientRecipeReq);
+        logger.info("OutPatientRecipeManager queryOutPatientRecipe response:{}.", JSON.toJSONString(response));
+        return response;
+    }
+
 }

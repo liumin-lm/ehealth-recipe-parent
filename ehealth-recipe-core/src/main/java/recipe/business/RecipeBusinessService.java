@@ -1,6 +1,13 @@
 package recipe.business;
 
-import com.ngari.recipe.vo.OutPatientRecipeVO;
+import com.alibaba.fastjson.JSON;
+import com.ngari.follow.utils.ObjectCopyUtil;
+import com.ngari.his.recipe.mode.OutPatientRecipeReq;
+import com.ngari.recipe.dto.DiseaseInfoDTO;
+import com.ngari.recipe.dto.OutPatientRecipeDTO;
+import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
+import com.ngari.recipe.vo.OutPatientRecipeReqVO;
+import com.ngari.recipe.vo.PatientInfoVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.core.api.IRecipeBusinessService;
@@ -31,14 +38,28 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     private OutPatientRecipeManager outPatientRecipeManager;
 
+    /**
+     * 获取线下门诊处方诊断信息
+     * @param patientInfoVO 患者信息
+     * @return  诊断列表
+     */
     @Override
-    public String getOutRecipeDisease(Integer organId, String patientName, String registerID, String patientId) {
-        return outPatientRecipeManager.getOutRecipeDisease(organId, patientName, registerID, patientId);
+    public List<DiseaseInfoDTO> getOutRecipeDisease(PatientInfoVO patientInfoVO) {
+        return outPatientRecipeManager.getOutRecipeDisease(patientInfoVO.getOrganId(), patientInfoVO.getPatientName(), patientInfoVO.getRegisterID(), patientInfoVO.getPatientId());
     }
 
+    /**
+     * 查询门诊处方信息
+     * @param outPatientRecipeReqVO 患者信息
+     * @return  门诊处方列表
+     */
     @Override
-    public void queryOutPatientRecipe(OutPatientRecipeVO outPatientRecipeVO) {
-
+    public List<OutPatientRecipeVO> queryOutPatientRecipe(OutPatientRecipeReqVO outPatientRecipeReqVO) {
+        logger.info("OutPatientRecipeService queryOutPatientRecipe outPatientRecipeReq:{}.", JSON.toJSONString(outPatientRecipeReqVO));
+        OutPatientRecipeReq outPatientRecipeReq = ObjectCopyUtil.convert(outPatientRecipeReqVO, OutPatientRecipeReq.class);
+        List<OutPatientRecipeDTO> outPatientRecipeDTOS = outPatientRecipeManager.queryOutPatientRecipe(outPatientRecipeReq);
+        //TODO 业务逻辑处理
+        return ObjectCopyUtil.convert(outPatientRecipeDTOS, OutPatientRecipeVO.class);
     }
 
     /**

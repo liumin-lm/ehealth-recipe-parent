@@ -12,9 +12,8 @@ import java.io.Serializable;
  */
 @Getter
 @Setter
-public class OutPatientRecipeVO implements Serializable{
-    private static final long serialVersionUID = 3538772244191536802L;
-
+public class OutPatientRecipeReqVO implements Serializable{
+    private static final long serialVersionUID = -1110551683869187915L;
     /**
      * 机构ID
      */
@@ -38,4 +37,14 @@ public class OutPatientRecipeVO implements Serializable{
      * 就诊卡号
      */
     private String cardID;
+
+    /**
+     * 查询开始时间
+     */
+    private String beginTime;
+
+    /**
+     * 查询结束时间
+     */
+    private String endTime;
 }
