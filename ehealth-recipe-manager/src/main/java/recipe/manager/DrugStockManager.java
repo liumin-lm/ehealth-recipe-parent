@@ -213,41 +213,6 @@ public class DrugStockManager extends BaseManager {
         return CollectionUtils.isNotEmpty(enterprise);
     }
 
-    /**
-     * todo canOpenRecipeDrugs 调整如下代码 需要确认
-     * 是否有一个药企存在药品
-     *
-     * @param clinicOrgan
-     * @param recipeDetails
-     * @return
-     */
-    private String canOpenRecipeDrugs(Integer clinicOrgan, List<Recipedetail> recipeDetails) {
-        //找到每一个药能支持的药企关系
-        List<DrugsEnterprise> enterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
-        List<Integer> deps = enterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
-        List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
-        //获取药企与配送药品关系 （药企A:药品1,药品2）
-        Map<Integer, List<Integer>> depDrugRel = saleDrugListDAO.findDepDrugRelation(drugIds, deps);
-
-        List<Integer> depDrugIdList = null;
-        Collections.sort(drugIds);
-        for (List<Integer> depDrug : depDrugRel.values()) {
-            Collections.sort(depDrug);
-            if (drugIds.toString().equals(depDrug.toString())) {
-                depDrugIdList = null;
-                break;
-            }
-            depDrugIdList = depDrug;
-        }
-        if (CollectionUtils.isEmpty(depDrugIdList)) {
-            return null;
-        }
-        List<Integer> finalDepDrugIdList = depDrugIdList;
-        List<String> drugNames = recipeDetails.stream().filter(a -> !finalDepDrugIdList.contains(a.getDrugId())).map(Recipedetail::getDrugName).collect(Collectors.toList());
-        return drugNames.toString() + "不支持同一家药企配送或不在该机构药企可配送的药品目录里面";
-
-    }
-
 
     /**
      * 医院药企 库存都 较验
@@ -316,4 +281,40 @@ public class DrugStockManager extends BaseManager {
             doSignRecipe.setMsg("由于该处方单上的" + nameStr + msg);
         }
     }
+
+
+    /**
+     * todo canOpenRecipeDrugs 调整如下代码 需要确认
+     * 是否有一个药企存在药品
+     *
+     * @param clinicOrgan
+     * @param recipeDetails
+     * @return
+     */
+    private String canOpenRecipeDrugs(Integer clinicOrgan, List<Recipedetail> recipeDetails) {
+        //找到每一个药能支持的药企关系
+        List<DrugsEnterprise> enterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
+        List<Integer> deps = enterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
+        List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
+        //获取药企与配送药品关系 （药企A:药品1,药品2）
+        Map<Integer, List<Integer>> depDrugRel = saleDrugListDAO.findDepDrugRelation(drugIds, deps);
+
+        List<Integer> depDrugIdList = null;
+        Collections.sort(drugIds);
+        for (List<Integer> depDrug : depDrugRel.values()) {
+            Collections.sort(depDrug);
+            if (drugIds.toString().equals(depDrug.toString())) {
+                depDrugIdList = null;
+                break;
+            }
+            depDrugIdList = depDrug;
+        }
+        if (CollectionUtils.isEmpty(depDrugIdList)) {
+            return null;
+        }
+        List<Integer> finalDepDrugIdList = depDrugIdList;
+        List<String> drugNames = recipeDetails.stream().filter(a -> !finalDepDrugIdList.contains(a.getDrugId())).map(Recipedetail::getDrugName).collect(Collectors.toList());
+        return drugNames.toString() + "不支持同一家药企配送或不在该机构药企可配送的药品目录里面";
+    }
+
 }
