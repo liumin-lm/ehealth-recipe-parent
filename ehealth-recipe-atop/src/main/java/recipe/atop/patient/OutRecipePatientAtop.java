@@ -3,6 +3,7 @@ package recipe.atop.patient;
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
+import com.ngari.recipe.vo.PatientInfoVO;
 import com.ngari.recipe.vo.OutPatientRecipeReqVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
@@ -50,18 +51,15 @@ public class OutRecipePatientAtop extends BaseAtop {
 
     /**
      * 获取线下门诊处方诊断信息
-     * @param organId 机构ID
-     * @param patientName 患者名称
-     * @param registerID 挂号序号
-     * @param patientId 病历号
+     * @param patientInfoVO 患者信息
      * @return  诊断列表
      */
     @RpcService
-    public String getOutRecipeDisease(Integer organId, String patientName, String registerID, String patientId){
-        logger.info("OutPatientRecipeAtop getOutRecipeDisease organId:{}, patientName:{},registerID:{},patientId:{}.",organId, patientName, registerID, patientId);
-        validateAtop(organId, patientName, registerID, patientId);
+    public String getOutRecipeDisease(PatientInfoVO patientInfoVO){
+        logger.info("OutPatientRecipeAtop getOutRecipeDisease patientInfoVO:{}.", JSON.toJSONString(patientInfoVO));
+        validateAtop(patientInfoVO, patientInfoVO.getOrganId(), patientInfoVO.getPatientName(), patientInfoVO.getPatientId(), patientInfoVO.getRegisterID());
         try {
-            List<DiseaseInfoDTO> result = recipeBusinessService.getOutRecipeDisease(organId, patientName, registerID, patientId);
+            List<DiseaseInfoDTO> result = recipeBusinessService.getOutRecipeDisease(patientInfoVO);
             final StringBuilder diseaseNames = new StringBuilder();
             result.forEach(diseaseInfoDTO -> diseaseNames.append(diseaseInfoDTO.getDiseaseName()).append(";"));
             if (StringUtils.isNotEmpty(diseaseNames)) {
