@@ -57,6 +57,7 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
     @Override
     @RpcService
     public Map<String, Object> getHtml5LinkInfo(PatientInfoDTO patient, RecipeBean recipeBean, List<RecipeDetailBean> recipeDetails, Integer reqType) {
+        LOGGER.info("WinningMedicationGuideService.getHtml5LinkInfo req patient={} recipeBean={} recipeDetails={} reqType={}",patient,recipeBean,recipeDetails,reqType);
         if (null != recipeBean && null != recipeBean.getRecipeId()) {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
 

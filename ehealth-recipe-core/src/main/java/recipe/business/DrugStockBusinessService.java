@@ -387,7 +387,7 @@ public class DrugStockBusinessService extends BaseService {
         supportDepListBean.setHaveList(haveList);
         supportDepListBean.setNoHaveList(noHaveList);
 
-        logger.info("findAllSupportDepList res supportDepListBean={}",JSONArray.toJSONString(supportDepListBean));
+        logger.info("findAllSupportDepList res haveList={} noHaveList = {}",JSONArray.toJSONString(haveList),JSONArray.toJSONString(noHaveList));
         return supportDepListBean;
     }
 
