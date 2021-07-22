@@ -8,7 +8,8 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.recipe.mode.DiseaseInfoDTO;
+import com.ngari.recipe.dto.DiseaseInfoDTO;
+import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -16,7 +17,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import recipe.constant.ErrorCode;
-import com.ngari.recipe.dto.OutPatientRecipeDTO;
 
 import java.util.ArrayList;
 import java.util.Calendar;
