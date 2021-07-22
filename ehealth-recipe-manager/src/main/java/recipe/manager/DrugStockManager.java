@@ -1,5 +1,6 @@
 package recipe.manager;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Service;
 import recipe.client.DrugStockClient;
 import recipe.client.IConfigurationClient;
 import recipe.dao.*;
+import recipe.util.ListValueUtil;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
@@ -45,21 +47,23 @@ public class DrugStockManager extends BaseManager {
 
     @Autowired
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
-
     @Resource
     private SaleDrugListDAO saleDrugListDAO;
+    @Autowired
+    private DrugListDAO drugListDAO;
 
 
     /**
      * 药企库存
+     *
      * @param recipe
      * @param drugsEnterprise
      * @param recipeDetails
      * @return
      */
-    public Integer scanEnterpriseDrugStock(Recipe recipe,DrugsEnterprise drugsEnterprise,List<Recipedetail> recipeDetails){
+    public Integer scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
         List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
-        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds( drugsEnterprise.getId(),drugIds);
+        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
         HisResponseTO hisResponseTO = drugStockClient.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails, saleDrugLists);
         if (hisResponseTO != null && hisResponseTO.isSuccess()) {
             return 1;
@@ -183,4 +187,84 @@ public class DrugStockManager extends BaseManager {
         logger.info("scanDrugStock 结果={}", JSONObject.toJSONString(result));
         return result;
     }
+
+
+    public String canOpenRecipeDrugs(Integer clinicOrgan, Integer recipeId, List<Integer> drugIds) {
+        List<DrugList> drugList = drugListDAO.findByDrugIds(drugIds);
+        //list转map
+        Map<Integer, DrugList> drugListMap = drugList.stream().collect(Collectors.toMap(DrugList::getDrugId, a -> a));
+
+
+        //供应商一致性校验，取第一个药品能配送的药企作为标准
+        //应该按照机构配置了的药企作为条件来查找是否能配送
+        //获取该机构下配置的药企
+
+        List<DrugsEnterprise> enterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
+        List<Integer> deps = enterprises.stream().map(e -> e.getId()).collect(Collectors.toList());
+        //找到每一个药能支持的药企关系
+        Map<Integer, List<String>> drugDepRel = saleDrugListDAO.findDrugDepRelation(drugIds, deps);
+
+        //无法配送药品校验------有一个药企能支持就不会提示
+        List<String> noFilterDrugName = new ArrayList<>();
+        for (Integer drugId : drugIds) {
+            if (CollectionUtils.isEmpty(drugDepRel.get(drugId))) {
+                noFilterDrugName.add(drugListMap.get(drugId).getDrugName());
+            }
+        }
+        if (CollectionUtils.isNotEmpty(noFilterDrugName)) {
+            logger.warn("setDetailsInfo 存在无法配送的药品. recipeId=[{}], drugIds={}, noFilterDrugName={}", recipeId, JSONUtils.toString(drugIds), JSONUtils.toString(noFilterDrugName));
+            return Joiner.on(",").join(noFilterDrugName) + "不在该机构可配送药企的药品目录里面，无法进行配送";
+        }
+
+        noFilterDrugName.clear();
+        //取第一个药能支持的药企做标准来判断
+        List<String> firstDrugDepIds = drugDepRel.get(drugIds.get(0));
+        for (Integer drugId : drugDepRel.keySet()) {
+            List<String> depIds = drugDepRel.get(drugId);
+            boolean filterFlag = false;
+            for (String depId : depIds) {
+                //匹配到一个药企相同则可跳过
+                if (firstDrugDepIds.contains(depId)) {
+                    filterFlag = true;
+                    break;
+                }
+            }
+            if (!filterFlag) {
+                noFilterDrugName.add(drugListMap.get(drugId).getDrugName());
+            } else {
+                //取交集
+                firstDrugDepIds.retainAll(depIds);
+            }
+        }
+
+        if (CollectionUtils.isNotEmpty(noFilterDrugName)) {
+            List<DrugList> drugLists = new ArrayList<DrugList>(drugListMap.values());
+            List<String> drugNames = drugLists.stream().map(e -> e.getDrugName()).collect(Collectors.toList());
+            logger.error("setDetailsInfo 存在无法一起配送的药品. recipeId=[{}], drugIds={}, noFilterDrugName={}", recipeId, JSONUtils.toString(drugIds), JSONUtils.toString(noFilterDrugName));
+            //一张处方单上的药品不能同时支持同一家药企配送
+            return Joiner.on(",").join(drugNames) + "不支持同一家药企配送";
+        }
+        return null;
+    }
+
+
+    /**
+     * 查询处方无库存药企药品信息
+     *
+     * @param objects
+     * @return
+     */
+    public List<String> findUnSupportDepList(List<Object> objects) {
+        List<List<String>> groupList = new ArrayList<>();
+        objects.forEach(a -> {
+            List<String> list = (List<String>) a;
+            if (CollectionUtils.isNotEmpty(list)) {
+                groupList.add(list);
+            }
+        });
+        List<String> drugList = ListValueUtil.minIntersection(groupList);
+        logger.info("DrugStockManager findUnSupportDepList  drugList :{}", JSON.toJSONString(drugList));
+        return drugList;
+    }
+
 }
