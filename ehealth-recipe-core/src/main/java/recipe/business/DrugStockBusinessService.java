@@ -108,14 +108,14 @@ public class DrugStockBusinessService extends BaseService {
             allSupportDepList = findAllSupportDepList(recipeNew, recipeDetails);
             List<DrugEnterpriseResult> drugEnterpriseResults = allSupportDepList.getNoHaveList();
             List<Object> object = drugEnterpriseResults.stream().map(RecipeResultBean::getObject).collect(Collectors.toList());
-            drugStockManager.checkEnterprise(doSignRecipe, recipe.getClinicOrgan(), recipe.getRecipeId(), object, recipeDetails);
+            drugStockManager.checkEnterprise(doSignRecipe, recipe.getClinicOrgan(), object, recipeDetails);
         } else if (3 == checkFlag) {
             /**校验 医院/药企 库存*/
             //药企库存
             allSupportDepList = findAllSupportDepList(recipeNew, recipeDetails);
             List<DrugEnterpriseResult> drugEnterpriseResults = allSupportDepList.getNoHaveList();
             List<Object> object = drugEnterpriseResults.stream().map(RecipeResultBean::getObject).collect(Collectors.toList());
-            List<String> enterpriseDrugName = drugStockManager.checkEnterprise(doSignRecipe, recipe.getClinicOrgan(), recipe.getRecipeId(), object, recipeDetails);
+            List<String> enterpriseDrugName = drugStockManager.checkEnterprise(doSignRecipe, recipe.getClinicOrgan(), object, recipeDetails);
             //医院库存
             scanResult = drugStockManager.scanDrugStockByRecipeId(recipeNew, recipeDetails);
             //校验医院药企库存
