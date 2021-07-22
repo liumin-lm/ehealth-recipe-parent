@@ -220,6 +220,7 @@ public class DrugStockManager extends BaseManager {
         if (CollectionUtils.isEmpty(object)) {
             return null;
         }
+        //todo findUnSupportDepList 调整如下代码 需要确认
         List<List<String>> groupList = new ArrayList<>();
         object.forEach(a -> {
             List<String> list = (List<String>) a;
