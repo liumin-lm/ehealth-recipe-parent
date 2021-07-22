@@ -37,11 +37,24 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     private OutPatientRecipeManager outPatientRecipeManager;
 
+    /**
+     * 获取线下门诊处方诊断信息
+     * @param organId 机构ID
+     * @param patientName 患者名称
+     * @param registerID 挂号序号
+     * @param patientId 病历号
+     * @return  诊断列表
+     */
     @Override
     public List<DiseaseInfoDTO> getOutRecipeDisease(Integer organId, String patientName, String registerID, String patientId) {
         return outPatientRecipeManager.getOutRecipeDisease(organId, patientName, registerID, patientId);
     }
 
+    /**
+     * 查询门诊处方信息
+     * @param outPatientRecipeReqVO 患者信息
+     * @return  门诊处方列表
+     */
     @Override
     public List<OutPatientRecipeVO> queryOutPatientRecipe(OutPatientRecipeReqVO outPatientRecipeReqVO) {
         logger.info("OutPatientRecipeService queryOutPatientRecipe outPatientRecipeReq:{}.", JSON.toJSONString(outPatientRecipeReqVO));

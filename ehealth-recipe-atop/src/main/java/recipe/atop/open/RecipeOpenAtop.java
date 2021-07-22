@@ -1,10 +1,10 @@
-package recipe.atop.doctor;
+package recipe.atop.open;
 
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import recipe.atop.BaseAtop;
 import recipe.api.open.IRecipeAtopService;
+import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 
@@ -14,8 +14,8 @@ import recipe.core.api.IRecipeBusinessService;
  * @Date: 2021/7/19
  * @Author: zhaoh
  */
-@RpcBean("recipeAtop")
-public class RecipeDoctorAtop extends BaseAtop implements IRecipeAtopService {
+@RpcBean("recipeOpenAtop")
+public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
 
     @Autowired
     private IRecipeBusinessService recipeBusinessService;
