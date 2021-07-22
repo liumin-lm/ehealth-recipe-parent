@@ -25,7 +25,6 @@ import recipe.bussutil.SignImgNode;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.IConfigurationClient;
 import recipe.client.OperationClient;
-import recipe.constant.OperationConstant;
 import recipe.dao.RecipeExtendDAO;
 import recipe.manager.RecipeManager;
 import recipe.manager.RedisManager;
@@ -312,11 +311,6 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
      * @param recipe
      */
     private void createMedicinePDF(List<RecipeLabelVO> list, List<Recipedetail> recipeDetails, Recipe recipe) {
-        RecipeLabelVO recipeLabelVO = list.stream().filter(a -> OperationConstant.OP_RECIPE_DETAIL.equals(a.getEnglishName())).findAny().orElse(null);
-        if (null == recipeLabelVO) {
-            return;
-        }
-
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return;
         }
@@ -363,10 +357,6 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
      * @param recipe
      */
     private void createChineMedicinePDF(List<RecipeLabelVO> list, List<Recipedetail> recipeDetails, RecipeExtend extend, Recipe recipe) {
-        RecipeLabelVO recipeLabelVO = list.stream().filter(a -> OperationConstant.OP_RECIPE_DETAIL.equals(a.getEnglishName())).findAny().orElse(null);
-        if (null == recipeLabelVO) {
-            return;
-        }
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return;
         }

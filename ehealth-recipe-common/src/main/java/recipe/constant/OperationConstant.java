@@ -34,7 +34,7 @@ public class OperationConstant {
     /**
      * 处方明细
      */
-    public static final String OP_RECIPE_DETAIL = "recipeDetails";
+    public static final String OP_RECIPE_DETAIL = "recipeDetail";
     /**
      * 处方
      */
