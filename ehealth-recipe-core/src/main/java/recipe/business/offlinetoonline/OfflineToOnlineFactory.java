@@ -47,6 +47,5 @@ public class OfflineToOnlineFactory implements ApplicationContextAware {
             payModeMap.put(offlineToOnlineService.getHandlerMode(), offlineToOnlineService);
         }
         logger.info("OfflineToOnlineFactory添加授权服务工厂类，payModeMap = {}", JSON.toJSONString(payModeMap));
-
     }
 }

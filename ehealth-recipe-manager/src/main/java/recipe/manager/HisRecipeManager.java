@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
-import recipe.client.RevisitClient;
 import recipe.dao.*;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -66,17 +65,8 @@ public class HisRecipeManager extends BaseManager {
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
     @Autowired
-    private PharmacyTcmDAO pharmacyTcmDAO;
-    @Autowired
-    private EmrRecipeManager emrRecipeManager;
-    @Autowired
-    private DrugMakingMethodDao drugMakingMethodDao;
-    @Autowired
-    private SymptomDAO symptomDAO;
-    @Autowired
     private RecipeLogDAO recipeLogDao;
-    @Autowired
-    private RevisitClient revisitClient;
+
 
     /**
      * 获取患者信息
@@ -99,7 +89,10 @@ public class HisRecipeManager extends BaseManager {
      * @return
      */
     public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
-        return offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, flag, recipeCode);
+        LOGGER.info("HisRecipeManager queryData param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode);
+        HisResponseTO<List<QueryHisRecipResTO>> res = offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, flag, recipeCode);
+        logger.info("HisRecipeManager res:{}.", JSONUtils.toString(res));
+        return res;
     }
 
 

@@ -103,7 +103,7 @@ public class OfflineRecipeClient extends BaseClient {
      * @Desciption 从 his查询待缴费已缴费的处方信息
      */
     public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
-        logger.info("queryData organId:{},patientDTO:{}", organId, JSONUtils.toString(patientDTO));
+        logger.info("OfflineRecipeClient queryData param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}",organId,JSONUtils.toString(patientDTO),timeQuantum,flag,recipeCode);
         PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
         patientBaseInfo.setBirthday(patientDTO.getBirthday());
         patientBaseInfo.setPatientName(patientDTO.getPatientName());

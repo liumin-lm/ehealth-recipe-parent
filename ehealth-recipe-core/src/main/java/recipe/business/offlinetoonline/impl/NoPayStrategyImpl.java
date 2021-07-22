@@ -52,13 +52,13 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
 
     @Override
     public List<MergeRecipeVO> findHisRecipeList(HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos, PatientDTO patientDTO, FindHisRecipeListVO request) {
-        LOGGER.info("findHisRecipeList hisRecipeInfos:{},patientDTO:{},request:{}",JSONUtils.toString(hisRecipeInfos),JSONUtils.toString(patientDTO),JSONUtils.toString(request));
+        LOGGER.info("NoPayStrategyImpl findHisRecipeList hisRecipeInfos:{},patientDTO:{},request:{}",JSONUtils.toString(hisRecipeInfos),JSONUtils.toString(patientDTO),JSONUtils.toString(request));
         // 2、将his数据转换成recipe对象
         List<HisRecipeVO> noPayFeeHisRecipeVO = covertToHisRecipeVoObject(hisRecipeInfos, patientDTO);
         // 3、包装成前端所需线下处方列表对象
         GiveModeButtonBean giveModeButtonBean=getGiveModeButtonBean(request.getOrganId());
         List<MergeRecipeVO> res=findOnReadyHisRecipeList(noPayFeeHisRecipeVO, giveModeButtonBean);
-        LOGGER.info("findHisRecipeList res:{}",JSONUtils.toString(res));
+        LOGGER.info("NoPayStrategyImpl findHisRecipeList res:{}",JSONUtils.toString(res));
         return res;
     }
 
@@ -123,7 +123,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
      * @return
      */
     public List<HisRecipeVO> covertToHisRecipeVoObject(HisResponseTO<List<QueryHisRecipResTO>> responseTO, PatientDTO patientDTO) {
-        LOGGER.info("covertHisRecipeObject param responseTO:{},patientDTO:{}" + JSONUtils.toString(responseTO),JSONUtils.toString(patientDTO));
+        LOGGER.info("NoPayServiceImpl covertHisRecipeObject param responseTO:{},patientDTO:{}" + JSONUtils.toString(responseTO),JSONUtils.toString(patientDTO));
         List<HisRecipeVO> hisRecipeVOs = new ArrayList<>();
         if (responseTO == null) {
             return hisRecipeVOs;
@@ -132,7 +132,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
         if (CollectionUtils.isEmpty(queryHisRecipResTOList)) {
             return hisRecipeVOs;
         }
-        LOGGER.info("covertHisRecipeObject queryHisRecipResTOList:" + JSONUtils.toString(queryHisRecipResTOList));
+        LOGGER.info("NoPayServiceImpl covertHisRecipeObject queryHisRecipResTOList:" + JSONUtils.toString(queryHisRecipResTOList));
         for (QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOList) {
             HisRecipe hisRecipeDb = hisRecipeManager.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(
                     patientDTO.getMpiId(), queryHisRecipResTO.getClinicOrgan(), queryHisRecipResTO.getRecipeCode());
@@ -168,7 +168,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
             hisRecipeVO.setRecipeMode("ngarihealth");
             hisRecipeVOs.add(hisRecipeVO);
         }
-        LOGGER.info("covertHisRecipeObject response hisRecipeVOs:{}" , JSONUtils.toString(hisRecipeVOs));
+        LOGGER.info("NoPayServiceImpl covertHisRecipeObject response hisRecipeVOs:{}" , JSONUtils.toString(hisRecipeVOs));
         return hisRecipeVOs;
     }
 
@@ -179,7 +179,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
      * @return 前端需要的处方单集合
      */
     public List<MergeRecipeVO> findOnReadyHisRecipeList(List<HisRecipeVO> request, GiveModeButtonBean giveModeButtonBean) {
-        LOGGER.info("offlineToOnlineService findOnReadyHisRecipe request:{}", JSONUtils.toString(request));
+        LOGGER.info("NoPayServiceImpl findOnReadyHisRecipe request:{}", JSONUtils.toString(request));
         //查询线下待缴费处方
         List<MergeRecipeVO> result = new ArrayList<>();
         GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
@@ -231,7 +231,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
             //不开启合并支付开关
             covertMergeRecipeVO(null,false,null,null,giveModeButtonBean.getButtonSkipType(),request,result);
         }
-        LOGGER.info("offlineToOnlineService findOnReadyHisRecipe result:{}", JSONUtils.toString(result));
+        LOGGER.info("NoPayServiceImpl findOnReadyHisRecipe result:{}", JSONUtils.toString(result));
         return result;
     }
 
