@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
+import recipe.constant.HisErrorCodeEnum;
 import recipe.core.api.IRecipeBusinessService;
 
 import java.util.List;
@@ -70,6 +71,9 @@ public class OutRecipePatientAtop extends BaseAtop {
             return diseaseNames.toString();
         } catch (DAOException e1) {
             logger.error("OutPatientRecipeAtop getOutRecipeDisease error", e1);
+            if (HisErrorCodeEnum.HIS_PARAMETER_ERROR.getCode() == e1.getCode()) {
+                return "";
+            }
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("OutPatientRecipeAtop getOutRecipeDisease error e", e);

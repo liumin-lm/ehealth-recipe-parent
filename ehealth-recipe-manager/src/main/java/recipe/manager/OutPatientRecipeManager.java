@@ -37,12 +37,23 @@ public class OutPatientRecipeManager extends BaseManager{
             return new ArrayList<>();
         }
         List<DiseaseInfoDTO> response = offlineRecipeClient.queryPatientDisease(organId, patientName, registerID, patientId);
-        logger.info("OutPatientRecipeManager response:{}.", JSON.toJSONString(response));
+        logger.info("OutPatientRecipeManager getOutRecipeDisease response:{}.", JSON.toJSONString(response));
         return response;
     }
 
+    /**
+     * 查询门诊处方信息
+     * @param outPatientRecipeReq 患者信息
+     * @return  门诊处方列表
+     */
     public List<OutPatientRecipeDTO> queryOutPatientRecipe(OutPatientRecipeReq outPatientRecipeReq){
-        return offlineRecipeClient.queryOutPatientRecipe(outPatientRecipeReq);
+        logger.info("OutPatientRecipeManager queryOutPatientRecipe outPatientRecipeReq:{}.", JSON.toJSONString(outPatientRecipeReq));
+        if (ValidateUtil.validateObjects(outPatientRecipeReq, outPatientRecipeReq.getOrganId(), outPatientRecipeReq.getPatientName())){
+            return new ArrayList<>();
+        }
+        List<OutPatientRecipeDTO> response = offlineRecipeClient.queryOutPatientRecipe(outPatientRecipeReq);
+        logger.info("OutPatientRecipeManager queryOutPatientRecipe response:{}.", JSON.toJSONString(response));
+        return response;
     }
 
 }
