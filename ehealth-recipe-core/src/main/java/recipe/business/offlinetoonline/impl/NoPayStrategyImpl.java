@@ -70,24 +70,24 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
         if (null == patientDTO) {
             throw new DAOException(609, "患者信息不存在");
         }
-        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos= hisRecipeManager.queryData(request.getOrganId(),patientDTO,180,1,request.getRecipeCode());
+        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos= hisRecipeManager.queryData(request.getOrganId(),patientDTO,180,OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType(),request.getRecipeCode());
 
         try {
             // 2更新数据校验
-            hisRecipeManager.hisRecipeInfoCheck(hisRecipeInfos.getData(), patientDTO);
+            hisRecipeInfoCheck(hisRecipeInfos.getData(), patientDTO);
         } catch (Exception e) {
             LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
         }
         List<HisRecipe> hisRecipes=new ArrayList<>();
         try {
             // 3保存数据到cdr_his_recipe相关表（cdr_his_recipe、cdr_his_recipeExt、cdr_his_recipedetail）
-            hisRecipes=hisRecipeManager.saveHisRecipeInfo(hisRecipeInfos, patientDTO, 1);
+            hisRecipes=saveHisRecipeInfo(hisRecipeInfos, patientDTO, OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType());
         } catch (Exception e) {
             LOGGER.error("queryHisRecipeInfo saveHisRecipeInfo error ", e);
         }
-        Integer hisRecipeId=hisRecipeManager.attachRecipeId(request.getOrganId(),request.getRecipeCode(),hisRecipes);
 
         // 4.保存数据到cdr_recipe相关表（cdr_recipe、cdr_recipeext、cdr_recipeDetail）
+        Integer hisRecipeId=hisRecipeManager.attachRecipeId(request.getOrganId(),request.getRecipeCode(),hisRecipes);
         Integer recipeId=saveRecipeInfo(hisRecipeId);
 
         // 5.通过cdrHisRecipeId返回数据详情
