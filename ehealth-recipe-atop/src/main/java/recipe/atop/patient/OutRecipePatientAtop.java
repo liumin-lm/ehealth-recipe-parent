@@ -86,6 +86,7 @@ public class OutRecipePatientAtop extends BaseAtop {
      * @param outRecipeDetailReqVO 门诊处方信息
      * @return 图片或者PDF链接等
      */
+    @RpcService
     public OutRecipeDetailVO queryOutRecipeDetail(OutRecipeDetailReqVO outRecipeDetailReqVO){
         logger.info("OutPatientRecipeAtop getOutRecipeDisease queryOutRecipeDetail:{}.", JSON.toJSONString(outRecipeDetailReqVO));
         try {
