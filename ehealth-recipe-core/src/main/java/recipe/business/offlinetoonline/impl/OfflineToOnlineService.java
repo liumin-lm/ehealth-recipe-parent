@@ -45,7 +45,7 @@ public class OfflineToOnlineService extends BaseService implements IOfflineToOnl
 
     @Override
     public List<MergeRecipeVO> findHisRecipeList(FindHisRecipeListVO request) {
-        LOGGER.info("OfflineToOnlineService findHisRecipeList request:{}",JSONUtils.toString(request));
+        LOGGER.info("OfflineToOnlineService findHisRecipeList request:{}", JSONUtils.toString(request));
         try {
             // 1、公共参数获取
             PatientDTO patientDTO = obtainPatientInfo(request);
@@ -54,7 +54,7 @@ public class OfflineToOnlineService extends BaseService implements IOfflineToOnl
             // 3、待处理、进行中、已处理线下处方列表服务差异化实现
             IOfflineToOnlineStrategy offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(request.getStatus());
             List<MergeRecipeVO> res = offlineToOnlineStrategy.findHisRecipeList(hisRecipeInfos, patientDTO, request);
-            LOGGER.info("OfflineToOnlineService findHisRecipeList res:{}",JSONUtils.toString(res));
+            LOGGER.info("OfflineToOnlineService findHisRecipeList res:{}", JSONUtils.toString(res));
             return res;
         } catch (DAOException e) {
             logger.error("OfflineToOnlineService findHisRecipeList error", e);

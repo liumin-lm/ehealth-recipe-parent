@@ -47,13 +47,13 @@ public class AlreadyPayStrategyImpl extends BaseOfflineToOnlineService implement
                 return null;
             }
             // 2.更新数据校验
-            hisRecipeManager.hisRecipeInfoCheck(hisRecipeInfos.getData(), patientDTO);
+            hisRecipeInfoCheck(hisRecipeInfos.getData(), patientDTO);
         } catch (Exception e) {
             LOGGER.error("findHisRecipeList hisRecipeInfoCheck error ", e);
         }
         try {
             // 3.保存数据到cdr_his_recipe相关表（cdr_his_recipe、cdr_his_recipeExt、cdr_his_recipedetail）
-            hisRecipeManager.saveHisRecipeInfo(hisRecipeInfos, patientDTO, OfflineToOnlineEnum.OFFLINE_TO_ONLINE_ALREADY_PAY.getType());
+            saveHisRecipeInfo(hisRecipeInfos, patientDTO, OfflineToOnlineEnum.OFFLINE_TO_ONLINE_ALREADY_PAY.getType());
         } catch (Exception e) {
             LOGGER.error("findHisRecipeList saveHisRecipeInfo error ", e);
         }

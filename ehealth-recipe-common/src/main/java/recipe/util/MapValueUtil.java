@@ -138,6 +138,36 @@ public class MapValueUtil {
         return map.get(key);
     }
 
+    /**
+     * 数据转换
+     *
+     * @param obj
+     * @return
+     */
+    public static Object covertObject(Object obj) {
+        if (obj instanceof BigDecimal) {
+            if (obj == null) {
+                return BigDecimal.ZERO;
+            }
+        } else if (obj instanceof String) {
+            if (obj == null) {
+                return "";
+            }
+        } else if (obj instanceof Integer) {
+            if (obj == null) {
+                return 0;
+            }
+        }
+        return obj;
+    }
+
+
+    public static BigDecimal covertBigdecimal(BigDecimal obj) {
+        if (obj == null) {
+            return BigDecimal.ZERO;
+        }
+        return obj;
+    }
 
     /**
      * 根据字段名获取 对象中的get值
