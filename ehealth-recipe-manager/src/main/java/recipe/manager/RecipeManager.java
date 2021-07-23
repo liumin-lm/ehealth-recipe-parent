@@ -69,6 +69,7 @@ public class RecipeManager extends BaseManager {
         recipeDTO.setRecipeExtend(recipeExtend);
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
         recipeDTO.setRecipeDetails(recipeDetails);
+        logger.info("RecipeOrderManager getRecipeDTO recipeDTO:{}", JSON.toJSONString(recipeDTO));
         return recipeDTO;
     }
 
@@ -85,6 +86,7 @@ public class RecipeManager extends BaseManager {
         Recipe recipe = recipeInfoDTO.getRecipe();
         PatientDTO patientBean = patientClient.getPatient(recipe.getMpiid());
         recipeInfoDTO.setPatientBean(patientBean);
+        logger.info("RecipeOrderManager getRecipeInfoDTO patientBean:{}", JSON.toJSONString(patientBean));
         return recipeInfoDTO;
     }
 
