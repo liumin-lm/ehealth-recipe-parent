@@ -4702,11 +4702,14 @@ public class RecipeService extends RecipeBaseService {
         }
         drugListMatch.setStatus(0);
         LOGGER.info("drugInfoSynMovementaddHisDrug" + drug.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
-        DrugListMatch save = drugListMatchDAO.save(drugListMatch);
-        try {
-            drugToolService.automaticDrugMatch(save, operator);
-        } catch (Exception e) {
-            LOGGER.error("addHisDrug.updateMatchAutomatic fail,", e);
+        List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drugListMatch.getOrganDrugCode(), drugListMatch.getSourceOrgan());
+        if (ObjectUtils.isEmpty(dataByOrganDrugCode)){
+            DrugListMatch save = drugListMatchDAO.save(drugListMatch);
+            try {
+                drugToolService.automaticDrugMatch(save, operator);
+            } catch (Exception e) {
+                LOGGER.error("addHisDrug.updateMatchAutomatic fail,", e);
+            }
         }
         LOGGER.error("addHisDrug 成功{}", drugListMatch);
     }
