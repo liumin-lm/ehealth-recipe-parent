@@ -27,13 +27,13 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         try {
             //接口结果 True存在 False不存在
             Boolean result = recipeBusinessService.existUncheckRecipe(bussSource, clinicId);
-            logger.info("RecipeTwoAtop existUncheckRecipe result = {}", result);
+            logger.info("RecipeOpenAtop existUncheckRecipe result = {}", result);
             return result;
         } catch (DAOException e1) {
-            logger.error("RecipeTwoAtop existUncheckRecipe error", e1);
+            logger.error("RecipeOpenAtop existUncheckRecipe error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
-            logger.error("RecipeTwoAtop existUncheckRecipe error e", e);
+            logger.error("RecipeOpenAtop existUncheckRecipe error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
