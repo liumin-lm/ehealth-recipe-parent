@@ -69,6 +69,7 @@ public class RecipeManager extends BaseManager {
         recipeDTO.setRecipeExtend(recipeExtend);
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
         recipeDTO.setRecipeDetails(recipeDetails);
+        logger.info("RecipeOrderManager getRecipeDTO recipeDTO:{}", JSON.toJSONString(recipeDTO));
         return recipeDTO;
     }
 
@@ -85,6 +86,34 @@ public class RecipeManager extends BaseManager {
         Recipe recipe = recipeInfoDTO.getRecipe();
         PatientDTO patientBean = patientClient.getPatient(recipe.getMpiid());
         recipeInfoDTO.setPatientBean(patientBean);
+        logger.info("RecipeOrderManager getRecipeInfoDTO patientBean:{}", JSON.toJSONString(patientBean));
         return recipeInfoDTO;
+    }
+
+    /**
+     * 获取处方信息
+     *
+     * @param recipeCode
+     * @param clinicOrgan
+     * @return
+     */
+    public Recipe getByRecipeCodeAndClinicOrgan(String recipeCode, Integer clinicOrgan) {
+        logger.info("RecipeManager getByRecipeCodeAndClinicOrgan param recipeCode:{},clinicOrgan:{}", recipeCode,clinicOrgan);
+        Recipe recipe=recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode,clinicOrgan);
+        logger.info("RecipeManager getByRecipeCodeAndClinicOrgan res recipe:{}", JSONUtils.toString(recipe));
+        return recipe;
+    }
+
+    /**
+     * 通过recipeCode批量获取处方信息
+     * @param recipeCodeList
+     * @param clinicOrgan
+     * @return
+     */
+    public List<Recipe> findByRecipeCodeAndClinicOrgan(List<String> recipeCodeList, Integer clinicOrgan) {
+        logger.info("RecipeManager findByRecipeCodeAndClinicOrgan param recipeCodeList:{},clinicOrgan:{}", JSONUtils.toString(recipeCodeList),clinicOrgan);
+        List<Recipe> recipes=recipeDAO.findByRecipeCodeAndClinicOrgan(recipeCodeList,clinicOrgan);
+        logger.info("RecipeManager findByRecipeCodeAndClinicOrgan res recipes:{}", JSONUtils.toString(recipes));
+        return recipes;
     }
 }

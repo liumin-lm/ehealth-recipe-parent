@@ -2826,13 +2826,24 @@ public class RecipeService extends RecipeBaseService {
                 request.setDrcode(Lists.newArrayList());
                 try {
                     responseTO = recipeHisService.queryOrganDrugInfo(request);
-                    LOGGER.info("drugInfoSynMovement response={}", JSONUtils.toString(responseTO));
+                    //LOGGER.info("drugInfoSynMovement response={}", JSONUtils.toString(responseTO));
                 } catch (Exception e) {
                     LOGGER.error("drugInfoSynMovement error{} ", e);
                 }
                 List<OrganDrugInfoTO> data = Lists.newArrayList();
                 if (responseTO != null) {
                     data = responseTO.getData();
+                    try {
+                        if (data!=null && data.size()>0){
+                            List<List<OrganDrugInfoTO>> partition = Lists.partition(data, 4000);
+                            for (int i = 0; i < partition.size(); i++) {
+                                LOGGER.info("drugInfoSynMovement"+organId+"data-"+i+"={}", JSONUtils.toString(partition.get(i)));
+                            }
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error("drugInfoSynMovement dataerror{} ", e);
+                    }
+
                 }
                 if (ObjectUtils.isEmpty(data)) {
                     LOGGER.info("his查询药品数据为空 organId=[{}]", organId);
@@ -4702,11 +4713,14 @@ public class RecipeService extends RecipeBaseService {
         }
         drugListMatch.setStatus(0);
         LOGGER.info("drugInfoSynMovementaddHisDrug" + drug.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
-        DrugListMatch save = drugListMatchDAO.save(drugListMatch);
-        try {
-            drugToolService.automaticDrugMatch(save, operator);
-        } catch (Exception e) {
-            LOGGER.error("addHisDrug.updateMatchAutomatic fail,", e);
+        List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drugListMatch.getOrganDrugCode(), drugListMatch.getSourceOrgan());
+        if (ObjectUtils.isEmpty(dataByOrganDrugCode)){
+            DrugListMatch save = drugListMatchDAO.save(drugListMatch);
+            try {
+                drugToolService.automaticDrugMatch(save, operator);
+            } catch (Exception e) {
+                LOGGER.error("addHisDrug.updateMatchAutomatic fail,", e);
+            }
         }
         LOGGER.error("addHisDrug 成功{}", drugListMatch);
     }

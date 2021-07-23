@@ -1,6 +1,7 @@
 package recipe.medicationguide.service;
 
 
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -57,6 +58,7 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
     @Override
     @RpcService
     public Map<String, Object> getHtml5LinkInfo(PatientInfoDTO patient, RecipeBean recipeBean, List<RecipeDetailBean> recipeDetails, Integer reqType) {
+        LOGGER.info("WinningMedicationGuideService.getHtml5LinkInfo req patient={} recipeBean={} recipeDetails={} reqType={}", JSONArray.toJSONString(patient),JSONArray.toJSONString(recipeBean),JSONArray.toJSONString(recipeDetails),reqType);
         if (null != recipeBean && null != recipeBean.getRecipeId()) {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
 
@@ -158,7 +160,7 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
 
             //组装请求参数
             String requestStr = JSONUtils.toString(request);
-            LOGGER.info("getHtml5LinkHttpRequest request={}", requestStr);
+            LOGGER.info("getHtml5LinkHttpRequest url={} request={}", url,requestStr);
             StringEntity requestEntry = new StringEntity(requestStr, ContentType.APPLICATION_JSON);
             httpPost.setEntity(requestEntry);
 

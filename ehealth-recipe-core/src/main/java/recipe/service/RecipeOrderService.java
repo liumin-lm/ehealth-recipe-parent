@@ -72,8 +72,8 @@ import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.GiveModeTextEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.EmrRecipeManager;
+import recipe.manager.HisRecipeManager;
 import recipe.manager.OrderManager;
-import recipe.offlinetoonline.service.third.FrontService;
 import recipe.purchase.PurchaseService;
 import recipe.service.afterpay.AfterPayBusService;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
@@ -128,7 +128,7 @@ public class RecipeOrderService extends RecipeBaseService {
     private RecipeDAO recipeDAO;
 
     @Autowired
-    private FrontService frontService;
+    private HisRecipeManager hisRecipeManager;
 
     @Autowired
     private HisRecipeDAO hisRecipeDAO;
@@ -151,9 +151,6 @@ public class RecipeOrderService extends RecipeBaseService {
     @Autowired
     private IConfigurationCenterUtilsService configService;
 
-
-    @Autowired
-    private OfflineToOnlineService offlineToOnlineService;
 
     /**
      * 处方结算时创建临时订单
@@ -2032,7 +2029,7 @@ public class RecipeOrderService extends RecipeBaseService {
             if (null == patientDTO) {
                 throw new DAOException(609, "患者信息不存在");
             }
-            HisResponseTO<List<QueryHisRecipResTO>> responseTO = frontService.queryData(recipe.getClinicOrgan(),patientDTO,6,1,null);
+            HisResponseTO<List<QueryHisRecipResTO>> responseTO = hisRecipeManager.queryData(recipe.getClinicOrgan(),patientDTO,6,1,null);
             List<QueryHisRecipResTO> hisRecipeTO=responseTO.getData();
             if(CollectionUtils.isEmpty(hisRecipeTO)){
                 LOGGER.info("checkGetOrderDetail hisRecipeTO==null orderCode:{}", orderCode);
@@ -2059,7 +2056,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             });
             //删除
-            offlineToOnlineService.deleteSetRecipeCode(recipe.getClinicOrgan(), deleteSetRecipeCode);
+            hisRecipeManager.deleteSetRecipeCode(recipe.getClinicOrgan(), deleteSetRecipeCode);
             if (existThisRecipeCode.get()==false ||
                     (deleteSetRecipeCode == null&&deleteSetRecipeCode.size()>0)) {
                 LOGGER.info("checkGetOrderDetail 处方已经被删除或处方发生变化 orderCode:{}", orderCode);

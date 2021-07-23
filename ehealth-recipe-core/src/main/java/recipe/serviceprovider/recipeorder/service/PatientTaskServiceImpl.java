@@ -19,7 +19,6 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.manager.EmrRecipeManager;
-import recipe.service.OfflineToOnlineService;
 import recipe.serviceprovider.recipeorder.service.constant.RecipeTaskEnum;
 
 import java.util.ArrayList;
@@ -37,7 +36,7 @@ import java.util.stream.Collectors;
 
 @RpcBean("patientTaskService")
 public class PatientTaskServiceImpl implements IPatientTaskService {
-    private static final Logger LOGGER = LoggerFactory.getLogger(OfflineToOnlineService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(PatientTaskServiceImpl.class);
     private RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
     private RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
     private RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);

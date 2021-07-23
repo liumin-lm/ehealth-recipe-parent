@@ -3,6 +3,7 @@ package recipe.core.api;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
 import com.ngari.recipe.vo.OutPatientRecipeReqVO;
+import com.ngari.recipe.vo.PatientInfoVO;
 
 import java.util.List;
 
@@ -13,14 +14,11 @@ import java.util.List;
 public interface IRecipeBusinessService {
 
     /**
-     * 查询线下门诊处方诊断信息
-     * @param organId 机构ID
-     * @param patientName 患者名称
-     * @param registerID 挂号序号
-     * @param patientId 病历号
+     * 获取线下门诊处方诊断信息
+     * @param patientInfoVO 患者信息
      * @return  诊断列表
      */
-    List<DiseaseInfoDTO> getOutRecipeDisease(Integer organId, String patientName, String registerID, String patientId);
+    List<DiseaseInfoDTO> getOutRecipeDisease(PatientInfoVO patientInfoVO);
 
     /**
      * 查询门诊处方信息

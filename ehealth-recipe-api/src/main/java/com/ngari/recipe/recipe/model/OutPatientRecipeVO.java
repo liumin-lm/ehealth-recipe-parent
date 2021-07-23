@@ -119,6 +119,11 @@ public class OutPatientRecipeVO implements Serializable{
     private String statusText;
 
     /**
+     * 中药贴数
+     */
+    private String copyNum;
+
+    /**
      * 长处方标志 0 普通处方 1 长处方
      */
     private Integer longRecipeFlag;
@@ -137,6 +142,31 @@ public class OutPatientRecipeVO implements Serializable{
      * 处方嘱托
      */
     private String recipeMemo;
+
+    /**
+     * 制法ID
+     */
+    private String makeMethodId;
+
+    /**
+     * 制法文本
+     */
+    private String makeMethodText;
+
+    /**
+     * 每副取汁
+     */
+    private String juice;
+
+    /**
+     * 中药煎法ID
+     */
+    private String decoctionId;
+
+    /**
+     * 中药煎法文本
+     */
+    private String decoctionText;
 
     /**
      * 门诊处方项目药品明细
