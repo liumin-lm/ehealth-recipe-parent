@@ -89,8 +89,8 @@ import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.GroupRecipeManager;
+import recipe.manager.HisRecipeManager;
 import recipe.manager.SignManager;
-import recipe.offlinetoonline.service.third.FrontService;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.recipecancel.RecipeCancelService;
@@ -121,6 +121,8 @@ public class RecipeServiceSub {
 
     private static SignManager signManager = AppContextHolder.getBean("signManager", SignManager.class);
 
+    private static HisRecipeManager hisRecipeManager = AppContextHolder.getBean("hisRecipeManager", HisRecipeManager.class);
+
     private static GroupRecipeManager groupRecipeManager = AppContextHolder.getBean("groupRecipeManager", GroupRecipeManager.class);
 
     private static PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
@@ -128,8 +130,6 @@ public class RecipeServiceSub {
     private static DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
 
     private static DoctorExtendService doctorExtendService = ApplicationUtils.getBasicService(DoctorExtendService.class);
-
-    private static FrontService frontService = AppContextHolder.getBean("frontService", FrontService.class);
 
     private static OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
     private static RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
@@ -2652,7 +2652,7 @@ public class RecipeServiceSub {
             recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO);
         }else{
             //获取当前处方详情
-            HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = frontService.queryData(organId, patientDTO, null, 1, recipeCode);
+            HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = hisRecipeManager.queryData(organId, patientDTO, null, 1, recipeCode);
             QueryHisRecipResTO queryHisRecipResTO = getRecipeInfoByRecipeCode(hisResponseTO, recipeCode);
             if(queryHisRecipResTO==null||StringUtils.isEmpty(queryHisRecipResTO.getRecipeCode())){
                 LOGGER.info("sendRecipeTagToPatientWithOfflineRecipe recipeCode：{} 根据recipeCode没查询到线下处方！！！",recipeCode);

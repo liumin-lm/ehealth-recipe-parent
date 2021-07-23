@@ -207,11 +207,15 @@ public class MapValueUtil {
     public static <T> Map<String, Object> beanToMap(T bean) {
         logger.info("MapValueUtil beanToMap bean :{}", JSON.toJSONString(bean));
         Map<String, Object> map = Maps.newHashMap();
-        if (bean != null) {
-            BeanMap beanMap = BeanMap.create(bean);
-            for (Object key : beanMap.keySet()) {
-                map.put(key.toString(), beanMap.get(key));
+        if (bean == null) {
+            return map;
+        }
+        BeanMap beanMap = BeanMap.create(bean);
+        for (Object key : beanMap.keySet()) {
+            if (null == beanMap.get(key)) {
+                continue;
             }
+            map.put(key.toString(), beanMap.get(key));
         }
         return map;
     }

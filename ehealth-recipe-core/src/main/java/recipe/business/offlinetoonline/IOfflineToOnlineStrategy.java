@@ -1,14 +1,14 @@
-package recipe.offlinetoonline.service;
+package recipe.business.offlinetoonline;
+
 
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
+import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
+import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
+import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
-import ctd.util.annotation.RpcService;
-import recipe.offlinetoonline.vo.FindHisRecipeDetailReqVO;
-import recipe.offlinetoonline.vo.FindHisRecipeDetailResVO;
-import recipe.offlinetoonline.vo.FindHisRecipeListVO;
-import recipe.offlinetoonline.vo.SettleForOfflineToOnlineVO;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import java.util.List;
@@ -18,7 +18,7 @@ import java.util.List;
  * @Date 2021/5/18 上午11:42
  * @Description 线下转线上接口类
  */
-public interface IOfflineToOnlineService {
+public interface IOfflineToOnlineStrategy {
 
 
     /**
@@ -28,8 +28,7 @@ public interface IOfflineToOnlineService {
      * @param request
      * @return
      */
-    @RpcService
-    public List<MergeRecipeVO> findHisRecipeList(HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos, PatientDTO patientDTO, FindHisRecipeListVO request);
+    List<MergeRecipeVO> findHisRecipeList(HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos, PatientDTO patientDTO, FindHisRecipeListVO request);
 
     /**
      * 获取线下处方详情
