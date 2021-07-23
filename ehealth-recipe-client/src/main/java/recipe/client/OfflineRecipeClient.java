@@ -10,6 +10,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
+import com.ngari.recipe.dto.OutRecipeDetailDTO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -87,6 +88,23 @@ public class OfflineRecipeClient extends BaseClient {
             HisResponseTO<List<OutPatientRecipeTO>> hisResponse = recipeHisService.queryOutPatientRecipe(outPatientRecipeReq);
             List<OutPatientRecipeTO> result = getResponse(hisResponse);
             return ObjectCopyUtils.convert(result, OutPatientRecipeDTO.class);
+        } catch (Exception e) {
+            logger.error("OfflineRecipeClient queryOutPatientRecipe hisResponse", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     *
+     * @param outRecipeDetailReq
+     * @return
+     */
+    public OutRecipeDetailDTO queryOutRecipeDetail(OutRecipeDetailReq outRecipeDetailReq) {
+        logger.info("OfflineRecipeClient queryOutPatientRecipe queryOutRecipeDetail:{}.", JSON.toJSONString(outRecipeDetailReq));
+        try {
+            HisResponseTO<OutRecipeDetailTO> hisResponse = recipeHisService.queryOutRecipeDetail(outRecipeDetailReq);
+            OutRecipeDetailTO result = getResponse(hisResponse);
+            return ObjectCopyUtils.convert(result, OutRecipeDetailDTO.class);
         } catch (Exception e) {
             logger.error("OfflineRecipeClient queryOutPatientRecipe hisResponse", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());

@@ -3,6 +3,8 @@ package recipe.core.api;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
 import com.ngari.recipe.vo.OutPatientRecipeReqVO;
+import com.ngari.recipe.vo.OutRecipeDetailReqVO;
+import com.ngari.recipe.vo.OutRecipeDetailVO;
 import com.ngari.recipe.vo.PatientInfoVO;
 
 import java.util.List;
@@ -25,6 +27,13 @@ public interface IRecipeBusinessService {
      * @param outPatientRecipeReqVO 患者信息
      */
     List<OutPatientRecipeVO> queryOutPatientRecipe(OutPatientRecipeReqVO outPatientRecipeReqVO);
+
+    /**
+     * 获取门诊处方详情信息
+     * @param outRecipeDetailReqVO 门诊处方信息
+     * @return 图片或者PDF链接等
+     */
+    OutRecipeDetailVO queryOutRecipeDetail(OutRecipeDetailReqVO outRecipeDetailReqVO);
 
     /**
      * @Description: 根据处方来源，复诊id查询未审核处方个数
