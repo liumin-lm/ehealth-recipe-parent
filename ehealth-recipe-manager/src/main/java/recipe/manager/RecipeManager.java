@@ -74,15 +74,19 @@ public class RecipeManager extends BaseManager {
         recipeDTO.setRecipeExtend(recipeExtend);
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
         recipeDTO.setRecipeDetails(recipeDetails);
-        if (null != recipeExtend && StringUtils.isEmpty(recipe.getOrganDiseaseName())) {
-            Integer docIndexId = recipeExtend.getDocIndexId();
-            EmrDetail emrDetail = docIndexClient.getEmrDetails(docIndexId);
-            recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
-            recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
-            recipeExtend.setSymptomId(emrDetail.getSymptomId());
-            recipeExtend.setSymptomName(emrDetail.getSymptomName());
-        }
         logger.info("RecipeOrderManager getRecipeDTO recipeDTO:{}", JSON.toJSONString(recipeDTO));
+        if (null == recipeExtend || !StringUtils.isEmpty(recipe.getOrganDiseaseName())) {
+            return recipeDTO;
+        }
+        Integer docIndexId = recipeExtend.getDocIndexId();
+        EmrDetail emrDetail = docIndexClient.getEmrDetails(docIndexId);
+        if (null == emrDetail) {
+            return recipeDTO;
+        }
+        recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
+        recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
+        recipeExtend.setSymptomId(emrDetail.getSymptomId());
+        recipeExtend.setSymptomName(emrDetail.getSymptomName());
         return recipeDTO;
     }
 

@@ -159,9 +159,7 @@ public class DrugStockManager extends BaseManager {
      * 校验药企库存
      *
      * @param doSignRecipe
-     * @param organId
      * @param object
-     * @param recipeDetails
      * @return
      */
     public List<String> checkEnterprise(DoSignRecipeDTO doSignRecipe, List<Object> object) {

@@ -753,7 +753,6 @@ public class RecipeService extends RecipeBaseService {
         }
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         String memo;
-        //todo shanghaiCA ParamUtils.getParam("SH_CA_ORGANID_WHITE_LIST") 配置到机构上
         String thirdCASign = configurationClient.getValueCatch(recipe.getClinicOrgan(), "thirdCASign", "");
         if ("esign".equals(thirdCASign)) {
             createPdfFactory.queryPdfOssId(recipe);
