@@ -675,7 +675,7 @@ public class BaseOfflineToOnlineService {
         }
         EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
         if (StringUtils.isNotEmpty(hisRecipe.getDoctorCode())) {
-            EmploymentDTO employmentDTO = employmentService.getByJobNumberAndOrganId(hisRecipe.getDoctorCode(), hisRecipe.getClinicOrgan());
+            EmploymentDTO employmentDTO = employmentService.getEmploymentByJobNumberAndOrganId(hisRecipe.getDoctorCode(), hisRecipe.getClinicOrgan());
             if (employmentDTO != null && employmentDTO.getDoctorId() != null) {
                 recipe.setDoctor(employmentDTO.getDoctorId());
             } else {
@@ -685,7 +685,7 @@ public class BaseOfflineToOnlineService {
         }
 
         if (StringUtils.isNotEmpty(hisRecipe.getCheckerCode())) {
-            EmploymentDTO employmentDTO = employmentService.getByJobNumberAndOrganId(hisRecipe.getCheckerCode(), hisRecipe.getClinicOrgan());
+            EmploymentDTO employmentDTO = employmentService.getEmploymentByJobNumberAndOrganId(hisRecipe.getCheckerCode(), hisRecipe.getClinicOrgan());
             if (employmentDTO != null && employmentDTO.getDoctorId() != null) {
                 recipe.setChecker(employmentDTO.getDoctorId());
                 recipe.setCheckerText(hisRecipe.getCheckerName());
@@ -856,6 +856,7 @@ public class BaseOfflineToOnlineService {
             if (hisRecipeDetail.getTotalPrice() != null) {
                 recipedetail.setDrugCost(hisRecipeDetail.getTotalPrice());
             }
+            //特殊煎法、备注
             recipedetail.setMemo(hisRecipeDetail.getMemo());
             //药房信息
             if (StringUtils.isNotEmpty(hisRecipeDetail.getPharmacyCode())) {
@@ -946,8 +947,6 @@ public class BaseOfflineToOnlineService {
                 recipeExtend.setSymptomName(recipeExtend.getSymptomName());
             }
         }
-        //列表详情都没用到这个特殊煎法 app说只有搜索用到了 那这个字段还有什么意义
-        //recipeExtend.setSpecialDecoctionCode(hisRecipe.getSpecialDecoctiionCode());
 
         RevisitExDTO consultExDTO = new RevisitExDTO();
         try {

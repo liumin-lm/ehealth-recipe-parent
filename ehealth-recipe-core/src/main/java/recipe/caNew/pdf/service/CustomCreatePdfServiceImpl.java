@@ -321,6 +321,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
      * @return 模版填充对象
      */
     private List<WordToPdfBean> generatePdfList(Integer organId, Set<String> keySet, RecipeInfoDTO recipePdfDTO) {
+        logger.warn("CustomCreatePdfServiceImpl generatePdfList organId:{}, keySet : {}", organId, JSON.toJSONString(keySet));
         List<WordToPdfBean> generatePdfList = new LinkedList<>();
         Map<String, Object> recipeDetailMap;
         if (RecipeUtil.isTcmType(recipePdfDTO.getRecipe().getRecipeType())) {
@@ -363,6 +364,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
                 }
             }
         }
+        logger.warn("CustomCreatePdfServiceImpl generatePdfList generatePdfList : {}", JSON.toJSONString(generatePdfList));
         return generatePdfList;
     }
 
