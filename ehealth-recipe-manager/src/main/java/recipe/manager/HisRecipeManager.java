@@ -66,6 +66,8 @@ public class HisRecipeManager extends BaseManager {
     private RecipeDetailDAO recipeDetailDAO;
     @Autowired
     private RecipeLogDAO recipeLogDao;
+    @Autowired
+    private EmrRecipeManager emrRecipeManager;
 
 
     /**
@@ -210,10 +212,11 @@ public class HisRecipeManager extends BaseManager {
                 recipe.setOrganDiseaseName(diseaseName);
                 recipeDAO.update(recipe);
 
-
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
                 recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
+
+                emrRecipeManager.saveMedicalInfo(recipe, recipeExtend);
             }
         });
         LOGGER.info("updateHisRecipe response hisRecipeMap:{}", JSONUtils.toString(hisRecipeMap));
@@ -529,21 +532,21 @@ public class HisRecipeManager extends BaseManager {
                 hisRecipe.setDecoctionFee(queryHisRecipResTO.getDecoctionFee());
                 hisRecipe.setDecoctionCode(queryHisRecipResTO.getDecoctionCode());
                 hisRecipe.setDecoctionText(queryHisRecipResTO.getDecoctionText());
+                hisRecipe.setDecoctionUnitFee(queryHisRecipResTO.getDecoctionUnitFee());
                 hisRecipe.setTcmNum(queryHisRecipResTO.getTcmNum() == null ? null : String.valueOf(queryHisRecipResTO.getTcmNum()));
                 //中药医嘱跟着处方 西药医嘱跟着药品（见药品详情）
                 hisRecipe.setRecipeMemo(queryHisRecipResTO.getRecipeMemo());
-//                hisRecipe.setMakeMethodCode(queryHisRecipResTO.getMakeMethodCode());
-//                hisRecipe.setMakeMethodText(queryHisRecipResTO.getMakeMethodText());
-//                hisRecipe.setJuice(queryHisRecipResTO.getJuice());
-//                hisRecipe.setJuiceUnit(queryHisRecipResTO.getJuiceUnit());
-//                hisRecipe.setMinor(queryHisRecipResTO.getMinor());
-//                hisRecipe.setMinorUnit(queryHisRecipResTO.getMinorUnit());
-//                hisRecipe.setSymptomCode(queryHisRecipResTO.getSymptomCode());
-//                hisRecipe.setSymptomName(queryHisRecipResTO.getSysmptomName());
-//                hisRecipe.setSpecialDecoctionCode(queryHisRecipResTO.getSpecialDecoctiionCode());
-//                hisRecipe.setCardNo(queryHisRecipResTO.getCardNo());
-//                hisRecipe.setCardTypeCode(queryHisRecipResTO.getCardTypeCode());
-//                hisRecipe.setCardTypeName(queryHisRecipResTO.getCardTypeName());
+                hisRecipe.setMakeMethodCode(queryHisRecipResTO.getMakeMethodCode());
+                hisRecipe.setMakeMethodText(queryHisRecipResTO.getMakeMethodText());
+                hisRecipe.setJuice(queryHisRecipResTO.getJuice());
+                hisRecipe.setJuiceUnit(queryHisRecipResTO.getJuiceUnit());
+                hisRecipe.setMinor(queryHisRecipResTO.getMinor());
+                hisRecipe.setMinorUnit(queryHisRecipResTO.getMinorUnit());
+                hisRecipe.setSymptomCode(queryHisRecipResTO.getSymptomCode());
+                hisRecipe.setSymptomName(queryHisRecipResTO.getSymptomName());
+                hisRecipe.setCardNo(queryHisRecipResTO.getCardNo());
+                hisRecipe.setCardTypeCode(queryHisRecipResTO.getCardTypeCode());
+                hisRecipe.setCardTypeName(queryHisRecipResTO.getCardTypeName());
 
                 //审核药师
                 hisRecipe.setCheckerCode(queryHisRecipResTO.getCheckerCode());
@@ -601,9 +604,9 @@ public class HisRecipeManager extends BaseManager {
                         //药房信息
                         detail.setPharmacyCode(recipeDetailTO.getPharmacyCode());
                         detail.setPharmacyName(recipeDetailTO.getPharmacyName());
-//                        detail.setPharmacyCategray(recipeDetailTO.getPharmacyCategray());
-//                        detail.setTcmContraindicationCause(recipeDetailTO.getTcmContraindicationCause());
-//                        detail.setTcmContraindicationType(recipeDetailTO.getTcmContraindicationType());
+                        detail.setPharmacyCategray(recipeDetailTO.getPharmacyCategray());
+                        detail.setTcmContraindicationCause(recipeDetailTO.getTcmContraindicationCause());
+                        detail.setTcmContraindicationType(recipeDetailTO.getTcmContraindicationType());
                         hisRecipeDetailDAO.save(detail);
                     }
                 }
