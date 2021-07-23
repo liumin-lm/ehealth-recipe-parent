@@ -1,6 +1,7 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.dto.EmrDetail;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
@@ -12,6 +13,8 @@ import ctd.util.JSONUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+import recipe.client.DocIndexClient;
 import recipe.client.PatientClient;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -38,6 +41,8 @@ public class RecipeManager extends BaseManager {
     private RecipeDetailDAO recipeDetailDAO;
     @Autowired
     private PatientClient patientClient;
+    @Autowired
+    private DocIndexClient docIndexClient;
 
     /**
      * 通过订单号获取该订单下关联的所有处方
@@ -63,12 +68,20 @@ public class RecipeManager extends BaseManager {
     public RecipeDTO getRecipeDTO(Integer recipeId) {
         logger.info("RecipeOrderManager getRecipeDTO recipeId:{}", recipeId);
         RecipeDTO recipeDTO = new RecipeDTO();
-        Recipe recipes = recipeDAO.getByRecipeId(recipeId);
-        recipeDTO.setRecipe(recipes);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        recipeDTO.setRecipe(recipe);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         recipeDTO.setRecipeExtend(recipeExtend);
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
         recipeDTO.setRecipeDetails(recipeDetails);
+        if (null != recipeExtend && StringUtils.isEmpty(recipe.getOrganDiseaseName())) {
+            Integer docIndexId = recipeExtend.getDocIndexId();
+            EmrDetail emrDetail = docIndexClient.getEmrDetails(docIndexId);
+            recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
+            recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
+            recipeExtend.setSymptomId(emrDetail.getSymptomId());
+            recipeExtend.setSymptomName(emrDetail.getSymptomName());
+        }
         logger.info("RecipeOrderManager getRecipeDTO recipeDTO:{}", JSON.toJSONString(recipeDTO));
         return recipeDTO;
     }

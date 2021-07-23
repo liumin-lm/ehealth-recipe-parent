@@ -110,20 +110,22 @@ public class DrugStockBusinessService extends BaseService {
         } else if (2 == checkFlag) {
             //查询药企库存
             allSupportDepList = findAllSupportDepList(recipeNew, recipeDetails);
+            drugStockManager.checkDrugEnterprise(doSignRecipe, recipe.getClinicOrgan(), recipeDetails);
             List<DrugEnterpriseResult> drugEnterpriseResults = allSupportDepList.getNoHaveList();
             if (CollectionUtils.isNotEmpty(drugEnterpriseResults)) {
                 List<Object> object = drugEnterpriseResults.stream().map(RecipeResultBean::getObject).collect(Collectors.toList());
-                drugStockManager.checkEnterprise(doSignRecipe, recipe.getClinicOrgan(), object, recipeDetails);
+                drugStockManager.checkEnterprise(doSignRecipe, object);
             }
         } else if (3 == checkFlag) {
             /**校验 医院/药企 库存*/
             //药企库存
             allSupportDepList = findAllSupportDepList(recipeNew, recipeDetails);
-            List<DrugEnterpriseResult> drugEnterpriseResults = allSupportDepList.getNoHaveList();
+            drugStockManager.checkDrugEnterprise(doSignRecipe, recipe.getClinicOrgan(), recipeDetails);
             List<String> enterpriseDrugName = null;
+            List<DrugEnterpriseResult> drugEnterpriseResults = allSupportDepList.getNoHaveList();
             if (CollectionUtils.isNotEmpty(drugEnterpriseResults)) {
                 List<Object> object = drugEnterpriseResults.stream().map(RecipeResultBean::getObject).collect(Collectors.toList());
-                enterpriseDrugName = drugStockManager.checkEnterprise(doSignRecipe, recipe.getClinicOrgan(), object, recipeDetails);
+                enterpriseDrugName = drugStockManager.checkEnterprise(doSignRecipe, object);
             }
             //医院库存
             scanResult = drugStockManager.scanDrugStockByRecipeId(recipeNew, recipeDetails);
