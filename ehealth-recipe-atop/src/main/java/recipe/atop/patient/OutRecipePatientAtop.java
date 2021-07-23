@@ -3,6 +3,8 @@ package recipe.atop.patient;
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
+import com.ngari.recipe.vo.OutRecipeDetailReqVO;
+import com.ngari.recipe.vo.OutRecipeDetailVO;
 import com.ngari.recipe.vo.PatientInfoVO;
 import com.ngari.recipe.vo.OutPatientRecipeReqVO;
 import ctd.persistence.exception.DAOException;
@@ -75,6 +77,26 @@ public class OutRecipePatientAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("OutPatientRecipeAtop getOutRecipeDisease error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 获取门诊处方详情信息
+     * @param outRecipeDetailReqVO 门诊处方信息
+     * @return 图片或者PDF链接等
+     */
+    public OutRecipeDetailVO queryOutRecipeDetail(OutRecipeDetailReqVO outRecipeDetailReqVO){
+        logger.info("OutPatientRecipeAtop getOutRecipeDisease queryOutRecipeDetail:{}.", JSON.toJSONString(outRecipeDetailReqVO));
+        try {
+            OutRecipeDetailVO result = recipeBusinessService.queryOutRecipeDetail(outRecipeDetailReqVO);
+            logger.info("OutPatientRecipeAtop queryOutRecipeDetail result = {}", result);
+            return result;
+        } catch (DAOException e1) {
+            logger.error("OutPatientRecipeAtop queryOutRecipeDetail error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("OutPatientRecipeAtop queryOutRecipeDetail error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }

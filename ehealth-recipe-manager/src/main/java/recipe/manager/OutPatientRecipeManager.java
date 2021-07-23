@@ -2,8 +2,10 @@ package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
+import com.ngari.his.recipe.mode.OutRecipeDetailReq;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
+import com.ngari.recipe.dto.OutRecipeDetailDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.OfflineRecipeClient;
@@ -52,6 +54,21 @@ public class OutPatientRecipeManager extends BaseManager{
             return new ArrayList<>();
         }
         List<OutPatientRecipeDTO> response = offlineRecipeClient.queryOutPatientRecipe(outPatientRecipeReq);
+        logger.info("OutPatientRecipeManager queryOutPatientRecipe response:{}.", JSON.toJSONString(response));
+        return response;
+    }
+
+    /**
+     * 获取门诊处方详情信息
+     * @param outRecipeDetailReq 门诊处方信息
+     * @return 图片或者PDF链接等
+     */
+    public OutRecipeDetailDTO queryOutRecipeDetail(OutRecipeDetailReq outRecipeDetailReq) {
+        logger.info("OutPatientRecipeManager queryOutPatientRecipe queryOutRecipeDetail:{}.", JSON.toJSONString(outRecipeDetailReq));
+        if (ValidateUtil.validateObjects(outRecipeDetailReq, outRecipeDetailReq.getOrganId(), outRecipeDetailReq.getRecipeCode())) {
+            return null;
+        }
+        OutRecipeDetailDTO response = offlineRecipeClient.queryOutRecipeDetail(outRecipeDetailReq);
         logger.info("OutPatientRecipeManager queryOutPatientRecipe response:{}.", JSON.toJSONString(response));
         return response;
     }
