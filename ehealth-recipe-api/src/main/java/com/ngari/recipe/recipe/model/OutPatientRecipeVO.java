@@ -119,6 +119,11 @@ public class OutPatientRecipeVO implements Serializable{
     private String statusText;
 
     /**
+     * 中药贴数
+     */
+    private String copyNum;
+
+    /**
      * 长处方标志 0 普通处方 1 长处方
      */
     private Integer longRecipeFlag;
