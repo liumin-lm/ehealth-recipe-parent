@@ -42,7 +42,7 @@ public class BaseClient {
             throw new DAOException(HisErrorCodeEnum.HIS_PARAMETER_ERROR.getCode(), HisErrorCodeEnum.HIS_PARAMETER_ERROR.getMsg());
         }
         T result = hisResponse.getData();
-        logger.info("BaseClient getResponse request= {}", JSON.toJSONString(result));
+        logger.info("BaseClient getResponse result= {}", JSON.toJSONString(result));
         return result;
     }
 
