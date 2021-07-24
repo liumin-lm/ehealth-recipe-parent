@@ -1,5 +1,6 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.Dictionary;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -41,6 +42,7 @@ public class OutPatientRecipeVO implements Serializable{
     /**
      * 处方类型
      */
+    @Dictionary(id = "eh.cdr.dictionary.RecipeType")
     private Integer recipeType;
 
     /**
@@ -54,14 +56,9 @@ public class OutPatientRecipeVO implements Serializable{
     private String patientId;
 
     /**
-     * 处方类型文本
-     */
-    private String recipeTypeText;
-
-    /**
      * 开方日期
      */
-    private Date createDate;
+    private String createDate;
 
     /**
      * 挂号科室代码
