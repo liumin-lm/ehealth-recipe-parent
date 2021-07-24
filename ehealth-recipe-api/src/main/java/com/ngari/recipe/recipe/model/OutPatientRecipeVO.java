@@ -23,7 +23,7 @@ public class OutPatientRecipeVO implements Serializable{
     /**
      * 挂号序号
      */
-    private String registeredId;
+    private String registerID;
 
     /**
      * 患者唯一ID
