@@ -96,6 +96,11 @@ public class OutPatientRecipeVO implements Serializable{
     private Integer giveMode;
 
     /**
+     * 配送方式 0 到院取药 1 医院配送 2 药企配送
+     */
+    private String giveModeText;
+
+    /**
      * 诊断代码
      */
     private String disease;

@@ -41,6 +41,10 @@ public class OutRecipePatientAtop extends BaseAtop {
         validateAtop(outPatientRecipeReqVO, outPatientRecipeReqVO.getOrganId(), outPatientRecipeReqVO.getMpiId());
         try {
             List<OutPatientRecipeVO> result = recipeBusinessService.queryOutPatientRecipe(outPatientRecipeReqVO);
+            result.forEach(outPatientRecipeVO -> {
+                outPatientRecipeVO.setStatusText("待发药");
+                outPatientRecipeVO.setGiveModeText("院内自取");
+            });
             logger.info("OutPatientRecipeAtop queryOutPatientRecipe result:{}.", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
