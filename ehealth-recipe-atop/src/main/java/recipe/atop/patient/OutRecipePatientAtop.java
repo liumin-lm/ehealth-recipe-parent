@@ -35,6 +35,7 @@ public class OutRecipePatientAtop extends BaseAtop {
      * @param outPatientRecipeReqVO 患者信息
      * @return  门诊处方列表
      */
+    @RpcService
     public List<OutPatientRecipeVO> queryOutPatientRecipe(OutPatientRecipeReqVO outPatientRecipeReqVO){
         logger.info("OutPatientRecipeAtop queryOutPatientRecipe outPatientRecipeReq:{}.", JSON.toJSONString(outPatientRecipeReqVO));
         validateAtop(outPatientRecipeReqVO, outPatientRecipeReqVO.getOrganId(), outPatientRecipeReqVO.getMpiId());
