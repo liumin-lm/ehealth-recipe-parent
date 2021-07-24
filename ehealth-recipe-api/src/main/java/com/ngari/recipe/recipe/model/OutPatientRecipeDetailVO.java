@@ -18,6 +18,10 @@ public class OutPatientRecipeDetailVO implements Serializable{
     private static final long serialVersionUID = -2410605425201952548L;
 
     /**
+     * 机构药品编码
+     */
+    private String organDrugCode;
+    /**
      * 药品标识 1 药品 2 项目
      */
     private Integer drugFlag;
