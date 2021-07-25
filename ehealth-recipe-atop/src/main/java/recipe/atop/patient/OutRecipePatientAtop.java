@@ -13,15 +13,20 @@ import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.constant.HisErrorCodeEnum;
 import recipe.core.api.IRecipeBusinessService;
+import recipe.util.DateConversion;
 
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 门诊处方服务
  * @author yinsheng
  * @date 2021\7\16 0016 14:04
  */
-@RpcBean("outRecipePatientAtop")
+@RpcBean(value = "outRecipePatientAtop", mvc_authentication = false)
 public class OutRecipePatientAtop extends BaseAtop {
 
     @Autowired
@@ -37,11 +42,15 @@ public class OutRecipePatientAtop extends BaseAtop {
         logger.info("OutPatientRecipeAtop queryOutPatientRecipe outPatientRecipeReq:{}.", JSON.toJSONString(outPatientRecipeReqVO));
         validateAtop(outPatientRecipeReqVO, outPatientRecipeReqVO.getOrganId(), outPatientRecipeReqVO.getMpiId());
         try {
+            //设置默认查询时间3个月
+            outPatientRecipeReqVO.setBeginTime(DateConversion.getDateFormatter(DateConversion.getMonthsAgo(3), DateConversion.DEFAULT_DATE_TIME));
+            outPatientRecipeReqVO.setEndTime(DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
             List<OutPatientRecipeVO> result = recipeBusinessService.queryOutPatientRecipe(outPatientRecipeReqVO);
             result.forEach(outPatientRecipeVO -> {
-                outPatientRecipeVO.setStatusText("待发药");
-                outPatientRecipeVO.setGiveModeText("院内自取");
+                outPatientRecipeVO.setStatusText(OutRecipeStatusEnum.getName(outPatientRecipeVO.getStatus()));
+                outPatientRecipeVO.setGiveModeText(OutRecipeGiveModeEnum.getName(outPatientRecipeVO.getGiveMode()));
             });
+            result = result.stream().sorted(Comparator.comparing(OutPatientRecipeVO::getCreateDate).reversed()).collect(Collectors.toList());
             logger.info("OutPatientRecipeAtop queryOutPatientRecipe result:{}.", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {

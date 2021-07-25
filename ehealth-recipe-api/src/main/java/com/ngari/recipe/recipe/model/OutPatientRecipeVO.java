@@ -1,6 +1,7 @@
 package com.ngari.recipe.recipe.model;
 
 import ctd.schema.annotation.Dictionary;
+import ctd.schema.annotation.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -14,6 +15,7 @@ import java.util.List;
  * @author yinsheng
  * @date 2021\7\20 0020 08:29
  */
+@Schema
 @Getter
 @Setter
 @NoArgsConstructor

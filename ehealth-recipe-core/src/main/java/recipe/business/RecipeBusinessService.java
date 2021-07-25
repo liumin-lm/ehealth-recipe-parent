@@ -63,7 +63,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         logger.info("OutPatientRecipeService queryOutPatientRecipe outPatientRecipeReq:{}.", JSON.toJSONString(outPatientRecipeReqVO));
         OutPatientRecipeReq outPatientRecipeReq = ObjectCopyUtil.convert(outPatientRecipeReqVO, OutPatientRecipeReq.class);
         List<OutPatientRecipeDTO> outPatientRecipeDTOS = outPatientRecipeManager.queryOutPatientRecipe(outPatientRecipeReq);
-        //TODO 业务逻辑处理
         return ObjectCopyUtil.convert(outPatientRecipeDTOS, OutPatientRecipeVO.class);
     }
 
