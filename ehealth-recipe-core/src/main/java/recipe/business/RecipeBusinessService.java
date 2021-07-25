@@ -4,14 +4,12 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
+import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutRecipeDetailDTO;
 import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
-import com.ngari.recipe.vo.OutPatientRecipeReqVO;
-import com.ngari.recipe.vo.OutRecipeDetailReqVO;
-import com.ngari.recipe.vo.OutRecipeDetailVO;
-import com.ngari.recipe.vo.PatientInfoVO;
+import com.ngari.recipe.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.core.api.IRecipeBusinessService;
@@ -41,6 +39,9 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Autowired
     private OutPatientRecipeManager outPatientRecipeManager;
+
+    @Autowired
+    private PatientService patientService;
 
     /**
      * 获取线下门诊处方诊断信息
@@ -76,6 +77,16 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         OutRecipeDetailReq outRecipeDetailReq = ObjectCopyUtil.convert(outRecipeDetailReqVO, OutRecipeDetailReq.class);
         OutRecipeDetailDTO outRecipeDetailDTO = outPatientRecipeManager.queryOutRecipeDetail(outRecipeDetailReq);
         return ObjectCopyUtil.convert(outRecipeDetailDTO, OutRecipeDetailVO.class);
+    }
+
+    /**
+     * 校验当前就诊人是否有效
+     * @param outPatientReqVO 当前就诊人信息
+     * @return 是否有效
+     */
+    public boolean checkCurrentPatient(OutPatientReqVO outPatientReqVO){
+        logger.info("OutPatientRecipeService checkCurrentPatient outPatientReqVO:{}.", JSON.toJSONString(outPatientReqVO));
+        return true;
     }
 
     /**

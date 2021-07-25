@@ -3,10 +3,7 @@ package recipe.atop.patient;
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
-import com.ngari.recipe.vo.OutRecipeDetailReqVO;
-import com.ngari.recipe.vo.OutRecipeDetailVO;
-import com.ngari.recipe.vo.PatientInfoVO;
-import com.ngari.recipe.vo.OutPatientRecipeReqVO;
+import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -103,6 +100,26 @@ public class OutRecipePatientAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("OutPatientRecipeAtop queryOutRecipeDetail error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 校验当前就诊人是否有效
+     * @param outPatientReqVO 当前就诊人信息
+     * @return 是否有效
+     */
+    @RpcService
+    public boolean checkCurrentPatient(OutPatientReqVO outPatientReqVO){
+        logger.info("OutPatientRecipeAtop checkCurrentPatient outPatientReqVO:{}.", JSON.toJSONString(outPatientReqVO));
+        validateAtop(outPatientReqVO, outPatientReqVO.getMpiId());
+        try {
+            return  recipeBusinessService.checkCurrentPatient(outPatientReqVO);
+        } catch (DAOException e1) {
+            logger.error("OutPatientRecipeAtop checkCurrentPatient error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("OutPatientRecipeAtop checkCurrentPatient error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
