@@ -90,7 +90,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         SignRecipePdfVO pdfEsign = new SignRecipePdfVO();
         pdfEsign.setQrCodeSign(true);
         pdfEsign.setPosX(ordinateVO.getX().floatValue());
-        pdfEsign.setPosY((float) ordinateVO.getY() - 20);
+        pdfEsign.setPosY((float) ordinateVO.getY() - 25);
         pdfEsign.setWidth(150f);
         pdfEsign.setData(data);
         pdfEsign.setFileName("recipe_" + recipe.getRecipeId() + ".pdf");
@@ -164,7 +164,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         if (null == ordinateVO) {
             return null;
         }
-        pdfEsign.setPosX(ordinateVO.getX().floatValue());
+        pdfEsign.setPosX((float) ordinateVO.getX() + 20);
         pdfEsign.setPosY((float) ordinateVO.getY() - 20);
         byte[] data = esignService.signForRecipe2(pdfEsign);
         logger.info("CustomCreatePdfServiceImpl updateCheckNamePdfEsign data:{}", data.length);
