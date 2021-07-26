@@ -87,6 +87,7 @@ public class OfflineRecipeClient extends BaseClient {
         try {
             HisResponseTO<List<OutPatientRecipeTO>> hisResponse = recipeHisService.queryOutPatientRecipe(outPatientRecipeReq);
             List<OutPatientRecipeTO> result = getResponse(hisResponse);
+            logger.info("OfflineRecipeClient queryOutPatientRecipe result:{}.", JSON.toJSONString(result));
             return ObjectCopyUtils.convert(result, OutPatientRecipeDTO.class);
         } catch (Exception e) {
             logger.error("OfflineRecipeClient queryOutPatientRecipe hisResponse", e);
