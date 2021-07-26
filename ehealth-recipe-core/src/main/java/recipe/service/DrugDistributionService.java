@@ -20,7 +20,6 @@ import com.ngari.recipe.common.utils.VerifyUtils;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
@@ -45,7 +44,10 @@ import recipe.bean.PurchaseRequest;
 import recipe.bean.PurchaseResponse;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
-import recipe.constant.*;
+import recipe.constant.CacheConstant;
+import recipe.constant.ParameterConstant;
+import recipe.constant.RecipeBussConstant;
+import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
@@ -371,7 +373,7 @@ public class DrugDistributionService {
             RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
             OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
             String tips ;
-            if (RecipeExtendConstant.MEDICAL_FALG_YES == medicalFlag) {
+            if (1 == medicalFlag) {
                 tips = "您是医保病人，请到医院支付取药，医院取药窗口取药：";
             } else {
                 tips = "请到医院支付取药，医院取药窗口：";

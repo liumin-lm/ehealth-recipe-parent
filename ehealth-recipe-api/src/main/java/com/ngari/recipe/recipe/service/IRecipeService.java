@@ -773,20 +773,35 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     /**
      * 根据处方签名
+     *
      * @param status
      * @param startTime
      * @param endTime
      * @return
      */
     @RpcService
-    List<RecipeBean> findRecipeListByStatusAndSignDate(int status,String startTime,String endTime);
+    List<RecipeBean> findRecipeListByStatusAndSignDate(int status, String startTime, String endTime);
 
+    /**
+     * 药师端签名接口
+     *
+     * @param recipeId
+     */
     @RpcService
     public void pharmacyToRecipePDF(Integer recipeId);
+
+    /**
+     * E签宝 药师签名接口
+     *
+     * @param recipeId
+     */
+    @RpcService
+    public void pharmacyToRecipePDF(Integer recipeId, Integer checker);
 
 
     /**
      * 退款申请结果回调
+     *
      * @param refundRequestBean 请求入参
      * @return
      */

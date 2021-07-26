@@ -1,9 +1,7 @@
 package recipe.dao;
 
 import com.google.common.collect.Maps;
-import com.ngari.recipe.entity.DrugEnterpriseLogistics;
 import com.ngari.recipe.entity.DrugList;
-import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.SaleDrugList;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -14,13 +12,11 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.persistence.support.impl.dictionary.DBDictionaryItemLoader;
-import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcSupportDAO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
-import org.hibernate.Transaction;
 import org.joda.time.DateTime;
 import org.springframework.util.ObjectUtils;
 import recipe.dao.bean.DrugListAndSaleDrugList;
@@ -207,7 +203,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
      * @param depIds
      * @return
      */
-    public Map<Integer, List<String>> findDepDrugRelation(final List<Integer> drugIds, List<Integer> depIds) {
+    public Map<Integer, List<Integer>> findDepDrugRelation(final List<Integer> drugIds, List<Integer> depIds) {
         HibernateStatelessResultAction<List<Object[]>> action =
                 new AbstractHibernateStatelessResultAction<List<Object[]>>() {
                     @Override
@@ -223,11 +219,11 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
 
         HibernateSessionTemplate.instance().execute(action);
         List<Object[]> objects = action.getResult();
-        Map<Integer, List<String>> relation = Maps.newHashMap();
+        Map<Integer, List<Integer>> relation = Maps.newHashMap();
         for (Object[] obj : objects) {
             Integer depId = Integer.valueOf(obj[0].toString());
             String drugIdStr = LocalStringUtil.toString(obj[1]);
-            List<String> drugIdList = new ArrayList<>(0);
+            List<Integer> drugIdList = new ArrayList<>(0);
             if (StringUtils.isNotEmpty(drugIdStr)) {
                 CollectionUtils.addAll(drugIdList, drugIdStr.split(","));
 

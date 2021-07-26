@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
-import recipe.bean.RecipeGiveModeButtonRes;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
@@ -40,6 +39,7 @@ import recipe.service.RecipeListService;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
+import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import java.math.BigDecimal;
 import java.util.*;

@@ -53,17 +53,4 @@ public class Md5Utils {
 		return result;		
 	}
 
-	public static void main(String args[]) {
-		String pwd = "123456";
-		if (args != null && args.length > 0) {
-			pwd = args[0];
-		}
-		
-		try {
-			System.out.println(Md5Utils.hash(pwd));
-			System.out.println(Md5Utils.crypt(pwd));
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
 }

@@ -346,6 +346,13 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "医保支付内容")
     private String healthInsurancePayContent;
 
+    //预约取药开始时间
+    @ItemProperty(alias = "预约取药开始时间")
+    private String expectStartTakeTime;
+    //预约取药结束时间
+    @ItemProperty(alias = "预约取药结束时间")
+    private String expectEndTakeTime;
+
     @Column(name = "healthInsurancePayContent")
     public String getHealthInsurancePayContent() {
         return healthInsurancePayContent;
@@ -1221,5 +1228,22 @@ public class RecipeOrder implements Serializable {
 
     public void setGiveModeText(String giveModeText) {
         this.giveModeText = giveModeText;
+    }
+
+    @Column(name = "expectStartTakeTime")
+    public String getExpectStartTakeTime() {
+        return expectStartTakeTime;
+    }
+
+    public void setExpectStartTakeTime(String expectStartTakeTime) {
+        this.expectStartTakeTime = expectStartTakeTime;
+    }
+    @Column(name = "expectEndTakeTime")
+    public String getExpectEndTakeTime() {
+        return expectEndTakeTime;
+    }
+
+    public void setExpectEndTakeTime(String expectEndTakeTime) {
+        this.expectEndTakeTime = expectEndTakeTime;
     }
 }

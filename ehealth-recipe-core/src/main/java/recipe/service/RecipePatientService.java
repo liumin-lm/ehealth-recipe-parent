@@ -345,6 +345,73 @@ public class RecipePatientService extends RecipeBaseService {
         LOGGER.info("findUnSupportDepList recipeId={}, 无库存药企药品信息取交集结果[{}]", JSONUtils.toString(recipeId), JSONObject.toJSONString(resultBean));
         return resultBean;
     }
+    /**
+     * 查询处方无库存药企药品信息
+     *
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    public RecipeResultBean findUnSupportDepList(Integer recipeId,List<DrugEnterpriseResult> unDepList) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+
+
+        RecipeResultBean resultBean = RecipeResultBean.getSuccess();
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (recipe == null) {
+            resultBean.setCode(RecipeResultBean.FAIL);
+            resultBean.setMsg("处方不存在");
+            return resultBean;
+        }
+
+        if (CollectionUtils.isNotEmpty(unDepList)) {
+            resultBean.setCode(RecipeResultBean.FAIL);
+            List<String> drugList = new ArrayList<>();
+            for (DrugEnterpriseResult result : unDepList){
+                List<String> list = (List<String>) result.getObject();
+                if (CollectionUtils.isNotEmpty(list)){
+                    drugList.addAll((list));
+                    break;
+                }
+            }
+            for (DrugEnterpriseResult result : unDepList){
+                List<String> list = (List<String>) result.getObject();
+                // 有药品名称取交集
+                if (CollectionUtils.isNotEmpty(list)){
+                    drugList.retainAll(list);
+                }else {
+                    // 有一个不能返回具体无库存药品，不展示药品名称，返回药品信息为空
+                    LOGGER.info("findUnSupportDepList recipeId={}, 药企未返回具体无库存药品信息[{}]", JSONUtils.toString(recipeId), JSONObject.toJSONString(result));
+                    resultBean.setObject(null);
+                    break;
+                }
+            }
+            // 仅各药企库存不足药品是包含关系才展示，即交集不为空，且交集结果至少是某一个药企无库存药品
+            if (CollectionUtils.isNotEmpty(drugList)){
+                Collections.sort(drugList);
+                String retainStr = drugList.toString();
+                Boolean showDrug = false;
+                for (DrugEnterpriseResult result : unDepList){
+                    List<String> list = (List<String>) result.getObject();
+                    Collections.sort(list);
+                    String listStr = list.toString();
+                    if (retainStr.equals(listStr)){
+                        showDrug = true;
+                        break;
+                    }
+                }
+                if (showDrug){
+                    resultBean.setObject(drugList);
+                }else {
+                    resultBean.setObject(null);
+                }
+            }else {
+                resultBean.setObject(null);
+            }
+        }
+        LOGGER.info("findUnSupportDepList recipeId={}, 无库存药企药品信息取交集结果[{}]", JSONUtils.toString(recipeId), JSONObject.toJSONString(resultBean));
+        return resultBean;
+    }
 
     private void parseDrugsEnterprise(DrugsEnterprise dep, BigDecimal totalMoney, List<DepDetailBean> depDetailList) {
         RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
@@ -613,14 +680,32 @@ public class RecipePatientService extends RecipeBaseService {
         if (patient == null) {
             throw new DAOException(609, "找不到该患者");
         }
+        //添加复诊ID
+        IRevisitExService consultExService = RevisitAPI.getService(IRevisitExService.class);
+        //TODO 72571 【实施】【上海市皮肤病医院】【A】【BUG】线上处方页患者医保类型不正确,临时个性化解决 机构ID：1003983
+        if (organId == 1003983)  {
+            if (null != clinicId) {
+                RevisitExDTO consultExDTO = consultExService.getByConsultId(clinicId);
+                if (consultExDTO != null) {
+                    PatientQueryRequestTO result = new PatientQueryRequestTO();
+                    if (null != consultExDTO.getMedicalFlag() && new Integer(1).equals(consultExDTO.getMedicalFlag())) {
+                        result.setMedicalType("2");
+                        result.setMedicalTypeText("医保");
+                    } else {
+                        result.setMedicalType("1");
+                        result.setMedicalTypeText("自费");
+                    }
+                    return result;
+                }
+            }
+        }
         try {
             PatientQueryRequestTO req = new PatientQueryRequestTO();
             req.setOrgan(organId);
             req.setPatientName(patient.getPatientName());
             req.setCertificateType(patient.getCertificateType());
             req.setCertificate(patient.getCertificate());
-            //添加复诊ID
-            IRevisitExService consultExService = RevisitAPI.getService(IRevisitExService.class);
+
             if (clinicId != null) {
                 RevisitExDTO consultExDTO = consultExService.getByConsultId(clinicId);
                 if (consultExDTO != null) {

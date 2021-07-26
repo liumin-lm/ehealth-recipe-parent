@@ -51,8 +51,4 @@ public class XstreamUtil {
             return null;
         }
     }
-
-    public static void main(String[] args) {
-
-    }
 }

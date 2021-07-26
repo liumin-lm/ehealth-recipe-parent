@@ -1448,6 +1448,7 @@ public class DrugToolService implements IDrugToolService {
                 if (organDrugList.getStatus().equals(1)){
                     SaleDrugList saleDrugList1 = byOrganIdAndDrugCode.get(0);
                     saleDrugList1.setPrice(organDrugList.getSalePrice());
+                    saleDrugList1.setDrugId(organDrugList.getDrugId());
                     saleDrugList1.setDrugName(organDrugList.getDrugName());
                     saleDrugList1.setSaleName(organDrugList.getSaleName());
                     saleDrugList1.setDrugSpec(organDrugList.getDrugSpec());

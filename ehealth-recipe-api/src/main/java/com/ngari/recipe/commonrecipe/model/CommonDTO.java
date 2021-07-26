@@ -6,7 +6,7 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
- * 线下常用方集合对象
+ * 常用方集合对象
  *
  * @author fuzi
  */

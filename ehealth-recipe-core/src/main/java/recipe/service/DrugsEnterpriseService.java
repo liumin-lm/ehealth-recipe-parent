@@ -2,10 +2,7 @@ package recipe.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
-import com.ngari.opbase.auth.service.ISecurityService;
 import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.OrganConfigService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
@@ -15,7 +12,6 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
 import com.ngari.recipe.recipe.constant.RecipeSupportGiveModeEnum;
-import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
 import ctd.account.UserRoleToken;
@@ -33,22 +29,20 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 import recipe.ApplicationUtils;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.ErrorCode;
-import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
+import recipe.manager.DrugStockManager;
 import recipe.service.drugs.IDrugEnterpriseLogisticsService;
 import recipe.serviceprovider.BaseService;
 
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * 药企相关接口
@@ -73,6 +67,8 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
     private OrganDrugListDAO organDrugListDAO;
     @Resource
     private RecipeService recipeService;
+    @Autowired
+    private DrugStockManager drugStockManager;
 
     /**
      * 有效药企查询 status为1
@@ -372,16 +368,16 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
 
     @RpcService
     public DrugsEnterpriseBean getDrugsEnterpriseByIdForOp(Integer drugsEnterpriseId){
-        //ISecurityService securityService = AppContextHolder.getBean("opbase.securityService",ISecurityService.class);
+        ISecurityService securityService = AppContextHolder.getBean("opbase.securityService",ISecurityService.class);
         DrugsEnterpriseBean bean = getDrugsEnterpriseById(drugsEnterpriseId);
-//        UserRoleToken urt = UserRoleToken.getCurrent();
-//        String mu = urt.getManageUnit();
-//        if (bean != null){
-//            if (!"eh".equals(mu) && null == bean.getOrganId()){
-//                throw new DAOException(DAOException.ACCESS_DENIED,"权限验证失败");
-//            }
-//            securityService.isAuthoritiedOrganNew(bean.getOrganId());
-//        }
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        String mu = urt.getManageUnit();
+        if (bean != null){
+            if (!"eh".equals(mu) && null == bean.getOrganId()){
+                throw new DAOException(DAOException.ACCESS_DENIED,"权限验证失败");
+            }
+            securityService.isAuthoritiedOrganNew(bean.getOrganId());
+        }
         return bean;
     }
 
@@ -481,16 +477,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
      */
     @RpcService
     public boolean checkEnterprise(Integer organId) {
-        OrganConfigService organConfigService = BasicAPI.getService(OrganConfigService.class);
-        Integer checkEnterprise = organConfigService.getCheckEnterpriseByOrganId(organId);
-        //获取机构配置的药企是否存在 如果有则需要校验 没有则不需要
-        OrganAndDrugsepRelationDAO dao = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-        List<DrugsEnterprise> enterprise = dao.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
-        if (Integer.valueOf(0).equals(checkEnterprise) || CollectionUtils.isEmpty(enterprise)) {
-            return false;
-        }
-
-        return true;
+        return drugStockManager.checkEnterprise(organId);
     }
 
     /**
@@ -732,6 +719,55 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
                 break;
         }
 
+        setOtherGiveMode(configurations,recipeId,organId,recipeSupportGiveModeList);
+        LOGGER.info("getDrugsEnterpriseContinue  recipeId= {} recipeSupportGiveModeList= {}", recipeId, JSONUtils.toString(recipeSupportGiveModeList));
+        return recipeSupportGiveModeList;
+    }
+
+    /**
+     * 传入库存信息,获取处方的购药方式
+     * @param scanResult
+     * @param supportDepList
+     * @param checkFlag
+     * @param recipeId
+     * @param organId
+     * @return
+     */
+    public List<Integer> getRecipeGiveMode(com.ngari.platform.recipe.mode.RecipeResultBean scanResult, List<DrugsEnterprise> supportDepList, int checkFlag, Integer recipeId, int organId, List<String> configurations) {
+        LOGGER.info("getRecipeGiveMode scanResult = {} supportDepList= {} checkFlag={} recipeId={} organId={} configurations = {}", JSONArray.toJSONString(scanResult), JSONArray.toJSONString(supportDepList),checkFlag,recipeId,organId,JSONArray.toJSONString(configurations));
+        List<Integer> recipeSupportGiveModeList = new ArrayList<>();
+        switch (checkFlag) {
+            case 1:
+                if (RecipeResultBean.SUCCESS.equals(scanResult.getCode())) {
+                    recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
+                }
+                break;
+            case 2:
+                recipeSupportGiveModeList = getGiveModeBuEnterprise(supportDepList,recipeSupportGiveModeList, recipeId, organId);
+                break;
+            case 3:
+                recipeSupportGiveModeList = getGiveModeBuEnterprise(supportDepList,recipeSupportGiveModeList, recipeId, organId);
+                if (RecipeResultBean.SUCCESS.equals(scanResult.getCode())) {
+                    recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
+                }
+                break;
+            default:
+                break;
+        }
+        setOtherGiveMode(configurations,recipeId,organId,recipeSupportGiveModeList);
+        LOGGER.info("getRecipeGiveMode  recipeId= {} recipeSupportGiveModeList= {}", recipeId, JSONUtils.toString(recipeSupportGiveModeList));
+        return recipeSupportGiveModeList;
+    }
+
+    /**
+     *  例外支付下载处方
+     * @param configurations
+     * @param recipeId
+     * @param organId
+     * @param recipeSupportGiveModeList
+     * @return
+     */
+    private List<Integer> setOtherGiveMode(List<String> configurations,Integer recipeId, int organId,List<Integer> recipeSupportGiveModeList){
         // 查询药品是否不支持下载处方
         if (configurations.contains(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText())) {
             Integer integer = organDrugListDAO.countIsSupperDownloadRecipe(organId, recipeId);
@@ -743,7 +779,6 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         if (configurations.contains(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText())) {
             recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getType());
         }
-        LOGGER.info("getDrugsEnterpriseContinue  recipeId= {} recipeSupportGiveModeList= {}", recipeId, JSONUtils.toString(recipeSupportGiveModeList));
         return recipeSupportGiveModeList;
     }
 
@@ -779,6 +814,18 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         // 获取所有有库存的药企
         List<DrugsEnterprise> supportDepList = recipeService.findSupportDepList(list, organId, null, false, null);
         LOGGER.info("getGiveModeWhenContinueOne recipeId = {} ,supportDepList = {} ", recipeId, JSONUtils.toString(supportDepList));
+       return getGiveModeBuEnterprise(supportDepList,recipeSupportGiveModeList,recipeId,organId);
+    }
+
+    /**
+     *  传入药企信息
+     * @param supportDepList
+     * @param recipeSupportGiveModeList
+     * @param recipeId
+     * @param organId
+     * @return
+     */
+    private List<Integer> getGiveModeBuEnterprise(List<DrugsEnterprise> supportDepList,List<Integer> recipeSupportGiveModeList, Integer recipeId, int organId) {
         Set<Integer> sendTypes = new HashSet<>();
         // 获取所有药企支持的购药方式
         if (CollectionUtils.isNotEmpty(supportDepList)) {
@@ -817,7 +864,6 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
             return recipeSupportGiveModeList;
         }
     }
-
     /**
      * 根据配送主体获取购药方式
      *

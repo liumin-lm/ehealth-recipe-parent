@@ -12,9 +12,8 @@ import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeExtDTO;
 import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
+import com.ngari.recipe.dto.ValidateOrganDrugDTO;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.model.DrugEntrustDTO;
-import com.ngari.recipe.recipe.model.ValidateOrganDrugVO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
@@ -28,17 +27,20 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.client.DrugClient;
 import recipe.constant.ErrorCode;
+import recipe.core.api.doctor.ICommonRecipeService;
 import recipe.dao.CommonRecipeDAO;
 import recipe.dao.CommonRecipeDrugDAO;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
-import recipe.service.client.DrugClient;
-import recipe.service.manager.CommonRecipeManager;
-import recipe.service.manager.OrganDrugListManager;
-import recipe.service.manager.PharmacyManager;
+import recipe.manager.CommonRecipeManager;
+import recipe.manager.DrugManeger;
+import recipe.manager.OrganDrugListManager;
+import recipe.manager.PharmacyManager;
 import recipe.serviceprovider.BaseService;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
@@ -55,7 +57,7 @@ import java.util.stream.Collectors;
  * @author jiangtingfeng
  */
 @RpcBean("commonRecipeService")
-public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
+public class CommonRecipeService extends BaseService<CommonRecipeDTO> implements ICommonRecipeService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonRecipeService.class);
 
@@ -66,7 +68,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
     @Autowired
     private PharmacyManager pharmacyManager;
     @Autowired
-    private DrugClient drugClient;
+    private DrugManeger drugManeger;
 
 
     /**
@@ -86,14 +88,8 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         saveCommonRecipe(common);
     }
 
-    /**
-     * 新增或更新常用方
-     *
-     * @param commonRecipeDTO 常用方
-     * @param commonRecipeExt 中药扩展信息
-     * @param drugListDTO     常用方药品
-     * @return
-     */
+
+    @Override
     public void saveCommonRecipe(CommonDTO common) {
         //id不为空则删除 重新add数据
         Integer commonRecipeId = common.getCommonRecipeDTO().getCommonRecipeId();
@@ -102,7 +98,8 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         List<CommonRecipeDrug> drugList = ObjectCopyUtils.convert(common.getCommonRecipeDrugList(), CommonRecipeDrug.class);
         validateParam(commonRecipe, drugList);
         try {
-            commonRecipeManager.saveCommonRecipe(commonRecipe, common.getCommonRecipeExt(), drugList);
+            CommonRecipeExt commonRecipeExt = ObjectCopyUtils.convert(common.getCommonRecipeExt(), CommonRecipeExt.class);
+            commonRecipeManager.saveCommonRecipe(commonRecipe, commonRecipeExt, drugList);
             commonRecipeManager.removeCommonRecipe(commonRecipeId);
         } catch (DAOException e) {
             LOGGER.error("addCommonRecipe error. commonRecipe={}, drugList={}", JSONUtils.toString(commonRecipe), JSONUtils.toString(drugList), e);
@@ -116,6 +113,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
      *
      * @param commonRecipeId
      */
+    @Override
     @RpcService
     @Deprecated
     public void deleteCommonRecipe(Integer commonRecipeId) {
@@ -123,28 +121,20 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         commonRecipeManager.removeCommonRecipe(commonRecipeId);
     }
 
-    /**
-     * 获取常用方列表
-     *
-     * @param recipeType 处方类型
-     * @param doctorId   医生id
-     * @param organId    机构id
-     * @param start      开始
-     * @param limit      分页条数
-     * @return
-     */
+
+    @Override
     public List<CommonDTO> commonRecipeList(Integer organId, Integer doctorId, List<Integer> recipeType, int start, int limit) {
         List<CommonDTO> commonList = new LinkedList<>();
         //获取常用方
-        List<CommonRecipeDTO> commonRecipeList = commonRecipeManager.commonRecipeList(organId, doctorId, recipeType, start, limit);
+        List<CommonRecipe> commonRecipeList = commonRecipeManager.commonRecipeList(organId, doctorId, recipeType, start, limit);
         if (CollectionUtils.isEmpty(commonRecipeList)) {
             return commonList;
         }
         //获取到常用方中的扩展信息
-        List<Integer> commonRecipeIdList = commonRecipeList.stream().map(CommonRecipeDTO::getCommonRecipeId).collect(Collectors.toList());
-        Map<Integer, CommonRecipeExtDTO> commonRecipeExtMap = commonRecipeManager.commonRecipeExtDTOMap(commonRecipeIdList);
+        List<Integer> commonRecipeIdList = commonRecipeList.stream().map(CommonRecipe::getCommonRecipeId).collect(Collectors.toList());
+        Map<Integer, CommonRecipeExt> commonRecipeExtMap = commonRecipeManager.commonRecipeExtDTOMap(commonRecipeIdList);
         //获取到常用方中的药品信息
-        Map<Integer, List<CommonRecipeDrugDTO>> commonDrugGroup = commonRecipeManager.commonDrugGroup(organId, commonRecipeIdList);
+        Map<Integer, List<com.ngari.recipe.dto.CommonRecipeDrugDTO>> commonDrugGroup = commonRecipeManager.commonDrugGroup(organId, commonRecipeIdList);
         if (null == commonDrugGroup) {
             return commonList;
         }
@@ -153,8 +143,9 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         //组织出参
         commonRecipeList.forEach(a -> {
             CommonDTO commonDTO = new CommonDTO();
-            List<CommonRecipeDrugDTO> commonDrugList = commonDrugGroup.get(a.getCommonRecipeId());
+            List<com.ngari.recipe.dto.CommonRecipeDrugDTO> commonDrugList = commonDrugGroup.get(a.getCommonRecipeId());
             if (CollectionUtils.isNotEmpty(commonDrugList)) {
+                List<CommonRecipeDrugDTO> commonRecipeDrugList = new LinkedList<>();
                 //药品名拼接配置
                 Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, a.getRecipeType()));
                 //药品商品名拼接配置
@@ -163,13 +154,17 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                     //药品名历史数据处理---取实时的
                     item.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(item, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(a.getRecipeType())));
                     item.setDrugDisplaySplicedSaleName(DrugDisplayNameProducer.getDrugName(item, configSaleNameMap, DrugNameDisplayUtil.getSaleNameConfigKey(a.getRecipeType())));
+                    CommonRecipeDrugDTO commonRecipeDrugDTO = ObjectCopyUtils.convert(item, CommonRecipeDrugDTO.class);
+                    commonRecipeDrugDTO.setUseDoseAndUnitRelation(RecipeUtil.defaultUseDose(item.getOrganDrugList()));
+                    commonRecipeDrugList.add(commonRecipeDrugDTO);
                 });
-                commonDTO.setCommonRecipeDrugList(commonDrugList);
+                commonDTO.setCommonRecipeDrugList(commonRecipeDrugList);
             }
             //扩展信息
-            CommonRecipeExtDTO commonRecipeExt = commonRecipeExtMap.get(a.getCommonRecipeId());
+            CommonRecipeExt commonRecipeExt = commonRecipeExtMap.get(a.getCommonRecipeId());
             if (null != commonRecipeExt) {
-                commonDTO.setCommonRecipeExt(commonRecipeExt);
+                CommonRecipeExtDTO commonRecipeExtDTO = ObjectCopyUtils.convert(commonRecipeExt, CommonRecipeExtDTO.class);
+                commonDTO.setCommonRecipeExt(commonRecipeExtDTO);
             }
             //药房
             PharmacyTcm pharmacyTcm = PharmacyManager.pharmacyById(a.getPharmacyId(), pharmacyIdMap);
@@ -177,32 +172,39 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                 a.setPharmacyCode(pharmacyTcm.getPharmacyCode());
                 a.setPharmacyName(pharmacyTcm.getPharmacyName());
             }
-            commonDTO.setCommonRecipeDTO(a);
+            commonDTO.setCommonRecipeDTO(ObjectCopyUtils.convert(a, CommonRecipeDTO.class));
             commonList.add(commonDTO);
         });
         return commonList;
     }
 
-    /**
-     * 查询线下常用方
-     *
-     * @param organId  机构id
-     * @param doctorId 医生id
-     * @return 线下常用方数据集合
-     */
+
+    @Override
     public List<CommonDTO> offlineCommon(Integer organId, Integer doctorId) {
         //获取线下常用方
-        List<CommonDTO> offlineCommonList = commonRecipeManager.offlineCommon(organId, doctorId);
+        List<com.ngari.his.recipe.mode.CommonDTO> offlineCommonList = commonRecipeManager.offlineCommon(organId, doctorId);
+        List<CommonDTO> result = new LinkedList<>();
         if (CollectionUtils.isEmpty(offlineCommonList)) {
-            return offlineCommonList;
+            return result;
+        }
+        offlineCommonList.forEach(a -> {
+            CommonDTO commonDTO = new CommonDTO();
+            commonDTO.setCommonRecipeDTO(ObjectCopyUtils.convert(a.getCommonRecipeDTO(), CommonRecipeDTO.class));
+            commonDTO.setCommonRecipeExt(ObjectCopyUtils.convert(a.getCommonRecipeExt(), CommonRecipeExtDTO.class));
+            commonDTO.setCommonRecipeDrugList(ObjectCopyUtils.convert(a.getCommonRecipeDrugList(), CommonRecipeDrugDTO.class));
+            result.add(commonDTO);
+        });
+
+        if (CollectionUtils.isEmpty(offlineCommonList)) {
+            return result;
         }
         //关联常用方主键
         List<CommonRecipe> commonRecipeList = commonRecipeManager.offlineCommonRecipeList(organId, doctorId);
         if (CollectionUtils.isEmpty(commonRecipeList)) {
-            return offlineCommonList;
+            return result;
         }
         Map<String, CommonRecipe> commonRecipeMap = commonRecipeList.stream().collect(Collectors.toMap(CommonRecipe::getCommonRecipeCode, a -> a, (k1, k2) -> k1));
-        offlineCommonList.forEach(a -> {
+        result.forEach(a -> {
             CommonRecipeDTO offlineCommonRecipeDTO = a.getCommonRecipeDTO();
             if (null == offlineCommonRecipeDTO) {
                 return;
@@ -213,24 +215,20 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
             }
             offlineCommonRecipeDTO.setCommonRecipeId(commonRecipe.getCommonRecipeId());
         });
-        return offlineCommonList;
+        return result;
     }
 
-    /**
-     * 添加线下常用方到线上
-     *
-     * @param commonList 线下常用方数据集合
-     * @return boolean
-     */
+
+    @Override
     public List<String> addOfflineCommon(Integer organId, List<CommonDTO> commonList) {
         List<String> failNameList = new LinkedList<>();
         //查询字典数据
         Map<String, PharmacyTcm> pharmacyCodeMap = pharmacyManager.pharmacyCodeMap(organId);
-        Map<String, DecoctionWay> decoctionWayCodeMap = drugClient.decoctionWayCodeMap(organId);
-        Map<String, DrugMakingMethod> makingMethodCodeMap = drugClient.drugMakingMethodCodeMap(organId);
-        Map<String, UsingRate> usingRateCodeMap = drugClient.usingRateMapCode(organId);
-        Map<String, UsePathways> usePathwaysCodeMap = drugClient.usePathwaysCodeMap(organId);
-        Map<String, DrugEntrustDTO> drugEntrustNameMap = drugClient.drugEntrustNameMap(organId);
+        Map<String, DecoctionWay> decoctionWayCodeMap = drugManeger.decoctionWayCodeMap(organId);
+        Map<String, DrugMakingMethod> makingMethodCodeMap = drugManeger.drugMakingMethodCodeMap(organId);
+        Map<String, UsingRate> usingRateCodeMap = drugManeger.usingRateMapCode(organId);
+        Map<String, UsePathways> usePathwaysCodeMap = drugManeger.usePathwaysCodeMap(organId);
+        Map<String, DrugEntrust> drugEntrustNameMap = drugManeger.drugEntrustNameMap(organId);
         //查询机构药品
         List<String> drugCodeList = commonList.stream().filter(a -> CollectionUtils.isNotEmpty(a.getCommonRecipeDrugList()))
                 .flatMap(a -> a.getCommonRecipeDrugList().stream().map(CommonRecipeDrugDTO::getOrganDrugCode)).distinct().collect(Collectors.toList());
@@ -270,7 +268,8 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
             //扩展信息转换
             offlineCommonRecipeExt(a.getCommonRecipeExt(), decoctionWayCodeMap, makingMethodCodeMap);
             //写入表
-            commonRecipeManager.saveCommonRecipe(commonRecipe, a.getCommonRecipeExt(), drugList);
+            CommonRecipeExt commonRecipeExt = ObjectCopyUtils.convert(a.getCommonRecipeExt(), CommonRecipeExt.class);
+            commonRecipeManager.saveCommonRecipe(commonRecipe, commonRecipeExt, drugList);
         });
         return failNameList;
     }
@@ -300,8 +299,8 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "用药频次和用药方式不能为空");
             }
             //校验比对药品
-            ValidateOrganDrugVO validateOrganDrugVO = new ValidateOrganDrugVO(a.getOrganDrugCode(), null, null);
-            OrganDrugList organDrug = OrganDrugListManager.validateOrganDrug(validateOrganDrugVO, organDrugGroup);
+            ValidateOrganDrugDTO validateOrganDrugDTO = new ValidateOrganDrugDTO(a.getOrganDrugCode(), null, null);
+            OrganDrugList organDrug = OrganDrugListManager.validateOrganDrug(validateOrganDrugDTO, organDrugGroup);
             if (null == organDrug) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品错误");
             }
@@ -353,7 +352,7 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
      */
     private List<CommonRecipeDrug> offlineCommonRecipeDrug(List<CommonRecipeDrugDTO> commonRecipeDrugList, Map<String, List<OrganDrugList>> organDrugGroup,
                                                            Map<String, PharmacyTcm> pharmacyCodeMap, Map<String, UsingRate> usingRateCodeMap,
-                                                           Map<String, UsePathways> usePathwaysCodeMap, Map<String, DrugEntrustDTO> drugEntrustNameMap) {
+                                                           Map<String, UsePathways> usePathwaysCodeMap, Map<String, DrugEntrust> drugEntrustNameMap) {
         List<CommonRecipeDrug> drugList = new LinkedList<>();
         commonRecipeDrugList.forEach(b -> {
             CommonRecipeDrugDTO drug = offlineCommonRecipeDrug(b, organDrugGroup, pharmacyCodeMap, usingRateCodeMap, usePathwaysCodeMap, drugEntrustNameMap);
@@ -379,10 +378,10 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
      */
     private CommonRecipeDrugDTO offlineCommonRecipeDrug(CommonRecipeDrugDTO drug, Map<String, List<OrganDrugList>> organDrugGroup,
                                                         Map<String, PharmacyTcm> pharmacyCodeMap, Map<String, UsingRate> usingRateCodeMap,
-                                                        Map<String, UsePathways> usePathwaysCodeMap, Map<String, DrugEntrustDTO> drugEntrustNameMap) {
+                                                        Map<String, UsePathways> usePathwaysCodeMap, Map<String, DrugEntrust> drugEntrustNameMap) {
         //校验比对药品
-        ValidateOrganDrugVO validateOrganDrugVO = new ValidateOrganDrugVO(drug.getOrganDrugCode(), null, null);
-        OrganDrugList organDrug = OrganDrugListManager.validateOrganDrug(validateOrganDrugVO, organDrugGroup);
+        ValidateOrganDrugDTO validateOrganDrugDTO = new ValidateOrganDrugDTO(drug.getOrganDrugCode(), null, null);
+        OrganDrugList organDrug = OrganDrugListManager.validateOrganDrug(validateOrganDrugDTO, organDrugGroup);
         if (null == organDrug) {
             LOGGER.warn("CommonRecipeService offlineCommonRecipeDrug organDrug OrganDrugCode ：{}", drug.getOrganDrugCode());
             return null;
@@ -427,14 +426,14 @@ public class CommonRecipeService extends BaseService<CommonRecipeDTO> {
         drug.setUsePathwaysId(ByteUtils.objValueOf(usePathways.getId()));
         drug.setUsePathEnglishNames(usePathways.getEnglishNames());
         //嘱托
-        DrugEntrustDTO drugEntrustDTO = drugEntrustNameMap.get(drug.getMemo());
-        if (null == drugEntrustDTO) {
-            drugEntrustDTO = new DrugEntrustDTO();
-            drugEntrustDTO.setDrugEntrustName(drug.getMemo());
+        DrugEntrust drugEntrust = drugEntrustNameMap.get(drug.getMemo());
+        if (null == drugEntrust) {
+            drugEntrust = new DrugEntrust();
+            drugEntrust.setDrugEntrustName(drug.getMemo());
         }
-        drug.setDrugEntrustCode(drugEntrustDTO.getDrugEntrustCode());
-        drug.setDrugEntrustId(ByteUtils.objValueOf(drugEntrustDTO.getDrugEntrustId()));
-        drug.setMemo(drugEntrustDTO.getDrugEntrustName());
+        drug.setDrugEntrustCode(drugEntrust.getDrugEntrustCode());
+        drug.setDrugEntrustId(ByteUtils.objValueOf(drugEntrust.getDrugEntrustId()));
+        drug.setMemo(drugEntrust.getDrugEntrustName());
         return drug;
     }
 

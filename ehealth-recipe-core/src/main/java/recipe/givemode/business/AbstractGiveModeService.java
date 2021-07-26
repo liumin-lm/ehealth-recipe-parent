@@ -21,14 +21,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.factory.status.constant.RecipeOrderStatusEnum;
-import recipe.factory.status.constant.RecipeStatusEnum;
-import recipe.purchase.PurchaseService;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.service.RecipeServiceSub;
 
 import java.util.*;
@@ -48,8 +46,6 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
-    @Autowired
-    private RecipeServiceSub recipeServiceSub;
 
     private static final String LIST_TYPE_RECIPE = "1";
 
