@@ -2,6 +2,7 @@ package recipe.caNew.pdf;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.esign.model.CoOrdinateVO;
+import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.dto.AttachSealPicDTO;
@@ -161,41 +162,6 @@ public class CreatePdfFactory {
     }
 
 
-
-    /**
-     * 药师签名
-     *
-     * @param recipeId
-     */
-    public void updateCheckNamePdf(Integer recipeId, Integer checker) {
-        Recipe recipe = validate(recipeId);
-        logger.info("CreatePdfFactory updateCheckNamePdf recipeId:{}", recipeId);
-        boolean usePlatform = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", true);
-        if (!usePlatform) {
-            return;
-        }
-        //获取签名图片
-        AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
-        String signImageId = sttachSealPicDTO.getCheckerSignImg();
-        try {
-            CreatePdfService createPdfService = createPdfService(recipe);
-            String fileId = createPdfService.updateCheckNamePdf(recipe, signImageId);
-            if (StringUtils.isEmpty(fileId)) {
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "药师签名部分生成null");
-                return;
-            }
-            Recipe recipeUpdate = new Recipe();
-            recipeUpdate.setRecipeId(recipeId);
-            recipeUpdate.setChemistSignFile(fileId);
-            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-            logger.info("CreatePdfFactory updateCheckNamePdf  recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
-        } catch (Exception e) {
-            logger.error("CreatePdfFactory updateCheckNamePdf  recipe: {}", recipe.getRecipeId());
-            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "平台药师部分pdf的生成失败");
-        }
-    }
-
-
     /**
      * 药师签名
      *
@@ -228,6 +194,46 @@ public class CreatePdfFactory {
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "平台药师部分pdf的生成失败");
         }
     }
+
+    /**
+     * E签宝 药师签名
+     *
+     * @param recipeId
+     */
+    public void updateCheckNamePdfESign(Integer recipeId) {
+        Recipe recipe = validate(recipeId);
+        CreatePdfService createPdfService = createPdfService(recipe);
+        logger.info("CreatePdfFactory updateCheckNamePdfEsign recipe:{}", JSON.toJSONString(recipe));
+        boolean usePlatform = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", true);
+        if (!usePlatform) {
+            return;
+        }
+        byte[] chemistSignFileByte = CreateRecipePdfUtil.signFileByte(recipe.getSignFile());
+
+        SignRecipePdfVO pdfEsign = new SignRecipePdfVO();
+        pdfEsign.setData(chemistSignFileByte);
+        pdfEsign.setWidth(100f);
+        pdfEsign.setFileName("recipecheck" + recipe.getRecipeId() + ".pdf");
+        pdfEsign.setDoctorId(recipe.getChecker());
+        pdfEsign.setQrCodeSign(false);
+        try {
+            byte[] data = createPdfService.updateCheckNamePdfEsign(recipeId, pdfEsign);
+            if (null == data) {
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "药师E签宝签名部分生成null");
+                return;
+            }
+            String fileId = CreateRecipePdfUtil.signFileByte(data, "recipecheck" + recipe.getRecipeId() + ".pdf");
+            Recipe recipeUpdate = new Recipe();
+            recipeUpdate.setRecipeId(recipe.getRecipeId());
+            recipeUpdate.setSignFile(fileId);
+            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+            logger.info("CreatePdfFactory updateCheckNamePdfEsign  recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
+        } catch (Exception e) {
+            logger.error("CreatePdfFactory updateCheckNamePdfEsign  recipe: {}", recipe.getRecipeId());
+            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "药师E签宝签名部分生成");
+        }
+    }
+
 
 
     /**

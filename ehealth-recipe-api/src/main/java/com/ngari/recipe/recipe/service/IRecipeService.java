@@ -791,7 +791,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     public void pharmacyToRecipePDF(Integer recipeId);
 
     /**
-     * 药师端签名接口
+     * E签宝 药师签名接口
      *
      * @param recipeId
      */
