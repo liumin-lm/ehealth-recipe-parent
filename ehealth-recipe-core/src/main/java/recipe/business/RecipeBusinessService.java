@@ -71,6 +71,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
      * @param outRecipeDetailReqVO 门诊处方信息
      * @return 图片或者PDF链接等
      */
+    @Override
     public OutRecipeDetailVO queryOutRecipeDetail(OutRecipeDetailReqVO outRecipeDetailReqVO) {
         logger.info("OutPatientRecipeService queryOutPatientRecipe queryOutRecipeDetail:{}.", JSON.toJSONString(outRecipeDetailReqVO));
         OutRecipeDetailReq outRecipeDetailReq = ObjectCopyUtil.convert(outRecipeDetailReqVO, OutRecipeDetailReq.class);
@@ -83,6 +84,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
      * @param outPatientReqVO 当前就诊人信息
      * @return 是否有效
      */
+    @Override
     public boolean checkCurrentPatient(OutPatientReqVO outPatientReqVO){
         logger.info("OutPatientRecipeService checkCurrentPatient outPatientReqVO:{}.", JSON.toJSONString(outPatientReqVO));
         return true;
