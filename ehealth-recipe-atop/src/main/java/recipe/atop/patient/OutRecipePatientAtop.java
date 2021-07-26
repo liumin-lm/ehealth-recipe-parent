@@ -48,6 +48,7 @@ public class OutRecipePatientAtop extends BaseAtop {
             result.forEach(outPatientRecipeVO -> {
                 outPatientRecipeVO.setStatusText(OutRecipeStatusEnum.getName(outPatientRecipeVO.getStatus()));
                 outPatientRecipeVO.setGiveModeText(OutRecipeGiveModeEnum.getName(outPatientRecipeVO.getGiveMode()));
+                outPatientRecipeVO.setOrganId(outPatientRecipeReqVO.getOrganId());
             });
             result = result.stream().sorted(Comparator.comparing(OutPatientRecipeVO::getCreateDate).reversed()).collect(Collectors.toList());
             logger.info("OutPatientRecipeAtop queryOutPatientRecipe result:{}.", JSON.toJSONString(result));
