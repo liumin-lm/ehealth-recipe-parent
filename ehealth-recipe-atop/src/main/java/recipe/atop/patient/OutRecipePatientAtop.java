@@ -15,7 +15,6 @@ import recipe.constant.HisErrorCodeEnum;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.util.DateConversion;
 
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -26,7 +25,7 @@ import java.util.stream.Collectors;
  * @author yinsheng
  * @date 2021\7\16 0016 14:04
  */
-@RpcBean(value = "outRecipePatientAtop", mvc_authentication = false)
+@RpcBean(value = "outRecipePatientAtop")
 public class OutRecipePatientAtop extends BaseAtop {
 
     @Autowired
