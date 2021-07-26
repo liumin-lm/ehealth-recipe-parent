@@ -125,7 +125,7 @@ public class DrugStockManager extends BaseManager {
                 nameList = organDrugListDAO.findNameByOrganIdAndDrugCodes(recipe.getClinicOrgan(), organCodes);
             }
             String showMsg = "由于" + Joiner.on(",").join(nameList) + "门诊药房库存不足，该处方仅支持配送，无法到院取药，是否继续？";
-            result.setMsg(showMsg);
+            result.setError(showMsg);
             result.setObject(nameList);
             result.setExtendValue("1");
             result.setCode(RecipeResultBean.FAIL);
@@ -254,15 +254,14 @@ public class DrugStockManager extends BaseManager {
         doSignRecipe.setSignResult(false);
         doSignRecipe.setErrorFlag(true);
         doSignRecipe.setCanContinueFlag("-1");
-        if (null == object) {
-            doSignRecipe.setMsg(msg);
-            return;
+        if (null != object) {
+            List<String> nameList = (List<String>) object;
+            if (CollectionUtils.isNotEmpty(nameList)) {
+                String nameStr = "【" + Joiner.on("、").join(nameList) + "】";
+                msg = "由于该处方单上的" + nameStr + msg;
+            }
         }
-        List<String> nameList = (List<String>) object;
-        if (CollectionUtils.isNotEmpty(nameList)) {
-            String nameStr = "【" + Joiner.on("、").join(nameList) + "】";
-            doSignRecipe.setMsg("由于该处方单上的" + nameStr + msg);
-        }
+        doSignRecipe.setMsg(msg);
     }
 
 
