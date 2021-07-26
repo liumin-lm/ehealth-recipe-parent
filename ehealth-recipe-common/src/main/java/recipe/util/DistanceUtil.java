@@ -36,9 +36,4 @@ public class DistanceUtil {
         return s;
 
     }
-
-    public static void main(String[] args){
-        System.out.println(DistanceUtil.getDistance(30.25526,120.20358 ,30.25526 , 121.20358));
-    }
-
 }

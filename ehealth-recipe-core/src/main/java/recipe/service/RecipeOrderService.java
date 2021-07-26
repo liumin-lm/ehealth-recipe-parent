@@ -79,6 +79,7 @@ import recipe.service.afterpay.AfterPayBusService;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
 import recipe.service.common.RecipeCacheService;
 import recipe.thread.RecipeBusiThreadPool;
+import recipe.util.LocalStringUtil;
 import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
@@ -369,8 +370,6 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setOtherFee(BigDecimal.valueOf(otherServiceFee));
             }
             if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == toDbFlag) {
-                order.setThirdPayType(0);
-                order.setThirdPayFee(0.00);
                 boolean saveFlag = saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
                 if (saveFlag) {
                     if (payModeSupport.isSupportMedicalInsureance()) {
@@ -1196,6 +1195,12 @@ public class RecipeOrderService extends RecipeBaseService {
             order.setOrderType(0);
         }
         try {
+            if(StringUtils.isEmpty(order.getExpectStartTakeTime())){
+                order.setExpectStartTakeTime("1970-01-01 00:00:01");
+                order.setExpectEndTakeTime("1970-01-01 00:00:01");
+            }
+            order.setThirdPayType(0);
+            order.setThirdPayFee(0.00);
             createOrderToDB(order, recipeIds, orderDAO, recipeDAO);
         } catch (DAOException e) {
             //如果小概率造成orderCode重复，则修改并重试
@@ -2450,12 +2455,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @return
      */
     public String getOrderCode(String mpiId) {
-        StringBuilder orderCode = new StringBuilder();
-        orderCode.append(BussTypeConstant.RECIPE);
-        String time = Long.toString(Calendar.getInstance().getTimeInMillis());
-        orderCode.append(time.substring(time.length() - 10));
-        orderCode.append(new Random().nextInt(9000) + 1000);
-        return orderCode.toString();
+        return LocalStringUtil.getOrderCode();
     }
 
     /**

@@ -88,8 +88,9 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
             return null;
         }
         SignRecipePdfVO pdfEsign = new SignRecipePdfVO();
+        pdfEsign.setQrCodeSign(true);
         pdfEsign.setPosX(ordinateVO.getX().floatValue());
-        pdfEsign.setPosY((float) ordinateVO.getY() - 12);
+        pdfEsign.setPosY((float) ordinateVO.getY() - 25);
         pdfEsign.setWidth(150f);
         pdfEsign.setData(data);
         pdfEsign.setFileName("recipe_" + recipe.getRecipeId() + ".pdf");
@@ -155,6 +156,19 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
             return CreateRecipePdfUtil.generateCoOrdinatePdf(recipe.getSignFile(), coords);
         }
         return null;
+    }
+
+    @Override
+    public byte[] updateCheckNamePdfEsign(Integer recipeId, SignRecipePdfVO pdfEsign) throws Exception {
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipeId, RECIPE + OP_RECIPE_CHECKER);
+        if (null == ordinateVO) {
+            return null;
+        }
+        pdfEsign.setPosX((float) ordinateVO.getX() + 20);
+        pdfEsign.setPosY((float) ordinateVO.getY() - 20);
+        byte[] data = esignService.signForRecipe2(pdfEsign);
+        logger.info("CustomCreatePdfServiceImpl updateCheckNamePdfEsign data:{}", data.length);
+        return data;
     }
 
     @Override
@@ -388,7 +402,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         if (OP_PATIENT.equals(objectName)) {
             String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getPatientBean());
             if ("patientUserType".equals(fieldName)) {
-                value = StringUtils.isEmpty(value) || "0".equals(value) ? "成人处方" : "儿童处方";
+                value = StringUtils.isEmpty(value) || "0".equals(value) ? "普通" : "儿科";
             }
             return new WordToPdfBean(key, value, null);
         }

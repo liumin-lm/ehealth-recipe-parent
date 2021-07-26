@@ -27,8 +27,7 @@ public class BarCodeUtil {
         }
         try {
             File barCodeFile = BarCodeUtil.generateFile(msg, path);
-            URI url = barCodeFile.toURI();
-            return url;
+            return barCodeFile.toURI();
         } catch (Exception e) {
             logger.error("BarCodeUtil generateFileUrl wordToPdf ={} ,path={} ,error", msg, path, e);
             return null;

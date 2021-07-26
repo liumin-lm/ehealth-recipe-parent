@@ -1,6 +1,7 @@
 package recipe.caNew.pdf.service;
 
 import com.ngari.base.esign.model.CoOrdinateVO;
+import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -57,9 +58,19 @@ public interface CreatePdfService {
     String updateCheckNamePdf(Recipe recipe, String signImageId) throws Exception;
 
     /**
+     * 在pdf中添加 药师签名 E签宝
+     *
+     * @param recipeId 处方id
+     * @param pdfEsign E签宝签名对象
+     * @return
+     * @throws Exception
+     */
+    byte[] updateCheckNamePdfEsign(Integer recipeId, SignRecipePdfVO pdfEsign) throws Exception;
+
+    /**
      * 在pdf中添加 药品金额
      *
-     * @param recipeId
+     * @param recipe
      * @param recipeFee
      * @return
      */
