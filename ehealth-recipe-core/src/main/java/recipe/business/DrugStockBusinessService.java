@@ -265,7 +265,7 @@ public class DrugStockBusinessService extends BaseService {
             return result;
         }
         //查询医院库存  药企配置：校验药品库存标志 0 不需要校验 1 校验药企库存 2 药店没库存时可以备货 3 校验医院库存
-        // 因为是药企是医院的自建药房,所以要查医院库存
+        // 有存在药企是医院的自建药企,配置了查医院库存
         if (drugsEnterprise != null && drugsEnterprise.getCheckInventoryFlag() != null && drugsEnterprise.getCheckInventoryFlag() == 3) {
             com.ngari.platform.recipe.mode.RecipeResultBean recipeResultBean = drugStockManager.scanDrugStockByRecipeId(recipe, recipeDetails);
             logger.info("findUnSupportDrugEnterprise recipeId={},医院库存查询结果={}", recipeId, JSONObject.toJSONString(recipeResultBean));

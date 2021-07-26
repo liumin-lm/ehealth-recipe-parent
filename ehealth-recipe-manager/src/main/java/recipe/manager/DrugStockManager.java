@@ -125,7 +125,7 @@ public class DrugStockManager extends BaseManager {
                 nameList = organDrugListDAO.findNameByOrganIdAndDrugCodes(recipe.getClinicOrgan(), organCodes);
             }
             String showMsg = "由于" + Joiner.on(",").join(nameList) + "门诊药房库存不足，该处方仅支持配送，无法到院取药，是否继续？";
-            result.setError(showMsg);
+            result.setMsg(showMsg);
             result.setObject(nameList);
             result.setExtendValue("1");
             result.setCode(RecipeResultBean.FAIL);
