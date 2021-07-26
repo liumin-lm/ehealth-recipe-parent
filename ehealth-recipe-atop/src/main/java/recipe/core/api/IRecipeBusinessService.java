@@ -3,6 +3,7 @@ package recipe.core.api;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
 import com.ngari.recipe.vo.*;
+import ctd.util.annotation.RpcService;
 
 import java.util.List;
 
@@ -31,6 +32,13 @@ public interface IRecipeBusinessService {
      * @return 图片或者PDF链接等
      */
     OutRecipeDetailVO queryOutRecipeDetail(OutRecipeDetailReqVO outRecipeDetailReqVO);
+
+    /**
+     * 前端获取用药指导
+     * @param medicationGuidanceReqVO 用药指导入参
+     * @return 用药指导出参
+     */
+    MedicationGuideResVO getMedicationGuide(MedicationGuidanceReqVO medicationGuidanceReqVO);
 
     /**
      * 校验当前就诊人是否有效

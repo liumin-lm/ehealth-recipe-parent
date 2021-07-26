@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
  * @author yinsheng
  * @date 2021\7\16 0016 14:04
  */
-@RpcBean(value = "outRecipePatientAtop")
+@RpcBean(value = "outRecipePatientAtop", mvc_authentication = false)
 public class OutRecipePatientAtop extends BaseAtop {
 
     @Autowired
@@ -109,6 +109,27 @@ public class OutRecipePatientAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("OutPatientRecipeAtop queryOutRecipeDetail error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 前端获取用药指导
+     * @param medicationGuidanceReqVO 用药指导入参
+     * @return 用药指导出参
+     */
+    @RpcService
+    public MedicationGuideResVO getMedicationGuide(MedicationGuidanceReqVO medicationGuidanceReqVO){
+        logger.info("OutPatientRecipeAtop getMedicationGuide medicationGuidanceReqVO:{}.", JSON.toJSONString(medicationGuidanceReqVO));
+        try {
+            MedicationGuideResVO result = recipeBusinessService.getMedicationGuide(medicationGuidanceReqVO);
+            logger.info("OutPatientRecipeAtop getMedicationGuide result = {}", result);
+            return result;
+        } catch (DAOException e1) {
+            logger.error("OutPatientRecipeAtop getMedicationGuide error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("OutPatientRecipeAtop getMedicationGuide error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
