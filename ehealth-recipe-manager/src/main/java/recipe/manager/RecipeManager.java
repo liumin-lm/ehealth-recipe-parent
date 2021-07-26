@@ -85,6 +85,7 @@ public class RecipeManager extends BaseManager {
         }
         recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
         recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
+        recipe.setMemo(emrDetail.getMemo());
         recipeExtend.setSymptomId(emrDetail.getSymptomId());
         recipeExtend.setSymptomName(emrDetail.getSymptomName());
         return recipeDTO;

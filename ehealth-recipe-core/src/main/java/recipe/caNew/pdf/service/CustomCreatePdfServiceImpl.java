@@ -89,7 +89,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         }
         SignRecipePdfVO pdfEsign = new SignRecipePdfVO();
         pdfEsign.setPosX(ordinateVO.getX().floatValue());
-        pdfEsign.setPosY((float) ordinateVO.getY() - 12);
+        pdfEsign.setPosY((float) ordinateVO.getY() - 20);
         pdfEsign.setWidth(150f);
         pdfEsign.setData(data);
         pdfEsign.setFileName("recipe_" + recipe.getRecipeId() + ".pdf");
