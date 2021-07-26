@@ -79,6 +79,7 @@ import recipe.service.afterpay.AfterPayBusService;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
 import recipe.service.common.RecipeCacheService;
 import recipe.thread.RecipeBusiThreadPool;
+import recipe.util.LocalStringUtil;
 import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
@@ -2450,12 +2451,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @return
      */
     public String getOrderCode(String mpiId) {
-        StringBuilder orderCode = new StringBuilder();
-        orderCode.append(BussTypeConstant.RECIPE);
-        String time = Long.toString(Calendar.getInstance().getTimeInMillis());
-        orderCode.append(time.substring(time.length() - 10));
-        orderCode.append(new Random().nextInt(9000) + 1000);
-        return orderCode.toString();
+        return LocalStringUtil.getOrderCode();
     }
 
     /**
