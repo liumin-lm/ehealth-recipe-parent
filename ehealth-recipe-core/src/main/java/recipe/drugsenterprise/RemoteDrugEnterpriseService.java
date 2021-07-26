@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.client.PatientClient;
 import recipe.constant.ErrorCode;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
@@ -51,9 +52,12 @@ import recipe.dao.*;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
 import recipe.hisservice.RecipeToHisService;
-import recipe.service.*;
+import recipe.manager.EmrRecipeManager;
+import recipe.service.DrugListExtService;
+import recipe.service.RecipeHisService;
+import recipe.service.RecipeLogService;
+import recipe.service.RecipeOrderService;
 import recipe.service.common.RecipeCacheService;
-import recipe.service.manager.EmrRecipeManager;
 import recipe.third.IFileDownloadService;
 import recipe.thread.RecipeBusiThreadPool;
 
@@ -72,7 +76,7 @@ import static ctd.util.AppContextHolder.getBean;
  * @date:2017/3/7.
  */
 @RpcBean(value = "remoteDrugEnterpriseService")
-public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
+public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RemoteDrugEnterpriseService.class);
 
@@ -81,15 +85,17 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
     @Autowired
     DrugListDAO drugListDAO;
     DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
-
+    @Autowired
+    private PatientClient patientClient;
     @Resource
     private SaleDrugListDAO saleDrugListDAO;
 
     @Resource
     private OrganDrugListDAO organDrugListDAO;
+
     //手动推送给第三方
     @RpcService
-    public void pushRecipeInfoForThirdSd(Integer recipeId, Integer depId){
+    public void pushRecipeInfoForThirdSd(Integer recipeId, Integer depId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
 
@@ -354,7 +360,7 @@ public class RemoteDrugEnterpriseService extends  AccessDrugEnterpriseService{
 
         //设置扩展信息
         ExpandDTO expandDTO = new ExpandDTO();
-        String orgCode = RecipeServiceSub.getMinkeOrganCodeByOrganId(recipe.getClinicOrgan());
+        String orgCode = patientClient.getMinkeOrganCodeByOrganId(recipe.getClinicOrgan());
         if (StringUtils.isNotEmpty(orgCode)) {
             expandDTO.setOrgCode(orgCode);
         }

@@ -77,6 +77,15 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     public abstract List<RecipeOrder> findByOrderCode(@DAOParam("orderCodeList") Collection<String> orderCodeList);
 
     /**
+     * 批量查询 根据编号获取已支付订单
+     *
+     * @param orderCodeList
+     * @return
+     */
+    @DAOMethod(sql = "from RecipeOrder where orderCode in (:orderCodeList) and payFlag!=0")
+    public abstract List<RecipeOrder> findPayOrderByOrderCode(@DAOParam("orderCodeList") Collection<String> orderCodeList);
+
+    /**
      * 根据流水号获取订单
      *
      * @param tradeNo
@@ -1655,6 +1664,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      */
     @DAOMethod(sql = "From RecipeOrder  where mpiId = :mpiId AND organId = :organId")
     public abstract List<RecipeOrder> queryRecipeOrderByMpiIdAndOrganId(@DAOParam("mpiId") String mpiId, @DAOParam("organId") Integer organId);
+    @DAOMethod(sql = "From RecipeOrder  where mpiId = :mpiId AND organId in(:organIds)")
+    public abstract List<RecipeOrder> queryRecipeOrderByMpiIdAndOrganIds(@DAOParam("mpiId") String mpiId, @DAOParam("organIds") List<Integer> organIds);
 
 
     /**

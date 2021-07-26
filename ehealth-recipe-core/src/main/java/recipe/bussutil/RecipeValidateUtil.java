@@ -32,7 +32,7 @@ import recipe.constant.ErrorCode;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
-import recipe.factory.status.constant.RecipeStatusEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;

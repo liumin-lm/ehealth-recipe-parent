@@ -4,7 +4,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.springframework.stereotype.Service;
-import recipe.factory.status.constant.GiveModeEnum;
+import recipe.enumerate.status.GiveModeEnum;
 
 /**
  * 医院取药

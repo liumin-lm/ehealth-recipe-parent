@@ -10,8 +10,8 @@ import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Service;
-import recipe.factory.status.constant.GiveModeEnum;
-import recipe.factory.status.constant.RecipeOrderStatusEnum;
+import recipe.enumerate.status.GiveModeEnum;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.service.RecipeLogService;
 
 import java.util.HashMap;

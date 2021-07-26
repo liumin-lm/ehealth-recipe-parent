@@ -1,11 +1,6 @@
 package recipe.mq;
 
-import com.google.common.collect.ImmutableMap;
 import com.ngari.common.dto.TempMsgType;
-import com.ngari.home.asyn.model.BussCancelEvent;
-import com.ngari.home.asyn.service.IAsynDoBussService;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
 import ctd.net.broadcast.MQHelper;
 import ctd.net.broadcast.MQSubscriber;
 import ctd.net.broadcast.Observer;
@@ -13,24 +8,14 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.cdr.constant.OrderStatusConstant;
 import eh.msg.constant.MqConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
-import recipe.constant.*;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeOrderDAO;
-import recipe.service.*;
+import recipe.constant.RecipeSystemConstant;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
-import recipe.thread.PushRecipeToRegulationCallable;
-import recipe.thread.RecipeBusiThreadPool;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.List;
-
-import static ctd.persistence.DAOFactory.getDAO;
 
 @RpcBean
 public class BusMsgConsumer {
@@ -97,7 +82,8 @@ public class BusMsgConsumer {
 
     @RpcService
     public void invalidPatient(TempMsgType tMsg) {
-        if (MsgTypeEnum.DELETE_PATIENT.equals(tMsg.getMsgType())) {
+        //"删除就诊人"
+        if ("10".equals(tMsg.getMsgType())) {
             RemoteRecipeService remoteRecipeService = ApplicationUtils.getRecipeService(RemoteRecipeService.class);
             remoteRecipeService.synPatientStatusToRecipe(tMsg.getMsgContent());
         }

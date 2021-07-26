@@ -22,13 +22,6 @@ public class RecipeMsgUtils {
         }
     }
 
-    public static String getMsgTypeByStatus(int status) {
-        if (map.containsKey(status)) {
-            return map.get(status).getMsgType();
-        }
-        return RecipeMsgEnum.DEFAULT.getMsgType();
-    }
-
     public static RecipeMsgEnum getEnumByStatus(int status) {
         if (map.containsKey(status)) {
             return map.get(status);

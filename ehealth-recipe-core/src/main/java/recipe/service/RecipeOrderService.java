@@ -1,15 +1,11 @@
 package recipe.service;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
-import com.ngari.base.currentuserinfo.model.SimpleThirdBean;
-import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
-import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.hisconfig.model.HisServiceConfigBean;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.model.OrganConfigBean;
@@ -35,15 +31,13 @@ import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
+import com.ngari.recipe.dto.SkipThirdBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.MedicalRespData;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
-import com.ngari.revisit.RevisitAPI;
-import com.ngari.revisit.common.model.RevisitExDTO;
-import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.wxpay.service.INgariPayService;
 import coupon.api.service.ICouponBaseService;
 import coupon.api.vo.Coupon;
@@ -68,6 +62,7 @@ import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.client.IConfigurationClient;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.constant.*;
@@ -76,12 +71,13 @@ import recipe.drugsenterprise.*;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.GiveModeTextEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
+import recipe.manager.EmrRecipeManager;
+import recipe.manager.HisRecipeManager;
+import recipe.manager.OrderManager;
 import recipe.purchase.PurchaseService;
 import recipe.service.afterpay.AfterPayBusService;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
-import recipe.service.client.IConfigurationClient;
 import recipe.service.common.RecipeCacheService;
-import recipe.service.manager.EmrRecipeManager;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 
@@ -118,6 +114,8 @@ public class RecipeOrderService extends RecipeBaseService {
     private RecipeOrderDAO recipeOrderDAO;
 
     @Autowired
+    private OrderManager orderManager;
+    @Autowired
     private RecipeListService recipeListService;
 
     @Resource
@@ -130,7 +128,7 @@ public class RecipeOrderService extends RecipeBaseService {
     private RecipeDAO recipeDAO;
 
     @Autowired
-    private HisRecipeService hisRecipeService;
+    private HisRecipeManager hisRecipeManager;
 
     @Autowired
     private HisRecipeDAO hisRecipeDAO;
@@ -2031,9 +2029,9 @@ public class RecipeOrderService extends RecipeBaseService {
             if (null == patientDTO) {
                 throw new DAOException(609, "患者信息不存在");
             }
-            HisResponseTO<List<QueryHisRecipResTO>> responseTO = hisRecipeService.queryData(recipe.getClinicOrgan(), patientDTO, 6, 1, null);
-            List<QueryHisRecipResTO> hisRecipeTO = responseTO.getData();
-            if (CollectionUtils.isEmpty(hisRecipeTO)) {
+            HisResponseTO<List<QueryHisRecipResTO>> responseTO = hisRecipeManager.queryData(recipe.getClinicOrgan(),patientDTO,6,1,null);
+            List<QueryHisRecipResTO> hisRecipeTO=responseTO.getData();
+            if(CollectionUtils.isEmpty(hisRecipeTO)){
                 LOGGER.info("checkGetOrderDetail hisRecipeTO==null orderCode:{}", orderCode);
                 throw new DAOException(700, "该处方单信息已变更，请退出重新获取处方信息。");
             }
@@ -2058,9 +2056,9 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             });
             //删除
-            hisRecipeService.deleteSetRecipeCode(recipe.getClinicOrgan(), deleteSetRecipeCode);
-            if (existThisRecipeCode.get() == false ||
-                    (deleteSetRecipeCode == null && deleteSetRecipeCode.size() > 0)) {
+            hisRecipeManager.deleteSetRecipeCode(recipe.getClinicOrgan(), deleteSetRecipeCode);
+            if (existThisRecipeCode.get()==false ||
+                    (deleteSetRecipeCode == null&&deleteSetRecipeCode.size()>0)) {
                 LOGGER.info("checkGetOrderDetail 处方已经被删除或处方发生变化 orderCode:{}", orderCode);
                 throw new DAOException(700, "该处方单信息已变更，请退出重新获取处方信息。");
             }
@@ -2304,13 +2302,6 @@ public class RecipeOrderService extends RecipeBaseService {
             payStatus = OrderStatusConstant.READY_CHECK;
         } else {
             //前置、不需要审核，根据购药方式判断
-//            if(RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) ||
-//                    RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode) ||
-//                    RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(giveMode)){
-//                payStatus = OrderStatusConstant.READY_GET_DRUG;
-//            }else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(giveMode)){
-//                payStatus = OrderStatusConstant.READY_SEND;
-//            }
             //修改成根据购药方式来
             PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
             payStatus = purchaseService.getOrderStatus(nowRecipe);
@@ -2372,35 +2363,6 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     /**
-     * 获取第三方跳转链接
-     * TODO 七月大版本将会去掉bqEnterprise标志,会对此处代码进行重构,由于涉及改动较大,本次小版本不做处理
-     * @param skipThirdReqVO
-     * @return
-     */
-    public SkipThirdBean getSkipUrl(SkipThirdReqVO skipThirdReqVO){
-        SkipThirdBean skipThirdBean = new SkipThirdBean();
-        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
-        Integer recipeId = skipThirdReqVO.getRecipeIds().get(0);
-        Recipe recipe = recipeDAO.get(recipeId);
-        if (recipe.getClinicOrgan() == 1005683) {
-            return getUrl(recipe, 0);
-        }
-        if (recipe.getEnterpriseId() != null) {
-            DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-            DrugsEnterprise drugsEnterprise = dao.getById(recipe.getEnterpriseId());
-            if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
-                return getUrl(recipe, GiveModeTextEnum.getGiveMode(skipThirdReqVO.getGiveMode()));
-            }
-            RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipeId);
-            if (null == order) {
-                return skipThirdBean;
-            }
-        }
-        return skipThirdBean;
-    }
-
-    /**
      * todo 过期方法新调用 使用： recipeOrderPatientAtop skipThirdPage
      * @param recipeId
      * @return
@@ -2408,12 +2370,11 @@ public class RecipeOrderService extends RecipeBaseService {
     @Deprecated
     @RpcService
     public String getThirdUrl(Integer recipeId) {
-        SkipThirdBean skipThirdBean = getThirdUrlNew(recipeId);
+        SkipThirdBean skipThirdBean = orderManager.getThirdUrl(recipeId, 0);
         if (skipThirdBean != null && StringUtils.isNotEmpty(skipThirdBean.getUrl())) {
             return skipThirdBean.getUrl();
         }
         return "";
-
     }
 
     /**
@@ -2426,117 +2387,7 @@ public class RecipeOrderService extends RecipeBaseService {
     @Deprecated
     @RpcService
     public SkipThirdBean getThirdUrlNew(Integer recipeId) {
-        SkipThirdBean skipThirdBean = new SkipThirdBean();
-        if (null == recipeId) {
-            return new SkipThirdBean();
-        }
-        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
-
-        Recipe recipe = recipeDAO.get(recipeId);
-        if (recipe.getClinicOrgan() == 1005683) {
-            return getUrl(recipe, 0);
-        }
-        if (recipe.getEnterpriseId() != null) {
-            DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-            DrugsEnterprise drugsEnterprise = dao.getById(recipe.getEnterpriseId());
-            if (drugsEnterprise != null && "bqEnterprise".equals(drugsEnterprise.getAccount())) {
-                return getUrl(recipe, 0);
-            }
-            RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipeId);
-            if (null == order) {
-                return skipThirdBean;
-            }
-        }
-        return skipThirdBean;
-    }
-
-    private SkipThirdBean getUrl(Recipe recipe, Integer giveMode) {
-        SkipThirdBean skipThirdBean = new SkipThirdBean();
-        String thirdUrl = "";
-        if (null != recipe) {
-            PatientDTO patient = patientService.get(recipe.getMpiid());
-            PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
-            if (patient != null) {
-                patientBaseInfo.setPatientName(patient.getPatientName());
-                patientBaseInfo.setCertificateType(patient.getCertificateType());
-                patientBaseInfo.setCertificate(patient.getCertificate());
-                patientBaseInfo.setMobile(patient.getMobile());
-                patientBaseInfo.setPatientID(recipe.getPatientID());
-                patientBaseInfo.setMpi(recipe.getRequestMpiId());
-                // 黄河医院获取药企患者id
-                try {
-                    ICurrentUserInfoService userInfoService = AppContextHolder.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
-                    SimpleWxAccountBean account = userInfoService.getSimpleWxAccount();
-                    LOGGER.info("querySimpleWxAccountBean account={}", JSONObject.toJSONString(account));
-                    if (null != account) {
-                        if (account instanceof SimpleThirdBean) {
-                            SimpleThirdBean stb = (SimpleThirdBean) account;
-                            patientBaseInfo.setTid(stb.getTid());
-                        }
-                    }
-                } catch (Exception e) {
-                    LOGGER.error("黄河医院获取药企用户tid异常", e);
-                }
-            }
-            PatientBaseInfo userInfo = new PatientBaseInfo();
-            if (StringUtils.isNotEmpty(recipe.getRequestMpiId())) {
-                PatientDTO user = patientService.get(recipe.getRequestMpiId());
-                if (user != null) {
-                    userInfo.setPatientName(user.getPatientName());
-                    userInfo.setCertificate(user.getCertificate());
-                    userInfo.setCertificateType(user.getCertificateType());
-                    userInfo.setMobile(user.getMobile());
-                }
-            }
-            IRecipeEnterpriseService hisService = AppDomainContext.getBean("his.iRecipeEnterpriseService", IRecipeEnterpriseService.class);
-            RecipeThirdUrlReqTO req = new RecipeThirdUrlReqTO();
-            req.setOrganId(recipe.getClinicOrgan());
-            req.setPatient(patientBaseInfo);
-            req.setUser(userInfo);
-            req.setRecipeCode(String.valueOf(recipe.getRecipeId()));
-            HisResponseTO<String> response;
-            // 从复诊获取患者渠道id
-            String patientChannelId = "";
-            try {
-                if (recipe.getClinicId() != null) {
-                    IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
-                    LOGGER.info("queryPatientChannelId req={}", recipe.getClinicId());
-                    RevisitExDTO revisitExDTO = exService.getByConsultId(recipe.getClinicId());
-                    if (revisitExDTO != null) {
-                        LOGGER.info("queryPatientChannelId res={}", JSONObject.toJSONString(revisitExDTO));
-                        patientChannelId = revisitExDTO.getProjectChannel();
-                        req.setPatientChannelId(patientChannelId);
-                    }
-                }
-            } catch (Exception e) {
-                LOGGER.error("queryPatientChannelId error:", e);
-            }
-            req.setSkipMode(giveMode);
-            try {
-                //获取民科机构登记号
-                req.setOrgCode(RecipeServiceSub.getMinkeOrganCodeByOrganId(recipe.getClinicOrgan()));
-                LOGGER.info("getRecipeThirdUrl request={}", JSONUtils.toString(req));
-                response = hisService.getRecipeThirdUrl(req);
-                LOGGER.info("getRecipeThirdUrl res={}", JSONUtils.toString(response));
-                if (response != null && "200".equals(response.getMsgCode())) {
-                    thirdUrl = response.getData();
-                    //前置机传过来的可能是json字符串也可能是非json
-                    try {
-                        skipThirdBean = JSONObject.parseObject(thirdUrl, SkipThirdBean.class);
-                    } catch (Exception e) {
-                        //说明不是标准的JSON格式
-                        skipThirdBean.setUrl(thirdUrl);
-                    }
-                } else {
-                    throw new DAOException(609, "获取第三方跳转链接异常");
-                }
-            } catch (Exception e) {
-                LOGGER.error("getRecipeThirdUrl error ", e);
-                throw new DAOException(609, "获取第三方跳转链接异常");
-            }
-        }
-        return skipThirdBean;
+        return orderManager.getThirdUrl(recipeId, 0);
     }
 
     /**

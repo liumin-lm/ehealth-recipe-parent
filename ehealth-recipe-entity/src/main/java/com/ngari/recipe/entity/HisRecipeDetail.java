@@ -86,6 +86,22 @@ public class HisRecipeDetail implements Serializable{
     @ItemProperty(alias = "药房名称")
     private String pharmacyName;
 
+    @ItemProperty(alias = "中药禁忌类型(1:超量 2:十八反 3:其它)")
+    private Integer tcmContraindicationType;
+
+    @ItemProperty(alias = "中药禁忌原因")
+    private String tcmContraindicationCause;
+
+    @ItemProperty(alias = "药房类型")
+    private String pharmacyCategray;
+
+    //特殊煎法  搅碎、碾磨等 相当于药品的嘱托
+    @ItemProperty(alias = "药品嘱托")
+    private String drugEntrustText;
+
+    @ItemProperty(alias = "药品嘱托编码")
+    private String drugEntrustCode;
+
 
     @Column(name = "useDoseStr")
     public String getUseDoseStr() {
@@ -357,5 +373,49 @@ public class HisRecipeDetail implements Serializable{
 
     public void setPharmacyName(String pharmacyName) {
         this.pharmacyName = pharmacyName;
+    }
+
+
+    @Column(name="tcmContraindicationType")
+    public Integer getTcmContraindicationType() {
+        return tcmContraindicationType;
+    }
+
+    public void setTcmContraindicationType(Integer tcmContraindicationType) {
+        this.tcmContraindicationType = tcmContraindicationType;
+    }
+
+    @Column(name="tcmContraindicationCause")
+    public String getTcmContraindicationCause() {
+        return tcmContraindicationCause;
+    }
+
+    public void setTcmContraindicationCause(String tcmContraindicationCause) {
+        this.tcmContraindicationCause = tcmContraindicationCause;
+    }
+
+    @Column(name="pharmacyCategray")
+    public String getPharmacyCategray() {
+        return pharmacyCategray;
+    }
+
+    public void setPharmacyCategray(String pharmacyCategray) {
+        this.pharmacyCategray = pharmacyCategray;
+    }
+
+    public String getDrugEntrustText() {
+        return drugEntrustText;
+    }
+
+    public void setDrugEntrustText(String drugEntrustText) {
+        this.drugEntrustText = drugEntrustText;
+    }
+
+    public String getDrugEntrustCode() {
+        return drugEntrustCode;
+    }
+
+    public void setDrugEntrustCode(String drugEntrustCode) {
+        this.drugEntrustCode = drugEntrustCode;
     }
 }

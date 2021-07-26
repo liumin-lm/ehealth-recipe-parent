@@ -1,12 +1,16 @@
 package recipe.service;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.dto.ApothecaryDTO;
+import com.ngari.recipe.dto.SkipThirdBean;
 import com.ngari.recipe.entity.ConfigStatusCheck;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.recipeorder.model.ApothecaryVO;
+import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.ResultBean;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
+import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -14,12 +18,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
+import recipe.bean.DrugEnterpriseResult;
+import recipe.caNew.pdf.CreatePdfFactory;
+import recipe.client.DoctorClient;
+import recipe.client.IConfigurationClient;
+import recipe.constant.ErrorCode;
+import recipe.core.api.patient.IRecipeOrderService;
 import recipe.dao.ConfigStatusCheckDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
-import recipe.service.client.DoctorClient;
-import recipe.service.manager.RecipeLabelManager;
+import recipe.givemode.business.GiveModeTextEnum;
+import recipe.manager.OrderManager;
 
 import java.util.HashMap;
 import java.util.List;
@@ -31,7 +41,7 @@ import java.util.Map;
  * @author fuzi
  */
 @Service
-public class RecipeOrderTwoService {
+public class RecipeOrderTwoService implements IRecipeOrderService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private RecipeDAO recipeDAO;
@@ -44,15 +54,13 @@ public class RecipeOrderTwoService {
     @Autowired
     private DoctorClient doctorClient;
     @Autowired
-    private RecipeLabelManager recipeLabelManager;
+    private CreatePdfFactory createPdfFactory;
+    @Autowired
+    private IConfigurationClient configurationClient;
+    @Autowired
+    private OrderManager orderManager;
 
-    /**
-     * 更新核发药师信息
-     *
-     * @param recipeId
-     * @param giveUser
-     * @return
-     */
+    @Override
     public ResultBean updateRecipeGiveUser(Integer recipeId, Integer giveUser) {
         ResultBean result = ResultBean.serviceError("参数错误");
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
@@ -64,32 +72,21 @@ public class RecipeOrderTwoService {
         }
         try {
             //更新订单表字段 兼容老版本
-            ApothecaryVO apothecaryVO = doctorClient.getGiveUser(recipe);
-            recipeOrderDAO.updateApothecaryByOrderId(recipe.getOrderCode(), apothecaryVO.getGiveUserName(), apothecaryVO.getGiveUserIdCardCleartext());
-            logger.info("RecipeOrderTwoService updateRecipeGiveUser OrderCode{}, apothecaryVO:{} ", recipe.getOrderCode(), JSONUtils.toString(apothecaryVO));
+            ApothecaryDTO apothecaryDTO = doctorClient.getGiveUser(recipe);
+            recipeOrderDAO.updateApothecaryByOrderId(recipe.getOrderCode(), apothecaryDTO.getGiveUserName(), apothecaryDTO.getGiveUserIdCardCleartext());
+            logger.info("RecipeOrderTwoService updateRecipeGiveUser OrderCode{}, apothecaryVO:{} ", recipe.getOrderCode(), JSONUtils.toString(apothecaryDTO));
         } catch (Exception e) {
             logger.error("RecipeOrderTwoService updateRecipeGiveUser ", e);
         }
 
         //更新pdf
         recipe.setGiveUser(giveUser.toString());
-        Recipe recipeUpdate = recipeLabelManager.giveUserUpdate(recipe);
-        //更新处方字段
-        if (null != recipeUpdate) {
-            recipeUpdate.setGiveUser(giveUser.toString());
-            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-        } else {
-            recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
-        }
+        createPdfFactory.updateGiveUser(recipe);
         return ResultBean.succeed();
     }
 
-    /**
-     * 订单状态更新
-     *
-     * @param orderStatus 状态对象
-     * @return
-     */
+
+    @Override
     public ResultBean updateRecipeOrderStatus(UpdateOrderStatusVO orderStatus) {
         logger.info("RecipeOrderTwoService updateRecipeOrderStatus orderStatus = {}", JSON.toJSONString(orderStatus));
         ResultBean result = ResultBean.serviceError("参数错误");
@@ -113,6 +110,45 @@ public class RecipeOrderTwoService {
         giveModeProxy.updateOrderByGiveMode(recipe.getGiveMode(), orderStatus);
         logger.info("RecipeOrderTwoService updateRecipeOrderStatus result = {}", JSON.toJSONString(result));
         return result;
+    }
+
+    /**
+     * todo 方法需要优化 原方法需要删除
+     *
+     * @param skipThirdReqVO
+     */
+    @Override
+    public void uploadRecipeInfoToThird(SkipThirdReqVO skipThirdReqVO) {
+        logger.info("RecipeOrderService uploadRecipeInfoToThird skipThirdReqVO:{}.", JSONUtils.toString(skipThirdReqVO));
+        Boolean pushToHisAfterChoose = configurationClient.getValueBooleanCatch(skipThirdReqVO.getOrganId(), "pushToHisAfterChoose", false);
+        if (!pushToHisAfterChoose) {
+            return;
+        }
+        List<Recipe> recipes = recipeDAO.findByRecipeIds(skipThirdReqVO.getRecipeIds());
+        RecipeServiceSub recipeServiceSub = AppContextHolder.getBean("recipeServiceSub", RecipeServiceSub.class);
+        //将处方上传到第三方
+        recipes.forEach(recipe -> {
+            recipe.setGiveMode(GiveModeTextEnum.getGiveMode(skipThirdReqVO.getGiveMode()));
+            DrugEnterpriseResult result = recipeServiceSub.pushRecipeForThird(recipe, 1);
+            logger.info("RecipeOrderService uploadRecipeInfoToThird result:{}.", JSONUtils.toString(result));
+            if (new Integer(0).equals(result.getCode())) {
+                //表示上传失败
+                throw new DAOException(ErrorCode.SERVICE_ERROR, result.getMsg());
+            }
+        });
+    }
+
+
+    /**
+     * 获取第三方跳转链接
+     * TODO 七月大版本将会去掉bqEnterprise标志,会对此处代码进行重构,由于涉及改动较大,本次小版本不做处理
+     *
+     * @param skipThirdReqVO
+     * @return
+     */
+    @Override
+    public SkipThirdBean getSkipUrl(SkipThirdReqVO skipThirdReqVO) {
+        return orderManager.getThirdUrl(skipThirdReqVO.getRecipeIds().get(0), GiveModeTextEnum.getGiveMode(skipThirdReqVO.getGiveMode()));
     }
 
 

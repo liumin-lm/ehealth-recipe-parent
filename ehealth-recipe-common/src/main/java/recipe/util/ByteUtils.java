@@ -9,8 +9,8 @@ import java.util.Date;
 public class ByteUtils {
 	public static String COMMA = ",";
 	public static String DOT = "\\.";
+	public static String DOT_EN = ".";
 	public static String SEMI_COLON_EN = ";";
-	public static String SEMI_COLON_CH = "；";
 
 	/**
 	 * 私有构造函数，不允许本类生成实例
@@ -51,20 +51,6 @@ public class ByteUtils {
 	}
 
 	/**
-	 * 判断字符串并返回
-	 *
-	 * @param parame
-	 * @return
-	 */
-	public static String isEmpty(String parame) {
-		if (StringUtils.isEmpty(parame)) {
-			return "";
-		} else {
-			return parame;
-		}
-	}
-
-	/**
 	 * 截取 StringBuilder 拼接的最后一个字符 如 "，"
 	 *
 	 * @param str
@@ -90,20 +76,6 @@ public class ByteUtils {
 			return null;
 		} else {
 			return str.split(regex);
-		}
-	}
-
-	/**
-	 * 判断 StringBuilder 为null
-	 *
-	 * @param str
-	 * @return
-	 */
-	public static Boolean isEmpty(StringBuilder str) {
-		if (0 > str.length() || StringUtils.isEmpty(str.toString())) {
-			return true;
-		} else {
-			return false;
 		}
 	}
 
@@ -169,6 +141,17 @@ public class ByteUtils {
 			return String.valueOf(str);
 		} catch (Exception e) {
 			return null;
+		}
+	}
+
+	public static String objValueOfString(Object str) {
+		if (ObjectUtils.isEmpty(str)) {
+			return "";
+		}
+		try {
+			return String.valueOf(str);
+		} catch (Exception e) {
+			return "";
 		}
 	}
 }

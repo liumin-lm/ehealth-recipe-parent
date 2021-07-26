@@ -5,9 +5,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeOrderBillDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.factory.status.orderstatusfactory.IRecipeOrderStatusService;
-import recipe.service.manager.GroupRecipeManager;
+import recipe.manager.GroupRecipeManager;
 
 /**
  * 状态流转基类
@@ -21,7 +23,11 @@ public abstract class AbstractRecipeOrderStatus implements IRecipeOrderStatusSer
     @Autowired
     protected RecipeDAO recipeDAO;
     @Autowired
+    protected RecipeDetailDAO recipeDetailDAO;
+    @Autowired
     private GroupRecipeManager groupRecipeManager;
+    @Autowired
+    protected RecipeOrderBillDAO recipeOrderBillDAO;
 
     @Override
     public void upRecipeThreadPool(Recipe recipe) {
