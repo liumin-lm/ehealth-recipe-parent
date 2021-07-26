@@ -44,21 +44,27 @@ public class HisRecipeManager extends BaseManager {
     @Autowired
     HisRecipeDAO hisRecipeDao;
 
-
     @Autowired
     private HisRecipeExtDAO hisRecipeExtDAO;
+
     @Autowired
     private HisRecipeDetailDAO hisRecipeDetailDAO;
+
     @Autowired
     private RecipeDAO recipeDAO;
+
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
+
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
+
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
+
     @Autowired
     private RecipeLogDAO recipeLogDao;
+
     @Autowired
     private EmrRecipeManager emrRecipeManager;
 
@@ -85,11 +91,39 @@ public class HisRecipeManager extends BaseManager {
      */
     public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
         LOGGER.info("HisRecipeManager queryData param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode);
-        HisResponseTO<List<QueryHisRecipResTO>> res = offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, flag, recipeCode);
+        HisResponseTO<List<QueryHisRecipResTO>> responseTo = offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, flag, recipeCode);
+        //过滤数据
+        HisResponseTO<List<QueryHisRecipResTO>> res = filterData(responseTo,recipeCode);
         logger.info("HisRecipeManager res:{}.", JSONUtils.toString(res));
         return res;
     }
 
+    /**
+     * @param responseTo
+     * @return
+     * @author liumin
+     * @Description 数据过滤
+     */
+    private HisResponseTO<List<QueryHisRecipResTO>> filterData(HisResponseTO<List<QueryHisRecipResTO>> responseTo,String recipeCode) {
+        logger.info("HisRecipeManager filterData responseTo:{},recipeCode:{}",JSONUtils.toString(responseTo),recipeCode);
+        //获取详情时防止前置机没过滤数据，做过滤处理
+        if(responseTo!=null&&recipeCode!=null){
+            logger.info("HisRecipeManager queryHisRecipeInfo recipeCode:{}",recipeCode);
+            List<QueryHisRecipResTO> queryHisRecipResTos=responseTo.getData();
+            List<QueryHisRecipResTO> queryHisRecipResToFilters=new ArrayList<>();
+            if(!CollectionUtils.isEmpty(queryHisRecipResTos)&&queryHisRecipResTos.size()>1){
+                for(QueryHisRecipResTO queryHisRecipResTo:queryHisRecipResTos){
+                    if(recipeCode.equals(queryHisRecipResTo.getRecipeCode())){
+                        queryHisRecipResToFilters.add(queryHisRecipResTo);
+                        continue;
+                    }
+                }
+            }
+            responseTo.setData(queryHisRecipResToFilters);
+        }
+        logger.info("HisRecipeManager filterData:{}.", JSONUtils.toString(responseTo));
+        return responseTo;
+    }
 
     /**
      * 获取线下处方
@@ -125,7 +159,7 @@ public class HisRecipeManager extends BaseManager {
      * @param recipeList   平台处方
      */
     public Map<String, HisRecipe> updateDisease(List<QueryHisRecipResTO> hisRecipeTO, List<Recipe> recipeList, Map<String, HisRecipe> hisRecipeMap) {
-        LOGGER.info("updateHisRecipe param hisRecipeTO:{},recipeList:{},hisRecipeMap:{}", JSONUtils.toString(hisRecipeTO), JSONUtils.toString(recipeList), JSONUtils.toString(hisRecipeMap));
+        LOGGER.info("HisRecipeManager updateHisRecipe param hisRecipeTO:{},recipeList:{},hisRecipeMap:{}", JSONUtils.toString(hisRecipeTO), JSONUtils.toString(recipeList), JSONUtils.toString(hisRecipeMap));
         Map<String, Recipe> recipeMap = recipeList.stream().collect(Collectors.toMap(Recipe::getRecipeCode, a -> a, (k1, k2) -> k1));
         hisRecipeTO.forEach(a -> {
             HisRecipe hisRecipe = hisRecipeMap.get(a.getRecipeCode());
@@ -152,7 +186,7 @@ public class HisRecipeManager extends BaseManager {
                 emrRecipeManager.saveMedicalInfo(recipe, recipeExtend);
             }
         });
-        LOGGER.info("updateHisRecipe response hisRecipeMap:{}", JSONUtils.toString(hisRecipeMap));
+        LOGGER.info("HisRecipeManager updateHisRecipe response hisRecipeMap:{}", JSONUtils.toString(hisRecipeMap));
         return hisRecipeMap;
     }
 
@@ -164,6 +198,7 @@ public class HisRecipeManager extends BaseManager {
      * @return
      */
     public void deleteRecipeByRecipeCodes(String organId, List<String> recipeCodes) {
+        logger.info("HisRecipeManager deleteRecipeByRecipeCodes param organId:{},recipeCodes:{}",organId,JSONUtils.toString(recipeCodes));
         //默认不存在
         boolean isExistPayRecipe = false;
         List<Recipe> recipes = recipeDAO.findRecipeByRecipeCodeAndClinicOrgan(Integer.parseInt(organId), recipeCodes);
@@ -176,6 +211,7 @@ public class HisRecipeManager extends BaseManager {
         }
         //2 删除数据
         deleteSetRecipeCode(Integer.parseInt(organId), new HashSet<>(recipeCodes));
+        logger.info("HisRecipeManager deleteRecipeByRecipeCodes 方法结束");
     }
 
     /**
@@ -185,7 +221,7 @@ public class HisRecipeManager extends BaseManager {
      * @param deleteSetRecipeCode 要删除的recipeCodes
      */
     public void deleteSetRecipeCode(Integer clinicOrgan, Set<String> deleteSetRecipeCode) {
-        LOGGER.info("deleteSetRecipeCode clinicOrgan = {},deleteSetRecipeCode = {}", clinicOrgan, JSONUtils.toString(deleteSetRecipeCode));
+        LOGGER.info("HisRecipeManager deleteSetRecipeCode clinicOrgan = {},deleteSetRecipeCode = {}", clinicOrgan, JSONUtils.toString(deleteSetRecipeCode));
         if (CollectionUtils.isEmpty(deleteSetRecipeCode)) {
             return;
         }
@@ -223,7 +259,7 @@ public class HisRecipeManager extends BaseManager {
             recipeLogDao.saveRecipeLog(recipeLog);
 
         });
-        LOGGER.info("deleteSetRecipeCode is delete end ");
+        LOGGER.info("HisRecipeManager deleteSetRecipeCode is delete end ");
     }
 
     /**
@@ -235,6 +271,8 @@ public class HisRecipeManager extends BaseManager {
      * @return
      */
     public Integer attachRecipeId(Integer organId, String recipeCode, List<HisRecipe> hisRecipes) {
+        LOGGER.info("HisRecipeManager attachRecipeId organId:{},recipeCode:{},hisRecipes:{}",organId,recipeCode,JSONUtils.toString(hisRecipes));
+        Integer hisRecipeId=null;
         HisRecipe hisRecipe = new HisRecipe();
         if (CollectionUtils.isEmpty(hisRecipes)) {
             //点击卡片 历史处方his不会返回 故从表查  同时也兼容已处理状态的处方，前端漏传hisRecipeId的情况
@@ -242,12 +280,13 @@ public class HisRecipeManager extends BaseManager {
                 hisRecipe = hisRecipeDao.getHisRecipeByRecipeCodeAndClinicOrgan(organId, recipeCode);
             }
             if (hisRecipe != null) {
-                return hisRecipe.getHisRecipeID();
-            } else {
-                return null;
+                hisRecipeId= hisRecipe.getHisRecipeID();
             }
+        }else {
+            hisRecipeId= hisRecipes.get(0).getHisRecipeID();
         }
-        return hisRecipes.get(0).getHisRecipeID();
+        LOGGER.info("HisRecipeManager attachRecipeId hisRecipeId:{}",hisRecipeId);
+        return hisRecipeId;
     }
 
     /**
@@ -259,7 +298,7 @@ public class HisRecipeManager extends BaseManager {
      * @return
      */
     public String attachHisRecipeStatus(String mpiId, Integer organCode, String recipeCode) {
-        LOGGER.info("attachHisRecipeStatus param mpiId:{},organCode:{},recipeCode:{}", mpiId, organCode, recipeCode);
+        LOGGER.info("HisRecipeManager attachHisRecipeStatus param mpiId:{},organCode:{},recipeCode:{}", mpiId, organCode, recipeCode);
         String status = "";
         HisRecipe hisRecipe = hisRecipeDao.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, organCode, recipeCode);
         if (hisRecipe != null) {
@@ -281,7 +320,7 @@ public class HisRecipeManager extends BaseManager {
             LOGGER.info("attachHisRecipeStatus 根据处方单号获取不到状态");
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "参数异常，请刷新页面后重试");
         }
-        LOGGER.info("attachHisRecipeStatus res status:{}", status);
+        LOGGER.info("HisRecipeManager attachHisRecipeStatus res status:{}", status);
         return status;
     }
 
@@ -296,6 +335,7 @@ public class HisRecipeManager extends BaseManager {
      * @return
      */
     public Set<String> obtainDeleteRecipeCodes(List<QueryHisRecipResTO> hisRecipeTO, Map<String, HisRecipe> hisRecipeMap, List<HisRecipeDetail> hisRecipeDetailList, String mpiId) {
+        LOGGER.info("HisRecipeManager deleteSetRecipeCode hisRecipeTO:{},hisRecipeMap:{},hisRecipeDetailList:{},mpiId:{}",JSONUtils.toString(hisRecipeTO),JSONUtils.toString(hisRecipeMap),JSONUtils.toString(hisRecipeDetailList),mpiId);
         Set<String> deleteSetRecipeCode = new HashSet<>();
         Map<Integer, List<HisRecipeDetail>> hisRecipeIdDetailMap = hisRecipeDetailList.stream().collect(Collectors.groupingBy(HisRecipeDetail::getHisRecipeId));
         hisRecipeTO.forEach(a -> {
@@ -398,7 +438,7 @@ public class HisRecipeManager extends BaseManager {
                 deleteSetRecipeCode.add(hisRecipe.getRecipeCode());
             }
         });
-        LOGGER.info("deleteSetRecipeCode res:{}",JSONUtils.toString(deleteSetRecipeCode));
+        LOGGER.info("HisRecipeManager deleteSetRecipeCode res:{}",JSONUtils.toString(deleteSetRecipeCode));
         return deleteSetRecipeCode;
     }
 
