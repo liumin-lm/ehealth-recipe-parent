@@ -370,8 +370,6 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setOtherFee(BigDecimal.valueOf(otherServiceFee));
             }
             if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == toDbFlag) {
-                order.setThirdPayType(0);
-                order.setThirdPayFee(0.00);
                 boolean saveFlag = saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
                 if (saveFlag) {
                     if (payModeSupport.isSupportMedicalInsureance()) {
@@ -1197,6 +1195,12 @@ public class RecipeOrderService extends RecipeBaseService {
             order.setOrderType(0);
         }
         try {
+            if(StringUtils.isEmpty(order.getExpectStartTakeTime())){
+                order.setExpectStartTakeTime("1970-01-01 00:00:01");
+                order.setExpectEndTakeTime("1970-01-01 00:00:01");
+            }
+            order.setThirdPayType(0);
+            order.setThirdPayFee(0.00);
             createOrderToDB(order, recipeIds, orderDAO, recipeDAO);
         } catch (DAOException e) {
             //如果小概率造成orderCode重复，则修改并重试
