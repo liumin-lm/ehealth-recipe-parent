@@ -1,5 +1,7 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.Dictionary;
+import ctd.schema.annotation.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,6 +15,7 @@ import java.util.List;
  * @author yinsheng
  * @date 2021\7\20 0020 08:29
  */
+@Schema
 @Getter
 @Setter
 @NoArgsConstructor
@@ -22,7 +25,7 @@ public class OutPatientRecipeVO implements Serializable{
     /**
      * 挂号序号
      */
-    private String registeredId;
+    private String registerID;
 
     /**
      * 患者唯一ID
@@ -41,6 +44,7 @@ public class OutPatientRecipeVO implements Serializable{
     /**
      * 处方类型
      */
+    @Dictionary(id = "eh.cdr.dictionary.RecipeType")
     private Integer recipeType;
 
     /**
@@ -54,14 +58,9 @@ public class OutPatientRecipeVO implements Serializable{
     private String patientId;
 
     /**
-     * 处方类型文本
-     */
-    private String recipeTypeText;
-
-    /**
      * 开方日期
      */
-    private Date createDate;
+    private String createDate;
 
     /**
      * 挂号科室代码
@@ -84,6 +83,11 @@ public class OutPatientRecipeVO implements Serializable{
     private String doctorName;
 
     /**
+     * 平台机构ID
+     */
+    private Integer organId;
+
+    /**
      * 机构代码
      */
     private String organCode;
@@ -97,6 +101,11 @@ public class OutPatientRecipeVO implements Serializable{
      * 配送方式 0 到院取药 1 医院配送 2 药企配送
      */
     private Integer giveMode;
+
+    /**
+     * 配送方式 0 到院取药 1 医院配送 2 药企配送
+     */
+    private String giveModeText;
 
     /**
      * 诊断代码

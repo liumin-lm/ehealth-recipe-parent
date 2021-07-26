@@ -16,6 +16,12 @@ import java.io.Serializable;
 @NoArgsConstructor
 public class OutPatientRecipeDetailDTO implements Serializable {
     private static final long serialVersionUID = -2171659858404368313L;
+
+    /**
+     * 机构药品编码
+     */
+    private String organDrugCode;
+    
     /**
      * 药品标识 1 药品 2 项目
      */
