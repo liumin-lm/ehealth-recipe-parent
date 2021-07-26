@@ -4838,6 +4838,7 @@ public class RecipeService extends RecipeBaseService {
         }
         organDrug.setLastModify(new Date());
         OrganDrugList update = organDrugListDAO.update(organDrug);
+        LOGGER.info("drugInfoSynMovement updateHisDrug" + update.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(update));
         try {
             drugToolService.organDrugSync(update);
         } catch (Exception e) {

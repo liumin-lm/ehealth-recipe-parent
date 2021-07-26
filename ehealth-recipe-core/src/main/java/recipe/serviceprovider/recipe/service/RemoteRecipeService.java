@@ -2012,8 +2012,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public void pharmacyToRecipePDF(Integer recipeId) {
-        RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
-        service.pharmacyToRecipePDF(recipeId);
+        createPdfFactory.updateCheckNamePdf(recipeId);
+    }
+
+    @Override
+    public void pharmacyToRecipePDF(Integer recipeId, Integer checker) {
+        createPdfFactory.updateCheckNamePdfESign(recipeId);
     }
 
     @Override

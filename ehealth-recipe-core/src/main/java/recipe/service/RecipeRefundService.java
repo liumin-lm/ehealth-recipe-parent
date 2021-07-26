@@ -158,6 +158,9 @@ public class RecipeRefundService extends RecipeBaseService{
             visitRequest.setHospitalCode(organDTO.getOrganizeCode());
             visitRequest.setRecipeCode(recipe.getRecipeCode());
             visitRequest.setRefundType(getRefundType(recipeOrder));
+            if (null != recipeOrder.getEnterpriseId()) {
+                visitRequest.setEnterpriseCode(recipeOrder.getEnterpriseId().toString());
+            }
 
             HisResponseTO<String> result = service.checkForRefundVisit(visitRequest);
             if (result != null && "200".equals(result.getMsgCode())) {
@@ -352,6 +355,9 @@ public class RecipeRefundService extends RecipeBaseService{
         request.setCheckTime(formatter.format(new Date()));
         request.setRefundType(getRefundType(recipeOrder));
         request.setRecipeCode(recipe.getRecipeCode());
+        if (null != recipeOrder.getEnterpriseId()) {
+            request.setEnterpriseCode(recipeOrder.getEnterpriseId().toString());
+        }
 
         IVisitService service = AppContextHolder.getBean("his.visitService", IVisitService.class);
         HisResponseTO<String> hisResult = service.checkForRefundVisit(request);

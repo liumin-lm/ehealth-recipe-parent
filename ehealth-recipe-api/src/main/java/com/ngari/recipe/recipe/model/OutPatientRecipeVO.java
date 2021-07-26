@@ -83,6 +83,11 @@ public class OutPatientRecipeVO implements Serializable{
     private String doctorName;
 
     /**
+     * 平台机构ID
+     */
+    private Integer organId;
+
+    /**
      * 机构代码
      */
     private String organCode;

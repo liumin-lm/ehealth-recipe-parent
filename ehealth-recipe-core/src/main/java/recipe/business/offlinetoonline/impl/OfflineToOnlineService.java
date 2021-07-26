@@ -114,7 +114,7 @@ public class OfflineToOnlineService extends BaseService implements IOfflineToOnl
     }
 
     /**
-     * 如果status没传，需根据参数判断，获取状态
+     * 如果前端status没传【卡片消息详情获取】，需根据参数判断，获取状态
      *
      * @param request
      * @return

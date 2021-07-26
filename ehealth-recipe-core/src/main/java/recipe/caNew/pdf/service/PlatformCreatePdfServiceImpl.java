@@ -77,6 +77,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         pdfEsign.setPosX(80f);
         pdfEsign.setPosY(57f);
         pdfEsign.setWidth(150f);
+        pdfEsign.setQrCodeSign(true);
         byte[] data = esignService.signForRecipe2(pdfEsign);
         logger.info("PlatformCreatePdfServiceImpl queryPdfOssId data:{}", data.length);
         return data;
@@ -125,6 +126,14 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         return null;
     }
 
+    @Override
+    public byte[] updateCheckNamePdfEsign(Integer recipeId, SignRecipePdfVO pdfEsign) throws Exception {
+        pdfEsign.setPosX(240F);
+        pdfEsign.setPosY(80F);
+        byte[] data = esignService.signForRecipe2(pdfEsign);
+        logger.info("CustomCreatePdfServiceImpl updateCheckNamePdfEsign data:{}", data.length);
+        return data;
+    }
 
     @Override
     public CoOrdinateVO updateTotalPdf(Recipe recipe, BigDecimal recipeFee) {

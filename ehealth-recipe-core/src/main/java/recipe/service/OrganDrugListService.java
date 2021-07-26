@@ -302,6 +302,10 @@ public class OrganDrugListService implements IOrganDrugListService {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         try {
             organDrugListDAO.updateDrugStatus(organId, status);
+            OrganService organService = BasicAPI.getService(OrganService.class);
+            OrganDTO organDTO = organService.getByOrganId(organId);
+            IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
+            busActionLogService.recordBusinessLogRpcNew("机构药品管理", "", "OrganDrugList", "【" + organDTO.getName() + "】" + "药品一键禁用!" , organDTO.getName());
         } catch (Exception e) {
             logger.info("一键禁用机构药品[updateOrganDrugListStatusByOrganId]:" + e);
         }

@@ -366,6 +366,9 @@ public class DocIndexClient extends BaseClient {
                 emrDetail.setMemo(value);
                 continue;
             }
+            if (!RecipeEmrComment.MULTI_SEARCH.equals(type)) {
+                continue;
+            }
             List<EmrDetailValueDTO> values = JSON.parseArray(detailDTO.getValue(), EmrDetailValueDTO.class);
             if (CollectionUtils.isEmpty(values)) {
                 continue;
