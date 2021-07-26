@@ -402,7 +402,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         if (OP_PATIENT.equals(objectName)) {
             String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getPatientBean());
             if ("patientUserType".equals(fieldName)) {
-                value = StringUtils.isEmpty(value) || "0".equals(value) ? "成人处方" : "儿童处方";
+                value = StringUtils.isEmpty(value) || "0".equals(value) ? "普通" : "儿科";
             }
             return new WordToPdfBean(key, value, null);
         }
