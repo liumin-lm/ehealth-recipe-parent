@@ -1020,6 +1020,9 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                         List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipeDetailBean.getDrugId(), organId);
                         if (CollectionUtils.isNotEmpty(organDrugLists)) {
                             scanDrugListBean.setUnit(organDrugLists.get(0).getUnit());
+                            scanDrugListBean.setDrugSpec(organDrugLists.get(0).getDrugSpec());
+                            scanDrugListBean.setProducerCode(organDrugLists.get(0).getProducerCode());
+                            scanDrugListBean.setPharmacy(organDrugLists.get(0).getPharmacy());
                         }
                     }
                     scanDrugListBeans.add(scanDrugListBean);
