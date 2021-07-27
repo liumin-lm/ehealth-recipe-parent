@@ -764,11 +764,9 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.info("generateRecipePdfAndSign 签名成功. 高州CA模式, recipeId={}", recipe.getRecipeId());
         } else {
             memo = "签名成功,标准对接CA方式";
-            createPdfFactory.updateDoctorNamePdf(recipe);
-            LOGGER.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
             try {
                 //获取签章pdf数据。签名原文
-                CaSealRequestTO requestSealTO = createPdfFactory.queryPdfByte(recipeId);
+                CaSealRequestTO requestSealTO = createPdfFactory.updateDoctorNamePdfV1(recipe);
                 //获取签章图片
                 DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
                 DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(recipe.getDoctor());
@@ -790,7 +788,9 @@ public class RecipeService extends RecipeBaseService {
                 iCaRemoteService.commonCASignAndSealForRecipe(requestSealTO, recipeBean, organId, userAccount, caPassword);
                 //修改标准ca成异步操作，原先逻辑不做任何处理，抽出单独的异步实现接口
                 result.setCode(RecipeResultBean.NO_ADDRESS);
+                LOGGER.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
             } catch (Exception e) {
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "标准对接CA方式 医生部分pdf的生成失败");
                 LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,doctor={} ,e==============", recipeId, recipe.getDoctor(), e);
                 result.setCode(RecipeResultBean.FAIL);
             }
