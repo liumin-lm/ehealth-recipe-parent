@@ -92,7 +92,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
 
     @Override
     public String updateDoctorNamePdf(Recipe recipe, SignImgNode signImgNode) throws Exception {
-        logger.info("PlatformCreatePdfServiceImpl updateDoctorNamePdf recipe:{}", JSON.toJSONString(recipe));
+        logger.info("PlatformCreatePdfServiceImpl updateDoctorNamePdf recipe:{},signImgNode:{}", JSON.toJSONString(recipe), JSON.toJSONString(signImgNode));
         SignRecipePdfVO signRecipePdfVO = queryPdfBytePdf(recipe);
         signImgNode.setSignFileData(signRecipePdfVO.getData());
         signImgNode.setX(55f);
@@ -307,6 +307,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         }
         map.put("rp", configurationClient.getValueEnumCatch(recipe.getClinicOrgan(), "rptorx", "Rp"));
         map.put("paramMap", result);
+        map.put("recipeId", recipe.getRecipeId());
         SignRecipePdfVO signRecipePdfVO = esignService.createSignRecipePDF(map);
         logger.info("PlatformCreatePdfServiceImpl queryPdfRecipeLabelById map={},signRecipePdfVO={}", JSON.toJSONString(map), JSON.toJSONString(signRecipePdfVO));
         redisManager.coOrdinate(recipe.getRecipeId(), signRecipePdfVO.getCoOrdinateList());

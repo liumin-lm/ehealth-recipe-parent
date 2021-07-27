@@ -1,6 +1,7 @@
 package recipe.medicationguide.service;
 
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
@@ -70,6 +71,7 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
         }
         //拼接请求参数
         WinningMedicationGuideReqDTO requestParam = assembleRequestParam(patient, recipeBean, recipeDetails, reqType);
+        LOGGER.info("WinningMedicationGuideService.getHtml5LinkInfo requestParam:{}.", JSON.toJSONString(requestParam));
         //获取请求url
         MedicationGuideDAO medicationGuideDAO = DAOFactory.getDAO(MedicationGuideDAO.class);
         MedicationGuide guide = medicationGuideDAO.getByCallSys("Winning");

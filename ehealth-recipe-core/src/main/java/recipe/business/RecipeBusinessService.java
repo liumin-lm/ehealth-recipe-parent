@@ -8,17 +8,29 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutRecipeDetailDTO;
+import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.*;
+import ctd.persistence.exception.DAOException;
+import ctd.schema.exception.ValidateException;
+import ctd.util.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.RecipeDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.manager.OutPatientRecipeManager;
+import com.ngari.recipe.recipe.model.PatientInfoDTO;
+import recipe.serviceprovider.recipe.service.RemoteRecipeService;
+import recipe.util.ChinaIDNumberUtil;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 处方业务核心逻辑处理类
@@ -39,6 +51,9 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Autowired
     private OutPatientRecipeManager outPatientRecipeManager;
+
+    @Autowired
+    private RemoteRecipeService remoteRecipeService;
 
     @Autowired
     private PatientService patientService;
@@ -71,6 +86,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
      * @param outRecipeDetailReqVO 门诊处方信息
      * @return 图片或者PDF链接等
      */
+    @Override
     public OutRecipeDetailVO queryOutRecipeDetail(OutRecipeDetailReqVO outRecipeDetailReqVO) {
         logger.info("OutPatientRecipeService queryOutPatientRecipe queryOutRecipeDetail:{}.", JSON.toJSONString(outRecipeDetailReqVO));
         OutRecipeDetailReq outRecipeDetailReq = ObjectCopyUtil.convert(outRecipeDetailReqVO, OutRecipeDetailReq.class);
@@ -79,10 +95,55 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     /**
+     * 前端获取用药指导
+     * @param medicationGuidanceReqVO 用药指导入参
+     * @return 用药指导出参
+     */
+    @Override
+    public MedicationGuideResVO getMedicationGuide(MedicationGuidanceReqVO medicationGuidanceReqVO){
+        logger.info("OutPatientRecipeService queryOutPatientRecipe getMedicationGuide:{}.", JSON.toJSONString(medicationGuidanceReqVO));
+        //获取患者信息
+        PatientDTO patientDTO = patientService.getPatientDTOByMpiId(medicationGuidanceReqVO.getMpiId());
+        PatientInfoDTO patientParam = new PatientInfoDTO();
+        //患者编号
+        patientParam.setPatientCode(medicationGuidanceReqVO.getPatientID());
+        patientParam.setPatientName(patientDTO.getPatientName());
+        patientParam.setDeptName(medicationGuidanceReqVO.getDeptName());
+        //就诊号
+        patientParam.setAdminNo(medicationGuidanceReqVO.getPatientID());
+        try {
+            patientParam.setPatientAge(String.valueOf(ChinaIDNumberUtil.getStringAgeFromIDNumber(patientDTO.getCertificate())));
+        } catch (ValidateException e) {
+            logger.error("OutPatientRecipeAtop getMedicationGuide error", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "患者年龄获取失败");
+        }
+        patientParam.setCardType(1);
+        patientParam.setCard(patientDTO.getCertificate());
+        patientParam.setGender(Integer.valueOf(patientDTO.getPatientSex()));
+        patientParam.setDocDate(medicationGuidanceReqVO.getCreateDate());
+        patientParam.setFlag(0);
+        //获取处方信息
+        RecipeBean recipeBean = new RecipeBean();
+        BeanUtils.copy(medicationGuidanceReqVO, recipeBean);
+        List<MedicationRecipeDetailVO> recipeDetailVOS = medicationGuidanceReqVO.getRecipeDetails();
+        List<RecipeDetailBean> recipeDetailBeans = recipeDetailVOS.stream().map(detail -> {
+            RecipeDetailBean recipeDetailBean = new RecipeDetailBean();
+            BeanUtils.copy(detail, recipeDetailBean);
+            return recipeDetailBean;
+        }).collect(Collectors.toList());
+        Map<String, Object> linkInfo = remoteRecipeService.getHtml5LinkInfo(patientParam, recipeBean, recipeDetailBeans, medicationGuidanceReqVO.getReqType());
+        MedicationGuideResVO result = new MedicationGuideResVO();
+        result.setType("h5");
+        result.setData(linkInfo.get("url").toString());
+        return result;
+    }
+
+    /**
      * 校验当前就诊人是否有效
      * @param outPatientReqVO 当前就诊人信息
      * @return 是否有效
      */
+    @Override
     public boolean checkCurrentPatient(OutPatientReqVO outPatientReqVO){
         logger.info("OutPatientRecipeService checkCurrentPatient outPatientReqVO:{}.", JSON.toJSONString(outPatientReqVO));
         return true;
@@ -104,17 +165,19 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     /**
-     * @Description: 根据bussSource和clinicID查询是否存在药师审核未通过的处方
-     * @Param: bussSource
-     * @Param: clinicID
-     * @return: true存在  false不存在
-     * @Date: 2021/7/16
+     *根据bussSource和clinicID查询是否存在药师审核未通过的处方
+     * @param bussSource 处方来源
+     * @param clinicId 复诊ID
+     * @return true 存在  false 不存在
+     * @date 2021/7/16
      */
     @Override
     public Boolean existUncheckRecipe(Integer bussSource, Integer clinicId) {
+        logger.info("RecipeBusinessService existUncheckRecipe bussSource={},clinicID={}", bussSource, clinicId);
         //获取处方状态为药师审核不通过的处方个数
-        Long uncheckRecipeList = getUncheckRecipeByClinicId(bussSource, clinicId, UncheckedStatus);
-        Integer uncheckCount = uncheckRecipeList.intValue();
+        Long recipesCount = recipeDAO.getRecipeCountByBussSourceAndClinicIdAndStatus(bussSource, clinicId, UncheckedStatus);
+        int uncheckCount = recipesCount.intValue();
+        logger.info("RecipeBusinessService existUncheckRecipe recipesCount={}", recipesCount);
         return uncheckCount != 0;
     }
 }

@@ -558,7 +558,7 @@ public class BaseOfflineToOnlineService {
         if (appointDepartDTO != null) {
             recipe.setDepart(appointDepartDTO.getDepartId());
         } else {
-            LOGGER.info("offlineToOnlineService saveRecipeFromHisRecipe 无法查询到挂号科室:{}.", hisRecipe.getDepartCode());
+            LOGGER.info("BaseOfflineToOnlineService saveRecipeFromHisRecipe 无法查询到挂号科室:{}.", hisRecipe.getDepartCode());
             throw new DAOException(ErrorCode.SERVICE_ERROR, "挂号科室维护错误");
         }
         EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
@@ -578,8 +578,8 @@ public class BaseOfflineToOnlineService {
                 recipe.setChecker(employmentDTO.getDoctorId());
                 recipe.setCheckerText(hisRecipe.getCheckerName());
             } else {
-                LOGGER.error("请确认医院的医生工号和纳里维护的是否一致:" + hisRecipe.getDoctorCode());
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "医生工号维护错误");
+                LOGGER.error("请确认医院的药师工号和纳里维护的是否一致:" + hisRecipe.getDoctorCode());
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "药师工号维护错误");
             }
         } else {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
@@ -640,7 +640,7 @@ public class BaseOfflineToOnlineService {
             recipe.setRecipeSupportGiveMode(join);
         }
         Recipe res= recipeDAO.saveOrUpdate(recipe);
-        LOGGER.info("BaseOfflineToOnlineService saveRecipeFromHisRecipe res:{}.", JSONUtils.toString(recipe));
+        LOGGER.info("BaseOfflineToOnlineService saveRecipeFromHisRecipe res:{}", JSONUtils.toString(recipe));
         return res;
     }
 
