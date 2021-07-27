@@ -92,7 +92,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
 
     @Override
     public String updateDoctorNamePdf(Recipe recipe, SignImgNode signImgNode) throws Exception {
-        logger.info("PlatformCreatePdfServiceImpl updateDoctorNamePdf recipe:{}", JSON.toJSONString(recipe));
+        logger.info("PlatformCreatePdfServiceImpl updateDoctorNamePdf recipe:{},signImgNode:{}", JSON.toJSONString(recipe), JSON.toJSONString(signImgNode));
         SignRecipePdfVO signRecipePdfVO = queryPdfBytePdf(recipe);
         signImgNode.setSignFileData(signRecipePdfVO.getData());
         signImgNode.setX(55f);
@@ -113,8 +113,8 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         logger.info("PlatformCreatePdfServiceImpl updateCheckNamePdf recipeId:{}", recipeId);
         //更新pdf文件
         if (StringUtils.isNotEmpty(signImageId)) {
-            SignImgNode signImgNode = new SignImgNode(recipeId, recipeId, signImageId, recipe.getSignFile(),
-                    null, 40f, 20f, 190f, 76f, false);
+            SignImgNode signImgNode = new SignImgNode(recipeId, signImageId, recipe.getSignFile(), null,
+                    40f, 20f, 190f, 76f, false);
             return CreateRecipePdfUtil.generateSignImgNode(signImgNode);
         } else if (StringUtils.isNotEmpty(recipe.getCheckerText())) {
             CoOrdinateVO coords = new CoOrdinateVO();
@@ -246,8 +246,8 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             return null;
         }
         //修改pdf文件
-        return new SignImgNode(recipe.getRecipeId().toString(), recipe.getRecipeId().toString(), null,
-                null, null, 50f, 20f, 210f, 99f, true);
+        return new SignImgNode(recipe.getRecipeId().toString(), null, null, null,
+                50f, 20f, 210f, 99f, true);
     }
 
 
@@ -307,6 +307,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         }
         map.put("rp", configurationClient.getValueEnumCatch(recipe.getClinicOrgan(), "rptorx", "Rp"));
         map.put("paramMap", result);
+        map.put("recipeId", recipe.getRecipeId());
         SignRecipePdfVO signRecipePdfVO = esignService.createSignRecipePDF(map);
         logger.info("PlatformCreatePdfServiceImpl queryPdfRecipeLabelById map={},signRecipePdfVO={}", JSON.toJSONString(map), JSON.toJSONString(signRecipePdfVO));
         redisManager.coOrdinate(recipe.getRecipeId(), signRecipePdfVO.getCoOrdinateList());
