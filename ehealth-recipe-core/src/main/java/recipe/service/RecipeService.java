@@ -1185,7 +1185,7 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,doctor={} ,e==============", recipeId, recipe.getDoctor(), e);
+            LOGGER.error("retryCaDoctorCallBackToRecipe 标准化CA签章报错 recipeId={} ,doctor={} ,e==============", recipeId, recipe.getDoctor(), e);
         }
 
         //首先判断当前ca是否是有结束结果的
