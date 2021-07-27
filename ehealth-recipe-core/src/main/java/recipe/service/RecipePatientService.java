@@ -713,7 +713,7 @@ public class RecipePatientService extends RecipeBaseService {
             patientQueryRequestTO.setCertificate(null);
             patientQueryRequestTO.setGuardianCertificate(null);
             patientQueryRequestTO.setMobile(null);
-
+            LOGGER.info("queryPatientForHis res:{}",JSONUtils.toString(patientQueryRequestTO));
             return patientQueryRequestTO;
         } catch (Exception e) {
             LOGGER.error("queryPatientForHis error", e);
