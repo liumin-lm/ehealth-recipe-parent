@@ -578,8 +578,8 @@ public class BaseOfflineToOnlineService {
                 recipe.setChecker(employmentDTO.getDoctorId());
                 recipe.setCheckerText(hisRecipe.getCheckerName());
             } else {
-                LOGGER.error("请确认医院的医生工号和纳里维护的是否一致:" + hisRecipe.getDoctorCode());
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "医生工号维护错误");
+                LOGGER.error("请确认医院的药师工号和纳里维护的是否一致:" + hisRecipe.getDoctorCode());
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "药师工号维护错误");
             }
         } else {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
