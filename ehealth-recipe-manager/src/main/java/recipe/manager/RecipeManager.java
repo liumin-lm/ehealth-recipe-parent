@@ -20,6 +20,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.util.DictionaryUtil;
 
 import java.util.List;
 
@@ -104,6 +105,8 @@ public class RecipeManager extends BaseManager {
         Recipe recipe = recipeInfoDTO.getRecipe();
         PatientDTO patientBean = patientClient.getPatient(recipe.getMpiid());
         recipeInfoDTO.setPatientBean(patientBean);
+        RecipeExtend recipeExtend = recipeDTO.getRecipeExtend();
+        recipeExtend.setCardType(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", recipeExtend.getCardType()));
         logger.info("RecipeOrderManager getRecipeInfoDTO patientBean:{}", JSON.toJSONString(patientBean));
         return recipeInfoDTO;
     }
