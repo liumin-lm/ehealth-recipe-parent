@@ -92,7 +92,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
 
     @Override
     public String updateDoctorNamePdf(Recipe recipe, SignImgNode signImgNode) throws Exception {
-        logger.info("PlatformCreatePdfServiceImpl updateDoctorNamePdf recipe:{}", JSON.toJSONString(recipe));
+        logger.info("PlatformCreatePdfServiceImpl updateDoctorNamePdf recipe:{},signImgNode:{}", JSON.toJSONString(recipe), JSON.toJSONString(signImgNode));
         SignRecipePdfVO signRecipePdfVO = queryPdfBytePdf(recipe);
         signImgNode.setSignFileData(signRecipePdfVO.getData());
         signImgNode.setX(55f);
