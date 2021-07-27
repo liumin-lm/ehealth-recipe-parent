@@ -165,17 +165,19 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     /**
-     * @Description: 根据bussSource和clinicID查询是否存在药师审核未通过的处方
-     * @Param: bussSource
-     * @Param: clinicID
-     * @return: true存在  false不存在
-     * @Date: 2021/7/16
+     *根据bussSource和clinicID查询是否存在药师审核未通过的处方
+     * @param bussSource 处方来源
+     * @param clinicId 复诊ID
+     * @return true 存在  false 不存在
+     * @date 2021/7/16
      */
     @Override
     public Boolean existUncheckRecipe(Integer bussSource, Integer clinicId) {
+        logger.info("RecipeBusinessService existUncheckRecipe bussSource={},clinicID={}", bussSource, clinicId);
         //获取处方状态为药师审核不通过的处方个数
-        Long uncheckRecipeList = getUncheckRecipeByClinicId(bussSource, clinicId, UncheckedStatus);
-        Integer uncheckCount = uncheckRecipeList.intValue();
+        Long recipesCount = recipeDAO.getRecipeCountByBussSourceAndClinicIdAndStatus(bussSource, clinicId, UncheckedStatus);
+        int uncheckCount = recipesCount.intValue();
+        logger.info("RecipeBusinessService existUncheckRecipe recipesCount={}", recipesCount);
         return uncheckCount != 0;
     }
 }
