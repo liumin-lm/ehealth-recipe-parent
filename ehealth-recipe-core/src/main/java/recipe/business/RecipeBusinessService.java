@@ -13,11 +13,13 @@ import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.*;
+import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
+import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.RecipeDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -100,7 +102,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         logger.info("OutPatientRecipeService queryOutPatientRecipe getMedicationGuide:{}.", JSON.toJSONString(medicationGuidanceReqVO));
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         //获取患者信息
-        PatientDTO patientDTO = patientService.getByMpiId(medicationGuidanceReqVO.getMpiId());
+        PatientDTO patientDTO = patientService.getPatientDTOByMpiId(medicationGuidanceReqVO.getMpiId());
         PatientInfoDTO patientParam = new PatientInfoDTO();
         //患者编号
         patientParam.setPatientCode(medicationGuidanceReqVO.getPatientID());
@@ -111,7 +113,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         try {
             patientParam.setPatientAge(String.valueOf(ChinaIDNumberUtil.getStringAgeFromIDNumber(patientDTO.getCertificate())));
         } catch (ValidateException e) {
-            e.printStackTrace();
+            logger.error("OutPatientRecipeAtop getMedicationGuide error", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "患者年龄获取失败");
         }
         patientParam.setCardType(1);
         patientParam.setCard(patientDTO.getCertificate());
