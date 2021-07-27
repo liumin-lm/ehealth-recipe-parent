@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
-import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutRecipeDetailDTO;
@@ -18,11 +17,12 @@ import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.client.OfflineRecipeClient;
+import recipe.client.PatientClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.RecipeDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.manager.OutPatientRecipeManager;
 import com.ngari.recipe.recipe.model.PatientInfoDTO;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
@@ -50,13 +50,13 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private RecipeDAO recipeDAO;
 
     @Autowired
-    private OutPatientRecipeManager outPatientRecipeManager;
+    private OfflineRecipeClient offlineRecipeClient;
 
     @Autowired
     private RemoteRecipeService remoteRecipeService;
 
     @Autowired
-    private PatientService patientService;
+    private PatientClient patientClient;
 
     /**
      * 获取线下门诊处方诊断信息
@@ -65,7 +65,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
      */
     @Override
     public List<DiseaseInfoDTO> getOutRecipeDisease(PatientInfoVO patientInfoVO) {
-        return outPatientRecipeManager.getOutRecipeDisease(patientInfoVO.getOrganId(), patientInfoVO.getPatientName(), patientInfoVO.getRegisterID(), patientInfoVO.getPatientId());
+        return offlineRecipeClient.queryPatientDisease(patientInfoVO.getOrganId(), patientInfoVO.getPatientName(), patientInfoVO.getRegisterID(), patientInfoVO.getPatientId());
     }
 
     /**
@@ -77,7 +77,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public List<OutPatientRecipeVO> queryOutPatientRecipe(OutPatientRecipeReqVO outPatientRecipeReqVO) {
         logger.info("OutPatientRecipeService queryOutPatientRecipe outPatientRecipeReq:{}.", JSON.toJSONString(outPatientRecipeReqVO));
         OutPatientRecipeReq outPatientRecipeReq = ObjectCopyUtil.convert(outPatientRecipeReqVO, OutPatientRecipeReq.class);
-        List<OutPatientRecipeDTO> outPatientRecipeDTOS = outPatientRecipeManager.queryOutPatientRecipe(outPatientRecipeReq);
+        List<OutPatientRecipeDTO> outPatientRecipeDTOS = offlineRecipeClient.queryOutPatientRecipe(outPatientRecipeReq);
         return ObjectCopyUtil.convert(outPatientRecipeDTOS, OutPatientRecipeVO.class);
     }
 
@@ -90,7 +90,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public OutRecipeDetailVO queryOutRecipeDetail(OutRecipeDetailReqVO outRecipeDetailReqVO) {
         logger.info("OutPatientRecipeService queryOutPatientRecipe queryOutRecipeDetail:{}.", JSON.toJSONString(outRecipeDetailReqVO));
         OutRecipeDetailReq outRecipeDetailReq = ObjectCopyUtil.convert(outRecipeDetailReqVO, OutRecipeDetailReq.class);
-        OutRecipeDetailDTO outRecipeDetailDTO = outPatientRecipeManager.queryOutRecipeDetail(outRecipeDetailReq);
+        OutRecipeDetailDTO outRecipeDetailDTO = offlineRecipeClient.queryOutRecipeDetail(outRecipeDetailReq);
         return ObjectCopyUtil.convert(outRecipeDetailDTO, OutRecipeDetailVO.class);
     }
 
@@ -103,7 +103,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public MedicationGuideResVO getMedicationGuide(MedicationGuidanceReqVO medicationGuidanceReqVO){
         logger.info("OutPatientRecipeService queryOutPatientRecipe getMedicationGuide:{}.", JSON.toJSONString(medicationGuidanceReqVO));
         //获取患者信息
-        PatientDTO patientDTO = patientService.getPatientDTOByMpiId(medicationGuidanceReqVO.getMpiId());
+        PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(medicationGuidanceReqVO.getMpiId());
         PatientInfoDTO patientParam = new PatientInfoDTO();
         //患者编号
         patientParam.setPatientCode(medicationGuidanceReqVO.getPatientID());
