@@ -433,7 +433,7 @@ public class RecipeMsgService {
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             clientId = recipe.getCurrentClient();
         }*/
-        if (recipeId != null) {
+        if (recipeId != null && recipeId != 0) {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             urt = recipe.getRequestUrt();
