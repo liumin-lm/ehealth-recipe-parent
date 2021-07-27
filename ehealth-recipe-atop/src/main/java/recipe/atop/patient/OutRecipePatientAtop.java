@@ -123,7 +123,7 @@ public class OutRecipePatientAtop extends BaseAtop {
         logger.info("OutPatientRecipeAtop getMedicationGuide medicationGuidanceReqVO:{}.", JSON.toJSONString(medicationGuidanceReqVO));
         try {
             MedicationGuideResVO result = recipeBusinessService.getMedicationGuide(medicationGuidanceReqVO);
-            logger.info("OutPatientRecipeAtop getMedicationGuide result = {}", result);
+            logger.info("OutPatientRecipeAtop getMedicationGuide result = {}", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
             logger.error("OutPatientRecipeAtop getMedicationGuide error", e1);
