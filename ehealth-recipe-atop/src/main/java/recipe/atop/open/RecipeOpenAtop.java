@@ -11,8 +11,8 @@ import recipe.core.api.IRecipeBusinessService;
 /**
  * 处方服务入口类
  *
- * @Date: 2021/7/19
- * @Author: zhaoh
+ * @date 2021/7/19
+ * @author zhaoh
  */
 @RpcBean("recipeOpenAtop")
 public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {

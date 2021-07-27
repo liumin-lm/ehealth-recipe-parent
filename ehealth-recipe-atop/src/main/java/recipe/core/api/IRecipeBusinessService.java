@@ -27,11 +27,11 @@ public interface IRecipeBusinessService {
     List<OutPatientRecipeVO> queryOutPatientRecipe(OutPatientRecipeReqVO outPatientRecipeReqVO);
 
     /**
-     * @Description: 根据处方来源，复诊id查询未审核处方个数
-     * @Param: bussSource 处方来源
-     * @Param: clinicId 复诊Id
-     * @return: True存在 False不存在
-     * @Date: 2021/7/20
+     * 根据处方来源，复诊id查询未审核处方个数
+     * @param bussSource 处方来源
+     * @param clinicId 复诊Id
+     * @return True存在 False不存在
+     * @date 2021/7/20
      */
     Boolean existUncheckRecipe(Integer bussSource, Integer clinicId);
 }
