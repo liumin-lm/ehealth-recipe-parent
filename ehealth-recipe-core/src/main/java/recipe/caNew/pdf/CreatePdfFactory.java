@@ -191,7 +191,7 @@ public class CreatePdfFactory {
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
             logger.info("CreatePdfFactory updateCheckNamePdf  recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
         } catch (Exception e) {
-            logger.error("CreatePdfFactory updateCheckNamePdf  recipe: {}", recipe.getRecipeId());
+            logger.error("CreatePdfFactory updateCheckNamePdf  recipe: {}", recipe.getRecipeId(), e);
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "平台药师部分pdf的生成失败");
         }
     }
@@ -230,8 +230,8 @@ public class CreatePdfFactory {
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
             logger.info("CreatePdfFactory updateCheckNamePdfEsign  recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
         } catch (Exception e) {
-            logger.error("CreatePdfFactory updateCheckNamePdfEsign  recipe: {}", recipe.getRecipeId());
-            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "药师E签宝签名部分生成");
+            logger.error("CreatePdfFactory updateCheckNamePdfEsign  recipe: {}", recipe.getRecipeId(), e);
+            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "药师E签宝签名部分生成失败");
         }
     }
 
