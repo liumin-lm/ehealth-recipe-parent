@@ -307,6 +307,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         }
         map.put("rp", configurationClient.getValueEnumCatch(recipe.getClinicOrgan(), "rptorx", "Rp"));
         map.put("paramMap", result);
+        map.put("recipeId", recipe.getRecipeId());
         SignRecipePdfVO signRecipePdfVO = esignService.createSignRecipePDF(map);
         logger.info("PlatformCreatePdfServiceImpl queryPdfRecipeLabelById map={},signRecipePdfVO={}", JSON.toJSONString(map), JSON.toJSONString(signRecipePdfVO));
         redisManager.coOrdinate(recipe.getRecipeId(), signRecipePdfVO.getCoOrdinateList());

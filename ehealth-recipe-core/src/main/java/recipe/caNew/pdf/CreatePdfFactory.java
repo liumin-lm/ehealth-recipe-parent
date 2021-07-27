@@ -129,7 +129,7 @@ public class CreatePdfFactory {
             CreatePdfService createPdfService = createPdfService(recipe);
             String fileId = createPdfService.updateDoctorNamePdf(recipe, signImgNode);
             if (StringUtils.isEmpty(fileId)) {
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "平台医生部分pdf的生成null");
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "医生部分pdf的生成null");
                 return;
             }
             Recipe recipeUpdate = new Recipe();
@@ -139,7 +139,7 @@ public class CreatePdfFactory {
             logger.info("CreatePdfFactory updateDoctorNamePdf recipeUpdate={}", JSON.toJSONString(recipeUpdate));
         } catch (Exception e) {
             logger.error("CreatePdfFactory updateDoctorNamePdf 使用平台医生部分pdf的,生成失败 recipe:{}", recipe.getRecipeId(), e);
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "平台医生部分pdf的生成失败");
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "医生部分pdf的生成失败");
         }
     }
 
