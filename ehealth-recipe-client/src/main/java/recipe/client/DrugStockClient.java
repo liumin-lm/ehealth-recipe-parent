@@ -150,6 +150,10 @@ public class DrugStockClient extends BaseClient {
                 scanDrugListBean.setDrugCode(saleDrugList.getOrganDrugCode());
                 scanDrugListBean.setTotal(recipedetail.getUseTotalDose().toString());
                 scanDrugListBean.setUnit(recipedetail.getDrugUnit());
+                scanDrugListBean.setDrugSpec(recipedetail.getDrugSpec());
+                scanDrugListBean.setProducerCode(recipedetail.getProducerCode());
+                scanDrugListBean.setPharmacyCode(String.valueOf(recipedetail.getPharmacyId()));
+                scanDrugListBean.setPharmacy(recipedetail.getPharmacyName());
             }
             return scanDrugListBean;
         }).collect(Collectors.toList());
