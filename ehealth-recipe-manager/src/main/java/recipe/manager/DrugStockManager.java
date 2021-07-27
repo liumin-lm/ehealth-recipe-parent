@@ -159,27 +159,10 @@ public class DrugStockManager extends BaseManager {
      * 校验药企库存
      *
      * @param doSignRecipe
-     * @param organId
      * @param object
-     * @param recipeDetails
      * @return
      */
-    public List<String> checkEnterprise(DoSignRecipeDTO doSignRecipe, Integer organId, List<Object> object, List<Recipedetail> recipeDetails) {
-        //检查开处方是否需要进行药企库存校验
-        boolean checkEnterprise = checkEnterprise(organId);
-        if (!checkEnterprise) {
-            return null;
-        }
-        Integer enterprisesDockType = configurationClient.getValueCatch(organId, "EnterprisesDockType", 0);
-        if (0 != enterprisesDockType) {
-            return null;
-        }
-        //验证能否药品配送以及能否开具到一张处方单上
-        String msg = canOpenRecipeDrugs(organId, recipeDetails);
-        if (StringUtils.isNotEmpty(msg)) {
-            doSignRecipe(doSignRecipe, null, msg);
-            return new LinkedList<>();
-        }
+    public List<String> checkEnterprise(DoSignRecipeDTO doSignRecipe, List<Object> object) {
         //药企库存实时查询判断药企库存
         if (CollectionUtils.isEmpty(object)) {
             return null;
@@ -271,29 +254,38 @@ public class DrugStockManager extends BaseManager {
         doSignRecipe.setSignResult(false);
         doSignRecipe.setErrorFlag(true);
         doSignRecipe.setCanContinueFlag("-1");
-        if (null == object) {
-            doSignRecipe.setMsg(msg);
-            return;
+        if (null != object) {
+            List<String> nameList = (List<String>) object;
+            if (CollectionUtils.isNotEmpty(nameList)) {
+                String nameStr = "【" + Joiner.on("、").join(nameList) + "】";
+                msg = "由于该处方单上的" + nameStr + msg;
+            }
         }
-        List<String> nameList = (List<String>) object;
-        if (CollectionUtils.isNotEmpty(nameList)) {
-            String nameStr = "【" + Joiner.on("、").join(nameList) + "】";
-            doSignRecipe.setMsg("由于该处方单上的" + nameStr + msg);
-        }
+        doSignRecipe.setMsg(msg);
     }
 
 
     /**
      * todo canOpenRecipeDrugs 调整如下代码 需要确认
      * 是否有一个药企存在药品
+     * 验证能否药品配送以及能否开具到一张处方单上
      *
-     * @param clinicOrgan
+     * @param organId
      * @param recipeDetails
      * @return
      */
-    private String canOpenRecipeDrugs(Integer clinicOrgan, List<Recipedetail> recipeDetails) {
+    public void checkDrugEnterprise(DoSignRecipeDTO doSignRecipe, Integer organId, List<Recipedetail> recipeDetails) {
+        //检查开处方是否需要进行药企库存校验
+        boolean checkEnterprise = checkEnterprise(organId);
+        if (!checkEnterprise) {
+            return;
+        }
+        Integer enterprisesDockType = configurationClient.getValueCatch(organId, "EnterprisesDockType", 0);
+        if (0 != enterprisesDockType) {
+            return;
+        }
         //找到每一个药能支持的药企关系
-        List<DrugsEnterprise> enterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(clinicOrgan, 1);
+        List<DrugsEnterprise> enterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
         List<Integer> deps = enterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
         List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
         //获取药企与配送药品关系 （药企A:药品1,药品2）
@@ -310,11 +302,11 @@ public class DrugStockManager extends BaseManager {
             depDrugIdList = depDrug;
         }
         if (CollectionUtils.isEmpty(depDrugIdList)) {
-            return null;
+            return;
         }
         List<Integer> finalDepDrugIdList = depDrugIdList;
         List<String> drugNames = recipeDetails.stream().filter(a -> !finalDepDrugIdList.contains(a.getDrugId())).map(Recipedetail::getDrugName).collect(Collectors.toList());
-        return drugNames.toString() + "不支持同一家药企配送或不在该机构药企可配送的药品目录里面";
+        doSignRecipe(doSignRecipe, drugNames, "不支持同一家药企配送或不在该机构药企可配送的药品目录里面");
     }
 
 }

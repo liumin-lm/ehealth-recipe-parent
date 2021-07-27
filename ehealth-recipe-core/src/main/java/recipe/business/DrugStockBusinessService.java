@@ -103,27 +103,29 @@ public class DrugStockBusinessService extends BaseService {
 
         if (1 == checkFlag) {
             //只校验医院库存
-            scanResult = drugStockManager.scanDrugStockByRecipeId(recipeNew,recipeDetails);
+            scanResult = drugStockManager.scanDrugStockByRecipeId(recipeNew, recipeDetails);
             if (RecipeResultBean.FAIL.equals(scanResult.getCode())) {
                 drugStockManager.doSignRecipe(doSignRecipe, scanResult.getObject(), "药品门诊药房库存不足，请更换其他药品后再试");
             }
         } else if (2 == checkFlag) {
             //查询药企库存
             allSupportDepList = findAllSupportDepList(recipeNew, recipeDetails);
+            drugStockManager.checkDrugEnterprise(doSignRecipe, recipe.getClinicOrgan(), recipeDetails);
             List<DrugEnterpriseResult> drugEnterpriseResults = allSupportDepList.getNoHaveList();
             if (CollectionUtils.isNotEmpty(drugEnterpriseResults)) {
                 List<Object> object = drugEnterpriseResults.stream().map(RecipeResultBean::getObject).collect(Collectors.toList());
-                drugStockManager.checkEnterprise(doSignRecipe, recipe.getClinicOrgan(), object, recipeDetails);
+                drugStockManager.checkEnterprise(doSignRecipe, object);
             }
         } else if (3 == checkFlag) {
             /**校验 医院/药企 库存*/
             //药企库存
             allSupportDepList = findAllSupportDepList(recipeNew, recipeDetails);
-            List<DrugEnterpriseResult> drugEnterpriseResults = allSupportDepList.getNoHaveList();
+            drugStockManager.checkDrugEnterprise(doSignRecipe, recipe.getClinicOrgan(), recipeDetails);
             List<String> enterpriseDrugName = null;
+            List<DrugEnterpriseResult> drugEnterpriseResults = allSupportDepList.getNoHaveList();
             if (CollectionUtils.isNotEmpty(drugEnterpriseResults)) {
                 List<Object> object = drugEnterpriseResults.stream().map(RecipeResultBean::getObject).collect(Collectors.toList());
-                enterpriseDrugName = drugStockManager.checkEnterprise(doSignRecipe, recipe.getClinicOrgan(), object, recipeDetails);
+                enterpriseDrugName = drugStockManager.checkEnterprise(doSignRecipe, object);
             }
             //医院库存
             scanResult = drugStockManager.scanDrugStockByRecipeId(recipeNew, recipeDetails);
@@ -188,8 +190,8 @@ public class DrugStockBusinessService extends BaseService {
      * @param recipeDetails
      * @return
      */
-    private SupportDepListBean findAllSupportDepList(Recipe recipe,List<Recipedetail> recipeDetails) {
-        logger.info("findAllSupportDepList req recipe={} recipeDetail={}", JSONArray.toJSONString(recipe),JSONArray.toJSONString(recipeDetails));
+    private SupportDepListBean findAllSupportDepList(Recipe recipe, List<Recipedetail> recipeDetails) {
+        logger.info("findAllSupportDepList req recipe={} recipeDetail={}", JSONArray.toJSONString(recipe), JSONArray.toJSONString(recipeDetails));
         SupportDepListBean supportDepListBean = new SupportDepListBean();
 
         List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
@@ -263,7 +265,7 @@ public class DrugStockBusinessService extends BaseService {
             return result;
         }
         //查询医院库存  药企配置：校验药品库存标志 0 不需要校验 1 校验药企库存 2 药店没库存时可以备货 3 校验医院库存
-        //todo  查询 药企库存的方法里 怎么 会有查询医院库存的内容 ？根据处方查询医院库存
+        // 有存在药企是医院的自建药企,配置了查医院库存
         if (drugsEnterprise != null && drugsEnterprise.getCheckInventoryFlag() != null && drugsEnterprise.getCheckInventoryFlag() == 3) {
             com.ngari.platform.recipe.mode.RecipeResultBean recipeResultBean = drugStockManager.scanDrugStockByRecipeId(recipe, recipeDetails);
             logger.info("findUnSupportDrugEnterprise recipeId={},医院库存查询结果={}", recipeId, JSONObject.toJSONString(recipeResultBean));
@@ -281,18 +283,10 @@ public class DrugStockBusinessService extends BaseService {
             result.setCode(code);
             return result;
         }
-        // 通过平台调用，获取调用实现 todo  null==drugsEnterprise ？
-        if (null == drugsEnterprise) {
-            //药企对象为空，则通过处方id获取相应药企实现
-            DrugEnterpriseResult remoteDrugEnterpriseService = RemoteDrugEnterpriseService.getServiceByRecipeId(recipeId);
-            if (DrugEnterpriseResult.SUCCESS.equals(remoteDrugEnterpriseService.getCode())) {
-                AccessDrugEnterpriseService drugEnterpriseService = remoteDrugEnterpriseService.getAccessDrugEnterpriseService();
-                result = drugEnterpriseService.scanStock(recipeId, remoteDrugEnterpriseService.getDrugsEnterprise());
-            }
-        } else {
-            AccessDrugEnterpriseService drugEnterpriseService = RemoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
-            result = drugEnterpriseService.scanStock(recipeId, drugsEnterprise);
-        }
+        // 通过平台调用，获取调用实现
+        AccessDrugEnterpriseService drugEnterpriseService = RemoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
+        result = drugEnterpriseService.scanStock(recipeId, drugsEnterprise);
+
         logger.info("findUnSupportDrugEnterprise recipeId={},平台调用查询结果={}", recipeId, JSONObject.toJSONString(result));
         return result;
     }

@@ -10,6 +10,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
+import com.ngari.recipe.dto.OutRecipeDetailDTO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -86,7 +87,25 @@ public class OfflineRecipeClient extends BaseClient {
         try {
             HisResponseTO<List<OutPatientRecipeTO>> hisResponse = recipeHisService.queryOutPatientRecipe(outPatientRecipeReq);
             List<OutPatientRecipeTO> result = getResponse(hisResponse);
+            logger.info("OfflineRecipeClient queryOutPatientRecipe result:{}.", JSON.toJSONString(result));
             return ObjectCopyUtils.convert(result, OutPatientRecipeDTO.class);
+        } catch (Exception e) {
+            logger.error("OfflineRecipeClient queryOutPatientRecipe hisResponse", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     *
+     * @param outRecipeDetailReq
+     * @return
+     */
+    public OutRecipeDetailDTO queryOutRecipeDetail(OutRecipeDetailReq outRecipeDetailReq) {
+        logger.info("OfflineRecipeClient queryOutPatientRecipe queryOutRecipeDetail:{}.", JSON.toJSONString(outRecipeDetailReq));
+        try {
+            HisResponseTO<OutRecipeDetailTO> hisResponse = recipeHisService.queryOutRecipeDetail(outRecipeDetailReq);
+            OutRecipeDetailTO result = getResponse(hisResponse);
+            return ObjectCopyUtils.convert(result, OutRecipeDetailDTO.class);
         } catch (Exception e) {
             logger.error("OfflineRecipeClient queryOutPatientRecipe hisResponse", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
@@ -128,9 +147,7 @@ public class OfflineRecipeClient extends BaseClient {
         logger.info("queryHisRecipeInfo input:" + JSONUtils.toString(queryRecipeRequestTo, QueryRecipeRequestTO.class));
         HisResponseTO<List<QueryHisRecipResTO>> responseTo = recipeHisService.queryHisRecipeInfo(queryRecipeRequestTo);
         logger.info("queryHisRecipeInfo output:" + JSONUtils.toString(responseTo, HisResponseTO.class));
-        //过滤数据
-        responseTo = filterData(responseTo,recipeCode);
-        logger.info("queryHisRecipeInfo queryData:{}.", JSONUtils.toString(responseTo));
+
         return responseTo;
     }
 
@@ -160,29 +177,6 @@ public class OfflineRecipeClient extends BaseClient {
         return beginTime;
     }
 
-    /**
-     * @param responseTo
-     * @return
-     * @author liumin
-     * @Description 数据过滤
-     */
-    private HisResponseTO<List<QueryHisRecipResTO>> filterData(HisResponseTO<List<QueryHisRecipResTO>> responseTo,String recipeCode) {
-        //获取详情时防止前置机没过滤数据，做过滤处理
-        if(responseTo!=null&&recipeCode!=null){
-            logger.info("queryHisRecipeInfo recipeCode:{}",recipeCode);
-            List<QueryHisRecipResTO> queryHisRecipResTos=responseTo.getData();
-            List<QueryHisRecipResTO> queryHisRecipResToFilters=new ArrayList<>();
-            if(!CollectionUtils.isEmpty(queryHisRecipResTos)&&queryHisRecipResTos.size()>1){
-                for(QueryHisRecipResTO queryHisRecipResTo:queryHisRecipResTos){
-                    if(recipeCode.equals(queryHisRecipResTo.getRecipeCode())){
-                        queryHisRecipResToFilters.add(queryHisRecipResTo);
-                        continue;
-                    }
-                }
-            }
-            responseTo.setData(queryHisRecipResToFilters);
-        }
-        return responseTo;
-    }
+
 
 }

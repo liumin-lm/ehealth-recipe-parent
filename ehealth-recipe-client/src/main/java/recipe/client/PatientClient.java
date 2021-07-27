@@ -12,9 +12,12 @@ import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
 import recipe.util.DictionaryUtil;
 import recipe.util.LocalStringUtil;
+
 import javax.annotation.Resource;
 
 /**
+ * 患者信息处理类
+ *
  * @author fuzi
  */
 @Service

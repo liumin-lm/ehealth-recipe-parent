@@ -120,7 +120,7 @@ import java.util.stream.Collectors;
  * @author: 0184/yu_yun
  * @date:2017/7/31.
  */
-@RpcBean(value = "remoteRecipeService", mvc_authentication = false)
+@RpcBean(value = "remoteRecipeService")
 public class RemoteRecipeService extends BaseService<RecipeBean> implements IRecipeService {
 
     /**
@@ -2012,8 +2012,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public void pharmacyToRecipePDF(Integer recipeId) {
-        RecipeService service = ApplicationUtils.getRecipeService(RecipeService.class);
-        service.pharmacyToRecipePDF(recipeId);
+        createPdfFactory.updateCheckNamePdf(recipeId);
+    }
+
+    @Override
+    public void pharmacyToRecipePDF(Integer recipeId, Integer checker) {
+        createPdfFactory.updateCheckNamePdfESign(recipeId);
     }
 
     @Override
@@ -2554,6 +2558,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
             ICommonService serviceCard = BaseAPI.getService(ICommonService.class);
             Map<String, Object> configs = serviceCard.getAllClientConfigs();
+            LOGGER.info("queryHealthCardFromHisAndMerge.configs={}", JSONUtils.toString(configs));
             //获取终端配置  就诊卡开关
             Boolean patientCardFlag = (Boolean) configs.get("patientCard");
             //终端配置   展示就诊卡类型
