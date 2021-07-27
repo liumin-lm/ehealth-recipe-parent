@@ -80,6 +80,13 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     @Resource
     private IESignBaseService esignService;
 
+
+    @Override
+    public byte[] queryPdfByte(Recipe recipe) throws Exception {
+        logger.info("CustomCreatePdfServiceImpl queryPdfByte recipe = {}", recipe.getRecipeId());
+        return generateTemplatePdf(recipe);
+    }
+
     @Override
     public byte[] queryPdfOssId(Recipe recipe) throws Exception {
         byte[] data = generateTemplatePdf(recipe);
@@ -101,22 +108,21 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     }
 
     @Override
-    public CaSealRequestTO queryPdfByte(Recipe recipe) throws Exception {
-        logger.info("CustomCreatePdfServiceImpl queryPdfByte recipe = {}", recipe.getRecipeId());
-        byte[] data = generateTemplatePdf(recipe);
+    public CaSealRequestTO queryPdfBase64(byte[] data, Integer recipeId) throws Exception {
+        logger.info("CustomCreatePdfServiceImpl queryPdfByte recipe = {}", recipeId);
         String pdfBase64Str = new String(Base64.encode(data));
-        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), RECIPE + OP_RECIPE_DOCTOR);
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipeId, RECIPE + OP_RECIPE_DOCTOR);
         if (null == ordinateVO) {
             return null;
         }
-        return CreatePdfFactory.caSealRequestTO(ordinateVO.getX(), ordinateVO.getY(), recipe.getRecipeId().toString(), pdfBase64Str);
+        return CreatePdfFactory.caSealRequestTO(ordinateVO.getX(), ordinateVO.getY(), recipeId.toString(), pdfBase64Str);
     }
 
+
     @Override
-    public String updateDoctorNamePdf(Recipe recipe, SignImgNode signImgNode) throws Exception {
-        logger.info("CustomCreatePdfServiceImpl updateDoctorNamePdf recipe = {}", recipe.getRecipeId());
-        byte[] data = generateTemplatePdf(recipe);
-        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), RECIPE + OP_RECIPE_DOCTOR);
+    public String updateDoctorNamePdf(byte[] data, Integer recipeId, SignImgNode signImgNode) throws Exception {
+        logger.info("CustomCreatePdfServiceImpl updateDoctorNamePdf signImgNode = {}", JSON.toJSONString(signImgNode));
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipeId, RECIPE + OP_RECIPE_DOCTOR);
         if (null == ordinateVO) {
             return null;
         }
@@ -286,6 +292,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         } catch (Exception e) {
             logger.error("CustomCreatePdfServiceImpl generateTemplatePdf  error File ={}", JSON.toJSONString(generatePdfList), e);
         }
+        logger.info("CustomCreatePdfServiceImpl generateTemplatePdf data={}", data.length);
         return data;
     }
 
