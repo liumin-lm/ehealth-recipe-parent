@@ -145,6 +145,8 @@ public class MedicationGuideService {
         map.put("idCard",hosPatient.getCertificate());
         map.put("patientName",hosPatient.getPatientName());
         map.put("recipeTime",hosRecipe.getSignTime());
+        map.put("signTime",hosRecipe.getSignTime());
+        map.put("doctorName",hosRecipe.getDoctorName());
         map.put("appId",appId);
         map.put("openId",openId);
         RecipeMsgService.sendMedicationGuideMsg(map);

@@ -251,7 +251,6 @@ public class EmrRecipeManager extends BaseManager {
             logger.error("EmrRecipeManager getMedicalInfo getMedicalInfoByDocIndexId DocIndexId = {} msg = {}", docIndexId, e.getMessage(), e);
             return null;
         }
-        logger.info("EmrRecipeManager getDetail medicalInfoBean={}", JSON.toJSONString(medicalInfoBean));
 
         if (null == medicalInfoBean) {
             return null;
