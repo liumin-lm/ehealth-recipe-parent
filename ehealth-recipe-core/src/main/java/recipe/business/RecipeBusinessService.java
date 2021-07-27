@@ -18,7 +18,6 @@ import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.RecipeDAO;
@@ -55,6 +54,9 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Autowired
     private RemoteRecipeService remoteRecipeService;
+
+    @Autowired
+    private PatientService patientService;
 
     /**
      * 获取线下门诊处方诊断信息
@@ -100,7 +102,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public MedicationGuideResVO getMedicationGuide(MedicationGuidanceReqVO medicationGuidanceReqVO){
         logger.info("OutPatientRecipeService queryOutPatientRecipe getMedicationGuide:{}.", JSON.toJSONString(medicationGuidanceReqVO));
-        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         //获取患者信息
         PatientDTO patientDTO = patientService.getPatientDTOByMpiId(medicationGuidanceReqVO.getMpiId());
         PatientInfoDTO patientParam = new PatientInfoDTO();
