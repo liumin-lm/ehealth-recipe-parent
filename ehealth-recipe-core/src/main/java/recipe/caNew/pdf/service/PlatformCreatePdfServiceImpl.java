@@ -15,6 +15,7 @@ import com.ngari.recipe.entity.Recipedetail;
 import ctd.dictionary.DictionaryController;
 import eh.entity.base.Scratchable;
 import org.apache.commons.lang3.StringUtils;
+import org.bouncycastle.util.encoders.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -65,13 +66,17 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
     @Autowired
     private SignManager signManager;
 
+    @Override
+    public byte[] queryPdfByte(Recipe recipe) throws Exception {
+        return signRecipePdfVO(recipe).getData();
+    }
+
 
     @Override
     public byte[] queryPdfOssId(Recipe recipe) throws Exception {
-        //生成pdf
-        SignRecipePdfVO signRecipePdfVO = queryPdfBytePdf(recipe);
+        byte[] pdfByte = signRecipePdfVO(recipe).getData();
         SignRecipePdfVO pdfEsign = new SignRecipePdfVO();
-        pdfEsign.setData(signRecipePdfVO.getData());
+        pdfEsign.setData(pdfByte);
         pdfEsign.setFileName("recipe_" + recipe.getRecipeId() + ".pdf");
         pdfEsign.setDoctorId(recipe.getDoctor());
         pdfEsign.setPosX(80f);
@@ -85,16 +90,16 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
 
 
     @Override
-    public CaSealRequestTO queryPdfByte(Recipe recipe) throws Exception {
-        SignRecipePdfVO signRecipePdfVO = queryPdfBytePdf(recipe);
-        return CreatePdfFactory.caSealRequestTO(55, 76, recipe.getRecipeId().toString(), signRecipePdfVO.getDataStr());
+    public CaSealRequestTO queryPdfBase64(byte[] data, Integer recipeId) throws Exception {
+        String pdfBase64Str = new String(Base64.encode(data));
+        return CreatePdfFactory.caSealRequestTO(55, 76, recipeId.toString(), pdfBase64Str);
     }
 
+
     @Override
-    public String updateDoctorNamePdf(Recipe recipe, SignImgNode signImgNode) throws Exception {
-        logger.info("PlatformCreatePdfServiceImpl updateDoctorNamePdf recipe:{},signImgNode:{}", JSON.toJSONString(recipe), JSON.toJSONString(signImgNode));
-        SignRecipePdfVO signRecipePdfVO = queryPdfBytePdf(recipe);
-        signImgNode.setSignFileData(signRecipePdfVO.getData());
+    public String updateDoctorNamePdf(byte[] data, Integer recipeId, SignImgNode signImgNode) throws Exception {
+        logger.info("PlatformCreatePdfServiceImpl updateDoctorNamePdf signImgNode:{}", JSON.toJSONString(signImgNode));
+        signImgNode.setSignFileData(data);
         signImgNode.setX(55f);
         signImgNode.setY(76f);
         return CreateRecipePdfUtil.generateSignImgNode(signImgNode);
@@ -279,12 +284,12 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
 
 
     /**
-     * 获取pdf Byte字节 给前端SDK
+     * 获取pdf Byte字节
      *
      * @param recipe 处方信息
      * @return
      */
-    private SignRecipePdfVO queryPdfBytePdf(Recipe recipe) throws Exception {
+    private SignRecipePdfVO signRecipePdfVO(Recipe recipe) throws Exception {
         logger.info("PlatformCreatePdfServiceImpl queryPdfBytePdf recipe:{}", JSON.toJSONString(recipe));
         //获取pdf值对象
         RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDTO(recipe.getRecipeId());
