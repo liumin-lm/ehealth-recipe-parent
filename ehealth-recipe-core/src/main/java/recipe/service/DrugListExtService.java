@@ -775,8 +775,10 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     pharmacyCategaryListResult.add(searchDrugDetailDTO);
                 }
             }
+            LOGGER.info("findDrugListsByNameOrCodePageStaticNew pharmacyCategaryListResult={}", JSONUtils.toString(pharmacyCategaryListResult));
             return pharmacyCategaryListResult;
         }
+        LOGGER.info("findDrugListsByNameOrCodePageStaticNew resultList={}", JSONUtils.toString(resultList));
         return resultList;
     }
 
