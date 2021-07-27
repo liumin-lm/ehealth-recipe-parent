@@ -52,7 +52,7 @@ import java.util.Map;
  * created by shiyuping on 2019/10/25
  * @author shiyuping
  */
-@RpcBean("medicationGuideService")
+@RpcBean(value = "medicationGuideService", mvc_authentication = false)
 public class MedicationGuideService {
 
     /** logger */
