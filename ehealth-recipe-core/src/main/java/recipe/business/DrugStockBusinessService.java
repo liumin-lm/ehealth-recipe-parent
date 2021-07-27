@@ -171,8 +171,11 @@ public class DrugStockBusinessService extends BaseService {
      * @param configurations
      */
     private void saveGiveMode(com.ngari.platform.recipe.mode.RecipeResultBean scanResult, SupportDepListBean allSupportDepList, int checkFlag, Integer recipeId, int organId, List<String> configurations) {
-        List<DrugsEnterprise> supportDepList = allSupportDepList.getHaveList();
         RecipeBusiThreadPool.execute(() -> {
+            List<DrugsEnterprise> supportDepList = null;
+            if(!Objects.isNull(allSupportDepList)) {
+                supportDepList = allSupportDepList.getHaveList();
+            }
             List<Integer> recipeGiveMode = drugsEnterpriseService.getRecipeGiveMode(scanResult, supportDepList, checkFlag, recipeId, organId, configurations);
             if (CollectionUtils.isNotEmpty(recipeGiveMode)) {
                 Map<String, Object> attMap = new HashMap<>();
