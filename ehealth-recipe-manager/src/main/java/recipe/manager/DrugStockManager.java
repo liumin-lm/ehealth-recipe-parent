@@ -207,6 +207,7 @@ public class DrugStockManager extends BaseManager {
      * @return
      */
     public RecipeResultBean checkEnterpriseAndHospital(DoSignRecipeDTO doSignRecipe, Integer organId, List<String> enterpriseDrugName, RecipeResultBean scanResult) {
+       logger.info("checkEnterpriseAndHospital req doSignRecipe={} organId={} enterpriseDrugName={} scanResult={}",doSignRecipe,organId,enterpriseDrugName,scanResult);
         //医院有库存，药企有库存
         if (RecipeResultBean.SUCCESS.equals(scanResult.getCode()) && null == enterpriseDrugName) {
             return scanResult;
