@@ -206,14 +206,15 @@ public class DrugStockManager extends BaseManager {
      * @param scanResult         医院库存
      * @return
      */
-    public RecipeResultBean checkEnterpriseAndHospital(DoSignRecipeDTO doSignRecipe, Integer organId, List<String> enterpriseDrugName, RecipeResultBean scanResult) {
-       logger.info("checkEnterpriseAndHospital req doSignRecipe={} organId={} enterpriseDrugName={} scanResult={}",doSignRecipe,organId,enterpriseDrugName,scanResult);
+    public RecipeResultBean checkEnterpriseAndHospital(DoSignRecipeDTO doSignRecipe, Integer organId, List<String> enterpriseDrugName, RecipeResultBean scanResult, List<DrugsEnterprise> drugsEnterprises) {
+       logger.info("checkEnterpriseAndHospital req doSignRecipe={} organId={} enterpriseDrugName={} scanResult={} drugsEnterprises={}",JSONArray.toJSONString(doSignRecipe),organId,
+               JSONArray.toJSONString(enterpriseDrugName),JSONArray.toJSONString(scanResult),JSONArray.toJSONString(drugsEnterprises));
         //医院有库存，药企有库存
-        if (RecipeResultBean.SUCCESS.equals(scanResult.getCode()) && null == enterpriseDrugName) {
+        if (RecipeResultBean.SUCCESS.equals(scanResult.getCode()) && CollectionUtils.isNotEmpty(drugsEnterprises)) {
             return scanResult;
         }
         //医院有库存药企无库存
-        if (RecipeResultBean.SUCCESS.equals(scanResult.getCode()) && null != enterpriseDrugName) {
+        if (RecipeResultBean.SUCCESS.equals(scanResult.getCode()) && CollectionUtils.isEmpty(drugsEnterprises)) {
             doSignRecipe(doSignRecipe, enterpriseDrugName, "药品配送药企库存不足，该处方仅支持到院取药，无法药企配送，是否继续？");
             doSignRecipe.setCanContinueFlag("2");
             return scanResult;
@@ -225,14 +226,14 @@ public class DrugStockManager extends BaseManager {
             return scanResult;
         }
         //医院无库存，药企有库存
-        if (null == enterpriseDrugName) {
+        if (CollectionUtils.isNotEmpty(drugsEnterprises)) {
             doSignRecipe(doSignRecipe, scanResult.getObject(), "药品医院库存不足，该处方仅支持药企配送，无法到院取药，是否继续？");
             doSignRecipe.setCanContinueFlag("1");
             return scanResult;
         }
         //医院无库存，药企无库存
         List<String> hospitalDrugName = (List<String>) scanResult.getObject();
-        if (CollectionUtils.isNotEmpty(hospitalDrugName) && CollectionUtils.isNotEmpty(enterpriseDrugName)) {
+        if (!RecipeResultBean.SUCCESS.equals(scanResult.getCode()) && CollectionUtils.isEmpty(drugsEnterprises)) {
             Boolean hospital = hospitalDrugName.containsAll(enterpriseDrugName);
             Boolean enterprise = enterpriseDrugName.containsAll(hospitalDrugName);
             if (hospital || enterprise) {

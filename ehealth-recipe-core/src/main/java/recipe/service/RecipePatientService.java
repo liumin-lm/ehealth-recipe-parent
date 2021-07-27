@@ -76,6 +76,7 @@ public class RecipePatientService extends RecipeBaseService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipePatientService.class);
     @Autowired
     private ChronicDiseaseDAO chronicDiseaseDAO;
+    private String msg;
 
     /**
      * 根据取药方式过滤药企
@@ -707,7 +708,13 @@ public class RecipePatientService extends RecipeBaseService {
             if (res == null){
                 throw new DAOException(609, "查不到患者线下信息");
             }
-            return res.getData();
+            PatientQueryRequestTO patientQueryRequestTO=res.getData();
+            patientQueryRequestTO.setCardID(null);
+            patientQueryRequestTO.setCertificate(null);
+            patientQueryRequestTO.setGuardianCertificate(null);
+            patientQueryRequestTO.setMobile(null);
+            LOGGER.info("queryPatientForHis res:{}",JSONUtils.toString(patientQueryRequestTO));
+            return patientQueryRequestTO;
         } catch (Exception e) {
             LOGGER.error("queryPatientForHis error", e);
             throw new DAOException(609, "查患者信息异常:"+e.getMessage());
