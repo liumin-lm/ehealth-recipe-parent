@@ -120,7 +120,7 @@ import java.util.stream.Collectors;
  * @author: 0184/yu_yun
  * @date:2017/7/31.
  */
-@RpcBean(value = "remoteRecipeService", mvc_authentication = false)
+@RpcBean(value = "remoteRecipeService")
 public class RemoteRecipeService extends BaseService<RecipeBean> implements IRecipeService {
 
     /**

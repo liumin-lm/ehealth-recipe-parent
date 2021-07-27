@@ -145,7 +145,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
             return null;
         }
         if (StringUtils.isNotEmpty(signImageId)) {
-            SignImgNode signImgNode = new SignImgNode(recipeId, recipeId, signImageId, recipe.getSignFile(), null,
+            SignImgNode signImgNode = new SignImgNode(recipeId, signImageId, recipe.getSignFile(), null,
                     40f, 20f, ordinateVO.getX().floatValue(), ordinateVO.getY().floatValue(), false);
             return CreateRecipePdfUtil.generateSignImgNode(signImgNode);
         } else if (StringUtils.isNotEmpty(recipe.getCheckerText())) {
@@ -246,8 +246,8 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         if (null == ordinateVO) {
             return null;
         }
-        return new SignImgNode(recipe.getRecipeId().toString(), recipe.getRecipeId().toString(), null,
-                null, null, 50f, 20f, ordinateVO.getX().floatValue(), ordinateVO.getY().floatValue(), true);
+        return new SignImgNode(recipe.getRecipeId().toString(), null, null, null,
+                50f, 20f, ordinateVO.getX().floatValue(), ordinateVO.getY().floatValue(), true);
     }
 
     /**
