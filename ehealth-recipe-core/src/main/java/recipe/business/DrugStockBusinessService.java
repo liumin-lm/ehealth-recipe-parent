@@ -130,7 +130,7 @@ public class DrugStockBusinessService extends BaseService {
             //医院库存
             scanResult = drugStockManager.scanDrugStockByRecipeId(recipeNew, recipeDetails);
             //校验医院药企库存
-            drugStockManager.checkEnterpriseAndHospital(doSignRecipe, recipe.getClinicOrgan(), enterpriseDrugName, scanResult);
+            drugStockManager.checkEnterpriseAndHospital(doSignRecipe, recipe.getClinicOrgan(), enterpriseDrugName, scanResult,allSupportDepList.getHaveList());
         }
         //保存药品购药方式
         saveGiveMode(scanResult, allSupportDepList, checkFlag, recipeId, recipe.getClinicOrgan(), configurations);
