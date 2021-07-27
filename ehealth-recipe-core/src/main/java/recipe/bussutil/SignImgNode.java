@@ -21,10 +21,6 @@ public class SignImgNode implements Serializable {
      */
     private String recipeId;
     /**
-     * 图片标识id
-     */
-    private String signImgId;
-    /**
      * 图片文件id
      */
     private String signImgFileId;
