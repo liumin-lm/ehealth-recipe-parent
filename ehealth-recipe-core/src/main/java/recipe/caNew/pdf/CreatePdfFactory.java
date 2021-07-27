@@ -121,7 +121,7 @@ public class CreatePdfFactory {
             updateDoctorNamePdf(recipe, data, createPdfService);
         } catch (Exception e) {
             logger.error("CreatePdfFactory updateDoctorNamePdfV1 使用平台医生部分pdf的,生成失败 recipe:{}", recipe.getRecipeId(), e);
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "医生部分pdf的生成失败");
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "医生部分pdf的生成失败V1");
         }
         return createPdfService.queryPdfBase64(data, recipe.getRecipeId());
     }
