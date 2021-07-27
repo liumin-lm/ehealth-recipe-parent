@@ -478,8 +478,8 @@ public class CreatePdfFactory {
             return;
         }
         try {
-            SignImgNode signImgNode = new SignImgNode(recipe.getRecipeId().toString(), recipe.getRecipeId().toString(),
-                    organSealId, recipe.getChemistSignFile(), null, 90F, 90F, 160f, 490f, false);
+            SignImgNode signImgNode = new SignImgNode(recipe.getRecipeId().toString(), organSealId, recipe.getChemistSignFile(),
+                    null, 90F, 90F, 160f, 490f, false);
             String fileId = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
             if (StringUtils.isEmpty(fileId)) {
                 return;

@@ -91,7 +91,7 @@ public class CreateRecipePdfUtil {
      * @return
      */
     public static String generateSignImgNode(SignImgNode signImgNode) throws Exception {
-        if (StringUtils.isAnyEmpty(signImgNode.getRecipeId(), signImgNode.getSignImgFileId(), signImgNode.getSignImgId())) {
+        if (StringUtils.isAnyEmpty(signImgNode.getRecipeId(), signImgNode.getSignImgFileId())) {
             return null;
         }
         //获取图片
