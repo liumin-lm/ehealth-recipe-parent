@@ -1,4 +1,4 @@
-package recipe.business.offlinetoonline.impl;
+package recipe.factory.offlinetoonline.impl;
 
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
@@ -21,10 +21,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.business.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.enumerate.status.OfflineToOnlineEnum;
+import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.manager.GroupRecipeManager;
 import recipe.manager.HisRecipeManager;
+import recipe.manager.RecipeManager;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import java.util.ArrayList;
@@ -44,6 +45,9 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
 
     @Autowired
     HisRecipeManager hisRecipeManager;
+
+    @Autowired
+    RecipeManager recipeManager;
 
     @Autowired
     GroupRecipeManager groupRecipeManager;
@@ -118,30 +122,30 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
     /**
      * 线下待处理处方转换成前端列表所需对象
      *
-     * @param responseTO    his返回线下处方
+     * @param responseTo    his返回线下处方
      * @param patientDTO    患者信息
      * @return
      */
-    public List<HisRecipeVO> covertToHisRecipeVoObject(HisResponseTO<List<QueryHisRecipResTO>> responseTO, PatientDTO patientDTO) {
-        LOGGER.info("NoPayServiceImpl covertHisRecipeObject param responseTO:{},patientDTO:{}" + JSONUtils.toString(responseTO),JSONUtils.toString(patientDTO));
-        List<HisRecipeVO> hisRecipeVOs = new ArrayList<>();
-        if (responseTO == null) {
-            return hisRecipeVOs;
+    public List<HisRecipeVO> covertToHisRecipeVoObject(HisResponseTO<List<QueryHisRecipResTO>> responseTo, PatientDTO patientDTO) {
+        LOGGER.info("NoPayServiceImpl covertHisRecipeObject param responseTO:{},patientDTO:{}" + JSONUtils.toString(responseTo),JSONUtils.toString(patientDTO));
+        List<HisRecipeVO> hisRecipeVos = new ArrayList<>();
+        if (responseTo == null) {
+            return hisRecipeVos;
         }
-        List<QueryHisRecipResTO> queryHisRecipResTOList = responseTO.getData();
+        List<QueryHisRecipResTO> queryHisRecipResTOList = responseTo.getData();
         if (CollectionUtils.isEmpty(queryHisRecipResTOList)) {
-            return hisRecipeVOs;
+            return hisRecipeVos;
         }
         LOGGER.info("NoPayServiceImpl covertHisRecipeObject queryHisRecipResTOList:" + JSONUtils.toString(queryHisRecipResTOList));
-        for (QueryHisRecipResTO queryHisRecipResTO : queryHisRecipResTOList) {
+        for (QueryHisRecipResTO queryHisRecipResTo : queryHisRecipResTOList) {
             HisRecipe hisRecipeDb = hisRecipeManager.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(
-                    patientDTO.getMpiId(), queryHisRecipResTO.getClinicOrgan(), queryHisRecipResTO.getRecipeCode());
+                    patientDTO.getMpiId(), queryHisRecipResTo.getClinicOrgan(), queryHisRecipResTo.getRecipeCode());
             //移除已在平台处理的处方单
             if (null != hisRecipeDb && new Integer("2").equals(hisRecipeDb.getStatus())) {
                 continue;
             }
             //移除正在进行中的处方单
-            Recipe recipe = recipeManager.getByRecipeCodeAndClinicOrgan(queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
+            Recipe recipe = recipeManager.getByRecipeCodeAndClinicOrgan(queryHisRecipResTo.getRecipeCode(), queryHisRecipResTo.getClinicOrgan());
             if (null != recipe && StringUtils.isNotEmpty(recipe.getOrderCode())) {
                 continue;
             }
@@ -149,28 +153,28 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
             HisRecipeVO hisRecipeVO =new HisRecipeVO();
             //详情需要
             hisRecipeVO.setMpiId(patientDTO.getMpiId());
-            hisRecipeVO.setClinicOrgan(queryHisRecipResTO.getClinicOrgan());
+            hisRecipeVO.setClinicOrgan(queryHisRecipResTo.getClinicOrgan());
             //列表显示需要
             hisRecipeVO.setPatientName(patientDTO.getPatientName());
-            hisRecipeVO.setCreateDate(queryHisRecipResTO.getCreateDate());
-            hisRecipeVO.setRecipeCode(queryHisRecipResTO.getRecipeCode());
-            if (!StringUtils.isEmpty(queryHisRecipResTO.getDiseaseName())) {
-                hisRecipeVO.setDiseaseName(queryHisRecipResTO.getDiseaseName());
+            hisRecipeVO.setCreateDate(queryHisRecipResTo.getCreateDate());
+            hisRecipeVO.setRecipeCode(queryHisRecipResTo.getRecipeCode());
+            if (!StringUtils.isEmpty(queryHisRecipResTo.getDiseaseName())) {
+                hisRecipeVO.setDiseaseName(queryHisRecipResTo.getDiseaseName());
             } else {
                 hisRecipeVO.setDiseaseName("无");
             }
-            hisRecipeVO.setDisease(queryHisRecipResTO.getDisease());
-            hisRecipeVO.setDoctorName(queryHisRecipResTO.getDoctorName());
-            hisRecipeVO.setDepartName(queryHisRecipResTO.getDepartName());
-            hisRecipeVO.setOrganDiseaseName(queryHisRecipResTO.getDiseaseName());
-            setOtherInfo(hisRecipeVO, patientDTO.getMpiId(), queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
+            hisRecipeVO.setDisease(queryHisRecipResTo.getDisease());
+            hisRecipeVO.setDoctorName(queryHisRecipResTo.getDoctorName());
+            hisRecipeVO.setDepartName(queryHisRecipResTo.getDepartName());
+            hisRecipeVO.setOrganDiseaseName(queryHisRecipResTo.getDiseaseName());
+            setOtherInfo(hisRecipeVO, patientDTO.getMpiId(), queryHisRecipResTo.getRecipeCode(), queryHisRecipResTo.getClinicOrgan());
             //其它需要
-            hisRecipeVO.setStatus(queryHisRecipResTO.getStatus());
+            hisRecipeVO.setStatus(queryHisRecipResTo.getStatus());
             hisRecipeVO.setRecipeMode("ngarihealth");
-            hisRecipeVOs.add(hisRecipeVO);
+            hisRecipeVos.add(hisRecipeVO);
         }
-        LOGGER.info("NoPayServiceImpl covertHisRecipeObject response hisRecipeVOs:{}" , JSONUtils.toString(hisRecipeVOs));
-        return hisRecipeVOs;
+        LOGGER.info("NoPayServiceImpl covertHisRecipeObject response hisRecipeVOs:{}" , JSONUtils.toString(hisRecipeVos));
+        return hisRecipeVos;
     }
 
     /**

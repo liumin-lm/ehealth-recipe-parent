@@ -44,4 +44,11 @@ public interface IOfflineToOnlineService {
      * @return
      */
     String getHandlerMode();
+
+    /**
+     * 获取卡类型
+     * @param organId
+     * @return
+     */
+    List<String> getCardType(Integer organId);
 }
