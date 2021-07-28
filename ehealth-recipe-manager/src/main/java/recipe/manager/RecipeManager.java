@@ -20,6 +20,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.util.DictionaryUtil;
 
 import java.util.List;
 
@@ -71,6 +72,7 @@ public class RecipeManager extends BaseManager {
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         recipeDTO.setRecipe(recipe);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        recipeExtend.setCardTypeName(DictionaryUtil.getDictionary("eh.mpi.dictionary.CardType", recipeExtend.getCardType()));
         recipeDTO.setRecipeExtend(recipeExtend);
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
         recipeDTO.setRecipeDetails(recipeDetails);
