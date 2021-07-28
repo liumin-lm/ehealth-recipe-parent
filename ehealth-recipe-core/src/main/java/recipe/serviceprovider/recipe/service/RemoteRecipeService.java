@@ -1948,6 +1948,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
+    @RpcService
     public List<RecipeBean> queryRecipeInfoByOrganAndRecipeType(List<Integer> organIds, List<Integer> recipeTypes) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Date date = DateUtils.addYears(new Date(), -1);
