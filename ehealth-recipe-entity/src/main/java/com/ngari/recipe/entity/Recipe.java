@@ -1326,5 +1326,6 @@ public class Recipe implements Serializable {
         this.checkFlag = checkFlag;
     }
 
+
 }
 

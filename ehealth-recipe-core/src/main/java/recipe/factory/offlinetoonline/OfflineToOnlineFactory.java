@@ -1,4 +1,4 @@
-package recipe.business.offlinetoonline;
+package recipe.factory.offlinetoonline;
 
 import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
