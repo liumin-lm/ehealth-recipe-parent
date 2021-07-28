@@ -226,7 +226,7 @@ public class CreatePdfFactory {
             String fileId = CreateRecipePdfUtil.signFileByte(data, "recipecheck" + recipe.getRecipeId() + ".pdf");
             Recipe recipeUpdate = new Recipe();
             recipeUpdate.setRecipeId(recipe.getRecipeId());
-            recipeUpdate.setSignFile(fileId);
+            recipeUpdate.setChemistSignFile(fileId);
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
             logger.info("CreatePdfFactory updateCheckNamePdfEsign  recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
         } catch (Exception e) {
@@ -436,7 +436,6 @@ public class CreatePdfFactory {
      * @param recipeId
      */
     public void updatesealPdfExecute(Integer recipeId) {
-        logger.info("CreatePdfFactory updatesealPdfExecute recipeId:{}", recipeId);
         RecipeBusiThreadPool.execute(() -> updateSealPdf(recipeId));
     }
 
