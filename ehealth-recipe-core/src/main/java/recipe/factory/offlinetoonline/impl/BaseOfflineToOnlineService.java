@@ -28,6 +28,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -36,6 +37,7 @@ import recipe.client.RevisitClient;
 import recipe.dao.*;
 import recipe.dao.bean.HisRecipeListBean;
 import recipe.enumerate.status.OfflineToOnlineEnum;
+import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
@@ -120,7 +122,13 @@ public class BaseOfflineToOnlineService {
     private AppointDepartService appointDepartService;
 
     @Autowired
-    private EmploymentService employmentService ;
+    private EmploymentService employmentService;
+
+    final String BY_REGISTERID = "e.registerId";
+
+    private static final Integer HISRECIPESTATUS_NOIDEAL = 1;
+
+    private static final Integer HISRECIPESTATUS_ALREADYIDEAL = 2;
 
 
     /**
@@ -253,7 +261,7 @@ public class BaseOfflineToOnlineService {
             if (!recipeIds.contains(hisRecipeListBean.getHisRecipeID())) {
                 String orderCode = hisRecipeListBean.getOrderCode();
                 String grpupField = "";
-                if ("e.registerId".equals(mergeRecipeWay)) {
+                if (BY_REGISTERID.equals(mergeRecipeWay)) {
                     // 挂号序号
                     grpupField = hisRecipeListBean.getRegisteredId();
                 } else {
@@ -388,7 +396,7 @@ public class BaseOfflineToOnlineService {
         } else {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
-            if (recipe.getRecipeSourceType() == 2) {
+            if (RecipeSourceTypeEnum.OFFLINE_RECIPE.getType().equals(recipe.getRecipeSourceType())) {
                 //表示该处方来源于HIS
                 if (StringUtils.isEmpty(recipe.getOrderCode())) {
                     hisRecipeVO.setStatusText("待处理");
@@ -449,21 +457,21 @@ public class BaseOfflineToOnlineService {
             throw new DAOException(DAOException.DAO_NOT_FOUND, "没有查询到来自医院的处方单,请刷新页面！");
         }
         FindHisRecipeDetailResVO findHisRecipeDetailResVO = new FindHisRecipeDetailResVO();
-        Map<String, Object> recipeDetailMap = new HashMap<String, Object>();
+        Map<String, Object> recipeDetailMap;
         Recipe recipe = recipeDAO.get(recipeId);
         HisRecipe hisRecipe = hisRecipeDao.get(hisRecipeId);
         List<HisRecipeExt> hisRecipeExts = hisRecipeExtDAO.findByHisRecipeId(hisRecipeId);
         if (recipe == null) {
             throw new DAOException(DAOException.DAO_NOT_FOUND, "没有查询到来自医院的处方单,请刷新页面！");
         }
-        if ("2".equals(hisRecipe.getStatus())) {
+        if (HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
             recipeDetailMap = recipeService.getPatientRecipeByIdForOfflineRecipe(recipeId);
         } else {
             recipeDetailMap = recipeService.getPatientRecipeById(recipeId);
         }
         findHisRecipeDetailResVO.setPlatRecipeDetail(recipeDetailMap);
         List<com.ngari.recipe.offlinetoonline.model.HisRecipeExt> hisRecipeExtsTemp = new ArrayList<com.ngari.recipe.offlinetoonline.model.HisRecipeExt>();
-        org.springframework.beans.BeanUtils.copyProperties(hisRecipeExts, hisRecipeExtsTemp);
+        BeanUtils.copyProperties(hisRecipeExts, hisRecipeExtsTemp);
         findHisRecipeDetailResVO.setHisRecipeExts(hisRecipeExtsTemp);
         findHisRecipeDetailResVO.setShowText(hisRecipe.getShowText());
         LOGGER.info("BaseOfflineToOnlineService getHisRecipeDetailByHisRecipeId response:{}", JSONUtils.toString(recipeDetailMap));
@@ -582,11 +590,13 @@ public class BaseOfflineToOnlineService {
         recipe.setTotalMoney(hisRecipe.getRecipeFee());
         recipe.setActualPrice(hisRecipe.getRecipeFee());
         recipe.setMemo(hisRecipe.getMemo() == null ? "无" : hisRecipe.getMemo());
-        if (hisRecipe.getStatus() == 2) {
+        if (HISRECIPESTATUS_ALREADYIDEAL.equals(hisRecipe.getStatus())) {
             recipe.setPayFlag(1);
-            recipe.setStatus(6);
+            //已完成
+            recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_FINISH.getType());
         } else {
             recipe.setPayFlag(0);
+            //待处理
             recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType());
         }
         recipe.setReviewType(0);
@@ -707,8 +717,6 @@ public class BaseOfflineToOnlineService {
             if (CollectionUtils.isNotEmpty(organDrugLists)) {
                 recipedetail.setDrugId(organDrugLists.get(0).getDrugId());
                 recipedetail.setOrganDrugCode(hisRecipeDetail.getDrugCode());
-                //recipedetail.setUsingRate(organDrugLists.get(0).getUsingRate());
-                //recipedetail.setUsePathways(organDrugLists.get(0).getUsePathways());
                 if (StringUtils.isEmpty(recipedetail.getUseDoseUnit())) {
                     recipedetail.setUseDoseUnit(organDrugLists.get(0).getUseDoseUnit());
                 }
@@ -975,7 +983,8 @@ public class BaseOfflineToOnlineService {
         }
         hisRecipe.setStatus(queryHisRecipResTo.getStatus());
         if (new Integer(2).equals(queryHisRecipResTo.getMedicalType())) {
-            hisRecipe.setMedicalType(queryHisRecipResTo.getMedicalType());//医保类型
+            //医保类型
+            hisRecipe.setMedicalType(queryHisRecipResTo.getMedicalType());
         } else {
             //默认自费
             hisRecipe.setMedicalType(1);
@@ -992,7 +1001,6 @@ public class BaseOfflineToOnlineService {
             //设置外延处方的标志
             hisRecipe.setRecipePayType(queryHisRecipResTo.getExtensionFlag());
         }
-
         if (!StringUtils.isEmpty(queryHisRecipResTo.getDiseaseName())) {
             hisRecipe.setDiseaseName(queryHisRecipResTo.getDiseaseName());
         } else {
@@ -1015,7 +1023,6 @@ public class BaseOfflineToOnlineService {
         hisRecipe.setRecipeSource(queryHisRecipResTo.getRecipeSource());
         hisRecipe.setReceiverName(queryHisRecipResTo.getReceiverName());
         hisRecipe.setReceiverTel(queryHisRecipResTo.getReceiverTel());
-
         //中药
         hisRecipe.setRecipeCostNumber(queryHisRecipResTo.getRecipeCostNumber());
         hisRecipe.setTcmFee(queryHisRecipResTo.getTcmFee());
@@ -1037,7 +1044,6 @@ public class BaseOfflineToOnlineService {
         hisRecipe.setCardNo(queryHisRecipResTo.getCardNo());
         hisRecipe.setCardTypeCode(queryHisRecipResTo.getCardTypeCode());
         hisRecipe.setCardTypeName(queryHisRecipResTo.getCardTypeName());
-
         //审核药师
         hisRecipe.setCheckerCode(queryHisRecipResTo.getCheckerCode());
         hisRecipe.setCheckerName(queryHisRecipResTo.getCheckerName());
@@ -1048,13 +1054,13 @@ public class BaseOfflineToOnlineService {
     /**
      * 设置医保信息
      *
-     * @param queryHisRecipResTO his处方数据
+     * @param queryHisRecipResTo his处方数据
      * @param hisRecipe          返回对象
      */
-    private void setMedicalInfo(QueryHisRecipResTO queryHisRecipResTO, HisRecipe hisRecipe) {
-        LOGGER.info("BaseOfflineToOnlineService setMedicalInfo param queryHisRecipResTO:{},hisRecipe:{}", JSONUtils.toString(queryHisRecipResTO), JSONUtils.toString(hisRecipe));
-        if (null != queryHisRecipResTO.getMedicalInfo()) {
-            MedicalInfo medicalInfo = queryHisRecipResTO.getMedicalInfo();
+    private void setMedicalInfo(QueryHisRecipResTO queryHisRecipResTo, HisRecipe hisRecipe) {
+        LOGGER.info("BaseOfflineToOnlineService setMedicalInfo param queryHisRecipResTO:{},hisRecipe:{}", JSONUtils.toString(queryHisRecipResTo), JSONUtils.toString(hisRecipe));
+        if (null != queryHisRecipResTo.getMedicalInfo()) {
+            MedicalInfo medicalInfo = queryHisRecipResTo.getMedicalInfo();
             if (!ObjectUtils.isEmpty(medicalInfo.getMedicalAmount())) {
                 hisRecipe.setMedicalAmount(medicalInfo.getMedicalAmount());
             }
