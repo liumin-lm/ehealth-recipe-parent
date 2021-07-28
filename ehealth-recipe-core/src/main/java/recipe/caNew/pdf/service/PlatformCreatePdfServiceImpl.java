@@ -30,6 +30,7 @@ import recipe.dao.RecipeExtendDAO;
 import recipe.manager.RecipeManager;
 import recipe.manager.RedisManager;
 import recipe.manager.SignManager;
+import recipe.util.ByteUtils;
 import recipe.util.DictionaryUtil;
 import recipe.util.RecipeUtil;
 import recipe.util.ValidateUtil;
@@ -388,13 +389,14 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             logger.error("用药途径 用药频率有误");
         }
         if (null != extend) {
-            list.add(new RecipeLabelVO("煎法", "tcmDecoction", extend.getDecoctionText() == null ? "" : extend.getDecoctionText()));
-            list.add(new RecipeLabelVO("每付取汁", "tcmJuice", extend.getJuice() + extend.getJuiceUnit()));
-            list.add(new RecipeLabelVO("次量", "tcmMinor", extend.getMinor() + extend.getMinorUnit()));
-            list.add(new RecipeLabelVO("制法", "tcmMakeMethod", extend.getMakeMethodText() == null ? "" : extend.getMakeMethodText()));
+
+            list.add(new RecipeLabelVO("煎法", "tcmDecoction", ByteUtils.objValueOfString(extend.getDecoctionText())));
+            list.add(new RecipeLabelVO("每付取汁", "tcmJuice", ByteUtils.objValueOfString(extend.getJuice()) + ByteUtils.objValueOfString(extend.getJuiceUnit())));
+            list.add(new RecipeLabelVO("次量", "tcmMinor", ByteUtils.objValueOfString(extend.getMinor()) + ByteUtils.objValueOfString(extend.getMinorUnit())));
+            list.add(new RecipeLabelVO("制法", "tcmMakeMethod", ByteUtils.objValueOfString(extend.getMakeMethodText())));
         }
         list.add(new RecipeLabelVO("贴数", "copyNum", recipe.getCopyNum() + "贴"));
-        list.add(new RecipeLabelVO("嘱托", "tcmRecipeMemo", recipe.getRecipeMemo() == null ? "" : recipe.getRecipeMemo()));
+        list.add(new RecipeLabelVO("嘱托", "tcmRecipeMemo", ByteUtils.objValueOfString(recipe.getRecipeMemo())));
     }
 
 
