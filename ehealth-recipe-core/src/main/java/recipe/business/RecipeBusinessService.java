@@ -43,8 +43,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     //药师审核不通过状态集合 供getUncheckRecipeByClinicId方法使用
     private final List<Integer> UncheckedStatus = Arrays.asList(RecipeStatusEnum.RECIPE_STATUS_UNCHECK.getType(), RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType(),
-            RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_PHA.getType(), RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_DOC.getType(), RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_PHA.getType(),
-            RecipeStatusEnum.RECIPE_STATUS_SIGN_NO_CODE_PHA.getType());
+            RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_PHA.getType(), RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_PHA.getType(), RecipeStatusEnum.RECIPE_STATUS_SIGN_NO_CODE_PHA.getType());
 
     @Autowired
     private RecipeDAO recipeDAO;
