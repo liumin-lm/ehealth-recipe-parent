@@ -1533,11 +1533,13 @@ public class RecipeServiceSub {
             IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
             //获取审核不通过详情
             List<Map<String, Object>> mapList = recipeAuditService.getCheckNotPassDetail(recipeId);
-            for (int i = 0; i <mapList.size() ; i++) {
-                Map<String, Object> notPassMap = mapList.get(i);
-                List<RecipeDetailBean> recipeDetailBeans = RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImplForDetail(recipe), isDoctor, recipe.getClinicOrgan());
-                notPassMap.put("checkNotPassDetails", recipeDetailBeans);
-                mapList.set(i,notPassMap);
+            if(!ObjectUtils.isEmpty(mapList)){
+                for (int i = 0; i <mapList.size() ; i++) {
+                    Map<String, Object> notPassMap = mapList.get(i);
+                    List<RecipeDetailBean> recipeDetailBeans = RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImplForDetail(recipe), isDoctor, recipe.getClinicOrgan());
+                    notPassMap.put("checkNotPassDetails", recipeDetailBeans);
+                    mapList.set(i,notPassMap);
+                }
             }
             map.put("reasonAndDetails", mapList);
 
