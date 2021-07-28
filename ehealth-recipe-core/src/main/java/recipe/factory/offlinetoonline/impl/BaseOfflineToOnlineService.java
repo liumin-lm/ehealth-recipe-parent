@@ -44,7 +44,6 @@ import recipe.givemode.business.IGiveModeBase;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.GroupRecipeManager;
 import recipe.manager.HisRecipeManager;
-import recipe.manager.RecipeManager;
 import recipe.service.DrugsEnterpriseService;
 import recipe.service.RecipeService;
 import recipe.util.RecipeUtil;
@@ -110,9 +109,6 @@ public class BaseOfflineToOnlineService {
 
     @Autowired
     private HisRecipeManager hisRecipeManager;
-
-    @Autowired
-    private RecipeManager recipeManager;
 
     @Autowired
     private RevisitClient revisitClient;
