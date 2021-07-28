@@ -510,11 +510,12 @@ public class CreatePdfFactory {
             return;
         }
         //获取配置--机构印章
-        String organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", "");
+        String organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), "organSeal", "");
         if (StringUtils.isEmpty(organSealId)) {
             logger.info("GenerateSignetRecipePdfRunable organSeal is null");
             return;
         }
+
         try {
             SignImgNode signImgNode = new SignImgNode(recipe.getRecipeId().toString(), organSealId, recipe.getChemistSignFile(),
                     null, 90F, 90F, 160f, 490f, false);

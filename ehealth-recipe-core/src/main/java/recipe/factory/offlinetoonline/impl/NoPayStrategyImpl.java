@@ -132,12 +132,12 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
         if (responseTo == null) {
             return hisRecipeVos;
         }
-        List<QueryHisRecipResTO> queryHisRecipResTOList = responseTo.getData();
-        if (CollectionUtils.isEmpty(queryHisRecipResTOList)) {
+        List<QueryHisRecipResTO> queryHisRecipResToList = responseTo.getData();
+        if (CollectionUtils.isEmpty(queryHisRecipResToList)) {
             return hisRecipeVos;
         }
-        LOGGER.info("NoPayServiceImpl covertHisRecipeObject queryHisRecipResTOList:" + JSONUtils.toString(queryHisRecipResTOList));
-        for (QueryHisRecipResTO queryHisRecipResTo : queryHisRecipResTOList) {
+        LOGGER.info("NoPayServiceImpl covertHisRecipeObject queryHisRecipResTOList:" + JSONUtils.toString(queryHisRecipResToList));
+        for (QueryHisRecipResTO queryHisRecipResTo : queryHisRecipResToList) {
             HisRecipe hisRecipeDb = hisRecipeManager.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(
                     patientDTO.getMpiId(), queryHisRecipResTo.getClinicOrgan(), queryHisRecipResTo.getRecipeCode());
             //移除已在平台处理的处方单
@@ -192,7 +192,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
         String mergeRecipeWayAfter = groupRecipeConf.getMergeRecipeWayAfter();
         if (mergeRecipeFlag) {
             //开启合并支付开关
-            if ("e.registerId".equals(mergeRecipeWayAfter)) {
+            if (BY_REGISTERID.equals(mergeRecipeWayAfter)) {
                 //表示根据挂号序号分组
                 Map<String, List<HisRecipeVO>> registerIdRelation = request.stream().collect(Collectors.groupingBy(HisRecipeVO::getRegisteredId));
                 for (Map.Entry<String, List<HisRecipeVO>> entry : registerIdRelation.entrySet()) {
