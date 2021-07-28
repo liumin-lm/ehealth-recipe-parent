@@ -162,6 +162,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
             hisRecipeVO.setDisease(queryHisRecipResTO.getDisease());
             hisRecipeVO.setDoctorName(queryHisRecipResTO.getDoctorName());
             hisRecipeVO.setDepartName(queryHisRecipResTO.getDepartName());
+            hisRecipeVO.setOrganDiseaseName(queryHisRecipResTO.getDiseaseName());
             setOtherInfo(hisRecipeVO, patientDTO.getMpiId(), queryHisRecipResTO.getRecipeCode(), queryHisRecipResTO.getClinicOrgan());
             //其它需要
             hisRecipeVO.setStatus(queryHisRecipResTO.getStatus());
