@@ -5,6 +5,8 @@ import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -20,6 +22,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Schema
 @Table(name = "cdr_recipe")
 @Access(AccessType.PROPERTY)
+@NoArgsConstructor
 public class Recipe implements Serializable {
 
     private static final long serialVersionUID = -6170665419368031590L;
@@ -1326,6 +1329,18 @@ public class Recipe implements Serializable {
         this.checkFlag = checkFlag;
     }
 
-
+    public Recipe(Integer recipeId, String supplementaryMemo) {
+        this.recipeId = recipeId;
+        this.supplementaryMemo = supplementaryMemo;
+    }
+    public Recipe(Integer recipeId, Integer clinicOrgan, Integer recipeType) {
+        this.recipeId = recipeId;
+        this.clinicOrgan = clinicOrgan;
+        this.recipeType = recipeType;
+    }
+    public Recipe(Integer recipeId, Date signDate) {
+        this.recipeId = recipeId;
+        this.signDate = signDate;
+    }
 }
 

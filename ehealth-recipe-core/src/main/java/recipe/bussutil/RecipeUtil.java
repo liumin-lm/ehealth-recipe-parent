@@ -394,6 +394,9 @@ public class RecipeUtil {
      */
     public static List<UseDoseAndUnitRelationBean> defaultUseDose(OrganDrugList organDrug) {
         List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = new LinkedList<>();
+        if (null == organDrug) {
+            return useDoseAndUnitRelationList;
+        }
         if (StringUtils.isNotEmpty(organDrug.getUseDoseUnit())) {
             useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(), organDrug.getUseDoseUnit(), organDrug.getUseDose()));
         }

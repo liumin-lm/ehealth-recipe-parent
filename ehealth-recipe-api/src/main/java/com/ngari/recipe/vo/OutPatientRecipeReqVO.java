@@ -18,6 +18,10 @@ public class OutPatientRecipeReqVO extends OutPatientReqVO implements Serializab
     private static final long serialVersionUID = -1110551683869187915L;
 
     /**
+     * 机构名称
+     */
+    private String organName;
+    /**
      * 患者姓名
      */
     private String patientName;
