@@ -66,7 +66,7 @@ public class RecipeDetailDoctorAtop extends BaseAtop {
      */
     @RpcService
     public ValidateDetailVO validateDetailV1(ValidateDetailVO validateDetailVO) {
-        logger.info("RecipeDetailAtop validateDetailV1 validateDetailVO {}", JSON.toJSONString(validateDetailVO));
+        logger.info("RecipeDetailAtop validateDetailV1 validateDetailVO ：{}", JSON.toJSONString(validateDetailVO));
         validateAtop(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
         validateDetailVO.setLongRecipe(!IS_LONG_RECIPE_FALSE.equals(validateDetailVO.getRecipeExtendBean().getIsLongRecipe()));
         try {

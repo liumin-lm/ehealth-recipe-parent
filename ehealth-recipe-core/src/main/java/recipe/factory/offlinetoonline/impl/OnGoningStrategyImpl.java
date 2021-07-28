@@ -1,4 +1,4 @@
-package recipe.business.offlinetoonline.impl;
+package recipe.factory.offlinetoonline.impl;
 
 import com.google.common.collect.Lists;
 import com.ngari.common.mode.HisResponseTO;
@@ -18,9 +18,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.business.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.dao.bean.HisRecipeListBean;
 import recipe.enumerate.status.OfflineToOnlineEnum;
+import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.manager.GroupRecipeManager;
 import recipe.manager.HisRecipeManager;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
@@ -34,7 +34,7 @@ import java.util.List;
  * @Description 线下转线上进行中处方实现类
  */
 @Service
-public class OnGoningStrategyImpl extends BaseOfflineToOnlineService  implements IOfflineToOnlineStrategy {
+public class OnGoningStrategyImpl extends BaseOfflineToOnlineService implements IOfflineToOnlineStrategy {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
 
@@ -106,10 +106,10 @@ public class OnGoningStrategyImpl extends BaseOfflineToOnlineService  implements
      * 变更需要删除处方,当患者点击处方列表时如果订单已删除,会弹框提示"该处方单信息已变更，请退出重新获取处方信息"
      */
     public List<MergeRecipeVO> findOngoingHisRecipeList(List<QueryHisRecipResTO> data, PatientDTO patientDTO, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
-        LOGGER.info("OnGoningStrategyImpl findOngoingHisRecipeList request:{}", ctd.util.JSONUtils.toString(data));
+        LOGGER.info("OnGoningStrategyImpl findOngoingHisRecipeList request:{}", JSONUtils.toString(data));
         List<MergeRecipeVO> result = Lists.newArrayList();
         //查询所有进行中的线下处方
-        List<HisRecipeListBean> hisRecipeListBeans = findOngoingHisRecipeListByMPIId(data.get(0).getClinicOrgan(),patientDTO.getMpiId(), start, limit);
+        List<HisRecipeListBean> hisRecipeListBeans = findOngoingHisRecipeListByMpiId(data.get(0).getClinicOrgan(),patientDTO.getMpiId(), start, limit);
         if (CollectionUtils.isEmpty(hisRecipeListBeans)) {
             return result;
         }

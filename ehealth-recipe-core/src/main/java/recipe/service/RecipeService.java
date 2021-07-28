@@ -3640,6 +3640,10 @@ public class RecipeService extends RecipeBaseService {
         Recipe recipe = recipePdfDTO.getRecipe();
         ApothecaryDTO apothecaryDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getGiveUser(), recipe.getRecipeId());
         recipePdfDTO.setApothecary(apothecaryDTO);
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        if (null == recipeOrder || null == recipeOrder.getDispensingTime()) {
+            apothecaryDTO.setGiveUserSignImg(null);
+        }
         return operationClient.queryRecipeLabel(recipePdfDTO);
     }
 
