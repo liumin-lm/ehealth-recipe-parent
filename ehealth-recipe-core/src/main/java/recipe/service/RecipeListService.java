@@ -1797,7 +1797,7 @@ public class RecipeListService extends RecipeBaseService {
                     if (RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType().equals(recipe.getStatus())) {
                         //如果是中药暂存只取药品名显示
                         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
-                            recipe.setRecipeDrugName(recipedetails.get(0).getDrugName());
+                            recipe.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipeDrugName(recipedetails.get(0), recipe.getRecipeType(), recipe.getClinicOrgan()));
                         } else {
                             //剂型获取---暂存重新获取配置药品名由于Recipedetail没有剂型要重新获取一遍
                             organDrugLists = organDrugListDAO.findByOrganIdAndOrganDrugCodeAndDrugIdWithoutStatus(recipe.getClinicOrgan(), recipedetails.get(0).getOrganDrugCode(), recipedetails.get(0).getDrugId());

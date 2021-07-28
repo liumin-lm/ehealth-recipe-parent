@@ -72,6 +72,7 @@ public class RecipeManager extends BaseManager {
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         recipeDTO.setRecipe(recipe);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        recipeExtend.setCardTypeName(DictionaryUtil.getDictionary("eh.mpi.dictionary.CardType", recipeExtend.getCardType()));
         recipeDTO.setRecipeExtend(recipeExtend);
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
         recipeDTO.setRecipeDetails(recipeDetails);
@@ -105,8 +106,6 @@ public class RecipeManager extends BaseManager {
         Recipe recipe = recipeInfoDTO.getRecipe();
         PatientDTO patientBean = patientClient.getPatient(recipe.getMpiid());
         recipeInfoDTO.setPatientBean(patientBean);
-        RecipeExtend recipeExtend = recipeDTO.getRecipeExtend();
-        recipeExtend.setCardType(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", recipeExtend.getCardType()));
         logger.info("RecipeOrderManager getRecipeInfoDTO patientBean:{}", JSON.toJSONString(patientBean));
         return recipeInfoDTO;
     }
