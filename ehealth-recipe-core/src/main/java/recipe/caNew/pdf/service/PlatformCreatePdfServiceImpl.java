@@ -310,7 +310,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             map.put("templateType", "wm");
             createMedicinePDF(list, recipePdfDTO.getRecipeDetails(), recipePdfDTO.getRecipe());
         }
-        map.put("rp", configurationClient.getValueEnumCatch(recipe.getClinicOrgan(), "rptorx", "Rp"));
+        map.put("rp", configurationClient.getValueCatch(recipe.getClinicOrgan(), "rptorx", "Rp"));
         map.put("paramMap", result);
         map.put("recipeId", recipe.getRecipeId());
         SignRecipePdfVO signRecipePdfVO = esignService.createSignRecipePDF(map);
