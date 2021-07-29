@@ -208,9 +208,9 @@ public class RecipeUtil {
      */
     public static boolean isAllowDeleteByPayFlag(Integer payFlag) {
         if (PayConstant.PAY_FLAG_NOT_PAY == payFlag || PayConstant.PAY_FLAG_REFUND_FAIL == payFlag) {
-            return false;
+            return true;
         }
-        return true;
+        return false;
     }
 
 }
