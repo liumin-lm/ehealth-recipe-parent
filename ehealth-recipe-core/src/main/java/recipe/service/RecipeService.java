@@ -1743,6 +1743,7 @@ public class RecipeService extends RecipeBaseService {
         recipe.setSignDate(DateTime.now().toDate());
         Integer recipeId = recipe.getRecipeId();
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
+        details.stream().filter(a -> "无特殊煎法".equals(a.getMemo())).forEach(a -> a.setMemo(""));
         if (null != recipeId && recipeId > 0) {
             Integer status = recipeDAO.getStatusByRecipeId(recipeId);
             if (null == status || (status > RecipeStatusConstant.UNSIGN && status != RecipeStatusConstant.HIS_FAIL)) {
@@ -2388,9 +2389,6 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public RecipeResultBean doSecondSignRecipe(RecipeBean recipe) {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
-        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-
         Recipe dbRecipe = RecipeValidateUtil.checkRecipeCommonInfo(recipe.getRecipeId(), resultBean);
         if (null == dbRecipe) {
             LOGGER.error("validateDrugs 平台无该处方对象. recipeId=[{}] error={}", recipe.getRecipeId(), JSONUtils.toString(resultBean));
@@ -2446,15 +2444,7 @@ public class RecipeService extends RecipeBaseService {
         if (ReviewTypeConstant.Preposition_Check == dbRecipe.getReviewType()) {
             auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckPassYs(dbRecipe);
         }
-
-        try {
-            //生成pdf并签名
-            recipeService.generateRecipePdfAndSign(recipe.getRecipeId());
-        } catch (Exception e) {
-            LOGGER.error("doSecondSignRecipe 签名失败. recipeId=[{}], error={}", recipe.getRecipeId(), e.getMessage(), e);
-        }
-
-        LOGGER.info("doSecondSignRecipe execute ok! ");
+        LOGGER.info("RecipeService doSecondSignRecipe  execute ok!  recipeId ： {} ", recipe.getRecipeId());
         return resultBean;
     }
 
