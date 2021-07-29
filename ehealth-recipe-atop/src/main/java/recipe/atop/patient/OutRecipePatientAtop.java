@@ -148,24 +148,4 @@ public class OutRecipePatientAtop extends BaseAtop {
         }
     }
 
-    /**
-     * 校验当前就诊人是否有效
-     * @param outPatientReqVO 当前就诊人信息
-     * @return 是否有效
-     */
-    @RpcService
-    public boolean checkCurrentPatient(OutPatientReqVO outPatientReqVO){
-        logger.info("OutPatientRecipeAtop checkCurrentPatient outPatientReqVO:{}.", JSON.toJSONString(outPatientReqVO));
-        validateAtop(outPatientReqVO, outPatientReqVO.getMpiId());
-        try {
-            return  recipeBusinessService.checkCurrentPatient(outPatientReqVO);
-        } catch (DAOException e1) {
-            logger.error("OutPatientRecipeAtop checkCurrentPatient error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("OutPatientRecipeAtop checkCurrentPatient error e", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
-    }
-
 }
