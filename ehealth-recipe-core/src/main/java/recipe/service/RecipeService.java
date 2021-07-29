@@ -2387,6 +2387,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public RecipeResultBean doSecondSignRecipe(RecipeBean recipe) {
+        LOGGER.info("RecipeService doSecondSignRecipe recipe ： {} ", JSON.toJSONString(recipe));
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
@@ -2453,8 +2454,7 @@ public class RecipeService extends RecipeBaseService {
         } catch (Exception e) {
             LOGGER.error("doSecondSignRecipe 签名失败. recipeId=[{}], error={}", recipe.getRecipeId(), e.getMessage(), e);
         }
-
-        LOGGER.info("doSecondSignRecipe execute ok! ");
+        LOGGER.info("RecipeService doSecondSignRecipe  execute ok!  recipeId ： {} ", recipe.getRecipeId());
         return resultBean;
     }
 
