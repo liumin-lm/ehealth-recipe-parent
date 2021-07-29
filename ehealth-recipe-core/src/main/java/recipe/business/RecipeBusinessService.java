@@ -8,7 +8,6 @@ import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutRecipeDetailDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.*;
@@ -73,11 +72,10 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
      * @return  门诊处方列表
      */
     @Override
-    public List<OutPatientRecipeVO> queryOutPatientRecipe(OutPatientRecipeReqVO outPatientRecipeReqVO) {
+    public List<OutPatientRecipeDTO> queryOutPatientRecipe(OutPatientRecipeReqVO outPatientRecipeReqVO) {
         logger.info("OutPatientRecipeService queryOutPatientRecipe outPatientRecipeReq:{}.", JSON.toJSONString(outPatientRecipeReqVO));
         OutPatientRecipeReq outPatientRecipeReq = ObjectCopyUtil.convert(outPatientRecipeReqVO, OutPatientRecipeReq.class);
-        List<OutPatientRecipeDTO> outPatientRecipeDTOS = offlineRecipeClient.queryOutPatientRecipe(outPatientRecipeReq);
-        return ObjectCopyUtil.convert(outPatientRecipeDTOS, OutPatientRecipeVO.class);
+        return offlineRecipeClient.queryOutPatientRecipe(outPatientRecipeReq);
     }
 
     /**
