@@ -43,6 +43,10 @@ public class OutPatientRecipeVO implements Serializable{
      * 处方类型
      */
     private Integer recipeType;
+    /**
+     * 处方类型
+     */
+    private String recipeTypeText;
 
     /**
      * 院内处方号
