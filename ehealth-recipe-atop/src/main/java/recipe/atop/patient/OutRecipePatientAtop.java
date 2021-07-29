@@ -2,9 +2,11 @@ package recipe.atop.patient;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
+import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
 import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
+import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
@@ -15,6 +17,7 @@ import recipe.constant.HisErrorCodeEnum;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.util.DateConversion;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -44,16 +47,23 @@ public class OutRecipePatientAtop extends BaseAtop {
             //设置默认查询时间3个月
             outPatientRecipeReqVO.setBeginTime(DateConversion.getDateFormatter(DateConversion.getMonthsAgo(3), DateConversion.DEFAULT_DATE_TIME));
             outPatientRecipeReqVO.setEndTime(DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
-            List<OutPatientRecipeVO> result = recipeBusinessService.queryOutPatientRecipe(outPatientRecipeReqVO);
-            result.forEach(outPatientRecipeVO -> {
+            //获取线下门诊处方
+            List<OutPatientRecipeDTO> outPatientRecipeDTOS = recipeBusinessService.queryOutPatientRecipe(outPatientRecipeReqVO);
+            //按照开方时间倒序
+            outPatientRecipeDTOS = outPatientRecipeDTOS.stream().sorted(Comparator.comparing(OutPatientRecipeDTO::getCreateDate).reversed()).collect(Collectors.toList());
+            //包装前端展示信息
+            final List<OutPatientRecipeVO> result = new ArrayList<>();
+            outPatientRecipeDTOS.forEach(outPatientRecipeDTO -> {
+                OutPatientRecipeVO outPatientRecipeVO = new OutPatientRecipeVO();
+                BeanUtils.copy(outPatientRecipeDTO, outPatientRecipeVO);
                 outPatientRecipeVO.setStatusText(OutRecipeStatusEnum.getName(outPatientRecipeVO.getStatus()));
                 outPatientRecipeVO.setGiveModeText(OutRecipeGiveModeEnum.getName(outPatientRecipeVO.getGiveMode()));
                 outPatientRecipeVO.setOrganId(outPatientRecipeReqVO.getOrganId());
                 if (StringUtils.isEmpty(outPatientRecipeVO.getOrganName())) {
                     outPatientRecipeVO.setOrganName(outPatientRecipeReqVO.getOrganName());
                 }
+                result.add(outPatientRecipeVO);
             });
-            result = result.stream().sorted(Comparator.comparing(OutPatientRecipeVO::getCreateDate).reversed()).collect(Collectors.toList());
             logger.info("OutPatientRecipeAtop queryOutPatientRecipe result:{}.", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {

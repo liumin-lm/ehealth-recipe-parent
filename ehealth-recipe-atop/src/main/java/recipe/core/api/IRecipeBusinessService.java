@@ -1,6 +1,7 @@
 package recipe.core.api;
 
 import com.ngari.recipe.dto.DiseaseInfoDTO;
+import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
 import com.ngari.recipe.vo.*;
 import ctd.util.annotation.RpcService;
@@ -24,7 +25,7 @@ public interface IRecipeBusinessService {
      * 查询门诊处方信息
      * @param outPatientRecipeReqVO 患者信息
      */
-    List<OutPatientRecipeVO> queryOutPatientRecipe(OutPatientRecipeReqVO outPatientRecipeReqVO);
+    List<OutPatientRecipeDTO> queryOutPatientRecipe(OutPatientRecipeReqVO outPatientRecipeReqVO);
 
     /**
      * 获取门诊处方详情信息
