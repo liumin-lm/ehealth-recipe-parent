@@ -256,6 +256,11 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
                 50f, 20f, 210f, 99f, true);
     }
 
+    @Override
+    public SignImgNode updateSealPdf(Integer recipeId, String organSealId, String fileId) {
+        return new SignImgNode(recipeId.toString(), organSealId, fileId, null, 90F, 90F, 160f, 490f, false);
+    }
+
 
     /**
      * 校验煎法
@@ -356,7 +361,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             String dRateName = d.getUsingRateTextFromHis() != null ? d.getUsingRateTextFromHis() : DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", d.getUsingRate());
             //用法
             String dWay = d.getUsePathwaysTextFromHis() != null ? d.getUsePathwaysTextFromHis() : DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", d.getUsePathways());
-            stringBuilder.append(uDose).append("    ").append(dRateName).append("    ").append(dWay).append("    ").append(getUseDays(d.getUseDaysB(), d.getUseDays()));
+            stringBuilder.append(uDose).append("    ").append(dRateName).append("    ").append(dWay).append("    ").append(CreatePdfFactory.getUseDays(d.getUseDaysB(), d.getUseDays()));
 
             if (!StringUtils.isEmpty(d.getMemo())) {
                 stringBuilder.append(" \n ").append("嘱托:").append(d.getMemo());
@@ -381,7 +386,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, drugShowName));
         }
         Recipedetail detail = recipeDetails.get(0);
-        list.add(new RecipeLabelVO("天数", "tcmUseDay", getUseDays(detail.getUseDaysB(), detail.getUseDays())));
+        list.add(new RecipeLabelVO("天数", "tcmUseDay", CreatePdfFactory.getUseDays(detail.getUseDaysB(), detail.getUseDays())));
         try {
             list.add(new RecipeLabelVO("用药途径", "tcmUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detail.getUsePathways())));
             list.add(new RecipeLabelVO("用药频次", "tcmUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detail.getUsingRate())));

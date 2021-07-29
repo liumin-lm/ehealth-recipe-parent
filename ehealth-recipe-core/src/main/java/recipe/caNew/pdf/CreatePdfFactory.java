@@ -328,11 +328,11 @@ public class CreatePdfFactory {
                 Recipe recipeUpdate = new Recipe();
                 String fileId = null;
                 if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-                    fileId = CreateRecipePdfUtil.generateOrdinateList(recipe.getSignFile(), list);
+                    fileId = CreateRecipePdfUtil.generateOrdinateList(recipe.getChemistSignFile(), list);
                     recipeUpdate.setChemistSignFile(fileId);
                 } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
                     fileId = CreateRecipePdfUtil.generateOrdinateList(recipe.getSignFile(), list);
-                    recipeUpdate.setChemistSignFile(fileId);
+                    recipeUpdate.setSignFile(fileId);
                 }
                 if (StringUtils.isNotEmpty(fileId)) {
                     recipeUpdate.setRecipeId(recipe.getRecipeId());
@@ -427,7 +427,35 @@ public class CreatePdfFactory {
      * @param recipeId
      */
     public void updatesealPdfExecute(Integer recipeId) {
-        RecipeBusiThreadPool.execute(() -> updateSealPdf(recipeId));
+        RecipeBusiThreadPool.execute(() -> {
+            logger.info("GenerateSignetRecipePdfRunable start recipeId={}", recipeId);
+            Recipe recipe = recipeDAO.get(recipeId);
+            if (null == recipe || StringUtils.isEmpty(recipe.getChemistSignFile())) {
+                logger.info("GenerateSignetRecipePdfRunable recipe is null");
+                return;
+            }
+            //获取配置--机构印章
+            String organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), "organSeal", "");
+            if (StringUtils.isEmpty(organSealId)) {
+                logger.info("GenerateSignetRecipePdfRunable organSeal is null");
+                return;
+            }
+            CreatePdfService createPdfService = createPdfService(recipe);
+            try {
+                SignImgNode signImgNode = createPdfService.updateSealPdf(recipe.getRecipeId(), organSealId, recipe.getChemistSignFile());
+                String fileId = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
+                if (StringUtils.isEmpty(fileId)) {
+                    return;
+                }
+                Recipe recipeUpdate = new Recipe();
+                recipeUpdate.setRecipeId(recipeId);
+                recipeUpdate.setChemistSignFile(fileId);
+                recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+                logger.info("GenerateSignetRecipePdfRunable end recipeUpdate={}", JSON.toJSONString(recipeUpdate));
+            } catch (Exception e) {
+                logger.error("GenerateSignetRecipePdfRunable error recipeId={}, e={}", recipeId, e);
+            }
+        });
     }
 
 
@@ -453,6 +481,23 @@ public class CreatePdfFactory {
         caSealRequest.setPdfMd5("");
         caSealRequest.setMode(1);
         return caSealRequest;
+    }
+
+    /**
+     * 获取天数 与 单位字符串展示
+     *
+     * @param useDaysB
+     * @param useDays
+     * @return
+     */
+    public static String getUseDays(String useDaysB, Integer useDays) {
+        if (StringUtils.isNotEmpty(useDaysB) && !"0".equals(useDaysB)) {
+            return useDaysB + "天";
+        }
+        if (!ValidateUtil.integerIsEmpty(useDays)) {
+            return useDays + "天";
+        }
+        return "";
     }
 
 
@@ -488,42 +533,6 @@ public class CreatePdfFactory {
         logger.info("CreatePdfFactory updateDoctorNamePdf recipeUpdate={}", JSON.toJSONString(recipeUpdate));
     }
 
-    /**
-     * pdf 机构印章
-     *
-     * @param recipeId
-     */
-    private void updateSealPdf(Integer recipeId) {
-        logger.info("GenerateSignetRecipePdfRunable start recipeId={}", recipeId);
-        Recipe recipe = recipeDAO.get(recipeId);
-        if (null == recipe || StringUtils.isEmpty(recipe.getChemistSignFile())) {
-            logger.info("GenerateSignetRecipePdfRunable recipe is null");
-            return;
-        }
-        //获取配置--机构印章
-        String organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), "organSeal", "");
-        if (StringUtils.isEmpty(organSealId)) {
-            logger.info("GenerateSignetRecipePdfRunable organSeal is null");
-            return;
-        }
-
-        try {
-            SignImgNode signImgNode = new SignImgNode(recipe.getRecipeId().toString(), organSealId, recipe.getChemistSignFile(),
-                    null, 90F, 90F, 160f, 490f, false);
-            String fileId = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
-            if (StringUtils.isEmpty(fileId)) {
-                return;
-            }
-
-            Recipe recipeUpdate = new Recipe();
-            recipeUpdate.setRecipeId(recipeId);
-            recipeUpdate.setChemistSignFile(fileId);
-            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-            logger.info("GenerateSignetRecipePdfRunable end recipeUpdate={}", JSON.toJSONString(recipeUpdate));
-        } catch (Exception e) {
-            logger.error("GenerateSignetRecipePdfRunable error recipeId={}, e={}", recipeId, e);
-        }
-    }
 
     private Recipe validate(Integer recipeId) {
         if (ValidateUtil.validateObjects(recipeId)) {
@@ -559,7 +568,12 @@ public class CreatePdfFactory {
         return createPdfService;
     }
 
-
+    /**
+     * 地址
+     *
+     * @param order
+     * @return
+     */
     private String getCompleteAddress(RecipeOrder order) {
         StringBuilder address = new StringBuilder();
         if (null != order) {
