@@ -13,7 +13,6 @@ import ctd.util.JSONUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.StringUtils;
 import recipe.client.DocIndexClient;
 import recipe.client.PatientClient;
 import recipe.dao.RecipeDAO;
@@ -71,25 +70,11 @@ public class RecipeManager extends BaseManager {
         RecipeDTO recipeDTO = new RecipeDTO();
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         recipeDTO.setRecipe(recipe);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        recipeExtend.setCardTypeName(DictionaryUtil.getDictionary("eh.mpi.dictionary.CardType", recipeExtend.getCardType()));
-        recipeDTO.setRecipeExtend(recipeExtend);
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
         recipeDTO.setRecipeDetails(recipeDetails);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        recipeDTO.setRecipeExtend(recipeExtend);
         logger.info("RecipeOrderManager getRecipeDTO recipeDTO:{}", JSON.toJSONString(recipeDTO));
-        if (null == recipeExtend || !StringUtils.isEmpty(recipe.getOrganDiseaseName())) {
-            return recipeDTO;
-        }
-        Integer docIndexId = recipeExtend.getDocIndexId();
-        EmrDetail emrDetail = docIndexClient.getEmrDetails(docIndexId);
-        if (null == emrDetail) {
-            return recipeDTO;
-        }
-        recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
-        recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
-        recipe.setMemo(emrDetail.getMemo());
-        recipeExtend.setSymptomId(emrDetail.getSymptomId());
-        recipeExtend.setSymptomName(emrDetail.getSymptomName());
         return recipeDTO;
     }
 
@@ -106,6 +91,21 @@ public class RecipeManager extends BaseManager {
         Recipe recipe = recipeInfoDTO.getRecipe();
         PatientDTO patientBean = patientClient.getPatient(recipe.getMpiid());
         recipeInfoDTO.setPatientBean(patientBean);
+        RecipeExtend recipeExtend = recipeDTO.getRecipeExtend();
+        if (null == recipeExtend) {
+            return recipeInfoDTO;
+        }
+        recipeExtend.setCardTypeName(DictionaryUtil.getDictionary("eh.mpi.dictionary.CardType", recipeExtend.getCardType()));
+        Integer docIndexId = recipeExtend.getDocIndexId();
+        EmrDetail emrDetail = docIndexClient.getEmrDetails(docIndexId);
+        if (null == emrDetail) {
+            return recipeInfoDTO;
+        }
+        recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
+        recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
+        recipe.setMemo(emrDetail.getMemo());
+        recipeExtend.setSymptomId(emrDetail.getSymptomId());
+        recipeExtend.setSymptomName(emrDetail.getSymptomName());
         logger.info("RecipeOrderManager getRecipeInfoDTO patientBean:{}", JSON.toJSONString(patientBean));
         return recipeInfoDTO;
     }

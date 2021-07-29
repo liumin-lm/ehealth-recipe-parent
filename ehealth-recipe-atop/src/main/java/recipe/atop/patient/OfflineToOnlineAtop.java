@@ -104,4 +104,28 @@ public class OfflineToOnlineAtop extends BaseAtop {
 
     }
 
+    /**
+     * 获取卡类型
+     * @param organId
+     * @return
+     */
+    @RpcService
+    public List<String> getCardType(Integer organId) {
+        logger.info("OfflineToOnlineAtop getCardType request={}", JSONUtils.toString(organId));
+        validateAtop(organId);
+        try {
+            List<String> res = offlineToOnlineService.getCardType(organId);
+            logger.info("OfflineToOnlineAtop getCardType result = {}", JSONUtils.toString(res));
+            return res;
+        } catch (DAOException e1) {
+            logger.error("OfflineToOnlineAtop getCardType error", e1);
+            throw new DAOException(e1.getCode(), e1.getMessage());
+        } catch (Exception e) {
+            logger.error("OfflineToOnlineAtop getCardType error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+
+    }
+
+
 }
