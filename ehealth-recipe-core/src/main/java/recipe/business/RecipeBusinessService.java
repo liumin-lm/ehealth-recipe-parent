@@ -15,6 +15,7 @@ import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.HealthCardClient;
@@ -156,7 +157,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             return CheckPatientEnum.CHECK_PATIENT_NOAUTH.getType();
         }
         Map<String, HealthCardDTO> result = healthCardClient.findHealthCard(outPatientReqVO.getMpiId());
-        if (null == result || !result.containsKey(outPatientReqVO.getCardID())) {
+        if (null == result || (StringUtils.isNotEmpty(outPatientReqVO.getCardID()) && !result.containsKey(outPatientReqVO.getCardID()))) {
             return CheckPatientEnum.CHECK_PATIENT_CARDDEL.getType();
         }
         return CheckPatientEnum.CHECK_PATIENT_NORMAL.getType();

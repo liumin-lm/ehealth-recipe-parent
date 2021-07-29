@@ -14,7 +14,7 @@ import recipe.core.api.IRecipeBusinessService;
  * @author yinsheng
  * @date 2021\7\29 0029 19:57
  */
-@RpcBean(value = "patientAtop")
+@RpcBean(value = "patientAtop", mvc_authentication = false)
 public class PatientAtop extends BaseAtop {
 
     @Autowired
