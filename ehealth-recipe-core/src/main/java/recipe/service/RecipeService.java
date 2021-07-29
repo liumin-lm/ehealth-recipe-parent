@@ -2388,9 +2388,6 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public RecipeResultBean doSecondSignRecipe(RecipeBean recipe) {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
-        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-
         Recipe dbRecipe = RecipeValidateUtil.checkRecipeCommonInfo(recipe.getRecipeId(), resultBean);
         if (null == dbRecipe) {
             LOGGER.error("validateDrugs 平台无该处方对象. recipeId=[{}] error={}", recipe.getRecipeId(), JSONUtils.toString(resultBean));
@@ -2446,15 +2443,7 @@ public class RecipeService extends RecipeBaseService {
         if (ReviewTypeConstant.Preposition_Check == dbRecipe.getReviewType()) {
             auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckPassYs(dbRecipe);
         }
-
-        try {
-            //生成pdf并签名
-            recipeService.generateRecipePdfAndSign(recipe.getRecipeId());
-        } catch (Exception e) {
-            LOGGER.error("doSecondSignRecipe 签名失败. recipeId=[{}], error={}", recipe.getRecipeId(), e.getMessage(), e);
-        }
-
-        LOGGER.info("doSecondSignRecipe execute ok! ");
+        LOGGER.info("RecipeService doSecondSignRecipe  execute ok!  recipeId ： {} ", recipe.getRecipeId());
         return resultBean;
     }
 
