@@ -151,16 +151,16 @@ public class RecipeUtil {
                         } else {
                             if (RecipeOrderStatusEnum.ORDER_STATUS_AWAIT_SHIPPING.getType().equals(orderStatus)) {
                                 tips = "待配送";
-                            } else if (RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.equals(orderStatus)) {
+                            } else if (RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType().equals(orderStatus)) {
                                 tips = "配送中";
-                            } else if (RecipeOrderStatusEnum.ORDER_STATUS_DONE.equals(orderStatus)) {
+                            } else if (RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType().equals(orderStatus)) {
                                 tips = "已完成";
                             }
                         }
                     }
 
                 } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode) && StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                    if (RecipeOrderStatusEnum.ORDER_STATUS_HAS_DRUG.equals(orderStatus)) {
+                    if (RecipeOrderStatusEnum.ORDER_STATUS_HAS_DRUG.getType().equals(orderStatus)) {
                         if (payFlag == 0) {
                             tips = "待支付";
                         } else {
