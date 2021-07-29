@@ -95,8 +95,8 @@ public class OfflineRecipeClient extends BaseClient {
 
     /**
      *
-     * @param outRecipeDetailReq
-     * @return
+     * @param outRecipeDetailReq 门诊处方明细入参
+     * @return 门诊处方明细信息
      */
     public OutRecipeDetailDTO queryOutRecipeDetail(OutRecipeDetailReq outRecipeDetailReq) {
         logger.info("OfflineRecipeClient queryOutPatientRecipe queryOutRecipeDetail:{}.", JSON.toJSONString(outRecipeDetailReq));

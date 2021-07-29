@@ -372,27 +372,24 @@ public class CreatePdfFactory {
             return;
         }
         signImgNode.setSignImgFileId(apothecaryDTO.getGiveUserSignImg());
-        String fileId = null;
         Recipe recipeUpdate = new Recipe();
         try {
             if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
                 signImgNode.setSignFileId(recipe.getChemistSignFile());
-                fileId = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
+                String fileId = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
                 recipeUpdate.setChemistSignFile(fileId);
             } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
                 signImgNode.setSignFileId(recipe.getSignFile());
-                fileId = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
+                String fileId = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
                 recipeUpdate.setSignFile(fileId);
             }
         } catch (Exception e) {
             logger.error("CreatePdfFactory updateGiveUser  recipe: {}", recipe.getRecipeId(), e);
             return;
         }
+        recipeUpdate.setRecipeId(recipe.getRecipeId());
+        recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         logger.info("CreatePdfFactory updateGiveUser recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
-        if (StringUtils.isNotEmpty(fileId)) {
-            recipeUpdate.setRecipeId(recipe.getRecipeId());
-            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-        }
     }
 
 
