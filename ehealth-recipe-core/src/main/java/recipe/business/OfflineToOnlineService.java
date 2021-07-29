@@ -126,7 +126,7 @@ public class OfflineToOnlineService extends BaseService implements IOfflineToOnl
         if (null == patientDTO) {
             throw new DAOException(609, "患者信息不存在");
         }
-        patientDTO.setCardId(StringUtils.isNotEmpty(request.getCardId()) ? request.getCardId() : "");
+        patientDTO.setCardId(StringUtils.isNotEmpty(request.getCardId()) ? request.getCardId() : patientDTO.getCardId());
         logger.info("OfflineToOnlineService obtainPatientInfo req patientDTO:{}", JSONUtils.toString(patientDTO));
         return patientDTO;
     }

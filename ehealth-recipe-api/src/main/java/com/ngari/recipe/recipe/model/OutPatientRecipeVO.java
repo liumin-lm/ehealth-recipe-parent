@@ -1,13 +1,11 @@
 package com.ngari.recipe.recipe.model;
 
-import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.Schema;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.io.Serializable;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -44,7 +42,6 @@ public class OutPatientRecipeVO implements Serializable{
     /**
      * 处方类型
      */
-    @Dictionary(id = "eh.cdr.dictionary.RecipeType")
     private Integer recipeType;
 
     /**
