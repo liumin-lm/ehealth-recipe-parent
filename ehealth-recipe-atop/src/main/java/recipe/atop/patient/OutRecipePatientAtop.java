@@ -58,6 +58,7 @@ public class OutRecipePatientAtop extends BaseAtop {
                 BeanUtils.copy(outPatientRecipeDTO, outPatientRecipeVO);
                 outPatientRecipeVO.setStatusText(OutRecipeStatusEnum.getName(outPatientRecipeVO.getStatus()));
                 outPatientRecipeVO.setGiveModeText(OutRecipeGiveModeEnum.getName(outPatientRecipeVO.getGiveMode()));
+                outPatientRecipeVO.setStatusText(OutRecipeRecipeTypeEnum.getName(outPatientRecipeVO.getRecipeType()));
                 outPatientRecipeVO.setOrganId(outPatientRecipeReqVO.getOrganId());
                 if (StringUtils.isEmpty(outPatientRecipeVO.getOrganName())) {
                     outPatientRecipeVO.setOrganName(outPatientRecipeReqVO.getOrganName());
