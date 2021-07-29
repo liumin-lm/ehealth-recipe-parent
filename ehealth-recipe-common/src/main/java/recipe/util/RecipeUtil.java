@@ -56,9 +56,9 @@ public class RecipeUtil {
         }
         String memo = "";
         if (!StringUtils.isEmpty(detail.getMemo()) && !"无特殊煎法".equals(detail.getMemo())) {
-            memo = "(" + detail.getMemo().trim() + "）";
+            memo = "(" + detail.getMemo().trim() + ")";
         }
-        return detail.getDrugName().replace("（", "(").replace("）", ")") + memo + dTotal;
+        return detail.getDrugName().replace("（", "(").replace("）", ")") + memo + " " + dTotal;
     }
 
     /**
