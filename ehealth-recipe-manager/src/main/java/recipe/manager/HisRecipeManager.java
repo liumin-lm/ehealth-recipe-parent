@@ -93,7 +93,7 @@ public class HisRecipeManager extends BaseManager {
         LOGGER.info("HisRecipeManager queryData param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode);
         HisResponseTO<List<QueryHisRecipResTO>> responseTo = offlineRecipeClient.queryData(organId, patientDTO, timeQuantum, flag, recipeCode);
         //过滤数据
-        HisResponseTO<List<QueryHisRecipResTO>> res = filterData(responseTo,recipeCode);
+        HisResponseTO<List<QueryHisRecipResTO>> res = filterData(responseTo, recipeCode);
         logger.info("HisRecipeManager res:{}.", JSONUtils.toString(res));
         return res;
     }
@@ -104,16 +104,16 @@ public class HisRecipeManager extends BaseManager {
      * @author liumin
      * @Description 数据过滤
      */
-    private HisResponseTO<List<QueryHisRecipResTO>> filterData(HisResponseTO<List<QueryHisRecipResTO>> responseTo,String recipeCode) {
-        logger.info("HisRecipeManager filterData responseTo:{},recipeCode:{}",JSONUtils.toString(responseTo),recipeCode);
+    private HisResponseTO<List<QueryHisRecipResTO>> filterData(HisResponseTO<List<QueryHisRecipResTO>> responseTo, String recipeCode) {
+        logger.info("HisRecipeManager filterData responseTo:{},recipeCode:{}", JSONUtils.toString(responseTo), recipeCode);
         //获取详情时防止前置机没过滤数据，做过滤处理
-        if(responseTo!=null&&recipeCode!=null){
-            logger.info("HisRecipeManager queryHisRecipeInfo recipeCode:{}",recipeCode);
-            List<QueryHisRecipResTO> queryHisRecipResTos=responseTo.getData();
-            List<QueryHisRecipResTO> queryHisRecipResToFilters=new ArrayList<>();
-            if(!CollectionUtils.isEmpty(queryHisRecipResTos)&&queryHisRecipResTos.size()>1){
-                for(QueryHisRecipResTO queryHisRecipResTo:queryHisRecipResTos){
-                    if(recipeCode.equals(queryHisRecipResTo.getRecipeCode())){
+        if (responseTo != null && recipeCode != null) {
+            logger.info("HisRecipeManager queryHisRecipeInfo recipeCode:{}", recipeCode);
+            List<QueryHisRecipResTO> queryHisRecipResTos = responseTo.getData();
+            List<QueryHisRecipResTO> queryHisRecipResToFilters = new ArrayList<>();
+            if (!CollectionUtils.isEmpty(queryHisRecipResTos) && queryHisRecipResTos.size() > 1) {
+                for (QueryHisRecipResTO queryHisRecipResTo : queryHisRecipResTos) {
+                    if (recipeCode.equals(queryHisRecipResTo.getRecipeCode())) {
                         queryHisRecipResToFilters.add(queryHisRecipResTo);
                         continue;
                     }
@@ -198,7 +198,7 @@ public class HisRecipeManager extends BaseManager {
      * @return
      */
     public void deleteRecipeByRecipeCodes(String organId, List<String> recipeCodes) {
-        logger.info("HisRecipeManager deleteRecipeByRecipeCodes param organId:{},recipeCodes:{}",organId,JSONUtils.toString(recipeCodes));
+        logger.info("HisRecipeManager deleteRecipeByRecipeCodes param organId:{},recipeCodes:{}", organId, JSONUtils.toString(recipeCodes));
         //默认不存在
         boolean isExistPayRecipe = false;
         List<Recipe> recipes = recipeDAO.findRecipeByRecipeCodeAndClinicOrgan(Integer.parseInt(organId), recipeCodes);
@@ -271,8 +271,8 @@ public class HisRecipeManager extends BaseManager {
      * @return
      */
     public Integer attachRecipeId(Integer organId, String recipeCode, List<HisRecipe> hisRecipes) {
-        LOGGER.info("HisRecipeManager attachRecipeId organId:{},recipeCode:{},hisRecipes:{}",organId,recipeCode,JSONUtils.toString(hisRecipes));
-        Integer hisRecipeId=null;
+        LOGGER.info("HisRecipeManager attachRecipeId organId:{},recipeCode:{},hisRecipes:{}", organId, recipeCode, JSONUtils.toString(hisRecipes));
+        Integer hisRecipeId = null;
         HisRecipe hisRecipe = new HisRecipe();
         if (CollectionUtils.isEmpty(hisRecipes)) {
             //点击卡片 历史处方his不会返回 故从表查  同时也兼容已处理状态的处方，前端漏传hisRecipeId的情况
@@ -280,12 +280,12 @@ public class HisRecipeManager extends BaseManager {
                 hisRecipe = hisRecipeDao.getHisRecipeByRecipeCodeAndClinicOrgan(organId, recipeCode);
             }
             if (hisRecipe != null) {
-                hisRecipeId= hisRecipe.getHisRecipeID();
+                hisRecipeId = hisRecipe.getHisRecipeID();
             }
-        }else {
-            hisRecipeId= hisRecipes.get(0).getHisRecipeID();
+        } else {
+            hisRecipeId = hisRecipes.get(0).getHisRecipeID();
         }
-        LOGGER.info("HisRecipeManager attachRecipeId hisRecipeId:{}",hisRecipeId);
+        LOGGER.info("HisRecipeManager attachRecipeId hisRecipeId:{}", hisRecipeId);
         return hisRecipeId;
     }
 
@@ -335,7 +335,7 @@ public class HisRecipeManager extends BaseManager {
      * @return
      */
     public Set<String> obtainDeleteRecipeCodes(List<QueryHisRecipResTO> hisRecipeTO, Map<String, HisRecipe> hisRecipeMap, List<HisRecipeDetail> hisRecipeDetailList, String mpiId) {
-        LOGGER.info("HisRecipeManager deleteSetRecipeCode hisRecipeTO:{},hisRecipeMap:{},hisRecipeDetailList:{},mpiId:{}",JSONUtils.toString(hisRecipeTO),JSONUtils.toString(hisRecipeMap),JSONUtils.toString(hisRecipeDetailList),mpiId);
+        LOGGER.info("HisRecipeManager deleteSetRecipeCode hisRecipeTO:{},hisRecipeMap:{},hisRecipeDetailList:{},mpiId:{}", JSONUtils.toString(hisRecipeTO), JSONUtils.toString(hisRecipeMap), JSONUtils.toString(hisRecipeDetailList), mpiId);
         Set<String> deleteSetRecipeCode = new HashSet<>();
         Map<Integer, List<HisRecipeDetail>> hisRecipeIdDetailMap = hisRecipeDetailList.stream().collect(Collectors.groupingBy(HisRecipeDetail::getHisRecipeId));
         hisRecipeTO.forEach(a -> {
@@ -388,45 +388,45 @@ public class HisRecipeManager extends BaseManager {
                     LOGGER.info("deleteSetRecipeCode cause useTotalDose recipeCode:{}", recipeCode);
                     continue;
                 }
-                if (!MapValueUtil.covertObject(hisRecipeDetail.getUseDose()).equals(MapValueUtil.covertObject(recipeDetailTO.getUseDose()))) {
+                if (!MapValueUtil.covertString(hisRecipeDetail.getUseDose()).equals(MapValueUtil.covertString(recipeDetailTO.getUseDose()))) {
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause useDose recipeCode:{}", recipeCode);
                     continue;
                 }
-                if ((!MapValueUtil.covertObject(hisRecipeDetail.getUseDoseStr()).equals(MapValueUtil.covertObject(recipeDetailTO.getUseDoseStr())))) {
+                if ((!MapValueUtil.covertString(hisRecipeDetail.getUseDoseStr()).equals(MapValueUtil.covertString(recipeDetailTO.getUseDoseStr())))) {
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause useDoseStr recipeCode:{}", recipeCode);
                     continue;
                 }
-                if ((!MapValueUtil.covertObject(hisRecipeDetail.getUseDaysB()).equals(MapValueUtil.covertObject(recipeDetailTO.getUseDaysB())))) {
+                if ((!MapValueUtil.covertString(hisRecipeDetail.getUseDaysB()).equals(MapValueUtil.covertString(recipeDetailTO.getUseDaysB())))) {
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause useDaysB recipeCode:{}", recipeCode);
                     continue;
                 }
 
-                if ((!MapValueUtil.covertObject(hisRecipeDetail.getUseDays()).equals(MapValueUtil.covertObject(recipeDetailTO.getUseDays())))) {
+                if ((MapValueUtil.covertInteger(hisRecipeDetail.getUseDays()) != MapValueUtil.covertInteger(recipeDetailTO.getUseDays()))) {
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause useDays recipeCode:{}", recipeCode);
                     continue;
                 }
 
-                if (!MapValueUtil.covertObject(hisRecipeDetail.getUsingRate()).equals(MapValueUtil.covertObject(recipeDetailTO.getUsingRate()))) {
+                if (!MapValueUtil.covertString(hisRecipeDetail.getUsingRate()).equals(MapValueUtil.covertString(recipeDetailTO.getUsingRate()))) {
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause usingRate recipeCode:{}", recipeCode);
                     continue;
                 }
 
-                if (!MapValueUtil.covertObject(hisRecipeDetail.getUsingRateText()).equals(MapValueUtil.covertObject(recipeDetailTO.getUsingRateText()))) {
+                if (!MapValueUtil.covertString(hisRecipeDetail.getUsingRateText()).equals(MapValueUtil.covertString(recipeDetailTO.getUsingRateText()))) {
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause usingRateText recipeCode:{}", recipeCode);
                     continue;
                 }
-                if (!MapValueUtil.covertObject(hisRecipeDetail.getUsePathways()).equals(MapValueUtil.covertObject(recipeDetailTO.getUsePathWays()))) {
+                if (!MapValueUtil.covertString(hisRecipeDetail.getUsePathways()).equals(MapValueUtil.covertString(recipeDetailTO.getUsePathWays()))) {
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause usePathWays recipeCode:{}", recipeCode);
                     continue;
                 }
-                if (!MapValueUtil.covertObject(hisRecipeDetail.getUsePathwaysText()).equals(MapValueUtil.covertObject(recipeDetailTO.getUsePathwaysText()))) {
+                if (!MapValueUtil.covertString(hisRecipeDetail.getUsePathwaysText()).equals(MapValueUtil.covertString(recipeDetailTO.getUsePathwaysText()))) {
                     LOGGER.info("deleteSetRecipeCode cause usePathwaysText recipeCode:{}", recipeCode);
                     deleteSetRecipeCode.add(recipeCode);
                 }
@@ -438,7 +438,7 @@ public class HisRecipeManager extends BaseManager {
                 deleteSetRecipeCode.add(hisRecipe.getRecipeCode());
             }
         });
-        LOGGER.info("HisRecipeManager deleteSetRecipeCode res:{}",JSONUtils.toString(deleteSetRecipeCode));
+        LOGGER.info("HisRecipeManager deleteSetRecipeCode res:{}", JSONUtils.toString(deleteSetRecipeCode));
         return deleteSetRecipeCode;
     }
 

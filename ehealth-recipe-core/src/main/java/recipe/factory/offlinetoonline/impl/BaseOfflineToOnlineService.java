@@ -923,7 +923,7 @@ public class BaseOfflineToOnlineService {
         detail.setDrugSpec(recipeDetailTo.getDrugSpec());
         detail.setDrugUnit(recipeDetailTo.getDrugUnit());
         detail.setUseDays(recipeDetailTo.getUseDays());
-        detail.setUseDaysB(recipeDetailTo.getUseDays().toString());
+        detail.setUseDaysB(recipeDetailTo.getUseDays() != null ? recipeDetailTo.getUseDays().toString() : "");
         detail.setDrugCode(recipeDetailTo.getDrugCode());
         detail.setUsingRateText(recipeDetailTo.getUsingRateText());
         detail.setUsePathwaysText(recipeDetailTo.getUsePathwaysText());
