@@ -67,6 +67,7 @@ public class RecipeOrderTwoService implements IRecipeOrderService {
         if (null == recipe) {
             return result;
         }
+        recipe.setGiveUser(giveUser.toString());
         if (StringUtils.isEmpty(recipe.getOrderCode())) {
             return result;
         }
@@ -80,7 +81,10 @@ public class RecipeOrderTwoService implements IRecipeOrderService {
         }
 
         //更新pdf
-        recipe.setGiveUser(giveUser.toString());
+        Recipe recipeUpdate = new Recipe();
+        recipeUpdate.setGiveUser(recipe.getGiveUser());
+        recipeUpdate.setRecipeId(recipe.getRecipeId());
+        recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         createPdfFactory.updateGiveUser(recipe);
         return ResultBean.succeed();
     }

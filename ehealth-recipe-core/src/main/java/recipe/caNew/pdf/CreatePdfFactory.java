@@ -387,7 +387,6 @@ public class CreatePdfFactory {
             logger.error("CreatePdfFactory updateGiveUser  recipe: {}", recipe.getRecipeId(), e);
             return;
         }
-        recipeUpdate.setGiveUser(recipe.getGiveUser());
         recipeUpdate.setRecipeId(recipe.getRecipeId());
         recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         logger.info("CreatePdfFactory updateGiveUser recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
