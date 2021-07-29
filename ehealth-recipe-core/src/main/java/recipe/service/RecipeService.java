@@ -1743,6 +1743,7 @@ public class RecipeService extends RecipeBaseService {
         recipe.setSignDate(DateTime.now().toDate());
         Integer recipeId = recipe.getRecipeId();
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
+        details.stream().filter(a -> "无特殊煎法".equals(a.getMemo())).forEach(a -> a.setMemo(""));
         if (null != recipeId && recipeId > 0) {
             Integer status = recipeDAO.getStatusByRecipeId(recipeId);
             if (null == status || (status > RecipeStatusConstant.UNSIGN && status != RecipeStatusConstant.HIS_FAIL)) {
