@@ -17,11 +17,13 @@ import java.util.Map;
 
 /**
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * @date:2016/6/2.
  */
 public class MapValueUtil {
     private static final Logger logger = LoggerFactory.getLogger(MapValueUtil.class);
+
     public static String getString(Map<String, ? extends Object> map, String key) {
         Object obj = getObject(map, key);
         if (null == obj) {
@@ -95,19 +97,19 @@ public class MapValueUtil {
         }
 
         try {
-            if(obj instanceof Double){
+            if (obj instanceof Double) {
                 return new BigDecimal(obj.toString());
             }
 
-            if(obj instanceof Float){
+            if (obj instanceof Float) {
                 return new BigDecimal(obj.toString());
             }
 
-            if(obj instanceof Integer){
+            if (obj instanceof Integer) {
                 return new BigDecimal(obj.toString());
             }
 
-            if(obj instanceof String){
+            if (obj instanceof String) {
                 return new BigDecimal(obj.toString());
             }
         } catch (Exception e) {
@@ -117,7 +119,7 @@ public class MapValueUtil {
         return null;
     }
 
-    public static List getList(Map<String, Object> map, String key){
+    public static List getList(Map<String, Object> map, String key) {
         Object obj = getObject(map, key);
         if (null == obj) {
             return null;
@@ -161,6 +163,19 @@ public class MapValueUtil {
         return obj;
     }
 
+    public static Object covertString(String obj) {
+        if (obj == null) {
+            return "";
+        }
+        return obj;
+    }
+
+    public static Object covertInteger(Integer obj) {
+        if (obj == null) {
+            return 0;
+        }
+        return obj;
+    }
 
     public static BigDecimal covertBigdecimal(BigDecimal obj) {
         if (obj == null) {
