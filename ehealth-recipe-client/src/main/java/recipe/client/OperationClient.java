@@ -182,7 +182,10 @@ public class OperationClient extends BaseClient {
                 return JSON.toJSONString(checker);
             }
             //核发药师签名图片
-            if (OperationConstant.OP_RECIPE_GIVE_USER.equals(fieldName) && StringUtils.isNotEmpty(apothecaryDTO.getGiveUserSignImg())) {
+            if (OperationConstant.OP_RECIPE_GIVE_USER.equals(fieldName)) {
+                if (StringUtils.isEmpty(apothecaryDTO.getGiveUserSignImg())) {
+                    return "";
+                }
                 ApothecaryDTO giveUser = new ApothecaryDTO();
                 giveUser.setGiveUserSignImg(apothecaryDTO.getGiveUserSignImg());
                 giveUser.setGiveUserSignImgToken(apothecaryDTO.getGiveUserSignImgToken());

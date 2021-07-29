@@ -14,13 +14,11 @@ import com.ngari.recipe.dto.OutRecipeDetailDTO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import recipe.constant.ErrorCode;
+import recipe.util.DateConversion;
 
-import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -135,7 +133,8 @@ public class OfflineRecipeClient extends BaseClient {
         QueryRecipeRequestTO queryRecipeRequestTo = new QueryRecipeRequestTO();
         queryRecipeRequestTo.setPatientInfo(patientBaseInfo);
         if (timeQuantum != null) {
-            queryRecipeRequestTo.setStartDate(tranDateByFlagNew(timeQuantum.toString()));
+            //根据flag转化日期 1 代表一个月  3 代表三个月 6 代表6个月
+            queryRecipeRequestTo.setStartDate(DateConversion.getMonthsAgo(timeQuantum));
         }
         queryRecipeRequestTo.setEndDate(new Date());
         queryRecipeRequestTo.setOrgan(organId);
@@ -151,31 +150,7 @@ public class OfflineRecipeClient extends BaseClient {
         return responseTo;
     }
 
-    /**
-     * @param flag 根据flag转化日期 查询标志 0-近一个月数据;1-近三个月;2-近半年;3-近一年
-     *             1 代表一个月  3 代表三个月 6 代表6个月
-     * @return
-     */
-    private Date tranDateByFlagNew(String flag) {
-        Date beginTime = new Date();
-        Calendar ca = Calendar.getInstance();
-        //得到当前日期
-        ca.setTime(new Date());
-        if ("6".equals(flag)) {  //近半年数据
-            ca.add(Calendar.MONTH, -6);//月份减6
-            Date resultDate = ca.getTime(); //结果
-            beginTime = resultDate;
-        } else if ("3".equals(flag)) {  //近三个月数据
-            ca.add(Calendar.MONTH, -3);//月份减3
-            Date resultDate = ca.getTime(); //结果
-            beginTime = resultDate;
-        } else if ("1".equals(flag)) { //近一个月数据
-            ca.add(Calendar.MONTH, -1);//月份减1
-            Date resultDate = ca.getTime(); //结果
-            beginTime = resultDate;
-        }
-        return beginTime;
-    }
+
 
 
 

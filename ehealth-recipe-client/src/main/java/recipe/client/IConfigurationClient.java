@@ -53,7 +53,7 @@ public class IConfigurationClient extends BaseClient {
             }
             return value;
         } catch (Exception e) {
-            logger.error("IConfigurationClient getValueCatch organId:{}, recipeId:{}", organId, key, e);
+            logger.error("IConfigurationClient getValueCatch organId:{}, key:{}", organId, key, e);
             return defaultValue;
         }
     }

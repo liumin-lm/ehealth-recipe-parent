@@ -79,12 +79,13 @@ public class PatientClient extends BaseClient {
 
     /**
      * 根据mpiid获取患者信息
+     *
      * @param mpiId
      * @return
      */
-    public com.ngari.patient.dto.PatientDTO getPatientBeanByMpiId(String mpiId){
-        if(StringUtils.isEmpty(mpiId)){
-            return  null;
+    public com.ngari.patient.dto.PatientDTO getPatientBeanByMpiId(String mpiId) {
+        if (StringUtils.isEmpty(mpiId)) {
+            return null;
         }
         return patientService.getPatientBeanByMpiId(mpiId);
     }
