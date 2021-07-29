@@ -55,7 +55,7 @@ public class RecipeUtil {
             dTotal = detail.getUseDose() + detail.getUseDoseUnit();
         }
         String memo = "";
-        if (!StringUtils.isEmpty(detail.getMemo()) && !"无特殊煎法".equals(detail.getMemo())) {
+        if (!StringUtils.isEmpty(detail.getMemo())) {
             memo = "(" + detail.getMemo().trim() + ")";
         }
         return detail.getDrugName().replace("（", "(").replace("）", ")") + memo + " " + dTotal;
