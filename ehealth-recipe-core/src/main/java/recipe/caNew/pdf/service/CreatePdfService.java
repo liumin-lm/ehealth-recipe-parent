@@ -112,4 +112,14 @@ public interface CreatePdfService {
      * @return
      */
     SignImgNode updateGiveUser(Recipe recipe);
+
+    /**
+     * pdf 机构印章
+     *
+     * @param recipeId    处方id
+     * @param organSealId 印章文件id
+     * @param fileId      pdf文件id
+     * @return
+     */
+    SignImgNode updateSealPdf(Integer recipeId, String organSealId, String fileId);
 }
