@@ -229,7 +229,7 @@ public class EmrRecipeManager extends BaseManager {
                 logger.error("EmrRecipeManager getMultiSearch error detailDTO={}", JSON.toJSONString(detailDTO));
             }
         }
-        logger.debug("EmrRecipeManager getMultiSearch recipe={}", JSON.toJSONString(recipe));
+        logger.debug("EmrRecipeManager getMultiSearch recipe={}", JSONUtils.toString(recipe));
     }
 
 
