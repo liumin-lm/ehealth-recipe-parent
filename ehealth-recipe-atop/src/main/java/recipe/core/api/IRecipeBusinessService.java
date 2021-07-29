@@ -46,7 +46,7 @@ public interface IRecipeBusinessService {
      * @param outPatientReqVO 当前就诊人信息
      * @return 是否有效
      */
-    boolean checkCurrentPatient(OutPatientReqVO outPatientReqVO);
+    Integer checkCurrentPatient(OutPatientReqVO outPatientReqVO);
 
     /**
      * 根据处方来源，复诊id查询未审核处方个数

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
+import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutRecipeDetailDTO;
@@ -16,6 +17,7 @@ import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.client.HealthCardClient;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
 import recipe.constant.ErrorCode;
@@ -55,6 +57,9 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Autowired
     private PatientClient patientClient;
+
+    @Autowired
+    private HealthCardClient healthCardClient;
 
     /**
      * 获取线下门诊处方诊断信息
@@ -141,9 +146,20 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
      * @return 是否有效
      */
     @Override
-    public boolean checkCurrentPatient(OutPatientReqVO outPatientReqVO){
+    public Integer checkCurrentPatient(OutPatientReqVO outPatientReqVO){
         logger.info("OutPatientRecipeService checkCurrentPatient outPatientReqVO:{}.", JSON.toJSONString(outPatientReqVO));
-        return true;
+        PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(outPatientReqVO.getMpiId());
+        if (null == patientDTO || !new Integer(1).equals(patientDTO.getStatus())) {
+            return CheckPatientEnum.CHECK_PATIENT_PATIENT.getType();
+        }
+        if (!new Integer(1).equals(patientDTO.getAuthStatus())) {
+            return CheckPatientEnum.CHECK_PATIENT_NOAUTH.getType();
+        }
+        Map<String, HealthCardDTO> result = healthCardClient.findHealthCard(outPatientReqVO.getMpiId());
+        if (null == result || !result.containsKey(outPatientReqVO.getCardID())) {
+            return CheckPatientEnum.CHECK_PATIENT_CARDDEL.getType();
+        }
+        return CheckPatientEnum.CHECK_PATIENT_NORMAL.getType();
     }
 
     /**
