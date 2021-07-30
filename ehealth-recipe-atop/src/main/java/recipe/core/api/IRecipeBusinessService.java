@@ -2,9 +2,7 @@ package recipe.core.api;
 
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
-import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
 import com.ngari.recipe.vo.*;
-import ctd.util.annotation.RpcService;
 
 import java.util.List;
 
@@ -40,13 +38,6 @@ public interface IRecipeBusinessService {
      * @return 用药指导出参
      */
     MedicationGuideResVO getMedicationGuide(MedicationGuidanceReqVO medicationGuidanceReqVO);
-
-    /**
-     * 校验当前就诊人是否有效
-     * @param outPatientReqVO 当前就诊人信息
-     * @return 是否有效
-     */
-    Integer checkCurrentPatient(OutPatientReqVO outPatientReqVO);
 
     /**
      * 根据处方来源，复诊id查询未审核处方个数
