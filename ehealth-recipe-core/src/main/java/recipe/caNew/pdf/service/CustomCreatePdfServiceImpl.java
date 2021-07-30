@@ -238,12 +238,12 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         CoOrdinateVO addressOrdinate = redisManager.getPdfCoords(recipe.getRecipeId(), "address");
         if (null != addressOrdinate) {
             addressOrdinate.setValue(address);
+            list.add(addressOrdinate);
             CoOrdinateVO receiver = new CoOrdinateVO();
             receiver.setX(addressOrdinate.getX());
             receiver.setY(addressOrdinate.getY() - 12);
             receiver.setValue("收货人姓名: " + order.getReceiver() + " " + "收货人电话: " + order.getRecMobile());
             list.add(receiver);
-            list.add(addressOrdinate);
         }
         logger.info("CustomCreatePdfServiceImpl updateAddressPdf   list ={}", JSON.toJSONString(list));
         return list;
@@ -268,7 +268,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
             return null;
         }
         return new SignImgNode(recipeId.toString(), organSealId, fileId, null, 90F, 90F
-                , (float) ordinateVO.getX() + 40, (float) ordinateVO.getY() - 40, false);
+                , (float) ordinateVO.getX() + 60, (float) ordinateVO.getY() - 60, false);
     }
 
     /**
