@@ -499,6 +499,14 @@ public class BaseOfflineToOnlineService {
             RecipeService.handleRecipeInvalidTime(recipe.getClinicOrgan(), recipe.getRecipeId(), recipe.getSignDate());
             saveRecipeExt(recipe, hisRecipe);
             savaRecipeDetail(recipe.getRecipeId(), hisRecipe);
+            //购药按钮
+            List<Integer> drugsEnterpriseContinue = drugsEnterpriseService.getDrugsEnterpriseContinue(recipe.getRecipeId(), recipe.getClinicOrgan());
+            LOGGER.info("getHisRecipeDetailByHisRecipeId recipeId = {} drugsEnterpriseContinue = {}", recipe.getRecipeId(), JSONUtils.toString(drugsEnterpriseContinue));
+            if (CollectionUtils.isNotEmpty(drugsEnterpriseContinue)) {
+                String join = StringUtils.join(drugsEnterpriseContinue, ",");
+                recipe.setRecipeSupportGiveMode(join);
+            }
+            recipeDAO.saveOrUpdate(recipe);
             LOGGER.info("BaseOfflineToOnlineService saveRecipeInfo res:{}", recipe.getRecipeId());
             return recipe.getRecipeId();
         }
@@ -625,16 +633,9 @@ public class BaseOfflineToOnlineService {
         //中药医嘱跟着处方 西药医嘱跟着药品（见药品详情）
         recipe.setRecipeMemo(hisRecipe.getRecipeMemo());
         recipe = recipeDAO.saveOrUpdate(recipe);
-        //购药按钮
-        List<Integer> drugsEnterpriseContinue = drugsEnterpriseService.getDrugsEnterpriseContinue(recipe.getRecipeId(), recipe.getClinicOrgan());
-        LOGGER.info("getHisRecipeDetailByHisRecipeId recipeId = {} drugsEnterpriseContinue = {}", recipe.getRecipeId(), JSONUtils.toString(drugsEnterpriseContinue));
-        if (CollectionUtils.isNotEmpty(drugsEnterpriseContinue)) {
-            String join = StringUtils.join(drugsEnterpriseContinue, ",");
-            recipe.setRecipeSupportGiveMode(join);
-        }
-        Recipe res = recipeDAO.saveOrUpdate(recipe);
+
         LOGGER.info("BaseOfflineToOnlineService saveRecipeFromHisRecipe res:{}", JSONUtils.toString(recipe));
-        return res;
+        return recipe;
     }
 
     /**
