@@ -15,10 +15,8 @@ import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.client.HealthCardClient;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
 import recipe.constant.ErrorCode;
@@ -58,9 +56,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Autowired
     private PatientClient patientClient;
-
-    @Autowired
-    private HealthCardClient healthCardClient;
 
     /**
      * 获取线下门诊处方诊断信息
@@ -139,28 +134,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         result.setType("h5");
         result.setData(linkInfo.get("url").toString());
         return result;
-    }
-
-    /**
-     * 校验当前就诊人是否有效
-     * @param outPatientReqVO 当前就诊人信息
-     * @return 是否有效
-     */
-    @Override
-    public Integer checkCurrentPatient(OutPatientReqVO outPatientReqVO){
-        logger.info("OutPatientRecipeService checkCurrentPatient outPatientReqVO:{}.", JSON.toJSONString(outPatientReqVO));
-        PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(outPatientReqVO.getMpiId());
-        if (null == patientDTO || !new Integer(1).equals(patientDTO.getStatus())) {
-            return CheckPatientEnum.CHECK_PATIENT_PATIENT.getType();
-        }
-        if (!new Integer(1).equals(patientDTO.getAuthStatus())) {
-            return CheckPatientEnum.CHECK_PATIENT_NOAUTH.getType();
-        }
-        Map<String, HealthCardDTO> result = healthCardClient.findHealthCard(outPatientReqVO.getMpiId());
-        if (null == result || (StringUtils.isNotEmpty(outPatientReqVO.getCardID()) && !result.containsKey(outPatientReqVO.getCardID()))) {
-            return CheckPatientEnum.CHECK_PATIENT_CARDDEL.getType();
-        }
-        return CheckPatientEnum.CHECK_PATIENT_NORMAL.getType();
     }
 
     /**

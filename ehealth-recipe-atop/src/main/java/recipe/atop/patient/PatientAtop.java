@@ -8,29 +8,30 @@ import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
-import recipe.core.api.IRecipeBusinessService;
+import recipe.core.api.patient.IRecipePatientService;
 
 /**
+ * 患者相关服务
  * @author yinsheng
  * @date 2021\7\29 0029 19:57
  */
-@RpcBean(value = "patientAtop", mvc_authentication = false)
+@RpcBean(value = "patientAtop")
 public class PatientAtop extends BaseAtop {
 
     @Autowired
-    private IRecipeBusinessService recipeBusinessService;
+    private IRecipePatientService recipePatientService;
 
     /**
-     * 校验当前就诊人是否有效
+     * 校验当前就诊人是否有效 是否实名认证 就诊卡是否有效
      * @param outPatientReqVO 当前就诊人信息
-     * @return 是否有效
+     * @return 枚举值
      */
     @RpcService
     public Integer checkCurrentPatient(OutPatientReqVO outPatientReqVO){
         logger.info("PatientInfoAtop checkCurrentPatient outPatientReqVO:{}.", JSON.toJSONString(outPatientReqVO));
         validateAtop(outPatientReqVO, outPatientReqVO.getMpiId());
         try {
-            Integer result = recipeBusinessService.checkCurrentPatient(outPatientReqVO);
+            Integer result = recipePatientService.checkCurrentPatient(outPatientReqVO);
             logger.info("PatientInfoAtop checkCurrentPatient result:{}.", result);
             return result;
         } catch (DAOException e1) {
