@@ -3664,6 +3664,11 @@ public class RecipeService extends RecipeBaseService {
 
     }
 
+    @RpcService
+    public void sendRecipeTagToPatientWithOfflineRecipe(String mpiId, Integer organId, String recipeCode, String cardId, Integer consultId, Integer doctorId) {
+        RecipeServiceSub.sendRecipeTagToPatientWithOfflineRecipe(mpiId, organId, recipeCode, cardId, consultId, doctorId);
+    }
+
     /**
      * 判断该处方是否支持医院取药
      *
