@@ -142,7 +142,7 @@ public class OfflineToOnlineService extends BaseService implements IOfflineToOnl
         //获取对应的status
         if (StringUtils.isEmpty(request.getStatus())) {
             String status = hisRecipeManager.attachHisRecipeStatus(request.getMpiId(), request.getOrganId(), request.getRecipeCode());
-            request.setMpiId(status);
+            request.setStatus(status);
         }
         logger.info("OfflineToOnlineService obtainFindHisRecipeDetailParam req:{}", JSONUtils.toString(request));
         return request;
