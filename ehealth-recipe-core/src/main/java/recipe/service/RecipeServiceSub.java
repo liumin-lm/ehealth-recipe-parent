@@ -1183,7 +1183,6 @@ public class RecipeServiceSub {
      * @param status
      * @param recipe
      * @param effective
-     * @param integer
      * @return
      */
     public static Map<String, String> getTipsByStatusCopy2(int status, Recipe recipe, Boolean effective, Integer orderStatus, Integer recipeRefundId) {
@@ -1534,10 +1533,10 @@ public class RecipeServiceSub {
             //获取审核不通过详情
             List<Map<String, Object>> mapList = recipeAuditService.getCheckNotPassDetail(recipeId);
             if(!ObjectUtils.isEmpty(mapList)){
-                for (int i = 0; i <mapList.size() ; i++) {
+                for (int i = 0; i < mapList.size(); i++) {
                     Map<String, Object> notPassMap = mapList.get(i);
-                    List<RecipeDetailBean> recipeDetailBeans = RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImplForDetail(recipe), isDoctor, recipe.getClinicOrgan());
-                    notPassMap.put("checkNotPassDetails", recipeDetailBeans);
+                    List<RecipeDetailBean> recipeDetailBeans = (List<RecipeDetailBean>)notPassMap.get("checkNotPassDetails");
+                    RecipeValidateUtil.setUsingRateIdAndUsePathwaysId(recipe, recipeDetailBeans.get(i));
                 }
             }
             map.put("reasonAndDetails", mapList);
