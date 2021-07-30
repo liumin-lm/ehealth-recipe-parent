@@ -1163,20 +1163,20 @@ public class QueryRecipeService implements IQueryRecipeService {
         ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
         //查询当前区域公众号下所有归属机构
         List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
-        LOGGER.info("getOrganForWeb organIds:{}", JSONUtils.toString(organIds));
+        LOGGER.info("queryOrganService getOrganForWeb organIds:{}", JSONUtils.toString(organIds));
         List<Integer> oganList = new ArrayList<>();
         //获取运营平台配置--是否开启查询线下处方
         IConfigurationCenterUtilsService utilsService = AppDomainContext.getBean("eh.configurationCenterUtils", IConfigurationCenterUtilsService.class);
         if (org.apache.commons.collections.CollectionUtils.isNotEmpty(organIds)) {
             //取反操作，获取所以未打开配置的机构  []--所以机构都打开
             List<Integer> organIdList = utilsService.findOrganByPropertyKeyAndValue("queryGetToHisRecipe", "false");
-            log.info("queryOrganService.getOrganByConfig.oganListBefore={}", JSONUtils.toString(organIdList));
+            log.info("queryOrganService getOrganByConfig oganListBefore={}", JSONUtils.toString(organIdList));
             if (CollectionUtils.isNotEmpty(organIdList)) {
                 organIds.removeAll(organIdList);
-                log.info("queryOrganService.getOrganByConfig.organIds.size={}", JSONUtils.toString(organIds.size()));
+                log.info("queryOrganService getOrganByConfig organIds.size={}", JSONUtils.toString(organIds.size()));
                 return organIds;
             }
-            log.info("queryOrganService.getOrganByConfig.organIds={}", JSONUtils.toString(organIds));
+            log.info("queryOrganService getOrganByConfig organIds={}", JSONUtils.toString(organIds));
             if (organIds.contains(-1)) {
                 organIds.remove(new Integer(-1));
             }
