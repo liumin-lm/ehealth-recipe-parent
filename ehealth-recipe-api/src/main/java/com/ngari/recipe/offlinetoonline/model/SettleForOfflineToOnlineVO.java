@@ -1,6 +1,5 @@
 package com.ngari.recipe.offlinetoonline.model;
 
-import lombok.Builder;
 import lombok.Data;
 
 import javax.validation.constraints.NotNull;
@@ -13,7 +12,6 @@ import java.util.List;
  * @Description 线下转线上获取详情参数
  */
 @Data
-@Builder
 public class SettleForOfflineToOnlineVO implements Serializable {
     private static final long serialVersionUID = -7727248592234567484L;
 
