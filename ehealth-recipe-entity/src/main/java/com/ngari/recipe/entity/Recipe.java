@@ -5,6 +5,8 @@ import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -20,6 +22,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Schema
 @Table(name = "cdr_recipe")
 @Access(AccessType.PROPERTY)
+@NoArgsConstructor
 public class Recipe implements Serializable {
 
     private static final long serialVersionUID = -6170665419368031590L;
@@ -373,147 +376,6 @@ public class Recipe implements Serializable {
 
     public void setRecipeSupportGiveMode(String recipeSupportGiveMode) {
         this.recipeSupportGiveMode = recipeSupportGiveMode;
-    }
-
-    public Recipe() {
-    }
-
-    public Recipe(Integer recipeId, Integer clinicId, String mpiid,
-                  Integer clinicOrgan, String recipeCode) {
-        this.recipeId = recipeId;
-        this.clinicId = clinicId;
-        this.mpiid = mpiid;
-        this.clinicOrgan = clinicOrgan;
-        this.recipeCode = recipeCode;
-    }
-
-    public Recipe(Integer recipeId, String mpiid, Integer doctor, Date checkDate, Integer recipeType, Date signDate) {
-        this.recipeId = recipeId;
-        this.mpiid = mpiid;
-        this.doctor = doctor;
-        this.checkDate = checkDate;
-        this.recipeType = recipeType;
-        this.signDate = signDate;
-    }
-
-    public Recipe(Integer recipeId, Date signDate) {
-        this.recipeId = recipeId;
-        this.signDate = signDate;
-    }
-
-    public Recipe(Integer recipeId, Integer clinicId, String mpiid,
-                  Integer clinicOrgan, String recipeCode, Integer recipeType,
-                  Integer depart, Integer doctor, Date createDate, Integer copyNum,
-                  BigDecimal totalMoney, String organDiseaseName, String organDiseaseId,
-                  Integer payFlag, Date payDate, Integer payListId, Integer giveOrgan,
-                  Integer giveFlag, Date giveDate, Integer valueDays,
-                  Integer checkOrgan, Date checkDate, Integer checker,
-                  Integer payMode, Integer giveMode, String giveUser,
-                  String signFile, String receiver, String recMobile, String recTel,
-                  String address1, String address2, String address3, String address4,
-                  String zipCode, Integer addressId, Integer status, Integer fromflag, Date lastModify,
-                  Date startSendDate, Date sendDate, Date signDate) {
-        super();
-        this.recipeId = recipeId;
-        this.clinicId = clinicId;
-        this.mpiid = mpiid;
-        this.clinicOrgan = clinicOrgan;
-        this.recipeCode = recipeCode;
-        this.recipeType = recipeType;
-        this.depart = depart;
-        this.doctor = doctor;
-        this.createDate = createDate;
-        this.copyNum = copyNum;
-        this.totalMoney = totalMoney;
-        this.organDiseaseName = organDiseaseName;
-        this.organDiseaseId = organDiseaseId;
-        this.payFlag = payFlag;
-        this.payDate = payDate;
-        this.payListId = payListId;
-        this.giveOrgan = giveOrgan;
-        this.giveFlag = giveFlag;
-        this.giveDate = giveDate;
-        this.valueDays = valueDays;
-        this.checkOrgan = checkOrgan;
-        this.checkDate = checkDate;
-        this.checker = checker;
-        this.payMode = payMode;
-        this.giveMode = giveMode;
-        this.giveUser = giveUser;
-        this.signFile = signFile;
-        this.receiver = receiver;
-        this.recMobile = recMobile;
-        this.recTel = recTel;
-        this.address1 = address1;
-        this.address2 = address2;
-        this.address3 = address3;
-        this.address4 = address4;
-        this.zipCode = zipCode;
-        this.addressId = addressId;
-        this.status = status;
-        this.fromflag = fromflag;
-        this.lastModify = lastModify;
-        this.startSendDate = startSendDate;
-        this.sendDate = sendDate;
-        this.signDate = signDate;
-    }
-
-    public Recipe(Integer recipeId, Integer clinicId, String mpiid,
-                  Integer clinicOrgan, String recipeCode, Integer recipeType,
-                  Integer depart, Integer doctor, Date createDate, Integer copyNum,
-                  BigDecimal totalMoney, String organDiseaseName, String organDiseaseId,
-                  Integer payFlag, Date payDate, Integer payListId, Integer giveOrgan,
-                  Integer giveFlag, Date giveDate, Integer valueDays,
-                  Integer checkOrgan, Date checkDate, Integer checker,
-                  Integer payMode, Integer giveMode, String giveUser,
-                  String signFile, String receiver, String recMobile, String recTel,
-                  String address1, String address2, String address3, String address4,
-                  String zipCode, Integer addressId, Integer status, Integer fromflag, Date lastModify,
-                  Date startSendDate, Date sendDate, Date signDate, String memo) {
-        super();
-        this.recipeId = recipeId;
-        this.clinicId = clinicId;
-        this.mpiid = mpiid;
-        this.clinicOrgan = clinicOrgan;
-        this.recipeCode = recipeCode;
-        this.recipeType = recipeType;
-        this.depart = depart;
-        this.doctor = doctor;
-        this.createDate = createDate;
-        this.copyNum = copyNum;
-        this.totalMoney = totalMoney;
-        this.organDiseaseName = organDiseaseName;
-        this.organDiseaseId = organDiseaseId;
-        this.payFlag = payFlag;
-        this.payDate = payDate;
-        this.payListId = payListId;
-        this.giveOrgan = giveOrgan;
-        this.giveFlag = giveFlag;
-        this.giveDate = giveDate;
-        this.valueDays = valueDays;
-        this.checkOrgan = checkOrgan;
-        this.checkDate = checkDate;
-        this.checker = checker;
-        this.payMode = payMode;
-        this.giveMode = giveMode;
-        this.giveUser = giveUser;
-        this.signFile = signFile;
-        this.receiver = receiver;
-        this.recMobile = recMobile;
-        this.recTel = recTel;
-        this.address1 = address1;
-        this.address2 = address2;
-        this.address3 = address3;
-        this.address4 = address4;
-        this.zipCode = zipCode;
-        this.addressId = addressId;
-        this.status = status;
-        this.fromflag = fromflag;
-        this.lastModify = lastModify;
-        this.startSendDate = startSendDate;
-        this.sendDate = sendDate;
-        this.signDate = signDate;
-        this.memo = memo;
     }
 
     @Column(name = "invalidTime")
@@ -1471,11 +1333,14 @@ public class Recipe implements Serializable {
         this.recipeId = recipeId;
         this.supplementaryMemo = supplementaryMemo;
     }
-
     public Recipe(Integer recipeId, Integer clinicOrgan, Integer recipeType) {
         this.recipeId = recipeId;
         this.clinicOrgan = clinicOrgan;
         this.recipeType = recipeType;
+    }
+    public Recipe(Integer recipeId, Date signDate) {
+        this.recipeId = recipeId;
+        this.signDate = signDate;
     }
 }
 

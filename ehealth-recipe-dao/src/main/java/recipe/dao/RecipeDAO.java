@@ -375,12 +375,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     /**
      * 保存或更新recipe
+     *
      * @param recipe
      */
     public Recipe saveOrUpdate(Recipe recipe) {
-        if(null == recipe.getRecipeId()){
+        if (null == recipe.getRecipeId()) {
             return save(recipe);
-        }else{
+        } else {
             return update(recipe);
         }
     }
@@ -1092,6 +1093,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     /**
      * 获取未缴费处方号
+     *
      * @param recipeCodeList
      * @param clinicOrgan
      * @return
@@ -1099,12 +1101,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public List<String> findNoPayRecipeList(final List<String> recipeCodeList, final Integer clinicOrgan) {
         HibernateStatelessResultAction<List<String>> action = new AbstractHibernateStatelessResultAction<List<String>>() {
             @Override
-            public void execute(StatelessSession ss) throws Exception {                StringBuilder hql = new StringBuilder();
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
                 hql.append("select DISTINCT r.recipeCode from Recipe r, RecipeOrder o where r.orderCode=o.orderCode and clinicOrgan=:clinicOrgan and  recipeCode in (:recipeCodeList) and o.payFlag=0  ");
                 Query q = ss.createQuery(hql.toString());
                 q.setParameterList("recipeCodeList", recipeCodeList);
                 q.setParameter("clinicOrgan", clinicOrgan);
-                List<String> recipeCodes=q.list();
+                List<String> recipeCodes = q.list();
                 setResult(recipeCodes);
             }
         };
@@ -3465,9 +3468,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param limit
      * @return
      */
-    @DAOMethod(sql = "from Recipe where clinicOrgan=:clinicOrgan and mpiId=:mpiId order by signDate DESC")
+    @DAOMethod(sql = "from Recipe where clinicOrgan=:clinicOrgan and mpiId=:mpiId order by signDate DESC", limit = 0)
     public abstract List<Recipe> queryRecipeInfoByMpiIdAndOrganId(@DAOParam("mpiId") String mpiId, @DAOParam("clinicOrgan") Integer clinicOrgan, @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
-    @DAOMethod(sql = "from Recipe where clinicOrgan in(:clinicOrgans) and mpiId=:mpiId order by signDate DESC")
+
+    @DAOMethod(sql = "from Recipe where clinicOrgan in(:clinicOrgans) and mpiId=:mpiId order by signDate DESC", limit = 0)
     public abstract List<Recipe> queryRecipeInfoByMpiIdAndOrganIds(@DAOParam("mpiId") String mpiId, @DAOParam("clinicOrgans") List<Integer> clinicOrgans, @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
 
     public Integer getNumCanMergeRecipeByMergeRecipeWay(String mpiId, String registerId, Integer organId, String mergeRecipeWay, String chronicDiseaseName) {
@@ -3605,11 +3609,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameterList("allMpiIds", allMpiIds);
                 q.setParameterList("recipeStatus", recipeStatus);
-                q.setParameter("start",start);
-                q.setParameter("limit",limit);
+                q.setParameter("start", start);
+                q.setParameter("limit", limit);
 
 
-                logger.info("findRecipeListByMPIId hql={}",hql.toString());
+                logger.info("findRecipeListByMPIId hql={}", hql.toString());
                 List<Object[]> result = q.list();
                 List<RecipeListBean> backList = new ArrayList<>(limit);
                 if (CollectionUtils.isNotEmpty(result)) {
@@ -3701,13 +3705,14 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
     /**
-    * @Description: 根据复诊ID查询状态为药师未审核的处方个数
-    * @Param: bussSource
-     * @Param: ClinicID
-    * @return:
-    * @Date: 2021/7/19
-    */
+     * 根据复诊ID查询状态为药师未审核的处方个数
+     *
+     * @param bussSource 处方来源
+     * @param ClinicID   复诊ID
+     * @date 2021/7/19
+     */
     @DAOMethod(sql = "SELECT COUNT(1) FROM Recipe WHERE bussSource=:bussSource AND ClinicID=:ClinicID AND status IN (:recipeStatus)")
     public abstract Long getRecipeCountByBussSourceAndClinicIdAndStatus(@DAOParam("bussSource") Integer bussSource, @DAOParam("ClinicID") Integer ClinicID, @DAOParam("recipeStatus") List<Integer> recipeStatus);
 }

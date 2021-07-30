@@ -2,9 +2,11 @@ package recipe.atop.patient;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
+import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
 import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
+import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
@@ -15,6 +17,7 @@ import recipe.constant.HisErrorCodeEnum;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.util.DateConversion;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -25,7 +28,7 @@ import java.util.stream.Collectors;
  * @author yinsheng
  * @date 2021\7\16 0016 14:04
  */
-@RpcBean(value = "outRecipePatientAtop", mvc_authentication = false)
+@RpcBean(value = "outRecipePatientAtop")
 public class OutRecipePatientAtop extends BaseAtop {
 
     @Autowired
@@ -44,13 +47,24 @@ public class OutRecipePatientAtop extends BaseAtop {
             //设置默认查询时间3个月
             outPatientRecipeReqVO.setBeginTime(DateConversion.getDateFormatter(DateConversion.getMonthsAgo(3), DateConversion.DEFAULT_DATE_TIME));
             outPatientRecipeReqVO.setEndTime(DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
-            List<OutPatientRecipeVO> result = recipeBusinessService.queryOutPatientRecipe(outPatientRecipeReqVO);
-            result.forEach(outPatientRecipeVO -> {
+            //获取线下门诊处方
+            List<OutPatientRecipeDTO> outPatientRecipeDTOS = recipeBusinessService.queryOutPatientRecipe(outPatientRecipeReqVO);
+            //按照开方时间倒序
+            outPatientRecipeDTOS = outPatientRecipeDTOS.stream().sorted(Comparator.comparing(OutPatientRecipeDTO::getCreateDate).reversed()).collect(Collectors.toList());
+            //包装前端展示信息
+            final List<OutPatientRecipeVO> result = new ArrayList<>();
+            outPatientRecipeDTOS.forEach(outPatientRecipeDTO -> {
+                OutPatientRecipeVO outPatientRecipeVO = new OutPatientRecipeVO();
+                BeanUtils.copy(outPatientRecipeDTO, outPatientRecipeVO);
                 outPatientRecipeVO.setStatusText(OutRecipeStatusEnum.getName(outPatientRecipeVO.getStatus()));
                 outPatientRecipeVO.setGiveModeText(OutRecipeGiveModeEnum.getName(outPatientRecipeVO.getGiveMode()));
+                outPatientRecipeVO.setRecipeTypeText(OutRecipeRecipeTypeEnum.getName(outPatientRecipeVO.getRecipeType()));
                 outPatientRecipeVO.setOrganId(outPatientRecipeReqVO.getOrganId());
+                if (StringUtils.isEmpty(outPatientRecipeVO.getOrganName())) {
+                    outPatientRecipeVO.setOrganName(outPatientRecipeReqVO.getOrganName());
+                }
+                result.add(outPatientRecipeVO);
             });
-            result = result.stream().sorted(Comparator.comparing(OutPatientRecipeVO::getCreateDate).reversed()).collect(Collectors.toList());
             logger.info("OutPatientRecipeAtop queryOutPatientRecipe result:{}.", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
@@ -123,33 +137,13 @@ public class OutRecipePatientAtop extends BaseAtop {
         logger.info("OutPatientRecipeAtop getMedicationGuide medicationGuidanceReqVO:{}.", JSON.toJSONString(medicationGuidanceReqVO));
         try {
             MedicationGuideResVO result = recipeBusinessService.getMedicationGuide(medicationGuidanceReqVO);
-            logger.info("OutPatientRecipeAtop getMedicationGuide result = {}", result);
+            logger.info("OutPatientRecipeAtop getMedicationGuide result = {}", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
             logger.error("OutPatientRecipeAtop getMedicationGuide error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("OutPatientRecipeAtop getMedicationGuide error e", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
-    }
-
-    /**
-     * 校验当前就诊人是否有效
-     * @param outPatientReqVO 当前就诊人信息
-     * @return 是否有效
-     */
-    @RpcService
-    public boolean checkCurrentPatient(OutPatientReqVO outPatientReqVO){
-        logger.info("OutPatientRecipeAtop checkCurrentPatient outPatientReqVO:{}.", JSON.toJSONString(outPatientReqVO));
-        validateAtop(outPatientReqVO, outPatientReqVO.getMpiId());
-        try {
-            return  recipeBusinessService.checkCurrentPatient(outPatientReqVO);
-        } catch (DAOException e1) {
-            logger.error("OutPatientRecipeAtop checkCurrentPatient error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("OutPatientRecipeAtop checkCurrentPatient error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }

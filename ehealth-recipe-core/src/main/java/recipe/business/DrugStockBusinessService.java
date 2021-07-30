@@ -8,6 +8,7 @@ import com.ngari.recipe.dto.DoSignRecipeDTO;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.recipe.constant.DrugStockCheckEnum;
 import com.ngari.recipe.recipe.constant.RecipeSupportGiveModeEnum;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
@@ -101,13 +102,13 @@ public class DrugStockBusinessService extends BaseService {
         SupportDepListBean allSupportDepList = null;
         doSignRecipe.setCheckFlag(checkFlag);
 
-        if (1 == checkFlag) {
+        if (DrugStockCheckEnum.HOS_CHECK_STOCK.getType().equals(checkFlag)) {
             //只校验医院库存
             scanResult = drugStockManager.scanDrugStockByRecipeId(recipeNew, recipeDetails);
             if (RecipeResultBean.FAIL.equals(scanResult.getCode())) {
                 drugStockManager.doSignRecipe(doSignRecipe, scanResult.getObject(), "药品门诊药房库存不足，请更换其他药品后再试");
             }
-        } else if (2 == checkFlag) {
+        } else if (DrugStockCheckEnum.ENT_CHECK_STOCK.getType().equals(checkFlag)) {
             //查询药企库存
             allSupportDepList = findAllSupportDepList(recipeNew, recipeDetails);
             drugStockManager.checkDrugEnterprise(doSignRecipe, recipe.getClinicOrgan(), recipeDetails);
@@ -116,7 +117,7 @@ public class DrugStockBusinessService extends BaseService {
                 List<Object> object = drugEnterpriseResults.stream().map(RecipeResultBean::getObject).collect(Collectors.toList());
                 drugStockManager.checkEnterprise(doSignRecipe, object);
             }
-        } else if (3 == checkFlag) {
+        } else if (DrugStockCheckEnum.ALL_CHECK_STOCK.getType().equals(checkFlag)) {
             /**校验 医院/药企 库存*/
             //药企库存
             allSupportDepList = findAllSupportDepList(recipeNew, recipeDetails);
@@ -130,7 +131,7 @@ public class DrugStockBusinessService extends BaseService {
             //医院库存
             scanResult = drugStockManager.scanDrugStockByRecipeId(recipeNew, recipeDetails);
             //校验医院药企库存
-            drugStockManager.checkEnterpriseAndHospital(doSignRecipe, recipe.getClinicOrgan(), enterpriseDrugName, scanResult);
+            drugStockManager.checkEnterpriseAndHospital(doSignRecipe, recipe.getClinicOrgan(), enterpriseDrugName, scanResult, allSupportDepList.getHaveList());
         }
         //保存药品购药方式
         saveGiveMode(scanResult, allSupportDepList, checkFlag, recipeId, recipe.getClinicOrgan(), configurations);
@@ -171,8 +172,11 @@ public class DrugStockBusinessService extends BaseService {
      * @param configurations
      */
     private void saveGiveMode(com.ngari.platform.recipe.mode.RecipeResultBean scanResult, SupportDepListBean allSupportDepList, int checkFlag, Integer recipeId, int organId, List<String> configurations) {
-        List<DrugsEnterprise> supportDepList = allSupportDepList.getHaveList();
         RecipeBusiThreadPool.execute(() -> {
+            List<DrugsEnterprise> supportDepList = null;
+            if (!Objects.isNull(allSupportDepList)) {
+                supportDepList = allSupportDepList.getHaveList();
+            }
             List<Integer> recipeGiveMode = drugsEnterpriseService.getRecipeGiveMode(scanResult, supportDepList, checkFlag, recipeId, organId, configurations);
             if (CollectionUtils.isNotEmpty(recipeGiveMode)) {
                 Map<String, Object> attMap = new HashMap<>();

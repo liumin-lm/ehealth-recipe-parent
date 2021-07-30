@@ -1,4 +1,4 @@
-package recipe.business.offlinetoonline.impl;
+package recipe.factory.offlinetoonline.impl;
 
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
@@ -15,8 +15,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.business.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.enumerate.status.OfflineToOnlineEnum;
+import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.manager.HisRecipeManager;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 

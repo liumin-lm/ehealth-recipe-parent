@@ -139,12 +139,14 @@ public class MedicationGuideService {
         }
         //获取用药指导链接
         Map<String, Object> map = getHtml5Link(patient, recipe, recipeDetails, hosPatientRecipeDTO.getReqType());
-        map.put("doctorName",hosRecipe.getDoctorName());
+        map.put("recipeDoctor",hosRecipe.getDoctorName());
         map.put("recipeType",hosRecipe.getRecipeType());
         map.put("organId",recipe.getClinicOrgan());
         map.put("idCard",hosPatient.getCertificate());
         map.put("patientName",hosPatient.getPatientName());
+        map.put("recipeTime",hosRecipe.getSignTime());
         map.put("signTime",hosRecipe.getSignTime());
+        map.put("doctorName",hosRecipe.getDoctorName());
         map.put("appId",appId);
         map.put("openId",openId);
         RecipeMsgService.sendMedicationGuideMsg(map);

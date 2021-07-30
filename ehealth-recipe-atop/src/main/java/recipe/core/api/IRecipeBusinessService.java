@@ -1,9 +1,8 @@
 package recipe.core.api;
 
 import com.ngari.recipe.dto.DiseaseInfoDTO;
-import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
+import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.vo.*;
-import ctd.util.annotation.RpcService;
 
 import java.util.List;
 
@@ -24,7 +23,7 @@ public interface IRecipeBusinessService {
      * 查询门诊处方信息
      * @param outPatientRecipeReqVO 患者信息
      */
-    List<OutPatientRecipeVO> queryOutPatientRecipe(OutPatientRecipeReqVO outPatientRecipeReqVO);
+    List<OutPatientRecipeDTO> queryOutPatientRecipe(OutPatientRecipeReqVO outPatientRecipeReqVO);
 
     /**
      * 获取门诊处方详情信息
@@ -41,18 +40,11 @@ public interface IRecipeBusinessService {
     MedicationGuideResVO getMedicationGuide(MedicationGuidanceReqVO medicationGuidanceReqVO);
 
     /**
-     * 校验当前就诊人是否有效
-     * @param outPatientReqVO 当前就诊人信息
-     * @return 是否有效
-     */
-    boolean checkCurrentPatient(OutPatientReqVO outPatientReqVO);
-
-    /**
-     * @Description: 根据处方来源，复诊id查询未审核处方个数
-     * @Param: bussSource 处方来源
-     * @Param: clinicId 复诊Id
-     * @return: True存在 False不存在
-     * @Date: 2021/7/20
+     * 根据处方来源，复诊id查询未审核处方个数
+     * @param bussSource 处方来源
+     * @param clinicId 复诊Id
+     * @return True存在 False不存在
+     * @date 2021/7/20
      */
     Boolean existUncheckRecipe(Integer bussSource, Integer clinicId);
 }

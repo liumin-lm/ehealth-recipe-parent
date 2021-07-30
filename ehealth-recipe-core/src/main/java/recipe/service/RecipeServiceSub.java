@@ -1183,7 +1183,6 @@ public class RecipeServiceSub {
      * @param status
      * @param recipe
      * @param effective
-     * @param integer
      * @return
      */
     public static Map<String, String> getTipsByStatusCopy2(int status, Recipe recipe, Boolean effective, Integer orderStatus, Integer recipeRefundId) {
@@ -1533,6 +1532,15 @@ public class RecipeServiceSub {
             IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
             //获取审核不通过详情
             List<Map<String, Object>> mapList = recipeAuditService.getCheckNotPassDetail(recipeId);
+            if(!ObjectUtils.isEmpty(mapList)){
+                for (int i = 0; i < mapList.size(); i++) {
+                    Map<String, Object> notPassMap = mapList.get(i);
+                    List<RecipeDetailBean> recipeDetailBeans = (List<RecipeDetailBean>)notPassMap.get("checkNotPassDetails");
+                    for (RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
+                        RecipeValidateUtil.setUsingRateIdAndUsePathwaysId(recipe, recipeDetailBean);
+                    }
+                }
+            }
             map.put("reasonAndDetails", mapList);
 
             //设置处方撤销标识 true:可以撤销, false:不可撤销

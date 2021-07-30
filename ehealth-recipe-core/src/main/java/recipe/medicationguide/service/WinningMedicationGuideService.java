@@ -41,6 +41,7 @@ import recipe.manager.EmrRecipeManager;
 import recipe.medicationguide.bean.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -133,8 +134,14 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
             req.setDrugUseList(drugUseParam);
             //组装诊断信息数据
             List<DiagnosisInfoDTO> diagnosisParam = Lists.newArrayList();
-            List<String> icd10Lists = Splitter.on("；").splitToList(recipeBean.getOrganDiseaseId());
-            List<String> nameLists = Splitter.on("；").splitToList(recipeBean.getOrganDiseaseName());
+            List<String> icd10Lists = new ArrayList<>();
+            List<String> nameLists = new ArrayList<>();
+            if (StringUtils.isNotEmpty(recipeBean.getOrganDiseaseId())) {
+                icd10Lists = Splitter.on(";").splitToList(recipeBean.getOrganDiseaseId());
+            }
+            if (StringUtils.isNotEmpty(recipeBean.getOrganDiseaseName())) {
+                nameLists = Splitter.on(";").splitToList(recipeBean.getOrganDiseaseName());
+            }
             if (icd10Lists.size() == nameLists.size()) {
                 for (int i = 0; i < icd10Lists.size(); i++) {
                     DiagnosisInfoDTO diagnosis = new DiagnosisInfoDTO();

@@ -16,6 +16,16 @@ import java.util.List;
  * @author fuzi
  */
 public interface CreatePdfService {
+
+    /**
+     * 获取 pdf byte 文件
+     *
+     * @param recipe
+     * @return
+     * @throws Exception
+     */
+    byte[] queryPdfByte(Recipe recipe) throws Exception;
+
     /**
      * 获取pdf oss id
      *
@@ -27,17 +37,22 @@ public interface CreatePdfService {
     /**
      * 获取pdf Byte字节 给前端SDK
      *
-     * @param recipe 处方信息
+     * @param recipeId 处方信息
+     * @param data     pdf 文件
      * @return
      */
-    CaSealRequestTO queryPdfByte(Recipe recipe) throws Exception;
+    CaSealRequestTO queryPdfBase64(byte[] data, Integer recipeId) throws Exception;
 
     /**
      * 在pdf中添加 医生签名
      *
-     * @param recipe
+     * @param data        pdf 文件
+     * @param recipeId    处方id
+     * @param signImgNode 签名对象
+     * @return
+     * @throws Exception
      */
-    String updateDoctorNamePdf(Recipe recipe, SignImgNode signImgNode) throws Exception;
+    String updateDoctorNamePdf(byte[] data, Integer recipeId, SignImgNode signImgNode) throws Exception;
 
     /**
      * 获取药师签名 pdf Byte字节 给前端SDK
@@ -97,4 +112,14 @@ public interface CreatePdfService {
      * @return
      */
     SignImgNode updateGiveUser(Recipe recipe);
+
+    /**
+     * pdf 机构印章
+     *
+     * @param recipeId    处方id
+     * @param organSealId 印章文件id
+     * @param fileId      pdf文件id
+     * @return
+     */
+    SignImgNode updateSealPdf(Integer recipeId, String organSealId, String fileId);
 }

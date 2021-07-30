@@ -65,7 +65,7 @@ public class OfflineToOnlineAtop extends BaseAtop {
     @RpcService
     public FindHisRecipeDetailResVO findHisRecipeDetail(FindHisRecipeDetailReqVO request) {
         logger.info("OfflineToOnlineAtop findHisRecipeDetail request:{}", ctd.util.JSONUtils.toString(request));
-        validateAtop(request, request.getOrganId(), request.getMpiId(), request.getStatus());
+        validateAtop(request, request.getOrganId(), request.getMpiId());
         try {
             FindHisRecipeDetailResVO findHisRecipeDetailResVO = offlineToOnlineService.findHisRecipeDetail(request);
             logger.info("OfflineToOnlineAtop findHisRecipeDetail res findHisRecipeDetailResVO:{}", ctd.util.JSONUtils.toString(findHisRecipeDetailResVO));
@@ -103,5 +103,30 @@ public class OfflineToOnlineAtop extends BaseAtop {
         }
 
     }
+
+    /**
+     * 获取卡类型
+     *
+     * @param organId
+     * @return
+     */
+    @RpcService
+    public List<String> getCardType(Integer organId) {
+        logger.info("OfflineToOnlineAtop getCardType request={}", JSONUtils.toString(organId));
+        validateAtop(organId);
+        try {
+            List<String> res = offlineToOnlineService.getCardType(organId);
+            logger.info("OfflineToOnlineAtop getCardType result = {}", JSONUtils.toString(res));
+            return res;
+        } catch (DAOException e1) {
+            logger.error("OfflineToOnlineAtop getCardType error", e1);
+            throw new DAOException(e1.getCode(), e1.getMessage());
+        } catch (Exception e) {
+            logger.error("OfflineToOnlineAtop getCardType error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+
+    }
+
 
 }

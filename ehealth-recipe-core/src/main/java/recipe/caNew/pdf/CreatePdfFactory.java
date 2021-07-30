@@ -76,6 +76,7 @@ public class CreatePdfFactory {
             recipeUpdate.setRecipeId(recipe.getRecipeId());
             recipeUpdate.setSignFile(fileId);
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+            logger.info("CreatePdfFactory queryPdfOssId recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
         } catch (Exception e) {
             logger.error("CreatePdfFactory queryPdfOssId 使用平台医生部分pdf的,生成失败 recipe:{}", recipe.getRecipeId(), e);
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "获取pdf_oss_id格式生成失败");
@@ -93,18 +94,38 @@ public class CreatePdfFactory {
         Recipe recipe = validate(recipeId);
         CreatePdfService createPdfService = createPdfService(recipe);
         try {
-            CaSealRequestTO caSealRequest = createPdfService.queryPdfByte(recipe);
+            byte[] data = createPdfService.queryPdfByte(recipe);
+            CaSealRequestTO caSealRequest = createPdfService.queryPdfBase64(data, recipe.getRecipeId());
             if (null == caSealRequest) {
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "获取pdf_byte格式生成null");
             }
             return caSealRequest;
         } catch (Exception e) {
-            logger.error("CreatePdfFactory updateDoctorNamePdf 使用平台医生部分pdf的,生成失败 recipe:{}", recipe.getRecipeId(), e);
+            logger.error("CreatePdfFactory queryPdfByte 使用平台医生部分pdf的,生成失败 recipe:{}", recipe.getRecipeId(), e);
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "获取pdf_byte格式生成失败");
             return null;
         }
     }
 
+    /**
+     * 医生签名 标准对接CA方式 并返回CA对象
+     *
+     * @param recipe
+     * @return
+     * @throws Exception
+     */
+    public CaSealRequestTO updateDoctorNamePdfV1(Recipe recipe) throws Exception {
+        logger.info("CreatePdfFactory updateDoctorNamePdfV1 recipe:{}", recipe.getRecipeId());
+        CreatePdfService createPdfService = createPdfService(recipe);
+        byte[] data = createPdfService.queryPdfByte(recipe);
+        try {
+            updateDoctorNamePdf(recipe, data, createPdfService);
+        } catch (Exception e) {
+            logger.error("CreatePdfFactory updateDoctorNamePdfV1 使用平台医生部分pdf的,生成失败 recipe:{}", recipe.getRecipeId(), e);
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "医生部分pdf的生成失败");
+        }
+        return createPdfService.queryPdfBase64(data, recipe.getRecipeId());
+    }
 
     /**
      * 医生签名
@@ -114,33 +135,14 @@ public class CreatePdfFactory {
     public void updateDoctorNamePdf(Recipe recipe) {
         logger.info("CreatePdfFactory updateDoctorNamePdf recipe:{}", recipe.getRecipeId());
         try {
-            boolean usePlatform = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", true);
-            if (!usePlatform) {
-                return;
-            }
-            //设置签名图片
-            AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getRecipeId());
-            SignImgNode signImgNode = new SignImgNode();
-            signImgNode.setRecipeId(recipe.getRecipeId().toString());
-            signImgNode.setSignImgFileId(sttachSealPicDTO.getDoctorSignImg());
-            signImgNode.setHeight(20f);
-            signImgNode.setWidth(40f);
-            signImgNode.setRepeatWrite(false);
             CreatePdfService createPdfService = createPdfService(recipe);
-            String fileId = createPdfService.updateDoctorNamePdf(recipe, signImgNode);
-            if (StringUtils.isEmpty(fileId)) {
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "平台医生部分pdf的生成null");
-                return;
-            }
-            Recipe recipeUpdate = new Recipe();
-            recipeUpdate.setRecipeId(recipe.getRecipeId());
-            recipeUpdate.setSignFile(fileId);
-            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-            logger.info("CreatePdfFactory updateDoctorNamePdf recipeUpdate={}", JSON.toJSONString(recipeUpdate));
+            byte[] data = createPdfService.queryPdfByte(recipe);
+            updateDoctorNamePdf(recipe, data, createPdfService);
         } catch (Exception e) {
             logger.error("CreatePdfFactory updateDoctorNamePdf 使用平台医生部分pdf的,生成失败 recipe:{}", recipe.getRecipeId(), e);
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "平台医生部分pdf的生成失败");
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "医生部分pdf的生成失败");
         }
+
     }
 
     /**
@@ -190,7 +192,7 @@ public class CreatePdfFactory {
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
             logger.info("CreatePdfFactory updateCheckNamePdf  recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
         } catch (Exception e) {
-            logger.error("CreatePdfFactory updateCheckNamePdf  recipe: {}", recipe.getRecipeId());
+            logger.error("CreatePdfFactory updateCheckNamePdf  recipe: {}", recipe.getRecipeId(), e);
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "平台药师部分pdf的生成失败");
         }
     }
@@ -201,9 +203,9 @@ public class CreatePdfFactory {
      * @param recipeId
      */
     public void updateCheckNamePdfESign(Integer recipeId) {
+        logger.info("CreatePdfFactory updateCheckNamePdfEsign recipeId:{}", recipeId);
         Recipe recipe = validate(recipeId);
         CreatePdfService createPdfService = createPdfService(recipe);
-        logger.info("CreatePdfFactory updateCheckNamePdfEsign recipe:{}", JSON.toJSONString(recipe));
         boolean usePlatform = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", true);
         if (!usePlatform) {
             return;
@@ -225,12 +227,12 @@ public class CreatePdfFactory {
             String fileId = CreateRecipePdfUtil.signFileByte(data, "recipecheck" + recipe.getRecipeId() + ".pdf");
             Recipe recipeUpdate = new Recipe();
             recipeUpdate.setRecipeId(recipe.getRecipeId());
-            recipeUpdate.setSignFile(fileId);
+            recipeUpdate.setChemistSignFile(fileId);
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
             logger.info("CreatePdfFactory updateCheckNamePdfEsign  recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
         } catch (Exception e) {
-            logger.error("CreatePdfFactory updateCheckNamePdfEsign  recipe: {}", recipe.getRecipeId());
-            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "药师E签宝签名部分生成");
+            logger.error("CreatePdfFactory updateCheckNamePdfEsign  recipe: {}", recipe.getRecipeId(), e);
+            RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "药师E签宝签名部分生成失败");
         }
     }
 
@@ -248,32 +250,30 @@ public class CreatePdfFactory {
             logger.warn("CreatePdfFactory updateTotalPdfExecute recipeFee is null");
             return;
         }
-        Recipe recipe = validate(recipeId);
-        CreatePdfService createPdfService = createPdfService(recipe);
         RecipeBusiThreadPool.execute(() -> {
+            Recipe recipe = validate(recipeId);
+            CreatePdfService createPdfService = createPdfService(recipe);
             CoOrdinateVO coords = createPdfService.updateTotalPdf(recipe, recipeFee);
-            logger.info("CreatePdfFactory updateTotalPdfExecute  coords ={}", JSON.toJSONString(coords));
+            logger.info("CreatePdfFactory updateTotalPdfExecute  coords ={}, recipe ={}", JSON.toJSONString(coords), JSON.toJSONString(recipe));
             if (null == coords) {
                 return;
             }
             Recipe recipeUpdate = new Recipe();
-            String fileId = null;
             try {
                 if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-                    fileId = CreateRecipePdfUtil.generateCoOrdinatePdf(recipe.getChemistSignFile(), coords);
+                    String fileId = CreateRecipePdfUtil.generateCoOrdinatePdf(recipe.getChemistSignFile(), coords);
                     recipeUpdate.setChemistSignFile(fileId);
                 } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
-                    fileId = CreateRecipePdfUtil.generateCoOrdinatePdf(recipe.getSignFile(), coords);
+                    String fileId = CreateRecipePdfUtil.generateCoOrdinatePdf(recipe.getSignFile(), coords);
                     recipeUpdate.setSignFile(fileId);
                 }
             } catch (Exception e) {
                 logger.error("CreatePdfFactory updateTotalPdfExecute  error recipeId={}", recipeId, e);
                 return;
             }
-            if (StringUtils.isNotEmpty(fileId)) {
-                recipeUpdate.setRecipeId(recipeId);
-                recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-            }
+            recipeUpdate.setRecipeId(recipeId);
+            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+            logger.info("CreatePdfFactory updateTotalPdfExecute recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
         });
     }
 
@@ -284,9 +284,9 @@ public class CreatePdfFactory {
      */
     public void updateCodePdfExecute(Integer recipeId) {
         logger.info("CreatePdfFactory updateCodePdfExecute recipeId:{}", recipeId);
-        Recipe recipe = validate(recipeId);
-        CreatePdfService createPdfService = createPdfService(recipe);
         RecipeBusiThreadPool.execute(() -> {
+            Recipe recipe = validate(recipeId);
+            CreatePdfService createPdfService = createPdfService(recipe);
             try {
                 String fileId = createPdfService.updateCodePdf(recipe);
                 logger.info("CreatePdfFactory updateCodePdfExecute fileId ={}", fileId);
@@ -297,6 +297,7 @@ public class CreatePdfFactory {
                 recipeUpdate.setRecipeId(recipeId);
                 recipeUpdate.setSignFile(fileId);
                 recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+                logger.info("CreatePdfFactory updateCodePdfExecute recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
             } catch (Exception e) {
                 logger.error("CreatePdfFactory updateCodePdfExecute error！recipeId:{}", recipeId, e);
             }
@@ -315,27 +316,28 @@ public class CreatePdfFactory {
             logger.warn("CreatePdfFactory updateAddressPdfExecute   order is null  recipeId={}", recipeId);
             return;
         }
-        Recipe recipe = validate(recipeId);
-        CreatePdfService createPdfService = createPdfService(recipe);
         RecipeBusiThreadPool.execute(() -> {
+            Recipe recipe = validate(recipeId);
+            CreatePdfService createPdfService = createPdfService(recipe);
             try {
                 List<CoOrdinateVO> list = createPdfService.updateAddressPdf(recipe, order, getCompleteAddress(order));
-                logger.info("CreatePdfFactory updateAddressPdfExecute list ={}", JSON.toJSONString(list));
+                logger.info("CreatePdfFactory updateAddressPdfExecute list ={},recipe={}", JSON.toJSONString(list), JSON.toJSONString(recipe));
                 if (CollectionUtils.isEmpty(list)) {
                     return;
                 }
                 Recipe recipeUpdate = new Recipe();
                 String fileId = null;
                 if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-                    fileId = CreateRecipePdfUtil.generateOrdinateList(recipe.getSignFile(), list);
+                    fileId = CreateRecipePdfUtil.generateOrdinateList(recipe.getChemistSignFile(), list);
                     recipeUpdate.setChemistSignFile(fileId);
                 } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
                     fileId = CreateRecipePdfUtil.generateOrdinateList(recipe.getSignFile(), list);
-                    recipeUpdate.setChemistSignFile(fileId);
+                    recipeUpdate.setSignFile(fileId);
                 }
                 if (StringUtils.isNotEmpty(fileId)) {
                     recipeUpdate.setRecipeId(recipe.getRecipeId());
                     recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+                    logger.info("CreatePdfFactory updateAddressPdfExecute recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
                 }
             } catch (Exception e) {
                 logger.error("CreatePdfFactory updateAddressPdfExecute  recipe: {}", recipe.getRecipeId(), e);
@@ -371,27 +373,24 @@ public class CreatePdfFactory {
             return;
         }
         signImgNode.setSignImgFileId(apothecaryDTO.getGiveUserSignImg());
-        String fileId = null;
         Recipe recipeUpdate = new Recipe();
         try {
             if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
                 signImgNode.setSignFileId(recipe.getChemistSignFile());
-                fileId = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
+                String fileId = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
                 recipeUpdate.setChemistSignFile(fileId);
             } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
                 signImgNode.setSignFileId(recipe.getSignFile());
-                fileId = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
+                String fileId = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
                 recipeUpdate.setSignFile(fileId);
             }
         } catch (Exception e) {
             logger.error("CreatePdfFactory updateGiveUser  recipe: {}", recipe.getRecipeId(), e);
             return;
         }
+        recipeUpdate.setRecipeId(recipe.getRecipeId());
+        recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         logger.info("CreatePdfFactory updateGiveUser recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
-        if (StringUtils.isNotEmpty(fileId)) {
-            recipeUpdate.setRecipeId(recipe.getRecipeId());
-            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-        }
     }
 
 
@@ -403,17 +402,11 @@ public class CreatePdfFactory {
      */
     public void updatePdfToImg(Integer recipeId) {
         logger.info("CreatePdfFactory updatePdfToImg recipeId:{}", recipeId);
-        if (ValidateUtil.validateObjects(recipeId)) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "参数错误");
-        }
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        if (ValidateUtil.validateObjects(recipe, recipe.getSignFile())) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "参数错误");
-        }
-        if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
-            return;
-        }
         RecipeBusiThreadPool.execute(() -> {
+            Recipe recipe = validate(recipeId);
+            if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
+                return;
+            }
             try {
                 String imageFile = CreateRecipePdfUtil.updatePdfToImg(recipe.getRecipeId(), recipe.getSignFile());
                 if (StringUtils.isNotEmpty(imageFile)) {
@@ -435,8 +428,35 @@ public class CreatePdfFactory {
      * @param recipeId
      */
     public void updatesealPdfExecute(Integer recipeId) {
-        logger.info("CreatePdfFactory updatesealPdfExecute recipeId:{}", recipeId);
-        RecipeBusiThreadPool.execute(() -> updatesealPdf(recipeId));
+        RecipeBusiThreadPool.execute(() -> {
+            logger.info("GenerateSignetRecipePdfRunable start recipeId={}", recipeId);
+            Recipe recipe = recipeDAO.get(recipeId);
+            if (null == recipe || StringUtils.isEmpty(recipe.getChemistSignFile())) {
+                logger.info("GenerateSignetRecipePdfRunable recipe is null");
+                return;
+            }
+            //获取配置--机构印章
+            String organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), "organSeal", "");
+            if (StringUtils.isEmpty(organSealId)) {
+                logger.info("GenerateSignetRecipePdfRunable organSeal is null");
+                return;
+            }
+            CreatePdfService createPdfService = createPdfService(recipe);
+            try {
+                SignImgNode signImgNode = createPdfService.updateSealPdf(recipe.getRecipeId(), organSealId, recipe.getChemistSignFile());
+                String fileId = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
+                if (StringUtils.isEmpty(fileId)) {
+                    return;
+                }
+                Recipe recipeUpdate = new Recipe();
+                recipeUpdate.setRecipeId(recipeId);
+                recipeUpdate.setChemistSignFile(fileId);
+                recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+                logger.info("GenerateSignetRecipePdfRunable end recipeUpdate={}", JSON.toJSONString(recipeUpdate));
+            } catch (Exception e) {
+                logger.error("GenerateSignetRecipePdfRunable error recipeId={}, e={}", recipeId, e);
+            }
+        });
     }
 
 
@@ -464,36 +484,56 @@ public class CreatePdfFactory {
         return caSealRequest;
     }
 
-    private void updatesealPdf(Integer recipeId) {
-        logger.info("GenerateSignetRecipePdfRunable start recipeId={}", recipeId);
-        Recipe recipe = recipeDAO.get(recipeId);
-        if (null == recipe || StringUtils.isEmpty(recipe.getChemistSignFile())) {
-            logger.info("GenerateSignetRecipePdfRunable recipe is null");
-            return;
+    /**
+     * 获取天数 与 单位字符串展示
+     *
+     * @param useDaysB
+     * @param useDays
+     * @return
+     */
+    public static String getUseDays(String useDaysB, Integer useDays) {
+        if (StringUtils.isNotEmpty(useDaysB) && !"0".equals(useDaysB)) {
+            return useDaysB + "天";
         }
-        //获取配置--机构印章
-        String organSealId = configurationClient.getValueCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", "");
-        if (StringUtils.isEmpty(organSealId)) {
-            logger.info("GenerateSignetRecipePdfRunable organSeal is null");
-            return;
+        if (!ValidateUtil.integerIsEmpty(useDays)) {
+            return useDays + "天";
         }
-        try {
-            SignImgNode signImgNode = new SignImgNode(recipe.getRecipeId().toString(), recipe.getRecipeId().toString(),
-                    organSealId, recipe.getChemistSignFile(), null, 90F, 90F, 160f, 490f, false);
-            String fileId = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
-            if (StringUtils.isEmpty(fileId)) {
-                return;
-            }
-
-            Recipe recipeUpdate = new Recipe();
-            recipeUpdate.setRecipeId(recipeId);
-            recipeUpdate.setChemistSignFile(fileId);
-            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-            logger.info("GenerateSignetRecipePdfRunable end recipeUpdate={}", JSON.toJSONString(recipeUpdate));
-        } catch (Exception e) {
-            logger.error("GenerateSignetRecipePdfRunable error recipeId={}, e={}", recipeId, e);
-        }
+        return "";
     }
+
+
+    /**
+     * 更新医生签名文件
+     *
+     * @param recipe
+     * @param data
+     * @throws Exception
+     */
+    private void updateDoctorNamePdf(Recipe recipe, byte[] data, CreatePdfService createPdfService) throws Exception {
+        boolean usePlatform = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", true);
+        if (!usePlatform) {
+            return;
+        }
+        //设置签名图片
+        AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getRecipeId());
+        SignImgNode signImgNode = new SignImgNode();
+        signImgNode.setRecipeId(recipe.getRecipeId().toString());
+        signImgNode.setSignImgFileId(sttachSealPicDTO.getDoctorSignImg());
+        signImgNode.setHeight(20f);
+        signImgNode.setWidth(40f);
+        signImgNode.setRepeatWrite(false);
+        String fileId = createPdfService.updateDoctorNamePdf(data, recipe.getRecipeId(), signImgNode);
+        if (StringUtils.isEmpty(fileId)) {
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "医生部分pdf的生成null");
+            return;
+        }
+        Recipe recipeUpdate = new Recipe();
+        recipeUpdate.setRecipeId(recipe.getRecipeId());
+        recipeUpdate.setSignFile(fileId);
+        recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+        logger.info("CreatePdfFactory updateDoctorNamePdf recipeUpdate={}", JSON.toJSONString(recipeUpdate));
+    }
+
 
     private Recipe validate(Integer recipeId) {
         if (ValidateUtil.validateObjects(recipeId)) {
@@ -529,7 +569,12 @@ public class CreatePdfFactory {
         return createPdfService;
     }
 
-
+    /**
+     * 地址
+     *
+     * @param order
+     * @return
+     */
     private String getCompleteAddress(RecipeOrder order) {
         StringBuilder address = new StringBuilder();
         if (null != order) {

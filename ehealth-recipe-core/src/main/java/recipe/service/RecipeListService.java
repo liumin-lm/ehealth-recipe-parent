@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
@@ -959,6 +960,8 @@ public class RecipeListService extends RecipeBaseService {
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 
         List<String> allMpiIds = recipeService.getAllMemberPatientsByCurrentPatient(mpiId);
+        LOGGER.info("findRecipesForPatientAndTabStatusNew allMpiIds:{}", JSONArray.toJSONString(allMpiIds));
+
         List<PatientTabStatusMergeRecipeDTO> patientTabStatusMergeRecipeDTOS = Lists.newArrayList();
         //获取页面展示的对象
         TabStatusEnumNew recipeStatusList = TabStatusEnumNew.fromTabStatusAndStatusType(tabStatus, "recipe");
@@ -1720,13 +1723,14 @@ public class RecipeListService extends RecipeBaseService {
             return 0;
         }
 
-        if (ReviewTypeConstant.Preposition_Check == recipe.getReviewType()) {
+        if (ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType())) {
             //date 2019/10/10
             //添加一次审核不通过标识位
-            if (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus()) {
+            if (RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType().equals(recipe.getStatus())
+                    || RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_PHA.getType().equals(recipe.getStatus()) || RecipeStatusEnum.RECIPE_STATUS_SIGN_NO_CODE_PHA.getType().equals(recipe.getStatus())) {
                 return 0;
-            } else if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
-                if (RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus()) {
+            } else if (RecipeStatusEnum.RECIPE_STATUS_CHECK_NOT_PASS_YS.getType().equals(recipe.getStatus())) {
+                if (RecipecCheckStatusConstant.First_Check_No_Pass.equals(recipe.getCheckStatus())) {
                     return 0;
                 } else {
                     return 2;
@@ -1797,7 +1801,7 @@ public class RecipeListService extends RecipeBaseService {
                     if (RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType().equals(recipe.getStatus())) {
                         //如果是中药暂存只取药品名显示
                         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
-                            recipe.setRecipeDrugName(recipedetails.get(0).getDrugName());
+                            recipe.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipeDrugName(recipedetails.get(0), recipe.getRecipeType(), recipe.getClinicOrgan()));
                         } else {
                             //剂型获取---暂存重新获取配置药品名由于Recipedetail没有剂型要重新获取一遍
                             organDrugLists = organDrugListDAO.findByOrganIdAndOrganDrugCodeAndDrugIdWithoutStatus(recipe.getClinicOrgan(), recipedetails.get(0).getOrganDrugCode(), recipedetails.get(0).getDrugId());

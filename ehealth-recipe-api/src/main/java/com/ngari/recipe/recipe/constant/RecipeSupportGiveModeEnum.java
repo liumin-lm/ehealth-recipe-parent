@@ -84,16 +84,16 @@ public enum RecipeSupportGiveModeEnum {
      */
     public static Integer checkFlag(List<String> configurations) {
         if (CollectionUtils.isEmpty(configurations)) {
-            return 0;
+            return DrugStockCheckEnum.NO_CHECK_STOCK.getType();
         }
-        int hospital = 0;
-        int enterprise = 0;
+        int hospital = DrugStockCheckEnum.NO_CHECK_STOCK.getType();
+        int enterprise = DrugStockCheckEnum.NO_CHECK_STOCK.getType();
         for (String a : configurations) {
             if (SUPPORT_TO_HOS.getText().equals(a)) {
-                hospital = 1;
+                hospital = DrugStockCheckEnum.HOS_CHECK_STOCK.getType();
             }
             if (enterpriseList.contains(a)) {
-                enterprise = 2;
+                enterprise = DrugStockCheckEnum.ENT_CHECK_STOCK.getType();
             }
         }
         return hospital + enterprise;

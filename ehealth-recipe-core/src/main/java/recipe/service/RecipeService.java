@@ -764,11 +764,9 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.info("generateRecipePdfAndSign 签名成功. 高州CA模式, recipeId={}", recipe.getRecipeId());
         } else {
             memo = "签名成功,标准对接CA方式";
-            createPdfFactory.updateDoctorNamePdf(recipe);
-            LOGGER.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
             try {
                 //获取签章pdf数据。签名原文
-                CaSealRequestTO requestSealTO = createPdfFactory.queryPdfByte(recipeId);
+                CaSealRequestTO requestSealTO = createPdfFactory.updateDoctorNamePdfV1(recipe);
                 //获取签章图片
                 DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
                 DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(recipe.getDoctor());
@@ -790,7 +788,9 @@ public class RecipeService extends RecipeBaseService {
                 iCaRemoteService.commonCASignAndSealForRecipe(requestSealTO, recipeBean, organId, userAccount, caPassword);
                 //修改标准ca成异步操作，原先逻辑不做任何处理，抽出单独的异步实现接口
                 result.setCode(RecipeResultBean.NO_ADDRESS);
+                LOGGER.info("generateRecipePdfAndSign 签名成功. 标准对接CA模式, recipeId={}", recipe.getRecipeId());
             } catch (Exception e) {
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "标准对接CA方式 医生部分pdf的生成失败");
                 LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,doctor={} ,e==============", recipeId, recipe.getDoctor(), e);
                 result.setCode(RecipeResultBean.FAIL);
             }
@@ -1185,7 +1185,7 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
         } catch (Exception e) {
-            LOGGER.error("generateRecipePdfAndSign 标准化CA签章报错 recipeId={} ,doctor={} ,e==============", recipeId, recipe.getDoctor(), e);
+            LOGGER.error("retryCaDoctorCallBackToRecipe 标准化CA签章报错 recipeId={} ,doctor={} ,e==============", recipeId, recipe.getDoctor(), e);
         }
 
         //首先判断当前ca是否是有结束结果的
@@ -1743,6 +1743,7 @@ public class RecipeService extends RecipeBaseService {
         recipe.setSignDate(DateTime.now().toDate());
         Integer recipeId = recipe.getRecipeId();
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
+        details.stream().filter(a -> "无特殊煎法".equals(a.getMemo())).forEach(a -> a.setMemo(""));
         if (null != recipeId && recipeId > 0) {
             Integer status = recipeDAO.getStatusByRecipeId(recipeId);
             if (null == status || (status > RecipeStatusConstant.UNSIGN && status != RecipeStatusConstant.HIS_FAIL)) {
@@ -1757,10 +1758,10 @@ public class RecipeService extends RecipeBaseService {
     }
 
 
-
     /**
      * 处方签名校验服务
-     *  这个方法开方的时候会去查库存,与开方时购药方式查库存合并 新接口 doSignRecipeCheckAndGetGiveMode
+     * 这个方法开方的时候会去查库存,与开方时购药方式查库存合并 新接口 doSignRecipeCheckAndGetGiveMode
+     *
      * @param recipe 处方
      * @return Map<String, Object>
      */
@@ -2388,9 +2389,6 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public RecipeResultBean doSecondSignRecipe(RecipeBean recipe) {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
-        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-
         Recipe dbRecipe = RecipeValidateUtil.checkRecipeCommonInfo(recipe.getRecipeId(), resultBean);
         if (null == dbRecipe) {
             LOGGER.error("validateDrugs 平台无该处方对象. recipeId=[{}] error={}", recipe.getRecipeId(), JSONUtils.toString(resultBean));
@@ -2446,15 +2444,7 @@ public class RecipeService extends RecipeBaseService {
         if (ReviewTypeConstant.Preposition_Check == dbRecipe.getReviewType()) {
             auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckPassYs(dbRecipe);
         }
-
-        try {
-            //生成pdf并签名
-            recipeService.generateRecipePdfAndSign(recipe.getRecipeId());
-        } catch (Exception e) {
-            LOGGER.error("doSecondSignRecipe 签名失败. recipeId=[{}], error={}", recipe.getRecipeId(), e.getMessage(), e);
-        }
-
-        LOGGER.info("doSecondSignRecipe execute ok! ");
+        LOGGER.info("RecipeService doSecondSignRecipe  execute ok!  recipeId ： {} ", recipe.getRecipeId());
         return resultBean;
     }
 
@@ -2833,10 +2823,10 @@ public class RecipeService extends RecipeBaseService {
                 if (responseTO != null) {
                     data = responseTO.getData();
                     try {
-                        if (data!=null && data.size()>0){
+                        if (data != null && data.size() > 0) {
                             List<List<OrganDrugInfoTO>> partition = Lists.partition(data, 4000);
                             for (int i = 0; i < partition.size(); i++) {
-                                LOGGER.info("drugInfoSynMovement"+organId+"data-"+i+"={}", JSONUtils.toString(partition.get(i)));
+                                LOGGER.info("drugInfoSynMovement" + organId + "data-" + i + "={}", JSONUtils.toString(partition.get(i)));
                             }
                         }
                     } catch (Exception e) {
@@ -3586,8 +3576,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Map<String, Object> getPatientRecipeById(int recipeId) {
-        //checkUserHasPermission(recipeId);
-
+        checkUserHasPermission(recipeId);
         Map<String, Object> result = getRecipeAndDetailByIdImpl(recipeId, false);
         PatientDTO patient = (PatientDTO) result.get("patient");
         result.put("patient", ObjectCopyUtils.convert(patient, PatientDS.class));
@@ -3596,8 +3585,6 @@ public class RecipeService extends RecipeBaseService {
 
     @RpcService
     public Map<String, Object> getPatientRecipeByIdForOfflineRecipe(int recipeId) {
-        //checkUserHasPermission(recipeId);
-
         Map<String, Object> result = getRecipeAndDetailByIdImpl(recipeId, false);
         PatientDTO patient = (PatientDTO) result.get("patient");
         result.put("patient", ObjectCopyUtils.convert(patient, PatientDS.class));
@@ -3640,6 +3627,10 @@ public class RecipeService extends RecipeBaseService {
         Recipe recipe = recipePdfDTO.getRecipe();
         ApothecaryDTO apothecaryDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getGiveUser(), recipe.getRecipeId());
         recipePdfDTO.setApothecary(apothecaryDTO);
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        if (null == recipeOrder || null == recipeOrder.getDispensingTime()) {
+            apothecaryDTO.setGiveUserSignImg(null);
+        }
         return operationClient.queryRecipeLabel(recipePdfDTO);
     }
 
@@ -3920,9 +3911,6 @@ public class RecipeService extends RecipeBaseService {
     }
 
 
-
-
-
     public List<DrugEnterpriseResult> findUnSupportDepList(Integer recipeId, int organId) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
         SaleDrugListDAO saleDrugListDAO = getDAO(SaleDrugListDAO.class);
@@ -4007,7 +3995,6 @@ public class RecipeService extends RecipeBaseService {
         }
         return backList;
     }
-
 
 
     private int getFlag(DrugsEnterprise drugsEnterprise, Recipe recipe) {
@@ -4098,6 +4085,7 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info("findUnSupportDrugEnterprise recipeId:{}, result:{}", recipeId, JSONUtils.toString(result));
         return result;
     }
+
     /**
      * 手动进行处方退款服务
      *
@@ -4713,7 +4701,7 @@ public class RecipeService extends RecipeBaseService {
         drugListMatch.setStatus(0);
         LOGGER.info("drugInfoSynMovementaddHisDrug" + drug.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
         List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drugListMatch.getOrganDrugCode(), drugListMatch.getSourceOrgan());
-        if (ObjectUtils.isEmpty(dataByOrganDrugCode)){
+        if (ObjectUtils.isEmpty(dataByOrganDrugCode)) {
             DrugListMatch save = drugListMatchDAO.save(drugListMatch);
             try {
                 drugToolService.automaticDrugMatch(save, operator);
@@ -5911,6 +5899,9 @@ public class RecipeService extends RecipeBaseService {
         List<Integer> buttonList = new ArrayList<>();
         recipes.forEach(recipe -> {
             String recipeSupportGiveMode = recipe.getRecipeSupportGiveMode();
+            if (StringUtils.isEmpty(recipeSupportGiveMode)) {
+                return;
+            }
             if (recipeSupportGiveMode.contains(String.valueOf(recipeSupportGiveModeEnum.getType()))) {
                 buttonList.add(recipe.getRecipeId());
             }
