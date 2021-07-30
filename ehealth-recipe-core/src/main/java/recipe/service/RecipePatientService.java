@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
@@ -14,6 +15,7 @@ import com.ngari.his.recipe.mode.ChronicDiseaseListReqTO;
 import com.ngari.his.recipe.mode.ChronicDiseaseListResTO;
 import com.ngari.his.recipe.mode.PatientChronicDiseaseRes;
 import com.ngari.his.recipe.mode.PatientDiagnoseTO;
+import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -23,6 +25,8 @@ import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RankShiftList;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.vo.CheckPatientEnum;
+import com.ngari.recipe.vo.OutPatientReqVO;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
@@ -42,7 +46,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.client.HealthCardClient;
+import recipe.client.PatientClient;
 import recipe.constant.*;
+import recipe.core.api.patient.IRecipePatientService;
 import recipe.dao.ChronicDiseaseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -68,7 +75,7 @@ import java.util.stream.Collectors;
  * @date:2017/6/30.
  */
 @RpcBean("recipePatientService")
-public class RecipePatientService extends RecipeBaseService {
+public class RecipePatientService extends RecipeBaseService implements IRecipePatientService{
 
     /**
      * LOGGER
@@ -76,6 +83,13 @@ public class RecipePatientService extends RecipeBaseService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipePatientService.class);
     @Autowired
     private ChronicDiseaseDAO chronicDiseaseDAO;
+
+    @Autowired
+    private PatientClient patientClient;
+
+    @Autowired
+    private HealthCardClient healthCardClient;
+
     private String msg;
 
     /**
@@ -719,5 +733,27 @@ public class RecipePatientService extends RecipeBaseService {
             LOGGER.error("queryPatientForHis error", e);
             throw new DAOException(609, "查患者信息异常:"+e.getMessage());
         }
+    }
+
+    /**
+     * 校验当前就诊人是否有效 是否实名认证 就诊卡是否有效
+     * @param outPatientReqVO 当前就诊人信息
+     * @return 枚举值
+     */
+    @Override
+    public Integer checkCurrentPatient(OutPatientReqVO outPatientReqVO){
+        LOGGER.info("OutPatientRecipeService checkCurrentPatient outPatientReqVO:{}.", JSON.toJSONString(outPatientReqVO));
+        PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(outPatientReqVO.getMpiId());
+        if (null == patientDTO || !new Integer(1).equals(patientDTO.getStatus())) {
+            return CheckPatientEnum.CHECK_PATIENT_PATIENT.getType();
+        }
+        if (!new Integer(1).equals(patientDTO.getAuthStatus())) {
+            return CheckPatientEnum.CHECK_PATIENT_NOAUTH.getType();
+        }
+        Map<String, HealthCardDTO> result = healthCardClient.findHealthCard(outPatientReqVO.getMpiId());
+        if (null == result || (StringUtils.isNotEmpty(outPatientReqVO.getCardID()) && !result.containsKey(outPatientReqVO.getCardID()))) {
+            return CheckPatientEnum.CHECK_PATIENT_CARDDEL.getType();
+        }
+        return CheckPatientEnum.CHECK_PATIENT_NORMAL.getType();
     }
 }
