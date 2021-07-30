@@ -1720,13 +1720,14 @@ public class RecipeListService extends RecipeBaseService {
             return 0;
         }
 
-        if (ReviewTypeConstant.Preposition_Check == recipe.getReviewType()) {
+        if (ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType())) {
             //date 2019/10/10
             //添加一次审核不通过标识位
-            if (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus()) {
+            if (RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType().equals(recipe.getStatus())
+                    || RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_PHA.getType().equals(recipe.getStatus())) {
                 return 0;
-            } else if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
-                if (RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus()) {
+            } else if (RecipeStatusEnum.RECIPE_STATUS_CHECK_NOT_PASS_YS.getType().equals(recipe.getStatus())) {
+                if (RecipecCheckStatusConstant.First_Check_No_Pass.equals(recipe.getCheckStatus())) {
                     return 0;
                 } else {
                     return 2;
