@@ -1,12 +1,15 @@
 package recipe.medicationguide.service;
 
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.entity.MedicationGuide;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -14,6 +17,7 @@ import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -33,13 +37,15 @@ import recipe.ApplicationUtils;
 import recipe.constant.ErrorCode;
 import recipe.dao.MedicationGuideDAO;
 import recipe.dao.RecipeExtendDAO;
+import recipe.manager.EmrRecipeManager;
 import recipe.medicationguide.bean.*;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
+
 
 /**
  * created by shiyuping on 2019/10/28
@@ -54,12 +60,19 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
     @Override
     @RpcService
     public Map<String, Object> getHtml5LinkInfo(PatientInfoDTO patient, RecipeBean recipeBean, List<RecipeDetailBean> recipeDetails, Integer reqType) {
-       if (null != recipeBean && null != recipeBean.getRecipeId()){
-           RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
-           getMedicalInfo(recipeBean, recipeExtend);
-       }
+        LOGGER.info("WinningMedicationGuideService.getHtml5LinkInfo req patient={} recipeBean={} recipeDetails={} reqType={}", JSONArray.toJSONString(patient),JSONArray.toJSONString(recipeBean),JSONArray.toJSONString(recipeDetails),reqType);
+        if (null != recipeBean && null != recipeBean.getRecipeId()) {
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
+
+            Recipe recipeNew = new Recipe();
+            BeanUtils.copy(recipeBean, recipeNew);
+            EmrRecipeManager.getMedicalInfo(recipeNew, recipeExtend);
+            recipeBean.setOrganDiseaseName(recipeNew.getOrganDiseaseName());
+            recipeBean.setOrganDiseaseId(recipeNew.getOrganDiseaseId());
+        }
         //拼接请求参数
         WinningMedicationGuideReqDTO requestParam = assembleRequestParam(patient, recipeBean, recipeDetails, reqType);
+        LOGGER.info("WinningMedicationGuideService.getHtml5LinkInfo requestParam:{}.", JSON.toJSONString(requestParam));
         //获取请求url
         MedicationGuideDAO medicationGuideDAO = DAOFactory.getDAO(MedicationGuideDAO.class);
         MedicationGuide guide = medicationGuideDAO.getByCallSys("Winning");
@@ -121,8 +134,14 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
             req.setDrugUseList(drugUseParam);
             //组装诊断信息数据
             List<DiagnosisInfoDTO> diagnosisParam = Lists.newArrayList();
-            List<String> icd10Lists = Splitter.on("；").splitToList(recipeBean.getOrganDiseaseId());
-            List<String> nameLists = Splitter.on("；").splitToList(recipeBean.getOrganDiseaseName());
+            List<String> icd10Lists = new ArrayList<>();
+            List<String> nameLists = new ArrayList<>();
+            if (StringUtils.isNotEmpty(recipeBean.getOrganDiseaseId())) {
+                icd10Lists = Splitter.on(";").splitToList(recipeBean.getOrganDiseaseId());
+            }
+            if (StringUtils.isNotEmpty(recipeBean.getOrganDiseaseName())) {
+                nameLists = Splitter.on(";").splitToList(recipeBean.getOrganDiseaseName());
+            }
             if (icd10Lists.size() == nameLists.size()) {
                 for (int i = 0; i < icd10Lists.size(); i++) {
                     DiagnosisInfoDTO diagnosis = new DiagnosisInfoDTO();
@@ -150,7 +169,7 @@ public class WinningMedicationGuideService implements IMedicationGuideService {
 
             //组装请求参数
             String requestStr = JSONUtils.toString(request);
-            LOGGER.info("getHtml5LinkHttpRequest request={}", requestStr);
+            LOGGER.info("getHtml5LinkHttpRequest url={} request={}", url,requestStr);
             StringEntity requestEntry = new StringEntity(requestStr, ContentType.APPLICATION_JSON);
             httpPost.setEntity(requestEntry);
 

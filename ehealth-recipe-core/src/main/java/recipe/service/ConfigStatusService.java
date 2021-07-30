@@ -2,12 +2,12 @@ package recipe.service;
 
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.ConfigStatusCheck;
-import com.ngari.recipe.service.IConfigStatusService;
 import com.ngari.recipe.vo.ConfigStatusCheckVO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.core.api.IConfigStatusService;
 import recipe.dao.ConfigStatusCheckDAO;
 
 import java.util.List;

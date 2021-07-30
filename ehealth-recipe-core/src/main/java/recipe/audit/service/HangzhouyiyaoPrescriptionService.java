@@ -12,11 +12,13 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.service.ProTitleService;
 import com.ngari.recipe.common.RecipeCommonBaseTO;
 import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.dictionary.DictionaryController;
 import ctd.util.AppContextHolder;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -30,6 +32,7 @@ import recipe.audit.bean.PAWebRecipeDanger;
 import recipe.dao.CompareDrugDAO;
 import recipe.dao.DrugListDAO;
 import recipe.dao.RecipeExtendDAO;
+import recipe.manager.EmrRecipeManager;
 import recipe.service.RecipeHisService;
 import recipe.util.DateConversion;
 import recipe.util.DigestUtil;
@@ -40,7 +43,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
-import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
+
 
 /**
  * 杭州逸曜合理用药
@@ -83,7 +86,11 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
             return result;
         }
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        getMedicalInfo(recipe, recipeExtend);
+        Recipe recipeNew = new Recipe();
+        BeanUtils.copy(recipe, recipeNew);
+        EmrRecipeManager.getMedicalInfo(recipeNew, recipeExtend);
+        recipe.setOrganDiseaseName(recipeNew.getOrganDiseaseName());
+        recipe.setOrganDiseaseId(recipeNew.getOrganDiseaseId());
         PatientDTO patient = patientService.getPatientByMpiId(recipe.getMpiid());
         DoctorBean doctor = doctorService.getBeanByDoctorId(recipe.getDoctor());
         ProTitleDTO proTitle = proTitleService.getById(Integer.valueOf(doctor.getProTitle()));

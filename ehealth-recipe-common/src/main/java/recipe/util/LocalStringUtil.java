@@ -1,10 +1,12 @@
 package recipe.util;
 
 import org.apache.commons.lang3.StringUtils;
+import recipe.constant.BussTypeConstant;
 
+import java.util.Calendar;
 import java.util.Iterator;
 import java.util.Map;
-import java.util.regex.Matcher;
+import java.util.Random;
 import java.util.regex.Pattern;
 
 /**
@@ -15,24 +17,6 @@ public class LocalStringUtil {
 
     private static final String NUMERIC_REGEX = "^\\d+(\\.\\d+)?$";
     private static Pattern p = Pattern.compile("^((13[0-9])|(17[0-9])|(15[0-9])|(18[0-9]))\\d{8}$");
-
-    /**
-     * 判断给定字符串是否是严格的数值 如：“3.1415”->true;“ 3.1415”->false;
-     *
-     * @param value
-     * @return
-     */
-    public static boolean isStrictNumeric(String value) {
-        if (StringUtils.isEmpty(value)) {
-            return false;
-        }
-        return value.matches(NUMERIC_REGEX);
-    }
-
-    public static boolean isMobile(String mobile) {
-        Matcher m = p.matcher(mobile);
-        return m.matches();
-    }
 
     /**
      * 用“*”遮盖手机号的中间四位数字，如：13811386878  执行结果为：138****6878
@@ -88,6 +72,20 @@ public class LocalStringUtil {
             tpl = tpl.replace("${" + k + "}", val);
         }
         return tpl;
+    }
+
+    /**
+     * 业务类型1位+时间戳后10位+随机码4位
+     *
+     * @return
+     */
+    public static String getOrderCode() {
+        StringBuilder orderCode = new StringBuilder();
+        orderCode.append(BussTypeConstant.RECIPE);
+        String time = Long.toString(Calendar.getInstance().getTimeInMillis());
+        orderCode.append(time.substring(time.length() - 10));
+        orderCode.append(new Random().nextInt(9000) + 1000);
+        return orderCode.toString();
     }
 
     /**

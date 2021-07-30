@@ -24,7 +24,6 @@ import com.ngari.recipe.recipe.model.RecipeRefundBean;
 import com.ngari.recipe.recipe.model.RefundRequestBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
-import static ctd.persistence.DAOFactory.getDAO;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
@@ -40,11 +39,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.*;
-import recipe.service.manager.RecipeManager;
+import recipe.manager.RecipeManager;
 import recipe.service.recipecancel.RecipeCancelService;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 
 /**
@@ -157,6 +158,9 @@ public class RecipeRefundService extends RecipeBaseService{
             visitRequest.setHospitalCode(organDTO.getOrganizeCode());
             visitRequest.setRecipeCode(recipe.getRecipeCode());
             visitRequest.setRefundType(getRefundType(recipeOrder));
+            if (null != recipeOrder.getEnterpriseId()) {
+                visitRequest.setEnterpriseCode(recipeOrder.getEnterpriseId().toString());
+            }
 
             HisResponseTO<String> result = service.checkForRefundVisit(visitRequest);
             if (result != null && "200".equals(result.getMsgCode())) {
@@ -351,6 +355,9 @@ public class RecipeRefundService extends RecipeBaseService{
         request.setCheckTime(formatter.format(new Date()));
         request.setRefundType(getRefundType(recipeOrder));
         request.setRecipeCode(recipe.getRecipeCode());
+        if (null != recipeOrder.getEnterpriseId()) {
+            request.setEnterpriseCode(recipeOrder.getEnterpriseId().toString());
+        }
 
         IVisitService service = AppContextHolder.getBean("his.visitService", IVisitService.class);
         HisResponseTO<String> hisResult = service.checkForRefundVisit(request);

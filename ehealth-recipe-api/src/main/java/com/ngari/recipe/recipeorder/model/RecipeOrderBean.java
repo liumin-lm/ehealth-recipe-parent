@@ -316,6 +316,32 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "订单备注")
     private String orderMemo;
 
+    @ItemProperty(alias = "第三方支付类型，1 商保支付 2 预存金支付")
+    private Integer thirdPayType;
+
+    @ItemProperty(alias = "第三方支付金额")
+    private Double thirdPayFee;
+    @ItemProperty(alias = "预约取药开始时间")
+    private String expectStartTakeTime;
+    @ItemProperty(alias = "预约取药结束时间")
+    private String expectEndTakeTime;
+
+    public Integer getThirdPayType() {
+        return thirdPayType;
+    }
+
+    public void setThirdPayType(Integer thirdPayType) {
+        this.thirdPayType = thirdPayType;
+    }
+
+    public Double getThirdPayFee() {
+        return thirdPayFee;
+    }
+
+    public void setThirdPayFee(Double thirdPayFee) {
+        this.thirdPayFee = thirdPayFee;
+    }
+
     public Integer getLogisticsType() {
         return logisticsType;
     }
@@ -1083,5 +1109,21 @@ public class RecipeOrderBean implements Serializable {
 
     public void setDecoctionText(String decoctionText) {
         this.decoctionText = decoctionText;
+    }
+
+    public String getExpectStartTakeTime() {
+        return expectStartTakeTime;
+    }
+
+    public void setExpectStartTakeTime(String expectStartTakeTime) {
+        this.expectStartTakeTime = expectStartTakeTime;
+    }
+
+    public String getExpectEndTakeTime() {
+        return expectEndTakeTime;
+    }
+
+    public void setExpectEndTakeTime(String expectEndTakeTime) {
+        this.expectEndTakeTime = expectEndTakeTime;
     }
 }

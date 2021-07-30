@@ -29,7 +29,7 @@ import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
-import recipe.factory.status.constant.GiveModeEnum;
+import recipe.enumerate.status.GiveModeEnum;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.util.AddressUtils;

@@ -10,7 +10,9 @@ public enum GiveModeTextEnum {
     SENDTOENTER("showSendToEnterprises", 1, "药企配送"),
     SENDTOHOS("showSendToHos", 1, "医院配送"),
     SUPPORTTOHIS("supportToHos", 2, "到院取药"),
-    SUPPORTTFDS("supportTFDS", 3, "药店取药");
+    SUPPORTTFDS("supportTFDS", 3, "药店取药"),
+    SUPPORTTHORDORDER("supportThirdOrder", 5, "订单跳转");
+
 
     /**
      * 购药方式文本

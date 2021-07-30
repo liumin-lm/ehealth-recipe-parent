@@ -34,6 +34,7 @@ public abstract class RecipeLogDAO extends HibernateSupportDelegateDAO<RecipeLog
     public boolean saveRecipeLog(RecipeLog log) {
         log.setMemo(StringUtils.defaultString(log.getMemo(), ""));
         log.setExpand(StringUtils.defaultString(log.getExpand(), ""));
+        log.setModifyDate(DateTime.now().toDate());
         LOGGER.info("saveRecipeLog : " + JSONUtils.toString(log));
         save(log);
         return true;

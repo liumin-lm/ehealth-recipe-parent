@@ -2,7 +2,6 @@ package recipe.dao;
 
 import com.ngari.recipe.entity.HisRecipe;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.recipe.model.HisRecipeVO;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
@@ -49,6 +48,10 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
     @DAOMethod(sql = " From HisRecipe where clinicOrgan=:clinicOrgan and recipeCode in (:recipeCodeList)")
     public abstract List<HisRecipe> findHisRecipeByRecipeCodeAndClinicOrgan(@DAOParam("clinicOrgan") int clinicOrgan, @DAOParam("recipeCodeList") List<String> recipeCodeList);
 
+    @DAOMethod(sql = " From HisRecipe where clinicOrgan=:clinicOrgan and recipeCode in (:recipeCodeList) and status!=2")
+    public abstract List<HisRecipe> findNoDealHisRecipe(@DAOParam("clinicOrgan") int clinicOrgan, @DAOParam("recipeCodeList") List<String> recipeCodeList);
+
+
     /**
      * 查询
      * @param
@@ -83,7 +86,7 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
     public abstract HisRecipe getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(@DAOParam("mpiId") String mpiId, @DAOParam("clinicOrgan") int clinicOrgan, @DAOParam("recipeCode") String recipeCode);
 
     @DAOMethod(sql = " From HisRecipe where mpiId=:mpiId and clinicOrgan=:clinicOrgan and recipeCode=:recipeCode")
-    public abstract HisRecipe getHisRecipeRecipeCodeAndClinicOrgan( @DAOParam("clinicOrgan") int clinicOrgan, @DAOParam("recipeCode") String recipeCode);
+    public abstract HisRecipe getHisRecipeRecipeCodeAndClinicOrgan( @DAOParam("mpiId") int mpiId,@DAOParam("clinicOrgan") int clinicOrgan, @DAOParam("recipeCode") String recipeCode);
 
     /**
      * 根据处方id批量删除
@@ -100,19 +103,19 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
      * 批量查询已处理his处方
      * @param mpiId
      * @param start
-     * @param limit
+     * @param
      */
-    public List<HisRecipeListBean> findHisRecipeListByMPIId(String mpiId, Integer start, Integer limit){
+    public List<HisRecipeListBean> findHisRecipeListByMPIId(Integer organId,String mpiId, Integer start, Integer limit){
         HibernateStatelessResultAction<List<HisRecipeListBean>> action = new AbstractHibernateStatelessResultAction<List<HisRecipeListBean>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("select new recipe.dao.bean.HisRecipeListBean(h.diseaseName,h.hisRecipeID,h.registeredId, h.mpiId, h.recipeCode, h.clinicOrgan, h.departCode, h.departName, h.createDate, h.doctorCode, h.doctorName, h.chronicDiseaseCode, h.chronicDiseaseName, h.patientName, h.memo,h.recipeType,r.fromflag,r.recipeId, r.orderCode, r.status)  FROM HisRecipe h,Recipe r where h.status = 2 and h.clinicOrgan=r.clinicOrgan and h.recipeCode=r.recipeCode and h.mpiId =:mpiId ORDER BY h.createDate DESC");
+                hql.append("select new recipe.dao.bean.HisRecipeListBean(h.diseaseName,h.hisRecipeID,h.registeredId, h.mpiId, h.recipeCode, h.clinicOrgan, h.departCode, h.departName, h.createDate, h.doctorCode, h.doctorName, h.chronicDiseaseCode, h.chronicDiseaseName, h.patientName, h.memo,h.recipeType,r.fromflag,r.recipeId, r.orderCode, r.status)  FROM HisRecipe h,Recipe r where h.status = 2 and h.clinicOrgan=r.clinicOrgan and h.recipeCode=r.recipeCode and h.mpiId =:mpiId and h.clinicOrgan =:organId ORDER BY h.createDate DESC");
                 Query q = ss.createQuery(hql.toString());
+                q.setParameter("organId", organId);
                 q.setParameter("mpiId", mpiId);
                 q.setMaxResults(limit);
                 q.setFirstResult(start);
-
                 setResult(q.list());
             }
         };
@@ -127,17 +130,17 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
      * @param start
      * @param limit
      */
-    public List<HisRecipeListBean> findOngoingHisRecipeListByMPIId(String mpiId, Integer start, Integer limit){
+    public List<HisRecipeListBean> findOngoingHisRecipeListByMPIId(Integer organId,String mpiId, Integer start, Integer limit){
         HibernateStatelessResultAction<List<HisRecipeListBean>> action = new AbstractHibernateStatelessResultAction<List<HisRecipeListBean>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("select new recipe.dao.bean.HisRecipeListBean(h.diseaseName,h.hisRecipeID,h.registeredId, h.mpiId, h.recipeCode, h.clinicOrgan, h.departCode, h.departName, h.createDate, h.doctorCode, h.doctorName, h.chronicDiseaseCode, h.chronicDiseaseName, h.patientName, h.memo,h.recipeType,r.fromflag,r.recipeId, r.orderCode, r.status)  FROM HisRecipe h,Recipe r where h.status = 1 and h.clinicOrgan=r.clinicOrgan and h.recipeCode=r.recipeCode and h.mpiId =:mpiId and r.orderCode is not null ORDER BY h.createDate DESC");
+                hql.append("select new recipe.dao.bean.HisRecipeListBean(h.diseaseName,h.hisRecipeID,h.registeredId, h.mpiId, h.recipeCode, h.clinicOrgan, h.departCode, h.departName, h.createDate, h.doctorCode, h.doctorName, h.chronicDiseaseCode, h.chronicDiseaseName, h.patientName, h.memo,h.recipeType,r.fromflag,r.recipeId, r.orderCode, r.status)  FROM HisRecipe h,Recipe r where h.status = 1 and h.clinicOrgan=r.clinicOrgan and h.recipeCode=r.recipeCode and h.mpiId =:mpiId and r.orderCode is not null and h.clinicOrgan=:organId ORDER BY h.createDate DESC");
                 Query q = ss.createQuery(hql.toString());
                 q.setParameter("mpiId", mpiId);
+                q.setParameter("organId", organId);
                 q.setMaxResults(limit);
                 q.setFirstResult(start);
-
                 setResult(q.list());
             }
         };

@@ -1,8 +1,6 @@
 package recipe.bussutil.drugdisplay;
 
 
-import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
-import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.recipe.model.HisRecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.util.JSONUtils;
@@ -11,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.util.MapValueUtil;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,6 +22,7 @@ public class DrugDisplayNameProducer {
     public static final String ENGLISH_REG = "[a-zA-Z]+";
 
     /**
+     * todo 需要优化 （尹盛/隋 讨论优化）
      * 获取拼接药品名称
      *
      * @param drugInfoObject 药品对象
@@ -39,7 +37,7 @@ public class DrugDisplayNameProducer {
         }
         StringBuilder splicedName = new StringBuilder();
         //排好序的配置name列表
-        List<String> sortConfigList = DrugDisplayNameSorter.sortConfigName(keyMap, configKey);
+        List<String> sortConfigList = DisplayNameEnum.getDisplayObject(configKey).sortConfigName(keyMap);
         LOGGER.info("DrugDisplayNameProducer getDrugName sortConfigList:{}.", JSONUtils.toString(sortConfigList));
         String value;
         //依次拼接
@@ -47,7 +45,7 @@ public class DrugDisplayNameProducer {
             //是否是字段名
             if (matchEnglishName(name)) {
                 //常用药或者处方明细的单位是drugUnit 需要特殊处理下
-                if (((drugInfoObject instanceof CommonRecipeDrugDTO) || (drugInfoObject instanceof RecipeDetailBean) || (drugInfoObject instanceof  HisRecipeDetailBean)) && "unit".equals(name)) {
+                if (((drugInfoObject instanceof com.ngari.recipe.dto.CommonRecipeDrugDTO) || (drugInfoObject instanceof RecipeDetailBean) || (drugInfoObject instanceof HisRecipeDetailBean)) && "unit".equals(name)) {
                     name = "drugUnit";
                 }
                 //通过字段名取值

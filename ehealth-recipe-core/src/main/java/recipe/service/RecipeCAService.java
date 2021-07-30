@@ -29,8 +29,6 @@ import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
-import com.thoughtworks.xstream.XStream;
-import com.thoughtworks.xstream.io.xml.CompactWriter;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -39,7 +37,6 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import jdk.nashorn.internal.runtime.regexp.joni.Regex;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -49,23 +46,23 @@ import recipe.ApplicationUtils;
 import recipe.bean.cqJgptBussData.AdditionalDiagnosis;
 import recipe.bean.cqJgptBussData.Drug;
 import recipe.bean.cqJgptBussData.RecipeDocSignatureXML;
+import recipe.business.DrugStockBusinessService;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.XstreamUtil;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
 import recipe.caNew.CaAfterProcessType;
+import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.constant.CARecipeTypeConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
+import recipe.manager.EmrRecipeManager;
 import recipe.service.common.RecipeSignService;
-import recipe.service.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
 
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
@@ -103,13 +100,16 @@ public class RecipeCAService {
 
     @Autowired
     OrganDrugListDAO organDrugDao;
+    @Autowired
+    private CreatePdfFactory createPdfFactory;
 
+    @Resource
+    private DrugStockBusinessService drugStockBusinessService;
 
     @RpcService
     public CommonSignRequest packageCAFromRecipe(Integer recipeId, Integer doctorId, Boolean isDoctor) {
         LOGGER.info("packageCAFromRecipe recipeId：{},doctorId:{},isDoctor:{}", recipeId, doctorId, isDoctor);
         CommonSignRequest caRequest = new CommonSignRequest();
-        Map<String, Object> caExt = new HashMap<>();
         Map<String, Object> esignMap = new HashMap<>();
         try {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -159,53 +159,24 @@ public class RecipeCAService {
 
             caRequest.setEsignMap(esignMap);
 
-
             //3.在组装通用的签名签章数据
-            //首先将处方测试pdf的数据
             //获取签章pdf数据。签名原文
-            CaSealRequestTO requestSealTO = RecipeServiceEsignExt.signCreateRecipePDF(recipeId, true);
+            CaSealRequestTO requestSealTO = createPdfFactory.queryPdfByte(recipeId);
             if(null == requestSealTO){
                 LOGGER.warn("当前CA组装【pdf】和【签章数据】信息返回空，中断当前CA");
                 return null;
             }
 
             /*****添加pdf覆盖逻辑*****/
-            //首先在组装的CA原生pdf文件，保存在recipe中，等到之后的签章返回后再进行覆盖
-            //这里的覆盖是将操作者的签名图片添加到pdf上，这要判断CA用的是本地的签名图片和CA图片
-            //判断有没有签名图片，没有则填充初始化的pdf
-            //组装生成pdf的参数
             /*之前设置在CA组装请求的时候将处方pdf更新上去，现在将生成的时机放置在CA结果回调上*/
             RecipeServiceEsignExt.updateInitRecipePDF(isDoctor, recipe, requestSealTO.getPdfBase64Str());
-
-//            //获取签章图片
-//            DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
-//            //根据当前的操作用户id获取
-//            DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(doctorId);
-//            if (doctorExtendDTO != null && doctorExtendDTO.getSealData() != null) {
-//                requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
-//            } else {
-//                requestSealTO.setSealBase64Str("");
-//            }
-//            String caPassword = "";
-//            //签名时的密码从redis中获取
-//            if (null != redisClient.get("caPassword")) {
-//                caPassword = redisClient.get("caPassword");
-//            }
-//            requestSealTO.setUserPin(caPassword);
-
-            DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
-            String userAccount = doctorDTO.getIdNumber();
             //4.最后组装业务单独请求的扩展数据
-
-            //获取业务的组装数据
-            //原先签名原文里有直接用处方字符串busString，还有使用监管平台组装的数据taskCode
             /*** 这个taskCode是SDK签名的时候的签名原文，之后对接的时候需要根据业务组装成对应业务的签名对象****/
             //如果是重庆监管平台，按照固定要求格式上传签名原文
             caRequest.setBussData(JSONUtils.toString(recipe));
             if (RecipeServiceSub.isCQOrgan(recipe.getClinicOrgan())) {
                 caRequest.setBussData(getBussDataFromCQ(recipeId,isDoctor));
             }
-            caExt.put("taskCode", packageCAFromBus(recipeId));
         } catch (Exception e) {
             LOGGER.warn("当前处方CA数据组装失败返回空，{}", e);
         }
@@ -432,7 +403,11 @@ public class RecipeCAService {
                 }
             }
             if (null != recipeExtend) {
-                EmrRecipeManager.getMedicalInfo(recipeBean, recipeExtend);
+                Recipe recipeNew = new Recipe();
+                ctd.util.BeanUtils.copy(recipeBean, recipeNew);
+                EmrRecipeManager.getMedicalInfo(recipeNew, recipeExtend);
+                recipeBean.setOrganDiseaseName(recipeNew.getOrganDiseaseName());
+                recipeBean.setOrganDiseaseId(recipeNew.getOrganDiseaseId());
                 registerId = recipeExtend.getRegisterID();
                 request.setMainDieaseDescribe(recipeExtend.getMainDieaseDescribe());
             } else {
@@ -613,7 +588,7 @@ public class RecipeCAService {
             }
             //第三步校验库存
             if (continueFlag == 0 || continueFlag == 4) {
-                rMap = recipeService.doSignRecipeCheck(recipeBean);
+                rMap = drugStockBusinessService.doSignRecipeCheckAndGetGiveMode(recipeBean);
                 Boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
                 if (signResult != null && false == signResult) {
                     return rMap;
@@ -683,7 +658,6 @@ public class RecipeCAService {
         List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
         List<RecipeDetailBean> detailBeanList = ObjectCopyUtils.convert(details, RecipeDetailBean.class);
 
-        String recipeMode = recipe.getRecipeMode();
         RecipeResultBean result = new RecipeResultBean();
 
         Integer organId = recipe.getClinicOrgan();
@@ -698,16 +672,6 @@ public class RecipeCAService {
                 //保存签名值、时间戳、电子签章文件
                 RecipeServiceEsignExt.saveSignRecipePDF(resultVo.getPdfBase64(), recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), true, fileId);
                 resultVo.setFileId(fileId);
-//                try {
-//                    SignDoctorRecipeInfo signDoctorRecipeInfo = signRecipeInfoService.get(recipeId);
-//                    JSONObject jsonObject = new JSONObject();
-//                    jsonObject.put("recipeBean", JSONObject.toJSONString(recipe));
-//                    jsonObject.put("details", JSONObject.toJSONString(details));
-//                    signDoctorRecipeInfo.setSignBefText(jsonObject.toJSONString());
-//                    signRecipeInfoService.update(signDoctorRecipeInfo);
-//                } catch (Exception e) {
-//                    LOGGER.error("signBefText save error：" + e.getMessage(), e);
-//                }
             } else {
                 ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
                 SmsInfoBean smsInfo = new SmsInfoBean();
@@ -732,24 +696,6 @@ public class RecipeCAService {
         //重试签名，首先设置处方的状态为签名中，根据签名的结果
         Integer code = result.getCode();
         String msg = result.getMsg();
-        Integer status = RecipeStatusConstant.CHECK_PASS;
-
-        String memo = "HIS审核返回：写入his成功，审核通过";
-        /*// 医保用户
-        if (recipe.canMedicalPay()) {
-            // 如果是中药或膏方处方不需要药师审核
-            if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
-                status = RecipeStatusConstant.CHECK_PASS_YS;
-                memo = "HIS审核返回：写入his成功，药师审核通过";
-            }
-
-        }*/
-
-        //其他平台处方状态不变
-        if (0 == recipe.getFromflag()) {
-            status = recipe.getStatus();
-            memo = "HIS审核返回：写入his成功(其他平台处方)";
-        }
         try {
             if (RecipeResultBean.FAIL == code) {
                 //说明处方签名失败
@@ -767,8 +713,6 @@ public class RecipeCAService {
                 LOGGER.info("checkFlag {} 更新为待审核", recipe.getRecipeId());
                 recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "当前签名处方签名成功");
             }
-
-
         } catch (Exception e) {
             LOGGER.error("signRecipeCAAfterCallBack 签名服务或者发送卡片异常. ", e);
         }

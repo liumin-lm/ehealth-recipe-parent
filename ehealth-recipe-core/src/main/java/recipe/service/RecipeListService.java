@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
@@ -16,8 +17,8 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.dto.GroupRecipeConf;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.grouprecipe.model.GroupRecipeConf;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.constant.RecipeListTabStatusEnum;
 import com.ngari.recipe.recipe.model.*;
@@ -47,22 +48,22 @@ import recipe.ApplicationUtils;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
-import recipe.comment.DictionaryUtil;
+import recipe.client.IConfigurationClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.dao.bean.RecipeListBean;
 import recipe.dao.bean.RecipeRollingInfo;
-import recipe.factory.status.constant.GiveModeEnum;
-import recipe.factory.status.constant.RecipeOrderStatusEnum;
-import recipe.factory.status.constant.RecipeStatusEnum;
+import recipe.enumerate.status.GiveModeEnum;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
-import recipe.service.client.IConfigurationClient;
+import recipe.manager.EmrRecipeManager;
+import recipe.manager.GroupRecipeManager;
 import recipe.service.common.RecipeCacheService;
-import recipe.service.manager.EmrRecipeManager;
-import recipe.service.manager.GroupRecipeManager;
 import recipe.util.DateConversion;
+import recipe.util.DictionaryUtil;
 import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
@@ -959,6 +960,8 @@ public class RecipeListService extends RecipeBaseService {
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 
         List<String> allMpiIds = recipeService.getAllMemberPatientsByCurrentPatient(mpiId);
+        LOGGER.info("findRecipesForPatientAndTabStatusNew allMpiIds:{}", JSONArray.toJSONString(allMpiIds));
+
         List<PatientTabStatusMergeRecipeDTO> patientTabStatusMergeRecipeDTOS = Lists.newArrayList();
         //获取页面展示的对象
         TabStatusEnumNew recipeStatusList = TabStatusEnumNew.fromTabStatusAndStatusType(tabStatus, "recipe");
@@ -1720,13 +1723,14 @@ public class RecipeListService extends RecipeBaseService {
             return 0;
         }
 
-        if (ReviewTypeConstant.Preposition_Check == recipe.getReviewType()) {
+        if (ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType())) {
             //date 2019/10/10
             //添加一次审核不通过标识位
-            if (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus()) {
+            if (RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType().equals(recipe.getStatus())
+                    || RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_PHA.getType().equals(recipe.getStatus()) || RecipeStatusEnum.RECIPE_STATUS_SIGN_NO_CODE_PHA.getType().equals(recipe.getStatus())) {
                 return 0;
-            } else if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
-                if (RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus()) {
+            } else if (RecipeStatusEnum.RECIPE_STATUS_CHECK_NOT_PASS_YS.getType().equals(recipe.getStatus())) {
+                if (RecipecCheckStatusConstant.First_Check_No_Pass.equals(recipe.getCheckStatus())) {
                     return 0;
                 } else {
                     return 2;
@@ -1797,7 +1801,7 @@ public class RecipeListService extends RecipeBaseService {
                     if (RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType().equals(recipe.getStatus())) {
                         //如果是中药暂存只取药品名显示
                         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
-                            recipe.setRecipeDrugName(recipedetails.get(0).getDrugName());
+                            recipe.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipeDrugName(recipedetails.get(0), recipe.getRecipeType(), recipe.getClinicOrgan()));
                         } else {
                             //剂型获取---暂存重新获取配置药品名由于Recipedetail没有剂型要重新获取一遍
                             organDrugLists = organDrugListDAO.findByOrganIdAndOrganDrugCodeAndDrugIdWithoutStatus(recipe.getClinicOrgan(), recipedetails.get(0).getOrganDrugCode(), recipedetails.get(0).getDrugId());

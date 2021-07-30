@@ -44,6 +44,36 @@ public class ValidateUtil {
         return false;
     }
 
+
+    /**
+     * 判断字符串并返回
+     *
+     * @param parame
+     * @return
+     */
+    public static String isEmpty(String parame) {
+        if (StringUtils.isEmpty(parame)) {
+            return "";
+        } else {
+            return parame;
+        }
+    }
+
+    /**
+     * 判断 StringBuilder 为null
+     *
+     * @param str
+     * @return
+     */
+    public static Boolean isEmpty(StringBuilder str) {
+        if (0 > str.length() || StringUtils.isEmpty(str.toString())) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+
     private static boolean doubleIsEmpty(Double d) {
         if (null == d || 0 == d) {
             return true;

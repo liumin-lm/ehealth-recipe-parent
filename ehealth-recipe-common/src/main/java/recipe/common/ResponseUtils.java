@@ -11,27 +11,6 @@ import java.lang.reflect.Method;
  * @version： 1.0
  */
 public class ResponseUtils {
-
-    /**
-     * 获取成功实例
-     *
-     * @param clazz
-     * @param <T>
-     * @return
-     */
-    public static <T> T getSuccessResponse(Class<? extends CommonResponse> clazz) {
-        T object = null;
-        try {
-            object = (T) clazz.newInstance();
-            Method method = clazz.getMethod("setCode", String.class);
-            method.invoke(object, CommonConstant.SUCCESS);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-        return object;
-    }
-
     /**
      * 获取失败实例
      *

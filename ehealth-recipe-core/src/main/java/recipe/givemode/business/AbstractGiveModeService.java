@@ -21,14 +21,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.factory.status.constant.RecipeOrderStatusEnum;
-import recipe.factory.status.constant.RecipeStatusEnum;
-import recipe.purchase.PurchaseService;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.service.RecipeServiceSub;
 
 import java.util.*;
@@ -48,8 +46,6 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
-    @Autowired
-    private RecipeServiceSub recipeServiceSub;
 
     private static final String LIST_TYPE_RECIPE = "1";
 
@@ -154,6 +150,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
                 giveModeShowButtonVO.setButtonType(4);
             }
         }
+        LOGGER.info("setOtherButton giveModeButtons:{}", JSONUtils.toString(giveModeShowButtonVO));
     }
 
     private Map<String, String> getRecordInfo(Recipe recipe) {
@@ -169,7 +166,11 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
             }
         } else {
             recordType = LIST_TYPE_RECIPE;
-            recordStatusCode = recipe.getStatus();
+            if (RecipeStatusEnum.RECIPE_STATUS_WAIT_SEND.getType().equals(recipe.getStatus())) {
+                recordStatusCode = RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType();
+            } else {
+                recordStatusCode = recipe.getStatus();
+            }
         }
         Map<String, String> map = new HashMap<>();
         map.put("recordType", recordType);
@@ -221,30 +222,13 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
     @Override
     public void afterSetting(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe) {
         List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
-        LOGGER.info("afterSetting recipeId={}  giveModeButtonBeans={}",recipe.getRecipeId(),JSONUtils.toString(giveModeButtonBeans));
+        LOGGER.info("afterSetting recipeId={}  giveModeButtonBeans={}", recipe.getRecipeId(), JSONUtils.toString(giveModeButtonBeans));
         //不支持配送，则按钮都不显示--包括药店取药
         String recipeSupportGiveMode = recipe.getRecipeSupportGiveMode();
         List<String> list = new ArrayList<>();
-        if (StringUtils.isEmpty(recipeSupportGiveMode)) {
-            list.add(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
-            // 兼容老版本处方没有写入支持的购药方式 后期删除
-            if (RecipeDistributionFlagEnum.HOS_HAVE.getType().equals(recipe.getDistributionFlag())) {
-                list.add(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
-            }
-            if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag())) {
-                list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText());
-                list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText());
-                list.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText());
-            }
-            // 线下转线上没有 配送标记
-            if (Objects.isNull(recipe.getDistributionFlag()) || recipe.getDistributionFlag() == 0) {
-                list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText());
-                list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText());
-                list.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText());
-                list.add(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
-            }
-        } else {
-            // 从处方中获取支持的购药方式
+
+        // 从处方中获取支持的购药方式
+        if(StringUtils.isNotEmpty(recipeSupportGiveMode)) {
             List<String> strings = Arrays.asList(recipeSupportGiveMode.split(","));
 
             if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType()))) {
@@ -263,8 +247,8 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
                 list.add(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
             }
         }
-        saveGiveModeDatas(giveModeButtonBeans, list);
 
+        saveGiveModeDatas(giveModeButtonBeans, list);
 
         //从运营平台获取配置项和现在的按钮集合取交集
         GiveModeShowButtonVO giveModeShowButton = getGiveModeSettingFromYypt(recipe.getClinicOrgan());

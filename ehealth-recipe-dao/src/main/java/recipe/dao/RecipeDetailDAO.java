@@ -8,13 +8,11 @@ import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
-import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcSupportDAO;
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -32,24 +30,6 @@ public abstract class RecipeDetailDAO extends
         super();
         this.setEntityName(Recipedetail.class.getName());
         this.setKeyField("recipeDetailId");
-    }
-
-    /**
-     * 保持从his导入的处方详情数据
-     */
-    public void saveRecipeDetail(Recipedetail recipedetail) {
-        LOGGER.info("保存服务:" + JSONUtils.toString(recipedetail));
-
-        if (recipedetail.getRecipeId() == null) {
-            throw new DAOException("RecipeId is required!");
-        }
-        if (recipedetail.getCreateDt() == null) {
-            recipedetail.setCreateDt(new Date());
-        }
-        recipedetail.setLastModify(new Date());
-        recipedetail.setStatus(1);
-
-        save(recipedetail);
     }
 
     /**
@@ -89,14 +69,6 @@ public abstract class RecipeDetailDAO extends
     public abstract List<Double> findUseTotalDoseByRecipeId(@DAOParam("recipeId") int recipeId);
 
     /**
-     * 根据id查询
-     * @param recipeDetailId
-     * @return
-     */
-    @DAOMethod(sql = "from Recipedetail where recipeDetailId=:recipeDetailId")
-    public abstract Recipedetail getByRecipeDetailId(@DAOParam("recipeDetailId") int recipeDetailId);
-
-    /**
      * 获取处方总剂量
      *
      * @param recipeIds
@@ -104,15 +76,6 @@ public abstract class RecipeDetailDAO extends
      */
     @DAOMethod(sql = "select sum(useTotalDose) from Recipedetail where recipeId in :recipeIds and status=1")
     public abstract Double getUseTotalDoseByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
-
-    /**
-     * 获取处方总剂量
-     *
-     * @param recipeIds
-     * @return
-     */
-    @DAOMethod(sql = "select recipeId, sum(useTotalDose) from Recipedetail where recipeId in :recipeIds and status=1 group by recipeId", limit = 0)
-    public abstract List<Object[]> findUseTotalsDoseByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
 
     /**
      * 新处方详情自定义字段 by recipeId

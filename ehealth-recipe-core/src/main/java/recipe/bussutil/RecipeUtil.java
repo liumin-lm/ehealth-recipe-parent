@@ -28,10 +28,7 @@ import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -386,7 +383,26 @@ public class RecipeUtil {
 
     //将；用|代替
     public static String getCode(String code) {
-        return code.replace("；","|");
+        return code.replace("；", "|");
     }
 
+    /**
+     * 默认药品单位计量 机构关联关系
+     *
+     * @param organDrug 机构药品
+     * @return 默认药品单位计量
+     */
+    public static List<UseDoseAndUnitRelationBean> defaultUseDose(OrganDrugList organDrug) {
+        List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = new LinkedList<>();
+        if (null == organDrug) {
+            return useDoseAndUnitRelationList;
+        }
+        if (StringUtils.isNotEmpty(organDrug.getUseDoseUnit())) {
+            useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(), organDrug.getUseDoseUnit(), organDrug.getUseDose()));
+        }
+        if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())) {
+            useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
+        }
+        return useDoseAndUnitRelationList;
+    }
 }

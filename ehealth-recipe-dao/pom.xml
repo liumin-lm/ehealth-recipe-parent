@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>3.6.3.0b.master-SNAPSHOT</version>
+        <version>3.8.0.2.master-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -16,28 +16,10 @@
     <dependencies>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
-            <artifactId>ehealth-recipe-entity</artifactId>
-            <version>${project.parent.version}</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>ngari</groupId>
-                    <artifactId>ngari-mixins</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-recipe-common</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-        </dependency>
+        <!-- todo 需要删除 ehealth-recipe-api 引用-->
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-recipe-api</artifactId>
@@ -55,12 +37,6 @@
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>ehealth-recipeaudit-api</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>ehealth-recipe-api</artifactId>
-                    <groupId>ngari</groupId>
-                </exclusion>
-            </exclusions>
         </dependency>
     </dependencies>
 </project>

@@ -77,6 +77,15 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     public abstract List<RecipeOrder> findByOrderCode(@DAOParam("orderCodeList") Collection<String> orderCodeList);
 
     /**
+     * 批量查询 根据编号获取已支付订单
+     *
+     * @param orderCodeList
+     * @return
+     */
+    @DAOMethod(sql = "from RecipeOrder where orderCode in (:orderCodeList) and payFlag!=0")
+    public abstract List<RecipeOrder> findPayOrderByOrderCode(@DAOParam("orderCodeList") Collection<String> orderCodeList);
+
+    /**
      * 根据流水号获取订单
      *
      * @param tradeNo
@@ -87,6 +96,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     /**
      * 根据订单号获取订单信息
+     *
      * @param orderId
      * @return
      */
@@ -95,6 +105,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     /**
      * 根据传芳id获取订单编号
+     *
      * @param recipeId
      * @return
      */
@@ -103,6 +114,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     /**
      * 根据处方id获取订单编号
+     *
      * @param recipeId
      * @return
      */
@@ -111,6 +123,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     /**
      * 根据处方id获取订单
+     *
      * @param recipeId
      * @return
      */
@@ -119,8 +132,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     /**
      * 根据处方id获取订单
-     * @param recipeId  处方ID
-     * @return          订单
+     *
+     * @param recipeId 处方ID
+     * @return 订单
      */
     @DAOMethod(sql = "select order from RecipeOrder order, Recipe recipe where order.orderCode=recipe.orderCode and recipe.recipeId=:recipeId")
     public abstract RecipeOrder getRecipeOrderByRecipeId(@DAOParam("recipeId") Integer recipeId);
@@ -242,6 +256,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     /**
      * 根据处方关联的订单
+     *
      * @param recipeId
      * @return
      */
@@ -260,7 +275,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     /**
      * 根据物流单号查询手机号
      *
-     * @param trackingNumber  顺丰物流单号
+     * @param trackingNumber 顺丰物流单号
      * @return 订单信息
      */
     @DAOMethod(sql = "from RecipeOrder where LogisticsCompany = 1 and  trackingNumber =:trackingNumber")
@@ -275,7 +290,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @param pageSize
      * @return
      */
-    public List<BillRecipeDetailVo> getPayAndRefundInfoByTime(Date startTime, Date endTime, int start, int pageSize){
+    public List<BillRecipeDetailVo> getPayAndRefundInfoByTime(Date startTime, Date endTime, int start, int pageSize) {
         HibernateStatelessResultAction<List<BillRecipeDetailVo>> action = new AbstractHibernateStatelessResultAction<List<BillRecipeDetailVo>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -307,24 +322,24 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 q.setMaxResults(pageSize);
                 List<Object[]> result = q.list();
                 List<BillRecipeDetailVo> backList = new ArrayList<>(pageSize);
-                if (CollectionUtils.isNotEmpty(result)){
+                if (CollectionUtils.isNotEmpty(result)) {
                     BillRecipeDetailVo vo;
                     for (Object[] objs : result) {
                         vo = new BillRecipeDetailVo();
-                        vo.setRecipeId(objs[2] == null ? null : (Integer)objs[0]);
+                        vo.setRecipeId(objs[2] == null ? null : (Integer) objs[0]);
                         vo.setMpiId(objs[2] == null ? null : objs[2] + "");
-                        vo.setDoctorId(objs[1] == null ? null : (Integer)objs[1]);
-                        vo.setRecipeTime(objs[3] == null ? null : (Date)objs[3]);
-                        vo.setOrganId(objs[4] == null ? null : (Integer)objs[4]);
-                        vo.setDeptId(objs[5] == null ? null : (Integer)objs[5]);
+                        vo.setDoctorId(objs[1] == null ? null : (Integer) objs[1]);
+                        vo.setRecipeTime(objs[3] == null ? null : (Date) objs[3]);
+                        vo.setOrganId(objs[4] == null ? null : (Integer) objs[4]);
+                        vo.setDeptId(objs[5] == null ? null : (Integer) objs[5]);
                         vo.setOutTradeNo(objs[6] == null ? null : objs[6] + "");
                         vo.setSettleType(objs[7] == null ? null : Integer.parseInt(objs[7] + ""));
                         vo.setDeliveryMethod(objs[8] == null ? null : Integer.parseInt(objs[8] + ""));
-                        vo.setDrugCompany(objs[21] == null ? null : (Integer)objs[21]);
+                        vo.setDrugCompany(objs[21] == null ? null : (Integer) objs[21]);
                         vo.setDrugCompanyName(objs[19] == null ? null : objs[19] + "");
                         vo.setPayFlag(objs[9] == null ? null : Integer.parseInt(objs[9] + ""));
                         vo.setAppointFee(objs[10] == null ? null : Double.valueOf(objs[10] + ""));
-                        vo.setDeliveryFee(objs[11] == null ? null :Double.valueOf(objs[11] + ""));
+                        vo.setDeliveryFee(objs[11] == null ? null : Double.valueOf(objs[11] + ""));
                         vo.setDaiJianFee(objs[12] == null ? null : Double.valueOf(objs[12] + ""));
                         vo.setReviewFee(objs[13] == null ? null : Double.valueOf(objs[13] + ""));
                         vo.setOtherFee(objs[14] == null ? null : Double.valueOf(objs[14] + ""));
@@ -349,11 +364,12 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     /**
      * 根据药企编号和支付时间查询订单
-     * @param enterpriseIds    药企编号
-     * @param payTime         支付时间
-     * @return                订单列表
+     *
+     * @param enterpriseIds 药企编号
+     * @param payTime       支付时间
+     * @return 订单列表
      */
-    public List<RecipeOrder> findRecipeOrderByDepIdAndPayTime(List<Integer> enterpriseIds, String payTime){
+    public List<RecipeOrder> findRecipeOrderByDepIdAndPayTime(List<Integer> enterpriseIds, String payTime) {
         HibernateStatelessResultAction<List<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrder>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -378,7 +394,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @param endTime
      * @return
      */
-    public List<RegulationChargeDetailReqTo> queryRegulationChargeDetailList(final List<Integer> ngariOrganIds, final Date startTime, final Date endTime){
+    public List<RegulationChargeDetailReqTo> queryRegulationChargeDetailList(final List<Integer> ngariOrganIds, final Date startTime, final Date endTime) {
         HibernateStatelessResultAction<List<RegulationChargeDetailReqTo>> action = new AbstractHibernateStatelessResultAction<List<RegulationChargeDetailReqTo>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -395,27 +411,27 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameter("startTime", startTime);
                 q.setParameter("endTime", endTime);
-                q.setParameterList("ngariOrganIds",ngariOrganIds);
-                logger.info("paramter is startTime:[{}],endTime:[{}],ngariOrganIds[{}]",startTime,endTime,ngariOrganIds);
+                q.setParameterList("ngariOrganIds", ngariOrganIds);
+                logger.info("paramter is startTime:[{}],endTime:[{}],ngariOrganIds[{}]", startTime, endTime, ngariOrganIds);
                 List<Object[]> result = q.list();
                 List<RegulationChargeDetailReqTo> backList = new ArrayList<>();
-                if (CollectionUtils.isNotEmpty(result)){
+                if (CollectionUtils.isNotEmpty(result)) {
                     RegulationChargeDetailReqTo vo;
                     for (Object[] objs : result) {
                         vo = new RegulationChargeDetailReqTo();
-                        vo.setOrganID(objs[0] == null ? null : (Integer)objs[0]);
+                        vo.setOrganID(objs[0] == null ? null : (Integer) objs[0]);
                         vo.setRecipeDetailID(objs[1] == null ? null : objs[1] + "");
-                        vo.setPayFlag(objs[2] == null ? null : Integer.parseInt(objs[2]+""));
-                        vo.setClinicID(objs[3] == null ? null : objs[3]+"");
-                        vo.setTradeNo(objs[4] == null ? null : objs[4]+"");
-                        vo.setRecipeID(objs[5] == null ? null : objs[5]+"");
-                        vo.setRecipeType(objs[6] == null ? null : Integer.parseInt(objs[6]+""));
+                        vo.setPayFlag(objs[2] == null ? null : Integer.parseInt(objs[2] + ""));
+                        vo.setClinicID(objs[3] == null ? null : objs[3] + "");
+                        vo.setTradeNo(objs[4] == null ? null : objs[4] + "");
+                        vo.setRecipeID(objs[5] == null ? null : objs[5] + "");
+                        vo.setRecipeType(objs[6] == null ? null : Integer.parseInt(objs[6] + ""));
                         vo.setDrugUnit(objs[7] == null ? null : objs[7] + "");
-                        vo.setActualSalePrice(objs[8] == null ? null :(BigDecimal)objs[8]);
-                        vo.setUseTotalDose(objs[9] == null ? null : (BigDecimal)objs[9]);
-                        vo.setStatus(objs[10] == null ? null :  Integer.parseInt(objs[10]+""));
-                        vo.setMedicalDrugCode(objs[11]== null ? null: objs[11]+"");
-                        vo.setSalePrice(objs[12] == null ? null : (BigDecimal)objs[12]);
+                        vo.setActualSalePrice(objs[8] == null ? null : (BigDecimal) objs[8]);
+                        vo.setUseTotalDose(objs[9] == null ? null : (BigDecimal) objs[9]);
+                        vo.setStatus(objs[10] == null ? null : Integer.parseInt(objs[10] + ""));
+                        vo.setMedicalDrugCode(objs[11] == null ? null : objs[11] + "");
+                        vo.setSalePrice(objs[12] == null ? null : (BigDecimal) objs[12]);
                         backList.add(vo);
                     }
                 }
@@ -429,24 +445,25 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     /**
      * 根据物流公司编号与快递单号查询订单编号
+     *
      * @param logisticsCompany
      * @param trackingNumber
      * @return
      */
     @DAOMethod(sql = "select orderCode from RecipeOrder order  where order.logisticsCompany=:logisticsCompany and order.trackingNumber=:trackingNumber")
     public abstract String getOrderCodeByLogisticsCompanyAndTrackingNumber(@DAOParam("logisticsCompany") Integer logisticsCompany,
-                                                                                @DAOParam("trackingNumber") String trackingNumber);
+                                                                           @DAOParam("trackingNumber") String trackingNumber);
 
     /**
      * 根据日期获取电子处方药企配送订单明细
      *
      * @param startTime 开始时间
-     * @param endTime 截止时间
-     * @param organId 机构ID
-     * @param depId 药企ID
+     * @param endTime   截止时间
+     * @param organId   机构ID
+     * @param depId     药企ID
      * @return
      */
-    public List<Map<String, Object>> queryrecipeOrderDetailed(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer drugId, String orderColumn, String orderType, Integer  recipeId,Integer  payType, int start, int limit){
+    public List<Map<String, Object>> queryrecipeOrderDetailed(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer drugId, String orderColumn, String orderType, Integer recipeId, Integer payType, int start, int limit) {
         HibernateStatelessResultAction<List<Map<String, Object>>> action = new AbstractHibernateStatelessResultAction<List<Map<String, Object>>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -486,22 +503,24 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                     sqlPay.append(" and d.`status` = 1");
                     sqlRefund.append(" and d.`status` = 1");
                 }
-                if(recipeId != null){
+                if (recipeId != null) {
                     sqlPay.append(" and r.recipeId = :recipeId");
                     sqlRefund.append(" and r.recipeId = :recipeId");
                 }
-                if(payType != null){
+                if (payType != null) {
                     sqlPay.append(" and o.payFlag = :payType ");
                     sqlRefund.append(" and o.payFlag = :payType ");
                 }
                 //退款的处方单需要展示两条记录，所以要在取一次
-                if(payType!=null&&payType==1)sql.append("SELECT * from ( ").append(sqlPay).append(" ) a");
-                else if(payType!=null&&payType==3)sql.append("SELECT * from ( ").append(sqlRefund).append(" ) a");
-                else sql.append("SELECT * from ( ").append(sqlPay).append(" UNION ALL ").append(sqlRefund).append(" ) a");
+                if (payType != null && payType == 1) sql.append("SELECT * from ( ").append(sqlPay).append(" ) a");
+                else if (payType != null && payType == 3)
+                    sql.append("SELECT * from ( ").append(sqlRefund).append(" ) a");
+                else
+                    sql.append("SELECT * from ( ").append(sqlPay).append(" UNION ALL ").append(sqlRefund).append(" ) a");
                 if (orderColumn != null) {
                     sql.append(" order by " + orderColumn + " ");
                 }
-                if(orderType != null){
+                if (orderType != null) {
                     sql.append(orderType);
                 }
                 Query q = ss.createSQLQuery(sql.toString());
@@ -518,10 +537,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (drugId != null) {
                     q.setParameter("drugId", drugId);
                 }
-                if(recipeId != null){
+                if (recipeId != null) {
                     q.setParameter("recipeId", recipeId);
                 }
-                if(payType!=null){
+                if (payType != null) {
                     q.setParameter("payType", payType);
                 }
                 q.setFirstResult(start);
@@ -530,18 +549,18 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 List<Map<String, Object>> backList = new ArrayList<>();
 
                 Set<String> mpiIds = Sets.newHashSet();
-                if (CollectionUtils.isNotEmpty(result)){
+                if (CollectionUtils.isNotEmpty(result)) {
 
                     //获取全部身份证信息
                     PatientService patientService = BasicAPI.getService(PatientService.class);
                     Map<String, String> patientBeanMap = Maps.newHashMap();
                     for (Object[] obj : result) {
-                        if(obj[2] != null){
-                            mpiIds.add((String)obj[2]);
+                        if (obj[2] != null) {
+                            mpiIds.add((String) obj[2]);
                         }
                     }
 
-                    if(0 < mpiIds.size()){
+                    if (0 < mpiIds.size()) {
                         List<PatientDTO> patientBeanList = patientService.findByMpiIdIn(new ArrayList<String>(mpiIds));
                         for (PatientDTO p : patientBeanList) {
                             patientBeanMap.put(p.getMpiId(), p.getIdcard());
@@ -551,25 +570,25 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                     Map<String, Object> vo;
                     for (Object[] objs : result) {
                         vo = new HashMap<String, Object>();
-                        vo.put("recipeId", objs[0] == null ? null : (Integer)objs[0]);
-                        vo.put("patientName", objs[1] == null ? null : (String)objs[1]);
-                        vo.put("cardId", objs[2] == null ? null : patientBeanMap.get((String)objs[2]));
-                        vo.put("enterpriseName", objs[3] == null ? null : (String)objs[3]);
-                        vo.put("organName", objs[4] == null ? null : (String)objs[4]);
-                        vo.put("doctorName", objs[5] == null ? null : (String)objs[5]);
-                        vo.put("signDate", objs[6] == null ? null : (Date)objs[6]);
+                        vo.put("recipeId", objs[0] == null ? null : (Integer) objs[0]);
+                        vo.put("patientName", objs[1] == null ? null : (String) objs[1]);
+                        vo.put("cardId", objs[2] == null ? null : patientBeanMap.get((String) objs[2]));
+                        vo.put("enterpriseName", objs[3] == null ? null : (String) objs[3]);
+                        vo.put("organName", objs[4] == null ? null : (String) objs[4]);
+                        vo.put("doctorName", objs[5] == null ? null : (String) objs[5]);
+                        vo.put("signDate", objs[6] == null ? null : (Date) objs[6]);
                         vo.put("payType", objs[7] == null ? null : objs[7].toString());
-                        vo.put("payTime", objs[8] == null ? null : (Date)objs[8]);
-                        vo.put("refundTime", objs[9] == null ? null : (Date)objs[9]);
-                        vo.put("useTotalDose", objs[10] == null ? null : Double.valueOf(objs[10]+""));
-                        vo.put("actualPrice", objs[11] == null ? null : Double.valueOf(objs[11]+""));
-                        if(drugId==null){
-                            vo.put("saleDrugCode",objs[12] == null ? null : (String)objs[12]);
-                            vo.put("drugName",objs[13] == null ? null : (String)objs[13]);
-                            vo.put("drugSpec",objs[14] == null ? null : (String)objs[14]);
-                            vo.put("producer",objs[15] == null ? null : (String)objs[15]);
-                            vo.put("price",objs[16] == null ? null : Double.valueOf(objs[16]+""));
-                            vo.put("drugId",objs[17] == null ? null : (Integer)objs[17]);
+                        vo.put("payTime", objs[8] == null ? null : (Date) objs[8]);
+                        vo.put("refundTime", objs[9] == null ? null : (Date) objs[9]);
+                        vo.put("useTotalDose", objs[10] == null ? null : Double.valueOf(objs[10] + ""));
+                        vo.put("actualPrice", objs[11] == null ? null : Double.valueOf(objs[11] + ""));
+                        if (drugId == null) {
+                            vo.put("saleDrugCode", objs[12] == null ? null : (String) objs[12]);
+                            vo.put("drugName", objs[13] == null ? null : (String) objs[13]);
+                            vo.put("drugSpec", objs[14] == null ? null : (String) objs[14]);
+                            vo.put("producer", objs[15] == null ? null : (String) objs[15]);
+                            vo.put("price", objs[16] == null ? null : Double.valueOf(objs[16] + ""));
+                            vo.put("drugId", objs[17] == null ? null : (Integer) objs[17]);
                         }
                         backList.add(vo);
                     }
@@ -585,12 +604,12 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * 根据日期获取电子处方药企配送订单明细（总计数据）
      *
      * @param startTime 开始时间
-     * @param endTime 截止时间
-     * @param organId 机构ID
-     * @param depId 药企ID
+     * @param endTime   截止时间
+     * @param organId   机构ID
+     * @param depId     药企ID
      * @return
      */
-    public Map<String, Object> queryrecipeOrderDetailedTotal(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer drugId,Integer recipeId, Integer payType){
+    public Map<String, Object> queryrecipeOrderDetailedTotal(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer drugId, Integer recipeId, Integer payType) {
         HibernateStatelessResultAction<Map<String, Object>> action = new AbstractHibernateStatelessResultAction<Map<String, Object>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -630,11 +649,11 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                     sqlPay.append(" and d.`status` = 1 ");
                     sqlRefund.append(" and d.`status` = 1 ");
                 }
-                if(recipeId != null){
+                if (recipeId != null) {
                     sqlPay.append(" and r.recipeId = :recipeId");
                     sqlRefund.append(" and r.recipeId = :recipeId");
                 }
-                if(payType != null){
+                if (payType != null) {
                     sqlPay.append(" and o.payFlag = :payType ");
                     sqlRefund.append(" and o.payFlag = :payType ");
                 }
@@ -656,15 +675,15 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (drugId != null) {
                     q.setParameter("drugId", drugId);
                 }
-                if(recipeId != null){
+                if (recipeId != null) {
                     q.setParameter("recipeId", recipeId);
                 }
-                if(payType!=null){
+                if (payType != null) {
                     q.setParameter("payType", payType);
                 }
                 List<Object[]> result = q.list();
-                Map<String, Object> vo = new HashMap ();
-                if (CollectionUtils.isNotEmpty(result)){
+                Map<String, Object> vo = new HashMap();
+                if (CollectionUtils.isNotEmpty(result)) {
                     vo.put("totalNum", result.get(0)[0]);
                     vo.put("totalPrice", result.get(0)[1]);
                 }
@@ -680,12 +699,12 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * 根据日期获取电子处方药企配送药品
      *
      * @param startTime 开始时间
-     * @param endTime 截止时间
-     * @param organId 机构ID
-     * @param depId 药企ID
+     * @param endTime   截止时间
+     * @param organId   机构ID
+     * @param depId     药企ID
      * @return
      */
-    public List<Map<String, Object>> queryrecipeDrug(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer recipeId, String orderColumn, String orderType, int start, int limit){
+    public List<Map<String, Object>> queryrecipeDrug(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer recipeId, String orderColumn, String orderType, int start, int limit) {
         HibernateStatelessResultAction<List<Map<String, Object>>> action = new AbstractHibernateStatelessResultAction<List<Map<String, Object>>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -693,7 +712,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
                 if (recipeId != null) {
                     hql.append("SELECT d.saleDrugCode, d.drugName, d.producer, d.drugSpec, d.DrugUnit, IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) as price, sum(d.useTotalDose) as dose, sum(IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) * d.useTotalDose) as totalPrice, s.organId, s.DrugId ");
-                } else{
+                } else {
                     hql.append("SELECT d.saleDrugCode, d.drugName, d.producer, d.drugSpec, d.DrugUnit, IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) as price, sum(d.useTotalDose) as dose, sum(if(o.refundFlag=1,0,IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price))) * d.useTotalDose) as totalPrice, s.organId, s.DrugId ");
                 }
                 hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId INNER JOIN cdr_recipeorder o ON o.OrderCode = r.OrderCode ");
@@ -714,7 +733,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (orderColumn != null) {
                     hql.append(" order by " + orderColumn + " ");
                 }
-                if(orderType != null){
+                if (orderType != null) {
                     hql.append(orderType);
                 }
                 Query q = ss.createSQLQuery(hql.toString());
@@ -738,18 +757,18 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 List<Map<String, Object>> backList = new ArrayList<>();
 
                 Set<String> mpiIds = Sets.newHashSet();
-                if (CollectionUtils.isNotEmpty(result)){
+                if (CollectionUtils.isNotEmpty(result)) {
 
                     //获取全部身份证信息
                     PatientService patientService = BasicAPI.getService(PatientService.class);
                     Map<String, String> patientBeanMap = Maps.newHashMap();
                     for (Object[] obj : result) {
-                        if(obj[2] != null){
-                            mpiIds.add((String)obj[2]);
+                        if (obj[2] != null) {
+                            mpiIds.add((String) obj[2]);
                         }
                     }
 
-                    if(0 < mpiIds.size()){
+                    if (0 < mpiIds.size()) {
                         List<PatientDTO> patientBeanList = patientService.findByMpiIdIn(new ArrayList<String>(mpiIds));
                         for (PatientDTO p : patientBeanList) {
                             patientBeanMap.put(p.getMpiId(), p.getCardId());
@@ -759,14 +778,14 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                     Map<String, Object> vo;
                     for (Object[] objs : result) {
                         vo = new HashMap<String, Object>();
-                        vo.put("drugCode", objs[0] == null ? null : (String)objs[0]);
-                        vo.put("drugName", objs[1] == null ? null : (String)objs[1]);
-                        vo.put("producer", objs[2] == null ? null : (String)objs[2]);
-                        vo.put("drugSpec", objs[3] == null ? null : (String)objs[3]);
-                        vo.put("drugUnit", objs[4] == null ? null : (String)objs[4]);
-                        vo.put("price", objs[5] == null ? null : Double.valueOf(objs[5]+""));
+                        vo.put("drugCode", objs[0] == null ? null : (String) objs[0]);
+                        vo.put("drugName", objs[1] == null ? null : (String) objs[1]);
+                        vo.put("producer", objs[2] == null ? null : (String) objs[2]);
+                        vo.put("drugSpec", objs[3] == null ? null : (String) objs[3]);
+                        vo.put("drugUnit", objs[4] == null ? null : (String) objs[4]);
+                        vo.put("price", objs[5] == null ? null : Double.valueOf(objs[5] + ""));
                         vo.put("dose", objs[6] == null ? null : objs[6].toString());
-                        vo.put("totalPrice", objs[7] == null ? null : Double.valueOf(objs[7]+""));
+                        vo.put("totalPrice", objs[7] == null ? null : Double.valueOf(objs[7] + ""));
                         vo.put("enterpriseId", objs[8] == null ? null : objs[8].toString());
                         vo.put("DrugId", objs[9] == null ? null : objs[9].toString());
                         backList.add(vo);
@@ -783,19 +802,19 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * 根据日期获取电子处方药企配送药品
      *
      * @param startTime 开始时间
-     * @param endTime 截止时间
-     * @param organId 机构ID
-     * @param depId 药企ID
+     * @param endTime   截止时间
+     * @param organId   机构ID
+     * @param depId     药企ID
      * @return
      */
-    public Map<String, Object> queryrecipeDrugtotal(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer recipeId){
+    public Map<String, Object> queryrecipeDrugtotal(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer recipeId) {
         HibernateStatelessResultAction<Map<String, Object>> action = new AbstractHibernateStatelessResultAction<Map<String, Object>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
                 if (recipeId != null) {
                     hql.append("SELECT count(1), sum(totalPrice) from (SELECT sum(IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) * d.useTotalDose) as totalPrice ");
-                } else{
+                } else {
                     hql.append("SELECT count(1), sum(totalPrice) from (SELECT sum(if(o.refundFlag=1,0,IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price))) * d.useTotalDose) as totalPrice ");
                 }
                 hql.append(" FROM cdr_recipe r INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId INNER JOIN cdr_recipeorder o ON o.OrderCode = r.OrderCode ");
@@ -829,8 +848,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 }
                 List<Object[]> result = q.list();
 
-                Map<String, Object> vo = new HashMap ();
-                if (CollectionUtils.isNotEmpty(result)){
+                Map<String, Object> vo = new HashMap();
+                if (CollectionUtils.isNotEmpty(result)) {
                     vo.put("totalNum", result.get(0)[0]);
                     vo.put("totalPrice", result.get(0)[1]);
                 }
@@ -845,12 +864,12 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * 根据日期获取电子处方药企配送药品
      *
      * @param startTime 开始时间
-     * @param endTime 截止时间
-     * @param organId 机构ID
-     * @param depId 药企ID
+     * @param endTime   截止时间
+     * @param organId   机构ID
+     * @param depId     药企ID
      * @return
      */
-    public List<Map<String, Object>> queryrecipeDrugO(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer recipeId, String orderColumn, String orderType, int start, int limit){
+    public List<Map<String, Object>> queryrecipeDrugO(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer recipeId, String orderColumn, String orderType, int start, int limit) {
         HibernateStatelessResultAction<List<Map<String, Object>>> action = new AbstractHibernateStatelessResultAction<List<Map<String, Object>>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -888,7 +907,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (orderColumn != null) {
                     sql.append(" order by " + orderColumn + " ");
                 }
-                if(orderType != null){
+                if (orderType != null) {
                     sql.append(orderType);
                 }
                 Query q = ss.createSQLQuery(sql.toString());
@@ -912,18 +931,18 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 List<Map<String, Object>> backList = new ArrayList<>();
 
                 Set<String> mpiIds = Sets.newHashSet();
-                if (CollectionUtils.isNotEmpty(result)){
+                if (CollectionUtils.isNotEmpty(result)) {
 
                     //获取全部身份证信息
                     PatientService patientService = BasicAPI.getService(PatientService.class);
                     Map<String, String> patientBeanMap = Maps.newHashMap();
                     for (Object[] obj : result) {
-                        if(obj[2] != null){
-                            mpiIds.add((String)obj[2]);
+                        if (obj[2] != null) {
+                            mpiIds.add((String) obj[2]);
                         }
                     }
 
-                    if(0 < mpiIds.size()){
+                    if (0 < mpiIds.size()) {
                         List<PatientDTO> patientBeanList = patientService.findByMpiIdIn(new ArrayList<String>(mpiIds));
                         for (PatientDTO p : patientBeanList) {
                             patientBeanMap.put(p.getMpiId(), p.getCardId());
@@ -933,14 +952,14 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                     Map<String, Object> vo;
                     for (Object[] objs : result) {
                         vo = new HashMap<String, Object>();
-                        vo.put("drugCode", objs[0] == null ? null : (String)objs[0]);
-                        vo.put("drugName", objs[1] == null ? null : (String)objs[1]);
-                        vo.put("producer", objs[2] == null ? null : (String)objs[2]);
-                        vo.put("drugSpec", objs[3] == null ? null : (String)objs[3]);
-                        vo.put("drugUnit", objs[4] == null ? null : (String)objs[4]);
-                        vo.put("price", objs[5] == null ? null : Double.valueOf(objs[5]+""));
+                        vo.put("drugCode", objs[0] == null ? null : (String) objs[0]);
+                        vo.put("drugName", objs[1] == null ? null : (String) objs[1]);
+                        vo.put("producer", objs[2] == null ? null : (String) objs[2]);
+                        vo.put("drugSpec", objs[3] == null ? null : (String) objs[3]);
+                        vo.put("drugUnit", objs[4] == null ? null : (String) objs[4]);
+                        vo.put("price", objs[5] == null ? null : Double.valueOf(objs[5] + ""));
                         vo.put("dose", objs[6] == null ? null : objs[6].toString());
-                        vo.put("totalPrice", objs[7] == null ? null : Double.valueOf(objs[7]+""));
+                        vo.put("totalPrice", objs[7] == null ? null : Double.valueOf(objs[7] + ""));
                         vo.put("enterpriseId", objs[8] == null ? null : objs[8].toString());
                         vo.put("DrugId", objs[9] == null ? null : objs[9].toString());
                         backList.add(vo);
@@ -957,12 +976,12 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * 根据日期获取电子处方药企配送药品
      *
      * @param startTime 开始时间
-     * @param endTime 截止时间
-     * @param organId 机构ID
-     * @param depId 药企ID
+     * @param endTime   截止时间
+     * @param organId   机构ID
+     * @param depId     药企ID
      * @return
      */
-    public Map<String, Object> queryrecipeDrugtotalO(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer recipeId){
+    public Map<String, Object> queryrecipeDrugtotalO(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer recipeId) {
         HibernateStatelessResultAction<Map<String, Object>> action = new AbstractHibernateStatelessResultAction<Map<String, Object>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -1015,8 +1034,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 }
                 List<Object[]> result = q.list();
 
-                Map<String, Object> vo = new HashMap ();
-                if (CollectionUtils.isNotEmpty(result)){
+                Map<String, Object> vo = new HashMap();
+                if (CollectionUtils.isNotEmpty(result)) {
                     vo.put("totalNum", result.get(0)[0]);
                     vo.put("totalPrice", result.get(0)[1]);
                 }
@@ -1062,20 +1081,20 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             private List<BillBusFeeVo> convertToBBFVList(String acctDate, List<Object[]> payList, List<Object[]> refundList) {
                 Set<Integer> organSet = fetchAllOrgan(payList, refundList);
                 List<BillBusFeeVo> voList = Lists.newArrayList();
-                for(Integer organId : organSet){
+                for (Integer organId : organSet) {
                     BillBusFeeVo vo = newBillBusFeeVo(acctDate, organId);
                     fullFillPayPartIfExists(vo, payList);
                     fullFillRefundPartIfExists(vo, refundList);
-                    vo.setAggregateAmount(vo.getPayAmount()-vo.getRefundAmount());
+                    vo.setAggregateAmount(vo.getPayAmount() - vo.getRefundAmount());
                     voList.add(vo);
                 }
                 return voList;
             }
 
             private void fullFillRefundPartIfExists(BillBusFeeVo vo, List<Object[]> refundList) {
-                for(Object[] ros : refundList){
+                for (Object[] ros : refundList) {
                     Integer organId = ConversionUtils.convert(ros[0], Integer.class);
-                    if(vo.getOrganId().equals(organId)){
+                    if (vo.getOrganId().equals(organId)) {
                         vo.setRefundCount(ConversionUtils.convert(ros[1], Integer.class));
                         vo.setRefundAmount(ConversionUtils.convert(ros[2], Double.class));
                         break;
@@ -1084,9 +1103,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             }
 
             private void fullFillPayPartIfExists(BillBusFeeVo vo, List<Object[]> payList) {
-                for(Object[] pos : payList){
+                for (Object[] pos : payList) {
                     Integer organId = ConversionUtils.convert(pos[0], Integer.class);
-                    if(vo.getOrganId().equals(organId)){
+                    if (vo.getOrganId().equals(organId)) {
                         vo.setPayCount(ConversionUtils.convert(pos[1], Integer.class));
                         vo.setPayAmount(ConversionUtils.convert(pos[2], Double.class));
                         break;
@@ -1112,10 +1131,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
             private Set<Integer> fetchAllOrgan(List<Object[]> payList, List<Object[]> refundList) {
                 Set<Integer> organSet = new HashSet<>();
-                for(Object[] pos : payList){
+                for (Object[] pos : payList) {
                     organSet.add(ConversionUtils.convert(pos[0], Integer.class));
                 }
-                for(Object[] ros : refundList){
+                for (Object[] ros : refundList) {
                     organSet.add(ConversionUtils.convert(ros[0], Integer.class));
                 }
                 return organSet;
@@ -1147,7 +1166,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
             private List<BillDrugFeeVo> convertToBDFVList(String acctDate, List<Object[]> list) {
                 List<BillDrugFeeVo> voList = Lists.newArrayList();
-                for(Object[] objs : list){
+                for (Object[] objs : list) {
                     BillDrugFeeVo vo = new BillDrugFeeVo();
                     vo.setAcctMonth(acctDate.substring(0, 8));
                     vo.setAcctDate(acctDate);
@@ -1203,7 +1222,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 query.setParameter("startTime", startTime);
                 query.setParameter("endTime", endTime);
 
-                if (CollectionUtils.isNotEmpty(organIdList)){
+                if (CollectionUtils.isNotEmpty(organIdList)) {
                     query.setParameterList("organIdList", organIdList);
                 }
                 query.setFirstResult(start);
@@ -1255,7 +1274,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 }
                 sql.append(" AND YEAR(ero.PayTime) =:year and MONTH(ero.PayTime) =:month GROUP BY er.ClinicOrgan ORDER BY er.ClinicOrgan");
 
-                if(CollectionUtils.isNotEmpty(organIdList)){
+                if (CollectionUtils.isNotEmpty(organIdList)) {
                     queryCount.append(" And er.clinicOrgan IN :organIdList");
                 }
 
@@ -1263,7 +1282,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 Query query = ss.createSQLQuery(queryhql.append(sql).toString());
                 query.setParameter("year", year);
                 query.setParameter("month", month);
-                if(CollectionUtils.isNotEmpty(organIdList)){
+                if (CollectionUtils.isNotEmpty(organIdList)) {
                     query.setParameterList("organIdList", organIdList);
                 }
                 query.setFirstResult(start);
@@ -1273,7 +1292,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 Query countQuery = ss.createSQLQuery(countSql.append(queryCount).toString());
                 countQuery.setParameter("year", year);
                 countQuery.setParameter("month", month);
-                if(CollectionUtils.isNotEmpty(organIdList)){
+                if (CollectionUtils.isNotEmpty(organIdList)) {
                     countQuery.setParameterList("organIdList", organIdList);
                 }
                 Long total = ConversionUtils.convert(countQuery.uniqueResult(), Long.class);
@@ -1330,7 +1349,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (StringUtils.isNotEmpty(request.getTradeNo())) {
                     sql.append(" And ero.outTradeNo =:outTradeNo");
                 }
-                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                if (CollectionUtils.isNotEmpty(request.getOrganIdList())) {
                     sql.append(" And er.clinicOrgan in :organIdList");
                 }
                 if (null != request.getRefundFlag()) {
@@ -1350,7 +1369,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (StringUtils.isNotEmpty(request.getTradeNo())) {
                     query.setParameter("outTradeNo", request.getTradeNo());
                 }
-                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                if (CollectionUtils.isNotEmpty(request.getOrganIdList())) {
                     query.setParameterList("organIdList", request.getOrganIdList());
                 }
                 if (null != request.getRefundFlag()) {
@@ -1370,7 +1389,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (StringUtils.isNotEmpty(request.getTradeNo())) {
                     countQuery.setParameter("outTradeNo", request.getTradeNo());
                 }
-                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                if (CollectionUtils.isNotEmpty(request.getOrganIdList())) {
                     countQuery.setParameterList("organIdList", request.getOrganIdList());
                 }
                 if (null != request.getRefundFlag()) {
@@ -1436,19 +1455,19 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 query.setMaxResults(request.getLimit());
                 query.setParameter("year", request.getYear());
                 query.setParameter("month", request.getMonth());
-                if(null != request.getEnterpriseId()){
+                if (null != request.getEnterpriseId()) {
                     query.setParameter("enterpriseId", request.getEnterpriseId());
                 }
                 List<Object[]> queryList = query.list();
 
                 StringBuilder countSql = new StringBuilder("select count(*) from(select count(c.EnterpriseId)");
                 Query countQuery = ss.createSQLQuery(countSql.append(sql).append(")t").toString());
-                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                if (CollectionUtils.isNotEmpty(request.getOrganIdList())) {
                     countQuery.setParameterList("organIdList", request.getOrganIdList());
                 }
                 countQuery.setParameter("year", request.getYear());
                 countQuery.setParameter("month", request.getMonth());
-                if(null != request.getEnterpriseId()){
+                if (null != request.getEnterpriseId()) {
                     countQuery.setParameter("enterpriseId", request.getEnterpriseId());
                 }
                 Long total = ConversionUtils.convert(countQuery.uniqueResult(), Long.class);
@@ -1553,7 +1572,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         response.setTradeNo(ConversionUtils.convert(item[10], String.class));
                         response.setPayeeCode(ConversionUtils.convert(item[11], Integer.class));
                         response.setGiveMode(ConversionUtils.convert(item[12], Integer.class));
-                        response.setRecipeCode(ConversionUtils.convert(item[13],String.class));
+                        response.setRecipeCode(ConversionUtils.convert(item[13], String.class));
                         resultList.add(response);
                     }
                 }
@@ -1575,21 +1594,21 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 StringBuilder sql = new StringBuilder(" FROM cdr_recipe cr" +
                         " INNER JOIN cdr_recipeorder cro ON cr.orderCode = cro.ordercode" +
                         " WHERE cro.paytime BETWEEN :startTime AND :endTime AND cro.outTradeNo is not null ");
-                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                if (CollectionUtils.isNotEmpty(request.getOrganIdList())) {
                     sql.append(" AND cro.OrganId in :organIdList ");
                 }
-                if(null != request.getBuyMedicWay()){
+                if (null != request.getBuyMedicWay()) {
                     sql.append(" and cr.GiveMode =:giveMode");
                 }
 //                sql.append(" GROUP BY c.OrganId,c.EnterpriseId");
                 StringBuilder querySql = queryhql.append(sql);
                 Query query = ss.createSQLQuery(querySql.toString());
-                if(CollectionUtils.isNotEmpty(request.getOrganIdList())){
+                if (CollectionUtils.isNotEmpty(request.getOrganIdList())) {
                     query.setParameterList("organIdList", request.getOrganIdList());
                 }
                 query.setParameter("startTime", request.getStartTime());
                 query.setParameter("endTime", request.getEndTime());
-                if(StringUtils.isNotEmpty(request.getBuyMedicWay())){
+                if (StringUtils.isNotEmpty(request.getBuyMedicWay())) {
                     query.setParameter("giveMode", request.getBuyMedicWay());
                 }
 
@@ -1608,15 +1627,15 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (CollectionUtils.isNotEmpty(queryList)) {
                     for (Object[] item : queryList) {
                         RecipeHisAccountCheckResponse response = new RecipeHisAccountCheckResponse();
-                        response.setRecipeId(ConversionUtils.convert(item[0],Integer.class));
-                        response.setPatientName(ConversionUtils.convert(item[1],String.class));
-                        response.setMpiId(ConversionUtils.convert(item[2],String.class));
-                        response.setBuyMedicineWay(ConversionUtils.convert(item[3],String.class));
-                        response.setGiverMode(ConversionUtils.convert(item[4],Integer.class));
-                        response.setPayDate(ConversionUtils.convert(item[5],Date.class));
-                        response.setTotalFee(ConversionUtils.convert(item[6],BigDecimal.class));
-                        response.setMedicalInsurancePlanningFee(ConversionUtils.convert(item[7],BigDecimal.class));
-                        response.setSelfPayFee(ConversionUtils.convert(item[8],BigDecimal.class));
+                        response.setRecipeId(ConversionUtils.convert(item[0], Integer.class));
+                        response.setPatientName(ConversionUtils.convert(item[1], String.class));
+                        response.setMpiId(ConversionUtils.convert(item[2], String.class));
+                        response.setBuyMedicineWay(ConversionUtils.convert(item[3], String.class));
+                        response.setGiverMode(ConversionUtils.convert(item[4], Integer.class));
+                        response.setPayDate(ConversionUtils.convert(item[5], Date.class));
+                        response.setTotalFee(ConversionUtils.convert(item[6], BigDecimal.class));
+                        response.setMedicalInsurancePlanningFee(ConversionUtils.convert(item[7], BigDecimal.class));
+                        response.setSelfPayFee(ConversionUtils.convert(item[8], BigDecimal.class));
                         response.setHisRecipeId(ConversionUtils.convert(item[9], String.class));
                         response.setTradeNo(ConversionUtils.convert(item[10], String.class));
                         response.setOrganId(ConversionUtils.convert(item[11], Integer.class));
@@ -1631,7 +1650,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return action.getResult();
     }
 
-    public List<RecipeOrder> findRecipeOrderWitchLogistics(){
+    public List<RecipeOrder> findRecipeOrderWitchLogistics() {
         HibernateStatelessResultAction<List<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrder>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -1653,8 +1672,11 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @param organId
      * @return
      */
-    @DAOMethod(sql = "From RecipeOrder  where mpiId = :mpiId AND organId = :organId")
+    @DAOMethod(sql = "From RecipeOrder  where mpiId = :mpiId AND organId = :organId", limit = 0)
     public abstract List<RecipeOrder> queryRecipeOrderByMpiIdAndOrganId(@DAOParam("mpiId") String mpiId, @DAOParam("organId") Integer organId);
+
+    @DAOMethod(sql = "From RecipeOrder  where mpiId = :mpiId AND organId in(:organIds)", limit = 0)
+    public abstract List<RecipeOrder> queryRecipeOrderByMpiIdAndOrganIds(@DAOParam("mpiId") String mpiId, @DAOParam("organIds") List<Integer> organIds);
 
 
     /**

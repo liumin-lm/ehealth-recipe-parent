@@ -1,26 +1,39 @@
 package recipe.bussutil;
 
-import com.itextpdf.text.BaseColor;
-import com.itextpdf.text.Image;
-import com.itextpdf.text.pdf.BaseFont;
-import com.itextpdf.text.pdf.PdfContentByte;
-import com.itextpdf.text.pdf.PdfReader;
-import com.itextpdf.text.pdf.PdfStamper;
 import org.apache.commons.lang.StringUtils;
 import org.krysalis.barcode4j.HumanReadablePlacement;
 import org.krysalis.barcode4j.impl.code128.Code128Bean;
 import org.krysalis.barcode4j.output.bitmap.BitmapCanvasProvider;
 import org.krysalis.barcode4j.tools.UnitConv;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.awt.image.BufferedImage;
-import java.io.*;
-import java.net.URL;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.net.URI;
 
 /**
  * created by shiyuping on 2020/6/3
  * 条形码生成工具
  */
 public class BarCodeUtil {
+    private static final Logger logger = LoggerFactory.getLogger(BarCodeUtil.class);
+
+    public static URI generateFileUrl(String msg, String path) {
+        if (StringUtils.isEmpty(msg)) {
+            return null;
+        }
+        try {
+            File barCodeFile = BarCodeUtil.generateFile(msg, path);
+            return barCodeFile.toURI();
+        } catch (Exception e) {
+            logger.error("BarCodeUtil generateFileUrl wordToPdf ={} ,path={} ,error", msg, path, e);
+            return null;
+        }
+    }
+
     /**
      * 生成文件
      *
@@ -28,22 +41,10 @@ public class BarCodeUtil {
      * @param path
      * @return
      */
-    public static File generateFile(String msg, String path) throws Exception{
+    public static File generateFile(String msg, String path) throws Exception {
         File file = new File(path);
         generate(msg, new FileOutputStream(file));
         return file;
-    }
-
-    /**
-     * 生成字节
-     *
-     * @param msg
-     * @return
-     */
-    public static byte[] generate(String msg) throws Exception{
-        ByteArrayOutputStream ous = new ByteArrayOutputStream();
-        generate(msg, ous);
-        return ous.toByteArray();
     }
 
     /**
@@ -52,7 +53,7 @@ public class BarCodeUtil {
      * @param msg
      * @param ous
      */
-    public static void generate(String msg, OutputStream ous) throws Exception {
+    private static void generate(String msg, OutputStream ous) throws Exception {
         if (StringUtils.isEmpty(msg) || ous == null) {
             return;
         }
@@ -82,78 +83,5 @@ public class BarCodeUtil {
         // 结束绘制
         canvas.finish();
         ous.close();
-    }
-
-    public static void main(String[] args) throws Exception{
-        String msg = "9631457";
-        String path = "barcode1.png";
-        File file1 = generateFile(msg, path);
-        File file = new File("D:/pdf/chufang10.pdf");
-        OutputStream output = new FileOutputStream(file);
-        //获取图片url
-        URL url = file1.toURI().toURL();
-        //添加图片
-        PdfReader reader = new PdfReader(new FileInputStream(new File("D:/pdf/chufangwmold.pdf")));
-        PdfStamper stamper = new PdfStamper(reader, output);
-        PdfContentByte page = stamper.getOverContent(1);
-        //将图片贴入pdf
-        Image image = Image.getInstance(url);
-        //直接设定显示尺寸
-        //image.scaleAbsolute();
-        //显示的大小为原尺寸的50%
-        image.scalePercent(50);
-        //参数r为弧度，如果旋转角度为30度，则参数r= Math.PI/6。
-        //image.setRotation((float) (Math.PI/6));
-        //设置图片在页面中的坐标 条形码
-        image.setAbsolutePosition(20, 781);
-        page.addImage(image);
-
-        //盖章
-        image.scaleAbsolute(90, 90);
-        image.setAbsolutePosition(250, 740);
-        //image.setAbsolutePosition(140, 750);
-        page.addImage(image);
-
-        //医生签名
-        image.scaleAbsolute(30, 30);
-        image.setAbsolutePosition(105, 75);
-        page.addImage(image);
-
-
-        //药师签名
-        image.scaleAbsolute(30, 30);
-        image.setAbsolutePosition(350, 100);
-        page.addImage(image);
-
-//        //医生签名2
-//        image.scaleAbsolute(50, 20);
-//        image.setAbsolutePosition(95, 100);
-//        page.addImage(image);
-//        //药师签名2
-//        image.scaleAbsolute(50, 20);
-//        image.setAbsolutePosition(280, 100);
-//        page.addImage(image);
-
-        //医生签名3
-        image.scaleAbsolute(50, 20);
-        image.setAbsolutePosition(290, 80);
-        page.addImage(image);
-        //药师签名3
-        image.scaleAbsolute(50, 20);
-        image.setAbsolutePosition(470, 80);
-        page.addImage(image);
-
-        //将文字贴入pdf
-        BaseFont bf = BaseFont.createFont("STSong-Light", "UniGB-UCS2-H", BaseFont.EMBEDDED);
-        page.beginText();
-        page.setColorFill(BaseColor.BLACK);
-        page.setFontAndSize(bf, 10);
-        page.setTextMatrix(410, 135); //设置文字在页面中的坐标
-        String s = "药品价格 ： " + " 34";
-        page.showText(s);
-        page.endText();
-
-        stamper.close();
-        reader.close();
     }
 }

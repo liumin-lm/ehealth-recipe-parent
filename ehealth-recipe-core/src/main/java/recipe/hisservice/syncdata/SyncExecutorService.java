@@ -47,6 +47,7 @@ public class SyncExecutorService {
      * 上传核销信息
      * @param recipeId
      */
+    @RpcService
     public void uploadRecipeVerificationIndicators(int recipeId){
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.get(recipeId);

@@ -156,6 +156,9 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             LOGGER.info("YtRemoteService.getDrugInventory:[{}]门店该[{}]药品查询库存，请求返回:{}", pharmacy.getPharmacyCode(), saleDrug.getOrganDrugCode(), responseStr);
             if(CommonConstant.requestSuccessCode == response.getStatusLine().getStatusCode()) {
                 YtStockResponse stockResponse = JSONUtils.parse(responseStr, YtStockResponse.class);
+                if (stockResponse.getStock() == 0.0) {
+                    return "0";
+                }
                 return stockResponse.getStock().toString();
             }
         }catch (Exception e){

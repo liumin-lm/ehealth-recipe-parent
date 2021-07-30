@@ -24,9 +24,11 @@ public enum TabStatusEnumNew {
     /**
      * 进行中处方的状态（待处理，待审核|前置）
      * date 20200424
+     *
+     *
      * 添加药师，签名失败的状态，页面显示状态待审核
      */
-    Ongoing_Recipe_StatusList("ongoing", "recipe", Arrays.asList(2, 3, 4, 5, 40,8,7)),
+    Ongoing_Recipe_StatusList("ongoing", "recipe", Arrays.asList( 3, 4, 5, 40,7)),
     /**
      * 已结束订单的状态(已完成)
      * date 2019/10/16

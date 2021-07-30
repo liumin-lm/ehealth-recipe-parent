@@ -9,6 +9,7 @@ import com.ngari.his.recipe.mode.weijianwei.DrugInfoReq;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.platform.ca.mode.CaSignResultTo;
 import com.ngari.platform.recipe.mode.ReadjustDrugDTO;
+import com.ngari.platform.recipe.mode.RecipeStatusReqTO;
 import com.ngari.recipe.IBaseService;
 import com.ngari.recipe.ca.CaSignResultUpgradeBean;
 import com.ngari.recipe.common.RecipeBussReqTO;
@@ -97,6 +98,14 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     boolean updateRecipeInfoByRecipeIdAndAfterStatus(int recipeId, int afterStatus, Map<String, Object> changeAttr);
+
+    /**
+     * 根据第三方传的状态更新处方相关信息,用于订单在第三方生成模式
+     * @param recipeStatusReqTO
+     * @return
+     */
+    @RpcService
+    boolean updateRecipeInfoForThirdOrder(RecipeStatusReqTO recipeStatusReqTO);
 
     /**
      * 获取处方信息
@@ -764,20 +773,36 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     /**
      * 根据处方签名
+     *
      * @param status
      * @param startTime
      * @param endTime
      * @return
      */
     @RpcService
-    List<RecipeBean> findRecipeListByStatusAndSignDate(int status,String startTime,String endTime);
+    List<RecipeBean> findRecipeListByStatusAndSignDate(int status, String startTime, String endTime);
 
+    /**
+     * 药师端签名接口
+     *
+     * @param recipeId
+     */
     @RpcService
     public void pharmacyToRecipePDF(Integer recipeId);
+
+    /**
+     * E签宝 药师签名接口
+     *
+     * @param recipeId
+     * @param checker
+     */
+    @RpcService
+    void pharmacyToRecipePDF(Integer recipeId, Integer checker);
 
 
     /**
      * 退款申请结果回调
+     *
      * @param refundRequestBean 请求入参
      * @return
      */

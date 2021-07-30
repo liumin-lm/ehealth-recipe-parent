@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Collections2;
@@ -14,6 +15,7 @@ import com.ngari.his.recipe.mode.ChronicDiseaseListReqTO;
 import com.ngari.his.recipe.mode.ChronicDiseaseListResTO;
 import com.ngari.his.recipe.mode.PatientChronicDiseaseRes;
 import com.ngari.his.recipe.mode.PatientDiagnoseTO;
+import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -23,6 +25,8 @@ import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RankShiftList;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.vo.CheckPatientEnum;
+import com.ngari.recipe.vo.OutPatientReqVO;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
@@ -42,7 +46,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.client.HealthCardClient;
+import recipe.client.PatientClient;
 import recipe.constant.*;
+import recipe.core.api.patient.IRecipePatientService;
 import recipe.dao.ChronicDiseaseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -68,7 +75,7 @@ import java.util.stream.Collectors;
  * @date:2017/6/30.
  */
 @RpcBean("recipePatientService")
-public class RecipePatientService extends RecipeBaseService {
+public class RecipePatientService extends RecipeBaseService implements IRecipePatientService{
 
     /**
      * LOGGER
@@ -76,6 +83,14 @@ public class RecipePatientService extends RecipeBaseService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipePatientService.class);
     @Autowired
     private ChronicDiseaseDAO chronicDiseaseDAO;
+
+    @Autowired
+    private PatientClient patientClient;
+
+    @Autowired
+    private HealthCardClient healthCardClient;
+
+    private String msg;
 
     /**
      * 根据取药方式过滤药企
@@ -297,6 +312,73 @@ public class RecipePatientService extends RecipeBaseService {
         Integer organId = recipe.getClinicOrgan();
         List<DrugEnterpriseResult> unDepList = recipeService.findUnSupportDepList(recipeId, organId);
         LOGGER.info("findUnSupportDepList recipeId={}, 无库存药企信息[{}]", JSONUtils.toString(recipeId), JSONObject.toJSONString(unDepList));
+        if (CollectionUtils.isNotEmpty(unDepList)) {
+            resultBean.setCode(RecipeResultBean.FAIL);
+            List<String> drugList = new ArrayList<>();
+            for (DrugEnterpriseResult result : unDepList){
+                List<String> list = (List<String>) result.getObject();
+                if (CollectionUtils.isNotEmpty(list)){
+                    drugList.addAll((list));
+                    break;
+                }
+            }
+            for (DrugEnterpriseResult result : unDepList){
+                List<String> list = (List<String>) result.getObject();
+                // 有药品名称取交集
+                if (CollectionUtils.isNotEmpty(list)){
+                    drugList.retainAll(list);
+                }else {
+                    // 有一个不能返回具体无库存药品，不展示药品名称，返回药品信息为空
+                    LOGGER.info("findUnSupportDepList recipeId={}, 药企未返回具体无库存药品信息[{}]", JSONUtils.toString(recipeId), JSONObject.toJSONString(result));
+                    resultBean.setObject(null);
+                    break;
+                }
+            }
+            // 仅各药企库存不足药品是包含关系才展示，即交集不为空，且交集结果至少是某一个药企无库存药品
+            if (CollectionUtils.isNotEmpty(drugList)){
+                Collections.sort(drugList);
+                String retainStr = drugList.toString();
+                Boolean showDrug = false;
+                for (DrugEnterpriseResult result : unDepList){
+                    List<String> list = (List<String>) result.getObject();
+                    Collections.sort(list);
+                    String listStr = list.toString();
+                    if (retainStr.equals(listStr)){
+                        showDrug = true;
+                        break;
+                    }
+                }
+                if (showDrug){
+                    resultBean.setObject(drugList);
+                }else {
+                    resultBean.setObject(null);
+                }
+            }else {
+                resultBean.setObject(null);
+            }
+        }
+        LOGGER.info("findUnSupportDepList recipeId={}, 无库存药企药品信息取交集结果[{}]", JSONUtils.toString(recipeId), JSONObject.toJSONString(resultBean));
+        return resultBean;
+    }
+    /**
+     * 查询处方无库存药企药品信息
+     *
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    public RecipeResultBean findUnSupportDepList(Integer recipeId,List<DrugEnterpriseResult> unDepList) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+
+
+        RecipeResultBean resultBean = RecipeResultBean.getSuccess();
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (recipe == null) {
+            resultBean.setCode(RecipeResultBean.FAIL);
+            resultBean.setMsg("处方不存在");
+            return resultBean;
+        }
+
         if (CollectionUtils.isNotEmpty(unDepList)) {
             resultBean.setCode(RecipeResultBean.FAIL);
             List<String> drugList = new ArrayList<>();
@@ -613,14 +695,32 @@ public class RecipePatientService extends RecipeBaseService {
         if (patient == null) {
             throw new DAOException(609, "找不到该患者");
         }
+        //添加复诊ID
+        IRevisitExService consultExService = RevisitAPI.getService(IRevisitExService.class);
+        //TODO 72571 【实施】【上海市皮肤病医院】【A】【BUG】线上处方页患者医保类型不正确,临时个性化解决 机构ID：1003983
+        if (organId == 1003983)  {
+            if (null != clinicId) {
+                RevisitExDTO consultExDTO = consultExService.getByConsultId(clinicId);
+                if (consultExDTO != null) {
+                    PatientQueryRequestTO result = new PatientQueryRequestTO();
+                    if (null != consultExDTO.getMedicalFlag() && new Integer(1).equals(consultExDTO.getMedicalFlag())) {
+                        result.setMedicalType("2");
+                        result.setMedicalTypeText("医保");
+                    } else {
+                        result.setMedicalType("1");
+                        result.setMedicalTypeText("自费");
+                    }
+                    return result;
+                }
+            }
+        }
         try {
             PatientQueryRequestTO req = new PatientQueryRequestTO();
             req.setOrgan(organId);
             req.setPatientName(patient.getPatientName());
             req.setCertificateType(patient.getCertificateType());
             req.setCertificate(patient.getCertificate());
-            //添加复诊ID
-            IRevisitExService consultExService = RevisitAPI.getService(IRevisitExService.class);
+
             if (clinicId != null) {
                 RevisitExDTO consultExDTO = consultExService.getByConsultId(clinicId);
                 if (consultExDTO != null) {
@@ -640,10 +740,38 @@ public class RecipePatientService extends RecipeBaseService {
             if (res == null){
                 throw new DAOException(609, "查不到患者线下信息");
             }
-            return res.getData();
+            PatientQueryRequestTO patientQueryRequestTO=res.getData();
+            patientQueryRequestTO.setCardID(null);
+            patientQueryRequestTO.setCertificate(null);
+            patientQueryRequestTO.setGuardianCertificate(null);
+            patientQueryRequestTO.setMobile(null);
+            LOGGER.info("queryPatientForHis res:{}",JSONUtils.toString(patientQueryRequestTO));
+            return patientQueryRequestTO;
         } catch (Exception e) {
             LOGGER.error("queryPatientForHis error", e);
             throw new DAOException(609, "查患者信息异常:"+e.getMessage());
         }
+    }
+
+    /**
+     * 校验当前就诊人是否有效 是否实名认证 就诊卡是否有效
+     * @param outPatientReqVO 当前就诊人信息
+     * @return 枚举值
+     */
+    @Override
+    public Integer checkCurrentPatient(OutPatientReqVO outPatientReqVO){
+        LOGGER.info("OutPatientRecipeService checkCurrentPatient outPatientReqVO:{}.", JSON.toJSONString(outPatientReqVO));
+        PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(outPatientReqVO.getMpiId());
+        if (null == patientDTO || !new Integer(1).equals(patientDTO.getStatus())) {
+            return CheckPatientEnum.CHECK_PATIENT_PATIENT.getType();
+        }
+        if (!new Integer(1).equals(patientDTO.getAuthStatus())) {
+            return CheckPatientEnum.CHECK_PATIENT_NOAUTH.getType();
+        }
+        Map<String, HealthCardDTO> result = healthCardClient.findHealthCard(outPatientReqVO.getMpiId());
+        if (null == result || (StringUtils.isNotEmpty(outPatientReqVO.getCardID()) && !result.containsKey(outPatientReqVO.getCardID()))) {
+            return CheckPatientEnum.CHECK_PATIENT_CARDDEL.getType();
+        }
+        return CheckPatientEnum.CHECK_PATIENT_NORMAL.getType();
     }
 }

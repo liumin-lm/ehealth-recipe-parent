@@ -10,10 +10,10 @@ import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.DrugListBean;
+import com.ngari.recipe.dto.GroupRecipeConf;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.grouprecipe.model.GroupRecipeConf;
+import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
 import com.ngari.recipe.recipe.model.*;
-import com.ngari.recipe.vo.FindHisRecipeListVO;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
@@ -21,7 +21,6 @@ import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
-import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -42,13 +41,13 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.dao.bean.HisRecipeListBean;
-import recipe.factory.status.constant.OfflineToOnlineEnum;
-import recipe.factory.status.constant.RecipeOrderStatusEnum;
-import recipe.factory.status.constant.RecipeStatusEnum;
+import recipe.enumerate.status.OfflineToOnlineEnum;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
-import recipe.service.manager.EmrRecipeManager;
-import recipe.service.manager.GroupRecipeManager;
+import recipe.manager.EmrRecipeManager;
+import recipe.manager.GroupRecipeManager;
 import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
@@ -61,6 +60,7 @@ import java.util.stream.Collectors;
  * @author yinsheng
  * @date 2020\3\10 0010 19:58
  */
+@Deprecated //offlineToOnlineAtop
 @RpcBean(value = "hisRecipeService", mvc_authentication = false)
 public class HisRecipeService {
     private static final Logger LOGGER = LoggerFactory.getLogger(HisRecipeService.class);
@@ -157,29 +157,31 @@ public class HisRecipeService {
         }
         if ("ongoing".equals(status)) {
             //表示为进行中的处方
-            return findOngoingHisRecipe(hisResponseTO.getData(), patientDTO, giveModeButtonBean, start, limit);
+            return findOngoingHisRecipe(organId,hisResponseTO.getData(), patientDTO, giveModeButtonBean, start, limit);
         } else {
             if ("onready".equals(findHisRecipeListVO.getStatus())) {
                 List<HisRecipeVO> noPayFeeHisRecipeVO = covertToHisRecipeObject(hisResponseTO, patientDTO, OfflineToOnlineEnum.getOfflineToOnlineType(status));
                 return findOnReadyHisRecipe(noPayFeeHisRecipeVO, giveModeButtonBean);
             } else {
                 checkHisRecipeAndSave(status, patientDTO, hisResponseTO);
-                return findFinishHisRecipes(mpiId, giveModeButtonBean, start, limit);
+                return findFinishHisRecipes(organId,mpiId, giveModeButtonBean, start, limit);
             }
         }
     }
 
     /**
+     *
+     * @param organId
      * @param data 当前获取HIS的处方单集合
      * @return 前端需要展示的进行中的处方单集合, 先获取进行中的处方返回给前端展示, 然后对处方数据进行校验, 处方发生
      * 变更需要删除处方,当患者点击处方列表时如果订单已删除,会弹框提示"该处方单信息已变更，请退出重新获取处方信息"
      */
-    private List<HisPatientTabStatusMergeRecipeVO> findOngoingHisRecipe(List<QueryHisRecipResTO> data, PatientDTO patientDTO, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
+    private List<HisPatientTabStatusMergeRecipeVO> findOngoingHisRecipe(Integer organId, List<QueryHisRecipResTO> data, PatientDTO patientDTO, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
         LOGGER.info("hisRecipeService findOngoingHisRecipe request:{}", JSONUtils.toString(data));
         List<HisPatientTabStatusMergeRecipeVO> result = Lists.newArrayList();
         //先查询进行中处方(目前仅指的是待支付的处方单)
         //查询所有进行中的线下处方
-        List<HisRecipeListBean> hisRecipeListByMPIIds = hisRecipeDAO.findOngoingHisRecipeListByMPIId(patientDTO.getMpiId(), start, limit);
+        List<HisRecipeListBean> hisRecipeListByMPIIds = hisRecipeDAO.findOngoingHisRecipeListByMPIId(organId,patientDTO.getMpiId(), start, limit);
         if (CollectionUtils.isEmpty(hisRecipeListByMPIIds)) {
             return result;
         }
@@ -375,18 +377,19 @@ public class HisRecipeService {
     /**
      * 查询当前账号下所有线下已处理处方列表
      *
+     *
+     * @param organId
      * @param mpiId
      * @param start
      * @param limit
      * @return
      */
-    @RpcService
-    public List<HisPatientTabStatusMergeRecipeVO> findFinishHisRecipes(String mpiId, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
+    public List<HisPatientTabStatusMergeRecipeVO> findFinishHisRecipes(Integer organId, String mpiId, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
         LOGGER.info("findFinishHisRecipes mpiId:{} giveModeButtonBean : {} index:{} limit:{} ", mpiId, giveModeButtonBean, start, limit);
         Assert.hasLength(mpiId, "findFinishHisRecipes mpiId为空!");
         List<HisPatientTabStatusMergeRecipeVO> result = new ArrayList<>();
         // 所有所有已处理的线下处方
-        List<HisRecipeListBean> hisRecipeListByMPIIds = hisRecipeDAO.findHisRecipeListByMPIId(mpiId, start, limit);
+        List<HisRecipeListBean> hisRecipeListByMPIIds = hisRecipeDAO.findHisRecipeListByMPIId(organId,mpiId, start, limit);
         if (CollectionUtils.isEmpty(hisRecipeListByMPIIds)) {
             return result;
         }
@@ -1133,9 +1136,7 @@ public class HisRecipeService {
         }
         //中药
         recipeExtend.setRecipeCostNumber(hisRecipe.getRecipeCostNumber());
-        RecipeBean recipeBean = new RecipeBean();
-        BeanUtils.copy(recipe, recipeBean);
-        emrRecipeManager.saveMedicalInfo(recipeBean, recipeExtend);
+        emrRecipeManager.saveMedicalInfo(recipe, recipeExtend);
         recipeExtendDAO.save(recipeExtend);
     }
 
@@ -1192,7 +1193,7 @@ public class HisRecipeService {
         }
         EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
         if (StringUtils.isNotEmpty(hisRecipe.getDoctorCode())) {
-            EmploymentDTO employmentDTO = employmentService.getByJobNumberAndOrganId(hisRecipe.getDoctorCode(), hisRecipe.getClinicOrgan());
+            EmploymentDTO employmentDTO = employmentService.getEmploymentByJobNumberAndOrganId(hisRecipe.getDoctorCode(), hisRecipe.getClinicOrgan());
             if (employmentDTO != null && employmentDTO.getDoctorId() != null) {
                 recipe.setDoctor(employmentDTO.getDoctorId());
             } else {
@@ -1202,13 +1203,13 @@ public class HisRecipeService {
         }
 
         if (StringUtils.isNotEmpty(hisRecipe.getCheckerCode())) {
-            EmploymentDTO employmentDTO = employmentService.getByJobNumberAndOrganId(hisRecipe.getCheckerCode(), hisRecipe.getClinicOrgan());
+            EmploymentDTO employmentDTO = employmentService.getEmploymentByJobNumberAndOrganId(hisRecipe.getCheckerCode(), hisRecipe.getClinicOrgan());
             if (employmentDTO != null && employmentDTO.getDoctorId() != null) {
                 recipe.setChecker(employmentDTO.getDoctorId());
                 recipe.setCheckerText(hisRecipe.getCheckerName());
             } else {
-                LOGGER.error("请确认医院的医生工号和纳里维护的是否一致:" + hisRecipe.getDoctorCode());
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "医生工号维护错误");
+                LOGGER.error("请确认医院的药师工号和纳里维护的是否一致:" + hisRecipe.getDoctorCode());
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "药师工号维护错误");
             }
         } else {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
@@ -1255,11 +1256,6 @@ public class HisRecipeService {
         recipe.setTakeMedicine(0);
         recipe.setGiveFlag(0);
         recipe.setRecipeMode("ngarihealth");
-        if (hisRecipe.getTcmNum() != null) {
-            recipe.setCopyNum(Integer.parseInt(hisRecipe.getTcmNum()));
-        } else {
-            recipe.setCopyNum(1);
-        }
 
         recipe.setValueDays(3);
         recipe.setFromflag(1);
@@ -1270,7 +1266,9 @@ public class HisRecipeService {
         recipe.setGiveMode(hisRecipe.getGiveMode());
         recipe.setLastModify(new Date());
         //中药
-        recipe.setCopyNum(StringUtils.isEmpty(hisRecipe.getTcmNum()) == true ? null : Integer.parseInt(hisRecipe.getTcmNum()));
+        if (new Integer(3).equals(hisRecipe.getRecipeType())) {
+            recipe.setCopyNum(StringUtils.isEmpty(hisRecipe.getTcmNum()) ? 1 : Integer.parseInt(hisRecipe.getTcmNum()));
+        }
         //中药医嘱跟着处方 西药医嘱跟着药品（见药品详情）
         recipe.setRecipeMemo(hisRecipe.getRecipeMemo());
         return recipeDAO.saveRecipe(recipe);
@@ -1787,14 +1785,10 @@ public class HisRecipeService {
                 LOGGER.info("updateHisRecipe hisRecipe = {}", JSONUtils.toString(hisRecipe));
                 Recipe recipe = recipeMap.get(a.getRecipeCode());
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                RecipeBean recipeBean = new RecipeBean();
-                BeanUtils.copy(recipe, recipeBean);
-                recipeBean.setOrganDiseaseName(diseaseName);
-                recipeBean.setOrganDiseaseId(disease);
-                emrRecipeManager.saveMedicalInfo(recipeBean, recipeExtend);
-                recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
-                recipe.setOrganDiseaseId(disease);
                 recipe.setOrganDiseaseName(diseaseName);
+                recipe.setOrganDiseaseId(disease);
+                emrRecipeManager.saveMedicalInfo(recipe, recipeExtend);
+                recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
                 recipeDAO.update(recipe);
             }
         });

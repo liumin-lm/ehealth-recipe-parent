@@ -48,6 +48,7 @@ import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
 import recipe.dao.*;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
+import recipe.manager.EmrRecipeManager;
 import recipe.service.OrganDrugListService;
 import recipe.service.RecipeServiceSub;
 import recipe.thread.RecipeBusiThreadPool;
@@ -61,7 +62,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static recipe.dao.DrugMakingMethodDao.log;
-import static recipe.service.manager.EmrRecipeManager.getMedicalInfo;
+
 
 /**
  * 浙江互联网医院处方查询接口
@@ -225,7 +226,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                 LOGGER.error("RecipeHisService sendRecipe  medicalInfoBean error", e);
             }
 
-            getMedicalInfo(recipe, recipeExtend);
+            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
             recipeDTO = new QueryRecipeInfoDTO();
             //拼接处方信息
             //处方号
@@ -300,7 +301,7 @@ public class QueryRecipeService implements IQueryRecipeService {
             //主诉等等四个字段
 
             if (recipeExtend != null) {
-                getMedicalInfo(recipe, recipeExtend);
+                EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
                 if (StringUtils.isNotEmpty(recipeExtend.getMainDieaseDescribe())) {
                     //主诉
                     recipeDTO.setBRZS(recipeExtend.getMainDieaseDescribe());
@@ -1154,42 +1155,44 @@ public class QueryRecipeService implements IQueryRecipeService {
 
     /**
      * 通过区域公众号查询当前支持线下处方查询的机构
+     *
      * @return
      */
     @RpcService
-    public List<Integer> getOrganForWeb(){
+    public List<Integer> getOrganForWeb() {
         ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
         //查询当前区域公众号下所有归属机构
         List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
+        LOGGER.info("queryOrganService getOrganForWeb organIds:{}", JSONUtils.toString(organIds));
         List<Integer> oganList = new ArrayList<>();
         //获取运营平台配置--是否开启查询线下处方
         IConfigurationCenterUtilsService utilsService = AppDomainContext.getBean("eh.configurationCenterUtils", IConfigurationCenterUtilsService.class);
-        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(organIds)){
+        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(organIds)) {
             //取反操作，获取所以未打开配置的机构  []--所以机构都打开
-            List<Integer> organIdList= utilsService.findOrganByPropertyKeyAndValue("queryGetToHisRecipe","false");
-            log.info("queryOrganService.getOrganByConfig.oganListBefore={}",JSONUtils.toString(organIdList));
-            if (CollectionUtils.isNotEmpty(organIdList)){
+            List<Integer> organIdList = utilsService.findOrganByPropertyKeyAndValue("queryGetToHisRecipe", "false");
+            log.info("queryOrganService getOrganByConfig oganListBefore={}", JSONUtils.toString(organIdList));
+            if (CollectionUtils.isNotEmpty(organIdList)) {
                 organIds.removeAll(organIdList);
-                log.info("queryOrganService.getOrganByConfig.organIds.size={}",JSONUtils.toString(organIds.size()));
+                log.info("queryOrganService getOrganByConfig organIds.size={}", JSONUtils.toString(organIds.size()));
                 return organIds;
             }
-            log.info("queryOrganService.getOrganByConfig.organIds={}",JSONUtils.toString(organIds));
-            if (organIds.contains(-1)){
+            log.info("queryOrganService getOrganByConfig organIds={}", JSONUtils.toString(organIds));
+            if (organIds.contains(-1)) {
                 organIds.remove(new Integer(-1));
             }
             return organIds;
         }
 
         //查询全国机构 organService
-        if (organIds==null){
+        if (organIds == null) {
             OrganService organService = BasicAPI.getService(OrganService.class);
             List<OrganDTO> organs = organService.findOrgans();
-            log.info("queryOrganService.organs={}",JSONUtils.toString(organs));
-            if (CollectionUtils.isNotEmpty(organs)){
-                for (OrganDTO o:organs){
+            log.info("queryOrganService.organs={}", JSONUtils.toString(organs));
+            if (CollectionUtils.isNotEmpty(organs)) {
+                for (OrganDTO o : organs) {
                     oganList.add(o.getOrganId());
                 }
-                log.info("queryOrganService.oganList={}",JSONUtils.toString(oganList));
+                log.info("queryOrganService.oganList={}", JSONUtils.toString(oganList));
                 return oganList;
             }
         }

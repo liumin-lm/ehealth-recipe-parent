@@ -1,13 +1,15 @@
 package recipe.util;
 
+import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Maps;
 import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.cglib.beans.BeanMap;
 
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
-import java.net.InetAddress;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -15,11 +17,13 @@ import java.util.Map;
 
 /**
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * @date:2016/6/2.
  */
 public class MapValueUtil {
     private static final Logger logger = LoggerFactory.getLogger(MapValueUtil.class);
+
     public static String getString(Map<String, ? extends Object> map, String key) {
         Object obj = getObject(map, key);
         if (null == obj) {
@@ -53,32 +57,6 @@ public class MapValueUtil {
             } catch (NumberFormatException e) {
                 return null;
             }
-        }
-
-        return null;
-    }
-
-    public static Date getDate(Map<String, ? extends Object> map, String key) {
-        Object obj = getObject(map, key);
-        if (null == obj) {
-            return null;
-        }
-
-        if (obj instanceof Date) {
-            return (Date) obj;
-        }
-
-        return null;
-    }
-
-    public static Float getFloat(Map<String, ? extends Object> map, String key) {
-        Object obj = getObject(map, key);
-        if (null == obj) {
-            return null;
-        }
-
-        if (obj instanceof Float) {
-            return (Float) obj;
         }
 
         return null;
@@ -119,19 +97,19 @@ public class MapValueUtil {
         }
 
         try {
-            if(obj instanceof Double){
+            if (obj instanceof Double) {
                 return new BigDecimal(obj.toString());
             }
 
-            if(obj instanceof Float){
+            if (obj instanceof Float) {
                 return new BigDecimal(obj.toString());
             }
 
-            if(obj instanceof Integer){
+            if (obj instanceof Integer) {
                 return new BigDecimal(obj.toString());
             }
 
-            if(obj instanceof String){
+            if (obj instanceof String) {
                 return new BigDecimal(obj.toString());
             }
         } catch (Exception e) {
@@ -141,7 +119,7 @@ public class MapValueUtil {
         return null;
     }
 
-    public static List getList(Map<String, Object> map, String key){
+    public static List getList(Map<String, Object> map, String key) {
         Object obj = getObject(map, key);
         if (null == obj) {
             return null;
@@ -163,61 +141,48 @@ public class MapValueUtil {
     }
 
     /**
-     * json 转换为 实体对象
+     * 数据转换
      *
-     * @param str
-     * @param type
-     * @param <T>
+     * @param obj
      * @return
      */
-    public static <T> T fromJson(String str, Class<T> type) {
-        try {
-            T t = JSONUtils.parse(str, type);
-            return t;
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
-    /**
-     * asciicode 转为中文
-     *
-     * @param asciicode eg:{"code":400002,"msg":"\u7b7e\u540d\u9519\u8bef"}
-     * @return eg:{"code":400002,"msg":"签名错误"}
-     */
-    public static String ascii2native(String asciicode) {
-        String[] asciis = asciicode.split("\\\\u");
-        StringBuilder nativeValue = new StringBuilder(asciis[0]);
-        try {
-            for (int i = 1; i < asciis.length; i++) {
-                String code = asciis[i];
-                nativeValue.append((char) Integer.parseInt(code.substring(0, 4), 16));
-                if (code.length() > 4) {
-                    nativeValue.append(code.substring(4, code.length()));
-                }
+    public static Object covertObject(Object obj) {
+        if (obj instanceof BigDecimal) {
+            if (obj == null) {
+                return BigDecimal.ZERO;
             }
-        } catch (NumberFormatException e) {
-            return asciicode;
+        } else if (obj instanceof String) {
+            if (obj == null) {
+                return "";
+            }
+        } else if (obj instanceof Integer) {
+            if (obj == null) {
+                return 0;
+            }
         }
-        return nativeValue.toString();
+        return obj;
     }
 
-    /**
-     * 获取当前执行程序的本机地址
-     *
-     * @return
-     */
-    public static String getLocalHostIP() {
-        String localhostIP = null;
-        try {
-            localhostIP = InetAddress.getLocalHost().getHostAddress();
-        } catch (Exception e) {
-            e.printStackTrace();
+    public static Object covertString(String obj) {
+        if (obj == null) {
+            return "";
         }
-        return localhostIP;
+        return obj;
     }
 
+    public static Object covertInteger(Integer obj) {
+        if (obj == null) {
+            return 0;
+        }
+        return obj;
+    }
+
+    public static BigDecimal covertBigdecimal(BigDecimal obj) {
+        if (obj == null) {
+            return BigDecimal.ZERO;
+        }
+        return obj;
+    }
 
     /**
      * 根据字段名获取 对象中的get值
@@ -229,7 +194,7 @@ public class MapValueUtil {
     public static String getFieldValueByName(String fieldName, Object o) {
         if (StringUtils.isEmpty(fieldName) || null == o) {
             logger.info("getFieldValueByName fieldName ={} o ={}", fieldName, JSONUtils.toString(o));
-            return null;
+            return "";
         }
         try {
             String getter = "get" + captureName(fieldName.trim());
@@ -244,7 +209,7 @@ public class MapValueUtil {
             return value.toString();
         } catch (Exception e) {
             logger.warn("getFieldValueByName error fieldName ={}，o ={}", fieldName, o.getClass().toString(), e);
-            return null;
+            return "";
         }
     }
 
@@ -273,6 +238,29 @@ public class MapValueUtil {
         Map<String, Integer> map = new HashMap<>(strArray.length);
         for (int i = 0; i < strArray.length; i++) {
             map.put(strArray[i], i);
+        }
+        return map;
+    }
+
+    /**
+     * 对象转map
+     *
+     * @param bean
+     * @param <T>
+     * @return
+     */
+    public static <T> Map<String, Object> beanToMap(T bean) {
+        logger.info("MapValueUtil beanToMap bean :{}", JSON.toJSONString(bean));
+        Map<String, Object> map = Maps.newHashMap();
+        if (bean == null) {
+            return map;
+        }
+        BeanMap beanMap = BeanMap.create(bean);
+        for (Object key : beanMap.keySet()) {
+            if (null == beanMap.get(key)) {
+                continue;
+            }
+            map.put(key.toString(), beanMap.get(key));
         }
         return map;
     }

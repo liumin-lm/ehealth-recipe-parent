@@ -23,8 +23,8 @@ import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.factory.status.constant.RecipeOrderStatusEnum;
-import recipe.factory.status.constant.RecipeStatusEnum;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeServiceSub;
 import recipe.service.common.RecipeCacheService;
@@ -349,6 +349,9 @@ public class PayModeTFDS implements IPurchaseService{
                 } else if (orderStatus == RecipeOrderStatusEnum.ORDER_STATUS_NO_DRUG.getType()) {
                     tips = "药品已准备好，请到药店取药";
                 }
+                break;
+            case RECIPE_STATUS_HAVE_PAY:
+                tips = "订单已处理，请到店取药";
                 break;
             case RECIPE_STATUS_RECIPE_FAIL:
                 tips = "药店取药失败";

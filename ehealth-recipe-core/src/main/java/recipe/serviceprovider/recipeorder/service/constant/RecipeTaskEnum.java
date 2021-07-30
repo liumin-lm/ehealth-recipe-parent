@@ -7,12 +7,15 @@ package recipe.serviceprovider.recipeorder.service.constant;
  * @version:1.0
  */
 public enum RecipeTaskEnum {
-    RECIPE_TASK_STATUS_UNPAID(1, "您有一条待支付的在线复诊处方", "待支付", "处方支付"),
-    RECIPE_TASK_STATUS_PENDING(-10, "您有一条待处理的在线复诊处方", "待处理", "去处理"),
-    RECIPE_TASK_STATUS_SHIPPING(3, "您的在线复诊处方正在备货中,即将发药", "待配送", "查看详情"),
-    RECIPE_TASK_STATUS_DELIVERY(4, "您的在线复诊处方已发药,请注意查收", "配送中", "查看详情"),
+    RECIPE_TASK_STATUS_PENDING(-10, "您有一张可购药的处方，请在有效期内购药", "审核完成，待购药", "去下单"),
+    RECIPE_TASK_STATUS_UNPAID(1, "您有一张处方未支付，请在有效期内支付", "完成下单，待支付", "去支付"),
+    RECIPE_TASK_STATUS_SHIPPING(3, "您有一张处方正在备货中，即将发药", "待发药", "去查看"),
+    RECIPE_TASK_STATUS_DELIVERY(4, "您有一张处方已发药，请注意查收", "待收药", "去查看"),
+    RECIPE_TASK_STATUS_GET_DRUG(2, "您有一张处方等待上门取药，请及时取药", "待取药", "去查看"),
+    RECIPE_TASK_STATUS_HAS_DRUG(12, "您有一张处方等待上门取药，请及时取药", "待取药", "去查看"),
     NONE(-9, "未知", "", ""),
     ;
+
     private Integer type;
     private String taskName;
     private String busStatusName;

@@ -1,24 +1,17 @@
 package recipe.caNew;
 
 import com.alibaba.fastjson.JSON;
-import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
-import eh.entity.base.Scratchable;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.util.CollectionUtils;
-import recipe.bussutil.CreateRecipePdfUtil;
+import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
-import recipe.service.manager.RecipeLabelManager;
 
-import java.util.LinkedList;
 import java.util.List;
 
 import static ctd.persistence.DAOFactory.getDAO;
@@ -55,65 +48,13 @@ public class CaBeforeProcessType extends AbstractCaProcessType {
         RecipeResultBean recipeResultBean = new RecipeResultBean();
         recipeResultBean.setCode(RecipeResultBean.SUCCESS);
         try {
-            addRecipeCodeAndPatientForRecipePdf(recipeId);
+            CreatePdfFactory createPdfFactory = AppContextHolder.getBean("createPdfFactory", CreatePdfFactory.class);
+            createPdfFactory.updateCodePdfExecute(recipeId);
         } catch (Exception e) {
             LOGGER.error("addRecipeCodeAndPatientForRecipePdf error recipeId={}", recipeId, e);
         }
         LOGGER.info("Before---当前CA执行his回调之后组装CA响应特应性行为，出参：recipeId：{}，{}", recipeId, JSON.toJSONString(recipeResultBean));
         //将返回的CA结果给处方，设置处方流转
         return recipeResultBean;
-    }
-
-
-    /**
-     * 新版本前置CA his回调之后给处方pdf添加处方号和患者病历号
-     *
-     * @param recipeId
-     */
-    private void addRecipeCodeAndPatientForRecipePdf(Integer recipeId) throws Exception {
-        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        if (recipe == null) {
-            return;
-        }
-        String barcode = "";
-
-        RecipeLabelManager recipeLabelManager = AppContextHolder.getBean("recipeLabelManager", RecipeLabelManager.class);
-        List<Scratchable> scratchableList = recipeLabelManager.scratchableList(recipe.getClinicOrgan(), "moduleFive");
-        if (!CollectionUtils.isEmpty(scratchableList)) {
-            for (Scratchable scratchable : scratchableList) {
-                if (!"条形码".equals(scratchable.getBoxTxt())) {
-                    continue;
-                }
-                if ("recipe.patientID".equals(scratchable.getBoxLink())) {
-                    barcode = recipe.getPatientID();
-                    break;
-                }
-                if ("recipe.recipeCode".equals(scratchable.getBoxLink())) {
-                    barcode = recipe.getRecipeCode();
-                    break;
-                }
-            }
-        }
-
-        List<CoOrdinateVO> coOrdinateList = new LinkedList<>();
-        CoOrdinateVO patientId = recipeLabelManager.getPdfCoordsHeight(recipeId, "recipe.patientID");
-        if (null != patientId) {
-            patientId.setValue(recipe.getPatientID());
-            coOrdinateList.add(patientId);
-        }
-        CoOrdinateVO recipeCode = recipeLabelManager.getPdfCoordsHeight(recipeId, "recipe.recipeCode");
-        if (null != recipeCode) {
-            recipeCode.setValue(recipe.getRecipeCode());
-            coOrdinateList.add(recipeCode);
-        }
-        String newPdf = CreateRecipePdfUtil.generateRecipeCodeAndPatientIdForRecipePdf(recipe.getSignFile(), coOrdinateList, barcode);
-        if (StringUtils.isNotEmpty(newPdf)) {
-            Recipe recipeUpdate = new Recipe();
-            recipeUpdate.setRecipeId(recipeId);
-            recipeUpdate.setSignFile(newPdf);
-            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-        }
-        LOGGER.info("addRecipeCodeAndPatientForRecipePdf  recipeId={},newPdf={}", recipeId, newPdf);
     }
 }
