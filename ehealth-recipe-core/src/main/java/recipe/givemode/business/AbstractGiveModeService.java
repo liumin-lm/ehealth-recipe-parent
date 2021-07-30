@@ -228,22 +228,24 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
         List<String> list = new ArrayList<>();
 
         // 从处方中获取支持的购药方式
-        List<String> strings = Arrays.asList(recipeSupportGiveMode.split(","));
+        if(StringUtils.isNotEmpty(recipeSupportGiveMode)) {
+            List<String> strings = Arrays.asList(recipeSupportGiveMode.split(","));
 
-        if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType()))) {
-            list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText());
-        }
-        if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType()))) {
-            list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText());
-        }
-        if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType()))) {
-            list.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText());
-        }
-        if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType()))) {
-            list.add(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
-        }
-        if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getType()))) {
-            list.add(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
+            if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType()))) {
+                list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getText());
+            }
+            if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType()))) {
+                list.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getText());
+            }
+            if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType()))) {
+                list.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getText());
+            }
+            if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType()))) {
+                list.add(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
+            }
+            if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getType()))) {
+                list.add(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
+            }
         }
 
         saveGiveModeDatas(giveModeButtonBeans, list);

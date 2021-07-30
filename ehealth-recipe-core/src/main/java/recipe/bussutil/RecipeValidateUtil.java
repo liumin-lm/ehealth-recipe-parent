@@ -271,21 +271,27 @@ public class RecipeValidateUtil {
                     LOGGER.error("RecipeServiceSub.getRecipeAndDetailByIdImpl 设置药品拼接名error, recipeId:{},{}.", recipeId, e.getMessage(), e);
                 }
             }
-            try {
-                UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(recipe.getClinicOrgan(), recipeDetail.getOrganUsingRate());
-                if (usingRateDTO != null) {
-                    recipeDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
-                }
-                UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(recipe.getClinicOrgan(), recipeDetail.getOrganUsePathways());
-                if (usePathwaysDTO != null) {
-                    recipeDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
-                }
-            } catch (Exception e) {
-                LOGGER.error("validateDrugsImpl error,recipeId={}", recipeId, e);
-            }
+            setUsingRateIdAndUsePathwaysId(recipe, recipeDetail);
             backDetailList.add(recipeDetail);
         }
         return backDetailList;
+    }
+
+    public static void setUsingRateIdAndUsePathwaysId(Recipe recipe, RecipeDetailBean recipeDetail){
+        IUsingRateService usingRateService = AppDomainContext.getBean("eh.usingRateService", IUsingRateService.class);
+        IUsePathwaysService usePathwaysService = AppDomainContext.getBean("eh.usePathwaysService", IUsePathwaysService.class);
+        try {
+            UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(recipe.getClinicOrgan(), recipeDetail.getOrganUsingRate());
+            if (usingRateDTO != null) {
+                recipeDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
+            }
+            UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(recipe.getClinicOrgan(), recipeDetail.getOrganUsePathways());
+            if (usePathwaysDTO != null) {
+                recipeDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
+            }
+        } catch (Exception e) {
+            LOGGER.error("validateDrugsImpl error,recipeId={}", recipe.getRecipeId(), e);
+        }
     }
 
     /**
