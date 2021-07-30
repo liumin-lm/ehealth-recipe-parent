@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
+import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutRecipeDetailDTO;
@@ -133,17 +134,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         result.setType("h5");
         result.setData(linkInfo.get("url").toString());
         return result;
-    }
-
-    /**
-     * 校验当前就诊人是否有效
-     * @param outPatientReqVO 当前就诊人信息
-     * @return 是否有效
-     */
-    @Override
-    public boolean checkCurrentPatient(OutPatientReqVO outPatientReqVO){
-        logger.info("OutPatientRecipeService checkCurrentPatient outPatientReqVO:{}.", JSON.toJSONString(outPatientReqVO));
-        return true;
     }
 
     /**
