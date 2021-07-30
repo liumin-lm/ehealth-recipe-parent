@@ -1758,10 +1758,10 @@ public class RecipeService extends RecipeBaseService {
     }
 
 
-
     /**
      * 处方签名校验服务
-     *  这个方法开方的时候会去查库存,与开方时购药方式查库存合并 新接口 doSignRecipeCheckAndGetGiveMode
+     * 这个方法开方的时候会去查库存,与开方时购药方式查库存合并 新接口 doSignRecipeCheckAndGetGiveMode
+     *
      * @param recipe 处方
      * @return Map<String, Object>
      */
@@ -2823,10 +2823,10 @@ public class RecipeService extends RecipeBaseService {
                 if (responseTO != null) {
                     data = responseTO.getData();
                     try {
-                        if (data!=null && data.size()>0){
+                        if (data != null && data.size() > 0) {
                             List<List<OrganDrugInfoTO>> partition = Lists.partition(data, 4000);
                             for (int i = 0; i < partition.size(); i++) {
-                                LOGGER.info("drugInfoSynMovement"+organId+"data-"+i+"={}", JSONUtils.toString(partition.get(i)));
+                                LOGGER.info("drugInfoSynMovement" + organId + "data-" + i + "={}", JSONUtils.toString(partition.get(i)));
                             }
                         }
                     } catch (Exception e) {
@@ -3914,9 +3914,6 @@ public class RecipeService extends RecipeBaseService {
     }
 
 
-
-
-
     public List<DrugEnterpriseResult> findUnSupportDepList(Integer recipeId, int organId) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
         SaleDrugListDAO saleDrugListDAO = getDAO(SaleDrugListDAO.class);
@@ -4001,7 +3998,6 @@ public class RecipeService extends RecipeBaseService {
         }
         return backList;
     }
-
 
 
     private int getFlag(DrugsEnterprise drugsEnterprise, Recipe recipe) {
@@ -4092,6 +4088,7 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info("findUnSupportDrugEnterprise recipeId:{}, result:{}", recipeId, JSONUtils.toString(result));
         return result;
     }
+
     /**
      * 手动进行处方退款服务
      *
@@ -4707,7 +4704,7 @@ public class RecipeService extends RecipeBaseService {
         drugListMatch.setStatus(0);
         LOGGER.info("drugInfoSynMovementaddHisDrug" + drug.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
         List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drugListMatch.getOrganDrugCode(), drugListMatch.getSourceOrgan());
-        if (ObjectUtils.isEmpty(dataByOrganDrugCode)){
+        if (ObjectUtils.isEmpty(dataByOrganDrugCode)) {
             DrugListMatch save = drugListMatchDAO.save(drugListMatch);
             try {
                 drugToolService.automaticDrugMatch(save, operator);
@@ -5905,6 +5902,9 @@ public class RecipeService extends RecipeBaseService {
         List<Integer> buttonList = new ArrayList<>();
         recipes.forEach(recipe -> {
             String recipeSupportGiveMode = recipe.getRecipeSupportGiveMode();
+            if (StringUtils.isEmpty(recipeSupportGiveMode)) {
+                return;
+            }
             if (recipeSupportGiveMode.contains(String.valueOf(recipeSupportGiveModeEnum.getType()))) {
                 buttonList.add(recipe.getRecipeId());
             }
