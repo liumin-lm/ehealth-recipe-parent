@@ -1724,7 +1724,7 @@ public class RecipeListService extends RecipeBaseService {
             //date 2019/10/10
             //添加一次审核不通过标识位
             if (RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType().equals(recipe.getStatus())
-                    || RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_PHA.getType().equals(recipe.getStatus())) {
+                    || RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_PHA.getType().equals(recipe.getStatus()) || RecipeStatusEnum.RECIPE_STATUS_SIGN_NO_CODE_PHA.getType().equals(recipe.getStatus())) {
                 return 0;
             } else if (RecipeStatusEnum.RECIPE_STATUS_CHECK_NOT_PASS_YS.getType().equals(recipe.getStatus())) {
                 if (RecipecCheckStatusConstant.First_Check_No_Pass.equals(recipe.getCheckStatus())) {
