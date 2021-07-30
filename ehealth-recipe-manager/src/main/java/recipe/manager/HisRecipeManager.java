@@ -315,6 +315,8 @@ public class HisRecipeManager extends BaseManager {
                     status = OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getName();
                 }
             }
+        } else {
+            status = OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getName();
         }
         if (StringUtils.isEmpty(status)) {
             LOGGER.info("attachHisRecipeStatus 根据处方单号获取不到状态");
