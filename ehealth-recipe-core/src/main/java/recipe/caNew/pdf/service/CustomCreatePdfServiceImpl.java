@@ -83,7 +83,6 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
 
     @Override
     public byte[] queryPdfByte(Recipe recipe) throws Exception {
-        logger.info("CustomCreatePdfServiceImpl queryPdfByte recipe = {}", recipe.getRecipeId());
         return generateTemplatePdf(recipe);
     }
 
@@ -278,6 +277,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
      * @return pdf byte
      */
     private byte[] generateTemplatePdf(Recipe recipe) throws Exception {
+        logger.info("CustomCreatePdfServiceImpl generateTemplatePdf recipe = {}", recipe.getRecipeId());
         //模版pdfId
         String organSealId;
         if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
@@ -464,13 +464,13 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         list.add(new RecipeLabelVO("用药途径", "recipeDetail.usePathways", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", recipedetail.getUsePathways())));
         list.add(new RecipeLabelVO("用药频次", "recipeDetail.usingRate", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", recipedetail.getUsingRate())));
         Recipe recipe = recipeInfoDTO.getRecipe();
-        list.add(new RecipeLabelVO("贴数", "recipe.copyNum", recipe.getCopyNum() + "贴"));
-        list.add(new RecipeLabelVO("嘱托", "tcmRecipeMemo", ByteUtils.objValueOfString(recipe.getRecipeMemo())));
+        list.add(new RecipeLabelVO("贴数", "recipeDetail.copyNum", recipe.getCopyNum() + "贴"));
+        list.add(new RecipeLabelVO("嘱托", "recipeDetail.recipeMemo", ByteUtils.objValueOfString(recipe.getRecipeMemo())));
         RecipeExtend recipeExtend = recipeInfoDTO.getRecipeExtend();
-        list.add(new RecipeLabelVO("煎法", "recipeExtend.decoctionText", ByteUtils.objValueOfString(recipeExtend.getDecoctionText())));
-        list.add(new RecipeLabelVO("制法", "recipeExtend.makeMethodText", ByteUtils.objValueOfString(recipeExtend.getMakeMethodText())));
-        list.add(new RecipeLabelVO("每付取汁", "recipeExtend.juice", ByteUtils.objValueOfString(recipeExtend.getJuice()) + ByteUtils.objValueOfString(recipeExtend.getJuiceUnit())));
-        list.add(new RecipeLabelVO("每次用汁", "recipeExtend.minor", ByteUtils.objValueOfString(recipeExtend.getMinor()) + ByteUtils.objValueOfString(recipeExtend.getMinorUnit())));
+        list.add(new RecipeLabelVO("煎法", "recipeDetail.decoctionText", ByteUtils.objValueOfString(recipeExtend.getDecoctionText())));
+        list.add(new RecipeLabelVO("制法", "recipeDetail.makeMethodText", ByteUtils.objValueOfString(recipeExtend.getMakeMethodText())));
+        list.add(new RecipeLabelVO("每付取汁", "recipeDetail.juice", ByteUtils.objValueOfString(recipeExtend.getJuice()) + ByteUtils.objValueOfString(recipeExtend.getJuiceUnit())));
+        list.add(new RecipeLabelVO("每次用汁", "recipeDetail.minor", ByteUtils.objValueOfString(recipeExtend.getMinor()) + ByteUtils.objValueOfString(recipeExtend.getMinorUnit())));
         logger.info("CreateRecipePdfUtil createChineMedicinePDF list :{} ", JSON.toJSONString(list));
         return list.stream().collect(HashMap::new, (m, v) -> m.put(v.getEnglishName(), v.getValue()), HashMap::putAll);
     }
