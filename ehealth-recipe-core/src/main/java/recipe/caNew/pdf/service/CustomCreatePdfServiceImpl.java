@@ -268,7 +268,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
             return null;
         }
         return new SignImgNode(recipeId.toString(), organSealId, fileId, null, 90F, 90F
-                , ordinateVO.getX().floatValue(), ordinateVO.getY().floatValue(), false);
+                , (float) ordinateVO.getX() + 40, (float) ordinateVO.getY() - 40, false);
     }
 
     /**
@@ -384,8 +384,8 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
                 //条形码
                 if (OperationConstant.OP_BARCODE.equals(identifyName)) {
                     String barCode = configurationClient.getValueCatch(organId, OperationConstant.OP_BARCODE, "");
-                    if (StringUtils.isNotEmpty(barCode)) {
-                        String[] barCodes = barCode.trim().split(ByteUtils.DOT);
+                    String[] barCodes = barCode.trim().split(ByteUtils.DOT);
+                    if (StringUtils.isNotEmpty(barCode) && 2 == barCodes.length) {
                         objectName = barCodes[0];
                         fieldName = barCodes[1];
                     }

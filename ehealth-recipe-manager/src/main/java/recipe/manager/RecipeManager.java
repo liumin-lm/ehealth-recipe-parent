@@ -106,6 +106,7 @@ public class RecipeManager extends BaseManager {
         recipe.setMemo(emrDetail.getMemo());
         recipeExtend.setSymptomId(emrDetail.getSymptomId());
         recipeExtend.setSymptomName(emrDetail.getSymptomName());
+        recipeExtend.setAllergyMedical(emrDetail.getSymptomName());
         logger.info("RecipeOrderManager getRecipeInfoDTO patientBean:{}", JSON.toJSONString(patientBean));
         return recipeInfoDTO;
     }
