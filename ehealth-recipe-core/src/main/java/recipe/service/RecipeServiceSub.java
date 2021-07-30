@@ -1538,7 +1538,6 @@ public class RecipeServiceSub {
                     Map<String, Object> notPassMap = mapList.get(i);
                     List<RecipeDetailBean> recipeDetailBeans = RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImplForDetail(recipe), isDoctor, recipe.getClinicOrgan());
                     notPassMap.put("checkNotPassDetails", recipeDetailBeans);
-                    mapList.set(i,notPassMap);
                 }
             }
             map.put("reasonAndDetails", mapList);
