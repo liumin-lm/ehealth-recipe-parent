@@ -299,6 +299,9 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
         if (new Integer(1).equals(recipe.getGiveMode()) && StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            if (null == recipeOrder) {
+                return "";
+            }
             if (new Integer(1).equals(recipeOrder.getSendType())) {
                 //表示医院配送
                 giveModeKey = "showSendToHos";
