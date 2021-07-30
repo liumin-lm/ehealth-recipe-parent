@@ -125,8 +125,8 @@ public class OperationClient extends BaseClient {
             //条形码
             if (OperationConstant.OP_BARCODE.equals(identifyName)) {
                 String barCode = (String) configService.getConfiguration(recipePdfDTO.getRecipe().getClinicOrgan(), OperationConstant.OP_BARCODE);
-                if (StringUtils.isNotEmpty(barCode)) {
-                    String[] barCodes = barCode.trim().split(ByteUtils.DOT);
+                String[] barCodes = barCode.trim().split(ByteUtils.DOT);
+                if (StringUtils.isNotEmpty(barCode) && 2 == barCodes.length) {
                     objectName = barCodes[0];
                     fieldName = barCodes[1];
                 }
