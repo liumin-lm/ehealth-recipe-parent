@@ -99,6 +99,9 @@ public class PatientTaskServiceImpl implements IPatientTaskService {
             if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
                 //根据recipe获取对应的order对象，再对order对像的状态进行判断
                 RecipeOrder recipeOrder = recipeOrderMap.get(recipe.getOrderCode());
+                if (recipeOrder == null) {
+                    continue;
+                }
                 RecipeTaskEnum recipeOrderStatusEnum = RecipeTaskEnum.getRecipeStatusEnum(recipeOrder.getStatus());
                 if (RecipeTaskEnum.NONE != recipeOrderStatusEnum) {
                     patientTask.setTaskName(recipeOrderStatusEnum.getTaskName());
@@ -168,6 +171,9 @@ public class PatientTaskServiceImpl implements IPatientTaskService {
             if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
                 //根据recipe获取对应的order对象，再对order对像的状态进行判断
                 RecipeOrder recipeOrder = recipeOrderMap.get(recipe.getOrderCode());
+                if (recipeOrder == null) {
+                    continue;
+                }
                 RecipeTaskEnum recipeOrderStatusEnum = RecipeTaskEnum.getRecipeStatusEnum(recipeOrder.getStatus());
                 if (RecipeTaskEnum.NONE != recipeOrderStatusEnum) {
                     patientTask.setTaskName(recipeOrderStatusEnum.getTaskName());
