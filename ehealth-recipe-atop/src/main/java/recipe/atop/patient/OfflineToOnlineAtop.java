@@ -65,7 +65,7 @@ public class OfflineToOnlineAtop extends BaseAtop {
     @RpcService
     public FindHisRecipeDetailResVO findHisRecipeDetail(FindHisRecipeDetailReqVO request) {
         logger.info("OfflineToOnlineAtop findHisRecipeDetail request:{}", ctd.util.JSONUtils.toString(request));
-        validateAtop(request, request.getOrganId(), request.getMpiId(), request.getStatus());
+        validateAtop(request, request.getOrganId(), request.getMpiId());
         try {
             FindHisRecipeDetailResVO findHisRecipeDetailResVO = offlineToOnlineService.findHisRecipeDetail(request);
             logger.info("OfflineToOnlineAtop findHisRecipeDetail res findHisRecipeDetailResVO:{}", ctd.util.JSONUtils.toString(findHisRecipeDetailResVO));
@@ -106,6 +106,7 @@ public class OfflineToOnlineAtop extends BaseAtop {
 
     /**
      * 获取卡类型
+     *
      * @param organId
      * @return
      */
