@@ -234,10 +234,12 @@ public class DrugStockManager extends BaseManager {
         //医院无库存，药企无库存
         List<String> hospitalDrugName = (List<String>) scanResult.getObject();
         if (!RecipeResultBean.SUCCESS.equals(scanResult.getCode()) && CollectionUtils.isEmpty(drugsEnterprises)) {
-            Boolean hospital = hospitalDrugName.containsAll(enterpriseDrugName);
-            Boolean enterprise = enterpriseDrugName.containsAll(hospitalDrugName);
-            if (hospital || enterprise) {
-                doSignRecipe(doSignRecipe, scanResult.getObject(), "药品库存不足，请更换其他药品后再试");
+            if (CollectionUtils.isNotEmpty(hospitalDrugName)) {
+                doSignRecipe(doSignRecipe, hospitalDrugName, "药品库存不足，请更换其他药品后再试");
+            } else if (CollectionUtils.isNotEmpty(enterpriseDrugName)) {
+                doSignRecipe(doSignRecipe, enterpriseDrugName, "药品库存不足，请更换其他药品后再试");
+            } else {
+                doSignRecipe(doSignRecipe, null, "由于该处方单上的药品库存不足，请更换其他药品后再试。");
             }
         }
         return scanResult;
