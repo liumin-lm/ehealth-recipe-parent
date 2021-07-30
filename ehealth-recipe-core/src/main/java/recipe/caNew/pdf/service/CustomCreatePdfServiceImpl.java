@@ -268,7 +268,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
             return null;
         }
         return new SignImgNode(recipeId.toString(), organSealId, fileId, null, 90F, 90F
-                , ordinateVO.getX().floatValue(), ordinateVO.getY().floatValue(), false);
+                , (float) ordinateVO.getX() + 40, (float) ordinateVO.getY() - 40, false);
     }
 
     /**
