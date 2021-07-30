@@ -5,10 +5,13 @@ import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
+import ctd.util.JSONUtils;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DrugClient;
@@ -28,6 +31,7 @@ import java.util.stream.Collectors;
  */
 @Service
 public class DrugManeger extends BaseManager {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DrugManeger.class);
     @Autowired
     private DrugClient drugClient;
     @Autowired
@@ -46,6 +50,7 @@ public class DrugManeger extends BaseManager {
      * @return
      */
     public static String dealwithRecipeDrugName(Recipedetail recipedetail, Integer drugType, Integer organId) {
+        LOGGER.info("DrugManager dealwithRecipeDrugName recipedetail:{},drugType:{},organId:{}", JSONUtils.toString(recipedetail), drugType, organId);
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(drugType)) {
             StringBuilder stringBuilder = new StringBuilder();
             //所有页面中药药品显示统一“药品名称”和“剂量单位”以空格间隔
@@ -64,12 +69,15 @@ public class DrugManeger extends BaseManager {
         if (StringUtils.isEmpty(recipedetail.getDrugDisplaySplicedName())) {
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndOrganDrugCodeAndDrugIdWithoutStatus(organId, recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
+            LOGGER.info("DrugClient dealwithRecipeDrugName organDrugLists:{}", JSONUtils.toString(organDrugLists));
             return dealwithRecipedetailName(organDrugLists, recipedetail);
         }
+        LOGGER.info("DrugManager dealwithRecipeDrugName res:{}", recipedetail.getDrugDisplaySplicedName());
         return recipedetail.getDrugDisplaySplicedName();
     }
 
     public static String dealwithRecipedetailName(List<OrganDrugList> organDrugLists, Recipedetail recipedetail) {
+        LOGGER.info("DrugClient dealwithRecipedetailName organDrugLists:{},recipedetail:{}", JSONUtils.toString(organDrugLists), JSONUtils.toString(recipedetail));
         StringBuilder stringBuilder = new StringBuilder();
         if (CollectionUtils.isNotEmpty(organDrugLists)) {
             //机构药品名称、剂型、药品规格、单位
@@ -78,11 +86,13 @@ public class DrugManeger extends BaseManager {
                 stringBuilder.append(organDrugLists.get(0).getDrugForm());
             }
         } else {
+            LOGGER.info("DrugClient res:{}", stringBuilder.toString());
             stringBuilder.append(recipedetail.getDrugName());
         }
         //【"机构药品名称”、“机构商品名称”、“剂型”】与【“药品规格”、“单位”】中间要加空格
         stringBuilder.append(StringUtils.SPACE);
         stringBuilder.append(recipedetail.getDrugSpec()).append("/").append(recipedetail.getDrugUnit());
+        LOGGER.info("DrugClient res:{}", stringBuilder.toString());
         return stringBuilder.toString();
     }
 
