@@ -33,7 +33,6 @@ import recipe.manager.SignManager;
 import recipe.util.ByteUtils;
 import recipe.util.DictionaryUtil;
 import recipe.util.RecipeUtil;
-import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -402,23 +401,5 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         }
         list.add(new RecipeLabelVO("贴数", "copyNum", recipe.getCopyNum() + "贴"));
         list.add(new RecipeLabelVO("嘱托", "tcmRecipeMemo", ByteUtils.objValueOfString(recipe.getRecipeMemo())));
-    }
-
-
-    /**
-     * 获取天数 与 单位字符串展示
-     *
-     * @param useDaysB
-     * @param useDays
-     * @return
-     */
-    private String getUseDays(String useDaysB, Integer useDays) {
-        if (StringUtils.isNotEmpty(useDaysB) && !"0".equals(useDaysB)) {
-            return useDaysB + "天";
-        }
-        if (!ValidateUtil.integerIsEmpty(useDays)) {
-            return useDays + "天";
-        }
-        return "";
     }
 }
