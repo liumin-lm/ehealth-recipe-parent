@@ -42,12 +42,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
-import recipe.core.api.IOrganBusinessService;
 import recipe.dao.*;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.EmrRecipeManager;
@@ -79,8 +77,6 @@ public class QueryRecipeService implements IQueryRecipeService {
     private RecipeExtendDAO recipeExtendDAO;
     @Resource
     private IDocIndexService docIndexService;
-    @Autowired
-    private IOrganBusinessService organBusinessService;
 
 
     /**
@@ -1165,12 +1161,6 @@ public class QueryRecipeService implements IQueryRecipeService {
      */
     @RpcService
     public List<Integer> getOrganForWeb() {
-        //TODO 一会删
-        try{
-            LOGGER.info("queryOrganService organBusinessService.getOrganForWeb organIds:{}", JSONUtils.toString(organBusinessService.getOrganForWeb()));
-        }catch (Exception e){
-
-        }
         ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
         //查询当前区域公众号下所有归属机构
         List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
