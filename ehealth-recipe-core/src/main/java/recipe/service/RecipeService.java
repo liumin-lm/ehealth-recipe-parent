@@ -2137,7 +2137,7 @@ public class RecipeService extends RecipeBaseService {
         rMap.put("recipeId", recipeId);
         rMap.put("consultId", recipe.getClinicId());
         rMap.put("errorFlag", false);
-        LOGGER.info("doSignRecipe execute ok! rMap:" + JSONUtils.toString(rMap));
+        LOGGER.info("doSignRecipeContinue execute ok! rMap:" + JSONUtils.toString(rMap));
         return rMap;
     }
 
