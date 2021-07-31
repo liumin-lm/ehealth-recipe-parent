@@ -172,7 +172,7 @@ public class DrugStockBusinessService extends BaseService {
      * @param configurations
      */
     private void saveGiveMode(com.ngari.platform.recipe.mode.RecipeResultBean scanResult, SupportDepListBean allSupportDepList, int checkFlag, Integer recipeId, int organId, List<String> configurations) {
-
+        RecipeBusiThreadPool.execute(() -> {
             List<DrugsEnterprise> supportDepList = null;
             if (!Objects.isNull(allSupportDepList)) {
                 supportDepList = allSupportDepList.getHaveList();
@@ -186,7 +186,7 @@ public class DrugStockBusinessService extends BaseService {
                 Recipe recipe = recipeDAO.getByRecipeId(recipeId);
                 logger.info("saveGiveMode recipe:{}.", JSONUtils.toString(recipe));
             }
-
+        });
     }
 
     /**
