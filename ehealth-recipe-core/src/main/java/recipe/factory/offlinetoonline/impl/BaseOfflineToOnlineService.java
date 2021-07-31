@@ -532,6 +532,7 @@ public class BaseOfflineToOnlineService {
         Recipe recipe = new Recipe();
         if (recipeDb != null) {
             recipe.setRecipeId(recipeDb.getRecipeId());
+            recipe.setOrderCode(recipeDb.getOrderCode());
         }
         recipe.setBussSource(0);
         //通过挂号序号关联复诊
