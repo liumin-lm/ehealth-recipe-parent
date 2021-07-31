@@ -15,7 +15,6 @@ import com.ngari.his.recipe.mode.ChronicDiseaseListReqTO;
 import com.ngari.his.recipe.mode.ChronicDiseaseListResTO;
 import com.ngari.his.recipe.mode.PatientChronicDiseaseRes;
 import com.ngari.his.recipe.mode.PatientDiagnoseTO;
-import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -61,10 +60,7 @@ import recipe.service.common.RecipeCacheService;
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -768,8 +764,8 @@ public class RecipePatientService extends RecipeBaseService implements IRecipePa
         if (!new Integer(1).equals(patientDTO.getAuthStatus())) {
             return CheckPatientEnum.CHECK_PATIENT_NOAUTH.getType();
         }
-        Map<String, HealthCardDTO> result = healthCardClient.findHealthCard(outPatientReqVO.getMpiId());
-        if (null == result || (StringUtils.isNotEmpty(outPatientReqVO.getCardID()) && !result.containsKey(outPatientReqVO.getCardID()))) {
+        Collection result = healthCardClient.findHealthCard(outPatientReqVO.getMpiId());
+        if (null == result || (StringUtils.isNotEmpty(outPatientReqVO.getCardID()) && !result.contains(outPatientReqVO.getCardID()))) {
             return CheckPatientEnum.CHECK_PATIENT_CARDDEL.getType();
         }
         return CheckPatientEnum.CHECK_PATIENT_NORMAL.getType();
