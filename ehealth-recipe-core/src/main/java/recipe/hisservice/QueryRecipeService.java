@@ -78,6 +78,7 @@ public class QueryRecipeService implements IQueryRecipeService {
     @Resource
     private IDocIndexService docIndexService;
 
+
     /**
      * 用于sendRecipeToHIS 推送处方mq后 查询接口
      *
