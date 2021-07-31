@@ -255,6 +255,7 @@ public class HisRecipeManager extends BaseManager {
             return;
         }
         List<Integer> recipeIds = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        LOGGER.info("deleteSetRecipeCode recipeIds:{}", JSONUtils.toString(recipeIds));
         List<String> orderCodeList = recipeList.stream().filter(a -> StringUtils.isNotEmpty(a.getOrderCode())).map(Recipe::getOrderCode).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(orderCodeList)) {
             recipeOrderDAO.deleteByRecipeIds(orderCodeList);
