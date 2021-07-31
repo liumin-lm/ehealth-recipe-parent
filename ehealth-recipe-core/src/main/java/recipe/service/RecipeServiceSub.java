@@ -55,6 +55,7 @@ import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcService;
 import eh.recipeaudit.api.IAuditMedicinesService;
 import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.api.IRecipeCheckService;
@@ -1358,7 +1359,7 @@ public class RecipeServiceSub {
         return r;
     }
 
-    public static RecipeBean convertRecipeForRAPNew(Recipe recipe,List<HisRecipeDetailBean> recipeDetailBeans) {
+    public static RecipeBean convertRecipeForRAPNew(Recipe recipe, List<HisRecipeDetailBean> recipeDetailBeans) {
         RecipeBean r = new RecipeBean();
         r.setRecipeId(recipe.getRecipeId());
         r.setCreateDate(recipe.getCreateDate());
@@ -1532,10 +1533,10 @@ public class RecipeServiceSub {
             IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
             //获取审核不通过详情
             List<Map<String, Object>> mapList = recipeAuditService.getCheckNotPassDetail(recipeId);
-            if(!ObjectUtils.isEmpty(mapList)){
+            if (!ObjectUtils.isEmpty(mapList)) {
                 for (int i = 0; i < mapList.size(); i++) {
                     Map<String, Object> notPassMap = mapList.get(i);
-                    List<RecipeDetailBean> recipeDetailBeans = (List<RecipeDetailBean>)notPassMap.get("checkNotPassDetails");
+                    List<RecipeDetailBean> recipeDetailBeans = (List<RecipeDetailBean>) notPassMap.get("checkNotPassDetails");
                     for (RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
                         RecipeValidateUtil.setUsingRateIdAndUsePathwaysId(recipe, recipeDetailBean);
                     }
@@ -1654,7 +1655,7 @@ public class RecipeServiceSub {
             recipe.setActualPrice(actualPrice);
 
             //无法配送时间文案提示
-            map.put("unSendTitle", getUnSendTitleForPatient(recipe,order));
+            map.put("unSendTitle", getUnSendTitleForPatient(recipe, order));
             //患者处方取药方式提示
             map.put("recipeGetModeTip", getRecipeGetModeTip(recipe));
 
@@ -1752,7 +1753,7 @@ public class RecipeServiceSub {
                     map.put("checkerSignImgToken", FileAuth.instance().createToken(signInfo.get("checkerSignImg"), 3600L));
                 }
             }
-        } else{
+        } else {
             if (recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS && recipe.getRecipeSourceType().equals(2) && !ValidateUtil.integerIsEmpty(recipe.getChecker())) {
                 if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
                         recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
@@ -1806,7 +1807,7 @@ public class RecipeServiceSub {
         //线下转线上的处方  设置默认审方药师
         if (recipe.getRecipeSourceType().equals(2) && recipe.getChecker() == null) {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            String doctorId  = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "offlineDefaultRecipecheckDoctor");
+            String doctorId = (String) configurationService.getConfiguration(recipe.getClinicOrgan(), "offlineDefaultRecipecheckDoctor");
             if (doctorId != null) {
                 Map<String, String> signInfoDefault = attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), Integer.valueOf(doctorId), recipeId);
                 //该默认药师在平台的签名是有值的
@@ -1826,7 +1827,7 @@ public class RecipeServiceSub {
         //处理审核药师
         if ((recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
                 recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
-                recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA ||recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS) ||
+                recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA || recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS) ||
                 (recipe.getRecipeSourceType().equals(2) && !StringUtils.isNotEmpty(signInfo.get("checkerSignImg")))
         ) {
             recipeBean.setCheckerText("");
@@ -1843,17 +1844,17 @@ public class RecipeServiceSub {
 //                    recipeBean.setDecoctionFee(hisRecipe.getDecoctionFee());
 //                }
 
-                String decoctionDeploy =((String[]) configService.getConfiguration(recipe.getClinicOrgan(), "decoctionDeploy"))[0];
+                String decoctionDeploy = ((String[]) configService.getConfiguration(recipe.getClinicOrgan(), "decoctionDeploy"))[0];
                 //用于确认订单页显示线下处方代煎费 兼容老版本（修复老版本的bug）
                 //如果为医生选择且recipeExt存在decoctionText
-                if("1".equals(decoctionDeploy)
-                        &&recipeExtend!=null&&StringUtils.isNotEmpty(recipeExtend.getDecoctionText())){
+                if ("1".equals(decoctionDeploy)
+                        && recipeExtend != null && StringUtils.isNotEmpty(recipeExtend.getDecoctionText())) {
                     if (hisRecipe != null && hisRecipe.getDecoctionFee() != null) {
                         //有代煎总额
                         recipeBean.setDecoctionFee(hisRecipe.getDecoctionFee());
                     } else {
                         //无代煎总额 需计算代煎总额=贴数*代煎单价
-                        if (hisRecipe.getDecoctionUnitFee()!=null && recipe.getCopyNum() != null ) {
+                        if (hisRecipe.getDecoctionUnitFee() != null && recipe.getCopyNum() != null) {
                             //代煎费等于剂数乘以代煎单价
                             recipeBean.setDecoctionFee(hisRecipe.getDecoctionUnitFee().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
                         }
@@ -1991,7 +1992,7 @@ public class RecipeServiceSub {
         }
     }
 
-    private static GiveModeButtonBean getShowThirdOrder(Recipe recipe){
+    private static GiveModeButtonBean getShowThirdOrder(Recipe recipe) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         //设置第三方订单跳转的按钮
         Integer enterpriseId = recipe.getEnterpriseId();
@@ -2411,7 +2412,7 @@ public class RecipeServiceSub {
                     tips = "药品将尽快为您配送.";
                 } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode)) {
                     tips = "请尽快前往药店取药.";
-                } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)){
+                } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)) {
                     tips = "请尽快前往医院取药.";
                 }
                 break;
@@ -2453,7 +2454,7 @@ public class RecipeServiceSub {
      * 无法配送时间段文案提示
      * 处方单详情（待处理，待支付,药师未审核，状态为待配送,药师已审核，状态为待配送）
      */
-    public static String getUnSendTitleForPatient(Recipe recipe,RecipeOrder order) {
+    public static String getUnSendTitleForPatient(Recipe recipe, RecipeOrder order) {
         String unSendTitle = "";
         switch (recipe.getStatus()) {
             case RecipeStatusConstant.READY_CHECK_YS:
@@ -2644,8 +2645,10 @@ public class RecipeServiceSub {
      * @param doctorId
      * @Author liumin
      */
+    @RpcService
     public static void sendRecipeTagToPatientWithOfflineRecipe(String mpiId, Integer organId, String recipeCode, String cardId, Integer consultId, Integer doctorId) {
-        RecipeTagMsgBean recipeTagMsg =new RecipeTagMsgBean();
+
+        RecipeTagMsgBean recipeTagMsg = new RecipeTagMsgBean();
         PatientService patientService = BasicAPI.getService(PatientService.class);
         PatientDTO patientDTO = patientService.getPatientBeanByMpiId(mpiId);
         if (StringUtils.isNotEmpty(cardId)) {
@@ -2656,34 +2659,35 @@ public class RecipeServiceSub {
         if (null == patientDTO) {
             throw new DAOException(609, "患者信息不存在");
         }
-        if(StringUtils.isEmpty(recipeCode)){
+        if (StringUtils.isEmpty(recipeCode)) {
             recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO);
-        }else{
+        } else {
             //获取当前处方详情
             HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = hisRecipeManager.queryData(organId, patientDTO, null, 1, recipeCode);
             QueryHisRecipResTO queryHisRecipResTO = getRecipeInfoByRecipeCode(hisResponseTO, recipeCode);
-            if(queryHisRecipResTO==null||StringUtils.isEmpty(queryHisRecipResTO.getRecipeCode())){
-                LOGGER.info("sendRecipeTagToPatientWithOfflineRecipe recipeCode：{} 根据recipeCode没查询到线下处方！！！",recipeCode);
+            if (queryHisRecipResTO == null || StringUtils.isEmpty(queryHisRecipResTO.getRecipeCode())) {
+                LOGGER.info("sendRecipeTagToPatientWithOfflineRecipe recipeCode：{} 根据recipeCode没查询到线下处方！！！", recipeCode);
                 recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO);
-            }else{
+            } else {
                 //拼接卡片显示参数
-                recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(queryHisRecipResTO,patientDTO);
+                recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(queryHisRecipResTO, patientDTO);
             }
         }
         //环信消息发送
-        LOGGER.info("sendRecipeTagToPatientWithOfflineRecipe revisitMessageService.handleRecipeMsg recipecode:{} param:[{},{},{}]",recipeCode,consultId,JSONUtils.toString(recipeTagMsg),doctorId);
+        LOGGER.info("sendRecipeTagToPatientWithOfflineRecipe revisitMessageService.handleRecipeMsg recipecode:{} param:[{},{},{}]", recipeCode, consultId, JSONUtils.toString(recipeTagMsg), doctorId);
         IRevisitMessageService revisitMessageService = MessageAPI.getService(IRevisitMessageService.class);
         revisitMessageService.handleRecipeMsg(consultId, recipeTagMsg, doctorId);
     }
 
     /**
      * 卡片消息显示参数拼接
+     *
      * @param queryHisRecipResTO
      * @param patientDTO
      * @return
      */
     private static RecipeTagMsgBean getRecipeMsgTagWithOfflineRecipe(QueryHisRecipResTO queryHisRecipResTO, PatientDTO patientDTO) {
-        LOGGER.info("getRecipeMsgTagWithOfflineRecipe param:{}",JSONUtils.toString(queryHisRecipResTO));
+        LOGGER.info("getRecipeMsgTagWithOfflineRecipe param:{}", JSONUtils.toString(queryHisRecipResTO));
         //获取诊断疾病名称
         String diseaseName = queryHisRecipResTO.getDiseaseName();
         List<String> drugNames = Lists.newArrayList();
@@ -2734,19 +2738,19 @@ public class RecipeServiceSub {
         }
         recipeTagMsg.setCardId(patientDTO.getCardId());
         recipeTagMsg.setRecipeSourceType(2);
-        LOGGER.info("getRecipeMsgTagWithOfflineRecipe response:{}",JSONUtils.toString(recipeTagMsg));
+        LOGGER.info("getRecipeMsgTagWithOfflineRecipe response:{}", JSONUtils.toString(recipeTagMsg));
         return recipeTagMsg;
     }
 
-    private static RecipeTagMsgBean getRecipeMsgTagWithOfflineRecipe( PatientDTO patientDTO) {
-        LOGGER.info("getRecipeMsgTagWithOfflineRecipe param:{}",JSONUtils.toString(patientDTO));
+    private static RecipeTagMsgBean getRecipeMsgTagWithOfflineRecipe(PatientDTO patientDTO) {
+        LOGGER.info("getRecipeMsgTagWithOfflineRecipe param:{}", JSONUtils.toString(patientDTO));
         //获取诊断疾病名称
         RecipeTagMsgBean recipeTagMsg = new RecipeTagMsgBean();
         recipeTagMsg.setTitle(patientDTO.getPatientName() + "的电子处方单");
         recipeTagMsg.setFlag("1");
         recipeTagMsg.setCardId(patientDTO.getCardId());
         recipeTagMsg.setRecipeSourceType(2);
-        LOGGER.info("getRecipeMsgTagWithOfflineRecipe response:{}",JSONUtils.toString(recipeTagMsg));
+        LOGGER.info("getRecipeMsgTagWithOfflineRecipe response:{}", JSONUtils.toString(recipeTagMsg));
         return recipeTagMsg;
     }
 
@@ -3133,7 +3137,7 @@ public class RecipeServiceSub {
      * @Author liumin
      */
     private static QueryHisRecipResTO getRecipeInfoByRecipeCode(HisResponseTO<List<QueryHisRecipResTO>> responseTO, String recipeCode) {
-        LOGGER.info("getRecipeInfoByRecipeCode recipecode:{} , param:{}",recipeCode,JSONUtils.toString(responseTO));
+        LOGGER.info("getRecipeInfoByRecipeCode recipecode:{} , param:{}", recipeCode, JSONUtils.toString(responseTO));
         QueryHisRecipResTO response = new QueryHisRecipResTO();
         if (!StringUtils.isEmpty(recipeCode)) {
             if (responseTO != null) {
@@ -3148,7 +3152,7 @@ public class RecipeServiceSub {
                 }
             }
         }
-        LOGGER.info("getRecipeInfoByRecipeCode recipecode:{} , response:{}",recipeCode,JSONUtils.toString(response));
+        LOGGER.info("getRecipeInfoByRecipeCode recipecode:{} , response:{}", recipeCode, JSONUtils.toString(response));
         return response;
     }
 
@@ -3159,7 +3163,7 @@ public class RecipeServiceSub {
      * @return
      */
     public static boolean isCQOrgan(Integer clinicOrgan) {
-        LOGGER.info("isCQOrgan request:{}",clinicOrgan);
+        LOGGER.info("isCQOrgan request:{}", clinicOrgan);
         try {
             IHisServiceConfigService configService = AppContextHolder.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
             List<ServiceConfigResponseTO> serviceConfigResponseTOS = configService.findAllRegulationOrgan();

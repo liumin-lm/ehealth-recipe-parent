@@ -3576,8 +3576,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Map<String, Object> getPatientRecipeById(int recipeId) {
-        //checkUserHasPermission(recipeId);
-
+        checkUserHasPermission(recipeId);
         Map<String, Object> result = getRecipeAndDetailByIdImpl(recipeId, false);
         PatientDTO patient = (PatientDTO) result.get("patient");
         result.put("patient", ObjectCopyUtils.convert(patient, PatientDS.class));
@@ -3586,8 +3585,6 @@ public class RecipeService extends RecipeBaseService {
 
     @RpcService
     public Map<String, Object> getPatientRecipeByIdForOfflineRecipe(int recipeId) {
-        //checkUserHasPermission(recipeId);
-
         Map<String, Object> result = getRecipeAndDetailByIdImpl(recipeId, false);
         PatientDTO patient = (PatientDTO) result.get("patient");
         result.put("patient", ObjectCopyUtils.convert(patient, PatientDS.class));
@@ -3665,6 +3662,11 @@ public class RecipeService extends RecipeBaseService {
             return 0;
         }
 
+    }
+
+    @RpcService
+    public void sendRecipeTagToPatientWithOfflineRecipe(String mpiId, Integer organId, String recipeCode, String cardId, Integer consultId, Integer doctorId) {
+        RecipeServiceSub.sendRecipeTagToPatientWithOfflineRecipe(mpiId, organId, recipeCode, cardId, consultId, doctorId);
     }
 
     /**

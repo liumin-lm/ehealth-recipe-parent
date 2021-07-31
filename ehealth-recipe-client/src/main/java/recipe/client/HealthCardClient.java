@@ -7,9 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -28,10 +26,10 @@ public class HealthCardClient extends BaseClient{
      * @param mpiId 患者唯一号
      * @return 健康卡列表
      */
-    public Map<String, HealthCardDTO> findHealthCard(String mpiId){
+    public Set<String> findHealthCard(String mpiId){
         logger.info("HealthCardClient findHealthCard mpiId:{}.", mpiId);
         List<HealthCardDTO> healthCards = healthCardService.findByMpiId(mpiId);
-        Map<String, HealthCardDTO> result = healthCards.stream().collect(Collectors.toMap(HealthCardDTO::getCardId, Function.identity(),(key1, key2)->key2));
+        Set<String> result = healthCards.stream().map(HealthCardDTO::getCardId).collect(Collectors.toSet());
         logger.info("HealthCardClient findHealthCard result:{}.", JSONUtils.toString(result));
         return result;
     }
