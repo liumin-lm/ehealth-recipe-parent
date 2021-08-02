@@ -4,6 +4,7 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.recipe.entity.HisRecipe;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
@@ -143,6 +144,16 @@ public class OfflineToOnlineService extends BaseService implements IOfflineToOnl
         if (StringUtils.isEmpty(request.getStatus())) {
             String status = hisRecipeManager.attachHisRecipeStatus(request.getMpiId(), request.getOrganId(), request.getRecipeCode());
             request.setStatus(status);
+        }
+        //获取对应的hisRecipeId
+        if (request.getHisRecipeId() == null) {
+            //如果为已处理，需要获取hisRecipeId,再根据hisRecipeId获取详情（）
+            if (OfflineToOnlineEnum.OFFLINE_TO_ONLINE_ALREADY_PAY.getName().equals(request.getStatus())) {
+                HisRecipe hisRecipe = hisRecipeManager.obatainHisRecipeByOrganIdAndMpiIdAndRecipeCode(request.getOrganId(), request.getMpiId(), request.getRecipeCode());
+                if (hisRecipe != null) {
+                    request.setHisRecipeId(hisRecipe.getHisRecipeID());
+                }
+            }
         }
         logger.info("OfflineToOnlineService obtainFindHisRecipeDetailParam req:{}", JSONUtils.toString(request));
         return request;
