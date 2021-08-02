@@ -758,6 +758,7 @@ public class RecipePatientService extends RecipeBaseService implements IRecipePa
      * @param mpiId 患者唯一号
      * @return 患者信息
      */
+    @Override
     public PatientDTO getPatientDTOByMpiID(String mpiId){
         return patientClient.getPatientBeanByMpiId(mpiId);
     }
