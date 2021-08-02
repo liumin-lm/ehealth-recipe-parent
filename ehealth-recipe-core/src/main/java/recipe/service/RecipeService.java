@@ -1710,11 +1710,6 @@ public class RecipeService extends RecipeBaseService {
         Boolean openRecipe = (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "isOpenRecipeByRegisterId");
         LOGGER.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}", openRecipe);
 
-   /*     //如果前端没有传入咨询id则从进行中的复诊或者咨询里取
-        //获取咨询单id,有进行中的复诊则优先取复诊，若没有则取进行中的图文咨询
-        if (recipe.getClinicId() == null) {
-            getConsultIdForRecipeSource(recipe,openRecipe);
-        }*/
         boolean optimize = openRecipOptimize(recipe, openRecipe);
         //配置开启，根据有效的挂号序号进行判断
         if (!optimize) {
