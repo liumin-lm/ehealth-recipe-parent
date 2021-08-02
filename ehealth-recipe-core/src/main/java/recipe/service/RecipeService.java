@@ -1518,8 +1518,6 @@ public class RecipeService extends RecipeBaseService {
             recipeBean.setDistributionFlag(continueFlag);
             //第一步暂存处方（处方状态未签名）
             doSignRecipeSave(recipeBean, detailBeanList);
-
-
             //第二步预校验
             if (continueFlag == 0) {
                 HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
@@ -2196,6 +2194,7 @@ public class RecipeService extends RecipeBaseService {
         Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
 
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
+        recipe.setRecipeSupportGiveMode(dbRecipe.getRecipeSupportGiveMode());
         if (null == dbRecipe.getStatus() || (dbRecipe.getStatus() > RecipeStatusConstant.UNSIGN) && dbRecipe.getStatus() != RecipeStatusConstant.HIS_FAIL) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不是新处方或者审核失败的处方，不能修改");
         }
