@@ -289,7 +289,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      *
      * @param recipeIds
      */
-    @DAOMethod(sql = "update Recipe  set status=10,,ordercode=null  where recipeId in (:recipeIds)")
+    @DAOMethod(sql = "update Recipe  set status=10,ordercode=null  where recipeId in (:recipeIds)")
     public abstract void updateRecipeStatusByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
 
     public List<Integer> findDoctorIdSortByCount(final String startDt, final String endDt, final List<Integer> organs, final List<Integer> testDocIds, final int start, final int limit) {
