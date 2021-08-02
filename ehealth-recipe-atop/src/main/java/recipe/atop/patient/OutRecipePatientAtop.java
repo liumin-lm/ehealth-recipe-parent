@@ -76,11 +76,7 @@ public class OutRecipePatientAtop extends BaseAtop {
             return result;
         } catch (DAOException e1) {
             logger.error("OutPatientRecipeAtop queryOutPatientRecipe error", e1);
-            if (HisErrorCodeEnum.HIS_PARAMETER_ERROR.getCode() == e1.getCode()
-                    || HisErrorCodeEnum.HIS_NULL_ERROR.getCode() == e1.getCode()) {
-                return new ArrayList<>();
-            }
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+            return new ArrayList<>();
         } catch (Exception e) {
             logger.error("OutPatientRecipeAtop queryOutPatientRecipe error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
