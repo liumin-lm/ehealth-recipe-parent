@@ -75,14 +75,10 @@ public class OutRecipePatientAtop extends BaseAtop {
             logger.info("OutPatientRecipeAtop queryOutPatientRecipe result:{}.", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
-            logger.error("OutPatientRecipeAtop queryOutPatientRecipe error", e1);
-            if (HisErrorCodeEnum.HIS_PARAMETER_ERROR.getCode() == e1.getCode()
-                    || HisErrorCodeEnum.HIS_NULL_ERROR.getCode() == e1.getCode()) {
-                return new ArrayList<>();
-            }
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+            logger.error("OutPatientRecipeAtop queryOutPatientRecipe DAOException error", e1);
+            return new ArrayList<>();
         } catch (Exception e) {
-            logger.error("OutPatientRecipeAtop queryOutPatientRecipe error e", e);
+            logger.error("OutPatientRecipeAtop queryOutPatientRecipe Exception error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
