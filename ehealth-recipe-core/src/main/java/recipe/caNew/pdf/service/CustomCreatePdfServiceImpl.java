@@ -235,9 +235,13 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
             }
         }
         CoOrdinateVO addressOrdinate = redisManager.getPdfCoords(recipe.getRecipeId(), "address");
-        if (null != addressOrdinate) {
-            addressOrdinate.setValue(address);
-            list.add(addressOrdinate);
+        if (null == addressOrdinate) {
+            logger.info("CustomCreatePdfServiceImpl updateAddressPdf   list ={}", JSON.toJSONString(list));
+            return list;
+        }
+        addressOrdinate.setValue(address);
+        list.add(addressOrdinate);
+        if (StringUtils.isNotEmpty(order.getReceiver()) && StringUtils.isNotEmpty(order.getRecMobile())) {
             CoOrdinateVO receiver = new CoOrdinateVO();
             receiver.setX(addressOrdinate.getX());
             receiver.setY(addressOrdinate.getY() - 12);
