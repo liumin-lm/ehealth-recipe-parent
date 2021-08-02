@@ -52,7 +52,7 @@ public class OutRecipePatientAtop extends BaseAtop {
             outPatientRecipeReqVO.setBeginTime(DateConversion.getDateFormatter(DateConversion.getMonthsAgo(3), DateConversion.DEFAULT_DATE_TIME));
             outPatientRecipeReqVO.setEndTime(DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
             PatientDTO patientDTO = recipePatientService.getPatientDTOByMpiID(outPatientRecipeReqVO.getMpiId());
-            outPatientRecipeReqVO.setIdCard(StringUtils.isNotEmpty(outPatientRecipeReqVO.getIdCard())?outPatientRecipeReqVO.getIdCard():patientDTO.getCertificate());
+            outPatientRecipeReqVO.setIdCard(StringUtils.isNotEmpty(outPatientRecipeReqVO.getIdCard())?outPatientRecipeReqVO.getIdCard():patientDTO.getIdcard());
             logger.info("OutPatientRecipeAtop queryOutPatientRecipe outPatientRecipeReq:{}.", JSON.toJSONString(outPatientRecipeReqVO));
             //获取线下门诊处方
             List<OutPatientRecipeDTO> outPatientRecipeDTOS = recipeBusinessService.queryOutPatientRecipe(outPatientRecipeReqVO);
