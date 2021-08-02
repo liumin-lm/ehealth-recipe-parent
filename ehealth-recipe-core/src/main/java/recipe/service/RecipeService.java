@@ -1518,8 +1518,6 @@ public class RecipeService extends RecipeBaseService {
             recipeBean.setDistributionFlag(continueFlag);
             //第一步暂存处方（处方状态未签名）
             doSignRecipeSave(recipeBean, detailBeanList);
-
-
             //第二步预校验
             if (continueFlag == 0) {
                 HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
@@ -1572,12 +1570,7 @@ public class RecipeService extends RecipeBaseService {
                 //老版默认走后置的逻辑，直接将处方推his
                 caAfterProcessType.signCABeforeRecipeFunction(recipeBean, detailBeanList);
             }
-
-        }
-        /*catch(RevisitException e){
-            LOGGER.error("ErrorCode.SERVICE_ERROR_CONFIRM:erroCode={},eeception={}", ErrorCode.SERVICE_ERROR_CONFIRM,e);
-            throw new RevisitException(ErrorCode.SERVICE_ERROR_CONFIRM, "当前患者就诊信息已失效，无法进行开方。");
-        }*/ catch (Exception e) {
+        } catch (Exception e) {
             LOGGER.error("doSignRecipeNew error", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
         }
@@ -1591,7 +1584,6 @@ public class RecipeService extends RecipeBaseService {
 
         // 处方失效时间处理
         handleRecipeInvalidTime(recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), recipeBean.getSignDate());
-
 
         return rMap;
     }
@@ -1718,11 +1710,6 @@ public class RecipeService extends RecipeBaseService {
         Boolean openRecipe = (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "isOpenRecipeByRegisterId");
         LOGGER.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}", openRecipe);
 
-   /*     //如果前端没有传入咨询id则从进行中的复诊或者咨询里取
-        //获取咨询单id,有进行中的复诊则优先取复诊，若没有则取进行中的图文咨询
-        if (recipe.getClinicId() == null) {
-            getConsultIdForRecipeSource(recipe,openRecipe);
-        }*/
         boolean optimize = openRecipOptimize(recipe, openRecipe);
         //配置开启，根据有效的挂号序号进行判断
         if (!optimize) {
@@ -2137,7 +2124,7 @@ public class RecipeService extends RecipeBaseService {
         rMap.put("recipeId", recipeId);
         rMap.put("consultId", recipe.getClinicId());
         rMap.put("errorFlag", false);
-        LOGGER.info("doSignRecipe execute ok! rMap:" + JSONUtils.toString(rMap));
+        LOGGER.info("doSignRecipeContinue execute ok! rMap:" + JSONUtils.toString(rMap));
         return rMap;
     }
 
@@ -2196,6 +2183,7 @@ public class RecipeService extends RecipeBaseService {
         Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
 
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
+        recipe.setRecipeSupportGiveMode(dbRecipe.getRecipeSupportGiveMode());
         if (null == dbRecipe.getStatus() || (dbRecipe.getStatus() > RecipeStatusConstant.UNSIGN) && dbRecipe.getStatus() != RecipeStatusConstant.HIS_FAIL) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不是新处方或者审核失败的处方，不能修改");
         }
@@ -3663,6 +3651,11 @@ public class RecipeService extends RecipeBaseService {
             return 0;
         }
 
+    }
+
+    @RpcService
+    public void sendRecipeTagToPatientWithOfflineRecipe(String mpiId, Integer organId, String recipeCode, String cardId, Integer consultId, Integer doctorId) {
+        RecipeServiceSub.sendRecipeTagToPatientWithOfflineRecipe(mpiId, organId, recipeCode, cardId, consultId, doctorId);
     }
 
     /**

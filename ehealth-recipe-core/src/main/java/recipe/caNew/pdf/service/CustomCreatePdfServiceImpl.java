@@ -497,7 +497,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
             list.add(new RecipeLabelVO("用药频次", "recipeDetail.usingRate_" + i, DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", detail.getUsingRate())));
             list.add(new RecipeLabelVO("用药途径", "recipeDetail.usePathways_" + i, DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", detail.getUsePathways())));
             list.add(new RecipeLabelVO("用药天数", "recipeDetail.useDays_" + i, CreatePdfFactory.getUseDays(detail.getUseDaysB(), detail.getUseDays())));
-            list.add(new RecipeLabelVO("用药天数", "recipeDetail.memo_" + i, detail.getMemo()));
+            list.add(new RecipeLabelVO("嘱托", "recipeDetail.memo_" + i, StringUtils.isNotEmpty(detail.getMemo()) ? "嘱托：" + detail.getMemo() : ""));
         }
         Recipedetail recipedetail = recipeDetails.get(0);
         list.add(new RecipeLabelVO("药房", "recipeDetail.pharmacyName", recipedetail.getPharmacyName()));
