@@ -1,5 +1,6 @@
 package recipe.core.api.patient;
 
+import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.vo.OutPatientReqVO;
 
 /**
@@ -14,4 +15,11 @@ public interface IRecipePatientService {
      * @return 枚举值
      */
     Integer checkCurrentPatient(OutPatientReqVO outPatientReqVO);
+
+    /**
+     * 根据mpiId获取患者信息
+     * @param mpiId 患者唯一号
+     * @return 患者信息
+     */
+    PatientDTO getPatientDTOByMpiID(String mpiId);
 }

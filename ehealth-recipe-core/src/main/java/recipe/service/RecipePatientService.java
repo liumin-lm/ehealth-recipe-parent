@@ -770,4 +770,14 @@ public class RecipePatientService extends RecipeBaseService implements IRecipePa
         }
         return CheckPatientEnum.CHECK_PATIENT_NORMAL.getType();
     }
+
+    /**
+     * 根据mpiId获取患者信息
+     * @param mpiId 患者唯一号
+     * @return 患者信息
+     */
+    @Override
+    public PatientDTO getPatientDTOByMpiID(String mpiId){
+        return patientClient.getPatientBeanByMpiId(mpiId);
+    }
 }
