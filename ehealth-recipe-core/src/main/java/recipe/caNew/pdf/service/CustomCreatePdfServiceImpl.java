@@ -236,7 +236,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         }
         CoOrdinateVO addressOrdinate = redisManager.getPdfCoords(recipe.getRecipeId(), "address");
         if (null == addressOrdinate) {
-            logger.info("CustomCreatePdfServiceImpl updateAddressPdf   list ={}", JSON.toJSONString(list));
+            logger.info("CustomCreatePdfServiceImpl updateAddressPdf  recipeId={}, list ={}", recipe.getRecipeId(), JSON.toJSONString(list));
             return list;
         }
         addressOrdinate.setValue(address);
