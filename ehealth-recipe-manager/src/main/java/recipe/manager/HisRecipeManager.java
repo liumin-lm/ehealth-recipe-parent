@@ -460,4 +460,18 @@ public class HisRecipeManager extends BaseManager {
         return deleteSetRecipeCode;
     }
 
+    /**
+     * 根据机构+mpiId+recipeCode获取HisRecipe
+     *
+     * @param organId
+     * @param mpiId
+     * @param recipeCode
+     * @return
+     */
+    public HisRecipe obatainHisRecipeByOrganIdAndMpiIdAndRecipeCode(Integer organId, String mpiId, String recipeCode) {
+        LOGGER.info("HisRecipeManager obatainHisRecipeByOrganIdAndMpiIdAndRecipeCode organId:{},mpiId:{},recipeCode:{}", organId, mpiId, recipeCode);
+        HisRecipe hisRecipe = hisRecipeDao.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, organId, recipeCode);
+        LOGGER.info("HisRecipeManager obatainHisRecipeByOrganIdAndMpiIdAndRecipeCode hisRecipe:{}", JSONUtils.toString(hisRecipe));
+        return hisRecipe;
+    }
 }
