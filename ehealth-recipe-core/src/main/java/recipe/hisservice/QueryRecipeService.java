@@ -1185,7 +1185,7 @@ public class QueryRecipeService implements IQueryRecipeService {
         }
 
         //查询全国机构 organService
-        if (organIds == null) {
+        if (CollectionUtils.isEmpty(organIds)) {
             OrganService organService = BasicAPI.getService(OrganService.class);
             List<OrganDTO> organs = organService.findOrgans();
             log.info("queryOrganService.organs={}", JSONUtils.toString(organs));
