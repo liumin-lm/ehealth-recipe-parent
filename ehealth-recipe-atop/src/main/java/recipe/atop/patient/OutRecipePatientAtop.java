@@ -1,6 +1,7 @@
 package recipe.atop.patient;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
@@ -15,6 +16,7 @@ import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.constant.HisErrorCodeEnum;
 import recipe.core.api.IRecipeBusinessService;
+import recipe.core.api.patient.IRecipePatientService;
 import recipe.util.DateConversion;
 
 import java.util.ArrayList;
@@ -34,6 +36,9 @@ public class OutRecipePatientAtop extends BaseAtop {
     @Autowired
     private IRecipeBusinessService recipeBusinessService;
 
+    @Autowired
+    private IRecipePatientService recipePatientService;
+
     /**
      * 查询门诊处方信息
      * @param outPatientRecipeReqVO 患者信息
@@ -41,12 +46,14 @@ public class OutRecipePatientAtop extends BaseAtop {
      */
     @RpcService
     public List<OutPatientRecipeVO> queryOutPatientRecipe(OutPatientRecipeReqVO outPatientRecipeReqVO){
-        logger.info("OutPatientRecipeAtop queryOutPatientRecipe outPatientRecipeReq:{}.", JSON.toJSONString(outPatientRecipeReqVO));
         validateAtop(outPatientRecipeReqVO, outPatientRecipeReqVO.getOrganId(), outPatientRecipeReqVO.getMpiId());
         try {
             //设置默认查询时间3个月
             outPatientRecipeReqVO.setBeginTime(DateConversion.getDateFormatter(DateConversion.getMonthsAgo(3), DateConversion.DEFAULT_DATE_TIME));
             outPatientRecipeReqVO.setEndTime(DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
+            PatientDTO patientDTO = recipePatientService.getPatientDTOByMpiID(outPatientRecipeReqVO.getMpiId());
+            outPatientRecipeReqVO.setIdCard(StringUtils.isNotEmpty(outPatientRecipeReqVO.getIdCard())?outPatientRecipeReqVO.getIdCard():patientDTO.getCertificate());
+            logger.info("OutPatientRecipeAtop queryOutPatientRecipe outPatientRecipeReq:{}.", JSON.toJSONString(outPatientRecipeReqVO));
             //获取线下门诊处方
             List<OutPatientRecipeDTO> outPatientRecipeDTOS = recipeBusinessService.queryOutPatientRecipe(outPatientRecipeReqVO);
             //按照开方时间倒序
