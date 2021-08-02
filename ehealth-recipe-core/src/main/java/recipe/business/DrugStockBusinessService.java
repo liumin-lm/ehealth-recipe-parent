@@ -183,6 +183,8 @@ public class DrugStockBusinessService extends BaseService {
                 String join = StringUtils.join(recipeGiveMode, ",");
                 attMap.put("recipeSupportGiveMode", join);
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, attMap);
+                Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+                logger.info("saveGiveMode recipe:{}.", JSONUtils.toString(recipe));
             }
         });
     }

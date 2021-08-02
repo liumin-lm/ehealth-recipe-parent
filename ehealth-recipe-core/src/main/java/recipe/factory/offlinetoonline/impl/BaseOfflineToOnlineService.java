@@ -531,7 +531,12 @@ public class BaseOfflineToOnlineService {
         }
         Recipe recipe = new Recipe();
         if (recipeDb != null) {
-            recipe.setRecipeId(recipeDb.getRecipeId());
+            //如果为已删除状态，则重新生成
+            if (RecipeStatusEnum.RECIPE_STATUS_DELETE.equals(recipeDb.getStatus())) {
+                recipe.setRecipeId(recipeDb.getRecipeId());
+            } else {
+                return recipeDb;
+            }
         }
         recipe.setBussSource(0);
         //通过挂号序号关联复诊
@@ -924,7 +929,7 @@ public class BaseOfflineToOnlineService {
         detail.setDrugSpec(recipeDetailTo.getDrugSpec());
         detail.setDrugUnit(recipeDetailTo.getDrugUnit());
         detail.setUseDays(recipeDetailTo.getUseDays());
-        detail.setUseDaysB(recipeDetailTo.getUseDays() != null ? recipeDetailTo.getUseDays().toString() : "");
+        detail.setUseDaysB(recipeDetailTo.getUseDaysB());
         detail.setDrugCode(recipeDetailTo.getDrugCode());
         detail.setUsingRateText(recipeDetailTo.getUsingRateText());
         detail.setUsePathwaysText(recipeDetailTo.getUsePathwaysText());
