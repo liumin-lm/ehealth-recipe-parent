@@ -262,8 +262,7 @@ public class HisRecipeManager extends BaseManager {
         }
         recipeExtendDAO.deleteByRecipeIds(recipeIds);
         recipeDetailDAO.deleteByRecipeIds(recipeIds);
-        //recipe表不删 添加的时候修改（除id外所有字段）
-        recipeDAO.updateRecipeStatusByRecipeIds(recipeIds);
+        recipeDAO.deleteByRecipeIds(recipeIds);
         //日志记录
         Map<Integer, Recipe> recipeMap = recipeList.stream().collect(Collectors.toMap(Recipe::getRecipeId, Function.identity(), (key1, key2) -> key2));
         recipeIds.forEach(a -> {
@@ -271,9 +270,8 @@ public class HisRecipeManager extends BaseManager {
             recipeLog.setRecipeId(a);
             recipeLog.setBeforeStatus(recipeMap.get(a).getStatus());
             recipeLog.setAfterStatus(RecipeStatusEnum.RECIPE_STATUS_DELETE.getType());
-            recipeLog.setMemo("线下转线上：修改处方状态为已删除");
+            recipeLog.setMemo("线下转线上：修改处方状态为已删除,数据是：" + JSONUtils.toString(recipeMap.get(a)));
             recipeLogDao.saveRecipeLog(recipeLog);
-
         });
         LOGGER.info("HisRecipeManager deleteSetRecipeCode is delete end ");
     }
