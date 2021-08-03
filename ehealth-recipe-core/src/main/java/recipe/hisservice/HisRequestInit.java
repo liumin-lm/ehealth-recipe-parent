@@ -696,6 +696,7 @@ public class HisRequestInit {
             if (null != patient) {
                 requestTO.setPatientName(patient.getPatientName());
                 requestTO.setCertID(patient.getCertificate());
+                requestTO.setMobile(patient.getMobile());
             }
             RecipeOrder order = null;
             if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
@@ -708,8 +709,12 @@ public class HisRequestInit {
                 requestTO.setPlanDate(order.getExpectSendDate());
                 requestTO.setPlanTime(order.getExpectSendTime());
                 //设置预约取药开始和结束时间
-                requestTO.setExpectStartTakeTime(order.getExpectStartTakeTime());
-                requestTO.setExpectEndTakeTime(order.getExpectEndTakeTime());
+                // 数据库默认设置取药时间为 "1970-01-01 00:00:01" 所以只有当取药时间不等于 1970-01-01 00:00:01才给前置机传
+                String defaultTime = "1970-01-01 00:00:01";
+                if (!defaultTime.equals(order.getExpectStartTakeTime())) {
+                    requestTO.setExpectStartTakeTime(order.getExpectStartTakeTime());
+                    requestTO.setExpectEndTakeTime(order.getExpectEndTakeTime());
+                }
                 //收货人
                 requestTO.setConsignee(order.getReceiver());
                 //联系电话
