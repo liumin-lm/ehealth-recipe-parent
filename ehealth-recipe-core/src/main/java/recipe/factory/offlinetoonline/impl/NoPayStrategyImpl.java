@@ -145,7 +145,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
             }
             //移除正在进行中的处方单
             Recipe recipe = recipeManager.getByRecipeCodeAndClinicOrgan(queryHisRecipResTo.getRecipeCode(), queryHisRecipResTo.getClinicOrgan());
-            if (null != recipe && StringUtils.isNotEmpty(recipe.getOrderCode())) {
+            if (null != recipe && StringUtils.isNotEmpty(recipe.getOrderCode()) && recipe.getMpiid().equals(patientDTO.getMpiId())) {
                 continue;
             }
 
