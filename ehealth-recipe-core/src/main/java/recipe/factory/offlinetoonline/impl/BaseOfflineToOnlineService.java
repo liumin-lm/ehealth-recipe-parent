@@ -495,19 +495,22 @@ public class BaseOfflineToOnlineService {
         }
         Recipe recipe = saveRecipeFromHisRecipe(hisRecipe);
         if (recipe != null) {
-            //购药按钮
-            List<Integer> drugsEnterpriseContinue = drugsEnterpriseService.getDrugsEnterpriseContinue(recipe.getRecipeId(), recipe.getClinicOrgan());
-            LOGGER.info("getHisRecipeDetailByHisRecipeId recipeId = {} drugsEnterpriseContinue = {}", recipe.getRecipeId(), JSONUtils.toString(drugsEnterpriseContinue));
-            if (CollectionUtils.isNotEmpty(drugsEnterpriseContinue)) {
-                String join = StringUtils.join(drugsEnterpriseContinue, ",");
-                recipe.setRecipeSupportGiveMode(join);
-            }
-            recipeDAO.saveOrUpdate(recipe);
-            LOGGER.info("BaseOfflineToOnlineService saveRecipeInfo res:{}", recipe.getRecipeId());
             // 线下转线上失效时间处理--仅平台线下转线上需处理（目前互联网环境没有线下转线上，不判断平台还是互联网）
             RecipeService.handleRecipeInvalidTime(recipe.getClinicOrgan(), recipe.getRecipeId(), recipe.getSignDate());
             saveRecipeExt(recipe, hisRecipe);
             savaRecipeDetail(recipe.getRecipeId(), hisRecipe);
+
+            //购药按钮
+            List<Integer> drugsEnterpriseContinue = drugsEnterpriseService.getDrugsEnterpriseContinue(recipe.getRecipeId(), recipe.getClinicOrgan());
+            LOGGER.info("getHisRecipeDetailByHisRecipeId recipeId = {} drugsEnterpriseContinue = {}", recipe.getRecipeId(), JSONUtils.toString(drugsEnterpriseContinue));
+            if (CollectionUtils.isNotEmpty(drugsEnterpriseContinue)) {
+                Map<String, Object> attMap = new HashMap<>();
+                String join = StringUtils.join(drugsEnterpriseContinue, ",");
+//                recipe.setRecipeSupportGiveMode(join);
+                attMap.put("recipeSupportGiveMode", join);
+                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attMap);
+            }
+            LOGGER.info("BaseOfflineToOnlineService saveRecipeInfo res:{}", recipe.getRecipeId());
             return recipe.getRecipeId();
         }
         return null;
