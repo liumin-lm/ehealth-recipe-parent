@@ -201,10 +201,6 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                 if (ysbody.get("yfje") != null) {
                     attr.put("cashAmount", ConversionUtils.convert(ysbody.get("yfje"), Double.class));
                 }
-                if (StringUtils.isNotEmpty(ysbody.get("memo"))) {
-                    String payBackInfo = StringUtils.defaultString(ysbody.get("memo"), "");
-                    attr.put("payBackInfo", payBackInfo);
-                }
             }
 
             attr.put("PayBackPrice", payBackPrice);
