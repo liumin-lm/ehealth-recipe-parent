@@ -157,7 +157,6 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             }
 
             Map<String, String> body = JSONUtils.parse(bodyString, Map.class);
-            logger.info("assembleWeiningPayCallBackParamAndUpdate body:{}.", JSONUtils.toString(body));
             //获取平台的ysbody---卫宁付支付预算信息
             String ysbodyString = StringUtils.defaultString(notifyMap.get("ysbody"), "");
             Map<String, String> ysbody = JSONUtils.parse(ysbodyString, Map.class);
@@ -167,7 +166,6 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                 pharmNo = StringUtils.defaultString(body.get("fyyfjh"), "");
                 //支付结算信息
                 String payBackInfo = StringUtils.defaultString(body.get("memo"), "");
-                logger.info("assembleWeiningPayCallBackParamAndUpdate payBackInfo:{}.", payBackInfo);
                 //设置his收据号
                 String hisSettlementNo = StringUtils.defaultString(body.get("sjh"), "");
                 attr.put("hisSettlementNo", hisSettlementNo);
