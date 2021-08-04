@@ -167,7 +167,7 @@ public class RecipeService extends RecipeBaseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeService.class);
 
-    private static List<String> beforeCAList = Arrays.asList("gdsign", "jiangsuCA", "beijingCA", "bjYwxCA");
+    private static List<String> beforeCAList = Arrays.asList("gdsign", "gdsign|2", "jiangsuCA", "beijingCA", "bjYwxCA");
 
     private static final String EXTEND_VALUE_FLAG = "1";
 
