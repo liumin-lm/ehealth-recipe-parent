@@ -144,13 +144,7 @@ public class CreateRecipePdfUtil {
         File barCodeFile = BarCodeUtil.generateFile(barcode.getValue(), "barcode.png");
         //获取图片url
         URL url = barCodeFile.toURI().toURL();
-        //添加图片
-        PdfContentByte page = stamper.getOverContent(1);
-        //将图片贴入pdf
-        Image image = Image.getInstance(url);
-        image.setAbsolutePosition(barcode.getX(), barcode.getY());
-        image.scaleToFit(110, 20);
-        page.addImage(image);
+        addImgByRecipePdf(stamper, url, 50f, 20f, barcode.getX(), barcode.getY(), true);
         //处方pdf添加处方号和患者病历号
         generateOrdinateList(coOrdinateList, stamper);
         barCodeFile.delete();
@@ -162,6 +156,30 @@ public class CreateRecipePdfUtil {
         //删除本地文件
         file.delete();
         return fileId;
+    }
+
+
+    /**
+     * 读取pdf模板 拷贝模版流 生成新pdf
+     *
+     * @param recipeId
+     * @param bos
+     * @return
+     * @throws Exception
+     */
+    public static byte[] generateTemplatePdf(Integer recipeId, ByteArrayOutputStream bos) throws Exception {
+        //拷贝模版生成新pdf
+        File file = new File("recipe_" + recipeId + ".pdf");
+        @Cleanup OutputStream output = new FileOutputStream(file);
+        Document doc = new Document();
+        PdfSmartCopy copy = new PdfSmartCopy(doc, output);
+        doc.open();
+        PdfImportedPage importPage = copy.getImportedPage(new PdfReader(bos.toByteArray()), 1);
+        copy.addPage(importPage);
+        doc.close();
+        byte[] bytes = File2byte(file);
+        file.delete();
+        return bytes;
     }
 
     /**
@@ -252,6 +270,12 @@ public class CreateRecipePdfUtil {
         return new String(Base64.encode(signFileByte));
     }
 
+    /**
+     * 下载oss服务器上的签名文件
+     *
+     * @param signFile ossId
+     * @return
+     */
     public static byte[] signFileByte(String signFile) {
         return fileDownloadService.downloadAsByte(signFile);
     }
@@ -270,31 +294,6 @@ public class CreateRecipePdfUtil {
         }
         return fileId;
     }
-
-
-    /**
-     * 读取pdf模板 拷贝模版流 生成新pdf
-     *
-     * @param recipeId
-     * @param bos
-     * @return
-     * @throws Exception
-     */
-    public static byte[] generateTemplatePdf(Integer recipeId, ByteArrayOutputStream bos) throws Exception {
-        //拷贝模版生成新pdf
-        File file = new File("recipe_" + recipeId + ".pdf");
-        @Cleanup OutputStream output = new FileOutputStream(file);
-        Document doc = new Document();
-        PdfSmartCopy copy = new PdfSmartCopy(doc, output);
-        doc.open();
-        PdfImportedPage importPage = copy.getImportedPage(new PdfReader(bos.toByteArray()), 1);
-        copy.addPage(importPage);
-        doc.close();
-        byte[] bytes = File2byte(file);
-        file.delete();
-        return bytes;
-    }
-
 
     /**
      * 上传图片文件到oss服务器
@@ -317,7 +316,6 @@ public class CreateRecipePdfUtil {
         FileService.instance().upload(meta, file);
         return meta.getFileId();
     }
-
 
     /**
      * 修改处方单号和患者病历号
@@ -447,27 +445,31 @@ public class CreateRecipePdfUtil {
             , Float newWidth, Float newHeight, float xPoint, float yPoint, Boolean repeatWrite) throws Exception {
         PdfReader reader = new PdfReader(input);
         PdfStamper stamper = new PdfStamper(reader, output);
+        addImgByRecipePdf(stamper, url, newWidth, newHeight, xPoint, yPoint, repeatWrite);
+        stamper.close();
+        reader.close();
+    }
+
+    private static void addImgByRecipePdf(PdfStamper stamper, URL url, Float width, Float height, float x, float y, Boolean repeatWrite) throws Exception {
         PdfContentByte page = stamper.getOverContent(1);
         if (repeatWrite) {
             //添加空白覆盖
             page.saveState();
             page.setColorFill(BaseColor.WHITE);
-            page.rectangle(xPoint, yPoint, newWidth, newHeight);
+            page.rectangle(x, y, width, height);
             page.fill();
             page.restoreState();
         }
 
         //将图片贴入pdf
         Image image = Image.getInstance(url);
-        if (null != newWidth) {
+        if (null != width) {
             //显示的大小
-            image.scaleAbsolute(newWidth, newHeight);
+            image.scaleAbsolute(width, height);
         }
         //设置图片在页面中的坐标
-        image.setAbsolutePosition(xPoint, yPoint);
+        image.setAbsolutePosition(x, y);
         page.addImage(image);
-        stamper.close();
-        reader.close();
     }
 
     /**
