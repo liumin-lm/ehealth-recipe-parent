@@ -14,11 +14,12 @@ import java.util.List;
  * @Date 2021/5/18 上午11:42
  * @Description 线下转线上接口类
  */
-public interface IOfflineToOnlineService {
+public interface IOfflineRecipeBusinessService {
 
 
     /**
      * 获取线下处方列表
+     *
      * @param findHisRecipeListVO
      */
     List<MergeRecipeVO> findHisRecipeList(FindHisRecipeListVO findHisRecipeListVO);

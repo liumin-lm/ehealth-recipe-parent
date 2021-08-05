@@ -18,7 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.constant.ErrorCode;
-import recipe.core.api.patient.IOfflineToOnlineService;
+import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
@@ -36,7 +36,7 @@ import java.util.List;
  * @Description
  */
 @Service
-public class OfflineToOnlineService extends BaseService implements IOfflineToOnlineService {
+public class OfflineRecipeBusinessService extends BaseService implements IOfflineRecipeBusinessService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonRecipeService.class);
 

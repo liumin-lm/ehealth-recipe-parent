@@ -13,7 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
-import recipe.core.api.patient.IOfflineToOnlineService;
+import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import javax.validation.Valid;
@@ -30,7 +30,7 @@ import java.util.List;
 public class OfflineRecipePatientAtop extends BaseAtop {
 
     @Autowired
-    IOfflineToOnlineService offlineToOnlineService;
+    IOfflineRecipeBusinessService offlineToOnlineService;
 
     /**
      * 获取线下处方列表
