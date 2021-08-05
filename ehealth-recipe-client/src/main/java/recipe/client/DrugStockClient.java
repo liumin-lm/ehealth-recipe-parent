@@ -1,5 +1,6 @@
 package recipe.client;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoRequestTO;
@@ -7,20 +8,18 @@ import com.ngari.his.recipe.mode.DrugInfoResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.recipe.mode.DrugsEnterpriseBean;
-import com.ngari.platform.recipe.mode.ScanDrugListBean;
-import com.ngari.platform.recipe.mode.ScanRequestBean;
+import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.entity.*;
-import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import recipe.constant.ErrorCode;
 
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 
 /**
@@ -33,6 +32,65 @@ public class DrugStockClient extends BaseClient {
 
     @Resource
     private IRecipeEnterpriseService recipeEnterpriseService;
+
+
+    /**
+     * 组织加减库存接口参数
+     *
+     * @param recipe           处方
+     * @param recipeDetailList 处方明细
+     * @param recipeOrderBill  处方订单
+     * @return
+     */
+    public RecipeDrugInventoryDTO recipeDrugInventory(Recipe recipe, List<Recipedetail> recipeDetailList, RecipeOrderBill recipeOrderBill) {
+        RecipeDrugInventoryDTO request = new RecipeDrugInventoryDTO();
+        request.setOrganId(recipe.getClinicOrgan());
+        request.setRecipeId(recipe.getRecipeId());
+        request.setRecipeType(recipe.getRecipeType());
+        if (null != recipeOrderBill) {
+            request.setInvoiceNumber(recipeOrderBill.getBillNumber());
+        }
+        if (org.springframework.util.CollectionUtils.isEmpty(recipeDetailList)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "药品列表为空");
+        }
+        List<RecipeDrugInventoryInfoDTO> infoList = new LinkedList<>();
+        recipeDetailList.forEach(a -> {
+            RecipeDrugInventoryInfoDTO info = new RecipeDrugInventoryInfoDTO();
+            info.setCreateDt(a.getCreateDt());
+            info.setDrugCost(a.getDrugCost());
+            info.setDrugId(a.getDrugId());
+            info.setOrganDrugCode(a.getOrganDrugCode());
+            info.setUseTotalDose(a.getUseTotalDose());
+            info.setPharmacyId(a.getPharmacyId());
+            info.setProducerCode(a.getProducerCode());
+            info.setDrugBatch(a.getDrugBatch());
+            info.setSalePrice(a.getSalePrice());
+            infoList.add(info);
+        });
+        request.setInfo(infoList);
+        logger.info("HisInventoryClient RecipeDrugInventoryDTO request= {}", JSON.toJSONString(request));
+        return request;
+    }
+
+    /**
+     * 增减库存
+     *
+     * @param request
+     */
+    public void drugInventory(RecipeDrugInventoryDTO request) {
+        logger.info("HisInventoryClient drugInventory request= {}", JSON.toJSONString(request));
+        try {
+            HisResponseTO<Boolean> hisResponse = recipeHisService.drugInventory(request);
+            Boolean result = getResponse(hisResponse);
+            if (!result) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "his库存操作失败");
+            }
+        } catch (Exception e) {
+            logger.error("HisInventoryClient drugInventory hisResponse", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
 
     /**
      * 调用his接口查询医院库存

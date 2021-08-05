@@ -27,7 +27,7 @@ import java.util.List;
  */
 @RpcBean(value = "offlineToOnlineAtop")
 @Validated
-public class OfflineToOnlineAtop extends BaseAtop {
+public class OfflineRecipePatientAtop extends BaseAtop {
 
     @Autowired
     IOfflineToOnlineService offlineToOnlineService;

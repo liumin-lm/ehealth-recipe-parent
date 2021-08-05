@@ -42,10 +42,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
+import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.dao.*;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.EmrRecipeManager;
@@ -77,7 +79,8 @@ public class QueryRecipeService implements IQueryRecipeService {
     private RecipeExtendDAO recipeExtendDAO;
     @Resource
     private IDocIndexService docIndexService;
-
+    @Autowired
+    private CreatePdfFactory createPdfFactory;
 
     /**
      * 用于sendRecipeToHIS 推送处方mq后 查询接口
@@ -630,8 +633,8 @@ public class QueryRecipeService implements IQueryRecipeService {
             return false;
         }
         Boolean result = recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeId, ImmutableMap.of("superviseRecipecode", superviseRecipecode));
+        createPdfFactory.updateSuperviseRecipeCodeExecute(recipeId, superviseRecipecode);
         LOGGER.info("更新电子处方监管平台流水号结果：{}", result);
-
         return result;
     }
 

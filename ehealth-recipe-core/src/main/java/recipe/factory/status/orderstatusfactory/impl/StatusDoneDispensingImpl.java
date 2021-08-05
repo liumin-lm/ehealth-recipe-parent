@@ -9,7 +9,7 @@ import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.caNew.pdf.CreatePdfFactory;
-import recipe.client.HisInventoryClient;
+import recipe.client.DrugStockClient;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.thread.RecipeBusiThreadPool;
@@ -29,7 +29,7 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
      */
     protected final static int DISPENSING_FLAG_DONE = 1;
     @Autowired
-    private HisInventoryClient hisInventoryClient;
+    private DrugStockClient drugStockClient;
     @Autowired
     private CreatePdfFactory createPdfFactory;
 
@@ -44,9 +44,9 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
         recipeOrder.setDispensingTime(new Date());
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
         RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(recipe.getOrderCode());
-        RecipeDrugInventoryDTO request = hisInventoryClient.recipeDrugInventory(recipe, recipeDetailList, recipeOrderBill);
+        RecipeDrugInventoryDTO request = drugStockClient.recipeDrugInventory(recipe, recipeDetailList, recipeOrderBill);
         request.setInventoryType(DISPENSING_FLAG_DONE);
-        hisInventoryClient.drugInventory(request);
+        drugStockClient.drugInventory(request);
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_DONE_DISPENSING.getType());
         return recipe;
     }

@@ -14,13 +14,13 @@ import java.util.List;
  * 机构相关服务
  */
 @RpcBean(value = "organAtop")
-public class OrganAtop extends BaseAtop{
+public class OrganPatientAtop extends BaseAtop {
 
     @Autowired
     private IOrganBusinessService organBusinessService;
 
     @RpcService
-    public List<Integer> getOrganForWeb(){
+    public List<Integer> getOrganForWeb() {
         try {
             List<Integer> result = organBusinessService.getOrganForWeb();
             logger.info("OrganAtop getOrganForWeb result:{}.", result);

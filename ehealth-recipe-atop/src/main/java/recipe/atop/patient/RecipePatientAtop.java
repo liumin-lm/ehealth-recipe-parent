@@ -27,11 +27,12 @@ import java.util.stream.Collectors;
 
 /**
  * 门诊处方服务
+ *
  * @author yinsheng
  * @date 2021\7\16 0016 14:04
  */
 @RpcBean(value = "outRecipePatientAtop")
-public class OutRecipePatientAtop extends BaseAtop {
+public class RecipePatientAtop extends BaseAtop {
 
     @Autowired
     private IRecipeBusinessService recipeBusinessService;
