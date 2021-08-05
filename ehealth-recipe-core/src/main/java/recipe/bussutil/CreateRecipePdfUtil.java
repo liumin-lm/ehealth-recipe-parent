@@ -72,7 +72,7 @@ public class CreateRecipePdfUtil {
         @Cleanup InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
         PdfReader reader = new PdfReader(input);
         PdfStamper stamper = new PdfStamper(reader, output);
-        addRecipeCodeAndPatientIdForRecipePdf(coOrdinateList, stamper);
+        generateOrdinateList(coOrdinateList, stamper);
         stamper.close();
         reader.close();
         //上传pdf文件
@@ -109,8 +109,8 @@ public class CreateRecipePdfUtil {
         File signFilePdf = new File("recipe_" + signImgNode.getRecipeId() + ".pdf");
         @Cleanup InputStream input = new ByteArrayInputStream(signFileByte);
         @Cleanup OutputStream output = new FileOutputStream(signFilePdf);
-        addBarCodeImgForRecipePdfByCoordinates(input, output, url, signImgNode.getWidth(), signImgNode.getHeight(),
-                signImgNode.getX(), signImgNode.getY(), signImgNode.getRepeatWrite());
+        addImgByRecipePdf(input, output, url, signImgNode.getWidth(), signImgNode.getHeight(), signImgNode.getX(),
+                signImgNode.getY(), signImgNode.getRepeatWrite());
         //上传pdf文件
         byte[] bytes = File2byte(signFilePdf);
         String fileId = fileUploadService.uploadFileWithoutUrt(bytes, signFilePdf.getName());
@@ -122,17 +122,17 @@ public class CreateRecipePdfUtil {
 
 
     /**
-     * 处方pdf添加处方号和患者病历号 / 条形码
+     * 通用 写入条形码 与特殊文本多节点信息
      *
      * @param pdfId          原文件id
-     * @param coOrdinateList 处方号和患者病历号
+     * @param coOrdinateList 写入文本节点信息
      * @param barcode        条形码
      * @return 新文件id
      * @throws Exception
      */
-    public static String generateRecipeCodeAndPatientIdForRecipePdf(String pdfId, List<CoOrdinateVO> coOrdinateList, CoOrdinateVO barcode) throws Exception {
+    public static String generateOrdinateListAndBarcode(String pdfId, List<CoOrdinateVO> coOrdinateList, CoOrdinateVO barcode) throws Exception {
         logger.info("generateRecipeCodeAndPatientIdRecipePdf pdfId={}, coOrdinateList={} ", pdfId, coOrdinateList);
-        if (StringUtils.isEmpty(barcode.getValue())) {
+        if (null == barcode || StringUtils.isEmpty(barcode.getValue())) {
             return generateOrdinateList(pdfId, coOrdinateList);
         }
         FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
@@ -152,7 +152,7 @@ public class CreateRecipePdfUtil {
         image.scaleToFit(110, 20);
         page.addImage(image);
         //处方pdf添加处方号和患者病历号
-        addRecipeCodeAndPatientIdForRecipePdf(coOrdinateList, stamper);
+        generateOrdinateList(coOrdinateList, stamper);
         barCodeFile.delete();
         stamper.close();
         reader.close();
@@ -181,7 +181,7 @@ public class CreateRecipePdfUtil {
             //获取图片url
             URL url = CreateRecipePdfUtil.class.getClassLoader().getResource("drug.png");
             //添加图片
-            addBarCodeImgForRecipePdfByCoordinates(input, output, url, null, null, 250, 500, false);
+            addImgByRecipePdf(input, output, url, null, null, 250, 500, false);
             //上传pdf文件
             byte[] bytes = File2byte(file);
             fileId = fileUploadService.uploadFileWithoutUrt(bytes, fileMetaRecord.getFileName());
@@ -327,12 +327,11 @@ public class CreateRecipePdfUtil {
      * @throws IOException
      * @throws DocumentException
      */
-    private static void addRecipeCodeAndPatientIdForRecipePdf(List<CoOrdinateVO> coOrdinateList, PdfStamper stamper) throws Exception {
-        if (CollectionUtils.isEmpty(coOrdinateList)) {
-            return;
-        }
-        for (CoOrdinateVO cCoOrdinateVO : coOrdinateList) {
-            addTextForPdf(stamper, cCoOrdinateVO);
+    private static void generateOrdinateList(List<CoOrdinateVO> coOrdinateList, PdfStamper stamper) throws Exception {
+        if (!CollectionUtils.isEmpty(coOrdinateList)) {
+            for (CoOrdinateVO cCoOrdinateVO : coOrdinateList) {
+                addTextForPdf(stamper, cCoOrdinateVO);
+            }
         }
     }
 
@@ -444,7 +443,7 @@ public class CreateRecipePdfUtil {
      * @param yPoint    定位坐标y
      * @throws Exception
      */
-    private static void addBarCodeImgForRecipePdfByCoordinates(InputStream input, OutputStream output, URL url
+    private static void addImgByRecipePdf(InputStream input, OutputStream output, URL url
             , Float newWidth, Float newHeight, float xPoint, float yPoint, Boolean repeatWrite) throws Exception {
         PdfReader reader = new PdfReader(input);
         PdfStamper stamper = new PdfStamper(reader, output);

@@ -99,7 +99,16 @@ public interface CreatePdfService {
     String updateCodePdf(Recipe recipeId) throws Exception;
 
     /**
-     * 支付成功后修改pdf 添加收货人信息/煎法
+     * pdf 监管流水号
+     *
+     * @param fileId              文件id
+     * @param superviseRecipeCode 监管流水号
+     * @return
+     */
+    String updateSuperviseRecipeCodeExecute(Recipe recipe, String fileId, String superviseRecipeCode) throws Exception;
+
+    /**
+     * pdf  支付成功后 修改添加收货人信息/煎法
      *
      * @param recipeId
      */

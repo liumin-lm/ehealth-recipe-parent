@@ -18,8 +18,6 @@ import ctd.persistence.exception.DAOException;
 import lombok.Cleanup;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -27,12 +25,9 @@ import recipe.bussutil.BarCodeUtil;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.SignImgNode;
 import recipe.bussutil.WordToPdfBean;
-import recipe.caNew.pdf.CreatePdfFactory;
-import recipe.client.IConfigurationClient;
 import recipe.constant.ErrorCode;
 import recipe.constant.OperationConstant;
 import recipe.dao.RecipeExtendDAO;
-import recipe.manager.RecipeManager;
 import recipe.manager.RedisManager;
 import recipe.util.ByteUtils;
 import recipe.util.DictionaryUtil;
@@ -58,23 +53,17 @@ import static recipe.util.ByteUtils.DOT_EN;
  * @author fuzi
  */
 @Service
-public class CustomCreatePdfServiceImpl implements CreatePdfService {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-
-
+public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreatePdfService {
     /**
      * 需要记录坐标的的字段
      */
     private final String RECIPE = OP_RECIPE + DOT_EN;
+    private final String EXTEND = OP_RECIPE_EXTEND + DOT_EN;
     private final List<String> ADDITIONAL_FIELDS = Arrays.asList(RECIPE + OP_RECIPE_DOCTOR, RECIPE + OP_RECIPE_CHECKER,
-            RECIPE + OP_RECIPE_GIVE_USER, RECIPE + OP_RECIPE_ACTUAL_PRICE, OP_BARCODE_ALL, "recipe.patientID", "recipe.recipeCode"
-            , "address", "recipeExtend.decoctionText", "recipeExtend.superviseRecipecode", "recipe.organName");
+            RECIPE + OP_RECIPE_GIVE_USER, RECIPE + OP_RECIPE_ACTUAL_PRICE, OP_BARCODE_ALL, EXTEND + OP_RECIPE_EXTEND_SUPERVISE
+            , "recipe.patientID", "recipe.recipeCode", "address", "recipeExtend.decoctionText", "recipe.organName");
     @Autowired
     private RedisManager redisManager;
-    @Autowired
-    private IConfigurationClient configurationClient;
-    @Autowired
-    private RecipeManager recipeManager;
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
     @Resource
@@ -114,7 +103,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         if (null == ordinateVO) {
             return null;
         }
-        return CreatePdfFactory.caSealRequestTO(ordinateVO.getX(), ordinateVO.getY(), recipeId.toString(), pdfBase64Str);
+        return caSealRequestTO(ordinateVO.getX(), ordinateVO.getY(), recipeId.toString(), pdfBase64Str);
     }
 
 
@@ -137,7 +126,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         if (null == ordinateVO) {
             return null;
         }
-        return CreatePdfFactory.caSealRequestTO(ordinateVO.getX(), ordinateVO.getY(), "check" + recipe.getRecipeId(), CreateRecipePdfUtil.signFileBase64(recipe.getSignFile()));
+        return caSealRequestTO(ordinateVO.getX(), ordinateVO.getY(), "check" + recipe.getRecipeId(), CreateRecipePdfUtil.signFileBase64(recipe.getSignFile()));
     }
 
     @Override
@@ -196,15 +185,6 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
     public String updateCodePdf(Recipe recipe) throws Exception {
         Integer recipeId = recipe.getRecipeId();
         logger.info("CustomCreatePdfServiceImpl updateCodePdf  recipeId={}", recipeId);
-        CoOrdinateVO barcode = redisManager.getPdfCoords(recipe.getRecipeId(), OP_BARCODE_ALL);
-        if (null != barcode) {
-            String barCode = configurationClient.getValueCatch(recipe.getClinicOrgan(), OperationConstant.OP_BARCODE, "");
-            String[] keySplit = barCode.trim().split(ByteUtils.DOT);
-            if (2 == keySplit.length) {
-                String fieldName = keySplit[1];
-                barcode.setValue(MapValueUtil.getFieldValueByName(fieldName, recipe));
-            }
-        }
         List<CoOrdinateVO> coOrdinateList = new LinkedList<>();
         CoOrdinateVO patientId = redisManager.getPdfCoords(recipe.getRecipeId(), "recipe.patientID");
         if (null != patientId) {
@@ -216,9 +196,29 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
             recipeCode.setValue(recipe.getRecipeCode());
             coOrdinateList.add(recipeCode);
         }
-        return CreateRecipePdfUtil.generateRecipeCodeAndPatientIdForRecipePdf(recipe.getSignFile(), coOrdinateList, barcode);
+        CoOrdinateVO barcode = redisManager.getPdfCoords(recipe.getRecipeId(), OP_BARCODE_ALL);
+        if (null != barcode) {
+            barcode.setValue(barcode(recipe));
+        }
+        return CreateRecipePdfUtil.generateOrdinateListAndBarcode(recipe.getSignFile(), coOrdinateList, barcode);
     }
 
+
+    @Override
+    public String updateSuperviseRecipeCodeExecute(Recipe recipe, String fileId, String superviseRecipeCode) throws Exception {
+        List<CoOrdinateVO> coOrdinateList = new LinkedList<>();
+        CoOrdinateVO recipeCode = redisManager.getPdfCoords(recipe.getRecipeId(), EXTEND + OP_RECIPE_EXTEND_SUPERVISE);
+        if (null != recipeCode) {
+            recipeCode.setValue(superviseRecipeCode);
+            coOrdinateList.add(recipeCode);
+        }
+        //条形码
+        CoOrdinateVO barcode = redisManager.getPdfCoords(recipe.getRecipeId(), OP_BARCODE_ALL);
+        if (null != barcode) {
+            barcode.setValue(barcode(recipe));
+        }
+        return CreateRecipePdfUtil.generateOrdinateListAndBarcode(fileId, coOrdinateList, barcode);
+    }
 
     @Override
     public List<CoOrdinateVO> updateAddressPdf(Recipe recipe, RecipeOrder order, String address) {
@@ -273,6 +273,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         return new SignImgNode(recipeId.toString(), organSealId, fileId, null, 90F, 90F
                 , (float) ordinateVO.getX() + 60, (float) ordinateVO.getY() - 60, false);
     }
+
 
     /**
      * 按照模版生成 pdf
@@ -464,7 +465,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
         }
         Recipedetail recipedetail = recipeDetails.get(0);
         list.add(new RecipeLabelVO("药房", "recipeDetail.pharmacyName", recipedetail.getPharmacyName()));
-        list.add(new RecipeLabelVO("天数", "recipeDetail.useDays", CreatePdfFactory.getUseDays(recipedetail.getUseDaysB(), recipedetail.getUseDays())));
+        list.add(new RecipeLabelVO("天数", "recipeDetail.useDays", getUseDays(recipedetail.getUseDaysB(), recipedetail.getUseDays())));
         list.add(new RecipeLabelVO("用药途径", "recipeDetail.usePathways", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", recipedetail.getUsePathways())));
         list.add(new RecipeLabelVO("用药频次", "recipeDetail.usingRate", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", recipedetail.getUsingRate())));
         Recipe recipe = recipeInfoDTO.getRecipe();
@@ -500,7 +501,7 @@ public class CustomCreatePdfServiceImpl implements CreatePdfService {
             list.add(new RecipeLabelVO("每次用量", "recipeDetail.useDose_" + i, "Sig: 每次 " + ByteUtils.objValueOfString(detail.getUseDose()) + ByteUtils.objValueOfString(detail.getUseDoseUnit())));
             list.add(new RecipeLabelVO("用药频次", "recipeDetail.usingRate_" + i, DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", detail.getUsingRate())));
             list.add(new RecipeLabelVO("用药途径", "recipeDetail.usePathways_" + i, DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", detail.getUsePathways())));
-            list.add(new RecipeLabelVO("用药天数", "recipeDetail.useDays_" + i, CreatePdfFactory.getUseDays(detail.getUseDaysB(), detail.getUseDays())));
+            list.add(new RecipeLabelVO("用药天数", "recipeDetail.useDays_" + i, getUseDays(detail.getUseDaysB(), detail.getUseDays())));
             list.add(new RecipeLabelVO("嘱托", "recipeDetail.memo_" + i, StringUtils.isNotEmpty(detail.getMemo()) ? "嘱托：" + detail.getMemo() : ""));
         }
         Recipedetail recipedetail = recipeDetails.get(0);

@@ -57,27 +57,19 @@ public class BarCodeUtil {
         if (StringUtils.isEmpty(msg) || ous == null) {
             return;
         }
-
         Code128Bean bean = new Code128Bean();
-
         // 精细度
         final int dpi = 150;
         // module宽度// 设置条码每一条的宽度 UnitConv 是barcode4j 提供的单位转换的实体类，用于毫米mm,像素px,英寸in,点pt之间的转换
         final double moduleWidth = UnitConv.in2mm(3.0f / dpi);
-
         // 配置对象
         bean.setModuleWidth(moduleWidth);
         // 设置两侧是否加空白
         bean.doQuietZone(false);
-        //bean.setWideFactor(3);
-
         // 设置文本位置（包括是否显示）
-        bean.setMsgPosition(HumanReadablePlacement.HRP_NONE);
-
-        String format = "image/png";
+        bean.setMsgPosition(HumanReadablePlacement.HRP_BOTTOM);
         // 输出到流
-        BitmapCanvasProvider canvas = new BitmapCanvasProvider(ous, format, dpi, BufferedImage.TYPE_BYTE_BINARY, false, 0);
-
+        BitmapCanvasProvider canvas = new BitmapCanvasProvider(ous, "image/png", dpi, BufferedImage.TYPE_BYTE_BINARY, false, 0);
         // 生成条形码
         bean.generateBarcode(canvas, msg);
         // 结束绘制

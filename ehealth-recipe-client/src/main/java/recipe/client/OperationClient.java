@@ -97,50 +97,15 @@ public class OperationClient extends BaseClient {
         return resultMap;
     }
 
-
-    private Object getFieldValue(Scratchable scratchable, RecipeInfoDTO recipePdfDTO) {
-        if (StringUtils.isEmpty(scratchable.getBoxLink())) {
-            return "";
-        }
-        String[] boxLink = scratchable.getBoxLink().trim().split(ByteUtils.DOT);
-        //对象字段处理
-        if (1 == boxLink.length) {
-            String fieldName = boxLink[0];
-            return MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO);
-        }
-        //对象字段处理
-        if (2 == boxLink.length) {
-            String objectName = boxLink[0];
-            String fieldName = boxLink[1];
-            if (OperationConstant.OP_RECIPE_ORGAN_NAME.equals(fieldName) && StringUtils.isNotEmpty(scratchable.getBoxDesc())) {
-                return scratchable.getBoxDesc();
-            }
-            return invokeFieldName(objectName, fieldName, recipePdfDTO);
-        }
-        //特殊节点处理
-        if (3 == boxLink.length) {
-            String identifyName = boxLink[0];
-            String objectName = boxLink[1];
-            String fieldName = boxLink[2];
-            //条形码
-            if (OperationConstant.OP_BARCODE.equals(identifyName)) {
-                String barCode = (String) configService.getConfiguration(recipePdfDTO.getRecipe().getClinicOrgan(), OperationConstant.OP_BARCODE);
-                String[] barCodes = barCode.trim().split(ByteUtils.DOT);
-                if (StringUtils.isNotEmpty(barCode) && 2 == barCodes.length) {
-                    objectName = barCodes[0];
-                    fieldName = barCodes[1];
-                }
-                return invokeFieldName(objectName, fieldName, recipePdfDTO);
-            }
-            //二维码
-            if (OperationConstant.OP_QRCODE.equals(identifyName)) {
-                return invokeFieldName(objectName, fieldName, recipePdfDTO);
-            }
-        }
-        return "";
-    }
-
-    private String invokeFieldName(String objectName, String fieldName, RecipeInfoDTO recipePdfDTO) {
+    /**
+     * 根据对象名 字段名 获取值
+     *
+     * @param objectName   对象名
+     * @param fieldName    字段名
+     * @param recipePdfDTO 获取对象
+     * @return 字段值
+     */
+    public String invokeFieldName(String objectName, String fieldName, RecipeInfoDTO recipePdfDTO) {
         if (OperationConstant.OP_PATIENT.equals(objectName)) {
             return MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getPatientBean());
         }
@@ -194,6 +159,48 @@ public class OperationClient extends BaseClient {
                 return JSON.toJSONString(giveUser);
             }
             return MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipe());
+        }
+        return "";
+    }
+
+    private Object getFieldValue(Scratchable scratchable, RecipeInfoDTO recipePdfDTO) {
+        if (StringUtils.isEmpty(scratchable.getBoxLink())) {
+            return "";
+        }
+        String[] boxLink = scratchable.getBoxLink().trim().split(ByteUtils.DOT);
+        //对象字段处理
+        if (1 == boxLink.length) {
+            String fieldName = boxLink[0];
+            return MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO);
+        }
+        //对象字段处理
+        if (2 == boxLink.length) {
+            String objectName = boxLink[0];
+            String fieldName = boxLink[1];
+            if (OperationConstant.OP_RECIPE_ORGAN_NAME.equals(fieldName) && StringUtils.isNotEmpty(scratchable.getBoxDesc())) {
+                return scratchable.getBoxDesc();
+            }
+            return invokeFieldName(objectName, fieldName, recipePdfDTO);
+        }
+        //特殊节点处理
+        if (3 == boxLink.length) {
+            String identifyName = boxLink[0];
+            String objectName = boxLink[1];
+            String fieldName = boxLink[2];
+            //条形码
+            if (OperationConstant.OP_BARCODE.equals(identifyName)) {
+                String barCode = (String) configService.getConfiguration(recipePdfDTO.getRecipe().getClinicOrgan(), OperationConstant.OP_BARCODE);
+                String[] barCodes = barCode.trim().split(ByteUtils.DOT);
+                if (StringUtils.isNotEmpty(barCode) && 2 == barCodes.length) {
+                    objectName = barCodes[0];
+                    fieldName = barCodes[1];
+                }
+                return invokeFieldName(objectName, fieldName, recipePdfDTO);
+            }
+            //二维码
+            if (OperationConstant.OP_QRCODE.equals(identifyName)) {
+                return invokeFieldName(objectName, fieldName, recipePdfDTO);
+            }
         }
         return "";
     }

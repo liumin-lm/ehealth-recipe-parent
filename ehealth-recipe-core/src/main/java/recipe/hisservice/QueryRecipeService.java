@@ -631,6 +631,7 @@ public class QueryRecipeService implements IQueryRecipeService {
         }
         Boolean result = recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeId, ImmutableMap.of("superviseRecipecode", superviseRecipecode));
         LOGGER.info("更新电子处方监管平台流水号结果：{}", result);
+
         return result;
     }
 
