@@ -11,7 +11,7 @@ import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
-import recipe.core.api.patient.IRecipeOrderService;
+import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.util.ValidateUtil;
 
 /**
@@ -23,7 +23,7 @@ import recipe.util.ValidateUtil;
 public class RecipeOrderPatientAtop extends BaseAtop {
 
     @Autowired
-    private IRecipeOrderService recipeOrderService;
+    private IRecipeOrderBusinessService recipeOrderService;
 
     /**
      * 订单状态更新

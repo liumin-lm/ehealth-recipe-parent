@@ -1,4 +1,4 @@
-package recipe.service;
+package recipe.business;
 
 import com.ngari.recipe.entity.DrugEntrust;
 import com.ngari.recipe.entity.OrganDrugList;
@@ -14,7 +14,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.IConfigurationClient;
-import recipe.core.api.IRecipeDetailService;
+import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.manager.DrugManeger;
@@ -35,7 +35,7 @@ import static recipe.drugTool.validate.RecipeDetailValidateTool.VALIDATE_STATUS_
  * @author fuzi
  */
 @Service
-public class RecipeDetailService implements IRecipeDetailService {
+public class RecipeDetailBusinessService implements IRecipeDetailBusinessService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private IConfigurationClient configurationClient;

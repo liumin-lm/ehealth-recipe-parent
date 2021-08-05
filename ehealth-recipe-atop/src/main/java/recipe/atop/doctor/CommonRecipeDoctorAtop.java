@@ -9,7 +9,7 @@ import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
-import recipe.core.api.doctor.ICommonRecipeService;
+import recipe.core.api.doctor.ICommonRecipeBusinessService;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -22,7 +22,7 @@ import java.util.List;
 @RpcBean("commonRecipeAtop")
 public class CommonRecipeDoctorAtop extends BaseAtop {
     @Autowired
-    private ICommonRecipeService commonRecipeService;
+    private ICommonRecipeBusinessService commonRecipeService;
 
     /**
      * 获取常用方列表

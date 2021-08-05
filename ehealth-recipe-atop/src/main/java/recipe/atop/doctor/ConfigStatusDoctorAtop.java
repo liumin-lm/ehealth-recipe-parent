@@ -6,7 +6,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
-import recipe.core.api.IConfigStatusService;
+import recipe.core.api.IConfigStatusBusinessService;
 
 import java.util.List;
 
@@ -18,7 +18,7 @@ import java.util.List;
 @RpcBean("configStatusAtop")
 public class ConfigStatusDoctorAtop extends BaseAtop {
     @Autowired
-    private IConfigStatusService configStatusService;
+    private IConfigStatusBusinessService configStatusService;
 
     /**
      * 根据位置查询状态数据

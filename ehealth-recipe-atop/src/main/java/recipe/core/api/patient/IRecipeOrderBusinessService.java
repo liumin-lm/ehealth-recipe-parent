@@ -6,7 +6,7 @@ import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.ResultBean;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 
-public interface IRecipeOrderService {
+public interface IRecipeOrderBusinessService {
     /**
      * 更新核发药师信息
      *

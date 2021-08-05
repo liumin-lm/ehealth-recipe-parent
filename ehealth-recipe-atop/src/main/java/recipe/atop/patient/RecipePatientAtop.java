@@ -16,7 +16,7 @@ import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.constant.HisErrorCodeEnum;
 import recipe.core.api.IRecipeBusinessService;
-import recipe.core.api.patient.IRecipePatientService;
+import recipe.core.api.patient.IPatientBusinessService;
 import recipe.util.DateConversion;
 
 import java.util.ArrayList;
@@ -38,7 +38,7 @@ public class RecipePatientAtop extends BaseAtop {
     private IRecipeBusinessService recipeBusinessService;
 
     @Autowired
-    private IRecipePatientService recipePatientService;
+    private IPatientBusinessService recipePatientService;
 
     /**
      * 查询门诊处方信息

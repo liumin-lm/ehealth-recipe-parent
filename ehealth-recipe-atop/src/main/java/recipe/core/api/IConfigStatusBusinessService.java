@@ -9,7 +9,7 @@ import java.util.List;
  *
  * @author fuzi
  */
-public interface IConfigStatusService {
+public interface IConfigStatusBusinessService {
 
     /**
      * 根据位置查询状态数据

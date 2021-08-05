@@ -8,7 +8,7 @@ import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
-import recipe.core.api.patient.IRecipePatientService;
+import recipe.core.api.patient.IPatientBusinessService;
 
 /**
  * 患者相关服务
@@ -19,7 +19,7 @@ import recipe.core.api.patient.IRecipePatientService;
 public class PatientAtop extends BaseAtop {
 
     @Autowired
-    private IRecipePatientService recipePatientService;
+    private IPatientBusinessService recipePatientService;
 
     /**
      * 校验当前就诊人是否有效 是否实名认证 就诊卡是否有效

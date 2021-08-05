@@ -23,7 +23,6 @@ import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.HisRecipeManager;
-import recipe.service.CommonRecipeService;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import java.util.ArrayList;
@@ -38,7 +37,7 @@ import java.util.List;
 @Service
 public class OfflineRecipeBusinessService extends BaseService implements IOfflineRecipeBusinessService {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(CommonRecipeService.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(OfflineRecipeBusinessService.class);
 
     @Autowired
     private HisRecipeManager hisRecipeManager;

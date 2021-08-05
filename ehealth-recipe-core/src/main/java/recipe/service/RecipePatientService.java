@@ -48,7 +48,7 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.client.HealthCardClient;
 import recipe.client.PatientClient;
 import recipe.constant.*;
-import recipe.core.api.patient.IRecipePatientService;
+import recipe.core.api.patient.IPatientBusinessService;
 import recipe.dao.ChronicDiseaseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -71,7 +71,7 @@ import java.util.stream.Collectors;
  * @date:2017/6/30.
  */
 @RpcBean("recipePatientService")
-public class RecipePatientService extends RecipeBaseService implements IRecipePatientService{
+public class RecipePatientService extends RecipeBaseService implements IPatientBusinessService {
 
     /**
      * LOGGER

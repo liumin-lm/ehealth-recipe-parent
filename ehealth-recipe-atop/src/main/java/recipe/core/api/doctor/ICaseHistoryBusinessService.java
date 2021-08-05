@@ -8,7 +8,7 @@ import recipe.vo.second.MedicalDetailVO;
  *
  * @author fuzi
  */
-public interface ICaseHistoryService {
+public interface ICaseHistoryBusinessService {
 
     /**
      * 获取电子病历数据
