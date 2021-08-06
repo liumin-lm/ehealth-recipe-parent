@@ -29,13 +29,14 @@ public class OffLineRecipeDetailVO implements Serializable {
     private Integer age;
 
     @ItemProperty(alias = "是否儿科处方")
-    private Boolean childRecipeFlag; //无
+    private Boolean childRecipeFlag;
 
     @ItemProperty(alias = "监护人姓名")
     private String guardianName;
 
     @ItemProperty(alias = "医保类型编码")
     private Integer medicalType;
+
     @ItemProperty(alias = "医保类型")
     private String medicalTypeText;
 
@@ -59,10 +60,10 @@ public class OffLineRecipeDetailVO implements Serializable {
     private String recipeTypeText;
 
     @ItemProperty(alias = "是否为长处方 1是")
-    private String isLongRecipe; //1
+    private String isLongRecipe;
 
     @ItemProperty(alias = "是否加急处方 1是 0否")
-    private Integer canUrgentAuditRecipe; //1
+    private Integer canUrgentAuditRecipe;
 
     @ItemProperty(alias = "药品信息")
     private List<RecipeDetailTO> recipeDetails;

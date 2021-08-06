@@ -14,6 +14,7 @@ import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutRecipeDetailDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.*;
@@ -192,12 +193,13 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             throw new DAOException(609, "患者信息不存在");
         }
         //获取线下处方信息
-        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = offlineRecipeClient.queryData(clinicOrgan, patient, 6, 2, recipeCode);
-        List<QueryHisRecipResTO> data=null;
-        if (!ObjectUtils.isEmpty(hisRecipeInfos)){
+        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryData(clinicOrgan, patient, 6, 2, recipeCode);
+
+        List<QueryHisRecipResTO> data = null;
+        if (!ObjectUtils.isEmpty(hisRecipeInfos)) {
             data = hisRecipeInfos.getData();
-        }else {
-            throw new DAOException(609,"线下处方信息为空");
+        } else {
+            throw new DAOException(609, "线下处方信息为空");
         }
         QueryHisRecipResTO queryHisRecipResTO = null;
         if (!ObjectUtils.isEmpty(data)) {
@@ -206,30 +208,18 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         OffLineRecipeDetailVO offLineRecipeDetailVO = new OffLineRecipeDetailVO();
         //设置返回字段
         if (!ObjectUtils.isEmpty(queryHisRecipResTO)) {
-            offLineRecipeDetailVO.setPatientName(queryHisRecipResTO.getPatientName());
-            offLineRecipeDetailVO.setMedicalType(queryHisRecipResTO.getMedicalType());
-            offLineRecipeDetailVO.setOrganName(queryHisRecipResTO.getOrganName());
-            offLineRecipeDetailVO.setCreateDate(queryHisRecipResTO.getCreateDate());
+            BeanUtils.copy(queryHisRecipResTO, offLineRecipeDetailVO);
             offLineRecipeDetailVO.setOrganDiseaseName(queryHisRecipResTO.getDiseaseName());
-            offLineRecipeDetailVO.setRecipeType(queryHisRecipResTO.getRecipeType());
-            offLineRecipeDetailVO.setDoctorName(queryHisRecipResTO.getDoctorName());
-
-            //设置中药处方基本信息
-            if (queryHisRecipResTO.getRecipeType() == 3) {
-                offLineRecipeDetailVO.setRecipeTypeText(queryHisRecipResTO.getShowText());//存疑
-                offLineRecipeDetailVO.setRecipeMemo(queryHisRecipResTO.getRecipeMemo());
-                offLineRecipeDetailVO.setTcmUsePathways(queryHisRecipResTO.getTcmUsePathways());
-                offLineRecipeDetailVO.setTcmUsingRate(queryHisRecipResTO.getTcmUsingRate());
-                offLineRecipeDetailVO.setTcmNum(queryHisRecipResTO.getTcmNum());
-                offLineRecipeDetailVO.setDecoctionCode(queryHisRecipResTO.getDecoctionCode());
-                offLineRecipeDetailVO.setDecoctionText(queryHisRecipResTO.getDecoctionText());
-                offLineRecipeDetailVO.setMakeMethodCode(queryHisRecipResTO.getMakeMethodCode());
-                offLineRecipeDetailVO.setMakeMethodText(queryHisRecipResTO.getMakeMethodText());
-                offLineRecipeDetailVO.setJuice(queryHisRecipResTO.getJuice());
-                offLineRecipeDetailVO.setJuiceUnit(queryHisRecipResTO.getJuiceUnit());
-                offLineRecipeDetailVO.setMinor(queryHisRecipResTO.getMinor());
-                offLineRecipeDetailVO.setMinorUnit(queryHisRecipResTO.getMinorUnit());
+            //根据枚举设置处方类型
+            Integer recipeType = queryHisRecipResTO.getRecipeType();
+            String recipeTypeText = RecipeTypeEnum.getRecipeType(recipeType);
+            offLineRecipeDetailVO.setRecipeTypeText(recipeTypeText);
+            //判断是否为医保处方
+            Integer medicalType = queryHisRecipResTO.getMedicalType();
+            if (medicalType == 2) {
+                offLineRecipeDetailVO.setMedicalTypeText("普通医保");
             }
+
             //判断是否为儿科 设置部门名称
             DepartmentDTO departmentDTO = departmentService.getByCodeAndOrgan(queryHisRecipResTO.getDepartCode(), queryHisRecipResTO.getClinicOrgan());
             if (!ObjectUtils.isEmpty(departmentDTO)) {
