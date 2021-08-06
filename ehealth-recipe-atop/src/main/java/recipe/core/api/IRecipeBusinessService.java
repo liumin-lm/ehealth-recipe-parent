@@ -47,14 +47,4 @@ public interface IRecipeBusinessService {
      * @date 2021/7/20
      */
     Boolean existUncheckRecipe(Integer bussSource, Integer clinicId);
-
-    /**
-     * 获取线下处方详情
-     * @param mpiId 患者ID
-     * @param clinicOrgan 机构ID
-     * @param recipeCode 处方号码
-     * @return OffLineRecipeDetailVO
-     * @date 2021/8/06
-     */
-    OffLineRecipeDetailVO getOffLineRecipeDetails(String mpiId,Integer clinicOrgan,String recipeCode);
 }
