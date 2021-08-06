@@ -4,12 +4,14 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.persistence.exception.DAOException;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
+import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.util.ValidateUtil;
 import recipe.vo.doctor.ValidateDetailVO;
@@ -26,6 +28,10 @@ public class RecipeDetailDoctorAtop extends BaseAtop {
 
     @Autowired
     private IRecipeDetailBusinessService recipeDetailService;
+
+    @Autowired
+    private IRecipeBusinessService recipeBusinessService;
+
     /**
      * 长处方标识 0 不是
      */
@@ -128,6 +134,23 @@ public class RecipeDetailDoctorAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("RecipeDetailAtop entrustValidate error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    @RpcService
+    public OffLineRecipeDetailVO getOffLineRecipeDetails(String mpiId, Integer clinicOrgan, String recipeCode){
+        logger.info("RecipeDetailAtop getOffLineRecipeDetails mpiId={},clinicOrgan={},recipeCode={}",mpiId,clinicOrgan,recipeCode);
+        validateAtop(mpiId,clinicOrgan,recipeCode);
+        try {
+            OffLineRecipeDetailVO result = recipeBusinessService.getOffLineRecipeDetails(mpiId, clinicOrgan, recipeCode);
+            logger.info("RecipeDetailAtop getOffLineRecipeDetails result = {}", JSONUtils.toString(result));
+            return result;
+        } catch (DAOException e1) {
+            logger.error("RecipeOpenAtop getOffLineRecipeDetails error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("RecipeOpenAtop getOffLineRecipeDetails error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }

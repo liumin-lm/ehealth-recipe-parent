@@ -1,9 +1,12 @@
 package recipe.business;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
+import com.ngari.his.recipe.mode.QueryHisRecipResTO;
+import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
@@ -17,6 +20,7 @@ import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
 import recipe.constant.ErrorCode;
@@ -27,6 +31,7 @@ import com.ngari.recipe.recipe.model.PatientInfoDTO;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -166,5 +171,76 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         int uncheckCount = recipesCount.intValue();
         logger.info("RecipeBusinessService existUncheckRecipe recipesCount={}", recipesCount);
         return uncheckCount != 0;
+    }
+
+    @Override
+    public OffLineRecipeDetailVO getOffLineRecipeDetails(String mpiId,Integer clinicOrgan, String recipeCode) {
+        logger.info("RecipeBusinessService getOffLineRecipeDetails mpiId={},clinicOrgan={},recipeCode={}",mpiId,clinicOrgan,recipeCode);
+        PatientDTO patient = patientService.getPatientByMpiId(mpiId);
+        if (null == patient) {
+            throw new DAOException(609, "患者信息不存在");
+        }
+        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos= hisRecipeManager.queryData(clinicOrgan,patient,6, 2,recipeCode);
+
+        //HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, clinicOrgan, recipeCode);
+        List<QueryHisRecipResTO> data = hisRecipeInfos.getData();
+        QueryHisRecipResTO queryHisRecipResTO = null;
+        if (!ObjectUtils.isEmpty(data)){
+            queryHisRecipResTO = data.get(0);
+        }
+
+        OffLineRecipeDetailVO offLineRecipeDetailVO = new OffLineRecipeDetailVO();
+//        Integer departId=null;
+//        RecipeExtend recipeExtend = null;
+        if (!ObjectUtils.isEmpty(queryHisRecipResTO)) {
+            offLineRecipeDetailVO.setPatientName(queryHisRecipResTO.getPatientName());
+            offLineRecipeDetailVO.setMedicalType(queryHisRecipResTO.getMedicalType());
+            //offLineRecipeDetailVO.setMedicalTypeText(queryHisRecipResTO.getMedicalInfo());
+            //recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            offLineRecipeDetailVO.setOrganName(queryHisRecipResTO.getOrganName());
+            offLineRecipeDetailVO.setCreateDate(queryHisRecipResTO.getCreateDate());
+            offLineRecipeDetailVO.setOrganDiseaseName(queryHisRecipResTO.getDiseaseName());
+            offLineRecipeDetailVO.setRecipeType(queryHisRecipResTO.getRecipeType());
+            offLineRecipeDetailVO.setDoctorName(queryHisRecipResTO.getDoctorName());
+
+            DepartmentDTO departmentDTO = departmentService.getByCodeAndOrgan(queryHisRecipResTO.getDepartCode(),queryHisRecipResTO.getClinicOrgan());
+            if (!ObjectUtils.isEmpty(departmentDTO)) {
+                if (departmentDTO.getName().contains("儿科") || departmentDTO.getName().contains("新生儿科")
+                        || departmentDTO.getName().contains("儿内科") || departmentDTO.getName().contains("儿外科")) {
+                    offLineRecipeDetailVO.setChildRecipeFlag(true);
+                    if (!ObjectUtils.isEmpty(patient)){
+                        offLineRecipeDetailVO.setGuardianName(patient.getGuardianName());
+                    }
+                }
+                offLineRecipeDetailVO.setDepartName(departmentDTO.getName());
+            }
+
+            List<RecipeDetailTO> drugList = queryHisRecipResTO.getDrugList();
+            BigDecimal totalPrice = BigDecimal.valueOf(0);
+            if (!ObjectUtils.isEmpty(drugList)){
+                for (RecipeDetailTO recipeDetailTO : drugList) {
+                    totalPrice=totalPrice.add(recipeDetailTO.getPrice());
+                }
+                offLineRecipeDetailVO.setRecipeDetails(drugList);
+                offLineRecipeDetailVO.setTotalPrice(totalPrice);
+            }
+            if (!ObjectUtils.isEmpty(patient)){
+                offLineRecipeDetailVO.setPatientSex(patient.getPatientSex());
+                offLineRecipeDetailVO.setAge(patient.getAge());
+            }
+        }
+
+//        if (!ObjectUtils.isEmpty(hisRecipe)){
+//            offLineRecipeDetailVO.setMedicalType(hisRecipe.getMedicalType());
+//        }
+//        if (!ObjectUtils.isEmpty(recipeExtend)){
+//            offLineRecipeDetailVO.setIsLongRecipe(recipeExtend.getIsLongRecipe());
+//            offLineRecipeDetailVO.setCanUrgentAuditRecipe(recipeExtend.getCanUrgentAuditRecipe());
+//            offLineRecipeDetailVO.setMedicalType(recipeExtend.getMedicalType());
+//        }
+
+
+        logger.info("RecipeBusinessService getOffLineRecipeDetails result={}", JSONUtils.toString(offLineRecipeDetailVO));
+        return offLineRecipeDetailVO;
     }
 }
