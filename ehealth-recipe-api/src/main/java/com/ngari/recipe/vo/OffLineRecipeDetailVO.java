@@ -56,6 +56,8 @@ public class OffLineRecipeDetailVO implements Serializable {
     @Dictionary(id = "eh.cdr.dictionary.RecipeType")
     private Integer recipeType;
 
+    private String recipeTypeText;
+
     @ItemProperty(alias = "是否为长处方 1是")
     private String isLongRecipe; //1
 
@@ -70,5 +72,42 @@ public class OffLineRecipeDetailVO implements Serializable {
 
     @ItemProperty(alias = "医生姓名")
     private String doctorName;
+
+    @ItemProperty(alias = "处方嘱托")
+    private String recipeMemo;
+
+    @ItemProperty(alias = "中药用法")
+    private String tcmUsePathways;
+
+    @ItemProperty(alias = "中药使用频率")
+    private String tcmUsingRate;
+
+    @ItemProperty(alias = "贴数")
+    private Integer tcmNum;
+
+    @ItemProperty(alias = "煎法编码")
+    private String decoctionCode;
+
+    @ItemProperty(alias = "煎法")
+    private String decoctionText;
+
+    @ItemProperty(alias = "制法编码")
+    private String makeMethodCode;
+
+    @ItemProperty(alias = "制法")
+    private String makeMethodText;
+
+    @ItemProperty(alias = "每付取汁")
+    private String juice;
+
+    @ItemProperty(alias = "每付取汁单位")
+    private String juiceUnit;
+
+    @ItemProperty(alias = "次量")
+    private String minor;
+
+    @ItemProperty(alias = "次量单位")
+    private String minorUnit;
+
 
 }

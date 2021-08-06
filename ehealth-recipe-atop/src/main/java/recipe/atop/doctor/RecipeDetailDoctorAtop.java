@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.persistence.exception.DAOException;
-import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -138,20 +137,4 @@ public class RecipeDetailDoctorAtop extends BaseAtop {
         }
     }
 
-    @RpcService
-    public OffLineRecipeDetailVO getOffLineRecipeDetails(String mpiId, Integer clinicOrgan, String recipeCode){
-        logger.info("RecipeDetailAtop getOffLineRecipeDetails mpiId={},clinicOrgan={},recipeCode={}",mpiId,clinicOrgan,recipeCode);
-        validateAtop(mpiId,clinicOrgan,recipeCode);
-        try {
-            OffLineRecipeDetailVO result = recipeBusinessService.getOffLineRecipeDetails(mpiId, clinicOrgan, recipeCode);
-            logger.info("RecipeDetailAtop getOffLineRecipeDetails result = {}", JSONUtils.toString(result));
-            return result;
-        } catch (DAOException e1) {
-            logger.error("RecipeOpenAtop getOffLineRecipeDetails error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("RecipeOpenAtop getOffLineRecipeDetails error e", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
-    }
 }
