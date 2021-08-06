@@ -103,7 +103,7 @@ public class DrugStockBusinessService extends BaseService {
         doSignRecipe.setCheckFlag(checkFlag);
 
         if (DrugStockCheckEnum.HOS_CHECK_STOCK.getType().equals(checkFlag)) {
-            //只校验医院库存
+            //校验医院库存
             scanResult = drugStockManager.scanDrugStockByRecipeId(recipeNew, recipeDetails);
             if (RecipeResultBean.FAIL.equals(scanResult.getCode())) {
                 drugStockManager.doSignRecipe(doSignRecipe, scanResult.getObject(), "药品门诊药房库存不足，请更换其他药品后再试");
@@ -118,7 +118,7 @@ public class DrugStockBusinessService extends BaseService {
                 drugStockManager.checkEnterprise(doSignRecipe, object);
             }
         } else if (DrugStockCheckEnum.ALL_CHECK_STOCK.getType().equals(checkFlag)) {
-            /**校验 医院/药企 库存*/
+            /**校验 医院+药企 库存*/
             //药企库存
             allSupportDepList = findAllSupportDepList(recipeNew, recipeDetails);
             drugStockManager.checkDrugEnterprise(doSignRecipe, recipe.getClinicOrgan(), recipeDetails);

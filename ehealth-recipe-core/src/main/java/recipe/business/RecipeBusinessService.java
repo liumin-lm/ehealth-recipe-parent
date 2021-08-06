@@ -7,7 +7,9 @@ import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
-import com.ngari.patient.dto.HealthCardDTO;
+import com.ngari.patient.dto.DepartmentDTO;
+import com.ngari.patient.service.DepartmentService;
+import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutRecipeDetailDTO;
@@ -18,6 +20,7 @@ import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
+import ctd.util.JSONUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -28,6 +31,7 @@ import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.RecipeDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
 import com.ngari.recipe.recipe.model.PatientInfoDTO;
+import recipe.manager.HisRecipeManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
 
@@ -62,10 +66,20 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     private PatientClient patientClient;
 
+    @Autowired
+    private PatientService patientService;
+
+    @Autowired
+    private DepartmentService departmentService;
+
+    @Autowired
+    private HisRecipeManager hisRecipeManager;
+
     /**
      * 获取线下门诊处方诊断信息
+     *
      * @param patientInfoVO 患者信息
-     * @return  诊断列表
+     * @return 诊断列表
      */
     @Override
     public List<DiseaseInfoDTO> getOutRecipeDisease(PatientInfoVO patientInfoVO) {
@@ -74,8 +88,9 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     /**
      * 查询门诊处方信息
+     *
      * @param outPatientRecipeReqVO 患者信息
-     * @return  门诊处方列表
+     * @return 门诊处方列表
      */
     @Override
     public List<OutPatientRecipeDTO> queryOutPatientRecipe(OutPatientRecipeReqVO outPatientRecipeReqVO) {
@@ -86,6 +101,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     /**
      * 获取门诊处方详情信息
+     *
      * @param outRecipeDetailReqVO 门诊处方信息
      * @return 图片或者PDF链接等
      */
@@ -99,11 +115,12 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     /**
      * 前端获取用药指导
+     *
      * @param medicationGuidanceReqVO 用药指导入参
      * @return 用药指导出参
      */
     @Override
-    public MedicationGuideResVO getMedicationGuide(MedicationGuidanceReqVO medicationGuidanceReqVO){
+    public MedicationGuideResVO getMedicationGuide(MedicationGuidanceReqVO medicationGuidanceReqVO) {
         logger.info("OutPatientRecipeService queryOutPatientRecipe getMedicationGuide:{}.", JSON.toJSONString(medicationGuidanceReqVO));
         //获取患者信息
         PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(medicationGuidanceReqVO.getMpiId());
@@ -142,24 +159,10 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     /**
-     * @Description: 查询未审核处方个数
-     * @Param: bussSource 处方来源
-     * @Param: clinicId  复诊ID
-     * @Param: recipeStatus  未审核状态List
-     * @return:
-     * @Date: 2021/7/20
-     */
-    private Long getUncheckRecipeByClinicId(Integer bussSource, Integer clinicId, List<Integer> recipeStatus) {
-        logger.info("getUncheckRecipeByClinicID bussSource={},clinicID={},recipeStatus={}", bussSource, clinicId, recipeStatus);
-        Long recipesCount = recipeDAO.getRecipeCountByBussSourceAndClinicIdAndStatus(bussSource, clinicId, recipeStatus);
-        logger.info("getUncheckRecipeByClinicID recipesCount={}", recipesCount);
-        return recipesCount;
-    }
-
-    /**
-     *根据bussSource和clinicID查询是否存在药师审核未通过的处方
+     * 根据bussSource和clinicID查询是否存在药师审核未通过的处方
+     *
      * @param bussSource 处方来源
-     * @param clinicId 复诊ID
+     * @param clinicId   复诊ID
      * @return true 存在  false 不存在
      * @date 2021/7/16
      */
@@ -173,72 +176,84 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return uncheckCount != 0;
     }
 
+    /**
+     * 获取线下处方详情
+     *
+     * @param mpiId       患者ID
+     * @param clinicOrgan 机构ID
+     * @param recipeCode  处方号码
+     * @date 2021/8/06
+     */
     @Override
-    public OffLineRecipeDetailVO getOffLineRecipeDetails(String mpiId,Integer clinicOrgan, String recipeCode) {
-        logger.info("RecipeBusinessService getOffLineRecipeDetails mpiId={},clinicOrgan={},recipeCode={}",mpiId,clinicOrgan,recipeCode);
+    public OffLineRecipeDetailVO getOffLineRecipeDetails(String mpiId, Integer clinicOrgan, String recipeCode) {
+        logger.info("RecipeBusinessService getOffLineRecipeDetails mpiId={},clinicOrgan={},recipeCode={}", mpiId, clinicOrgan, recipeCode);
         PatientDTO patient = patientService.getPatientByMpiId(mpiId);
         if (null == patient) {
             throw new DAOException(609, "患者信息不存在");
         }
-        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos= hisRecipeManager.queryData(clinicOrgan,patient,6, 2,recipeCode);
-
-        //HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, clinicOrgan, recipeCode);
+        //获取线下处方信息
+        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryData(clinicOrgan, patient, 6, 2, recipeCode);
         List<QueryHisRecipResTO> data = hisRecipeInfos.getData();
         QueryHisRecipResTO queryHisRecipResTO = null;
-        if (!ObjectUtils.isEmpty(data)){
+        if (!ObjectUtils.isEmpty(data)) {
             queryHisRecipResTO = data.get(0);
         }
-
         OffLineRecipeDetailVO offLineRecipeDetailVO = new OffLineRecipeDetailVO();
-//        Integer departId=null;
-//        RecipeExtend recipeExtend = null;
+        //设置返回字段
         if (!ObjectUtils.isEmpty(queryHisRecipResTO)) {
             offLineRecipeDetailVO.setPatientName(queryHisRecipResTO.getPatientName());
             offLineRecipeDetailVO.setMedicalType(queryHisRecipResTO.getMedicalType());
-            //offLineRecipeDetailVO.setMedicalTypeText(queryHisRecipResTO.getMedicalInfo());
-            //recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             offLineRecipeDetailVO.setOrganName(queryHisRecipResTO.getOrganName());
             offLineRecipeDetailVO.setCreateDate(queryHisRecipResTO.getCreateDate());
             offLineRecipeDetailVO.setOrganDiseaseName(queryHisRecipResTO.getDiseaseName());
             offLineRecipeDetailVO.setRecipeType(queryHisRecipResTO.getRecipeType());
             offLineRecipeDetailVO.setDoctorName(queryHisRecipResTO.getDoctorName());
 
-            DepartmentDTO departmentDTO = departmentService.getByCodeAndOrgan(queryHisRecipResTO.getDepartCode(),queryHisRecipResTO.getClinicOrgan());
+            //设置中药处方基本信息
+            if (queryHisRecipResTO.getRecipeType() == 3) {
+                offLineRecipeDetailVO.setRecipeTypeText(queryHisRecipResTO.getShowText());//存疑
+                offLineRecipeDetailVO.setRecipeMemo(queryHisRecipResTO.getRecipeMemo());
+                offLineRecipeDetailVO.setTcmUsePathways(queryHisRecipResTO.getTcmUsePathways());
+                offLineRecipeDetailVO.setTcmUsingRate(queryHisRecipResTO.getTcmUsingRate());
+                offLineRecipeDetailVO.setTcmNum(queryHisRecipResTO.getTcmNum());
+                offLineRecipeDetailVO.setDecoctionCode(queryHisRecipResTO.getDecoctionCode());
+                offLineRecipeDetailVO.setDecoctionText(queryHisRecipResTO.getDecoctionText());
+                offLineRecipeDetailVO.setMakeMethodCode(queryHisRecipResTO.getMakeMethodCode());
+                offLineRecipeDetailVO.setMakeMethodText(queryHisRecipResTO.getMakeMethodText());
+                offLineRecipeDetailVO.setJuice(queryHisRecipResTO.getJuice());
+                offLineRecipeDetailVO.setJuiceUnit(queryHisRecipResTO.getJuiceUnit());
+                offLineRecipeDetailVO.setMinor(queryHisRecipResTO.getMinor());
+                offLineRecipeDetailVO.setMinorUnit(queryHisRecipResTO.getMinorUnit());
+            }
+            //判断是否为儿科 设置部门名称
+            DepartmentDTO departmentDTO = departmentService.getByCodeAndOrgan(queryHisRecipResTO.getDepartCode(), queryHisRecipResTO.getClinicOrgan());
             if (!ObjectUtils.isEmpty(departmentDTO)) {
                 if (departmentDTO.getName().contains("儿科") || departmentDTO.getName().contains("新生儿科")
                         || departmentDTO.getName().contains("儿内科") || departmentDTO.getName().contains("儿外科")) {
                     offLineRecipeDetailVO.setChildRecipeFlag(true);
-                    if (!ObjectUtils.isEmpty(patient)){
+                    if (!ObjectUtils.isEmpty(patient)) {
                         offLineRecipeDetailVO.setGuardianName(patient.getGuardianName());
                     }
                 }
                 offLineRecipeDetailVO.setDepartName(departmentDTO.getName());
             }
-
+            //处方药品信息
             List<RecipeDetailTO> drugList = queryHisRecipResTO.getDrugList();
             BigDecimal totalPrice = BigDecimal.valueOf(0);
-            if (!ObjectUtils.isEmpty(drugList)){
+            //计算药品价格
+            if (!ObjectUtils.isEmpty(drugList)) {
                 for (RecipeDetailTO recipeDetailTO : drugList) {
-                    totalPrice=totalPrice.add(recipeDetailTO.getPrice());
+                    totalPrice = totalPrice.add(recipeDetailTO.getTotalPrice());
                 }
                 offLineRecipeDetailVO.setRecipeDetails(drugList);
                 offLineRecipeDetailVO.setTotalPrice(totalPrice);
             }
-            if (!ObjectUtils.isEmpty(patient)){
+            //患者基本属性
+            if (!ObjectUtils.isEmpty(patient)) {
                 offLineRecipeDetailVO.setPatientSex(patient.getPatientSex());
                 offLineRecipeDetailVO.setAge(patient.getAge());
             }
         }
-
-//        if (!ObjectUtils.isEmpty(hisRecipe)){
-//            offLineRecipeDetailVO.setMedicalType(hisRecipe.getMedicalType());
-//        }
-//        if (!ObjectUtils.isEmpty(recipeExtend)){
-//            offLineRecipeDetailVO.setIsLongRecipe(recipeExtend.getIsLongRecipe());
-//            offLineRecipeDetailVO.setCanUrgentAuditRecipe(recipeExtend.getCanUrgentAuditRecipe());
-//            offLineRecipeDetailVO.setMedicalType(recipeExtend.getMedicalType());
-//        }
-
 
         logger.info("RecipeBusinessService getOffLineRecipeDetails result={}", JSONUtils.toString(offLineRecipeDetailVO));
         return offLineRecipeDetailVO;

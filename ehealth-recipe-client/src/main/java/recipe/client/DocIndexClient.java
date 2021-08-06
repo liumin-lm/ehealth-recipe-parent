@@ -319,7 +319,7 @@ public class DocIndexClient extends BaseClient {
     /**
      * 查询电子病例字段返回
      */
-    public EmrDetail getMedicalInfo(List<EmrConfigRes> detailList) {
+    private EmrDetail getMedicalInfo(List<EmrConfigRes> detailList) {
         EmrDetail emrDetail = new EmrDetail();
         for (EmrConfigRes detailDTO : detailList) {
             if (null == detailDTO) {
@@ -386,6 +386,7 @@ public class DocIndexClient extends BaseClient {
                 if (!ValidateUtil.isEmpty(ids)) {
                     emrDetail.setOrganDiseaseId(ByteUtils.subString(ids));
                 }
+                emrDetail.setDiseaseValue(values);
                 continue;
             }
             if (RecipeEmrComment.TCM_SYNDROME.equals(detailDTO.getKey())) {
@@ -399,6 +400,7 @@ public class DocIndexClient extends BaseClient {
                 if (!ValidateUtil.isEmpty(ids)) {
                     emrDetail.setSymptomId(ByteUtils.subString(ids));
                 }
+                emrDetail.setSymptomValue(values);
             }
         }
         return emrDetail;

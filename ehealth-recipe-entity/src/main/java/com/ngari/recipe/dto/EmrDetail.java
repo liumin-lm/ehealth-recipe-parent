@@ -3,6 +3,8 @@ package com.ngari.recipe.dto;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Data;
 
+import java.util.List;
+
 /**
  * 电子病历 字段对象
  *
@@ -36,12 +38,16 @@ public class EmrDetail {
 
     @ItemProperty(alias = "机构疾病名称")
     private String organDiseaseName;
-
     @ItemProperty(alias = "机构疾病编码")
     private String organDiseaseId;
+
+    private List<EmrDetailValueDTO> diseaseValue;
 
     @ItemProperty(alias = "中医症候编码")
     private String symptomId;
     @ItemProperty(alias = "中医症候名称")
     private String symptomName;
+
+    private List<EmrDetailValueDTO> symptomValue;
+
 }

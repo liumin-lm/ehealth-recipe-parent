@@ -14,8 +14,6 @@ import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
-import com.ngari.bus.op.service.IUsePathwaysService;
-import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.*;
@@ -44,7 +42,6 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.cdr.api.service.IDocIndexService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -69,7 +66,6 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.RecipeToHisService;
-import recipe.manager.EmrRecipeManager;
 import recipe.presettle.factory.PreSettleFactory;
 import recipe.presettle.settle.IRecipeSettleService;
 import recipe.purchase.PayModeOnline;
@@ -77,7 +73,10 @@ import recipe.purchase.PurchaseService;
 import recipe.retry.RecipeRetryService;
 import recipe.thread.CardDataUploadRunable;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.util.*;
+import recipe.util.DateConversion;
+import recipe.util.DigestUtil;
+import recipe.util.MapValueUtil;
+import recipe.util.RedisClient;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -102,19 +101,8 @@ public class RecipeHisService extends RecipeBaseService {
     private PatientService patientService;
     @Autowired
     private IRevisitExService consultExService;
-    @Resource
-    private OrganDrugListDAO organDrugListDAO;
-    @Autowired
-    private IRecipeHisService recipeHisService;
     @Autowired
     private IRevisitService consultService;
-    @Autowired
-    private IUsingRateService usingRateService;
-    @Autowired
-    private IUsePathwaysService usePathwaysService;
-
-    @Resource
-    private IDocIndexService docIndexService;
     @Resource
     RecipeRetryService recipeRetryService;
     @Resource
@@ -166,21 +154,12 @@ public class RecipeHisService extends RecipeBaseService {
 
         List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
         PatientBean patientBean = iPatientService.get(recipe.getMpiid());
-        HealthCardBean cardBean = null;
-        try {
-            cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
-
-        } catch (Exception e) {
-            LOGGER.error("开处方获取医保卡异常", e);
-        }
         //创建请求体
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
-        RecipeSendRequestTO request = HisRequestInit.initRecipeSendRequestTO(recipe, details, patientBean, cardBean);
+        RecipeSendRequestTO request = HisRequestInit.initRecipeSendRequestTO(recipe, details, patientBean);
         //是否是武昌机构，替换请求体
         Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_WUCHANG_ORGAN_LIST);
         if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(sendOrganId.toString())) {
-            request = HisRequestInit.initRecipeSendRequestTOForWuChang(recipe, details, patientBean, cardBean);
+            request = HisRequestInit.initRecipeSendRequestTOForWuChang(recipe, details, patientBean);
             //发送电子病历
             DocIndexToHisReqTO docIndexToHisReqTO = HisRequestInit.initDocIndexToHisReqTO(recipe);
             HisResponseTO<DocIndexToHisResTO> hisResponseTO = service.docIndexToHis(docIndexToHisReqTO);
@@ -199,14 +178,6 @@ public class RecipeHisService extends RecipeBaseService {
             }
         }
         request.setOrganID(sendOrganId.toString());
-        try {
-            if (!ValidateUtil.integerIsEmpty(recipeExtend.getDocIndexId())) {
-                Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
-                request.setMedicalInfoBean(medicalInfoBean);
-            }
-        } catch (Exception e) {
-            LOGGER.error("RecipeHisService sendRecipe  medicalInfoBean error", e);
-        }
         LOGGER.info("recipeHisService recipeId:{} request:{}", recipeId, JSONUtils.toString(request));
         // 处方独立出来后,his根据域名来判断回调模块
         service.recipeSend(request);
