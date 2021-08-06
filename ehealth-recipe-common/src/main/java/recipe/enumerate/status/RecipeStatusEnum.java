@@ -9,6 +9,9 @@ import java.util.List;
  * @author fuzi
  */
 public enum RecipeStatusEnum {
+    /**
+     * 处方状态
+     */
     NONE(-9, "未知", ""),
     RECIPE_STATUS_CHECK_NOT_PASS(-1, "审核未通过", "审核未通过(HIS平台)"),
     RECIPE_STATUS_UNSIGNED(0, "未签名", "未签名"),
@@ -58,6 +61,7 @@ public enum RecipeStatusEnum {
     private Integer type;
     private String name;
     private String desc;
+    private static List<Integer> recipeStatusCheckList = Arrays.asList(RECIPE_STATUS_SIGN_ING_CODE_PHA.type, RECIPE_STATUS_READY_CHECK_YS.type,RECIPE_STATUS_CHECK_PASS.type);
 
     RecipeStatusEnum(Integer type, String name, String desc) {
         this.type = type;
@@ -110,4 +114,17 @@ public enum RecipeStatusEnum {
         }
         return NONE;
     }
+
+    /**
+     * 查询处方是否在校验中
+     * @param type
+     * @return
+     */
+   public static Boolean getCheckStatusFlag(Integer type){
+        if(recipeStatusCheckList.contains(type)){
+            return true;
+        }else {
+            return false;
+        }
+   }
 }

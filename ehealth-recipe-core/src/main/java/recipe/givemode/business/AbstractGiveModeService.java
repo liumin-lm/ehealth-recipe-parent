@@ -228,7 +228,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
         List<String> list = new ArrayList<>();
 
         // 从处方中获取支持的购药方式
-        if(StringUtils.isNotEmpty(recipeSupportGiveMode)) {
+        if (StringUtils.isNotEmpty(recipeSupportGiveMode)) {
             List<String> strings = Arrays.asList(recipeSupportGiveMode.split(","));
 
             if (strings.contains(String.valueOf(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType()))) {
@@ -277,7 +277,7 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
         if (CollectionUtils.isNotEmpty(giveModeShowButtonVO.getGiveModeButtons())) {
             if (ReviewTypeConstant.Preposition_Check == recipe.getReviewType()) {
                 //待药师审核，审核一次不通过，待处理无订单
-                if (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus() || (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode())) {
+                if (RecipeStatusEnum.getCheckStatusFlag(recipe.getStatus()) || RecipecCheckStatusConstant.First_Check_No_Pass.equals(recipe.getCheckStatus()) && null == recipe.getOrderCode()) {
                     showButton = true;
                 }
             } else {
