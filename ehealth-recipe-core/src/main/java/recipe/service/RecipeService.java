@@ -132,6 +132,7 @@ import recipe.mq.OnsConfig;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
+import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.thread.*;
 import recipe.util.*;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
@@ -240,6 +241,9 @@ public class RecipeService extends RecipeBaseService {
 
     @Resource
     private DrugStockBusinessService drugStockBusinessService;
+
+    @Autowired
+    private RemoteRecipeService remoteRecipeService;
 
 
     /**
@@ -1432,7 +1436,8 @@ public class RecipeService extends RecipeBaseService {
         });
         //推送处方到监管平台(审核后数据)
         RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 2));
-
+        //审核通过盖章
+        RecipeBusiThreadPool.execute(() -> remoteRecipeService.generateSignetRecipePdf(recipe.getRecipeId(), recipe.getClinicOrgan()));
     }
 
     /**
