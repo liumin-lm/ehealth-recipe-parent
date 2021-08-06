@@ -192,8 +192,13 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             throw new DAOException(609, "患者信息不存在");
         }
         //获取线下处方信息
-        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryData(clinicOrgan, patient, 6, 2, recipeCode);
-        List<QueryHisRecipResTO> data = hisRecipeInfos.getData();
+        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = offlineRecipeClient.queryData(clinicOrgan, patient, 6, 2, recipeCode);
+        List<QueryHisRecipResTO> data=null;
+        if (!ObjectUtils.isEmpty(hisRecipeInfos)){
+            data = hisRecipeInfos.getData();
+        }else {
+            throw new DAOException(609,"线下处方信息为空");
+        }
         QueryHisRecipResTO queryHisRecipResTO = null;
         if (!ObjectUtils.isEmpty(data)) {
             queryHisRecipResTO = data.get(0);
