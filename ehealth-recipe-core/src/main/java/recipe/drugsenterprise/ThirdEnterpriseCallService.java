@@ -1927,7 +1927,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setDistrict(convertParame(district));
             orderDetailBean.setStreet(convertParame(street));
             //设置省市区街道编码
-            orderDetailBean.setProvince(convertParame(recipeOrder.getAddress1()) + "0000");
+            orderDetailBean.setProvinceCode(convertParame(recipeOrder.getAddress1()) + "0000");
             orderDetailBean.setCityCode(convertParame(recipeOrder.getAddress2()) + "00");
             orderDetailBean.setDistrictCode(convertParame(recipeOrder.getAddress3()));
             orderDetailBean.setStreetCode(convertParame(recipeOrder.getStreetAddress()));
