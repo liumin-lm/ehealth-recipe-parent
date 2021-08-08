@@ -26,6 +26,8 @@ import com.ngari.recipe.recipe.model.RankShiftList;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.CheckPatientEnum;
 import com.ngari.recipe.vo.OutPatientReqVO;
+import com.ngari.recipe.vo.PatientInfoVO;
+import com.ngari.recipe.vo.PatientMedicalTypeVO;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
@@ -47,6 +49,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.client.HealthCardClient;
 import recipe.client.PatientClient;
+import recipe.client.RevisitClient;
 import recipe.constant.*;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.dao.ChronicDiseaseDAO;
@@ -85,6 +88,9 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
 
     @Autowired
     private HealthCardClient healthCardClient;
+
+    @Autowired
+    private RevisitClient revisitClient;
 
     private String msg;
 
@@ -779,5 +785,28 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     @Override
     public PatientDTO getPatientDTOByMpiID(String mpiId){
         return patientClient.getPatientBeanByMpiId(mpiId);
+    }
+
+    /**
+     * 获取患者医保信息
+     * @param patientInfoVO 患者信息
+     * @return 医保类型相关
+     */
+    @Override
+    public PatientMedicalTypeVO queryPatientMedicalType(PatientInfoVO patientInfoVO) {
+        LOGGER.info("OutPatientRecipeService queryPatientMedicalType patientInfoVO:{}.", JSON.toJSONString(patientInfoVO));
+        PatientMedicalTypeVO patientMedicalTypeVO = new PatientMedicalTypeVO();
+        RevisitExDTO revisitExDTO = revisitClient.getByClinicId(patientInfoVO.getClinicId());
+        if (null == revisitExDTO) {
+            return patientMedicalTypeVO;
+        }
+        if (null != revisitExDTO.getMedicalFlag() && new Integer(1).equals(revisitExDTO.getMedicalFlag())) {
+            patientMedicalTypeVO.setMedicalType("2");
+            patientMedicalTypeVO.setMedicalTypeText("医保");
+        } else {
+            patientMedicalTypeVO.setMedicalType("1");
+            patientMedicalTypeVO.setMedicalTypeText("自费");
+        }
+        return patientMedicalTypeVO;
     }
 }

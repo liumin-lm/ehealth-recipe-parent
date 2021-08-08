@@ -40,6 +40,9 @@ public class RecipePatientAtop extends BaseAtop {
     @Autowired
     private IPatientBusinessService recipePatientService;
 
+    @Autowired
+    private IPatientBusinessService patientBusinessService;
+
     /**
      * 查询门诊处方信息
      * @param outPatientRecipeReqVO 患者信息
@@ -153,6 +156,28 @@ public class RecipePatientAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("OutPatientRecipeAtop getMedicationGuide error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 获取患者医保信息
+     * @param patientInfoVO 患者信息
+     * @return 医保类型相关
+     */
+    @RpcService
+    public PatientMedicalTypeVO queryPatientMedicalType(PatientInfoVO patientInfoVO){
+        logger.info("OutPatientRecipeAtop queryPatientMedicalType patientInfoVO:{}.", JSON.toJSONString(patientInfoVO));
+        validateAtop(patientInfoVO, patientInfoVO.getOrganId(), patientInfoVO.getMpiId(), patientInfoVO.getClinicId());
+        try {
+            PatientMedicalTypeVO result = patientBusinessService.queryPatientMedicalType(patientInfoVO);
+            logger.info("OutPatientRecipeAtop queryPatientMedicalType result = {}", JSON.toJSONString(result));
+            return result;
+        } catch (DAOException e1) {
+            logger.error("OutPatientRecipeAtop queryPatientMedicalType error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("OutPatientRecipeAtop queryPatientMedicalType error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }

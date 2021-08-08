@@ -2,6 +2,8 @@ package recipe.core.api.patient;
 
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.vo.OutPatientReqVO;
+import com.ngari.recipe.vo.PatientInfoVO;
+import com.ngari.recipe.vo.PatientMedicalTypeVO;
 
 /**
  * @author yinsheng
@@ -23,4 +25,11 @@ public interface IPatientBusinessService {
      * @return 患者信息
      */
     PatientDTO getPatientDTOByMpiID(String mpiId);
+
+    /**
+     * 获取患者医保信息
+     * @param patientInfoVO 患者信息
+     * @return 医保类型相关
+     */
+    PatientMedicalTypeVO queryPatientMedicalType(PatientInfoVO patientInfoVO);
 }
