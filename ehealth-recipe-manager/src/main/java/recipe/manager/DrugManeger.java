@@ -141,6 +141,9 @@ public class DrugManeger extends BaseManager {
             return new HashMap<>();
         }
         List<DrugEntrust> drugEntrusts = drugEntrustDAO.findByOrganId(organId);
+        if (CollectionUtils.isEmpty(drugEntrusts)) {
+            drugEntrusts = drugEntrustDAO.findByOrganId(0);
+        }
         logger.info("DrugClient drugEntrustNameMap organId = {} ,drugEntrusts={}", organId, JSON.toJSONString(drugEntrusts));
         return Optional.ofNullable(drugEntrusts).orElseGet(Collections::emptyList)
                 .stream().collect(Collectors.toMap(DrugEntrust::getDrugEntrustName, a -> a, (k1, k2) -> k1));

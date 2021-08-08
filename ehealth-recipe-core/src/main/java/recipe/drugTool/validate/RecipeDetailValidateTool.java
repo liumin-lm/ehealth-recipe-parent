@@ -129,8 +129,8 @@ public class RecipeDetailValidateTool {
      * @return
      */
     public boolean entrustValidate(RecipeDetailBean recipeDetail, Map<String, DrugEntrust> drugEntrustNameMap) {
-        if (StringUtils.isEmpty(recipeDetail.getDrugEntrustCode()) && StringUtils.isEmpty(recipeDetail.getMemo())) {
-            return true;
+        if (StringUtils.isEmpty(recipeDetail.getMemo())) {
+            return false;
         }
         //嘱托
         DrugEntrust drugEntrust = drugEntrustNameMap.get(recipeDetail.getMemo());
