@@ -211,7 +211,7 @@ public class RecipePreserveService {
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
         Map<String, Object> result = Maps.newHashMap();
-        PatientDTO patientDTO = patientService.get(mpiId);
+        PatientDTO patientDTO = patientService.getByMpiId(mpiId);
         if (patientDTO == null) {
             throw new DAOException(609, "找不到该患者");
         }
@@ -254,6 +254,7 @@ public class RecipePreserveService {
         patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
         patientBaseInfo.setCardID(cardId);
         patientBaseInfo.setCardType(cardType);
+        patientBaseInfo.setAgeString(patientDTO.getAgeString());
         String cityCardNumber = healthCardService.getMedicareCardId(mpiId, organId);
         if (StringUtils.isNotEmpty(cityCardNumber)) {
             patientBaseInfo.setCityCardNumber(cityCardNumber);
