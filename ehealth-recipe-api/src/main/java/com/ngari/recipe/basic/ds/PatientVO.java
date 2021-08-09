@@ -156,6 +156,10 @@ public class PatientVO implements Serializable {
 
     // 年龄
     private Integer age;
+    @ItemProperty(
+            alias = "新版年龄（带单位）"
+    )
+    private String ageString;
 
     private Boolean signFlag;
 
@@ -635,6 +639,14 @@ public class PatientVO implements Serializable {
 
     public void setAuthMsg(String authMsg) {
         this.authMsg = authMsg;
+    }
+
+    public String getAgeString() {
+        return ageString;
+    }
+
+    public void setAgeString(String ageString) {
+        this.ageString = ageString;
     }
 
     @Override

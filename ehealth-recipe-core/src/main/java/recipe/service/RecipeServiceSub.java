@@ -1461,7 +1461,7 @@ public class RecipeServiceSub {
         DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
         map.put("checkEnterprise", drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan()));
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        PatientDTO patientBean = patientService.get(recipe.getMpiid());
+        PatientDTO patientBean = patientService.getByMpiId(recipe.getMpiid());
         PatientDTO patient = null;
         if (patientBean != null) {
             //添加患者标签和关注这些字段
@@ -1483,11 +1483,8 @@ public class RecipeServiceSub {
                 //对监护人信息进行脱敏处理
                 patient.setGuardianCertificate(ChinaIDNumberUtil.hideIdCard(patient.getGuardianCertificate()));
             }
-
-
         }
         List<Recipedetail> recipedetails = detailDAO.findByRecipeId(recipeId);
-
         //中药处方处理
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
             if (CollectionUtils.isNotEmpty(recipedetails)) {
