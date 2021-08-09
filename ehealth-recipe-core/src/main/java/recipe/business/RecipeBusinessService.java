@@ -228,8 +228,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                 if (departmentDTO.getName().contains("儿科") || departmentDTO.getName().contains("新生儿科")
                         || departmentDTO.getName().contains("儿内科") || departmentDTO.getName().contains("儿外科")) {
                     offLineRecipeDetailVO.setChildRecipeFlag(true);
+                    //设置监护人字段
                     if (!ObjectUtils.isEmpty(patient)) {
                         offLineRecipeDetailVO.setGuardianName(patient.getGuardianName());
+                        offLineRecipeDetailVO.setGuardianAge(patient.getGuardianAge());
+                        offLineRecipeDetailVO.setGuardianSex(patient.getGuardianSex());
                     }
                 }
                 offLineRecipeDetailVO.setDepartName(departmentDTO.getName());
