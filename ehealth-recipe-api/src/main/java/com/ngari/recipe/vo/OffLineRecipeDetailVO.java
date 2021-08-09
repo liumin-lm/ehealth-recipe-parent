@@ -124,6 +124,9 @@ public class OffLineRecipeDetailVO implements Serializable {
 
     @ItemProperty(alias = "开处方页面病种选择开关标识")
     private Integer recipeChooseChronicDisease;
+
+    @ItemProperty(alias = "审核医生姓名")
+    private String checkerName;
     //预留字段
     @ItemProperty(alias = "关联病例ID")
     private Integer docIndexId;

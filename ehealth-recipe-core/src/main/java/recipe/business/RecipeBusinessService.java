@@ -214,6 +214,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             BeanUtils.copy(queryHisRecipResTO, offLineRecipeDetailVO);
             offLineRecipeDetailVO.setOrganDiseaseName(queryHisRecipResTO.getDiseaseName());
             offLineRecipeDetailVO.setChronicDiseaseName(queryHisRecipResTO.getChronicDiseaseName());
+            offLineRecipeDetailVO.setCheckerName(queryHisRecipResTO.getCheckerName());
             //根据枚举设置处方类型
             Integer recipeType = queryHisRecipResTO.getRecipeType();
             String recipeTypeText = RecipeTypeEnum.getRecipeType(recipeType);
