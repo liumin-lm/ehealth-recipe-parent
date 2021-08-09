@@ -248,7 +248,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             //患者基本属性
             if (!ObjectUtils.isEmpty(patient)) {
                 offLineRecipeDetailVO.setPatientSex(patient.getPatientSex());
-                offLineRecipeDetailVO.setAge(patient.getAge());
+                offLineRecipeDetailVO.setPatientBirthday(patient.getBirthday());
             }
         }
 
