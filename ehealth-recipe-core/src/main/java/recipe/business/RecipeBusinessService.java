@@ -221,7 +221,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             offLineRecipeDetailVO.setRecipeTypeText(recipeTypeText);
             //判断是否为医保处方
             Integer medicalType = queryHisRecipResTO.getMedicalType();
-            if (medicalType == 2) {
+            if (!ObjectUtils.isEmpty(medicalType)&&medicalType.equals(2)){
                 offLineRecipeDetailVO.setMedicalTypeText("普通医保");
             }
 
