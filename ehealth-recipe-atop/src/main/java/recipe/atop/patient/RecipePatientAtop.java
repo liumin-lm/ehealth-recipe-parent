@@ -40,9 +40,6 @@ public class RecipePatientAtop extends BaseAtop {
     @Autowired
     private IPatientBusinessService recipePatientService;
 
-    @Autowired
-    private IPatientBusinessService patientBusinessService;
-
     /**
      * 查询门诊处方信息
      * @param outPatientRecipeReqVO 患者信息
@@ -170,7 +167,7 @@ public class RecipePatientAtop extends BaseAtop {
         logger.info("OutPatientRecipeAtop queryPatientMedicalType patientInfoVO:{}.", JSON.toJSONString(patientInfoVO));
         validateAtop(patientInfoVO, patientInfoVO.getOrganId(), patientInfoVO.getMpiId(), patientInfoVO.getClinicId());
         try {
-            PatientMedicalTypeVO result = patientBusinessService.queryPatientMedicalType(patientInfoVO);
+            PatientMedicalTypeVO result = recipePatientService.queryPatientMedicalType(patientInfoVO);
             logger.info("OutPatientRecipeAtop queryPatientMedicalType result = {}", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
