@@ -197,6 +197,8 @@ public class PatientVO implements Serializable {
 
     private String weight;
 
+    private String ageString;
+
     public String getWeight() {
         return weight;
     }
@@ -635,6 +637,14 @@ public class PatientVO implements Serializable {
 
     public void setAuthMsg(String authMsg) {
         this.authMsg = authMsg;
+    }
+
+    public String getAgeString() {
+        return ageString;
+    }
+
+    public void setAgeString(String ageString) {
+        this.ageString = ageString;
     }
 
     @Override
