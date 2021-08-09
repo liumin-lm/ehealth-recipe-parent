@@ -116,6 +116,14 @@ public class OffLineRecipeDetailVO implements Serializable {
     @ItemProperty(alias = "次量单位")
     private String minorUnit;
 
+    @ItemProperty(alias = "病种编码")
+    private String chronicDiseaseCode;
+
+    @ItemProperty(alias = "病种名称")
+    private String chronicDiseaseName;
+
+    @ItemProperty(alias = "开处方页面病种选择开关标识")
+    private Integer recipeChooseChronicDisease;
     //预留字段
     @ItemProperty(alias = "关联病例ID")
     private Integer docIndexId;
