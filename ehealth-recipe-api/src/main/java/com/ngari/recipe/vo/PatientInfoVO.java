@@ -34,4 +34,14 @@ public class PatientInfoVO implements Serializable{
      * 病历号
      */
     private String patientId;
+
+    /**
+     * 患者唯一号
+     */
+    private String mpiId;
+
+    /**
+     * 复诊单号
+     */
+    private Integer clinicId;
 }

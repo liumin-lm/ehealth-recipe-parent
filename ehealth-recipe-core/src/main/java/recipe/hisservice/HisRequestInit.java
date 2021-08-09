@@ -46,6 +46,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.manager.EmrRecipeManager;
 import recipe.util.DateConversion;
+import recipe.util.ValidateUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -697,6 +698,13 @@ public class HisRequestInit {
                 if (order.getLogisticsCompany() != null) {
                     String logisticsCompany = DictionaryController.instance().get("eh.cdr.dictionary.LogisticsCompany").getText(order.getLogisticsCompany());
                     requestTO.setLogisticsCompany(logisticsCompany);
+                }
+                //设置省市区编码
+                if (StringUtils.isNotEmpty(order.getAddress1())) {
+                    requestTO.setProvinceCode(ValidateUtil.isEmpty(order.getAddress1()) + "0000");
+                    requestTO.setCityCode(ValidateUtil.isEmpty(order.getAddress2()) + "00");
+                    requestTO.setDistrictCode(ValidateUtil.isEmpty(order.getAddress3()));
+                    requestTO.setStreetCode(ValidateUtil.isEmpty(order.getStreetAddress()));
                 }
                 //合并支付的处方需要将所有his处方编码传过去
                 RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);

@@ -1922,18 +1922,15 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             String city = getAddressDic(recipeOrder.getAddress2());
             String district = getAddressDic(recipeOrder.getAddress3());
             String street = getAddressDic(recipeOrder.getStreetAddress());
-            /**
-             * 2021.8.5 省市区代号标准格式
-             */
-            orderDetailBean.setProvince(convertParame(province + "0000"));
-            //非直辖市，才会给city字段拼接”00“
-            //北京，天津，上海，重庆，台湾，香港，澳门
-            if (!province.equals("11") && !province.equals("12") && !province.equals("31") && !province.equals("50")
-                    && !province.equals("71") && !province.equals("81") && !province.equals("82")) {
-                orderDetailBean.setCity(convertParame(city + "00"));
-            }
+            orderDetailBean.setProvince(convertParame(province));
+            orderDetailBean.setCity(convertParame(city));
             orderDetailBean.setDistrict(convertParame(district));
             orderDetailBean.setStreet(convertParame(street));
+            //设置省市区街道编码
+            orderDetailBean.setProvinceCode(convertParame(recipeOrder.getAddress1()) + "0000");
+            orderDetailBean.setCityCode(convertParame(recipeOrder.getAddress2()) + "00");
+            orderDetailBean.setDistrictCode(convertParame(recipeOrder.getAddress3()));
+            orderDetailBean.setStreetCode(convertParame(recipeOrder.getStreetAddress()));
             orderDetailBean.setReceiver(convertParame(recipeOrder.getReceiver()));
             orderDetailBean.setRecMobile(convertParame(recipeOrder.getRecMobile()));
             orderDetailBean.setRecAddress(convertParame(recipeOrder.getAddress4()));

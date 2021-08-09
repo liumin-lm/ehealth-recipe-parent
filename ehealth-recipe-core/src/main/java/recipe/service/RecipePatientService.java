@@ -26,6 +26,8 @@ import com.ngari.recipe.recipe.model.RankShiftList;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.CheckPatientEnum;
 import com.ngari.recipe.vo.OutPatientReqVO;
+import com.ngari.recipe.vo.PatientInfoVO;
+import com.ngari.recipe.vo.PatientMedicalTypeVO;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
@@ -47,6 +49,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.client.HealthCardClient;
 import recipe.client.PatientClient;
+import recipe.client.RevisitClient;
 import recipe.constant.*;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.dao.ChronicDiseaseDAO;
@@ -85,6 +88,9 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
 
     @Autowired
     private HealthCardClient healthCardClient;
+
+    @Autowired
+    private RevisitClient revisitClient;
 
     private String msg;
 
@@ -693,23 +699,6 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         }
         //添加复诊ID
         IRevisitExService consultExService = RevisitAPI.getService(IRevisitExService.class);
-        //TODO 72571 【实施】【上海市皮肤病医院】【A】【BUG】线上处方页患者医保类型不正确,临时个性化解决 机构ID：1003983
-        if (organId == 1003983)  {
-            if (null != clinicId) {
-                RevisitExDTO consultExDTO = consultExService.getByConsultId(clinicId);
-                if (consultExDTO != null) {
-                    PatientQueryRequestTO result = new PatientQueryRequestTO();
-                    if (null != consultExDTO.getMedicalFlag() && new Integer(1).equals(consultExDTO.getMedicalFlag())) {
-                        result.setMedicalType("2");
-                        result.setMedicalTypeText("医保");
-                    } else {
-                        result.setMedicalType("1");
-                        result.setMedicalTypeText("自费");
-                    }
-                    return result;
-                }
-            }
-        }
         try {
             PatientQueryRequestTO req = new PatientQueryRequestTO();
             req.setOrgan(organId);
@@ -779,5 +768,28 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     @Override
     public PatientDTO getPatientDTOByMpiID(String mpiId){
         return patientClient.getPatientBeanByMpiId(mpiId);
+    }
+
+    /**
+     * 获取患者医保信息
+     * @param patientInfoVO 患者信息
+     * @return 医保类型相关
+     */
+    @Override
+    public PatientMedicalTypeVO queryPatientMedicalType(PatientInfoVO patientInfoVO) {
+        LOGGER.info("OutPatientRecipeService queryPatientMedicalType patientInfoVO:{}.", JSON.toJSONString(patientInfoVO));
+        PatientMedicalTypeVO patientMedicalTypeVO = new PatientMedicalTypeVO();
+        RevisitExDTO revisitExDTO = revisitClient.getByClinicId(patientInfoVO.getClinicId());
+        if (null == revisitExDTO) {
+            return patientMedicalTypeVO;
+        }
+        if (null != revisitExDTO.getMedicalFlag() && new Integer(1).equals(revisitExDTO.getMedicalFlag())) {
+            patientMedicalTypeVO.setMedicalType("2");
+            patientMedicalTypeVO.setMedicalTypeText("医保");
+        } else {
+            patientMedicalTypeVO.setMedicalType("1");
+            patientMedicalTypeVO.setMedicalTypeText("自费");
+        }
+        return patientMedicalTypeVO;
     }
 }

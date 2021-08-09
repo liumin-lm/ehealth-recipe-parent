@@ -25,8 +25,8 @@ public class OffLineRecipeDetailVO implements Serializable {
     @Dictionary(id = "eh.base.dictionary.Gender")
     private String patientSex;
 
-    @ItemProperty(alias = "患者年龄")
-    private Integer age;
+    @ItemProperty(alias = "患者出生日期")
+    private Date patientBirthday;
 
     @ItemProperty(alias = "是否儿科处方")
     private Boolean childRecipeFlag;
@@ -110,5 +110,7 @@ public class OffLineRecipeDetailVO implements Serializable {
     @ItemProperty(alias = "次量单位")
     private String minorUnit;
 
-
+    //预留字段
+    @ItemProperty(alias = "关联病例ID")
+    private Integer docIndexId;
 }

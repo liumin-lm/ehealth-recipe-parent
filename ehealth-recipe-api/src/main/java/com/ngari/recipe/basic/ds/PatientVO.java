@@ -201,6 +201,8 @@ public class PatientVO implements Serializable {
 
     private String weight;
 
+    private String ageString;
+
     public String getWeight() {
         return weight;
     }

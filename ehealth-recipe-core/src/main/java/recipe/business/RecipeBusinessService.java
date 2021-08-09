@@ -206,6 +206,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             queryHisRecipResTO = data.get(0);
         }
         OffLineRecipeDetailVO offLineRecipeDetailVO = new OffLineRecipeDetailVO();
+        //预留字段 后续实现电子病历业务使用
+        offLineRecipeDetailVO.setDocIndexId(null);
         //设置返回字段
         if (!ObjectUtils.isEmpty(queryHisRecipResTO)) {
             BeanUtils.copy(queryHisRecipResTO, offLineRecipeDetailVO);
@@ -246,7 +248,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             //患者基本属性
             if (!ObjectUtils.isEmpty(patient)) {
                 offLineRecipeDetailVO.setPatientSex(patient.getPatientSex());
-                offLineRecipeDetailVO.setAge(patient.getAge());
+                offLineRecipeDetailVO.setPatientBirthday(patient.getBirthday());
             }
         }
 
