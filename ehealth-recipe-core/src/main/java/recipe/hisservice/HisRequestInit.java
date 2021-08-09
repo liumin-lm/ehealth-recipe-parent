@@ -45,6 +45,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.manager.EmrRecipeManager;
+import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
 import recipe.util.ValidateUtil;
 
@@ -1017,8 +1018,8 @@ public class HisRequestInit {
             }
             //获取诊断数据
             EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
-            List<String> icdLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseId());
-            List<String> nameLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseName());
+            List<String> icdLists = Splitter.on(ByteUtils.SEMI_COLON_EN).splitToList(recipe.getOrganDiseaseId());
+            List<String> nameLists = Splitter.on(ByteUtils.SEMI_COLON_EN).splitToList(recipe.getOrganDiseaseName());
             List<DocIndexInfoTO> data = Lists.newArrayList();
             if (icdLists.size() == nameLists.size()) {
                 for (int i = 0; i < icdLists.size(); i++) {

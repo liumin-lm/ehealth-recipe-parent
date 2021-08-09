@@ -93,7 +93,6 @@ public class OperationClient extends BaseClient {
             });
             resultMap.put(k, recipeLabelList);
         });
-        logger.info("OperationClient queryRecipeLabel resultMap={}", JSON.toJSONString(resultMap));
         return resultMap;
     }
 

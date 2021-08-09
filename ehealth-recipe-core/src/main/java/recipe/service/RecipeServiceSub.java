@@ -619,7 +619,7 @@ public class RecipeServiceSub {
     }
 
     private static void canOpenRecipeDrugsAndDisease(Recipe recipe, List<Integer> drugIds) {
-        List<String> nameLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseName());
+        List<String> nameLists = Splitter.on(ByteUtils.SEMI_COLON_EN).splitToList(recipe.getOrganDiseaseName());
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         for (String organDiseaseName : nameLists) {
             Set<String> drugIdSet = cacheService.findDrugByDiseaseName(recipe.getClinicOrgan() + "_" + organDiseaseName);
@@ -1296,6 +1296,7 @@ public class RecipeServiceSub {
      * @return
      */
     public static PatientDTO patientDesensitization(PatientDTO patient) {
+        LOGGER.info("patientDesensitization patient={}", JSONUtils.toString(patient));
         PatientVO p = new PatientVO();
         BeanUtils.copyProperties(patient, p);
         if (StringUtils.isNotEmpty(patient.getMobile())) {
@@ -1483,11 +1484,8 @@ public class RecipeServiceSub {
                 //对监护人信息进行脱敏处理
                 patient.setGuardianCertificate(ChinaIDNumberUtil.hideIdCard(patient.getGuardianCertificate()));
             }
-
-
         }
         List<Recipedetail> recipedetails = detailDAO.findByRecipeId(recipeId);
-
         //中药处方处理
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
             if (CollectionUtils.isNotEmpty(recipedetails)) {

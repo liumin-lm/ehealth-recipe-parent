@@ -24,6 +24,7 @@ import recipe.constant.ReviewTypeConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganDrugListDAO;
+import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
@@ -383,7 +384,7 @@ public class RecipeUtil {
 
     //将；用|代替
     public static String getCode(String code) {
-        return code.replace("；", "|");
+        return code.replace(ByteUtils.SEMI_COLON_EN, "|");
     }
 
     /**

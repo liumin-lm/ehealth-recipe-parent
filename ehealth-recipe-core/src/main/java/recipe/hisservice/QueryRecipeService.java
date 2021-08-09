@@ -17,6 +17,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.OrganDrugChangeBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.DrugListBean;
+import com.ngari.recipe.dto.EmrDetail;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.*;
 import com.ngari.recipe.hisprescription.service.IQueryRecipeService;
@@ -48,14 +49,15 @@ import recipe.ApplicationUtils;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
 import recipe.caNew.pdf.CreatePdfFactory;
+import recipe.client.DocIndexClient;
 import recipe.dao.*;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
-import recipe.manager.EmrRecipeManager;
 import recipe.service.OrganDrugListService;
 import recipe.service.RecipeServiceSub;
 import recipe.thread.RecipeBusiThreadPool;
+import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
-import recipe.util.ValidateUtil;
+import recipe.vo.second.EmrDetailValueVO;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -81,6 +83,9 @@ public class QueryRecipeService implements IQueryRecipeService {
     private IDocIndexService docIndexService;
     @Autowired
     private CreatePdfFactory createPdfFactory;
+
+    @Autowired
+    private DocIndexClient docIndexClient;
 
     /**
      * 用于sendRecipeToHIS 推送处方mq后 查询接口
@@ -217,22 +222,48 @@ public class QueryRecipeService implements IQueryRecipeService {
      * @param card
      */
     private QueryRecipeInfoDTO splicingBackData(List<Recipedetail> details, Recipe recipe, PatientBean patient, HealthCardBean card) {
-        QueryRecipeInfoDTO recipeDTO = null;
+        QueryRecipeInfoDTO recipeDTO = new QueryRecipeInfoDTO();
         try {
             Integer recipeId = recipe.getRecipeId();
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-            try {
-                if (!ValidateUtil.integerIsEmpty(recipeExtend.getDocIndexId())) {
-                    Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
-                    recipeDTO.setMedicalInfoBean(medicalInfoBean);
+            if (null != recipeExtend) {
+                EmrDetail emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
+                recipeDTO.setCardType(recipeExtend.getCardType());
+                recipeDTO.setCardNo(recipeExtend.getCardNo());
+                recipeDTO.setRecipeExtendBean(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
+                if (StringUtils.isNotEmpty(emrDetail.getMainDieaseDescribe())) {
+                    //主诉
+                    recipeDTO.setBRZS(emrDetail.getMainDieaseDescribe());
                 }
-            } catch (Exception e) {
-                LOGGER.error("RecipeHisService sendRecipe  medicalInfoBean error", e);
+                if (StringUtils.isNotEmpty(emrDetail.getPhysicalCheck())) {
+                    //体格检查
+                    recipeDTO.setTGJC(emrDetail.getPhysicalCheck());
+                }
+                if (StringUtils.isNotEmpty(emrDetail.getHistoryOfPresentIllness())) {
+                    //现病史
+                    recipeDTO.setXBS(emrDetail.getHistoryOfPresentIllness());
+                }
+                if (StringUtils.isNotEmpty(emrDetail.getHandleMethod())) {
+                    //处理方法
+                    recipeDTO.setCLFF(emrDetail.getHandleMethod());
+                }
+                recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
+                recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
+                recipeDTO.setSymptomValue(ObjectCopyUtils.convert(emrDetail.getSymptomValue(), EmrDetailValueVO.class));
+                recipeDTO.setDiseaseValue(ObjectCopyUtils.convert(emrDetail.getDiseaseValue(), EmrDetailValueVO.class));
             }
+            //获取医院诊断内码
+            recipeDTO.setIcdRdn(getIcdRdn(recipe.getClinicOrgan(), recipe.getOrganDiseaseId(), recipe.getOrganDiseaseName()));
+            //icd诊断码
+            recipeDTO.setIcdCode(getCode(recipe.getOrganDiseaseId()));
+            //icd诊断名称
+            recipeDTO.setIcdName(getCode(recipe.getOrganDiseaseName()));
+            // 简要病史
+            recipeDTO.setDiseasesHistory(recipe.getOrganDiseaseName());
 
-            EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
-            recipeDTO = new QueryRecipeInfoDTO();
-            //拼接处方信息
+
+            Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
+            recipeDTO.setMedicalInfoBean(medicalInfoBean);
             //处方号
             recipeDTO.setRecipeID(recipe.getRecipeCode());
             //机构id
@@ -302,34 +333,6 @@ public class QueryRecipeService implements IQueryRecipeService {
             recipeDTO.setRecipeFee(String.valueOf(recipe.getActualPrice()));
             //自付比例
             /*recipeDTO.setPayScale("");*/
-            //主诉等等四个字段
-
-            if (recipeExtend != null) {
-                EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
-                if (StringUtils.isNotEmpty(recipeExtend.getMainDieaseDescribe())) {
-                    //主诉
-                    recipeDTO.setBRZS(recipeExtend.getMainDieaseDescribe());
-                }
-                if (StringUtils.isNotEmpty(recipeExtend.getPhysicalCheck())) {
-                    //体格检查
-                    recipeDTO.setTGJC(recipeExtend.getPhysicalCheck());
-                }
-                if (StringUtils.isNotEmpty(recipeExtend.getHistoryOfPresentIllness())) {
-                    //现病史
-                    recipeDTO.setXBS(recipeExtend.getHistoryOfPresentIllness());
-                }
-                if (StringUtils.isNotEmpty(recipeExtend.getHandleMethod())) {
-                    //处理方法
-                    recipeDTO.setCLFF(recipeExtend.getHandleMethod());
-                }
-                recipeDTO.setRecipeExtendBean(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
-            }
-            //获取医院诊断内码
-            recipeDTO.setIcdRdn(getIcdRdn(recipe.getClinicOrgan(), recipe.getOrganDiseaseId(), recipe.getOrganDiseaseName()));
-            //icd诊断码
-            recipeDTO.setIcdCode(getCode(recipe.getOrganDiseaseId()));
-            //icd诊断名称
-            recipeDTO.setIcdName(getCode(recipe.getOrganDiseaseName()));
 
             if (null != patient) {
                 // 患者信息
@@ -345,8 +348,6 @@ public class QueryRecipeService implements IQueryRecipeService {
                 recipeDTO.setPatientName(patient.getPatientName());
                 recipeDTO.setMobile(patient.getMobile());
                 recipeDTO.setPatientSex(patient.getPatientSex());
-                // 简要病史
-                recipeDTO.setDiseasesHistory(recipe.getOrganDiseaseName());
                 // 患者年龄
                 recipeDTO.setPatinetAge(getAge(patient.getBirthday()));
                 // 就诊人手机号
@@ -364,21 +365,11 @@ public class QueryRecipeService implements IQueryRecipeService {
                     }
                 }
             }
-            //设置健康卡
-            if (recipe.getClinicId() != null) {
-                IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
-                RevisitExDTO consultExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
-                if (consultExDTO != null) {
-                    recipeDTO.setCardType(consultExDTO.getCardType());
-                    recipeDTO.setCardNo(consultExDTO.getCardId());
-                }
-            }
             //设置卡
             if (null != card && StringUtils.isEmpty(recipeDTO.getCardNo())) {
                 recipeDTO.setCardType(card.getCardType());
                 recipeDTO.setCardNo(card.getCardId());
             }
-
 
             if (recipe.getGiveMode() == null) {
                 //如果为nul则默认为医院取药
@@ -402,13 +393,11 @@ public class QueryRecipeService implements IQueryRecipeService {
                         LOGGER.warn("queryRecipe splicingBackData GiveMode = {}", recipe.getGiveMode());
                 }
             }
-
             splicingBackDataForRecipeDetails(recipe.getClinicOrgan(), details, recipeDTO);
             LOGGER.info("queryRecipe splicingBackData recipeDTO:{}", JSONUtils.toString(recipeDTO));
         } catch (Exception e) {
             LOGGER.error("queryRecipe splicingBackData error", e);
         }
-
         return recipeDTO;
     }
 
@@ -573,14 +562,14 @@ public class QueryRecipeService implements IQueryRecipeService {
 
     //将；用|代替
     private String getCode(String code) {
-        return code.replace("；", "|");
+        return code.replace(ByteUtils.SEMI_COLON_EN, "|");
     }
 
     //获取医院诊断内码
     private String getIcdRdn(Integer clinicOrgan, String organDiseaseId, String organDiseaseName) {
         IDiseaseService diseaseService = AppContextHolder.getBean("eh.diseasService", IDiseaseService.class);
-        List<String> icd10Lists = Splitter.on("；").splitToList(organDiseaseId);
-        List<String> nameLists = Splitter.on("；").splitToList(organDiseaseName);
+        List<String> icd10Lists = Splitter.on(ByteUtils.SEMI_COLON_EN).splitToList(organDiseaseId);
+        List<String> nameLists = Splitter.on(ByteUtils.SEMI_COLON_EN).splitToList(organDiseaseName);
         List<String> icdRdnList = Lists.newArrayList();
         if (icd10Lists.size() == nameLists.size()) {
             for (int i = 0; i < icd10Lists.size(); i++) {

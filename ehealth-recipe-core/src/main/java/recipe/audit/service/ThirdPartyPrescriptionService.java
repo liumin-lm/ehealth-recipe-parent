@@ -43,6 +43,7 @@ import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.manager.EmrRecipeManager;
 import recipe.service.RecipeHisService;
+import recipe.util.ByteUtils;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -286,8 +287,8 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
     private List<ThirdPartyDiagnosisData> packThirdPartyDiagnosisData(String organDiseaseName, String organDiseaseId) {
         List<ThirdPartyDiagnosisData> thirdPartyDiagnosisDataList = new ArrayList<>();
         if (StringUtils.isNotBlank(organDiseaseName) && StringUtils.isNotBlank(organDiseaseId)) {
-            List<String> organDiseaseNameList = Splitter.on("；").splitToList(organDiseaseName);
-            List<String> organDiseaseIdList = Splitter.on("；").splitToList(organDiseaseId);
+            List<String> organDiseaseNameList = Splitter.on(ByteUtils.SEMI_COLON_EN).splitToList(organDiseaseName);
+            List<String> organDiseaseIdList = Splitter.on(ByteUtils.SEMI_COLON_EN).splitToList(organDiseaseId);
             if (organDiseaseNameList.size() == organDiseaseIdList.size()) {
                 for (int i = 0; i < organDiseaseNameList.size(); i++) {
                     ThirdPartyDiagnosisData thirdPartyDiagnosisData = new ThirdPartyDiagnosisData();

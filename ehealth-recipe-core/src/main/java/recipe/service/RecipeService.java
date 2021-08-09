@@ -3625,7 +3625,9 @@ public class RecipeService extends RecipeBaseService {
         if (null == recipeOrder || null == recipeOrder.getDispensingTime()) {
             apothecaryDTO.setGiveUserSignImg(null);
         }
-        return operationClient.queryRecipeLabel(recipePdfDTO);
+        Map<String, List<RecipeLabelVO>> recipeLabel = operationClient.queryRecipeLabel(recipePdfDTO);
+        LOGGER.info("recipeService queryRecipeLabelById ,recipeLabel={}", JSON.toJSONString(recipeLabel));
+        return recipeLabel;
     }
 
     /**
