@@ -110,5 +110,7 @@ public class OffLineRecipeDetailVO implements Serializable {
     @ItemProperty(alias = "次量单位")
     private String minorUnit;
 
-
+    //预留字段
+    @ItemProperty(alias = "关联病例ID")
+    private Integer docIndexId;
 }
