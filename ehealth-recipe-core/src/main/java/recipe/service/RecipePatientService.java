@@ -59,6 +59,7 @@ import recipe.dao.SaleDrugListDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.RecipeToHisService;
 import recipe.service.common.RecipeCacheService;
+import recipe.util.ValidateUtil;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
@@ -778,18 +779,18 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     @Override
     public PatientMedicalTypeVO queryPatientMedicalType(PatientInfoVO patientInfoVO) {
         LOGGER.info("OutPatientRecipeService queryPatientMedicalType patientInfoVO:{}.", JSON.toJSONString(patientInfoVO));
-        PatientMedicalTypeVO patientMedicalTypeVO = new PatientMedicalTypeVO();
+        PatientMedicalTypeVO patientMedicalTypeVO = new PatientMedicalTypeVO("1", "自费");
+        if (ValidateUtil.integerIsEmpty(patientInfoVO.getClinicId())){
+            return patientMedicalTypeVO;
+        }
         RevisitExDTO revisitExDTO = revisitClient.getByClinicId(patientInfoVO.getClinicId());
         if (null == revisitExDTO) {
             return patientMedicalTypeVO;
         }
         if (null != revisitExDTO.getMedicalFlag() && new Integer(1).equals(revisitExDTO.getMedicalFlag())) {
-            patientMedicalTypeVO.setMedicalType("2");
-            patientMedicalTypeVO.setMedicalTypeText("医保");
+            return new PatientMedicalTypeVO("2", "医保");
         } else {
-            patientMedicalTypeVO.setMedicalType("1");
-            patientMedicalTypeVO.setMedicalTypeText("自费");
+            return patientMedicalTypeVO;
         }
-        return patientMedicalTypeVO;
     }
 }

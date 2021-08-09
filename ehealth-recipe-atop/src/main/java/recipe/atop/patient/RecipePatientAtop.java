@@ -18,6 +18,7 @@ import recipe.constant.HisErrorCodeEnum;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.util.DateConversion;
+import recipe.util.ValidateUtil;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -165,7 +166,10 @@ public class RecipePatientAtop extends BaseAtop {
     @RpcService
     public PatientMedicalTypeVO queryPatientMedicalType(PatientInfoVO patientInfoVO){
         logger.info("OutPatientRecipeAtop queryPatientMedicalType patientInfoVO:{}.", JSON.toJSONString(patientInfoVO));
-        validateAtop(patientInfoVO, patientInfoVO.getOrganId(), patientInfoVO.getMpiId(), patientInfoVO.getClinicId());
+        validateAtop(patientInfoVO, patientInfoVO.getOrganId(), patientInfoVO.getMpiId());
+        if (ValidateUtil.integerIsEmpty(patientInfoVO.getClinicId())){
+            return new PatientMedicalTypeVO("1", "自费");
+        }
         try {
             PatientMedicalTypeVO result = recipePatientService.queryPatientMedicalType(patientInfoVO);
             logger.info("OutPatientRecipeAtop queryPatientMedicalType result = {}", JSON.toJSONString(result));
