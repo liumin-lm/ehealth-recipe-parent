@@ -34,6 +34,12 @@ public class OffLineRecipeDetailVO implements Serializable {
     @ItemProperty(alias = "监护人姓名")
     private String guardianName;
 
+    @ItemProperty(alias = "监护人年龄")
+    private Integer guardianAge;
+
+    @ItemProperty(alias = "监护人性别")
+    private String guardianSex;
+
     @ItemProperty(alias = "医保类型编码")
     private Integer medicalType;
 
