@@ -1296,6 +1296,7 @@ public class RecipeServiceSub {
      * @return
      */
     public static PatientDTO patientDesensitization(PatientDTO patient) {
+        LOGGER.info("patientDesensitization patient={}", JSONUtils.toString(patient));
         PatientVO p = new PatientVO();
         BeanUtils.copyProperties(patient, p);
         if (StringUtils.isNotEmpty(patient.getMobile())) {

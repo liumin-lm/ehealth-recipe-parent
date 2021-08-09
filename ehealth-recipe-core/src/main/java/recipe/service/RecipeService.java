@@ -3626,15 +3626,6 @@ public class RecipeService extends RecipeBaseService {
             apothecaryDTO.setGiveUserSignImg(null);
         }
         Map<String, List<RecipeLabelVO>> recipeLabel = operationClient.queryRecipeLabel(recipePdfDTO);
-        List<RecipeLabelVO> recipeLabelVO = recipeLabel.get("recipeDetail");
-        if (CollectionUtils.isEmpty(recipeLabelVO)) {
-            return recipeLabel;
-        }
-        recipeLabelVO.forEach(a -> {
-            if ("recipeDetail".equals(a.getEnglishName()) && "RP模块".equals(a.getName())) {
-                a.setValue(recipePdfDTO.getRecipeDetails());
-            }
-        });
         LOGGER.info("recipeService queryRecipeLabelById ,recipeLabel={}", JSON.toJSONString(recipeLabel));
         return recipeLabel;
     }

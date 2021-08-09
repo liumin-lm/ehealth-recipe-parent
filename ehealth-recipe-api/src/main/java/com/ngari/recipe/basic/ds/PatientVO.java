@@ -156,9 +156,7 @@ public class PatientVO implements Serializable {
 
     // 年龄
     private Integer age;
-    @ItemProperty(
-            alias = "新版年龄（带单位）"
-    )
+    @ItemProperty(alias = "新版年龄（带单位）")
     private String ageString;
 
     private Boolean signFlag;
