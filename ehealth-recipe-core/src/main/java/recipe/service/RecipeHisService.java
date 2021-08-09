@@ -73,10 +73,7 @@ import recipe.purchase.PurchaseService;
 import recipe.retry.RecipeRetryService;
 import recipe.thread.CardDataUploadRunable;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.util.DateConversion;
-import recipe.util.DigestUtil;
-import recipe.util.MapValueUtil;
-import recipe.util.RedisClient;
+import recipe.util.*;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -1303,8 +1300,8 @@ public class RecipeHisService extends RecipeBaseService {
         List<DiseaseInfo> diseaseInfos = new ArrayList<>();
         DiseaseInfo diseaseInfo;
         if (StringUtils.isNotEmpty(recipeBean.getOrganDiseaseId()) && StringUtils.isNotEmpty(recipeBean.getOrganDiseaseName())) {
-            String[] diseaseIds = recipeBean.getOrganDiseaseId().split("；");
-            String[] diseaseNames = recipeBean.getOrganDiseaseName().split("；");
+            String[] diseaseIds = recipeBean.getOrganDiseaseId().split(ByteUtils.SEMI_COLON_EN);
+            String[] diseaseNames = recipeBean.getOrganDiseaseName().split(ByteUtils.SEMI_COLON_EN);
             for (int i = 0; i < diseaseIds.length; i++) {
                 diseaseInfo = new DiseaseInfo();
                 diseaseInfo.setDiseaseCode(diseaseIds[i]);

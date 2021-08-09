@@ -58,6 +58,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.manager.EmrRecipeManager;
 import recipe.service.common.RecipeSignService;
+import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
@@ -209,12 +210,12 @@ public class RecipeCAService {
         xml.setPatientSFZH(patientDTO.getIdcard());
         String organDiseaseId="";
         if (null != recipeBean.getOrganDiseaseId()) {
-            organDiseaseId=recipeBean.getOrganDiseaseId().replaceAll("；", "|");
+            organDiseaseId = recipeBean.getOrganDiseaseId().replaceAll(ByteUtils.SEMI_COLON_EN, "|");
         }
         String diagnosisName="";
 
         if (null != recipeBean.getOrganDiseaseId()) {
-            diagnosisName=recipeBean.getOrganDiseaseName().replaceAll("；", "|");
+            diagnosisName = recipeBean.getOrganDiseaseName().replaceAll(ByteUtils.SEMI_COLON_EN, "|");
         }
         AdditionalDiagnosis add = new AdditionalDiagnosis();
         add.setDiagnosisCode(organDiseaseId);
@@ -311,7 +312,7 @@ public class RecipeCAService {
         cqCABussData.append("<additionaldiagnosis>");
         String organDiseaseId="";
         if (null != recipeBean.getOrganDiseaseId()) {
-            organDiseaseId=recipeBean.getOrganDiseaseId().replaceAll("；", "|");
+            organDiseaseId = recipeBean.getOrganDiseaseId().replaceAll(ByteUtils.SEMI_COLON_EN, "|");
         }
         if (null != organDiseaseId) {
             cqCABussData.append("<diagnosisCode>"+organDiseaseId+"</diagnosisCode>");
@@ -319,7 +320,7 @@ public class RecipeCAService {
         String diagnosisName="";
 
         if (null != recipeBean.getOrganDiseaseId()) {
-            diagnosisName=recipeBean.getOrganDiseaseName().replaceAll("；", "|");
+            diagnosisName = recipeBean.getOrganDiseaseName().replaceAll(ByteUtils.SEMI_COLON_EN, "|");
         }
         if (null != diagnosisName) {
             cqCABussData.append("<diagnosisName>"+diagnosisName+"</diagnosisName>");
@@ -466,7 +467,7 @@ public class RecipeCAService {
                 LOGGER.warn("getTaskCode2 RecipeBean checker is null");
             }
             if (StringUtils.isNotEmpty(recipeBean.getOrganDiseaseId())) {
-                request.setIcdCode(recipeBean.getOrganDiseaseId().replaceAll("；", "|"));
+                request.setIcdCode(recipeBean.getOrganDiseaseId().replaceAll(ByteUtils.SEMI_COLON_EN, "|"));
             }
             request.setIcdName(recipeBean.getOrganDiseaseName());
 
@@ -476,7 +477,7 @@ public class RecipeCAService {
                 LOGGER.warn("getTaskCode2 patient is null. recipe.patient={}", recipeBean.getMpiid());
             }else {
                 request.setMpiId(patientDTO.getMpiId());
-                String organDiseaseName = recipeBean.getOrganDiseaseName().replaceAll("；", "|");
+                String organDiseaseName = recipeBean.getOrganDiseaseName().replaceAll(ByteUtils.SEMI_COLON_EN, "|");
                 request.setOriginalDiagnosis(organDiseaseName);
                 request.setPatientCardType(LocalStringUtil.toString(patientDTO.getCertificateType()));
                 request.setPatientCertID(LocalStringUtil.toString(patientDTO.getCertificate()));

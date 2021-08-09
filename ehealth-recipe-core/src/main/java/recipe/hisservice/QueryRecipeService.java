@@ -55,6 +55,7 @@ import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.OrganDrugListService;
 import recipe.service.RecipeServiceSub;
 import recipe.thread.RecipeBusiThreadPool;
+import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
 import recipe.vo.second.EmrDetailValueVO;
 
@@ -561,14 +562,14 @@ public class QueryRecipeService implements IQueryRecipeService {
 
     //将；用|代替
     private String getCode(String code) {
-        return code.replace("；", "|");
+        return code.replace(ByteUtils.SEMI_COLON_EN, "|");
     }
 
     //获取医院诊断内码
     private String getIcdRdn(Integer clinicOrgan, String organDiseaseId, String organDiseaseName) {
         IDiseaseService diseaseService = AppContextHolder.getBean("eh.diseasService", IDiseaseService.class);
-        List<String> icd10Lists = Splitter.on("；").splitToList(organDiseaseId);
-        List<String> nameLists = Splitter.on("；").splitToList(organDiseaseName);
+        List<String> icd10Lists = Splitter.on(ByteUtils.SEMI_COLON_EN).splitToList(organDiseaseId);
+        List<String> nameLists = Splitter.on(ByteUtils.SEMI_COLON_EN).splitToList(organDiseaseName);
         List<String> icdRdnList = Lists.newArrayList();
         if (icd10Lists.size() == nameLists.size()) {
             for (int i = 0; i < icd10Lists.size(); i++) {

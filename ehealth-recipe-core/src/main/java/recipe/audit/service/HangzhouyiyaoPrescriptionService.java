@@ -34,6 +34,7 @@ import recipe.dao.DrugListDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.manager.EmrRecipeManager;
 import recipe.service.RecipeHisService;
+import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
 import recipe.util.DigestUtil;
 import recipe.util.LocalStringUtil;
@@ -248,9 +249,9 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
     private List<HzyyDiagnosisData> packDiagnosisData(RecipeBean recipe) {
         List<HzyyDiagnosisData> diagnoses = new ArrayList<>();
         HzyyDiagnosisData auditDiagnose;
-        if (recipe.getOrganDiseaseName().contains("；")) {
-            String[] a = recipe.getOrganDiseaseName().split("；");
-            String[] b = recipe.getOrganDiseaseId().split("；");
+        if (recipe.getOrganDiseaseName().contains(ByteUtils.SEMI_COLON_EN)) {
+            String[] a = recipe.getOrganDiseaseName().split(ByteUtils.SEMI_COLON_EN);
+            String[] b = recipe.getOrganDiseaseId().split(ByteUtils.SEMI_COLON_EN);
             for (int i = 0; i < a.length; i++) {
                 String diagIdTempId = DigestUtil.md5For16(recipe.getClinicOrgan() +
                         "" + b[i]);

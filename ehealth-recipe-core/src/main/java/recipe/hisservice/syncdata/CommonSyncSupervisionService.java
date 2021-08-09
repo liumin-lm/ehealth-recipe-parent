@@ -36,8 +36,9 @@ import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.service.common.RecipeCacheService;
 import recipe.manager.EmrRecipeManager;
+import recipe.service.common.RecipeCacheService;
+import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 
@@ -353,7 +354,7 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
                 continue;
             }
 
-            organDiseaseName = recipe.getOrganDiseaseName().replaceAll("；", "|");
+            organDiseaseName = recipe.getOrganDiseaseName().replaceAll(ByteUtils.SEMI_COLON_EN, "|");
             req.setOriginalDiagnosis(organDiseaseName);
             req.setPatientCardType(LocalStringUtil.toString(patientDTO.getCertificateType()));
             req.setPatientCertID(LocalStringUtil.toString(patientDTO.getCertificate()));
@@ -368,7 +369,7 @@ public class CommonSyncSupervisionService implements ICommonSyncSupervisionServi
             //互联网医院处方都是经过合理用药审查
             req.setRationalFlag("0");
 
-            req.setIcdCode(recipe.getOrganDiseaseId().replaceAll("；", "|"));
+            req.setIcdCode(recipe.getOrganDiseaseId().replaceAll(ByteUtils.SEMI_COLON_EN, "|"));
             req.setIcdName(organDiseaseName);
             req.setRecipeType(recipe.getRecipeType().toString());
             req.setPacketsNum(recipe.getCopyNum());

@@ -61,6 +61,7 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.hisservice.EleInvoiceService;
 import recipe.manager.EmrRecipeManager;
 import recipe.service.RecipeExtendService;
+import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.RedisClient;
@@ -473,9 +474,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 }
 
             }
-            organDiseaseName = recipe.getOrganDiseaseName().replaceAll("；", "|");
+            organDiseaseName = recipe.getOrganDiseaseName().replaceAll(ByteUtils.SEMI_COLON_EN, "|");
             req.setOriginalDiagnosis(organDiseaseName);
-            req.setIcdCode(recipe.getOrganDiseaseId().replaceAll("；", "|"));
+            req.setIcdCode(recipe.getOrganDiseaseId().replaceAll(ByteUtils.SEMI_COLON_EN, "|"));
             req.setIcdName(organDiseaseName);
             //门诊号处理
             if (recipeExtend != null) {

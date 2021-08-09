@@ -34,10 +34,7 @@ import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeParameterDao;
 import recipe.manager.EmrRecipeManager;
-import recipe.util.DateConversion;
-import recipe.util.DigestUtil;
-import recipe.util.LocalStringUtil;
-import recipe.util.RedisClient;
+import recipe.util.*;
 
 import javax.xml.rpc.holders.IntHolder;
 import javax.xml.rpc.holders.StringHolder;
@@ -283,7 +280,7 @@ public class WinningPrescriptionService implements IntellectJudicialService {
         // 诊断信息
         List<AuditDiagnose> diagnoses = new ArrayList<>();
         // 多个诊断的情况
-        String s = "；";
+        String s = ByteUtils.SEMI_COLON_EN;
         if (recipe.getOrganDiseaseName().contains(s)) {
             String[] a = recipe.getOrganDiseaseName().split(s);
             String[] b = recipe.getOrganDiseaseId().split(s);

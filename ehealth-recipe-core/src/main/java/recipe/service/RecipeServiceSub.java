@@ -619,7 +619,7 @@ public class RecipeServiceSub {
     }
 
     private static void canOpenRecipeDrugsAndDisease(Recipe recipe, List<Integer> drugIds) {
-        List<String> nameLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseName());
+        List<String> nameLists = Splitter.on(ByteUtils.SEMI_COLON_EN).splitToList(recipe.getOrganDiseaseName());
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         for (String organDiseaseName : nameLists) {
             Set<String> drugIdSet = cacheService.findDrugByDiseaseName(recipe.getClinicOrgan() + "_" + organDiseaseName);
