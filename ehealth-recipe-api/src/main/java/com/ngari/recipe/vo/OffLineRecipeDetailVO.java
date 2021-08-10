@@ -72,7 +72,7 @@ public class OffLineRecipeDetailVO implements Serializable {
     private Integer canUrgentAuditRecipe;
 
     @ItemProperty(alias = "药品信息")
-    private List<RecipeDetailTO> recipeDetails;
+    private List<RecipeDetailVO> recipeDetails;
 
     @ItemProperty(alias = "参考价格")
     private BigDecimal totalPrice;

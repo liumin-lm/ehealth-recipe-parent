@@ -2,6 +2,7 @@ package recipe.hisservice.syncdata;
 
 import ca.service.ISignRecipeInfoService;
 import ca.vo.model.SignDoctorRecipeInfoDTO;
+import com.alibaba.fastjson.JSON;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
@@ -50,6 +51,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.EleInvoiceDTO;
 import recipe.bussutil.RecipeUtil;
+import recipe.client.DocIndexClient;
 import recipe.client.DoctorClient;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
@@ -83,6 +85,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     private IAuditMedicinesService iAuditMedicinesService;
     @Autowired
     private DoctorClient doctorClient;
+    @Autowired
+    private DocIndexClient docIndexClient;
     @Autowired
     private ISignRecipeInfoService signRecipeInfoService;
     @Resource
@@ -223,8 +227,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req = new RegulationRecipeIndicatorsReq();
             // 电子病历PDF id
             Map<String, Object> docIndex = emrPdfService.generateEmrPdf(recipeExtend.getDocIndexId());
-            LOGGER.info("电子病历 PDF 返回信息 ", JSONUtils.toString(docIndex));
-            if(MapUtils.isNotEmpty(docIndex) && Objects.nonNull(docIndex.get("fileId"))) {
+            LOGGER.info("电子病历 PDF 返回信息 recipe:{}, recipeExtend: {} ,docIndex:{}", recipe.getRecipeId(), JSON.toJSONString(recipeExtend), JSONUtils.toString(docIndex));
+            if (MapUtils.isNotEmpty(docIndex) && Objects.nonNull(docIndex.get("fileId"))) {
                 req.setMedicalFileId(docIndex.get("fileId").toString());
             }
 

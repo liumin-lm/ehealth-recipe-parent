@@ -34,6 +34,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.RecipeUtil;
@@ -61,11 +63,15 @@ import static ctd.persistence.DAOFactory.getDAO;
  * @author: 0184/yu_yun
  * @date:2017/9/14.
  */
+@Service
 public class HisRequestInit {
+
+    @Autowired
+    private DocIndexClient docIndexClient;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HisRequestInit.class);
 
-    public static RecipeSendRequestTO initRecipeSendRequestTOForWuChang(Recipe recipe, List<Recipedetail> details, PatientBean patient) {
+    public RecipeSendRequestTO initRecipeSendRequestTOForWuChang(Recipe recipe, List<Recipedetail> details, PatientBean patient) {
         RecipeSendRequestTO requestTO = new RecipeSendRequestTO();
         EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
         try {
@@ -281,7 +287,8 @@ public class HisRequestInit {
 
     }
 
-    public static RecipeSendRequestTO initRecipeSendRequestTO(Recipe recipe, List<Recipedetail> details, PatientBean patient) {
+
+    public RecipeSendRequestTO initRecipeSendRequestTO(Recipe recipe, List<Recipedetail> details, PatientBean patient) {
         RecipeSendRequestTO requestTO = new RecipeSendRequestTO();
         EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
         requestTO.setRecipeID(recipe.getRecipeId().toString());
@@ -295,10 +302,9 @@ public class HisRequestInit {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         try {
-            IDocIndexService docIndexService = ApplicationUtils.getBasicService(IDocIndexService.class);
+            IDocIndexService docIndexService = AppContextHolder.getBean("ecdr.docIndexService", IDocIndexService.class);
             Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
             requestTO.setMedicalInfoBean(medicalInfoBean);
-            DocIndexClient docIndexClient = DAOFactory.getDAO(DocIndexClient.class);
             EmrDetail emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
             requestTO.setIcdCode(emrDetail.getOrganDiseaseId());
             requestTO.setIcdName(emrDetail.getOrganDiseaseName());
@@ -514,7 +520,7 @@ public class HisRequestInit {
         return requestTO;
     }
 
-    public static RecipeRefundReqTO initRecipeRefundReqTO(Recipe recipe, List<Recipedetail> details, PatientBean patient, HealthCardBean card) {
+    public RecipeRefundReqTO initRecipeRefundReqTO(Recipe recipe, List<Recipedetail> details, PatientBean patient, HealthCardBean card) {
         RecipeRefundReqTO requestTO = new RecipeRefundReqTO();
         if (null != recipe) {
             requestTO.setOrganID(String.valueOf(recipe.getClinicOrgan()));
@@ -542,7 +548,7 @@ public class HisRequestInit {
         return requestTO;
     }
 
-    public static PayNotifyReqTO initPayNotifyReqTO(List<String> recipeIdList, Recipe recipe, PatientBean patient, HealthCardBean card) {
+    public PayNotifyReqTO initPayNotifyReqTO(List<String> recipeIdList, Recipe recipe, PatientBean patient, HealthCardBean card) {
         PayNotifyReqTO requestTO = new PayNotifyReqTO();
         try {
             requestTO.setOrganID((null != recipe.getClinicOrgan()) ? Integer.toString(recipe.getClinicOrgan()) : null);
@@ -764,7 +770,7 @@ public class HisRequestInit {
         return requestTO;
     }
 
-    public static RecipeStatusUpdateReqTO initRecipeStatusUpdateReqForWuChang(Recipe recipe, List<Recipedetail> list, PatientBean patient, HealthCardBean card) {
+    public RecipeStatusUpdateReqTO initRecipeStatusUpdateReqForWuChang(Recipe recipe, List<Recipedetail> list, PatientBean patient, HealthCardBean card) {
         RecipeStatusUpdateReqTO requestTO = new RecipeStatusUpdateReqTO();
         requestTO.setOrganID((null != recipe.getClinicOrgan()) ? Integer.toString(recipe.getClinicOrgan()) : null);
         requestTO.setRecipeNo(recipe.getRecipeCode());
@@ -795,7 +801,7 @@ public class HisRequestInit {
 
     }
 
-    public static RecipeStatusUpdateReqTO initRecipeStatusUpdateReqTO(Recipe recipe, List<Recipedetail> list, PatientBean patient, HealthCardBean card) {
+    public RecipeStatusUpdateReqTO initRecipeStatusUpdateReqTO(Recipe recipe, List<Recipedetail> list, PatientBean patient, HealthCardBean card) {
         RecipeStatusUpdateReqTO requestTO = new RecipeStatusUpdateReqTO();
         requestTO.setOrganID((null != recipe.getClinicOrgan()) ? Integer.toString(recipe.getClinicOrgan()) : null);
         requestTO.setRecipeNo(recipe.getRecipeCode());
@@ -845,7 +851,7 @@ public class HisRequestInit {
         return requestTO;
     }
 
-    public static RecipeAuditReqTO recipeAudit(Recipe recipe, PatientBean patientBean, CheckYsInfoBean resutlBean) {
+    public RecipeAuditReqTO recipeAudit(Recipe recipe, PatientBean patientBean, CheckYsInfoBean resutlBean) {
         RecipeAuditReqTO request = new RecipeAuditReqTO();
         EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
         DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
@@ -939,7 +945,7 @@ public class HisRequestInit {
             //审核成功后
             //创建处方新增请求体
             try {
-                RecipeSendRequestTO recipeInfo = HisRequestInit.initRecipeSendRequestTO(recipe, recipeDetailList, patientBean);
+                RecipeSendRequestTO recipeInfo = initRecipeSendRequestTO(recipe, recipeDetailList, patientBean);
                 request.setRecipeInfo(recipeInfo);
             } catch (Exception e) {
                 LOGGER.warn("recipeAudit create recipeSendInfo error. recipeId={}", recipe.getRecipeId(), e);
@@ -948,7 +954,7 @@ public class HisRequestInit {
         return request;
     }
 
-    public static List<String> getReasonDicList(List<Integer> reList) {
+    private List<String> getReasonDicList(List<Integer> reList) {
         List<String> reasonList = new ArrayList<>();
         try {
             Dictionary dictionary = DictionaryController.instance().get("eh.cdr.dictionary.Reason");
@@ -966,7 +972,7 @@ public class HisRequestInit {
         return reasonList;
     }
 
-    public static DocIndexToHisReqTO initDocIndexToHisReqTO(Recipe recipe) {
+    public DocIndexToHisReqTO initDocIndexToHisReqTO(Recipe recipe) {
         DocIndexToHisReqTO requestTO = new DocIndexToHisReqTO();
         try {
             requestTO.setOrganId(recipe.getClinicOrgan());
