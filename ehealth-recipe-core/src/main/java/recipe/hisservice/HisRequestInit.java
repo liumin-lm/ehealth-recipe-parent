@@ -295,7 +295,7 @@ public class HisRequestInit {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         try {
-            IDocIndexService docIndexService = ApplicationUtils.getBasicService(IDocIndexService.class);
+            IDocIndexService docIndexService = AppContextHolder.getBean("ecdr.docIndexService", IDocIndexService.class);
             Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
             requestTO.setMedicalInfoBean(medicalInfoBean);
             DocIndexClient docIndexClient = DAOFactory.getDAO(DocIndexClient.class);
