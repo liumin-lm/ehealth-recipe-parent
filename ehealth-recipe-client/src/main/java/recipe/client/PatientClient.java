@@ -36,7 +36,7 @@ public class PatientClient extends BaseClient {
      * @return
      */
     public PatientDTO getPatient(String mpiid) {
-        com.ngari.patient.dto.PatientDTO patient = patientService.getByMpiId(mpiid);
+        com.ngari.patient.dto.PatientDTO patient = patientService.get(mpiid);
         PatientDTO p = new PatientDTO();
         BeanUtils.copyProperties(patient, p);
         if (StringUtils.isNotEmpty(patient.getMobile())) {

@@ -1462,7 +1462,7 @@ public class RecipeServiceSub {
         DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
         map.put("checkEnterprise", drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan()));
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        PatientDTO patientBean = patientService.getByMpiId(recipe.getMpiid());
+        PatientDTO patientBean = patientService.get(recipe.getMpiid());
         PatientDTO patient = null;
         if (patientBean != null) {
             //添加患者标签和关注这些字段
