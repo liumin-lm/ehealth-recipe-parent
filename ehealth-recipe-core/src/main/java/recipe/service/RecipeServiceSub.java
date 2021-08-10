@@ -2441,6 +2441,9 @@ public class RecipeServiceSub {
             case RecipeStatusConstant.USING:
                 tips = "处理中";
                 break;
+            case RecipeStatusConstant.SIGN_ING_CODE_PHA:
+                tips = "处方正在审核中.";
+                break;
             default:
                 tips = "未知状态" + status;
 

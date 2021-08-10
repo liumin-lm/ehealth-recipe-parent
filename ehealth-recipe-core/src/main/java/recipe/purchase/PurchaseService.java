@@ -734,6 +734,9 @@ public class PurchaseService {
             case RECIPE_STATUS_DRUG_WITHDRAWAL:
                 tips = "药品已退药";
                 break;
+            case RECIPE_STATUS_SIGN_ING_CODE_PHA:
+                tips = "请耐心等待药师审核";
+                break;
             case RECIPE_STATUS_FINISH:
                 //特应性处理:下载处方，不需要审核,不更新payMode
                 if (ReviewTypeConstant.Not_Need_Check.equals(recipe.getReviewType()) && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())) {

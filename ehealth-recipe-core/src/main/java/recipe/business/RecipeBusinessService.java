@@ -23,22 +23,26 @@ import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
+import org.apache.commons.beanutils.BeanUtilsBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
-import recipe.ApplicationUtils;
+import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
+import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
 import com.ngari.recipe.recipe.model.PatientInfoDTO;
 import recipe.manager.HisRecipeManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
+import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -241,14 +245,28 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                 offLineRecipeDetailVO.setDepartName(departmentDTO.getName());
             }
             //处方药品信息
-            List<RecipeDetailTO> drugList = queryHisRecipResTO.getDrugList();
+            List<RecipeDetailTO> drugLists = queryHisRecipResTO.getDrugList();
+            List<RecipeDetailVO> recipeDetails = new ArrayList<>();
+
             BigDecimal totalPrice = BigDecimal.valueOf(0);
             //计算药品价格
-            if (!ObjectUtils.isEmpty(drugList)) {
-                for (RecipeDetailTO recipeDetailTO : drugList) {
-                    totalPrice = totalPrice.add(recipeDetailTO.getTotalPrice());
+            Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(clinicOrgan, queryHisRecipResTO.getRecipeType()));
+            if (!ObjectUtils.isEmpty(drugLists)) {
+                for (RecipeDetailTO drugList: drugLists) {
+                    totalPrice=totalPrice.add(drugList.getTotalPrice());
+                    RecipeDetailVO recipeDetailVO = new RecipeDetailVO();
+                    BeanUtils.copy(drugList,recipeDetailVO);
+                    //拼接中药名称
+                    if (RecipeTypeEnum.RECIPETYPE_WM.getType().equals(recipeType)){
+                        String drugName=recipeDetailVO.getDrugName()==null?" ":recipeDetailVO.getDrugName();
+                        String drugSpec = recipeDetailVO.getDrugSpec()==null?" ":recipeDetailVO.getDrugSpec();
+                        String drugUnit = recipeDetailVO.getDrugUnit() == null ? " " : recipeDetailVO.getDrugUnit();
+                        String drugForm = recipeDetailVO.getDrugForm() == null ? " " : recipeDetailVO.getDrugForm();
+                        recipeDetailVO.setDrugDisplaySplicedName(drugName+" "+drugSpec+"/"+drugUnit+drugForm);
+                    }
+                    recipeDetails.add(recipeDetailVO);
                 }
-                offLineRecipeDetailVO.setRecipeDetails(drugList);
+                offLineRecipeDetailVO.setRecipeDetails(recipeDetails);
                 offLineRecipeDetailVO.setTotalPrice(totalPrice);
             }
             //患者基本属性
