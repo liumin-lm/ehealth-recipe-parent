@@ -63,6 +63,7 @@ import recipe.bean.RecipePayModeSupportBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.IConfigurationClient;
+import recipe.client.OfflineRecipeClient;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.constant.*;
@@ -151,6 +152,9 @@ public class RecipeOrderService extends RecipeBaseService {
 
     @Autowired
     private IConfigurationCenterUtilsService configService;
+
+    @Autowired
+    private OfflineRecipeClient offlineRecipeClient;
 
 
     /**
@@ -1706,6 +1710,9 @@ public class RecipeOrderService extends RecipeBaseService {
                                 if (StringUtils.isNotEmpty(recipe.getRecipeCode())) {
                                     prb.setQrName(recipe.getRecipeCode());
                                 }
+                                break;
+                            case 6:
+                                prb.setQrName(offlineRecipeClient.queryRecipeSerialNumber(recipe.getClinicOrgan(), recipe.getPatientName(), recipe.getPatientID()));
                                 break;
                             default:
                                 break;
