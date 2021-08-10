@@ -1683,7 +1683,7 @@ public class RecipeServiceSub {
             }
             map.put("mergeRecipeFlag", mergeRecipeFlag);
             //Explain:审核是否通过
-            boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() && (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus())));
+            boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() && (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()|| RecipeStatusConstant.SIGN_ING_CODE_PHA == recipe.getStatus() && RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus())));
             map.put("optional", isOptional);
 
             //date 2190929
