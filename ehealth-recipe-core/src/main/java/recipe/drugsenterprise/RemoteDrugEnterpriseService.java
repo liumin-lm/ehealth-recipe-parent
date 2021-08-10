@@ -625,14 +625,12 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         //查询医院库存  药企配置：校验药品库存标志 0 不需要校验 1 校验药企库存 2 药店没库存时可以备货 3 校验医院库存
         //根据药品id查询
         if (drugsEnterprise != null && drugsEnterprise.getCheckInventoryFlag() != null && drugsEnterprise.getCheckInventoryFlag() == 3) {
-            RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             //通过机构Id查找对应药品库存列表
-            //List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIds(organId, Arrays.asList(drugId));
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
             DrugInfoResponseTO response = drugListExtService.getHisDrugStock(organId, organDrugLists, null);
             if (null == response) {
-                return "有库存";
+                return "无库存";
             } else {
                 //前置机返回0或者200
                 if (Integer.valueOf(0).equals(response.getMsgCode()) || Integer.valueOf(200).equals(response.getMsgCode())){
@@ -648,6 +646,9 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                         }
                     }
                 }else {
+                    if (StringUtils.isNotEmpty(response.getNoInventoryTip())) {
+                        return response.getNoInventoryTip();
+                    }
                     return "无库存";
                 }
             }
@@ -664,20 +665,26 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             LOGGER.info("getDrugInventory requestBean:{}.", JSONUtils.toString(scanRequestBean));
             HisResponseTO responseTO =  recipeEnterpriseService.scanStock(scanRequestBean);
             LOGGER.info("getDrugInventory responseTO:{}.", JSONUtils.toString(responseTO));
-            if (responseTO != null && responseTO.isSuccess()) {
+            if (null != responseTO && responseTO.isSuccess()) {
                 String inventor = (String)responseTO.getExtend().get("inventor");
                 if (StringUtils.isEmpty(inventor)) {
                     return "有库存";
                 }
                 return inventor;
             } else {
-                return "0";
+                if (null != responseTO) {
+                    String inventor = (String)responseTO.getExtend().get("inventor");
+                    if (StringUtils.isNotEmpty(inventor)) {
+                        return inventor;
+                    }
+                }
+                return "无库存";
             }
-        }else{//通过平台调用
+        } else {
             if (DrugEnterpriseResult.SUCCESS.equals(result.getCode()) && null != result.getAccessDrugEnterpriseService()) {
                 return  result.getAccessDrugEnterpriseService().getDrugInventory(drugId, drugsEnterprise, organId);
             } else {
-                return "0";
+                return "无库存";
             }
         }
 

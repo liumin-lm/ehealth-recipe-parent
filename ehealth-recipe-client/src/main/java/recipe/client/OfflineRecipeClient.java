@@ -150,6 +150,23 @@ public class OfflineRecipeClient extends BaseClient {
         return responseTo;
     }
 
+    /**
+     * 获取线下处方的发药流水号
+     * @param patientName  患者姓名
+     * @param patientId    患者病历号
+     * @return 发药流水号
+     */
+    public String queryRecipeSerialNumber(Integer organId, String patientName, String patientId){
+        logger.info("OfflineRecipeClient queryRecipeSerialNumber patientName:{}, patientId:{}", patientName, patientId);
+        try {
+            HisResponseTO<String> response = recipeHisService.queryRecipeSerialNumber(organId, patientName, patientId);
+            return getResponse(response);
+        } catch (Exception e) {
+            logger.error("OfflineRecipeClient queryRecipeSerialNumber hisResponse", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+
+    }
 
 
 

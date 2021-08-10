@@ -1,6 +1,7 @@
 package recipe.business;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
@@ -25,6 +26,7 @@ import ctd.util.JSONUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import recipe.ApplicationUtils;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
 import recipe.constant.ErrorCode;
@@ -194,7 +196,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         }
         //获取线下处方信息
         HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryData(clinicOrgan, patient, 6, 2, recipeCode);
-
         List<QueryHisRecipResTO> data = null;
         if (!ObjectUtils.isEmpty(hisRecipeInfos)) {
             data = hisRecipeInfos.getData();
@@ -212,13 +213,15 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         if (!ObjectUtils.isEmpty(queryHisRecipResTO)) {
             BeanUtils.copy(queryHisRecipResTO, offLineRecipeDetailVO);
             offLineRecipeDetailVO.setOrganDiseaseName(queryHisRecipResTO.getDiseaseName());
+            offLineRecipeDetailVO.setChronicDiseaseName(queryHisRecipResTO.getChronicDiseaseName());
+            offLineRecipeDetailVO.setCheckerName(queryHisRecipResTO.getCheckerName());
             //根据枚举设置处方类型
             Integer recipeType = queryHisRecipResTO.getRecipeType();
             String recipeTypeText = RecipeTypeEnum.getRecipeType(recipeType);
             offLineRecipeDetailVO.setRecipeTypeText(recipeTypeText);
             //判断是否为医保处方
             Integer medicalType = queryHisRecipResTO.getMedicalType();
-            if (medicalType == 2) {
+            if (!ObjectUtils.isEmpty(medicalType)&&medicalType.equals(2)){
                 offLineRecipeDetailVO.setMedicalTypeText("普通医保");
             }
 

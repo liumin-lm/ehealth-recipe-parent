@@ -578,7 +578,11 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             if (drugInfoTO.getStockAmount() == null){
                 amount = "有库存";
             }else {
-                amount = BigDecimal.valueOf(drugInfoTO.getStockAmount()).toPlainString();
+                if (drugInfoTO.getStockAmount() == 0.0) {
+                    amount = drugInfoTO.getNoInventoryTip();
+                } else {
+                    amount = BigDecimal.valueOf(drugInfoTO.getStockAmount()).toPlainString();
+                }
             }
             // 改成字符串返回
             pharmacyInventory.setAmount(amount);
