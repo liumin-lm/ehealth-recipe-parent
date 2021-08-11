@@ -88,10 +88,7 @@ import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
-import recipe.manager.EmrRecipeManager;
-import recipe.manager.GroupRecipeManager;
-import recipe.manager.HisRecipeManager;
-import recipe.manager.SignManager;
+import recipe.manager.*;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.recipecancel.RecipeCancelService;
@@ -146,6 +143,8 @@ public class RecipeServiceSub {
     private static RecipeListService recipeListService = ApplicationUtils.getRecipeService(RecipeListService.class);
 
     private static IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
+
+    private static RecipeManager recipeManager = AppContextHolder.getBean("recipeManager", RecipeManager.class);
 
     /**
      * @param recipeBean
@@ -1881,42 +1880,7 @@ public class RecipeServiceSub {
             }
         }
 
-        //根据运营平台配置的选项获取生成二维码的字段
-        try {
-            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            Integer qrTypeForRecipe = (Integer) configurationService.getConfiguration(recipe.getClinicOrgan(), "getQrTypeForRecipe");
-
-            switch (qrTypeForRecipe) {
-                case 1:
-                    //无
-                    break;
-                case 2:
-                    //就诊卡号
-                    if (StringUtils.isNotEmpty(recipeExtend.getCardNo())) {
-                        map.put("qrName", recipeExtend.getCardNo());
-                    }
-                    break;
-                case 3:
-                    if (StringUtils.isNotEmpty(recipeExtend.getRegisterID())) {
-                        map.put("qrName", recipeExtend.getRegisterID());
-                    }
-                    break;
-                case 4:
-                    if (StringUtils.isNotEmpty(recipe.getPatientID())) {
-                        map.put("qrName", recipe.getPatientID());
-                    }
-                    break;
-                case 5:
-                    if (StringUtils.isNotEmpty(recipe.getRecipeCode())) {
-                        map.put("qrName", recipe.getRecipeCode());
-                    }
-                    break;
-                default:
-                    break;
-            }
-        } catch (Exception e) {
-            LOGGER.error("获取运营平台处方支付配置异常", e);
-        }
+        map.put("qrName", recipeManager.getToHosProof(recipe, recipeExtend));
         if (recipe.getEnterpriseId() != null) {
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
