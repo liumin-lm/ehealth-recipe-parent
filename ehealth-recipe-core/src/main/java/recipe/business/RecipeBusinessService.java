@@ -10,10 +10,10 @@ import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.PatientService;
-import com.ngari.recipe.dto.DiseaseInfoDTO;
-import com.ngari.recipe.dto.OutPatientRecipeDTO;
-import com.ngari.recipe.dto.OutRecipeDetailDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -38,7 +38,9 @@ import recipe.manager.HisRecipeManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.MapValueUtil;
+
 import java.math.BigDecimal;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -76,8 +78,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     private DepartmentService departmentService;
 
-    @Autowired
-    private HisRecipeManager hisRecipeManager;
 
     /**
      * 获取线下门诊处方诊断信息
@@ -195,84 +195,57 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         if (ObjectUtils.isEmpty(patient)) {
             throw new DAOException(609, "患者信息不存在");
         }
-        //获取线下处方信息
-        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryData(clinicOrgan, patient, 6, 2, recipeCode);
-        if (ObjectUtils.isEmpty(hisRecipeInfos)){
-            throw new DAOException(609, "His查询返回结果为空");
+//        //获取线下处方信息
+        OffLineRecipeDetailDTO offLineRecipeDetailDTO = new OffLineRecipeDetailDTO();
+        QueryHisRecipResTO queryHisRecipResTO = offlineRecipeClient.queryOffLineRecipeDetail(offLineRecipeDetailDTO, clinicOrgan, patient, 6, 2, recipeCode);
+
+        //判断是否为儿科 设置部门名称
+        DepartmentDTO departmentDTO = departmentService.getByCodeAndOrgan(queryHisRecipResTO.getDepartCode(), queryHisRecipResTO.getClinicOrgan());
+        if (!ObjectUtils.isEmpty(departmentDTO)) {
+            if (departmentDTO.getName().contains("儿科") || departmentDTO.getName().contains("新生儿科")
+                    || departmentDTO.getName().contains("儿内科") || departmentDTO.getName().contains("儿外科")) {
+                offLineRecipeDetailDTO.setChildRecipeFlag(true);
+                //设置监护人字段
+                if (!ObjectUtils.isEmpty(patient)) {
+                    offLineRecipeDetailDTO.setGuardianName(patient.getGuardianName());
+                    offLineRecipeDetailDTO.setGuardianAge(patient.getGuardianAge());
+                    offLineRecipeDetailDTO.setGuardianSex(patient.getGuardianSex());
+                }
+            }
+            offLineRecipeDetailDTO.setDepartName(departmentDTO.getName());
         }
-        List<QueryHisRecipResTO> data = null;
-        if (!ObjectUtils.isEmpty(hisRecipeInfos)) {
-            data = hisRecipeInfos.getData();
-        } else {
-            throw new DAOException(609, "线下处方信息为空");
+        //处方药品信息
+        List<RecipeDetailTO> drugLists = queryHisRecipResTO.getDrugList();
+        List<RecipeDetailDTO> detailDTOS = new ArrayList<>();
+        BigDecimal totalPrice = BigDecimal.valueOf(0);
+        //计算药品价格
+        Integer recipeType = queryHisRecipResTO.getRecipeType();
+        Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(clinicOrgan, recipeType));
+        if (!ObjectUtils.isEmpty(drugLists)) {
+            for (RecipeDetailTO drugList : drugLists) {
+                totalPrice = totalPrice.add(drugList.getTotalPrice());
+                RecipeDetailDTO recipeDetailDTO = new RecipeDetailDTO();
+                BeanUtils.copy(drugList, recipeDetailDTO);
+                //拼接中药名称
+                if (RecipeTypeEnum.RECIPETYPE_WM.getType().equals(recipeType)) {
+                    recipeDetailDTO.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(recipeDetailDTO, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
+                }
+                detailDTOS.add(recipeDetailDTO);
+            }
+            offLineRecipeDetailDTO.setRecipeDetails(detailDTOS);
+            offLineRecipeDetailDTO.setTotalPrice(totalPrice);
         }
-        QueryHisRecipResTO queryHisRecipResTO = null;
-        if (!ObjectUtils.isEmpty(data)) {
-            queryHisRecipResTO = data.get(0);
+        //患者基本属性
+        if (!ObjectUtils.isEmpty(patient)) {
+            offLineRecipeDetailDTO.setPatientSex(patient.getPatientSex());
+            offLineRecipeDetailDTO.setPatientBirthday(patient.getBirthday());
         }
         OffLineRecipeDetailVO offLineRecipeDetailVO = new OffLineRecipeDetailVO();
-        //预留字段 后续实现电子病历业务使用
-        offLineRecipeDetailVO.setDocIndexId(null);
-        //设置返回字段
-        if (!ObjectUtils.isEmpty(queryHisRecipResTO)) {
-            BeanUtils.copy(queryHisRecipResTO, offLineRecipeDetailVO);
-            offLineRecipeDetailVO.setOrganDiseaseName(queryHisRecipResTO.getDiseaseName());
-            offLineRecipeDetailVO.setChronicDiseaseName(queryHisRecipResTO.getChronicDiseaseName());
-            offLineRecipeDetailVO.setCheckerName(queryHisRecipResTO.getCheckerName());
-            //根据枚举设置处方类型
-            Integer recipeType = queryHisRecipResTO.getRecipeType();
-            String recipeTypeText = RecipeTypeEnum.getRecipeType(recipeType);
-            offLineRecipeDetailVO.setRecipeTypeText(recipeTypeText);
-            //判断是否为医保处方
-            Integer medicalType = queryHisRecipResTO.getMedicalType();
-            if (!ObjectUtils.isEmpty(medicalType)&&medicalType.equals(2)){
-                offLineRecipeDetailVO.setMedicalTypeText("普通医保");
-            }
-
-            //判断是否为儿科 设置部门名称
-            DepartmentDTO departmentDTO = departmentService.getByCodeAndOrgan(queryHisRecipResTO.getDepartCode(), queryHisRecipResTO.getClinicOrgan());
-            if (!ObjectUtils.isEmpty(departmentDTO)) {
-                if (departmentDTO.getName().contains("儿科") || departmentDTO.getName().contains("新生儿科")
-                        || departmentDTO.getName().contains("儿内科") || departmentDTO.getName().contains("儿外科")) {
-                    offLineRecipeDetailVO.setChildRecipeFlag(true);
-                    //设置监护人字段
-                    if (!ObjectUtils.isEmpty(patient)) {
-                        offLineRecipeDetailVO.setGuardianName(patient.getGuardianName());
-                        offLineRecipeDetailVO.setGuardianAge(patient.getGuardianAge());
-                        offLineRecipeDetailVO.setGuardianSex(patient.getGuardianSex());
-                    }
-                }
-                offLineRecipeDetailVO.setDepartName(departmentDTO.getName());
-            }
-            //处方药品信息
-            List<RecipeDetailTO> drugLists = queryHisRecipResTO.getDrugList();
-            List<RecipeDetailVO> recipeDetails = new ArrayList<>();
-
-            BigDecimal totalPrice = BigDecimal.valueOf(0);
-            //计算药品价格
-            Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(clinicOrgan, recipeType));
-            if (!ObjectUtils.isEmpty(drugLists)) {
-                for (RecipeDetailTO drugList: drugLists) {
-                    totalPrice=totalPrice.add(drugList.getTotalPrice());
-                    RecipeDetailVO recipeDetailVO = new RecipeDetailVO();
-                    BeanUtils.copy(drugList,recipeDetailVO);
-                    //拼接中药名称
-                    if (RecipeTypeEnum.RECIPETYPE_WM.getType().equals(recipeType)) {
-                        recipeDetailVO.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(recipeDetailVO, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
-                    }
-                    recipeDetails.add(recipeDetailVO);
-                }
-                offLineRecipeDetailVO.setRecipeDetails(recipeDetails);
-                offLineRecipeDetailVO.setTotalPrice(totalPrice);
-            }
-            //患者基本属性
-            if (!ObjectUtils.isEmpty(patient)) {
-                offLineRecipeDetailVO.setPatientSex(patient.getPatientSex());
-                offLineRecipeDetailVO.setPatientBirthday(patient.getBirthday());
-            }
-        }
-
-        logger.info("RecipeBusinessService getOffLineRecipeDetails result={}", JSONUtils.toString(offLineRecipeDetailVO));
+        BeanUtils.copy(offLineRecipeDetailDTO,offLineRecipeDetailVO);
+        logger.info("RecipeBusinessService getOffLineRecipeDetails result={}", JSONUtils.toString(offLineRecipeDetailDTO));
         return offLineRecipeDetailVO;
     }
+
+
 }
+
