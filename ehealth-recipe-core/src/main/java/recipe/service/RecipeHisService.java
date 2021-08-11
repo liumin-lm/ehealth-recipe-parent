@@ -104,6 +104,8 @@ public class RecipeHisService extends RecipeBaseService {
     RecipeRetryService recipeRetryService;
     @Resource
     private PharmacyTcmDAO pharmacyTcmDAO;
+    @Autowired
+    private HisRequestInit hisRequestInit;
 
     /**
      * 发送处方
@@ -152,13 +154,13 @@ public class RecipeHisService extends RecipeBaseService {
         List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
         PatientBean patientBean = iPatientService.get(recipe.getMpiid());
         //创建请求体
-        RecipeSendRequestTO request = HisRequestInit.initRecipeSendRequestTO(recipe, details, patientBean);
+        RecipeSendRequestTO request = hisRequestInit.initRecipeSendRequestTO(recipe, details, patientBean);
         //是否是武昌机构，替换请求体
         Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_WUCHANG_ORGAN_LIST);
         if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(sendOrganId.toString())) {
-            request = HisRequestInit.initRecipeSendRequestTOForWuChang(recipe, details, patientBean);
+            request = hisRequestInit.initRecipeSendRequestTOForWuChang(recipe, details, patientBean);
             //发送电子病历
-            DocIndexToHisReqTO docIndexToHisReqTO = HisRequestInit.initDocIndexToHisReqTO(recipe);
+            DocIndexToHisReqTO docIndexToHisReqTO = hisRequestInit.initDocIndexToHisReqTO(recipe);
             HisResponseTO<DocIndexToHisResTO> hisResponseTO = service.docIndexToHis(docIndexToHisReqTO);
             if (hisResponseTO != null) {
                 if ("200".equals(hisResponseTO.getMsgCode())) {
@@ -248,11 +250,11 @@ public class RecipeHisService extends RecipeBaseService {
             try {
                 PatientBean patientBean = iPatientService.get(recipe.getMpiid());
                 HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
-                RecipeStatusUpdateReqTO request = HisRequestInit.initRecipeStatusUpdateReqTO(recipe, details, patientBean, cardBean);
+                RecipeStatusUpdateReqTO request = hisRequestInit.initRecipeStatusUpdateReqTO(recipe, details, patientBean, cardBean);
                 //是否是武昌机构，替换请求体
                 Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_WUCHANG_ORGAN_LIST);
                 if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(sendOrganId.toString())) {
-                    request = HisRequestInit.initRecipeStatusUpdateReqForWuChang(recipe, details, patientBean, cardBean);
+                    request = hisRequestInit.initRecipeStatusUpdateReqForWuChang(recipe, details, patientBean, cardBean);
                 }
                 request.setOrganID(sendOrganId.toString());
                 if (StringUtils.isNotEmpty(hisRecipeStatus)) {
@@ -316,7 +318,7 @@ public class RecipeHisService extends RecipeBaseService {
             List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
             PatientBean patientBean = iPatientService.get(recipe.getMpiid());
             HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
-            RecipeRefundReqTO request = HisRequestInit.initRecipeRefundReqTO(recipe, details, patientBean, cardBean);
+            RecipeRefundReqTO request = hisRequestInit.initRecipeRefundReqTO(recipe, details, patientBean, cardBean);
 
             RecipeRefundResTO response = service.recipeRefund(request);
             if (null == response || null == response.getMsgCode()) {
@@ -441,7 +443,7 @@ public class RecipeHisService extends RecipeBaseService {
                 return true;
             }
             List<String> recipeIdList = (List<String>) JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
-            PayNotifyReqTO payNotifyReq = HisRequestInit.initPayNotifyReqTO(recipeIdList, recipe, patientBean, cardBean);
+            PayNotifyReqTO payNotifyReq = hisRequestInit.initPayNotifyReqTO(recipeIdList, recipe, patientBean, cardBean);
             PayNotifyResTO response = null;
             try {
                 //如果异常重试处理
@@ -518,7 +520,7 @@ public class RecipeHisService extends RecipeBaseService {
             List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
             PatientBean patientBean = iPatientService.get(recipe.getMpiid());
             HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
-            RecipeStatusUpdateReqTO request = HisRequestInit.initRecipeStatusUpdateReqTO(recipe, details, patientBean, cardBean);
+            RecipeStatusUpdateReqTO request = hisRequestInit.initRecipeStatusUpdateReqTO(recipe, details, patientBean, cardBean);
 
             String memo = "";
             if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())) {
@@ -1097,7 +1099,7 @@ public class RecipeHisService extends RecipeBaseService {
         if (isHisEnable(recipe.getClinicOrgan())) {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
             PatientBean patientBean = iPatientService.get(recipe.getMpiid());
-            RecipeAuditReqTO request = HisRequestInit.recipeAudit(recipe, patientBean, resutlBean);
+            RecipeAuditReqTO request = hisRequestInit.recipeAudit(recipe, patientBean, resutlBean);
             LOGGER.info("recipeAudit req={}", JSONUtils.toString(request));
             HisResponseTO response = service.recipeAudit(request);
             LOGGER.info("recipeAudit res={}", JSONUtils.toString(response));
@@ -1128,7 +1130,7 @@ public class RecipeHisService extends RecipeBaseService {
         }
         if (isHisEnable(recipe.getClinicOrgan())) {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-            DocIndexToHisReqTO request = HisRequestInit.initDocIndexToHisReqTO(recipe);
+            DocIndexToHisReqTO request = hisRequestInit.initDocIndexToHisReqTO(recipe);
             service.docIndexToHis(request);
             return result;
         } else {
