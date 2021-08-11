@@ -199,39 +199,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         OffLineRecipeDetailDTO offLineRecipeDetailDTO = new OffLineRecipeDetailDTO();
         QueryHisRecipResTO queryHisRecipResTO = offlineRecipeClient.queryOffLineRecipeDetail(offLineRecipeDetailDTO, clinicOrgan, patient, 6, 2, recipeCode);
 
-
-//        if (ObjectUtils.isEmpty(hisRecipeInfos)){
-//            throw new DAOException(609, "His查询返回结果为空");
-//        }
-//        List<QueryHisRecipResTO> data = null;
-//        if (!ObjectUtils.isEmpty(hisRecipeInfos)) {
-//            data = hisRecipeInfos.getData();
-//        } else {
-//            throw new DAOException(609, "线下处方信息为空");
-//        }
-//        QueryHisRecipResTO queryHisRecipResTO = null;
-//        if (!ObjectUtils.isEmpty(data)) {
-//            queryHisRecipResTO = data.get(0);
-//        }
-//        OffLineRecipeDetailVO offLineRecipeDetailVO = new OffLineRecipeDetailVO();
-//        //预留字段 后续实现电子病历业务使用
-//        offLineRecipeDetailVO.setDocIndexId(null);
-        //设置返回字段
-//        if (!ObjectUtils.isEmpty(queryHisRecipResTO)) {
-//            BeanUtils.copy(queryHisRecipResTO, offLineRecipeDetailVO);
-//            offLineRecipeDetailVO.setOrganDiseaseName(queryHisRecipResTO.getDiseaseName());
-//            offLineRecipeDetailVO.setChronicDiseaseName(queryHisRecipResTO.getChronicDiseaseName());
-//            offLineRecipeDetailVO.setCheckerName(queryHisRecipResTO.getCheckerName());
-//            //根据枚举设置处方类型
-//            Integer recipeType = queryHisRecipResTO.getRecipeType();
-//            String recipeTypeText = RecipeTypeEnum.getRecipeType(recipeType);
-//            offLineRecipeDetailVO.setRecipeTypeText(recipeTypeText);
-//            //判断是否为医保处方
-//            Integer medicalType = queryHisRecipResTO.getMedicalType();
-//            if (!ObjectUtils.isEmpty(medicalType)&&medicalType.equals(2)){
-//                offLineRecipeDetailVO.setMedicalTypeText("普通医保");
-//            }
-
         //判断是否为儿科 设置部门名称
         DepartmentDTO departmentDTO = departmentService.getByCodeAndOrgan(queryHisRecipResTO.getDepartCode(), queryHisRecipResTO.getClinicOrgan());
         if (!ObjectUtils.isEmpty(departmentDTO)) {
