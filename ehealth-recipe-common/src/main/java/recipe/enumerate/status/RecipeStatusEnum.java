@@ -62,6 +62,7 @@ public enum RecipeStatusEnum {
     private String name;
     private String desc;
     private static List<Integer> recipeStatusCheckList = Arrays.asList(RECIPE_STATUS_SIGN_ING_CODE_PHA.type, RECIPE_STATUS_READY_CHECK_YS.type,RECIPE_STATUS_CHECK_PASS.type,RECIPE_STATUS_SIGN_NO_CODE_PHA.type,RECIPE_STATUS_SIGN_ERROR_CODE_PHA.type);
+    private static List<Integer> recipeStatusShowList = Arrays.asList(RECIPE_STATUS_SIGN_ING_CODE_PHA.type, RECIPE_STATUS_READY_CHECK_YS.type,RECIPE_STATUS_SIGN_NO_CODE_PHA.type,RECIPE_STATUS_SIGN_ERROR_CODE_PHA.type);
 
     RecipeStatusEnum(Integer type, String name, String desc) {
         this.type = type;
@@ -122,6 +123,18 @@ public enum RecipeStatusEnum {
      */
    public static Boolean getCheckStatusFlag(Integer type){
         if(recipeStatusCheckList.contains(type)){
+            return true;
+        }else {
+            return false;
+        }
+   }
+    /**
+     * 查询处方状态是否需要展示按钮
+     * @param type
+     * @return
+     */
+   public static Boolean getCheckShowFlag(Integer type){
+        if(recipeStatusShowList.contains(type)){
             return true;
         }else {
             return false;

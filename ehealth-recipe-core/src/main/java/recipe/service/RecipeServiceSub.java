@@ -1682,8 +1682,8 @@ public class RecipeServiceSub {
             }
             map.put("mergeRecipeFlag", mergeRecipeFlag);
             //Explain:审核是否通过
-            boolean isOptional = !(RecipeStatusEnum.getCheckStatusFlag(recipe.getStatus()) ||
-                    RecipecCheckStatusConstant.First_Check_No_Pass.equals(recipe.getCheckStatus())) && null == recipe.getOrderCode();
+            boolean isOptional = !(RecipeStatusEnum.getCheckShowFlag(recipe.getStatus()) ||
+                    RecipecCheckStatusConstant.First_Check_No_Pass.equals(recipe.getCheckStatus()) && ReviewTypeConstant.Preposition_Check == recipe.getReviewType());
             map.put("optional", isOptional);
 
             //date 2190929
