@@ -1712,7 +1712,7 @@ public class RecipeOrderService extends RecipeBaseService {
                                 }
                                 break;
                             case 6:
-                                prb.setQrName(offlineRecipeClient.queryRecipeSerialNumber(recipe.getClinicOrgan(), recipe.getPatientName(), recipe.getPatientID()));
+                                prb.setQrName(offlineRecipeClient.queryRecipeSerialNumber(recipe.getClinicOrgan(), recipe.getPatientName(), recipe.getPatientID(), recipeExtend.getRegisterID()));
                                 break;
                             default:
                                 break;

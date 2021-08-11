@@ -156,11 +156,16 @@ public class OfflineRecipeClient extends BaseClient {
      * @param patientId    患者病历号
      * @return 发药流水号
      */
-    public String queryRecipeSerialNumber(Integer organId, String patientName, String patientId){
-        logger.info("OfflineRecipeClient queryRecipeSerialNumber patientName:{}, patientId:{}", patientName, patientId);
+    public String queryRecipeSerialNumber(Integer organId, String patientName, String patientId, String registerID){
         try {
-            HisResponseTO<String> response = recipeHisService.queryRecipeSerialNumber(organId, patientName, patientId);
-            return getResponse(response);
+            PatientDiseaseInfoTO patientDiseaseInfoTO = new PatientDiseaseInfoTO();
+            patientDiseaseInfoTO.setOrganId(organId);
+            patientDiseaseInfoTO.setPatientId(patientId);
+            patientDiseaseInfoTO.setPatientName(patientName);
+            patientDiseaseInfoTO.setRegisterID(registerID);
+            logger.info("OfflineRecipeClient queryRecipeSerialNumber patientDiseaseInfoTO:{}.", JSON.toJSONString(patientDiseaseInfoTO));
+            HisResponseTO response = recipeHisService.queryRecipeSerialNumber(patientDiseaseInfoTO);
+            return getResponse(response).toString();
         } catch (Exception e) {
             logger.error("OfflineRecipeClient queryRecipeSerialNumber hisResponse", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
