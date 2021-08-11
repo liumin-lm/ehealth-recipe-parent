@@ -735,6 +735,8 @@ public class PurchaseService {
                 tips = "药品已退药";
                 break;
             case RECIPE_STATUS_SIGN_ING_CODE_PHA:
+            case RECIPE_STATUS_SIGN_NO_CODE_PHA:
+            case RECIPE_STATUS_SIGN_ERROR_CODE_PHA:
                 tips = "请耐心等待药师审核";
                 break;
             case RECIPE_STATUS_FINISH:
