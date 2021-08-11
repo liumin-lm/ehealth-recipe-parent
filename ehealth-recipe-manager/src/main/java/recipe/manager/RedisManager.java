@@ -46,7 +46,7 @@ public class RedisManager extends BaseManager {
     public CoOrdinateVO getPdfCoordsHeight(Integer recipeId, String coordsName) {
         CoOrdinateVO coOrdinate = getPdfCoords(recipeId, coordsName);
         if (null != coOrdinate) {
-            coOrdinate.setY(507 - coOrdinate.getY());
+            coOrdinate.setY(499 - coOrdinate.getY());
             coOrdinate.setX(coOrdinate.getX() + 5);
             return coOrdinate;
         }
