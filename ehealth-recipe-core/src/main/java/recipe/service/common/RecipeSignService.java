@@ -399,7 +399,7 @@ public class RecipeSignService {
             if (continueFlag == 0 || continueFlag == 4) {
                 rMap = drugStockBusinessService.doSignRecipeCheckAndGetGiveMode(recipeBean);
                 boolean signResult = Boolean.parseBoolean(rMap.get("signResult").toString());
-                if (signResult) {
+                if (!signResult) {
                     return rMap;
                 }
             }
