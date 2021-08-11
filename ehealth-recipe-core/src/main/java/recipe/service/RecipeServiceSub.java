@@ -1534,9 +1534,13 @@ public class RecipeServiceSub {
                 for (int i = 0; i < mapList.size(); i++) {
                     Map<String, Object> notPassMap = mapList.get(i);
                     List<RecipeDetailBean> recipeDetailBeans = (List<RecipeDetailBean>) notPassMap.get("checkNotPassDetails");
-                    /*for (RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
-                        RecipeValidateUtil.setUsingRateIdAndUsePathwaysId(recipe, recipeDetailBean);
-                    }*/
+                    try {
+                        for (RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
+                            RecipeValidateUtil.setUsingRateIdAndUsePathwaysId(recipe, recipeDetailBean);
+                        }
+                    } catch (Exception e) {
+                        LOGGER.info("RecipeServiceSub  setUsingRateIdAndUsePathwaysId error", e);
+                    }
                 }
             }
             map.put("reasonAndDetails", mapList);
