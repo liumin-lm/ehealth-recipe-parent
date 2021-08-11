@@ -2146,7 +2146,7 @@ public class RecipeServiceSub {
                 && (null == map.get("supportMedicalPayment")))) {
             if (ReviewTypeConstant.Preposition_Check == recipe.getReviewType()) {
                 //待药师审核，审核一次不通过，待处理无订单
-                if (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus() || (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode())) {
+                if ((RecipeStatusEnum.getCheckStatusFlag(recipe.getStatus()) || RecipecCheckStatusConstant.First_Check_No_Pass.equals(recipe.getCheckStatus())) && null == recipe.getOrderCode()) {
                     showButton = true;
                 }
             } else {
