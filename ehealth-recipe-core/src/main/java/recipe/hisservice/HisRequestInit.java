@@ -69,6 +69,9 @@ public class HisRequestInit {
     @Autowired
     private DocIndexClient docIndexClient;
 
+    @Autowired
+    private IDocIndexService docIndexService;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(HisRequestInit.class);
 
     public RecipeSendRequestTO initRecipeSendRequestTOForWuChang(Recipe recipe, List<Recipedetail> details, PatientBean patient) {
@@ -302,7 +305,6 @@ public class HisRequestInit {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         try {
-            IDocIndexService docIndexService = AppContextHolder.getBean("ecdr.docIndexService", IDocIndexService.class);
             Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
             requestTO.setMedicalInfoBean(medicalInfoBean);
             EmrDetail emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
