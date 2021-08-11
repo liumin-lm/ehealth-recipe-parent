@@ -20,6 +20,7 @@ import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.follow.service.IRelationLabelService;
 import com.ngari.follow.service.IRelationPatientService;
+import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.follow.vo.RelationDoctorVO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
@@ -1533,7 +1534,8 @@ public class RecipeServiceSub {
             if (!ObjectUtils.isEmpty(mapList)) {
                 for (int i = 0; i < mapList.size(); i++) {
                     Map<String, Object> notPassMap = mapList.get(i);
-                    List<RecipeDetailBean> recipeDetailBeans = (List<RecipeDetailBean>) notPassMap.get("checkNotPassDetails");
+                    List results = (List)notPassMap.get("checkNotPassDetails");
+                    List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtil.convert(results, RecipeDetailBean.class);
                     try {
                         for (RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
                             RecipeValidateUtil.setUsingRateIdAndUsePathwaysId(recipe, recipeDetailBean);
