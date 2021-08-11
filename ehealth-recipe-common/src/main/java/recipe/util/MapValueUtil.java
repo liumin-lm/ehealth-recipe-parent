@@ -262,6 +262,7 @@ public class MapValueUtil {
             }
             map.put(key.toString(), beanMap.get(key));
         }
+        logger.info("MapValueUtil beanToMap bean res :{}", JSON.toJSONString(map));
         return map;
     }
 

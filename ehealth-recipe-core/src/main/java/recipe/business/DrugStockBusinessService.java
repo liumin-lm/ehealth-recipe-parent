@@ -73,6 +73,7 @@ public class DrugStockBusinessService extends BaseService {
      * @return
      */
     public Map<String, Object> doSignRecipeCheckAndGetGiveMode(RecipeBean recipe) {
+        logger.info("进入 DrugStockBusinessService.doSignRecipeCheckAndGetGiveMode recipeId ={}" ,recipe.getRecipeId());
         Integer recipeId = recipe.getRecipeId();
         DoSignRecipeDTO doSignRecipe = new DoSignRecipeDTO(true, false, null, "", recipeId, null);
 
@@ -146,6 +147,7 @@ public class DrugStockBusinessService extends BaseService {
      * @return
      */
     private List<String> configurations(RecipeBean recipe) {
+        logger.info("DrugStockBusinessService.configurations recipeId={} organId={}",recipe.getRecipeId(),recipe.getClinicOrgan());
         //添加按钮配置项key
         GiveModeShowButtonVO giveModeShowButtonVO = GiveModeFactory.getGiveModeBaseByRecipe(recipeDAO.getByRecipeId(recipe.getRecipeId())).getGiveModeSettingFromYypt(recipe.getClinicOrgan());
         List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
@@ -157,6 +159,7 @@ public class DrugStockBusinessService extends BaseService {
         if (CollectionUtils.isEmpty(configurations)) {
             return null;
         }
+        logger.info("DrugStockBusinessService.configurations res={}",JSONArray.toJSONString(configurations));
         return configurations;
     }
 
