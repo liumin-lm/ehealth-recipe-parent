@@ -38,7 +38,6 @@ import recipe.manager.HisRecipeManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.MapValueUtil;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -193,11 +192,14 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public OffLineRecipeDetailVO getOffLineRecipeDetails(String mpiId, Integer clinicOrgan, String recipeCode) {
         logger.info("RecipeBusinessService getOffLineRecipeDetails mpiId={},clinicOrgan={},recipeCode={}", mpiId, clinicOrgan, recipeCode);
         PatientDTO patient = patientService.getPatientByMpiId(mpiId);
-        if (null == patient) {
+        if (ObjectUtils.isEmpty(patient)) {
             throw new DAOException(609, "患者信息不存在");
         }
         //获取线下处方信息
         HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryData(clinicOrgan, patient, 6, 2, recipeCode);
+        if (ObjectUtils.isEmpty(hisRecipeInfos)){
+            throw new DAOException(609, "His查询返回结果为空");
+        }
         List<QueryHisRecipResTO> data = null;
         if (!ObjectUtils.isEmpty(hisRecipeInfos)) {
             data = hisRecipeInfos.getData();
@@ -223,7 +225,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             offLineRecipeDetailVO.setRecipeTypeText(recipeTypeText);
             //判断是否为医保处方
             Integer medicalType = queryHisRecipResTO.getMedicalType();
-            if (!ObjectUtils.isEmpty(medicalType) && medicalType.equals(2)) {
+            if (!ObjectUtils.isEmpty(medicalType)&&medicalType.equals(2)){
                 offLineRecipeDetailVO.setMedicalTypeText("普通医保");
             }
 
@@ -250,10 +252,10 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             //计算药品价格
             Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(clinicOrgan, recipeType));
             if (!ObjectUtils.isEmpty(drugLists)) {
-                for (RecipeDetailTO drugList : drugLists) {
-                    totalPrice = totalPrice.add(drugList.getTotalPrice());
+                for (RecipeDetailTO drugList: drugLists) {
+                    totalPrice=totalPrice.add(drugList.getTotalPrice());
                     RecipeDetailVO recipeDetailVO = new RecipeDetailVO();
-                    BeanUtils.copy(drugList, recipeDetailVO);
+                    BeanUtils.copy(drugList,recipeDetailVO);
                     //拼接中药名称
                     if (RecipeTypeEnum.RECIPETYPE_WM.getType().equals(recipeType)) {
                         recipeDetailVO.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(recipeDetailVO, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));

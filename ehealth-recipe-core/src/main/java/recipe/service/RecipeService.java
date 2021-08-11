@@ -3577,7 +3577,12 @@ public class RecipeService extends RecipeBaseService {
         return result;
     }
 
-    @RpcService
+    /**
+     * 健康端获取处方详情
+     *
+     * @param recipeId
+     * @return
+     */
     public Map<String, Object> getPatientRecipeByIdForOfflineRecipe(int recipeId) {
         Map<String, Object> result = getRecipeAndDetailByIdImpl(recipeId, false);
         PatientDTO patient = (PatientDTO) result.get("patient");
