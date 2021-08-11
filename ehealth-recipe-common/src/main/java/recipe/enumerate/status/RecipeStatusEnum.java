@@ -61,7 +61,7 @@ public enum RecipeStatusEnum {
     private Integer type;
     private String name;
     private String desc;
-    private static List<Integer> recipeStatusCheckList = Arrays.asList(RECIPE_STATUS_SIGN_ING_CODE_PHA.type, RECIPE_STATUS_READY_CHECK_YS.type,RECIPE_STATUS_CHECK_PASS.type);
+    private static List<Integer> recipeStatusCheckList = Arrays.asList(RECIPE_STATUS_SIGN_ING_CODE_PHA.type, RECIPE_STATUS_READY_CHECK_YS.type,RECIPE_STATUS_CHECK_PASS.type,RECIPE_STATUS_SIGN_NO_CODE_PHA.type,RECIPE_STATUS_SIGN_ERROR_CODE_PHA.type);
 
     RecipeStatusEnum(Integer type, String name, String desc) {
         this.type = type;
