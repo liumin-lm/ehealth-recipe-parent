@@ -1539,7 +1539,7 @@ public class RecipeServiceSub {
                             RecipeValidateUtil.setUsingRateIdAndUsePathwaysId(recipe, recipeDetailBean);
                         }
                     } catch (Exception e) {
-                        LOGGER.info("RecipeServiceSub  setUsingRateIdAndUsePathwaysId error", e);
+                        LOGGER.error("RecipeServiceSub  setUsingRateIdAndUsePathwaysId error", e);
                     }
                 }
             }
