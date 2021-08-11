@@ -180,7 +180,7 @@ public class RecipeManager extends BaseManager {
                 }
                 break;
             case 6:
-                qrName = offlineRecipeClient.queryRecipeSerialNumber(recipe.getClinicOrgan(), recipe.getPatientName(), recipe.getPatientID(), recipeExtend.getRegisterID());
+                
             default:
                 break;
         }
