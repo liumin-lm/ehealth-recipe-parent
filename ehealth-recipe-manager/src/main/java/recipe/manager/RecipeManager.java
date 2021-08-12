@@ -154,35 +154,39 @@ public class RecipeManager extends BaseManager {
      */
     public String getToHosProof(Recipe recipe, RecipeExtend recipeExtend){
         String qrName = "";
-        Integer qrTypeForRecipe = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "getQrTypeForRecipe", 1);
-        switch (qrTypeForRecipe) {
-            case 1:
-                break;
-            case 2:
-                //就诊卡号
-                if (StringUtils.isNotEmpty(recipeExtend.getCardNo())) {
-                    qrName = recipeExtend.getCardNo();
-                }
-                break;
-            case 3:
-                if (StringUtils.isNotEmpty(recipeExtend.getRegisterID())) {
-                    qrName = recipeExtend.getRegisterID();
-                }
-                break;
-            case 4:
-                if (StringUtils.isNotEmpty(recipe.getPatientID())) {
-                    qrName = recipe.getPatientID();
-                }
-                break;
-            case 5:
-                if (StringUtils.isNotEmpty(recipe.getRecipeCode())) {
-                    qrName = recipe.getRecipeCode();
-                }
-                break;
-            case 6:
-                
-            default:
-                break;
+        try {
+            Integer qrTypeForRecipe = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "getQrTypeForRecipe", 1);
+            switch (qrTypeForRecipe) {
+                case 1:
+                    break;
+                case 2:
+                    //就诊卡号
+                    if (StringUtils.isNotEmpty(recipeExtend.getCardNo())) {
+                        qrName = recipeExtend.getCardNo();
+                    }
+                    break;
+                case 3:
+                    if (StringUtils.isNotEmpty(recipeExtend.getRegisterID())) {
+                        qrName = recipeExtend.getRegisterID();
+                    }
+                    break;
+                case 4:
+                    if (StringUtils.isNotEmpty(recipe.getPatientID())) {
+                        qrName = recipe.getPatientID();
+                    }
+                    break;
+                case 5:
+                    if (StringUtils.isNotEmpty(recipe.getRecipeCode())) {
+                        qrName = recipe.getRecipeCode();
+                    }
+                    break;
+                case 6:
+                    qrName = offlineRecipeClient.queryRecipeSerialNumber(recipe.getClinicOrgan(),recipe.getPatientName(),recipe.getPatientID(),recipeExtend.getRegisterID());
+                default:
+                    break;
+            }
+        } catch (Exception e) {
+            logger.error("RecipeManager getToHosProof error", e);
         }
         return qrName;
     }
