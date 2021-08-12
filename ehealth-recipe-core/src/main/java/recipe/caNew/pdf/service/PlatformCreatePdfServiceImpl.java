@@ -183,7 +183,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         }
         //条形码
         CoOrdinateVO ordinate = barcodeVO(recipe);
-        return CreateRecipePdfUtil.generateOrdinateListAndBarcode(recipe.getSignFile(), coOrdinateList, ordinate);
+        return CreateRecipePdfUtil.generateOrdinateListAndBarcode(fileId, coOrdinateList, ordinate);
     }
 
 
