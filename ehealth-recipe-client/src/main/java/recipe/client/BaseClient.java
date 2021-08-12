@@ -2,6 +2,7 @@ package recipe.client;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import ctd.persistence.exception.DAOException;
 import org.slf4j.Logger;
@@ -19,6 +20,8 @@ public class BaseClient {
     protected final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     protected IRecipeHisService recipeHisService;
+    @Autowired
+    protected IPatientHisService patientHisService;
 
 
     /**
