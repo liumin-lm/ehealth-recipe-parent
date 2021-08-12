@@ -91,10 +91,13 @@ public class DrugStockBusinessService extends BaseService {
 
         //获取按钮
         List<String> configurations = configurations(recipe);
+        if(CollectionUtils.isEmpty(configurations)){
+            drugStockManager.doSignRecipe(doSignRecipe, null, "抱歉，机构未配置购药方式，无法开处方");
+            return MapValueUtil.beanToMap(doSignRecipe);
+        }
         //获取校验何种类型库存
         Integer checkFlag = RecipeSupportGiveModeEnum.checkFlag(configurations);
         if (ValidateUtil.integerIsEmpty(checkFlag)) {
-            drugStockManager.doSignRecipe(doSignRecipe, null, "抱歉，机构未配置购药方式，无法开处方");
             return MapValueUtil.beanToMap(doSignRecipe);
         }
         logger.info("doSignRecipeCheckAndGetGiveMode recipeId={}, checkFlag={}", recipeId, checkFlag);
