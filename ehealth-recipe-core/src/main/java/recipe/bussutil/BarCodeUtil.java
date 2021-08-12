@@ -68,6 +68,7 @@ public class BarCodeUtil {
         bean.doQuietZone(false);
         // 设置文本位置（包括是否显示）
         bean.setMsgPosition(HumanReadablePlacement.HRP_BOTTOM);
+        bean.setFontSize(6);
         // 输出到流
         BitmapCanvasProvider canvas = new BitmapCanvasProvider(ous, "image/png", dpi, BufferedImage.TYPE_BYTE_BINARY, false, 0);
         // 生成条形码
