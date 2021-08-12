@@ -3598,7 +3598,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                             " LEFT JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode " +
                             " LEFT JOIN cdr_recipe_ext e ON r.RecipeID = e.recipeId " +
                             " WHERE " +
-                            " r.STATUS IN ( 2,8,27,31 ) " +
+                            " r.STATUS IN ( 2,8,27,31,32 ) " +
                             " AND r.mpiid IN ( :allMpiIds )" +
                             " AND r.recipeSourceType = 1 " +
                             " AND r.orderCode IS NOT NULL");
