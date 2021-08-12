@@ -83,9 +83,6 @@ public enum RecipeSupportGiveModeEnum {
      * @return
      */
     public static Integer checkFlag(List<String> configurations) {
-        if (CollectionUtils.isEmpty(configurations)) {
-            return DrugStockCheckEnum.NO_CHECK_STOCK.getType();
-        }
         int hospital = DrugStockCheckEnum.NO_CHECK_STOCK.getType();
         int enterprise = DrugStockCheckEnum.NO_CHECK_STOCK.getType();
         for (String a : configurations) {

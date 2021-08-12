@@ -20,6 +20,7 @@ import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.follow.service.IRelationLabelService;
 import com.ngari.follow.service.IRelationPatientService;
+import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.follow.vo.RelationDoctorVO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
@@ -1533,10 +1534,15 @@ public class RecipeServiceSub {
             if (!ObjectUtils.isEmpty(mapList)) {
                 for (int i = 0; i < mapList.size(); i++) {
                     Map<String, Object> notPassMap = mapList.get(i);
-                    List<RecipeDetailBean> recipeDetailBeans = (List<RecipeDetailBean>) notPassMap.get("checkNotPassDetails");
-                    /*for (RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
-                        RecipeValidateUtil.setUsingRateIdAndUsePathwaysId(recipe, recipeDetailBean);
-                    }*/
+                    List results = (List)notPassMap.get("checkNotPassDetails");
+                    List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtil.convert(results, RecipeDetailBean.class);
+                    try {
+                        for (RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
+                            RecipeValidateUtil.setUsingRateIdAndUsePathwaysId(recipe, recipeDetailBean);
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error("RecipeServiceSub  setUsingRateIdAndUsePathwaysId error", e);
+                    }
                 }
             }
             map.put("reasonAndDetails", mapList);
@@ -1682,8 +1688,8 @@ public class RecipeServiceSub {
             }
             map.put("mergeRecipeFlag", mergeRecipeFlag);
             //Explain:审核是否通过
-            boolean isOptional = !(RecipeStatusEnum.getCheckStatusFlag(recipe.getStatus()) ||
-                    RecipecCheckStatusConstant.First_Check_No_Pass.equals(recipe.getCheckStatus())) && null == recipe.getOrderCode();
+            boolean isOptional = !(RecipeStatusEnum.getCheckShowFlag(recipe.getStatus()) ||
+                    RecipecCheckStatusConstant.First_Check_No_Pass.equals(recipe.getCheckStatus()) && ReviewTypeConstant.Preposition_Check == recipe.getReviewType());
             map.put("optional", isOptional);
 
             //date 2190929

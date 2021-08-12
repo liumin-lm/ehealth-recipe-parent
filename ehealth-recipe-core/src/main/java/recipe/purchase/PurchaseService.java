@@ -823,6 +823,9 @@ public class PurchaseService {
         if (dbRecipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS) {
             throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方审核结果已被撤销");
         }
+        if(RecipeStatusEnum.getCheckShowFlag(dbRecipe.getStatus())){
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方正在审核中");
+        }
         if (RecipeStatusConstant.CHECK_PASS != dbRecipe.getStatus()
                 || 1 == dbRecipe.getChooseFlag()) {
             result.setCode(RecipeResultBean.FAIL);
