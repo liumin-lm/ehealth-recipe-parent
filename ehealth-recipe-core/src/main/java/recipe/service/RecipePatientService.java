@@ -718,9 +718,12 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             //默认获取第一张卡类型
             if ("2".equals(hisCardVOS.get(0).getCardType())){
                 patientQueryRequestTO.setMedicalType("2");
+                patientQueryRequestTO.setMedicalTypeText("医保");
             } else {
                 patientQueryRequestTO.setMedicalType("1");
+                patientQueryRequestTO.setMedicalTypeText("自费");
             }
+            LOGGER.info("queryPatientForHis patientQueryRequestTO:{}.", JSONUtils.toString(patientQueryRequestTO));
             return patientQueryRequestTO;
         } catch (Exception e) {
             LOGGER.error("queryPatientForHis error", e);
