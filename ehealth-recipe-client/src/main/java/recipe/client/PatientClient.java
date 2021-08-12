@@ -1,10 +1,14 @@
 package recipe.client;
 
+import com.alibaba.fastjson.JSON;
+import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.PatientDTO;
+import ctd.persistence.exception.DAOException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -88,6 +92,30 @@ public class PatientClient extends BaseClient {
             return null;
         }
         return patientService.getPatientBeanByMpiId(mpiId);
+    }
+
+    /**
+     * 查询线下患者信息
+     * @param patientQueryRequestTO
+     * @return
+     */
+    public PatientQueryRequestTO queryPatient(PatientQueryRequestTO patientQueryRequestTO){
+        logger.info("PatientClient queryPatient patientQueryRequestTO:{}." , JSON.toJSONString(patientQueryRequestTO));
+        try {
+            HisResponseTO<PatientQueryRequestTO> response = patientHisService.queryPatient(patientQueryRequestTO);
+            PatientQueryRequestTO result = getResponse(response);
+            if (result == null){
+                return null;
+            }
+            result.setCardID(null);
+            result.setCertificate(null);
+            result.setGuardianCertificate(null);
+            result.setMobile(null);
+            return result;
+        } catch (Exception e) {
+            logger.error("PatientClient queryPatient error", e);
+            return null;
+        }
     }
 
 }

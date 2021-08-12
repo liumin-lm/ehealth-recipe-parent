@@ -9,6 +9,7 @@ import com.google.common.collect.Maps;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
+import com.ngari.his.patient.mode.HisCardVO;
 import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.his.recipe.mode.ChronicDiseaseListReqTO;
@@ -28,9 +29,7 @@ import com.ngari.recipe.vo.CheckPatientEnum;
 import com.ngari.recipe.vo.OutPatientReqVO;
 import com.ngari.recipe.vo.PatientInfoVO;
 import com.ngari.recipe.vo.PatientMedicalTypeVO;
-import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
-import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -692,46 +691,36 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     @RpcService
     public PatientQueryRequestTO queryPatientForHisV1(Integer organId, String mpiId, Integer clinicId) {
         LOGGER.info("queryPatientForHis organId={},mpiId={}", organId, mpiId);
-        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
-        IPatientHisService iPatientHisService = AppContextHolder.getBean("his.iPatientHisService", IPatientHisService.class);
-        PatientDTO patient = patientService.get(mpiId);
+
+        PatientDTO patient = patientClient.getPatientBeanByMpiId(mpiId);
         if (patient == null) {
             throw new DAOException(609, "找不到该患者");
         }
-        //添加复诊ID
-        IRevisitExService consultExService = RevisitAPI.getService(IRevisitExService.class);
         try {
             PatientQueryRequestTO req = new PatientQueryRequestTO();
             req.setOrgan(organId);
             req.setPatientName(patient.getPatientName());
             req.setCertificateType(patient.getCertificateType());
             req.setCertificate(patient.getCertificate());
-
             if (clinicId != null) {
-                RevisitExDTO consultExDTO = consultExService.getByConsultId(clinicId);
+                RevisitExDTO consultExDTO = revisitClient.getByClinicId(clinicId);
                 if (consultExDTO != null) {
                     req.setPatientID(consultExDTO.getPatId());
                 }
             }
             LOGGER.info("queryPatientForHis req={}", JSONUtils.toString(req));
-            HisResponseTO<PatientQueryRequestTO> res = iPatientHisService.queryPatient(req);
-            LOGGER.info("queryPatientForHis res={}", JSONUtils.toString(res));
-            if (res != null && !("200".equals(res.getMsgCode()))) {
-                String msg = "查患者信息接口异常";
-                if (StringUtils.isNotEmpty(res.getMsg())) {
-                    msg = msg + ":" + res.getMsg();
-                }
-                throw new DAOException(609, msg);
+            PatientQueryRequestTO patientQueryRequestTO = patientClient.queryPatient(req);
+            LOGGER.info("queryPatientForHis patientQueryRequestTO={}", JSONUtils.toString(patientQueryRequestTO));
+            if (null == patientQueryRequestTO || CollectionUtils.isEmpty(patientQueryRequestTO.getHisCards())) {
+                return null;
             }
-            if (res == null){
-                throw new DAOException(609, "查不到患者线下信息");
+            List<HisCardVO> hisCardVOS = patientQueryRequestTO.getHisCards();
+            //默认获取第一张卡类型
+            if ("2".equals(hisCardVOS.get(0).getCardType())){
+                patientQueryRequestTO.setMedicalType("2");
+            } else {
+                patientQueryRequestTO.setMedicalType("1");
             }
-            PatientQueryRequestTO patientQueryRequestTO=res.getData();
-            patientQueryRequestTO.setCardID(null);
-            patientQueryRequestTO.setCertificate(null);
-            patientQueryRequestTO.setGuardianCertificate(null);
-            patientQueryRequestTO.setMobile(null);
-            LOGGER.info("queryPatientForHis res:{}",JSONUtils.toString(patientQueryRequestTO));
             return patientQueryRequestTO;
         } catch (Exception e) {
             LOGGER.error("queryPatientForHis error", e);
