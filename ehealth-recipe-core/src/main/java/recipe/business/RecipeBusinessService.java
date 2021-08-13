@@ -1,32 +1,19 @@
 package recipe.business;
 
 import com.alibaba.fastjson.JSON;
-import com.ngari.common.mode.HisResponseTO;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
-import com.ngari.his.recipe.mode.QueryHisRecipResTO;
-import com.ngari.his.recipe.mode.RecipeDetailTO;
-import com.ngari.patient.dto.DepartmentDTO;
-import com.ngari.patient.service.DepartmentService;
-import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.*;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
-import ctd.util.JSONUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
-import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
-import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
 import recipe.constant.ErrorCode;
@@ -34,14 +21,9 @@ import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.RecipeDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
 import com.ngari.recipe.recipe.model.PatientInfoDTO;
-import recipe.manager.HisRecipeManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
-import recipe.util.MapValueUtil;
 
-import java.math.BigDecimal;
-import java.sql.ResultSet;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -72,11 +54,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     private PatientClient patientClient;
 
-    @Autowired
-    private PatientService patientService;
 
-    @Autowired
-    private DepartmentService departmentService;
 
 
     /**
@@ -179,73 +157,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         logger.info("RecipeBusinessService existUncheckRecipe recipesCount={}", recipesCount);
         return uncheckCount != 0;
     }
-
-    /**
-     * 获取线下处方详情
-     *
-     * @param mpiId       患者ID
-     * @param clinicOrgan 机构ID
-     * @param recipeCode  处方号码
-     * @date 2021/8/06
-     */
-    @Override
-    public OffLineRecipeDetailVO getOffLineRecipeDetails(String mpiId, Integer clinicOrgan, String recipeCode) {
-        logger.info("RecipeBusinessService getOffLineRecipeDetails mpiId={},clinicOrgan={},recipeCode={}", mpiId, clinicOrgan, recipeCode);
-        PatientDTO patient = patientService.getPatientByMpiId(mpiId);
-        if (ObjectUtils.isEmpty(patient)) {
-            throw new DAOException(609, "患者信息不存在");
-        }
-//        //获取线下处方信息
-        OffLineRecipeDetailDTO offLineRecipeDetailDTO = new OffLineRecipeDetailDTO();
-        QueryHisRecipResTO queryHisRecipResTO = offlineRecipeClient.queryOffLineRecipeDetail(offLineRecipeDetailDTO, clinicOrgan, patient, 6, 2, recipeCode);
-
-        //判断是否为儿科 设置部门名称
-        DepartmentDTO departmentDTO = departmentService.getByCodeAndOrgan(queryHisRecipResTO.getDepartCode(), queryHisRecipResTO.getClinicOrgan());
-        if (!ObjectUtils.isEmpty(departmentDTO)) {
-            if (departmentDTO.getName().contains("儿科") || departmentDTO.getName().contains("新生儿科")
-                    || departmentDTO.getName().contains("儿内科") || departmentDTO.getName().contains("儿外科")) {
-                offLineRecipeDetailDTO.setChildRecipeFlag(true);
-                //设置监护人字段
-                if (!ObjectUtils.isEmpty(patient)) {
-                    offLineRecipeDetailDTO.setGuardianName(patient.getGuardianName());
-                    offLineRecipeDetailDTO.setGuardianAge(patient.getGuardianAge());
-                    offLineRecipeDetailDTO.setGuardianSex(patient.getGuardianSex());
-                }
-            }
-            offLineRecipeDetailDTO.setDepartName(departmentDTO.getName());
-        }
-        //处方药品信息
-        List<RecipeDetailTO> drugLists = queryHisRecipResTO.getDrugList();
-        List<RecipeDetailDTO> detailDTOS = new ArrayList<>();
-        BigDecimal totalPrice = BigDecimal.valueOf(0);
-        //计算药品价格
-        Integer recipeType = queryHisRecipResTO.getRecipeType();
-        Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(clinicOrgan, recipeType));
-        if (!ObjectUtils.isEmpty(drugLists)) {
-            for (RecipeDetailTO drugList : drugLists) {
-                totalPrice = totalPrice.add(drugList.getTotalPrice());
-                RecipeDetailDTO recipeDetailDTO = new RecipeDetailDTO();
-                BeanUtils.copy(drugList, recipeDetailDTO);
-                //拼接中药名称
-                if (RecipeTypeEnum.RECIPETYPE_WM.getType().equals(recipeType)) {
-                    recipeDetailDTO.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(recipeDetailDTO, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
-                }
-                detailDTOS.add(recipeDetailDTO);
-            }
-            offLineRecipeDetailDTO.setRecipeDetails(detailDTOS);
-            offLineRecipeDetailDTO.setTotalPrice(totalPrice);
-        }
-        //患者基本属性
-        if (!ObjectUtils.isEmpty(patient)) {
-            offLineRecipeDetailDTO.setPatientSex(patient.getPatientSex());
-            offLineRecipeDetailDTO.setPatientBirthday(patient.getBirthday());
-        }
-        OffLineRecipeDetailVO offLineRecipeDetailVO = new OffLineRecipeDetailVO();
-        BeanUtils.copy(offLineRecipeDetailDTO,offLineRecipeDetailVO);
-        logger.info("RecipeBusinessService getOffLineRecipeDetails result={}", JSONUtils.toString(offLineRecipeDetailDTO));
-        return offLineRecipeDetailVO;
-    }
-
 
 }
 

@@ -8,7 +8,7 @@ import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
-import recipe.core.api.IRecipeBusinessService;
+import recipe.core.api.patient.IOfflineRecipeBusinessService;
 
 /**
  * 线下处方服务入口类
@@ -18,7 +18,7 @@ import recipe.core.api.IRecipeBusinessService;
 @RpcBean("offLineRecipeAtop")
 public class OffLineRecipeDoctorAtop extends BaseAtop {
     @Autowired
-    private IRecipeBusinessService recipeBusinessService;
+    private IOfflineRecipeBusinessService offlineRecipeBusinessService;
 
     /**
      * 获取线下处方详情
@@ -33,7 +33,7 @@ public class OffLineRecipeDoctorAtop extends BaseAtop {
         logger.info("OffLineRecipeAtop getOffLineRecipeDetails mpiId={},clinicOrgan={},recipeCode={}", mpiId, clinicOrgan, recipeCode);
         validateAtop(mpiId, clinicOrgan, recipeCode);
         try {
-            OffLineRecipeDetailVO result = recipeBusinessService.getOffLineRecipeDetails(mpiId, clinicOrgan, recipeCode);
+            OffLineRecipeDetailVO result = offlineRecipeBusinessService.getOffLineRecipeDetails(mpiId, clinicOrgan, recipeCode);
             logger.info("OffLineRecipeAtop getOffLineRecipeDetails result = {}", JSONUtils.toString(result));
             return result;
         } catch (DAOException e1) {

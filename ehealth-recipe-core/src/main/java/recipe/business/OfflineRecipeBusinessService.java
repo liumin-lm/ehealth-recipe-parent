@@ -3,31 +3,47 @@ package recipe.business;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
+import com.ngari.his.recipe.mode.RecipeDetailTO;
+import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.DepartmentService;
+import com.ngari.patient.service.PatientService;
+import com.ngari.recipe.dto.OffLineRecipeDetailDTO;
+import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.HisRecipe;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
 import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
+import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
+import com.ngari.recipe.vo.OffLineRecipeDetailVO;
 import ctd.persistence.exception.DAOException;
+import ctd.util.BeanUtils;
 import ngari.openapi.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
+import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
+import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.client.OfflineRecipeClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.HisRecipeManager;
+import recipe.util.MapValueUtil;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Author liumin
@@ -47,6 +63,15 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
 
     @Autowired
     private IConfigurationCenterUtilsService configurationCenterUtilsService;
+
+    @Autowired
+    private PatientService patientService;
+
+    @Autowired
+    private DepartmentService departmentService;
+
+    @Autowired
+    private OfflineRecipeClient offlineRecipeClient;
 
     @Override
     public List<MergeRecipeVO> findHisRecipeList(FindHisRecipeListVO request) {
@@ -156,6 +181,90 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         }
         logger.info("OfflineToOnlineService obtainFindHisRecipeDetailParam req:{}", JSONUtils.toString(request));
         return request;
+    }
+
+    /**
+     * 获取线下处方详情
+     *
+     * @param mpiId       患者ID
+     * @param clinicOrgan 机构ID
+     * @param recipeCode  处方号码
+     * @date 2021/8/06
+     */
+    @Override
+    public OffLineRecipeDetailVO getOffLineRecipeDetails(String mpiId, Integer clinicOrgan, String recipeCode) {
+        logger.info("RecipeBusinessService getOffLineRecipeDetails mpiId={},clinicOrgan={},recipeCode={}", mpiId, clinicOrgan, recipeCode);
+        PatientDTO patient = patientService.getPatientByMpiId(mpiId);
+        if (ObjectUtils.isEmpty(patient)) {
+            throw new DAOException(609, "患者信息不存在");
+        }
+//        //获取线下处方信息
+        OffLineRecipeDetailDTO offLineRecipeDetailDTO = new OffLineRecipeDetailDTO();
+        QueryHisRecipResTO queryHisRecipResTO = offlineRecipeClient.queryOffLineRecipeDetail(offLineRecipeDetailDTO, clinicOrgan, patient, 6, 2, recipeCode);
+
+        //判断是否为儿科 设置部门名称
+        DepartmentDTO departmentDTO = departmentService.getByCodeAndOrgan(queryHisRecipResTO.getDepartCode(), queryHisRecipResTO.getClinicOrgan());
+        if (!ObjectUtils.isEmpty(departmentDTO)) {
+            if (departmentDTO.getName().contains("儿科") || departmentDTO.getName().contains("新生儿科")
+                    || departmentDTO.getName().contains("儿内科") || departmentDTO.getName().contains("儿外科")) {
+                offLineRecipeDetailDTO.setChildRecipeFlag(true);
+                //设置监护人字段
+                if (!ObjectUtils.isEmpty(patient)) {
+                    offLineRecipeDetailDTO.setGuardianName(patient.getGuardianName());
+                    offLineRecipeDetailDTO.setGuardianAge(patient.getGuardianAge());
+                    offLineRecipeDetailDTO.setGuardianSex(patient.getGuardianSex());
+                }
+            }
+        }
+        //优先使用HIS返回的departName如果为空则查表
+        if (!org.springframework.util.StringUtils.isEmpty(queryHisRecipResTO.getDepartName())){
+            offLineRecipeDetailDTO.setDepartName(queryHisRecipResTO.getDepartName());
+        }else if (!org.springframework.util.StringUtils.isEmpty(departmentDTO.getName())){
+            offLineRecipeDetailDTO.setDepartName(departmentDTO.getName());
+        }
+        //处方药品信息
+        List<RecipeDetailTO> drugLists = queryHisRecipResTO.getDrugList();
+        List<RecipeDetailDTO> detailDTOS = new ArrayList<>();
+        BigDecimal totalPrice = BigDecimal.valueOf(0);
+        //计算药品价格
+        Integer recipeType = queryHisRecipResTO.getRecipeType();
+        Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(clinicOrgan, recipeType));
+        boolean priceNotExits = false;
+        if (!ObjectUtils.isEmpty(drugLists)) {
+            for (RecipeDetailTO drugList : drugLists) {
+                //如果his返回药品信息有totalPrice，优先使用 否则使用Price*UseTotalDose
+                if (!ObjectUtils.isEmpty(drugList.getTotalPrice())) {
+                    totalPrice = totalPrice.add(drugList.getTotalPrice());
+                } else if (!ObjectUtils.isEmpty(drugList.getPrice()) && !ObjectUtils.isEmpty(drugList.getUseTotalDose())) {
+                    totalPrice = totalPrice.add(drugList.getPrice().multiply(drugList.getUseTotalDose()));
+                }else {
+                    //如果二者都没有则不返回
+                    priceNotExits=true;
+                }
+                RecipeDetailDTO recipeDetailDTO = new RecipeDetailDTO();
+                BeanUtils.copy(drugList, recipeDetailDTO);
+                //拼接中药名称
+                if (RecipeTypeEnum.RECIPETYPE_WM.getType().equals(recipeType)) {
+                    recipeDetailDTO.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(recipeDetailDTO, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
+                }
+                detailDTOS.add(recipeDetailDTO);
+            }
+            offLineRecipeDetailDTO.setRecipeDetails(detailDTOS);
+            if (priceNotExits){
+                offLineRecipeDetailDTO.setTotalPrice(null);
+            }else {
+                offLineRecipeDetailDTO.setTotalPrice(totalPrice);
+            }
+        }
+        //患者基本属性
+        if (!ObjectUtils.isEmpty(patient)) {
+            offLineRecipeDetailDTO.setPatientSex(patient.getPatientSex());
+            offLineRecipeDetailDTO.setPatientBirthday(patient.getBirthday());
+        }
+        OffLineRecipeDetailVO offLineRecipeDetailVO = new OffLineRecipeDetailVO();
+        BeanUtils.copy(offLineRecipeDetailDTO,offLineRecipeDetailVO);
+        logger.info("RecipeBusinessService getOffLineRecipeDetails result={}", ctd.util.JSONUtils.toString(offLineRecipeDetailDTO));
+        return offLineRecipeDetailVO;
     }
 
 }
