@@ -751,39 +751,33 @@ public class RecipeListService extends RecipeBaseService {
                 Map<String, Object> map = Maps.newHashMap();
                 //设置处方具体药品名称---取第一个药
                 List<Recipedetail> recipedetails = recipeDetailMap.get(recipe.getRecipeId());
-                if (null != recipedetails && recipedetails.size() > 0) {
+                if (CollectionUtils.isNotEmpty(recipedetails)) {
                     //这里反向取一下要，前面跌倒了
                     recipe.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipeDrugName(recipedetails.get(recipedetails.size() - 1), recipe.getRecipeType(), recipe.getClinicOrgan()));
+                    Integer pharmacyId = recipedetails.get(0).getPharmacyId();
+                    PharmacyTcm pharmacyTcm = null;
+                    if (Objects.nonNull(pharmacyId)) {
+                        pharmacyTcm = pharmacyTcmDAO.get(pharmacyId);
+                    }
+
+                    PharmacyTcm finalPharmacyTcm = pharmacyTcm;
+                    List<HisRecipeDetailBean> collect1 = recipedetails.stream().map(recipeDetail -> {
+                        HisRecipeDetailBean convert = ObjectCopyUtils.convert(recipeDetail, HisRecipeDetailBean.class);
+                        if (Objects.nonNull(finalPharmacyTcm)) {
+                            convert.setPharmacyCode(finalPharmacyTcm.getPharmacyCode());
+                        }
+                        return convert;
+                    }).collect(Collectors.toList());
+                    map.put("recipe", RecipeServiceSub.convertRecipeForRAPNew(recipe, collect1));
                 }
                 recipe.setRecipeShowTime(recipe.getCreateDate());
-                boolean effective = false;
-                //只有审核未通过的情况需要看订单状态
-//                if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
-//                    effective = orderDAO.isEffectiveOrder(recipe.getOrderCode(), recipe.getPayMode());
-//                }
                 //添加订单的状态
                 Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy2(recipe.getStatus(), recipe, null, (orderStatus == null || 0 >= orderStatus.size()) ? null : orderStatus.get(recipe.getOrderCode()), refundIdMap.get(recipe.getRecipeId()));
 
                 recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
 
-
-                Integer pharmacyId = recipedetails.get(0).getPharmacyId();
-                PharmacyTcm pharmacyTcm = null;
-                if (Objects.nonNull(pharmacyId)) {
-                    pharmacyTcm = pharmacyTcmDAO.get(pharmacyId);
-                }
-
-                PharmacyTcm finalPharmacyTcm = pharmacyTcm;
-                List<HisRecipeDetailBean> collect1 = recipedetails.stream().map(recipeDetail -> {
-                    HisRecipeDetailBean convert = ObjectCopyUtils.convert(recipeDetail, HisRecipeDetailBean.class);
-                    if (Objects.nonNull(finalPharmacyTcm)) {
-                        convert.setPharmacyCode(finalPharmacyTcm.getPharmacyCode());
-                    }
-                    return convert;
-                }).collect(Collectors.toList());
-                map.put("recipe", RecipeServiceSub.convertRecipeForRAPNew(recipe, collect1));
                 map.put("patient", patient);
-                //LOGGER.info("instanceRecipesAndPatient map:{}", JSONUtils.toString(map));
+                LOGGER.info("instanceRecipesAndPatient map:{}", JSONUtils.toString(map));
                 list.add(map);
             }
 
