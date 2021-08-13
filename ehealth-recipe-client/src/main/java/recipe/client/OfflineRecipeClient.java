@@ -226,6 +226,8 @@ public class OfflineRecipeClient extends BaseClient {
             Integer medicalType = queryHisRecipResTO.getMedicalType();
             if (!ObjectUtils.isEmpty(medicalType)&&medicalType.equals(2)){
                 offLineRecipeDetailDTO.setMedicalTypeText("普通医保");
+            }else if (!ObjectUtils.isEmpty(medicalType)&&medicalType.equals(1)){
+                offLineRecipeDetailDTO.setMedicalTypeText("患者自费");
             }
         }
 
