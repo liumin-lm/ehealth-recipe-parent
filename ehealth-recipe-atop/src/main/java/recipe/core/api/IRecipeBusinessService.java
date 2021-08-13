@@ -48,5 +48,4 @@ public interface IRecipeBusinessService {
      */
     Boolean existUncheckRecipe(Integer bussSource, Integer clinicId);
 
-    OffLineRecipeDetailVO getOffLineRecipeDetails(String mpiId,Integer clinicOrgan,String recipeCode);
 }
