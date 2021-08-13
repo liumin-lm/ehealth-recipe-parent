@@ -690,7 +690,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
      */
     @RpcService
     public PatientQueryRequestTO queryPatientForHisV1(Integer organId, String mpiId, Integer clinicId) {
-        LOGGER.info("queryPatientForHis organId={},mpiId={}", organId, mpiId);
+        LOGGER.info("queryPatientForHisV1 organId={},mpiId={}", organId, mpiId);
 
         PatientDTO patient = patientClient.getPatientBeanByMpiId(mpiId);
         if (patient == null) {
@@ -708,9 +708,9 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
                     req.setPatientID(consultExDTO.getPatId());
                 }
             }
-            LOGGER.info("queryPatientForHis req={}", JSONUtils.toString(req));
+            LOGGER.info("queryPatientForHisV1 req={}", JSONUtils.toString(req));
             PatientQueryRequestTO patientQueryRequestTO = patientClient.queryPatient(req);
-            LOGGER.info("queryPatientForHis patientQueryRequestTO={}", JSONUtils.toString(patientQueryRequestTO));
+            LOGGER.info("queryPatientForHisV1 patientQueryRequestTO={}", JSONUtils.toString(patientQueryRequestTO));
             if (null == patientQueryRequestTO || CollectionUtils.isEmpty(patientQueryRequestTO.getHisCards())) {
                 return null;
             }
@@ -723,10 +723,10 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
                 patientQueryRequestTO.setMedicalType("1");
                 patientQueryRequestTO.setMedicalTypeText("自费");
             }
-            LOGGER.info("queryPatientForHis patientQueryRequestTO:{}.", JSONUtils.toString(patientQueryRequestTO));
+            LOGGER.info("queryPatientForHisV1 patientQueryRequestTO:{}.", JSONUtils.toString(patientQueryRequestTO));
             return patientQueryRequestTO;
         } catch (Exception e) {
-            LOGGER.error("queryPatientForHis error", e);
+            LOGGER.error("queryPatientForHisV1 error", e);
             throw new DAOException(609, "查患者信息异常:"+e.getMessage());
         }
     }
