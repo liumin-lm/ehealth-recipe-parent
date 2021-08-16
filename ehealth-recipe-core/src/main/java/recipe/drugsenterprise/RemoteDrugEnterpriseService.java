@@ -606,6 +606,9 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                 scanDrugListBean.setUnit(recipedetail.getDrugUnit());
                 scanDrugListBeans.add(scanDrugListBean);
             }
+            scanDrugListBean.setDrugSpec(recipedetail.getDrugSpec());
+            scanDrugListBean.setProducerCode(recipedetail.getProducerCode());
+            scanDrugListBean.setPharmacy(recipedetail.getPharmacyName());
         }
         scanRequestBean.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
         scanRequestBean.setScanDrugListBeans(scanDrugListBeans);
