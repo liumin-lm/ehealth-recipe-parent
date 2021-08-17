@@ -223,8 +223,8 @@ public class QueryRecipeService implements IQueryRecipeService {
      */
     private QueryRecipeInfoDTO splicingBackData(List<Recipedetail> details, Recipe recipe, PatientBean patient, HealthCardBean card) {
         QueryRecipeInfoDTO recipeDTO = new QueryRecipeInfoDTO();
+        Integer recipeId = recipe.getRecipeId();
         try {
-            Integer recipeId = recipe.getRecipeId();
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
             if (null != recipeExtend) {
                 EmrDetail emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
@@ -251,7 +251,13 @@ public class QueryRecipeService implements IQueryRecipeService {
                 recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
                 recipeDTO.setSymptomValue(ObjectCopyUtils.convert(emrDetail.getSymptomValue(), EmrDetailValueVO.class));
                 recipeDTO.setDiseaseValue(ObjectCopyUtils.convert(emrDetail.getDiseaseValue(), EmrDetailValueVO.class));
+                Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
+                recipeDTO.setMedicalInfoBean(medicalInfoBean);
             }
+        } catch (Exception e) {
+            LOGGER.error("QueryRecipeService splicingBackData  IDocIndexService error", e);
+        }
+        try {
             //获取医院诊断内码
             recipeDTO.setIcdRdn(getIcdRdn(recipe.getClinicOrgan(), recipe.getOrganDiseaseId(), recipe.getOrganDiseaseName()));
             //icd诊断码
@@ -260,10 +266,6 @@ public class QueryRecipeService implements IQueryRecipeService {
             recipeDTO.setIcdName(getCode(recipe.getOrganDiseaseName()));
             // 简要病史
             recipeDTO.setDiseasesHistory(recipe.getOrganDiseaseName());
-
-
-            Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
-            recipeDTO.setMedicalInfoBean(medicalInfoBean);
             //处方号
             recipeDTO.setRecipeID(recipe.getRecipeCode());
             //机构id
@@ -271,7 +273,6 @@ public class QueryRecipeService implements IQueryRecipeService {
             //处方id
             recipeDTO.setPlatRecipeID(String.valueOf(recipe.getRecipeId()));
             //挂号序号
-            //recipeDTO.setRegisterId(String.valueOf(recipe.getClinicId()));
             if (recipe.getClinicId() != null) {
                 IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
                 RevisitExDTO consultExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());

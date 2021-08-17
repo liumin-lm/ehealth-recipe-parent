@@ -305,8 +305,6 @@ public class HisRequestInit {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         try {
-            Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
-            requestTO.setMedicalInfoBean(medicalInfoBean);
             EmrDetail emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
             requestTO.setIcdCode(emrDetail.getOrganDiseaseId());
             requestTO.setIcdName(emrDetail.getOrganDiseaseName());
@@ -314,7 +312,11 @@ public class HisRequestInit {
             requestTO.setDiseaseValue(ObjectCopyUtils.convert(emrDetail.getDiseaseValue(), EmrDetailValueDTO.class));
             recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
             recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
+            Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
+            requestTO.setMedicalInfoBean(medicalInfoBean);
         } catch (Exception e) {
+            requestTO.setIcdCode(recipe.getOrganDiseaseId());
+            requestTO.setIcdName(recipe.getOrganDiseaseName());
             LOGGER.error("RecipeHisService initRecipeSendRequestTO  IDocIndexService error", e);
         }
         // 简要病史
