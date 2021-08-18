@@ -596,15 +596,6 @@ public class RecipeService extends RecipeBaseService {
 
             Recipe recipe = recipeDAO.get(recipeId);
             if (null != recipe) {
-                if (null != recipe.getAddressId()) {
-                    StringBuilder sb = new StringBuilder();
-                    commonRemoteService.getAddressDic(sb, recipe.getAddress1());
-                    commonRemoteService.getAddressDic(sb, recipe.getAddress2());
-                    commonRemoteService.getAddressDic(sb, recipe.getAddress3());
-                    sb.append(StringUtils.isEmpty(recipe.getAddress4()) ? "" : recipe.getAddress4());
-                    address = sb.toString();
-                }
-
                 if (StringUtils.isEmpty(address)) {
                     RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
                     //从订单获取
@@ -1523,6 +1514,7 @@ public class RecipeService extends RecipeBaseService {
             recipeBean.setDistributionFlag(continueFlag);
             //第一步暂存处方（处方状态未签名）
             doSignRecipeSave(recipeBean, detailBeanList);
+
             //第二步预校验
             if (continueFlag == 0) {
                 HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
@@ -1537,6 +1529,7 @@ public class RecipeService extends RecipeBaseService {
                     return rMap;
                 }
             }
+
             //第三步校验库存
             if (continueFlag == 0 || continueFlag == 4) {
                 rMap = drugStockBusinessService.doSignRecipeCheckAndGetGiveMode(recipeBean);

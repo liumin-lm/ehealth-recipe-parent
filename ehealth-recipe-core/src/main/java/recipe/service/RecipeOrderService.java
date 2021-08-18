@@ -529,21 +529,21 @@ public class RecipeOrderService extends RecipeBaseService {
             } else {
                 //如果该处方单没有关联订单，又是点击医保支付，则需要通过商户号查询原先的订单号关联之前的订单
                 if (payModeSupport.isSupportMedicalInsureance()) {
-                    String outTradeNo = recipe.getOutTradeNo();
-                    if (StringUtils.isNotEmpty(outTradeNo)) {
-                        RecipeOrder dbOrder = orderDAO.getByOutTradeNo(outTradeNo);
-                        if (null != dbOrder) {
-                            recipeDAO.updateOrderCodeByRecipeIds(Collections.singletonList(recipe.getRecipeId()), dbOrder.getOrderCode());
-                            String backInfo = applyMedicalInsurancePay(dbOrder, recipeList);
-                            if (StringUtils.isEmpty(backInfo)) {
-                                result.setError(cacheService.getParam(ParameterConstant.KEY_RECIPE_MEDICALPAY_TIP));
-                            } else {
-                                result.setError("医保支付返回:" + backInfo);
-                            }
-                            //订单有效需要从处方列表剔除
-                            needDelList.add(recipe);
-                        }
-                    }
+//                    String outTradeNo = recipe.getOutTradeNo();
+//                    if (StringUtils.isNotEmpty(outTradeNo)) {
+//                        RecipeOrder dbOrder = orderDAO.getByOutTradeNo(outTradeNo);
+//                        if (null != dbOrder) {
+//                            recipeDAO.updateOrderCodeByRecipeIds(Collections.singletonList(recipe.getRecipeId()), dbOrder.getOrderCode());
+//                            String backInfo = applyMedicalInsurancePay(dbOrder, recipeList);
+//                            if (StringUtils.isEmpty(backInfo)) {
+//                                result.setError(cacheService.getParam(ParameterConstant.KEY_RECIPE_MEDICALPAY_TIP));
+//                            } else {
+//                                result.setError("医保支付返回:" + backInfo);
+//                            }
+//                            //订单有效需要从处方列表剔除
+//                            needDelList.add(recipe);
+//                        }
+//                    }
                 }
             }
 
@@ -1584,11 +1584,9 @@ public class RecipeOrderService extends RecipeBaseService {
             boolean tcmFlag = false;
             if (CollectionUtils.isNotEmpty(recipeList)) {
                 //设置地址，先取处方单address4的值，没有则取订单地址
-                if (StringUtils.isNotEmpty(recipeList.get(0).getAddress4())) {
-                    order.setCompleteAddress(recipeList.get(0).getAddress4());
-                } else {
-                    order.setCompleteAddress(commonRemoteService.getCompleteAddress(order));
-                }
+
+                order.setCompleteAddress(commonRemoteService.getCompleteAddress(order));
+
 
                 RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
                 RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
@@ -2252,8 +2250,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             }
         } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(nowRecipe.getGiveMode())
-                && !nowRecipe.getReviewType().equals(ReviewTypeConstant.Postposition_Check)
-        ) {
+                && !nowRecipe.getReviewType().equals(ReviewTypeConstant.Postposition_Check)) {
             // 支付成功 到院取药 推送消息 审方前置
             RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_HOS_TAKE_MEDICINE, nowRecipe);
         }

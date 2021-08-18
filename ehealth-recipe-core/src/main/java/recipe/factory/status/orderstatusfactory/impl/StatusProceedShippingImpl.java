@@ -34,12 +34,11 @@ public class StatusProceedShippingImpl extends AbstractRecipeOrderStatus {
         logger.info("StatusProceedShippingImpl updateStatus orderStatus={},recipeOrder={}",
                 JSON.toJSONString(orderStatus), JSON.toJSONString(recipeOrder));
         Date date = new Date();
-        recipe.setSendDate(date);
         recipe.setSender(orderStatus.getSender());
         //以免进行处方失效前提醒
         recipe.setRemindFlag(1);
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_IN_SEND.getType());
-        recipeOrder.setSendTime(new Date());
+        recipeOrder.setSendTime(date);
         return recipe;
     }
 
