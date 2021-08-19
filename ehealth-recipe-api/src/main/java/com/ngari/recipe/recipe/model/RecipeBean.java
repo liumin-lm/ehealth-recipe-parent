@@ -338,7 +338,7 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "主诉")
     private String mainDieaseDescribe;
 
-    @ItemProperty(alias = "处方来源类型 1 平台处方 2 线下转线上的处方")
+    @ItemProperty(alias = "处方来源类型 1 平台处方 2 线下转线上的处方 3 诊疗处方")
     private Integer recipeSourceType;
 
     @ItemProperty(alias = "处方支付类型 0 普通支付 1 不选择购药方式直接去支付")

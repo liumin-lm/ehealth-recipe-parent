@@ -7,7 +7,6 @@ import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.util.JSONUtils;
@@ -16,10 +15,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.*;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeExtendDAO;
-import recipe.dao.RecipeOrderDAO;
 import recipe.util.DictionaryUtil;
 import recipe.util.ValidateUtil;
 
@@ -35,14 +30,6 @@ import java.util.List;
 @Service
 public class RecipeManager extends BaseManager {
     @Autowired
-    private RecipeOrderDAO recipeOrderDAO;
-    @Autowired
-    private RecipeDAO recipeDAO;
-    @Autowired
-    private RecipeExtendDAO recipeExtendDAO;
-    @Autowired
-    private RecipeDetailDAO recipeDetailDAO;
-    @Autowired
     private PatientClient patientClient;
     @Autowired
     private DocIndexClient docIndexClient;
@@ -53,20 +40,13 @@ public class RecipeManager extends BaseManager {
     @Autowired
     private RevisitClient revisitClient;
 
+    public Recipe saveRecipe(Recipe recipe) {
+        return recipe;
+    }
 
-    /**
-     * 通过订单号获取该订单下关联的所有处方
-     *
-     * @param orderCode 订单号
-     * @return 处方集合
-     */
-    public List<Recipe> getRecipesByOrderCode(String orderCode) {
-        logger.info("RecipeOrderManager getRecipesByOrderCode orderCode:{}", orderCode);
-        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
-        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
-        List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
-        logger.info("RecipeOrderManager getRecipesByOrderCode recipes:{}", JSON.toJSONString(recipes));
-        return recipes;
+
+    public RecipeExtend saveRecipeExtend(RecipeExtend recipeExtend) {
+        return recipeExtend;
     }
 
     /**
@@ -149,19 +129,6 @@ public class RecipeManager extends BaseManager {
     }
 
     /**
-     * 通过recipeCode批量获取处方信息
-     * @param recipeCodeList
-     * @param clinicOrgan
-     * @return
-     */
-    public List<Recipe> findByRecipeCodeAndClinicOrgan(List<String> recipeCodeList, Integer clinicOrgan) {
-        logger.info("RecipeManager findByRecipeCodeAndClinicOrgan param recipeCodeList:{},clinicOrgan:{}", JSONUtils.toString(recipeCodeList),clinicOrgan);
-        List<Recipe> recipes=recipeDAO.findByRecipeCodeAndClinicOrgan(recipeCodeList,clinicOrgan);
-        logger.info("RecipeManager findByRecipeCodeAndClinicOrgan res recipes:{}", JSONUtils.toString(recipes));
-        return recipes;
-    }
-
-    /**
      * 获取到院取药凭证
      * @param recipe  处方信息
      * @param recipeExtend 处方扩展信息
@@ -205,4 +172,5 @@ public class RecipeManager extends BaseManager {
         }
         return qrName;
     }
+
 }

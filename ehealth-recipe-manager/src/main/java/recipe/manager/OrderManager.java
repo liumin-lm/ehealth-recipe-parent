@@ -1,5 +1,6 @@
 package recipe.manager;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.currentuserinfo.model.SimpleThirdBean;
 import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
@@ -25,10 +26,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.PatientClient;
 import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeOrderDAO;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * 订单
@@ -43,15 +43,27 @@ public class OrderManager extends BaseManager {
     @Autowired
     private PatientClient patientClient;
     @Autowired
-    private RecipeOrderDAO recipeOrderDAO;
-    @Autowired
-    private RecipeDAO recipeDAO;
-    @Autowired
     private ICurrentUserInfoService userInfoService;
     @Autowired
     private IRecipeEnterpriseService hisService;
     @Resource
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
+
+
+    /**
+     * 通过订单号获取该订单下关联的所有处方
+     *
+     * @param orderCode 订单号
+     * @return 处方集合
+     */
+    public List<Recipe> getRecipesByOrderCode(String orderCode) {
+        logger.info("RecipeOrderManager getRecipesByOrderCode orderCode:{}", orderCode);
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
+        logger.info("RecipeOrderManager getRecipesByOrderCode recipes:{}", JSON.toJSONString(recipes));
+        return recipes;
+    }
 
     /**
      * todo 迁移代码 需要优化 （尹盛）

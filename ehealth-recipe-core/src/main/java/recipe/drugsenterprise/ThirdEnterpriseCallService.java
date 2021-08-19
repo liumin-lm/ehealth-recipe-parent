@@ -55,7 +55,7 @@ import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.GroupRecipeManager;
-import recipe.manager.RecipeManager;
+import recipe.manager.OrderManager;
 import recipe.purchase.CommonOrder;
 import recipe.service.*;
 import recipe.serviceprovider.BaseService;
@@ -115,7 +115,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     @Autowired
     private DrugEnterpriseLogisticsDAO drugEnterpriseLogisticsDAO;
     @Autowired
-    private RecipeManager recipeManager;
+    private OrderManager orderManager;
 
     /**
      * 待配送状态
@@ -371,7 +371,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         }*/
         //更新处方信息
         Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.IN_SEND, attrMap);
-        List<Recipe> recipes = recipeManager.getRecipesByOrderCode(recipe.getOrderCode());
+        List<Recipe> recipes = orderManager.getRecipesByOrderCode(recipe.getOrderCode());
         recipes.stream().filter(recipe1 -> !recipeId.equals(recipe1.getRecipeId())).forEach(recipe2 -> {
             recipeDAO.updateRecipeInfoByRecipeId(recipe2.getRecipeId(), RecipeStatusConstant.IN_SEND, attrMap);
         });

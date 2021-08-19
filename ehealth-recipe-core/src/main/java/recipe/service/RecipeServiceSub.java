@@ -306,25 +306,25 @@ public class RecipeServiceSub {
     }
 
     private static void setReciepeDetailsInfo(Integer flag, RecipeBean recipeBean, Recipe recipe, List<Recipedetail> details) {
-        if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(flag) || RecipeBussConstant.FROMFLAG_HIS_USE.equals(flag)) {
-            //设置药品详情数据
-            boolean isSucc = setDetailsInfo(recipe, details);
-            if (!isSucc) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "药品详情数据有误");
-            }
-            recipeBean.setTotalMoney(recipe.getTotalMoney());
-            recipeBean.setActualPrice(recipe.getActualPrice());
-        } else if (RecipeBussConstant.FROMFLAG_HIS.equals(flag)) {
-            //处方总价未计算
-            BigDecimal totalMoney = new BigDecimal(0d);
-            for (Recipedetail detail : details) {
-                if (null != detail.getDrugCost()) {
-                    totalMoney = totalMoney.add(detail.getDrugCost());
-                }
-            }
-            recipe.setTotalMoney(totalMoney);
-            recipe.setActualPrice(totalMoney);
+        //  if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(flag) || RecipeBussConstant.FROMFLAG_HIS_USE.equals(flag)) {
+        //设置药品详情数据
+        boolean isSucc = setDetailsInfo(recipe, details);
+        if (!isSucc) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "药品详情数据有误");
         }
+        recipeBean.setTotalMoney(recipe.getTotalMoney());
+        recipeBean.setActualPrice(recipe.getActualPrice());
+//        } else if (RecipeBussConstant.FROMFLAG_HIS.equals(flag)) {
+//            //处方总价未计算
+//            BigDecimal totalMoney = new BigDecimal(0d);
+//            for (Recipedetail detail : details) {
+//                if (null != detail.getDrugCost()) {
+//                    totalMoney = totalMoney.add(detail.getDrugCost());
+//                }
+//            }
+//            recipe.setTotalMoney(totalMoney);
+//            recipe.setActualPrice(totalMoney);
+//        }
 
         //保存开处方时的单位剂量【规格单位】，单位【规格单位】，单位剂量【最小单位】，单位【最小单位】,以json对象的方式存储
         LOGGER.info("setReciepeDetailsInfo recipedetails:{}", JSONUtils.toString(details));
