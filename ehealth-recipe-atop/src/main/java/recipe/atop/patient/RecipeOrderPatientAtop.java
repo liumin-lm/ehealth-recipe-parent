@@ -1,7 +1,7 @@
 package recipe.atop.patient;
 
 import com.alibaba.fastjson.JSON;
-import com.ngari.recipe.dto.SkipThirdBean;
+import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.ResultBean;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
@@ -79,16 +79,16 @@ public class RecipeOrderPatientAtop extends BaseAtop {
      * @return 跳转链接地址
      */
     @RpcService
-    public SkipThirdBean skipThirdPage(SkipThirdReqVO skipThirdReqVO) {
+    public SkipThirdDTO skipThirdPage(SkipThirdReqVO skipThirdReqVO) {
         logger.info("RecipeOrderPatientAtop skipThirdPage skipThirdReqVO:{}.", JSON.toJSONString(skipThirdReqVO));
         validateAtop(skipThirdReqVO.getRecipeIds());
         try {
             //上传处方到第三方,上传失败提示HIS返回的失败信息
             recipeOrderService.uploadRecipeInfoToThird(skipThirdReqVO);
             //获取跳转链接
-            SkipThirdBean skipThirdBean = recipeOrderService.getSkipUrl(skipThirdReqVO);
-            logger.info("RecipeOrderPatientAtop skipThirdPage skipThirdBean:{}.", JSON.toJSONString(skipThirdBean));
-            return skipThirdBean;
+            SkipThirdDTO skipThirdDTO = recipeOrderService.getSkipUrl(skipThirdReqVO);
+            logger.info("RecipeOrderPatientAtop skipThirdPage skipThirdBean:{}.", JSON.toJSONString(skipThirdDTO));
+            return skipThirdDTO;
         } catch (DAOException e1) {
             logger.error("RecipeOrderPatientAtop skipThirdPage error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());

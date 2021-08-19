@@ -31,7 +31,7 @@ import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
-import com.ngari.recipe.dto.SkipThirdBean;
+import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.MedicalRespData;
@@ -63,7 +63,6 @@ import recipe.bean.RecipePayModeSupportBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.IConfigurationClient;
-import recipe.client.OfflineRecipeClient;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.constant.*;
@@ -2344,9 +2343,9 @@ public class RecipeOrderService extends RecipeBaseService {
     @Deprecated
     @RpcService
     public String getThirdUrl(Integer recipeId) {
-        SkipThirdBean skipThirdBean = orderManager.getThirdUrl(recipeId, 0);
-        if (skipThirdBean != null && StringUtils.isNotEmpty(skipThirdBean.getUrl())) {
-            return skipThirdBean.getUrl();
+        SkipThirdDTO skipThirdDTO = orderManager.getThirdUrl(recipeId, 0);
+        if (skipThirdDTO != null && StringUtils.isNotEmpty(skipThirdDTO.getUrl())) {
+            return skipThirdDTO.getUrl();
         }
         return "";
     }
@@ -2360,7 +2359,7 @@ public class RecipeOrderService extends RecipeBaseService {
      */
     @Deprecated
     @RpcService
-    public SkipThirdBean getThirdUrlNew(Integer recipeId) {
+    public SkipThirdDTO getThirdUrlNew(Integer recipeId) {
         return orderManager.getThirdUrl(recipeId, 0);
     }
 
