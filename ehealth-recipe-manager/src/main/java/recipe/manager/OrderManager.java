@@ -10,7 +10,7 @@ import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.recipe.dto.SkipThirdBean;
+import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -73,10 +73,10 @@ public class OrderManager extends BaseManager {
      * @param recipeId
      * @return
      */
-    public SkipThirdBean getThirdUrl(Integer recipeId, Integer giveMode) {
-        SkipThirdBean skipThirdBean = new SkipThirdBean();
+    public SkipThirdDTO getThirdUrl(Integer recipeId, Integer giveMode) {
+        SkipThirdDTO skipThirdDTO = new SkipThirdDTO();
         if (null == recipeId) {
-            return new SkipThirdBean();
+            return new SkipThirdDTO();
         }
         Recipe recipe = recipeDAO.get(recipeId);
         if (recipe.getClinicOrgan() == 1005683) {
@@ -89,14 +89,14 @@ public class OrderManager extends BaseManager {
             }
             RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipeId);
             if (null == order) {
-                return skipThirdBean;
+                return skipThirdDTO;
             }
         }
-        return skipThirdBean;
+        return skipThirdDTO;
     }
 
-    private SkipThirdBean getUrl(Recipe recipe, Integer giveMode) {
-        SkipThirdBean skipThirdBean = new SkipThirdBean();
+    private SkipThirdDTO getUrl(Recipe recipe, Integer giveMode) {
+        SkipThirdDTO skipThirdDTO = new SkipThirdDTO();
         String thirdUrl;
         if (null != recipe) {
             PatientDTO patient = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
@@ -165,10 +165,10 @@ public class OrderManager extends BaseManager {
                     thirdUrl = response.getData();
                     //前置机传过来的可能是json字符串也可能是非json
                     try {
-                        skipThirdBean = JSONObject.parseObject(thirdUrl, SkipThirdBean.class);
+                        skipThirdDTO = JSONObject.parseObject(thirdUrl, SkipThirdDTO.class);
                     } catch (Exception e) {
                         //说明不是标准的JSON格式
-                        skipThirdBean.setUrl(thirdUrl);
+                        skipThirdDTO.setUrl(thirdUrl);
                     }
                 } else {
                     throw new DAOException(609, "获取第三方跳转链接异常");
@@ -178,7 +178,7 @@ public class OrderManager extends BaseManager {
                 throw new DAOException(609, "获取第三方跳转链接异常");
             }
         }
-        return skipThirdBean;
+        return skipThirdDTO;
     }
 
 }

@@ -17,7 +17,7 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.dto.GroupRecipeConf;
+import com.ngari.recipe.dto.GroupRecipeConfDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.constant.RecipeListTabStatusEnum;
@@ -968,16 +968,16 @@ public class RecipeListService extends RecipeBaseService {
             LOGGER.error("findRecipesForPatientAndTabStatusNew {}tab没有查询到order的状态列表", tabStatus);
             return patientTabStatusMergeRecipeDTOS;
         }
-        GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
-        Boolean mergeRecipeFlag = groupRecipeConf.getMergeRecipeFlag();
-        String mergeRecipeWayAfter = groupRecipeConf.getMergeRecipeWayAfter();
+        GroupRecipeConfDTO groupRecipeConfDTO = groupRecipeManager.getMergeRecipeSetting();
+        Boolean mergeRecipeFlag = groupRecipeConfDTO.getMergeRecipeFlag();
+        String mergeRecipeWayAfter = groupRecipeConfDTO.getMergeRecipeWayAfter();
         if (RecipeListTabStatusEnum.ON_READY.getText().equals(tabStatus)) {
             // 待处理的走原来老的方法
             patientTabStatusMergeRecipeDTOS = getRecipeByOnReady(mergeRecipeFlag, allMpiIds, index, limit, tabStatus, mergeRecipeWayAfter, recipeStatusList, orderStatusList);
         } else if (RecipeListTabStatusEnum.ON_GOING.getText().equals(tabStatus) ||
                 RecipeListTabStatusEnum.ON_OVER.getText().equals(tabStatus)) {
             // 已处理跟已完成 走 新的逻辑,合并处方展示仅看是否同一订单
-            patientTabStatusMergeRecipeDTOS = getRecipeByGoingAndOver(patientTabStatusMergeRecipeDTOS, allMpiIds, index, limit, tabStatus, recipeStatusList, groupRecipeConf);
+            patientTabStatusMergeRecipeDTOS = getRecipeByGoingAndOver(patientTabStatusMergeRecipeDTOS, allMpiIds, index, limit, tabStatus, recipeStatusList, groupRecipeConfDTO);
         }
         LOGGER.info("findRecipesForPatientAndTabStatusNew res={}", JSONUtils.toString(patientTabStatusMergeRecipeDTOS));
         return patientTabStatusMergeRecipeDTOS;
@@ -995,7 +995,7 @@ public class RecipeListService extends RecipeBaseService {
      * @param recipeStatusList
      * @return
      */
-    private List<PatientTabStatusMergeRecipeDTO> getRecipeByGoingAndOver(List<PatientTabStatusMergeRecipeDTO> result, List<String> allMpiIds, Integer index, Integer limit, String tabStatus, TabStatusEnumNew recipeStatusList, GroupRecipeConf groupRecipeConf) {
+    private List<PatientTabStatusMergeRecipeDTO> getRecipeByGoingAndOver(List<PatientTabStatusMergeRecipeDTO> result, List<String> allMpiIds, Integer index, Integer limit, String tabStatus, TabStatusEnumNew recipeStatusList, GroupRecipeConfDTO groupRecipeConfDTO) {
         List<RecipeListBean> recipeListByMPIId = recipeDAO.findRecipeListByMPIId(allMpiIds, index, limit, tabStatus, recipeStatusList.getStatusList());
         LOGGER.info("getRecipeByGoingAndOver recipeListByMPIId = {}", recipeListByMPIId);
         if (CollectionUtils.isEmpty(recipeListByMPIId)) {
@@ -1003,8 +1003,8 @@ public class RecipeListService extends RecipeBaseService {
         }
         Map<String, List<RecipeListBean>> orderMap = recipeListByMPIId.stream().filter(recipeListBean -> recipeListBean.getOrderCode() != null).collect(Collectors.groupingBy(RecipeListBean::getOrderCode));
         Set<Integer> recipeIds = new HashSet<>();
-        Boolean mergeRecipeFlag = groupRecipeConf.getMergeRecipeFlag();
-        String mergeRecipeWayAfter = groupRecipeConf.getMergeRecipeWayAfter();
+        Boolean mergeRecipeFlag = groupRecipeConfDTO.getMergeRecipeFlag();
+        String mergeRecipeWayAfter = groupRecipeConfDTO.getMergeRecipeWayAfter();
         recipeListByMPIId.forEach(recipeListBean -> {
             if (!recipeIds.contains(recipeListBean.getRecipeId())) {
                 PatientTabStatusMergeRecipeDTO patientTabStatusMergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();

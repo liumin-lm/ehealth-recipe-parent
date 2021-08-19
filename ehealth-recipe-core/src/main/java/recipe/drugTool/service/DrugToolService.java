@@ -376,6 +376,8 @@ public class DrugToolService implements IDrugToolService {
                         //中药不需要设置
                         if (!(new Integer(3).equals(drug.getDrugType()))) {
                             errMsg.append("转换系数不能为空").append(";");
+                        }else{
+                            drug.setPack(1);
                         }
                     } else {
                         drug.setPack(Integer.parseInt(getStrFromCell(row.getCell(9))));

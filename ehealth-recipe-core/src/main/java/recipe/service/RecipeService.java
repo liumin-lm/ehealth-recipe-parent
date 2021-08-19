@@ -226,6 +226,9 @@ public class RecipeService extends RecipeBaseService {
     private DrugToolService drugToolService;
 
     @Autowired
+    private OrganDrugListService OrganDrugListService;
+
+    @Autowired
     private PharmacyTcmService pharmacyTcmService;
 
     @Resource
@@ -2701,6 +2704,146 @@ public class RecipeService extends RecipeBaseService {
     }
 
     /**
+     * 检测机构推送药品数据
+     * @param organDrugs
+     * @return
+     */
+    private HisResponseTO checkOrganDrugs(List<OrganDrugInfoTO> organDrugs) {
+        HisResponseTO hisResponseTO=new HisResponseTO();
+        for (OrganDrugInfoTO organDrug : organDrugs) {
+            if (ObjectUtils.isEmpty(organDrug.getSyncWay())){
+                hisResponseTO.setMsgCode("-1");
+                hisResponseTO.setMsg("存在推送数据 同步方式 未给出!");
+                return hisResponseTO;
+            }
+        }
+        hisResponseTO.setMsgCode("1");
+        return hisResponseTO;
+    }
+    private List<String> checkOrganDrugInfoTO(OrganDrugInfoTO organDrugChange) {
+        List<String> list = Lists.newArrayList();
+        if (StringUtils.isEmpty(organDrugChange.getOrganDrugCode())) {
+            list.add("organDrugCode(药品编号)");
+        }
+        if (StringUtils.isEmpty(organDrugChange.getDrugName())) {
+            list.add("drugName(药品通用名)");
+        }
+        if (StringUtils.isEmpty(organDrugChange.getDrugSpec())) {
+            list.add("drugSpec(药品规格)");
+        }
+        if (ObjectUtils.isEmpty(organDrugChange.getPack())) {
+            list.add("pack(转换系数)");
+        }
+        if (StringUtils.isEmpty(organDrugChange.getUnit())) {
+            list.add("unit(药品单位)");
+        }
+        if (StringUtils.isEmpty(organDrugChange.getProducer())) {
+            list.add("producer(生产厂家 名称)");
+        }
+        if (StringUtils.isEmpty(organDrugChange.getDrugform())) {
+            list.add("drugform(剂型)");
+        }
+        if (ObjectUtils.isEmpty(organDrugChange.getDrugType())) {
+            list.add("drugType(药品类型)");
+        }
+        if (ObjectUtils.isEmpty(organDrugChange.getUseDose())) {
+            list.add("useDose(单次剂量)");
+        }
+        if (ObjectUtils.isEmpty(organDrugChange.getBaseDrug())) {
+            list.add("baseDrug(是否基药)");
+        }
+        if (ObjectUtils.isEmpty(organDrugChange.getUseDoseUnit())) {
+            list.add("useDoseUnit(剂量单位)");
+        }
+        if (ObjectUtils.isEmpty(organDrugChange.getPrice())) {
+            list.add("price(药品单价)");
+        }
+        return list;
+    }
+
+    /**
+     * 机构推送药品调用方法 his调用
+     * @param organDrugs
+     * @return
+     */
+    @RpcService
+    public HisResponseTO syncOrganDrug(List<OrganDrugInfoTO> organDrugs,Integer organId){
+        HisResponseTO hisResponseTO=new HisResponseTO();
+        if (ObjectUtils.isEmpty(organId)){
+            hisResponseTO.setMsgCode("-1");
+            hisResponseTO.setMsg("机构ID为空!");
+            return hisResponseTO;
+        }
+        if (ObjectUtils.isEmpty(organDrugs)){
+            hisResponseTO.setMsgCode("-1");
+            hisResponseTO.setMsg("推送数据为空!");
+            return hisResponseTO;
+        }
+        HisResponseTO checkOrganDrugs = checkOrganDrugs(organDrugs);
+        if ("-1".equals(checkOrganDrugs.getMsg())){
+            return checkOrganDrugs;
+        }
+        for (OrganDrugInfoTO organDrug : organDrugs) {
+            List<String> check = checkOrganDrugInfoTO(organDrug);
+            if (!ObjectUtils.isEmpty(check)) {
+                LOGGER.info("updateOrSaveOrganDrug 当前新增药品信息,信息缺失{}", JSONUtils.toString(check));
+                hisResponseTO.setMsg("当前推送药品信息,信息缺失(包括:" + check.toString() + "),无法操作!");
+                return hisResponseTO;
+            }
+            switch (organDrug.getSyncWay()){
+                case 1:
+                    LOGGER.info("syncOrganDrug机构药品数据推送 新增" + organDrug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(organDrug));
+                    OrganDrugList add = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, organDrug.getOrganDrugCode());
+                    if (!ObjectUtils.isEmpty(add)){
+                        hisResponseTO.setMsgCode("-1");
+                        hisResponseTO.setMsg(organDrug.getOrganDrugCode()+":编码药品已存在 推送方式有误!");
+                        return hisResponseTO;
+                    }
+                    try {
+                        addHisDrug(organDrug, organId, "推送");
+                        drugToolService.drugCommit(null, organId);
+                    } catch (Exception e) {
+                        LOGGER.info("syncOrganDrug机构药品数据推送新增失败,{}", JSONUtils.toString(organDrug) + "Exception:{}" + e);
+                    }
+                    break;
+                case 2:
+                    LOGGER.info("syncOrganDrug机构药品数据推送 更新" + organDrug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(organDrug));
+                    OrganDrugList update = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, organDrug.getOrganDrugCode());
+                    if (ObjectUtils.isEmpty(update)){
+                        hisResponseTO.setMsgCode("-1");
+                        hisResponseTO.setMsg(organDrug.getOrganDrugCode()+":机构未找到该编码药品  "+organDrug.getDrugName()+" 无法修改 推送方式有误!");
+                        return hisResponseTO;
+                    }
+                    try {
+
+                    } catch (Exception e) {
+                        LOGGER.info("syncOrganDrug机构药品数据推送 修改失败,{}", JSONUtils.toString(organDrug) + "Exception:{}" + e);
+                    }
+                    break;
+                case 3:
+                    LOGGER.info("syncOrganDrug机构药品数据推送 删除" + organDrug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(organDrug));
+                    OrganDrugList delete = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, organDrug.getOrganDrugCode());
+                    if (ObjectUtils.isEmpty(delete)){
+                        hisResponseTO.setMsgCode("-1");
+                        hisResponseTO.setMsg(organDrug.getOrganDrugCode()+":机构未找到该编码药品 "+organDrug.getDrugName()+" 无法删除 推送方式有误!");
+                        return hisResponseTO;
+                    }
+                    try {
+                        OrganDrugListService.deleteOrganDrugListById(delete.getOrganDrugId());
+                    } catch (Exception e) {
+                        LOGGER.info("syncOrganDrug机构药品数据推送 删除失败,{}", JSONUtils.toString(organDrug) + "Exception:{}" + e);
+                    }
+                    break;
+                default:
+                    break;
+            }
+        }
+        hisResponseTO.setMsgCode("200");
+        hisResponseTO.setMsg("success");
+        return hisResponseTO;
+    }
+
+    /**
      * 从缓存中删除异常同步情况
      *
      * @param organId
@@ -4591,6 +4734,10 @@ public class RecipeService extends RecipeBaseService {
         } else {
             drugListMatch.setSaleName(drug.getSaleName());
         }
+        if (!ObjectUtils.isEmpty(drug.getUseDose())) {
+            drugListMatch.setUseDose(drug.getUseDose());
+        }
+
         if (StringUtils.isEmpty(drug.getDrugSpec())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugSpec is required");
         } else {
@@ -4746,6 +4893,10 @@ public class RecipeService extends RecipeBaseService {
         //转换系数
         if (!ObjectUtils.isEmpty(drug.getPack())) {
             organDrug.setPack(Integer.valueOf(drug.getPack()));
+        }
+        //实际单次剂量（规格单位）
+        if (!ObjectUtils.isEmpty(drug.getUseDose())) {
+            organDrug.setUseDose(drug.getUseDose());
         }
         //生产厂家
         if (StringUtils.isNotEmpty(drug.getProducer())) {

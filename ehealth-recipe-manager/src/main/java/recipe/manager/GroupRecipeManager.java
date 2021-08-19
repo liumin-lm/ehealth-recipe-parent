@@ -2,7 +2,7 @@ package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
-import com.ngari.recipe.dto.GroupRecipeConf;
+import com.ngari.recipe.dto.GroupRecipeConfDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import org.apache.commons.collections.CollectionUtils;
@@ -65,9 +65,9 @@ public class GroupRecipeManager extends BaseManager {
      *
      * @return 合并支付的配制项
      */
-    public GroupRecipeConf getMergeRecipeSetting() {
+    public GroupRecipeConfDTO getMergeRecipeSetting() {
         List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
-        GroupRecipeConf result = new GroupRecipeConf(false, "e.registerId");
+        GroupRecipeConfDTO result = new GroupRecipeConfDTO(false, "e.registerId");
         logger.info("GroupRecipeManager getMergeRecipeSetting organIds={}", JSON.toJSONString(organIds));
         if (CollectionUtils.isEmpty(organIds)) {
             return result;

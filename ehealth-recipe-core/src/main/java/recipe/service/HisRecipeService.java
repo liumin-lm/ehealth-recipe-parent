@@ -10,7 +10,7 @@ import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.DrugListBean;
-import com.ngari.recipe.dto.GroupRecipeConf;
+import com.ngari.recipe.dto.GroupRecipeConfDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
 import com.ngari.recipe.recipe.model.*;
@@ -197,9 +197,9 @@ public class HisRecipeService {
                 hisPatientTabStatusMergeRecipeVO.setFirstRecipeId(hisRecipeListBean.getHisRecipeID());
                 hisPatientTabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
                 // 获取合并处方的关键字
-                GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
-                String mergeRecipeWay = groupRecipeConf.getMergeRecipeWayAfter();
-                hisPatientTabStatusMergeRecipeVO.setMergeRecipeFlag(groupRecipeConf.getMergeRecipeFlag());
+                GroupRecipeConfDTO groupRecipeConfDTO = groupRecipeManager.getMergeRecipeSetting();
+                String mergeRecipeWay = groupRecipeConfDTO.getMergeRecipeWayAfter();
+                hisPatientTabStatusMergeRecipeVO.setMergeRecipeFlag(groupRecipeConfDTO.getMergeRecipeFlag());
                 hisPatientTabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWay);
                 if ("e.registerId".equals(mergeRecipeWay)) {
                     // 挂号序号
@@ -280,9 +280,9 @@ public class HisRecipeService {
 
         //查询线下待缴费处方
         List<HisPatientTabStatusMergeRecipeVO> result = new ArrayList<>();
-        GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
-        Boolean mergeRecipeFlag = groupRecipeConf.getMergeRecipeFlag();
-        String mergeRecipeWayAfter = groupRecipeConf.getMergeRecipeWayAfter();
+        GroupRecipeConfDTO groupRecipeConfDTO = groupRecipeManager.getMergeRecipeSetting();
+        Boolean mergeRecipeFlag = groupRecipeConfDTO.getMergeRecipeFlag();
+        String mergeRecipeWayAfter = groupRecipeConfDTO.getMergeRecipeWayAfter();
         //移除正在进行中的处方单
         Iterator<HisRecipeVO> iterator = request.iterator();
         while (iterator.hasNext()) {
@@ -405,9 +405,9 @@ public class HisRecipeService {
                 hisPatientTabStatusMergeRecipeVO.setFirstRecipeId(hisRecipeListBean.getHisRecipeID());
                 hisPatientTabStatusMergeRecipeVO.setListSkipType(giveModeButtonBean.getButtonSkipType());
                 // 获取合并处方的关键字
-                GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
-                Boolean mergeRecipeFlag = groupRecipeConf.getMergeRecipeFlag();
-                String mergeRecipeWayAfter = groupRecipeConf.getMergeRecipeWayAfter();
+                GroupRecipeConfDTO groupRecipeConfDTO = groupRecipeManager.getMergeRecipeSetting();
+                Boolean mergeRecipeFlag = groupRecipeConfDTO.getMergeRecipeFlag();
+                String mergeRecipeWayAfter = groupRecipeConfDTO.getMergeRecipeWayAfter();
                 hisPatientTabStatusMergeRecipeVO.setMergeRecipeWay(mergeRecipeWayAfter);
                 hisPatientTabStatusMergeRecipeVO.setMergeRecipeFlag(mergeRecipeFlag);
                 if ("e.registerId".equals(mergeRecipeWayAfter)) {
