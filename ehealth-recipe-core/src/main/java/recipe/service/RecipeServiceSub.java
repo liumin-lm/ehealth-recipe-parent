@@ -37,7 +37,7 @@ import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.AttachSealPicDTO;
-import com.ngari.recipe.dto.GroupRecipeConf;
+import com.ngari.recipe.dto.GroupRecipeConfDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.model.*;
@@ -1670,8 +1670,8 @@ public class RecipeServiceSub {
             Boolean mergeRecipeFlag = false;
             try {
                 if (StringUtils.isEmpty(recipe.getOrderCode()) && StringUtils.isNotEmpty(recipeExtend.getRegisterID()) && !RecipeStatusEnum.RECIPE_STATUS_NO_OPERATOR.getType().equals(recipe.getStatus())) {
-                    GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
-                    mergeRecipeFlag = groupRecipeConf.getMergeRecipeFlag();
+                    GroupRecipeConfDTO groupRecipeConfDTO = groupRecipeManager.getMergeRecipeSetting();
+                    mergeRecipeFlag = groupRecipeConfDTO.getMergeRecipeFlag();
                     if (mergeRecipeFlag) {
                         String mergeRecipeWay = (String) configService.getConfiguration(recipe.getClinicOrgan(), "mergeRecipeWay");
                         Integer numCanMergeRecipe = recipeDAO.getNumCanMergeRecipeByMergeRecipeWay(recipe.getMpiid(), recipeExtend.getRegisterID(), recipe.getClinicOrgan(), mergeRecipeWay, recipeExtend.getChronicDiseaseName());

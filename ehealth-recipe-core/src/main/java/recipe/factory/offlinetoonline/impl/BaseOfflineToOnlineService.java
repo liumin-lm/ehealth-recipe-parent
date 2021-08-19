@@ -10,7 +10,7 @@ import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.dto.GroupRecipeConf;
+import com.ngari.recipe.dto.GroupRecipeConfDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
@@ -253,8 +253,8 @@ public class BaseOfflineToOnlineService {
         Map<String, List<RecipeOrder>> recipeOrderMap = getRecipeOrderMap(hisRecipeListBeanMap.keySet());
 
         // 获取合并处方显示配置项
-        GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
-        String mergeRecipeWay = groupRecipeConf.getMergeRecipeWayAfter();
+        GroupRecipeConfDTO groupRecipeConfDTO = groupRecipeManager.getMergeRecipeSetting();
+        String mergeRecipeWay = groupRecipeConfDTO.getMergeRecipeWayAfter();
 
         hisRecipeListBeans.forEach(hisRecipeListBean -> {
             List<HisRecipeVO> hisRecipeVos = new ArrayList<>();
@@ -283,7 +283,7 @@ public class BaseOfflineToOnlineService {
                     }
                     hisRecipeVos = setPatientTabStatusMerge(recipeMap, recipeOrder, hisRecipeListBeansList, recipeIds);
                 }
-                covertMergeRecipeVO(grpupField, groupRecipeConf.getMergeRecipeFlag(), mergeRecipeWay, hisRecipeListBean.getHisRecipeID(), giveModeButtonBean.getButtonSkipType(), hisRecipeVos, result);
+                covertMergeRecipeVO(grpupField, groupRecipeConfDTO.getMergeRecipeFlag(), mergeRecipeWay, hisRecipeListBean.getHisRecipeID(), giveModeButtonBean.getButtonSkipType(), hisRecipeVos, result);
             }
 
         });
