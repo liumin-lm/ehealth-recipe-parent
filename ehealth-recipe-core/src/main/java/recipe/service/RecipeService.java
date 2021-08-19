@@ -2711,7 +2711,7 @@ public class RecipeService extends RecipeBaseService {
     private HisResponseTO checkOrganDrugs(List<OrganDrugInfoTO> organDrugs) {
         HisResponseTO hisResponseTO=new HisResponseTO();
         for (OrganDrugInfoTO organDrug : organDrugs) {
-            if (ObjectUtils.isEmpty(organDrug.getSyncWay)){
+            if (ObjectUtils.isEmpty(organDrug.getSyncWay())){
                 hisResponseTO.setMsgCode("-1");
                 hisResponseTO.setMsg("存在推送数据 同步方式 未给出!");
                 return hisResponseTO;
@@ -2790,7 +2790,7 @@ public class RecipeService extends RecipeBaseService {
                 hisResponseTO.setMsg("当前推送药品信息,信息缺失(包括:" + check.toString() + "),无法操作!");
                 return hisResponseTO;
             }
-            switch (organDrug.getSyncWay){
+            switch (organDrug.getSyncWay()){
                 case 1:
                     LOGGER.info("syncOrganDrug机构药品数据推送 新增" + organDrug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(organDrug));
                     OrganDrugList add = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, organDrug.getOrganDrugCode());
