@@ -33,11 +33,9 @@ cdr_hisprescription_detail
 支付 order已存在支付相关字段
 
 ```
-`PayDate` datetime DEFAULT NULL COMMENT '支付日期' ,
 `PayListID` int(11) DEFAULT NULL COMMENT '结算单号',
 `TransValue` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '运费',(recipe 类中没有)
 `CouponId` int(11) DEFAULT NULL COMMENT '优惠券Id',(order)
-`ActualPrice` decimal(10,2) DEFAULT NULL COMMENT '最终支付费用',(order)
 `PayMode` tinyint(3) unsigned DEFAULT NULL COMMENT '支付方式 1线上支付 2货到付款 3到院支付',(order)
 `TradeNo` varchar(100) DEFAULT NULL COMMENT '交易流水号',(order)
 `WxPayWay` varchar(10) DEFAULT NULL COMMENT '支付方式',(order)
@@ -84,7 +82,7 @@ cdr_hisprescription_detail
 `preSettleTotalAmount` varchar(10) DEFAULT NULL COMMENT '处方预结算返回支付总金额',
 `fundAmount` varchar(10) DEFAULT NULL COMMENT '处方预结算返回医保支付金额',
 `cashAmount` varchar(10) DEFAULT NULL COMMENT '处方预结算返回自费金额',
-`payAmount` varchar(10) CHARACTER SET utf8 DEFAULT NULL COMMENT '预结算返回应付金额',
+
 ```
 
 ```
@@ -227,3 +225,13 @@ recipe 字段
 `EnterpriseId` int(11) DEFAULT NULL COMMENT '药企ID',(主要是扁鹊等第三方使用,平台处方使用order中的药企id)
 ```
 
+
+recipe不能动,第三方订单返回数据需要回写
+```
+`PayDate` datetime DEFAULT NULL COMMENT '支付日期' ,
+`ActualPrice` decimal(10,2) DEFAULT NULL COMMENT '最终支付费用',(order)
+```
+ext 正在使用,先不动
+```
+`payAmount` varchar(10) CHARACTER SET utf8 DEFAULT NULL COMMENT '预结算返回应付金额',
+```

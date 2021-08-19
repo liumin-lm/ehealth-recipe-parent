@@ -4,10 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
-import com.ngari.patient.dto.HealthCardDTO;
-import com.ngari.recipe.dto.DiseaseInfoDTO;
-import com.ngari.recipe.dto.OutPatientRecipeDTO;
-import com.ngari.recipe.dto.OutRecipeDetailDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -57,10 +54,14 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     private PatientClient patientClient;
 
+
+
+
     /**
      * 获取线下门诊处方诊断信息
+     *
      * @param patientInfoVO 患者信息
-     * @return  诊断列表
+     * @return 诊断列表
      */
     @Override
     public List<DiseaseInfoDTO> getOutRecipeDisease(PatientInfoVO patientInfoVO) {
@@ -69,8 +70,9 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     /**
      * 查询门诊处方信息
+     *
      * @param outPatientRecipeReqVO 患者信息
-     * @return  门诊处方列表
+     * @return 门诊处方列表
      */
     @Override
     public List<OutPatientRecipeDTO> queryOutPatientRecipe(OutPatientRecipeReqVO outPatientRecipeReqVO) {
@@ -81,6 +83,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     /**
      * 获取门诊处方详情信息
+     *
      * @param outRecipeDetailReqVO 门诊处方信息
      * @return 图片或者PDF链接等
      */
@@ -94,11 +97,12 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     /**
      * 前端获取用药指导
+     *
      * @param medicationGuidanceReqVO 用药指导入参
      * @return 用药指导出参
      */
     @Override
-    public MedicationGuideResVO getMedicationGuide(MedicationGuidanceReqVO medicationGuidanceReqVO){
+    public MedicationGuideResVO getMedicationGuide(MedicationGuidanceReqVO medicationGuidanceReqVO) {
         logger.info("OutPatientRecipeService queryOutPatientRecipe getMedicationGuide:{}.", JSON.toJSONString(medicationGuidanceReqVO));
         //获取患者信息
         PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(medicationGuidanceReqVO.getMpiId());
@@ -137,24 +141,10 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     /**
-     * @Description: 查询未审核处方个数
-     * @Param: bussSource 处方来源
-     * @Param: clinicId  复诊ID
-     * @Param: recipeStatus  未审核状态List
-     * @return:
-     * @Date: 2021/7/20
-     */
-    private Long getUncheckRecipeByClinicId(Integer bussSource, Integer clinicId, List<Integer> recipeStatus) {
-        logger.info("getUncheckRecipeByClinicID bussSource={},clinicID={},recipeStatus={}", bussSource, clinicId, recipeStatus);
-        Long recipesCount = recipeDAO.getRecipeCountByBussSourceAndClinicIdAndStatus(bussSource, clinicId, recipeStatus);
-        logger.info("getUncheckRecipeByClinicID recipesCount={}", recipesCount);
-        return recipesCount;
-    }
-
-    /**
-     *根据bussSource和clinicID查询是否存在药师审核未通过的处方
+     * 根据bussSource和clinicID查询是否存在药师审核未通过的处方
+     *
      * @param bussSource 处方来源
-     * @param clinicId 复诊ID
+     * @param clinicId   复诊ID
      * @return true 存在  false 不存在
      * @date 2021/7/16
      */
@@ -167,4 +157,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         logger.info("RecipeBusinessService existUncheckRecipe recipesCount={}", recipesCount);
         return uncheckCount != 0;
     }
+
 }
+

@@ -8,7 +8,7 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.client.HisInventoryClient;
+import recipe.client.DrugStockClient;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 
@@ -26,7 +26,7 @@ public class StatusDrugWithdrawalImpl extends AbstractRecipeOrderStatus {
      */
     protected final static int DISPENSING_FLAG_WITHDRAWAL = 2;
     @Autowired
-    private HisInventoryClient hisInventoryClient;
+    private DrugStockClient drugStockClient;
 
     @Override
     public Integer getStatus() {
@@ -38,9 +38,9 @@ public class StatusDrugWithdrawalImpl extends AbstractRecipeOrderStatus {
         recipeOrder.setDispensingFlag(DISPENSING_FLAG_WITHDRAWAL);
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
         RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(recipe.getOrderCode());
-        RecipeDrugInventoryDTO request = hisInventoryClient.recipeDrugInventory(recipe, recipeDetailList, recipeOrderBill);
+        RecipeDrugInventoryDTO request = drugStockClient.recipeDrugInventory(recipe, recipeDetailList, recipeOrderBill);
         request.setInventoryType(DISPENSING_FLAG_WITHDRAWAL);
-        hisInventoryClient.drugInventory(request);
+        drugStockClient.drugInventory(request);
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_DRUG_WITHDRAWAL.getType());
         return recipe;
     }

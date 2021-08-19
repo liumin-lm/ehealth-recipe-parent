@@ -19,6 +19,8 @@ public class OperationConstant {
      */
     public static final String OP_BARCODE = "barCode";
     public static final String OP_BARCODE_ALL = "barCode.recipeExtend.cardNo";
+    public static final String OP_BARCODE_DEFAULT = "recipeExtend.cardNo";
+
     /**
      * 二维码
      */
@@ -63,5 +65,9 @@ public class OperationConstant {
      * 处方-核发药师
      */
     public static final String OP_RECIPE_GIVE_USER = "giveUser";
+    /**
+     * 监管流水号
+     */
+    public static final String OP_RECIPE_EXTEND_SUPERVISE = "superviseRecipecode";
 
 }

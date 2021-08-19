@@ -9,16 +9,24 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
+import com.ngari.recipe.dto.OffLineRecipeDetailDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutRecipeDetailDTO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
+import org.apache.commons.beanutils.BeanUtilsBean;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.BeanFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
+import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.DateConversion;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -150,7 +158,125 @@ public class OfflineRecipeClient extends BaseClient {
         return responseTo;
     }
 
+    /**
+     * 获取线下处方的发药流水号
+     * @param patientName  患者姓名
+     * @param patientId    患者病历号
+     * @return 发药流水号
+     */
+    public String queryRecipeSerialNumber(Integer organId, String patientName, String patientId, String registerID){
+        try {
+            PatientDiseaseInfoTO patientDiseaseInfoTO = new PatientDiseaseInfoTO();
+            patientDiseaseInfoTO.setOrganId(organId);
+            patientDiseaseInfoTO.setPatientId(patientId);
+            patientDiseaseInfoTO.setPatientName(patientName);
+            patientDiseaseInfoTO.setRegisterID(registerID);
+            logger.info("OfflineRecipeClient queryRecipeSerialNumber patientDiseaseInfoTO:{}.", JSON.toJSONString(patientDiseaseInfoTO));
+            HisResponseTO response = recipeHisService.queryRecipeSerialNumber(patientDiseaseInfoTO);
+            return getResponse(response).toString();
+        } catch (Exception e) {
+            logger.error("OfflineRecipeClient queryRecipeSerialNumber hisResponse", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
 
+    }
+
+    /**
+     * 查询线下处方数据
+     *
+     * @param organId
+     * @param patientDTO
+     * @param timeQuantum
+     * @param flag
+     * @param recipeCode
+     * @return
+     */
+    public QueryHisRecipResTO queryOffLineRecipeDetail(OffLineRecipeDetailDTO offLineRecipeDetailDTO,Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
+        logger.info("HisRecipeManager queryOffLineRecipeDetail param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode);
+        List<QueryHisRecipResTO> response = null;
+        HisResponseTO<List<QueryHisRecipResTO>> responseTo = null;
+        try {
+            responseTo = queryData(organId, patientDTO, timeQuantum, flag, recipeCode);
+            //过滤数据
+            HisResponseTO<List<QueryHisRecipResTO>> res = filterData(responseTo, recipeCode, flag);
+            response = getResponse(res);
+            if (ObjectUtils.isEmpty(response)){
+                throw new DAOException(ErrorCode.SERVICE_ERROR,"His查询结果为空");
+            }
+        } catch (Exception e) {
+            logger.error("HisRecipeManager queryOffLineRecipeDetail error",e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR,e.getMessage());
+        }
+
+        List<QueryHisRecipResTO> data = responseTo.getData();
+        QueryHisRecipResTO queryHisRecipResTO = data.get(0);
+
+        offLineRecipeDetailDTO.setDocIndexId(null);
+
+        if (!ObjectUtils.isEmpty(queryHisRecipResTO)) {
+            BeanUtils.copy(queryHisRecipResTO,offLineRecipeDetailDTO);
+            offLineRecipeDetailDTO.setOrganDiseaseName(queryHisRecipResTO.getDiseaseName());
+            offLineRecipeDetailDTO.setChronicDiseaseName(queryHisRecipResTO.getChronicDiseaseName());
+            offLineRecipeDetailDTO.setCheckerName(queryHisRecipResTO.getCheckerName());
+            //根据枚举设置处方类型
+            Integer recipeType = queryHisRecipResTO.getRecipeType();
+            String recipeTypeText = RecipeTypeEnum.getRecipeType(recipeType);
+            offLineRecipeDetailDTO.setRecipeTypeText(recipeTypeText);
+            //判断是否为医保处方
+            Integer medicalType = queryHisRecipResTO.getMedicalType();
+            if (!ObjectUtils.isEmpty(medicalType)&&medicalType.equals(2)){
+                offLineRecipeDetailDTO.setMedicalTypeText("普通医保");
+            }else if (!ObjectUtils.isEmpty(medicalType)&&medicalType.equals(1)){
+                offLineRecipeDetailDTO.setMedicalTypeText("患者自费");
+            }
+        }
+
+        return data.get(0);
+    }
+
+    /**
+     * @param responseTo
+     * @param flag
+     * @return
+     * @author liumin
+     * @Description 数据过滤
+     */
+    private HisResponseTO<List<QueryHisRecipResTO>> filterData(HisResponseTO<List<QueryHisRecipResTO>> responseTo, String recipeCode, Integer flag) {
+        logger.info("HisRecipeManager filterData responseTo:{},recipeCode:{}", JSONUtils.toString(responseTo), recipeCode);
+        if (responseTo == null) {
+            return responseTo;
+        }
+        List<QueryHisRecipResTO> queryHisRecipResTos = responseTo.getData();
+        List<QueryHisRecipResTO> queryHisRecipResToFilters = new ArrayList<>();
+        //获取详情时防止前置机没过滤数据，做过滤处理
+        if (responseTo != null && recipeCode != null) {
+            logger.info("HisRecipeManager queryHisRecipeInfo recipeCode:{}", recipeCode);
+            //详情
+            if (!CollectionUtils.isEmpty(queryHisRecipResTos)) {
+                for (QueryHisRecipResTO queryHisRecipResTo : queryHisRecipResTos) {
+                    if (recipeCode.equals(queryHisRecipResTo.getRecipeCode())) {
+                        queryHisRecipResToFilters.add(queryHisRecipResTo);
+                        continue;
+                    }
+                }
+            }
+            responseTo.setData(queryHisRecipResToFilters);
+        }
+        //列表
+        if (responseTo != null && recipeCode == null) {
+            //对状态过滤(1、测试桩会返回所有数据，不好测试，对测试造成干扰 2、也可以做容错处理)
+            if (!CollectionUtils.isEmpty(queryHisRecipResTos)) {
+                for (QueryHisRecipResTO queryHisRecipResTo : queryHisRecipResTos) {
+                    if (flag.equals(queryHisRecipResTo.getStatus())) {
+                        queryHisRecipResToFilters.add(queryHisRecipResTo);
+                    }
+                }
+            }
+            responseTo.setData(queryHisRecipResToFilters);
+        }
+        logger.info("HisRecipeManager filterData:{}.", JSONUtils.toString(responseTo));
+        return responseTo;
+    }
 
 
 

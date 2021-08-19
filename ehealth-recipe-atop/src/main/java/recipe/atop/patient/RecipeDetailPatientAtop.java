@@ -6,7 +6,7 @@ import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
-import recipe.core.api.IRecipeDetailService;
+import recipe.core.api.IRecipeDetailBusinessService;
 
 import java.util.Objects;
 
@@ -19,7 +19,7 @@ import java.util.Objects;
 public class RecipeDetailPatientAtop extends BaseAtop {
 
     @Autowired
-    private IRecipeDetailService recipeDetailService;
+    private IRecipeDetailBusinessService recipeDetailService;
 
     /**
      * 患者端处方进行中列表查询药品信息

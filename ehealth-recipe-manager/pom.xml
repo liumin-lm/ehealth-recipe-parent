@@ -5,13 +5,13 @@
     <parent>
         <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>3.8.0.2.master-SNAPSHOT</version>
+        <version>3.8.1.7.master-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
     <name>manager</name>
-    <description>通用处理层</description>
+    <description>模块功能处理层</description>
     <artifactId>ehealth-recipe-manager</artifactId>
     <dependencies>
         <dependency>

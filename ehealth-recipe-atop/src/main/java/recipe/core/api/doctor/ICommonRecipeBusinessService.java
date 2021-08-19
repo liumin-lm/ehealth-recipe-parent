@@ -9,7 +9,7 @@ import java.util.List;
  *
  * @author fuzi
  */
-public interface ICommonRecipeService {
+public interface ICommonRecipeBusinessService {
     /**
      * 获取常用方列表
      *

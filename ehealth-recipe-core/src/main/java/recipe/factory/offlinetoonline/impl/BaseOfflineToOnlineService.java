@@ -499,14 +499,17 @@ public class BaseOfflineToOnlineService {
             RecipeService.handleRecipeInvalidTime(recipe.getClinicOrgan(), recipe.getRecipeId(), recipe.getSignDate());
             saveRecipeExt(recipe, hisRecipe);
             savaRecipeDetail(recipe.getRecipeId(), hisRecipe);
+
             //购药按钮
             List<Integer> drugsEnterpriseContinue = drugsEnterpriseService.getDrugsEnterpriseContinue(recipe.getRecipeId(), recipe.getClinicOrgan());
             LOGGER.info("getHisRecipeDetailByHisRecipeId recipeId = {} drugsEnterpriseContinue = {}", recipe.getRecipeId(), JSONUtils.toString(drugsEnterpriseContinue));
             if (CollectionUtils.isNotEmpty(drugsEnterpriseContinue)) {
+                Map<String, Object> attMap = new HashMap<>();
                 String join = StringUtils.join(drugsEnterpriseContinue, ",");
-                recipe.setRecipeSupportGiveMode(join);
+//                recipe.setRecipeSupportGiveMode(join);
+                attMap.put("recipeSupportGiveMode", join);
+                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attMap);
             }
-            recipeDAO.saveOrUpdate(recipe);
             LOGGER.info("BaseOfflineToOnlineService saveRecipeInfo res:{}", recipe.getRecipeId());
             return recipe.getRecipeId();
         }
@@ -622,12 +625,6 @@ public class BaseOfflineToOnlineService {
         recipe.setTakeMedicine(0);
         recipe.setGiveFlag(0);
         recipe.setRecipeMode("ngarihealth");
-        if (hisRecipe.getTcmNum() != null) {
-            recipe.setCopyNum(Integer.parseInt(hisRecipe.getTcmNum()));
-        } else {
-            recipe.setCopyNum(1);
-        }
-
         recipe.setValueDays(3);
         recipe.setFromflag(1);
         recipe.setRecipeSourceType(2);
@@ -637,7 +634,9 @@ public class BaseOfflineToOnlineService {
         recipe.setGiveMode(hisRecipe.getGiveMode());
         recipe.setLastModify(new Date());
         //中药
-        recipe.setCopyNum(StringUtils.isEmpty(hisRecipe.getTcmNum()) == true ? null : Integer.parseInt(hisRecipe.getTcmNum()));
+        if (new Integer(3).equals(hisRecipe.getRecipeType())) {
+            recipe.setCopyNum(StringUtils.isEmpty(hisRecipe.getTcmNum()) ? 1 : Integer.parseInt(hisRecipe.getTcmNum()));
+        }
         //中药医嘱跟着处方 西药医嘱跟着药品（见药品详情）
         recipe.setRecipeMemo(hisRecipe.getRecipeMemo());
         recipe = recipeDAO.saveOrUpdate(recipe);

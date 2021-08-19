@@ -1,4 +1,4 @@
-package recipe.service;
+package recipe.business;
 
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.ConfigStatusCheck;
@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.core.api.IConfigStatusService;
+import recipe.core.api.IConfigStatusBusinessService;
 import recipe.dao.ConfigStatusCheckDAO;
 
 import java.util.List;
@@ -18,7 +18,7 @@ import java.util.List;
  * @author fuzi
  */
 @Service
-public class ConfigStatusService implements IConfigStatusService {
+public class ConfigStatusBusinessService implements IConfigStatusBusinessService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
     private ConfigStatusCheckDAO configStatusCheckDAO;

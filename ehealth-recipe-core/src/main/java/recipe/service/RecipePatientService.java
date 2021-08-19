@@ -9,6 +9,7 @@ import com.google.common.collect.Maps;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
+import com.ngari.his.patient.mode.HisCardVO;
 import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.his.recipe.mode.ChronicDiseaseListReqTO;
@@ -26,9 +27,9 @@ import com.ngari.recipe.recipe.model.RankShiftList;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.CheckPatientEnum;
 import com.ngari.recipe.vo.OutPatientReqVO;
-import com.ngari.revisit.RevisitAPI;
+import com.ngari.recipe.vo.PatientInfoVO;
+import com.ngari.recipe.vo.PatientMedicalTypeVO;
 import com.ngari.revisit.common.model.RevisitExDTO;
-import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -47,8 +48,9 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.client.HealthCardClient;
 import recipe.client.PatientClient;
+import recipe.client.RevisitClient;
 import recipe.constant.*;
-import recipe.core.api.patient.IRecipePatientService;
+import recipe.core.api.patient.IPatientBusinessService;
 import recipe.dao.ChronicDiseaseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -56,6 +58,7 @@ import recipe.dao.SaleDrugListDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.RecipeToHisService;
 import recipe.service.common.RecipeCacheService;
+import recipe.util.ValidateUtil;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
@@ -71,7 +74,7 @@ import java.util.stream.Collectors;
  * @date:2017/6/30.
  */
 @RpcBean("recipePatientService")
-public class RecipePatientService extends RecipeBaseService implements IRecipePatientService{
+public class RecipePatientService extends RecipeBaseService implements IPatientBusinessService {
 
     /**
      * LOGGER
@@ -85,6 +88,9 @@ public class RecipePatientService extends RecipeBaseService implements IRecipePa
 
     @Autowired
     private HealthCardClient healthCardClient;
+
+    @Autowired
+    private RevisitClient revisitClient;
 
     private String msg;
 
@@ -645,36 +651,7 @@ public class RecipePatientService extends RecipeBaseService implements IRecipePa
     @RpcService
     public PatientQueryRequestTO queryPatientForHis(Integer organId, String mpiId) {
         LOGGER.info("queryPatientForHis organId={},mpiId={}", organId, mpiId);
-        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
-        IPatientHisService iPatientHisService = AppContextHolder.getBean("his.iPatientHisService", IPatientHisService.class);
-        PatientDTO patient = patientService.get(mpiId);
-        if (patient == null) {
-            throw new DAOException(609, "找不到该患者");
-        }
-        try {
-            PatientQueryRequestTO req = new PatientQueryRequestTO();
-            req.setOrgan(organId);
-            req.setPatientName(patient.getPatientName());
-            req.setCertificateType(patient.getCertificateType());
-            req.setCertificate(patient.getCertificate());
-            LOGGER.info("queryPatientForHis req={}", JSONUtils.toString(req));
-            HisResponseTO<PatientQueryRequestTO> res = iPatientHisService.queryPatient(req);
-            LOGGER.info("queryPatientForHis res={}", JSONUtils.toString(res));
-            if (res != null && !("200".equals(res.getMsgCode()))) {
-                String msg = "查患者信息接口异常";
-                if (StringUtils.isNotEmpty(res.getMsg())) {
-                    msg = msg + ":" + res.getMsg();
-                }
-                throw new DAOException(609, msg);
-            }
-            if (res == null){
-                throw new DAOException(609, "查不到患者线下信息");
-            }
-            return res.getData();
-        } catch (Exception e) {
-            LOGGER.error("queryPatientForHis error", e);
-            throw new DAOException(609, "查患者信息异常:"+e.getMessage());
-        }
+        return queryPatientForHisV1(organId, mpiId, null);
     }
 
     /**
@@ -684,31 +661,11 @@ public class RecipePatientService extends RecipeBaseService implements IRecipePa
      */
     @RpcService
     public PatientQueryRequestTO queryPatientForHisV1(Integer organId, String mpiId, Integer clinicId) {
-        LOGGER.info("queryPatientForHis organId={},mpiId={}", organId, mpiId);
-        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
-        IPatientHisService iPatientHisService = AppContextHolder.getBean("his.iPatientHisService", IPatientHisService.class);
-        PatientDTO patient = patientService.get(mpiId);
+        LOGGER.info("queryPatientForHisV1 organId={},mpiId={}", organId, mpiId);
+
+        PatientDTO patient = patientClient.getPatientBeanByMpiId(mpiId);
         if (patient == null) {
             throw new DAOException(609, "找不到该患者");
-        }
-        //添加复诊ID
-        IRevisitExService consultExService = RevisitAPI.getService(IRevisitExService.class);
-        //TODO 72571 【实施】【上海市皮肤病医院】【A】【BUG】线上处方页患者医保类型不正确,临时个性化解决 机构ID：1003983
-        if (organId == 1003983)  {
-            if (null != clinicId) {
-                RevisitExDTO consultExDTO = consultExService.getByConsultId(clinicId);
-                if (consultExDTO != null) {
-                    PatientQueryRequestTO result = new PatientQueryRequestTO();
-                    if (null != consultExDTO.getMedicalFlag() && new Integer(1).equals(consultExDTO.getMedicalFlag())) {
-                        result.setMedicalType("2");
-                        result.setMedicalTypeText("医保");
-                    } else {
-                        result.setMedicalType("1");
-                        result.setMedicalTypeText("自费");
-                    }
-                    return result;
-                }
-            }
         }
         try {
             PatientQueryRequestTO req = new PatientQueryRequestTO();
@@ -716,35 +673,31 @@ public class RecipePatientService extends RecipeBaseService implements IRecipePa
             req.setPatientName(patient.getPatientName());
             req.setCertificateType(patient.getCertificateType());
             req.setCertificate(patient.getCertificate());
-
             if (clinicId != null) {
-                RevisitExDTO consultExDTO = consultExService.getByConsultId(clinicId);
+                RevisitExDTO consultExDTO = revisitClient.getByClinicId(clinicId);
                 if (consultExDTO != null) {
                     req.setPatientID(consultExDTO.getPatId());
                 }
             }
-            LOGGER.info("queryPatientForHis req={}", JSONUtils.toString(req));
-            HisResponseTO<PatientQueryRequestTO> res = iPatientHisService.queryPatient(req);
-            LOGGER.info("queryPatientForHis res={}", JSONUtils.toString(res));
-            if (res != null && !("200".equals(res.getMsgCode()))) {
-                String msg = "查患者信息接口异常";
-                if (StringUtils.isNotEmpty(res.getMsg())) {
-                    msg = msg + ":" + res.getMsg();
-                }
-                throw new DAOException(609, msg);
+            LOGGER.info("queryPatientForHisV1 req={}", JSONUtils.toString(req));
+            PatientQueryRequestTO patientQueryRequestTO = patientClient.queryPatient(req);
+            LOGGER.info("queryPatientForHisV1 patientQueryRequestTO={}", JSONUtils.toString(patientQueryRequestTO));
+            if (null == patientQueryRequestTO || CollectionUtils.isEmpty(patientQueryRequestTO.getHisCards())) {
+                return null;
             }
-            if (res == null){
-                throw new DAOException(609, "查不到患者线下信息");
+            List<HisCardVO> hisCardVOS = patientQueryRequestTO.getHisCards();
+            //默认获取第一张卡类型
+            if ("2".equals(hisCardVOS.get(0).getCardType())){
+                patientQueryRequestTO.setMedicalType("2");
+                patientQueryRequestTO.setMedicalTypeText("医保");
+            } else {
+                patientQueryRequestTO.setMedicalType("1");
+                patientQueryRequestTO.setMedicalTypeText("自费");
             }
-            PatientQueryRequestTO patientQueryRequestTO=res.getData();
-            patientQueryRequestTO.setCardID(null);
-            patientQueryRequestTO.setCertificate(null);
-            patientQueryRequestTO.setGuardianCertificate(null);
-            patientQueryRequestTO.setMobile(null);
-            LOGGER.info("queryPatientForHis res:{}",JSONUtils.toString(patientQueryRequestTO));
+            LOGGER.info("queryPatientForHisV1 patientQueryRequestTO:{}.", JSONUtils.toString(patientQueryRequestTO));
             return patientQueryRequestTO;
         } catch (Exception e) {
-            LOGGER.error("queryPatientForHis error", e);
+            LOGGER.error("queryPatientForHisV1 error", e);
             throw new DAOException(609, "查患者信息异常:"+e.getMessage());
         }
     }
@@ -779,5 +732,28 @@ public class RecipePatientService extends RecipeBaseService implements IRecipePa
     @Override
     public PatientDTO getPatientDTOByMpiID(String mpiId){
         return patientClient.getPatientBeanByMpiId(mpiId);
+    }
+
+    /**
+     * 获取患者医保信息
+     * @param patientInfoVO 患者信息
+     * @return 医保类型相关
+     */
+    @Override
+    public PatientMedicalTypeVO queryPatientMedicalType(PatientInfoVO patientInfoVO) {
+        LOGGER.info("OutPatientRecipeService queryPatientMedicalType patientInfoVO:{}.", JSON.toJSONString(patientInfoVO));
+        PatientMedicalTypeVO patientMedicalTypeVO = new PatientMedicalTypeVO("1", "自费");
+        if (ValidateUtil.integerIsEmpty(patientInfoVO.getClinicId())){
+            return patientMedicalTypeVO;
+        }
+        RevisitExDTO revisitExDTO = revisitClient.getByClinicId(patientInfoVO.getClinicId());
+        if (null == revisitExDTO) {
+            return patientMedicalTypeVO;
+        }
+        if (null != revisitExDTO.getMedicalFlag() && new Integer(1).equals(revisitExDTO.getMedicalFlag())) {
+            return new PatientMedicalTypeVO("2", "医保");
+        } else {
+            return patientMedicalTypeVO;
+        }
     }
 }

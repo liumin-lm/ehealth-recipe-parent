@@ -1,5 +1,6 @@
 package recipe.dao;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.RecipeExtend;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -75,6 +76,7 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
      * @param recipeExtend
      */
     public void saveOrUpdateRecipeExtend(RecipeExtend recipeExtend) {
+        LOGGER.info("RecipeExtendDAO saveOrUpdateRecipeExtend recipeExtend：" + JSON.toJSONString(recipeExtend));
         if(null == recipeExtend.getRecipeId()){
             return;
         }

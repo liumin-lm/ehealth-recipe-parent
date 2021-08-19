@@ -53,56 +53,57 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
     GroupRecipeManager groupRecipeManager;
 
 
-
     @Override
     public List<MergeRecipeVO> findHisRecipeList(HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos, PatientDTO patientDTO, FindHisRecipeListVO request) {
-        LOGGER.info("NoPayStrategyImpl findHisRecipeList hisRecipeInfos:{},patientDTO:{},request:{}",JSONUtils.toString(hisRecipeInfos),JSONUtils.toString(patientDTO),JSONUtils.toString(request));
+        LOGGER.info("NoPayStrategyImpl findHisRecipeList hisRecipeInfos:{},patientDTO:{},request:{}", JSONUtils.toString(hisRecipeInfos), JSONUtils.toString(patientDTO), JSONUtils.toString(request));
         // 2、将his数据转换成recipe对象
         List<HisRecipeVO> noPayFeeHisRecipeVO = covertToHisRecipeVoObject(hisRecipeInfos, patientDTO);
         // 3、包装成前端所需线下处方列表对象
-        GiveModeButtonBean giveModeButtonBean=getGiveModeButtonBean(request.getOrganId());
-        List<MergeRecipeVO> res=findOnReadyHisRecipeList(noPayFeeHisRecipeVO, giveModeButtonBean);
-        LOGGER.info("NoPayStrategyImpl findHisRecipeList res:{}",JSONUtils.toString(res));
+        GiveModeButtonBean giveModeButtonBean = getGiveModeButtonBean(request.getOrganId());
+        List<MergeRecipeVO> res = findOnReadyHisRecipeList(noPayFeeHisRecipeVO, giveModeButtonBean);
+        LOGGER.info("NoPayStrategyImpl findHisRecipeList res:{}", JSONUtils.toString(res));
         return res;
     }
 
     @Override
     public FindHisRecipeDetailResVO findHisRecipeDetail(FindHisRecipeDetailReqVO request) {
-        LOGGER.info("findHisRecipeDetail request:{}",JSONUtils.toString(request));
+        LOGGER.info("findHisRecipeDetail request:{}", JSONUtils.toString(request));
         // 1获取his数据
         PatientDTO patientDTO = hisRecipeManager.getPatientBeanByMpiId(request.getMpiId());
         if (null == patientDTO) {
             throw new DAOException(609, "患者信息不存在");
         }
-        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos= hisRecipeManager.queryData(request.getOrganId(),patientDTO,180,OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType(),request.getRecipeCode());
-
+        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryData(request.getOrganId(), patientDTO, 6, OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType(), request.getRecipeCode());
+        if (null == hisRecipeInfos || CollectionUtils.isEmpty(hisRecipeInfos.getData())) {
+            return null;
+        }
         try {
             // 2更新数据校验
             hisRecipeInfoCheck(hisRecipeInfos.getData(), patientDTO);
         } catch (Exception e) {
             LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
         }
-        List<HisRecipe> hisRecipes=new ArrayList<>();
+        List<HisRecipe> hisRecipes = new ArrayList<>();
         try {
             // 3保存数据到cdr_his_recipe相关表（cdr_his_recipe、cdr_his_recipeExt、cdr_his_recipedetail）
-            hisRecipes=saveHisRecipeInfo(hisRecipeInfos, patientDTO, OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType());
+            hisRecipes = saveHisRecipeInfo(hisRecipeInfos, patientDTO, OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType());
         } catch (Exception e) {
             LOGGER.error("queryHisRecipeInfo saveHisRecipeInfo error ", e);
         }
 
         // 4.保存数据到cdr_recipe相关表（cdr_recipe、cdr_recipeext、cdr_recipeDetail）
-        Integer hisRecipeId=hisRecipeManager.attachRecipeId(request.getOrganId(),request.getRecipeCode(),hisRecipes);
-        Integer recipeId=saveRecipeInfo(hisRecipeId);
+        Integer hisRecipeId = hisRecipeManager.attachRecipeId(request.getOrganId(), request.getRecipeCode(), hisRecipes);
+        Integer recipeId = saveRecipeInfo(hisRecipeId);
 
         // 5.通过cdrHisRecipeId返回数据详情
-        FindHisRecipeDetailResVO res=getHisRecipeDetailByHisRecipeIdAndRecipeId(hisRecipeId,recipeId);
-        LOGGER.info("findHisRecipeDetail res:{}",JSONUtils.toString(res));
+        FindHisRecipeDetailResVO res = getHisRecipeDetailByHisRecipeIdAndRecipeId(hisRecipeId, recipeId);
+        LOGGER.info("findHisRecipeDetail res:{}", JSONUtils.toString(res));
         return res;
     }
 
     @Override
     public List<RecipeGiveModeButtonRes> settleForOfflineToOnline(SettleForOfflineToOnlineVO request) {
-        LOGGER.info("NoPayServiceImpl settleForOfflineToOnline request = {}",  JSONUtils.toString(request));
+        LOGGER.info("NoPayServiceImpl settleForOfflineToOnline request = {}", JSONUtils.toString(request));
         // 1、线下转线上
         List<Integer> recipeIds = batchSyncRecipeFromHis(request);
         // 2、获取购药按钮
@@ -110,8 +111,6 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
         LOGGER.info("NoPayServiceImpl settleForOfflineToOnline res:{}", JSONUtils.toString(res));
         return res;
     }
-
-
 
 
     @Override
@@ -122,12 +121,12 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
     /**
      * 线下待处理处方转换成前端列表所需对象
      *
-     * @param responseTo    his返回线下处方
-     * @param patientDTO    患者信息
+     * @param responseTo his返回线下处方
+     * @param patientDTO 患者信息
      * @return
      */
     public List<HisRecipeVO> covertToHisRecipeVoObject(HisResponseTO<List<QueryHisRecipResTO>> responseTo, PatientDTO patientDTO) {
-        LOGGER.info("NoPayServiceImpl covertHisRecipeObject param responseTO:{},patientDTO:{}" + JSONUtils.toString(responseTo),JSONUtils.toString(patientDTO));
+        LOGGER.info("NoPayServiceImpl covertHisRecipeObject param responseTO:{},patientDTO:{}" + JSONUtils.toString(responseTo), JSONUtils.toString(patientDTO));
         List<HisRecipeVO> hisRecipeVos = new ArrayList<>();
         if (responseTo == null) {
             return hisRecipeVos;
@@ -146,11 +145,11 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
             }
             //移除正在进行中的处方单
             Recipe recipe = recipeManager.getByRecipeCodeAndClinicOrgan(queryHisRecipResTo.getRecipeCode(), queryHisRecipResTo.getClinicOrgan());
-            if (null != recipe && StringUtils.isNotEmpty(recipe.getOrderCode())) {
+            if (null != recipe && StringUtils.isNotEmpty(recipe.getOrderCode()) && recipe.getMpiid().equals(patientDTO.getMpiId())) {
                 continue;
             }
 
-            HisRecipeVO hisRecipeVO =new HisRecipeVO();
+            HisRecipeVO hisRecipeVO = new HisRecipeVO();
             //详情需要
             hisRecipeVO.setMpiId(patientDTO.getMpiId());
             hisRecipeVO.setClinicOrgan(queryHisRecipResTo.getClinicOrgan());
@@ -174,7 +173,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
             hisRecipeVO.setRegisteredId(queryHisRecipResTo.getRegisteredId());
             hisRecipeVos.add(hisRecipeVO);
         }
-        LOGGER.info("NoPayServiceImpl covertHisRecipeObject response hisRecipeVOs:{}" , JSONUtils.toString(hisRecipeVos));
+        LOGGER.info("NoPayServiceImpl covertHisRecipeObject response hisRecipeVOs:{}", JSONUtils.toString(hisRecipeVos));
         return hisRecipeVos;
     }
 
@@ -200,10 +199,10 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
                     List<HisRecipeVO> recipes = entry.getValue();
                     if (StringUtils.isEmpty(entry.getKey())) {
                         //表示挂号序号为空,不能进行处方合并
-                        covertMergeRecipeVO(null,false,null,null,giveModeButtonBean.getButtonSkipType(),recipes,result);
+                        covertMergeRecipeVO(null, false, null, null, giveModeButtonBean.getButtonSkipType(), recipes, result);
                     } else {
                         //可以进行合并支付
-                        covertMergeRecipeVO(recipes.get(0).getRegisteredId(),true,mergeRecipeWayAfter,recipes.get(0).getHisRecipeID(),giveModeButtonBean.getButtonSkipType(),recipes,result);
+                        covertMergeRecipeVO(recipes.get(0).getRegisteredId(), true, mergeRecipeWayAfter, recipes.get(0).getHisRecipeID(), giveModeButtonBean.getButtonSkipType(), recipes, result);
                     }
                 }
             } else {
@@ -215,7 +214,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
                         Map<String, List<HisRecipeVO>> recipeMap = entry.getValue();
                         for (Map.Entry<String, List<HisRecipeVO>> recipeEntry : recipeMap.entrySet()) {
                             List<HisRecipeVO> recipes = recipeEntry.getValue();
-                            covertMergeRecipeVO(null,false,null,null,giveModeButtonBean.getButtonSkipType(),recipes,result);
+                            covertMergeRecipeVO(null, false, null, null, giveModeButtonBean.getButtonSkipType(), recipes, result);
                         }
                     } else {
                         //表示挂号序号不为空,需要根据当前病种
@@ -224,10 +223,10 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
                             //如果病种为空不能进行合并
                             List<HisRecipeVO> recipes = recipeEntry.getValue();
                             if (StringUtils.isEmpty(recipeEntry.getKey())) {
-                                covertMergeRecipeVO(null,false,null,null,giveModeButtonBean.getButtonSkipType(),recipes,result);
+                                covertMergeRecipeVO(null, false, null, null, giveModeButtonBean.getButtonSkipType(), recipes, result);
                             } else {
                                 //可以进行合并支付
-                                covertMergeRecipeVO(recipes.get(0).getChronicDiseaseName(),true,mergeRecipeWayAfter,recipes.get(0).getHisRecipeID(),giveModeButtonBean.getButtonSkipType(),recipes,result);
+                                covertMergeRecipeVO(recipes.get(0).getChronicDiseaseName(), true, mergeRecipeWayAfter, recipes.get(0).getHisRecipeID(), giveModeButtonBean.getButtonSkipType(), recipes, result);
                             }
                         }
                     }
@@ -235,7 +234,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
             }
         } else {
             //不开启合并支付开关
-            covertMergeRecipeVO(null,false,null,null,giveModeButtonBean.getButtonSkipType(),request,result);
+            covertMergeRecipeVO(null, false, null, null, giveModeButtonBean.getButtonSkipType(), request, result);
         }
         LOGGER.info("NoPayServiceImpl findOnReadyHisRecipe result:{}", JSONUtils.toString(result));
         return result;

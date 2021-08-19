@@ -63,6 +63,7 @@ import recipe.bean.RecipePayModeSupportBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.IConfigurationClient;
+import recipe.client.OfflineRecipeClient;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.constant.*;
@@ -74,6 +75,7 @@ import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.HisRecipeManager;
 import recipe.manager.OrderManager;
+import recipe.manager.RecipeManager;
 import recipe.purchase.PurchaseService;
 import recipe.service.afterpay.AfterPayBusService;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
@@ -151,6 +153,9 @@ public class RecipeOrderService extends RecipeBaseService {
 
     @Autowired
     private IConfigurationCenterUtilsService configService;
+
+    @Autowired
+    private RecipeManager recipeManager;
 
 
     /**
@@ -1677,42 +1682,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     prb.setOrganId(recipe.getClinicOrgan());
                     prb.setRecipeType(recipe.getRecipeType());
                     prb.setPayFlag(recipe.getPayFlag());
-                    //根据运营平台配置的选项获取生成二维码的字段
-                    try {
-                        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-                        Integer qrTypeForRecipe = (Integer) configurationService.getConfiguration(recipe.getClinicOrgan(), "getQrTypeForRecipe");
-
-                        switch (qrTypeForRecipe) {
-                            case 1:
-                                //无
-                                break;
-                            case 2:
-                                //就诊卡号
-                                if (StringUtils.isNotEmpty(recipeExtend.getCardNo())) {
-                                    prb.setQrName(recipeExtend.getCardNo());
-                                }
-                                break;
-                            case 3:
-                                if (StringUtils.isNotEmpty(recipeExtend.getRegisterID())) {
-                                    prb.setQrName(recipeExtend.getRegisterID());
-                                }
-                                break;
-                            case 4:
-                                if (StringUtils.isNotEmpty(recipe.getPatientID())) {
-                                    prb.setQrName(recipe.getPatientID());
-                                }
-                                break;
-                            case 5:
-                                if (StringUtils.isNotEmpty(recipe.getRecipeCode())) {
-                                    prb.setQrName(recipe.getRecipeCode());
-                                }
-                                break;
-                            default:
-                                break;
-                        }
-                    } catch (Exception e) {
-                        LOGGER.error("获取运营平台处方支付配置异常", e);
-                    }
+                    prb.setQrName(recipeManager.getToHosProof(recipe, recipeExtend));
                     patientRecipeBeanList.add(prb);
                     LOGGER.info("getOrderDetailById.prb={}", JSONUtils.toString(prb));
 

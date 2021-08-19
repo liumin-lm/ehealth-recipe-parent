@@ -16,18 +16,12 @@ import ctd.dictionary.DictionaryController;
 import eh.entity.base.Scratchable;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Base64;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.SignImgNode;
-import recipe.caNew.pdf.CreatePdfFactory;
-import recipe.client.IConfigurationClient;
-import recipe.client.OperationClient;
 import recipe.dao.RecipeExtendDAO;
-import recipe.manager.RecipeManager;
 import recipe.manager.RedisManager;
 import recipe.manager.SignManager;
 import recipe.util.ByteUtils;
@@ -42,6 +36,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static recipe.constant.OperationConstant.OP_RECIPE_EXTEND;
+import static recipe.constant.OperationConstant.OP_RECIPE_EXTEND_SUPERVISE;
+import static recipe.util.ByteUtils.DOT_EN;
+
 /**
  * 平台创建pdf实现类
  * 根据运营平台配置模版方式生成的 业务处理代码类
@@ -49,20 +47,14 @@ import java.util.Map;
  * @author fuzi
  */
 @Service
-public class PlatformCreatePdfServiceImpl implements CreatePdfService {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
-    @Autowired
-    private IConfigurationClient configurationClient;
+public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements CreatePdfService {
+
     @Resource
     private IESignBaseService esignService;
     @Autowired
     private RedisManager redisManager;
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
-    @Autowired
-    private OperationClient operationClient;
-    @Autowired
-    private RecipeManager recipeManager;
     @Autowired
     private SignManager signManager;
 
@@ -92,7 +84,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
     @Override
     public CaSealRequestTO queryPdfBase64(byte[] data, Integer recipeId) throws Exception {
         String pdfBase64Str = new String(Base64.encode(data));
-        return CreatePdfFactory.caSealRequestTO(55, 76, recipeId.toString(), pdfBase64Str);
+        return caSealRequestTO(55, 76, recipeId.toString(), pdfBase64Str);
     }
 
 
@@ -108,7 +100,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
     @Override
     public CaSealRequestTO queryCheckPdfByte(Recipe recipe) {
         logger.info("PlatformCreatePdfServiceImpl queryCheckPdfByte recipe:{}", JSON.toJSONString(recipe));
-        return CreatePdfFactory.caSealRequestTO(190, 76, "check" + recipe.getRecipeId(), CreateRecipePdfUtil.signFileBase64(recipe.getSignFile()));
+        return caSealRequestTO(190, 76, "check" + recipe.getRecipeId(), CreateRecipePdfUtil.signFileBase64(recipe.getSignFile()));
     }
 
 
@@ -165,27 +157,6 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
     public String updateCodePdf(Recipe recipe) throws Exception {
         Integer recipeId = recipe.getRecipeId();
         logger.info("PlatformCreatePdfServiceImpl updateCodePdf  recipeId={}", recipeId);
-        String barcode = "";
-        List<Scratchable> scratchableList = operationClient.scratchableList(recipe.getClinicOrgan(), "moduleFive");
-        if (!CollectionUtils.isEmpty(scratchableList)) {
-            for (Scratchable scratchable : scratchableList) {
-                if (!"条形码".equals(scratchable.getBoxTxt())) {
-                    continue;
-                }
-                if ("recipe.patientID".equals(scratchable.getBoxLink())) {
-                    barcode = recipe.getPatientID();
-                    break;
-                }
-                if ("recipe.recipeCode".equals(scratchable.getBoxLink())) {
-                    barcode = recipe.getRecipeCode();
-                    break;
-                }
-            }
-        }
-        CoOrdinateVO ordinate = new CoOrdinateVO();
-        ordinate.setValue(barcode);
-        ordinate.setX(10);
-        ordinate.setY(560);
         List<CoOrdinateVO> coOrdinateList = new LinkedList<>();
         CoOrdinateVO patientId = redisManager.getPdfCoordsHeight(recipeId, "recipe.patientID");
         if (null != patientId) {
@@ -197,8 +168,24 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             recipeCode.setValue(recipe.getRecipeCode());
             coOrdinateList.add(recipeCode);
         }
-        return CreateRecipePdfUtil.generateRecipeCodeAndPatientIdForRecipePdf(recipe.getSignFile(), coOrdinateList, ordinate);
+        //条形码
+        CoOrdinateVO ordinate = barcodeVO(recipe);
+        return CreateRecipePdfUtil.generateOrdinateListAndBarcode(recipe.getSignFile(), coOrdinateList, ordinate);
     }
+
+    @Override
+    public String updateSuperviseRecipeCodeExecute(Recipe recipe, String fileId, String superviseRecipeCode) throws Exception {
+        List<CoOrdinateVO> coOrdinateList = new LinkedList<>();
+        CoOrdinateVO supervise = redisManager.getPdfCoordsHeight(recipe.getRecipeId(), OP_RECIPE_EXTEND + DOT_EN + OP_RECIPE_EXTEND_SUPERVISE);
+        if (null != supervise) {
+            supervise.setValue(superviseRecipeCode);
+            coOrdinateList.add(supervise);
+        }
+        //条形码
+        CoOrdinateVO ordinate = barcodeVO(recipe);
+        return CreateRecipePdfUtil.generateOrdinateListAndBarcode(fileId, coOrdinateList, ordinate);
+    }
+
 
     @Override
     public List<CoOrdinateVO> updateAddressPdf(Recipe recipe, RecipeOrder order, String address) {
@@ -260,6 +247,25 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         return new SignImgNode(recipeId.toString(), organSealId, fileId, null, 90F, 90F, 160f, 490f, false);
     }
 
+    /**
+     * 条形码
+     *
+     * @param recipe
+     * @return
+     */
+    private CoOrdinateVO barcodeVO(Recipe recipe) {
+        List<Scratchable> scratchableList = operationClient.scratchableList(recipe.getClinicOrgan(), "moduleFive");
+        if (CollectionUtils.isEmpty(scratchableList)) {
+            return null;
+        }
+        CoOrdinateVO ordinate = new CoOrdinateVO();
+        String barcode = super.barcode(recipe);
+        ordinate.setValue(barcode);
+        ordinate.setX(10);
+        ordinate.setY(560);
+        return ordinate;
+    }
+
 
     /**
      * 校验煎法
@@ -286,7 +292,6 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
         coOrdinateVO.setValue(recipeExtend.getDecoctionText());
         return coOrdinateVO;
     }
-
 
     /**
      * 获取pdf Byte字节
@@ -360,7 +365,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             String dRateName = d.getUsingRateTextFromHis() != null ? d.getUsingRateTextFromHis() : DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", d.getUsingRate());
             //用法
             String dWay = d.getUsePathwaysTextFromHis() != null ? d.getUsePathwaysTextFromHis() : DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", d.getUsePathways());
-            stringBuilder.append(uDose).append("    ").append(dRateName).append("    ").append(dWay).append("    ").append(CreatePdfFactory.getUseDays(d.getUseDaysB(), d.getUseDays()));
+            stringBuilder.append(uDose).append("    ").append(dRateName).append("    ").append(dWay).append("    ").append(getUseDays(d.getUseDaysB(), d.getUseDays()));
 
             if (!StringUtils.isEmpty(d.getMemo())) {
                 stringBuilder.append(" \n ").append("嘱托:").append(d.getMemo());
@@ -385,7 +390,7 @@ public class PlatformCreatePdfServiceImpl implements CreatePdfService {
             list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, drugShowName));
         }
         Recipedetail detail = recipeDetails.get(0);
-        list.add(new RecipeLabelVO("天数", "tcmUseDay", CreatePdfFactory.getUseDays(detail.getUseDaysB(), detail.getUseDays())));
+        list.add(new RecipeLabelVO("天数", "tcmUseDay", getUseDays(detail.getUseDaysB(), detail.getUseDays())));
         try {
             list.add(new RecipeLabelVO("用药途径", "tcmUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detail.getUsePathways())));
             list.add(new RecipeLabelVO("用药频次", "tcmUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detail.getUsingRate())));

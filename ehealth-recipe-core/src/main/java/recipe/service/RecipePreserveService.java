@@ -254,6 +254,7 @@ public class RecipePreserveService {
         patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
         patientBaseInfo.setCardID(cardId);
         patientBaseInfo.setCardType(cardType);
+        patientBaseInfo.setAgeString(patientDTO.getAgeString());
         String cityCardNumber = healthCardService.getMedicareCardId(mpiId, organId);
         if (StringUtils.isNotEmpty(cityCardNumber)) {
             patientBaseInfo.setCityCardNumber(cityCardNumber);

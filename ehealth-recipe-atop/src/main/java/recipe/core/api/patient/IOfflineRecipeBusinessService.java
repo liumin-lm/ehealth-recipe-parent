@@ -5,6 +5,7 @@ import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
 import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
+import com.ngari.recipe.vo.OffLineRecipeDetailVO;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
 import java.util.List;
@@ -14,11 +15,12 @@ import java.util.List;
  * @Date 2021/5/18 上午11:42
  * @Description 线下转线上接口类
  */
-public interface IOfflineToOnlineService {
+public interface IOfflineRecipeBusinessService {
 
 
     /**
      * 获取线下处方列表
+     *
      * @param findHisRecipeListVO
      */
     List<MergeRecipeVO> findHisRecipeList(FindHisRecipeListVO findHisRecipeListVO);
@@ -51,4 +53,15 @@ public interface IOfflineToOnlineService {
      * @return
      */
     List<String> getCardType(Integer organId);
+
+
+    /**
+     * 获取线下处方详情
+     *
+     * @param mpiId       患者ID
+     * @param clinicOrgan 机构ID
+     * @param recipeCode  处方号码
+     * @date 2021/8/06
+     */
+    OffLineRecipeDetailVO getOffLineRecipeDetails(String mpiId, Integer clinicOrgan, String recipeCode);
 }

@@ -175,11 +175,14 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "处方来源 0 线下his同步 1 平台处方")
     private Integer fromFlag;
 
-    @ItemProperty(alias="取药窗口")
+    @ItemProperty(alias = "取药窗口")
     private String pharmNo;
 
     @ItemProperty(alias = "是否是加急审核处方 0否 1是")
     private Integer canUrgentAuditRecipe;
+
+    @ItemProperty(alias = "电子处方监管平台流水号")
+    private String superviseRecipecode;
 
     public String getPharmNo() {
         return pharmNo;
@@ -663,5 +666,13 @@ public class RecipeExtendBean implements Serializable {
 
     public void setCanUrgentAuditRecipe(Integer canUrgentAuditRecipe) {
         this.canUrgentAuditRecipe = canUrgentAuditRecipe;
+    }
+
+    public String getSuperviseRecipecode() {
+        return superviseRecipecode;
+    }
+
+    public void setSuperviseRecipecode(String superviseRecipecode) {
+        this.superviseRecipecode = superviseRecipecode;
     }
 }

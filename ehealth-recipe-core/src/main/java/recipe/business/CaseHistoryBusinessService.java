@@ -1,4 +1,4 @@
-package recipe.service;
+package recipe.business;
 
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.vo.CaseHistoryVO;
@@ -7,7 +7,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import recipe.core.api.doctor.ICaseHistoryService;
+import recipe.core.api.doctor.ICaseHistoryBusinessService;
 import recipe.manager.EmrRecipeManager;
 import recipe.util.ValidateUtil;
 import recipe.vo.second.EmrConfigVO;
@@ -21,7 +21,7 @@ import java.util.List;
  * @author fuzi
  */
 @Service
-public class CaseHistoryService implements ICaseHistoryService {
+public class CaseHistoryBusinessService implements ICaseHistoryBusinessService {
     /**
      * 操作类型 1：查看，2：copy
      */

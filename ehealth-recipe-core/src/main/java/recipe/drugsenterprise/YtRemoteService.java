@@ -506,7 +506,11 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         if (StringUtils.isNotEmpty(nowRecipe.getOrderCode())) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());
             if (recipeOrder != null) {
-                sendYtRecipe.setTransFee(recipeOrder.getExpressFee().doubleValue());
+                if (null != recipeOrder.getExpressFee()) {
+                    sendYtRecipe.setTransFee(recipeOrder.getExpressFee().doubleValue());
+                } else {
+                    sendYtRecipe.setTransFee(0.0);
+                }
                 sendYtRecipe.setServiceFree(recipeOrder.getRegisterFee().doubleValue());
                 sendYtRecipe.setPrescriptionChecking(recipeOrder.getAuditFee().doubleValue());
                 sendYtRecipe.setTotalAmount(recipeOrder.getTotalFee().doubleValue());

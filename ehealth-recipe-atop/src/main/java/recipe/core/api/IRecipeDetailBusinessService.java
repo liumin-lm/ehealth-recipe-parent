@@ -10,7 +10,7 @@ import java.util.List;
  *
  * @author fuzi
  */
-public interface IRecipeDetailService {
+public interface IRecipeDetailBusinessService {
     /**
      * 校验线上线下 药品数据 用于续方需求
      *

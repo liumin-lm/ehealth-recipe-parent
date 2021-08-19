@@ -50,8 +50,6 @@ public class RecipeToHisService {
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
-    private SyncDrugExcDAO syncDrugExcDAO;
-    @Autowired
     private OrganDrugListDAO organDrugListDAO;
     @Autowired
     private RecipeDAO recipeDAO;

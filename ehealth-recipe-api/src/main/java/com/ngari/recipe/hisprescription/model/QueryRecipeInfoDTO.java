@@ -1,9 +1,11 @@
 package com.ngari.recipe.hisprescription.model;
 
+
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
+import recipe.vo.second.EmrDetailValueVO;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -150,6 +152,16 @@ public class QueryRecipeInfoDTO implements Serializable {
 
     @ItemProperty(alias = "电子病历返回")
     private Map<String, Object> medicalInfoBean;
+
+
+    @ItemProperty(
+            alias = "机构疾病"
+    )
+    private List<EmrDetailValueVO> diseaseValue;
+    @ItemProperty(
+            alias = "中医症候"
+    )
+    private List<EmrDetailValueVO> symptomValue;
 
     public Map<String, Object> getMedicalInfoBean() {
         return medicalInfoBean;
@@ -600,5 +612,21 @@ public class QueryRecipeInfoDTO implements Serializable {
 
     public void setRecipeExtendBean(RecipeExtendBean recipeExtendBean) {
         this.recipeExtendBean = recipeExtendBean;
+    }
+
+    public List<EmrDetailValueVO> getDiseaseValue() {
+        return diseaseValue;
+    }
+
+    public void setDiseaseValue(List<EmrDetailValueVO> diseaseValue) {
+        this.diseaseValue = diseaseValue;
+    }
+
+    public List<EmrDetailValueVO> getSymptomValue() {
+        return symptomValue;
+    }
+
+    public void setSymptomValue(List<EmrDetailValueVO> symptomValue) {
+        this.symptomValue = symptomValue;
     }
 }

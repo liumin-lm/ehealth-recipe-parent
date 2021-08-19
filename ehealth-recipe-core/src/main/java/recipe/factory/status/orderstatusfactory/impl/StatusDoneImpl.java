@@ -5,9 +5,11 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.springframework.stereotype.Service;
+import recipe.ApplicationUtils;
 import recipe.constant.PayConstant;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.CommonOrder;
 
 import java.util.Date;
@@ -44,5 +46,8 @@ public class StatusDoneImpl extends AbstractRecipeOrderStatus {
         Integer recipeId = recipe.getRecipeId();
         //更新pdf
         CommonOrder.finishGetDrugUpdatePdf(recipeId);
+        //监管平台核销上传
+        SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
+        syncExecutorService.uploadRecipeVerificationIndicators(recipe.getRecipeId());
     }
 }

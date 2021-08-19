@@ -381,10 +381,7 @@ public class RecipeSignService {
         Map<String, Object> rMap = new HashMap<String, Object>();
         rMap.put("signResult", true);
         try {
-            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-
             recipeBean.setDistributionFlag(continueFlag);
-
             //第一步暂存处方（处方状态未签名）
             doSignRecipeSave(recipeBean, detailBeanList);
             //第二步预校验
@@ -401,12 +398,11 @@ public class RecipeSignService {
             //第三步校验库存
             if (continueFlag == 0 || continueFlag == 4) {
                 rMap = drugStockBusinessService.doSignRecipeCheckAndGetGiveMode(recipeBean);
-                Boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
-                if (signResult != null && false == signResult) {
+                boolean signResult = Boolean.parseBoolean(rMap.get("signResult").toString());
+                if (!signResult) {
                     return rMap;
                 }
             }
-
             //更新审方信息
             RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
 
@@ -421,7 +417,6 @@ public class RecipeSignService {
                     if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipeBean.getBussSource())) {
                         IRecipeOnLineRevisitService recipeOnLineConsultService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
                         recipeOnLineConsultService.sendRecipeMsg(consultId, 2);
-
                     } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipeBean.getBussSource())) {
                         IRecipeOnLineConsultService recipeOnLineConsultService = ConsultAPI.getService(IRecipeOnLineConsultService.class);
                         recipeOnLineConsultService.sendRecipeMsg(consultId, 2);
@@ -429,29 +424,20 @@ public class RecipeSignService {
                 } catch (Exception e) {
                     LOG.error("doSignRecipeExt sendRecipeMsg error, type:2, consultId:{}, error:", consultId, e);
                 }
-
             }
-
             //健康卡数据上传
             RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(), "010106"));
-
-        }
-       /* catch(RevisitException e){
-            LOG.error("ErrorCode.SERVICE_ERROR_CONFIRM:erroCode={},eeception={}", eh.base.constant.ErrorCode.SERVICE_ERROR_CONFIRM,e);
-            throw new RevisitException(eh.base.constant.ErrorCode.SERVICE_ERROR_CONFIRM, "当前患者就诊信息已失效，无法进行开方。");
-        }*/ catch (Exception e) {
+        } catch (Exception e) {
             LOG.error("doSignRecipeNew error", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
         }
         rMap.put("bussSource", recipeBean.getBussSource());
-        rMap.put("signResult", true);
         rMap.put("recipeId", recipeBean.getRecipeId());
         rMap.put("consultId", recipeBean.getClinicId());
+        rMap.put("signResult", true);
         rMap.put("errorFlag", false);
         rMap.put("canContinueFlag", "0");
         LOG.info("doSignRecipeNew execute ok! rMap:" + JSONUtils.toString(rMap));
-        // 互联网环境没有延迟topic，不设置失效时间，走定时任务根据签名时间失效
-        // RecipeService.handleRecipeInvalidTime(recipeBean);
         return rMap;
     }
 
@@ -650,15 +636,13 @@ public class RecipeSignService {
         try {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             Boolean hisRecipeCheckFlag = (Boolean) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "hisRecipeCheckFlag");
-            Boolean allowContinueMakeFlag;
-            boolean checkResult;
             if (hisRecipeCheckFlag) {
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                checkResult = hisService.hisRecipeCheck(rMap, recipeBean);
+                boolean checkResult = hisService.hisRecipeCheck(rMap, recipeBean);
                 if (checkResult) {
                     rMap.put("canContinueFlag", 0);
                 } else {
-                    allowContinueMakeFlag = (Boolean) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "allowContinueMakeRecipe");
+                    Boolean allowContinueMakeFlag = (Boolean) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "allowContinueMakeRecipe");
                     //date 20200706
                     //允许继续处方:不进行校验/进行校验且校验通过0 ，进行校验校验不通过允许通过4，进行校验校验不通过不允许通过-1
                     if (allowContinueMakeFlag) {

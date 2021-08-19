@@ -43,6 +43,7 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.manager.EmrRecipeManager;
+import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 
@@ -364,7 +365,7 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
                 continue;
             }
 
-            organDiseaseName = recipe.getOrganDiseaseName().replaceAll("；", "|");
+            organDiseaseName = recipe.getOrganDiseaseName().replaceAll(ByteUtils.SEMI_COLON_EN, "|");
             req.setOriginalDiagnosis(organDiseaseName);
             req.setPatientCardType(LocalStringUtil.toString(patientDTO.getCertificateType()));
             req.setPatientCertID(LocalStringUtil.toString(patientDTO.getCertificate()));
@@ -400,7 +401,7 @@ public class CommonSyncSupervisionForIHosService implements ICommonSyncSupervisi
                 req.setRationalDrug(setRationalDrug(recipe.getRecipeId()));
             }
 
-            req.setIcdCode(recipe.getOrganDiseaseId().replaceAll("；", "|"));
+            req.setIcdCode(recipe.getOrganDiseaseId().replaceAll(ByteUtils.SEMI_COLON_EN, "|"));
             req.setIcdName(organDiseaseName);
             req.setRecipeType(recipe.getRecipeType().toString());
             req.setPacketsNum(recipe.getCopyNum());

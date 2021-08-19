@@ -20,6 +20,7 @@ import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.follow.service.IRelationLabelService;
 import com.ngari.follow.service.IRelationPatientService;
+import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.follow.vo.RelationDoctorVO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
@@ -88,10 +89,7 @@ import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
-import recipe.manager.EmrRecipeManager;
-import recipe.manager.GroupRecipeManager;
-import recipe.manager.HisRecipeManager;
-import recipe.manager.SignManager;
+import recipe.manager.*;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.recipecancel.RecipeCancelService;
@@ -146,6 +144,8 @@ public class RecipeServiceSub {
     private static RecipeListService recipeListService = ApplicationUtils.getRecipeService(RecipeListService.class);
 
     private static IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
+
+    private static RecipeManager recipeManager = AppContextHolder.getBean("recipeManager", RecipeManager.class);
 
     /**
      * @param recipeBean
@@ -619,7 +619,7 @@ public class RecipeServiceSub {
     }
 
     private static void canOpenRecipeDrugsAndDisease(Recipe recipe, List<Integer> drugIds) {
-        List<String> nameLists = Splitter.on("；").splitToList(recipe.getOrganDiseaseName());
+        List<String> nameLists = Splitter.on(ByteUtils.SEMI_COLON_EN).splitToList(recipe.getOrganDiseaseName());
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         for (String organDiseaseName : nameLists) {
             Set<String> drugIdSet = cacheService.findDrugByDiseaseName(recipe.getClinicOrgan() + "_" + organDiseaseName);
@@ -1296,6 +1296,7 @@ public class RecipeServiceSub {
      * @return
      */
     public static PatientDTO patientDesensitization(PatientDTO patient) {
+        LOGGER.info("patientDesensitization patient={}", JSONUtils.toString(patient));
         PatientVO p = new PatientVO();
         BeanUtils.copyProperties(patient, p);
         if (StringUtils.isNotEmpty(patient.getMobile())) {
@@ -1483,11 +1484,8 @@ public class RecipeServiceSub {
                 //对监护人信息进行脱敏处理
                 patient.setGuardianCertificate(ChinaIDNumberUtil.hideIdCard(patient.getGuardianCertificate()));
             }
-
-
         }
         List<Recipedetail> recipedetails = detailDAO.findByRecipeId(recipeId);
-
         //中药处方处理
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
             if (CollectionUtils.isNotEmpty(recipedetails)) {
@@ -1536,9 +1534,14 @@ public class RecipeServiceSub {
             if (!ObjectUtils.isEmpty(mapList)) {
                 for (int i = 0; i < mapList.size(); i++) {
                     Map<String, Object> notPassMap = mapList.get(i);
-                    List<RecipeDetailBean> recipeDetailBeans = (List<RecipeDetailBean>) notPassMap.get("checkNotPassDetails");
-                    for (RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
-                        RecipeValidateUtil.setUsingRateIdAndUsePathwaysId(recipe, recipeDetailBean);
+                    List results = (List)notPassMap.get("checkNotPassDetails");
+                    List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtil.convert(results, RecipeDetailBean.class);
+                    try {
+                        for (RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
+                            RecipeValidateUtil.setUsingRateIdAndUsePathwaysId(recipe, recipeDetailBean);
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error("RecipeServiceSub  setUsingRateIdAndUsePathwaysId error", e);
                     }
                 }
             }
@@ -1685,7 +1688,8 @@ public class RecipeServiceSub {
             }
             map.put("mergeRecipeFlag", mergeRecipeFlag);
             //Explain:审核是否通过
-            boolean isOptional = !(ReviewTypeConstant.Preposition_Check == recipe.getReviewType() && (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus() && RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus())));
+            boolean isOptional = !(RecipeStatusEnum.getCheckShowFlag(recipe.getStatus()) ||
+                    RecipecCheckStatusConstant.First_Check_No_Pass.equals(recipe.getCheckStatus()) && ReviewTypeConstant.Preposition_Check == recipe.getReviewType());
             map.put("optional", isOptional);
 
             //date 2190929
@@ -1882,42 +1886,7 @@ public class RecipeServiceSub {
             }
         }
 
-        //根据运营平台配置的选项获取生成二维码的字段
-        try {
-            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            Integer qrTypeForRecipe = (Integer) configurationService.getConfiguration(recipe.getClinicOrgan(), "getQrTypeForRecipe");
-
-            switch (qrTypeForRecipe) {
-                case 1:
-                    //无
-                    break;
-                case 2:
-                    //就诊卡号
-                    if (StringUtils.isNotEmpty(recipeExtend.getCardNo())) {
-                        map.put("qrName", recipeExtend.getCardNo());
-                    }
-                    break;
-                case 3:
-                    if (StringUtils.isNotEmpty(recipeExtend.getRegisterID())) {
-                        map.put("qrName", recipeExtend.getRegisterID());
-                    }
-                    break;
-                case 4:
-                    if (StringUtils.isNotEmpty(recipe.getPatientID())) {
-                        map.put("qrName", recipe.getPatientID());
-                    }
-                    break;
-                case 5:
-                    if (StringUtils.isNotEmpty(recipe.getRecipeCode())) {
-                        map.put("qrName", recipe.getRecipeCode());
-                    }
-                    break;
-                default:
-                    break;
-            }
-        } catch (Exception e) {
-            LOGGER.error("获取运营平台处方支付配置异常", e);
-        }
+        map.put("qrName", recipeManager.getToHosProof(recipe, recipeExtend));
         if (recipe.getEnterpriseId() != null) {
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
@@ -2148,7 +2117,7 @@ public class RecipeServiceSub {
                 && (null == map.get("supportMedicalPayment")))) {
             if (ReviewTypeConstant.Preposition_Check == recipe.getReviewType()) {
                 //待药师审核，审核一次不通过，待处理无订单
-                if (RecipeStatusConstant.READY_CHECK_YS == recipe.getStatus() || RecipecCheckStatusConstant.First_Check_No_Pass == recipe.getCheckStatus() || (RecipeStatusConstant.CHECK_PASS == recipe.getStatus() && null == recipe.getOrderCode())) {
+                if ((RecipeStatusEnum.getCheckStatusFlag(recipe.getStatus()) || RecipecCheckStatusConstant.First_Check_No_Pass.equals(recipe.getCheckStatus())) && null == recipe.getOrderCode()) {
                     showButton = true;
                 }
             } else {
@@ -2442,6 +2411,11 @@ public class RecipeServiceSub {
             //天猫特殊状态
             case RecipeStatusConstant.USING:
                 tips = "处理中";
+                break;
+            case RecipeStatusConstant.SIGN_ING_CODE_PHA:
+            case RecipeStatusConstant.SIGN_NO_CODE_PHA:
+            case RecipeStatusConstant.SIGN_ERROR_CODE_PHA:
+                tips = "处方正在审核中.";
                 break;
             default:
                 tips = "未知状态" + status;

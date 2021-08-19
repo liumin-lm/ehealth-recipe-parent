@@ -460,45 +460,34 @@ public class CreatePdfFactory {
     }
 
 
-    /**
-     * 组织pdf Byte字节 给前端SDK 出餐
-     *
-     * @param leftX        行坐标
-     * @param pdfName      文件名
-     * @param pdfBase64Str 文件
-     * @return
-     */
-    public static CaSealRequestTO caSealRequestTO(int leftX, int leftY, String pdfName, String pdfBase64Str) {
-        CaSealRequestTO caSealRequest = new CaSealRequestTO();
-        caSealRequest.setPdfBase64Str(pdfBase64Str);
-        //这个赋值后端没在用 可能前端在使用,所以沿用老代码写法
-        caSealRequest.setLeftX(leftX);
-        caSealRequest.setLeftY(leftY);
-        caSealRequest.setPdfName("recipe" + pdfName + ".pdf");
-
-        caSealRequest.setSealHeight(40);
-        caSealRequest.setSealWidth(40);
-        caSealRequest.setPage(1);
-        caSealRequest.setPdfMd5("");
-        caSealRequest.setMode(1);
-        return caSealRequest;
-    }
 
     /**
-     * 获取天数 与 单位字符串展示
+     * pdf 监管流水号
      *
-     * @param useDaysB
-     * @param useDays
-     * @return
+     * @param recipeId
      */
-    public static String getUseDays(String useDaysB, Integer useDays) {
-        if (StringUtils.isNotEmpty(useDaysB) && !"0".equals(useDaysB)) {
-            return useDaysB + "天";
-        }
-        if (!ValidateUtil.integerIsEmpty(useDays)) {
-            return useDays + "天";
-        }
-        return "";
+    public void updateSuperviseRecipeCodeExecute(Integer recipeId, String superviseRecipeCode) {
+        logger.info("CreatePdfFactory updateSuperviseRecipeCodeExecute recipeId:{},superviseRecipeCode:{}", recipeId, superviseRecipeCode);
+        RecipeBusiThreadPool.execute(() -> {
+            Recipe recipe = validate(recipeId);
+            CreatePdfService createPdfService = createPdfService(recipe);
+            Recipe recipeUpdate = new Recipe();
+            try {
+                if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+                    String fileId = createPdfService.updateSuperviseRecipeCodeExecute(recipe, recipe.getChemistSignFile(), superviseRecipeCode);
+                    recipeUpdate.setChemistSignFile(fileId);
+                } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
+                    String fileId = createPdfService.updateSuperviseRecipeCodeExecute(recipe, recipe.getSignFile(), superviseRecipeCode);
+                    recipeUpdate.setSignFile(fileId);
+                }
+            } catch (Exception e) {
+                logger.error("CreatePdfFactory updateSuperviseRecipeCodeExecute  recipeId: {}", recipeId, e);
+                return;
+            }
+            recipeUpdate.setRecipeId(recipeId);
+            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+            logger.info("CreatePdfFactory updateSuperviseRecipeCodeExecute recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
+        });
     }
 
 

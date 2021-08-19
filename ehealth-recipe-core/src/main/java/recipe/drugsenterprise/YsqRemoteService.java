@@ -154,7 +154,9 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
                 drugMap.put("PRODUCER", organDrugList.getProducer());
                 drugMap.put("GOODS", saleDrugList.getOrganDrugCode());
                 drugMap.put("GNAME", saleDrugList.getDrugName());
-                drugMap.put("DOSAGENAME", getFormatDouble(organDrugList.getUseDose()) + organDrugList.getUseDoseUnit());
+                if (null != organDrugList.getUseDose()) {
+                    drugMap.put("DOSAGENAME", getFormatDouble(organDrugList.getUseDose()) + organDrugList.getUseDoseUnit());
+                }
                 drugMap.put("SPEC", organDrugList.getDrugSpec());
                 drugMap.put("PRC", saleDrugList.getPrice());
                 drugMap.put("DISEASENAME", "每日一次");

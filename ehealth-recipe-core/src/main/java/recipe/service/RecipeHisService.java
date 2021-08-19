@@ -14,8 +14,6 @@ import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
-import com.ngari.bus.op.service.IUsePathwaysService;
-import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.*;
@@ -44,7 +42,6 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.cdr.api.service.IDocIndexService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -69,7 +66,6 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.RecipeToHisService;
-import recipe.manager.EmrRecipeManager;
 import recipe.presettle.factory.PreSettleFactory;
 import recipe.presettle.settle.IRecipeSettleService;
 import recipe.purchase.PayModeOnline;
@@ -102,23 +98,14 @@ public class RecipeHisService extends RecipeBaseService {
     private PatientService patientService;
     @Autowired
     private IRevisitExService consultExService;
-    @Resource
-    private OrganDrugListDAO organDrugListDAO;
-    @Autowired
-    private IRecipeHisService recipeHisService;
     @Autowired
     private IRevisitService consultService;
-    @Autowired
-    private IUsingRateService usingRateService;
-    @Autowired
-    private IUsePathwaysService usePathwaysService;
-
-    @Resource
-    private IDocIndexService docIndexService;
     @Resource
     RecipeRetryService recipeRetryService;
     @Resource
     private PharmacyTcmDAO pharmacyTcmDAO;
+    @Autowired
+    private HisRequestInit hisRequestInit;
 
     /**
      * 发送处方
@@ -166,23 +153,14 @@ public class RecipeHisService extends RecipeBaseService {
 
         List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
         PatientBean patientBean = iPatientService.get(recipe.getMpiid());
-        HealthCardBean cardBean = null;
-        try {
-            cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
-
-        } catch (Exception e) {
-            LOGGER.error("开处方获取医保卡异常", e);
-        }
         //创建请求体
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
-        RecipeSendRequestTO request = HisRequestInit.initRecipeSendRequestTO(recipe, details, patientBean, cardBean);
+        RecipeSendRequestTO request = hisRequestInit.initRecipeSendRequestTO(recipe, details, patientBean);
         //是否是武昌机构，替换请求体
         Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_WUCHANG_ORGAN_LIST);
         if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(sendOrganId.toString())) {
-            request = HisRequestInit.initRecipeSendRequestTOForWuChang(recipe, details, patientBean, cardBean);
+            request = hisRequestInit.initRecipeSendRequestTOForWuChang(recipe, details, patientBean);
             //发送电子病历
-            DocIndexToHisReqTO docIndexToHisReqTO = HisRequestInit.initDocIndexToHisReqTO(recipe);
+            DocIndexToHisReqTO docIndexToHisReqTO = hisRequestInit.initDocIndexToHisReqTO(recipe);
             HisResponseTO<DocIndexToHisResTO> hisResponseTO = service.docIndexToHis(docIndexToHisReqTO);
             if (hisResponseTO != null) {
                 if ("200".equals(hisResponseTO.getMsgCode())) {
@@ -199,14 +177,6 @@ public class RecipeHisService extends RecipeBaseService {
             }
         }
         request.setOrganID(sendOrganId.toString());
-        try {
-            if (!ValidateUtil.integerIsEmpty(recipeExtend.getDocIndexId())) {
-                Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
-                request.setMedicalInfoBean(medicalInfoBean);
-            }
-        } catch (Exception e) {
-            LOGGER.error("RecipeHisService sendRecipe  medicalInfoBean error", e);
-        }
         LOGGER.info("recipeHisService recipeId:{} request:{}", recipeId, JSONUtils.toString(request));
         // 处方独立出来后,his根据域名来判断回调模块
         service.recipeSend(request);
@@ -280,11 +250,11 @@ public class RecipeHisService extends RecipeBaseService {
             try {
                 PatientBean patientBean = iPatientService.get(recipe.getMpiid());
                 HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
-                RecipeStatusUpdateReqTO request = HisRequestInit.initRecipeStatusUpdateReqTO(recipe, details, patientBean, cardBean);
+                RecipeStatusUpdateReqTO request = hisRequestInit.initRecipeStatusUpdateReqTO(recipe, details, patientBean, cardBean);
                 //是否是武昌机构，替换请求体
                 Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_WUCHANG_ORGAN_LIST);
                 if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(sendOrganId.toString())) {
-                    request = HisRequestInit.initRecipeStatusUpdateReqForWuChang(recipe, details, patientBean, cardBean);
+                    request = hisRequestInit.initRecipeStatusUpdateReqForWuChang(recipe, details, patientBean, cardBean);
                 }
                 request.setOrganID(sendOrganId.toString());
                 if (StringUtils.isNotEmpty(hisRecipeStatus)) {
@@ -348,7 +318,7 @@ public class RecipeHisService extends RecipeBaseService {
             List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
             PatientBean patientBean = iPatientService.get(recipe.getMpiid());
             HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
-            RecipeRefundReqTO request = HisRequestInit.initRecipeRefundReqTO(recipe, details, patientBean, cardBean);
+            RecipeRefundReqTO request = hisRequestInit.initRecipeRefundReqTO(recipe, details, patientBean, cardBean);
 
             RecipeRefundResTO response = service.recipeRefund(request);
             if (null == response || null == response.getMsgCode()) {
@@ -473,7 +443,7 @@ public class RecipeHisService extends RecipeBaseService {
                 return true;
             }
             List<String> recipeIdList = (List<String>) JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
-            PayNotifyReqTO payNotifyReq = HisRequestInit.initPayNotifyReqTO(recipeIdList, recipe, patientBean, cardBean);
+            PayNotifyReqTO payNotifyReq = hisRequestInit.initPayNotifyReqTO(recipeIdList, recipe, patientBean, cardBean);
             PayNotifyResTO response = null;
             try {
                 //如果异常重试处理
@@ -550,7 +520,7 @@ public class RecipeHisService extends RecipeBaseService {
             List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
             PatientBean patientBean = iPatientService.get(recipe.getMpiid());
             HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
-            RecipeStatusUpdateReqTO request = HisRequestInit.initRecipeStatusUpdateReqTO(recipe, details, patientBean, cardBean);
+            RecipeStatusUpdateReqTO request = hisRequestInit.initRecipeStatusUpdateReqTO(recipe, details, patientBean, cardBean);
 
             String memo = "";
             if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode())) {
@@ -1129,7 +1099,7 @@ public class RecipeHisService extends RecipeBaseService {
         if (isHisEnable(recipe.getClinicOrgan())) {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
             PatientBean patientBean = iPatientService.get(recipe.getMpiid());
-            RecipeAuditReqTO request = HisRequestInit.recipeAudit(recipe, patientBean, resutlBean);
+            RecipeAuditReqTO request = hisRequestInit.recipeAudit(recipe, patientBean, resutlBean);
             LOGGER.info("recipeAudit req={}", JSONUtils.toString(request));
             HisResponseTO response = service.recipeAudit(request);
             LOGGER.info("recipeAudit res={}", JSONUtils.toString(response));
@@ -1160,7 +1130,7 @@ public class RecipeHisService extends RecipeBaseService {
         }
         if (isHisEnable(recipe.getClinicOrgan())) {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-            DocIndexToHisReqTO request = HisRequestInit.initDocIndexToHisReqTO(recipe);
+            DocIndexToHisReqTO request = hisRequestInit.initDocIndexToHisReqTO(recipe);
             service.docIndexToHis(request);
             return result;
         } else {
@@ -1332,8 +1302,8 @@ public class RecipeHisService extends RecipeBaseService {
         List<DiseaseInfo> diseaseInfos = new ArrayList<>();
         DiseaseInfo diseaseInfo;
         if (StringUtils.isNotEmpty(recipeBean.getOrganDiseaseId()) && StringUtils.isNotEmpty(recipeBean.getOrganDiseaseName())) {
-            String[] diseaseIds = recipeBean.getOrganDiseaseId().split("；");
-            String[] diseaseNames = recipeBean.getOrganDiseaseName().split("；");
+            String[] diseaseIds = recipeBean.getOrganDiseaseId().split(ByteUtils.SEMI_COLON_EN);
+            String[] diseaseNames = recipeBean.getOrganDiseaseName().split(ByteUtils.SEMI_COLON_EN);
             for (int i = 0; i < diseaseIds.length; i++) {
                 diseaseInfo = new DiseaseInfo();
                 diseaseInfo.setDiseaseCode(diseaseIds[i]);

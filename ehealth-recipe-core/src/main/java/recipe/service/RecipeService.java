@@ -132,6 +132,7 @@ import recipe.mq.OnsConfig;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
+import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.thread.*;
 import recipe.util.*;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
@@ -167,7 +168,7 @@ public class RecipeService extends RecipeBaseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeService.class);
 
-    private static List<String> beforeCAList = Arrays.asList("gdsign", "jiangsuCA", "beijingCA", "bjYwxCA");
+    private static List<String> beforeCAList = Arrays.asList("gdsign", "gdsign|2", "jiangsuCA", "beijingCA", "bjYwxCA");
 
     private static final String EXTEND_VALUE_FLAG = "1";
 
@@ -240,6 +241,9 @@ public class RecipeService extends RecipeBaseService {
 
     @Resource
     private DrugStockBusinessService drugStockBusinessService;
+
+    @Autowired
+    private RemoteRecipeService remoteRecipeService;
 
 
     /**
@@ -1432,7 +1436,8 @@ public class RecipeService extends RecipeBaseService {
         });
         //推送处方到监管平台(审核后数据)
         RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 2));
-
+        //审核通过盖章
+        RecipeBusiThreadPool.execute(() -> remoteRecipeService.generateSignetRecipePdf(recipe.getRecipeId(), recipe.getClinicOrgan()));
     }
 
     /**
@@ -1535,8 +1540,8 @@ public class RecipeService extends RecipeBaseService {
             //第三步校验库存
             if (continueFlag == 0 || continueFlag == 4) {
                 rMap = drugStockBusinessService.doSignRecipeCheckAndGetGiveMode(recipeBean);
-                Boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
-                if (signResult != null && false == signResult) {
+                boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
+                if (!signResult) {
                     return rMap;
                 }
             }
@@ -3572,7 +3577,12 @@ public class RecipeService extends RecipeBaseService {
         return result;
     }
 
-    @RpcService
+    /**
+     * 健康端获取处方详情
+     *
+     * @param recipeId
+     * @return
+     */
     public Map<String, Object> getPatientRecipeByIdForOfflineRecipe(int recipeId) {
         Map<String, Object> result = getRecipeAndDetailByIdImpl(recipeId, false);
         PatientDTO patient = (PatientDTO) result.get("patient");
@@ -3620,7 +3630,9 @@ public class RecipeService extends RecipeBaseService {
         if (null == recipeOrder || null == recipeOrder.getDispensingTime()) {
             apothecaryDTO.setGiveUserSignImg(null);
         }
-        return operationClient.queryRecipeLabel(recipePdfDTO);
+        Map<String, List<RecipeLabelVO>> recipeLabel = operationClient.queryRecipeLabel(recipePdfDTO);
+        LOGGER.info("recipeService queryRecipeLabelById ,recipeLabel={}", JSON.toJSONString(recipeLabel));
+        return recipeLabel;
     }
 
     /**

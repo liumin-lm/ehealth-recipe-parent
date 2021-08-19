@@ -29,7 +29,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
 import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.openapi.business.bean.RecipeAndRecipeDetailsBean;
 import recipe.openapi.business.bean.ThirdRecipeDetailBean;
@@ -58,9 +57,6 @@ public class ThirdRecipeService {
 
     @Autowired
     private RecipeDAO recipeDAO;
-
-    @Autowired
-    private RecipeExtendDAO recipeExtendDAO;
 
     @Autowired
     private RecipeService recipeService;

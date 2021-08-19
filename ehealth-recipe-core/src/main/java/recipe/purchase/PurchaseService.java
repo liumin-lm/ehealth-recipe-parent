@@ -152,7 +152,7 @@ public class PurchaseService {
      * 根据对应的购药方式展示对应药企
      *
      * @param recipeIds 处方ID
-     * @param payModes 购药方式
+     * @param payModes  购药方式
      */
     @RpcService
     public RecipeResultBean filterSupportDepList(List<Integer> recipeIds, List<Integer> payModes, Map<String, String> extInfo) {
@@ -276,7 +276,7 @@ public class PurchaseService {
     @RpcService
     public OrderCreateResult orderForRecipe(Integer recipeId, Map<String, String> extInfo) {
         OrderCreateResult orderCreateResult = checkOrderInfo(Arrays.asList(recipeId), extInfo);
-        if(RecipeResultBean.FAIL==orderCreateResult.getCode()){
+        if (RecipeResultBean.FAIL == orderCreateResult.getCode()) {
             return orderCreateResult;
         }
         return order(Arrays.asList(recipeId), extInfo);
@@ -299,7 +299,8 @@ public class PurchaseService {
     }
 
     /**
-     *确认订单校验
+     * 确认订单校验
+     *
      * @param recipeIds
      * @param extInfo
      * @return
@@ -343,7 +344,7 @@ public class PurchaseService {
             if (null == patientDTO) {
                 throw new DAOException(609, "患者信息不存在");
             }
-            HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos= hisRecipeManager.queryData(dbRecipe.getClinicOrgan(),patientDTO,null, OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType(),dbRecipe.getRecipeCode());
+            HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryData(dbRecipe.getClinicOrgan(), patientDTO, null, OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType(), dbRecipe.getRecipeCode());
             if (null == hisRecipeInfos || CollectionUtils.isEmpty(hisRecipeInfos.getData())) {
                 result.setCode(RecipeResultBean.CHECKFAIL);
                 result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
@@ -356,25 +357,25 @@ public class PurchaseService {
                 return result;
             }
             QueryHisRecipResTO queryHisRecipResTO = hisRecipeInfos.getData().get(0);
-            if(queryHisRecipResTO==null){
+            if (queryHisRecipResTO == null) {
                 result.setCode(RecipeResultBean.CHECKFAIL);
                 result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
                 LOG.info("checkOrderInfo recipeId:{} queryHisRecipResTO is null", recipeId);
             }
             //诊断
-            if (!queryHisRecipResTO.getDisease().equals(covertData(hisRecipe.getDisease())) || !covertData(queryHisRecipResTO.getDiseaseName()).equals(covertData(hisRecipe.getDiseaseName()))) {
+            if (!covertData(queryHisRecipResTO.getDisease()).equals(covertData(hisRecipe.getDisease())) || !covertData(queryHisRecipResTO.getDiseaseName()).equals(covertData(hisRecipe.getDiseaseName()))) {
                 result.setCode(RecipeResultBean.CHECKFAIL);
                 result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
                 LOG.info("checkOrderInfo recipeId:{} hisRecipe已被删除", recipeId);
             }
             //药品详情变更或数据是否由他人生成
-            List<Integer> hisRecipeIds=new ArrayList<>();
-            Map<String, HisRecipe> hisRecipeMap=new HashMap<>();
+            List<Integer> hisRecipeIds = new ArrayList<>();
+            Map<String, HisRecipe> hisRecipeMap = new HashMap<>();
             hisRecipeIds.add(hisRecipe.getHisRecipeID());
             List<HisRecipeDetail> hisRecipeDetailList = hisRecipeDetailDAO.findByHisRecipeIds(hisRecipeIds);
-            hisRecipeMap.put(hisRecipe.getRecipeCode(),hisRecipe);
-            Set<String> deleteSetRecipeCode=hisRecipeManager.obtainDeleteRecipeCodes(hisRecipeInfos.getData(),hisRecipeMap,hisRecipeDetailList,dbRecipe.getMpiid());
-            if(!CollectionUtils.isEmpty(deleteSetRecipeCode)){
+            hisRecipeMap.put(hisRecipe.getRecipeCode(), hisRecipe);
+            Set<String> deleteSetRecipeCode = hisRecipeManager.obtainDeleteRecipeCodes(hisRecipeInfos.getData(), hisRecipeMap, hisRecipeDetailList, dbRecipe.getMpiid());
+            if (!CollectionUtils.isEmpty(deleteSetRecipeCode)) {
                 result.setCode(RecipeResultBean.CHECKFAIL);
                 result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
                 LOG.info("checkOrderInfo recipeId:{} 药品详情已变更或数据已经由他人生成", recipeId);
@@ -385,25 +386,25 @@ public class PurchaseService {
     }
 
     private String covertData(String str) {
-        if(StringUtils.isEmpty(str)){
+        if (StringUtils.isEmpty(str)) {
             return "";
-        }else{
+        } else {
             return str;
         }
     }
 
     /**
      * @param recipeIds
-     * @param extInfo  参照RecipeOrderService createOrder定义
-     *                 {"operMpiId":"当前操作者编码","addressId":"当前选中地址","payway":"支付方式（payway）","payMode":"处方支付方式",
-     *                 "decoctionFlag":"1(1：代煎，0：不代煎)", "gfFeeFlag":"1(1：表示需要制作费，0：不需要)", “depId”:"指定药企ID",
-     *                 "expressFee":"快递费","gysCode":"药店编码","sendMethod":"送货方式","payMethod":"支付方式","appId":"公众号ID",
-     *                 "calculateFee":"1(1:需要，0:不需要),"logisticsCompany":"物流公司"}
-     *                 <p>
-     *                 ps: decoctionFlag是中药处方时设置为1，gfFeeFlag是膏方时设置为1
-     *                 gysCode, sendMethod, payMethod 字段为钥世圈字段，会在findSupportDepList接口中给出
-     *                 payMode 如果钥世圈有供应商是多种方式支持，就传0
-     *                 orderType, 1表示省医保
+     * @param extInfo   参照RecipeOrderService createOrder定义
+     *                  {"operMpiId":"当前操作者编码","addressId":"当前选中地址","payway":"支付方式（payway）","payMode":"处方支付方式",
+     *                  "decoctionFlag":"1(1：代煎，0：不代煎)", "gfFeeFlag":"1(1：表示需要制作费，0：不需要)", “depId”:"指定药企ID",
+     *                  "expressFee":"快递费","gysCode":"药店编码","sendMethod":"送货方式","payMethod":"支付方式","appId":"公众号ID",
+     *                  "calculateFee":"1(1:需要，0:不需要),"logisticsCompany":"物流公司"}
+     *                  <p>
+     *                  ps: decoctionFlag是中药处方时设置为1，gfFeeFlag是膏方时设置为1
+     *                  gysCode, sendMethod, payMethod 字段为钥世圈字段，会在findSupportDepList接口中给出
+     *                  payMode 如果钥世圈有供应商是多种方式支持，就传0
+     *                  orderType, 1表示省医保
      * @return
      */
     @RpcService
@@ -501,7 +502,7 @@ public class PurchaseService {
     }
 
     public void updateRecipeDetail(Integer recipeId) {
-        try{
+        try {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -512,7 +513,7 @@ public class PurchaseService {
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
                 //结算方式 0:药店价格 1:医院价格
                 int settlementMode = 0;
-                if(drugsEnterprise != null && drugsEnterprise.getSettlementMode() != null && drugsEnterprise.getSettlementMode() == 1){
+                if (drugsEnterprise != null && drugsEnterprise.getSettlementMode() != null && drugsEnterprise.getSettlementMode() == 1) {
                     settlementMode = 1;
                 }
                 for (Recipedetail recipedetail : recipedetails) {
@@ -537,7 +538,7 @@ public class PurchaseService {
 
 
                         if (StringUtils.isEmpty(saleDrugList.getOrganDrugCode())) {
-                            recipedetail.setSaleDrugCode(saleDrugList.getDrugId()+"");
+                            recipedetail.setSaleDrugCode(saleDrugList.getDrugId() + "");
                         } else {
                             recipedetail.setSaleDrugCode(saleDrugList.getOrganDrugCode());
                         }
@@ -545,8 +546,8 @@ public class PurchaseService {
                     recipeDetailDAO.update(recipedetail);
                 }
             }
-        }catch(Exception e){
-            LOG.error("PayModeOnline.updateRecipeDetail error recipeId:{}.", recipeId,e);
+        } catch (Exception e) {
+            LOG.error("PayModeOnline.updateRecipeDetail error recipeId:{}.", recipeId, e);
         }
     }
 
@@ -676,7 +677,7 @@ public class PurchaseService {
                     tips = "处方单待处理，请于" + invalidTime + "内完成购药，否则处方将失效";
                 } else {
                     Integer giveMode = recipe.getGiveMode();
-                    if(giveMode.equals(5)){
+                    if (giveMode.equals(5)) {
                         giveMode = PayModeGiveModeUtil.getGiveMode(giveMode);
                     }
                     IPurchaseService purchaseService = getService(giveMode);
@@ -698,9 +699,9 @@ public class PurchaseService {
                     break;
                 }
             case RECIPE_STATUS_REVOKE:
-                if(CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeIdAndNode(recipe.getRecipeId()))){
+                if (CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeIdAndNode(recipe.getRecipeId()))) {
                     tips = "由于患者申请退费成功，该处方已取消。";
-                }else{
+                } else {
                     tips = "由于医生已撤销，该处方单已失效，请联系医生";
                     //20200519 zhangx 是否展示退款按钮(重庆大学城退款流程)，前端调用patientRefundForRecipe
                     //原设计：处方单待处理状态，患者未下单时可撤销，重庆大学城流程，支付完未配送可撤销，
@@ -733,6 +734,11 @@ public class PurchaseService {
             case RECIPE_STATUS_DRUG_WITHDRAWAL:
                 tips = "药品已退药";
                 break;
+            case RECIPE_STATUS_SIGN_ING_CODE_PHA:
+            case RECIPE_STATUS_SIGN_NO_CODE_PHA:
+            case RECIPE_STATUS_SIGN_ERROR_CODE_PHA:
+                tips = "请耐心等待药师审核";
+                break;
             case RECIPE_STATUS_FINISH:
                 //特应性处理:下载处方，不需要审核,不更新payMode
                 if (ReviewTypeConstant.Not_Need_Check.equals(recipe.getReviewType()) && RecipeBussConstant.GIVEMODE_DOWNLOAD_RECIPE.equals(recipe.getGiveMode())) {
@@ -753,7 +759,7 @@ public class PurchaseService {
     private String getInvalidTime(Recipe recipe) {
         String invalidTime = "3日";
         try {
-            if (null != recipe.getInvalidTime()){
+            if (null != recipe.getInvalidTime()) {
                 Date now = new Date();
                 long nd = 1000 * 24 * 60 * 60;
                 long nh = 1000 * 60 * 60;
@@ -761,16 +767,16 @@ public class PurchaseService {
                 long ns = 1000;
                 long diff = recipe.getInvalidTime().getTime() - now.getTime();
                 // 处方已到失效时间，失效定时任务未执行（每30分钟执行一次）
-                if (diff <= 0){
+                if (diff <= 0) {
                     invalidTime = "30分钟";
-                }else {
+                } else {
                     long day = diff / nd;
                     long hour = diff % nd / nh;
                     long min = diff % nd % nh / nm;
                     long sec = diff % nd % nh % nm / ns;
-                    if (day <= 0 && hour <= 0 && min <= 0 && sec > 0){
+                    if (day <= 0 && hour <= 0 && min <= 0 && sec > 0) {
                         invalidTime = "1分钟";
-                    }else {
+                    } else {
                         hour = hour + (day * 24);
                         invalidTime = hour > 0 ? (hour + "小时") : "";
                         invalidTime = min > 0 ? (invalidTime + min + "分钟") : (invalidTime + "");
@@ -778,7 +784,7 @@ public class PurchaseService {
                 }
             }
         } catch (Exception e) {
-            LOG.error("失效时间倒计时计算异常，recipeid={}",recipe.getRecipeId(),e);
+            LOG.error("失效时间倒计时计算异常，recipeid={}", recipe.getRecipeId(), e);
         }
         return invalidTime;
     }
@@ -794,7 +800,7 @@ public class PurchaseService {
             return OrderStatusConstant.READY_SEND;
         } else {
             Integer giveMode = recipe.getGiveMode();
-            if(recipe.getGiveMode().equals(5)) {
+            if (recipe.getGiveMode().equals(5)) {
                 giveMode = PayModeGiveModeUtil.getGiveMode(recipe.getGiveMode());
             }
             IPurchaseService purchaseService = getService(giveMode);
@@ -810,12 +816,15 @@ public class PurchaseService {
      * @return true 已被处理
      */
     private boolean checkRecipeIsUser(Recipe dbRecipe, RecipeResultBean result) {
-        if (dbRecipe.getStatus() == RecipeStatusConstant.REVOKE){
+        if (dbRecipe.getStatus() == RecipeStatusConstant.REVOKE) {
             throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方单已被撤销");
         }
         //此时如果处方状态为待审核则说明药师端已经撤销了处方审核结果
-        if (dbRecipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS){
+        if (dbRecipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS) {
             throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方审核结果已被撤销");
+        }
+        if(RecipeStatusEnum.getCheckShowFlag(dbRecipe.getStatus())){
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方正在审核中");
         }
         if (RecipeStatusConstant.CHECK_PASS != dbRecipe.getStatus()
                 || 1 == dbRecipe.getChooseFlag()) {
@@ -842,15 +851,16 @@ public class PurchaseService {
 
     /**
      * 判断是否是慢病医保患者
+     *
      * @param recipeId
      * @return
      */
-    public Boolean isMedicareSlowDiseasePatient(Integer recipeId){
+    public Boolean isMedicareSlowDiseasePatient(Integer recipeId) {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        if (recipeExtend !=null){
+        if (recipeExtend != null) {
             //3慢病医保
-            if ("3".equals(recipeExtend.getPatientType())){
+            if ("3".equals(recipeExtend.getPatientType())) {
                 return true;
             }
         }
@@ -959,7 +969,7 @@ public class PurchaseService {
 //            Recipe recipe = recipeDAO.findRecipeListByOrderCode(recipeOrder.getOrderCode()).get(0);
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
 //            IPurchaseService purchaseService = getService(recipe.getPayMode());
-            if ("111".equals(recipeOrder.getWxPayWay())){
+            if ("111".equals(recipeOrder.getWxPayWay())) {
                 recipeOrder.setPayMode(1);
                 recipeOrderDAO.update(recipeOrder);
             }

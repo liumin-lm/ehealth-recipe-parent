@@ -10,7 +10,7 @@ import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
-import recipe.core.api.doctor.ICaseHistoryService;
+import recipe.core.api.doctor.ICaseHistoryBusinessService;
 import recipe.util.ValidateUtil;
 import recipe.vo.second.MedicalDetailVO;
 
@@ -23,7 +23,7 @@ import recipe.vo.second.MedicalDetailVO;
 public class CaseHistoryDoctorAtop extends BaseAtop {
 
     @Autowired
-    private ICaseHistoryService caseHistoryService;
+    private ICaseHistoryBusinessService caseHistoryService;
     @Autowired
     private IRevisitService revisitService;
 

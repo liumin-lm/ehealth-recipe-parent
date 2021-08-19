@@ -16,8 +16,9 @@ import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.constant.HisErrorCodeEnum;
 import recipe.core.api.IRecipeBusinessService;
-import recipe.core.api.patient.IRecipePatientService;
+import recipe.core.api.patient.IPatientBusinessService;
 import recipe.util.DateConversion;
+import recipe.util.ValidateUtil;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -27,17 +28,18 @@ import java.util.stream.Collectors;
 
 /**
  * 门诊处方服务
+ *
  * @author yinsheng
  * @date 2021\7\16 0016 14:04
  */
 @RpcBean(value = "outRecipePatientAtop")
-public class OutRecipePatientAtop extends BaseAtop {
+public class RecipePatientAtop extends BaseAtop {
 
     @Autowired
     private IRecipeBusinessService recipeBusinessService;
 
     @Autowired
-    private IRecipePatientService recipePatientService;
+    private IPatientBusinessService recipePatientService;
 
     /**
      * 查询门诊处方信息
@@ -152,6 +154,31 @@ public class OutRecipePatientAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("OutPatientRecipeAtop getMedicationGuide error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 获取患者医保信息
+     * @param patientInfoVO 患者信息
+     * @return 医保类型相关
+     */
+    @RpcService
+    public PatientMedicalTypeVO queryPatientMedicalType(PatientInfoVO patientInfoVO){
+        logger.info("OutPatientRecipeAtop queryPatientMedicalType patientInfoVO:{}.", JSON.toJSONString(patientInfoVO));
+        validateAtop(patientInfoVO, patientInfoVO.getOrganId(), patientInfoVO.getMpiId());
+        if (ValidateUtil.integerIsEmpty(patientInfoVO.getClinicId())){
+            return new PatientMedicalTypeVO("1", "自费");
+        }
+        try {
+            PatientMedicalTypeVO result = recipePatientService.queryPatientMedicalType(patientInfoVO);
+            logger.info("OutPatientRecipeAtop queryPatientMedicalType result = {}", JSON.toJSONString(result));
+            return result;
+        } catch (DAOException e1) {
+            logger.error("OutPatientRecipeAtop queryPatientMedicalType error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("OutPatientRecipeAtop queryPatientMedicalType error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }

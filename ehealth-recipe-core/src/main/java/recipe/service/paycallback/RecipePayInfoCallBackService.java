@@ -183,7 +183,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                     attr.put("fundAmount", ybzf);
                 }
                 //替换预结算返回的自费金额
-                if (ysbody.get("yfje") != null) {
+                if (null != ysbody && ysbody.get("yfje") != null) {
                     attr.put("cashAmount", ConversionUtils.convert(ysbody.get("yfje"), Double.class));
                 }
             }

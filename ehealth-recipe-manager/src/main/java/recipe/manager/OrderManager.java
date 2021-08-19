@@ -8,7 +8,7 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
-import com.ngari.recipe.dto.PatientDTO;
+import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.SkipThirdBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
@@ -87,7 +87,7 @@ public class OrderManager extends BaseManager {
         SkipThirdBean skipThirdBean = new SkipThirdBean();
         String thirdUrl;
         if (null != recipe) {
-            PatientDTO patient = patientClient.getPatient(recipe.getMpiid());
+            PatientDTO patient = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
             PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
             if (patient != null) {
                 patientBaseInfo.setPatientName(patient.getPatientName());
@@ -112,7 +112,7 @@ public class OrderManager extends BaseManager {
             }
             PatientBaseInfo userInfo = new PatientBaseInfo();
             if (StringUtils.isNotEmpty(recipe.getRequestMpiId())) {
-                PatientDTO user = patientClient.getPatient(recipe.getRequestMpiId());
+                PatientDTO user = patientClient.getPatientBeanByMpiId(recipe.getRequestMpiId());
                 if (user != null) {
                     userInfo.setPatientName(user.getPatientName());
                     userInfo.setCertificate(user.getCertificate());
