@@ -1,7 +1,7 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
-import com.ngari.recipe.dto.EmrDetail;
+import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
@@ -119,7 +119,7 @@ public class RecipeManager extends BaseManager {
         }
         recipeExtend.setCardTypeName(DictionaryUtil.getDictionary("eh.mpi.dictionary.CardType", recipeExtend.getCardType()));
         Integer docIndexId = recipeExtend.getDocIndexId();
-        EmrDetail emrDetail = docIndexClient.getEmrDetails(docIndexId);
+        EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(docIndexId);
         if (null == emrDetail) {
             return recipeInfoDTO;
         }

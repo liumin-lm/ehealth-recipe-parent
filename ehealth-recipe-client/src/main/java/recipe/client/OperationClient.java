@@ -5,7 +5,7 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.scratchable.service.IScratchableService;
 import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
-import com.ngari.recipe.dto.RecipeLabelVO;
+import com.ngari.recipe.dto.RecipeLabelDTO;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.exception.DAOException;
@@ -65,7 +65,7 @@ public class OperationClient extends BaseClient {
      * @param recipePdfDTO 处方信息
      * @return
      */
-    public Map<String, List<RecipeLabelVO>> queryRecipeLabel(RecipeInfoDTO recipePdfDTO) {
+    public Map<String, List<RecipeLabelDTO>> queryRecipeLabel(RecipeInfoDTO recipePdfDTO) {
         logger.info("OperationClient queryRecipeLabel ,recipePdfDTO={}", JSON.toJSONString(recipePdfDTO));
         Integer organId = recipePdfDTO.getRecipe().getClinicOrgan();
         if (null == organId) {
@@ -76,20 +76,20 @@ public class OperationClient extends BaseClient {
         if (CollectionUtils.isEmpty(labelMap)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "运营平台配置为空");
         }
-        Map<String, List<RecipeLabelVO>> resultMap = new HashMap<>();
+        Map<String, List<RecipeLabelDTO>> resultMap = new HashMap<>();
         labelMap.forEach((k, v) -> {
             List<Scratchable> value = (List<Scratchable>) v;
             if (CollectionUtils.isEmpty(value)) {
                 return;
             }
-            List<RecipeLabelVO> recipeLabelList = new LinkedList<>();
+            List<RecipeLabelDTO> recipeLabelList = new LinkedList<>();
             value.forEach(a -> {
                 if (StringUtils.isEmpty(a.getBoxLink())) {
                     return;
                 }
                 Object fieldValue = getFieldValue(a, recipePdfDTO);
                 //组织返回对象
-                recipeLabelList.add(new RecipeLabelVO(a.getBoxTxt(), a.getBoxLink(), fieldValue));
+                recipeLabelList.add(new RecipeLabelDTO(a.getBoxTxt(), a.getBoxLink(), fieldValue));
             });
             resultMap.put(k, recipeLabelList);
         });

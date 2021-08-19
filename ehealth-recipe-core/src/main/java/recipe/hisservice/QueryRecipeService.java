@@ -17,7 +17,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.OrganDrugChangeBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.DrugListBean;
-import com.ngari.recipe.dto.EmrDetail;
+import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.*;
 import com.ngari.recipe.hisprescription.service.IQueryRecipeService;
@@ -227,7 +227,7 @@ public class QueryRecipeService implements IQueryRecipeService {
         try {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
             if (null != recipeExtend) {
-                EmrDetail emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
+                EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
                 recipeDTO.setCardType(recipeExtend.getCardType());
                 recipeDTO.setCardNo(recipeExtend.getCardNo());
                 recipeDTO.setRecipeExtendBean(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));

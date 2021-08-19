@@ -1,7 +1,7 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
-import com.ngari.recipe.dto.EmrDetail;
+import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.EmrDetailValueDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
@@ -137,7 +137,7 @@ public class EmrRecipeManager extends BaseManager {
         //更新电子病例 为已经使用状态
         docIndexClient.updateEmrStatus(recipeId, docId, recipe.getClinicId());
         //更新 处方诊断信息
-        EmrDetail emrDetail = docIndexClient.getEmrDetails(docId);
+        EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(docId);
         if (StringUtils.isEmpty(emrDetail.getOrganDiseaseName())) {
             return;
         }

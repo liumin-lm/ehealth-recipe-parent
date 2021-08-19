@@ -11,7 +11,7 @@ import java.util.List;
  * @author fuzi
  */
 @Data
-public class EmrDetail {
+public class EmrDetailDTO {
     @ItemProperty(alias = "主诉")
     private String mainDieaseDescribe;
 

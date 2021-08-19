@@ -7,7 +7,7 @@ import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
-import com.ngari.recipe.dto.RecipeLabelVO;
+import com.ngari.recipe.dto.RecipeLabelDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -305,8 +305,8 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDTO(recipe.getRecipeId());
         ApothecaryDTO apothecaryDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getGiveUser(), recipe.getRecipeId());
         recipePdfDTO.setApothecary(apothecaryDTO);
-        Map<String, List<RecipeLabelVO>> result = operationClient.queryRecipeLabel(recipePdfDTO);
-        List<RecipeLabelVO> list = result.get("moduleThree");
+        Map<String, List<RecipeLabelDTO>> result = operationClient.queryRecipeLabel(recipePdfDTO);
+        List<RecipeLabelDTO> list = result.get("moduleThree");
         //组装生成pdf的参数
         Map<String, Object> map = new HashMap<>();
         if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
@@ -335,7 +335,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
      * @param list
      * @param recipe
      */
-    private void createMedicinePDF(List<RecipeLabelVO> list, List<Recipedetail> recipeDetails, Recipe recipe) {
+    private void createMedicinePDF(List<RecipeLabelDTO> list, List<Recipedetail> recipeDetails, Recipe recipe) {
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return;
         }
@@ -370,7 +370,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
             if (!StringUtils.isEmpty(d.getMemo())) {
                 stringBuilder.append(" \n ").append("嘱托:").append(d.getMemo());
             }
-            list.add(new RecipeLabelVO("medicine", "drugInfo" + i, stringBuilder.toString()));
+            list.add(new RecipeLabelDTO("medicine", "drugInfo" + i, stringBuilder.toString()));
         }
     }
 
@@ -381,30 +381,30 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
      * @param extend
      * @param recipe
      */
-    private void createChineMedicinePDF(List<RecipeLabelVO> list, List<Recipedetail> recipeDetails, RecipeExtend extend, Recipe recipe) {
+    private void createChineMedicinePDF(List<RecipeLabelDTO> list, List<Recipedetail> recipeDetails, RecipeExtend extend, Recipe recipe) {
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return;
         }
         for (int i = 0; i < recipeDetails.size(); i++) {
             String drugShowName = RecipeUtil.drugChineShowName(recipeDetails.get(i));
-            list.add(new RecipeLabelVO("chineMedicine", "drugInfo" + i, drugShowName));
+            list.add(new RecipeLabelDTO("chineMedicine", "drugInfo" + i, drugShowName));
         }
         Recipedetail detail = recipeDetails.get(0);
-        list.add(new RecipeLabelVO("天数", "tcmUseDay", getUseDays(detail.getUseDaysB(), detail.getUseDays())));
+        list.add(new RecipeLabelDTO("天数", "tcmUseDay", getUseDays(detail.getUseDaysB(), detail.getUseDays())));
         try {
-            list.add(new RecipeLabelVO("用药途径", "tcmUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detail.getUsePathways())));
-            list.add(new RecipeLabelVO("用药频次", "tcmUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detail.getUsingRate())));
+            list.add(new RecipeLabelDTO("用药途径", "tcmUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detail.getUsePathways())));
+            list.add(new RecipeLabelDTO("用药频次", "tcmUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detail.getUsingRate())));
         } catch (Exception e) {
             logger.error("用药途径 用药频率有误");
         }
         if (null != extend) {
 
-            list.add(new RecipeLabelVO("煎法", "tcmDecoction", ByteUtils.objValueOfString(extend.getDecoctionText())));
-            list.add(new RecipeLabelVO("每付取汁", "tcmJuice", ByteUtils.objValueOfString(extend.getJuice()) + ByteUtils.objValueOfString(extend.getJuiceUnit())));
-            list.add(new RecipeLabelVO("次量", "tcmMinor", ByteUtils.objValueOfString(extend.getMinor()) + ByteUtils.objValueOfString(extend.getMinorUnit())));
-            list.add(new RecipeLabelVO("制法", "tcmMakeMethod", ByteUtils.objValueOfString(extend.getMakeMethodText())));
+            list.add(new RecipeLabelDTO("煎法", "tcmDecoction", ByteUtils.objValueOfString(extend.getDecoctionText())));
+            list.add(new RecipeLabelDTO("每付取汁", "tcmJuice", ByteUtils.objValueOfString(extend.getJuice()) + ByteUtils.objValueOfString(extend.getJuiceUnit())));
+            list.add(new RecipeLabelDTO("次量", "tcmMinor", ByteUtils.objValueOfString(extend.getMinor()) + ByteUtils.objValueOfString(extend.getMinorUnit())));
+            list.add(new RecipeLabelDTO("制法", "tcmMakeMethod", ByteUtils.objValueOfString(extend.getMakeMethodText())));
         }
-        list.add(new RecipeLabelVO("贴数", "copyNum", recipe.getCopyNum() + "贴"));
-        list.add(new RecipeLabelVO("嘱托", "tcmRecipeMemo", ByteUtils.objValueOfString(recipe.getRecipeMemo())));
+        list.add(new RecipeLabelDTO("贴数", "copyNum", recipe.getCopyNum() + "贴"));
+        list.add(new RecipeLabelDTO("嘱托", "tcmRecipeMemo", ByteUtils.objValueOfString(recipe.getRecipeMemo())));
     }
 }

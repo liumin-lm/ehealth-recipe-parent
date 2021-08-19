@@ -46,7 +46,7 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RequestVisitVO;
 import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
-import com.ngari.recipe.dto.RecipeLabelVO;
+import com.ngari.recipe.dto.RecipeLabelDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
@@ -3614,7 +3614,7 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     @RpcService
-    public Map<String, List<RecipeLabelVO>> queryRecipeLabelById(int recipeId, Integer organId) {
+    public Map<String, List<RecipeLabelDTO>> queryRecipeLabelById(int recipeId, Integer organId) {
         RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDTO(recipeId);
         Recipe recipe = recipePdfDTO.getRecipe();
         ApothecaryDTO apothecaryDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getGiveUser(), recipe.getRecipeId());
@@ -3623,7 +3623,7 @@ public class RecipeService extends RecipeBaseService {
         if (null == recipeOrder || null == recipeOrder.getDispensingTime()) {
             apothecaryDTO.setGiveUserSignImg(null);
         }
-        Map<String, List<RecipeLabelVO>> recipeLabel = operationClient.queryRecipeLabel(recipePdfDTO);
+        Map<String, List<RecipeLabelDTO>> recipeLabel = operationClient.queryRecipeLabel(recipePdfDTO);
         LOGGER.info("recipeService queryRecipeLabelById ,recipeLabel={}", JSON.toJSONString(recipeLabel));
         return recipeLabel;
     }
