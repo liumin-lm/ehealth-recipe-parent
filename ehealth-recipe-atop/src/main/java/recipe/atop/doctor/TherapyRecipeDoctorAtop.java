@@ -1,8 +1,6 @@
 package recipe.atop.doctor;
 
 import com.alibaba.fastjson.JSON;
-import com.ngari.recipe.recipe.model.CancelRecipeReqVO;
-import com.ngari.recipe.recipe.model.CancelRecipeResultVO;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
@@ -63,15 +61,14 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
 
     /**
      * 撤销处方
-     *
-     * @param cancelRecipeReqVO 撤销参数
+     * @param recipeTherapyVO 撤销参数
      * @return 撤销结果
      */
-    public CancelRecipeResultVO cancelTherapyRecipe(CancelRecipeReqVO cancelRecipeReqVO) {
-        logger.info("TherapyRecipeDoctorAtop cancelRecipe cancelRecipeReqVO:{}.", JSON.toJSONString(cancelRecipeReqVO));
-        validateAtop(cancelRecipeReqVO, cancelRecipeReqVO.getBusId(), cancelRecipeReqVO.getReason());
+    public RecipeTherapyVO cancelTherapyRecipe(RecipeTherapyVO recipeTherapyVO){
+        logger.info("TherapyRecipeDoctorAtop cancelRecipe cancelRecipeReqVO:{}.", JSON.toJSONString(recipeTherapyVO));
+        validateAtop(recipeTherapyVO, recipeTherapyVO.getTherapyCancellationType(), recipeTherapyVO.getRecipeId(), recipeTherapyVO.getTherapyCancellation());
         try {
-            CancelRecipeResultVO result = therapyRecipeBusinessService.cancelRecipe(cancelRecipeReqVO);
+            RecipeTherapyVO result = therapyRecipeBusinessService.cancelRecipe(recipeTherapyVO);
             logger.info("TherapyRecipeDoctorAtop cancelRecipe  result = {}", JSON.toJSONString("result"));
             return result;
         } catch (DAOException e1) {
