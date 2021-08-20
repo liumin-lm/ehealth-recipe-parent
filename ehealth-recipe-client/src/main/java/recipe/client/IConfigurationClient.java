@@ -15,10 +15,7 @@ import recipe.util.ByteUtils;
 import recipe.util.RecipeUtil;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * 获取配置项 交互处理类
@@ -33,6 +30,25 @@ public class IConfigurationClient extends BaseClient {
     private OrganConfigService organConfigService;
     @Resource
     private IHisConfigService hisConfigService;
+
+    /**
+     * 获取多个机构配置
+     * @param organId 机构id
+     * @param keys 配置key
+     * @return
+     */
+    public Map<String, Object> getConfigurationByKeyList(Integer organId, List<String> keys){
+        if(Objects.isNull(organId) || CollectionUtils.isEmpty(keys)){
+            return null;
+        }
+        try {
+            Map<String, Object> configurations = configService.findConfigurations(organId, keys);
+            return configurations;
+        } catch (Exception e) {
+            logger.error("IConfigurationClient getConfigurationByKeyList organId:{}, keys:{}", organId, JSONArray.toJSONString(keys), e);
+            return null;
+        }
+    }
 
     /**
      * 根据配置获取 配置项值，捕获异常时返回默认值

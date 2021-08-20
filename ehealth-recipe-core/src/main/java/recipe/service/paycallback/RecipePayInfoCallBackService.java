@@ -1,5 +1,6 @@
 package recipe.service.paycallback;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeOrderBillReqTO;
@@ -262,6 +263,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
     @Override
     @RpcService
     public boolean doHandleAfterRefund(Order order, int targetPayflag, Map<String, String> refundResult) {
+        logger.info("doHandleAfterRefund outTradeNo={},targetPayflag={},refundResult={}",order.getOutTradeNo(),targetPayflag, JSONArray.toJSONString(refundResult));
         // 处方
         RecipeOrderBean recipeOrderBean = recipeOrderService.getByOutTradeNo(order.getOutTradeNo());
         recipeOrderService.finishOrderPay(recipeOrderBean.getOrderCode(), targetPayflag, RecipeConstant.PAYMODE_ONLINE);
