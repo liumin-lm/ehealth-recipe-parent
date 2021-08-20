@@ -21,7 +21,6 @@ public class RecipeTherapyManager extends BaseManager {
         recipeTherapy.setDoctorId(recipe.getDoctor());
         recipeTherapy.setMpiId(recipe.getMpiid());
         recipeTherapy.setRecipeId(recipe.getRecipeId());
-        recipeTherapy.setStatus(1);
         if (ValidateUtil.integerIsEmpty(recipeTherapy.getId())) {
             recipeTherapy = recipeTherapyDAO.save(recipeTherapy);
         } else {

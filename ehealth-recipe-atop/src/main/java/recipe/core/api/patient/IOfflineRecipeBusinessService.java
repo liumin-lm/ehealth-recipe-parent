@@ -64,4 +64,11 @@ public interface IOfflineRecipeBusinessService {
      * @date 2021/8/06
      */
     OffLineRecipeDetailVO getOffLineRecipeDetails(String mpiId, Integer clinicOrgan, String recipeCode);
+
+    /**
+     * 异步推送his诊疗处方信息
+     *
+     * @param recipeId 处方id
+     */
+    void pushTherapyRecipeExecute(Integer recipeId);
 }

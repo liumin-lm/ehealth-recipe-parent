@@ -2,12 +2,12 @@ package recipe.business;
 
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.constant.TherapyStatusEnum;
 import ctd.persistence.exception.DAOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
+import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.manager.OrganDrugListManager;
 import recipe.manager.RecipeDetailManager;
 import recipe.manager.RecipeManager;
@@ -50,6 +50,7 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
         recipeDetailManager.saveRecipeDetails(recipe, details, organDrugListMap);
         //保存诊疗
         RecipeTherapy recipeTherapy = ObjectCopyUtils.convert(recipeInfoVO.getRecipeTherapyVO(), RecipeTherapy.class);
+        recipeTherapy.setStatus(TherapyStatusEnum.READYSUBMIT.getType());
         recipeTherapyManager.saveRecipeTherapy(recipeTherapy, recipe);
         //更新处方
         recipe = recipeManager.saveRecipe(recipe);
@@ -62,7 +63,7 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
         if (null == recipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "数据不存在");
         }
-        if (!TherapyStatusEnum.READYPAY.getStatus().equals(recipeTherapyVO.getStatus())) {
+        if (!TherapyStatusEnum.READYPAY.getType().equals(recipeTherapyVO.getStatus())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前状态无法撤销");
         }
         return true;
