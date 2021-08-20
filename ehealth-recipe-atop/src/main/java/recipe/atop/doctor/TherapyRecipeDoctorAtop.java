@@ -53,7 +53,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
      * @param cancelRecipeReqVO 撤销参数
      * @return 撤销结果
      */
-    public CancelRecipeResultVO cancelRecipe(CancelRecipeReqVO cancelRecipeReqVO){
+    public CancelRecipeResultVO cancelTherapyRecipe(CancelRecipeReqVO cancelRecipeReqVO){
         logger.info("TherapyRecipeDoctorAtop cancelRecipe cancelRecipeReqVO:{}.", JSON.toJSONString(cancelRecipeReqVO));
         validateAtop(cancelRecipeReqVO, cancelRecipeReqVO.getBusId(), cancelRecipeReqVO.getReason());
         try {
