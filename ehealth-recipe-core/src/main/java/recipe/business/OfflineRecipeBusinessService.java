@@ -262,9 +262,15 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             offLineRecipeDetailDTO.setPatientBirthday(patient.getBirthday());
         }
         OffLineRecipeDetailVO offLineRecipeDetailVO = new OffLineRecipeDetailVO();
-        BeanUtils.copy(offLineRecipeDetailDTO,offLineRecipeDetailVO);
+        BeanUtils.copy(offLineRecipeDetailDTO, offLineRecipeDetailVO);
         logger.info("RecipeBusinessService getOffLineRecipeDetails result={}", ctd.util.JSONUtils.toString(offLineRecipeDetailDTO));
         return offLineRecipeDetailVO;
+    }
+
+    @Override
+    public void pushTherapyRecipeExecute(Integer recipeId) {
+        logger.info("RecipeBusinessService pushTherapyRecipeExecute recipeId={}", recipeId);
+
     }
 
 }

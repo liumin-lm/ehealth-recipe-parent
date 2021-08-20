@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
+import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
@@ -24,6 +25,8 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
 
     @Autowired
     private ITherapyRecipeBusinessService therapyRecipeBusinessService;
+    @Autowired
+    private IOfflineRecipeBusinessService offlineToOnlineService;
 
     /**
      * 保存诊疗处方
@@ -59,12 +62,22 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
     }
 
 
+    @RpcService
+    public Integer submitTherapyRecipe(RecipeInfoVO recipeInfoVO) {
+        Integer recipeId = saveTherapyRecipe(recipeInfoVO);
+        //异步推送his
+        offlineToOnlineService.pushTherapyRecipeExecute(recipeId);
+        return recipeId;
+    }
+
+
     /**
      * 撤销处方
+     *
      * @param recipeTherapyVO 撤销参数
      * @return 撤销结果
      */
-    public boolean cancelTherapyRecipe(RecipeTherapyVO recipeTherapyVO){
+    public boolean cancelTherapyRecipe(RecipeTherapyVO recipeTherapyVO) {
         logger.info("TherapyRecipeDoctorAtop cancelRecipe cancelRecipeReqVO:{}.", JSON.toJSONString(recipeTherapyVO));
         validateAtop(recipeTherapyVO, recipeTherapyVO.getTherapyCancellationType(), recipeTherapyVO.getRecipeId(), recipeTherapyVO.getTherapyCancellation());
         try {
