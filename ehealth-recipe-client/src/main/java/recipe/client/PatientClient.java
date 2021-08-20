@@ -8,7 +8,6 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.PatientDTO;
-import ctd.persistence.exception.DAOException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -44,10 +43,10 @@ public class PatientClient extends BaseClient {
         PatientDTO p = new PatientDTO();
         BeanUtils.copyProperties(patient, p);
         if (StringUtils.isNotEmpty(patient.getMobile())) {
-            p.setMobile(LocalStringUtil.coverMobile((patient.getMobile())));
+            p.setMobile(LocalStringUtil.coverMobile(patient.getMobile()));
         }
         if (StringUtils.isNotEmpty(patient.getIdcard())) {
-            p.setIdcard(ChinaIDNumberUtil.hideIdCard((patient.getIdcard())));
+            p.setIdcard(ChinaIDNumberUtil.hideIdCard(patient.getIdcard()));
         }
         p.setAge(null == patient.getBirthday() ? 0 : DateConversion.getAge(patient.getBirthday()));
         p.setIdcard2(null);
