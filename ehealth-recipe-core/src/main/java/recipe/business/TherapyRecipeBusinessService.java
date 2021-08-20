@@ -5,8 +5,13 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeTherapy;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.recipe.constant.TherapyStatusEnum;
+import com.ngari.recipe.recipe.model.CancelRecipeReqVO;
+import com.ngari.recipe.recipe.model.CancelRecipeResultVO;
+import ctd.persistence.exception.DAOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.manager.RecipeDetailManager;
 import recipe.manager.RecipeManager;
@@ -40,5 +45,25 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
         RecipeTherapy recipeTherapy = ObjectCopyUtils.convert(recipeInfoVO.getRecipeTherapyVO(), RecipeTherapy.class);
         recipeTherapy = recipeTherapyManager.saveRecipeTherapy(recipeTherapy);
         return null;
+    }
+
+    @Override
+    public CancelRecipeResultVO cancelRecipe(CancelRecipeReqVO cancelRecipeReqVO){
+        RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyById(cancelRecipeReqVO.getBusId());
+        if (null == recipeTherapy) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "数据不存在");
+        }
+        if (!TherapyStatusEnum.READYPAY.getStatus().equals(recipeTherapy.getStatus())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "当前状态无法撤销");
+        }
+        return null;
+    }
+
+    @Override
+    public void abolishTherapyRecipe(Integer therapyId){
+        RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyById(therapyId);
+        if (null == recipeTherapy) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "数据不存在");
+        }
     }
 }

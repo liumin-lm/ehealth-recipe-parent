@@ -1,6 +1,8 @@
 package recipe.atop.doctor;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.recipe.model.CancelRecipeReqVO;
+import com.ngari.recipe.recipe.model.CancelRecipeResultVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -45,5 +47,44 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         }
     }
 
+
+    /**
+     * 撤销处方
+     * @param cancelRecipeReqVO 撤销参数
+     * @return 撤销结果
+     */
+    public CancelRecipeResultVO cancelRecipe(CancelRecipeReqVO cancelRecipeReqVO){
+        logger.info("TherapyRecipeDoctorAtop cancelRecipe cancelRecipeReqVO:{}.", JSON.toJSONString(cancelRecipeReqVO));
+        validateAtop(cancelRecipeReqVO, cancelRecipeReqVO.getBusId(), cancelRecipeReqVO.getReason());
+        try {
+            CancelRecipeResultVO result = therapyRecipeBusinessService.cancelRecipe(cancelRecipeReqVO);
+            logger.info("TherapyRecipeDoctorAtop cancelRecipe  result = {}", JSON.toJSONString("result"));
+            return result;
+        } catch (DAOException e1) {
+            logger.warn("TherapyRecipeDoctorAtop cancelRecipe  error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("TherapyRecipeDoctorAtop cancelRecipe  error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 作废诊疗处方
+     * @param therapyId 诊疗处方ID
+     */
+    public void abolishTherapyRecipe(Integer therapyId){
+        logger.info("TherapyRecipeDoctorAtop abolishTherapyRecipe therapyId:{}.", therapyId);
+        validateAtop(therapyId);
+        try {
+            therapyRecipeBusinessService.abolishTherapyRecipe(therapyId);
+        } catch (DAOException e1) {
+            logger.warn("TherapyRecipeDoctorAtop abolishTherapyRecipe  error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("TherapyRecipeDoctorAtop abolishTherapyRecipe  error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
 
 }
