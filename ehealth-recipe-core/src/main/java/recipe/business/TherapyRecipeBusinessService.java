@@ -30,15 +30,15 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     private RecipeDetailManager recipeDetailManager;
 
     @Override
-    public RecipeInfoVO saveTherapyRecipe(RecipeInfoVO recipeInfoVO) {
+    public Integer saveTherapyRecipe(RecipeInfoVO recipeInfoVO) {
         Recipe recipe = ObjectCopyUtils.convert(recipeInfoVO.getRecipeBean(), Recipe.class);
         recipe = recipeManager.saveRecipe(recipe);
         RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeInfoVO.getRecipeExtendBean(), RecipeExtend.class);
-        recipeExtend = recipeManager.saveRecipeExtend(recipeExtend);
+        recipeExtend = recipeManager.saveRecipeExtend(recipeExtend, recipe);
         List<Recipedetail> details = ObjectCopyUtils.convert(recipeInfoVO.getRecipeDetails(), Recipedetail.class);
-        details = recipeDetailManager.saveRecipeDetails(details);
+        details = recipeDetailManager.saveRecipeDetails(details, recipe);
         RecipeTherapy recipeTherapy = ObjectCopyUtils.convert(recipeInfoVO.getRecipeTherapyVO(), RecipeTherapy.class);
-        recipeTherapy = recipeTherapyManager.saveRecipeTherapy(recipeTherapy);
-        return null;
+        recipeTherapy = recipeTherapyManager.saveRecipeTherapy(recipeTherapy, recipe);
+        return recipe.getRecipeId();
     }
 }

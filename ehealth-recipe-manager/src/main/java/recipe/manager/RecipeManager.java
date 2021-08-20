@@ -41,11 +41,22 @@ public class RecipeManager extends BaseManager {
     private RevisitClient revisitClient;
 
     public Recipe saveRecipe(Recipe recipe) {
+        if (ValidateUtil.integerIsEmpty(recipe.getRecipeId())) {
+            recipe = recipeDAO.save(recipe);
+        } else {
+            recipe = recipeDAO.update(recipe);
+        }
         return recipe;
     }
 
 
-    public RecipeExtend saveRecipeExtend(RecipeExtend recipeExtend) {
+    public RecipeExtend saveRecipeExtend(RecipeExtend recipeExtend, Recipe recipe) {
+        if (ValidateUtil.integerIsEmpty(recipeExtend.getRecipeId())) {
+            recipeExtend.setRecipeId(recipe.getRecipeId());
+            recipeExtend = recipeExtendDAO.save(recipeExtend);
+        } else {
+            recipeExtend = recipeExtendDAO.update(recipeExtend);
+        }
         return recipeExtend;
     }
 

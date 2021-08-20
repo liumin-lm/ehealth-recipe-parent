@@ -30,4 +30,9 @@ public class RecipeInfoVO {
      * 诊疗处方
      */
     private RecipeTherapyVO recipeTherapyVO;
+
+
+    public static void main(String[] args) {
+        RecipeTherapyVO recipeTherapyVO = new RecipeTherapyVO();
+    }
 }

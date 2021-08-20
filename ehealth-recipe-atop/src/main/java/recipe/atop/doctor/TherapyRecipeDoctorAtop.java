@@ -1,6 +1,7 @@
 package recipe.atop.doctor;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -11,6 +12,7 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.vo.doctor.RecipeInfoVO;
+import recipe.vo.doctor.RecipeTherapyVO;
 
 /**
  * 诊疗处方服务入口类
@@ -23,19 +25,30 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
     @Autowired
     private ITherapyRecipeBusinessService therapyRecipeBusinessService;
 
+    /**
+     * 保存诊疗处方
+     *
+     * @param recipeInfoVO
+     * @return
+     */
     @RpcService
-    public void saveTherapyRecipe(RecipeInfoVO recipeInfoVO) {
+    public Integer saveTherapyRecipe(RecipeInfoVO recipeInfoVO) {
         logger.info("TherapyRecipeDoctorAtop saveTherapyRecipe recipeInfoVO = {}", JSON.toJSONString(recipeInfoVO));
-        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeDetails(), recipeInfoVO.getRecipeBean(), recipeInfoVO.getRecipeTherapyVO());
+        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeDetails(), recipeInfoVO.getRecipeBean());
         validateAtop(recipeInfoVO.getRecipeBean().getDoctor(), recipeInfoVO.getRecipeBean().getMpiid());
         recipeInfoVO.getRecipeBean().setStatus(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType());
         recipeInfoVO.getRecipeBean().setRecipeSourceType(3);
         recipeInfoVO.getRecipeBean().setSignDate(DateTime.now().toDate());
-        recipeInfoVO.getRecipeTherapyVO().setDoctorId(recipeInfoVO.getRecipeBean().getDoctor());
-        recipeInfoVO.getRecipeTherapyVO().setMpiId(recipeInfoVO.getRecipeBean().getMpiid());
+        if (null == recipeInfoVO.getRecipeTherapyVO()) {
+            recipeInfoVO.setRecipeTherapyVO(new RecipeTherapyVO());
+        }
+        if (null == recipeInfoVO.getRecipeExtendBean()) {
+            recipeInfoVO.setRecipeExtendBean(new RecipeExtendBean());
+        }
         try {
-            therapyRecipeBusinessService.saveTherapyRecipe(recipeInfoVO);
-            logger.info("TherapyRecipeDoctorAtop saveTherapyRecipe  result = {}", JSON.toJSONString("result"));
+            Integer result = therapyRecipeBusinessService.saveTherapyRecipe(recipeInfoVO);
+            logger.info("TherapyRecipeDoctorAtop saveTherapyRecipe  result = {}", result);
+            return result;
         } catch (DAOException e1) {
             logger.warn("TherapyRecipeDoctorAtop saveTherapyRecipe  error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
