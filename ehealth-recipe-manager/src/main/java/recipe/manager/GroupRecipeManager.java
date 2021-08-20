@@ -10,8 +10,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.IConfigurationClient;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeOrderDAO;
 
 import java.util.HashSet;
 import java.util.List;
@@ -25,10 +23,6 @@ import java.util.stream.Collectors;
  */
 @Service
 public class GroupRecipeManager extends BaseManager {
-    @Autowired
-    private RecipeOrderDAO recipeOrderDAO;
-    @Autowired
-    private RecipeDAO recipeDAO;
     @Autowired
     private ICurrentUserInfoService currentUserInfoService;
     @Autowired
