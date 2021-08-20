@@ -66,7 +66,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
     public Integer submitTherapyRecipe(RecipeInfoVO recipeInfoVO) {
         Integer recipeId = saveTherapyRecipe(recipeInfoVO);
         //异步推送his
-        offlineToOnlineService.pushTherapyRecipeExecute(recipeId);
+        offlineToOnlineService.pushTherapyRecipeExecute(recipeId, 1);
         return recipeId;
     }
 

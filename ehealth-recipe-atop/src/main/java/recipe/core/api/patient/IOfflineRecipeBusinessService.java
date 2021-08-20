@@ -70,5 +70,5 @@ public interface IOfflineRecipeBusinessService {
      *
      * @param recipeId 处方id
      */
-    void pushTherapyRecipeExecute(Integer recipeId);
+    void pushTherapyRecipeExecute(Integer recipeId, Integer pushType);
 }

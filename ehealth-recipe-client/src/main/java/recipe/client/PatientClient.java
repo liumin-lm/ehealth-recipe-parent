@@ -38,22 +38,27 @@ public class PatientClient extends BaseClient {
      * @param mpiid
      * @return
      */
-    public PatientDTO getPatient(String mpiid) {
-        com.ngari.patient.dto.PatientDTO patient = patientService.get(mpiid);
-        PatientDTO p = new PatientDTO();
-        BeanUtils.copyProperties(patient, p);
-        if (StringUtils.isNotEmpty(patient.getMobile())) {
-            p.setMobile(LocalStringUtil.coverMobile(patient.getMobile()));
+    public PatientDTO getPatientEncipher(String mpiid) {
+        PatientDTO p = getPatientDTO(mpiid);
+        if (StringUtils.isNotEmpty(p.getMobile())) {
+            p.setMobile(LocalStringUtil.coverMobile(p.getMobile()));
         }
-        if (StringUtils.isNotEmpty(patient.getIdcard())) {
-            p.setIdcard(ChinaIDNumberUtil.hideIdCard(patient.getIdcard()));
+        if (StringUtils.isNotEmpty(p.getIdcard())) {
+            p.setIdcard(ChinaIDNumberUtil.hideIdCard(p.getIdcard()));
         }
-        p.setAge(null == patient.getBirthday() ? 0 : DateConversion.getAge(patient.getBirthday()));
+        p.setAge(null == p.getBirthday() ? 0 : DateConversion.getAge(p.getBirthday()));
         p.setIdcard2(null);
         p.setCertificate(null);
         if (StringUtils.isNotEmpty(p.getPatientSex())) {
             p.setPatientSex(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", String.valueOf(p.getPatientSex())));
         }
+        return p;
+    }
+
+    public PatientDTO getPatientDTO(String mpiid) {
+        com.ngari.patient.dto.PatientDTO patient = patientService.get(mpiid);
+        PatientDTO p = new PatientDTO();
+        BeanUtils.copyProperties(patient, p);
         return p;
     }
 

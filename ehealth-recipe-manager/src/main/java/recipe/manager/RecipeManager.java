@@ -7,6 +7,7 @@ import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.RecipeTherapy;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.util.JSONUtils;
@@ -15,6 +16,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.*;
+import recipe.dao.RecipeTherapyDAO;
 import recipe.util.DictionaryUtil;
 import recipe.util.ValidateUtil;
 
@@ -39,6 +41,8 @@ public class RecipeManager extends BaseManager {
     private OfflineRecipeClient offlineRecipeClient;
     @Autowired
     private RevisitClient revisitClient;
+    @Autowired
+    private RecipeTherapyDAO recipeTherapyDAO;
 
     public Recipe saveRecipe(Recipe recipe) {
         if (ValidateUtil.integerIsEmpty(recipe.getRecipeId())) {
@@ -102,7 +106,7 @@ public class RecipeManager extends BaseManager {
         RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
         BeanUtils.copyProperties(recipeDTO, recipeInfoDTO);
         Recipe recipe = recipeInfoDTO.getRecipe();
-        PatientDTO patientBean = patientClient.getPatient(recipe.getMpiid());
+        PatientDTO patientBean = patientClient.getPatientEncipher(recipe.getMpiid());
         recipeInfoDTO.setPatientBean(patientBean);
         RecipeExtend recipeExtend = recipeDTO.getRecipeExtend();
         if (null == recipeExtend) {
@@ -120,8 +124,19 @@ public class RecipeManager extends BaseManager {
         recipeExtend.setSymptomId(emrDetail.getSymptomId());
         recipeExtend.setSymptomName(emrDetail.getSymptomName());
         recipeExtend.setAllergyMedical(emrDetail.getAllergyMedical());
-
         logger.info("RecipeOrderManager getRecipeInfoDTO patientBean:{}", JSON.toJSONString(patientBean));
+        return recipeInfoDTO;
+    }
+
+    public RecipeInfoDTO getRecipeTherapyDTO(Integer recipeId) {
+        RecipeDTO recipeDTO = getRecipeDTO(recipeId);
+        RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
+        BeanUtils.copyProperties(recipeDTO, recipeInfoDTO);
+        Recipe recipe = recipeInfoDTO.getRecipe();
+        PatientDTO patientBean = patientClient.getPatientDTO(recipe.getMpiid());
+        recipeInfoDTO.setPatientBean(patientBean);
+        RecipeTherapy recipeTherapy = recipeTherapyDAO.getByRecipeId(recipeId);
+        recipeInfoDTO.setRecipeTherapy(recipeTherapy);
         return recipeInfoDTO;
     }
 
@@ -133,7 +148,7 @@ public class RecipeManager extends BaseManager {
      * @return
      */
     public Recipe getByRecipeCodeAndClinicOrgan(String recipeCode, Integer clinicOrgan) {
-        logger.info("RecipeManager getByRecipeCodeAndClinicOrgan param recipeCode:{},clinicOrgan:{}", recipeCode,clinicOrgan);
+        logger.info("RecipeManager getByRecipeCodeAndClinicOrgan param recipeCode:{},clinicOrgan:{}", recipeCode, clinicOrgan);
         Recipe recipe=recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode,clinicOrgan);
         logger.info("RecipeManager getByRecipeCodeAndClinicOrgan res recipe:{}", JSONUtils.toString(recipe));
         return recipe;

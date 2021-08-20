@@ -48,4 +48,13 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
     @DAOMethod
     public abstract RecipeTherapy getById(int id);
 
+    /**
+     * 根据处方id查询诊疗处方数据
+     *
+     * @param recipeId 处方id
+     * @return
+     */
+    @DAOMethod
+    public abstract RecipeTherapy getByRecipeId(Integer recipeId);
+
 }

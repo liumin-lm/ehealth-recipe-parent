@@ -10,6 +10,7 @@ import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.OffLineRecipeDetailDTO;
 import com.ngari.recipe.dto.RecipeDetailDTO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.HisRecipe;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
@@ -36,6 +37,8 @@ import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.HisRecipeManager;
+import recipe.manager.RecipeManager;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
@@ -54,24 +57,21 @@ import java.util.Map;
 public class OfflineRecipeBusinessService extends BaseService implements IOfflineRecipeBusinessService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(OfflineRecipeBusinessService.class);
-
     @Autowired
     private HisRecipeManager hisRecipeManager;
-
     @Autowired
     private OfflineToOnlineFactory offlineToOnlineFactory;
-
     @Autowired
     private IConfigurationCenterUtilsService configurationCenterUtilsService;
-
     @Autowired
     private PatientService patientService;
-
     @Autowired
     private DepartmentService departmentService;
-
     @Autowired
     private OfflineRecipeClient offlineRecipeClient;
+    @Autowired
+    protected RecipeManager recipeManager;
+
 
     @Override
     public List<MergeRecipeVO> findHisRecipeList(FindHisRecipeListVO request) {
@@ -268,9 +268,11 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     }
 
     @Override
-    public void pushTherapyRecipeExecute(Integer recipeId) {
-        logger.info("RecipeBusinessService pushTherapyRecipeExecute recipeId={}", recipeId);
-
+    public void pushTherapyRecipeExecute(Integer recipeId, Integer pushType) {
+        RecipeBusiThreadPool.execute(() -> {
+            logger.info("RecipeBusinessService pushTherapyRecipeExecute recipeId={}", recipeId);
+            RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeTherapyDTO(recipeId);
+            hisRecipeManager.pushRecipe(recipePdfDTO, pushType);
+        });
     }
-
 }

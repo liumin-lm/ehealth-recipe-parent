@@ -8,18 +8,13 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.dto.DiseaseInfoDTO;
-import com.ngari.recipe.dto.OffLineRecipeDetailDTO;
-import com.ngari.recipe.dto.OutPatientRecipeDTO;
-import com.ngari.recipe.dto.OutRecipeDetailDTO;
+import com.ngari.recipe.dto.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
-import org.apache.commons.beanutils.BeanUtilsBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
@@ -59,25 +54,38 @@ public class OfflineRecipeClient extends BaseClient {
     }
 
     /**
-     * 查询线下门诊处方诊断信息
-     * @param organId 机构ID
-     * @param patientName 患者名称
-     * @param registerID 挂号序号
-     * @param patientId 病历号
-     * @return  诊断列表
+     * 推送处方
+     *
+     * @param recipePdfDTO
      */
-    public List<DiseaseInfoDTO> queryPatientDisease(Integer organId, String patientName, String registerID, String patientId){
-        logger.info("OfflineRecipeClient queryPatientDisease organId:{}, patientName:{},registerID:{},patientId:{}.",organId, patientName, registerID, patientId);
-        try{
+    public void pushRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType) {
+        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = new com.ngari.platform.recipe.mode.RecipeDTO();
+        recipeDTO.setPushType(pushType);
+        recipeDTO.setOrganId(recipePdfDTO.getRecipe().getClinicOrgan());
+        HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse = recipeHisService.pushRecipe(recipeDTO);
+    }
+
+    /**
+     * 查询线下门诊处方诊断信息
+     *
+     * @param organId     机构ID
+     * @param patientName 患者名称
+     * @param registerID  挂号序号
+     * @param patientId   病历号
+     * @return 诊断列表
+     */
+    public List<DiseaseInfoDTO> queryPatientDisease(Integer organId, String patientName, String registerID, String patientId) {
+        logger.info("OfflineRecipeClient queryPatientDisease organId:{}, patientName:{},registerID:{},patientId:{}.", organId, patientName, registerID, patientId);
+        try {
             PatientDiseaseInfoTO patientDiseaseInfoTO = new PatientDiseaseInfoTO();
             patientDiseaseInfoTO.setOrganId(organId);
             patientDiseaseInfoTO.setPatientName(patientName);
             patientDiseaseInfoTO.setRegisterID(registerID);
             patientDiseaseInfoTO.setPatientId(patientId);
-            HisResponseTO<List<DiseaseInfo>>  hisResponse = recipeHisService.queryDiseaseInfo(patientDiseaseInfoTO);
+            HisResponseTO<List<DiseaseInfo>> hisResponse = recipeHisService.queryDiseaseInfo(patientDiseaseInfoTO);
             List<DiseaseInfo> result = getResponse(hisResponse);
             return ObjectCopyUtils.convert(result, DiseaseInfoDTO.class);
-        } catch (Exception e){
+        } catch (Exception e) {
             logger.error("OfflineRecipeClient queryPatientDisease hisResponse", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
@@ -277,7 +285,6 @@ public class OfflineRecipeClient extends BaseClient {
         logger.info("HisRecipeManager filterData:{}.", JSONUtils.toString(responseTo));
         return responseTo;
     }
-
 
 
 }

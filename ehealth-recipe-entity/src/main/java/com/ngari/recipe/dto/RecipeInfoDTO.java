@@ -1,5 +1,6 @@
 package com.ngari.recipe.dto;
 
+import com.ngari.recipe.entity.RecipeTherapy;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,5 +21,9 @@ public class RecipeInfoDTO extends RecipeDTO implements Serializable {
      * 签名信息
      */
     private ApothecaryDTO apothecary;
+    /**
+     * 处方诊疗信息
+     */
+    private RecipeTherapy recipeTherapy;
 
 }

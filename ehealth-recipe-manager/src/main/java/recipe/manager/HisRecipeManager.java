@@ -4,6 +4,7 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -154,19 +155,6 @@ public class HisRecipeManager extends BaseManager {
         return hisRecipeDao.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, clinicOrgan, recipeCode);
     }
 
-    /**
-     * 获取未处理的线下处方
-     *
-     * @param clinicOrgan
-     * @param recipeCodeList
-     * @return
-     */
-    public List<HisRecipe> findNoDealHisRecipe(Integer clinicOrgan, List<String> recipeCodeList) {
-        LOGGER.info("HisRecipeManager findNoDealHisRecipe param clinicOrgan:{},recipeCodeList:{}", clinicOrgan, JSONUtils.toString(recipeCodeList));
-        List<HisRecipe> hisRecipes = hisRecipeDao.findNoDealHisRecipe(clinicOrgan, recipeCodeList);
-        LOGGER.info("HisRecipeManager findNoDealHisRecipe res hisRecipes:{}", JSONUtils.toString(hisRecipes));
-        return hisRecipes;
-    }
 
     /**
      * 更新诊断字段
@@ -473,5 +461,14 @@ public class HisRecipeManager extends BaseManager {
         HisRecipe hisRecipe = hisRecipeDao.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, organId, recipeCode);
         LOGGER.info("HisRecipeManager obatainHisRecipeByOrganIdAndMpiIdAndRecipeCode hisRecipe:{}", JSONUtils.toString(hisRecipe));
         return hisRecipe;
+    }
+
+    /**
+     * 推送处方给his
+     *
+     * @param recipePdfDTO 处方信息
+     */
+    public void pushRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType) {
+        offlineRecipeClient.pushRecipe(recipePdfDTO, pushType);
     }
 }
