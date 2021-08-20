@@ -15,8 +15,7 @@ import recipe.util.ValidateUtil;
 @Service
 public class RecipeTherapyManager extends BaseManager {
     @Autowired
-    protected RecipeTherapyDAO recipeTherapyDAO;
-
+    private RecipeTherapyDAO recipeTherapyDAO;
 
     public RecipeTherapy saveRecipeTherapy(RecipeTherapy recipeTherapy, Recipe recipe) {
         recipeTherapy.setDoctorId(recipe.getDoctor());
@@ -29,5 +28,9 @@ public class RecipeTherapyManager extends BaseManager {
             recipeTherapy = recipeTherapyDAO.update(recipeTherapy);
         }
         return recipeTherapy;
+    }
+
+    public RecipeTherapy getRecipeTherapyById(Integer id) {
+        return recipeTherapyDAO.getById(id);
     }
 }
