@@ -73,11 +73,11 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
      * 作废诊疗处方
      * @param therapyId 诊疗处方ID
      */
-    public void abolishTherapyRecipe(Integer therapyId){
+    public boolean abolishTherapyRecipe(Integer therapyId){
         logger.info("TherapyRecipeDoctorAtop abolishTherapyRecipe therapyId:{}.", therapyId);
         validateAtop(therapyId);
         try {
-            therapyRecipeBusinessService.abolishTherapyRecipe(therapyId);
+            return therapyRecipeBusinessService.abolishTherapyRecipe(therapyId);
         } catch (DAOException e1) {
             logger.warn("TherapyRecipeDoctorAtop abolishTherapyRecipe  error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());

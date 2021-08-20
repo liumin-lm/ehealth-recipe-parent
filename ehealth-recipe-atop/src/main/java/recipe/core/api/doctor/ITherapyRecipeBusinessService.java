@@ -9,5 +9,5 @@ public interface ITherapyRecipeBusinessService {
 
     CancelRecipeResultVO cancelRecipe(CancelRecipeReqVO cancelRecipeReqVO);
 
-    void abolishTherapyRecipe(Integer therapyId);
+    boolean abolishTherapyRecipe(Integer therapyId);
 }

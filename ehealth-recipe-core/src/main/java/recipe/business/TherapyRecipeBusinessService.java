@@ -60,10 +60,11 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     }
 
     @Override
-    public void abolishTherapyRecipe(Integer therapyId){
+    public boolean abolishTherapyRecipe(Integer therapyId){
         RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyById(therapyId);
         if (null == recipeTherapy) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "数据不存在");
         }
+        return true;
     }
 }
