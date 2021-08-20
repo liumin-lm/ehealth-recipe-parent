@@ -12,7 +12,17 @@ public interface ITherapyRecipeBusinessService {
      */
     Integer saveTherapyRecipe(RecipeInfoVO recipeInfoVO);
 
-    RecipeTherapyVO cancelRecipe(RecipeTherapyVO recipeTherapyVO);
+    /**
+     * 撤销诊疗处方
+     * @param recipeTherapyVO
+     * @return
+     */
+    boolean cancelRecipe(RecipeTherapyVO recipeTherapyVO);
 
+    /**
+     * 作废诊疗处方
+     * @param therapyId
+     * @return
+     */
     boolean abolishTherapyRecipe(Integer therapyId);
 }

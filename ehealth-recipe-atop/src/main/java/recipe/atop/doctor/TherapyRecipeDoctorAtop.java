@@ -64,11 +64,11 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
      * @param recipeTherapyVO 撤销参数
      * @return 撤销结果
      */
-    public RecipeTherapyVO cancelTherapyRecipe(RecipeTherapyVO recipeTherapyVO){
+    public boolean cancelTherapyRecipe(RecipeTherapyVO recipeTherapyVO){
         logger.info("TherapyRecipeDoctorAtop cancelRecipe cancelRecipeReqVO:{}.", JSON.toJSONString(recipeTherapyVO));
         validateAtop(recipeTherapyVO, recipeTherapyVO.getTherapyCancellationType(), recipeTherapyVO.getRecipeId(), recipeTherapyVO.getTherapyCancellation());
         try {
-            RecipeTherapyVO result = therapyRecipeBusinessService.cancelRecipe(recipeTherapyVO);
+            boolean result = therapyRecipeBusinessService.cancelRecipe(recipeTherapyVO);
             logger.info("TherapyRecipeDoctorAtop cancelRecipe  result = {}", JSON.toJSONString("result"));
             return result;
         } catch (DAOException e1) {

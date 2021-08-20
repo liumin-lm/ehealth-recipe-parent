@@ -47,7 +47,7 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     }
 
     @Override
-    public RecipeTherapyVO cancelRecipe(RecipeTherapyVO recipeTherapyVO){
+    public boolean cancelRecipe(RecipeTherapyVO recipeTherapyVO){
         Recipe recipe = recipeManager.getRecipeById(recipeTherapyVO.getRecipeId());
         if (null == recipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "数据不存在");
@@ -55,7 +55,7 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
         if (!TherapyStatusEnum.READYPAY.getStatus().equals(recipeTherapyVO.getStatus())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前状态无法撤销");
         }
-        return null;
+        return true;
     }
 
     @Override
