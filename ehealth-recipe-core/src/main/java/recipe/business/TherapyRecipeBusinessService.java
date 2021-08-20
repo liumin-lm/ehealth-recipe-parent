@@ -61,11 +61,17 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     public boolean cancelRecipe(RecipeTherapyVO recipeTherapyVO){
         Recipe recipe = recipeManager.getRecipeById(recipeTherapyVO.getRecipeId());
         if (null == recipe) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "数据不存在");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "处方数据不存在");
         }
-        if (!TherapyStatusEnum.READYPAY.getType().equals(recipeTherapyVO.getStatus())) {
+        RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyByRecipeId(recipeTherapyVO.getRecipeId());
+        if (null == recipeTherapy) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "诊疗数据不存在");
+        }
+        if (!TherapyStatusEnum.READYPAY.getType().equals(recipeTherapy.getStatus())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前状态无法撤销");
         }
+        //调用HIS处方撤销接口
+        //更新诊疗处方状态
         return true;
     }
 
@@ -75,6 +81,14 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
         if (null == recipeTherapy) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "数据不存在");
         }
-        return true;
+        if (!TherapyStatusEnum.READYSUBMIT.getType().equals(recipeTherapy.getStatus())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "当前状态无法作废");
+        }
+        recipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
+        if (null != recipeTherapyManager.updateRecipeTherapy(recipeTherapy)){
+            return true;
+        } else {
+            return false;
+        }
     }
 }
