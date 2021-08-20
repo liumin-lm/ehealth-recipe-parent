@@ -1,8 +1,7 @@
 package recipe.core.api.doctor;
 
-import com.ngari.recipe.recipe.model.CancelRecipeReqVO;
-import com.ngari.recipe.recipe.model.CancelRecipeResultVO;
 import recipe.vo.doctor.RecipeInfoVO;
+import recipe.vo.doctor.RecipeTherapyVO;
 
 public interface ITherapyRecipeBusinessService {
     /**
@@ -13,7 +12,17 @@ public interface ITherapyRecipeBusinessService {
      */
     Integer saveTherapyRecipe(RecipeInfoVO recipeInfoVO);
 
-    CancelRecipeResultVO cancelRecipe(CancelRecipeReqVO cancelRecipeReqVO);
+    /**
+     * 撤销诊疗处方
+     * @param recipeTherapyVO
+     * @return
+     */
+    boolean cancelRecipe(RecipeTherapyVO recipeTherapyVO);
 
+    /**
+     * 作废诊疗处方
+     * @param therapyId
+     * @return
+     */
     boolean abolishTherapyRecipe(Integer therapyId);
 }

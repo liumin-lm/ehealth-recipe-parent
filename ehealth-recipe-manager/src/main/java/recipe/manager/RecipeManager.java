@@ -139,6 +139,10 @@ public class RecipeManager extends BaseManager {
         return recipe;
     }
 
+    public Recipe getRecipeById(Integer recipeId){
+        return recipeDAO.getByRecipeId(recipeId);
+    }
+
     /**
      * 获取到院取药凭证
      * @param recipe  处方信息
