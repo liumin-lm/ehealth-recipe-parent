@@ -34,9 +34,23 @@ public class OrganDrugListManager extends BaseManager {
      */
     public Map<String, List<OrganDrugList>> getOrganDrugCode(int organId, List<String> drugCodeList) {
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, drugCodeList);
-        logger.info("RecipeDetailService validateDrug organDrugList= {}", JSON.toJSONString(organDrugList));
+        logger.info("OrganDrugListManager getOrganDrugCode organDrugList= {}", JSON.toJSONString(organDrugList));
         return Optional.ofNullable(organDrugList).orElseGet(Collections::emptyList)
                 .stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
+    }
+
+    /**
+     * 根据 drugId 查询药品，用drugId+organDrugCode为key
+     *
+     * @param organId 机构id
+     * @param drugIds 药品id
+     * @return drugId+organDrugCode为key返回药品Map
+     */
+    public Map<String, OrganDrugList> getOrganDrugByIdAndCode(int organId, List<Integer> drugIds) {
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(organId, drugIds);
+        logger.info("OrganDrugListManager getOrganDrugByIdAndCode organDrugList= {}", JSON.toJSONString(organDrugList));
+        return Optional.ofNullable(organDrugList).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getOrganDrugCode(), a -> a, (k1, k2) -> k1));
     }
 
     /**
@@ -97,5 +111,6 @@ public class OrganDrugListManager extends BaseManager {
         }
         return null;
     }
+
 
 }
