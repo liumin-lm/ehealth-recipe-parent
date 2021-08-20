@@ -48,6 +48,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import recipe.manager.ButtonManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.third.HztServiceInterface;
@@ -74,6 +75,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     private RemoteRecipeService recipeService;
     @Autowired
     private DepartmentService departmentService;
+    @Autowired
+    private ButtonManager buttonManager;
 
 
     private IConfigurationCenterUtilsService utils = BaseAPI.getService(IConfigurationCenterUtilsService.class);
@@ -268,6 +271,9 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 //@ItemProperty(alias = "0:不支付药品费用，1:全部支付 【 1线上支付  非1就是线下支付】")
                 map.put("storePayFlag", drugsEnterpriseBean.getStorePayFlag() == null ? null : drugsEnterpriseBean.getStorePayFlag().toString());
             }
+            // 杭州互联网 支付按钮
+            Integer payButton = buttonManager.getPayButton(nowRecipeBean.getClinicOrgan(), recipeExtend.getCardType(), "0".equals(recipeExtend.getMedicalType()));
+            map.put("payButton", payButton.toString());
         }
         return map;
     }

@@ -32,4 +32,12 @@ public class RecipeTherapyManager extends BaseManager {
     public RecipeTherapy getRecipeTherapyById(Integer id) {
         return recipeTherapyDAO.getById(id);
     }
+
+    public RecipeTherapy getRecipeTherapyByRecipeId(Integer recipeId) {
+        return recipeTherapyDAO.getByRecipeId(recipeId);
+    }
+
+    public RecipeTherapy updateRecipeTherapy(RecipeTherapy recipeTherapy) {
+        return recipeTherapyDAO.update(recipeTherapy);
+    }
 }

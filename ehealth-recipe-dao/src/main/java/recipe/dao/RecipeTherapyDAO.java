@@ -56,5 +56,4 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
      */
     @DAOMethod
     public abstract RecipeTherapy getByRecipeId(Integer recipeId);
-
 }
