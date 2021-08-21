@@ -19,6 +19,7 @@ import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +29,11 @@ import recipe.client.PatientClient;
 import recipe.dao.DrugsEnterpriseDAO;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * 订单
@@ -179,6 +184,18 @@ public class OrderManager extends BaseManager {
             }
         }
         return skipThirdDTO;
+    }
+
+    /**
+     * 获取订单列表
+     * @param orderCodes
+     * @return
+     */
+    public List<RecipeOrder> getRecipeOrderList(Set<String> orderCodes){
+        if (CollectionUtils.isNotEmpty(orderCodes)) {
+            return recipeOrderDAO.findByOrderCode(orderCodes);
+        }
+        return new ArrayList<>();
     }
 
 }

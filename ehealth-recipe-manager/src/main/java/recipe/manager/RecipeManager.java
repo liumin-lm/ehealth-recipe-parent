@@ -159,6 +159,26 @@ public class RecipeManager extends BaseManager {
     }
 
     /**
+     * 根据业务类型(咨询/复诊)和业务单号(咨询/复诊单号)获取处方信息
+     * @param bussSource 咨询/复诊
+     * @param clinicId 咨询/复诊单号
+     * @return 处方列表
+     */
+    public List<Recipe> findWriteHisRecipeByBussSourceAndClinicId(Integer bussSource, Integer clinicId){
+        logger.info("RecipeManager findWriteHisRecipeByBussSourceAndClinicId param bussSource:{},clinicId:{}", bussSource, clinicId);
+        List<Recipe> recipes = recipeDAO.findWriteHisRecipeByBussSourceAndClinicId(bussSource, clinicId);
+        logger.info("RecipeManager findWriteHisRecipeByBussSourceAndClinicId recipes:{}.", JSON.toJSONString(recipes));
+        return recipes;
+    }
+
+    public List<Recipe> findEffectiveRecipeByBussSourceAndClinicId(Integer bussSource, Integer clinicId){
+        logger.info("RecipeManager findRecipeByBussSourceAndClinicId param bussSource:{},clinicId:{}", bussSource, clinicId);
+        List<Recipe> recipes = recipeDAO.findEffectiveRecipeByBussSourceAndClinicId(bussSource, clinicId);
+        logger.info("RecipeManager findEffectiveRecipeByBussSourceAndClinicId recipes:{}.", JSON.toJSONString(recipes));
+        return recipes;
+    }
+
+    /**
      * 获取到院取药凭证
      * @param recipe  处方信息
      * @param recipeExtend 处方扩展信息
