@@ -8,10 +8,7 @@ import org.springframework.stereotype.Service;
 import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.enumerate.status.TherapyStatusEnum;
-import recipe.manager.OrganDrugListManager;
-import recipe.manager.RecipeDetailManager;
-import recipe.manager.RecipeManager;
-import recipe.manager.RecipeTherapyManager;
+import recipe.manager.*;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
 

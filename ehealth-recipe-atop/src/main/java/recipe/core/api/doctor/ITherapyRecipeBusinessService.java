@@ -25,4 +25,5 @@ public interface ITherapyRecipeBusinessService {
      * @return
      */
     boolean abolishTherapyRecipe(Integer therapyId);
+
 }

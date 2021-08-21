@@ -77,6 +77,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
      * @param recipeTherapyVO 撤销参数
      * @return 撤销结果
      */
+    @RpcService
     public boolean cancelTherapyRecipe(RecipeTherapyVO recipeTherapyVO) {
         logger.info("TherapyRecipeDoctorAtop cancelRecipe cancelRecipeReqVO:{}.", JSON.toJSONString(recipeTherapyVO));
         validateAtop(recipeTherapyVO, recipeTherapyVO.getTherapyCancellationType(), recipeTherapyVO.getRecipeId(), recipeTherapyVO.getTherapyCancellation());
@@ -98,6 +99,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
      *
      * @param therapyId 诊疗处方ID
      */
+    @RpcService
     public boolean abolishTherapyRecipe(Integer therapyId) {
         logger.info("TherapyRecipeDoctorAtop abolishTherapyRecipe therapyId:{}.", therapyId);
         validateAtop(therapyId);
