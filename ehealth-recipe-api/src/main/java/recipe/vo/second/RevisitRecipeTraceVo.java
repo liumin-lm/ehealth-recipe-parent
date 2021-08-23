@@ -63,6 +63,11 @@ public class RevisitRecipeTraceVo implements Serializable {
     //医生开方
     @Data
     public static class Recipe implements Serializable {
+        
+        @ItemProperty(alias = "处方状态")
+        @Dictionary(id = "eh.cdr.dictionary.RecipeStatus")
+        private Integer status;
+
         @ItemProperty(alias = "处方签")
         private String recipeSignFile;
 
@@ -180,11 +185,11 @@ public class RevisitRecipeTraceVo implements Serializable {
         private Integer refundFlag;
 
         @ItemProperty(alias = "支付状态 0未支付，1已支付，2退款中，3退款成功，4支付失败")
-        @Dictionary(id = "eh.cdr.dictionary.PayFlag")
+        @Dictionary(id = "eh.bus.dictionary.PayFlag")
         private Integer payFlag;
 
         @ItemProperty(alias = "支付方式")
-        @Dictionary(id = "eh.cdr.dictionary.PayWay")
+        @Dictionary(id = "eh.bus.dictionary.PayWay")
         private String wxPayWay;
 
         @ItemProperty(alias = "交易流水号")
