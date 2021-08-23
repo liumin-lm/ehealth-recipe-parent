@@ -204,6 +204,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "select COUNT(*) from Recipe where  clinicOrgan=:organId and  PayFlag =:payFlag and status in (2,8)")
     public abstract Long getUnfinishedRecipe(@DAOParam("organId") Integer organId, @DAOParam("payFlag") Integer payFlag);
 
+    @DAOMethod(sql = "from Recipe where clinicId=:clinicId")
+    public abstract List<Recipe> getByClinicId(@DAOParam("clinicId") Integer clinicId);
+
+
     /**
      * 根据医生id处方id获取处方集合
      *

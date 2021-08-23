@@ -1,0 +1,234 @@
+package recipe.vo.second;
+
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import ctd.schema.annotation.Dictionary;
+import ctd.schema.annotation.ItemProperty;
+import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.Serializable;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * @author liumin
+ */
+@Data
+public class RevisitRecipeTraceVo implements Serializable {
+
+    private static final long serialVersionUID = -8882418262625511818L;
+
+
+    /**
+     * 处方
+     */
+    private Recipe recipe;
+
+    /**
+     * 药品详情
+     */
+    private List<RecipeDetailBean> detailData;
+
+    /**
+     * 审方
+     */
+    private AuditCheck auditCheck;
+
+    /**
+     * 获取审核不通过详情
+     */
+    private List<Map<String, Object>> reasonAndDetails;
+
+    /**
+     * 发药药师
+     */
+    private GiveUser giveUser;
+
+    /**
+     * 患者够药
+     */
+    private Order order;
+
+    /**
+     * 物流
+     */
+    private Logistics logistics;
+
+    /**
+     * 处方取消
+     */
+    private RecipeCancel recipeCancel;
+
+    //医生开方
+    @Data
+    public static class Recipe implements Serializable {
+        @ItemProperty(alias = "处方签")
+        private String recipeSignFile;
+
+        @ItemProperty(alias = "签名的处方PDF")
+        private String signFile;
+
+        @ItemProperty(alias = "药师签名的处方PDF")
+        private String chemistSignFile;
+
+        @ItemProperty(alias = "开方时间")
+        private Date createDate;
+
+        @ItemProperty(alias = "开方医生（医生Id）")
+        private String doctorName;
+
+        @ItemProperty(alias = "临床诊断")
+        private String organDiseaseName;
+
+        private String recipeId;
+
+        //TODO
+        @ItemProperty(alias = "来源")
+        private String recipeSourceType;
+
+        @ItemProperty(alias = "医生签名")
+        private String doctorSign;
+
+        //TODO
+        @ItemProperty(alias = "医生签名时间")
+        private String signCADate;
+
+        //TODO
+        //@ItemProperty(alias = "医生签名摘要")
+
+
+        @ItemProperty(alias = "药师处方数字签名可信服务器时间")
+        private String signPharmacistCADate;
+    }
+
+
+    //Audit
+    @Data
+    public static class AuditCheck implements Serializable {
+
+
+        @ItemProperty(alias = "审核日期")
+        private Date checkDate;
+
+        @Dictionary(id = "eh.cdr.dictionary.RecipeCheckStatus")
+        @ItemProperty(alias = "审核结果")
+        private Integer checkStatus;
+
+        @ItemProperty(alias = "审核人姓名")
+        private String checkerName;
+
+        @ItemProperty(alias = "审核人身份证号")
+        private String checkIdCard;
+
+        @ItemProperty(alias = "药师签名")
+        private String checkSign;
+
+        @ItemProperty(alias = "审核备注信息")
+        private String memo;
+    }
+
+    @Data
+    public static class GiveUser {
+
+        /**
+         * 发药药师姓名
+         */
+        private String giveUserName;
+
+        /**
+         * 发药药师身份证
+         */
+        private String giveUserIdCard;
+
+        /**
+         * 核发药师签名图片
+         */
+        private String giveUserSignImg;
+
+    }
+
+    @Data
+    public static class Order {
+
+        @ItemProperty(alias = "电子票据h5地址")
+        private String billPictureUrl;
+
+        @ItemProperty(alias = "购药方式")
+        @Dictionary(id = "eh.cdr.dictionary.GiveMode")
+        private Integer giveMode;
+
+        @ItemProperty(alias = "订单所属配送方式")
+        private String giveModeKey;
+
+        @ItemProperty(alias = "订单所属配送方式的文案")
+        private String giveModeText;
+
+        @ItemProperty(alias = "收货人姓名")
+        private String receiver;
+
+        @ItemProperty(alias = "收货人手机号")
+        private String recMobile;
+
+        @ItemProperty(alias = "详细地址")
+        private String address;
+
+        @ItemProperty(alias = "支付时间")
+        private Date payTime;
+
+        @ItemProperty(alias = "订单退款标识 0未退费 1已退费")
+        private Integer refundFlag;
+
+        @ItemProperty(alias = "支付状态 0未支付，1已支付，2退款中，3退款成功，4支付失败")
+        @Dictionary(id = "eh.cdr.dictionary.PayFlag")
+        private Integer payFlag;
+
+        @ItemProperty(alias = "支付方式")
+        @Dictionary(id = "eh.cdr.dictionary.PayWay")
+        private String wxPayWay;
+
+        @ItemProperty(alias = "交易流水号")
+        private String tradeNo;
+
+        @ItemProperty(alias = "商户订单号")
+        private String outTradeNo;
+
+        @ItemProperty(alias = "处方预结算返回支付总金额")
+        private Double preSettleTotalAmount;
+
+        @ItemProperty(alias = "处方预结算返回医保支付金额")
+        private Double fundAmount;
+
+        @ItemProperty(alias = "处方预结算返回自费金额")
+        private Double cashAmount;
+
+
+    }
+
+    /**
+     * 物流
+     * 查看物流进度 前端直接调基础服务的接口
+     */
+    @Data
+    public static class Logistics {
+
+        @ItemProperty(alias = "物流公司")
+        @Dictionary(id = "eh.cdr.dictionary.LogisticsCompany")
+        private Integer logisticsCompany;
+
+        @ItemProperty(alias = "快递单号")
+        private String trackingNumber;
+
+        @ItemProperty(alias = "发货时间")
+        private Date sendTime;
+    }
+
+
+    public String getRecipeSignFile() {
+        if (StringUtils.isNotEmpty(this.recipe.chemistSignFile)) {
+            return this.recipe.chemistSignFile;
+        } else {
+            return this.recipe.signFile;
+        }
+    }
+}
