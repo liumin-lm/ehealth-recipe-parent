@@ -92,10 +92,13 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.StandardEnterpriseCallService;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
+import recipe.enumerate.type.RecipeRefundConfigEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.EmrRecipeManager;
+import recipe.manager.OrderManager;
+import recipe.manager.RecipeManager;
 import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.operation.OperationPlatformRecipeService;
 import recipe.service.*;
@@ -153,6 +156,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private IRecipeHisService hisService;
     @Autowired
     private CreatePdfFactory createPdfFactory;
+    @Autowired
+    private RecipeManager recipeManager;
+    @Autowired
+    private OrderManager orderManager;
 
 
     @RpcService
@@ -2393,48 +2400,44 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     /**
      * 复诊查询处方状态是否有效
      *
-     * @param bussSource
-     * @param clinicId
-     * @param statusCode
-     * @return
+     * @param bussSource 咨询/复诊
+     * @param clinicId 咨询/复诊单号
+     * @param statusCode 运营平台配置项(退费限制 refundPattern)
+     *                   1 开过业务单不退费 2 有未退费或取消的业务单不允许退费
+     * @return 是否可以取消复诊  true 不可以 false 可以
      */
     @Override
     @RpcService
     public Boolean judgeRecipeStatus(Integer bussSource, Integer clinicId, Integer statusCode) {
-        LOGGER.info("findRecipeStatusByBussSourceAndClinicId {} bussSource{} statusCode{}", clinicId, bussSource, statusCode);
-        //查询处方记录
-        List<Recipe> recipeList = recipeDAO.findRecipeStatusByBussSourceAndClinicId(bussSource, clinicId);
-        //没有复诊的记录,无复诊状态
-        if (recipeList == null || recipeList.size() == 0) {
-            LOGGER.info("judgeRecipeStatus size null is {}", false);
+        LOGGER.info("RemoteRecipeService judgeRecipeStatus bussSource:{},clinicId:{},statusCode:{}.", bussSource, clinicId, statusCode);
+        //查询线上写入HIS处方记录
+        List<Recipe> writeRecipeList = recipeManager.findWriteHisRecipeByBussSourceAndClinicId(bussSource, clinicId);
+        //查询有效的处方记录
+        List<Recipe> effectiveRecipes = recipeManager.findEffectiveRecipeByBussSourceAndClinicId(bussSource, clinicId);
+        //查询线上有订单的处方
+        Map<String, List<Recipe>> recipeMap = writeRecipeList.stream().filter(recipe -> StringUtils.isNotEmpty(recipe.getOrderCode())).collect(Collectors.groupingBy(Recipe::getOrderCode));
+        List<RecipeOrder> recipeOrders = orderManager.getRecipeOrderList(recipeMap.keySet());
+        //没有查到处方单
+        if (CollectionUtils.isEmpty(writeRecipeList)) {
             return false;
         }
-        for (Recipe recipe : recipeList) {
-            //类型2：处方开成功了（回写his成功），且不包含已退费状态或者已失效状态， 就当有效处方
-            //0未支付，1已支付，2退款中，3退款成功，4支付失败'
-            if (recipe.getRecipeCode() != null && statusCode == 2) {
-                //校验处方单是否已退费
-                String orderCode = recipe.getOrderCode();
-                //未支付，未失效
-                if (orderCode == null) {
-                    List<Recipe> recipeStatusLoseByBussSourceAndClinicId = recipeDAO.findRecipeStatusLoseByBussSourceAndClinicId(bussSource, clinicId, recipe.getStatus());
-                    LOGGER.info("judgeRecipeStatus orderCode null is {}", (recipeStatusLoseByBussSourceAndClinicId == null || recipeStatusLoseByBussSourceAndClinicId.size() == 0) ? false : true);
-                    return (recipeStatusLoseByBussSourceAndClinicId == null || recipeStatusLoseByBussSourceAndClinicId.size() == 0) ? false : true;
+        if (RecipeRefundConfigEnum.HAVE_BUSS.getType().equals(statusCode)) {
+            LOGGER.info("RemoteRecipeService judgeRecipeStatus writeRecipeList size:{}", writeRecipeList.size());
+            return true;
+        }
+        if (RecipeRefundConfigEnum.HAVE_PAY.getType().equals(statusCode)){
+            //判断是否有已支付成功的处方单
+            for (RecipeOrder recipeOrder : recipeOrders) {
+                if (new Integer(1).equals(recipeOrder.getPayFlag())) {
+                    //表示为正常支付成功的处方单,复诊不能退款
+                    return true;
                 }
-                //根据订单编号查找对应的订单
-                RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
-                //判断处方订单是否已经退费
-                LOGGER.info("judgeRecipeStatus null is {}", (recipeOrder.getPayFlag() == 2 || recipeOrder.getPayFlag() == 3) ? false : true);
-                return (recipeOrder.getPayFlag() == 2 || recipeOrder.getPayFlag() == 3) ? false : true;
             }
-
-            //类型1：开处方（回写his成功）就当有效处方，不管后面处方是怎么状态,存在复诊记录
-            if (recipe.getRecipeCode() != null && statusCode == 1) {
-                LOGGER.info("judgeRecipeStatus recipe.getRecipeCode()!=null&&statusCode is {}", true);
+            if (CollectionUtils.isEmpty(recipeOrders) && CollectionUtils.isNotEmpty(effectiveRecipes)) {
+                //患者不存在订单并且存在有效的处方单
                 return true;
             }
         }
-        LOGGER.info("judgeRecipeStatus is {}", true);
         return false;
     }
 

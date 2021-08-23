@@ -21,13 +21,9 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.DrugEnterpriseConstant;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.PharmacyDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.SaleDrugListDAO;
 import recipe.dao.*;
-import recipe.service.RecipeOrderService;
 import recipe.manager.EmrRecipeManager;
+import recipe.service.RecipeOrderService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateDrugsEpCallable;
 
@@ -106,10 +102,12 @@ public abstract class AccessDrugEnterpriseService {
 
     /**
      * 生成地址
+     * 作废（OrderManager getCompleteAddressToSend）
      *
      * @param order 订单
      * @return
      */
+    @Deprecated
     public String getCompleteAddressToSend(RecipeOrder order) {
         StringBuilder address = new StringBuilder();
         if (null != order) {
@@ -121,6 +119,13 @@ public abstract class AccessDrugEnterpriseService {
         return address.toString();
     }
 
+    /**
+     * 作废（OrderManager getAddressDic）
+     *
+     * @param address
+     * @param area
+     */
+    @Deprecated
     public void getAddressDic(StringBuilder address, String area) {
         if (StringUtils.isNotEmpty(area)) {
             try {
@@ -318,13 +323,13 @@ public abstract class AccessDrugEnterpriseService {
         if (dep != null && dep.getCheckInventoryFlag() != null && dep.getCheckInventoryFlag() == 0) {
             // 没有药品的药企还是不展示
             List<SaleDrugList> list = saleDrugListDAO.getByOrganIdAndDrugIds(dep.getId(), drugIds);
-            if(Objects.isNull(list)){
+            if (Objects.isNull(list)) {
                 return false;
             }
             Map<Integer, List<SaleDrugList>> collect = list.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
-           Boolean returnFlag = true;
+            Boolean returnFlag = true;
             for (Integer drugId : drugIds) {
-                if( Objects.isNull(collect.get(drugId))){
+                if (Objects.isNull(collect.get(drugId))) {
                     returnFlag = false;
                 }
             }

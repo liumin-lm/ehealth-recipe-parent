@@ -8,10 +8,8 @@ import org.springframework.stereotype.Service;
 import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.enumerate.status.TherapyStatusEnum;
-import recipe.manager.OrganDrugListManager;
-import recipe.manager.RecipeDetailManager;
-import recipe.manager.RecipeManager;
-import recipe.manager.RecipeTherapyManager;
+import recipe.manager.*;
+import recipe.vo.doctor.ItemListVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
 
@@ -34,6 +32,8 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     private RecipeDetailManager recipeDetailManager;
     @Autowired
     private OrganDrugListManager organDrugListManager;
+    @Autowired
+    private ItemListManager itemListManager;
 
     @Override
     public Integer saveTherapyRecipe(RecipeInfoVO recipeInfoVO) {
@@ -90,5 +90,21 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
         } else {
             return false;
         }
+    }
+
+    @Override
+    public List<ItemListVO> searchItemListByKeyWord(ItemListVO itemListVO) {
+        List<ItemList> itemLists = itemListManager.findItemList(itemListVO.getItemName(), itemListVO.getStart(), itemListVO.getLimit());
+        return ObjectCopyUtils.convert(itemLists, ItemListVO.class);
+    }
+
+    @Override
+    public void deleteItemListById(Integer id) {
+        itemListManager.deleteItemListById(id);
+    }
+
+    @Override
+    public void updateStatusById(Integer id, Integer status) {
+        itemListManager.updateItemListStatusById(id, status);
     }
 }

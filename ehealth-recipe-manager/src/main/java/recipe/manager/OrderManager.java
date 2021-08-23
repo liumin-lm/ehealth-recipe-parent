@@ -17,8 +17,11 @@ import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +31,9 @@ import recipe.client.PatientClient;
 import recipe.dao.DrugsEnterpriseDAO;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 订单
@@ -179,6 +184,53 @@ public class OrderManager extends BaseManager {
             }
         }
         return skipThirdDTO;
+    }
+
+    /**
+     * 通过订单 生成完整地址
+     *
+     * @param order 订单
+     * @return
+     */
+    public String getCompleteAddress(RecipeOrder order) {
+        StringBuilder address = new StringBuilder();
+        if (null != order) {
+            this.getAddressDic(address, order.getAddress1());
+            this.getAddressDic(address, order.getAddress2());
+            this.getAddressDic(address, order.getAddress3());
+            this.getAddressDic(address, order.getStreetAddress());
+            address.append(StringUtils.isEmpty(order.getAddress4()) ? "" : order.getAddress4());
+        }
+        return address.toString();
+    }
+
+    /**
+     * 获取地址枚举
+     *
+     * @param address
+     * @param area
+     */
+    public void getAddressDic(StringBuilder address, String area) {
+        if (StringUtils.isNotEmpty(area)) {
+            try {
+                address.append(DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area));
+            } catch (ControllerException e) {
+                logger.error("getAddressDic 获取地址数据类型失败*****area:" + area, e);
+            }
+        }
+    }
+
+    /**
+     * 获取订单列表
+     *
+     * @param orderCodes
+     * @return
+     */
+    public List<RecipeOrder> getRecipeOrderList(Set<String> orderCodes) {
+        if (CollectionUtils.isNotEmpty(orderCodes)) {
+            return recipeOrderDAO.findByOrderCode(orderCodes);
+        }
+        return new ArrayList<>();
     }
 
 }

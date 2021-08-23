@@ -7,12 +7,15 @@ import recipe.api.open.IRecipeAtopService;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
+import recipe.vo.second.RevisitRecipeTraceVo;
+
+import java.util.List;
 
 /**
  * 处方服务入口类
  *
- * @date 2021/7/19
  * @author zhaoh
+ * @date 2021/7/19
  */
 @RpcBean("recipeOpenAtop")
 public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
@@ -32,6 +35,30 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         } catch (DAOException e1) {
             logger.error("RecipeOpenAtop existUncheckRecipe error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("RecipeOpenAtop existUncheckRecipe error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 复诊处方追溯
+     *
+     * @param bussSource 处方来源
+     * @param clinicId   业务id
+     * @return
+     */
+    @Override
+    public List<RevisitRecipeTraceVo> revisitRecipeTrace(Integer bussSource, Integer clinicId) {
+        logger.info("RecipeOpenAtop revisitRecipeTrace bussSource={} clinicID={}", bussSource, clinicId);
+        validateAtop(bussSource, clinicId);
+        try {
+            List<RevisitRecipeTraceVo> result = recipeBusinessService.revisitRecipeTrace(bussSource, clinicId);
+            logger.info("RecipeOpenAtop existUncheckRecipe result = {}", result);
+            return result;
+        } catch (DAOException e1) {
+            logger.error("RecipeOpenAtop existUncheckRecipe error", e1);
+            throw new DAOException(e1.getCode(), e1.getMessage());
         } catch (Exception e) {
             logger.error("RecipeOpenAtop existUncheckRecipe error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());

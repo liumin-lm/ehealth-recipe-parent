@@ -2705,13 +2705,14 @@ public class RecipeService extends RecipeBaseService {
 
     /**
      * 检测机构推送药品数据
+     *
      * @param organDrugs
      * @return
      */
     private HisResponseTO checkOrganDrugs(List<OrganDrugInfoTO> organDrugs) {
-        HisResponseTO hisResponseTO=new HisResponseTO();
+        HisResponseTO hisResponseTO = new HisResponseTO();
         for (OrganDrugInfoTO organDrug : organDrugs) {
-            if (ObjectUtils.isEmpty(organDrug.getSyncWay())){
+            if (ObjectUtils.isEmpty(organDrug.getSyncWay())) {
                 hisResponseTO.setMsgCode("-1");
                 hisResponseTO.setMsg("存在推送数据 同步方式 未给出!");
                 return hisResponseTO;
@@ -2720,6 +2721,7 @@ public class RecipeService extends RecipeBaseService {
         hisResponseTO.setMsgCode("1");
         return hisResponseTO;
     }
+
     private List<String> checkOrganDrugInfoTO(OrganDrugInfoTO organDrugChange) {
         List<String> list = Lists.newArrayList();
         if (StringUtils.isEmpty(organDrugChange.getOrganDrugCode())) {
@@ -2763,24 +2765,25 @@ public class RecipeService extends RecipeBaseService {
 
     /**
      * 机构推送药品调用方法 his调用
+     *
      * @param organDrugs
      * @return
      */
     @RpcService
-    public HisResponseTO syncOrganDrug(List<OrganDrugInfoTO> organDrugs,Integer organId){
-        HisResponseTO hisResponseTO=new HisResponseTO();
-        if (ObjectUtils.isEmpty(organId)){
+    public HisResponseTO syncOrganDrug(List<OrganDrugInfoTO> organDrugs, Integer organId) {
+        HisResponseTO hisResponseTO = new HisResponseTO();
+        if (ObjectUtils.isEmpty(organId)) {
             hisResponseTO.setMsgCode("-1");
             hisResponseTO.setMsg("机构ID为空!");
             return hisResponseTO;
         }
-        if (ObjectUtils.isEmpty(organDrugs)){
+        if (ObjectUtils.isEmpty(organDrugs)) {
             hisResponseTO.setMsgCode("-1");
             hisResponseTO.setMsg("推送数据为空!");
             return hisResponseTO;
         }
         HisResponseTO checkOrganDrugs = checkOrganDrugs(organDrugs);
-        if ("-1".equals(checkOrganDrugs.getMsg())){
+        if ("-1".equals(checkOrganDrugs.getMsg())) {
             return checkOrganDrugs;
         }
         for (OrganDrugInfoTO organDrug : organDrugs) {
@@ -2790,13 +2793,13 @@ public class RecipeService extends RecipeBaseService {
                 hisResponseTO.setMsg("当前推送药品信息,信息缺失(包括:" + check.toString() + "),无法操作!");
                 return hisResponseTO;
             }
-            switch (organDrug.getSyncWay()){
+            switch (organDrug.getSyncWay()) {
                 case 1:
                     LOGGER.info("syncOrganDrug机构药品数据推送 新增" + organDrug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(organDrug));
                     OrganDrugList add = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, organDrug.getOrganDrugCode());
-                    if (!ObjectUtils.isEmpty(add)){
+                    if (!ObjectUtils.isEmpty(add)) {
                         hisResponseTO.setMsgCode("-1");
-                        hisResponseTO.setMsg(organDrug.getOrganDrugCode()+":编码药品已存在 推送方式有误!");
+                        hisResponseTO.setMsg(organDrug.getOrganDrugCode() + ":编码药品已存在 推送方式有误!");
                         return hisResponseTO;
                     }
                     try {
@@ -2809,9 +2812,9 @@ public class RecipeService extends RecipeBaseService {
                 case 2:
                     LOGGER.info("syncOrganDrug机构药品数据推送 更新" + organDrug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(organDrug));
                     OrganDrugList update = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, organDrug.getOrganDrugCode());
-                    if (ObjectUtils.isEmpty(update)){
+                    if (ObjectUtils.isEmpty(update)) {
                         hisResponseTO.setMsgCode("-1");
-                        hisResponseTO.setMsg(organDrug.getOrganDrugCode()+":机构未找到该编码药品  "+organDrug.getDrugName()+" 无法修改 推送方式有误!");
+                        hisResponseTO.setMsg(organDrug.getOrganDrugCode() + ":机构未找到该编码药品  " + organDrug.getDrugName() + " 无法修改 推送方式有误!");
                         return hisResponseTO;
                     }
                     try {
@@ -2823,9 +2826,9 @@ public class RecipeService extends RecipeBaseService {
                 case 3:
                     LOGGER.info("syncOrganDrug机构药品数据推送 删除" + organDrug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(organDrug));
                     OrganDrugList delete = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, organDrug.getOrganDrugCode());
-                    if (ObjectUtils.isEmpty(delete)){
+                    if (ObjectUtils.isEmpty(delete)) {
                         hisResponseTO.setMsgCode("-1");
-                        hisResponseTO.setMsg(organDrug.getOrganDrugCode()+":机构未找到该编码药品 "+organDrug.getDrugName()+" 无法删除 推送方式有误!");
+                        hisResponseTO.setMsg(organDrug.getOrganDrugCode() + ":机构未找到该编码药品 " + organDrug.getDrugName() + " 无法删除 推送方式有误!");
                         return hisResponseTO;
                     }
                     try {

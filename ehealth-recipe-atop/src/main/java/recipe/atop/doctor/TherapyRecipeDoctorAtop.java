@@ -13,8 +13,11 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.vo.doctor.ItemListVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
+
+import java.util.List;
 
 /**
  * 诊疗处方服务入口类
@@ -78,6 +81,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
      * @param recipeTherapyVO 撤销参数
      * @return 撤销结果
      */
+    @RpcService
     public boolean cancelTherapyRecipe(RecipeTherapyVO recipeTherapyVO) {
         logger.info("TherapyRecipeDoctorAtop cancelRecipe cancelRecipeReqVO:{}.", JSON.toJSONString(recipeTherapyVO));
         validateAtop(recipeTherapyVO, recipeTherapyVO.getTherapyCancellationType(), recipeTherapyVO.getRecipeId(), recipeTherapyVO.getTherapyCancellation());
@@ -99,6 +103,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
      *
      * @param therapyId 诊疗处方ID
      */
+    @RpcService
     public boolean abolishTherapyRecipe(Integer therapyId) {
         logger.info("TherapyRecipeDoctorAtop abolishTherapyRecipe therapyId:{}.", therapyId);
         validateAtop(therapyId);
@@ -109,6 +114,28 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("TherapyRecipeDoctorAtop abolishTherapyRecipe  error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 搜索诊疗项目
+     * @param itemListVO itemListVO
+     * @return List<ItemListVO>
+     */
+    @RpcService
+    public List<ItemListVO> searchItemListByKeyWord(ItemListVO itemListVO){
+        logger.info("TherapyRecipeDoctorAtop searchItemListByKeyWord itemListVO:{}.", JSON.toJSONString(itemListVO));
+        validateAtop(itemListVO, itemListVO.getOrganID(),itemListVO.getItemName(), itemListVO.getLimit());
+        try {
+            List<ItemListVO> result = therapyRecipeBusinessService.searchItemListByKeyWord(itemListVO);
+            logger.info("TherapyRecipeDoctorAtop searchItemListByKeyWord result:{}.", JSON.toJSONString(result));
+            return result;
+        } catch (DAOException e1) {
+            logger.warn("TherapyRecipeDoctorAtop searchItemListByKeyWord  error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("TherapyRecipeDoctorAtop searchItemListByKeyWord  error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }

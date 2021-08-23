@@ -204,6 +204,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "select COUNT(*) from Recipe where  clinicOrgan=:organId and  PayFlag =:payFlag and status in (2,8)")
     public abstract Long getUnfinishedRecipe(@DAOParam("organId") Integer organId, @DAOParam("payFlag") Integer payFlag);
 
+    @DAOMethod(sql = "from Recipe where clinicId=:clinicId")
+    public abstract List<Recipe> getByClinicId(@DAOParam("clinicId") Integer clinicId);
+
+
     /**
      * 根据医生id处方id获取处方集合
      *
@@ -3229,24 +3233,33 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public abstract BigDecimal getRecipeIncome(@DAOParam("organId") Integer organId, @DAOParam("startDate") Date startDate, @DAOParam("endDate") Date endDate, @DAOParam("deptIds") List<Integer> deptIds);
 
     /**
-     * 通过复诊业务来源调用查询处方状态
+     * 通过复诊业务来源调用查询处方
      *
      * @param bussSource
      * @param clinicId
      * @return
      */
     @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId")
-    public abstract List<Recipe> findRecipeStatusByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId);
+    public abstract List<Recipe> findRecipeByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId);
 
+
+    /**
+     * 通过复诊业务来源调用查询写入HIS处方
+     *
+     * @param bussSource
+     * @param clinicId
+     * @return
+     */
+    @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId and recipeCode != null ")
+    public abstract List<Recipe> findWriteHisRecipeByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId);
 
     /**
      * @param bussSource
      * @param clinicId
-     * @param Status
      * @return
      */
     @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId and status in(2,3,4,5,6,7,8)")
-    public abstract List<Recipe> findRecipeStatusLoseByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId, @DAOParam("status") Integer Status);
+    public abstract List<Recipe> findEffectiveRecipeByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId);
 
     @DAOMethod
     public abstract List<Recipe> findByClinicId(Integer consultId);
