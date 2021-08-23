@@ -2838,9 +2838,9 @@ public class RecipeService extends RecipeBaseService {
                     }
                     break;
                 default:
-                    hisResponseTO.setMsgCode("-1");
+                    /*hisResponseTO.setMsgCode("-1");
                     hisResponseTO.setMsg(organDrug.getOrganDrugCode() + ":药品 " + organDrug.getDrugName() + " 推送方式有误,请填写正确推送方式(1-新增 2-修改 3-删除)!");
-                    return hisResponseTO;
+                    return hisResponseTO;*/
                     break;
             }
         }
