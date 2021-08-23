@@ -3,6 +3,7 @@ package recipe.atop.doctor;
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.entity.RecipeTherapy;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
@@ -18,6 +19,7 @@ import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.util.ObjectCopyUtils;
+import recipe.util.ValidateUtil;
 import recipe.vo.doctor.ItemListVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
@@ -82,6 +84,34 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         //异步推送his
         offlineToOnlineService.pushTherapyRecipeExecute(recipeId, CommonConstant.THERAPY_RECIPE_PUSH_TYPE);
         return recipeId;
+    }
+
+    /**
+     * 获取诊疗处方列表
+     *
+     * @param recipeTherapyVO 诊疗处方对象
+     * @param start           页数
+     * @param limit           每页条数
+     * @return
+     */
+    @RpcService
+    public List<RecipeInfoVO> therapyRecipeList(RecipeTherapyVO recipeTherapyVO, int start, int limit) {
+        validateAtop(recipeTherapyVO, recipeTherapyVO.getOrganId());
+        if (ValidateUtil.validateObjects(recipeTherapyVO.getMpiId()) && ValidateUtil.validateObjects(recipeTherapyVO.getDoctorId())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
+        }
+        RecipeTherapy recipeTherapy = ObjectCopyUtils.convert(recipeTherapyVO, RecipeTherapy.class);
+        try {
+            List<RecipeInfoVO> result = therapyRecipeBusinessService.therapyRecipeList(recipeTherapy, start, limit);
+            logger.info("TherapyRecipeDoctorAtop therapyRecipeList  result = {}", result);
+            return result;
+        } catch (DAOException e1) {
+            logger.warn("TherapyRecipeDoctorAtop therapyRecipeList  error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("TherapyRecipeDoctorAtop therapyRecipeList  error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
     }
 
     /**

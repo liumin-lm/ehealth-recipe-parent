@@ -19,8 +19,12 @@ public class RecipeTherapyVO implements Serializable {
     private static final long serialVersionUID = -7119210639963847034L;
     @ItemProperty(alias = "诊疗id")
     private Integer id;
+    @ItemProperty(alias = "机构id")
+    private Integer organId;
     @ItemProperty(alias = "处方id")
     private Integer recipeId;
+    @ItemProperty(alias = "复诊id")
+    private Integer clinicId;
     @ItemProperty(alias = "医生id")
     private Integer doctorId;
     @ItemProperty(alias = "患者id")

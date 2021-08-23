@@ -1,5 +1,6 @@
 package recipe.manager;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
@@ -9,9 +10,8 @@ import recipe.util.ValidateUtil;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 处方明细
@@ -30,6 +30,9 @@ public class RecipeDetailManager extends BaseManager {
      * @return
      */
     public List<Recipedetail> saveRecipeDetails(Recipe recipe, List<Recipedetail> details, Map<String, OrganDrugList> organDrugListMap) {
+        logger.info("RecipeDetailManager saveRecipeDetails  recipe = {},  details = {},  organDrugListMap = {}"
+                , JSON.toJSONString(recipe), JSON.toJSONString(details), JSON.toJSONString(organDrugListMap));
+
         recipeDetailDAO.updateDetailInvalidByRecipeId(recipe.getRecipeId());
         BigDecimal totalMoney = new BigDecimal(0);
         for (Recipedetail detail : details) {
@@ -43,7 +46,21 @@ public class RecipeDetailManager extends BaseManager {
         }
         recipe.setTotalMoney(totalMoney);
         recipe.setActualPrice(totalMoney);
+        logger.info("RecipeDetailManager saveRecipeDetails details:{}", JSON.toJSONString(details));
         return details;
+    }
+
+    /**
+     * 批量查询处方明细
+     *
+     * @param recipeIds 处方id
+     * @return 处方明细
+     */
+    public Map<Integer, List<Recipedetail>> findRecipeDetails(List<Integer> recipeIds) {
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIds);
+        logger.info("RecipeDetailManager findRecipeDetails recipeDetails:{}", JSON.toJSONString(recipeDetails));
+        return Optional.ofNullable(recipeDetails).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
     }
 
     /**

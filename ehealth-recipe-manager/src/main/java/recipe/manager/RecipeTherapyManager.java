@@ -12,6 +12,8 @@ import recipe.client.PatientClient;
 import recipe.dao.RecipeTherapyDAO;
 import recipe.util.ValidateUtil;
 
+import java.util.List;
+
 /**
  * 诊疗处方
  *
@@ -35,6 +37,8 @@ public class RecipeTherapyManager extends BaseManager {
         recipeTherapy.setDoctorId(recipe.getDoctor());
         recipeTherapy.setMpiId(recipe.getMpiid());
         recipeTherapy.setRecipeId(recipe.getRecipeId());
+        recipeTherapy.setClinicId(recipe.getClinicId());
+        recipeTherapy.setOrganId(recipe.getClinicOrgan());
         if (ValidateUtil.integerIsEmpty(recipeTherapy.getId())) {
             recipeTherapy = recipeTherapyDAO.save(recipeTherapy);
         } else {
@@ -61,6 +65,27 @@ public class RecipeTherapyManager extends BaseManager {
         return recipeInfoDTO;
     }
 
+    /**
+     * 获取诊疗处方列表
+     *
+     * @param recipeTherapy 诊疗处方对象
+     * @param start         页数
+     * @param limit         每页条数
+     * @return
+     */
+    public List<RecipeTherapy> therapyRecipeList(RecipeTherapy recipeTherapy, int start, int limit) {
+        if (!ValidateUtil.validateObjects(recipeTherapy.getDoctorId()) && ValidateUtil.validateObjects(recipeTherapy.getClinicId())) {
+            return recipeTherapyDAO.findTherapyByDoctorId(recipeTherapy.getOrganId(), recipeTherapy.getDoctorId(), start, limit);
+        }
+        if (!ValidateUtil.validateObjects(recipeTherapy.getDoctorId()) && !ValidateUtil.validateObjects(recipeTherapy.getClinicId())) {
+            return recipeTherapyDAO.findTherapyByDoctorIdAndClinicId(recipeTherapy.getOrganId(), recipeTherapy.getDoctorId(), recipeTherapy.getClinicId(), start, limit);
+        }
+        if (!ValidateUtil.validateObjects(recipeTherapy.getMpiId())) {
+            return recipeTherapyDAO.findTherapyByMpiId(recipeTherapy.getOrganId(), recipeTherapy.getMpiId(), start, limit);
+        }
+        return null;
+    }
+
     public RecipeTherapy getRecipeTherapyById(Integer id) {
         return recipeTherapyDAO.getById(id);
     }
@@ -72,4 +97,5 @@ public class RecipeTherapyManager extends BaseManager {
     public Boolean updateRecipeTherapy(RecipeTherapy recipeTherapy) {
         return recipeTherapyDAO.updateNonNullFieldByPrimaryKey(recipeTherapy);
     }
+
 }
