@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import recipe.client.*;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
+import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.DictionaryUtil;
 import recipe.util.ValidateUtil;
 
@@ -212,31 +213,32 @@ public class RecipeManager extends BaseManager {
         String qrName = "";
         try {
             Integer qrTypeForRecipe = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "getQrTypeForRecipe", 1);
-            switch (qrTypeForRecipe) {
-                case 1:
+            RecipeShowQrConfigEnum qrConfigEnum = RecipeShowQrConfigEnum.getEnumByType(qrTypeForRecipe);
+            switch (qrConfigEnum) {
+                case NO_HAVE:
                     break;
-                case 2:
+                case CARD_NO:
                     //就诊卡号
                     if (StringUtils.isNotEmpty(recipeExtend.getCardNo())) {
                         qrName = recipeExtend.getCardNo();
                     }
                     break;
-                case 3:
+                case REGISTER_ID:
                     if (StringUtils.isNotEmpty(recipeExtend.getRegisterID())) {
                         qrName = recipeExtend.getRegisterID();
                     }
                     break;
-                case 4:
+                case PATIENT_ID:
                     if (StringUtils.isNotEmpty(recipe.getPatientID())) {
                         qrName = recipe.getPatientID();
                     }
                     break;
-                case 5:
+                case RECIPE_CODE:
                     if (StringUtils.isNotEmpty(recipe.getRecipeCode())) {
                         qrName = recipe.getRecipeCode();
                     }
                     break;
-                case 6:
+                case SERIALNUMBER:
                     qrName = offlineRecipeClient.queryRecipeSerialNumber(recipe.getClinicOrgan(), recipe.getPatientName(), recipe.getPatientID(), recipeExtend.getRegisterID());
                 default:
                     break;

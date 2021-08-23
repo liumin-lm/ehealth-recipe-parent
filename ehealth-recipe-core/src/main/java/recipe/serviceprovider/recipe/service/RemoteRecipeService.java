@@ -92,6 +92,7 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.StandardEnterpriseCallService;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
+import recipe.enumerate.type.RecipeRefundConfigEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -2408,7 +2409,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     @RpcService
     public Boolean judgeRecipeStatus(Integer bussSource, Integer clinicId, Integer statusCode) {
-        LOGGER.info("findRecipeStatusByBussSourceAndClinicId {} bussSource{} statusCode{}", clinicId, bussSource, statusCode);
+        LOGGER.info("RemoteRecipeService judgeRecipeStatus bussSource:{},clinicId:{},statusCode:{}.", bussSource, clinicId, statusCode);
         //查询线上写入HIS处方记录
         List<Recipe> writeRecipeList = recipeManager.findWriteHisRecipeByBussSourceAndClinicId(bussSource, clinicId);
         //查询有效的处方记录
@@ -2420,7 +2421,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         if (CollectionUtils.isEmpty(writeRecipeList)) {
             return false;
         }
-        if (new Integer(2).equals(statusCode)){
+        if (RecipeRefundConfigEnum.HAVE_BUSS.getType().equals(statusCode)) {
+            LOGGER.info("RemoteRecipeService judgeRecipeStatus writeRecipeList size:{}", writeRecipeList.size());
+            return true;
+        }
+        if (RecipeRefundConfigEnum.HAVE_PAY.getType().equals(statusCode)){
             //判断是否有已支付成功的处方单
             for (RecipeOrder recipeOrder : recipeOrders) {
                 if (new Integer(1).equals(recipeOrder.getPayFlag())) {

@@ -8,6 +8,7 @@ import ctd.util.annotation.RpcService;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
+import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
@@ -69,7 +70,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
     public Integer submitTherapyRecipe(RecipeInfoVO recipeInfoVO) {
         Integer recipeId = saveTherapyRecipe(recipeInfoVO);
         //异步推送his
-        offlineToOnlineService.pushTherapyRecipeExecute(recipeId, 1);
+        offlineToOnlineService.pushTherapyRecipeExecute(recipeId, CommonConstant.THERAPY_RECIPE_PUSH_TYPE);
         return recipeId;
     }
 
@@ -100,14 +101,14 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
     /**
      * 作废诊疗处方
      *
-     * @param therapyId 诊疗处方ID
+     * @param recipeId 处方ID
      */
     @RpcService
-    public boolean abolishTherapyRecipe(Integer therapyId) {
-        logger.info("TherapyRecipeDoctorAtop abolishTherapyRecipe therapyId:{}.", therapyId);
-        validateAtop(therapyId);
+    public boolean abolishTherapyRecipe(Integer recipeId) {
+        logger.info("TherapyRecipeDoctorAtop abolishTherapyRecipe recipeId:{}.", recipeId);
+        validateAtop(recipeId);
         try {
-            return therapyRecipeBusinessService.abolishTherapyRecipe(therapyId);
+            return therapyRecipeBusinessService.abolishTherapyRecipe(recipeId);
         } catch (DAOException e1) {
             logger.warn("TherapyRecipeDoctorAtop abolishTherapyRecipe  error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());

@@ -37,7 +37,7 @@ public class RecipeTherapyManager extends BaseManager {
         return recipeTherapyDAO.getByRecipeId(recipeId);
     }
 
-    public RecipeTherapy updateRecipeTherapy(RecipeTherapy recipeTherapy) {
-        return recipeTherapyDAO.update(recipeTherapy);
+    public Boolean updateRecipeTherapy(RecipeTherapy recipeTherapy) {
+        return recipeTherapyDAO.updateNonNullFieldByPrimaryKey(recipeTherapy);
     }
 }

@@ -24,10 +24,10 @@ public interface ITherapyRecipeBusinessService {
 
     /**
      * 作废诊疗处方
-     * @param therapyId
+     * @param recipeId
      * @return
      */
-    boolean abolishTherapyRecipe(Integer therapyId);
+    boolean abolishTherapyRecipe(Integer recipeId);
 
     /**
      * 搜索诊疗项目

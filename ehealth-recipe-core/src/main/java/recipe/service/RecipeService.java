@@ -2818,7 +2818,7 @@ public class RecipeService extends RecipeBaseService {
                         return hisResponseTO;
                     }
                     try {
-
+                        updateHisOrganDrug(organDrug, update, organId);
                     } catch (Exception e) {
                         LOGGER.info("syncOrganDrug机构药品数据推送 修改失败,{}", JSONUtils.toString(organDrug) + "Exception:{}" + e);
                     }
@@ -2838,6 +2838,9 @@ public class RecipeService extends RecipeBaseService {
                     }
                     break;
                 default:
+                    /*hisResponseTO.setMsgCode("-1");
+                    hisResponseTO.setMsg(organDrug.getOrganDrugCode() + ":药品 " + organDrug.getDrugName() + " 推送方式有误,请填写正确推送方式(1-新增 2-修改 3-删除)!");
+                    return hisResponseTO;*/
                     break;
             }
         }
