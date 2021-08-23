@@ -141,6 +141,18 @@ public class RecipeManager extends BaseManager {
         return recipes;
     }
 
+    public List<Recipe> findByRecipeIds(List<Integer> recipeIds) {
+        List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
+        logger.info("RecipeManager findByRecipeIds recipeIds:{}, recipes:{}", JSON.toJSONString(recipeIds), JSON.toJSONString(recipes));
+        return recipes;
+    }
+
+    public List<RecipeExtend> findRecipeExtByRecipeIds(List<Integer> recipeIds) {
+        List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
+        logger.info("RecipeManager findRecipeExtByRecipeIds recipeIds:{}, recipes:{}", JSON.toJSONString(recipeIds), JSON.toJSONString(recipeExtendList));
+        return recipeExtendList;
+    }
+
     /**
      * 根据业务类型(咨询/复诊)和业务单号(咨询/复诊单号)获取处方信息
      *

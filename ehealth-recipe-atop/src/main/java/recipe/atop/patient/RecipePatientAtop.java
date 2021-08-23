@@ -17,6 +17,9 @@ import recipe.constant.ErrorCode;
 import recipe.constant.HisErrorCodeEnum;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
+import recipe.enumerate.type.OutRecipeGiveModeEnum;
+import recipe.enumerate.type.OutRecipeRecipeTypeEnum;
+import recipe.enumerate.status.OutRecipeStatusEnum;
 import recipe.util.DateConversion;
 import recipe.util.ValidateUtil;
 

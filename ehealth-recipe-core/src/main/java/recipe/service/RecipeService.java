@@ -226,7 +226,7 @@ public class RecipeService extends RecipeBaseService {
     private DrugToolService drugToolService;
 
     @Autowired
-    private OrganDrugListService OrganDrugListService;
+    private OrganDrugListService organDrugListService;
 
     @Autowired
     private PharmacyTcmService pharmacyTcmService;
@@ -1005,7 +1005,7 @@ public class RecipeService extends RecipeBaseService {
             auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status, recipe, memo);
 
         } catch (Exception e) {
-            LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. ", e);
+            LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. recipe={} ", recipeId, e);
         }
 
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
@@ -2690,19 +2690,6 @@ public class RecipeService extends RecipeBaseService {
         long minutes = diff / (1000 * 60);
         return minutes;
     }
-
-    /**
-     * 从缓存中实时获取同步情况
-     *
-     * @param organId
-     * @return
-     * @throws ParseException
-     */
-    @RpcService
-    public Map<String, Object> getOrganDrugSyncData(Integer organId) throws ParseException {
-        return (Map<String, Object>) redisClient.get(KEY_THE_DRUG_SYNC + organId.toString());
-    }
-
     /**
      * 检测机构推送药品数据
      *
@@ -2783,13 +2770,14 @@ public class RecipeService extends RecipeBaseService {
             return hisResponseTO;
         }
         HisResponseTO checkOrganDrugs = checkOrganDrugs(organDrugs);
-        if ("-1".equals(checkOrganDrugs.getMsg())) {
+        if ("-1".equals(checkOrganDrugs.getMsgCode())) {
             return checkOrganDrugs;
         }
         for (OrganDrugInfoTO organDrug : organDrugs) {
             List<String> check = checkOrganDrugInfoTO(organDrug);
             if (!ObjectUtils.isEmpty(check)) {
                 LOGGER.info("updateOrSaveOrganDrug 当前新增药品信息,信息缺失{}", JSONUtils.toString(check));
+                hisResponseTO.setMsgCode("-1");
                 hisResponseTO.setMsg("当前推送药品信息,信息缺失(包括:" + check.toString() + "),无法操作!");
                 return hisResponseTO;
             }
@@ -2832,7 +2820,7 @@ public class RecipeService extends RecipeBaseService {
                         return hisResponseTO;
                     }
                     try {
-                        OrganDrugListService.deleteOrganDrugListById(delete.getOrganDrugId());
+                        organDrugListService.deleteOrganDrugListById(delete.getOrganDrugId());
                     } catch (Exception e) {
                         LOGGER.info("syncOrganDrug机构药品数据推送 删除失败,{}", JSONUtils.toString(organDrug) + "Exception:{}" + e);
                     }
@@ -2848,6 +2836,19 @@ public class RecipeService extends RecipeBaseService {
         hisResponseTO.setMsg("success");
         return hisResponseTO;
     }
+
+    /**
+     * 从缓存中实时获取同步情况
+     *
+     * @param organId
+     * @return
+     * @throws ParseException
+     */
+    @RpcService
+    public Map<String, Object> getOrganDrugSyncData(Integer organId) throws ParseException {
+        return (Map<String, Object>) redisClient.get(KEY_THE_DRUG_SYNC + organId.toString());
+    }
+
 
     /**
      * 从缓存中删除异常同步情况
@@ -4721,7 +4722,7 @@ public class RecipeService extends RecipeBaseService {
      * @param organId
      */
     @RpcService
-    private void addHisDrug(OrganDrugInfoTO drug, Integer organId, String operator) {
+    public void addHisDrug(OrganDrugInfoTO drug, Integer organId, String operator) {
         DrugListMatch drugListMatch = new DrugListMatch();
 
         if (StringUtils.isEmpty(drug.getOrganDrugCode())) {
@@ -4871,7 +4872,7 @@ public class RecipeService extends RecipeBaseService {
      * @param drug
      * @param organDrug
      */
-    private void updateHisOrganDrug(OrganDrugInfoTO drug, OrganDrugList organDrug, Integer organId) {
+    public void updateHisOrganDrug(OrganDrugInfoTO drug, OrganDrugList organDrug, Integer organId) {
         if (null == organDrug) {
             return;
         }

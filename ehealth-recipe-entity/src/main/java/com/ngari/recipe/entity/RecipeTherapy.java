@@ -21,8 +21,12 @@ public class RecipeTherapy implements Serializable {
     private static final long serialVersionUID = -7119210639963847034L;
     @ItemProperty(alias = "诊疗id")
     private Integer id;
+    @ItemProperty(alias = "机构id")
+    private Integer organId;
     @ItemProperty(alias = "处方id")
     private Integer recipeId;
+    @ItemProperty(alias = "来源Id，默认复诊")
+    private Integer clinicId;
     @ItemProperty(alias = "医生id")
     private Integer doctorId;
     @ItemProperty(alias = "患者id")
@@ -53,6 +57,14 @@ public class RecipeTherapy implements Serializable {
         this.id = id;
     }
 
+    @Column(name = "organ_id")
+    public Integer getOrganId() {
+        return organId;
+    }
+
+    public void setOrganId(Integer organId) {
+        this.organId = organId;
+    }
 
     @Column(name = "recipe_id")
     public Integer getRecipeId() {
@@ -61,6 +73,15 @@ public class RecipeTherapy implements Serializable {
 
     public void setRecipeId(Integer recipeId) {
         this.recipeId = recipeId;
+    }
+
+    @Column(name = "clinic_id")
+    public Integer getClinicId() {
+        return clinicId;
+    }
+
+    public void setClinicId(Integer clinicId) {
+        this.clinicId = clinicId;
     }
 
     @Column(name = "doctor_id")

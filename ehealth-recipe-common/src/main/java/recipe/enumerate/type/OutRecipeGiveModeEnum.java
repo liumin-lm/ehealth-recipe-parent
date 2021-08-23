@@ -1,22 +1,22 @@
-package com.ngari.recipe.vo;
+package recipe.enumerate.type;
 
 public enum OutRecipeGiveModeEnum {
     OUTRECIPETOHOS(1, "院内自取"),
     OUTRECIPESENDHOS(2, "医院配送"),
     OUTRECIPESENDTHIRD(3, "第三方配送");
 
-    private Integer status;
+    private Integer type;
     private String name;
 
-    OutRecipeGiveModeEnum(Integer status, String name) {
-        this.status = status;
+    OutRecipeGiveModeEnum(Integer type, String name) {
+        this.type = type;
         this.name = name;
     }
 
     public static String getName(Integer status){
         OutRecipeGiveModeEnum[] outRecipeStatusEnums = OutRecipeGiveModeEnum.values();
         for (OutRecipeGiveModeEnum outRecipeGiveModeEnum : outRecipeStatusEnums){
-            if (outRecipeGiveModeEnum.status.equals(status)){
+            if (outRecipeGiveModeEnum.type.equals(status)){
                 return outRecipeGiveModeEnum.getName();
             }
         }
@@ -24,18 +24,10 @@ public enum OutRecipeGiveModeEnum {
     }
 
     public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
+        return type;
     }
 
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 }

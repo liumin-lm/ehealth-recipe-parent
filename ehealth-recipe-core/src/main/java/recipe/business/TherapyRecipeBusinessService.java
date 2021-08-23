@@ -1,10 +1,15 @@
 package recipe.business;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.dto.PatientDTO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+import recipe.client.PatientClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.enumerate.status.TherapyStatusEnum;
@@ -13,6 +18,7 @@ import recipe.vo.doctor.ItemListVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -34,6 +40,8 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     private OrganDrugListManager organDrugListManager;
     @Autowired
     private ItemListManager itemListManager;
+    @Autowired
+    private PatientClient patientClient;
 
     @Override
     public Integer saveTherapyRecipe(RecipeInfoVO recipeInfoVO) {
@@ -58,7 +66,28 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     }
 
     @Override
-    public boolean cancelRecipe(RecipeTherapyVO recipeTherapyVO){
+    public List<RecipeInfoVO> therapyRecipeList(RecipeTherapy recipeTherapy, int start, int limit) {
+        List<RecipeTherapy> recipeTherapyList = recipeTherapyManager.therapyRecipeList(recipeTherapy, start, limit);
+        if (CollectionUtils.isEmpty(recipeTherapyList)) {
+            return null;
+        }
+        List<Integer> recipeIds = recipeTherapyList.stream().map(RecipeTherapy::getRecipeId).collect(Collectors.toList());
+        List<Recipe> recipeList = recipeManager.findByRecipeIds(recipeIds);
+        List<RecipeExtend> recipeExtList = recipeManager.findRecipeExtByRecipeIds(recipeIds);
+        Map<Integer, List<Recipedetail>> recipeDetailGroup = recipeDetailManager.findRecipeDetails(recipeIds);
+        Map<String, PatientDTO> patientMap = patientClient.findPatientMap(Arrays.asList(recipeTherapy.getMpiId()));
+        return null;
+    }
+
+    @Override
+    public RecipeInfoDTO therapyRecipeInfo(Integer recipeId) {
+        RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDTO(recipeId);
+        logger.info("TherapyRecipeBusinessService therapyRecipeInfo  recipePdfDTO = {}", JSON.toJSONString(recipePdfDTO));
+        return recipePdfDTO;
+    }
+
+    @Override
+    public boolean cancelRecipe(RecipeTherapyVO recipeTherapyVO) {
         Recipe recipe = recipeManager.getRecipeById(recipeTherapyVO.getRecipeId());
         if (null == recipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "处方数据不存在");

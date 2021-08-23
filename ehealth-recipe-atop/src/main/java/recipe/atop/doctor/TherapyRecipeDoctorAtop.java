@@ -1,6 +1,11 @@
 package recipe.atop.doctor;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.basic.ds.PatientVO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.entity.RecipeTherapy;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
@@ -13,6 +18,8 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.util.ObjectCopyUtils;
+import recipe.util.ValidateUtil;
 import recipe.vo.doctor.ItemListVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
@@ -65,7 +72,12 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         }
     }
 
-
+    /**
+     * 提交诊疗处方
+     *
+     * @param recipeInfoVO
+     * @return
+     */
     @RpcService
     public Integer submitTherapyRecipe(RecipeInfoVO recipeInfoVO) {
         Integer recipeId = saveTherapyRecipe(recipeInfoVO);
@@ -74,6 +86,61 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         return recipeId;
     }
 
+    /**
+     * 获取诊疗处方列表
+     *
+     * @param recipeTherapyVO 诊疗处方对象
+     * @param start           页数
+     * @param limit           每页条数
+     * @return
+     */
+    @RpcService
+    public List<RecipeInfoVO> therapyRecipeList(RecipeTherapyVO recipeTherapyVO, int start, int limit) {
+        validateAtop(recipeTherapyVO, recipeTherapyVO.getOrganId());
+        if (ValidateUtil.validateObjects(recipeTherapyVO.getMpiId()) && ValidateUtil.validateObjects(recipeTherapyVO.getDoctorId())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
+        }
+        RecipeTherapy recipeTherapy = ObjectCopyUtils.convert(recipeTherapyVO, RecipeTherapy.class);
+        try {
+            List<RecipeInfoVO> result = therapyRecipeBusinessService.therapyRecipeList(recipeTherapy, start, limit);
+            logger.info("TherapyRecipeDoctorAtop therapyRecipeList  result = {}", result);
+            return result;
+        } catch (DAOException e1) {
+            logger.warn("TherapyRecipeDoctorAtop therapyRecipeList  error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("TherapyRecipeDoctorAtop therapyRecipeList  error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 获取诊疗处方明细
+     *
+     * @param recipeId 处方id
+     * @return
+     */
+    @RpcService
+    public RecipeInfoVO therapyRecipeInfo(Integer recipeId) {
+        logger.info("TherapyRecipeDoctorAtop therapyRecipeInfo  recipeId = {}", recipeId);
+        try {
+            RecipeInfoDTO result = therapyRecipeBusinessService.therapyRecipeInfo(recipeId);
+            RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
+            recipeInfoVO.setPatientVO(ObjectCopyUtils.convert(result.getPatientBean(), PatientVO.class));
+            recipeInfoVO.setRecipeBean(ObjectCopyUtils.convert(result.getRecipe(), RecipeBean.class));
+            recipeInfoVO.setRecipeExtendBean(ObjectCopyUtils.convert(result.getRecipeExtend(), RecipeExtendBean.class));
+            recipeInfoVO.setRecipeDetails(ObjectCopyUtils.convert(result.getRecipeDetails(), RecipeDetailBean.class));
+            recipeInfoVO.setRecipeTherapyVO(ObjectCopyUtils.convert(result.getRecipeTherapy(), RecipeTherapyVO.class));
+            logger.info("TherapyRecipeDoctorAtop therapyRecipeInfo  recipeInfoVO = {}", JSON.toJSONString(recipeInfoVO));
+            return recipeInfoVO;
+        } catch (DAOException e1) {
+            logger.warn("TherapyRecipeDoctorAtop therapyRecipeInfo  error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("TherapyRecipeDoctorAtop therapyRecipeInfo  error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
 
     /**
      * 撤销处方

@@ -215,7 +215,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public List<RevisitRecipeTraceVo> revisitRecipeTrace(Integer bussSource, Integer clinicId) {
         logger.info("RecipeBusinessService revisitRecipeTrace bussSource={},clinicID={}", bussSource, clinicId);
         List<RevisitRecipeTraceVo> revisitRecipeTraceVos = new ArrayList<>();
-        List<Recipe> recipes = recipeDAO.getByClinicId(clinicId);
+        List<Recipe> recipes = recipeDAO.findByClinicId(clinicId);
         List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).distinct().collect(Collectors.toList());
         List<String> orderCodes = recipes.stream().map(Recipe::getOrderCode).distinct().collect(Collectors.toList());
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIds(recipeIds);
@@ -236,45 +236,56 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                     //审方药师审核
                     RevisitRecipeTraceVo.AuditCheck innerAudit = new RevisitRecipeTraceVo.AuditCheck();
                     RecipeCheckBean recipeCheck = recipeCheckService.getByRecipeId(recipe.getRecipeId());
-                    DoctorDTO doctor = new DoctorDTO();
-                    try {
-                        doctor = doctorClient.getDoctor(recipeCheck.getChecker());
-                        if (doctor != null) {
-                            innerAudit.setCheckIdCard(doctor.getIdNumber());
+                    BeanUtils.copy(recipeCheck, innerAudit);
+
+                    if (recipeCheck != null) {
+                        DoctorDTO doctor = new DoctorDTO();
+                        try {
+                            doctor = doctorClient.getDoctor(recipeCheck.getChecker());
+                            if (doctor != null) {
+                                innerAudit.setCheckIdCard(doctor.getIdNumber());
+                            }
+                        } catch (Exception e) {
+                            logger.warn("revisitRecipeTrace get doctor error. doctorId={}", recipeCheck.getChecker(), e);
                         }
-                    } catch (Exception e) {
-                        logger.warn("revisitRecipeTrace get doctor error. doctorId={}", recipeCheck.getChecker(), e);
+                        innerAudit.setCheckSign(apothecaryDTO.getDoctorSignImg());
+                        revisitRecipeTraceVo.setAuditCheck(innerAudit);
+                        obtainCheckNotPassDetail(revisitRecipeTraceVo, recipe);
                     }
-                    innerAudit.setCheckSign(apothecaryDTO.getDoctorSignImg());
-                    revisitRecipeTraceVo.setAuditCheck(innerAudit);
-                    obtainCheckNotPassDetail(revisitRecipeTraceVo, recipe);
+
                     //发药药师审核
                     RevisitRecipeTraceVo.GiveUser giveUser = new RevisitRecipeTraceVo.GiveUser();
-                    //获取运营平台发药药师
                     ApothecaryDTO apothecaryDTO2 = doctorClient.getGiveUserDefault(recipe);
                     BeanUtils.copy(apothecaryDTO2, giveUser);
                     revisitRecipeTraceVo.setGiveUser(giveUser);
                     if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                        //患者购药
-                        RevisitRecipeTraceVo.Order order = new RevisitRecipeTraceVo.Order();
-                        BeanUtils.copy(ordersMap.get(recipe.getOrderCode()), order);
-                        String address = orderManager.getCompleteAddress(ordersMap.get(recipe.getOrderCode()));
-                        order.setAddress(address);
-                        RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(recipe.getOrderCode());
-                        if (recipeOrderBill != null) {
-                            order.setBillPictureUrl(recipeOrderBill.getBillPictureUrl());
+                        RecipeOrder recipeOrder = ordersMap.get(recipe.getOrderCode());
+                        if (recipeOrder != null) {
+                            //患者购药
+                            RevisitRecipeTraceVo.Order order = new RevisitRecipeTraceVo.Order();
+                            BeanUtils.copy(recipeOrder, order);
+                            String address = orderManager.getCompleteAddress(recipeOrder);
+                            order.setAddress(address);
+                            RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(recipe.getOrderCode());
+                            if (recipeOrderBill != null) {
+                                order.setBillPictureUrl(recipeOrderBill.getBillPictureUrl());
+                            }
+                            revisitRecipeTraceVo.setOrder(order);
+                            //物流 药企发药
+                            RevisitRecipeTraceVo.Logistics logistics = new RevisitRecipeTraceVo.Logistics();
+                            if (logistics != null) {
+                                BeanUtils.copy(recipeOrder, logistics);
+                                revisitRecipeTraceVo.setLogistics(logistics);
+                            }
                         }
-                        revisitRecipeTraceVo.setOrder(order);
-                        //物流 药企发药
-                        RevisitRecipeTraceVo.Logistics logistics = new RevisitRecipeTraceVo.Logistics();
-                        BeanUtils.copy(ordersMap.get(recipe.getOrderCode()), logistics);
-                        revisitRecipeTraceVo.setLogistics(logistics);
                     }
                     //医生撤销
                     RecipeCancel recipeCancel = recipeManager.getCancelReasonForPatient(recipe.getRecipeId());
-                    recipe.vo.second.RecipeCancel recipeCancel1 = new recipe.vo.second.RecipeCancel();
-                    BeanUtils.copy(recipeCancel, recipeCancel1);
-                    revisitRecipeTraceVo.setRecipeCancel(recipeCancel1);
+                    if (recipeCancel != null) {
+                        recipe.vo.second.RecipeCancel recipeCancel1 = new recipe.vo.second.RecipeCancel();
+                        BeanUtils.copy(recipeCancel, recipeCancel1);
+                        revisitRecipeTraceVo.setRecipeCancel(recipeCancel1);
+                    }
                     revisitRecipeTraceVos.add(revisitRecipeTraceVo);
                 }
         );
@@ -317,7 +328,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     /**
-     * 获取审方不通过详情
+     * 获取复诊处方追溯--获取审方不通过详情
      *
      * @param revisitRecipeTraceVo
      * @param recipe

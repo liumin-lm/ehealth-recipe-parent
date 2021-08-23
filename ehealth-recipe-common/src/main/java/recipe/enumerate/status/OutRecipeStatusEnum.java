@@ -1,4 +1,4 @@
-package com.ngari.recipe.vo;
+package recipe.enumerate.status;
 
 public enum OutRecipeStatusEnum {
 
@@ -7,18 +7,18 @@ public enum OutRecipeStatusEnum {
     OUTRECIPEHASSEND(6, "已发药"),
     OUTRECIPEHASREFUND(9, "已退费");
 
-    private Integer status;
+    private Integer type;
     private String name;
 
-    OutRecipeStatusEnum(Integer status, String name){
-        this.status = status;
+    OutRecipeStatusEnum(Integer type, String name){
+        this.type = type;
         this.name = name;
     }
 
-    public static String getName(Integer status){
+    public static String getName(Integer type){
         OutRecipeStatusEnum[] values = OutRecipeStatusEnum.values();
         for (OutRecipeStatusEnum outRecipeStatusEnum : values) {
-            if (outRecipeStatusEnum.status.equals(status)) {
+            if (outRecipeStatusEnum.type.equals(type)) {
                 return outRecipeStatusEnum.getName();
             }
         }
@@ -26,18 +26,10 @@ public enum OutRecipeStatusEnum {
     }
 
     public Integer getStatus() {
-        return status;
-    }
-
-    public void setStatus(Integer status) {
-        this.status = status;
+        return type;
     }
 
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 }

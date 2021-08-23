@@ -1,4 +1,4 @@
-package com.ngari.recipe.vo;
+package recipe.enumerate.type;
 
 /**
  * 门诊处方的类型
@@ -10,37 +10,29 @@ public enum OutRecipeRecipeTypeEnum {
     RECIPE_TYPE_ZCY(2, "成药方"),
     RECIPE_TYPE_CY(3, "草药方");
 
-    OutRecipeRecipeTypeEnum(Integer recipeType, String name){
-        this.recipeType = recipeType;
+    OutRecipeRecipeTypeEnum(Integer type, String name){
+        this.type = type;
         this.name = name;
     }
 
-    public static String getName(Integer recipeType){
+    public static String getName(Integer type){
         OutRecipeRecipeTypeEnum[] outRecipeRecipeTypeEnums = OutRecipeRecipeTypeEnum.values();
         for (OutRecipeRecipeTypeEnum outRecipeRecipeTypeEnum : outRecipeRecipeTypeEnums) {
-            if (outRecipeRecipeTypeEnum.recipeType.equals(recipeType)) {
+            if (outRecipeRecipeTypeEnum.type.equals(type)) {
                 return outRecipeRecipeTypeEnum.getName();
             }
         }
         return "";
     }
 
-    private Integer recipeType;
+    private Integer type;
     private String name;
 
     public Integer getRecipeType() {
-        return recipeType;
-    }
-
-    public void setRecipeType(Integer recipeType) {
-        this.recipeType = recipeType;
+        return type;
     }
 
     public String getName() {
         return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 }
