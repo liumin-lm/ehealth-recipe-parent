@@ -187,7 +187,21 @@ public class DocIndexClient extends BaseClient {
             recipeInfoReq.setDocIndexId(docId);
             if (null != recipeExtend) {
                 recipeInfoReq.setRegisterNo(recipeExtend.getRegisterID());
+                recipeInfoReq.setMakeMethodText(recipeExtend.getMakeMethodText());
+                recipeInfoReq.setDecoctionText(recipeExtend.getDecoctionText());
+                recipeInfoReq.setJuice(recipeExtend.getJuice());
+                recipeInfoReq.setJuiceUnit(recipeExtend.getJuiceUnit());
+                recipeInfoReq.setMinor(recipeExtend.getMinor());
+                recipeInfoReq.setMinorUnit(recipeExtend.getMinorUnit());
             }
+            recipeInfoReq.setRecipeType(recipe.getRecipeType());
+            recipeInfoReq.setRecipeMemo(recipe.getRecipeMemo());
+            recipeInfoReq.setCopyNum(ByteUtils.objValueOfString(recipe.getCopyNum()));
+            Recipedetail recipeDetail = recipeDetailList.get(0);
+            recipeInfoReq.setUseDays(ByteUtils.objValueOfString(recipeDetail.getUseDays()));
+            recipeInfoReq.setUsePathways(DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", recipeDetail.getUsePathways()));
+            recipeInfoReq.setUsingRate(DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", recipeDetail.getUsingRate()));
+            recipeInfoReq.setPharmacyName(recipeDetail.getPharmacyName());
             logger.info("EmrRecipeManager upDocIndex recipeInfoReq：{} ", JSON.toJSONString(recipeInfoReq));
             docIndexService.saveRpDetailRelation(recipeInfoReq);
         } catch (Exception e) {

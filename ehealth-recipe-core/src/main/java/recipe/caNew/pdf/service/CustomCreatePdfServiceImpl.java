@@ -463,11 +463,11 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             String drugShowName = RecipeUtil.drugChineShowName(recipeDetails.get(i));
             list.add(new RecipeLabelDTO("药品名称", "recipeDetail.drugName_" + i, drugShowName));
         }
-        Recipedetail recipedetail = recipeDetails.get(0);
-        list.add(new RecipeLabelDTO("药房", "recipeDetail.pharmacyName", recipedetail.getPharmacyName()));
-        list.add(new RecipeLabelDTO("天数", "recipeDetail.useDays", getUseDays(recipedetail.getUseDaysB(), recipedetail.getUseDays())));
-        list.add(new RecipeLabelDTO("用药途径", "recipeDetail.usePathways", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", recipedetail.getUsePathways())));
-        list.add(new RecipeLabelDTO("用药频次", "recipeDetail.usingRate", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", recipedetail.getUsingRate())));
+        Recipedetail recipeDetail = recipeDetails.get(0);
+        list.add(new RecipeLabelDTO("药房", "recipeDetail.pharmacyName", recipeDetail.getPharmacyName()));
+        list.add(new RecipeLabelDTO("天数", "recipeDetail.useDays", getUseDays(recipeDetail.getUseDaysB(), recipeDetail.getUseDays())));
+        list.add(new RecipeLabelDTO("用药途径", "recipeDetail.usePathways", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", recipeDetail.getUsePathways())));
+        list.add(new RecipeLabelDTO("用药频次", "recipeDetail.usingRate", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", recipeDetail.getUsingRate())));
         Recipe recipe = recipeInfoDTO.getRecipe();
         list.add(new RecipeLabelDTO("贴数", "recipeDetail.copyNum", recipe.getCopyNum() + "贴"));
         list.add(new RecipeLabelDTO("嘱托", "recipeDetail.recipeMemo", ByteUtils.objValueOfString(recipe.getRecipeMemo())));

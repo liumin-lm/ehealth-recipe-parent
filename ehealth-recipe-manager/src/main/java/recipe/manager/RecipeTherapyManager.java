@@ -1,9 +1,14 @@
 package recipe.manager;
 
+import com.ngari.recipe.dto.PatientDTO;
+import com.ngari.recipe.dto.RecipeDTO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeTherapy;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.client.PatientClient;
 import recipe.dao.RecipeTherapyDAO;
 import recipe.util.ValidateUtil;
 
@@ -16,7 +21,16 @@ import recipe.util.ValidateUtil;
 public class RecipeTherapyManager extends BaseManager {
     @Autowired
     private RecipeTherapyDAO recipeTherapyDAO;
+    @Autowired
+    private PatientClient patientClient;
 
+    /**
+     * 保存诊疗处方关联信息
+     *
+     * @param recipeTherapy
+     * @param recipe
+     * @return
+     */
     public RecipeTherapy saveRecipeTherapy(RecipeTherapy recipeTherapy, Recipe recipe) {
         recipeTherapy.setDoctorId(recipe.getDoctor());
         recipeTherapy.setMpiId(recipe.getMpiid());
@@ -27,6 +41,24 @@ public class RecipeTherapyManager extends BaseManager {
             recipeTherapy = recipeTherapyDAO.update(recipeTherapy);
         }
         return recipeTherapy;
+    }
+
+    /**
+     * 获取诊疗处方相关信息
+     *
+     * @param recipeId 处方id
+     * @return
+     */
+    public RecipeInfoDTO getRecipeTherapyDTO(Integer recipeId) {
+        RecipeDTO recipeDTO = getRecipeDTO(recipeId);
+        RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
+        BeanUtils.copyProperties(recipeDTO, recipeInfoDTO);
+        Recipe recipe = recipeInfoDTO.getRecipe();
+        PatientDTO patientBean = patientClient.getPatientDTO(recipe.getMpiid());
+        recipeInfoDTO.setPatientBean(patientBean);
+        RecipeTherapy recipeTherapy = recipeTherapyDAO.getByRecipeId(recipeId);
+        recipeInfoDTO.setRecipeTherapy(recipeTherapy);
+        return recipeInfoDTO;
     }
 
     public RecipeTherapy getRecipeTherapyById(Integer id) {

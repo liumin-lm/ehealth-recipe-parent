@@ -48,6 +48,7 @@ import recipe.manager.GroupRecipeManager;
 import recipe.manager.HisRecipeManager;
 import recipe.service.DrugsEnterpriseService;
 import recipe.service.RecipeService;
+import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.RecipeUtil;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
@@ -511,6 +512,7 @@ public class BaseOfflineToOnlineService {
                 recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attMap);
             }
             LOGGER.info("BaseOfflineToOnlineService saveRecipeInfo res:{}", recipe.getRecipeId());
+            RecipeBusiThreadPool.execute(() -> revisitClient.saveRevisitTracesList(recipe));
             return recipe.getRecipeId();
         }
         return null;

@@ -277,7 +277,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     public void pushTherapyRecipeExecute(Integer recipeId, Integer pushType) {
         RecipeBusiThreadPool.execute(() -> {
             logger.info("RecipeBusinessService pushTherapyRecipeExecute recipeId={}", recipeId);
-            RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeTherapyDTO(recipeId);
+            RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);
             RecipeTherapy recipeTherapy = hisRecipeManager.pushTherapyRecipe(recipePdfDTO, pushType);
             if (null == recipeTherapy) {
                 return;

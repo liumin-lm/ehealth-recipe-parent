@@ -276,8 +276,7 @@ public class OfflineRecipeClient extends BaseClient {
         recipeDTO.setPatientDTO(ObjectCopyUtils.convert(recipePdfDTO.getPatientBean(), PatientDTO.class));
         try {
             HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse = recipeHisService.pushRecipe(recipeDTO);
-            com.ngari.platform.recipe.mode.RecipeDTO hisResponseData = getResponse(hisResponse);
-            return hisResponseData;
+            return getResponse(hisResponse);
         } catch (Exception e) {
             logger.error("OfflineRecipeClient offlineCommonRecipe hisResponse", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
