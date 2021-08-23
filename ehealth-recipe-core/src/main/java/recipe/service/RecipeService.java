@@ -2770,13 +2770,14 @@ public class RecipeService extends RecipeBaseService {
             return hisResponseTO;
         }
         HisResponseTO checkOrganDrugs = checkOrganDrugs(organDrugs);
-        if ("-1".equals(checkOrganDrugs.getMsg())) {
+        if ("-1".equals(checkOrganDrugs.getMsgCode())) {
             return checkOrganDrugs;
         }
         for (OrganDrugInfoTO organDrug : organDrugs) {
             List<String> check = checkOrganDrugInfoTO(organDrug);
             if (!ObjectUtils.isEmpty(check)) {
                 LOGGER.info("updateOrSaveOrganDrug 当前新增药品信息,信息缺失{}", JSONUtils.toString(check));
+                hisResponseTO.setMsgCode("-1");
                 hisResponseTO.setMsg("当前推送药品信息,信息缺失(包括:" + check.toString() + "),无法操作!");
                 return hisResponseTO;
             }
