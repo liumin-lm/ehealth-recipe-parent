@@ -20,5 +20,7 @@
     <reference interface="com.ngari.consult.process.service.IRecipeOnLineConsultService"
                id="consult.recipeOnLineConsultService"/>
 
+    <reference id="revisit.revisitTracesSortService"
+               interface="com.ngari.revisit.traces.service.IRevisitTracesSortService"/>
 
 </s:beans>
