@@ -5,8 +5,11 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.base.scratchable.model.ScratchableBean;
+import com.ngari.base.scratchable.service.IScratchableService;
 import com.ngari.patient.service.OrganConfigService;
 import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -285,6 +288,16 @@ public class IConfigurationClient extends BaseClient {
 
     }
 
-
-
+    /**
+     * 获取机构的购药方式
+     * @param organId 机构ID
+     * @return 机构配置
+     */
+    public List<ScratchableBean> getOrganGiveMode(Integer organId) {
+        logger.info("IConfigurationClient getOrganGiveMode organId:{}.", organId);
+        IScratchableService scratchableService = AppContextHolder.getBean("eh.scratchableService", IScratchableService.class);
+        List<ScratchableBean> scratchableBeans = scratchableService.findScratchableByPlatform("myRecipeDetailList", organId + "", 1);
+        logger.info("IConfigurationClient getOrganGiveMode scratchableBeans:{}.", JSON.toJSONString(scratchableBeans));
+        return scratchableBeans;
+    }
 }
