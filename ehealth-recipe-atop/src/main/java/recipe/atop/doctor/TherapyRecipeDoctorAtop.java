@@ -8,6 +8,7 @@ import ctd.util.annotation.RpcService;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
+import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
@@ -66,7 +67,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
     public Integer submitTherapyRecipe(RecipeInfoVO recipeInfoVO) {
         Integer recipeId = saveTherapyRecipe(recipeInfoVO);
         //异步推送his
-        offlineToOnlineService.pushTherapyRecipeExecute(recipeId, 1);
+        offlineToOnlineService.pushTherapyRecipeExecute(recipeId, CommonConstant.THERAPY_RECIPE_PUSH_TYPE);
         return recipeId;
     }
 

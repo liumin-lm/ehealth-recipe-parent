@@ -3,18 +3,23 @@ package recipe.client;
 import com.alibaba.fastjson.JSON;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
+import com.ngari.his.recipe.mode.EmrDetailValueDTO;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.RecipeBean;
+import com.ngari.platform.recipe.mode.RecipeDetailBean;
+import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.recipe.dto.*;
+import com.ngari.recipe.entity.RecipeTherapy;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
-import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
@@ -54,16 +59,21 @@ public class OfflineRecipeClient extends BaseClient {
     }
 
     /**
-     * 推送处方
+     * 推送处方 ，诊疗处方出参处理
      *
-     * @param recipePdfDTO
+     * @param pushType     推送类型: 1：提交处方，2:撤销处方
+     * @param recipePdfDTO 处方明细
+     * @param emrDetail    电子病历
+     * @return
+     * @throws Exception
      */
-    public void pushRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType) {
-        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = new com.ngari.platform.recipe.mode.RecipeDTO();
-        recipeDTO.setPushType(pushType);
-        recipeDTO.setOrganId(recipePdfDTO.getRecipe().getClinicOrgan());
-        HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse = recipeHisService.pushRecipe(recipeDTO);
+    public RecipeTherapy pushTherapyRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail) throws Exception {
+        com.ngari.platform.recipe.mode.RecipeDTO hisResponseData = pushRecipe(pushType, recipePdfDTO, emrDetail);
+        RecipeTherapy recipeTherapy = ObjectCopyUtils.convert(hisResponseData.getRecipeTherapy(), RecipeTherapy.class);
+        recipeTherapy.setId(recipePdfDTO.getRecipeTherapy().getId());
+        return recipeTherapy;
     }
+
 
     /**
      * 查询线下门诊处方诊断信息
@@ -222,7 +232,7 @@ public class OfflineRecipeClient extends BaseClient {
         offLineRecipeDetailDTO.setDocIndexId(null);
 
         if (!ObjectUtils.isEmpty(queryHisRecipResTO)) {
-            BeanUtils.copy(queryHisRecipResTO,offLineRecipeDetailDTO);
+            BeanUtils.copyProperties(queryHisRecipResTO, offLineRecipeDetailDTO);
             offLineRecipeDetailDTO.setOrganDiseaseName(queryHisRecipResTO.getDiseaseName());
             offLineRecipeDetailDTO.setChronicDiseaseName(queryHisRecipResTO.getChronicDiseaseName());
             offLineRecipeDetailDTO.setCheckerName(queryHisRecipResTO.getCheckerName());
@@ -232,14 +242,46 @@ public class OfflineRecipeClient extends BaseClient {
             offLineRecipeDetailDTO.setRecipeTypeText(recipeTypeText);
             //判断是否为医保处方
             Integer medicalType = queryHisRecipResTO.getMedicalType();
-            if (!ObjectUtils.isEmpty(medicalType)&&medicalType.equals(2)){
+            if (!ObjectUtils.isEmpty(medicalType) && medicalType.equals(2)) {
                 offLineRecipeDetailDTO.setMedicalTypeText("普通医保");
-            }else if (!ObjectUtils.isEmpty(medicalType)&&medicalType.equals(1)){
+            } else if (!ObjectUtils.isEmpty(medicalType) && medicalType.equals(1)) {
                 offLineRecipeDetailDTO.setMedicalTypeText("患者自费");
             }
         }
 
         return data.get(0);
+    }
+
+    /**
+     * 推送处方
+     *
+     * @param pushType     推送类型: 1：提交处方，2:撤销处方
+     * @param recipePdfDTO 处方明细
+     * @param emrDetail    电子病历
+     * @return
+     * @throws Exception
+     */
+    private com.ngari.platform.recipe.mode.RecipeDTO pushRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail) throws Exception {
+        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = new com.ngari.platform.recipe.mode.RecipeDTO();
+        recipeDTO.setPushType(pushType);
+        recipeDTO.setOrganId(recipePdfDTO.getRecipe().getClinicOrgan());
+        com.ngari.platform.recipe.mode.EmrDetailDTO emrDetailDTO = new com.ngari.platform.recipe.mode.EmrDetailDTO();
+        BeanUtils.copyProperties(emrDetail, emrDetailDTO);
+        emrDetailDTO.setSymptomValue(ObjectCopyUtils.convert(emrDetail.getSymptomValue(), EmrDetailValueDTO.class));
+        emrDetailDTO.setDiseaseValue(ObjectCopyUtils.convert(emrDetail.getDiseaseValue(), EmrDetailValueDTO.class));
+        recipeDTO.setEmrDetailDTO(emrDetailDTO);
+        recipeDTO.setRecipeBean(ObjectCopyUtils.convert(recipePdfDTO.getRecipe(), RecipeBean.class));
+        recipeDTO.setRecipeDetails(ObjectCopyUtils.convert(recipePdfDTO.getRecipeDetails(), RecipeDetailBean.class));
+        recipeDTO.setRecipeExtendBean(ObjectCopyUtils.convert(recipePdfDTO.getRecipeExtend(), RecipeExtendBean.class));
+        recipeDTO.setPatientDTO(ObjectCopyUtils.convert(recipePdfDTO.getPatientBean(), PatientDTO.class));
+        try {
+            HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse = recipeHisService.pushRecipe(recipeDTO);
+            com.ngari.platform.recipe.mode.RecipeDTO hisResponseData = getResponse(hisResponse);
+            return hisResponseData;
+        } catch (Exception e) {
+            logger.error("OfflineRecipeClient offlineCommonRecipe hisResponse", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
     }
 
     /**

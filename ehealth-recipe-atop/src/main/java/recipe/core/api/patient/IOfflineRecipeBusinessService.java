@@ -69,6 +69,7 @@ public interface IOfflineRecipeBusinessService {
      * 异步推送his诊疗处方信息
      *
      * @param recipeId 处方id
+     * @param pushType 推送类型: 1：提交处方，2:撤销处方
      */
     void pushTherapyRecipeExecute(Integer recipeId, Integer pushType);
 }

@@ -1,5 +1,6 @@
 package recipe.business;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
@@ -12,6 +13,7 @@ import com.ngari.recipe.dto.OffLineRecipeDetailDTO;
 import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.HisRecipe;
+import com.ngari.recipe.entity.RecipeTherapy;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
@@ -31,13 +33,16 @@ import org.springframework.util.ObjectUtils;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.OfflineRecipeClient;
+import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.enumerate.status.OfflineToOnlineEnum;
+import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.HisRecipeManager;
 import recipe.manager.RecipeManager;
+import recipe.manager.RecipeTherapyManager;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
@@ -71,7 +76,8 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     private OfflineRecipeClient offlineRecipeClient;
     @Autowired
     protected RecipeManager recipeManager;
-
+    @Autowired
+    private RecipeTherapyManager recipeTherapyManager;
 
     @Override
     public List<MergeRecipeVO> findHisRecipeList(FindHisRecipeListVO request) {
@@ -272,7 +278,17 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         RecipeBusiThreadPool.execute(() -> {
             logger.info("RecipeBusinessService pushTherapyRecipeExecute recipeId={}", recipeId);
             RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeTherapyDTO(recipeId);
-            hisRecipeManager.pushRecipe(recipePdfDTO, pushType);
+            RecipeTherapy recipeTherapy = hisRecipeManager.pushTherapyRecipe(recipePdfDTO, pushType);
+            if (null == recipeTherapy) {
+                return;
+            }
+            if (CommonConstant.THERAPY_RECIPE_PUSH_TYPE.equals(pushType)) {
+                recipeTherapy.setStatus(TherapyStatusEnum.READYPAY.getType());
+            } else {
+                recipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
+            }
+            recipeTherapyManager.updateRecipeTherapy(recipeTherapy);
+            logger.info("RecipeBusinessService pushTherapyRecipeExecute recipeTherapy={}", JSON.toJSONString(recipeTherapy));
         });
     }
 }
