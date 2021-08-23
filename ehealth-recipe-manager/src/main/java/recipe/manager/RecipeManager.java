@@ -2,7 +2,10 @@ package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.*;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.RecipeLog;
+import com.ngari.recipe.entity.RecipeRefund;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -13,7 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.*;
 import recipe.constant.RecipeStatusConstant;
-import recipe.dao.*;
+import recipe.dao.RecipeLogDAO;
+import recipe.dao.RecipeRefundDAO;
+import recipe.dao.RecipeTherapyDAO;
 import recipe.util.DictionaryUtil;
 import recipe.util.ValidateUtil;
 
@@ -29,14 +34,6 @@ import java.util.List;
  */
 @Service
 public class RecipeManager extends BaseManager {
-    @Autowired
-    private RecipeOrderDAO recipeOrderDAO;
-    @Autowired
-    private RecipeDAO recipeDAO;
-    @Autowired
-    private RecipeExtendDAO recipeExtendDAO;
-    @Autowired
-    private RecipeDetailDAO recipeDetailDAO;
     @Autowired
     private PatientClient patientClient;
     @Autowired
@@ -72,36 +69,6 @@ public class RecipeManager extends BaseManager {
         return recipeExtend;
     }
 
-    /**
-     * 获取处方相关信息
-     *
-     * @param recipeId 处方id
-     * @return
-     */
-    public RecipeDTO getRecipeDTO(Integer recipeId) {
-        logger.info("RecipeOrderManager getRecipeDTO recipeId:{}", recipeId);
-        RecipeDTO recipeDTO = new RecipeDTO();
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        recipeDTO.setRecipe(recipe);
-        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
-        recipeDTO.setRecipeDetails(recipeDetails);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        recipeDTO.setRecipeExtend(recipeExtend);
-        if (StringUtils.isNotEmpty(recipeExtend.getCardNo())) {
-            logger.info("RecipeOrderManager getRecipeDTO recipeDTO:{}", JSON.toJSONString(recipeDTO));
-            return recipeDTO;
-        }
-        if (ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
-            return recipeDTO;
-        }
-        RevisitExDTO consultExDTO = revisitClient.getByClinicId(recipe.getClinicId());
-        if (null != consultExDTO) {
-            recipeExtend.setCardNo(consultExDTO.getCardId());
-            recipeExtend.setCardType(consultExDTO.getCardType());
-        }
-        logger.info("RecipeOrderManager getRecipeDTO recipeDTO:{}", JSON.toJSONString(recipeDTO));
-        return recipeDTO;
-    }
 
     /**
      * 获取处方相关信息
@@ -132,21 +99,17 @@ public class RecipeManager extends BaseManager {
         recipeExtend.setSymptomId(emrDetail.getSymptomId());
         recipeExtend.setSymptomName(emrDetail.getSymptomName());
         recipeExtend.setAllergyMedical(emrDetail.getAllergyMedical());
+        if (!ValidateUtil.integerIsEmpty(recipe.getClinicId()) && StringUtils.isEmpty(recipeExtend.getCardNo())) {
+            RevisitExDTO consultExDTO = revisitClient.getByClinicId(recipe.getClinicId());
+            if (null != consultExDTO) {
+                recipeExtend.setCardNo(consultExDTO.getCardId());
+                recipeExtend.setCardType(consultExDTO.getCardType());
+            }
+        }
         logger.info("RecipeOrderManager getRecipeInfoDTO patientBean:{}", JSON.toJSONString(patientBean));
         return recipeInfoDTO;
     }
 
-    public RecipeInfoDTO getRecipeTherapyDTO(Integer recipeId) {
-        RecipeDTO recipeDTO = getRecipeDTO(recipeId);
-        RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
-        BeanUtils.copyProperties(recipeDTO, recipeInfoDTO);
-        Recipe recipe = recipeInfoDTO.getRecipe();
-        PatientDTO patientBean = patientClient.getPatientDTO(recipe.getMpiid());
-        recipeInfoDTO.setPatientBean(patientBean);
-        RecipeTherapy recipeTherapy = recipeTherapyDAO.getByRecipeId(recipeId);
-        recipeInfoDTO.setRecipeTherapy(recipeTherapy);
-        return recipeInfoDTO;
-    }
 
     /**
      * 获取处方信息
