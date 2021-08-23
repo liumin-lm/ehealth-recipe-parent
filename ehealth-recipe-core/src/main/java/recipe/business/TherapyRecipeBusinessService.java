@@ -85,7 +85,7 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前状态无法作废");
         }
         recipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
-        if (null != recipeTherapyManager.updateRecipeTherapy(recipeTherapy)){
+        if (recipeTherapyManager.updateRecipeTherapy(recipeTherapy)) {
             return true;
         } else {
             return false;

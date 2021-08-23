@@ -4,6 +4,7 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
@@ -14,9 +15,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.client.DocIndexClient;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
-import recipe.dao.*;
+import recipe.dao.HisRecipeDAO;
+import recipe.dao.HisRecipeDetailDAO;
+import recipe.dao.HisRecipeExtDAO;
+import recipe.dao.RecipeLogDAO;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.util.MapValueUtil;
@@ -35,37 +40,20 @@ import java.util.stream.Collectors;
 public class HisRecipeManager extends BaseManager {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
-
     @Autowired
-    PatientClient patientClient;
-
+    private DocIndexClient docIndexClient;
     @Autowired
-    OfflineRecipeClient offlineRecipeClient;
-
+    private PatientClient patientClient;
     @Autowired
-    HisRecipeDAO hisRecipeDao;
-
+    private OfflineRecipeClient offlineRecipeClient;
+    @Autowired
+    private HisRecipeDAO hisRecipeDao;
     @Autowired
     private HisRecipeExtDAO hisRecipeExtDAO;
-
     @Autowired
     private HisRecipeDetailDAO hisRecipeDetailDAO;
-
-    @Autowired
-    private RecipeDAO recipeDAO;
-
-    @Autowired
-    private RecipeOrderDAO recipeOrderDAO;
-
-    @Autowired
-    private RecipeExtendDAO recipeExtendDAO;
-
-    @Autowired
-    private RecipeDetailDAO recipeDetailDAO;
-
     @Autowired
     private RecipeLogDAO recipeLogDao;
-
     @Autowired
     private EmrRecipeManager emrRecipeManager;
 
@@ -468,7 +456,19 @@ public class HisRecipeManager extends BaseManager {
      *
      * @param recipePdfDTO 处方信息
      */
-    public void pushRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType) {
-        offlineRecipeClient.pushRecipe(recipePdfDTO, pushType);
+    public RecipeTherapy pushTherapyRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType) {
+        RecipeExtend recipeExtend = recipePdfDTO.getRecipeExtend();
+        Integer docIndexId = null;
+        if (null != recipeExtend) {
+            docIndexId = recipeExtend.getDocIndexId();
+        }
+        EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(docIndexId);
+        try {
+            return offlineRecipeClient.pushTherapyRecipe(pushType, recipePdfDTO, emrDetail);
+        } catch (Exception e) {
+            Recipe recipe = recipePdfDTO.getRecipe();
+            recipeLogDao.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
+        }
+        return null;
     }
 }

@@ -13,4 +13,9 @@ public class CommonConstant {
 
     public static final Integer requestSuccessCode = 200;
 
+    /**
+     * 推送类型: 1：提交处方，2:撤销处方
+     */
+    public static final Integer THERAPY_RECIPE_PUSH_TYPE = 1;
+
 }
