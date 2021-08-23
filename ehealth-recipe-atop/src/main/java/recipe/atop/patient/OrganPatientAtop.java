@@ -42,7 +42,7 @@ public class OrganPatientAtop extends BaseAtop {
      * @return 购药方式列表
      */
     @RpcService
-    public Set<String> getOrganGiveModeConfig(Integer organId){
+    public Set<String> getOrganGiveMode(Integer organId){
         logger.info("OrganAtop getOrganGiveModeConfig organId:{}.", organId);
         try {
             Set<String> result = organBusinessService.getOrganGiveModeConfig(organId);
