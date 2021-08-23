@@ -1,6 +1,10 @@
 package recipe.atop.doctor;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.basic.ds.PatientVO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
@@ -13,6 +17,7 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.ItemListVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
@@ -65,7 +70,12 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         }
     }
 
-
+    /**
+     * 提交诊疗处方
+     *
+     * @param recipeInfoVO
+     * @return
+     */
     @RpcService
     public Integer submitTherapyRecipe(RecipeInfoVO recipeInfoVO) {
         Integer recipeId = saveTherapyRecipe(recipeInfoVO);
@@ -74,6 +84,33 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         return recipeId;
     }
 
+    /**
+     * 获取诊疗处方明细
+     *
+     * @param recipeId 处方id
+     * @return
+     */
+    @RpcService
+    public RecipeInfoVO therapyRecipeInfo(Integer recipeId) {
+        logger.info("TherapyRecipeDoctorAtop therapyRecipeInfo  recipeId = {}", recipeId);
+        try {
+            RecipeInfoDTO result = therapyRecipeBusinessService.therapyRecipeInfo(recipeId);
+            RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
+            recipeInfoVO.setPatientVO(ObjectCopyUtils.convert(result.getPatientBean(), PatientVO.class));
+            recipeInfoVO.setRecipeBean(ObjectCopyUtils.convert(result.getRecipe(), RecipeBean.class));
+            recipeInfoVO.setRecipeExtendBean(ObjectCopyUtils.convert(result.getRecipeExtend(), RecipeExtendBean.class));
+            recipeInfoVO.setRecipeDetails(ObjectCopyUtils.convert(result.getRecipeDetails(), RecipeDetailBean.class));
+            recipeInfoVO.setRecipeTherapyVO(ObjectCopyUtils.convert(result.getRecipeTherapy(), RecipeTherapyVO.class));
+            logger.info("TherapyRecipeDoctorAtop therapyRecipeInfo  recipeInfoVO = {}", JSON.toJSONString(recipeInfoVO));
+            return recipeInfoVO;
+        } catch (DAOException e1) {
+            logger.warn("TherapyRecipeDoctorAtop therapyRecipeInfo  error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("TherapyRecipeDoctorAtop therapyRecipeInfo  error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
 
     /**
      * 撤销处方

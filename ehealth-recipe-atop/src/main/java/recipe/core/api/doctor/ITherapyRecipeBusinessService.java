@@ -1,5 +1,6 @@
 package recipe.core.api.doctor;
 
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import recipe.vo.doctor.ItemListVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
@@ -16,7 +17,16 @@ public interface ITherapyRecipeBusinessService {
     Integer saveTherapyRecipe(RecipeInfoVO recipeInfoVO);
 
     /**
+     * 获取诊疗处方明细
+     *
+     * @param recipeId 处方id
+     * @return
+     */
+    RecipeInfoDTO therapyRecipeInfo(Integer recipeId);
+
+    /**
      * 撤销诊疗处方
+     *
      * @param recipeTherapyVO
      * @return
      */

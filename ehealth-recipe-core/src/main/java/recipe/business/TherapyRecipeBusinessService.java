@@ -1,6 +1,8 @@
 package recipe.business;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,7 +60,14 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     }
 
     @Override
-    public boolean cancelRecipe(RecipeTherapyVO recipeTherapyVO){
+    public RecipeInfoDTO therapyRecipeInfo(Integer recipeId) {
+        RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDTO(recipeId);
+        logger.info("TherapyRecipeBusinessService therapyRecipeInfo  recipePdfDTO = {}", JSON.toJSONString(recipePdfDTO));
+        return recipePdfDTO;
+    }
+
+    @Override
+    public boolean cancelRecipe(RecipeTherapyVO recipeTherapyVO) {
         Recipe recipe = recipeManager.getRecipeById(recipeTherapyVO.getRecipeId());
         if (null == recipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "处方数据不存在");

@@ -1,5 +1,6 @@
 package recipe.vo.doctor;
 
+import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
@@ -30,4 +31,8 @@ public class RecipeInfoVO {
      * 诊疗处方
      */
     private RecipeTherapyVO recipeTherapyVO;
+    /**
+     * 患者信息
+     */
+    private PatientVO patientVO;
 }
