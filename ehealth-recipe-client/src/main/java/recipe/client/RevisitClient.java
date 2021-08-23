@@ -58,17 +58,22 @@ public class RevisitClient extends BaseClient {
      * @param recipe
      */
     public void saveRevisitTracesList(Recipe recipe) {
-        RevisitTracesSortRequest revisitTracesSortRequest = new RevisitTracesSortRequest();
-        revisitTracesSortRequest.setBusId(recipe.getRecipeId().toString());
-        revisitTracesSortRequest.setBusNumOrder(10);
-        revisitTracesSortRequest.setBusOccurredTime(new Date());
-        revisitTracesSortRequest.setBusType(1);
-        revisitTracesSortRequest.setConsultId(recipe.getClinicId());
-        revisitTracesSortRequest.setFrequency(0);
-        revisitTracesSortRequest.setOrganId(recipe.getClinicOrgan());
-        logger.info("RevisitClient saveRevisitTracesList request revisitTracesSortRequest:{}", JSONUtils.toString(revisitTracesSortRequest));
-        RevisitTracesSortResponse revisitTracesSortResponse = revisitTracesSortService.saveOrUpdate(revisitTracesSortRequest);
-        logger.info("RevisitClient saveRevisitTracesList response revisitTracesSortResponse:{}", JSONUtils.toString(revisitTracesSortResponse));
-        //TODO  复诊的接口返回没有成功或失败 无法加标志 无法失败重试或批量处理失败数据
+        try {
+            RevisitTracesSortRequest revisitTracesSortRequest = new RevisitTracesSortRequest();
+            revisitTracesSortRequest.setBusId(recipe.getRecipeId().toString());
+            revisitTracesSortRequest.setBusNumOrder(10);
+            revisitTracesSortRequest.setBusOccurredTime(new Date());
+            revisitTracesSortRequest.setBusType(1);
+            revisitTracesSortRequest.setConsultId(recipe.getClinicId());
+            revisitTracesSortRequest.setFrequency(0);
+            revisitTracesSortRequest.setOrganId(recipe.getClinicOrgan());
+            logger.info("RevisitClient saveRevisitTracesList request revisitTracesSortRequest:{}", JSONUtils.toString(revisitTracesSortRequest));
+            RevisitTracesSortResponse revisitTracesSortResponse = revisitTracesSortService.saveOrUpdate(revisitTracesSortRequest);
+            logger.info("RevisitClient saveRevisitTracesList response revisitTracesSortResponse:{}", JSONUtils.toString(revisitTracesSortResponse));
+            //TODO  复诊的接口返回没有成功或失败 无法加标志 无法失败重试或批量处理失败数据
+        } catch (Exception e) {
+            logger.error("RevisitClient saveRevisitTracesList error :{}", e);
+            e.printStackTrace();
+        }
     }
 }
