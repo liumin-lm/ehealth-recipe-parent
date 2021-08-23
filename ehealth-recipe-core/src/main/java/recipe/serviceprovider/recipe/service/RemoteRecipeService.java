@@ -21,6 +21,7 @@ import com.ngari.common.dto.HosBusFundsReportResult;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.ca.model.CaSealRequestTO;
+import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.QueryRecipeRequestTO;
 import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
@@ -55,6 +56,7 @@ import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipereportform.model.*;
+import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.account.Client;
 import ctd.controller.exception.ControllerException;
@@ -2443,6 +2445,24 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         RevisitExDTO revisitExDTO = revisitClient.getByClinicId(clinicId);
         if (null == revisitExDTO || StringUtils.isEmpty(revisitExDTO.getRegisterNo())) {
             return false;
+        }
+        RevisitBean revisitBean = revisitClient.getRevisitByClinicId(clinicId);
+        PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(revisitBean.getMpiid());
+        try {
+            List<QueryHisRecipResTO> totalHisRecipe = new ArrayList<>();
+            //查询待缴费处方
+            HisResponseTO<List<QueryHisRecipResTO>> noPayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, null, 1, "");
+            //查询已缴费处方
+            HisResponseTO<List<QueryHisRecipResTO>> havePayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, null, 2, "");
+
+            totalHisRecipe.addAll(noPayRecipe.getData());
+            totalHisRecipe.addAll(havePayRecipe.getData());
+            Set<String> registers = totalHisRecipe.stream().filter(hisRecipe -> StringUtils.isNotEmpty(hisRecipe.getRegisteredId())).collect(Collectors.groupingBy(QueryHisRecipResTO::getRegisteredId)).keySet();
+            if (CollectionUtils.isNotEmpty(registers) && registers.contains(revisitExDTO.getRegisterNo())) {
+                return true;
+            }
+        } catch (Exception e) {
+            LOGGER.error("RemoteRecipeService getOfflineEffectiveRecipeFlag error ", e);
         }
         return false;
     }
