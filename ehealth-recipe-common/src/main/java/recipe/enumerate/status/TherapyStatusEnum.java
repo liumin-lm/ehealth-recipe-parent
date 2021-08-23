@@ -11,6 +11,7 @@ public enum TherapyStatusEnum {
     READYPAY(2, "待缴费"),
     HADEPAY(3, "已缴费"),
     HADECANCEL(4, "已作废");
+
     private Integer type;
     private String name;
 

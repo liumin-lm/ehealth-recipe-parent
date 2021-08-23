@@ -1,8 +1,10 @@
 package recipe.client;
 
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
+import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.traces.requ.RevisitTracesSortRequest;
 import com.ngari.revisit.traces.resp.RevisitTracesSortResponse;
 import com.ngari.revisit.traces.service.IRevisitTracesSortService;
@@ -26,6 +28,9 @@ public class RevisitClient extends BaseClient {
     @Autowired
     private IRevisitTracesSortService revisitTracesSortService;
 
+    @Autowired
+    private IRevisitService revisitService;
+
     /**
      * 根据挂号序号获取复诊信息
      *
@@ -37,6 +42,13 @@ public class RevisitClient extends BaseClient {
         RevisitExDTO consultExDTO = revisitExService.getByRegisterId(registeredId);
         logger.info("RevisitClient res consultExDTO:{} ", JSONUtils.toString(consultExDTO));
         return consultExDTO;
+    }
+
+    public RevisitBean getRevisitByClinicId(Integer clinicId){
+        logger.info("RevisitClient getRevisitByClinicId param clinicId:{}", clinicId);
+        RevisitBean revisitBean = revisitService.getById(clinicId);
+        logger.info("RevisitClient getRevisitByClinicId param clinicId:{}", clinicId);
+        return revisitBean;
     }
 
     /**

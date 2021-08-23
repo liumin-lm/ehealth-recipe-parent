@@ -1,4 +1,4 @@
-package com.ngari.recipe.vo;
+package recipe.enumerate.type;
 
 /**
  * @author yinsheng
