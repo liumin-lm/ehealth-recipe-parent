@@ -59,6 +59,9 @@ public class RevisitClient extends BaseClient {
      */
     public void saveRevisitTracesList(Recipe recipe) {
         try {
+            if (recipe == null) {
+                return;
+            }
             RevisitTracesSortRequest revisitTracesSortRequest = new RevisitTracesSortRequest();
             revisitTracesSortRequest.setBusId(recipe.getRecipeId().toString());
             revisitTracesSortRequest.setBusNumOrder(10);
@@ -72,7 +75,7 @@ public class RevisitClient extends BaseClient {
             logger.info("RevisitClient saveRevisitTracesList response revisitTracesSortResponse:{}", JSONUtils.toString(revisitTracesSortResponse));
             //TODO  复诊的接口返回没有成功或失败 无法加标志 无法失败重试或批量处理失败数据
         } catch (Exception e) {
-            logger.error("RevisitClient saveRevisitTracesList error :{}", e);
+            logger.error("RevisitClient saveRevisitTracesList error recipeId:{},{}", recipe.getRecipeId(), e);
             e.printStackTrace();
         }
     }
