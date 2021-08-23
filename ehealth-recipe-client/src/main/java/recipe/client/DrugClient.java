@@ -1,17 +1,21 @@
 package recipe.client;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.bus.op.service.IUsingRateService;
+import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.entity.DecoctionWay;
 import com.ngari.recipe.entity.DrugMakingMethod;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
+import es.api.DrugSearchService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -27,7 +31,37 @@ public class DrugClient extends BaseClient {
     private IUsingRateService usingRateService;
     @Autowired
     private IUsePathwaysService usePathwaysService;
+    @Autowired
+    private DrugSearchService drugSearchService;
 
+
+    /**
+     * 患者端搜索药品
+     *
+     * @param saleName 搜索关键字
+     * @param organId  机构id
+     * @param drugType 药品类型
+     * @param start    起始条数
+     * @param limit    条数
+     * @return
+     */
+    public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(String saleName, String organId, List<String> drugType, int start, int limit) {
+        logger.info("DrugClient findDrugWithEsByPatient saleName : {} organId:{} drugType:{} start:{}  limit:{}", saleName, organId, JSON.toJSONString(drugType), start, limit);
+        if (Objects.isNull(organId)) {
+            return null;
+        }
+        List<String> drugStrings = drugSearchService.searchOrganDrugForPatient(saleName, organId, drugType, start, limit);
+        logger.info("findDrugWithEsByPatient drugStrings={}", JSONArray.toJSONString(drugStrings));
+        if (CollectionUtils.isEmpty(drugStrings)) {
+            return null;
+        }
+        List<PatientDrugWithEsDTO> patientDrugWithEsDTOS = drugStrings.stream().map(drugString -> {
+            PatientDrugWithEsDTO patientDrugWithEsDTO = JSONArray.parseObject(drugString, PatientDrugWithEsDTO.class);
+            return patientDrugWithEsDTO;
+        }).collect(Collectors.toList());
+
+        return patientDrugWithEsDTOS;
+    }
 
     /**
      * 获取机构 药物使用频率

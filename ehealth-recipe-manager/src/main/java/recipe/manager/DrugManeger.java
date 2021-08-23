@@ -3,6 +3,7 @@ package recipe.manager;
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
+import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -16,10 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DrugClient;
 import recipe.constant.RecipeBussConstant;
-import recipe.dao.DrugDecoctionWayDao;
-import recipe.dao.DrugEntrustDAO;
-import recipe.dao.DrugMakingMethodDao;
-import recipe.dao.OrganDrugListDAO;
+import recipe.dao.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,6 +38,8 @@ public class DrugManeger extends BaseManager {
     private DrugDecoctionWayDao drugDecoctionWayDao;
     @Autowired
     private DrugEntrustDAO drugEntrustDAO;
+    @Autowired
+    private DrugListDAO drugListDAO;
 
     /**
      * todo 分层不合理 静态不合理 方法使用不合理 需要修改 （尹盛）
@@ -215,5 +215,35 @@ public class DrugManeger extends BaseManager {
         return drugClient.usePathwaysCodeMap(organId);
     }
 
+    /**
+     * 患者端搜索药品
+     *
+     * @param saleName 搜索关键字
+     * @param organId  机构id
+     * @param drugType 类型
+     * @param start    起始
+     * @param limit    条数
+     * @return
+     */
+    public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(String saleName, String organId, List<String> drugType, int start, int limit) {
+        logger.info("DrugManager findDrugWithEsByPatient saleName : {} organId:{} drugType:{} start:{}  limit:{}", saleName, organId, JSON.toJSONString(drugType), start, limit);
+        // 搜索药品信息
+        List<PatientDrugWithEsDTO> drugWithEsByPatient = drugClient.findDrugWithEsByPatient(saleName, organId, drugType, start, limit);
+        if (CollectionUtils.isEmpty(drugWithEsByPatient)) {
+            return null;
+        }
+        // 拼接 药品图片
+        Set<Integer> drugIds = drugWithEsByPatient.stream().map(PatientDrugWithEsDTO::getDrugId).collect(Collectors.toSet());
+        if (CollectionUtils.isNotEmpty(drugIds)) {
+            List<DrugList> byDrugIds = drugListDAO.findByDrugIds(drugIds);
+            if(CollectionUtils.isNotEmpty(byDrugIds)){
+                Map<Integer, List<DrugList>> collect = byDrugIds.stream().collect(Collectors.groupingBy(DrugList::getDrugId));
+                drugWithEsByPatient.forEach(patientDrugWithEsDTO -> {
+                    patientDrugWithEsDTO.setDrugPic(collect.get(patientDrugWithEsDTO.getDrugId()).get(0).getDrugPic());
+                });
+            }
 
+        }
+        return drugWithEsByPatient;
+    }
 }
