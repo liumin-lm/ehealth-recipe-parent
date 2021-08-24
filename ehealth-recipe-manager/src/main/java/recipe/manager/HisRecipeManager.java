@@ -18,6 +18,7 @@ import org.springframework.stereotype.Service;
 import recipe.client.DocIndexClient;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
+import recipe.client.RevisitClient;
 import recipe.dao.HisRecipeDAO;
 import recipe.dao.HisRecipeDetailDAO;
 import recipe.dao.HisRecipeExtDAO;
@@ -56,6 +57,8 @@ public class HisRecipeManager extends BaseManager {
     private RecipeLogDAO recipeLogDao;
     @Autowired
     private EmrRecipeManager emrRecipeManager;
+    @Autowired
+    private RevisitClient revisitClient;
 
 
     /**
@@ -250,6 +253,8 @@ public class HisRecipeManager extends BaseManager {
             recipeLog.setAfterStatus(RecipeStatusEnum.RECIPE_STATUS_DELETE.getType());
             recipeLog.setMemo("线下转线上：修改处方状态为已删除,数据是：" + JSONUtils.toString(recipeMap.get(a)));
             recipeLogDao.saveRecipeLog(recipeLog);
+            revisitClient.deleteByBusIdAndBusNumOrder(a);
+//            RecipeBusiThreadPool.execute(() -> revisitClient.deleteByBusIdAndBusNumOrder(a));
         });
         LOGGER.info("HisRecipeManager deleteSetRecipeCode is delete end ");
     }
