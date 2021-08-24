@@ -22,7 +22,6 @@ import recipe.client.RevisitClient;
 import recipe.dao.HisRecipeDAO;
 import recipe.dao.HisRecipeDetailDAO;
 import recipe.dao.HisRecipeExtDAO;
-import recipe.dao.RecipeLogDAO;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.util.MapValueUtil;
@@ -53,8 +52,6 @@ public class HisRecipeManager extends BaseManager {
     private HisRecipeExtDAO hisRecipeExtDAO;
     @Autowired
     private HisRecipeDetailDAO hisRecipeDetailDAO;
-    @Autowired
-    private RecipeLogDAO recipeLogDao;
     @Autowired
     private EmrRecipeManager emrRecipeManager;
     @Autowired
@@ -461,7 +458,7 @@ public class HisRecipeManager extends BaseManager {
      *
      * @param recipePdfDTO 处方信息
      */
-    public RecipeTherapy pushTherapyRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType) {
+    public RecipeInfoDTO pushTherapyRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType) {
         RecipeExtend recipeExtend = recipePdfDTO.getRecipeExtend();
         Integer docIndexId = null;
         if (null != recipeExtend) {
@@ -469,7 +466,11 @@ public class HisRecipeManager extends BaseManager {
         }
         EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(docIndexId);
         try {
-            return offlineRecipeClient.pushTherapyRecipe(pushType, recipePdfDTO, emrDetail);
+            RecipeInfoDTO result = offlineRecipeClient.pushTherapyRecipe(pushType, recipePdfDTO, emrDetail);
+            result.getRecipe();
+            result.getRecipeExtend();
+
+            return result;
         } catch (Exception e) {
             Recipe recipe = recipePdfDTO.getRecipe();
             recipeLogDao.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
