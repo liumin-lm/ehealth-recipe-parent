@@ -2717,36 +2717,42 @@ public class RecipeService extends RecipeBaseService {
         if (StringUtils.isEmpty(organDrugChange.getDrugName())) {
             list.add("drugName(药品通用名)");
         }
-        if (StringUtils.isEmpty(organDrugChange.getDrugSpec())) {
-            list.add("drugSpec(药品规格)");
+        if (organDrugChange.getSyncWay()!=3){
+            if (StringUtils.isEmpty(organDrugChange.getDrugSpec())) {
+                list.add("drugSpec(药品规格)");
+            }
+            if (ObjectUtils.isEmpty(organDrugChange.getPack())) {
+                list.add("pack(转换系数)");
+            }
+            if (StringUtils.isEmpty(organDrugChange.getUnit())) {
+                list.add("unit(药品单位)");
+            }
+            if (StringUtils.isEmpty(organDrugChange.getProducer())) {
+                list.add("producer(生产厂家 名称)");
+            }
+            if (StringUtils.isEmpty(organDrugChange.getDrugform())) {
+                list.add("drugform(剂型)");
+            }
+            if (ObjectUtils.isEmpty(organDrugChange.getDrugType())) {
+                list.add("drugType(药品类型)");
+            }
+            if (ObjectUtils.isEmpty(organDrugChange.getUseDose())) {
+                list.add("useDose(单次剂量)");
+            }
+            if (ObjectUtils.isEmpty(organDrugChange.getBaseDrug())) {
+                list.add("baseDrug(是否基药)");
+            }
+            if (ObjectUtils.isEmpty(organDrugChange.getUseDoseUnit())) {
+                list.add("useDoseUnit(剂量单位)");
+            }
+            if (ObjectUtils.isEmpty(organDrugChange.getPrice())) {
+                list.add("price(药品单价)");
+            }
+            if (ObjectUtils.isEmpty(organDrugChange.getDrugManfCode())) {
+                list.add("drugManfCode(药品产地编码)");
+            }
         }
-        if (ObjectUtils.isEmpty(organDrugChange.getPack())) {
-            list.add("pack(转换系数)");
-        }
-        if (StringUtils.isEmpty(organDrugChange.getUnit())) {
-            list.add("unit(药品单位)");
-        }
-        if (StringUtils.isEmpty(organDrugChange.getProducer())) {
-            list.add("producer(生产厂家 名称)");
-        }
-        if (StringUtils.isEmpty(organDrugChange.getDrugform())) {
-            list.add("drugform(剂型)");
-        }
-        if (ObjectUtils.isEmpty(organDrugChange.getDrugType())) {
-            list.add("drugType(药品类型)");
-        }
-        if (ObjectUtils.isEmpty(organDrugChange.getUseDose())) {
-            list.add("useDose(单次剂量)");
-        }
-        if (ObjectUtils.isEmpty(organDrugChange.getBaseDrug())) {
-            list.add("baseDrug(是否基药)");
-        }
-        if (ObjectUtils.isEmpty(organDrugChange.getUseDoseUnit())) {
-            list.add("useDoseUnit(剂量单位)");
-        }
-        if (ObjectUtils.isEmpty(organDrugChange.getPrice())) {
-            list.add("price(药品单价)");
-        }
+
         return list;
     }
 
@@ -2756,7 +2762,7 @@ public class RecipeService extends RecipeBaseService {
      * @param organDrugs
      * @return
      */
-    @RpcService
+    @RpcService(timeout = 6000)
     public HisResponseTO syncOrganDrug(List<OrganDrugInfoTO> organDrugs, Integer organId) {
         HisResponseTO hisResponseTO = new HisResponseTO();
         if (ObjectUtils.isEmpty(organId)) {
@@ -4862,9 +4868,8 @@ public class RecipeService extends RecipeBaseService {
                 LOGGER.error("addHisDrug.updateMatchAutomatic fail,", e);
             }
         }
-        LOGGER.error("addHisDrug 成功{}", drugListMatch);
+        LOGGER.error("addHisDrug 成功{}", JSONUtils.toString(drugListMatch));
     }
-
 
     /**
      * 手动同步药品数据

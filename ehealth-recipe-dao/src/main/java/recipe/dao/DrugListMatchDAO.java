@@ -143,6 +143,14 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
         return action.getResult();
     }
 
+    /**
+     * 查询机构 以匹配数据
+     * @param organId
+     * @return
+     */
+    @DAOMethod(sql = "from DrugListMatch where sourceOrgan =:organId and status=1 ",limit = 0)
+    public abstract List<DrugListMatch> findMatchDataByOrganAndStatus(@DAOParam("organId") int organId);
+
     @DAOMethod(sql = "from DrugListMatch where sourceOrgan =:organId",limit = 0)
     public abstract List<DrugListMatch> findMatchDataByOrgan(@DAOParam("organId") int organId);
 

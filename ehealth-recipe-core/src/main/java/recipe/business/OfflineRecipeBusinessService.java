@@ -40,6 +40,7 @@ import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
+import recipe.manager.EmrRecipeManager;
 import recipe.manager.HisRecipeManager;
 import recipe.manager.RecipeManager;
 import recipe.manager.RecipeTherapyManager;
@@ -54,6 +55,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * 线下处方核心逻辑
+ *
  * @Author liumin
  * @Date 2021/7/20 下午4:58
  * @Description
@@ -78,6 +81,8 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     protected RecipeManager recipeManager;
     @Autowired
     private RecipeTherapyManager recipeTherapyManager;
+    @Autowired
+    private EmrRecipeManager emrRecipeManager;
 
     @Override
     public List<MergeRecipeVO> findHisRecipeList(FindHisRecipeListVO request) {
@@ -273,6 +278,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         return offLineRecipeDetailVO;
     }
 
+
     @Override
     public void pushTherapyRecipeExecute(Integer recipeId, Integer pushType) {
         RecipeBusiThreadPool.execute(() -> {
@@ -288,6 +294,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
                 recipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
             }
             recipeTherapyManager.updateRecipeTherapy(recipeTherapy);
+            emrRecipeManager.updateDisease(recipeId);
             logger.info("RecipeBusinessService pushTherapyRecipeExecute recipeTherapy={}", JSON.toJSONString(recipeTherapy));
         });
     }

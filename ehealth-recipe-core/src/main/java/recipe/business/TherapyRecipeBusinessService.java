@@ -18,7 +18,7 @@ import recipe.vo.doctor.ItemListVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
 
-import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -66,17 +66,27 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     }
 
     @Override
-    public List<RecipeInfoVO> therapyRecipeList(RecipeTherapy recipeTherapy, int start, int limit) {
+    public List<RecipeInfoDTO> therapyRecipeList(RecipeTherapy recipeTherapy, int start, int limit) {
+        List<RecipeInfoDTO> list = new LinkedList<>();
         List<RecipeTherapy> recipeTherapyList = recipeTherapyManager.therapyRecipeList(recipeTherapy, start, limit);
         if (CollectionUtils.isEmpty(recipeTherapyList)) {
-            return null;
+            return list;
         }
         List<Integer> recipeIds = recipeTherapyList.stream().map(RecipeTherapy::getRecipeId).collect(Collectors.toList());
         List<Recipe> recipeList = recipeManager.findByRecipeIds(recipeIds);
-        List<RecipeExtend> recipeExtList = recipeManager.findRecipeExtByRecipeIds(recipeIds);
+        Map<Integer, Recipe> recipeMap = recipeList.stream().collect(Collectors.toMap(Recipe::getRecipeId, a -> a, (k1, k2) -> k1));
+        //List<RecipeExtend> recipeExtList = recipeManager.findRecipeExtByRecipeIds(recipeIds);
         Map<Integer, List<Recipedetail>> recipeDetailGroup = recipeDetailManager.findRecipeDetails(recipeIds);
-        Map<String, PatientDTO> patientMap = patientClient.findPatientMap(Arrays.asList(recipeTherapy.getMpiId()));
-        return null;
+        List<String> mpiIds = recipeTherapyList.stream().map(RecipeTherapy::getMpiId).distinct().collect(Collectors.toList());
+        Map<String, PatientDTO> patientMap = patientClient.findPatientMap(mpiIds);
+        recipeTherapyList.forEach(a -> {
+            RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
+            recipeInfoDTO.setRecipeTherapy(a);
+            recipeInfoDTO.setRecipe(recipeMap.get(a.getRecipeId()));
+            recipeInfoDTO.setRecipeDetails(recipeDetailGroup.get(a.getRecipeId()));
+            recipeInfoDTO.setPatientBean(patientMap.get(a.getMpiId()));
+        });
+        return list;
     }
 
     @Override
