@@ -283,7 +283,7 @@ public class RecipeHisService extends RecipeBaseService {
                 request.setDoctorNumber(jobNumber);
                 request.setDoctorName(recipe.getDoctorName());
                 if (recipeExtend != null) {
-                    request.setDiseaseSerial(recipeExtend.getHisDiseaseSerial());
+                    request.setHisDiseaseSerial(recipeExtend.getHisDiseaseSerial());
                 }
                 LOGGER.info("recipeStatusUpdateWithOrganId  request:{}", JSONUtils.toString(request));
                 flag = service.recipeUpdate(request);
