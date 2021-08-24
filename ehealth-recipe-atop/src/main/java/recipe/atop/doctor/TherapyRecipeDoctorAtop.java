@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
+import recipe.constant.RecipeBussConstant;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -38,7 +39,6 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
     private ITherapyRecipeBusinessService therapyRecipeBusinessService;
     @Autowired
     private IOfflineRecipeBusinessService offlineToOnlineService;
-
     /**
      * 保存诊疗处方
      *
@@ -53,9 +53,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         recipeInfoVO.getRecipeBean().setStatus(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType());
         recipeInfoVO.getRecipeBean().setRecipeSourceType(3);
         recipeInfoVO.getRecipeBean().setSignDate(DateTime.now().toDate());
-        if (null == recipeInfoVO.getRecipeTherapyVO()) {
-            recipeInfoVO.setRecipeTherapyVO(new RecipeTherapyVO());
-        }
+        recipeInfoVO.getRecipeBean().setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
         if (null == recipeInfoVO.getRecipeExtendBean()) {
             recipeInfoVO.setRecipeExtendBean(new RecipeExtendBean());
         }

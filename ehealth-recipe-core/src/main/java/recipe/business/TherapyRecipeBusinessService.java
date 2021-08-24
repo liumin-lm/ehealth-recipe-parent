@@ -54,7 +54,7 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
         Map<String, OrganDrugList> organDrugListMap = organDrugListManager.getOrganDrugByIdAndCode(recipe.getClinicOrgan(), drugIds);
         recipeDetailManager.saveRecipeDetails(recipe, details, organDrugListMap);
         //保存诊疗
-        RecipeTherapy recipeTherapy = ObjectCopyUtils.convert(recipeInfoVO.getRecipeTherapyVO(), RecipeTherapy.class);
+        RecipeTherapy recipeTherapy = new RecipeTherapy();
         recipeTherapy.setStatus(TherapyStatusEnum.READYSUBMIT.getType());
         recipeTherapyManager.saveRecipeTherapy(recipeTherapy, recipe);
         //更新处方
