@@ -2775,6 +2775,7 @@ public class RecipeService extends RecipeBaseService {
             hisResponseTO.setMsg("推送数据为空!");
             return hisResponseTO;
         }
+        drugListMatchDAO.deleteByOrganIdAndStatus(organId);
         HisResponseTO checkOrganDrugs = checkOrganDrugs(organDrugs);
         if ("-1".equals(checkOrganDrugs.getMsgCode())) {
             return checkOrganDrugs;
@@ -3065,6 +3066,8 @@ public class RecipeService extends RecipeBaseService {
                 }
                 try {
                     syncDrugExcDAO.deleteByOrganId(organId, 1);
+                    //根据机构id删除 临时表 已提交数据
+                    drugListMatchDAO.deleteByOrganIdAndStatus(organId);
                     addOrUpdateDrugInfoSynMovement(organId, addList, 1, operator, commit);
                     addOrUpdateDrugInfoSynMovement(organId, updateList, 2, operator, commit);
                 } catch (InterruptedException e) {

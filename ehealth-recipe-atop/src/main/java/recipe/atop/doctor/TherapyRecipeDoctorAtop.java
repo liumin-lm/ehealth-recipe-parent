@@ -24,8 +24,11 @@ import recipe.util.ValidateUtil;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
 
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 诊疗处方服务入口类
@@ -97,10 +100,10 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
      * @param recipeTherapyVO 诊疗处方对象
      * @param start           页数
      * @param limit           每页条数
-     * @return
+     * @return key 复诊id
      */
     @RpcService
-    public List<RecipeInfoVO> therapyRecipeList(RecipeTherapyVO recipeTherapyVO, int start, int limit) {
+    public Map<Integer, List<RecipeInfoVO>> therapyRecipeList(RecipeTherapyVO recipeTherapyVO, int start, int limit) {
         logger.info("TherapyRecipeDoctorAtop therapyRecipeList  recipeTherapyVO = {},start:{},limit:{}", JSON.toJSONString(recipeTherapyVO), start, limit);
         validateAtop(recipeTherapyVO, recipeTherapyVO.getOrganId());
         if (ValidateUtil.validateObjects(recipeTherapyVO.getMpiId()) && ValidateUtil.validateObjects(recipeTherapyVO.getDoctorId())) {
@@ -115,19 +118,24 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
                 recipeInfoVO.setPatientVO(ObjectCopyUtils.convert(a.getPatientBean(), PatientVO.class));
                 recipeInfoVO.setRecipeTherapyVO(ObjectCopyUtils.convert(a.getRecipeTherapy(), RecipeTherapyVO.class));
                 RecipeBean recipeBean = new RecipeBean();
+                recipeBean.setRecipeId(a.getRecipe().getRecipeId());
                 recipeBean.setOrganDiseaseName(a.getRecipe().getOrganDiseaseName());
+                recipeBean.setCreateDate(a.getRecipe().getCreateDate());
                 recipeInfoVO.setRecipeBean(recipeBean);
                 List<RecipeDetailBean> recipeDetails = new LinkedList<>();
                 a.getRecipeDetails().forEach(b -> {
                     RecipeDetailBean recipeDetailBean = new RecipeDetailBean();
                     recipeDetailBean.setDrugName(b.getDrugName());
                     recipeDetailBean.setType(b.getType());
+                    recipeDetails.add(recipeDetailBean);
                 });
                 recipeInfoVO.setRecipeDetails(recipeDetails);
+                recipeInfoVO.setClinicId(a.getRecipeTherapy().getClinicId());
                 result.add(recipeInfoVO);
             });
-            logger.info("TherapyRecipeDoctorAtop therapyRecipeList  result = {}", JSON.toJSONString(result));
-            return result;
+            Map<Integer, List<RecipeInfoVO>> map = result.stream().sorted(Comparator.comparing(RecipeInfoVO::getClinicId).reversed()).collect(Collectors.groupingBy(RecipeInfoVO::getClinicId));
+            logger.info("TherapyRecipeDoctorAtop therapyRecipeList  map = {}", JSON.toJSONString(map));
+            return map;
         } catch (DAOException e1) {
             logger.warn("TherapyRecipeDoctorAtop therapyRecipeList  error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());

@@ -88,6 +88,7 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
             recipeInfoDTO.setRecipe(recipeMap.get(a.getRecipeId()));
             recipeInfoDTO.setRecipeDetails(recipeDetailGroup.get(a.getRecipeId()));
             recipeInfoDTO.setPatientBean(patientMap.get(a.getMpiId()));
+            list.add(recipeInfoDTO);
         });
         return list;
     }
@@ -95,6 +96,8 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     @Override
     public RecipeInfoDTO therapyRecipeInfo(Integer recipeId) {
         RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDTO(recipeId);
+        RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyByRecipeId(recipeId);
+        recipePdfDTO.setRecipeTherapy(recipeTherapy);
         logger.info("TherapyRecipeBusinessService therapyRecipeInfo  recipePdfDTO = {}", JSON.toJSONString(recipePdfDTO));
         return recipePdfDTO;
     }

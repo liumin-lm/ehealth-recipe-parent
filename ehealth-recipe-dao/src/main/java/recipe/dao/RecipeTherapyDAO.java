@@ -7,7 +7,6 @@ import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.util.annotation.RpcSupportDAO;
 import recipe.dao.comment.ExtendDao;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -49,26 +48,21 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
     public abstract RecipeTherapy getByRecipeId(Integer recipeId);
 
     /**
-     * 根据处方id 批量获取诊疗信息
+     * 根据医生id 获取诊疗信息
      *
-     * @param recipeIds 处方id
-     * @return 诊疗信息
-     */
-    @DAOMethod(sql = "from RecipeTherapy where recipe_id in :recipeIds")
-    public abstract List<RecipeTherapy> findTherapyByRecipeIds(@DAOParam("recipeIds") Collection<Integer> recipeIds);
-
-    /**
      * @param organId  机构id
      * @param doctorId 医生id
      * @param start    页数
      * @param limit    条数
      * @return 诊疗信息
      */
-    @DAOMethod(sql = "from RecipeTherapy where organ_id=:organId and doctor_id=:doctorId")
+    @DAOMethod(sql = "from RecipeTherapy where organId=:organId and doctorId=:doctorId")
     public abstract List<RecipeTherapy> findTherapyByDoctorId(@DAOParam("organId") int organId, @DAOParam("doctorId") int doctorId
             , @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
 
     /**
+     * 根据医生id与复诊id 获取诊疗信息
+     *
      * @param organId  机构id
      * @param doctorId 医生id
      * @param clinicId 复诊id
@@ -81,15 +75,16 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
                                                                          @DAOParam("clinicId") int clinicId, @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
 
     /**
-     * 根据患者id 获取诊疗信息
+     * 根据患者id与复诊id 获取诊疗信息
      *
-     * @param organId 机构id
-     * @param mpiId   患者id
-     * @param start   页数
-     * @param limit   条数
+     * @param organId  机构id
+     * @param mpiId    患者id
+     * @param clinicId 复诊id
+     * @param start    页数
+     * @param limit    条数
      * @return 诊疗信息
      */
-    @DAOMethod(sql = "from RecipeTherapy where organ_id=:organId and mpi_id=:mpiId")
-    public abstract List<RecipeTherapy> findTherapyByMpiId(@DAOParam("organId") int organId, @DAOParam("mpiId") String mpiId
-            , @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
+    @DAOMethod(sql = "from RecipeTherapy where organ_id=:organId and mpi_id=:mpiId and clinic_id=:clinicId")
+    public abstract List<RecipeTherapy> findTherapyByMpiIdAndClinicId(@DAOParam("organId") int organId, @DAOParam("mpiId") String mpiId,
+                                                                      @DAOParam("clinicId") int clinicId, @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
 }

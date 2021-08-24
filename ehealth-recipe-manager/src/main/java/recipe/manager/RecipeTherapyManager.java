@@ -86,7 +86,7 @@ public class RecipeTherapyManager extends BaseManager {
             return recipeTherapyDAO.findTherapyByDoctorIdAndClinicId(recipeTherapy.getOrganId(), recipeTherapy.getDoctorId(), recipeTherapy.getClinicId(), start, limit);
         }
         if (!ValidateUtil.validateObjects(recipeTherapy.getMpiId())) {
-            return recipeTherapyDAO.findTherapyByMpiId(recipeTherapy.getOrganId(), recipeTherapy.getMpiId(), start, limit);
+            return recipeTherapyDAO.findTherapyByMpiIdAndClinicId(recipeTherapy.getOrganId(), recipeTherapy.getMpiId(), recipeTherapy.getClinicId(), start, limit);
         }
         return null;
     }
