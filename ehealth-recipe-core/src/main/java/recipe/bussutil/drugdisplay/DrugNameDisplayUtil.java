@@ -83,7 +83,7 @@ public class DrugNameDisplayUtil {
     }
 
     public static String dealwithRecipedetailName(List<OrganDrugList> organDrugLists, Recipedetail recipedetail, Integer drugType) {
-        return DrugManager.dealwithRecipedetailName(organDrugLists, recipedetail);
+        return DrugManager.dealWithRecipeDetailName(organDrugLists, recipedetail);
     }
 
     public static String dealwithRecipedetailSaleName(List<OrganDrugList> organDrugLists, Recipedetail recipedetail, Integer drugType) {
@@ -114,6 +114,6 @@ public class DrugNameDisplayUtil {
      * @return
      */
     public static String dealwithRecipeDrugName(Recipedetail recipedetail, Integer drugType, Integer organId) {
-        return DrugManager.dealwithRecipeDrugName(recipedetail, drugType, organId);
+        return DrugManager.dealWithRecipeDrugName(recipedetail, drugType, organId);
     }
 }
