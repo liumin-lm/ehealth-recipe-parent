@@ -232,6 +232,7 @@ public class RecipeHisService extends RecipeBaseService {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (null == recipe) {
             return false;
         }
@@ -281,6 +282,9 @@ public class RecipeHisService extends RecipeBaseService {
                 String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart());
                 request.setDoctorNumber(jobNumber);
                 request.setDoctorName(recipe.getDoctorName());
+                if (recipeExtend != null) {
+                    request.setDiseaseSerial(recipeExtend.getHisDiseaseSerial());
+                }
                 LOGGER.info("recipeStatusUpdateWithOrganId  request:{}", JSONUtils.toString(request));
                 flag = service.recipeUpdate(request);
             } catch (Exception e) {
@@ -384,7 +388,7 @@ public class RecipeHisService extends RecipeBaseService {
                 DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, cardBean);
                 LOGGER.info("drugTakeChange 请求参数:{}.", JSONUtils.toString(request));
                 Boolean success = service.drugTakeChange(request);
-                
+
                 //date 20200410
                 //前置机为实现判断
                 if (null == success) {
@@ -409,37 +413,36 @@ public class RecipeHisService extends RecipeBaseService {
     }
 
     /**
-     *
      * @param recipe
      * @param patientBean
      * @param cardBean
      * @param result
-     * @return  是否走更新配送信息接口
+     * @return 是否走更新配送信息接口
      */
     private boolean doRecipeSettle(Recipe recipe, PatientBean patientBean, HealthCardBean cardBean, RecipeResultBean result) {
         //调用前置机结算支持两种方式---配送到家和药店取药
         if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) || RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
-            LOGGER.info("doRecipeSettle recipeId={}",recipe.getRecipeId());
+            LOGGER.info("doRecipeSettle recipeId={}", recipe.getRecipeId());
             if (StringUtils.isEmpty(recipe.getOrderCode())) {
-                LOGGER.error("doRecipeSettle orderCode is null; recipeId={}",recipe.getRecipeId());
+                LOGGER.error("doRecipeSettle orderCode is null; recipeId={}", recipe.getRecipeId());
                 return false;
             }
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             if (recipeOrder == null) {
-                LOGGER.error("doRecipeSettle recipeOrder is null ; recipeId={}",recipe.getRecipeId());
+                LOGGER.error("doRecipeSettle recipeOrder is null ; recipeId={}", recipe.getRecipeId());
                 return false;
             }
             // 111 为卫宁支付---卫宁付不走前置机的his结算
             if ("111".equals(recipeOrder.getWxPayWay())) {
-                LOGGER.info("doRecipeSettle 卫宁付不走平台结算;recipeId={}",recipe.getRecipeId());
+                LOGGER.info("doRecipeSettle 卫宁付不走平台结算;recipeId={}", recipe.getRecipeId());
                 //汉中市中心医院对接了卫宁付但是需要用到后面的更新配送信息接口将物流单号传给前置机
                 return true;
             }
             //PayNotifyResTO response = service.payNotify(payNotifyReq);
             IRecipeSettleService settleService = PreSettleFactory.getSettleService(recipeOrder.getOrganId(), recipeOrder.getOrderType());
             if (settleService == null) {
-                LOGGER.info("doRecipeSettle settleService is null; recipeId={}",recipe.getRecipeId());
+                LOGGER.info("doRecipeSettle settleService is null; recipeId={}", recipe.getRecipeId());
                 return true;
             }
             List<String> recipeIdList = (List<String>) JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
@@ -447,15 +450,15 @@ public class RecipeHisService extends RecipeBaseService {
             PayNotifyResTO response = null;
             try {
                 //如果异常重试处理
-                response = recipeRetryService.doRecipeSettle(settleService,payNotifyReq);
+                response = recipeRetryService.doRecipeSettle(settleService, payNotifyReq);
             } catch (Exception e) {
-                LOGGER.error("doRecipeSettle error",e);
+                LOGGER.error("doRecipeSettle error", e);
                 //三次重试后还是异常当做失败处理
                 response = new PayNotifyResTO();
                 response.setMsgCode(1);
                 response.setMsg(e.getMessage());
             }
-            settleService.doRecipeSettleResponse(response,recipe,result);
+            settleService.doRecipeSettleResponse(response, recipe, result);
         }
         return true;
     }
@@ -674,12 +677,12 @@ public class RecipeHisService extends RecipeBaseService {
                         drugInfoTO = new DrugInfoTO();
                         String pharmacy = drugInfoHisBean.getPharmacy();
                         BeanUtils.copyProperties(drugInfoHisBean, drugInfoTO);
-                        if (!StringUtils.isEmpty(pharmacy)){
+                        if (!StringUtils.isEmpty(pharmacy)) {
                             List<String> splitToList = Splitter.on(",").splitToList(pharmacy);
-                            if (!org.springframework.util.CollectionUtils.isEmpty(splitToList) && splitToList.size() == 1){
+                            if (!org.springframework.util.CollectionUtils.isEmpty(splitToList) && splitToList.size() == 1) {
                                 Integer pharmacyId = Integer.valueOf(splitToList.get(0));
                                 PharmacyTcm p = pharmacyTcmDAO.get(pharmacyId);
-                                if (p != null){
+                                if (p != null) {
                                     drugInfoTO.setPharmacyCode(p.getPharmacyCode());
                                 }
                             }
@@ -1024,7 +1027,7 @@ public class RecipeHisService extends RecipeBaseService {
      */
     @RpcService
     public RecipeResultBean scanDrugStock(Recipe recipe, List<Recipedetail> detailList) {
-        LOGGER.info("scanDrugStock 入参 recipe={},recipedetail={}", JSONObject.toJSONString(recipe),JSONObject.toJSONString(detailList));
+        LOGGER.info("scanDrugStock 入参 recipe={},recipedetail={}", JSONObject.toJSONString(recipe), JSONObject.toJSONString(detailList));
         RecipeResultBean result = RecipeResultBean.getSuccess();
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
 
