@@ -21,7 +21,6 @@ import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
-import recipe.vo.doctor.ItemListVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
 
@@ -205,28 +204,6 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("TherapyRecipeDoctorAtop abolishTherapyRecipe  error e", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
-    }
-
-    /**
-     * 搜索诊疗项目
-     * @param itemListVO itemListVO
-     * @return List<ItemListVO>
-     */
-    @RpcService
-    public List<ItemListVO> searchItemListByKeyWord(ItemListVO itemListVO){
-        logger.info("TherapyRecipeDoctorAtop searchItemListByKeyWord itemListVO:{}.", JSON.toJSONString(itemListVO));
-        validateAtop(itemListVO, itemListVO.getOrganID(),itemListVO.getItemName(), itemListVO.getLimit());
-        try {
-            List<ItemListVO> result = therapyRecipeBusinessService.searchItemListByKeyWord(itemListVO);
-            logger.info("TherapyRecipeDoctorAtop searchItemListByKeyWord result:{}.", JSON.toJSONString(result));
-            return result;
-        } catch (DAOException e1) {
-            logger.warn("TherapyRecipeDoctorAtop searchItemListByKeyWord  error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("TherapyRecipeDoctorAtop searchItemListByKeyWord  error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
