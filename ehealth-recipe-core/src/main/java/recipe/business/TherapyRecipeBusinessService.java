@@ -8,6 +8,7 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import com.ngari.recipe.vo.ItemListVO;
 import ctd.persistence.exception.DAOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,10 +17,7 @@ import recipe.client.PatientClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.enumerate.status.TherapyStatusEnum;
-import recipe.manager.OrganDrugListManager;
-import recipe.manager.RecipeDetailManager;
-import recipe.manager.RecipeManager;
-import recipe.manager.RecipeTherapyManager;
+import recipe.manager.*;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
 
@@ -45,6 +43,8 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     private OrganDrugListManager organDrugListManager;
     @Autowired
     private PatientClient patientClient;
+    @Autowired
+    private ItemListManager itemListManager;
 
     @Override
     public Integer saveTherapyRecipe(RecipeInfoVO recipeInfoVO) {
@@ -137,4 +137,11 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
             return false;
         }
     }
+
+    @Override
+    public List<ItemListVO> searchItemListByKeyWord(ItemListVO itemListVO) {
+        List<ItemList> itemLists = itemListManager.findItemList(itemListVO.getItemName(), itemListVO.getStart(), itemListVO.getLimit());
+        return ObjectCopyUtils.convert(itemLists, ItemListVO.class);
+    }
+
 }
