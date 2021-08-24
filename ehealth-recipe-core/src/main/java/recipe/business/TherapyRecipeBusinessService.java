@@ -95,6 +95,8 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     @Override
     public RecipeInfoDTO therapyRecipeInfo(Integer recipeId) {
         RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDTO(recipeId);
+        RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyByRecipeId(recipeId);
+        recipePdfDTO.setRecipeTherapy(recipeTherapy);
         logger.info("TherapyRecipeBusinessService therapyRecipeInfo  recipePdfDTO = {}", JSON.toJSONString(recipePdfDTO));
         return recipePdfDTO;
     }
