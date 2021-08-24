@@ -24,6 +24,7 @@ import recipe.util.ValidateUtil;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
 
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -132,7 +133,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
                 recipeInfoVO.setClinicId(a.getRecipeTherapy().getClinicId());
                 result.add(recipeInfoVO);
             });
-            Map<Integer, List<RecipeInfoVO>> map = result.stream().collect(Collectors.groupingBy(RecipeInfoVO::getClinicId));
+            Map<Integer, List<RecipeInfoVO>> map = result.stream().sorted(Comparator.comparing(RecipeInfoVO::getClinicId).reversed()).collect(Collectors.groupingBy(RecipeInfoVO::getClinicId));
             logger.info("TherapyRecipeDoctorAtop therapyRecipeList  map = {}", JSON.toJSONString(map));
             return map;
         } catch (DAOException e1) {
