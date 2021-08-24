@@ -257,7 +257,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             if (new Integer(9).equals(recipeStatusReqTO.getStatus())) {
                 //表示退款的取消
                 //退费申请记录保存
-               RecipeRefund recipeRefund = new RecipeRefund();
+                RecipeRefund recipeRefund = new RecipeRefund();
                 recipeRefund.setTradeNo("");
                 recipeRefund.setPrice(recipe.getActualPrice().doubleValue());
                 recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_FINISH);

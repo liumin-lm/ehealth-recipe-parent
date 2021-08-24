@@ -1,17 +1,15 @@
 package recipe.bean;
 
 
-
-
-
-
 import com.ngari.recipe.entity.Recipedetail;
+
 import java.math.BigDecimal;
 import java.util.List;
 
 /**
  * 审核通过HIS返回数据对象
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * date:2016/6/6.
  */
@@ -65,6 +63,19 @@ public class RecipeCheckPassResult {
      * 取药窗口
      */
     private String pharmNo;
+
+    /**
+     * 诊断序号
+     */
+    private String diseaseSerial;
+
+    public String getDiseaseSerial() {
+        return diseaseSerial;
+    }
+
+    public void setDiseaseSerial(String diseaseSerial) {
+        this.diseaseSerial = diseaseSerial;
+    }
 
     public String getPharmNo() {
         return pharmNo;

@@ -7,6 +7,7 @@ import com.ngari.recipe.entity.RecipeTherapy;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import com.ngari.recipe.vo.ItemListVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -213,6 +214,28 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("TherapyRecipeDoctorAtop abolishTherapyRecipe  error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 搜索诊疗项目
+     * @param itemListVO itemListVO
+     * @return List<ItemListVO>
+     */
+    @RpcService
+    public List<ItemListVO> searchItemListByKeyWord(ItemListVO itemListVO){
+        logger.info("TherapyRecipeDoctorAtop searchItemListByKeyWord itemListVO:{}.", JSON.toJSONString(itemListVO));
+        validateAtop(itemListVO, itemListVO.getOrganID(),itemListVO.getItemName(), itemListVO.getLimit());
+        try {
+            List<ItemListVO> result = therapyRecipeBusinessService.searchItemListByKeyWord(itemListVO);
+            logger.info("TherapyRecipeDoctorAtop searchItemListByKeyWord result:{}.", JSON.toJSONString(result));
+            return result;
+        } catch (DAOException e1) {
+            logger.warn("TherapyRecipeDoctorAtop searchItemListByKeyWord  error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("TherapyRecipeDoctorAtop searchItemListByKeyWord  error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
