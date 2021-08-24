@@ -29,7 +29,8 @@ public class BaseManager {
     protected RecipeOrderDAO recipeOrderDAO;
     @Autowired
     protected OrganDrugListDAO organDrugListDAO;
-
+    @Autowired
+    protected RecipeLogDAO recipeLogDao;
 
     /**
      * 获取处方相关信息

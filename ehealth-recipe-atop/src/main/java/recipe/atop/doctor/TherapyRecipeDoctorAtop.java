@@ -64,6 +64,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         recipeBean.setPushFlag(0);
         recipeBean.setRemindFlag(0);
         recipeBean.setTakeMedicine(0);
+        recipeBean.setPatientStatus(1);
         if (null == recipeInfoVO.getRecipeExtendBean()) {
             recipeInfoVO.setRecipeExtendBean(new RecipeExtendBean());
         }

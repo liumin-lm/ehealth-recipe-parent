@@ -13,6 +13,8 @@ import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.platform.recipe.mode.RecipeDetailBean;
 import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.recipe.dto.*;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeTherapy;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -67,11 +69,13 @@ public class OfflineRecipeClient extends BaseClient {
      * @return
      * @throws Exception
      */
-    public RecipeTherapy pushTherapyRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail) throws Exception {
+    public RecipeInfoDTO pushTherapyRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail) throws Exception {
         com.ngari.platform.recipe.mode.RecipeDTO hisResponseData = pushRecipe(pushType, recipePdfDTO, emrDetail);
-        RecipeTherapy recipeTherapy = ObjectCopyUtils.convert(hisResponseData.getRecipeTherapy(), RecipeTherapy.class);
-        recipeTherapy.setId(recipePdfDTO.getRecipeTherapy().getId());
-        return recipeTherapy;
+        RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
+        recipeInfoDTO.setRecipeTherapy(ObjectCopyUtils.convert(hisResponseData.getRecipeTherapy(), RecipeTherapy.class));
+        recipeInfoDTO.setRecipe(ObjectCopyUtils.convert(hisResponseData.getRecipeBean(), Recipe.class));
+        recipeInfoDTO.setRecipeExtend(ObjectCopyUtils.convert(hisResponseData.getRecipeExtendBean(), RecipeExtend.class));
+        return recipeInfoDTO;
     }
 
 
