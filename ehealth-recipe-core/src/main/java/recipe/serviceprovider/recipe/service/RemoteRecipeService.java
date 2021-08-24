@@ -21,6 +21,7 @@ import com.ngari.common.dto.HosBusFundsReportResult;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.ca.model.CaSealRequestTO;
+import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.QueryRecipeRequestTO;
 import com.ngari.his.recipe.mode.QueryRecipeResponseTO;
 import com.ngari.his.recipe.mode.RecipeInfoTO;
@@ -55,6 +56,8 @@ import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipereportform.model.*;
+import com.ngari.revisit.RevisitBean;
+import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.account.Client;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -85,6 +88,8 @@ import recipe.ca.factory.CommonCAFactory;
 import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DoctorClient;
+import recipe.client.PatientClient;
+import recipe.client.RevisitClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
@@ -97,6 +102,7 @@ import recipe.givemode.business.GiveModeFactory;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.EmrRecipeManager;
+import recipe.manager.HisRecipeManager;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.medicationguide.service.WinningMedicationGuideService;
@@ -160,6 +166,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private RecipeManager recipeManager;
     @Autowired
     private OrderManager orderManager;
+    @Autowired
+    private HisRecipeManager hisRecipeManager;
+    @Autowired
+    private RevisitClient revisitClient;
+    @Autowired
+    private PatientClient patientClient;
 
 
     @RpcService
@@ -2410,6 +2422,60 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     public Boolean judgeRecipeStatus(Integer bussSource, Integer clinicId, Integer statusCode) {
         LOGGER.info("RemoteRecipeService judgeRecipeStatus bussSource:{},clinicId:{},statusCode:{}.", bussSource, clinicId, statusCode);
+        //线上有效处方的标志
+        if (getOnlineEffectiveRecipeFlag(bussSource, clinicId, statusCode)) {
+            return true;
+        }
+        //线下有效处方的标志
+        return getOfflineEffectiveRecipeFlag(bussSource, clinicId);
+
+    }
+
+    /**
+     * 获取线下有效处方的标志,查询患者该挂号序号下是否有待缴费/已缴费处方
+     * @param bussSource 咨询/复诊
+     * @param clinicId 咨询/复诊单号
+     * @return 是否可以取消复诊  true 不可以 false 可以
+     */
+    private Boolean getOfflineEffectiveRecipeFlag(Integer bussSource, Integer clinicId) {
+        if (new Integer(1).equals(bussSource)) {
+            //咨询获取不到挂号序号
+            return false;
+        }
+        RevisitExDTO revisitExDTO = revisitClient.getByClinicId(clinicId);
+        if (null == revisitExDTO || StringUtils.isEmpty(revisitExDTO.getRegisterNo())) {
+            return false;
+        }
+        RevisitBean revisitBean = revisitClient.getRevisitByClinicId(clinicId);
+        PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(revisitBean.getMpiid());
+        try {
+            List<QueryHisRecipResTO> totalHisRecipe = new ArrayList<>();
+            //查询待缴费处方
+            HisResponseTO<List<QueryHisRecipResTO>> noPayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, null, 1, "");
+            //查询已缴费处方
+            HisResponseTO<List<QueryHisRecipResTO>> havePayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, null, 2, "");
+
+            totalHisRecipe.addAll(noPayRecipe.getData());
+            totalHisRecipe.addAll(havePayRecipe.getData());
+            Set<String> registers = totalHisRecipe.stream().filter(hisRecipe -> StringUtils.isNotEmpty(hisRecipe.getRegisteredId())).collect(Collectors.groupingBy(QueryHisRecipResTO::getRegisteredId)).keySet();
+            if (CollectionUtils.isNotEmpty(registers) && registers.contains(revisitExDTO.getRegisterNo())) {
+                return true;
+            }
+        } catch (Exception e) {
+            LOGGER.error("RemoteRecipeService getOfflineEffectiveRecipeFlag error ", e);
+        }
+        return false;
+    }
+
+    /**
+     * 获取线上有效处方的标志
+     * @param bussSource 咨询/复诊
+     * @param clinicId 咨询/复诊单号
+     * @param statusCode 运营平台配置项(退费限制 refundPattern)
+     *                   1 开过业务单不退费 2 有未退费或取消的业务单不允许退费
+     * @return 是否可以取消复诊  true 不可以 false 可以
+     */
+    private Boolean getOnlineEffectiveRecipeFlag(Integer bussSource, Integer clinicId, Integer statusCode) {
         //查询线上写入HIS处方记录
         List<Recipe> writeRecipeList = recipeManager.findWriteHisRecipeByBussSourceAndClinicId(bussSource, clinicId);
         //查询有效的处方记录
