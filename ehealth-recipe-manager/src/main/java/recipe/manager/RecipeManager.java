@@ -47,7 +47,14 @@ public class RecipeManager extends BaseManager {
     @Autowired
     private RecipeRefundDAO recipeRefundDAO;
 
+    /**
+     * 保存处方信息
+     *
+     * @param recipe 处方信息
+     * @return
+     */
     public Recipe saveRecipe(Recipe recipe) {
+        recipe.setCreateDate(new Date());
         if (ValidateUtil.integerIsEmpty(recipe.getRecipeId())) {
             recipe = recipeDAO.save(recipe);
         } else {
@@ -56,7 +63,13 @@ public class RecipeManager extends BaseManager {
         return recipe;
     }
 
-
+    /**
+     * 保存处方扩展信息
+     *
+     * @param recipeExtend 处方扩展信息
+     * @param recipe       处方信息
+     * @return
+     */
     public RecipeExtend saveRecipeExtend(RecipeExtend recipeExtend, Recipe recipe) {
         if (ValidateUtil.integerIsEmpty(recipeExtend.getRecipeId())) {
             recipeExtend.setRecipeId(recipe.getRecipeId());

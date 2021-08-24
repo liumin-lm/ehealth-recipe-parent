@@ -17,7 +17,7 @@ import recipe.client.IConfigurationClient;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
-import recipe.manager.DrugManeger;
+import recipe.manager.DrugManager;
 import recipe.manager.OrganDrugListManager;
 import recipe.manager.PharmacyManager;
 import recipe.util.MapValueUtil;
@@ -46,7 +46,7 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
     @Autowired
     private PharmacyManager pharmacyManager;
     @Autowired
-    private DrugManeger drugManeger;
+    private DrugManager drugManager;
     @Autowired
     private OrganDrugListManager organDrugListManager;
 
@@ -66,7 +66,7 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
         //药品名拼接配置
         Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, recipeType));
         //获取嘱托
-        Map<String, DrugEntrust> drugEntrustNameMap = drugManeger.drugEntrustNameMap(organId);
+        Map<String, DrugEntrust> drugEntrustNameMap = drugManager.drugEntrustNameMap(organId);
         /**校验处方扩展字段*/
         //校验煎法
         recipeDetailValidateTool.validateDecoction(organId, validateDetailVO.getRecipeExtendBean());
@@ -107,7 +107,7 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
     @Override
     public List<RecipeDetailBean> entrustValidate(Integer organId, List<RecipeDetailBean> recipeDetails) {
         //获取嘱托
-        Map<String, DrugEntrust> drugEntrustNameMap = drugManeger.drugEntrustNameMap(organId);
+        Map<String, DrugEntrust> drugEntrustNameMap = drugManager.drugEntrustNameMap(organId);
         recipeDetails.forEach(a -> {
             if (recipeDetailValidateTool.entrustValidate(a, drugEntrustNameMap)) {
                 a.setValidateStatus(VALIDATE_STATUS_PERFECT);

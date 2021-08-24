@@ -24,7 +24,7 @@ import recipe.client.DrugClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ICommonRecipeBusinessService;
 import recipe.manager.CommonRecipeManager;
-import recipe.manager.DrugManeger;
+import recipe.manager.DrugManager;
 import recipe.manager.OrganDrugListManager;
 import recipe.manager.PharmacyManager;
 import recipe.util.ByteUtils;
@@ -53,7 +53,7 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
     @Autowired
     private PharmacyManager pharmacyManager;
     @Autowired
-    private DrugManeger drugManeger;
+    private DrugManager drugManager;
 
 
     @Override
@@ -188,11 +188,11 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
         List<String> failNameList = new LinkedList<>();
         //查询字典数据
         Map<String, PharmacyTcm> pharmacyCodeMap = pharmacyManager.pharmacyCodeMap(organId);
-        Map<String, DecoctionWay> decoctionWayCodeMap = drugManeger.decoctionWayCodeMap(organId);
-        Map<String, DrugMakingMethod> makingMethodCodeMap = drugManeger.drugMakingMethodCodeMap(organId);
-        Map<String, UsingRate> usingRateCodeMap = drugManeger.usingRateMapCode(organId);
-        Map<String, UsePathways> usePathwaysCodeMap = drugManeger.usePathwaysCodeMap(organId);
-        Map<String, DrugEntrust> drugEntrustNameMap = drugManeger.drugEntrustNameMap(organId);
+        Map<String, DecoctionWay> decoctionWayCodeMap = drugManager.decoctionWayCodeMap(organId);
+        Map<String, DrugMakingMethod> makingMethodCodeMap = drugManager.drugMakingMethodCodeMap(organId);
+        Map<String, UsingRate> usingRateCodeMap = drugManager.usingRateMapCode(organId);
+        Map<String, UsePathways> usePathwaysCodeMap = drugManager.usePathwaysCodeMap(organId);
+        Map<String, DrugEntrust> drugEntrustNameMap = drugManager.drugEntrustNameMap(organId);
         //查询机构药品
         List<String> drugCodeList = commonList.stream().filter(a -> CollectionUtils.isNotEmpty(a.getCommonRecipeDrugList()))
                 .flatMap(a -> a.getCommonRecipeDrugList().stream().map(CommonRecipeDrugDTO::getOrganDrugCode)).distinct().collect(Collectors.toList());

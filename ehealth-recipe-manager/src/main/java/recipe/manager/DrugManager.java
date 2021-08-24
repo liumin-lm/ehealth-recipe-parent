@@ -28,8 +28,8 @@ import java.util.stream.Collectors;
  * @author fuzi
  */
 @Service
-public class DrugManeger extends BaseManager {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DrugManeger.class);
+public class DrugManager extends BaseManager {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DrugManager.class);
     @Autowired
     private DrugClient drugClient;
     @Autowired
@@ -49,7 +49,7 @@ public class DrugManeger extends BaseManager {
      * @param drugType
      * @return
      */
-    public static String dealwithRecipeDrugName(Recipedetail recipedetail, Integer drugType, Integer organId) {
+    public static String dealWithRecipeDrugName(Recipedetail recipedetail, Integer drugType, Integer organId) {
         LOGGER.info("DrugManager dealwithRecipeDrugName recipedetail:{},drugType:{},organId:{}", JSONUtils.toString(recipedetail), drugType, organId);
         if (RecipeBussConstant.RECIPETYPE_TCM.equals(drugType)) {
             StringBuilder stringBuilder = new StringBuilder();
@@ -70,13 +70,13 @@ public class DrugManeger extends BaseManager {
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndOrganDrugCodeAndDrugIdWithoutStatus(organId, recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
             LOGGER.info("DrugClient dealwithRecipeDrugName organDrugLists:{}", JSONUtils.toString(organDrugLists));
-            return dealwithRecipedetailName(organDrugLists, recipedetail);
+            return dealWithRecipeDetailName(organDrugLists, recipedetail);
         }
         LOGGER.info("DrugManager dealwithRecipeDrugName res:{}", recipedetail.getDrugDisplaySplicedName());
         return recipedetail.getDrugDisplaySplicedName();
     }
 
-    public static String dealwithRecipedetailName(List<OrganDrugList> organDrugLists, Recipedetail recipedetail) {
+    public static String dealWithRecipeDetailName(List<OrganDrugList> organDrugLists, Recipedetail recipedetail) {
         LOGGER.info("DrugClient dealwithRecipedetailName organDrugLists:{},recipedetail:{}", JSONUtils.toString(organDrugLists), JSONUtils.toString(recipedetail));
         StringBuilder stringBuilder = new StringBuilder();
         if (CollectionUtils.isNotEmpty(organDrugLists)) {
@@ -244,6 +244,7 @@ public class DrugManeger extends BaseManager {
             }
 
         }
+        logger.info("DrugManager findDrugWithEsByPatient res drugWithEsByPatient:{}", JSON.toJSONString(drugWithEsByPatient));
         return drugWithEsByPatient;
     }
 }
