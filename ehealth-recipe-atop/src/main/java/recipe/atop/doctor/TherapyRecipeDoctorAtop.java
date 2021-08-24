@@ -50,11 +50,18 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
     public Integer saveTherapyRecipe(RecipeInfoVO recipeInfoVO) {
         logger.info("TherapyRecipeDoctorAtop saveTherapyRecipe recipeInfoVO = {}", JSON.toJSONString(recipeInfoVO));
         validateAtop(recipeInfoVO, recipeInfoVO.getRecipeDetails(), recipeInfoVO.getRecipeBean());
-        validateAtop(recipeInfoVO.getRecipeBean().getDoctor(), recipeInfoVO.getRecipeBean().getMpiid());
-        recipeInfoVO.getRecipeBean().setStatus(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType());
-        recipeInfoVO.getRecipeBean().setRecipeSourceType(3);
-        recipeInfoVO.getRecipeBean().setSignDate(DateTime.now().toDate());
-        recipeInfoVO.getRecipeBean().setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
+        RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
+        validateAtop(recipeBean.getDoctor(), recipeBean.getMpiid(), recipeBean.getClinicOrgan(), recipeBean.getClinicId(), recipeBean.getDepart());
+        recipeBean.setStatus(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType());
+        recipeBean.setRecipeSourceType(3);
+        recipeBean.setSignDate(DateTime.now().toDate());
+        recipeBean.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
+        recipeBean.setChooseFlag(0);
+        recipeBean.setGiveFlag(0);
+        recipeBean.setPayFlag(0);
+        recipeBean.setPushFlag(0);
+        recipeBean.setRemindFlag(0);
+        recipeBean.setTakeMedicine(0);
         if (null == recipeInfoVO.getRecipeExtendBean()) {
             recipeInfoVO.setRecipeExtendBean(new RecipeExtendBean());
         }
