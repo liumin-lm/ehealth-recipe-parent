@@ -25,7 +25,7 @@ public interface ITherapyRecipeBusinessService {
      * @param limit         每页条数
      * @return
      */
-    List<RecipeInfoVO> therapyRecipeList(RecipeTherapy recipeTherapy, int start, int limit);
+    List<RecipeInfoDTO> therapyRecipeList(RecipeTherapy recipeTherapy, int start, int limit);
 
     /**
      * 获取诊疗处方明细
