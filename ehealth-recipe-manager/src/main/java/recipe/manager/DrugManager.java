@@ -244,6 +244,7 @@ public class DrugManager extends BaseManager {
             }
 
         }
+        logger.info("DrugManager findDrugWithEsByPatient res drugWithEsByPatient:{}", JSON.toJSONString(drugWithEsByPatient));
         return drugWithEsByPatient;
     }
 }
