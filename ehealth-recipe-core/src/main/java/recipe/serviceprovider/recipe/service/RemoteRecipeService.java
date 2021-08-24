@@ -2463,6 +2463,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             }
         } catch (Exception e) {
             LOGGER.error("RemoteRecipeService getOfflineEffectiveRecipeFlag error ", e);
+            return true;
         }
         return false;
     }
