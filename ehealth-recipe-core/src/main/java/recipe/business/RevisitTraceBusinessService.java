@@ -15,6 +15,7 @@ import eh.recipeaudit.model.RecipeCheckBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.client.DoctorClient;
@@ -33,10 +34,13 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
+ * 复诊处方追溯
+ *
  * @Author liumin
  * @Date 2021/8/24 上午11:58
  * @Description
  */
+@Service
 public class RevisitTraceBusinessService extends BaseService implements IRevisitTraceBusinessService {
 
     @Autowired

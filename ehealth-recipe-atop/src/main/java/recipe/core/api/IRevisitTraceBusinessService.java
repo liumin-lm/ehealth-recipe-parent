@@ -5,7 +5,9 @@ import recipe.vo.second.RevisitRecipeTraceVo;
 import java.util.List;
 
 /**
- * @author yinsheng
+ * 复诊处方追溯
+ *
+ * @author liumin
  * @date 2021\7\16 0016 17:16
  */
 public interface IRevisitTraceBusinessService {
