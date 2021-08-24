@@ -7,7 +7,6 @@ import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.util.annotation.RpcSupportDAO;
 import recipe.dao.comment.ExtendDao;
 
-import java.util.Collection;
 import java.util.List;
 
 /**
@@ -49,15 +48,6 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
     public abstract RecipeTherapy getByRecipeId(Integer recipeId);
 
     /**
-     * 根据处方id 批量获取诊疗信息
-     *
-     * @param recipeIds 处方id
-     * @return 诊疗信息
-     */
-    @DAOMethod(sql = "from RecipeTherapy where recipe_id in :recipeIds")
-    public abstract List<RecipeTherapy> findTherapyByRecipeIds(@DAOParam("recipeIds") Collection<Integer> recipeIds);
-
-    /**
      * 根据医生id 获取诊疗信息
      *
      * @param organId  机构id
@@ -66,7 +56,7 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
      * @param limit    条数
      * @return 诊疗信息
      */
-    @DAOMethod(sql = "from RecipeTherapy where organ_id=:organId and doctor_id=:doctorId")
+    @DAOMethod(sql = "from RecipeTherapy where organId=:organId and doctorId=:doctorId")
     public abstract List<RecipeTherapy> findTherapyByDoctorId(@DAOParam("organId") int organId, @DAOParam("doctorId") int doctorId
             , @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
 
