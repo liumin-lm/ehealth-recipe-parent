@@ -1,12 +1,14 @@
 package recipe.atop.open;
 
 import ctd.persistence.exception.DAOException;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.api.open.IRecipeAtopService;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
+import recipe.core.api.IRevisitTraceBusinessService;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
 import java.util.List;
@@ -22,6 +24,9 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
 
     @Autowired
     private IRecipeBusinessService recipeBusinessService;
+
+    @Autowired
+    private IRevisitTraceBusinessService revisitRecipeTrace;
 
     @Override
     public Boolean existUncheckRecipe(Integer bussSource, Integer clinicId) {
@@ -53,7 +58,7 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         logger.info("RecipeOpenAtop revisitRecipeTrace bussSource={} clinicID={}", bussSource, clinicId);
         validateAtop(bussSource, clinicId);
         try {
-            List<RevisitRecipeTraceVo> result = recipeBusinessService.revisitRecipeTrace(bussSource, clinicId);
+            List<RevisitRecipeTraceVo> result = revisitRecipeTrace.revisitRecipeTrace(bussSource, clinicId);
             logger.info("RecipeOpenAtop existUncheckRecipe result = {}", result);
             return result;
         } catch (DAOException e1) {
@@ -64,4 +69,28 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
+
+    /**
+     * 复诊处方追溯列表数据处理
+     *
+     * @param startTime
+     * @param endTime
+     * @param recipeIds
+     * @param organId
+     */
+    private void handDealRevisitTraceRecipe(String startTime, String endTime, List<Integer> recipeIds, Integer organId) {
+        logger.info("RecipeOpenAtop handDealRevisitTraceRecipe startTime={} endTime={} recipeIds={} organId={}", startTime, endTime, JSONUtils.toString(recipeIds), organId);
+        try {
+            revisitRecipeTrace.handDealRevisitTraceRecipe(startTime, endTime, recipeIds, organId);
+            logger.info("RecipeOpenAtop handDealRevisitTraceRecipe end");
+        } catch (DAOException e1) {
+            logger.error("RecipeOpenAtop handDealRevisitTraceRecipe error", e1);
+            throw new DAOException(e1.getCode(), e1.getMessage());
+        } catch (Exception e) {
+            logger.error("RecipeOpenAtop handDealRevisitTraceRecipe error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+
+    }
+
 }

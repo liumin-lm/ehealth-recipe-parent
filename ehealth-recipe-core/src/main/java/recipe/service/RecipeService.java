@@ -2717,7 +2717,7 @@ public class RecipeService extends RecipeBaseService {
         if (StringUtils.isEmpty(organDrugChange.getDrugName())) {
             list.add("drugName(药品通用名)");
         }
-        if (organDrugChange.getSyncWay()!=3){
+        if (organDrugChange.getSyncWay()==1){
             if (StringUtils.isEmpty(organDrugChange.getDrugSpec())) {
                 list.add("drugSpec(药品规格)");
             }
@@ -2789,40 +2789,30 @@ public class RecipeService extends RecipeBaseService {
             }
             switch (organDrug.getSyncWay()) {
                 case 1:
-                    LOGGER.info("syncOrganDrug机构药品数据推送 新增" + organDrug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(organDrug));
-                    OrganDrugList add = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, organDrug.getOrganDrugCode());
-                    if (!ObjectUtils.isEmpty(add)) {
-                        hisResponseTO.setMsgCode("-1");
-                        hisResponseTO.setMsg(organDrug.getOrganDrugCode() + ":编码药品已存在 推送方式有误!");
-                        return hisResponseTO;
-                    }
-                    try {
-                        addHisDrug(organDrug, organId, "推送");
-                        drugToolService.drugCommit(null, organId);
-                    } catch (Exception e) {
-                        LOGGER.info("syncOrganDrug机构药品数据推送新增失败,{}", JSONUtils.toString(organDrug) + "Exception:{}" + e);
+                    OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, organDrug.getOrganDrugCode());
+                    if (ObjectUtils.isEmpty(organDrugList)) {
+                        LOGGER.info("syncOrganDrug机构药品数据推送 新增" + organDrug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(organDrug));
+                        try {
+                            addHisDrug(organDrug, organId, "推送");
+                            drugToolService.drugCommit(null, organId);
+                        } catch (Exception e) {
+                            LOGGER.info("syncOrganDrug机构药品数据推送新增失败,{}", JSONUtils.toString(organDrug) + "Exception:{}" + e);
+                        }
+                    }else {
+                        LOGGER.info("syncOrganDrug机构药品数据推送 更新" + organDrug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(organDrug));
+                        try {
+                            updateHisOrganDrug(organDrug, organDrugList, organId);
+                        } catch (Exception e) {
+                            LOGGER.info("syncOrganDrug机构药品数据推送 修改失败,{}", JSONUtils.toString(organDrug) + "Exception:{}" + e);
+                        }
                     }
                     break;
                 case 2:
-                    LOGGER.info("syncOrganDrug机构药品数据推送 更新" + organDrug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(organDrug));
-                    OrganDrugList update = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, organDrug.getOrganDrugCode());
-                    if (ObjectUtils.isEmpty(update)) {
-                        hisResponseTO.setMsgCode("-1");
-                        hisResponseTO.setMsg(organDrug.getOrganDrugCode() + ":机构未找到该编码药品  " + organDrug.getDrugName() + " 无法修改 推送方式有误!");
-                        return hisResponseTO;
-                    }
-                    try {
-                        updateHisOrganDrug(organDrug, update, organId);
-                    } catch (Exception e) {
-                        LOGGER.info("syncOrganDrug机构药品数据推送 修改失败,{}", JSONUtils.toString(organDrug) + "Exception:{}" + e);
-                    }
-                    break;
-                case 3:
                     LOGGER.info("syncOrganDrug机构药品数据推送 删除" + organDrug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(organDrug));
                     OrganDrugList delete = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, organDrug.getOrganDrugCode());
                     if (ObjectUtils.isEmpty(delete)) {
                         hisResponseTO.setMsgCode("-1");
-                        hisResponseTO.setMsg(organDrug.getOrganDrugCode() + ":机构未找到该编码药品 " + organDrug.getDrugName() + " 无法删除 推送方式有误!");
+                        hisResponseTO.setMsg(organDrug.getOrganDrugCode() + ":机构未找到该编码药品 " + organDrug.getDrugName() + " 无法删除!");
                         return hisResponseTO;
                     }
                     try {

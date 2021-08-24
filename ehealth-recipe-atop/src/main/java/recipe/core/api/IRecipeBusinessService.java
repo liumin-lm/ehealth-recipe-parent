@@ -3,7 +3,6 @@ package recipe.core.api;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.vo.*;
-import recipe.vo.second.RevisitRecipeTraceVo;
 
 import java.util.List;
 
@@ -54,12 +53,5 @@ public interface IRecipeBusinessService {
      */
     Boolean existUncheckRecipe(Integer bussSource, Integer clinicId);
 
-    /**
-     * 复诊处方追溯
-     *
-     * @param bussSource 处方来源
-     * @param clinicId   业务id
-     * @return
-     */
-    List<RevisitRecipeTraceVo> revisitRecipeTrace(Integer bussSource, Integer clinicId);
+
 }

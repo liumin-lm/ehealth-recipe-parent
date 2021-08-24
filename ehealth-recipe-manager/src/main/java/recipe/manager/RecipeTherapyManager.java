@@ -39,6 +39,11 @@ public class RecipeTherapyManager extends BaseManager {
         recipeTherapy.setRecipeId(recipe.getRecipeId());
         recipeTherapy.setClinicId(recipe.getClinicId());
         recipeTherapy.setOrganId(recipe.getClinicOrgan());
+        recipeTherapy.setTherapyExecuteDepart("");
+        recipeTherapy.setTherapyNotice("");
+        recipeTherapy.setTherapyCancellation("");
+        recipeTherapy.setTherapyCancellationType(0);
+        recipeTherapy.setTherapyTime("");
         if (ValidateUtil.integerIsEmpty(recipeTherapy.getId())) {
             recipeTherapy = recipeTherapyDAO.save(recipeTherapy);
         } else {

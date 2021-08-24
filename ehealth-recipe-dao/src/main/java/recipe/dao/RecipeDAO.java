@@ -3725,4 +3725,42 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      */
     @DAOMethod(sql = "SELECT COUNT(1) FROM Recipe WHERE bussSource=:bussSource AND ClinicID=:ClinicID AND status IN (:recipeStatus)")
     public abstract Long getRecipeCountByBussSourceAndClinicIdAndStatus(@DAOParam("bussSource") Integer bussSource, @DAOParam("ClinicID") Integer ClinicID, @DAOParam("recipeStatus") List<Integer> recipeStatus);
+
+    /**
+     * @param startTime
+     * @param endTime
+     * @param recipeIds
+     * @param organId
+     * @return
+     */
+    public List<Recipe> queryRevisitTrace(String startTime, String endTime, List<Integer> recipeIds, Integer organId) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                Query query = ss.createQuery(hql.toString());
+                hql.append("select r from Recipe r where 1=1 ");
+                if (StringUtils.isNotEmpty(startTime)) {
+                    hql.append("and DATE(r.createDate)>=DATE(:startTime) ");
+                    query.setParameter("startTime", startTime);
+                }
+                if (StringUtils.isNotEmpty(endTime)) {
+                    hql.append("and DATE(r.createDate)<=DATE(:endTime) ");
+                    query.setParameter("endTime", endTime);
+                }
+                if (organId != null) {
+                    hql.append("and organId =:organId ");
+                    query.setParameter("organId", organId);
+                }
+                if (CollectionUtils.isNotEmpty(recipeIds)) {
+                    hql.append("and recipeIds in(:recipeIds) ");
+                    query.setParameter("recipeIds", recipeIds);
+                }
+                List<Recipe> recipeList = query.list();
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
 }

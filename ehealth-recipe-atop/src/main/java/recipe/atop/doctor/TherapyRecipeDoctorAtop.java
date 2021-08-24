@@ -15,12 +15,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
+import recipe.constant.RecipeBussConstant;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
-import recipe.vo.doctor.ItemListVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
 
@@ -39,7 +39,6 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
     private ITherapyRecipeBusinessService therapyRecipeBusinessService;
     @Autowired
     private IOfflineRecipeBusinessService offlineToOnlineService;
-
     /**
      * 保存诊疗处方
      *
@@ -50,13 +49,18 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
     public Integer saveTherapyRecipe(RecipeInfoVO recipeInfoVO) {
         logger.info("TherapyRecipeDoctorAtop saveTherapyRecipe recipeInfoVO = {}", JSON.toJSONString(recipeInfoVO));
         validateAtop(recipeInfoVO, recipeInfoVO.getRecipeDetails(), recipeInfoVO.getRecipeBean());
-        validateAtop(recipeInfoVO.getRecipeBean().getDoctor(), recipeInfoVO.getRecipeBean().getMpiid());
-        recipeInfoVO.getRecipeBean().setStatus(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType());
-        recipeInfoVO.getRecipeBean().setRecipeSourceType(3);
-        recipeInfoVO.getRecipeBean().setSignDate(DateTime.now().toDate());
-        if (null == recipeInfoVO.getRecipeTherapyVO()) {
-            recipeInfoVO.setRecipeTherapyVO(new RecipeTherapyVO());
-        }
+        RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
+        validateAtop(recipeBean.getDoctor(), recipeBean.getMpiid(), recipeBean.getClinicOrgan(), recipeBean.getClinicId(), recipeBean.getDepart());
+        recipeBean.setStatus(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType());
+        recipeBean.setRecipeSourceType(3);
+        recipeBean.setSignDate(DateTime.now().toDate());
+        recipeBean.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
+        recipeBean.setChooseFlag(0);
+        recipeBean.setGiveFlag(0);
+        recipeBean.setPayFlag(0);
+        recipeBean.setPushFlag(0);
+        recipeBean.setRemindFlag(0);
+        recipeBean.setTakeMedicine(0);
         if (null == recipeInfoVO.getRecipeExtendBean()) {
             recipeInfoVO.setRecipeExtendBean(new RecipeExtendBean());
         }
@@ -200,28 +204,6 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("TherapyRecipeDoctorAtop abolishTherapyRecipe  error e", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
-    }
-
-    /**
-     * 搜索诊疗项目
-     * @param itemListVO itemListVO
-     * @return List<ItemListVO>
-     */
-    @RpcService
-    public List<ItemListVO> searchItemListByKeyWord(ItemListVO itemListVO){
-        logger.info("TherapyRecipeDoctorAtop searchItemListByKeyWord itemListVO:{}.", JSON.toJSONString(itemListVO));
-        validateAtop(itemListVO, itemListVO.getOrganID(),itemListVO.getItemName(), itemListVO.getLimit());
-        try {
-            List<ItemListVO> result = therapyRecipeBusinessService.searchItemListByKeyWord(itemListVO);
-            logger.info("TherapyRecipeDoctorAtop searchItemListByKeyWord result:{}.", JSON.toJSONString(result));
-            return result;
-        } catch (DAOException e1) {
-            logger.warn("TherapyRecipeDoctorAtop searchItemListByKeyWord  error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("TherapyRecipeDoctorAtop searchItemListByKeyWord  error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }

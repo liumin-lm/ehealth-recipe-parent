@@ -14,7 +14,6 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.manager.*;
-import recipe.vo.doctor.ItemListVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
 
@@ -39,8 +38,6 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     @Autowired
     private OrganDrugListManager organDrugListManager;
     @Autowired
-    private ItemListManager itemListManager;
-    @Autowired
     private PatientClient patientClient;
 
     @Override
@@ -57,7 +54,7 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
         Map<String, OrganDrugList> organDrugListMap = organDrugListManager.getOrganDrugByIdAndCode(recipe.getClinicOrgan(), drugIds);
         recipeDetailManager.saveRecipeDetails(recipe, details, organDrugListMap);
         //保存诊疗
-        RecipeTherapy recipeTherapy = ObjectCopyUtils.convert(recipeInfoVO.getRecipeTherapyVO(), RecipeTherapy.class);
+        RecipeTherapy recipeTherapy = new RecipeTherapy();
         recipeTherapy.setStatus(TherapyStatusEnum.READYSUBMIT.getType());
         recipeTherapyManager.saveRecipeTherapy(recipeTherapy, recipe);
         //更新处方
@@ -130,21 +127,5 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
         } else {
             return false;
         }
-    }
-
-    @Override
-    public List<ItemListVO> searchItemListByKeyWord(ItemListVO itemListVO) {
-        List<ItemList> itemLists = itemListManager.findItemList(itemListVO.getItemName(), itemListVO.getStart(), itemListVO.getLimit());
-        return ObjectCopyUtils.convert(itemLists, ItemListVO.class);
-    }
-
-    @Override
-    public void deleteItemListById(Integer id) {
-        itemListManager.deleteItemListById(id);
-    }
-
-    @Override
-    public void updateStatusById(Integer id, Integer status) {
-        itemListManager.updateItemListStatusById(id, status);
     }
 }
