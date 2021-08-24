@@ -28,8 +28,8 @@ import java.util.stream.Collectors;
  * @author fuzi
  */
 @Service
-public class DrugManeger extends BaseManager {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DrugManeger.class);
+public class DrugManager extends BaseManager {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DrugManager.class);
     @Autowired
     private DrugClient drugClient;
     @Autowired

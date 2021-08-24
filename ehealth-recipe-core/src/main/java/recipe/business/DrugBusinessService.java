@@ -4,8 +4,7 @@ import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.vo.SearchDrugReqVo;
 import org.springframework.stereotype.Service;
 import recipe.core.api.IDrugBusinessService;
-import recipe.manager.DrugManeger;
-import recipe.manager.OrganDrugListManager;
+import recipe.manager.DrugManager;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
@@ -20,11 +19,11 @@ import java.util.List;
 public class DrugBusinessService extends BaseService implements IDrugBusinessService {
 
     @Resource
-    private DrugManeger drugManeger;
+    private DrugManager drugManager;
 
     @Override
     public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVo searchDrugReqVo) {
-        List<PatientDrugWithEsDTO>  patientDrugWithEsDTOS = drugManeger.findDrugWithEsByPatient(searchDrugReqVo.getSaleName(),searchDrugReqVo.getOrganId(), Arrays.asList("1","2"),searchDrugReqVo.getStart(),searchDrugReqVo.getLimit());
+        List<PatientDrugWithEsDTO> patientDrugWithEsDTOS = drugManager.findDrugWithEsByPatient(searchDrugReqVo.getSaleName(), searchDrugReqVo.getOrganId(), Arrays.asList("1", "2"), searchDrugReqVo.getStart(), searchDrugReqVo.getLimit());
         return patientDrugWithEsDTOS;
     }
 }

@@ -131,7 +131,7 @@ public class EmrRecipeManager extends BaseManager {
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
         //替换下药品拼接名
-        recipeDetailList.forEach(a -> a.setDrugName(DrugManeger.dealwithRecipeDrugName(a, recipe.getRecipeType(), recipe.getClinicOrgan())));
+        recipeDetailList.forEach(a -> a.setDrugName(DrugManager.dealwithRecipeDrugName(a, recipe.getRecipeType(), recipe.getClinicOrgan())));
         docIndexClient.saveRpDetail(recipe, recipeExtend, recipeDetailList, docId);
         //更新电子病例 为已经使用状态
         docIndexClient.updateEmrStatus(recipeId, docId, recipe.getClinicId());
