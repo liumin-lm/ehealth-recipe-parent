@@ -19,8 +19,8 @@ public class ItemListManager extends BaseManager{
     @Resource
     private ItemListDAO itemListDAO;
 
-    public List<ItemList> findItemList(final String itemName, final int start, final int limit) {
-        List<ItemList> itemLists = itemListDAO.findItemList(itemName, start, limit);
+    public List<ItemList> findItemList(Integer organId, String itemName, int start, int limit) {
+        List<ItemList> itemLists = itemListDAO.findItemList(organId, itemName, start, limit);
         logger.info("ItemListManager findItemList itemLists:{}.", JSON.toJSONString(itemLists));
         return itemLists;
     }
