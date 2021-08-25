@@ -400,6 +400,10 @@ public class RecipeOrder implements Serializable {
         initData();
     }
 
+    public RecipeOrder(String orderCode) {
+
+    }
+
     public void initData() {
         this.setEffective(1);
         this.setDivisionFlag(0);

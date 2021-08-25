@@ -3763,4 +3763,64 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
+    /**
+     * 迁移数据使用
+     * @return
+     */
+    public List<RecipeOrder>  findMoveData(){
+        HibernateStatelessResultAction<List<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrder>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "select\n" +
+                        "  o.OrderCode,\n" +
+                        "  o.OrderId,\n" +
+                        "  e.fundAmount,\n" +
+                        "  e.preSettleTotalAmount,\n" +
+                        "  e.cashAmount\n" +
+                        "from\n" +
+                        "  cdr_recipe r,\n" +
+                        "  cdr_recipe_ext e,\n" +
+                        "  cdr_recipeorder o\n" +
+                        "where\n" +
+                        "  r.recipeId = e.recipeId\n" +
+                        "  AND o.Ordercode = r.orderCode\n" +
+                        "  AND e.fundAmount != 0\n" +
+                        "  AND e.fundAmount != o.fundAmount\n" +
+                        "  AND o.fundAmount = 0";
+                Query q = ss.createSQLQuery(hql.toString());
+                List<Object[]> result = q.list();
+                List<RecipeOrder> backList = new ArrayList<>();
+                if (CollectionUtils.isNotEmpty(result)) {
+                    RecipeOrder recipeListBean;
+                    for (Object[] objs : result) {
+                        recipeListBean = new RecipeOrder("");
+                        if (null != objs[0]) {
+                            recipeListBean.setOrderCode(objs[0].toString());
+                        }
+                        if (null != objs[1]) {
+                            recipeListBean.setOrderId(Integer.valueOf(objs[1].toString()));
+                        }
+                        if (null != objs[2]) {
+                            recipeListBean.setFundAmount(Double.valueOf(objs[2].toString()));
+                        }
+                        if (null != objs[3]) {
+                            recipeListBean.setPreSettletotalAmount(Double.valueOf(objs[3].toString()));
+                        }
+                        if (null != objs[4]) {
+                            recipeListBean.setCashAmount(Double.valueOf(objs[4].toString()));
+                        }
+                        backList.add(recipeListBean);
+                    }
+                }
+
+                setResult(backList);
+
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+
+
+    };
+
 }
