@@ -3781,7 +3781,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             public void execute(StatelessSession ss) throws Exception {
                 String hql = "select\n" +
                         "  o.OrderCode,\n" +
-                        "  o.OrderId,\n" +
+                        "  r.RecipeID,\n" +
                         "  e.fundAmount,\n" +
                         "  e.preSettleTotalAmount,\n" +
                         "  e.cashAmount\n" +
@@ -3792,10 +3792,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "where\n" +
                         "  r.recipeId = e.recipeId\n" +
                         "  AND o.Ordercode = r.orderCode\n" +
-                        "  AND e.fundAmount != 0\n" +
-                        "  AND e.fundAmount != o.fundAmount\n" +
-                        "  AND o.fundAmount = 0";
-                Query q = ss.createSQLQuery(hql.toString());
+                        "  AND e.preSettleTotalAmount != 0\n" +
+                        "  AND e.preSettleTotalAmount != o.preSettleTotalAmount\n" +
+                        "  AND o.preSettleTotalAmount = 0";
+                Query q = ss.createSQLQuery(hql);
                 List<Object[]> result = q.list();
                 List<RecipeOrder> backList = new ArrayList<>();
                 if (CollectionUtils.isNotEmpty(result)) {
