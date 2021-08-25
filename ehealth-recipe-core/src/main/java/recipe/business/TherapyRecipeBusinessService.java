@@ -49,13 +49,17 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
         Recipe recipe = ObjectCopyUtils.convert(recipeInfoVO.getRecipeBean(), Recipe.class);
         recipe = recipeManager.saveRecipe(recipe);
         //保存处方扩展
-        RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeInfoVO.getRecipeExtendBean(), RecipeExtend.class);
-        recipeManager.saveRecipeExtend(recipeExtend, recipe);
+        if (null != recipeInfoVO.getRecipeExtendBean()) {
+            RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeInfoVO.getRecipeExtendBean(), RecipeExtend.class);
+            recipeManager.saveRecipeExtend(recipeExtend, recipe);
+        }
         //保存处方明细
-        List<Recipedetail> details = ObjectCopyUtils.convert(recipeInfoVO.getRecipeDetails(), Recipedetail.class);
-        List<Integer> drugIds = details.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
-        Map<String, OrganDrugList> organDrugListMap = organDrugListManager.getOrganDrugByIdAndCode(recipe.getClinicOrgan(), drugIds);
-        recipeDetailManager.saveRecipeDetails(recipe, details, organDrugListMap);
+        if (!CollectionUtils.isEmpty(recipeInfoVO.getRecipeDetails())) {
+            List<Recipedetail> details = ObjectCopyUtils.convert(recipeInfoVO.getRecipeDetails(), Recipedetail.class);
+            List<Integer> drugIds = details.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+            Map<String, OrganDrugList> organDrugListMap = organDrugListManager.getOrganDrugByIdAndCode(recipe.getClinicOrgan(), drugIds);
+            recipeDetailManager.saveRecipeDetails(recipe, details, organDrugListMap);
+        }
         //保存诊疗
         RecipeTherapy recipeTherapy = new RecipeTherapy();
         recipeTherapy.setStatus(TherapyStatusEnum.READYSUBMIT.getType());
