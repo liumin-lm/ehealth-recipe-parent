@@ -32,4 +32,16 @@ public interface IRecipeAtopService {
      */
     @RpcService
     List<RevisitRecipeTraceVo> revisitRecipeTrace(Integer bussSource, Integer clinicID);
+
+    /**
+     * 复诊处方追溯列表数据处理
+     *
+     * @param startTime
+     * @param endTime
+     * @param recipeIds
+     * @param organId
+     */
+    @RpcService
+    void handDealRevisitTraceRecipe(String startTime, String endTime, List<Integer> recipeIds, Integer organId);
+
 }

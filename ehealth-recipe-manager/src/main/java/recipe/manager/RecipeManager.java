@@ -15,6 +15,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.*;
+import recipe.common.CommonConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeLogDAO;
 import recipe.dao.RecipeRefundDAO;
@@ -160,11 +161,6 @@ public class RecipeManager extends BaseManager {
         return recipes;
     }
 
-    public List<RecipeExtend> findRecipeExtByRecipeIds(List<Integer> recipeIds) {
-        List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
-        logger.info("RecipeManager findRecipeExtByRecipeIds recipeIds:{}, recipes:{}", JSON.toJSONString(recipeIds), JSON.toJSONString(recipeExtendList));
-        return recipeExtendList;
-    }
 
     /**
      * 根据业务类型(咨询/复诊)和业务单号(咨询/复诊单号)获取处方信息
@@ -258,5 +254,51 @@ public class RecipeManager extends BaseManager {
         recipeCancel.setCancelDate(cancelDate);
         recipeCancel.setCancelReason(cancelReason);
         return recipeCancel;
+    }
+
+    /**
+     * 更新推送his返回信息处方数据
+     *
+     * @param recipeResult 处方结果
+     * @param recipeId     处方id
+     * @param pushType     推送类型: 1：提交处方，2:撤销处方
+     */
+    public void updatePushHisRecipe(Recipe recipeResult, Integer recipeId, Integer pushType) {
+        if (null == recipeResult) {
+            return;
+        }
+        if (!CommonConstant.THERAPY_RECIPE_PUSH_TYPE.equals(pushType)) {
+            return;
+        }
+        Recipe updateRecipe = new Recipe();
+        updateRecipe.setRecipeId(recipeId);
+        updateRecipe.setPatientID(recipeResult.getPatientID());
+        updateRecipe.setRecipeCode(recipeResult.getRecipeCode());
+        recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+    }
+
+    /**
+     * 更新推送his返回信息处方扩展数据
+     *
+     * @param recipeExtendResult 处方扩展结果
+     * @param recipeId           处方id
+     * @param pushType           推送类型: 1：提交处方，2:撤销处方
+     */
+    public void updatePushHisRecipeExt(RecipeExtend recipeExtendResult, Integer recipeId, Integer pushType) {
+        if (null == recipeExtendResult) {
+            return;
+        }
+        if (!CommonConstant.THERAPY_RECIPE_PUSH_TYPE.equals(pushType)) {
+            return;
+        }
+        RecipeExtend updateRecipeExt = new RecipeExtend();
+        updateRecipeExt.setRecipeId(recipeId);
+        updateRecipeExt.setRegisterID(recipeExtendResult.getRegisterID());
+        updateRecipeExt.setRecipeCostNumber(recipeExtendResult.getRecipeCostNumber());
+        updateRecipeExt.setMedicalType(recipeExtendResult.getMedicalType());
+        updateRecipeExt.setMedicalTypeText(recipeExtendResult.getMedicalTypeText());
+        updateRecipeExt.setRecipeCostNumber(recipeExtendResult.getRecipeCostNumber());
+        //updateRecipeExt.diseaseSerial
+        recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtendResult);
     }
 }

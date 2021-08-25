@@ -78,7 +78,8 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
      * @param recipeIds
      * @param organId
      */
-    private void handDealRevisitTraceRecipe(String startTime, String endTime, List<Integer> recipeIds, Integer organId) {
+    @Override
+    public void handDealRevisitTraceRecipe(String startTime, String endTime, List<Integer> recipeIds, Integer organId) {
         logger.info("RecipeOpenAtop handDealRevisitTraceRecipe startTime={} endTime={} recipeIds={} organId={}", startTime, endTime, JSONUtils.toString(recipeIds), organId);
         try {
             revisitRecipeTrace.handDealRevisitTraceRecipe(startTime, endTime, recipeIds, organId);

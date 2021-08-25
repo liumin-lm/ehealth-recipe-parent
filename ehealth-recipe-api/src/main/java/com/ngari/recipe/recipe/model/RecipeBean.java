@@ -302,22 +302,22 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "处方发起者urt")
     private Integer requestUrt;
 
-    @ItemProperty(alias="当前clientId")
+    @ItemProperty(alias = "当前clientId")
     private Integer currentClient;
 
-    @ItemProperty(alias="前端页面跳转标记")
+    @ItemProperty(alias = "前端页面跳转标记")
     private int notation;
 
-    @ItemProperty(alias="处方详情信息")
+    @ItemProperty(alias = "处方详情信息")
     private RecipeExtendBean recipeExtend;
 
-    @ItemProperty(alias="处方审核方式")
+    @ItemProperty(alias = "处方审核方式")
     private Integer reviewType;
 
     @ItemProperty(alias = "审核途径 1平台审核 2his审核")
     private Integer checkMode;
 
-    @ItemProperty(alias="处方审核状态")
+    @ItemProperty(alias = "处方审核状态")
     private Integer checkStatus;
 
     @ItemProperty(alias = "处方单特殊来源标识：1省中，邵逸夫医保小程序; 默认null")
@@ -373,6 +373,17 @@ public class RecipeBean implements Serializable {
 
     @ItemProperty(alias = "his中药处方代煎费")
     private BigDecimal decoctionFee;
+
+    @ItemProperty(alias = "签名的处方img")
+    private String signImg;
+
+    public String getSignImg() {
+        return signImg;
+    }
+
+    public void setSignImg(String signImg) {
+        this.signImg = signImg;
+    }
 
     public String getRecipeCostNumber() {
         return recipeCostNumber;
@@ -706,9 +717,13 @@ public class RecipeBean implements Serializable {
         return giveFlag;
     }
 
-    public String getGiveModeText() { return giveModeText; }
+    public String getGiveModeText() {
+        return giveModeText;
+    }
 
-    public void setGiveModeText(String giveModeText) { this.giveModeText = giveModeText; }
+    public void setGiveModeText(String giveModeText) {
+        this.giveModeText = giveModeText;
+    }
 
     public void setGiveFlag(Integer giveFlag) {
         this.giveFlag = giveFlag;
@@ -1271,9 +1286,13 @@ public class RecipeBean implements Serializable {
         this.checkMode = checkMode;
     }
 
-    public String getSignPharmacistCADate() { return signPharmacistCADate; }
+    public String getSignPharmacistCADate() {
+        return signPharmacistCADate;
+    }
 
-    public void setSignPharmacistCADate(String signPharmacistCADate) { this.signPharmacistCADate = signPharmacistCADate; }
+    public void setSignPharmacistCADate(String signPharmacistCADate) {
+        this.signPharmacistCADate = signPharmacistCADate;
+    }
 
     public String getSignRecipeCode() {
         return signRecipeCode;

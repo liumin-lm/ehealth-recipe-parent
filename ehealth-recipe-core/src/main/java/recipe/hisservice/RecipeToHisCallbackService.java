@@ -72,7 +72,7 @@ public class RecipeToHisCallbackService {
             String medicalTypeText = repList.get(0).getMedicalTypeText();
             boolean isWuChang = false;
             //是否武昌模式
-            if (StringUtils.isNotEmpty(repList.get(0).getIsDrugStock())){
+            if (StringUtils.isNotEmpty(repList.get(0).getIsDrugStock())) {
                 isWuChang = true;
             }
 
@@ -85,7 +85,7 @@ public class RecipeToHisCallbackService {
                 detail = new Recipedetail();
                 //是否有库存
                 if (StringUtils.isNotEmpty(rep.getIsDrugStock())
-                        &&"0".equals(rep.getIsDrugStock())){
+                        && "0".equals(rep.getIsDrugStock())) {
                     isDrugStock = false;
                 }
                 if (StringUtils.isNotEmpty(rep.getPrice())) {
@@ -98,7 +98,7 @@ public class RecipeToHisCallbackService {
                 detail.setDrugGroup(LocalStringUtil.toString(rep.getSetNo()));
                 //取药窗口是否都是返回同一窗口
 //                detail.setPharmNo(LocalStringUtil.toString(rep.getPharmNo()));
-                if(StringUtils.isNotEmpty(rep.getPharmNo())) {
+                if (StringUtils.isNotEmpty(rep.getPharmNo())) {
                     pharmNo = LocalStringUtil.toString(rep.getPharmNo());
                 }
                 detail.setMemo(LocalStringUtil.toString(rep.getRemark()));
@@ -121,6 +121,7 @@ public class RecipeToHisCallbackService {
             result.setRegisterID(registerId);
             result.setMedicalType(medicalType);
             result.setMedicalTypeText(medicalTypeText);
+            result.setHisDiseaseSerial(repList.get(0).getHisDiseaseSerial());
             result.setDetailList(list);
             LOGGER.info("recipeSend recive success. recipeId={}, checkPassSuccess result={}", response.getRecipeId(), JSONUtils.toString(result));
             HisCallBackService.checkPassSuccess(result, true);

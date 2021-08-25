@@ -35,4 +35,8 @@ public class RecipeInfoVO {
      * 患者信息
      */
     private PatientVO patientVO;
+    /**
+     * 复诊id
+     */
+    private Integer clinicId;
 }

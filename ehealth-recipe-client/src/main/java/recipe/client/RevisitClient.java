@@ -44,7 +44,7 @@ public class RevisitClient extends BaseClient {
         return consultExDTO;
     }
 
-    public RevisitBean getRevisitByClinicId(Integer clinicId){
+    public RevisitBean getRevisitByClinicId(Integer clinicId) {
         logger.info("RevisitClient getRevisitByClinicId param clinicId:{}", clinicId);
         RevisitBean revisitBean = revisitService.getById(clinicId);
         logger.info("RevisitClient getRevisitByClinicId param clinicId:{}", clinicId);
@@ -65,7 +65,7 @@ public class RevisitClient extends BaseClient {
     }
 
     /**
-     * 通知复诊——处方追溯数据
+     * 通知复诊——添加处方追溯数据
      *
      * @param recipe
      */
@@ -80,7 +80,6 @@ public class RevisitClient extends BaseClient {
             revisitTracesSortRequest.setBusOccurredTime(new Date());
             revisitTracesSortRequest.setBusType(1);
             revisitTracesSortRequest.setConsultId(recipe.getClinicId());
-            revisitTracesSortRequest.setFrequency(0);
             revisitTracesSortRequest.setOrganId(recipe.getClinicOrgan());
             logger.info("RevisitClient saveRevisitTracesList request revisitTracesSortRequest:{}", JSONUtils.toString(revisitTracesSortRequest));
             RevisitTracesSortResponse revisitTracesSortResponse = revisitTracesSortService.saveOrUpdate(revisitTracesSortRequest);
@@ -91,4 +90,25 @@ public class RevisitClient extends BaseClient {
             e.printStackTrace();
         }
     }
+
+    /**
+     * 通知复诊——删除处方追溯数据
+     *
+     * @param recipeId
+     */
+    public void deleteByBusIdAndBusNumOrder(Integer recipeId) {
+        try {
+            if (recipeId == null) {
+                return;
+            }
+            logger.info("RevisitClient deleteByBusIdAndBusNumOrder request recipeId:{}", recipeId);
+            revisitTracesSortService.deleteByBusIdAndBusNumOrder(recipeId + "", 10);
+            logger.info("RevisitClient deleteByBusIdAndBusNumOrder response recipeId:{}", recipeId);
+            //TODO  复诊的接口返回没有成功或失败 无法加标志 无法失败重试或批量处理失败数据
+        } catch (Exception e) {
+            logger.error("RevisitClient deleteByBusIdAndBusNumOrder error recipeId:{},{}", recipeId, e);
+            e.printStackTrace();
+        }
+    }
+
 }
