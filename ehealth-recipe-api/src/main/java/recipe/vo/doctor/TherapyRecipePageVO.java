@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author fuzi
@@ -15,7 +14,7 @@ public class TherapyRecipePageVO {
     /**
      * 处方信息
      */
-    private Map<Integer, List<RecipeInfoVO>> recipeInfoList;
+    private List<RecipeInfoVO> recipeInfoList;
 
     /**
      * 分页总条数

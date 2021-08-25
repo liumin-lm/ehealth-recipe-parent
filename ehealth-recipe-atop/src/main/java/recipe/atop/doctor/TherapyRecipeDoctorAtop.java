@@ -11,6 +11,7 @@ import com.ngari.recipe.vo.ItemListVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.utils.DateConversion;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
@@ -26,11 +27,8 @@ import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
 import recipe.vo.doctor.TherapyRecipePageVO;
 
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * 诊疗处方服务入口类
@@ -143,16 +141,20 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
         List<RecipeInfoVO> result = new LinkedList<>();
+
         recipeInfoList.forEach(a -> {
             RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
-            recipeInfoVO.setClinicId(a.getRecipeTherapy().getClinicId());
             recipeInfoVO.setPatientVO(ObjectCopyUtils.convert(a.getPatientBean(), PatientVO.class));
             recipeInfoVO.setRecipeTherapyVO(ObjectCopyUtils.convert(a.getRecipeTherapy(), RecipeTherapyVO.class));
 
             RecipeBean recipeBean = new RecipeBean();
             recipeBean.setRecipeId(a.getRecipe().getRecipeId());
+            recipeBean.setClinicId(a.getRecipe().getClinicId());
             recipeBean.setOrganDiseaseName(a.getRecipe().getOrganDiseaseName());
             recipeBean.setCreateDate(a.getRecipe().getCreateDate());
+            if (null != recipeBean.getCreateDate()) {
+                recipeBean.setWxDisplayTime(DateConversion.convertRequestDateForBussNew(recipeBean.getCreateDate()));
+            }
             recipeInfoVO.setRecipeBean(recipeBean);
 
             List<RecipeDetailBean> recipeDetails = new LinkedList<>();
@@ -165,8 +167,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
             recipeInfoVO.setRecipeDetails(recipeDetails);
             result.add(recipeInfoVO);
         });
-        Map<Integer, List<RecipeInfoVO>> map = result.stream().sorted(Comparator.comparing(RecipeInfoVO::getClinicId).reversed()).collect(Collectors.groupingBy(RecipeInfoVO::getClinicId));
-        therapyRecipePageVO.setRecipeInfoList(map);
+        therapyRecipePageVO.setRecipeInfoList(result);
         return therapyRecipePageVO;
     }
 
