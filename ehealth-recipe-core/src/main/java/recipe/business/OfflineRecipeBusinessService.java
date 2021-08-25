@@ -42,6 +42,7 @@ import recipe.manager.HisRecipeManager;
 import recipe.manager.RecipeManager;
 import recipe.manager.RecipeTherapyManager;
 import recipe.service.RecipeLogService;
+import recipe.service.RecipeServiceSub;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
@@ -295,6 +296,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
             }
             emrRecipeManager.updateDisease(recipeId);
+            RecipeServiceSub.sendRecipeTagToPatient(recipePdfDTO.getRecipe(), null, null, true);
             logger.info("RecipeBusinessService pushTherapyRecipeExecute end recipeId:{}", recipeId);
         });
     }

@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
@@ -2599,7 +2600,7 @@ public class RecipeServiceSub {
         if (null != recipe.getRecipeId()) {
             recipeTagMsg.setRecipeId(recipe.getRecipeId());
         }
-
+        LOGGER.info("RecipeServiceSub getRecipeMsgTag recipeTagMsg:{}.", JSON.toJSONString(recipeTagMsg));
         return recipeTagMsg;
     }
 
