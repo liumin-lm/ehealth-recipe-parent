@@ -289,7 +289,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
                 }
                 recipeManager.updatePushHisRecipe(result.getRecipe(), recipeId, pushType);
                 recipeManager.updatePushHisRecipeExt(result.getRecipeExtend(), recipeId, pushType);
-                recipeTherapyManager.updatePushHisRecipe(result.getRecipeTherapy(), recipePdfDTO.getRecipeTherapy().getId(), pushType);
+                recipeTherapyManager.updatePushHisRecipeTherapy(result.getRecipeTherapy(), recipePdfDTO.getRecipeTherapy().getId(), pushType);
             } catch (Exception e) {
                 Recipe recipe = recipePdfDTO.getRecipe();
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
