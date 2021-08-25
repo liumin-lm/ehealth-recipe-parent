@@ -103,8 +103,8 @@ public class HisCallBackService {
             //病人医院病历号
             attrMap.put("patientID", result.getPatientID());
         }
-        if (StringUtils.isNotEmpty(result.getDiseaseSerial())) {
-            recipeExtUpdateDataMap.put("diseaseSerial", result.getDiseaseSerial());
+        if (StringUtils.isNotEmpty(result.getHisDiseaseSerial())) {
+            recipeExtUpdateDataMap.put("hisDiseaseSerial", result.getHisDiseaseSerial());
         }
         //处方总金额， 外带药处方不做处理
         if (!Integer.valueOf(1).equals(recipe.getTakeMedicine()) && null != result.getTotalMoney()) {
