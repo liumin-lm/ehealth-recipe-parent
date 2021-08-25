@@ -249,7 +249,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
     @RpcService
     public List<ItemListVO> searchItemListByKeyWord(ItemListVO itemListVO){
         logger.info("TherapyRecipeDoctorAtop searchItemListByKeyWord itemListVO:{}.", JSON.toJSONString(itemListVO));
-        validateAtop(itemListVO, itemListVO.getOrganID(),itemListVO.getItemName(), itemListVO.getLimit());
+        validateAtop(itemListVO, itemListVO.getOrganId(),itemListVO.getItemName(), itemListVO.getLimit());
         try {
             List<ItemListVO> result = therapyRecipeBusinessService.searchItemListByKeyWord(itemListVO);
             logger.info("TherapyRecipeDoctorAtop searchItemListByKeyWord result:{}.", JSON.toJSONString(result));
