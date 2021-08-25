@@ -67,14 +67,14 @@ public class RecipeCheckPassResult {
     /**
      * 诊断序号
      */
-    private String diseaseSerial;
+    private String hisDiseaseSerial;
 
-    public String getDiseaseSerial() {
-        return diseaseSerial;
+    public String getHisDiseaseSerial() {
+        return hisDiseaseSerial;
     }
 
-    public void setDiseaseSerial(String diseaseSerial) {
-        this.diseaseSerial = diseaseSerial;
+    public void setHisDiseaseSerial(String hisDiseaseSerial) {
+        this.hisDiseaseSerial = hisDiseaseSerial;
     }
 
     public String getPharmNo() {

@@ -103,15 +103,18 @@ public class OrderRepTO implements Serializable {
      * 药品包装数量
      */
     private Integer pack;
-    //诊断序号
-    private String diseaseSerial;
 
-    public String getDiseaseSerial() {
-        return diseaseSerial;
+    /**
+     * 诊断序号
+     */
+    private String hisDiseaseSerial;
+
+    public String getHisDiseaseSerial() {
+        return hisDiseaseSerial;
     }
 
-    public void setDiseaseSerial(String diseaseSerial) {
-        this.diseaseSerial = diseaseSerial;
+    public void setHisDiseaseSerial(String hisDiseaseSerial) {
+        this.hisDiseaseSerial = hisDiseaseSerial;
     }
 
     public String getIsDrugStock() {

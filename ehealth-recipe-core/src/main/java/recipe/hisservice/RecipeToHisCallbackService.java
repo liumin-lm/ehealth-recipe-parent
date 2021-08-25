@@ -121,7 +121,7 @@ public class RecipeToHisCallbackService {
             result.setRegisterID(registerId);
             result.setMedicalType(medicalType);
             result.setMedicalTypeText(medicalTypeText);
-            result.setDiseaseSerial(repList.get(0).getDiseaseSerial());
+            result.setHisDiseaseSerial(repList.get(0).getHisDiseaseSerial());
             result.setDetailList(list);
             LOGGER.info("recipeSend recive success. recipeId={}, checkPassSuccess result={}", response.getRecipeId(), JSONUtils.toString(result));
             HisCallBackService.checkPassSuccess(result, true);
