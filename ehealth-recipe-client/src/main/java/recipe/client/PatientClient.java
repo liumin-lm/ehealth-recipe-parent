@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
-import recipe.util.DictionaryUtil;
 import recipe.util.LocalStringUtil;
 
 import javax.annotation.Resource;
@@ -47,6 +46,7 @@ public class PatientClient extends BaseClient {
         com.ngari.patient.dto.PatientDTO patient = patientService.get(mpiId);
         return getPatientEncipher(patient);
     }
+
 
     /**
      * 获取患者信息
@@ -156,9 +156,6 @@ public class PatientClient extends BaseClient {
         p.setAge(null == p.getBirthday() ? 0 : DateConversion.getAge(p.getBirthday()));
         p.setIdcard2(null);
         p.setCertificate(null);
-        if (StringUtils.isNotEmpty(p.getPatientSex())) {
-            p.setPatientSex(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", String.valueOf(p.getPatientSex())));
-        }
         return p;
     }
 

@@ -82,46 +82,6 @@ public class RecipeManager extends BaseManager {
     }
 
 
-    /**
-     * 获取处方相关信息
-     *
-     * @param recipeId 处方id
-     * @return
-     */
-    public RecipeInfoDTO getRecipeInfoDTO(Integer recipeId) {
-        RecipeDTO recipeDTO = getRecipeDTO(recipeId);
-        RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
-        BeanUtils.copyProperties(recipeDTO, recipeInfoDTO);
-        Recipe recipe = recipeInfoDTO.getRecipe();
-        PatientDTO patientBean = patientClient.getPatientEncipher(recipe.getMpiid());
-        recipeInfoDTO.setPatientBean(patientBean);
-        RecipeExtend recipeExtend = recipeDTO.getRecipeExtend();
-        if (null == recipeExtend) {
-            return recipeInfoDTO;
-        }
-        recipeExtend.setCardTypeName(DictionaryUtil.getDictionary("eh.mpi.dictionary.CardType", recipeExtend.getCardType()));
-        Integer docIndexId = recipeExtend.getDocIndexId();
-        EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(docIndexId);
-        if (null == emrDetail) {
-            return recipeInfoDTO;
-        }
-        recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
-        recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
-        recipe.setMemo(emrDetail.getMemo());
-        recipeExtend.setSymptomId(emrDetail.getSymptomId());
-        recipeExtend.setSymptomName(emrDetail.getSymptomName());
-        recipeExtend.setAllergyMedical(emrDetail.getAllergyMedical());
-        if (!ValidateUtil.integerIsEmpty(recipe.getClinicId()) && StringUtils.isEmpty(recipeExtend.getCardNo())) {
-            RevisitExDTO consultExDTO = revisitClient.getByClinicId(recipe.getClinicId());
-            if (null != consultExDTO) {
-                recipeExtend.setCardNo(consultExDTO.getCardId());
-                recipeExtend.setCardType(consultExDTO.getCardType());
-            }
-        }
-        logger.info("RecipeOrderManager getRecipeInfoDTO patientBean:{}", JSON.toJSONString(patientBean));
-        return recipeInfoDTO;
-    }
-
 
     /**
      * 获取处方信息
@@ -182,6 +142,76 @@ public class RecipeManager extends BaseManager {
         logger.info("RecipeManager findEffectiveRecipeByBussSourceAndClinicId recipes:{}.", JSON.toJSONString(recipes));
         return recipes;
     }
+
+
+    /**
+     * 获取处方相关信息 并且 字典转换
+     *
+     * @param recipeId 处方id
+     * @return
+     */
+    public RecipeInfoDTO getRecipeInfoDictionary(Integer recipeId) {
+        RecipeInfoDTO recipeInfoDTO = getRecipeInfoDTO(recipeId);
+        PatientDTO patientBean = recipeInfoDTO.getPatientBean();
+        if (StringUtils.isNotEmpty(patientBean.getPatientSex())) {
+            patientBean.setPatientSex(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", String.valueOf(patientBean.getPatientSex())));
+        }
+        return recipeInfoDTO;
+    }
+
+    /**
+     * 获取处方相关信息
+     *
+     * @param recipeId 处方id
+     * @return
+     */
+    public RecipeInfoDTO getRecipeInfoDTO(Integer recipeId) {
+        RecipeDTO recipeDTO = getRecipeDTO(recipeId);
+        RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
+        BeanUtils.copyProperties(recipeDTO, recipeInfoDTO);
+        Recipe recipe = recipeInfoDTO.getRecipe();
+        PatientDTO patientBean = patientClient.getPatientEncipher(recipe.getMpiid());
+        recipeInfoDTO.setPatientBean(patientBean);
+        logger.info("RecipeOrderManager getRecipeInfoDTO patientBean:{}", JSON.toJSONString(patientBean));
+        return recipeInfoDTO;
+    }
+
+    /**
+     * 获取处方相关信息 补全数据
+     *
+     * @param recipeId 处方id
+     * @return
+     */
+    @Override
+    public RecipeDTO getRecipeDTO(Integer recipeId) {
+        RecipeDTO recipeDTO = super.getRecipeDTO(recipeId);
+        RecipeExtend recipeExtend = recipeDTO.getRecipeExtend();
+        if (null == recipeExtend) {
+            return recipeDTO;
+        }
+        recipeExtend.setCardTypeName(DictionaryUtil.getDictionary("eh.mpi.dictionary.CardType", recipeExtend.getCardType()));
+        Integer docIndexId = recipeExtend.getDocIndexId();
+        EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(docIndexId);
+        if (null == emrDetail) {
+            return recipeDTO;
+        }
+        Recipe recipe = recipeDTO.getRecipe();
+        recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
+        recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
+        recipe.setMemo(emrDetail.getMemo());
+        recipeExtend.setSymptomId(emrDetail.getSymptomId());
+        recipeExtend.setSymptomName(emrDetail.getSymptomName());
+        recipeExtend.setAllergyMedical(emrDetail.getAllergyMedical());
+        if (!ValidateUtil.integerIsEmpty(recipe.getClinicId()) && StringUtils.isEmpty(recipeExtend.getCardNo())) {
+            RevisitExDTO consultExDTO = revisitClient.getByClinicId(recipe.getClinicId());
+            if (null != consultExDTO) {
+                recipeExtend.setCardNo(consultExDTO.getCardId());
+                recipeExtend.setCardType(consultExDTO.getCardType());
+            }
+        }
+        return recipeDTO;
+    }
+
 
     /**
      * 获取到院取药凭证
