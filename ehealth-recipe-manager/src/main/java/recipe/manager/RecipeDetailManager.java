@@ -101,4 +101,13 @@ public class RecipeDetailManager extends BaseManager {
         detail.setDrugCost(drugCost);
         return drugCost;
     }
+
+    /**
+     * 获取项目数量
+     * @param recipeId recipeId
+     * @return 数量
+     */
+    public Long getCountByRecipeId(Integer recipeId){
+        return recipeDetailDAO.getCountByRecipeId(recipeId);
+    }
 }
