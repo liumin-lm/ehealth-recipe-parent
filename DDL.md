@@ -20,8 +20,6 @@ cdr_hisprescription_detail
 `Address4` varchar(255) DEFAULT NULL COMMENT '详细地址',
 `ZipCode` varchar(20) DEFAULT NULL COMMENT  '邮政编码',
 `startSendDate` datetime DEFAULT NULL COMMENT  '准备配送时间',
-`sendDate` datetime DEFAULT NULL COMMENT  '配送时间',
-`Sender` varchar(30) DEFAULT NULL COMMENT '配送人',
 ```
 
 ```
@@ -234,4 +232,12 @@ recipe不能动,第三方订单返回数据需要回写
 ext 正在使用,先不动
 ```
 `payAmount` varchar(10) CHARACTER SET utf8 DEFAULT NULL COMMENT '预结算返回应付金额',
+```
+第一期延后
+```
+`Sender` varchar(30) DEFAULT NULL COMMENT '配送人',
+`startSendDate` datetime DEFAULT NULL COMMENT  '准备配送时间',
+有2021年8月份的信息
+这两个字段订单表中没有 放到二期 一期要先加字段 迁移数据
+修改入库代码
 ```
