@@ -5,9 +5,6 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.vo.ItemListVO;
 import ctd.persistence.exception.DAOException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +63,15 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
         //更新处方
         recipe = recipeManager.saveRecipe(recipe);
         return recipe.getRecipeId();
+    }
+
+    @Override
+    public Integer therapyRecipeTotal(RecipeTherapy recipeTherapy) {
+        List<RecipeTherapy> recipeTherapyList = recipeTherapyManager.therapyRecipeList(recipeTherapy);
+        if (CollectionUtils.isEmpty(recipeTherapyList)) {
+            return 0;
+        }
+        return recipeTherapyList.size();
     }
 
     @Override

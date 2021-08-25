@@ -458,23 +458,13 @@ public class HisRecipeManager extends BaseManager {
      *
      * @param recipePdfDTO 处方信息
      */
-    public RecipeInfoDTO pushTherapyRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType) {
+    public RecipeInfoDTO pushTherapyRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType) throws Exception {
         RecipeExtend recipeExtend = recipePdfDTO.getRecipeExtend();
         Integer docIndexId = null;
         if (null != recipeExtend) {
             docIndexId = recipeExtend.getDocIndexId();
         }
         EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(docIndexId);
-        try {
-            RecipeInfoDTO result = offlineRecipeClient.pushTherapyRecipe(pushType, recipePdfDTO, emrDetail);
-            result.getRecipe();
-            result.getRecipeExtend();
-
-            return result;
-        } catch (Exception e) {
-            Recipe recipe = recipePdfDTO.getRecipe();
-            recipeLogDao.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
-        }
-        return null;
+        return offlineRecipeClient.pushTherapyRecipe(pushType, recipePdfDTO, emrDetail);
     }
 }

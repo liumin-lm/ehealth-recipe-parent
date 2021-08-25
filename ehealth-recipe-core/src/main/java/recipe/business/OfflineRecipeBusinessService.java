@@ -1,6 +1,5 @@
 package recipe.business;
 
-import com.alibaba.fastjson.JSON;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
@@ -13,7 +12,7 @@ import com.ngari.recipe.dto.OffLineRecipeDetailDTO;
 import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.HisRecipe;
-import com.ngari.recipe.entity.RecipeTherapy;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
@@ -33,17 +32,16 @@ import org.springframework.util.ObjectUtils;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.OfflineRecipeClient;
-import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.enumerate.status.OfflineToOnlineEnum;
-import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.HisRecipeManager;
 import recipe.manager.RecipeManager;
 import recipe.manager.RecipeTherapyManager;
+import recipe.service.RecipeLogService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
@@ -280,27 +278,24 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
 
 
     @Override
-    public void pushTherapyRecipeExecute(Integer recipeId, Integer pushType) {
+    public void pushRecipeExecute(Integer recipeId, Integer pushType) {
         RecipeBusiThreadPool.execute(() -> {
             logger.info("RecipeBusinessService pushTherapyRecipeExecute recipeId={}", recipeId);
             RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);
-            RecipeInfoDTO result = hisRecipeManager.pushTherapyRecipe(recipePdfDTO, pushType);
-            if (null == result || null == result.getRecipeTherapy()) {
-                return;
+            try {
+                RecipeInfoDTO result = hisRecipeManager.pushTherapyRecipe(recipePdfDTO, pushType);
+                if (null == result) {
+                    return;
+                }
+                recipeManager.updatePushHisRecipe(result.getRecipe(), recipeId, pushType);
+                recipeManager.updatePushHisRecipeExt(result.getRecipeExtend(), recipeId, pushType);
+                recipeTherapyManager.updatePushHisRecipe(result.getRecipeTherapy(), recipePdfDTO.getRecipeTherapy().getId(), pushType);
+            } catch (Exception e) {
+                Recipe recipe = recipePdfDTO.getRecipe();
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
             }
-            RecipeTherapy recipeTherapy = new RecipeTherapy();
-            recipeTherapy.setId(recipePdfDTO.getRecipeTherapy().getId());
-            recipeTherapy.setTherapyTime(result.getRecipeTherapy().getTherapyTime());
-            recipeTherapy.setTherapyExecuteDepart(result.getRecipeTherapy().getTherapyExecuteDepart());
-            recipeTherapy.setTherapyNotice(result.getRecipeTherapy().getTherapyNotice());
-            if (CommonConstant.THERAPY_RECIPE_PUSH_TYPE.equals(pushType)) {
-                recipeTherapy.setStatus(TherapyStatusEnum.READYPAY.getType());
-            } else {
-                recipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
-            }
-            recipeTherapyManager.updateRecipeTherapy(recipeTherapy);
             emrRecipeManager.updateDisease(recipeId);
-            logger.info("RecipeBusinessService pushTherapyRecipeExecute recipeTherapy={}", JSON.toJSONString(recipeTherapy));
+            logger.info("RecipeBusinessService pushTherapyRecipeExecute end recipeId:{}", recipeId);
         });
     }
 }

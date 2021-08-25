@@ -9,7 +9,9 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.PatientClient;
+import recipe.common.CommonConstant;
 import recipe.dao.RecipeTherapyDAO;
+import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.util.ValidateUtil;
 
 import java.util.List;
@@ -71,12 +73,12 @@ public class RecipeTherapyManager extends BaseManager {
     }
 
     /**
-     * 获取诊疗处方列表
+     * 分页 获取诊疗处方列表
      *
      * @param recipeTherapy 诊疗处方对象
      * @param start         页数
      * @param limit         每页条数
-     * @return
+     * @return 诊疗处方列表
      */
     public List<RecipeTherapy> therapyRecipeList(RecipeTherapy recipeTherapy, int start, int limit) {
         if (!ValidateUtil.validateObjects(recipeTherapy.getDoctorId()) && ValidateUtil.validateObjects(recipeTherapy.getClinicId())) {
@@ -91,8 +93,23 @@ public class RecipeTherapyManager extends BaseManager {
         return null;
     }
 
-    public RecipeTherapy getRecipeTherapyById(Integer id) {
-        return recipeTherapyDAO.getById(id);
+    /**
+     * 获取诊疗处方列表
+     *
+     * @param recipeTherapy 诊疗处方对象
+     * @return 诊疗处方列表
+     */
+    public List<RecipeTherapy> therapyRecipeList(RecipeTherapy recipeTherapy) {
+        if (!ValidateUtil.validateObjects(recipeTherapy.getDoctorId()) && ValidateUtil.validateObjects(recipeTherapy.getClinicId())) {
+            return recipeTherapyDAO.findTherapyByDoctorId(recipeTherapy.getOrganId(), recipeTherapy.getDoctorId());
+        }
+        if (!ValidateUtil.validateObjects(recipeTherapy.getDoctorId()) && !ValidateUtil.validateObjects(recipeTherapy.getClinicId())) {
+            return recipeTherapyDAO.findTherapyByDoctorIdAndClinicId(recipeTherapy.getOrganId(), recipeTherapy.getDoctorId(), recipeTherapy.getClinicId());
+        }
+        if (!ValidateUtil.validateObjects(recipeTherapy.getMpiId())) {
+            return recipeTherapyDAO.findTherapyByMpiIdAndClinicId(recipeTherapy.getOrganId(), recipeTherapy.getMpiId(), recipeTherapy.getClinicId());
+        }
+        return null;
     }
 
     public RecipeTherapy getRecipeTherapyByRecipeId(Integer recipeId) {
@@ -103,4 +120,26 @@ public class RecipeTherapyManager extends BaseManager {
         return recipeTherapyDAO.updateNonNullFieldByPrimaryKey(recipeTherapy);
     }
 
+    /**
+     * 更新推送his返回信息处方数据
+     *
+     * @param recipeTherapyResult 诊疗处方结果
+     * @param id                  诊疗处方id
+     * @param pushType            推送类型: 1：提交处方，2:撤销处方
+     */
+    public void updatePushHisRecipe(RecipeTherapy recipeTherapyResult, Integer id, Integer pushType) {
+        if (null != recipeTherapyResult) {
+            RecipeTherapy updateRecipeTherapy = new RecipeTherapy();
+            updateRecipeTherapy.setId(id);
+            updateRecipeTherapy.setTherapyTime(recipeTherapyResult.getTherapyTime());
+            updateRecipeTherapy.setTherapyExecuteDepart(recipeTherapyResult.getTherapyExecuteDepart());
+            updateRecipeTherapy.setTherapyNotice(recipeTherapyResult.getTherapyNotice());
+            if (CommonConstant.THERAPY_RECIPE_PUSH_TYPE.equals(pushType)) {
+                updateRecipeTherapy.setStatus(TherapyStatusEnum.READYPAY.getType());
+            } else {
+                updateRecipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
+            }
+            recipeTherapyDAO.updateNonNullFieldByPrimaryKey(updateRecipeTherapy);
+        }
+    }
 }

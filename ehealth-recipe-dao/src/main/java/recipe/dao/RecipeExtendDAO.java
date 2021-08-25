@@ -15,6 +15,7 @@ import org.apache.commons.logging.LogFactory;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.springframework.util.ObjectUtils;
+import recipe.dao.comment.ExtendDao;
 
 import java.util.Iterator;
 import java.util.List;
@@ -25,7 +26,7 @@ import java.util.Map;
  * Created by yuzq on 2019/3/1.
  */
 @RpcSupportDAO
-public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<RecipeExtend> {
+public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<RecipeExtend> implements ExtendDao<RecipeExtend> {
 
     private static final Log LOGGER = LogFactory.getLog(RecipeExtendDAO.class);
 
@@ -33,6 +34,11 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
         super();
         setEntityName(RecipeExtend.class.getName());
         setKeyField("recipeId");
+    }
+
+    @Override
+    public boolean updateNonNullFieldByPrimaryKey(RecipeExtend recipeExtend) {
+        return updateNonNullFieldByPrimaryKey(recipeExtend, "recipeId");
     }
 
     /**
@@ -51,23 +57,6 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
             recipeExtend.setCanUrgentAuditRecipe(0);
         }
         super.save(recipeExtend);
-    }
-
-    public Boolean updateCardInfoById(final int recipeId, final String cardTypeName , final String cardNo) {
-        HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
-            @Override
-            public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("update RecipeExtend set cardNo=:cardNo, cardTypeName=:cardTypeName where recipeId=:recipeId");
-                Query q = ss.createQuery(hql.toString());
-                q.setParameter("recipeId", recipeId);
-                q.setParameter("cardTypeName", cardTypeName);
-                q.setParameter("cardNo", cardNo);
-                int flag = q.executeUpdate();
-                setResult(flag == 1);
-            }
-        };
-        HibernateSessionTemplate.instance().execute(action);
-        return action.getResult();
     }
 
 

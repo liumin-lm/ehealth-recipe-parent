@@ -18,6 +18,14 @@ public interface ITherapyRecipeBusinessService {
     Integer saveTherapyRecipe(RecipeInfoVO recipeInfoVO);
 
     /**
+     * 获取诊疗处方总数
+     *
+     * @param recipeTherapy
+     * @return
+     */
+    Integer therapyRecipeTotal(RecipeTherapy recipeTherapy);
+
+    /**
      * 获取诊疗处方列表
      *
      * @param recipeTherapy 诊疗处方对象

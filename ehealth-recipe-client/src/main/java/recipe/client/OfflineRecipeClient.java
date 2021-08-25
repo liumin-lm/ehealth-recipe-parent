@@ -278,6 +278,7 @@ public class OfflineRecipeClient extends BaseClient {
         recipeDTO.setRecipeDetails(ObjectCopyUtils.convert(recipePdfDTO.getRecipeDetails(), RecipeDetailBean.class));
         recipeDTO.setRecipeExtendBean(ObjectCopyUtils.convert(recipePdfDTO.getRecipeExtend(), RecipeExtendBean.class));
         recipeDTO.setPatientDTO(ObjectCopyUtils.convert(recipePdfDTO.getPatientBean(), PatientDTO.class));
+        logger.error("OfflineRecipeClient pushRecipe recipeDTO：{}", JSON.toJSONString(recipeDTO));
         try {
             HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse = recipeHisService.pushRecipe(recipeDTO);
             return getResponse(hisResponse);
