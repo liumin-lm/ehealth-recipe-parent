@@ -57,7 +57,7 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
      * @return 诊疗信息
      */
     @DAOMethod(sql = "from RecipeTherapy where organId=:organId and doctorId=:doctorId")
-    public abstract List<RecipeTherapy> findTherapyByDoctorId(@DAOParam("organId") int organId, @DAOParam("doctorId") int doctorId
+    public abstract List<RecipeTherapy> findTherapyPageByDoctorId(@DAOParam("organId") int organId, @DAOParam("doctorId") int doctorId
             , @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
 
     /**
@@ -81,8 +81,8 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
      * @return 诊疗信息
      */
     @DAOMethod(sql = "from RecipeTherapy where organ_id=:organId and doctor_id=:doctorId and clinic_id=:clinicId")
-    public abstract List<RecipeTherapy> findTherapyByDoctorIdAndClinicId(@DAOParam("organId") int organId, @DAOParam("doctorId") int doctorId,
-                                                                         @DAOParam("clinicId") int clinicId, @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
+    public abstract List<RecipeTherapy> findTherapyPageByDoctorIdAndClinicId(@DAOParam("organId") int organId, @DAOParam("doctorId") int doctorId,
+                                                                             @DAOParam("clinicId") int clinicId, @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
 
     /**
      * 根据医生id与复诊id 获取诊疗信息
@@ -107,8 +107,8 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
      * @return 诊疗信息
      */
     @DAOMethod(sql = "from RecipeTherapy where organ_id=:organId and mpi_id=:mpiId and clinic_id=:clinicId")
-    public abstract List<RecipeTherapy> findTherapyByMpiIdAndClinicId(@DAOParam("organId") int organId, @DAOParam("mpiId") String mpiId,
-                                                                      @DAOParam("clinicId") int clinicId, @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
+    public abstract List<RecipeTherapy> findTherapyPageByMpiIdAndClinicId(@DAOParam("organId") int organId, @DAOParam("mpiId") String mpiId,
+                                                                          @DAOParam("clinicId") int clinicId, @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
 
     /**
      * 根据患者id与复诊id 获取诊疗信息
