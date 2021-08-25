@@ -294,11 +294,10 @@ public class RecipeManager extends BaseManager {
         RecipeExtend updateRecipeExt = new RecipeExtend();
         updateRecipeExt.setRecipeId(recipeId);
         updateRecipeExt.setRegisterID(recipeExtendResult.getRegisterID());
-        updateRecipeExt.setRecipeCostNumber(recipeExtendResult.getRecipeCostNumber());
         updateRecipeExt.setMedicalType(recipeExtendResult.getMedicalType());
         updateRecipeExt.setMedicalTypeText(recipeExtendResult.getMedicalTypeText());
         updateRecipeExt.setRecipeCostNumber(recipeExtendResult.getRecipeCostNumber());
-        //updateRecipeExt.diseaseSerial
-        recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtendResult);
+        updateRecipeExt.setHisDiseaseSerial(recipeExtendResult.getHisDiseaseSerial());
+        recipeExtendDAO.updateNonNullFieldByPrimaryKey(updateRecipeExt);
     }
 }
