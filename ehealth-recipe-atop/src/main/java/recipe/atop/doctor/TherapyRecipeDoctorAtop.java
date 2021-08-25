@@ -51,7 +51,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
     @RpcService
     public Integer saveTherapyRecipe(RecipeInfoVO recipeInfoVO) {
         logger.info("TherapyRecipeDoctorAtop saveTherapyRecipe recipeInfoVO = {}", JSON.toJSONString(recipeInfoVO));
-        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeDetails(), recipeInfoVO.getRecipeBean());
+        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean());
         RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
         validateAtop(recipeBean.getDoctor(), recipeBean.getMpiid(), recipeBean.getClinicOrgan(), recipeBean.getClinicId(), recipeBean.getDepart());
         recipeBean.setStatus(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType());
@@ -89,6 +89,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
      */
     @RpcService
     public Integer submitTherapyRecipe(RecipeInfoVO recipeInfoVO) {
+        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeDetails());
         Integer recipeId = saveTherapyRecipe(recipeInfoVO);
         //异步推送his
         offlineToOnlineService.pushRecipeExecute(recipeId, CommonConstant.THERAPY_RECIPE_PUSH_TYPE);
