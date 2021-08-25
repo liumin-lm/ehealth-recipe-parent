@@ -1,5 +1,6 @@
 package recipe.manager;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
@@ -46,6 +47,7 @@ public class RecipeTherapyManager extends BaseManager {
         recipeTherapy.setTherapyCancellation("");
         recipeTherapy.setTherapyCancellationType(0);
         recipeTherapy.setTherapyTime("");
+        logger.info("RecipeTherapyManager saveRecipeTherapy recipeTherapy:{}.", JSON.toJSONString(recipeTherapy));
         if (ValidateUtil.integerIsEmpty(recipeTherapy.getId())) {
             recipeTherapy = recipeTherapyDAO.save(recipeTherapy);
         } else {
@@ -69,6 +71,7 @@ public class RecipeTherapyManager extends BaseManager {
         recipeInfoDTO.setPatientBean(patientBean);
         RecipeTherapy recipeTherapy = recipeTherapyDAO.getByRecipeId(recipeId);
         recipeInfoDTO.setRecipeTherapy(recipeTherapy);
+        logger.info("RecipeTherapyManager getRecipeTherapyDTO recipeInfoDTO:{}.", JSON.toJSONString(recipeInfoDTO));
         return recipeInfoDTO;
     }
 
@@ -117,6 +120,7 @@ public class RecipeTherapyManager extends BaseManager {
     }
 
     public Boolean updateRecipeTherapy(RecipeTherapy recipeTherapy) {
+        logger.info("RecipeTherapyManager updateRecipeTherapy recipeTherapy:{}.", JSON.toJSONString(recipeTherapy));
         return recipeTherapyDAO.updateNonNullFieldByPrimaryKey(recipeTherapy);
     }
 
@@ -127,7 +131,7 @@ public class RecipeTherapyManager extends BaseManager {
      * @param id                  诊疗处方id
      * @param pushType            推送类型: 1：提交处方，2:撤销处方
      */
-    public void updatePushHisRecipe(RecipeTherapy recipeTherapyResult, Integer id, Integer pushType) {
+    public void updatePushHisRecipeTherapy(RecipeTherapy recipeTherapyResult, Integer id, Integer pushType) {
         if (null != recipeTherapyResult) {
             RecipeTherapy updateRecipeTherapy = new RecipeTherapy();
             updateRecipeTherapy.setId(id);
@@ -139,6 +143,7 @@ public class RecipeTherapyManager extends BaseManager {
             } else {
                 updateRecipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
             }
+            logger.info("RecipeTherapyManager updatePushHisRecipe updateRecipeTherapy:{}.", JSON.toJSONString(updateRecipeTherapy));
             recipeTherapyDAO.updateNonNullFieldByPrimaryKey(updateRecipeTherapy);
         }
     }

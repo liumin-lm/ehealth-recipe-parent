@@ -275,6 +275,7 @@ public class RecipeManager extends BaseManager {
         updateRecipe.setPatientID(recipeResult.getPatientID());
         updateRecipe.setRecipeCode(recipeResult.getRecipeCode());
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+        logger.info("RecipeManager updatePushHisRecipe updateRecipe:{}.", JSON.toJSONString(updateRecipe));
     }
 
     /**
@@ -294,11 +295,11 @@ public class RecipeManager extends BaseManager {
         RecipeExtend updateRecipeExt = new RecipeExtend();
         updateRecipeExt.setRecipeId(recipeId);
         updateRecipeExt.setRegisterID(recipeExtendResult.getRegisterID());
-        updateRecipeExt.setRecipeCostNumber(recipeExtendResult.getRecipeCostNumber());
         updateRecipeExt.setMedicalType(recipeExtendResult.getMedicalType());
         updateRecipeExt.setMedicalTypeText(recipeExtendResult.getMedicalTypeText());
         updateRecipeExt.setRecipeCostNumber(recipeExtendResult.getRecipeCostNumber());
-        //updateRecipeExt.diseaseSerial
-        recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtendResult);
+        updateRecipeExt.setHisDiseaseSerial(recipeExtendResult.getHisDiseaseSerial());
+        recipeExtendDAO.updateNonNullFieldByPrimaryKey(updateRecipeExt);
+        logger.info("RecipeManager updatePushHisRecipeExt updateRecipeExt:{}.", JSON.toJSONString(updateRecipeExt));
     }
 }
