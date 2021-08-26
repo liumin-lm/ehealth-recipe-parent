@@ -149,6 +149,8 @@ public class RecipeServiceSub {
 
     private static RecipeDetailManager recipeDetailManager = AppContextHolder.getBean("recipeDetailManager", RecipeDetailManager.class);
 
+    private static List<String> specitalOrganList = Lists.newArrayList("1005790", "1005217", "1005789");
+
     /**
      * @param recipeBean
      * @param detailBeanList
@@ -1524,7 +1526,7 @@ public class RecipeServiceSub {
             if (!ObjectUtils.isEmpty(mapList)) {
                 for (int i = 0; i < mapList.size(); i++) {
                     Map<String, Object> notPassMap = mapList.get(i);
-                    List results = (List)notPassMap.get("checkNotPassDetails");
+                    List results = (List) notPassMap.get("checkNotPassDetails");
                     List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtil.convert(results, RecipeDetailBean.class);
                     try {
                         for (RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
@@ -2630,14 +2632,14 @@ public class RecipeServiceSub {
             throw new DAOException(609, "患者信息不存在");
         }
         if (StringUtils.isEmpty(recipeCode)) {
-            recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO);
+            recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO, organId);
         } else {
             //获取当前处方详情
             HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = hisRecipeManager.queryData(organId, patientDTO, null, 1, recipeCode);
             QueryHisRecipResTO queryHisRecipResTO = getRecipeInfoByRecipeCode(hisResponseTO, recipeCode);
             if (queryHisRecipResTO == null || StringUtils.isEmpty(queryHisRecipResTO.getRecipeCode())) {
                 LOGGER.info("sendRecipeTagToPatientWithOfflineRecipe recipeCode：{} 根据recipeCode没查询到线下处方！！！", recipeCode);
-                recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO);
+                recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO, organId);
             } else {
                 //拼接卡片显示参数
                 recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(queryHisRecipResTO, patientDTO);
@@ -2712,12 +2714,23 @@ public class RecipeServiceSub {
         return recipeTagMsg;
     }
 
-    private static RecipeTagMsgBean getRecipeMsgTagWithOfflineRecipe(PatientDTO patientDTO) {
+    private static RecipeTagMsgBean getRecipeMsgTagWithOfflineRecipe(PatientDTO patientDTO, Integer organId) {
         LOGGER.info("getRecipeMsgTagWithOfflineRecipe param:{}", JSONUtils.toString(patientDTO));
         //获取诊断疾病名称
         RecipeTagMsgBean recipeTagMsg = new RecipeTagMsgBean();
         recipeTagMsg.setTitle(patientDTO.getPatientName() + "的电子处方单");
         recipeTagMsg.setFlag("1");
+        String organName = "";
+        try {
+            organName = organService.getNameById(organId);
+        } catch (Exception e) {
+            LOGGER.info("getRecipeMsgTagWithOfflineRecipe getNameById error：{}", e);
+            e.printStackTrace();
+        }
+        if (specitalOrganList.contains(organId.toString()) || organName.contains("上海市第七人民医院")) {
+            recipeTagMsg.setFlag("3");
+            recipeTagMsg.setContent("请点击查看处方单或检查检验单");
+        }
         recipeTagMsg.setCardId(patientDTO.getCardId());
         recipeTagMsg.setRecipeSourceType(2);
         LOGGER.info("getRecipeMsgTagWithOfflineRecipe response:{}", JSONUtils.toString(recipeTagMsg));
