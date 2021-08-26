@@ -69,6 +69,9 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         if (null == recipeInfoVO.getRecipeExtendBean()) {
             recipeInfoVO.setRecipeExtendBean(new RecipeExtendBean());
         }
+        if (null == recipeInfoVO.getRecipeExtendBean()) {
+            recipeInfoVO.setRecipeExtendBean(new RecipeExtendBean());
+        }
         try {
             Integer result = therapyRecipeBusinessService.saveTherapyRecipe(recipeInfoVO);
             logger.info("TherapyRecipeDoctorAtop saveTherapyRecipe  result = {}", result);
