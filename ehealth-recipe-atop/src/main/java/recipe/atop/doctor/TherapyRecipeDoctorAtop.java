@@ -213,7 +213,6 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         logger.info("TherapyRecipeDoctorAtop cancelRecipe cancelRecipeReqVO:{}.", JSON.toJSONString(recipeTherapyVO));
         validateAtop(recipeTherapyVO, recipeTherapyVO.getTherapyCancellationType(), recipeTherapyVO.getRecipeId(), recipeTherapyVO.getTherapyCancellation());
         try {
-            boolean result = therapyRecipeBusinessService.cancelRecipe(recipeTherapyVO);
             //异步推送his
             offlineToOnlineService.pushRecipeExecute(recipeTherapyVO.getRecipeId(), CommonConstant.THERAPY_RECIPE_PUSH_TYPE);
             return true;
