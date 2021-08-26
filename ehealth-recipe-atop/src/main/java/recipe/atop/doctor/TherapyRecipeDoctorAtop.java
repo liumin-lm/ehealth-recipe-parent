@@ -14,6 +14,7 @@ import ctd.util.annotation.RpcService;
 import eh.utils.DateConversion;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import recipe.atop.BaseAtop;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
@@ -163,13 +164,15 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
             recipeInfoVO.setRecipeBean(recipeBean);
 
             List<RecipeDetailBean> recipeDetails = new LinkedList<>();
-            a.getRecipeDetails().forEach(b -> {
-                RecipeDetailBean recipeDetailBean = new RecipeDetailBean();
-                recipeDetailBean.setDrugName(b.getDrugName());
-                recipeDetailBean.setType(b.getType());
-                recipeDetails.add(recipeDetailBean);
-            });
-            recipeInfoVO.setRecipeDetails(recipeDetails);
+            if (!CollectionUtils.isEmpty(a.getRecipeDetails())) {
+                a.getRecipeDetails().forEach(b -> {
+                    RecipeDetailBean recipeDetailBean = new RecipeDetailBean();
+                    recipeDetailBean.setDrugName(b.getDrugName());
+                    recipeDetailBean.setType(b.getType());
+                    recipeDetails.add(recipeDetailBean);
+                });
+                recipeInfoVO.setRecipeDetails(recipeDetails);
+            }
             result.add(recipeInfoVO);
         });
         therapyRecipePageVO.setRecipeInfoList(result);
