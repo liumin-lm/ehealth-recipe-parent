@@ -44,14 +44,6 @@ public interface ITherapyRecipeBusinessService {
     RecipeInfoDTO therapyRecipeInfo(Integer recipeId);
 
     /**
-     * 撤销诊疗处方
-     *
-     * @param recipeTherapyVO
-     * @return
-     */
-    boolean cancelRecipe(RecipeTherapyVO recipeTherapyVO);
-
-    /**
      * 作废诊疗处方
      * @param recipeId
      * @return

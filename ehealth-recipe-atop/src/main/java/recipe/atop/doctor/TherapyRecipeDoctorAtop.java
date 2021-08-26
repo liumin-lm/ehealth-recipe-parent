@@ -214,8 +214,9 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         validateAtop(recipeTherapyVO, recipeTherapyVO.getTherapyCancellationType(), recipeTherapyVO.getRecipeId(), recipeTherapyVO.getTherapyCancellation());
         try {
             boolean result = therapyRecipeBusinessService.cancelRecipe(recipeTherapyVO);
-            logger.info("TherapyRecipeDoctorAtop cancelRecipe  result = {}", JSON.toJSONString("result"));
-            return result;
+            //异步推送his
+            offlineToOnlineService.pushRecipeExecute(recipeTherapyVO.getRecipeId(), CommonConstant.THERAPY_RECIPE_PUSH_TYPE);
+            return true;
         } catch (DAOException e1) {
             logger.warn("TherapyRecipeDoctorAtop cancelRecipe  error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
