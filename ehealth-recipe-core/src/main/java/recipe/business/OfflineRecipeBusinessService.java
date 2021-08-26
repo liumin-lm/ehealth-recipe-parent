@@ -32,6 +32,7 @@ import org.springframework.util.ObjectUtils;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.OfflineRecipeClient;
+import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.enumerate.status.OfflineToOnlineEnum;
@@ -296,7 +297,9 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
             }
             emrRecipeManager.updateDisease(recipeId);
-            RecipeServiceSub.sendRecipeTagToPatient(recipePdfDTO.getRecipe(), null, null, true);
+            if (CommonConstant.THERAPY_RECIPE_PUSH_TYPE.equals(pushType)) {
+                RecipeServiceSub.sendRecipeTagToPatient(recipePdfDTO.getRecipe(), null, null, true);
+            }
             logger.info("RecipeBusinessService pushTherapyRecipeExecute end recipeId:{}", recipeId);
         });
     }
