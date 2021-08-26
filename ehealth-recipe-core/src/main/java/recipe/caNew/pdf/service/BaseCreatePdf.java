@@ -44,7 +44,7 @@ public class BaseCreatePdf {
         }
         String objectName = keySplit[0];
         String fieldName = keySplit[1];
-        RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDTO(recipe.getRecipeId());
+        RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDictionary(recipe.getRecipeId());
         String barcode = operationClient.invokeFieldName(objectName, fieldName, recipePdfDTO);
         logger.info("BaseCreatePdf barcode barcode:{}", barcode);
         return barcode;

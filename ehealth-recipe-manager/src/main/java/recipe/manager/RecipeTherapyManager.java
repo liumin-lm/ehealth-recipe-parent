@@ -63,7 +63,7 @@ public class RecipeTherapyManager extends BaseManager {
      * @return
      */
     public RecipeInfoDTO getRecipeTherapyDTO(Integer recipeId) {
-        RecipeDTO recipeDTO = getRecipeDTO(recipeId);
+        RecipeDTO recipeDTO = super.getRecipeDTO(recipeId);
         RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
         BeanUtils.copyProperties(recipeDTO, recipeInfoDTO);
         Recipe recipe = recipeInfoDTO.getRecipe();

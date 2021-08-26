@@ -26,6 +26,7 @@ import recipe.util.ValidateUtil;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
 import recipe.vo.doctor.TherapyRecipePageVO;
+import recipe.vo.second.OrganVO;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -51,7 +52,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
     @RpcService
     public Integer saveTherapyRecipe(RecipeInfoVO recipeInfoVO) {
         logger.info("TherapyRecipeDoctorAtop saveTherapyRecipe recipeInfoVO = {}", JSON.toJSONString(recipeInfoVO));
-        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeDetails(), recipeInfoVO.getRecipeBean());
+        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean());
         RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
         validateAtop(recipeBean.getDoctor(), recipeBean.getMpiid(), recipeBean.getClinicOrgan(), recipeBean.getClinicId(), recipeBean.getDepart());
         recipeBean.setStatus(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType());
@@ -89,6 +90,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
      */
     @RpcService
     public Integer submitTherapyRecipe(RecipeInfoVO recipeInfoVO) {
+        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeDetails());
         Integer recipeId = saveTherapyRecipe(recipeInfoVO);
         //异步推送his
         offlineToOnlineService.pushRecipeExecute(recipeId, CommonConstant.THERAPY_RECIPE_PUSH_TYPE);
@@ -188,6 +190,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
             recipeInfoVO.setRecipeExtendBean(ObjectCopyUtils.convert(result.getRecipeExtend(), RecipeExtendBean.class));
             recipeInfoVO.setRecipeDetails(ObjectCopyUtils.convert(result.getRecipeDetails(), RecipeDetailBean.class));
             recipeInfoVO.setRecipeTherapyVO(ObjectCopyUtils.convert(result.getRecipeTherapy(), RecipeTherapyVO.class));
+            recipeInfoVO.setOrganVO(ObjectCopyUtils.convert(result.getOrgan(), OrganVO.class));
             logger.info("TherapyRecipeDoctorAtop therapyRecipeInfo  recipeInfoVO = {}", JSON.toJSONString(recipeInfoVO));
             return recipeInfoVO;
         } catch (DAOException e1) {

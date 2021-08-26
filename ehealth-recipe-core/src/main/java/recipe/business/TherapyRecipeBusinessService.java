@@ -2,6 +2,7 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
@@ -10,6 +11,7 @@ import ctd.persistence.exception.DAOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import recipe.client.OrganClient;
 import recipe.client.PatientClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
@@ -41,6 +43,8 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     @Autowired
     private PatientClient patientClient;
     @Autowired
+    private OrganClient organClient;
+    @Autowired
     private ItemListManager itemListManager;
 
     @Override
@@ -49,13 +53,17 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
         Recipe recipe = ObjectCopyUtils.convert(recipeInfoVO.getRecipeBean(), Recipe.class);
         recipe = recipeManager.saveRecipe(recipe);
         //保存处方扩展
-        RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeInfoVO.getRecipeExtendBean(), RecipeExtend.class);
-        recipeManager.saveRecipeExtend(recipeExtend, recipe);
+        if (null != recipeInfoVO.getRecipeExtendBean()) {
+            RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeInfoVO.getRecipeExtendBean(), RecipeExtend.class);
+            recipeManager.saveRecipeExtend(recipeExtend, recipe);
+        }
         //保存处方明细
-        List<Recipedetail> details = ObjectCopyUtils.convert(recipeInfoVO.getRecipeDetails(), Recipedetail.class);
-        List<Integer> drugIds = details.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
-        Map<String, OrganDrugList> organDrugListMap = organDrugListManager.getOrganDrugByIdAndCode(recipe.getClinicOrgan(), drugIds);
-        recipeDetailManager.saveRecipeDetails(recipe, details, organDrugListMap);
+        if (!CollectionUtils.isEmpty(recipeInfoVO.getRecipeDetails())) {
+            List<Recipedetail> details = ObjectCopyUtils.convert(recipeInfoVO.getRecipeDetails(), Recipedetail.class);
+            List<Integer> drugIds = details.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+            Map<String, OrganDrugList> organDrugListMap = organDrugListManager.getOrganDrugByIdAndCode(recipe.getClinicOrgan(), drugIds);
+            recipeDetailManager.saveRecipeDetails(recipe, details, organDrugListMap);
+        }
         //保存诊疗
         RecipeTherapy recipeTherapy = new RecipeTherapy();
         recipeTherapy.setStatus(TherapyStatusEnum.READYSUBMIT.getType());
@@ -78,6 +86,7 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     public List<RecipeInfoDTO> therapyRecipeList(RecipeTherapy recipeTherapy, int start, int limit) {
         List<RecipeInfoDTO> list = new LinkedList<>();
         List<RecipeTherapy> recipeTherapyList = recipeTherapyManager.therapyRecipeList(recipeTherapy, start, limit);
+        logger.info("TherapyRecipeBusinessService therapyRecipeList recipeTherapyList:{}", JSON.toJSONString(recipeTherapyList));
         if (CollectionUtils.isEmpty(recipeTherapyList)) {
             return list;
         }
@@ -103,7 +112,8 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
         RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDTO(recipeId);
         RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyByRecipeId(recipeId);
         recipePdfDTO.setRecipeTherapy(recipeTherapy);
-        logger.info("TherapyRecipeBusinessService therapyRecipeInfo  recipePdfDTO = {}", JSON.toJSONString(recipePdfDTO));
+        OrganDTO organDTO = organClient.organDTO(recipePdfDTO.getRecipe().getClinicOrgan());
+        recipePdfDTO.setOrgan(organDTO);
         return recipePdfDTO;
     }
 

@@ -302,7 +302,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
     private SignRecipePdfVO signRecipePdfVO(Recipe recipe) throws Exception {
         logger.info("PlatformCreatePdfServiceImpl queryPdfBytePdf recipe:{}", JSON.toJSONString(recipe));
         //获取pdf值对象
-        RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDTO(recipe.getRecipeId());
+        RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDictionary(recipe.getRecipeId());
         ApothecaryDTO apothecaryDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getGiveUser(), recipe.getRecipeId());
         recipePdfDTO.setApothecary(apothecaryDTO);
         Map<String, List<RecipeLabelDTO>> result = operationClient.queryRecipeLabel(recipePdfDTO);
