@@ -126,14 +126,14 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         }
         TherapyRecipePageVO therapyRecipePageVO = new TherapyRecipePageVO();
         therapyRecipePageVO.setLimit(limit);
-        therapyRecipePageVO.setStart(start * limit);
+        therapyRecipePageVO.setStart(start);
         therapyRecipePageVO.setTotal(total);
         if (ValidateUtil.validateObjects(total)) {
             return therapyRecipePageVO;
         }
         List<RecipeInfoDTO> recipeInfoList;
         try {
-            recipeInfoList = therapyRecipeBusinessService.therapyRecipeList(recipeTherapy, start, limit);
+            recipeInfoList = therapyRecipeBusinessService.therapyRecipeList(recipeTherapy, start * limit, limit);
             logger.info("TherapyRecipeDoctorAtop therapyRecipeList  recipeInfoList = {}", JSON.toJSONString(recipeInfoList));
         } catch (DAOException e1) {
             logger.warn("TherapyRecipeDoctorAtop therapyRecipeList  error", e1);
