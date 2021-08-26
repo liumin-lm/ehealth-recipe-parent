@@ -14,6 +14,7 @@ import ctd.util.annotation.RpcService;
 import eh.utils.DateConversion;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import recipe.atop.BaseAtop;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
@@ -66,6 +67,9 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         recipeBean.setRemindFlag(0);
         recipeBean.setTakeMedicine(0);
         recipeBean.setPatientStatus(1);
+        if (null == recipeInfoVO.getRecipeExtendBean()) {
+            recipeInfoVO.setRecipeExtendBean(new RecipeExtendBean());
+        }
         if (null == recipeInfoVO.getRecipeExtendBean()) {
             recipeInfoVO.setRecipeExtendBean(new RecipeExtendBean());
         }
@@ -160,13 +164,15 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
             recipeInfoVO.setRecipeBean(recipeBean);
 
             List<RecipeDetailBean> recipeDetails = new LinkedList<>();
-            a.getRecipeDetails().forEach(b -> {
-                RecipeDetailBean recipeDetailBean = new RecipeDetailBean();
-                recipeDetailBean.setDrugName(b.getDrugName());
-                recipeDetailBean.setType(b.getType());
-                recipeDetails.add(recipeDetailBean);
-            });
-            recipeInfoVO.setRecipeDetails(recipeDetails);
+            if (!CollectionUtils.isEmpty(a.getRecipeDetails())) {
+                a.getRecipeDetails().forEach(b -> {
+                    RecipeDetailBean recipeDetailBean = new RecipeDetailBean();
+                    recipeDetailBean.setDrugName(b.getDrugName());
+                    recipeDetailBean.setType(b.getType());
+                    recipeDetails.add(recipeDetailBean);
+                });
+                recipeInfoVO.setRecipeDetails(recipeDetails);
+            }
             result.add(recipeInfoVO);
         });
         therapyRecipePageVO.setRecipeInfoList(result);
@@ -214,7 +220,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         validateAtop(recipeTherapyVO, recipeTherapyVO.getTherapyCancellationType(), recipeTherapyVO.getRecipeId(), recipeTherapyVO.getTherapyCancellation());
         try {
             //异步推送his
-            offlineToOnlineService.pushRecipeExecute(recipeTherapyVO.getRecipeId(), CommonConstant.THERAPY_RECIPE_PUSH_TYPE);
+            offlineToOnlineService.pushRecipeExecute(recipeTherapyVO.getRecipeId(), CommonConstant.THERAPY_RECIPE_CANCEL_TYPE);
             return true;
         } catch (DAOException e1) {
             logger.warn("TherapyRecipeDoctorAtop cancelRecipe  error", e1);
