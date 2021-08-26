@@ -133,7 +133,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         }
         List<RecipeInfoDTO> recipeInfoList;
         try {
-            recipeInfoList = therapyRecipeBusinessService.therapyRecipeList(recipeTherapy, start, limit);
+            recipeInfoList = therapyRecipeBusinessService.therapyRecipeList(recipeTherapy, start * limit, limit);
             logger.info("TherapyRecipeDoctorAtop therapyRecipeList  recipeInfoList = {}", JSON.toJSONString(recipeInfoList));
         } catch (DAOException e1) {
             logger.warn("TherapyRecipeDoctorAtop therapyRecipeList  error", e1);
