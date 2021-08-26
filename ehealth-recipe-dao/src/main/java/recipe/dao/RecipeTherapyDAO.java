@@ -80,7 +80,7 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
      * @param limit    条数
      * @return 诊疗信息
      */
-    @DAOMethod(sql = "from RecipeTherapy where organ_id=:organId and doctor_id=:doctorId and clinic_id=:clinicId order by clinic_id desc")
+    @DAOMethod(sql = "from RecipeTherapy where organ_id=:organId and doctor_id=:doctorId and clinic_id=:clinicId order by id desc")
     public abstract List<RecipeTherapy> findTherapyPageByDoctorIdAndClinicId(@DAOParam("organId") int organId, @DAOParam("doctorId") int doctorId,
                                                                              @DAOParam("clinicId") int clinicId, @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
 
@@ -106,7 +106,7 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
      * @param limit    条数
      * @return 诊疗信息
      */
-    @DAOMethod(sql = "from RecipeTherapy where organ_id=:organId and mpi_id=:mpiId and clinic_id=:clinicId order by clinic_id desc")
+    @DAOMethod(sql = "from RecipeTherapy where organ_id=:organId and mpi_id=:mpiId and clinic_id=:clinicId order by id desc")
     public abstract List<RecipeTherapy> findTherapyPageByMpiIdAndClinicId(@DAOParam("organId") int organId, @DAOParam("mpiId") String mpiId,
                                                                           @DAOParam("clinicId") int clinicId, @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
 

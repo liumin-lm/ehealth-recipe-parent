@@ -3771,7 +3771,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Map<String, List<RecipeLabelDTO>> queryRecipeLabelById(int recipeId, Integer organId) {
-        RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDTO(recipeId);
+        RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDictionary(recipeId);
         Recipe recipe = recipePdfDTO.getRecipe();
         ApothecaryDTO apothecaryDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getGiveUser(), recipe.getRecipeId());
         recipePdfDTO.setApothecary(apothecaryDTO);

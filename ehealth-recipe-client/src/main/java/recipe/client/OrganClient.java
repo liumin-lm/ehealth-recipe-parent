@@ -7,6 +7,7 @@ import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.util.ObjectCopyUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,8 @@ import java.util.stream.Collectors;
 
 /**
  * 机构相关服务
+ *
+ * @author fuzi
  */
 @Service
 public class OrganClient extends BaseClient{
@@ -37,9 +40,10 @@ public class OrganClient extends BaseClient{
 
     /**
      * 获取所有机构列表
+     *
      * @return 机构列表
      */
-    public List<Integer> findAllOrganIds(){
+    public List<Integer> findAllOrganIds() {
         List<Integer> organIds = new ArrayList<>();
         List<OrganDTO> organs = organService.findOrgans();
         if (CollectionUtils.isNotEmpty(organs)) {
@@ -47,5 +51,18 @@ public class OrganClient extends BaseClient{
         }
         logger.info("OrganClient getOrganForWeb findOrgans organIds:{}", JSONUtils.toString(organIds));
         return organIds;
+
+    }
+
+    /**
+     * 获取机构信息
+     *
+     * @param organId 机构id
+     * @return
+     */
+    public com.ngari.recipe.dto.OrganDTO organDTO(Integer organId) {
+        OrganDTO organDTO = organService.getByOrganId(organId);
+        logger.info("OrganClient organDTO organDTO {}", JSONUtils.toString(organDTO));
+        return ObjectCopyUtils.convert(organDTO, com.ngari.recipe.dto.OrganDTO.class);
     }
 }

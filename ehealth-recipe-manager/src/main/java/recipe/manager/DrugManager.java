@@ -40,6 +40,10 @@ public class DrugManager extends BaseManager {
     private DrugEntrustDAO drugEntrustDAO;
     @Autowired
     private DrugListDAO drugListDAO;
+    @Autowired
+    private OrganDrugListDAO organDrugListDAO;
+    @Autowired
+    private DispensatoryDAO dispensatoryDAO;
 
     /**
      * todo 分层不合理 静态不合理 方法使用不合理 需要修改 （尹盛）
@@ -236,7 +240,7 @@ public class DrugManager extends BaseManager {
         Set<Integer> drugIds = drugWithEsByPatient.stream().map(PatientDrugWithEsDTO::getDrugId).collect(Collectors.toSet());
         if (CollectionUtils.isNotEmpty(drugIds)) {
             List<DrugList> byDrugIds = drugListDAO.findByDrugIds(drugIds);
-            if(CollectionUtils.isNotEmpty(byDrugIds)){
+            if (CollectionUtils.isNotEmpty(byDrugIds)) {
                 Map<Integer, List<DrugList>> collect = byDrugIds.stream().collect(Collectors.groupingBy(DrugList::getDrugId));
                 drugWithEsByPatient.forEach(patientDrugWithEsDTO -> {
                     patientDrugWithEsDTO.setDrugPic(collect.get(patientDrugWithEsDTO.getDrugId()).get(0).getDrugPic());
@@ -246,5 +250,25 @@ public class DrugManager extends BaseManager {
         }
         logger.info("DrugManager findDrugWithEsByPatient res drugWithEsByPatient:{}", JSON.toJSONString(drugWithEsByPatient));
         return drugWithEsByPatient;
+    }
+
+    /**
+     * 获取药品说明书
+     *
+     * @param organId       机构id
+     * @param organDrugCode 机构药品编码
+     * @return
+     */
+    public Dispensatory getDrugBook(Integer organId, String organDrugCode) {
+        logger.info("DrugManager.getDrugBook req organId={} organDrugCode={}", organId, organDrugCode);
+        // 根据机构与机构药品编码获取 药品id
+        List<OrganDrugList> byOrganDrugCodeAndOrganId = organDrugListDAO.findByOrganDrugCodeAndOrganId(organDrugCode, organId);
+        if (CollectionUtils.isEmpty(byOrganDrugCodeAndOrganId)) {
+            return null;
+        }
+        Integer drugId = byOrganDrugCodeAndOrganId.get(0).getDrugId();
+        Dispensatory dispensatory = dispensatoryDAO.getByDrugId(drugId);
+        logger.info("DrugManager.getDrugBook res dispensatory={} drugId={}", dispensatory, drugId);
+        return dispensatory;
     }
 }

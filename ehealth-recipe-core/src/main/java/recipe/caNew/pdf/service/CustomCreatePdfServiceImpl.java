@@ -330,7 +330,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             throw new DAOException(ErrorCode.SERVICE_ERROR, "模版错误");
         }
         //获取pdf值对象
-        RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDTO(recipe.getRecipeId());
+        RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDictionary(recipe.getRecipeId());
         //获取模版填充字段
         List<WordToPdfBean> generatePdfList = generatePdfList(recipe.getClinicOrgan(), map.keySet(), recipePdfDTO);
         //替换的模版字段
