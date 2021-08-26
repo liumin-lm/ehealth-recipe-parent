@@ -1312,4 +1312,85 @@ public class RecipeBean implements Serializable {
     public void setWxDisplayTime(String wxDisplayTime) {
         this.wxDisplayTime = wxDisplayTime;
     }
+
+    /**
+     * 处方单设置默认值
+     */
+    public void setDefaultData() {
+        if (null == this.getRecipeType()) {
+            this.setRecipeId(0);
+        }
+
+        //默认为西药
+        if (null == this.getRecipeType()) {
+            this.setRecipeType(1);
+        }
+
+        //默认剂数为1
+        if (null == this.getCopyNum() || this.getCopyNum() < 1) {
+            this.setCopyNum(1);
+        }
+
+        //默认无法医保支付
+        if (null == this.getMedicalPayFlag()) {
+            this.setMedicalPayFlag(0);
+        }
+
+        //默认可以医院，药企发药
+        if (null == this.getDistributionFlag()) {
+            this.setDistributionFlag(0);
+        }
+
+        //默认来源为纳里APP处方
+        if (null == this.getFromflag()) {
+            this.setFromflag(1);
+        }
+
+        //默认到院取药
+        if (null == this.getGiveMode()) {
+            this.setGiveMode(2);
+        }
+
+        //默认未签名
+        if (null == this.getStatus()) {
+            this.setStatus(0);
+        }
+
+        if (null == this.getCreateDate()) {
+            Date now = new Date();
+            this.setCreateDate(now);
+            this.setLastModify(now);
+        }
+
+        //默认有效天数
+        if (null == this.getValueDays()) {
+            this.setValueDays(3);
+        }
+
+        if (null == this.getPayFlag()) {
+            this.setPayFlag(0);
+        }
+
+        if (null == this.getChooseFlag()) {
+            this.setChooseFlag(0);
+        }
+
+        if (null == this.getGiveFlag()) {
+            this.setGiveFlag(0);
+        }
+
+        if (null == this.getRemindFlag()) {
+            this.setRemindFlag(0);
+        }
+
+        if (null == this.getPushFlag()) {
+            this.setPushFlag(0);
+        }
+
+        if (null == this.getTakeMedicine()) {
+            this.setTakeMedicine(0);
+        }
+
+    }
+
 }
