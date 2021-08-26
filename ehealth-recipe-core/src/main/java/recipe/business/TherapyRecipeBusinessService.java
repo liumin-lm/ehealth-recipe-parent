@@ -18,7 +18,6 @@ import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.manager.*;
 import recipe.vo.doctor.RecipeInfoVO;
-import recipe.vo.doctor.RecipeTherapyVO;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -65,7 +64,10 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
             recipeDetailManager.saveRecipeDetails(recipe, details, organDrugListMap);
         }
         //保存诊疗
-        RecipeTherapy recipeTherapy = new RecipeTherapy();
+        RecipeTherapy recipeTherapy = ObjectCopyUtils.convert(recipeInfoVO.getRecipeTherapyVO(), RecipeTherapy.class);
+        if (null == recipeTherapy) {
+            recipeTherapy = new RecipeTherapy();
+        }
         recipeTherapy.setStatus(TherapyStatusEnum.READYSUBMIT.getType());
         recipeTherapyManager.saveRecipeTherapy(recipeTherapy, recipe);
         //更新处方
