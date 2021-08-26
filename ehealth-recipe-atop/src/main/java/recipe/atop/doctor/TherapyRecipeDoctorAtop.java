@@ -126,7 +126,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         }
         TherapyRecipePageVO therapyRecipePageVO = new TherapyRecipePageVO();
         therapyRecipePageVO.setLimit(limit);
-        therapyRecipePageVO.setStart(start);
+        therapyRecipePageVO.setStart(start * limit);
         therapyRecipePageVO.setTotal(total);
         if (ValidateUtil.validateObjects(total)) {
             return therapyRecipePageVO;
