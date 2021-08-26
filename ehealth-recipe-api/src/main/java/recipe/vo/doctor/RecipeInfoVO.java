@@ -6,6 +6,7 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import lombok.Getter;
 import lombok.Setter;
+import recipe.vo.second.OrganVO;
 
 import java.util.List;
 
@@ -35,4 +36,8 @@ public class RecipeInfoVO {
      * 患者信息
      */
     private PatientVO patientVO;
+    /**
+     * 医院信息
+     */
+    private OrganVO organVO;
 }

@@ -61,6 +61,7 @@ public class RecipeManager extends BaseManager {
         } else {
             recipe = recipeDAO.update(recipe);
         }
+        logger.info("RecipeManager saveRecipe recipe:{}", JSONUtils.toString(recipe));
         return recipe;
     }
 
@@ -78,6 +79,7 @@ public class RecipeManager extends BaseManager {
         } else {
             recipeExtend = recipeExtendDAO.update(recipeExtend);
         }
+        logger.info("RecipeManager saveRecipeExtend recipeExtend:{}", JSONUtils.toString(recipeExtend));
         return recipeExtend;
     }
 

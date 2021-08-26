@@ -25,5 +25,9 @@ public class RecipeInfoDTO extends RecipeDTO implements Serializable {
      * 处方诊疗信息
      */
     private RecipeTherapy recipeTherapy;
+    /**
+     * 机构信息
+     */
+    private OrganDTO organ;
 
 }
