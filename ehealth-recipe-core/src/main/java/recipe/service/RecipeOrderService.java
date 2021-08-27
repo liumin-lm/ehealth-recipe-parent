@@ -68,6 +68,7 @@ import recipe.common.ResponseUtils;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.GiveModeTextEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -1702,26 +1703,40 @@ public class RecipeOrderService extends RecipeBaseService {
             orderBean.setDecoctionId(decoctionId);
             orderBean.setDecoctionText(decoctionText);
             BigDecimal needFee = new BigDecimal(0.00);
-            //当处方状态为已完成时
-            if (RecipeStatusConstant.FINISH == recipeList.get(0).getStatus()) {
-                //实付款 (当处方状态为已完成时，实付款=总金额-优惠金额 同时将需付款设置为0）特殊处理：线下支付，不会将金额回写到处方，只会回写状态
-                orderBean.setActualPrice(orderBean.getTotalFee().subtract(orderBean.getCouponFee()).doubleValue());
+            Recipe recipe = recipeList.get(0);
+            Integer recipeStatus = recipe.getStatus();
+            if ("supportToHos".equals(order.getGiveModeKey())
+                    && new Integer(2).equals(order.getPayMode())
+                    && (RecipeStatusEnum.RECIPE_STATUS_HAVE_PAY.getType().equals(recipeStatus)
+                    || RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipeStatus))) {
+                //到院取药并且为线下支付的处方
+                orderBean.setActualPrice(orderBean.getRecipeFee()
+                        .add(orderBean.getAuditFee())
+                        .add(orderBean.getRegisterFee())
+                        .add(orderBean.getTcmFee())
+                        .add(orderBean.getOtherFee()).doubleValue());
             } else {
-                // 需支付
-                // 当payflag=0 未支付时 需支付=订单总金额-优惠金额
-                // 当payflag=1已支付，2退款中，3退款成功，4支付失败时 需支付=订单总金额-实付款-优惠金额
-                try {
-                    LOGGER.info("getOrderDetailById needFee orderCode:{} ,order:{}", order.getOrderCode(), JSONUtils.toString(order));
-                    if (PayConstant.PAY_FLAG_NOT_PAY == orderBean.getPayFlag()) {
-                        needFee = orderBean.getTotalFee().subtract(orderBean.getCouponFee());
-                    } else {
-                        needFee = orderBean.getTotalFee().subtract(orderBean.getCouponFee()).subtract(new BigDecimal(Double.toString(orderBean.getActualPrice())));
+                //当处方状态为已完成时
+                if (RecipeStatusConstant.FINISH == recipeStatus) {
+                    //实付款 (当处方状态为已完成时，实付款=总金额-优惠金额 同时将需付款设置为0）特殊处理：线下支付，不会将金额回写到处方，只会回写状态
+                    orderBean.setActualPrice(orderBean.getTotalFee().subtract(orderBean.getCouponFee()).doubleValue());
+                } else {
+                    // 需支付
+                    // 当payflag=0 未支付时 需支付=订单总金额-优惠金额
+                    // 当payflag=1已支付，2退款中，3退款成功，4支付失败时 需支付=订单总金额-实付款-优惠金额
+                    try {
+                        LOGGER.info("getOrderDetailById needFee orderCode:{} ,order:{}", order.getOrderCode(), JSONUtils.toString(order));
+                        if (PayConstant.PAY_FLAG_NOT_PAY == orderBean.getPayFlag()) {
+                            needFee = orderBean.getTotalFee().subtract(orderBean.getCouponFee());
+                        } else {
+                            needFee = orderBean.getTotalFee().subtract(orderBean.getCouponFee()).subtract(new BigDecimal(Double.toString(orderBean.getActualPrice())));
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error("getOrderDetailById needFee计算需支付 error :{}", e);
                     }
-                } catch (Exception e) {
-                    LOGGER.error("getOrderDetailById needFee计算需支付 error :{}", e);
                 }
+                orderBean.setNeedFee(needFee.compareTo(BigDecimal.ZERO) >= 0 ? needFee : BigDecimal.ZERO);
             }
-            orderBean.setNeedFee(needFee.compareTo(BigDecimal.ZERO) >= 0 ? needFee : BigDecimal.ZERO);
 
             if (order.getEnterpriseId() != null) {
                 DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
