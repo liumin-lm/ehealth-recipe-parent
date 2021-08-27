@@ -51,6 +51,13 @@ public interface ITherapyRecipeBusinessService {
     boolean abolishTherapyRecipe(Integer recipeId);
 
     /**
+     * 更新诊疗处方
+     * @param recipeTherapyVO
+     * @return
+     */
+    void updateTherapyRecipe(RecipeTherapyVO recipeTherapyVO);
+
+    /**
      * 搜索诊疗项目
      * @param itemListVO
      * @return

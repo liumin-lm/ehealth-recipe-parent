@@ -145,8 +145,6 @@ public class RecipeTherapyManager extends BaseManager {
                 updateRecipeTherapy.setStatus(TherapyStatusEnum.READYPAY.getType());
             } else {
                 updateRecipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
-                updateRecipeTherapy.setTherapyCancellationType(1);
-                updateRecipeTherapy.setTherapyCancellation(recipeTherapyResult.getTherapyCancellation());
             }
             logger.info("RecipeTherapyManager updatePushHisRecipe updateRecipeTherapy:{}.", JSON.toJSONString(updateRecipeTherapy));
             recipeTherapyDAO.updateNonNullFieldByPrimaryKey(updateRecipeTherapy);

@@ -224,6 +224,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         try {
             //异步推送his
             offlineToOnlineService.pushRecipeExecute(recipeTherapyVO.getRecipeId(), CommonConstant.THERAPY_RECIPE_CANCEL_TYPE);
+            therapyRecipeBusinessService.updateTherapyRecipe(recipeTherapyVO);
             return true;
         } catch (DAOException e1) {
             logger.warn("TherapyRecipeDoctorAtop cancelRecipe  error", e1);
