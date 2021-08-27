@@ -1717,7 +1717,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         .add(orderBean.getOtherFee()).doubleValue());
             } else {
                 //当处方状态为已完成时
-                if (RecipeStatusConstant.FINISH == recipeStatus) {
+                if (RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipeStatus)) {
                     //实付款 (当处方状态为已完成时，实付款=总金额-优惠金额 同时将需付款设置为0）特殊处理：线下支付，不会将金额回写到处方，只会回写状态
                     orderBean.setActualPrice(orderBean.getTotalFee().subtract(orderBean.getCouponFee()).doubleValue());
                 } else {
