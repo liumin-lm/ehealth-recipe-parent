@@ -36,7 +36,7 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
     public List<GiveModeButtonBean> getOrganGiveModeConfig(Integer organId){
         List<GiveModeButtonBean> result = new ArrayList<>();
         List<ScratchableBean> scratchableBeans = configurationClient.getOrganGiveMode(organId);
-        scratchableBeans.forEach(scratchableBean->{
+        scratchableBeans.stream().filter(scratchableBean->!"listItem".equals(scratchableBean.getBoxLink())).forEach(scratchableBean->{
             GiveModeButtonBean giveModeButtonBean = new GiveModeButtonBean();
             giveModeButtonBean.setShowButtonKey(scratchableBean.getBoxLink());
             giveModeButtonBean.setShowButtonName(scratchableBean.getBoxTxt());
