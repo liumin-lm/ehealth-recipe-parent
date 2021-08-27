@@ -95,6 +95,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
      */
     @RpcService
     public Integer submitTherapyRecipe(RecipeInfoVO recipeInfoVO) {
+        logger.info("TherapyRecipeDoctorAtop submitTherapyRecipe recipeInfoVO = {}", JSON.toJSONString(recipeInfoVO));
         validateAtop(recipeInfoVO, recipeInfoVO.getRecipeDetails());
         Integer recipeId = saveTherapyRecipe(recipeInfoVO);
         //异步推送his
