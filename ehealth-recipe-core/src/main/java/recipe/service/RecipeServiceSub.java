@@ -2587,6 +2587,7 @@ public class RecipeServiceSub {
             recipeTagMsg.setTitle(recipe.getPatientName() + "的诊疗处方");
             Long count = recipeDetailManager.getCountByRecipeId(recipe.getRecipeId());
             recipeTagMsg.setContent("共" + count + "个项目");
+            recipeTagMsg.setRecipeSourceType(recipe.getRecipeSourceType());
         } else {
             //获取诊断疾病名称
             String diseaseName = recipe.getOrganDiseaseName();
