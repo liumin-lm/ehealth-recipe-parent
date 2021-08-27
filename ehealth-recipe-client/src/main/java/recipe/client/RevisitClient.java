@@ -1,18 +1,13 @@
 package recipe.client;
 
-import com.ngari.recipe.entity.Recipe;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.revisit.common.service.IRevisitService;
-import com.ngari.revisit.traces.requ.RevisitTracesSortRequest;
-import com.ngari.revisit.traces.resp.RevisitTracesSortResponse;
 import com.ngari.revisit.traces.service.IRevisitTracesSortService;
 import ctd.util.JSONUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.Date;
 
 /**
  * @Author liumin
@@ -63,34 +58,7 @@ public class RevisitClient extends BaseClient {
         logger.info("RevisitClient getByClinicId res consultExDTO:{} ", JSONUtils.toString(consultExDTO));
         return consultExDTO;
     }
-
-    /**
-     * 通知复诊——添加处方追溯数据
-     *
-     * @param recipe
-     */
-    public void saveRevisitTracesList(Recipe recipe) {
-        try {
-            if (recipe == null) {
-                return;
-            }
-            RevisitTracesSortRequest revisitTracesSortRequest = new RevisitTracesSortRequest();
-            revisitTracesSortRequest.setBusId(recipe.getRecipeId().toString());
-            revisitTracesSortRequest.setBusNumOrder(10);
-            revisitTracesSortRequest.setBusOccurredTime(new Date());
-            revisitTracesSortRequest.setBusType(1);
-            revisitTracesSortRequest.setConsultId(recipe.getClinicId());
-            revisitTracesSortRequest.setOrganId(recipe.getClinicOrgan());
-            logger.info("RevisitClient saveRevisitTracesList request revisitTracesSortRequest:{}", JSONUtils.toString(revisitTracesSortRequest));
-            RevisitTracesSortResponse revisitTracesSortResponse = revisitTracesSortService.saveOrUpdate(revisitTracesSortRequest);
-            logger.info("RevisitClient saveRevisitTracesList response revisitTracesSortResponse:{}", JSONUtils.toString(revisitTracesSortResponse));
-            //TODO  复诊的接口返回没有成功或失败 无法加标志 无法失败重试或批量处理失败数据
-        } catch (Exception e) {
-            logger.error("RevisitClient saveRevisitTracesList error recipeId:{},{}", recipe.getRecipeId(), e);
-            e.printStackTrace();
-        }
-    }
-
+    
     /**
      * 通知复诊——删除处方追溯数据
      *

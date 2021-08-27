@@ -23,6 +23,12 @@ public class OnsConfig {
      */
     public static String recipeDelayTopic;
 
+    public static String revisitTraceTopic;
+
+
+    public void setRevisitTraceTopic(String revisitTraceTopic) {
+        OnsConfig.revisitTraceTopic = revisitTraceTopic;
+    }
 
     public void setRecipeDelayTopic(String recipeDelayTopic) {
         OnsConfig.recipeDelayTopic = recipeDelayTopic;
@@ -52,4 +58,6 @@ public class OnsConfig {
     public void setSessionTopic(String sessionTopic) {
         OnsConfig.sessionTopic = sessionTopic;
     }
+
+
 }

@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipeCheckPassResult;
+import recipe.business.RevisitTraceBusinessService;
 import recipe.client.RevisitClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.RecipeDAO;
@@ -34,7 +35,6 @@ import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.CommonOrder;
-import recipe.thread.RecipeBusiThreadPool;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -56,6 +56,9 @@ public class HisCallBackService {
     private static final Logger LOGGER = LoggerFactory.getLogger(HisCallBackService.class);
 
     private static RevisitClient revisitClient = AppContextHolder.getBean("revisitClient", RevisitClient.class);
+
+    private static RevisitTraceBusinessService revisitTraceBusinessService = AppContextHolder.getBean("revisitTraceBusinessService", RevisitTraceBusinessService.class);
+
 
     /**
      * 处方HIS审核通过成功
@@ -180,7 +183,7 @@ public class HisCallBackService {
         //date 20200507
         //调用医生重新签名的逻辑
         recipeService.retryDoctorSignCheck(result.getRecipeId());
-        RecipeBusiThreadPool.execute(() -> revisitClient.saveRevisitTracesList(recipe));
+        revisitTraceBusinessService.saveRevisitTracesList(recipe);
     }
 
 

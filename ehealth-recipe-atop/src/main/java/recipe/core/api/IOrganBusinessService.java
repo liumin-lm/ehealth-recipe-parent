@@ -1,5 +1,7 @@
 package recipe.core.api;
 
+import com.ngari.recipe.recipe.model.GiveModeButtonBean;
+
 import java.util.List;
 import java.util.Set;
 
@@ -21,5 +23,5 @@ public interface IOrganBusinessService {
      * @param organId organId
      * @return 购药方式列表
      */
-    Set<String> getOrganGiveModeConfig(Integer organId);
+    List<GiveModeButtonBean> getOrganGiveModeConfig(Integer organId);
 }
