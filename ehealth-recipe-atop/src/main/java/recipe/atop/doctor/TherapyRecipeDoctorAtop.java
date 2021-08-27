@@ -29,6 +29,7 @@ import recipe.vo.doctor.RecipeTherapyVO;
 import recipe.vo.doctor.TherapyRecipePageVO;
 import recipe.vo.second.OrganVO;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -133,6 +134,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         therapyRecipePageVO.setStart(start);
         therapyRecipePageVO.setTotal(total);
         if (ValidateUtil.validateObjects(total)) {
+            therapyRecipePageVO.setRecipeInfoList(Collections.emptyList());
             return therapyRecipePageVO;
         }
         List<RecipeInfoDTO> recipeInfoList;
