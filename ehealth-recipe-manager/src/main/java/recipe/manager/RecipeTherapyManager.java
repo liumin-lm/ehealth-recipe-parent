@@ -15,7 +15,9 @@ import recipe.dao.RecipeTherapyDAO;
 import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.util.ValidateUtil;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 诊疗处方
@@ -88,9 +90,10 @@ public class RecipeTherapyManager extends BaseManager {
             return recipeTherapyDAO.findTherapyPageByDoctorId(recipeTherapy.getOrganId(), recipeTherapy.getDoctorId(), start, limit);
         }
         if (!ValidateUtil.validateObjects(recipeTherapy.getDoctorId()) && !ValidateUtil.validateObjects(recipeTherapy.getClinicId())) {
-            return recipeTherapyDAO.findTherapyPageByDoctorIdAndClinicId(recipeTherapy.getOrganId(), recipeTherapy.getDoctorId(), recipeTherapy.getClinicId(), start, limit);
+            List<RecipeTherapy> list = recipeTherapyDAO.findTherapyByDoctorIdAndClinicId(recipeTherapy.getOrganId(), recipeTherapy.getDoctorId(), recipeTherapy.getClinicId());
+            return list.stream().sorted(Comparator.comparing(RecipeTherapy::getStatus).thenComparing(RecipeTherapy::getId, Comparator.reverseOrder())).collect(Collectors.toList());
         }
-        if (!ValidateUtil.validateObjects(recipeTherapy.getMpiId())) {
+        if (!ValidateUtil.validateObjects(recipeTherapy.getMpiId()) && ValidateUtil.validateObjects(recipeTherapy.getDoctorId())) {
             return recipeTherapyDAO.findTherapyPageByMpiIdAndClinicId(recipeTherapy.getOrganId(), recipeTherapy.getMpiId(), recipeTherapy.getClinicId(), start, limit);
         }
         return null;
@@ -109,7 +112,7 @@ public class RecipeTherapyManager extends BaseManager {
         if (!ValidateUtil.validateObjects(recipeTherapy.getDoctorId()) && !ValidateUtil.validateObjects(recipeTherapy.getClinicId())) {
             return recipeTherapyDAO.findTherapyByDoctorIdAndClinicId(recipeTherapy.getOrganId(), recipeTherapy.getDoctorId(), recipeTherapy.getClinicId());
         }
-        if (!ValidateUtil.validateObjects(recipeTherapy.getMpiId())) {
+        if (!ValidateUtil.validateObjects(recipeTherapy.getMpiId()) && ValidateUtil.validateObjects(recipeTherapy.getDoctorId())) {
             return recipeTherapyDAO.findTherapyByMpiIdAndClinicId(recipeTherapy.getOrganId(), recipeTherapy.getMpiId(), recipeTherapy.getClinicId());
         }
         return null;
