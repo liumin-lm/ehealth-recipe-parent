@@ -1,5 +1,6 @@
 package recipe.manager;
 
+import com.alibaba.fastjson.JSONArray;
 import eh.base.constant.CardTypeEnum;
 import org.apache.commons.collections.MapUtils;
 import org.springframework.stereotype.Service;
@@ -37,8 +38,10 @@ public class ButtonManager extends BaseManager {
      * @return
      */
     public Integer getPayButton(Integer organId, String cardType, Boolean isForce) {
+        logger.info("ButtonManager.getPayButton req organId={} cardType={} isForce={}",organId,cardType,isForce);
         List<String> keys = Arrays.asList(medicalPayConfigKey, provincialMedicalPayFlagKey);
         Map<String, Object> configurationByKeyList = configurationClient.getConfigurationByKeyList(organId, keys);
+        logger.info("ButtonManager.getPayButton configurationByKeyList configurationByKeyList={}", JSONArray.toJSONString(configurationByKeyList));
 
         // 强制自费 + 健康卡 展示 自费支付
         if (isForce) {

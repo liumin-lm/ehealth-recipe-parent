@@ -1,5 +1,6 @@
 package recipe.business;
 
+import com.ngari.common.dto.RevisitTracesMsg;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -7,6 +8,7 @@ import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.dto.RecipeCancel;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import ctd.net.broadcast.MQHelper;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import eh.recipeaudit.api.IRecipeAuditService;
@@ -25,6 +27,7 @@ import recipe.dao.*;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.manager.SignManager;
+import recipe.mq.OnsConfig;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
 import java.util.ArrayList;
@@ -257,9 +260,40 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
         //时间预留 传null
         List<Recipe> recipes = recipeDAO.queryRevisitTrace(startTime, endTime, recipeIds, organId);
         recipes.forEach(recipe -> {
-            revisitClient.saveRevisitTracesList(recipe);
+            saveRevisitTracesList(recipe);
             logger.info("handDealRevisitTraceRecipe recipeId:{}", recipe.getRecipeId());
         });
         logger.info("handDealRevisitTraceRecipe end");
     }
+
+    /**
+     * 通知复诊——添加处方追溯数据
+     *
+     * @param recipe
+     */
+    public void saveRevisitTracesList(Recipe recipe) {
+        try {
+            if (recipe == null) {
+                return;
+            }
+            RevisitTracesMsg revisitTracesMsg = new RevisitTracesMsg();
+            revisitTracesMsg.setOrganId(recipe.getClinicOrgan());
+            revisitTracesMsg.setConsultId(recipe.getClinicId());
+            revisitTracesMsg.setBusId(recipe.getRecipeId().toString());
+            revisitTracesMsg.setBusType(1);
+            revisitTracesMsg.setBusNumOrder(10);
+            try {
+                logger.info("saveRevisitTracesList sendMsgToMq send to MQ start, busId:{}", recipe.getRecipeId());
+                MQHelper.getMqPublisher().publish(OnsConfig.revisitTraceTopic, revisitTracesMsg, null);
+                logger.info("saveRevisitTracesList sendMsgToMq send to MQ end, busId:{}", recipe.getRecipeId());
+            } catch (Exception e) {
+                logger.error("saveRevisitTracesList sendMsgToMq can't send to MQ,  busId:{}", recipe.getRecipeId(), e);
+            }
+            //  复诊的接口返回没有成功或失败 无法加标志 无法失败重试或批量处理失败数据
+        } catch (Exception e) {
+            logger.error("RevisitClient saveRevisitTracesList error recipeId:{}", recipe.getRecipeId(), e);
+            e.printStackTrace();
+        }
+    }
+
 }
