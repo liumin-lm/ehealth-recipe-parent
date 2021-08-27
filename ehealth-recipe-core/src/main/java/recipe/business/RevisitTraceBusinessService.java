@@ -94,6 +94,10 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
         logger.info("RecipeBusinessService revisitRecipeTrace bussSource={},clinicID={}", bussSource, clinicId);
         List<RevisitRecipeTraceVo> revisitRecipeTraceVos = new ArrayList<>();
         List<Recipe> recipes = recipeDAO.findByClinicId(clinicId);
+        if (CollectionUtils.isEmpty(recipes)) {
+            return null;
+        }
+        ;
         List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).distinct().collect(Collectors.toList());
         List<String> orderCodes = recipes.stream().map(Recipe::getOrderCode).distinct().collect(Collectors.toList());
         List<RecipeExtend> recipeExtends = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
@@ -283,7 +287,7 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
             revisitTracesMsg.setBusType(1);
             revisitTracesMsg.setBusNumOrder(10);
             try {
-                logger.info("saveRevisitTracesList sendMsgToMq send to MQ start, busId:{}", recipe.getRecipeId());
+                logger.info("saveRevisitTracesList sendMsgToMq send to MQ start, busId:{}，revisitTracesMsg:{}", recipe.getRecipeId(), JSONUtils.toString(revisitTracesMsg));
                 MQHelper.getMqPublisher().publish(OnsConfig.revisitTraceTopic, revisitTracesMsg, null);
                 logger.info("saveRevisitTracesList sendMsgToMq send to MQ end, busId:{}", recipe.getRecipeId());
             } catch (Exception e) {
