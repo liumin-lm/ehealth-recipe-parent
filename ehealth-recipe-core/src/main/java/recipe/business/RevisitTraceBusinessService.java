@@ -278,6 +278,11 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
     public void saveRevisitTracesList(Recipe recipe) {
         try {
             if (recipe == null) {
+                logger.info("saveRevisitTracesList recipe is null ");
+                return;
+            }
+            if (recipe.getClinicId() == null || 2 != recipe.getBussSource()) {
+                logger.info("saveRevisitTracesList return param:{}", JSONUtils.toString(recipe));
                 return;
             }
             RevisitTracesMsg revisitTracesMsg = new RevisitTracesMsg();
