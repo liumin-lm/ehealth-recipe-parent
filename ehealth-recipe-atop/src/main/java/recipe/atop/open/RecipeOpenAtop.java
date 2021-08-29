@@ -56,7 +56,9 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     @Override
     public List<RevisitRecipeTraceVo> revisitRecipeTrace(Integer recipeId, Integer clinicId) {
         logger.info("RecipeOpenAtop revisitRecipeTrace bussSource={} clinicID={}", recipeId, clinicId);
-        validateAtop(recipeId, clinicId);
+        if (clinicId == null && recipeId == null) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "请传入业务ID或复诊ID");
+        }
         try {
             List<RevisitRecipeTraceVo> result = revisitRecipeTrace.revisitRecipeTrace(recipeId, clinicId);
             logger.info("RecipeOpenAtop existUncheckRecipe result = {}", result);
