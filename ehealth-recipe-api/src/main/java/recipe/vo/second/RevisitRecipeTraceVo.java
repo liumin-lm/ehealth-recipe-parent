@@ -99,8 +99,10 @@ public class RevisitRecipeTraceVo implements Serializable {
         private String recipeId;
 
         //TODO
-        @ItemProperty(alias = "来源")
-        private String recipeSourceType;
+        @ItemProperty(alias = "来源标志")
+        @Dictionary(id = "eh.cdr.dictionary.FromFlag")
+        private Integer fromflag;
+
 
         @ItemProperty(alias = "医生签名")
         private String doctorSign;
