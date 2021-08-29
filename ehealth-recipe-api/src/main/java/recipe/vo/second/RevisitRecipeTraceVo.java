@@ -277,7 +277,7 @@ public class RevisitRecipeTraceVo implements Serializable {
     @Schema
     public static class RecipeCancel {
         @ItemProperty(alias = "原因")
-        private Integer cancelReason;
+        private String cancelReason;
 
         @ItemProperty(alias = "时间")
         private Date cancelDate;
