@@ -15,11 +15,11 @@ public interface IRevisitTraceBusinessService {
     /**
      * 复诊处方追溯详情
      *
-     * @param bussSource 处方来源
-     * @param clinicId   业务id
+     * @param recipeId 处方ID
+     * @param clinicId 复诊ID
      * @return
      */
-    List<RevisitRecipeTraceVo> revisitRecipeTrace(Integer bussSource, Integer clinicId);
+    List<RevisitRecipeTraceVo> revisitRecipeTrace(Integer recipeId, Integer clinicId);
 
     /**
      * 复诊处方追溯列表数据处理

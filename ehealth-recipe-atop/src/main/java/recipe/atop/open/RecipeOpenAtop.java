@@ -49,16 +49,16 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     /**
      * 复诊处方追溯
      *
-     * @param bussSource 处方来源
-     * @param clinicId   业务id
+     * @param recipeId 处方ID
+     * @param clinicId 复诊ID
      * @return
      */
     @Override
-    public List<RevisitRecipeTraceVo> revisitRecipeTrace(Integer bussSource, Integer clinicId) {
-        logger.info("RecipeOpenAtop revisitRecipeTrace bussSource={} clinicID={}", bussSource, clinicId);
-        validateAtop(bussSource, clinicId);
+    public List<RevisitRecipeTraceVo> revisitRecipeTrace(Integer recipeId, Integer clinicId) {
+        logger.info("RecipeOpenAtop revisitRecipeTrace bussSource={} clinicID={}", recipeId, clinicId);
+        validateAtop(recipeId, clinicId);
         try {
-            List<RevisitRecipeTraceVo> result = revisitRecipeTrace.revisitRecipeTrace(bussSource, clinicId);
+            List<RevisitRecipeTraceVo> result = revisitRecipeTrace.revisitRecipeTrace(recipeId, clinicId);
             logger.info("RecipeOpenAtop existUncheckRecipe result = {}", result);
             return result;
         } catch (DAOException e1) {
