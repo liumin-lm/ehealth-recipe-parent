@@ -307,7 +307,7 @@ public class OfflineRecipeClient extends BaseClient {
             }
         });
         recipeDTO.setRecipeDetails(detailList);
-        logger.error("OfflineRecipeClient pushRecipe recipeDTO：{}", JSON.toJSONString(recipeDTO));
+        logger.info("OfflineRecipeClient pushRecipe recipeDTO：{}", JSON.toJSONString(recipeDTO));
         try {
             HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse = recipeHisService.pushRecipe(recipeDTO);
             return getResponse(hisResponse);
