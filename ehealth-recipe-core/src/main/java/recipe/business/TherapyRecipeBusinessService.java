@@ -136,8 +136,8 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     }
 
     @Override
-    public boolean abolishTherapyRecipeForRevisitClose(RecipeTherapyVO recipeTherapyVO) {
-        RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyByRecipeId(recipeTherapyVO.getRecipeId());
+    public boolean abolishTherapyRecipeForRevisitClose(Integer recipeId) {
+        RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyByRecipeId(recipeId);
         if (!TherapyStatusEnum.READYSUBMIT.getType().equals(recipeTherapy.getStatus())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前状态无法作废");
         }

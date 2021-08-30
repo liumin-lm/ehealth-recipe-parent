@@ -258,14 +258,14 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
     /**
      * 复诊关闭作废诊疗处方
      *
-     * @param recipeTherapyVO 诊疗处方
+     * @param recipeId 处方ID
      */
     @RpcService
-    public boolean abolishTherapyRecipeForRevisitClose(RecipeTherapyVO recipeTherapyVO){
-        logger.info("TherapyRecipeDoctorAtop abolishTherapyRecipeForRevisitClose recipeTherapyVO:{}.", JSON.toJSONString(recipeTherapyVO));
-        validateAtop(recipeTherapyVO, recipeTherapyVO.getRecipeId());
+    public boolean abolishTherapyRecipeForRevisitClose(Integer recipeId){
+        logger.info("TherapyRecipeDoctorAtop abolishTherapyRecipeForRevisitClose recipeId:{}.", JSON.toJSONString(recipeId));
+        validateAtop(recipeId);
         try {
-            return therapyRecipeBusinessService.abolishTherapyRecipeForRevisitClose(recipeTherapyVO);
+            return therapyRecipeBusinessService.abolishTherapyRecipeForRevisitClose(recipeId);
         } catch (DAOException e1) {
             logger.warn("TherapyRecipeDoctorAtop abolishTherapyRecipeForRevisitClose  error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
