@@ -171,7 +171,7 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
         Recipe recipe = recipeManager.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
         RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyByRecipeId(recipe.getRecipeId());
         recipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
-        recipeTherapy.setTherapyCancellationType(4);
+        recipeTherapy.setTherapyCancellationType(2);
         return recipeTherapyManager.updateRecipeTherapy(recipeTherapy);
     }
 
