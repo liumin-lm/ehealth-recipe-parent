@@ -325,6 +325,16 @@ public class RecipeOrderBean implements Serializable {
     private String expectStartTakeTime;
     @ItemProperty(alias = "预约取药结束时间")
     private String expectEndTakeTime;
+    @ItemProperty(alias = "处方费用支付方式 1 线上支付 2 线下支付")
+    private Integer payMode;
+
+    public Integer getPayMode() {
+        return payMode;
+    }
+
+    public void setPayMode(Integer payMode) {
+        this.payMode = payMode;
+    }
 
     public Integer getThirdPayType() {
         return thirdPayType;
