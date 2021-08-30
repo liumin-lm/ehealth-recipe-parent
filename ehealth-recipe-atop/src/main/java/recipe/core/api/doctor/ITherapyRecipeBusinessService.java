@@ -53,10 +53,11 @@ public interface ITherapyRecipeBusinessService {
     /**
      * 复诊关闭作废诊疗处方
      *
-     * @param recipeId 处方ID
+     * @param bussSource 业务类型
+     * @param clinicId 复诊ID
      * @return 作废结果
      */
-    boolean abolishTherapyRecipeForRevisitClose(Integer recipeId);
+    boolean abolishTherapyRecipeForRevisitClose(Integer bussSource, Integer clinicId);
 
     /**
      * 更新诊疗处方

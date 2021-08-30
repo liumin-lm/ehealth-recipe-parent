@@ -3251,6 +3251,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public abstract List<Recipe> findWriteHisRecipeByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId);
 
     /**
+     * 通过复诊业务来源调用查询诊疗处方
+     *
+     * @param bussSource
+     * @param clinicId
+     * @return
+     */
+    @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId and recipeSourceType = 3 ")
+    public abstract List<Recipe> findTherapyRecipeByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId);
+
+    /**
      * @param bussSource
      * @param clinicId
      * @return
