@@ -11,8 +11,6 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.net.broadcast.MQHelper;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
-import eh.recipeaudit.api.IRecipeAuditService;
-import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.model.RecipeCheckBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -21,7 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.client.DoctorClient;
-import recipe.client.RevisitClient;
+import recipe.client.RecipeAuditClient;
 import recipe.core.api.IRevisitTraceBusinessService;
 import recipe.dao.*;
 import recipe.manager.OrderManager;
@@ -58,15 +56,8 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
 
-
     @Autowired
     private SignManager signManager;
-
-    @Autowired
-    private IRecipeCheckService recipeCheckService;
-
-    @Autowired
-    private IRecipeAuditService recipeAuditService;
 
     @Autowired
     private DoctorClient doctorClient;
@@ -87,7 +78,7 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
     private RecipeRefundDAO recipeRefundDAO;
 
     @Autowired
-    private RevisitClient revisitClient;
+    private RecipeAuditClient recipeAuditClient;
 
     @Override
     public List<RevisitRecipeTraceVo> revisitRecipeTrace(Integer recipeId, Integer clinicId) {
@@ -125,7 +116,7 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
                     obtainRevisitTraceRecipeDetailInfo(revisitRecipeTraceVo, recipeDetailsMap, recipe, recipeDetails);
                     //审方药师审核
                     RevisitRecipeTraceVo.AuditCheck innerAudit = new RevisitRecipeTraceVo.AuditCheck();
-                    RecipeCheckBean recipeCheck = recipeCheckService.getByRecipeId(recipe.getRecipeId());
+                    RecipeCheckBean recipeCheck = recipeAuditClient.getByRecipeId(recipe.getRecipeId());
                     if (recipeCheck != null) {
                         BeanUtils.copy(recipeCheck, innerAudit);
                         DoctorDTO doctor = new DoctorDTO();
@@ -238,7 +229,7 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
         logger.info("RecipeBusinessService obtainCheckNotPassDetail param:[{},{}]", JSONUtils.toString(revisitRecipeTraceVo), JSONUtils.toString(recipe));
         //获取审核不通过详情
         try {
-            List<Map<String, Object>> mapList = recipeAuditService.getCheckNotPassDetail(recipe.getRecipeId());
+            List<Map<String, Object>> mapList = recipeAuditClient.getCheckNotPassDetail(recipe.getRecipeId());
             if (!ObjectUtils.isEmpty(mapList)) {
                 for (int i = 0; i < mapList.size(); i++) {
                     Map<String, Object> notPassMap = mapList.get(i);
