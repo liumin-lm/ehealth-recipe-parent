@@ -1767,7 +1767,7 @@ public class RecipeListService extends RecipeBaseService {
 
         List<Map<String, Object>> list = new ArrayList<>(0);
         List<Recipe> recipeList = recipeDAO.findRecipesByTabstatusForDoctorNew(doctorId, start, limit, tapStatus);
-        LOGGER.info("findRecipesForDoctorByTapstatusNew recipeList size={}", recipeList.size());
+        LOGGER.info("findRecipesForDoctorByTapstatusNew size={}", recipeList.size());
         if (CollectionUtils.isNotEmpty(recipeList)) {
             List<String> patientIds = new ArrayList<>(0);
             Map<Integer, RecipeBean> recipeMap = Maps.newHashMap();
@@ -1848,7 +1848,7 @@ public class RecipeListService extends RecipeBaseService {
                 list.add(map);
             }
         }
-
+        LOGGER.info("findRecipesForDoctorByTapstatusNew list={}", list.size());
         return list;
     }
 
