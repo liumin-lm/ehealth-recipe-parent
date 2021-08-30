@@ -2481,8 +2481,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         //查询有效的处方记录
         List<Recipe> effectiveRecipes = recipeManager.findEffectiveRecipeByBussSourceAndClinicId(bussSource, clinicId);
         //查询线上有订单的处方
-        Map<String, List<Recipe>> recipeMap = writeRecipeList.stream().filter(recipe -> StringUtils.isNotEmpty(recipe.getOrderCode())).collect(Collectors.groupingBy(Recipe::getOrderCode));
-        List<RecipeOrder> recipeOrders = orderManager.getRecipeOrderList(recipeMap.keySet());
+        Set<String> orderCodeList = writeRecipeList.stream().filter(recipe -> StringUtils.isNotEmpty(recipe.getOrderCode()))
+                .map(Recipe::getOrderCode).collect(Collectors.toSet());
+        List<RecipeOrder> recipeOrders = orderManager.getRecipeOrderList(orderCodeList);
         //没有查到处方单
         if (CollectionUtils.isEmpty(writeRecipeList)) {
             return false;

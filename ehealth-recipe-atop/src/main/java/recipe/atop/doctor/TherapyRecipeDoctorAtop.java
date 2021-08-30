@@ -95,6 +95,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
      */
     @RpcService
     public Integer submitTherapyRecipe(RecipeInfoVO recipeInfoVO) {
+        logger.info("TherapyRecipeDoctorAtop submitTherapyRecipe recipeInfoVO = {}", JSON.toJSONString(recipeInfoVO));
         validateAtop(recipeInfoVO, recipeInfoVO.getRecipeDetails());
         Integer recipeId = saveTherapyRecipe(recipeInfoVO);
         //异步推送his
@@ -223,6 +224,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         try {
             //异步推送his
             offlineToOnlineService.pushRecipeExecute(recipeTherapyVO.getRecipeId(), CommonConstant.THERAPY_RECIPE_CANCEL_TYPE);
+            therapyRecipeBusinessService.updateTherapyRecipe(recipeTherapyVO);
             return true;
         } catch (DAOException e1) {
             logger.warn("TherapyRecipeDoctorAtop cancelRecipe  error", e1);
@@ -249,6 +251,28 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("TherapyRecipeDoctorAtop abolishTherapyRecipe  error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 复诊关闭作废诊疗处方
+     *
+     * @param bussSource 业务类型
+     * @param clinicId 复诊ID
+     * @return 作废结果
+     */
+    @RpcService
+    public boolean abolishTherapyRecipeForRevisitClose(Integer bussSource, Integer clinicId){
+        logger.info("TherapyRecipeDoctorAtop abolishTherapyRecipeForRevisitClose bussSource:{},clinicId:{}.", bussSource, clinicId);
+        validateAtop(bussSource, clinicId);
+        try {
+            return therapyRecipeBusinessService.abolishTherapyRecipeForRevisitClose(bussSource, clinicId);
+        } catch (DAOException e1) {
+            logger.warn("TherapyRecipeDoctorAtop abolishTherapyRecipeForRevisitClose  error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("TherapyRecipeDoctorAtop abolishTherapyRecipeForRevisitClose  error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }

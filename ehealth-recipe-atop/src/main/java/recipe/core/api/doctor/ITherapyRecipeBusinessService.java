@@ -45,15 +45,31 @@ public interface ITherapyRecipeBusinessService {
 
     /**
      * 作废诊疗处方
-     * @param recipeId
-     * @return
+     * @param recipeId 处方ID
+     * @return 作废结果
      */
     boolean abolishTherapyRecipe(Integer recipeId);
 
     /**
+     * 复诊关闭作废诊疗处方
+     *
+     * @param bussSource 业务类型
+     * @param clinicId 复诊ID
+     * @return 作废结果
+     */
+    boolean abolishTherapyRecipeForRevisitClose(Integer bussSource, Integer clinicId);
+
+    /**
+     * 更新诊疗处方
+     * @param recipeTherapyVO 诊疗处方
+     * @return void
+     */
+    void updateTherapyRecipe(RecipeTherapyVO recipeTherapyVO);
+
+    /**
      * 搜索诊疗项目
-     * @param itemListVO
-     * @return
+     * @param itemListVO 诊疗项目
+     * @return 诊疗项目列表
      */
     List<ItemListVO> searchItemListByKeyWord(ItemListVO itemListVO);
 

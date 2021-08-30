@@ -10,6 +10,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
+ * 复诊相关服务
+ *
  * @Author liumin
  * @Date 2021/7/22 下午2:26
  * @Description
@@ -58,7 +60,7 @@ public class RevisitClient extends BaseClient {
         logger.info("RevisitClient getByClinicId res consultExDTO:{} ", JSONUtils.toString(consultExDTO));
         return consultExDTO;
     }
-    
+
     /**
      * 通知复诊——删除处方追溯数据
      *

@@ -18,6 +18,7 @@ import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.manager.*;
 import recipe.vo.doctor.RecipeInfoVO;
+import recipe.vo.doctor.RecipeTherapyVO;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -132,6 +133,30 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
         recipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
         recipeTherapy.setTherapyCancellationType(4);
         return recipeTherapyManager.updateRecipeTherapy(recipeTherapy);
+    }
+
+    @Override
+    public boolean abolishTherapyRecipeForRevisitClose(Integer bussSource, Integer clinicId) {
+        List<Recipe> recipes = recipeManager.findTherapyRecipeByBussSourceAndClinicId(bussSource, clinicId);
+        List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        List<RecipeTherapy> recipeTherapies = recipeTherapyManager.findTherapyByRecipeIds(recipeIds);
+        recipeTherapies.forEach(recipeTherapy -> {
+            if (TherapyStatusEnum.READYSUBMIT.getType().equals(recipeTherapy.getStatus())) {
+                recipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
+                recipeTherapy.setTherapyCancellation("超时未提交");
+                recipeTherapy.setTherapyCancellationType(3);
+                recipeTherapyManager.updateRecipeTherapy(recipeTherapy);
+            }
+        });
+        return true;
+    }
+
+    @Override
+    public void updateTherapyRecipe(RecipeTherapyVO recipeTherapyVO) {
+        RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyByRecipeId(recipeTherapyVO.getRecipeId());
+        recipeTherapy.setTherapyCancellationType(recipeTherapyVO.getTherapyCancellationType());
+        recipeTherapy.setTherapyCancellation(recipeTherapyVO.getTherapyCancellation());
+        recipeTherapyManager.updateRecipeTherapy(recipeTherapy);
     }
 
     @Override
