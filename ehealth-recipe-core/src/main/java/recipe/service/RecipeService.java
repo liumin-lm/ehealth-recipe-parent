@@ -4456,7 +4456,7 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     public RecipeResultBean updateRecipePayResultImplForOrder(boolean saveFlag, Integer recipeId, Integer payFlag, Map<String, Object> info, BigDecimal recipeFee) {
-        LOGGER.info("recipe updateRecipePayResultImplForOrder recipeIds={},payFlag={}", recipeId, payFlag);
+        LOGGER.info("recipe updateRecipePayResultImplForOrder recipeIds={},payFlag={} ,mapInfo={}", recipeId, payFlag,JSONArray.toJSONString(info));
         RecipeResultBean result = RecipeResultBean.getSuccess();
         if (null == recipeId) {
             result.setCode(RecipeResultBean.FAIL);
@@ -4487,6 +4487,7 @@ public class RecipeService extends RecipeBaseService {
             giveMode = null;
         }
         attrMap.put("giveMode", giveMode);
+        LOGGER.info("recipe updateRecipePayResultImplForOrder giveMode={}", giveMode);
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
 
         if (saveFlag && RecipeResultBean.SUCCESS.equals(result.getCode())) {
