@@ -90,14 +90,18 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
     private RevisitClient revisitClient;
 
     @Override
-    public List<RevisitRecipeTraceVo> revisitRecipeTrace(Integer bussSource, Integer clinicId) {
-        logger.info("RecipeBusinessService revisitRecipeTrace bussSource={},clinicID={}", bussSource, clinicId);
+    public List<RevisitRecipeTraceVo> revisitRecipeTrace(Integer recipeId, Integer clinicId) {
+        logger.info("RecipeBusinessService revisitRecipeTrace recipeId={},clinicID={}", recipeId, clinicId);
         List<RevisitRecipeTraceVo> revisitRecipeTraceVos = new ArrayList<>();
-        List<Recipe> recipes = recipeDAO.findByClinicId(clinicId);
+        List<Recipe> recipes = new ArrayList<>();
+        if (null == recipeId) {
+            recipes = recipeDAO.findByClinicId(clinicId);
+        } else {
+            recipes = recipeDAO.findRecipeByRecipeId(recipeId);
+        }
         if (CollectionUtils.isEmpty(recipes)) {
             return null;
         }
-        ;
         List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).distinct().collect(Collectors.toList());
         List<String> orderCodes = recipes.stream().map(Recipe::getOrderCode).distinct().collect(Collectors.toList());
         List<RecipeExtend> recipeExtends = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
@@ -278,6 +282,11 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
     public void saveRevisitTracesList(Recipe recipe) {
         try {
             if (recipe == null) {
+                logger.info("saveRevisitTracesList recipe is null ");
+                return;
+            }
+            if (recipe.getClinicId() == null || 2 != recipe.getBussSource()) {
+                logger.info("saveRevisitTracesList return param:{}", JSONUtils.toString(recipe));
                 return;
             }
             RevisitTracesMsg revisitTracesMsg = new RevisitTracesMsg();

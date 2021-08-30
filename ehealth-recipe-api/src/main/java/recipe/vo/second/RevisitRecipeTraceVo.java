@@ -99,8 +99,10 @@ public class RevisitRecipeTraceVo implements Serializable {
         private String recipeId;
 
         //TODO
-        @ItemProperty(alias = "来源")
-        private String recipeSourceType;
+        @ItemProperty(alias = "来源标志")
+        @Dictionary(id = "eh.cdr.dictionary.FromFlag")
+        private Integer fromflag;
+
 
         @ItemProperty(alias = "医生签名")
         private String doctorSign;
@@ -275,7 +277,7 @@ public class RevisitRecipeTraceVo implements Serializable {
     @Schema
     public static class RecipeCancel {
         @ItemProperty(alias = "原因")
-        private Integer cancelReason;
+        private String cancelReason;
 
         @ItemProperty(alias = "时间")
         private Date cancelDate;

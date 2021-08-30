@@ -84,7 +84,6 @@ public class RecipeManager extends BaseManager {
     }
 
 
-
     /**
      * 获取处方信息
      *
@@ -285,6 +284,7 @@ public class RecipeManager extends BaseManager {
         }
         recipeCancel.setCancelDate(cancelDate);
         recipeCancel.setCancelReason(cancelReason);
+        logger.info("getCancelReasonForPatient recipeCancel:{}", JSONUtils.toString(recipeCancel));
         return recipeCancel;
     }
 
