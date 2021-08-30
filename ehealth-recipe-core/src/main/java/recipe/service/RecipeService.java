@@ -2775,6 +2775,15 @@ public class RecipeService extends RecipeBaseService {
             hisResponseTO.setMsg("推送数据为空!");
             return hisResponseTO;
         }
+        com.ngari.patient.service.OrganConfigService organConfigService =
+                AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
+        Boolean sync = organConfigService.getByOrganIdEnableDrugSync(organId);
+        Boolean commit = organConfigService.getByOrganIdEnableDrugSyncArtificial(organId);
+        if (!sync) {
+            hisResponseTO.setMsgCode("-1");
+            hisResponseTO.setMsg("请开启【药品目录是否支持接口同步】配置后，再尝试进行同步推送!");
+            return hisResponseTO;
+        }
         drugListMatchDAO.deleteByOrganIdAndStatus(organId);
         HisResponseTO checkOrganDrugs = checkOrganDrugs(organDrugs);
         if ("-1".equals(checkOrganDrugs.getMsgCode())) {
@@ -2810,7 +2819,11 @@ public class RecipeService extends RecipeBaseService {
                         LOGGER.info("syncOrganDrug机构药品数据推送 新增" + organDrug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(organDrug));
                         try {
                             addHisDrug(organDrug, organId, "推送");
-                            drugToolService.drugCommit(null, organId);
+                            if (commit != null) {
+                                if (!commit) {
+                                    drugToolService.drugCommit(null, organId);
+                                }
+                            }
                         } catch (Exception e) {
                             LOGGER.info("syncOrganDrug机构药品数据推送新增失败,{}", JSONUtils.toString(organDrug) + "Exception:{}" + e);
                             msg.add("编码"+organDrug.getOrganDrugCode()+" 推送药品 "+organDrug.getDrugName()+"药品数据推送 【新增失败】 !");
@@ -4456,7 +4469,7 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     public RecipeResultBean updateRecipePayResultImplForOrder(boolean saveFlag, Integer recipeId, Integer payFlag, Map<String, Object> info, BigDecimal recipeFee) {
-        LOGGER.info("recipe updateRecipePayResultImplForOrder recipeIds={},payFlag={}", recipeId, payFlag);
+        LOGGER.info("recipe updateRecipePayResultImplForOrder recipeIds={},payFlag={} ,mapInfo={}", recipeId, payFlag,JSONArray.toJSONString(info));
         RecipeResultBean result = RecipeResultBean.getSuccess();
         if (null == recipeId) {
             result.setCode(RecipeResultBean.FAIL);
@@ -4487,6 +4500,7 @@ public class RecipeService extends RecipeBaseService {
             giveMode = null;
         }
         attrMap.put("giveMode", giveMode);
+        LOGGER.info("recipe updateRecipePayResultImplForOrder giveMode={}", giveMode);
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
 
         if (saveFlag && RecipeResultBean.SUCCESS.equals(result.getCode())) {
