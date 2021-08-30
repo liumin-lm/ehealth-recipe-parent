@@ -920,11 +920,5 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     public List<DrugDetailResult> getDrugStockForArea(DrugInfoReq drugInfoReq);
 
-    @RpcService
-    boolean abolishTherapyRecipe(Integer organId, String recipeCode);
-
-    @RpcService
-    boolean therapyPayNotice(Integer organId, String recipeCode, RecipeTherapyDTO recipeTherapyDTO);
-
 }
 

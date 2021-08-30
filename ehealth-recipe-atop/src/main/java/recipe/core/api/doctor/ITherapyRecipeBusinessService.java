@@ -2,6 +2,7 @@ package recipe.core.api.doctor;
 
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.RecipeTherapy;
+import com.ngari.recipe.recipe.model.RecipeTherapyDTO;
 import com.ngari.recipe.vo.ItemListVO;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
@@ -72,6 +73,23 @@ public interface ITherapyRecipeBusinessService {
      * @return 诊疗项目列表
      */
     List<ItemListVO> searchItemListByKeyWord(ItemListVO itemListVO);
+
+    /**
+     * HIS作废处方
+     * @param organId
+     * @param recipeCode
+     * @return
+     */
+    boolean abolishTherapyRecipeForHis(Integer organId, String recipeCode);
+
+    /**
+     * 诊疗处方缴费通知
+     * @param organId
+     * @param recipeCode
+     * @param recipeTherapyDTO
+     * @return
+     */
+    boolean therapyPayNotice(Integer organId, String recipeCode, RecipeTherapyDTO recipeTherapyDTO);
 
 
 }

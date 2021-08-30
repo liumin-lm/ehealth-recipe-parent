@@ -97,7 +97,6 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.StandardEnterpriseCallService;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
-import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.enumerate.type.RecipeRefundConfigEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.hisservice.RecipeToHisCallbackService;
@@ -2787,25 +2786,5 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             return null;
         }
         return recipe.getOrderCode();
-    }
-
-    @Override
-    public boolean abolishTherapyRecipe(Integer organId, String recipeCode) {
-        Recipe recipe = recipeManager.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
-        RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyByRecipeId(recipe.getRecipeId());
-        recipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
-        recipeTherapy.setTherapyCancellationType(4);
-        return recipeTherapyManager.updateRecipeTherapy(recipeTherapy);
-    }
-
-    @Override
-    public boolean therapyPayNotice(Integer organId, String recipeCode, RecipeTherapyDTO recipeTherapyDTO) {
-        Recipe recipe = recipeManager.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
-        RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyByRecipeId(recipe.getRecipeId());
-        recipeTherapy.setStatus(TherapyStatusEnum.HADEPAY.getType());
-        recipeTherapy.setTherapyNotice(recipeTherapyDTO.getTherapyNotice());
-        recipeTherapy.setTherapyExecuteDepart(recipeTherapyDTO.getTherapyExecuteDepart());
-        recipeTherapy.setTherapyPayTime(recipeTherapyDTO.getTherapyPayTime());
-        return recipeTherapyManager.updateRecipeTherapy(recipeTherapy);
     }
 }

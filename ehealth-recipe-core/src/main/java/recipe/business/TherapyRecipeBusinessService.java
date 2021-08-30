@@ -6,6 +6,7 @@ import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.RecipeTherapyDTO;
 import com.ngari.recipe.vo.ItemListVO;
 import ctd.persistence.exception.DAOException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -163,6 +164,26 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     public List<ItemListVO> searchItemListByKeyWord(ItemListVO itemListVO) {
         List<ItemList> itemLists = itemListManager.findItemList(itemListVO.getOrganId(), itemListVO.getItemName(), itemListVO.getStart(), itemListVO.getLimit());
         return ObjectCopyUtils.convert(itemLists, ItemListVO.class);
+    }
+
+    @Override
+    public boolean abolishTherapyRecipeForHis(Integer organId, String recipeCode) {
+        Recipe recipe = recipeManager.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
+        RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyByRecipeId(recipe.getRecipeId());
+        recipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
+        recipeTherapy.setTherapyCancellationType(4);
+        return recipeTherapyManager.updateRecipeTherapy(recipeTherapy);
+    }
+
+    @Override
+    public boolean therapyPayNotice(Integer organId, String recipeCode, RecipeTherapyDTO recipeTherapyDTO) {
+        Recipe recipe = recipeManager.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
+        RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyByRecipeId(recipe.getRecipeId());
+        recipeTherapy.setStatus(TherapyStatusEnum.HADEPAY.getType());
+        recipeTherapy.setTherapyNotice(recipeTherapyDTO.getTherapyNotice());
+        recipeTherapy.setTherapyExecuteDepart(recipeTherapyDTO.getTherapyExecuteDepart());
+        recipeTherapy.setTherapyPayTime(recipeTherapyDTO.getTherapyPayTime());
+        return recipeTherapyManager.updateRecipeTherapy(recipeTherapy);
     }
 
 }
