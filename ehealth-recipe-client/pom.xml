@@ -49,5 +49,9 @@
             <groupId>ngari</groupId>
             <artifactId>ehealth-es-api</artifactId>
         </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-recipeaudit-api</artifactId>
+        </dependency>
     </dependencies>
 </project>

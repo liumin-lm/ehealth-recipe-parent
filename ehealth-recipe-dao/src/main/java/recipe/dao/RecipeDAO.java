@@ -3258,8 +3258,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId and status in(2,3,4,5,6,7,8)")
     public abstract List<Recipe> findEffectiveRecipeByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId);
 
+    @DAOMethod(sql = "from Recipe where recipeId=:recipeId  and bussSource =2")
+    public abstract List<Recipe> findRecipeByRecipeId(@DAOParam("recipeId") Integer recipeId);
+
+    @DAOMethod(sql = "from Recipe where clinicId=:clinicId  and bussSource =2")
+    public abstract List<Recipe> findRecipeByClinicId(@DAOParam("clinicId") Integer clinicId);
+
     @DAOMethod
     public abstract List<Recipe> findByClinicId(Integer consultId);
+
 
     public List<Object[]> findMsgByparameters(Date startTime, Date endTime, Integer organId) {
         HibernateStatelessResultAction<List> action = new AbstractHibernateStatelessResultAction<List>() {
@@ -3773,9 +3780,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     /**
      * 迁移数据使用
+     *
      * @return
      */
-    public List<RecipeOrder>  findMoveData(){
+    public List<RecipeOrder> findMoveData() {
         HibernateStatelessResultAction<List<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrder>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -3829,6 +3837,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
 
 
-    };
+    }
+
+    ;
 
 }
