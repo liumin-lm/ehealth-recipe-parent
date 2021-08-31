@@ -240,7 +240,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<Recipe> action = new AbstractHibernateStatelessResultAction<Recipe>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                Query q = ss.createQuery("from Recipe where Status=:status and ClinicID=:clinicId order by RecipeID desc");
+                Query q = ss.createQuery("from Recipe where recipeSourceType != 3 and Status=:status and ClinicID=:clinicId order by RecipeID desc");
                 q.setParameter("clinicId", clinicId);
                 q.setParameter("status", status);
                 q.setMaxResults(1);
