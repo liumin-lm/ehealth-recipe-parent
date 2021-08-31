@@ -136,9 +136,12 @@ public class RecipeToHisService {
                                     Map<String, Object> map = new HashMap<>();
                                     map.put("recipeFee", recipeFee);
                                     totalMoney = totalMoney.add(recipeOrder.getAuditFee())
+                                            .add(recipeOrder.getRegisterFee())
+                                            .add(recipeOrder.getTcmFee())
+                                            .add(recipeOrder.getOtherFee())
                                             .add(recipeFee);
                                     map.put("totalFee", totalMoney);
-                                    map.put("actualPrice", totalMoney);
+                                    map.put("actualPrice", totalMoney.doubleValue());
                                     recipeOrderDAO.updateByOrdeCode(recipe.getOrderCode(), map);
                                 }
                             }
