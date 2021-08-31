@@ -234,7 +234,7 @@ public class DrugManager extends BaseManager {
         // 搜索药品信息
         List<PatientDrugWithEsDTO> drugWithEsByPatient = drugClient.findDrugWithEsByPatient(saleName, organId, drugType, start, limit);
         if (CollectionUtils.isEmpty(drugWithEsByPatient)) {
-            return null;
+            return new ArrayList<>();
         }
         // 拼接 药品图片
         Set<Integer> drugIds = drugWithEsByPatient.stream().map(PatientDrugWithEsDTO::getDrugId).collect(Collectors.toSet());
