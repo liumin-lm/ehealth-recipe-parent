@@ -3757,10 +3757,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 StringBuilder hql = new StringBuilder();
                 hql.append("select r from Recipe r where clinicId is not null and bussSource =2  ");
                 if (StringUtils.isNotEmpty(startTime)) {
-                    hql.append("and DATE(r.createDate)>=DATE(:startTime) ");
+//                    hql.append("and DATE(r.createDate)>=DATE(:startTime) ");
+                    hql.append(" and r.createDate >= :startTime");
                 }
                 if (StringUtils.isNotEmpty(endTime)) {
-                    hql.append("and DATE(r.createDate)<=DATE(:endTime) ");
+//                    hql.append("and DATE(r.createDate)<=DATE(:endTime) ");
+                    hql.append(" and r.createDate <= :endTime");
                 }
                 if (organId != null) {
                     hql.append("and organId =:organId ");
@@ -3769,12 +3771,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     hql.append("and recipeIds in(:recipeIds) ");
                 }
                 Query query = ss.createQuery(hql.toString());
-                if (StringUtils.isNotEmpty(startTime)) {
-                    query.setParameter("startTime", startTime);
-                }
-                if (StringUtils.isNotEmpty(endTime)) {
-                    query.setParameter("endTime", endTime);
-                }
+//                if (StringUtils.isNotEmpty(startTime)) {
+//                    query.setParameter("startTime", startTime);
+//                }
+//                if (StringUtils.isNotEmpty(endTime)) {
+//                    query.setParameter("endTime", endTime);
+//                }
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                query.setTimestamp("startTime", sdf.parse(startTime));
+                query.setTimestamp("endTime", sdf.parse(endTime));
                 if (organId != null) {
                     query.setParameter("organId", organId);
                 }
