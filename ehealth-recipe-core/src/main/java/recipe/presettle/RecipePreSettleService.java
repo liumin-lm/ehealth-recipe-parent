@@ -1,5 +1,6 @@
 package recipe.presettle;
 
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Maps;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
@@ -48,6 +49,7 @@ public class RecipePreSettleService {
      */
     @RpcService
     public Map<String, Object> unifyRecipePreSettle(List<Integer> recipeId) {
+        LOGGER.info("unifyRecipePreSettle recipeId={}", JSONArray.toJSONString(recipeId));
         Map<String, Object> result = Maps.newHashMap();
         result.put("code", "-1");
         if(recipeId == null || recipeId.size() == 0){
