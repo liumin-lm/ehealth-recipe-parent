@@ -77,8 +77,9 @@ public class RecipeDetailManager extends BaseManager {
         detail.setStatus(1);
         detail.setCreateDt(nowDate);
         detail.setLastModify(nowDate);
-        if (3 == detail.getType()) {
-            return detail.getDrugCost();
+        if (2 == detail.getType()) {
+            BigDecimal price = detail.getPrice();
+            return price.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).divide(BigDecimal.ONE, 2, RoundingMode.UP);
         }
         OrganDrugList organDrug = organDrugListMap.get(detail.getDrugId() + detail.getOrganDrugCode());
         if (null == organDrug) {
