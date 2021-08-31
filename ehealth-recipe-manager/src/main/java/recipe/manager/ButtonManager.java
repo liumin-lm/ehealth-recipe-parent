@@ -26,8 +26,6 @@ public class ButtonManager extends BaseManager {
 
     @Resource
     private IConfigurationClient configurationClient;
-    @Resource
-    private IConfigurationCenterUtilsService configService;
 
     /**
      * 医保支付 key
@@ -52,7 +50,7 @@ public class ButtonManager extends BaseManager {
             return PayButtonEnum.MY_PAY.getType();
         }
         Integer technicalSupport = configurationClient.getPropertyByClientId(technicalSupportKey);
-        Integer valueCatch = configurationClient.getValueCatch(organId, provincialMedicalPayFlagKey, 0);
+        Integer valueCatch = configurationClient.getValueCatchReturnInteger(organId, provincialMedicalPayFlagKey, 0);
         Boolean valueBooleanCatch = configurationClient.getValueBooleanCatch(technicalSupport, medicalPayConfigKey, false);
         logger.info("ButtonManager.getPayButton technicalSupport={} valueCatch={} valueBooleanCatch={}",technicalSupport, valueCatch,valueBooleanCatch);
 

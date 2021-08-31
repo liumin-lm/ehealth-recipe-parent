@@ -36,23 +36,24 @@ public class IConfigurationClient extends BaseClient {
     private OrganConfigService organConfigService;
     @Resource
     private IHisConfigService hisConfigService;
-    @Resource
-    private ICurrentUserInfoService currentUserInfoService;
 
 
     /**
      * 获取终端id
+     *
      * @param key
      * @return
      */
-    public Integer getPropertyByClientId(String key){
-        if(StringUtils.isEmpty(key)){
+    public Integer getPropertyByClientId(String key) {
+        if (StringUtils.isEmpty(key)) {
             return null;
         }
         try {
-            Client client = currentUserInfoService.getCurrentClient();
+            ICurrentUserInfoService userInfoService = AppContextHolder.getBean(
+                    "eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
+            Client client = userInfoService.getCurrentClient();
             logger.info("IConfigurationClient getPropertyByClientId  client:{}", JSONArray.toJSONString(client));
-            Integer technicalSupport = (Integer)configService.getPropertyByClientId(client.getClientConfigId(), key);
+            Integer technicalSupport = (Integer) configService.getPropertyByClientId(client.getClientConfigId(), key);
             return technicalSupport;
         } catch (Exception e) {
             logger.error("IConfigurationClient getPropertyByClientId  keys:{}", JSONArray.toJSONString(key), e);
@@ -61,15 +62,15 @@ public class IConfigurationClient extends BaseClient {
     }
 
 
-
     /**
      * 获取多个机构配置
+     *
      * @param organId 机构id
-     * @param keys 配置key
+     * @param keys    配置key
      * @return
      */
-    public Map<String, Object> getConfigurationByKeyList(Integer organId, List<String> keys){
-        if(Objects.isNull(organId) || CollectionUtils.isEmpty(keys)){
+    public Map<String, Object> getConfigurationByKeyList(Integer organId, List<String> keys) {
+        if (Objects.isNull(organId) || CollectionUtils.isEmpty(keys)) {
             return null;
         }
         try {
@@ -318,6 +319,7 @@ public class IConfigurationClient extends BaseClient {
 
     /**
      * 获取机构的购药方式
+     *
      * @param organId 机构ID
      * @return 机构配置
      */
