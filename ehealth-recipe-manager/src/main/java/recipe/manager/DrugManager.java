@@ -55,7 +55,7 @@ public class DrugManager extends BaseManager {
      */
     public static String dealWithRecipeDrugName(Recipedetail recipedetail, Integer drugType, Integer organId) {
         LOGGER.info("DrugManager dealwithRecipeDrugName recipedetail:{},drugType:{},organId:{}", JSONUtils.toString(recipedetail), drugType, organId);
-        if (RecipeBussConstant.RECIPETYPE_TCM.equals(drugType)) {
+        if (RecipeBussConstant.RECIPETYPE_TCM.equals(drugType) || RecipeBussConstant.RECIPETYPE_HP.equals(drugType)) {
             StringBuilder stringBuilder = new StringBuilder();
             //所有页面中药药品显示统一“药品名称”和“剂量单位”以空格间隔
             stringBuilder.append(recipedetail.getDrugName());
