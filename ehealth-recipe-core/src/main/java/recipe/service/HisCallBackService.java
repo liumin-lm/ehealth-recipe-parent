@@ -183,7 +183,6 @@ public class HisCallBackService {
         //date 20200507
         //调用医生重新签名的逻辑
         recipeService.retryDoctorSignCheck(result.getRecipeId());
-        revisitTraceBusinessService.saveRevisitTracesList(recipe);
     }
 
 
