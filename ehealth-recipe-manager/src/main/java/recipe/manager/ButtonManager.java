@@ -26,13 +26,14 @@ public class ButtonManager extends BaseManager {
 
     @Resource
     private IConfigurationClient configurationClient;
+    @Resource
+    private IConfigurationCenterUtilsService configService;
 
     /**
      * 医保支付 key
      */
     private static final String medicalPayConfigKey = "medicalPayConfig";
     private static final String provincialMedicalPayFlagKey = "provincialMedicalPayFlag";
-    private static final String technicalSupportKey = "technicalSupport";
 
     /**
      * 获取支付按钮 仅杭州市互联网医院使用
@@ -49,9 +50,9 @@ public class ButtonManager extends BaseManager {
         if (isForce) {
             return PayButtonEnum.MY_PAY.getType();
         }
-        Integer technicalSupport = configurationClient.getPropertyByClientId(technicalSupportKey);
+        Integer technicalSupport = configurationClient.getPropertyByClientId();
         Integer valueCatch = configurationClient.getValueCatchReturnInteger(organId, provincialMedicalPayFlagKey, 0);
-        Boolean valueBooleanCatch = configurationClient.getValueBooleanCatch(technicalSupport, medicalPayConfigKey, false);
+        Boolean valueBooleanCatch = (Boolean)configService.getPropertyByClientId(technicalSupport, medicalPayConfigKey);
         logger.info("ButtonManager.getPayButton technicalSupport={} valueCatch={} valueBooleanCatch={}",technicalSupport, valueCatch,valueBooleanCatch);
 
         // medicalPayConfig = true +  provincialMedicalPayFlag > 1 + 市民卡  展示医保支付
