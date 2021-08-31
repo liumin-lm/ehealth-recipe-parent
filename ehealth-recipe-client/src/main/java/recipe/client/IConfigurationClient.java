@@ -3,11 +3,14 @@ package recipe.client;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.ngari.base.BaseAPI;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.scratchable.model.ScratchableBean;
 import com.ngari.base.scratchable.service.IScratchableService;
 import com.ngari.patient.service.OrganConfigService;
+import ctd.account.Client;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import org.apache.commons.collections.CollectionUtils;
@@ -33,6 +36,30 @@ public class IConfigurationClient extends BaseClient {
     private OrganConfigService organConfigService;
     @Resource
     private IHisConfigService hisConfigService;
+    @Resource
+    private ICurrentUserInfoService currentUserInfoService;
+
+
+    /**
+     * 获取终端id
+     * @param key
+     * @return
+     */
+    public Integer getPropertyByClientId( String key){
+        if(StringUtils.isEmpty(key)){
+            return null;
+        }
+        try {
+            Client client = currentUserInfoService.getCurrentClient();
+            Integer technicalSupport = (Integer)configService.getPropertyByClientId(client.getClientConfigId(), key);
+            return technicalSupport;
+        } catch (Exception e) {
+            logger.error("IConfigurationClient getPropertyByClientId  keys:{}", JSONArray.toJSONString(key), e);
+            return null;
+        }
+    }
+
+
 
     /**
      * 获取多个机构配置

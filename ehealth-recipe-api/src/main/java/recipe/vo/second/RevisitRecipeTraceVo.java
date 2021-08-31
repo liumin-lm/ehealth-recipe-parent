@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -127,6 +128,9 @@ public class RevisitRecipeTraceVo implements Serializable {
          * 患者医保类型（名称）
          */
         private String medicalTypeText;
+
+        @ItemProperty(alias = "处方金额")
+        private BigDecimal totalMoney;
 
     }
 

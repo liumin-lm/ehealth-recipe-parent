@@ -99,9 +99,11 @@ import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
 import recipe.enumerate.type.RecipeRefundConfigEnum;
 import recipe.givemode.business.GiveModeFactory;
-import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
-import recipe.manager.*;
+import recipe.manager.EmrRecipeManager;
+import recipe.manager.HisRecipeManager;
+import recipe.manager.OrderManager;
+import recipe.manager.RecipeManager;
 import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.operation.OperationPlatformRecipeService;
 import recipe.service.*;
@@ -169,17 +171,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private RevisitClient revisitClient;
     @Autowired
     private PatientClient patientClient;
-    @Autowired
-    private RecipeTherapyManager recipeTherapyManager;
-
 
     @RpcService
     @Override
     public void sendSuccess(RecipeBussReqTO request) {
+        LOGGER.info("RemoteRecipeService sendSuccess request ： {} ", JSON.toJSONString(request));
         if (null != request.getData()) {
             HisSendResTO response = (HisSendResTO) request.getData();
-//            service.sendSuccess(response);
-            //异步处理回调方法，避免超时
             RecipeBusiThreadPool.execute(new RecipeSendSuccessRunnable(response));
         }
     }
@@ -187,7 +185,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public void sendFail(RecipeBussReqTO request) {
-        RecipeToHisCallbackService service = ApplicationUtils.getRecipeService(RecipeToHisCallbackService.class);
         if (null != request.getData()) {
             HisSendResTO response = (HisSendResTO) request.getData();
 //            service.sendFail(response);
