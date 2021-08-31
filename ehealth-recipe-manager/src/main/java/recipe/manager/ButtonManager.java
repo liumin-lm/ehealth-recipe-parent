@@ -26,8 +26,6 @@ public class ButtonManager extends BaseManager {
 
     @Resource
     private IConfigurationClient configurationClient;
-    @Resource
-    private IConfigurationCenterUtilsService configService;
 
     /**
      * 医保支付 key

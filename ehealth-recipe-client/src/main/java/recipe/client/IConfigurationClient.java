@@ -36,8 +36,6 @@ public class IConfigurationClient extends BaseClient {
     private OrganConfigService organConfigService;
     @Resource
     private IHisConfigService hisConfigService;
-    @Resource
-    private ICurrentUserInfoService currentUserInfoService;
 
 
     /**
@@ -50,7 +48,9 @@ public class IConfigurationClient extends BaseClient {
             return null;
         }
         try {
-            Client client = currentUserInfoService.getCurrentClient();
+            ICurrentUserInfoService userInfoService = AppContextHolder.getBean(
+                    "eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
+            Client client = userInfoService.getCurrentClient();
             logger.info("IConfigurationClient getPropertyByClientId  client:{}", JSONArray.toJSONString(client));
             Integer technicalSupport = (Integer)configService.getPropertyByClientId(client.getClientConfigId(), key);
             return technicalSupport;
