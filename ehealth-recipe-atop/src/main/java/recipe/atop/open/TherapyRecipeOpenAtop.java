@@ -15,7 +15,7 @@ import recipe.core.api.doctor.ITherapyRecipeBusinessService;
  * @author yinsheng
  * @date 2021\8\30 0030 10:09
  */
-@RpcBean("therapyRecipeOpenAtop")
+@RpcBean("remoteTherapyRecipeOpenService")
 public class TherapyRecipeOpenAtop extends BaseAtop implements ITherapyRecipeOpenService {
 
     @Autowired
