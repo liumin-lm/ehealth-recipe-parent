@@ -247,6 +247,7 @@ public class PayModeOnline implements IPurchaseService {
                 && RecipeBussConstant.ORDERTYPE_ZJS.equals(orderType)){
             orderType = RecipeBussConstant.ORDERTYPE_HZS;
         }
+        LOG.info("getOrderCreateResult.orderType ={}",orderType);
         order.setOrderType(orderType);
         //设置确认订单页购药方式的key
         String giveModeKey = MapValueUtil.getString(extInfo, "giveModeKey");
@@ -343,7 +344,9 @@ public class PayModeOnline implements IPurchaseService {
                 .recipeOrder(order)
                 .recipeExtend(recipeExtendDAO.getByRecipeId(recipeList.get(0).getRecipeId()))
                 .build();
-        order.setOrderType(OrderTypeFactory.getRecipeOrderType(orderTypeCreateConditionRequest));
+        Integer recipeOrderType = OrderTypeFactory.getRecipeOrderType(orderTypeCreateConditionRequest);
+        LOG.info("getOrderCreateResult.orderecipeOrderTyperType ={}",recipeOrderType);
+        order.setOrderType(recipeOrderType);
 
         // 目前paymode传入还是老版本 除线上支付外全都算线下支付,下个版本与前端配合修改
         Integer payModeNew = payMode;
