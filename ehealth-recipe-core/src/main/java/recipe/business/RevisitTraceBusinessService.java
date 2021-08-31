@@ -286,6 +286,7 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
             revisitTracesMsg.setBusId(recipe.getRecipeId().toString());
             revisitTracesMsg.setBusType(1);
             revisitTracesMsg.setBusNumOrder(10);
+            revisitTracesMsg.setBusOccurredTime(recipe.getCreateDate());
             try {
                 logger.info("saveRevisitTracesList sendMsgToMq send to MQ start, busId:{}，revisitTracesMsg:{}", recipe.getRecipeId(), JSONUtils.toString(revisitTracesMsg));
                 MQHelper.getMqPublisher().publish(OnsConfig.revisitTraceTopic, revisitTracesMsg, null);
