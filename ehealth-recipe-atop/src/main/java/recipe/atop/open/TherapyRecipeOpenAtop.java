@@ -61,7 +61,7 @@ public class TherapyRecipeOpenAtop extends BaseAtop implements ITherapyRecipeOpe
         logger.info("TherapyRecipeOpenAtop therapyPayNotice organId={} recipeCode={}, recipeTherapyDTO:{}.", organId, recipeCode, JSON.toJSON(recipeTherapyDTO));
         validateAtop(organId, recipeCode, recipeTherapyDTO);
         try {
-            Boolean result = therapyRecipeBusinessService.abolishTherapyRecipeForHis(organId, recipeCode);
+            Boolean result = therapyRecipeBusinessService.therapyPayNotice(organId, recipeCode, recipeTherapyDTO);
             logger.info("TherapyRecipeOpenAtop therapyPayNotice result = {}", result);
             return result;
         } catch (DAOException e1) {
