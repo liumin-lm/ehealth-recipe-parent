@@ -45,12 +45,13 @@ public class IConfigurationClient extends BaseClient {
      * @param key
      * @return
      */
-    public Integer getPropertyByClientId( String key){
+    public Integer getPropertyByClientId(String key){
         if(StringUtils.isEmpty(key)){
             return null;
         }
         try {
             Client client = currentUserInfoService.getCurrentClient();
+            logger.info("IConfigurationClient getPropertyByClientId  client:{}", JSONArray.toJSONString(client));
             Integer technicalSupport = (Integer)configService.getPropertyByClientId(client.getClientConfigId(), key);
             return technicalSupport;
         } catch (Exception e) {
