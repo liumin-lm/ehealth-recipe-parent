@@ -93,7 +93,7 @@ public class RecipeManager extends BaseManager {
      */
     public Recipe getByRecipeCodeAndClinicOrgan(String recipeCode, Integer clinicOrgan) {
         logger.info("RecipeManager getByRecipeCodeAndClinicOrgan param recipeCode:{},clinicOrgan:{}", recipeCode, clinicOrgan);
-        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, clinicOrgan);
+        Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(recipeCode, clinicOrgan);
         logger.info("RecipeManager getByRecipeCodeAndClinicOrgan res recipe:{}", JSONUtils.toString(recipe));
         return recipe;
     }
