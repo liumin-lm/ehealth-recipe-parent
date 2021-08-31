@@ -32,7 +32,6 @@ public class ButtonManager extends BaseManager {
      */
     private static final String medicalPayConfigKey = "medicalPayConfig";
     private static final String provincialMedicalPayFlagKey = "provincialMedicalPayFlag";
-    private static final String technicalSupportKey = "technicalSupport";
 
     /**
      * 获取支付按钮 仅杭州市互联网医院使用
@@ -49,7 +48,7 @@ public class ButtonManager extends BaseManager {
         if (isForce) {
             return PayButtonEnum.MY_PAY.getType();
         }
-        Integer technicalSupport = configurationClient.getPropertyByClientId(technicalSupportKey);
+        Integer technicalSupport = configurationClient.getPropertyByClientId();
         Integer valueCatch = configurationClient.getValueCatchReturnInteger(organId, provincialMedicalPayFlagKey, 0);
         Boolean valueBooleanCatch = configurationClient.getValueBooleanCatch(technicalSupport, medicalPayConfigKey, false);
         logger.info("ButtonManager.getPayButton technicalSupport={} valueCatch={} valueBooleanCatch={}",technicalSupport, valueCatch,valueBooleanCatch);

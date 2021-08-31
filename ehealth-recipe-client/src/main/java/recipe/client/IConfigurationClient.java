@@ -41,22 +41,17 @@ public class IConfigurationClient extends BaseClient {
     /**
      * 获取终端id
      *
-     * @param key
      * @return
      */
-    public Integer getPropertyByClientId(String key) {
-        if (StringUtils.isEmpty(key)) {
-            return null;
-        }
+    public Integer getPropertyByClientId() {
         try {
             ICurrentUserInfoService userInfoService = AppContextHolder.getBean(
                     "eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
             Client client = userInfoService.getCurrentClient();
             logger.info("IConfigurationClient getPropertyByClientId  client:{}", JSONArray.toJSONString(client));
-            Integer technicalSupport = (Integer) configService.getPropertyByClientId(client.getClientConfigId(), key);
-            return technicalSupport;
+            return client.getClientConfigId();
         } catch (Exception e) {
-            logger.error("IConfigurationClient getPropertyByClientId  keys:{}", JSONArray.toJSONString(key), e);
+            logger.error("IConfigurationClient getPropertyByClientId", e);
             return null;
         }
     }
