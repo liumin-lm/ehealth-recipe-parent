@@ -1571,6 +1571,8 @@ public class RecipeOrderService extends RecipeBaseService {
                         Integer query = recipeHisService.getRecipeSinglePayStatusQuery(recipeItem.getRecipeId());
                         if (query != null && query == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY) {
                             recipeItem.setStatus(eh.cdr.constant.RecipeStatusConstant.HAVE_PAY);
+                        } else if (query != null && query == eh.cdr.constant.RecipeStatusConstant.FINISH) {
+                            recipeItem.setStatus(eh.cdr.constant.RecipeStatusConstant.FINISH);
                         }
                     }
                 }
