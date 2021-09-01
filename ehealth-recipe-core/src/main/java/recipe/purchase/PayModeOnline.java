@@ -345,7 +345,7 @@ public class PayModeOnline implements IPurchaseService {
                 .recipeExtend(recipeExtendDAO.getByRecipeId(recipeList.get(0).getRecipeId()))
                 .build();
         Integer recipeOrderType = OrderTypeFactory.getRecipeOrderType(orderTypeCreateConditionRequest);
-        LOG.info("getOrderCreateResult.orderecipeOrderTyperType ={}",recipeOrderType);
+        LOG.info("getOrderCreateResult.order recipeID={} recipeOrderType ={}",recipeList.get(0).getRecipeId(),recipeOrderType);
         order.setOrderType(recipeOrderType);
 
         // 目前paymode传入还是老版本 除线上支付外全都算线下支付,下个版本与前端配合修改

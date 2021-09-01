@@ -1,6 +1,9 @@
 package recipe.presettle.condition;
 
+import com.alibaba.fastjson.JSONArray;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import recipe.presettle.RecipeOrderTypeEnum;
 import recipe.presettle.model.OrderTypeCreateConditionRequest;
@@ -12,11 +15,16 @@ import recipe.presettle.model.OrderTypeCreateConditionRequest;
  */
 @Component
 public class DoctorForceCashHandler implements IOrderTypeConditionHandler {
+    /**
+     * logger
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(DoctorForceCashHandler.class);
     /**医生选择的自费类型*/
     private final String MEDICALTYPE_ZF = "0";
 
     @Override
     public Integer getOrderType(OrderTypeCreateConditionRequest request) {
+        LOGGER.info("DoctorForceCashHandler.getOrderType req={}", JSONArray.toJSONString(request));
         if (request.getRecipeExtend() != null){
             String medicalType = request.getRecipeExtend().getMedicalType();
             if (StringUtils.isEmpty(medicalType)){
