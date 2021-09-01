@@ -1016,8 +1016,6 @@ public class BaseOfflineToOnlineService {
         }
         if (!StringUtils.isEmpty(queryHisRecipResTo.getDiseaseName())) {
             hisRecipe.setDiseaseName(queryHisRecipResTo.getDiseaseName());
-        } else {
-            hisRecipe.setDiseaseName("无");
         }
         hisRecipe.setDisease(queryHisRecipResTo.getDisease());
         if (!StringUtils.isEmpty(queryHisRecipResTo.getDoctorCode())) {

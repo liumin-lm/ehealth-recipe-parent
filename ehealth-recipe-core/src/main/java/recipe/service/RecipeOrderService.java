@@ -1567,10 +1567,12 @@ public class RecipeOrderService extends RecipeBaseService {
             if (CollectionUtils.isNotEmpty(recipeList) && order.getEffective() == 1) {
                 for (Recipe recipeItem : recipeList) {
                     //到院取药  && recipeItem.getStatus() == 2
-                    if (recipeItem.getGiveMode() == 2 && recipeItem.getPayFlag() == 1) {
+                    if (recipeItem.getGiveMode() == 2 && recipeItem.getPayFlag() == 1 && !RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipeItem.getStatus())) {
                         Integer query = recipeHisService.getRecipeSinglePayStatusQuery(recipeItem.getRecipeId());
                         if (query != null && query == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY) {
                             recipeItem.setStatus(eh.cdr.constant.RecipeStatusConstant.HAVE_PAY);
+                        } else if (query != null && query == eh.cdr.constant.RecipeStatusConstant.FINISH) {
+                            recipeItem.setStatus(eh.cdr.constant.RecipeStatusConstant.FINISH);
                         }
                     }
                 }
@@ -1710,11 +1712,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     && (RecipeStatusEnum.RECIPE_STATUS_HAVE_PAY.getType().equals(recipeStatus)
                     || RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipeStatus))) {
                 //到院取药并且为线下支付的处方
-                orderBean.setActualPrice(orderBean.getRecipeFee()
-                        .add(orderBean.getAuditFee())
-                        .add(orderBean.getRegisterFee())
-                        .add(orderBean.getTcmFee())
-                        .add(orderBean.getOtherFee()).doubleValue());
+                orderBean.setActualPrice(orderBean.getActualPrice());
             } else {
                 //当处方状态为已完成时
                 if (RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipeStatus)) {

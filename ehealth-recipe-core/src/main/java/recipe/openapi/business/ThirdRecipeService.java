@@ -307,6 +307,7 @@ public class ThirdRecipeService {
      * @param request 物流参数
      * @return 订单物流轨迹
      */
+    @RpcService
     public LogisticsOrderDetailsDto getLogisticsOrderByOrderId(ThirdLogisticsRequest request){
         LOGGER.info("ThirdRecipeService getLogisticsOrderByOrderId request:{}.", JSONUtils.toString(request));
         checkLogisticsParams(request);
