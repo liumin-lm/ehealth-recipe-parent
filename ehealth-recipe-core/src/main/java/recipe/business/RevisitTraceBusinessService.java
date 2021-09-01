@@ -128,7 +128,7 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
                         } catch (Exception e) {
                             logger.warn("revisitRecipeTrace get doctor error. doctorId={}", recipeCheck.getChecker(), e);
                         }
-                        innerAudit.setCheckSign(apothecaryDTO.getDoctorSignImg());
+                        innerAudit.setCheckSign(apothecaryDTO.getCheckerSignImg());
                         revisitRecipeTraceVo.setAuditCheck(innerAudit);
                         obtainCheckNotPassDetail(revisitRecipeTraceVo, recipe);
                     }
