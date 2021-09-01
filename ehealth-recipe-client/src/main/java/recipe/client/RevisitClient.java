@@ -1,18 +1,17 @@
 package recipe.client;
 
-import com.ngari.recipe.entity.Recipe;
+import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
-import com.ngari.revisit.traces.requ.RevisitTracesSortRequest;
-import com.ngari.revisit.traces.resp.RevisitTracesSortResponse;
+import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.traces.service.IRevisitTracesSortService;
 import ctd.util.JSONUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-
 /**
+ * 复诊相关服务
+ *
  * @Author liumin
  * @Date 2021/7/22 下午2:26
  * @Description
@@ -26,6 +25,9 @@ public class RevisitClient extends BaseClient {
     @Autowired
     private IRevisitTracesSortService revisitTracesSortService;
 
+    @Autowired
+    private IRevisitService revisitService;
+
     /**
      * 根据挂号序号获取复诊信息
      *
@@ -37,6 +39,13 @@ public class RevisitClient extends BaseClient {
         RevisitExDTO consultExDTO = revisitExService.getByRegisterId(registeredId);
         logger.info("RevisitClient res consultExDTO:{} ", JSONUtils.toString(consultExDTO));
         return consultExDTO;
+    }
+
+    public RevisitBean getRevisitByClinicId(Integer clinicId) {
+        logger.info("RevisitClient getRevisitByClinicId param clinicId:{}", clinicId);
+        RevisitBean revisitBean = revisitService.getById(clinicId);
+        logger.info("RevisitClient getRevisitByClinicId param clinicId:{}", clinicId);
+        return revisitBean;
     }
 
     /**
@@ -53,30 +62,23 @@ public class RevisitClient extends BaseClient {
     }
 
     /**
-     * 通知复诊——处方追溯数据
+     * 通知复诊——删除处方追溯数据
      *
-     * @param recipe
+     * @param recipeId
      */
-    public void saveRevisitTracesList(Recipe recipe) {
+    public void deleteByBusIdAndBusNumOrder(Integer recipeId) {
         try {
-            if (recipe == null) {
+            if (recipeId == null) {
                 return;
             }
-            RevisitTracesSortRequest revisitTracesSortRequest = new RevisitTracesSortRequest();
-            revisitTracesSortRequest.setBusId(recipe.getRecipeId().toString());
-            revisitTracesSortRequest.setBusNumOrder(10);
-            revisitTracesSortRequest.setBusOccurredTime(new Date());
-            revisitTracesSortRequest.setBusType(1);
-            revisitTracesSortRequest.setConsultId(recipe.getClinicId());
-            revisitTracesSortRequest.setFrequency(0);
-            revisitTracesSortRequest.setOrganId(recipe.getClinicOrgan());
-            logger.info("RevisitClient saveRevisitTracesList request revisitTracesSortRequest:{}", JSONUtils.toString(revisitTracesSortRequest));
-            RevisitTracesSortResponse revisitTracesSortResponse = revisitTracesSortService.saveOrUpdate(revisitTracesSortRequest);
-            logger.info("RevisitClient saveRevisitTracesList response revisitTracesSortResponse:{}", JSONUtils.toString(revisitTracesSortResponse));
+            logger.info("RevisitClient deleteByBusIdAndBusNumOrder request recipeId:{}", recipeId);
+            revisitTracesSortService.deleteByBusIdAndBusNumOrder(recipeId + "", 10);
+            logger.info("RevisitClient deleteByBusIdAndBusNumOrder response recipeId:{}", recipeId);
             //TODO  复诊的接口返回没有成功或失败 无法加标志 无法失败重试或批量处理失败数据
         } catch (Exception e) {
-            logger.error("RevisitClient saveRevisitTracesList error recipeId:{},{}", recipe.getRecipeId(), e);
+            logger.error("RevisitClient deleteByBusIdAndBusNumOrder error recipeId:{},{}", recipeId, e);
             e.printStackTrace();
         }
     }
+
 }

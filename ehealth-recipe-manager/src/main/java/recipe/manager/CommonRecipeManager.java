@@ -53,7 +53,7 @@ public class CommonRecipeManager extends BaseManager {
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
     @Autowired
-    private DrugManeger drugManeger;
+    private DrugManager drugManager;
     @Autowired
     private DoctorClient doctorClient;
     @Autowired
@@ -173,8 +173,8 @@ public class CommonRecipeManager extends BaseManager {
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIdWithoutStatus(organId, drugIdList);
         Map<String, OrganDrugList> organDrugMap = organDrugList.stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getOrganDrugCode(), a -> a, (k1, k2) -> k1));
         //用药途径 用药频次
-        Map<Integer, UsePathways> usePathwaysMap = drugManeger.usePathwaysMap(organId);
-        Map<Integer, UsingRate> usingRateMap = drugManeger.usingRateMap(organId);
+        Map<Integer, UsePathways> usePathwaysMap = drugManager.usePathwaysMap(organId);
+        Map<Integer, UsingRate> usingRateMap = drugManager.usingRateMap(organId);
 
         Map<Integer, List<CommonRecipeDrugDTO>> commonDrugGroup = new HashMap<>();
         commonRecipeDrugList.forEach(a -> {

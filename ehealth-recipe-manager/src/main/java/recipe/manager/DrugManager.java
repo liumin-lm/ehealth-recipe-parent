@@ -3,6 +3,7 @@ package recipe.manager;
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
+import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -16,10 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DrugClient;
 import recipe.constant.RecipeBussConstant;
-import recipe.dao.DrugDecoctionWayDao;
-import recipe.dao.DrugEntrustDAO;
-import recipe.dao.DrugMakingMethodDao;
-import recipe.dao.OrganDrugListDAO;
+import recipe.dao.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -30,8 +28,8 @@ import java.util.stream.Collectors;
  * @author fuzi
  */
 @Service
-public class DrugManeger extends BaseManager {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DrugManeger.class);
+public class DrugManager extends BaseManager {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DrugManager.class);
     @Autowired
     private DrugClient drugClient;
     @Autowired
@@ -40,6 +38,12 @@ public class DrugManeger extends BaseManager {
     private DrugDecoctionWayDao drugDecoctionWayDao;
     @Autowired
     private DrugEntrustDAO drugEntrustDAO;
+    @Autowired
+    private DrugListDAO drugListDAO;
+    @Autowired
+    private OrganDrugListDAO organDrugListDAO;
+    @Autowired
+    private DispensatoryDAO dispensatoryDAO;
 
     /**
      * todo 分层不合理 静态不合理 方法使用不合理 需要修改 （尹盛）
@@ -49,9 +53,9 @@ public class DrugManeger extends BaseManager {
      * @param drugType
      * @return
      */
-    public static String dealwithRecipeDrugName(Recipedetail recipedetail, Integer drugType, Integer organId) {
+    public static String dealWithRecipeDrugName(Recipedetail recipedetail, Integer drugType, Integer organId) {
         LOGGER.info("DrugManager dealwithRecipeDrugName recipedetail:{},drugType:{},organId:{}", JSONUtils.toString(recipedetail), drugType, organId);
-        if (RecipeBussConstant.RECIPETYPE_TCM.equals(drugType)) {
+        if (RecipeBussConstant.RECIPETYPE_TCM.equals(drugType) || RecipeBussConstant.RECIPETYPE_HP.equals(drugType)) {
             StringBuilder stringBuilder = new StringBuilder();
             //所有页面中药药品显示统一“药品名称”和“剂量单位”以空格间隔
             stringBuilder.append(recipedetail.getDrugName());
@@ -70,13 +74,13 @@ public class DrugManeger extends BaseManager {
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndOrganDrugCodeAndDrugIdWithoutStatus(organId, recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
             LOGGER.info("DrugClient dealwithRecipeDrugName organDrugLists:{}", JSONUtils.toString(organDrugLists));
-            return dealwithRecipedetailName(organDrugLists, recipedetail);
+            return dealWithRecipeDetailName(organDrugLists, recipedetail);
         }
         LOGGER.info("DrugManager dealwithRecipeDrugName res:{}", recipedetail.getDrugDisplaySplicedName());
         return recipedetail.getDrugDisplaySplicedName();
     }
 
-    public static String dealwithRecipedetailName(List<OrganDrugList> organDrugLists, Recipedetail recipedetail) {
+    public static String dealWithRecipeDetailName(List<OrganDrugList> organDrugLists, Recipedetail recipedetail) {
         LOGGER.info("DrugClient dealwithRecipedetailName organDrugLists:{},recipedetail:{}", JSONUtils.toString(organDrugLists), JSONUtils.toString(recipedetail));
         StringBuilder stringBuilder = new StringBuilder();
         if (CollectionUtils.isNotEmpty(organDrugLists)) {
@@ -215,5 +219,56 @@ public class DrugManeger extends BaseManager {
         return drugClient.usePathwaysCodeMap(organId);
     }
 
+    /**
+     * 患者端搜索药品
+     *
+     * @param saleName 搜索关键字
+     * @param organId  机构id
+     * @param drugType 类型
+     * @param start    起始
+     * @param limit    条数
+     * @return
+     */
+    public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(String saleName, String organId, List<String> drugType, int start, int limit) {
+        logger.info("DrugManager findDrugWithEsByPatient saleName : {} organId:{} drugType:{} start:{}  limit:{}", saleName, organId, JSON.toJSONString(drugType), start, limit);
+        // 搜索药品信息
+        List<PatientDrugWithEsDTO> drugWithEsByPatient = drugClient.findDrugWithEsByPatient(saleName, organId, drugType, start, limit);
+        if (CollectionUtils.isEmpty(drugWithEsByPatient)) {
+            return new ArrayList<>();
+        }
+        // 拼接 药品图片
+        Set<Integer> drugIds = drugWithEsByPatient.stream().map(PatientDrugWithEsDTO::getDrugId).collect(Collectors.toSet());
+        if (CollectionUtils.isNotEmpty(drugIds)) {
+            List<DrugList> byDrugIds = drugListDAO.findByDrugIds(drugIds);
+            if (CollectionUtils.isNotEmpty(byDrugIds)) {
+                Map<Integer, List<DrugList>> collect = byDrugIds.stream().collect(Collectors.groupingBy(DrugList::getDrugId));
+                drugWithEsByPatient.forEach(patientDrugWithEsDTO -> {
+                    patientDrugWithEsDTO.setDrugPic(collect.get(patientDrugWithEsDTO.getDrugId()).get(0).getDrugPic());
+                });
+            }
 
+        }
+        logger.info("DrugManager findDrugWithEsByPatient res drugWithEsByPatient:{}", JSON.toJSONString(drugWithEsByPatient));
+        return drugWithEsByPatient;
+    }
+
+    /**
+     * 获取药品说明书
+     *
+     * @param organId       机构id
+     * @param organDrugCode 机构药品编码
+     * @return
+     */
+    public Dispensatory getDrugBook(Integer organId, String organDrugCode) {
+        logger.info("DrugManager.getDrugBook req organId={} organDrugCode={}", organId, organDrugCode);
+        // 根据机构与机构药品编码获取 药品id
+        List<OrganDrugList> byOrganDrugCodeAndOrganId = organDrugListDAO.findByOrganDrugCodeAndOrganId(organDrugCode, organId);
+        if (CollectionUtils.isEmpty(byOrganDrugCodeAndOrganId)) {
+            return null;
+        }
+        Integer drugId = byOrganDrugCodeAndOrganId.get(0).getDrugId();
+        Dispensatory dispensatory = dispensatoryDAO.getByDrugId(drugId);
+        logger.info("DrugManager.getDrugBook res dispensatory={} drugId={}", dispensatory, drugId);
+        return dispensatory;
+    }
 }

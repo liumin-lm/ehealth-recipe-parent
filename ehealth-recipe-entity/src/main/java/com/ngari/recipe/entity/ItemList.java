@@ -61,7 +61,7 @@ public class ItemList implements Serializable{
         this.itemName = itemName;
     }
 
-    @Column(name = "organID")
+    @Column(name = "organ_id")
     public Integer getOrganID() {
         return organID;
     }

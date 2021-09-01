@@ -131,13 +131,25 @@ public class EmrRecipeManager extends BaseManager {
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
         //替换下药品拼接名
-        recipeDetailList.forEach(a -> a.setDrugName(DrugManeger.dealwithRecipeDrugName(a, recipe.getRecipeType(), recipe.getClinicOrgan())));
+        recipeDetailList.forEach(a -> a.setDrugName(DrugManager.dealWithRecipeDrugName(a, recipe.getRecipeType(), recipe.getClinicOrgan())));
         docIndexClient.saveRpDetail(recipe, recipeExtend, recipeDetailList, docId);
-
         //更新电子病例 为已经使用状态
         docIndexClient.updateEmrStatus(recipeId, docId, recipe.getClinicId());
+        updateDisease(recipeId);
+    }
+
+    /**
+     * 更新诊断信息
+     *
+     * @param recipeId
+     */
+    public void updateDisease(Integer recipeId) {
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (null == recipeExtend) {
+            return;
+        }
         //更新 处方诊断信息
-        EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(docId);
+        EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
         if (StringUtils.isEmpty(emrDetail.getOrganDiseaseName())) {
             return;
         }
@@ -146,7 +158,7 @@ public class EmrRecipeManager extends BaseManager {
         recipeUpdate.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
         recipeUpdate.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
         recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-        logger.info("EmrRecipeManager updateDocStatus docId={},recipeUpdate={}", docId, JSON.toJSONString(recipeUpdate));
+        logger.info("EmrRecipeManager updateDisease recipeId={},recipeUpdate={}", recipeId, JSON.toJSONString(recipeUpdate));
     }
 
     /**

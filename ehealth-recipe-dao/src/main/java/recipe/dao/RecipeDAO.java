@@ -204,9 +204,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "select COUNT(*) from Recipe where  clinicOrgan=:organId and  PayFlag =:payFlag and status in (2,8)")
     public abstract Long getUnfinishedRecipe(@DAOParam("organId") Integer organId, @DAOParam("payFlag") Integer payFlag);
 
-    @DAOMethod(sql = "from Recipe where clinicId=:clinicId")
-    public abstract List<Recipe> getByClinicId(@DAOParam("clinicId") Integer clinicId);
-
 
     /**
      * 根据医生id处方id获取处方集合
@@ -243,7 +240,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<Recipe> action = new AbstractHibernateStatelessResultAction<Recipe>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                Query q = ss.createQuery("from Recipe where Status=:status and ClinicID=:clinicId order by RecipeID desc");
+                Query q = ss.createQuery("from Recipe where recipeSourceType != 3 and Status=:status and ClinicID=:clinicId order by RecipeID desc");
                 q.setParameter("clinicId", clinicId);
                 q.setParameter("status", status);
                 q.setMaxResults(1);
@@ -1268,7 +1265,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                             "\tcdr_recipe r\n" +
                             "LEFT JOIN cdr_recipe_ext cre ON r.recipeid = cre.recipeid\n" +
                             "WHERE cre.canUrgentAuditRecipe is not null and r.clinicOrgan in (:organ) and r.checkMode<2 and r.status = 8 and  (recipeType in(:recipeTypes) or grabOrderStatus=1) " +
-                            "ORDER BY canUrgentAuditRecipe desc, signdate asc");
+                            "ORDER BY canUrgentAuditRecipe desc, r.grabOrderStatus DESC, signdate asc");
                 }
                 //1是审核通过  2是审核未通过
                 else if (flag == 1 || flag == notPass) {
@@ -3254,6 +3251,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public abstract List<Recipe> findWriteHisRecipeByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId);
 
     /**
+     * 通过复诊业务来源调用查询诊疗处方
+     *
+     * @param bussSource
+     * @param clinicId
+     * @return
+     */
+    @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId and recipeSourceType = 3 ")
+    public abstract List<Recipe> findTherapyRecipeByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId);
+
+    /**
      * @param bussSource
      * @param clinicId
      * @return
@@ -3261,8 +3268,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId and status in(2,3,4,5,6,7,8)")
     public abstract List<Recipe> findEffectiveRecipeByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId);
 
+    @DAOMethod(sql = "from Recipe where recipeId=:recipeId  and bussSource =2")
+    public abstract List<Recipe> findRecipeByRecipeId(@DAOParam("recipeId") Integer recipeId);
+
+    @DAOMethod(sql = "from Recipe where clinicId=:clinicId  and bussSource =2")
+    public abstract List<Recipe> findRecipeByClinicId(@DAOParam("clinicId") Integer clinicId);
+
     @DAOMethod
     public abstract List<Recipe> findByClinicId(Integer consultId);
+
 
     public List<Object[]> findMsgByparameters(Date startTime, Date endTime, Integer organId) {
         HibernateStatelessResultAction<List> action = new AbstractHibernateStatelessResultAction<List>() {
@@ -3528,7 +3542,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param clinicId
      * @return
      */
-    @DAOMethod(sql = "from Recipe where clinicId=:clinicId and status not in(-1,15,9,0,13,14,16)")
+    @DAOMethod(sql = "from Recipe where clinicId=:clinicId and status not in(-1,15,9,0,10,13,14,16)")
     public abstract List<Recipe> findRecipeCountByClinicIdAndValidStatus(@DAOParam("clinicId") Integer clinicId);
 
     /**
@@ -3728,4 +3742,118 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      */
     @DAOMethod(sql = "SELECT COUNT(1) FROM Recipe WHERE bussSource=:bussSource AND ClinicID=:ClinicID AND status IN (:recipeStatus)")
     public abstract Long getRecipeCountByBussSourceAndClinicIdAndStatus(@DAOParam("bussSource") Integer bussSource, @DAOParam("ClinicID") Integer ClinicID, @DAOParam("recipeStatus") List<Integer> recipeStatus);
+
+    /**
+     * @param startTime
+     * @param endTime
+     * @param recipeIds
+     * @param organId
+     * @return
+     */
+    public List<Recipe> queryRevisitTrace(String startTime, String endTime, List<Integer> recipeIds, Integer organId) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("select r from Recipe r where clinicId is not null and bussSource =2  ");
+                if (StringUtils.isNotEmpty(startTime)) {
+//                    hql.append("and DATE(r.createDate)>=DATE(:startTime) ");
+                    hql.append(" and r.createDate >= :startTime");
+                }
+                if (StringUtils.isNotEmpty(endTime)) {
+//                    hql.append("and DATE(r.createDate)<=DATE(:endTime) ");
+                    hql.append(" and r.createDate <= :endTime");
+                }
+                if (organId != null) {
+                    hql.append("and organId =:organId ");
+                }
+                if (CollectionUtils.isNotEmpty(recipeIds)) {
+                    hql.append("and recipeIds in(:recipeIds) ");
+                }
+                Query query = ss.createQuery(hql.toString());
+//                if (StringUtils.isNotEmpty(startTime)) {
+//                    query.setParameter("startTime", startTime);
+//                }
+//                if (StringUtils.isNotEmpty(endTime)) {
+//                    query.setParameter("endTime", endTime);
+//                }
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                query.setTimestamp("startTime", sdf.parse(startTime));
+                query.setTimestamp("endTime", sdf.parse(endTime));
+                if (organId != null) {
+                    query.setParameter("organId", organId);
+                }
+                if (CollectionUtils.isNotEmpty(recipeIds)) {
+                    query.setParameterList("recipeIds", recipeIds);
+                }
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 迁移数据使用
+     *
+     * @return
+     */
+    public List<RecipeOrder> findMoveData() {
+        HibernateStatelessResultAction<List<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrder>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "select\n" +
+                        "  o.OrderCode,\n" +
+                        "  r.RecipeID,\n" +
+                        "  e.fundAmount,\n" +
+                        "  e.preSettleTotalAmount,\n" +
+                        "  e.cashAmount\n" +
+                        "from\n" +
+                        "  cdr_recipe r,\n" +
+                        "  cdr_recipe_ext e,\n" +
+                        "  cdr_recipeorder o\n" +
+                        "where\n" +
+                        "  r.recipeId = e.recipeId\n" +
+                        "  AND o.Ordercode = r.orderCode\n" +
+                        "  AND e.preSettleTotalAmount != 0\n" +
+                        "  AND e.preSettleTotalAmount != o.preSettleTotalAmount\n" +
+                        "  AND o.preSettleTotalAmount = 0";
+                Query q = ss.createSQLQuery(hql);
+                List<Object[]> result = q.list();
+                List<RecipeOrder> backList = new ArrayList<>();
+                if (CollectionUtils.isNotEmpty(result)) {
+                    RecipeOrder recipeListBean;
+                    for (Object[] objs : result) {
+                        recipeListBean = new RecipeOrder("");
+                        if (null != objs[0]) {
+                            recipeListBean.setOrderCode(objs[0].toString());
+                        }
+                        if (null != objs[1]) {
+                            recipeListBean.setOrderId(Integer.valueOf(objs[1].toString()));
+                        }
+                        if (null != objs[2]) {
+                            recipeListBean.setFundAmount(Double.valueOf(objs[2].toString()));
+                        }
+                        if (null != objs[3]) {
+                            recipeListBean.setPreSettletotalAmount(Double.valueOf(objs[3].toString()));
+                        }
+                        if (null != objs[4]) {
+                            recipeListBean.setCashAmount(Double.valueOf(objs[4].toString()));
+                        }
+                        backList.add(recipeListBean);
+                    }
+                }
+
+                setResult(backList);
+
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+
+
+    }
+
+    ;
+
 }

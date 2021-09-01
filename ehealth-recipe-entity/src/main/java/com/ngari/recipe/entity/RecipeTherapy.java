@@ -21,8 +21,12 @@ public class RecipeTherapy implements Serializable {
     private static final long serialVersionUID = -7119210639963847034L;
     @ItemProperty(alias = "诊疗id")
     private Integer id;
+    @ItemProperty(alias = "机构id")
+    private Integer organId;
     @ItemProperty(alias = "处方id")
     private Integer recipeId;
+    @ItemProperty(alias = "来源Id，默认复诊")
+    private Integer clinicId;
     @ItemProperty(alias = "医生id")
     private Integer doctorId;
     @ItemProperty(alias = "患者id")
@@ -35,8 +39,8 @@ public class RecipeTherapy implements Serializable {
     private String therapyExecuteDepart;
     @ItemProperty(alias = "诊疗缴费时间")
     private Date therapyPayTime;
-    @ItemProperty(alias = "诊疗作废类型，1:医生撤销，2:HIS作废，3:系统取消")
-    private String therapyCancellationType;
+    @ItemProperty(alias = "诊疗作废类型，1:医生撤销，2:HIS作废，3:系统取消 4，医生作废")
+    private Integer therapyCancellationType;
     @ItemProperty(alias = "诊疗作废信息")
     private String therapyCancellation;
     @ItemProperty(alias = "诊疗状态: 1：待提交，2:待缴费，3:已交费，4：已作废")
@@ -53,6 +57,14 @@ public class RecipeTherapy implements Serializable {
         this.id = id;
     }
 
+    @Column(name = "organ_id")
+    public Integer getOrganId() {
+        return organId;
+    }
+
+    public void setOrganId(Integer organId) {
+        this.organId = organId;
+    }
 
     @Column(name = "recipe_id")
     public Integer getRecipeId() {
@@ -61,6 +73,15 @@ public class RecipeTherapy implements Serializable {
 
     public void setRecipeId(Integer recipeId) {
         this.recipeId = recipeId;
+    }
+
+    @Column(name = "clinic_id")
+    public Integer getClinicId() {
+        return clinicId;
+    }
+
+    public void setClinicId(Integer clinicId) {
+        this.clinicId = clinicId;
     }
 
     @Column(name = "doctor_id")
@@ -118,11 +139,11 @@ public class RecipeTherapy implements Serializable {
     }
 
     @Column(name = "therapy_cancellation_type")
-    public String getTherapyCancellationType() {
+    public Integer getTherapyCancellationType() {
         return therapyCancellationType;
     }
 
-    public void setTherapyCancellationType(String therapyCancellationType) {
+    public void setTherapyCancellationType(Integer therapyCancellationType) {
         this.therapyCancellationType = therapyCancellationType;
     }
 

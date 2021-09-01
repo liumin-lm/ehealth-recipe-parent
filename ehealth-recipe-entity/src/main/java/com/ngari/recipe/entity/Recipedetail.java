@@ -104,7 +104,7 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias = "药物使用天数")
 	private Integer useDays;
 
-	@ItemProperty(alias = "药物金额")
+	@ItemProperty(alias = "药物金额 = useTotalDose * salePrice")
 	private BigDecimal drugCost;
 
 	@ItemProperty(alias = "药品嘱托Id")
@@ -116,64 +116,69 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias = "药品嘱托编码")
 	private String drugEntrustCode;
 
-	@ItemProperty(alias="药品效期")
+	@ItemProperty(alias = "药品效期")
 	private Date validDate;
-	
-	@ItemProperty(alias="药品批号")
+
+	@ItemProperty(alias = "药品批号")
 	private String drugBatch;
-	
-	@ItemProperty(alias="创建时间")
+
+	@ItemProperty(alias = "创建时间")
 	private Date createDt;
-	
-	@ItemProperty(alias="最后修改时间")
+
+	@ItemProperty(alias = "最后修改时间")
 	private Date lastModify;
-	
-	@ItemProperty(alias="销售价格")
+
+	@ItemProperty(alias = "销售价格 = organDrug.salePrice")
 	private BigDecimal salePrice;
-	
-	@ItemProperty(alias="药品编码")
+
+	@ItemProperty(alias = "药品编码")
 	private String drugCode;
-	
-	@ItemProperty(alias="无税单价")
+
+	@ItemProperty(alias = "无税单价 = organDrug.salePrice")
+	@Deprecated
 	private BigDecimal price;
-	
-	@ItemProperty(alias="税率")
+
+	@ItemProperty(alias = "税率")
 	private Double rate;
-	
-	@ItemProperty(alias="含税单价")
+
+	@ItemProperty(alias = "含税单价 暂无使用")
+	@Deprecated
 	private BigDecimal ratePrice;
 
-    @ItemProperty(alias="无税总额")
-    private BigDecimal totalPrice;
+	@ItemProperty(alias = "无税总额 暂无使用")
+	@Deprecated
+	private BigDecimal totalPrice;
 
-    @ItemProperty(alias="税额")
-    private BigDecimal tax;
+	@ItemProperty(alias = "税额 暂无使用")
+	@Deprecated
+	private BigDecimal tax;
 
-    @ItemProperty(alias="含税总额")
-    private BigDecimal totalRatePrice;
+	@ItemProperty(alias = "含税总额 暂无使用")
+	@Deprecated
+	private BigDecimal totalRatePrice;
 
-    @ItemProperty(alias="医院系统医嘱号")
-    private String orderNo;
+	@ItemProperty(alias = "医院系统医嘱号")
+	private String orderNo;
 
-    @ItemProperty(alias="取药窗口")
-    private String pharmNo;
+	@ItemProperty(alias = "取药窗口")
+	private String pharmNo;
 
-    @ItemProperty(alias = "是否启用")
-    private Integer status;
+	@ItemProperty(alias = "是否启用")
+	private Integer status;
 
-    @ItemProperty(alias="药企发票编号")
-    private String invoiceNo;
+	@ItemProperty(alias = "药企发票编号")
+	private String invoiceNo;
 
-    @ItemProperty(alias="药企开票日期")
-    private Date invoiceDate;
+	@ItemProperty(alias = "药企开票日期")
+	private Date invoiceDate;
 
-    @ItemProperty(alias="医院给患者发票编号")
-    private String patientInvoiceNo;
+	@ItemProperty(alias = "医院给患者发票编号")
+	private String patientInvoiceNo;
 
-    @ItemProperty(alias="医院给患者开票日期")
-    private Date patientInvoiceDate;
+	@ItemProperty(alias = "医院给患者开票日期")
+	private Date patientInvoiceDate;
 
-	@ItemProperty(alias="处方明细单号")
+	@ItemProperty(alias = "处方明细单号")
 	private String recipedtlno;
 
 	@ItemProperty(alias = "剂型")
@@ -194,7 +199,7 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias = "生产厂家代码")
 	private String producerCode;
 
-	@ItemProperty(alias = "实际销售价格")
+	@ItemProperty(alias = "实际销售价格 真实支付后三方回写价格")
 	private BigDecimal actualSalePrice;
 
 	@ItemProperty(alias = "药企药品编码")

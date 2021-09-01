@@ -1,4 +1,4 @@
-package recipe.vo.doctor;
+package com.ngari.recipe.vo;
 
 import ctd.schema.annotation.ItemProperty;
 import lombok.AllArgsConstructor;
@@ -24,7 +24,7 @@ public class ItemListVO implements Serializable{
     @ItemProperty(alias = "项目id")
     private Integer id;
     @ItemProperty(alias = "机构id")
-    private Integer organID;
+    private Integer organId;
     @ItemProperty(alias = "项目名称")
     private String itemName;
     @ItemProperty(alias = "项目编码")

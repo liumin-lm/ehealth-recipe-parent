@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipeCheckPassResult;
+import recipe.business.RevisitTraceBusinessService;
 import recipe.client.RevisitClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.RecipeDAO;
@@ -34,7 +35,6 @@ import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.CommonOrder;
-import recipe.thread.RecipeBusiThreadPool;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -57,6 +57,9 @@ public class HisCallBackService {
 
     private static RevisitClient revisitClient = AppContextHolder.getBean("revisitClient", RevisitClient.class);
 
+    private static RevisitTraceBusinessService revisitTraceBusinessService = AppContextHolder.getBean("revisitTraceBusinessService", RevisitTraceBusinessService.class);
+
+
     /**
      * 处方HIS审核通过成功
      *
@@ -72,6 +75,7 @@ public class HisCallBackService {
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 
         Map<String, Object> attrMap = Maps.newHashMap();
+        Map<String, Object> recipeExtUpdateDataMap = Maps.newHashMap();
         Recipe recipe = recipeDAO.get(result.getRecipeId());
         if (null == recipe) {
             LOGGER.error("checkPassSuccess 处方对象不存在");
@@ -101,6 +105,9 @@ public class HisCallBackService {
         if (StringUtils.isNotEmpty(result.getPatientID())) {
             //病人医院病历号
             attrMap.put("patientID", result.getPatientID());
+        }
+        if (StringUtils.isNotEmpty(result.getHisDiseaseSerial())) {
+            recipeExtUpdateDataMap.put("hisDiseaseSerial", result.getHisDiseaseSerial());
         }
         //处方总金额， 外带药处方不做处理
         if (!Integer.valueOf(1).equals(recipe.getTakeMedicine()) && null != result.getTotalMoney()) {
@@ -132,7 +139,9 @@ public class HisCallBackService {
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
 
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap);
-
+        if (!recipeExtUpdateDataMap.isEmpty()) {
+            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), recipeExtUpdateDataMap);
+        }
         //更新复诊挂号序号、卡类型卡号等信息如果有
         updateRecipeRegisterID(recipe, result);
         //updateRecipepatientType(recipe);
@@ -174,7 +183,6 @@ public class HisCallBackService {
         //date 20200507
         //调用医生重新签名的逻辑
         recipeService.retryDoctorSignCheck(result.getRecipeId());
-        RecipeBusiThreadPool.execute(() -> revisitClient.saveRevisitTracesList(recipe));
     }
 
 

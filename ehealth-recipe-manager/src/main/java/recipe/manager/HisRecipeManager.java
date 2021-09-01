@@ -18,10 +18,10 @@ import org.springframework.stereotype.Service;
 import recipe.client.DocIndexClient;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
+import recipe.client.RevisitClient;
 import recipe.dao.HisRecipeDAO;
 import recipe.dao.HisRecipeDetailDAO;
 import recipe.dao.HisRecipeExtDAO;
-import recipe.dao.RecipeLogDAO;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.util.MapValueUtil;
@@ -53,9 +53,9 @@ public class HisRecipeManager extends BaseManager {
     @Autowired
     private HisRecipeDetailDAO hisRecipeDetailDAO;
     @Autowired
-    private RecipeLogDAO recipeLogDao;
-    @Autowired
     private EmrRecipeManager emrRecipeManager;
+    @Autowired
+    private RevisitClient revisitClient;
 
 
     /**
@@ -250,6 +250,8 @@ public class HisRecipeManager extends BaseManager {
             recipeLog.setAfterStatus(RecipeStatusEnum.RECIPE_STATUS_DELETE.getType());
             recipeLog.setMemo("线下转线上：修改处方状态为已删除,数据是：" + JSONUtils.toString(recipeMap.get(a)));
             recipeLogDao.saveRecipeLog(recipeLog);
+            revisitClient.deleteByBusIdAndBusNumOrder(a);
+//            RecipeBusiThreadPool.execute(() -> revisitClient.deleteByBusIdAndBusNumOrder(a));
         });
         LOGGER.info("HisRecipeManager deleteSetRecipeCode is delete end ");
     }
@@ -451,24 +453,23 @@ public class HisRecipeManager extends BaseManager {
         return hisRecipe;
     }
 
+
     /**
      * 推送处方给his
      *
-     * @param recipePdfDTO 处方信息
+     * @param recipePdfDTO  处方信息
+     * @param pushType      推送类型: 1：提交处方，2:撤销处方
+     * @param pharmacyIdMap 药房
+     * @return
+     * @throws Exception
      */
-    public RecipeTherapy pushTherapyRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType) {
+    public RecipeInfoDTO pushTherapyRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
         RecipeExtend recipeExtend = recipePdfDTO.getRecipeExtend();
         Integer docIndexId = null;
         if (null != recipeExtend) {
             docIndexId = recipeExtend.getDocIndexId();
         }
         EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(docIndexId);
-        try {
-            return offlineRecipeClient.pushTherapyRecipe(pushType, recipePdfDTO, emrDetail);
-        } catch (Exception e) {
-            Recipe recipe = recipePdfDTO.getRecipe();
-            recipeLogDao.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
-        }
-        return null;
+        return offlineRecipeClient.pushTherapyRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
     }
 }

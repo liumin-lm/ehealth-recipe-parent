@@ -3,10 +3,13 @@ package recipe.vo.second;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
+import ctd.schema.annotation.Schema;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -14,7 +17,9 @@ import java.util.Map;
 /**
  * @author liumin
  */
+@Schema
 @Data
+@NoArgsConstructor
 public class RevisitRecipeTraceVo implements Serializable {
 
     private static final long serialVersionUID = -8882418262625511818L;
@@ -56,13 +61,24 @@ public class RevisitRecipeTraceVo implements Serializable {
     private Logistics logistics;
 
     /**
+     * 退费
+     */
+    private RecipeRefund recipeRefund;
+
+    /**
      * 处方取消
      */
     private RecipeCancel recipeCancel;
 
     //医生开方
     @Data
+    @Schema
     public static class Recipe implements Serializable {
+
+        @ItemProperty(alias = "处方状态")
+        @Dictionary(id = "eh.cdr.dictionary.RecipeStatus")
+        private Integer status;
+
         @ItemProperty(alias = "处方签")
         private String recipeSignFile;
 
@@ -75,7 +91,7 @@ public class RevisitRecipeTraceVo implements Serializable {
         @ItemProperty(alias = "开方时间")
         private Date createDate;
 
-        @ItemProperty(alias = "开方医生（医生Id）")
+        @ItemProperty(alias = "开方医生")
         private String doctorName;
 
         @ItemProperty(alias = "临床诊断")
@@ -83,9 +99,10 @@ public class RevisitRecipeTraceVo implements Serializable {
 
         private String recipeId;
 
-        //TODO
-        @ItemProperty(alias = "来源")
-        private String recipeSourceType;
+        @ItemProperty(alias = "来源标志")
+        @Dictionary(id = "eh.cdr.dictionary.FromFlag")
+        private Integer fromflag;
+
 
         @ItemProperty(alias = "医生签名")
         private String doctorSign;
@@ -100,20 +117,37 @@ public class RevisitRecipeTraceVo implements Serializable {
 
         @ItemProperty(alias = "药师处方数字签名可信服务器时间")
         private String signPharmacistCADate;
+
+        /**
+         * 患者医保类型（编码）
+         */
+        private String medicalType;
+
+        /**
+         * 患者医保类型（名称）
+         */
+        private String medicalTypeText;
+
+        @ItemProperty(alias = "处方金额")
+        private BigDecimal totalMoney;
+
     }
 
 
     //Audit
     @Data
+    @Schema
     public static class AuditCheck implements Serializable {
 
 
         @ItemProperty(alias = "审核日期")
         private Date checkDate;
 
-        @Dictionary(id = "eh.cdr.dictionary.RecipeCheckStatus")
+        //        @Dictionary(id = "eh.cdr.dictionary.RecipeCheckStatus")
         @ItemProperty(alias = "审核结果")
         private Integer checkStatus;
+
+        private String checkStatusText;
 
         @ItemProperty(alias = "审核人姓名")
         private String checkerName;
@@ -126,9 +160,23 @@ public class RevisitRecipeTraceVo implements Serializable {
 
         @ItemProperty(alias = "审核备注信息")
         private String memo;
+
+        public String getCheckStatusText() {
+            if (0 == checkStatus) {
+                this.checkStatusText = "审核不通过";
+            } else if (1 == checkStatus) {
+                this.checkStatusText = "审核通过";
+            }
+            return this.checkStatusText;
+        }
+
+        public void setCheckStatusText(String checkStatusText) {
+            this.checkStatusText = checkStatusText;
+        }
     }
 
     @Data
+    @Schema
     public static class GiveUser {
 
         /**
@@ -149,6 +197,7 @@ public class RevisitRecipeTraceVo implements Serializable {
     }
 
     @Data
+    @Schema
     public static class Order {
 
         @ItemProperty(alias = "电子票据h5地址")
@@ -161,8 +210,8 @@ public class RevisitRecipeTraceVo implements Serializable {
         @ItemProperty(alias = "订单所属配送方式")
         private String giveModeKey;
 
-        @ItemProperty(alias = "订单所属配送方式的文案")
-        private String giveModeText;
+//        @ItemProperty(alias = "订单所属配送方式的文案")
+//        private String giveModeText;
 
         @ItemProperty(alias = "收货人姓名")
         private String receiver;
@@ -180,11 +229,11 @@ public class RevisitRecipeTraceVo implements Serializable {
         private Integer refundFlag;
 
         @ItemProperty(alias = "支付状态 0未支付，1已支付，2退款中，3退款成功，4支付失败")
-        @Dictionary(id = "eh.cdr.dictionary.PayFlag")
+        @Dictionary(id = "eh.bus.dictionary.PayFlag")
         private Integer payFlag;
 
         @ItemProperty(alias = "支付方式")
-        @Dictionary(id = "eh.cdr.dictionary.PayWay")
+        @Dictionary(id = "eh.bus.dictionary.PayWay")
         private String wxPayWay;
 
         @ItemProperty(alias = "交易流水号")
@@ -206,10 +255,10 @@ public class RevisitRecipeTraceVo implements Serializable {
     }
 
     /**
-     * 物流
-     * 查看物流进度 前端直接调基础服务的接口
+     * 物流 查看物流进度 前端直接调基础服务的接口
      */
     @Data
+    @Schema
     public static class Logistics {
 
         @ItemProperty(alias = "物流公司")
@@ -221,8 +270,39 @@ public class RevisitRecipeTraceVo implements Serializable {
 
         @ItemProperty(alias = "发货时间")
         private Date sendTime;
+
+        @ItemProperty(alias = "订单编号")
+        private String orderCode;
     }
 
+    /**
+     * 退费
+     */
+    @Data
+    @Schema
+    public static class RecipeRefund {
+
+        @ItemProperty(alias = "申请时间")
+        private Date applyTime;
+
+        @ItemProperty(alias = "订单金额")
+        private Double price;
+    }
+
+    /**
+     * @Author liumin
+     * @Date 2021/8/20 下午3:19
+     * @Description 医生撤销
+     */
+    @Data
+    @Schema
+    public static class RecipeCancel {
+        @ItemProperty(alias = "原因")
+        private String cancelReason;
+
+        @ItemProperty(alias = "时间")
+        private Date cancelDate;
+    }
 
     public String getRecipeSignFile() {
         if (StringUtils.isNotEmpty(this.recipe.chemistSignFile)) {
@@ -231,4 +311,6 @@ public class RevisitRecipeTraceVo implements Serializable {
             return this.recipe.signFile;
         }
     }
+
+
 }

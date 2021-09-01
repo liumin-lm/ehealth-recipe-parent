@@ -11,12 +11,16 @@ import com.ngari.recipe.dto.PatientDTO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
-import recipe.util.DictionaryUtil;
 import recipe.util.LocalStringUtil;
 
 import javax.annotation.Resource;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 患者信息处理类
@@ -35,31 +39,43 @@ public class PatientClient extends BaseClient {
     /**
      * 获取 脱敏后的 患者对象
      *
-     * @param mpiid
+     * @param mpiId
      * @return
      */
-    public PatientDTO getPatientEncipher(String mpiid) {
-        PatientDTO p = getPatientDTO(mpiid);
-        if (StringUtils.isNotEmpty(p.getMobile())) {
-            p.setMobile(LocalStringUtil.coverMobile(p.getMobile()));
-        }
-        if (StringUtils.isNotEmpty(p.getIdcard())) {
-            p.setIdcard(ChinaIDNumberUtil.hideIdCard(p.getIdcard()));
-        }
-        p.setAge(null == p.getBirthday() ? 0 : DateConversion.getAge(p.getBirthday()));
-        p.setIdcard2(null);
-        p.setCertificate(null);
-        if (StringUtils.isNotEmpty(p.getPatientSex())) {
-            p.setPatientSex(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", String.valueOf(p.getPatientSex())));
-        }
-        return p;
+    public PatientDTO getPatientEncipher(String mpiId) {
+        com.ngari.patient.dto.PatientDTO patient = patientService.get(mpiId);
+        return getPatientEncipher(patient);
     }
 
-    public PatientDTO getPatientDTO(String mpiid) {
-        com.ngari.patient.dto.PatientDTO patient = patientService.get(mpiid);
+
+    /**
+     * 获取患者信息
+     *
+     * @param mpiId
+     * @return
+     */
+    public PatientDTO getPatientDTO(String mpiId) {
+        com.ngari.patient.dto.PatientDTO patient = patientService.get(mpiId);
         PatientDTO p = new PatientDTO();
         BeanUtils.copyProperties(patient, p);
         return p;
+    }
+
+    /**
+     * 获取脱敏患者对象
+     *
+     * @param mpiIds
+     * @return
+     */
+    public Map<String, PatientDTO> findPatientMap(List<String> mpiIds) {
+        List<com.ngari.patient.dto.PatientDTO> patientList = patientService.findByMpiIdIn(mpiIds);
+        logger.info("PatientClient findPatientMap patientList:{}", JSON.toJSONString(patientList));
+        if (CollectionUtils.isEmpty(patientList)) {
+            return null;
+        }
+        List<PatientDTO> patientDTOList = new LinkedList<>();
+        patientList.forEach(a -> patientDTOList.add(getPatientEncipher(a)));
+        return patientDTOList.stream().collect(Collectors.toMap(PatientDTO::getMpiId, a -> a, (k1, k2) -> k1));
     }
 
 
@@ -80,7 +96,7 @@ public class PatientClient extends BaseClient {
                 return minkeOrganService.getRegisterNumberByUnitId(organDTO.getMinkeUnitID());
             }
         } catch (Exception e) {
-            logger.error("getMinkeOrganCodeByOrganId error", e);
+            logger.error("PatientClient getMinkeOrganCodeByOrganId error", e);
         }
         return null;
     }
@@ -120,6 +136,27 @@ public class PatientClient extends BaseClient {
             logger.error("PatientClient queryPatient error", e);
             return null;
         }
+    }
+
+    /**
+     * 患者信息脱敏
+     *
+     * @param patient
+     * @return
+     */
+    private PatientDTO getPatientEncipher(com.ngari.patient.dto.PatientDTO patient) {
+        PatientDTO p = new PatientDTO();
+        BeanUtils.copyProperties(patient, p);
+        if (StringUtils.isNotEmpty(p.getMobile())) {
+            p.setMobile(LocalStringUtil.coverMobile(p.getMobile()));
+        }
+        if (StringUtils.isNotEmpty(p.getIdcard())) {
+            p.setIdcard(ChinaIDNumberUtil.hideIdCard(p.getIdcard()));
+        }
+        p.setAge(null == p.getBirthday() ? 0 : DateConversion.getAge(p.getBirthday()));
+        p.setIdcard2(null);
+        p.setCertificate(null);
+        return p;
     }
 
 }
