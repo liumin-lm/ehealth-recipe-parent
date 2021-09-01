@@ -128,7 +128,7 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
                         } catch (Exception e) {
                             logger.warn("revisitRecipeTrace get doctor error. doctorId={}", recipeCheck.getChecker(), e);
                         }
-                        innerAudit.setCheckSign(apothecaryDTO.getDoctorSignImg());
+                        innerAudit.setCheckSign(apothecaryDTO.getCheckerSignImg());
                         revisitRecipeTraceVo.setAuditCheck(innerAudit);
                         obtainCheckNotPassDetail(revisitRecipeTraceVo, recipe);
                     }
@@ -155,10 +155,8 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
                             revisitRecipeTraceVo.setOrder(order);
                             //物流 药企发药
                             RevisitRecipeTraceVo.Logistics logistics = new RevisitRecipeTraceVo.Logistics();
-                            if (logistics != null) {
-                                BeanUtils.copy(recipeOrder, logistics);
-                                revisitRecipeTraceVo.setLogistics(logistics);
-                            }
+                            BeanUtils.copy(recipeOrder, logistics);
+                            revisitRecipeTraceVo.setLogistics(logistics);
                         }
                     }
                     //退费
