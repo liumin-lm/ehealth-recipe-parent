@@ -1567,7 +1567,7 @@ public class RecipeOrderService extends RecipeBaseService {
             if (CollectionUtils.isNotEmpty(recipeList) && order.getEffective() == 1) {
                 for (Recipe recipeItem : recipeList) {
                     //到院取药  && recipeItem.getStatus() == 2
-                    if (recipeItem.getGiveMode() == 2 && recipeItem.getPayFlag() == 1) {
+                    if (recipeItem.getGiveMode() == 2 && recipeItem.getPayFlag() == 1 && !RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipeItem.getStatus())) {
                         Integer query = recipeHisService.getRecipeSinglePayStatusQuery(recipeItem.getRecipeId());
                         if (query != null && query == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY) {
                             recipeItem.setStatus(eh.cdr.constant.RecipeStatusConstant.HAVE_PAY);
