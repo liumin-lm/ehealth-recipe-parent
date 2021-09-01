@@ -42,7 +42,6 @@ import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.*;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeServiceSub;
-import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
@@ -281,30 +280,28 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
 
 
     @Override
-    public void pushRecipeExecute(Integer recipeId, Integer pushType) {
-        RecipeBusiThreadPool.execute(() -> {
-            logger.info("RecipeBusinessService pushRecipeExecute recipeId={}", recipeId);
-            RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);
-            try {
-                Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(recipePdfDTO.getRecipe().getClinicOrgan());
-                RecipeInfoDTO result = hisRecipeManager.pushTherapyRecipe(recipePdfDTO, pushType, pharmacyIdMap);
-                if (null == result) {
-                    return;
-                }
-                recipeManager.updatePushHisRecipe(result.getRecipe(), recipeId, pushType);
-                recipeManager.updatePushHisRecipeExt(result.getRecipeExtend(), recipeId, pushType);
-                recipeTherapyManager.updatePushHisRecipeTherapy(result.getRecipeTherapy(), recipePdfDTO.getRecipeTherapy().getId(), pushType);
-            } catch (Exception e) {
-                Recipe recipe = recipePdfDTO.getRecipe();
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
-                logger.error("RecipeBusinessService pushRecipeExecute error", e);
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方推送his失败");
+    public void pushRecipe(Integer recipeId, Integer pushType) {
+        logger.info("RecipeBusinessService pushRecipeExecute recipeId={}", recipeId);
+        RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);
+        try {
+            Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(recipePdfDTO.getRecipe().getClinicOrgan());
+            RecipeInfoDTO result = hisRecipeManager.pushTherapyRecipe(recipePdfDTO, pushType, pharmacyIdMap);
+            if (null == result) {
+                return;
             }
+            recipeManager.updatePushHisRecipe(result.getRecipe(), recipeId, pushType);
+            recipeManager.updatePushHisRecipeExt(result.getRecipeExtend(), recipeId, pushType);
+            recipeTherapyManager.updatePushHisRecipeTherapy(result.getRecipeTherapy(), recipePdfDTO.getRecipeTherapy().getId(), pushType);
+        } catch (Exception e) {
+            Recipe recipe = recipePdfDTO.getRecipe();
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
+            logger.error("RecipeBusinessService pushRecipeExecute error", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方推送his失败");
+        }
+        if (CommonConstant.THERAPY_RECIPE_PUSH_TYPE.equals(pushType)) {
             emrRecipeManager.updateDisease(recipeId);
-            if (CommonConstant.THERAPY_RECIPE_PUSH_TYPE.equals(pushType)) {
-                RecipeServiceSub.sendRecipeTagToPatient(recipePdfDTO.getRecipe(), null, null, true);
-            }
-            logger.info("RecipeBusinessService pushRecipeExecute end recipeId:{}", recipeId);
-        });
+            RecipeServiceSub.sendRecipeTagToPatient(recipePdfDTO.getRecipe(), null, null, true);
+        }
+        logger.info("RecipeBusinessService pushRecipeExecute end recipeId:{}", recipeId);
     }
 }

@@ -66,10 +66,10 @@ public interface IOfflineRecipeBusinessService {
     OffLineRecipeDetailVO getOffLineRecipeDetails(String mpiId, Integer clinicOrgan, String recipeCode);
 
     /**
-     * 异步推送his诊疗处方信息
+     * 推送his诊疗处方信息
      *
      * @param recipeId 处方id
      * @param pushType 推送类型: 1：提交处方，2:撤销处方
      */
-    void pushRecipeExecute(Integer recipeId, Integer pushType);
+    void pushRecipe(Integer recipeId, Integer pushType);
 }
