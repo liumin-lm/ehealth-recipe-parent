@@ -1713,7 +1713,8 @@ public class RecipeOrderService extends RecipeBaseService {
                     || RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipeStatus))) {
                 //到院取药并且为线下支付的处方
                 if (orderBean.getActualPrice() < orderBean.getRecipeFee().doubleValue()) {
-                    orderBean.setActualPrice(null);
+                    //前端显示文本以实际支付金额为准
+                    orderBean.setActualPrice(-1.0);
                 } else {
                     orderBean.setActualPrice(orderBean.getActualPrice());
                 }
