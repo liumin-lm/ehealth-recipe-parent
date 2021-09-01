@@ -5,7 +5,6 @@ import com.ngari.recipe.entity.RecipeTherapy;
 import com.ngari.recipe.recipe.model.RecipeTherapyDTO;
 import com.ngari.recipe.vo.ItemListVO;
 import recipe.vo.doctor.RecipeInfoVO;
-import recipe.vo.doctor.RecipeTherapyVO;
 
 import java.util.List;
 
@@ -61,11 +60,12 @@ public interface ITherapyRecipeBusinessService {
     boolean abolishTherapyRecipeForRevisitClose(Integer bussSource, Integer clinicId);
 
     /**
-     * 更新诊疗处方
-     * @param recipeTherapyVO 诊疗处方
-     * @return void
+     * 推送类型 更新诊疗信息
+     *
+     * @param recipeTherapy 诊疗处方
+     * @param pushType      推送类型: 1：提交处方，2:撤销处方
      */
-    void updateTherapyRecipe(RecipeTherapyVO recipeTherapyVO);
+    void updateTherapyRecipe(RecipeTherapy recipeTherapy, Integer pushType);
 
     /**
      * 搜索诊疗项目

@@ -280,18 +280,15 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
 
 
     @Override
-    public void pushRecipe(Integer recipeId, Integer pushType) {
+    public RecipeInfoDTO pushRecipe(Integer recipeId, Integer pushType) {
         logger.info("RecipeBusinessService pushRecipeExecute recipeId={}", recipeId);
         RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);
+        RecipeInfoDTO result;
         try {
             Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(recipePdfDTO.getRecipe().getClinicOrgan());
-            RecipeInfoDTO result = hisRecipeManager.pushTherapyRecipe(recipePdfDTO, pushType, pharmacyIdMap);
-            if (null == result) {
-                return;
-            }
+            result = hisRecipeManager.pushTherapyRecipe(recipePdfDTO, pushType, pharmacyIdMap);
             recipeManager.updatePushHisRecipe(result.getRecipe(), recipeId, pushType);
             recipeManager.updatePushHisRecipeExt(result.getRecipeExtend(), recipeId, pushType);
-            recipeTherapyManager.updatePushHisRecipeTherapy(result.getRecipeTherapy(), recipePdfDTO.getRecipeTherapy().getId(), pushType);
         } catch (Exception e) {
             Recipe recipe = recipePdfDTO.getRecipe();
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
@@ -303,5 +300,6 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             RecipeServiceSub.sendRecipeTagToPatient(recipePdfDTO.getRecipe(), null, null, true);
         }
         logger.info("RecipeBusinessService pushRecipeExecute end recipeId:{}", recipeId);
+        return result;
     }
 }

@@ -19,7 +19,6 @@ import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.manager.*;
 import recipe.vo.doctor.RecipeInfoVO;
-import recipe.vo.doctor.RecipeTherapyVO;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -153,11 +152,8 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     }
 
     @Override
-    public void updateTherapyRecipe(RecipeTherapyVO recipeTherapyVO) {
-        RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyByRecipeId(recipeTherapyVO.getRecipeId());
-        recipeTherapy.setTherapyCancellationType(recipeTherapyVO.getTherapyCancellationType());
-        recipeTherapy.setTherapyCancellation(recipeTherapyVO.getTherapyCancellation());
-        recipeTherapyManager.updateRecipeTherapy(recipeTherapy);
+    public void updateTherapyRecipe(RecipeTherapy recipeTherapy, Integer pushType) {
+        recipeTherapyManager.updateTherapyRecipe(recipeTherapy, pushType);
     }
 
     @Override
