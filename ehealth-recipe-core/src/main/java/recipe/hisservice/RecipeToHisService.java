@@ -141,7 +141,7 @@ public class RecipeToHisService {
                                             .add(recipeOrder.getOtherFee())
                                             .add(recipeFee);
                                     map.put("totalFee", totalMoney);
-                                    map.put("actualPrice", totalMoney);
+                                    map.put("actualPrice", totalMoney.doubleValue());
                                     recipeOrderDAO.updateByOrdeCode(recipe.getOrderCode(), map);
                                 }
                             }
