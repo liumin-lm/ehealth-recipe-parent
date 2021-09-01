@@ -71,6 +71,9 @@ public class DrugListOPService implements IDrugListService {
     public DrugListBean getDrugListBeanByDrugId(Integer drugId) {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         DrugList drugList = drugListDAO.getById(drugId);
+        if(drugList==null){
+            return null;
+        }
         DrugList result = new DrugList();
         result.setDrugId(drugList.getDrugId());
         result.setDrugName(drugList.getDrugName());
