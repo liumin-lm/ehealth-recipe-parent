@@ -99,7 +99,6 @@ public class RevisitRecipeTraceVo implements Serializable {
 
         private String recipeId;
 
-        //TODO
         @ItemProperty(alias = "来源标志")
         @Dictionary(id = "eh.cdr.dictionary.FromFlag")
         private Integer fromflag;
@@ -144,9 +143,11 @@ public class RevisitRecipeTraceVo implements Serializable {
         @ItemProperty(alias = "审核日期")
         private Date checkDate;
 
-        @Dictionary(id = "eh.cdr.dictionary.RecipeCheckStatus")
+        //        @Dictionary(id = "eh.cdr.dictionary.RecipeCheckStatus")
         @ItemProperty(alias = "审核结果")
         private Integer checkStatus;
+
+        private String checkStatusText;
 
         @ItemProperty(alias = "审核人姓名")
         private String checkerName;
@@ -159,6 +160,19 @@ public class RevisitRecipeTraceVo implements Serializable {
 
         @ItemProperty(alias = "审核备注信息")
         private String memo;
+
+        public String getCheckStatusText() {
+            if (0 == checkStatus) {
+                this.checkStatusText = "审核不通过";
+            } else if (1 == checkStatus) {
+                this.checkStatusText = "审核通过";
+            }
+            return this.checkStatusText;
+        }
+
+        public void setCheckStatusText(String checkStatusText) {
+            this.checkStatusText = checkStatusText;
+        }
     }
 
     @Data
