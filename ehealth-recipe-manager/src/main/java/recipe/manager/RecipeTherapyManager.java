@@ -128,27 +128,30 @@ public class RecipeTherapyManager extends BaseManager {
     }
 
     /**
-     * 更新推送his返回信息处方数据
+     * 推送类型 更新诊疗信息
      *
-     * @param recipeTherapyResult 诊疗处方结果
-     * @param id                  诊疗处方id
-     * @param pushType            推送类型: 1：提交处方，2:撤销处方
+     * @param recipeTherapy 诊疗处方
+     * @param pushType      推送类型: 1：提交处方，2:撤销处方
      */
-    public void updatePushHisRecipeTherapy(RecipeTherapy recipeTherapyResult, Integer id, Integer pushType) {
-        if (null != recipeTherapyResult) {
-            RecipeTherapy updateRecipeTherapy = new RecipeTherapy();
-            updateRecipeTherapy.setId(id);
-            updateRecipeTherapy.setTherapyTime(recipeTherapyResult.getTherapyTime());
-            updateRecipeTherapy.setTherapyExecuteDepart(recipeTherapyResult.getTherapyExecuteDepart());
-            updateRecipeTherapy.setTherapyNotice(recipeTherapyResult.getTherapyNotice());
-            if (CommonConstant.THERAPY_RECIPE_PUSH_TYPE.equals(pushType)) {
-                updateRecipeTherapy.setStatus(TherapyStatusEnum.READYPAY.getType());
-            } else {
-                updateRecipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
-            }
-            logger.info("RecipeTherapyManager updatePushHisRecipe updateRecipeTherapy:{}.", JSON.toJSONString(updateRecipeTherapy));
-            recipeTherapyDAO.updateNonNullFieldByPrimaryKey(updateRecipeTherapy);
+    public void updatePushTherapyRecipe(RecipeTherapy recipeTherapy, Integer pushType) {
+        if (null == recipeTherapy) {
+            return;
         }
+        RecipeTherapy updateRecipeTherapy = new RecipeTherapy();
+        updateRecipeTherapy.setId(recipeTherapy.getId());
+        if (CommonConstant.THERAPY_RECIPE_PUSH_TYPE.equals(pushType)) {
+            updateRecipeTherapy.setTherapyTime(recipeTherapy.getTherapyTime());
+            updateRecipeTherapy.setTherapyExecuteDepart(recipeTherapy.getTherapyExecuteDepart());
+            updateRecipeTherapy.setTherapyNotice(recipeTherapy.getTherapyNotice());
+            updateRecipeTherapy.setStatus(TherapyStatusEnum.READYPAY.getType());
+        } else {
+            RecipeTherapy therapy = getRecipeTherapyByRecipeId(recipeTherapy.getRecipeId());
+            updateRecipeTherapy.setId(therapy.getId());
+            updateRecipeTherapy.setTherapyCancellationType(recipeTherapy.getTherapyCancellationType());
+            updateRecipeTherapy.setTherapyCancellation(recipeTherapy.getTherapyCancellation());
+            updateRecipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
+        }
+        updateRecipeTherapy(updateRecipeTherapy);
     }
 
     /**
@@ -157,7 +160,7 @@ public class RecipeTherapyManager extends BaseManager {
      * @param recipeIds 处方ids
      * @return 诊疗信息
      */
-    public List<RecipeTherapy> findTherapyByRecipeIds(List<Integer> recipeIds){
+    public List<RecipeTherapy> findTherapyByRecipeIds(List<Integer> recipeIds) {
         logger.info("RecipeTherapyManager findTherapyByRecipeIds recipeIds:{}.", JSON.toJSONString(recipeIds));
         List<RecipeTherapy> result = recipeTherapyDAO.findTherapyByRecipeIds(recipeIds);
         logger.info("RecipeTherapyManager findTherapyByRecipeIds result:{}.", JSON.toJSONString(result));

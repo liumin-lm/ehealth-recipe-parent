@@ -1,14 +1,18 @@
 package recipe.presettle.condition;
 
+import com.alibaba.fastjson.JSONArray;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.HealthCardService;
 import com.ngari.patient.service.OrganService;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeBussConstant;
 import recipe.presettle.RecipeOrderTypeEnum;
 import recipe.presettle.model.OrderTypeCreateConditionRequest;
+import recipe.purchase.PayModeOnline;
 
 /**
  * created by shiyuping on 2020/11/30
@@ -18,12 +22,17 @@ import recipe.presettle.model.OrderTypeCreateConditionRequest;
  */
 @Component
 public class PatientChooseMedicalOrCashWayHandler implements IOrderTypeConditionHandler {
+    /**
+     * logger
+     */
+    private static final Logger LOGGER = LoggerFactory.getLogger(PatientChooseMedicalOrCashWayHandler.class);
 
     @Override
     public Integer getOrderType(OrderTypeCreateConditionRequest request) {
+        LOGGER.info("PatientChooseMedicalOrCashWayHandler.getOrderType req={}", JSONArray.toJSONString(request));
         if (request.getRecipeOrder() != null) {
             Integer orderType = request.getRecipeOrder().getOrderType();
-            if (orderType == null){
+            if (orderType == null) {
                 return RecipeOrderTypeEnum.COMMON_SELF.getType();
             }
             //目前除了医院结算药企的配置之外没有自费预结算
@@ -38,14 +47,16 @@ public class PatientChooseMedicalOrCashWayHandler implements IOrderTypeCondition
                 //杭州市互联网医院监管中心 管理单元eh3301
                 OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
                 OrganDTO organDTO = organService.getByManageUnit("eh3301");
+                LOGGER.info("PatientChooseMedicalOrCashWayHandler.getOrderType organDTO={}", JSONArray.toJSONString(organDTO));
                 String bxh = null;
                 if (organDTO != null) {
                     bxh = healthCardService.getMedicareCardId(request.getRecipeOrder().getMpiId(), organDTO.getOrganId());
                 }
-                if (StringUtils.isNotEmpty(bxh)){
+                LOGGER.info("PatientChooseMedicalOrCashWayHandler.getOrderType bxh={}", bxh);
+                if (StringUtils.isNotEmpty(bxh)) {
                     //杭州市医保
                     return RecipeOrderTypeEnum.HANGZHOU_MEDICAL.getType();
-                }else {
+                } else {
                     //普通自费
                     return RecipeOrderTypeEnum.COMMON_SELF.getType();
                 }

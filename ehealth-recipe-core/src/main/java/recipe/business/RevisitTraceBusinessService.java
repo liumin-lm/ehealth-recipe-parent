@@ -7,6 +7,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.dto.RecipeCancel;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.constant.RecipeStatusConstant;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.net.broadcast.MQHelper;
 import ctd.util.BeanUtils;
@@ -117,7 +118,7 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
                     //审方药师审核
                     RevisitRecipeTraceVo.AuditCheck innerAudit = new RevisitRecipeTraceVo.AuditCheck();
                     RecipeCheckBean recipeCheck = recipeAuditClient.getByRecipeId(recipe.getRecipeId());
-                    if (recipeCheck != null) {
+                    if (RecipeStatusConstant.READY_CHECK_YS != recipe.getStatus() && recipeCheck != null) {
                         BeanUtils.copy(recipeCheck, innerAudit);
                         DoctorDTO doctor = new DoctorDTO();
                         try {
@@ -128,7 +129,7 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
                         } catch (Exception e) {
                             logger.warn("revisitRecipeTrace get doctor error. doctorId={}", recipeCheck.getChecker(), e);
                         }
-                        innerAudit.setCheckSign(apothecaryDTO.getDoctorSignImg());
+                        innerAudit.setCheckSign(apothecaryDTO.getCheckerSignImg());
                         revisitRecipeTraceVo.setAuditCheck(innerAudit);
                         obtainCheckNotPassDetail(revisitRecipeTraceVo, recipe);
                     }
