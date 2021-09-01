@@ -152,8 +152,8 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     }
 
     @Override
-    public void updateTherapyRecipe(RecipeTherapy recipeTherapy, Integer pushType) {
-        recipeTherapyManager.updateTherapyRecipe(recipeTherapy, pushType);
+    public void updatePushTherapyRecipe(RecipeTherapy recipeTherapy, Integer pushType) {
+        recipeTherapyManager.updatePushTherapyRecipe(recipeTherapy, pushType);
     }
 
     @Override

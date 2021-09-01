@@ -133,7 +133,7 @@ public class RecipeTherapyManager extends BaseManager {
      * @param recipeTherapy 诊疗处方
      * @param pushType      推送类型: 1：提交处方，2:撤销处方
      */
-    public void updateTherapyRecipe(RecipeTherapy recipeTherapy, Integer pushType) {
+    public void updatePushTherapyRecipe(RecipeTherapy recipeTherapy, Integer pushType) {
         if (null == recipeTherapy) {
             return;
         }
