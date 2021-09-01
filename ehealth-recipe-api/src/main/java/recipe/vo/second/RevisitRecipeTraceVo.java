@@ -256,6 +256,9 @@ public class RevisitRecipeTraceVo implements Serializable {
 
         @ItemProperty(alias = "发货时间")
         private Date sendTime;
+
+        @ItemProperty(alias = "订单编号")
+        private String orderCode;
     }
 
     /**
