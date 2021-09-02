@@ -118,13 +118,13 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
                     //医生开方
                     RevisitRecipeTraceVo revisitRecipeTraceVo = new RevisitRecipeTraceVo();
                     RevisitRecipeTraceVo.Recipe innerRecipe = new RevisitRecipeTraceVo.Recipe();
-                    recipe.setFromflag(recipe.getRecipeSourceType());
                     BeanUtils.copy(recipe, innerRecipe);
                     if (recipeExtendMap != null && recipeExtendMap.get(recipe.getRecipeId()) != null) {
                         BeanUtils.copy(recipeExtendMap.get(recipe.getRecipeId()), innerRecipe);
                     }
                     ApothecaryDTO apothecaryDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getRecipeId());
                     innerRecipe.setDoctorSign(apothecaryDTO.getDoctorSignImg());
+                    innerRecipe.setFromflag(recipe.getRecipeSourceType());
                     revisitRecipeTraceVo.setRecipe(innerRecipe);
                     //Rp
                     obtainRevisitTraceRecipeDetailInfo(revisitRecipeTraceVo, recipeDetailsMap, recipe, recipeDetails);
