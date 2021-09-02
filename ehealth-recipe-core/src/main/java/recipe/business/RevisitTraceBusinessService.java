@@ -118,6 +118,7 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
                     //医生开方
                     RevisitRecipeTraceVo revisitRecipeTraceVo = new RevisitRecipeTraceVo();
                     RevisitRecipeTraceVo.Recipe innerRecipe = new RevisitRecipeTraceVo.Recipe();
+                    recipe.setFromflag(recipe.getRecipeSourceType());
                     BeanUtils.copy(recipe, innerRecipe);
                     if (recipeExtendMap != null && recipeExtendMap.get(recipe.getRecipeId()) != null) {
                         BeanUtils.copy(recipeExtendMap.get(recipe.getRecipeId()), innerRecipe);
