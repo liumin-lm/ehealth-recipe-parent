@@ -179,7 +179,7 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
                                     } catch (ControllerException e) {
                                         e.printStackTrace();
                                     }
-
+                                    revisitRecipeTraceVo.setRecipeRefund(innerRecipeRefund);
                                 }
                             }
                         }
