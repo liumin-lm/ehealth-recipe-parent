@@ -53,5 +53,12 @@ public class RecipeAuditClient extends BaseClient {
         return mapList;
     }
 
+    //app.bindService('eh.auditMedicinesService', 'getAuditmedicinesResult');
+    public List<Map<String, Object>> getAuditmedicinesResult(Integer recipeId) {
+        logger.info("RecipeAuditClient getCheckNotPassDetail param recipeId:{}", recipeId);
+        List<Map<String, Object>> mapList = recipeAuditService.getCheckNotPassDetail(recipeId);
+        logger.info("RecipeAuditClient getCheckNotPassDetail res mapList:{}", JSONUtils.toString(mapList));
+        return mapList;
+    }
 
 }

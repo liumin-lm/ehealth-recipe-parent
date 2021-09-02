@@ -9,9 +9,13 @@ import com.ngari.recipe.dto.RecipeCancel;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeStatusConstant;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.Dictionary;
+import ctd.dictionary.DictionaryController;
 import ctd.net.broadcast.MQHelper;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
+import easypay.entity.po.AccountResult;
 import eh.recipeaudit.model.RecipeCheckBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -20,9 +24,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.client.DoctorClient;
+import recipe.client.PayClient;
 import recipe.client.RecipeAuditClient;
 import recipe.core.api.IRevisitTraceBusinessService;
 import recipe.dao.*;
+import recipe.easypay.IEasyPayService;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.manager.SignManager;
@@ -81,6 +87,12 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
     @Autowired
     private RecipeAuditClient recipeAuditClient;
 
+    @Autowired
+    private PayClient payClient;
+
+    @Autowired
+    IEasyPayService iEasyPayService;
+
     @Override
     public List<RevisitRecipeTraceVo> revisitRecipeTrace(Integer recipeId, Integer clinicId) {
         logger.info("RecipeBusinessService revisitRecipeTrace recipeId={},clinicID={}", recipeId, clinicId);
@@ -134,42 +146,45 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
                         obtainCheckNotPassDetail(revisitRecipeTraceVo, recipe);
                     }
 
-                    //发药药师审核
-                    RevisitRecipeTraceVo.GiveUser giveUser = new RevisitRecipeTraceVo.GiveUser();
-                    ApothecaryDTO apothecaryDTO2 = doctorClient.getGiveUser(recipe);
-                    if (apothecaryDTO2 != null) {
-                        BeanUtils.copy(apothecaryDTO2, giveUser);
-                        revisitRecipeTraceVo.setGiveUser(giveUser);
-                    }
                     if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
                         RecipeOrder recipeOrder = ordersMap.get(recipe.getOrderCode());
                         if (recipeOrder != null) {
                             //患者购药
-                            RevisitRecipeTraceVo.Order order = new RevisitRecipeTraceVo.Order();
-                            BeanUtils.copy(recipeOrder, order);
-                            String address = orderManager.getCompleteAddress(recipeOrder);
-                            order.setAddress(address);
-                            RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(recipe.getOrderCode());
-                            if (recipeOrderBill != null) {
-                                order.setBillPictureUrl(recipeOrderBill.getBillPictureUrl());
-                            }
-                            revisitRecipeTraceVo.setOrder(order);
+                            obtainOrder(revisitRecipeTraceVo, recipeOrder);
                             //物流 药企发药
                             RevisitRecipeTraceVo.Logistics logistics = new RevisitRecipeTraceVo.Logistics();
                             BeanUtils.copy(recipeOrder, logistics);
                             revisitRecipeTraceVo.setLogistics(logistics);
+
+                            //发药药师审核
+                            RevisitRecipeTraceVo.GiveUser giveUser = new RevisitRecipeTraceVo.GiveUser();
+                            ApothecaryDTO apothecaryDTO2 = doctorClient.getGiveUser(recipe);
+                            if (apothecaryDTO2 != null) {
+                                BeanUtils.copy(apothecaryDTO2, giveUser);
+                                giveUser.setDispensingTime(recipeOrder.getDispensingTime());
+                                revisitRecipeTraceVo.setGiveUser(giveUser);
+                            }
+                            //退费
+                            List<RecipeRefund> recipeRefunds = recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId());
+                            if (CollectionUtils.isNotEmpty(recipeRefunds)) {
+                                RecipeRefund recipeRefund = new RecipeRefund();
+                                recipeRefund = recipeRefunds.get(0);
+                                if (recipeRefund != null) {
+                                    RevisitRecipeTraceVo.RecipeRefund innerRecipeRefund = new RevisitRecipeTraceVo.RecipeRefund();
+                                    BeanUtils.copy(recipeRefund, innerRecipeRefund);
+                                    Dictionary payFlagDic = null;
+                                    try {
+                                        payFlagDic = DictionaryController.instance().get("eh.bus.dictionary.PayFlag");
+                                        innerRecipeRefund.setStatus(payFlagDic.getText(recipeOrder.getPayFlag()));
+                                    } catch (ControllerException e) {
+                                        e.printStackTrace();
+                                    }
+
+                                }
+                            }
                         }
                     }
-                    //退费
-                    List<RecipeRefund> recipeRefunds = recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId());
-                    if (CollectionUtils.isNotEmpty(recipeRefunds)) {
-                        RecipeRefund recipeRefund = new RecipeRefund();
-                        recipeRefund = recipeRefunds.get(0);
-                        if (recipeRefund != null) {
-                            RevisitRecipeTraceVo.RecipeRefund innerRecipeRefund = new RevisitRecipeTraceVo.RecipeRefund();
-                            BeanUtils.copy(recipeRefund, innerRecipeRefund);
-                        }
-                    }
+
                     //医生撤销
                     RecipeCancel recipeCancel = recipeManager.getCancelReasonForPatient(recipe.getRecipeId());
                     if (recipeCancel != null) {
@@ -178,6 +193,8 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
                         revisitRecipeTraceVo.setRecipeCancel(innerRecipeCancel);
                     }
                     //智能审方
+
+
                     //app.bindService('eh.auditMedicinesService', 'getAuditmedicinesResult');
 
                     revisitRecipeTraceVos.add(revisitRecipeTraceVo);
@@ -185,6 +202,41 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
         );
         logger.info("RecipeBusinessService revisitRecipeTraceVos res:{}", JSONUtils.toString(revisitRecipeTraceVos));
         return revisitRecipeTraceVos;
+    }
+
+    /**
+     * 获取患者够药模块数据
+     *
+     * @param revisitRecipeTraceVo
+     * @param recipeOrder
+     */
+    private void obtainOrder(RevisitRecipeTraceVo revisitRecipeTraceVo, RecipeOrder recipeOrder) {
+        RevisitRecipeTraceVo.Order order = new RevisitRecipeTraceVo.Order();
+        BeanUtils.copy(recipeOrder, order);
+        String address = orderManager.getCompleteAddress(recipeOrder);
+        order.setAddress(address);
+        RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(recipeOrder.getOrderCode());
+        if (recipeOrderBill != null) {
+            order.setBillPictureUrl(recipeOrderBill.getBillPictureUrl());
+        }
+        //55074
+        List<AccountResult> accountResults = iEasyPayService.queryPaymentDetailByApplyNo(recipeOrder.getOutTradeNo());
+        if (CollectionUtils.isNotEmpty(accountResults)) {
+            AccountResult accountResult = accountResults.get(0);
+            if (accountResult != null) {
+                order.setPreSettleTotalAmount(accountResult.getAmount());
+                order.setFundAmount(accountResult.getMedicalAmount());
+                try {
+                    order.setCashAmount((Double.valueOf(accountResult.getAmount()) - Double.valueOf(accountResult.getMedicalAmount())) + "");
+                } catch (NumberFormatException e) {
+                    logger.info("obtainOrder e", e);
+                    e.printStackTrace();
+                }
+            }
+        }
+        revisitRecipeTraceVo.setOrder(order);
+        logger.info("obtainOrder revisitRecipeTraceVo:{}", JSONUtils.toString(revisitRecipeTraceVo));
+
     }
 
     /**
