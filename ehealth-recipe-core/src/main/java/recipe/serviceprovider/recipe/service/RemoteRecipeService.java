@@ -2442,6 +2442,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             return false;
         }
         RevisitBean revisitBean = revisitClient.getRevisitByClinicId(clinicId);
+        LOGGER.info("getOfflineEffectiveRecipeFlag revisitBean:{}.", JSONUtils.toString(revisitBean));
         PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(revisitBean.getMpiid());
         try {
             List<QueryHisRecipResTO> totalHisRecipe = new ArrayList<>();
@@ -2452,7 +2453,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
             totalHisRecipe.addAll(noPayRecipe.getData());
             totalHisRecipe.addAll(havePayRecipe.getData());
+            LOGGER.info("getOfflineEffectiveRecipeFlag totalHisRecipe:{}.", JSONUtils.toString(totalHisRecipe));
             Set<String> registers = totalHisRecipe.stream().filter(hisRecipe -> StringUtils.isNotEmpty(hisRecipe.getRegisteredId())).map(QueryHisRecipResTO::getRegisteredId).collect(Collectors.toSet());
+            LOGGER.info("getOfflineEffectiveRecipeFlag registers:{}.", JSONUtils.toString(registers));
             if (CollectionUtils.isNotEmpty(registers) && registers.contains(revisitExDTO.getRegisterNo())) {
                 return true;
             }
