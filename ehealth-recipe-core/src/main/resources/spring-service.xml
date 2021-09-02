@@ -44,6 +44,8 @@
     <!--物流基础服务-->
     <reference id="infra.logisticsOrderService" interface="com.ngari.infra.logistics.service.ILogisticsOrderService"/>
     <!--支付平台记账-->
-    <reference id="easypay.payService" interface="recipe.easypay.IEasyPayService" />
+    <reference id="easypay.payService" interface="recipe.easypay.IEasyPayService"/>
     <reference id="eh.scratchableService" interface="com.ngari.base.scratchable.service.IScratchableService"/>
+
+
 </s:beans>

@@ -194,6 +194,11 @@ public class RevisitRecipeTraceVo implements Serializable {
          */
         private String giveUserSignImg;
 
+        /**
+         * 已发药时间
+         */
+        private Date dispensingTime;
+
     }
 
     @Data
@@ -243,13 +248,13 @@ public class RevisitRecipeTraceVo implements Serializable {
         private String outTradeNo;
 
         @ItemProperty(alias = "处方预结算返回支付总金额")
-        private Double preSettleTotalAmount;
+        private String preSettleTotalAmount;
 
         @ItemProperty(alias = "处方预结算返回医保支付金额")
-        private Double fundAmount;
+        private String fundAmount;
 
         @ItemProperty(alias = "处方预结算返回自费金额")
-        private Double cashAmount;
+        private String cashAmount;
 
 
     }
@@ -287,6 +292,14 @@ public class RevisitRecipeTraceVo implements Serializable {
 
         @ItemProperty(alias = "订单金额")
         private Double price;
+
+        @ItemProperty(alias = "流水号")
+        private String tradeNo;
+
+        /**
+         * 退费状态（取payflag展示）
+         */
+        private String status;
     }
 
     /**
