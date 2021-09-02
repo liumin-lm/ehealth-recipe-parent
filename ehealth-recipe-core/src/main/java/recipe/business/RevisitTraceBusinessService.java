@@ -160,9 +160,11 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
                             RevisitRecipeTraceVo.GiveUser giveUser = new RevisitRecipeTraceVo.GiveUser();
                             ApothecaryDTO apothecaryDTO2 = doctorClient.getGiveUser(recipe);
                             if (apothecaryDTO2 != null) {
-                                BeanUtils.copy(apothecaryDTO2, giveUser);
-                                giveUser.setDispensingTime(recipeOrder.getDispensingTime());
-                                revisitRecipeTraceVo.setGiveUser(giveUser);
+                                if (null != recipeOrder.getDispensingTime()) {
+                                    BeanUtils.copy(apothecaryDTO2, giveUser);
+                                    giveUser.setDispensingTime(recipeOrder.getDispensingTime());
+                                    revisitRecipeTraceVo.setGiveUser(giveUser);
+                                }
                             }
                             //退费
                             List<RecipeRefund> recipeRefunds = recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId());
