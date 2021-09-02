@@ -6,13 +6,17 @@ import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.EmrDetailValueDTO;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.AppointDepartService;
+import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.platform.recipe.mode.RecipeDetailBean;
 import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.recipe.dto.*;
+import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeTherapy;
@@ -22,6 +26,7 @@ import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
@@ -31,6 +36,7 @@ import recipe.util.DateConversion;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * his处方 交互处理类
@@ -39,6 +45,12 @@ import java.util.List;
  */
 @Service
 public class OfflineRecipeClient extends BaseClient {
+
+    @Autowired
+    private EmploymentService employmentService;
+    @Autowired
+    private AppointDepartService appointDepartService;
+
     /**
      * @param organId   机构id
      * @param doctorDTO 医生信息
@@ -63,16 +75,18 @@ public class OfflineRecipeClient extends BaseClient {
     /**
      * 推送处方 ，诊疗处方出参处理
      *
-     * @param pushType     推送类型: 1：提交处方，2:撤销处方
-     * @param recipePdfDTO 处方明细
-     * @param emrDetail    电子病历
+     * @param pushType      推送类型: 1：提交处方，2:撤销处方
+     * @param recipePdfDTO  处方明细
+     * @param emrDetail     电子病历
+     * @param pharmacyIdMap 药房
      * @return
      * @throws Exception
      */
-    public RecipeInfoDTO pushTherapyRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail) throws Exception {
-        com.ngari.platform.recipe.mode.RecipeDTO hisResponseData = pushRecipe(pushType, recipePdfDTO, emrDetail);
+    public RecipeInfoDTO pushTherapyRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
+        com.ngari.platform.recipe.mode.RecipeDTO hisResponseData = pushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
         RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
         recipeInfoDTO.setRecipeTherapy(ObjectCopyUtils.convert(hisResponseData.getRecipeTherapy(), RecipeTherapy.class));
+        recipeInfoDTO.getRecipeTherapy().setId(recipePdfDTO.getRecipeTherapy().getId());
         recipeInfoDTO.setRecipe(ObjectCopyUtils.convert(hisResponseData.getRecipeBean(), Recipe.class));
         recipeInfoDTO.setRecipeExtend(ObjectCopyUtils.convert(hisResponseData.getRecipeExtendBean(), RecipeExtend.class));
         return recipeInfoDTO;
@@ -259,26 +273,42 @@ public class OfflineRecipeClient extends BaseClient {
     /**
      * 推送处方
      *
-     * @param pushType     推送类型: 1：提交处方，2:撤销处方
-     * @param recipePdfDTO 处方明细
-     * @param emrDetail    电子病历
+     * @param pushType      推送类型: 1：提交处方，2:撤销处方
+     * @param recipePdfDTO  处方明细
+     * @param emrDetail     电子病历
+     * @param pharmacyIdMap 药房
      * @return
      * @throws Exception
      */
-    private com.ngari.platform.recipe.mode.RecipeDTO pushRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail) throws Exception {
+    private com.ngari.platform.recipe.mode.RecipeDTO pushRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
         com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = new com.ngari.platform.recipe.mode.RecipeDTO();
         recipeDTO.setPushType(pushType);
         recipeDTO.setOrganId(recipePdfDTO.getRecipe().getClinicOrgan());
+        recipeDTO.setRecipeExtendBean(ObjectCopyUtils.convert(recipePdfDTO.getRecipeExtend(), RecipeExtendBean.class));
+        recipeDTO.setPatientDTO(ObjectCopyUtils.convert(recipePdfDTO.getPatientBean(), PatientDTO.class));
         com.ngari.platform.recipe.mode.EmrDetailDTO emrDetailDTO = new com.ngari.platform.recipe.mode.EmrDetailDTO();
         BeanUtils.copyProperties(emrDetail, emrDetailDTO);
         emrDetailDTO.setSymptomValue(ObjectCopyUtils.convert(emrDetail.getSymptomValue(), EmrDetailValueDTO.class));
         emrDetailDTO.setDiseaseValue(ObjectCopyUtils.convert(emrDetail.getDiseaseValue(), EmrDetailValueDTO.class));
         recipeDTO.setEmrDetailDTO(emrDetailDTO);
-        recipeDTO.setRecipeBean(ObjectCopyUtils.convert(recipePdfDTO.getRecipe(), RecipeBean.class));
-        recipeDTO.setRecipeDetails(ObjectCopyUtils.convert(recipePdfDTO.getRecipeDetails(), RecipeDetailBean.class));
-        recipeDTO.setRecipeExtendBean(ObjectCopyUtils.convert(recipePdfDTO.getRecipeExtend(), RecipeExtendBean.class));
-        recipeDTO.setPatientDTO(ObjectCopyUtils.convert(recipePdfDTO.getPatientBean(), PatientDTO.class));
-        logger.error("OfflineRecipeClient pushRecipe recipeDTO：{}", JSON.toJSONString(recipeDTO));
+        RecipeBean recipe = ObjectCopyUtils.convert(recipePdfDTO.getRecipe(), RecipeBean.class);
+        //医生工号
+        recipe.setDoctorCode(employmentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
+        AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
+        //科室代码
+        recipe.setDepartCode(appointDepart.getAppointDepartCode());
+        //科室名称
+        recipe.setDepartName(appointDepart.getAppointDepartName());
+        recipeDTO.setRecipeBean(recipe);
+        List<RecipeDetailBean> detailList = ObjectCopyUtils.convert(recipePdfDTO.getRecipeDetails(), RecipeDetailBean.class);
+        detailList.forEach(a -> {
+            PharmacyTcm pharmacyTcm = pharmacyIdMap.get(a.getPharmacyId());
+            if (null != pharmacyTcm) {
+                a.setPharmacyCode(pharmacyTcm.getPharmacyCode());
+            }
+        });
+        recipeDTO.setRecipeDetails(detailList);
+        logger.info("OfflineRecipeClient pushRecipe recipeDTO：{}", JSON.toJSONString(recipeDTO));
         try {
             HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse = recipeHisService.pushRecipe(recipeDTO);
             return getResponse(hisResponse);

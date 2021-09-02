@@ -29,6 +29,7 @@ import recipe.vo.doctor.RecipeTherapyVO;
 import recipe.vo.doctor.TherapyRecipePageVO;
 import recipe.vo.second.OrganVO;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -94,10 +95,12 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
      */
     @RpcService
     public Integer submitTherapyRecipe(RecipeInfoVO recipeInfoVO) {
+        logger.info("TherapyRecipeDoctorAtop submitTherapyRecipe recipeInfoVO = {}", JSON.toJSONString(recipeInfoVO));
         validateAtop(recipeInfoVO, recipeInfoVO.getRecipeDetails());
         Integer recipeId = saveTherapyRecipe(recipeInfoVO);
         //异步推送his
-        offlineToOnlineService.pushRecipeExecute(recipeId, CommonConstant.THERAPY_RECIPE_PUSH_TYPE);
+        RecipeInfoDTO recipeInfoDTO = offlineToOnlineService.pushRecipe(recipeId, CommonConstant.THERAPY_RECIPE_PUSH_TYPE);
+        therapyRecipeBusinessService.updatePushTherapyRecipe(recipeInfoDTO.getRecipeTherapy(), CommonConstant.THERAPY_RECIPE_PUSH_TYPE);
         return recipeId;
     }
 
@@ -133,6 +136,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         therapyRecipePageVO.setStart(start);
         therapyRecipePageVO.setTotal(total);
         if (ValidateUtil.validateObjects(total)) {
+            therapyRecipePageVO.setRecipeInfoList(Collections.emptyList());
             return therapyRecipePageVO;
         }
         List<RecipeInfoDTO> recipeInfoList;
@@ -217,10 +221,12 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
     @RpcService
     public boolean cancelTherapyRecipe(RecipeTherapyVO recipeTherapyVO) {
         logger.info("TherapyRecipeDoctorAtop cancelRecipe cancelRecipeReqVO:{}.", JSON.toJSONString(recipeTherapyVO));
-        validateAtop(recipeTherapyVO, recipeTherapyVO.getTherapyCancellationType(), recipeTherapyVO.getRecipeId(), recipeTherapyVO.getTherapyCancellation());
+        validateAtop(recipeTherapyVO, recipeTherapyVO.getTherapyCancellationType(), recipeTherapyVO.getRecipeId());
         try {
             //异步推送his
-            offlineToOnlineService.pushRecipeExecute(recipeTherapyVO.getRecipeId(), CommonConstant.THERAPY_RECIPE_CANCEL_TYPE);
+            offlineToOnlineService.pushRecipe(recipeTherapyVO.getRecipeId(), CommonConstant.THERAPY_RECIPE_CANCEL_TYPE);
+            RecipeTherapy recipeTherapy = ObjectCopyUtils.convert(recipeTherapyVO, RecipeTherapy.class);
+            therapyRecipeBusinessService.updatePushTherapyRecipe(recipeTherapy, CommonConstant.THERAPY_RECIPE_CANCEL_TYPE);
             return true;
         } catch (DAOException e1) {
             logger.warn("TherapyRecipeDoctorAtop cancelRecipe  error", e1);
@@ -247,6 +253,28 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("TherapyRecipeDoctorAtop abolishTherapyRecipe  error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 复诊关闭作废诊疗处方
+     *
+     * @param bussSource 业务类型
+     * @param clinicId 复诊ID
+     * @return 作废结果
+     */
+    @RpcService
+    public boolean abolishTherapyRecipeForRevisitClose(Integer bussSource, Integer clinicId){
+        logger.info("TherapyRecipeDoctorAtop abolishTherapyRecipeForRevisitClose bussSource:{},clinicId:{}.", bussSource, clinicId);
+        validateAtop(bussSource, clinicId);
+        try {
+            return therapyRecipeBusinessService.abolishTherapyRecipeForRevisitClose(bussSource, clinicId);
+        } catch (DAOException e1) {
+            logger.warn("TherapyRecipeDoctorAtop abolishTherapyRecipeForRevisitClose  error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("TherapyRecipeDoctorAtop abolishTherapyRecipeForRevisitClose  error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }

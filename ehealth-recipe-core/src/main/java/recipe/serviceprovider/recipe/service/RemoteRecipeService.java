@@ -97,12 +97,13 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.StandardEnterpriseCallService;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
-import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.enumerate.type.RecipeRefundConfigEnum;
 import recipe.givemode.business.GiveModeFactory;
-import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
-import recipe.manager.*;
+import recipe.manager.EmrRecipeManager;
+import recipe.manager.HisRecipeManager;
+import recipe.manager.OrderManager;
+import recipe.manager.RecipeManager;
 import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.operation.OperationPlatformRecipeService;
 import recipe.service.*;
@@ -170,17 +171,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private RevisitClient revisitClient;
     @Autowired
     private PatientClient patientClient;
-    @Autowired
-    private RecipeTherapyManager recipeTherapyManager;
-
 
     @RpcService
     @Override
     public void sendSuccess(RecipeBussReqTO request) {
+        LOGGER.info("RemoteRecipeService sendSuccess request ： {} ", JSON.toJSONString(request));
         if (null != request.getData()) {
             HisSendResTO response = (HisSendResTO) request.getData();
-//            service.sendSuccess(response);
-            //异步处理回调方法，避免超时
             RecipeBusiThreadPool.execute(new RecipeSendSuccessRunnable(response));
         }
     }
@@ -188,7 +185,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public void sendFail(RecipeBussReqTO request) {
-        RecipeToHisCallbackService service = ApplicationUtils.getRecipeService(RecipeToHisCallbackService.class);
         if (null != request.getData()) {
             HisSendResTO response = (HisSendResTO) request.getData();
 //            service.sendFail(response);
@@ -2446,6 +2442,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             return false;
         }
         RevisitBean revisitBean = revisitClient.getRevisitByClinicId(clinicId);
+        LOGGER.info("getOfflineEffectiveRecipeFlag revisitBean:{}.", JSONUtils.toString(revisitBean));
         PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(revisitBean.getMpiid());
         try {
             List<QueryHisRecipResTO> totalHisRecipe = new ArrayList<>();
@@ -2456,7 +2453,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
             totalHisRecipe.addAll(noPayRecipe.getData());
             totalHisRecipe.addAll(havePayRecipe.getData());
-            Set<String> registers = totalHisRecipe.stream().filter(hisRecipe -> StringUtils.isNotEmpty(hisRecipe.getRegisteredId())).collect(Collectors.groupingBy(QueryHisRecipResTO::getRegisteredId)).keySet();
+            LOGGER.info("getOfflineEffectiveRecipeFlag totalHisRecipe:{}.", JSONUtils.toString(totalHisRecipe));
+            Set<String> registers = totalHisRecipe.stream().filter(hisRecipe -> StringUtils.isNotEmpty(hisRecipe.getRegisteredId())).map(QueryHisRecipResTO::getRegisteredId).collect(Collectors.toSet());
+            LOGGER.info("getOfflineEffectiveRecipeFlag registers:{}.", JSONUtils.toString(registers));
             if (CollectionUtils.isNotEmpty(registers) && registers.contains(revisitExDTO.getRegisterNo())) {
                 return true;
             }
@@ -2481,8 +2480,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         //查询有效的处方记录
         List<Recipe> effectiveRecipes = recipeManager.findEffectiveRecipeByBussSourceAndClinicId(bussSource, clinicId);
         //查询线上有订单的处方
-        Map<String, List<Recipe>> recipeMap = writeRecipeList.stream().filter(recipe -> StringUtils.isNotEmpty(recipe.getOrderCode())).collect(Collectors.groupingBy(Recipe::getOrderCode));
-        List<RecipeOrder> recipeOrders = orderManager.getRecipeOrderList(recipeMap.keySet());
+        Set<String> orderCodeList = writeRecipeList.stream().filter(recipe -> StringUtils.isNotEmpty(recipe.getOrderCode()))
+                .map(Recipe::getOrderCode).collect(Collectors.toSet());
+        List<RecipeOrder> recipeOrders = orderManager.getRecipeOrderList(orderCodeList);
         //没有查到处方单
         if (CollectionUtils.isEmpty(writeRecipeList)) {
             return false;
@@ -2786,25 +2786,5 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             return null;
         }
         return recipe.getOrderCode();
-    }
-
-    @Override
-    public boolean abolishTherapyRecipe(Integer organId, String recipeCode) {
-        Recipe recipe = recipeManager.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
-        RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyByRecipeId(recipe.getRecipeId());
-        recipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
-        recipeTherapy.setTherapyCancellationType(4);
-        return recipeTherapyManager.updateRecipeTherapy(recipeTherapy);
-    }
-
-    @Override
-    public boolean therapyPayNotice(Integer organId, String recipeCode, RecipeTherapyDTO recipeTherapyDTO) {
-        Recipe recipe = recipeManager.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
-        RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyByRecipeId(recipe.getRecipeId());
-        recipeTherapy.setStatus(TherapyStatusEnum.HADEPAY.getType());
-        recipeTherapy.setTherapyNotice(recipeTherapyDTO.getTherapyNotice());
-        recipeTherapy.setTherapyExecuteDepart(recipeTherapyDTO.getTherapyExecuteDepart());
-        recipeTherapy.setTherapyPayTime(recipeTherapyDTO.getTherapyPayTime());
-        return recipeTherapyManager.updateRecipeTherapy(recipeTherapy);
     }
 }

@@ -6,6 +6,7 @@ import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.RecipeTherapyDTO;
 import com.ngari.recipe.vo.ItemListVO;
 import ctd.persistence.exception.DAOException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +31,7 @@ import java.util.stream.Collectors;
  * @author fuzi
  */
 @Service
-public class TherapyRecipeBusinessService extends BaseService implements ITherapyRecipeBusinessService {
+public class RecipeTherapyBusinessService extends BaseService implements ITherapyRecipeBusinessService {
     @Autowired
     private RecipeManager recipeManager;
     @Autowired
@@ -59,7 +60,7 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
         //保存处方明细
         if (!CollectionUtils.isEmpty(recipeInfoVO.getRecipeDetails())) {
             List<Recipedetail> details = ObjectCopyUtils.convert(recipeInfoVO.getRecipeDetails(), Recipedetail.class);
-            List<Integer> drugIds = details.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+            List<Integer> drugIds = details.stream().filter(a -> !a.getType().equals(2)).map(Recipedetail::getDrugId).collect(Collectors.toList());
             Map<String, OrganDrugList> organDrugListMap = organDrugListManager.getOrganDrugByIdAndCode(recipe.getClinicOrgan(), drugIds);
             recipeDetailManager.saveRecipeDetails(recipe, details, organDrugListMap);
         }
@@ -135,9 +136,38 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     }
 
     @Override
+    public boolean abolishTherapyRecipeForRevisitClose(Integer bussSource, Integer clinicId) {
+        List<Recipe> recipes = recipeManager.findTherapyRecipeByBussSourceAndClinicId(bussSource, clinicId);
+        List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        List<RecipeTherapy> recipeTherapies = recipeTherapyManager.findTherapyByRecipeIds(recipeIds);
+        recipeTherapies.forEach(recipeTherapy -> {
+            if (TherapyStatusEnum.READYSUBMIT.getType().equals(recipeTherapy.getStatus())) {
+                recipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
+                recipeTherapy.setTherapyCancellation("超时未提交");
+                recipeTherapy.setTherapyCancellationType(3);
+                recipeTherapyManager.updateRecipeTherapy(recipeTherapy);
+            }
+        });
+        return true;
+    }
+
+    @Override
+    public void updatePushTherapyRecipe(RecipeTherapy recipeTherapy, Integer pushType) {
+        recipeTherapyManager.updatePushTherapyRecipe(recipeTherapy, pushType);
+    }
+
+    @Override
     public List<ItemListVO> searchItemListByKeyWord(ItemListVO itemListVO) {
         List<ItemList> itemLists = itemListManager.findItemList(itemListVO.getOrganId(), itemListVO.getItemName(), itemListVO.getStart(), itemListVO.getLimit());
         return ObjectCopyUtils.convert(itemLists, ItemListVO.class);
+    }
+
+    @Override
+    public boolean updateTherapyRecipe(Integer organId, String recipeCode, RecipeTherapyDTO recipeTherapyDTO) {
+        Recipe recipe = recipeManager.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
+        RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyByRecipeId(recipe.getRecipeId());
+        ObjectCopyUtils.copyPropertiesIgnoreNull(recipeTherapyDTO, recipeTherapy);
+        return recipeTherapyManager.updateRecipeTherapy(recipeTherapy);
     }
 
 }

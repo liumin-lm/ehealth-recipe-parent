@@ -588,6 +588,10 @@ public class RecipeHisService extends RecipeBaseService {
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, eh.cdr.constant.RecipeStatusConstant.HAVE_PAY, null);
                     LOGGER.info("getRecipeSinglePayStatusQuery update success");
                     return status;
+                } else if (status == eh.cdr.constant.RecipeStatusConstant.FINISH) {
+                    recipeDAO.updateRecipeInfoByRecipeId(recipeId, eh.cdr.constant.RecipeStatusConstant.FINISH, null);
+                    LOGGER.info("getRecipeSinglePayStatusQuery update success");
+                    return status;
                 }
             }
         } else {

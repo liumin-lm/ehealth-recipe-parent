@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.service.PayModeGiveModeUtil;
 import recipe.serviceprovider.recipelog.service.RemoteRecipeLogService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 
@@ -84,7 +85,8 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
         if (StringUtils.isNotEmpty(orderCode)) {
             IRecipeService recipeService = RecipeAPI.getService(IRecipeService.class);
             RecipeBean recipeBean = recipeService.getRecipeByOrderCode(orderCode);
-            recipeOrderService.finishOrderPay(order.getOrderCode(), PayConstant.PAY_FLAG_PAY_SUCCESS, recipeBean.getPayMode());
+            Integer payMode = PayModeGiveModeUtil.getPayMode(order.getPayMode(), recipeBean.getGiveMode());
+            recipeOrderService.finishOrderPay(order.getOrderCode(), PayConstant.PAY_FLAG_PAY_SUCCESS, payMode);
         } else {
             recipeOrderService.finishOrderPay(order.getOrderCode(), PayConstant.PAY_FLAG_PAY_SUCCESS, RecipeConstant.PAYMODE_ONLINE);
         }

@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,8 @@ public class RevisitRecipeTraceVo implements Serializable {
      * 处方
      */
     private Recipe recipe;
+
+    private List<AuditMedicines> auditMedicinesList;
 
     /**
      * 药品详情
@@ -98,9 +101,10 @@ public class RevisitRecipeTraceVo implements Serializable {
 
         private String recipeId;
 
-        //TODO
-        @ItemProperty(alias = "来源")
-        private String recipeSourceType;
+        @ItemProperty(alias = "来源标志")
+        @Dictionary(id = "eh.cdr.dictionary.FromFlag")
+        private Integer fromflag;
+
 
         @ItemProperty(alias = "医生签名")
         private String doctorSign;
@@ -126,6 +130,9 @@ public class RevisitRecipeTraceVo implements Serializable {
          */
         private String medicalTypeText;
 
+        @ItemProperty(alias = "处方金额")
+        private BigDecimal totalMoney;
+
     }
 
 
@@ -138,9 +145,11 @@ public class RevisitRecipeTraceVo implements Serializable {
         @ItemProperty(alias = "审核日期")
         private Date checkDate;
 
-        @Dictionary(id = "eh.cdr.dictionary.RecipeCheckStatus")
+        //        @Dictionary(id = "eh.cdr.dictionary.RecipeCheckStatus")
         @ItemProperty(alias = "审核结果")
         private Integer checkStatus;
+
+        private String checkStatusText;
 
         @ItemProperty(alias = "审核人姓名")
         private String checkerName;
@@ -153,6 +162,19 @@ public class RevisitRecipeTraceVo implements Serializable {
 
         @ItemProperty(alias = "审核备注信息")
         private String memo;
+
+        public String getCheckStatusText() {
+            if (0 == checkStatus) {
+                this.checkStatusText = "审核不通过";
+            } else if (1 == checkStatus) {
+                this.checkStatusText = "审核通过";
+            }
+            return this.checkStatusText;
+        }
+
+        public void setCheckStatusText(String checkStatusText) {
+            this.checkStatusText = checkStatusText;
+        }
     }
 
     @Data
@@ -174,6 +196,11 @@ public class RevisitRecipeTraceVo implements Serializable {
          */
         private String giveUserSignImg;
 
+        /**
+         * 已发药时间
+         */
+        private Date dispensingTime;
+
     }
 
     @Data
@@ -183,15 +210,15 @@ public class RevisitRecipeTraceVo implements Serializable {
         @ItemProperty(alias = "电子票据h5地址")
         private String billPictureUrl;
 
-        @ItemProperty(alias = "购药方式")
-        @Dictionary(id = "eh.cdr.dictionary.GiveMode")
-        private Integer giveMode;
+//        @ItemProperty(alias = "购药方式")
+//        @Dictionary(id = "eh.cdr.dictionary.GiveMode")
+//        private Integer giveMode;
 
         @ItemProperty(alias = "订单所属配送方式")
         private String giveModeKey;
 
-//        @ItemProperty(alias = "订单所属配送方式的文案")
-//        private String giveModeText;
+        @ItemProperty(alias = "订单所属配送方式的文案")
+        private String giveModeText;
 
         @ItemProperty(alias = "收货人姓名")
         private String receiver;
@@ -223,13 +250,13 @@ public class RevisitRecipeTraceVo implements Serializable {
         private String outTradeNo;
 
         @ItemProperty(alias = "处方预结算返回支付总金额")
-        private Double preSettleTotalAmount;
+        private String preSettleTotalAmount;
 
         @ItemProperty(alias = "处方预结算返回医保支付金额")
-        private Double fundAmount;
+        private String fundAmount;
 
         @ItemProperty(alias = "处方预结算返回自费金额")
-        private Double cashAmount;
+        private String cashAmount;
 
 
     }
@@ -250,6 +277,9 @@ public class RevisitRecipeTraceVo implements Serializable {
 
         @ItemProperty(alias = "发货时间")
         private Date sendTime;
+
+        @ItemProperty(alias = "订单编号")
+        private String orderCode;
     }
 
     /**
@@ -264,6 +294,14 @@ public class RevisitRecipeTraceVo implements Serializable {
 
         @ItemProperty(alias = "订单金额")
         private Double price;
+
+        @ItemProperty(alias = "流水号")
+        private String tradeNo;
+
+        /**
+         * 退费状态（取payflag展示）
+         */
+        private String status;
     }
 
     /**
@@ -275,10 +313,24 @@ public class RevisitRecipeTraceVo implements Serializable {
     @Schema
     public static class RecipeCancel {
         @ItemProperty(alias = "原因")
-        private Integer cancelReason;
+        private String cancelReason;
 
         @ItemProperty(alias = "时间")
         private Date cancelDate;
+    }
+
+    @Data
+    @Schema
+    public static class AuditMedicines {
+        @ItemProperty(
+                alias = "药品名"
+        )
+        private String name;
+
+        @ItemProperty(
+                alias = "创建时间"
+        )
+        private Date createTime;
     }
 
     public String getRecipeSignFile() {

@@ -68,6 +68,7 @@ import recipe.common.ResponseUtils;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.GiveModeTextEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -1566,10 +1567,12 @@ public class RecipeOrderService extends RecipeBaseService {
             if (CollectionUtils.isNotEmpty(recipeList) && order.getEffective() == 1) {
                 for (Recipe recipeItem : recipeList) {
                     //到院取药  && recipeItem.getStatus() == 2
-                    if (recipeItem.getGiveMode() == 2 && recipeItem.getPayFlag() == 1) {
+                    if (recipeItem.getGiveMode() == 2 && recipeItem.getPayFlag() == 1 && !RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipeItem.getStatus())) {
                         Integer query = recipeHisService.getRecipeSinglePayStatusQuery(recipeItem.getRecipeId());
                         if (query != null && query == eh.cdr.constant.RecipeStatusConstant.HAVE_PAY) {
                             recipeItem.setStatus(eh.cdr.constant.RecipeStatusConstant.HAVE_PAY);
+                        } else if (query != null && query == eh.cdr.constant.RecipeStatusConstant.FINISH) {
+                            recipeItem.setStatus(eh.cdr.constant.RecipeStatusConstant.FINISH);
                         }
                     }
                 }
@@ -1702,26 +1705,44 @@ public class RecipeOrderService extends RecipeBaseService {
             orderBean.setDecoctionId(decoctionId);
             orderBean.setDecoctionText(decoctionText);
             BigDecimal needFee = new BigDecimal(0.00);
-            //当处方状态为已完成时
-            if (RecipeStatusConstant.FINISH == recipeList.get(0).getStatus()) {
-                //实付款 (当处方状态为已完成时，实付款=总金额-优惠金额 同时将需付款设置为0）特殊处理：线下支付，不会将金额回写到处方，只会回写状态
-                orderBean.setActualPrice(orderBean.getTotalFee().subtract(orderBean.getCouponFee()).doubleValue());
-            } else {
-                // 需支付
-                // 当payflag=0 未支付时 需支付=订单总金额-优惠金额
-                // 当payflag=1已支付，2退款中，3退款成功，4支付失败时 需支付=订单总金额-实付款-优惠金额
-                try {
-                    LOGGER.info("getOrderDetailById needFee orderCode:{} ,order:{}", order.getOrderCode(), JSONUtils.toString(order));
-                    if (PayConstant.PAY_FLAG_NOT_PAY == orderBean.getPayFlag()) {
-                        needFee = orderBean.getTotalFee().subtract(orderBean.getCouponFee());
-                    } else {
-                        needFee = orderBean.getTotalFee().subtract(orderBean.getCouponFee()).subtract(new BigDecimal(Double.toString(orderBean.getActualPrice())));
-                    }
-                } catch (Exception e) {
-                    LOGGER.error("getOrderDetailById needFee计算需支付 error :{}", e);
+            Recipe recipe = recipeList.get(0);
+            Integer recipeStatus = recipe.getStatus();
+            if ("supportToHos".equals(order.getGiveModeKey())
+                    && new Integer(2).equals(order.getPayMode())
+                    && (RecipeStatusEnum.RECIPE_STATUS_HAVE_PAY.getType().equals(recipeStatus)
+                    || RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipeStatus))) {
+                //到院取药并且为线下支付的处方
+                RecipeOrder newOrder = orderManager.getRecipeOrderById(orderId);
+                if (newOrder.getActualPrice() < newOrder.getRecipeFee().doubleValue()) {
+                    //前端显示文本以实际支付金额为准
+                    orderBean.setActualPrice(-1.0);
+                } else {
+                    orderBean.setActualPrice(newOrder.getActualPrice());
+                    orderBean.setRecipeFee(newOrder.getRecipeFee());
+                    orderBean.setTotalFee(newOrder.getTotalFee());
                 }
+            } else {
+                //当处方状态为已完成时
+                if (RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipeStatus)) {
+                    //实付款 (当处方状态为已完成时，实付款=总金额-优惠金额 同时将需付款设置为0）特殊处理：线下支付，不会将金额回写到处方，只会回写状态
+                    orderBean.setActualPrice(orderBean.getTotalFee().subtract(orderBean.getCouponFee()).doubleValue());
+                } else {
+                    // 需支付
+                    // 当payflag=0 未支付时 需支付=订单总金额-优惠金额
+                    // 当payflag=1已支付，2退款中，3退款成功，4支付失败时 需支付=订单总金额-实付款-优惠金额
+                    try {
+                        LOGGER.info("getOrderDetailById needFee orderCode:{} ,order:{}", order.getOrderCode(), JSONUtils.toString(order));
+                        if (PayConstant.PAY_FLAG_NOT_PAY == orderBean.getPayFlag()) {
+                            needFee = orderBean.getTotalFee().subtract(orderBean.getCouponFee());
+                        } else {
+                            needFee = orderBean.getTotalFee().subtract(orderBean.getCouponFee()).subtract(new BigDecimal(Double.toString(orderBean.getActualPrice())));
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error("getOrderDetailById needFee计算需支付 error :{}", e);
+                    }
+                }
+                orderBean.setNeedFee(needFee.compareTo(BigDecimal.ZERO) >= 0 ? needFee : BigDecimal.ZERO);
             }
-            orderBean.setNeedFee(needFee.compareTo(BigDecimal.ZERO) >= 0 ? needFee : BigDecimal.ZERO);
 
             if (order.getEnterpriseId() != null) {
                 DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);

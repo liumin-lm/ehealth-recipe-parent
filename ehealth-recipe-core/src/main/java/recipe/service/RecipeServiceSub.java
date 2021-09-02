@@ -1335,7 +1335,6 @@ public class RecipeServiceSub {
     }
 
     public static RecipeBean convertRecipeForRAP(Recipe recipe) {
-        getMedicalInfo(recipe);
         RecipeBean r = new RecipeBean();
         r.setRecipeId(recipe.getRecipeId());
         r.setCreateDate(recipe.getCreateDate());
@@ -2587,6 +2586,7 @@ public class RecipeServiceSub {
             recipeTagMsg.setTitle(recipe.getPatientName() + "的诊疗处方");
             Long count = recipeDetailManager.getCountByRecipeId(recipe.getRecipeId());
             recipeTagMsg.setContent("共" + count + "个项目");
+            recipeTagMsg.setRecipeSourceType(recipe.getRecipeSourceType());
         } else {
             //获取诊断疾病名称
             String diseaseName = recipe.getOrganDiseaseName();
@@ -2631,18 +2631,29 @@ public class RecipeServiceSub {
         if (null == patientDTO) {
             throw new DAOException(609, "患者信息不存在");
         }
-        if (StringUtils.isEmpty(recipeCode)) {
-            recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO, organId);
+        String organName = "";
+        try {
+            organName = organService.getNameById(organId);
+        } catch (Exception e) {
+            LOGGER.info("getRecipeMsgTagWithOfflineRecipe getNameById error：{}", e);
+            e.printStackTrace();
+        }
+        if (specitalOrganList.contains(organId.toString()) || organName.contains("上海市第七人民医院")) {
+            recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO, true);
         } else {
-            //获取当前处方详情
-            HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = hisRecipeManager.queryData(organId, patientDTO, null, 1, recipeCode);
-            QueryHisRecipResTO queryHisRecipResTO = getRecipeInfoByRecipeCode(hisResponseTO, recipeCode);
-            if (queryHisRecipResTO == null || StringUtils.isEmpty(queryHisRecipResTO.getRecipeCode())) {
-                LOGGER.info("sendRecipeTagToPatientWithOfflineRecipe recipeCode：{} 根据recipeCode没查询到线下处方！！！", recipeCode);
-                recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO, organId);
+            if (StringUtils.isEmpty(recipeCode)) {
+                recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO, false);
             } else {
-                //拼接卡片显示参数
-                recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(queryHisRecipResTO, patientDTO);
+                //获取当前处方详情
+                HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = hisRecipeManager.queryData(organId, patientDTO, null, 1, recipeCode);
+                QueryHisRecipResTO queryHisRecipResTO = getRecipeInfoByRecipeCode(hisResponseTO, recipeCode);
+                if (queryHisRecipResTO == null || StringUtils.isEmpty(queryHisRecipResTO.getRecipeCode())) {
+                    LOGGER.info("sendRecipeTagToPatientWithOfflineRecipe recipeCode：{} 根据recipeCode没查询到线下处方！！！", recipeCode);
+                    recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO, false);
+                } else {
+                    //拼接卡片显示参数
+                    recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(queryHisRecipResTO, patientDTO);
+                }
             }
         }
         //环信消息发送
@@ -2714,20 +2725,13 @@ public class RecipeServiceSub {
         return recipeTagMsg;
     }
 
-    private static RecipeTagMsgBean getRecipeMsgTagWithOfflineRecipe(PatientDTO patientDTO, Integer organId) {
+    private static RecipeTagMsgBean getRecipeMsgTagWithOfflineRecipe(PatientDTO patientDTO, boolean dumpMzjf) {
         LOGGER.info("getRecipeMsgTagWithOfflineRecipe param:{}", JSONUtils.toString(patientDTO));
         //获取诊断疾病名称
         RecipeTagMsgBean recipeTagMsg = new RecipeTagMsgBean();
         recipeTagMsg.setTitle(patientDTO.getPatientName() + "的电子处方单");
         recipeTagMsg.setFlag("1");
-        String organName = "";
-        try {
-            organName = organService.getNameById(organId);
-        } catch (Exception e) {
-            LOGGER.info("getRecipeMsgTagWithOfflineRecipe getNameById error：{}", e);
-            e.printStackTrace();
-        }
-        if (specitalOrganList.contains(organId.toString()) || organName.contains("上海市第七人民医院")) {
+        if (dumpMzjf) {
             recipeTagMsg.setFlag("3");
             recipeTagMsg.setContent("请点击查看处方单或检查检验单");
         }

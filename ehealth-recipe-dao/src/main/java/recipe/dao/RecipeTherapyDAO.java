@@ -71,20 +71,6 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
     public abstract List<RecipeTherapy> findTherapyByDoctorId(@DAOParam("organId") int organId, @DAOParam("doctorId") int doctorId);
 
     /**
-     * 分页  根据医生id与复诊id 获取诊疗信息
-     *
-     * @param organId  机构id
-     * @param doctorId 医生id
-     * @param clinicId 复诊id
-     * @param start    页数
-     * @param limit    条数
-     * @return 诊疗信息
-     */
-    @DAOMethod(sql = "from RecipeTherapy where organ_id=:organId and doctor_id=:doctorId and clinic_id=:clinicId order by id desc")
-    public abstract List<RecipeTherapy> findTherapyPageByDoctorIdAndClinicId(@DAOParam("organId") int organId, @DAOParam("doctorId") int doctorId,
-                                                                             @DAOParam("clinicId") int clinicId, @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
-
-    /**
      * 根据医生id与复诊id 获取诊疗信息
      *
      * @param organId  机构id
@@ -97,6 +83,16 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
 
 
     /**
+     * 根据处方ids 获取诊疗信息
+     *
+     * @param recipeIds 处方ids
+     * @return 诊疗信息
+     */
+    @DAOMethod(sql = "from RecipeTherapy where recipe_id in (:recipeIds)", limit = 0)
+    public abstract List<RecipeTherapy> findTherapyByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
+
+
+    /**
      * 分页  根据患者id与复诊id 获取诊疗信息
      *
      * @param organId  机构id
@@ -106,7 +102,7 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
      * @param limit    条数
      * @return 诊疗信息
      */
-    @DAOMethod(sql = "from RecipeTherapy where organ_id=:organId and mpi_id=:mpiId and clinic_id=:clinicId order by id desc")
+    @DAOMethod(sql = "from RecipeTherapy where organ_id=:organId and mpi_id=:mpiId and clinic_id=:clinicId and status != 1 order by id desc")
     public abstract List<RecipeTherapy> findTherapyPageByMpiIdAndClinicId(@DAOParam("organId") int organId, @DAOParam("mpiId") String mpiId,
                                                                           @DAOParam("clinicId") int clinicId, @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
 
@@ -118,7 +114,7 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
      * @param clinicId 复诊id
      * @return 诊疗信息
      */
-    @DAOMethod(sql = "from RecipeTherapy where organ_id=:organId and mpi_id=:mpiId and clinic_id=:clinicId")
+    @DAOMethod(sql = "from RecipeTherapy where organ_id=:organId and mpi_id=:mpiId and clinic_id=:clinicId and status != 1")
     public abstract List<RecipeTherapy> findTherapyByMpiIdAndClinicId(@DAOParam("organId") int organId, @DAOParam("mpiId") String mpiId, @DAOParam("clinicId") int clinicId);
 
 

@@ -129,10 +129,19 @@ public class RecipeToHisService {
                             //已支付的处方单,将线下处方支付的金额覆盖线上的处方金额
                             if (StringUtils.isNotEmpty(rep.getAmount())) {
                                 BigDecimal recipeFee = new BigDecimal(rep.getAmount());
+                                BigDecimal totalMoney = new BigDecimal(0.00);
                                 if (recipeFee.compareTo(BigDecimal.ZERO) > 0){
                                     Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(rep.getRecipeNo(), organId);
+                                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                                     Map<String, Object> map = new HashMap<>();
                                     map.put("recipeFee", recipeFee);
+                                    totalMoney = totalMoney.add(recipeOrder.getAuditFee())
+                                            .add(recipeOrder.getRegisterFee())
+                                            .add(recipeOrder.getTcmFee())
+                                            .add(recipeOrder.getOtherFee())
+                                            .add(recipeFee);
+                                    map.put("totalFee", totalMoney);
+                                    map.put("actualPrice", totalMoney.doubleValue());
                                     recipeOrderDAO.updateByOrdeCode(recipe.getOrderCode(), map);
                                 }
                             }

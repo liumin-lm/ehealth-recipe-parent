@@ -5,7 +5,6 @@ import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeLog;
-import com.ngari.recipe.entity.RecipeRefund;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -84,7 +83,6 @@ public class RecipeManager extends BaseManager {
     }
 
 
-
     /**
      * 获取处方信息
      *
@@ -94,7 +92,7 @@ public class RecipeManager extends BaseManager {
      */
     public Recipe getByRecipeCodeAndClinicOrgan(String recipeCode, Integer clinicOrgan) {
         logger.info("RecipeManager getByRecipeCodeAndClinicOrgan param recipeCode:{},clinicOrgan:{}", recipeCode, clinicOrgan);
-        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, clinicOrgan);
+        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(recipeCode, clinicOrgan);
         logger.info("RecipeManager getByRecipeCodeAndClinicOrgan res recipe:{}", JSONUtils.toString(recipe));
         return recipe;
     }
@@ -138,10 +136,31 @@ public class RecipeManager extends BaseManager {
         return recipes;
     }
 
+    /**
+     * 获取有效的处方单
+     *
+     * @param bussSource
+     * @param clinicId
+     * @return
+     */
     public List<Recipe> findEffectiveRecipeByBussSourceAndClinicId(Integer bussSource, Integer clinicId) {
         logger.info("RecipeManager findRecipeByBussSourceAndClinicId param bussSource:{},clinicId:{}", bussSource, clinicId);
         List<Recipe> recipes = recipeDAO.findEffectiveRecipeByBussSourceAndClinicId(bussSource, clinicId);
         logger.info("RecipeManager findEffectiveRecipeByBussSourceAndClinicId recipes:{}.", JSON.toJSONString(recipes));
+        return recipes;
+    }
+
+    /**
+     * 获取诊疗处方
+     *
+     * @param bussSource 业务类型
+     * @param clinicId   业务单号
+     * @return 处方列表
+     */
+    public List<Recipe> findTherapyRecipeByBussSourceAndClinicId(Integer bussSource, Integer clinicId) {
+        logger.info("RecipeManager findTherapyRecipeByBussSourceAndClinicId param bussSource:{},clinicId:{}", bussSource, clinicId);
+        List<Recipe> recipes = recipeDAO.findTherapyRecipeByBussSourceAndClinicId(bussSource, clinicId);
+        logger.info("RecipeManager findTherapyRecipeByBussSourceAndClinicId recipes:{}.", JSON.toJSONString(recipes));
         return recipes;
     }
 
@@ -263,7 +282,7 @@ public class RecipeManager extends BaseManager {
     }
 
     /**
-     * 获取处方撤销时间和原因
+     * 获取医生撤销处方时间和原因
      *
      * @param recipeId
      * @return
@@ -272,19 +291,15 @@ public class RecipeManager extends BaseManager {
         RecipeCancel recipeCancel = new RecipeCancel();
         String cancelReason = "";
         Date cancelDate = null;
-        List<RecipeRefund> recipeRefunds = recipeRefundDAO.findRefundListByRecipeId(recipeId);
-        if (CollectionUtils.isNotEmpty(recipeRefunds)) {
-            cancelReason = "由于患者申请退费成功，该处方已取消。";
-        } else {
-            RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-            List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.REVOKE);
-            if (CollectionUtils.isNotEmpty(recipeLogs)) {
-                cancelReason = "开方医生已撤销处方,撤销原因:" + recipeLogs.get(0).getMemo();
-                cancelDate = recipeLogs.get(0).getModifyDate();
-            }
+        RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipeId, RecipeStatusConstant.REVOKE);
+        if (CollectionUtils.isNotEmpty(recipeLogs)) {
+            cancelReason = recipeLogs.get(0).getMemo();
+            cancelDate = recipeLogs.get(0).getModifyDate();
         }
         recipeCancel.setCancelDate(cancelDate);
         recipeCancel.setCancelReason(cancelReason);
+        logger.info("getCancelReasonForPatient recipeCancel:{}", JSONUtils.toString(recipeCancel));
         return recipeCancel;
     }
 

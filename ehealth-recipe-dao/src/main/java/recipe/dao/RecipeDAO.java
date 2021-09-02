@@ -240,7 +240,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<Recipe> action = new AbstractHibernateStatelessResultAction<Recipe>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                Query q = ss.createQuery("from Recipe where Status=:status and ClinicID=:clinicId order by RecipeID desc");
+                Query q = ss.createQuery("from Recipe where recipeSourceType != 3 and Status=:status and ClinicID=:clinicId order by RecipeID desc");
                 q.setParameter("clinicId", clinicId);
                 q.setParameter("status", status);
                 q.setMaxResults(1);
@@ -1265,7 +1265,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                             "\tcdr_recipe r\n" +
                             "LEFT JOIN cdr_recipe_ext cre ON r.recipeid = cre.recipeid\n" +
                             "WHERE cre.canUrgentAuditRecipe is not null and r.clinicOrgan in (:organ) and r.checkMode<2 and r.status = 8 and  (recipeType in(:recipeTypes) or grabOrderStatus=1) " +
-                            "ORDER BY canUrgentAuditRecipe desc, signdate asc");
+                            "ORDER BY canUrgentAuditRecipe desc, r.grabOrderStatus DESC, signdate asc");
                 }
                 //1是审核通过  2是审核未通过
                 else if (flag == 1 || flag == notPass) {
@@ -1535,7 +1535,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         StringBuilder hql = new StringBuilder("select r.*  from cdr_recipe r ");
         hql.append(" LEFT JOIN cdr_recipeorder o on r.orderCode = o.orderCode ");
         hql.append(" LEFT JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId ");
-        hql.append(" where 1=1");
+        hql.append(" where 1=1 and r.recipeSourceType!=3 ");
         //new StringBuilder("select r.recipeId,o.orderCode from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId where 1=1 ");
 
         //默认查询所有
@@ -3251,6 +3251,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public abstract List<Recipe> findWriteHisRecipeByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId);
 
     /**
+     * 通过复诊业务来源调用查询诊疗处方
+     *
+     * @param bussSource
+     * @param clinicId
+     * @return
+     */
+    @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId and recipeSourceType = 3 ")
+    public abstract List<Recipe> findTherapyRecipeByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId);
+
+    /**
      * @param bussSource
      * @param clinicId
      * @return
@@ -3258,8 +3268,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId and status in(2,3,4,5,6,7,8)")
     public abstract List<Recipe> findEffectiveRecipeByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId);
 
+    @DAOMethod(sql = "from Recipe where recipeId=:recipeId  and bussSource =2")
+    public abstract List<Recipe> findRecipeByRecipeId(@DAOParam("recipeId") Integer recipeId);
+
+    @DAOMethod(sql = "from Recipe where clinicId=:clinicId  and bussSource =2")
+    public abstract List<Recipe> findRecipeByClinicId(@DAOParam("clinicId") Integer clinicId);
+
     @DAOMethod
     public abstract List<Recipe> findByClinicId(Integer consultId);
+
 
     public List<Object[]> findMsgByparameters(Date startTime, Date endTime, Integer organId) {
         HibernateStatelessResultAction<List> action = new AbstractHibernateStatelessResultAction<List>() {
@@ -3740,10 +3757,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 StringBuilder hql = new StringBuilder();
                 hql.append("select r from Recipe r where clinicId is not null and bussSource =2  ");
                 if (StringUtils.isNotEmpty(startTime)) {
-                    hql.append("and DATE(r.createDate)>=DATE(:startTime) ");
+//                    hql.append("and DATE(r.createDate)>=DATE(:startTime) ");
+                    hql.append(" and r.createDate >= :startTime");
                 }
                 if (StringUtils.isNotEmpty(endTime)) {
-                    hql.append("and DATE(r.createDate)<=DATE(:endTime) ");
+//                    hql.append("and DATE(r.createDate)<=DATE(:endTime) ");
+                    hql.append(" and r.createDate <= :endTime");
                 }
                 if (organId != null) {
                     hql.append("and organId =:organId ");
@@ -3752,12 +3771,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     hql.append("and recipeIds in(:recipeIds) ");
                 }
                 Query query = ss.createQuery(hql.toString());
-                if (StringUtils.isNotEmpty(startTime)) {
-                    query.setParameter("startTime", startTime);
-                }
-                if (StringUtils.isNotEmpty(endTime)) {
-                    query.setParameter("endTime", endTime);
-                }
+//                if (StringUtils.isNotEmpty(startTime)) {
+//                    query.setParameter("startTime", startTime);
+//                }
+//                if (StringUtils.isNotEmpty(endTime)) {
+//                    query.setParameter("endTime", endTime);
+//                }
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                query.setTimestamp("startTime", sdf.parse(startTime));
+                query.setTimestamp("endTime", sdf.parse(endTime));
                 if (organId != null) {
                     query.setParameter("organId", organId);
                 }
@@ -3773,9 +3795,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     /**
      * 迁移数据使用
+     *
      * @return
      */
-    public List<RecipeOrder>  findMoveData(){
+    public List<RecipeOrder> findMoveData() {
         HibernateStatelessResultAction<List<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrder>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -3829,6 +3852,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
 
 
-    };
+    }
+
+    ;
 
 }

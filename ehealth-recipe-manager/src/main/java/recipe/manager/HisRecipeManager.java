@@ -102,7 +102,7 @@ public class HisRecipeManager extends BaseManager {
         List<QueryHisRecipResTO> queryHisRecipResTos = responseTo.getData();
         List<QueryHisRecipResTO> queryHisRecipResToFilters = new ArrayList<>();
         //获取详情时防止前置机没过滤数据，做过滤处理
-        if (responseTo != null && recipeCode != null) {
+        if (StringUtils.isNotEmpty(recipeCode)) {
             logger.info("HisRecipeManager queryHisRecipeInfo recipeCode:{}", recipeCode);
             //详情
             if (!CollectionUtils.isEmpty(queryHisRecipResTos)) {
@@ -116,7 +116,7 @@ public class HisRecipeManager extends BaseManager {
             responseTo.setData(queryHisRecipResToFilters);
         }
         //列表
-        if (responseTo != null && recipeCode == null) {
+        if (StringUtils.isNotEmpty(recipeCode)) {
             //对状态过滤(1、测试桩会返回所有数据，不好测试，对测试造成干扰 2、也可以做容错处理)
             if (!CollectionUtils.isEmpty(queryHisRecipResTos)) {
                 for (QueryHisRecipResTO queryHisRecipResTo : queryHisRecipResTos) {
@@ -453,18 +453,23 @@ public class HisRecipeManager extends BaseManager {
         return hisRecipe;
     }
 
+
     /**
      * 推送处方给his
      *
-     * @param recipePdfDTO 处方信息
+     * @param recipePdfDTO  处方信息
+     * @param pushType      推送类型: 1：提交处方，2:撤销处方
+     * @param pharmacyIdMap 药房
+     * @return
+     * @throws Exception
      */
-    public RecipeInfoDTO pushTherapyRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType) throws Exception {
+    public RecipeInfoDTO pushTherapyRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
         RecipeExtend recipeExtend = recipePdfDTO.getRecipeExtend();
         Integer docIndexId = null;
         if (null != recipeExtend) {
             docIndexId = recipeExtend.getDocIndexId();
         }
         EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(docIndexId);
-        return offlineRecipeClient.pushTherapyRecipe(pushType, recipePdfDTO, emrDetail);
+        return offlineRecipeClient.pushTherapyRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
     }
 }

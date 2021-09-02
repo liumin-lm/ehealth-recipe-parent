@@ -10,10 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import recipe.util.ValidateUtil;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -33,6 +30,9 @@ public class OrganDrugListManager extends BaseManager {
      * @return 机构code = key对象
      */
     public Map<String, List<OrganDrugList>> getOrganDrugCode(int organId, List<String> drugCodeList) {
+        if (CollectionUtils.isEmpty(drugCodeList)) {
+            return new HashMap<>();
+        }
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, drugCodeList);
         logger.info("OrganDrugListManager getOrganDrugCode organDrugList= {}", JSON.toJSONString(organDrugList));
         return Optional.ofNullable(organDrugList).orElseGet(Collections::emptyList)
@@ -47,6 +47,9 @@ public class OrganDrugListManager extends BaseManager {
      * @return drugId+organDrugCode为key返回药品Map
      */
     public Map<String, OrganDrugList> getOrganDrugByIdAndCode(int organId, List<Integer> drugIds) {
+        if (CollectionUtils.isEmpty(drugIds)) {
+            return new HashMap<>();
+        }
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(organId, drugIds);
         logger.info("OrganDrugListManager getOrganDrugByIdAndCode organDrugList= {}", JSON.toJSONString(organDrugList));
         return Optional.ofNullable(organDrugList).orElseGet(Collections::emptyList)
