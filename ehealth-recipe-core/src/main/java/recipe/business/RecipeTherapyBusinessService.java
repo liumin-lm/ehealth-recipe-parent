@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * @author fuzi
  */
 @Service
-public class TherapyRecipeBusinessService extends BaseService implements ITherapyRecipeBusinessService {
+public class RecipeTherapyBusinessService extends BaseService implements ITherapyRecipeBusinessService {
     @Autowired
     private RecipeManager recipeManager;
     @Autowired
