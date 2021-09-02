@@ -194,11 +194,8 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
                         BeanUtils.copy(recipeCancel, innerRecipeCancel);
                         revisitRecipeTraceVo.setRecipeCancel(innerRecipeCancel);
                     }
-                    //智能审方
-
-
-                    //app.bindService('eh.auditMedicinesService', 'getAuditmedicinesResult');
-
+                    //智能审方 暂时先不做
+//                    List<AuditMedicinesBean> auditMedicinesBeans = recipeAuditClient.getAuditMedicineIssuesByRecipeId(recipeId);
                     revisitRecipeTraceVos.add(revisitRecipeTraceVo);
                 }
         );

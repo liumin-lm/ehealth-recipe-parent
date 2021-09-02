@@ -30,6 +30,8 @@ public class RevisitRecipeTraceVo implements Serializable {
      */
     private Recipe recipe;
 
+    private List<AuditMedicines> auditMedicinesList;
+
     /**
      * 药品详情
      */
@@ -315,6 +317,20 @@ public class RevisitRecipeTraceVo implements Serializable {
 
         @ItemProperty(alias = "时间")
         private Date cancelDate;
+    }
+
+    @Data
+    @Schema
+    public static class AuditMedicines {
+        @ItemProperty(
+                alias = "药品名"
+        )
+        private String name;
+
+        @ItemProperty(
+                alias = "创建时间"
+        )
+        private Date createTime;
     }
 
     public String getRecipeSignFile() {
