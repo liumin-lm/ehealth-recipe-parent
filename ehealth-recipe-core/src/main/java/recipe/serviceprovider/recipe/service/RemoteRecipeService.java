@@ -2452,7 +2452,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
             totalHisRecipe.addAll(noPayRecipe.getData());
             totalHisRecipe.addAll(havePayRecipe.getData());
-            Set<String> registers = totalHisRecipe.stream().filter(hisRecipe -> StringUtils.isNotEmpty(hisRecipe.getRegisteredId())).collect(Collectors.groupingBy(QueryHisRecipResTO::getRegisteredId)).keySet();
+            Set<String> registers = totalHisRecipe.stream().filter(hisRecipe -> StringUtils.isNotEmpty(hisRecipe.getRegisteredId())).map(QueryHisRecipResTO::getRegisteredId).collect(Collectors.toSet());
             if (CollectionUtils.isNotEmpty(registers) && registers.contains(revisitExDTO.getRegisterNo())) {
                 return true;
             }
