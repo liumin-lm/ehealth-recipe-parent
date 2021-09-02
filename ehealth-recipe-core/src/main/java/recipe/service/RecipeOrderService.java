@@ -1717,7 +1717,8 @@ public class RecipeOrderService extends RecipeBaseService {
                     //前端显示文本以实际支付金额为准
                     orderBean.setActualPrice(-1.0);
                 } else {
-                    orderBean.setActualPrice(orderBean.getActualPrice());
+                    orderBean.setActualPrice(newOrder.getActualPrice());
+                    orderBean.setRecipeFee(newOrder.getRecipeFee());
                 }
             } else {
                 //当处方状态为已完成时
