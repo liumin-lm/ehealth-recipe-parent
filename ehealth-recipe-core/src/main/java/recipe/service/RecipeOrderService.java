@@ -1712,7 +1712,13 @@ public class RecipeOrderService extends RecipeBaseService {
                     && (RecipeStatusEnum.RECIPE_STATUS_HAVE_PAY.getType().equals(recipeStatus)
                     || RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipeStatus))) {
                 //到院取药并且为线下支付的处方
-                orderBean.setActualPrice(orderBean.getActualPrice());
+                RecipeOrder newOrder = orderManager.getRecipeOrderById(orderId);
+                if (newOrder.getActualPrice() < newOrder.getRecipeFee().doubleValue()) {
+                    //前端显示文本以实际支付金额为准
+                    orderBean.setActualPrice(-1.0);
+                } else {
+                    orderBean.setActualPrice(orderBean.getActualPrice());
+                }
             } else {
                 //当处方状态为已完成时
                 if (RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipeStatus)) {

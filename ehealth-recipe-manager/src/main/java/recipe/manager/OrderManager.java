@@ -233,4 +233,8 @@ public class OrderManager extends BaseManager {
         return new ArrayList<>();
     }
 
+    public RecipeOrder getRecipeOrderById(Integer organId){
+        return recipeOrderDAO.getByOrderId(organId);
+    }
+
 }

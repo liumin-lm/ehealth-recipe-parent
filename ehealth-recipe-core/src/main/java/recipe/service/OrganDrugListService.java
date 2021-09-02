@@ -522,7 +522,9 @@ public class OrganDrugListService implements IOrganDrugListService {
         if (targetDrugId != null) {
             drugCategoryReq.setPlatDrugCode(targetDrugId.toString());
         } else {
-            drugCategoryReq.setPlatDrugCode(organDrugList.getDrugId().toString());
+//            drugCategoryReq.setPlatDrugCode(organDrugList.getDrugId().toString());
+            //对应运营平台药品详情中的 监管平台药品ID*
+            drugCategoryReq.setPlatDrugCode(organDrugList.getRegulationDrugCode());
         }
         drugCategoryReq.setPlatDrugName(organDrugList.getDrugName());
         if (StringUtils.isNotEmpty(organDrugList.getOrganDrugCode())) {

@@ -1535,7 +1535,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         StringBuilder hql = new StringBuilder("select r.*  from cdr_recipe r ");
         hql.append(" LEFT JOIN cdr_recipeorder o on r.orderCode = o.orderCode ");
         hql.append(" LEFT JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId ");
-        hql.append(" where 1=1");
+        hql.append(" where 1=1 and r.recipeSourceType!=3 ");
         //new StringBuilder("select r.recipeId,o.orderCode from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId where 1=1 ");
 
         //默认查询所有
