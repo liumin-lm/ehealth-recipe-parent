@@ -1,8 +1,13 @@
 package recipe.client;
 
+import com.google.common.collect.Lists;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import ctd.util.JSONUtils;
+import eh.recipeaudit.api.IAuditMedicinesService;
 import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.api.IRecipeCheckService;
+import eh.recipeaudit.model.AuditMedicineIssueBean;
+import eh.recipeaudit.model.AuditMedicinesBean;
 import eh.recipeaudit.model.RecipeCheckBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,6 +30,9 @@ public class RecipeAuditClient extends BaseClient {
 
     @Autowired
     private IRecipeAuditService recipeAuditService;
+
+    @Autowired
+    IAuditMedicinesService iAuditMedicinesService;
 
 
     /**
@@ -53,12 +61,32 @@ public class RecipeAuditClient extends BaseClient {
         return mapList;
     }
 
-    //app.bindService('eh.auditMedicinesService', 'getAuditmedicinesResult');
-    public List<Map<String, Object>> getAuditmedicinesResult(Integer recipeId) {
-        logger.info("RecipeAuditClient getCheckNotPassDetail param recipeId:{}", recipeId);
-        List<Map<String, Object>> mapList = recipeAuditService.getCheckNotPassDetail(recipeId);
-        logger.info("RecipeAuditClient getCheckNotPassDetail res mapList:{}", JSONUtils.toString(mapList));
-        return mapList;
+    /**
+     * 通过处方号获取智能审方结果
+     *
+     * @param recipeId
+     * @return
+     */
+    public List<AuditMedicinesBean> getAuditMedicineIssuesByRecipeId(int recipeId) {
+        List<AuditMedicinesBean> medicines = iAuditMedicinesService.findMedicinesByRecipeId(recipeId);
+        List<AuditMedicinesBean> list = Lists.newArrayList();
+        if (medicines != null && medicines.size() > 0) {
+            list = ObjectCopyUtils.convert(medicines, AuditMedicinesBean.class);
+            List<AuditMedicineIssueBean> issues = iAuditMedicinesService.findIssueByRecipeId(recipeId);
+            if (issues != null && issues.size() > 0) {
+                List<AuditMedicineIssueBean> issueList;
+                for (AuditMedicinesBean auditMedicinesDTO : list) {
+                    issueList = Lists.newArrayList();
+                    for (AuditMedicineIssueBean auditMedicineIssue : issues) {
+                        if (null != auditMedicineIssue.getMedicineId() && auditMedicineIssue.getMedicineId().equals(auditMedicinesDTO.getId())) {
+                            issueList.add(auditMedicineIssue);
+                        }
+                    }
+                    auditMedicinesDTO.setAuditMedicineIssues(ObjectCopyUtils.convert(issueList, AuditMedicineIssueBean.class));
+                }
+            }
+        }
+        return list;
     }
 
 }
