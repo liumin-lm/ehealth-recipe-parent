@@ -1712,7 +1712,8 @@ public class RecipeOrderService extends RecipeBaseService {
                     && (RecipeStatusEnum.RECIPE_STATUS_HAVE_PAY.getType().equals(recipeStatus)
                     || RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipeStatus))) {
                 //到院取药并且为线下支付的处方
-                if (orderBean.getActualPrice() < orderBean.getRecipeFee().doubleValue()) {
+                RecipeOrder newOrder = orderManager.getRecipeOrderById(orderId);
+                if (newOrder.getActualPrice() < newOrder.getRecipeFee().doubleValue()) {
                     //前端显示文本以实际支付金额为准
                     orderBean.setActualPrice(-1.0);
                 } else {
