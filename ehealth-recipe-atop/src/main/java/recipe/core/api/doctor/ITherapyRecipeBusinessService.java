@@ -75,21 +75,13 @@ public interface ITherapyRecipeBusinessService {
     List<ItemListVO> searchItemListByKeyWord(ItemListVO itemListVO);
 
     /**
-     * HIS作废处方
-     * @param organId
-     * @param recipeCode
-     * @return
+     * 更新诊疗处方信息
+     * @param organId 机构ID
+     * @param recipeCode 处方单号
+     * @param recipeTherapyDTO 诊疗信息
+     * @return 是否成功
      */
-    boolean abolishTherapyRecipeForHis(Integer organId, String recipeCode);
-
-    /**
-     * 诊疗处方缴费通知
-     * @param organId
-     * @param recipeCode
-     * @param recipeTherapyDTO
-     * @return
-     */
-    boolean therapyPayNotice(Integer organId, String recipeCode, RecipeTherapyDTO recipeTherapyDTO);
+    boolean updateTherapyRecipe(Integer organId, String recipeCode, RecipeTherapyDTO recipeTherapyDTO);
 
 
 }

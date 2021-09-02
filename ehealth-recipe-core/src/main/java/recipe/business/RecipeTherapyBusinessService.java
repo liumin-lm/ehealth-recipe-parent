@@ -163,22 +163,10 @@ public class RecipeTherapyBusinessService extends BaseService implements ITherap
     }
 
     @Override
-    public boolean abolishTherapyRecipeForHis(Integer organId, String recipeCode) {
+    public boolean updateTherapyRecipe(Integer organId, String recipeCode, RecipeTherapyDTO recipeTherapyDTO) {
         Recipe recipe = recipeManager.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
         RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyByRecipeId(recipe.getRecipeId());
-        recipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
-        recipeTherapy.setTherapyCancellationType(2);
-        return recipeTherapyManager.updateRecipeTherapy(recipeTherapy);
-    }
-
-    @Override
-    public boolean therapyPayNotice(Integer organId, String recipeCode, RecipeTherapyDTO recipeTherapyDTO) {
-        Recipe recipe = recipeManager.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
-        RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyByRecipeId(recipe.getRecipeId());
-        recipeTherapy.setStatus(TherapyStatusEnum.HADEPAY.getType());
-        recipeTherapy.setTherapyNotice(recipeTherapyDTO.getTherapyNotice());
-        recipeTherapy.setTherapyExecuteDepart(recipeTherapyDTO.getTherapyExecuteDepart());
-        recipeTherapy.setTherapyPayTime(recipeTherapyDTO.getTherapyPayTime());
+        ObjectCopyUtils.copyPropertiesIgnoreNull(recipeTherapyDTO, recipeTherapy);
         return recipeTherapyManager.updateRecipeTherapy(recipeTherapy);
     }
 

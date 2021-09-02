@@ -9,6 +9,7 @@ import recipe.api.open.ITherapyRecipeOpenService;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
+import recipe.enumerate.status.TherapyStatusEnum;
 
 /**
  * 提供复诊关闭调用
@@ -44,7 +45,10 @@ public class TherapyRecipeOpenAtop extends BaseAtop implements ITherapyRecipeOpe
         logger.info("TherapyRecipeOpenAtop abolishTherapyRecipeForHis organId={} recipeCode={}", organId, recipeCode);
         validateAtop(organId, recipeCode);
         try {
-            Boolean result = therapyRecipeBusinessService.abolishTherapyRecipeForHis(organId, recipeCode);
+            RecipeTherapyDTO recipeTherapyDTO = new RecipeTherapyDTO();
+            recipeTherapyDTO.setStatus(TherapyStatusEnum.HADECANCEL.getType());
+            recipeTherapyDTO.setTherapyCancellationType(2);
+            Boolean result = therapyRecipeBusinessService.updateTherapyRecipe(organId, recipeCode, recipeTherapyDTO);
             logger.info("TherapyRecipeOpenAtop abolishTherapyRecipeForHis result = {}", result);
             return result;
         } catch (DAOException e1) {
@@ -61,7 +65,8 @@ public class TherapyRecipeOpenAtop extends BaseAtop implements ITherapyRecipeOpe
         logger.info("TherapyRecipeOpenAtop therapyPayNotice organId={} recipeCode={}, recipeTherapyDTO:{}.", organId, recipeCode, JSON.toJSON(recipeTherapyDTO));
         validateAtop(organId, recipeCode, recipeTherapyDTO);
         try {
-            Boolean result = therapyRecipeBusinessService.therapyPayNotice(organId, recipeCode, recipeTherapyDTO);
+            recipeTherapyDTO.setStatus(TherapyStatusEnum.HADEPAY.getType());
+            Boolean result = therapyRecipeBusinessService.updateTherapyRecipe(organId, recipeCode, recipeTherapyDTO);
             logger.info("TherapyRecipeOpenAtop therapyPayNotice result = {}", result);
             return result;
         } catch (DAOException e1) {
