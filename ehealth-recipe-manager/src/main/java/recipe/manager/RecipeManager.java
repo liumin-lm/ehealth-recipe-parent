@@ -282,7 +282,7 @@ public class RecipeManager extends BaseManager {
     }
 
     /**
-     * 获取处方撤销时间和原因
+     * 获取医生撤销处方时间和原因
      *
      * @param recipeId
      * @return
@@ -292,7 +292,7 @@ public class RecipeManager extends BaseManager {
         String cancelReason = "";
         Date cancelDate = null;
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.REVOKE);
+        List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipeId, RecipeStatusConstant.REVOKE);
         if (CollectionUtils.isNotEmpty(recipeLogs)) {
             cancelReason = recipeLogs.get(0).getMemo();
             cancelDate = recipeLogs.get(0).getModifyDate();

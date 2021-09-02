@@ -203,15 +203,15 @@ public class RevisitRecipeTraceVo implements Serializable {
         @ItemProperty(alias = "电子票据h5地址")
         private String billPictureUrl;
 
-        @ItemProperty(alias = "购药方式")
-        @Dictionary(id = "eh.cdr.dictionary.GiveMode")
-        private Integer giveMode;
+//        @ItemProperty(alias = "购药方式")
+//        @Dictionary(id = "eh.cdr.dictionary.GiveMode")
+//        private Integer giveMode;
 
         @ItemProperty(alias = "订单所属配送方式")
         private String giveModeKey;
 
-//        @ItemProperty(alias = "订单所属配送方式的文案")
-//        private String giveModeText;
+        @ItemProperty(alias = "订单所属配送方式的文案")
+        private String giveModeText;
 
         @ItemProperty(alias = "收货人姓名")
         private String receiver;

@@ -177,6 +177,9 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
                         BeanUtils.copy(recipeCancel, innerRecipeCancel);
                         revisitRecipeTraceVo.setRecipeCancel(innerRecipeCancel);
                     }
+                    //智能审方
+                    //app.bindService('eh.auditMedicinesService', 'getAuditmedicinesResult');
+
                     revisitRecipeTraceVos.add(revisitRecipeTraceVo);
                 }
         );
