@@ -33,6 +33,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.CommonOrder;
 
@@ -455,7 +456,7 @@ public class HisCallBackService {
                 } catch (Exception e) {
                     LOGGER.error("finishRecipesFromHis HIS获取信息更新处方状态时存在相同处方数据,recipeCode:" + recipeCode + ",clinicOrgan:" + organId, e);
                 }
-                if (null != recipe) {
+                if (null != recipe && !RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipe.getStatus())) {
                     // 已支付,只对到院取药的数据更新 未支付,全部都更新
                     String orderCode = recipe.getOrderCode();
                     if (Objects.isNull(orderCode)) {
