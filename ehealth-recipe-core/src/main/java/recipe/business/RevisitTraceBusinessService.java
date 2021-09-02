@@ -158,7 +158,7 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
 
                             //发药药师审核
                             RevisitRecipeTraceVo.GiveUser giveUser = new RevisitRecipeTraceVo.GiveUser();
-                            ApothecaryDTO apothecaryDTO2 = doctorClient.getGiveUser(recipe);
+                            ApothecaryDTO apothecaryDTO2 = doctorClient.getGiveUserDefault(recipe);
                             if (apothecaryDTO2 != null) {
                                 if (null != recipeOrder.getDispensingTime()) {
                                     BeanUtils.copy(apothecaryDTO2, giveUser);
