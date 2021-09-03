@@ -124,6 +124,12 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
                     }
                     ApothecaryDTO apothecaryDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipe.getRecipeId());
                     innerRecipe.setDoctorSign(apothecaryDTO.getDoctorSignImg());
+                    if (new Integer(2).equals(recipe.getRecipeSourceType())) {
+                        innerRecipe.setFromflag(0);
+                    } else {
+                        innerRecipe.setFromflag(1);
+                    }
+
                     revisitRecipeTraceVo.setRecipe(innerRecipe);
                     //Rp
                     obtainRevisitTraceRecipeDetailInfo(revisitRecipeTraceVo, recipeDetailsMap, recipe, recipeDetails);
