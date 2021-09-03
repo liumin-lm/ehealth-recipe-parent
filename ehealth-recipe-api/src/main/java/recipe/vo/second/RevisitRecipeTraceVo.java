@@ -298,10 +298,9 @@ public class RevisitRecipeTraceVo implements Serializable {
         @ItemProperty(alias = "流水号")
         private String tradeNo;
 
-        /**
-         * 退费状态（取payflag展示）
-         */
-        private String status;
+        @ItemProperty(alias = "处方退费当前节点状态")
+        @Dictionary(id = "eh.cdr.dictionary.RecipeRefundNodeStatus")
+        private Integer refundNodeStatus;
     }
 
     /**
