@@ -208,7 +208,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
 
             attr.put("PayBackPrice", payBackPrice);
             try {
-                attr.put("medicalSettleInfo", medicalSettleInfo);
+                attr.put("medicalSettleInfo", new String(Base64.decode(medicalSettleInfo, 1)));
             } catch (Exception e) {
                 logger.error("doBusinessAfterOrderSuccess error busId={}", busId);
             }
