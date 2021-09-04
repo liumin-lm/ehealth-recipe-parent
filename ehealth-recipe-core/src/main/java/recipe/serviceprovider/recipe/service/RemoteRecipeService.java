@@ -158,7 +158,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public void sendSuccess(RecipeBussReqTO request) {
-        RecipeToHisCallbackService service = ApplicationUtils.getRecipeService(RecipeToHisCallbackService.class);
+        LOGGER.info("RemoteRecipeService sendSuccess request ： {} ", JSON.toJSONString(request));
         if (null != request.getData()) {
             HisSendResTO response = (HisSendResTO) request.getData();
 //            service.sendSuccess(response);
