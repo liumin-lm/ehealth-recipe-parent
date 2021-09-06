@@ -2456,6 +2456,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             if (null != havePayRecipe && null != havePayRecipe.getData()) {
                 totalHisRecipe.addAll(havePayRecipe.getData());
             }
+            if (CollectionUtils.isEmpty(totalHisRecipe)) {
+                return false;
+            }
             LOGGER.info("getOfflineEffectiveRecipeFlag totalHisRecipe:{}.", JSONUtils.toString(totalHisRecipe));
             Set<String> registers = totalHisRecipe.stream().filter(hisRecipe -> StringUtils.isNotEmpty(hisRecipe.getRegisteredId())).map(QueryHisRecipResTO::getRegisteredId).collect(Collectors.toSet());
             LOGGER.info("getOfflineEffectiveRecipeFlag registers:{}.", JSONUtils.toString(registers));
