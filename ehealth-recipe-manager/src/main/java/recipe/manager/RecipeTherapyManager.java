@@ -6,11 +6,13 @@ import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeTherapy;
+import ctd.persistence.exception.DAOException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.PatientClient;
 import recipe.common.CommonConstant;
+import recipe.constant.ErrorCode;
 import recipe.dao.RecipeTherapyDAO;
 import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.util.ValidateUtil;
@@ -124,6 +126,20 @@ public class RecipeTherapyManager extends BaseManager {
 
     public Boolean updateRecipeTherapy(RecipeTherapy recipeTherapy) {
         logger.info("RecipeTherapyManager updateRecipeTherapy recipeTherapy:{}.", JSON.toJSONString(recipeTherapy));
+        return recipeTherapyDAO.updateNonNullFieldByPrimaryKey(recipeTherapy);
+    }
+
+    public Boolean abolishTherapyRecipe(Integer recipeId){
+        RecipeTherapy recipeTherapy = recipeTherapyDAO.getByRecipeId(recipeId);
+        if (null == recipeTherapy) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "数据不存在");
+        }
+
+        if (!TherapyStatusEnum.READYSUBMIT.getType().equals(recipeTherapy.getStatus())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "当前状态无法作废");
+        }
+        recipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
+        recipeTherapy.setTherapyCancellationType(4);
         return recipeTherapyDAO.updateNonNullFieldByPrimaryKey(recipeTherapy);
     }
 
