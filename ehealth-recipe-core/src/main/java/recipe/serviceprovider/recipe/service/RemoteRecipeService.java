@@ -2450,10 +2450,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             HisResponseTO<List<QueryHisRecipResTO>> noPayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, null, 1, "");
             //查询已缴费处方
             HisResponseTO<List<QueryHisRecipResTO>> havePayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, null, 2, "");
-            if (null != noPayRecipe) {
+            if (null != noPayRecipe && null != noPayRecipe.getData()) {
                 totalHisRecipe.addAll(noPayRecipe.getData());
             }
-            if (null != havePayRecipe) {
+            if (null != havePayRecipe && null != havePayRecipe.getData()) {
                 totalHisRecipe.addAll(havePayRecipe.getData());
             }
             LOGGER.info("getOfflineEffectiveRecipeFlag totalHisRecipe:{}.", JSONUtils.toString(totalHisRecipe));
