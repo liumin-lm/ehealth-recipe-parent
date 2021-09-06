@@ -580,7 +580,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             //配送类型0院内现场取药不配送 1 医院药房负责配送 2第三方平台配送
             String pslx;
             IDrugsEnterpriseService drugsEnterpriseService = RecipeAPI.getService(IDrugsEnterpriseService.class);
-            switch (recipeBean.getPayMode()) {
+            switch (recipeBean.getGiveMode()) {
                 case 1:
                     //默认医院配送
                     pslx = "1";
@@ -593,10 +593,10 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                         }
                     }
                     break;
-                case 3:
+                case 2:
                     pslx = "0";
                     break;
-                case 4:
+                case 3:
                     //药店取药
                     pslx = "3";
                     break;

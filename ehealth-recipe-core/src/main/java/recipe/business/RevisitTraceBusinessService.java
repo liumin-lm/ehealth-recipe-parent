@@ -9,9 +9,6 @@ import com.ngari.recipe.dto.RecipeCancel;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeStatusConstant;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import ctd.controller.exception.ControllerException;
-import ctd.dictionary.Dictionary;
-import ctd.dictionary.DictionaryController;
 import ctd.net.broadcast.MQHelper;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
@@ -129,7 +126,6 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
                     } else {
                         innerRecipe.setFromflag(1);
                     }
-
                     revisitRecipeTraceVo.setRecipe(innerRecipe);
                     //Rp
                     obtainRevisitTraceRecipeDetailInfo(revisitRecipeTraceVo, recipeDetailsMap, recipe, recipeDetails);
@@ -155,13 +151,21 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
                     if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
                         RecipeOrder recipeOrder = ordersMap.get(recipe.getOrderCode());
                         if (recipeOrder != null) {
+                            List<AccountResult> refundFeeNumbers = new ArrayList<>();
+                            List<AccountResult> payFeeNumbers = new ArrayList<>();
+                            if (StringUtils.isNotEmpty(recipeOrder.getOutTradeNo())) {
+                                List<AccountResult> accountResults = iEasyPayService.queryPaymentDetailByApplyNo(recipeOrder.getOutTradeNo());
+                                if (CollectionUtils.isNotEmpty(accountResults)) {
+                                    refundFeeNumbers = accountResults.stream().filter(AccountResult -> "2".equals(AccountResult.getTradeStatus())).collect(Collectors.toList());
+                                    payFeeNumbers = accountResults.stream().filter(AccountResult -> "1".equals(AccountResult.getTradeStatus())).collect(Collectors.toList());
+                                }
+                            }
                             //患者购药
-                            obtainOrder(revisitRecipeTraceVo, recipeOrder);
+                            obtainOrder(revisitRecipeTraceVo, recipeOrder, payFeeNumbers);
                             //物流 药企发药
                             RevisitRecipeTraceVo.Logistics logistics = new RevisitRecipeTraceVo.Logistics();
                             BeanUtils.copy(recipeOrder, logistics);
                             revisitRecipeTraceVo.setLogistics(logistics);
-
                             //发药药师审核
                             RevisitRecipeTraceVo.GiveUser giveUser = new RevisitRecipeTraceVo.GiveUser();
                             ApothecaryDTO apothecaryDTO2 = doctorClient.getGiveUserDefault(recipe);
@@ -173,23 +177,8 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
                                 }
                             }
                             //退费
-                            List<RecipeRefund> recipeRefunds = recipeRefundDAO.findRefundListByRecipeId(recipe.getRecipeId());
-                            if (CollectionUtils.isNotEmpty(recipeRefunds)) {
-                                RecipeRefund recipeRefund = new RecipeRefund();
-                                recipeRefund = recipeRefunds.get(0);
-                                if (recipeRefund != null) {
-                                    RevisitRecipeTraceVo.RecipeRefund innerRecipeRefund = new RevisitRecipeTraceVo.RecipeRefund();
-                                    BeanUtils.copy(recipeRefund, innerRecipeRefund);
-                                    Dictionary payFlagDic = null;
-                                    try {
-                                        payFlagDic = DictionaryController.instance().get("eh.bus.dictionary.PayFlag");
-                                        innerRecipeRefund.setStatus(payFlagDic.getText(recipeOrder.getPayFlag()));
-                                    } catch (ControllerException e) {
-                                        e.printStackTrace();
-                                    }
-                                    revisitRecipeTraceVo.setRecipeRefund(innerRecipeRefund);
-                                }
-                            }
+                            obtainRecipeRefund(revisitRecipeTraceVo, refundFeeNumbers, recipeId, recipeExtendMap);
+
                         }
                     }
 
@@ -210,12 +199,46 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
     }
 
     /**
+     * 获取追溯平台处方退费信息
+     *
+     * @param revisitRecipeTraceVo
+     * @param refundFeeNumbers
+     * @param recipeId
+     * @param recipeExtendMap
+     */
+    private void obtainRecipeRefund(RevisitRecipeTraceVo revisitRecipeTraceVo, List<AccountResult> refundFeeNumbers, Integer recipeId, Map<Integer, RecipeExtend> recipeExtendMap) {
+        try {
+            List<RecipeRefund> recipeRefunds = recipeRefundDAO.findRefundListByRecipeId(recipeId);
+            if (CollectionUtils.isNotEmpty(recipeRefunds)) {
+                RecipeRefund recipeRefund = new RecipeRefund();
+                recipeRefund = recipeRefunds.get(0);
+                if (recipeRefund != null) {
+                    RevisitRecipeTraceVo.RecipeRefund innerRecipeRefund = new RevisitRecipeTraceVo.RecipeRefund();
+                    BeanUtils.copy(recipeRefund, innerRecipeRefund);
+                    innerRecipeRefund.setRefundNodeStatus(recipeExtendMap.get(recipeId).getRefundNodeStatus());
+                    if (CollectionUtils.isNotEmpty(refundFeeNumbers)) {
+                        AccountResult accountResult = refundFeeNumbers.get(0);
+                        if (accountResult != null) {
+                            innerRecipeRefund.setTradeNo(accountResult.getRefundId());
+                        }
+                    }
+                    revisitRecipeTraceVo.setRecipeRefund(innerRecipeRefund);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            logger.error("obtainRecipeRefund error");
+        }
+    }
+
+    /**
      * 获取患者够药模块数据
      *
      * @param revisitRecipeTraceVo
      * @param recipeOrder
+     * @param payFeeNumbers
      */
-    private void obtainOrder(RevisitRecipeTraceVo revisitRecipeTraceVo, RecipeOrder recipeOrder) {
+    private void obtainOrder(RevisitRecipeTraceVo revisitRecipeTraceVo, RecipeOrder recipeOrder, List<AccountResult> payFeeNumbers) {
         RevisitRecipeTraceVo.Order order = new RevisitRecipeTraceVo.Order();
         BeanUtils.copy(recipeOrder, order);
         String address = orderManager.getCompleteAddress(recipeOrder);
@@ -225,9 +248,8 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
             order.setBillPictureUrl(recipeOrderBill.getBillPictureUrl());
         }
         //55074
-        List<AccountResult> accountResults = iEasyPayService.queryPaymentDetailByApplyNo(recipeOrder.getOutTradeNo());
-        if (CollectionUtils.isNotEmpty(accountResults)) {
-            AccountResult accountResult = accountResults.get(0);
+        if (CollectionUtils.isNotEmpty(payFeeNumbers)) {
+            AccountResult accountResult = payFeeNumbers.get(0);
             if (accountResult != null) {
                 order.setPreSettleTotalAmount(accountResult.getAmount());
                 order.setFundAmount(accountResult.getMedicalAmount());
