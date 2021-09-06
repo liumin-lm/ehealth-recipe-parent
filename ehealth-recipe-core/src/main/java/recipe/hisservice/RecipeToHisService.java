@@ -133,16 +133,18 @@ public class RecipeToHisService {
                                 if (recipeFee.compareTo(BigDecimal.ZERO) > 0){
                                     Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(rep.getRecipeNo(), organId);
                                     RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-                                    Map<String, Object> map = new HashMap<>();
-                                    map.put("recipeFee", recipeFee);
-                                    totalMoney = totalMoney.add(recipeOrder.getAuditFee())
-                                            .add(recipeOrder.getRegisterFee())
-                                            .add(recipeOrder.getTcmFee())
-                                            .add(recipeOrder.getOtherFee())
-                                            .add(recipeFee);
-                                    map.put("totalFee", totalMoney);
-                                    map.put("actualPrice", totalMoney.doubleValue());
-                                    recipeOrderDAO.updateByOrdeCode(recipe.getOrderCode(), map);
+                                    if (null != recipeOrder && !"111".equals(recipeOrder.getWxPayWay())) {
+                                        Map<String, Object> map = new HashMap<>();
+                                        map.put("recipeFee", recipeFee);
+                                        totalMoney = totalMoney.add(recipeOrder.getAuditFee())
+                                                .add(recipeOrder.getRegisterFee())
+                                                .add(recipeOrder.getTcmFee())
+                                                .add(recipeOrder.getOtherFee())
+                                                .add(recipeFee);
+                                        map.put("totalFee", totalMoney);
+                                        map.put("actualPrice", totalMoney.doubleValue());
+                                        recipeOrderDAO.updateByOrdeCode(recipe.getOrderCode(), map);
+                                    }
                                 }
                             }
                         }
