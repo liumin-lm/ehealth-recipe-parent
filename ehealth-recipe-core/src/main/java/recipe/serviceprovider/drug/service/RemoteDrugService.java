@@ -228,9 +228,9 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
             if(null == drugList.getDrugName()){
                 drugList.setDrugName(target.getDrugName());
             }
-            if(null == drugList.getDrugPic()){
+         /*   if(null == drugList.getDrugPic()){
                 drugList.setDrugPic(target.getDrugPic());
-            }
+            }*/
             if(null == drugList.getDrugSpec()){
                 drugList.setDrugSpec(target.getDrugSpec());
             }
