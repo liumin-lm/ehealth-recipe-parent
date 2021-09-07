@@ -1019,7 +1019,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 try {
                     for (SaleDrugList saleDrug : saleDrugLists) {
                         //保留3位小数
-                        total = total.add(saleDrug.getPrice().multiply(new BigDecimal(drugIdCountRel.get(saleDrug.getDrugId()))).divide(BigDecimal.ONE, 2, RoundingMode.UP));
+                        total = total.add(saleDrug.getPrice().multiply(new BigDecimal(drugIdCountRel.get(saleDrug.getDrugId()))).divide(BigDecimal.ONE, 2, BigDecimal.ROUND_HALF_UP));
                     }
                     //重置药企处方价格
                     recipeFee = total;
