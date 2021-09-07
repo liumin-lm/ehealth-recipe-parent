@@ -5,6 +5,7 @@ import com.ngari.recipe.entity.Dispensatory;
 import com.ngari.recipe.vo.SearchDrugReqVo;
 import org.springframework.stereotype.Service;
 import recipe.core.api.IDrugBusinessService;
+import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.DrugManager;
 
 import javax.annotation.Resource;
@@ -24,7 +25,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
 
     @Override
     public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVo searchDrugReqVo) {
-        List<PatientDrugWithEsDTO> patientDrugWithEsDTOS = drugManager.findDrugWithEsByPatient(searchDrugReqVo.getSaleName(), searchDrugReqVo.getOrganId(), Arrays.asList("1", "2"), searchDrugReqVo.getStart(), searchDrugReqVo.getLimit());
+        List<PatientDrugWithEsDTO> patientDrugWithEsDTOS = drugManager.findDrugWithEsByPatient(searchDrugReqVo.getSaleName(), searchDrugReqVo.getOrganId(), Arrays.asList(RecipeTypeEnum.RECIPETYPE_WM.getType().toString(), RecipeTypeEnum.RECIPETYPE_CPM.getType().toString()), searchDrugReqVo.getStart(), searchDrugReqVo.getLimit());
         return patientDrugWithEsDTOS;
     }
 
