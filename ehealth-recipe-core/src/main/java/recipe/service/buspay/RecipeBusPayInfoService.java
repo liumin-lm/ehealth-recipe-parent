@@ -12,6 +12,7 @@ import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.patient.dto.AppointDepartDTO;
+import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.dto.OrganConfigDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.*;
@@ -43,6 +44,7 @@ import eh.entity.bus.pay.SimpleBusObject;
 import eh.entity.mpi.Patient;
 import eh.utils.MapValueUtil;
 import eh.wxpay.constant.PayConstant;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -271,8 +273,14 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 //@ItemProperty(alias = "0:不支付药品费用，1:全部支付 【 1线上支付  非1就是线下支付】")
                 map.put("storePayFlag", drugsEnterpriseBean.getStorePayFlag() == null ? null : drugsEnterpriseBean.getStorePayFlag().toString());
             }
+            HealthCardService healthCardService = BasicAPI.getService(HealthCardService.class);
+            List<HealthCardDTO> list = healthCardService.findByCardOrganAndMpiId(organDTO.getOrganId(), nowRecipeBean.getMpiid());
+            String cardType = "";
+            if (CollectionUtils.isNotEmpty(list)) {
+                cardType = list.get(0).getCardType();
+            }
             // 杭州互联网 支付按钮
-            Integer payButton = buttonManager.getPayButton(nowRecipeBean.getClinicOrgan(), recipeExtend.getCardType(), "0".equals(recipeExtend.getMedicalType()));
+            Integer payButton = buttonManager.getPayButton(nowRecipeBean.getClinicOrgan(), cardType, "0".equals(recipeExtend.getMedicalType()));
             map.put("payButton", payButton.toString());
         }
         return map;
