@@ -3763,10 +3763,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     hql.append(" and r.createDate <= :endTime");
                 }
                 if (organId != null) {
-                    hql.append("and organId =:organId ");
+                    hql.append(" and organId =:organId ");
                 }
                 if (CollectionUtils.isNotEmpty(recipeIds)) {
-                    hql.append("and recipeIds in(:recipeIds) ");
+                    hql.append(" and recipeId in(:recipeIds) ");
                 }
                 Query query = ss.createQuery(hql.toString());
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
