@@ -15,6 +15,7 @@ import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.dao.RecipeTherapyDAO;
 import recipe.enumerate.status.TherapyStatusEnum;
+import recipe.enumerate.type.TherapyCancellationTypeEnum;
 import recipe.util.ValidateUtil;
 
 import java.util.Comparator;
@@ -139,7 +140,7 @@ public class RecipeTherapyManager extends BaseManager {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前状态无法作废");
         }
         recipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
-        recipeTherapy.setTherapyCancellationType(4);
+        recipeTherapy.setTherapyCancellationType(TherapyCancellationTypeEnum.DOCTOR_ABOLISH.getType());
         return recipeTherapyDAO.updateNonNullFieldByPrimaryKey(recipeTherapy);
     }
 
