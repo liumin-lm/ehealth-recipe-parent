@@ -27,6 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import recipe.ApplicationUtils;
 import recipe.dao.*;
 import recipe.mq.OnsConfig;
@@ -38,6 +39,7 @@ import recipe.util.RecipeMsgUtils;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author yu_yun
@@ -305,5 +307,12 @@ public class RecipeTestService {
             map.put("cashAmount",order.getCashAmount());
             recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), map);
         });
+    }
+
+    @RpcService
+    public String getThreadPoolInfo(){
+        ThreadPoolTaskExecutor service = AppContextHolder.getBean("busTaskExecutor", ThreadPoolTaskExecutor.class);
+        ThreadPoolExecutor threadPoolExecutor = service.getThreadPoolExecutor();
+        return "当前线程池排队线程数:"+threadPoolExecutor.getQueue().size()+",当前线程池活动线程数:"+threadPoolExecutor.getActiveCount()+",当前线程池完成线程数:"+threadPoolExecutor.getCompletedTaskCount()+",当前线程池总线程数:"+threadPoolExecutor.getTaskCount();
     }
 }
