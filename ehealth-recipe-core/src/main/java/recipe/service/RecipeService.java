@@ -1738,7 +1738,7 @@ public class RecipeService extends RecipeBaseService {
         if (null != recipeId && recipeId > 0) {
             Integer status = recipeDAO.getStatusByRecipeId(recipeId);
             if (null == status || (status > RecipeStatusConstant.UNSIGN && status != RecipeStatusConstant.HIS_FAIL)) {
-                //throw new DAOException(ErrorCode.SERVICE_ERROR, "处方单已处理,不能重复签名");
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "处方单已处理,不能重复签名");
             }
 
             updateRecipeAndDetail(recipe, details);
@@ -2189,7 +2189,7 @@ public class RecipeService extends RecipeBaseService {
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
         recipe.setRecipeSupportGiveMode(dbRecipe.getRecipeSupportGiveMode());
         if (null == dbRecipe.getStatus() || (dbRecipe.getStatus() > RecipeStatusConstant.UNSIGN) && dbRecipe.getStatus() != RecipeStatusConstant.HIS_FAIL) {
-            //throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不是新处方或者审核失败的处方，不能修改");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不是新处方或者审核失败的处方，不能修改");
         }
 
         int beforeStatus = dbRecipe.getStatus();
