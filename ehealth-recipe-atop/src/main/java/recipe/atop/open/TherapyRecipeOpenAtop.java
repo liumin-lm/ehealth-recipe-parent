@@ -10,6 +10,7 @@ import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.enumerate.status.TherapyStatusEnum;
+import recipe.enumerate.type.TherapyCancellationTypeEnum;
 
 /**
  * 提供复诊关闭调用
@@ -47,7 +48,7 @@ public class TherapyRecipeOpenAtop extends BaseAtop implements ITherapyRecipeOpe
         try {
             RecipeTherapyDTO recipeTherapyDTO = new RecipeTherapyDTO();
             recipeTherapyDTO.setStatus(TherapyStatusEnum.HADECANCEL.getType());
-            recipeTherapyDTO.setTherapyCancellationType(2);
+            recipeTherapyDTO.setTherapyCancellationType(TherapyCancellationTypeEnum.HIS_ABOLISH.getType());
             Boolean result = therapyRecipeBusinessService.updateTherapyRecipe(organId, recipeCode, recipeTherapyDTO);
             logger.info("TherapyRecipeOpenAtop abolishTherapyRecipeForHis result = {}", result);
             return result;

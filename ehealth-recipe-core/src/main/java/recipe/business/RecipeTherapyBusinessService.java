@@ -8,15 +8,14 @@ import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeTherapyDTO;
 import com.ngari.recipe.vo.ItemListVO;
-import ctd.persistence.exception.DAOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import recipe.client.OrganClient;
 import recipe.client.PatientClient;
-import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.enumerate.status.TherapyStatusEnum;
+import recipe.enumerate.type.TherapyCancellationTypeEnum;
 import recipe.manager.*;
 import recipe.vo.doctor.RecipeInfoVO;
 
@@ -122,17 +121,7 @@ public class RecipeTherapyBusinessService extends BaseService implements ITherap
 
     @Override
     public boolean abolishTherapyRecipe(Integer recipeId){
-        RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyByRecipeId(recipeId);
-        if (null == recipeTherapy) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "数据不存在");
-        }
-
-        if (!TherapyStatusEnum.READYSUBMIT.getType().equals(recipeTherapy.getStatus())) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "当前状态无法作废");
-        }
-        recipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
-        recipeTherapy.setTherapyCancellationType(4);
-        return recipeTherapyManager.updateRecipeTherapy(recipeTherapy);
+        return recipeTherapyManager.abolishTherapyRecipe(recipeId);
     }
 
     @Override
@@ -144,7 +133,7 @@ public class RecipeTherapyBusinessService extends BaseService implements ITherap
             if (TherapyStatusEnum.READYSUBMIT.getType().equals(recipeTherapy.getStatus())) {
                 recipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
                 recipeTherapy.setTherapyCancellation("超时未提交");
-                recipeTherapy.setTherapyCancellationType(3);
+                recipeTherapy.setTherapyCancellationType(TherapyCancellationTypeEnum.SYSTEM_CANCEL.getType());
                 recipeTherapyManager.updateRecipeTherapy(recipeTherapy);
             }
         });

@@ -1499,7 +1499,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
     /**
-     * 签名服务（新）
+     * 签名服务（新-平台）
      *
      * @param recipeBean     处方
      * @param detailBeanList 详情

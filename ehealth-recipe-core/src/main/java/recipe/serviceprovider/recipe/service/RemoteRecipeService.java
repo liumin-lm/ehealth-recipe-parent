@@ -97,6 +97,8 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.StandardEnterpriseCallService;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
+import recipe.enumerate.type.BussSourceType;
+import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeRefundConfigEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -2433,26 +2435,32 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @return 是否可以取消复诊  true 不可以 false 可以
      */
     private Boolean getOfflineEffectiveRecipeFlag(Integer bussSource, Integer clinicId) {
-        if (new Integer(1).equals(bussSource)) {
+        if (BussSourceType.BUSSSOURCE_CONSULT.getType().equals(bussSource)) {
             //咨询获取不到挂号序号
             return false;
         }
-        RevisitExDTO revisitExDTO = revisitClient.getByClinicId(clinicId);
-        if (null == revisitExDTO || StringUtils.isEmpty(revisitExDTO.getRegisterNo())) {
-            return false;
-        }
-        RevisitBean revisitBean = revisitClient.getRevisitByClinicId(clinicId);
-        LOGGER.info("getOfflineEffectiveRecipeFlag revisitBean:{}.", JSONUtils.toString(revisitBean));
-        PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(revisitBean.getMpiid());
         try {
+            RevisitExDTO revisitExDTO = revisitClient.getByClinicId(clinicId);
+            if (null == revisitExDTO || StringUtils.isEmpty(revisitExDTO.getRegisterNo())) {
+                return false;
+            }
+            RevisitBean revisitBean = revisitClient.getRevisitByClinicId(clinicId);
+            LOGGER.info("getOfflineEffectiveRecipeFlag revisitBean:{}.", JSONUtils.toString(revisitBean));
+            PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(revisitBean.getMpiid());
             List<QueryHisRecipResTO> totalHisRecipe = new ArrayList<>();
             //查询待缴费处方
             HisResponseTO<List<QueryHisRecipResTO>> noPayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, null, 1, "");
             //查询已缴费处方
             HisResponseTO<List<QueryHisRecipResTO>> havePayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, null, 2, "");
-
-            totalHisRecipe.addAll(noPayRecipe.getData());
-            totalHisRecipe.addAll(havePayRecipe.getData());
+            if (null != noPayRecipe && null != noPayRecipe.getData()) {
+                totalHisRecipe.addAll(noPayRecipe.getData());
+            }
+            if (null != havePayRecipe && null != havePayRecipe.getData()) {
+                totalHisRecipe.addAll(havePayRecipe.getData());
+            }
+            if (CollectionUtils.isEmpty(totalHisRecipe)) {
+                return false;
+            }
             LOGGER.info("getOfflineEffectiveRecipeFlag totalHisRecipe:{}.", JSONUtils.toString(totalHisRecipe));
             Set<String> registers = totalHisRecipe.stream().filter(hisRecipe -> StringUtils.isNotEmpty(hisRecipe.getRegisteredId())).map(QueryHisRecipResTO::getRegisteredId).collect(Collectors.toSet());
             LOGGER.info("getOfflineEffectiveRecipeFlag registers:{}.", JSONUtils.toString(registers));
@@ -2494,7 +2502,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         if (RecipeRefundConfigEnum.HAVE_PAY.getType().equals(statusCode)){
             //判断是否有已支付成功的处方单
             for (RecipeOrder recipeOrder : recipeOrders) {
-                if (new Integer(1).equals(recipeOrder.getPayFlag())) {
+                if (PayFlagEnum.PAYED.getType().equals(recipeOrder.getPayFlag())) {
                     //表示为正常支付成功的处方单,复诊不能退款
                     return true;
                 }
