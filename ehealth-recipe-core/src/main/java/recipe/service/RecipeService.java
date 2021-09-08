@@ -1737,9 +1737,9 @@ public class RecipeService extends RecipeBaseService {
         details.stream().filter(a -> "无特殊煎法".equals(a.getMemo())).forEach(a -> a.setMemo(""));
         if (null != recipeId && recipeId > 0) {
             Integer status = recipeDAO.getStatusByRecipeId(recipeId);
-            if (null == status || (status > RecipeStatusConstant.UNSIGN && status != RecipeStatusConstant.HIS_FAIL)) {
+            /*if (null == status || (status > RecipeStatusConstant.UNSIGN && status != RecipeStatusConstant.HIS_FAIL)) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "处方单已处理,不能重复签名");
-            }
+            }*/
 
             updateRecipeAndDetail(recipe, details);
         } else {
