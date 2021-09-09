@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeOrderBillReqTO;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.pay.model.PayResultDTO;
 import com.ngari.recipe.pay.service.IRecipePayCallBackService;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -27,9 +28,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.constant.CacheConstant;
 import recipe.service.PayModeGiveModeUtil;
 import recipe.serviceprovider.recipelog.service.RemoteRecipeLogService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
+import recipe.util.RedisClient;
 
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +49,8 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
     private RemoteRecipeOrderService recipeOrderService;
     @Autowired
     private RemoteRecipeLogService recipeLogService;
+    @Autowired
+    private RedisClient redisClient;
 
     @Override
     @RpcService
@@ -268,6 +273,26 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
         logger.info("doHandleAfterRefund outTradeNo={},targetPayflag={},refundResult={}",order.getOutTradeNo(),targetPayflag, JSONArray.toJSONString(refundResult));
         // 处方
         RecipeOrderBean recipeOrderBean = recipeOrderService.getByOutTradeNo(order.getOutTradeNo());
+
+        //接口组存在同步和异步两种方式调用该接口，导致上传监管平台信息重复，故做幂等性判断
+        //判断是否存在分布式锁
+        String outTradeNo = recipeOrderBean.getOutTradeNo();
+        Integer payFlag = recipeOrderBean.getPayFlag();
+        if(StringUtils.isNotEmpty(outTradeNo)){
+            String lockKey = CacheConstant.KEY_PAY_REFUND_LOCK + outTradeNo;
+            boolean unlock = lock(lockKey);
+            if (unlock) {
+                //加锁成功：根据数据库查询到的信息做幂等
+                if(new Integer(3).equals(payFlag) || new Integer(4).equals(payFlag)){
+                    return true;
+                }
+            } else {
+                //加锁失败：说明该退费申请已调用过
+                return true;
+            }
+        }
+
+
         recipeOrderService.finishOrderPay(recipeOrderBean.getOrderCode(), targetPayflag, RecipeConstant.PAYMODE_ONLINE);
         StringBuilder memo = new StringBuilder("订单=" + recipeOrderBean.getOrderCode() + " ");
         switch (targetPayflag) {
@@ -292,5 +317,9 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
         //更新处方日志
         updateRecipePayLog(recipeOrderBean, memo.toString());
         return true;
+    }
+
+    private boolean lock(String lockKey) {
+        return redisClient.setNX(lockKey, "true") && redisClient.setex(lockKey, 30L);
     }
 }
