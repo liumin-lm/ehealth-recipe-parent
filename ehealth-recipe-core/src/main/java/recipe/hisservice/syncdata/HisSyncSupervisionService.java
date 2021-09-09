@@ -51,7 +51,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.EleInvoiceDTO;
 import recipe.bussutil.RecipeUtil;
-import recipe.client.DocIndexClient;
 import recipe.client.DoctorClient;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
@@ -85,8 +84,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     private IAuditMedicinesService iAuditMedicinesService;
     @Autowired
     private DoctorClient doctorClient;
-    @Autowired
-    private DocIndexClient docIndexClient;
     @Autowired
     private ISignRecipeInfoService signRecipeInfoService;
     @Resource
@@ -247,6 +244,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setOrganizeCode(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
             req.setOrganName(organDTO.getName());
 
+            if (null != recipe.getOldRecipeId() && 0 != recipe.getOldRecipeId()) {
+                req.setOldRecipeId(recipe.getOldRecipeId());
+                Recipe oldRecipe = recipeDAO.getByRecipeId(recipe.getOldRecipeId());
+                req.setOldRecipeUniqueId(oldRecipe.getRecipeCode());
+            }
             //科室处理
             departmentDTO = departMap.get(recipe.getDepart());
             if (null == departmentDTO) {
