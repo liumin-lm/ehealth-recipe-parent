@@ -35,6 +35,7 @@ import recipe.service.RecipeLogService;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -55,6 +56,8 @@ public class RecipeToHisService {
     private RecipeDAO recipeDAO;
     @Autowired
     private IRecipeHisService hisService;
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
 
 
     public void recipeSend(RecipeSendRequestTO request) {
@@ -107,19 +110,43 @@ public class RecipeToHisService {
                     Integer isPay = StringUtils.isEmpty(rep.getIsPay()) ? Integer.valueOf(0) : Integer.valueOf(rep.getIsPay());
                     Integer recipeStatus = StringUtils.isEmpty(rep.getRecipeStatus())  ? Integer.valueOf(0) : Integer.valueOf(rep.getRecipeStatus());
                     Integer phStatus = StringUtils.isEmpty(rep.getPhStatus()) ? Integer.valueOf(0) : Integer.valueOf(rep.getPhStatus());
+
                     if (recipeStatus == 1) {
                         busStatus = RecipeStatusConstant.CHECK_PASS;
-                        //有效的处方单已支付 未发药 为已支付状态
-                        if (isPay == 1 && phStatus == 0) {
-                            busStatus = RecipeStatusConstant.HAVE_PAY;
-                            payList.add(rep.getRecipeNo());
-                            HisCallBackService.havePayRecipesFromHis(payList, organId);
-                        }
-                        //有效的处方单已支付 已发药 为已完成状态
-                        if (isPay == 1 && phStatus == 1) {
-                            busStatus = RecipeStatusConstant.FINISH;
-                            finishList.add(rep.getRecipeNo());
-                            HisCallBackService.finishRecipesFromHis(finishList, organId);
+
+                        if (isPay == 1) {
+                            if (phStatus == 0) {
+                                //有效的处方单已支付 未发药 为已支付状态
+                                busStatus = RecipeStatusConstant.HAVE_PAY;
+                                payList.add(rep.getRecipeNo());
+                                HisCallBackService.havePayRecipesFromHis(payList, organId);
+                            } else if (phStatus == 1) {
+                                //有效的处方单已支付 已发药 为已完成状态
+                                busStatus = RecipeStatusConstant.FINISH;
+                                finishList.add(rep.getRecipeNo());
+                                HisCallBackService.finishRecipesFromHis(finishList, organId);
+                            }
+                            //已支付的处方单,将线下处方支付的金额覆盖线上的处方金额
+                            if (StringUtils.isNotEmpty(rep.getAmount())) {
+                                BigDecimal recipeFee = new BigDecimal(rep.getAmount());
+                                BigDecimal totalMoney = new BigDecimal(0.00);
+                                if (recipeFee.compareTo(BigDecimal.ZERO) > 0){
+                                    Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(rep.getRecipeNo(), organId);
+                                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                                    if (null != recipeOrder && !"111".equals(recipeOrder.getWxPayWay())) {
+                                        Map<String, Object> map = new HashMap<>();
+                                        map.put("recipeFee", recipeFee);
+                                        totalMoney = totalMoney.add(recipeOrder.getAuditFee())
+                                                .add(recipeOrder.getRegisterFee())
+                                                .add(recipeOrder.getTcmFee())
+                                                .add(recipeOrder.getOtherFee())
+                                                .add(recipeFee);
+                                        map.put("totalFee", totalMoney);
+                                        map.put("actualPrice", totalMoney.doubleValue());
+                                        recipeOrderDAO.updateByOrdeCode(recipe.getOrderCode(), map);
+                                    }
+                                }
+                            }
                         }
                     }
                 }

@@ -16,7 +16,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.platform.recipe.mode.RecipeOrderBean;
-import com.ngari.recipe.dto.EmrDetail;
+import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
@@ -305,7 +305,7 @@ public class HisRequestInit {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         try {
-            EmrDetail emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
+            EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
             requestTO.setIcdCode(emrDetail.getOrganDiseaseId());
             requestTO.setIcdName(emrDetail.getOrganDiseaseName());
             requestTO.setSymptomValue(ObjectCopyUtils.convert(emrDetail.getSymptomValue(), EmrDetailValueDTO.class));

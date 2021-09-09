@@ -6,7 +6,6 @@ import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
 
@@ -236,6 +235,11 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias = "单个药品医保类型")
     private Integer drugMedicalFlag;
 
+    /**
+     * 类型：1:药品，2:诊疗项目，3....
+     */
+    private Integer type;
+
     public String getEntrustmentId() {
         return entrustmentId;
     }
@@ -258,54 +262,6 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setUseDaysB(String useDaysB) {
         this.useDaysB = useDaysB;
-    }
-
-    public RecipeDetailBean() {
-    }
-
-    public RecipeDetailBean(Integer recipeId, Integer drugId, String drugName,
-                        String drugSpec, String drugUnit, Double sendNumber, BigDecimal drugCost) {
-        this.recipeId = recipeId;
-        this.drugId = drugId;
-        this.drugName = drugName;
-        this.drugSpec = drugSpec;
-        this.drugUnit = drugUnit;
-        this.sendNumber = sendNumber;
-        this.drugCost = drugCost;
-    }
-
-    public RecipeDetailBean(Integer recipeId, String drugGroup, Integer drugId,
-                        String organDrugCode, String drugName, String drugSpec,
-                        String drugUnit, Double useDose, String useDoseUnit,
-                        String usingRate, String usePathways, Double useTotalDose, Double sendNumber,
-                        Integer useDays, BigDecimal salePrice, BigDecimal drugCost, String memo,
-                        Timestamp createDt, Timestamp lastModify, Timestamp validDate,
-                        String drugBatch, String drugCode, BigDecimal price, Double rate, BigDecimal ratePrice) {
-        this.recipeId = recipeId;
-        this.drugGroup = drugGroup;
-        this.drugId = drugId;
-        this.organDrugCode = organDrugCode;
-        this.drugName = drugName;
-        this.drugSpec = drugSpec;
-        this.drugUnit = drugUnit;
-        this.useDose = useDose;
-        this.useDoseUnit = useDoseUnit;
-        this.usingRate = usingRate;
-        this.usePathways = usePathways;
-        this.useTotalDose = useTotalDose;
-        this.sendNumber = sendNumber;
-        this.useDays = useDays;
-        this.salePrice = salePrice;
-        this.drugCost = drugCost;
-        this.memo = memo;
-        this.createDt = createDt;
-        this.lastModify = lastModify;
-        this.validDate = validDate;
-        this.drugBatch = drugBatch;
-        this.drugCode = drugCode;
-        this.price = price;
-        this.rate = rate;
-        this.ratePrice = ratePrice;
     }
 
     public String getProducer() {
@@ -832,5 +788,13 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setDrugMedicalFlag(Integer drugMedicalFlag) {
         this.drugMedicalFlag = drugMedicalFlag;
+    }
+
+    public Integer getType() {
+        return type;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
     }
 }

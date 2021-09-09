@@ -17,7 +17,7 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.dto.GroupRecipeConf;
+import com.ngari.recipe.dto.GroupRecipeConfDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.constant.RecipeListTabStatusEnum;
@@ -751,6 +751,7 @@ public class RecipeListService extends RecipeBaseService {
                 Map<String, Object> map = Maps.newHashMap();
                 //设置处方具体药品名称---取第一个药
                 List<Recipedetail> recipedetails = recipeDetailMap.get(recipe.getRecipeId());
+                List<HisRecipeDetailBean> collect1 = new ArrayList<>();
                 if (CollectionUtils.isNotEmpty(recipedetails)) {
                     //这里反向取一下要，前面跌倒了
                     recipe.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipeDrugName(recipedetails.get(recipedetails.size() - 1), recipe.getRecipeType(), recipe.getClinicOrgan()));
@@ -761,21 +762,20 @@ public class RecipeListService extends RecipeBaseService {
                     }
 
                     PharmacyTcm finalPharmacyTcm = pharmacyTcm;
-                    List<HisRecipeDetailBean> collect1 = recipedetails.stream().map(recipeDetail -> {
+                    collect1 = recipedetails.stream().map(recipeDetail -> {
                         HisRecipeDetailBean convert = ObjectCopyUtils.convert(recipeDetail, HisRecipeDetailBean.class);
                         if (Objects.nonNull(finalPharmacyTcm)) {
                             convert.setPharmacyCode(finalPharmacyTcm.getPharmacyCode());
                         }
                         return convert;
                     }).collect(Collectors.toList());
-                    map.put("recipe", RecipeServiceSub.convertRecipeForRAPNew(recipe, collect1));
                 }
                 recipe.setRecipeShowTime(recipe.getCreateDate());
                 //添加订单的状态
                 Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy2(recipe.getStatus(), recipe, null, (orderStatus == null || 0 >= orderStatus.size()) ? null : orderStatus.get(recipe.getOrderCode()), refundIdMap.get(recipe.getRecipeId()));
 
                 recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
-
+                map.put("recipe", RecipeServiceSub.convertRecipeForRAPNew(recipe, collect1));
                 map.put("patient", patient);
                 LOGGER.info("instanceRecipesAndPatient map:{}", JSONUtils.toString(map));
                 list.add(map);
@@ -968,16 +968,16 @@ public class RecipeListService extends RecipeBaseService {
             LOGGER.error("findRecipesForPatientAndTabStatusNew {}tab没有查询到order的状态列表", tabStatus);
             return patientTabStatusMergeRecipeDTOS;
         }
-        GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
-        Boolean mergeRecipeFlag = groupRecipeConf.getMergeRecipeFlag();
-        String mergeRecipeWayAfter = groupRecipeConf.getMergeRecipeWayAfter();
+        GroupRecipeConfDTO groupRecipeConfDTO = groupRecipeManager.getMergeRecipeSetting();
+        Boolean mergeRecipeFlag = groupRecipeConfDTO.getMergeRecipeFlag();
+        String mergeRecipeWayAfter = groupRecipeConfDTO.getMergeRecipeWayAfter();
         if (RecipeListTabStatusEnum.ON_READY.getText().equals(tabStatus)) {
             // 待处理的走原来老的方法
             patientTabStatusMergeRecipeDTOS = getRecipeByOnReady(mergeRecipeFlag, allMpiIds, index, limit, tabStatus, mergeRecipeWayAfter, recipeStatusList, orderStatusList);
         } else if (RecipeListTabStatusEnum.ON_GOING.getText().equals(tabStatus) ||
                 RecipeListTabStatusEnum.ON_OVER.getText().equals(tabStatus)) {
             // 已处理跟已完成 走 新的逻辑,合并处方展示仅看是否同一订单
-            patientTabStatusMergeRecipeDTOS = getRecipeByGoingAndOver(patientTabStatusMergeRecipeDTOS, allMpiIds, index, limit, tabStatus, recipeStatusList, groupRecipeConf);
+            patientTabStatusMergeRecipeDTOS = getRecipeByGoingAndOver(patientTabStatusMergeRecipeDTOS, allMpiIds, index, limit, tabStatus, recipeStatusList, groupRecipeConfDTO);
         }
         LOGGER.info("findRecipesForPatientAndTabStatusNew res={}", JSONUtils.toString(patientTabStatusMergeRecipeDTOS));
         return patientTabStatusMergeRecipeDTOS;
@@ -995,7 +995,7 @@ public class RecipeListService extends RecipeBaseService {
      * @param recipeStatusList
      * @return
      */
-    private List<PatientTabStatusMergeRecipeDTO> getRecipeByGoingAndOver(List<PatientTabStatusMergeRecipeDTO> result, List<String> allMpiIds, Integer index, Integer limit, String tabStatus, TabStatusEnumNew recipeStatusList, GroupRecipeConf groupRecipeConf) {
+    private List<PatientTabStatusMergeRecipeDTO> getRecipeByGoingAndOver(List<PatientTabStatusMergeRecipeDTO> result, List<String> allMpiIds, Integer index, Integer limit, String tabStatus, TabStatusEnumNew recipeStatusList, GroupRecipeConfDTO groupRecipeConfDTO) {
         List<RecipeListBean> recipeListByMPIId = recipeDAO.findRecipeListByMPIId(allMpiIds, index, limit, tabStatus, recipeStatusList.getStatusList());
         LOGGER.info("getRecipeByGoingAndOver recipeListByMPIId = {}", recipeListByMPIId);
         if (CollectionUtils.isEmpty(recipeListByMPIId)) {
@@ -1003,8 +1003,8 @@ public class RecipeListService extends RecipeBaseService {
         }
         Map<String, List<RecipeListBean>> orderMap = recipeListByMPIId.stream().filter(recipeListBean -> recipeListBean.getOrderCode() != null).collect(Collectors.groupingBy(RecipeListBean::getOrderCode));
         Set<Integer> recipeIds = new HashSet<>();
-        Boolean mergeRecipeFlag = groupRecipeConf.getMergeRecipeFlag();
-        String mergeRecipeWayAfter = groupRecipeConf.getMergeRecipeWayAfter();
+        Boolean mergeRecipeFlag = groupRecipeConfDTO.getMergeRecipeFlag();
+        String mergeRecipeWayAfter = groupRecipeConfDTO.getMergeRecipeWayAfter();
         recipeListByMPIId.forEach(recipeListBean -> {
             if (!recipeIds.contains(recipeListBean.getRecipeId())) {
                 PatientTabStatusMergeRecipeDTO patientTabStatusMergeRecipeDTO = new PatientTabStatusMergeRecipeDTO();
@@ -1767,7 +1767,7 @@ public class RecipeListService extends RecipeBaseService {
 
         List<Map<String, Object>> list = new ArrayList<>(0);
         List<Recipe> recipeList = recipeDAO.findRecipesByTabstatusForDoctorNew(doctorId, start, limit, tapStatus);
-        LOGGER.info("findRecipesForDoctorByTapstatusNew recipeList size={}", recipeList.size());
+        LOGGER.info("findRecipesForDoctorByTapstatusNew size={}", recipeList.size());
         if (CollectionUtils.isNotEmpty(recipeList)) {
             List<String> patientIds = new ArrayList<>(0);
             Map<Integer, RecipeBean> recipeMap = Maps.newHashMap();
@@ -1793,7 +1793,7 @@ public class RecipeListService extends RecipeBaseService {
                     //未签名显示实时
                     if (RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType().equals(recipe.getStatus())) {
                         //如果是中药暂存只取药品名显示
-                        if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
+                        if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
                             recipe.setRecipeDrugName(DrugNameDisplayUtil.dealwithRecipeDrugName(recipedetails.get(0), recipe.getRecipeType(), recipe.getClinicOrgan()));
                         } else {
                             //剂型获取---暂存重新获取配置药品名由于Recipedetail没有剂型要重新获取一遍
@@ -1848,7 +1848,7 @@ public class RecipeListService extends RecipeBaseService {
                 list.add(map);
             }
         }
-
+        LOGGER.info("findRecipesForDoctorByTapstatusNew list={}", list.size());
         return list;
     }
 

@@ -4,6 +4,8 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.recipe.dto.EmrDetailDTO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -13,9 +15,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.client.DocIndexClient;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
-import recipe.dao.*;
+import recipe.client.RevisitClient;
+import recipe.dao.HisRecipeDAO;
+import recipe.dao.HisRecipeDetailDAO;
+import recipe.dao.HisRecipeExtDAO;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.util.MapValueUtil;
@@ -34,39 +40,22 @@ import java.util.stream.Collectors;
 public class HisRecipeManager extends BaseManager {
 
     private final Logger LOGGER = LoggerFactory.getLogger(this.getClass());
-
     @Autowired
-    PatientClient patientClient;
-
+    private DocIndexClient docIndexClient;
     @Autowired
-    OfflineRecipeClient offlineRecipeClient;
-
+    private PatientClient patientClient;
     @Autowired
-    HisRecipeDAO hisRecipeDao;
-
+    private OfflineRecipeClient offlineRecipeClient;
+    @Autowired
+    private HisRecipeDAO hisRecipeDao;
     @Autowired
     private HisRecipeExtDAO hisRecipeExtDAO;
-
     @Autowired
     private HisRecipeDetailDAO hisRecipeDetailDAO;
-
-    @Autowired
-    private RecipeDAO recipeDAO;
-
-    @Autowired
-    private RecipeOrderDAO recipeOrderDAO;
-
-    @Autowired
-    private RecipeExtendDAO recipeExtendDAO;
-
-    @Autowired
-    private RecipeDetailDAO recipeDetailDAO;
-
-    @Autowired
-    private RecipeLogDAO recipeLogDao;
-
     @Autowired
     private EmrRecipeManager emrRecipeManager;
+    @Autowired
+    private RevisitClient revisitClient;
 
 
     /**
@@ -113,7 +102,7 @@ public class HisRecipeManager extends BaseManager {
         List<QueryHisRecipResTO> queryHisRecipResTos = responseTo.getData();
         List<QueryHisRecipResTO> queryHisRecipResToFilters = new ArrayList<>();
         //获取详情时防止前置机没过滤数据，做过滤处理
-        if (responseTo != null && recipeCode != null) {
+        if (StringUtils.isNotEmpty(recipeCode)) {
             logger.info("HisRecipeManager queryHisRecipeInfo recipeCode:{}", recipeCode);
             //详情
             if (!CollectionUtils.isEmpty(queryHisRecipResTos)) {
@@ -127,7 +116,7 @@ public class HisRecipeManager extends BaseManager {
             responseTo.setData(queryHisRecipResToFilters);
         }
         //列表
-        if (responseTo != null && recipeCode == null) {
+        if (StringUtils.isNotEmpty(recipeCode)) {
             //对状态过滤(1、测试桩会返回所有数据，不好测试，对测试造成干扰 2、也可以做容错处理)
             if (!CollectionUtils.isEmpty(queryHisRecipResTos)) {
                 for (QueryHisRecipResTO queryHisRecipResTo : queryHisRecipResTos) {
@@ -154,19 +143,6 @@ public class HisRecipeManager extends BaseManager {
         return hisRecipeDao.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, clinicOrgan, recipeCode);
     }
 
-    /**
-     * 获取未处理的线下处方
-     *
-     * @param clinicOrgan
-     * @param recipeCodeList
-     * @return
-     */
-    public List<HisRecipe> findNoDealHisRecipe(Integer clinicOrgan, List<String> recipeCodeList) {
-        LOGGER.info("HisRecipeManager findNoDealHisRecipe param clinicOrgan:{},recipeCodeList:{}", clinicOrgan, JSONUtils.toString(recipeCodeList));
-        List<HisRecipe> hisRecipes = hisRecipeDao.findNoDealHisRecipe(clinicOrgan, recipeCodeList);
-        LOGGER.info("HisRecipeManager findNoDealHisRecipe res hisRecipes:{}", JSONUtils.toString(hisRecipes));
-        return hisRecipes;
-    }
 
     /**
      * 更新诊断字段
@@ -274,6 +250,8 @@ public class HisRecipeManager extends BaseManager {
             recipeLog.setAfterStatus(RecipeStatusEnum.RECIPE_STATUS_DELETE.getType());
             recipeLog.setMemo("线下转线上：修改处方状态为已删除,数据是：" + JSONUtils.toString(recipeMap.get(a)));
             recipeLogDao.saveRecipeLog(recipeLog);
+            revisitClient.deleteByBusIdAndBusNumOrder(a);
+//            RecipeBusiThreadPool.execute(() -> revisitClient.deleteByBusIdAndBusNumOrder(a));
         });
         LOGGER.info("HisRecipeManager deleteSetRecipeCode is delete end ");
     }
@@ -473,5 +451,25 @@ public class HisRecipeManager extends BaseManager {
         HisRecipe hisRecipe = hisRecipeDao.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(mpiId, organId, recipeCode);
         LOGGER.info("HisRecipeManager obatainHisRecipeByOrganIdAndMpiIdAndRecipeCode hisRecipe:{}", JSONUtils.toString(hisRecipe));
         return hisRecipe;
+    }
+
+
+    /**
+     * 推送处方给his
+     *
+     * @param recipePdfDTO  处方信息
+     * @param pushType      推送类型: 1：提交处方，2:撤销处方
+     * @param pharmacyIdMap 药房
+     * @return
+     * @throws Exception
+     */
+    public RecipeInfoDTO pushTherapyRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
+        RecipeExtend recipeExtend = recipePdfDTO.getRecipeExtend();
+        Integer docIndexId = null;
+        if (null != recipeExtend) {
+            docIndexId = recipeExtend.getDocIndexId();
+        }
+        EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(docIndexId);
+        return offlineRecipeClient.pushTherapyRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
     }
 }

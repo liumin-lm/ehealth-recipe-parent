@@ -2,7 +2,7 @@ package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
-import com.ngari.recipe.dto.GroupRecipeConf;
+import com.ngari.recipe.dto.GroupRecipeConfDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import org.apache.commons.collections.CollectionUtils;
@@ -10,8 +10,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.IConfigurationClient;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeOrderDAO;
 
 import java.util.HashSet;
 import java.util.List;
@@ -25,10 +23,6 @@ import java.util.stream.Collectors;
  */
 @Service
 public class GroupRecipeManager extends BaseManager {
-    @Autowired
-    private RecipeOrderDAO recipeOrderDAO;
-    @Autowired
-    private RecipeDAO recipeDAO;
     @Autowired
     private ICurrentUserInfoService currentUserInfoService;
     @Autowired
@@ -71,9 +65,9 @@ public class GroupRecipeManager extends BaseManager {
      *
      * @return 合并支付的配制项
      */
-    public GroupRecipeConf getMergeRecipeSetting() {
+    public GroupRecipeConfDTO getMergeRecipeSetting() {
         List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
-        GroupRecipeConf result = new GroupRecipeConf(false, "e.registerId");
+        GroupRecipeConfDTO result = new GroupRecipeConfDTO(false, "e.registerId");
         logger.info("GroupRecipeManager getMergeRecipeSetting organIds={}", JSON.toJSONString(organIds));
         if (CollectionUtils.isEmpty(organIds)) {
             return result;

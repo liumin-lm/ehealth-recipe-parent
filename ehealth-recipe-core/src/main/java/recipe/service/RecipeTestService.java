@@ -22,10 +22,12 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.msg.constant.MqConstant;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import recipe.ApplicationUtils;
 import recipe.dao.*;
 import recipe.mq.OnsConfig;
@@ -37,6 +39,7 @@ import recipe.util.RecipeMsgUtils;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author yu_yun
@@ -156,28 +159,28 @@ public class RecipeTestService {
     }
 
     @RpcService
-    public void insertDrugCategoryByOrganId(Integer organId, String createDate){
+    public void insertDrugCategoryByOrganId(Integer organId, String createDate) {
         List<RegulationDrugCategoryReq> drugCategoryReqs = new ArrayList<>();
         IRegulationService hisService =
                 AppDomainContext.getBean("his.regulationService", IRegulationService.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndCreateDt(organId, DateConversion.parseDate(createDate,"yyyy-MM-dd HH:mm:ss"));
+        List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndCreateDt(organId, DateConversion.parseDate(createDate, "yyyy-MM-dd HH:mm:ss"));
         LOGGER.info("RecipeTestService-insertDrugCategoryByOrganId organDrugLists count:{}.", organDrugLists.size());
         for (OrganDrugList organDrugList : organDrugLists) {
             RegulationDrugCategoryReq drugCategoryReq = packingDrugCategoryReq(organDrugList);
             drugCategoryReqs.add(drugCategoryReq);
 
-            try{
-                HisResponseTO hisResponseTO = hisService.uploadDrugCatalogue(organDrugList.getOrganId(),drugCategoryReqs);
+            try {
+                HisResponseTO hisResponseTO = hisService.uploadDrugCatalogue(organDrugList.getOrganId(), drugCategoryReqs);
                 LOGGER.info("RecipeTestService-insertDrugCategoryByOrganId hisResponseTO parames:" + JSONUtils.toString(hisResponseTO));
-            }catch (Exception e){
+            } catch (Exception e) {
                 LOGGER.error("RecipeTestService-insertDrugCategoryByOrganId hisResponseTO error:" + JSONUtils.toString(organDrugList) + JSONUtils.toString(e.getStackTrace()));
             }
         }
 
     }
 
-    private RegulationDrugCategoryReq packingDrugCategoryReq(OrganDrugList organDrugList){
+    private RegulationDrugCategoryReq packingDrugCategoryReq(OrganDrugList organDrugList) {
         OrganService organService = BasicAPI.getService(OrganService.class);
         IMinkeOrganService minkeOrganService = AppContextHolder.getBean("jgpt.minkeOrganService", IMinkeOrganService.class);
         OrganDTO organ = organService.getByOrganId(organDrugList.getOrganId());
@@ -190,9 +193,9 @@ public class RecipeTestService {
         drugCategoryReq.setOrganID(organId);
         drugCategoryReq.setOrganName(organ.getName());
         Integer targetDrugId = compareDrugDAO.findTargetDrugIdByOriginalDrugId(organDrugList.getDrugId());
-        if (targetDrugId != null){
+        if (targetDrugId != null) {
             drugCategoryReq.setPlatDrugCode(targetDrugId.toString());
-        }else {
+        } else {
             drugCategoryReq.setPlatDrugCode(organDrugList.getDrugId().toString());
         }
         drugCategoryReq.setPlatDrugName(organDrugList.getDrugName());
@@ -208,7 +211,7 @@ public class RecipeTestService {
 
         drugCategoryReq.setHospDrugManuf(organDrugList.getProducer());
 
-        drugCategoryReq.setUseFlag(organDrugList.getStatus()+"");
+        drugCategoryReq.setUseFlag(organDrugList.getStatus() + "");
         if (drugList == null) {
             drugCategoryReq.setDrugClass("1901");
         } else {
@@ -221,14 +224,14 @@ public class RecipeTestService {
     }
 
     @RpcService
-    public Integer updateIn(Integer organId, Integer drugId, Double userTotalDose){
+    public Integer updateIn(Integer organId, Integer drugId, Double userTotalDose) {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         BigDecimal totalDose = new BigDecimal(userTotalDose);
         return saleDrugListDAO.updateInventoryByOrganIdAndDrugId(organId, drugId, totalDose);
     }
 
     @RpcService
-    public void insertOrganDrugList(Integer organId, Integer targetOrganId, String date){
+    public void insertOrganDrugList(Integer organId, Integer targetOrganId, String date) {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganId(organId);
         for (OrganDrugList organDrugList : organDrugLists) {
@@ -241,7 +244,7 @@ public class RecipeTestService {
     }
 
     @RpcService
-    public void saveOrUpdateRecipeParames(RecipeParameter recipeParameter, Integer flag){
+    public void saveOrUpdateRecipeParames(RecipeParameter recipeParameter, Integer flag) {
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         if (1 == flag) {
             recipeParameterDao.save(recipeParameter);
@@ -251,7 +254,7 @@ public class RecipeTestService {
     }
 
     @RpcService
-    public void updateRecipeOrder(String orderCode){
+    public void updateRecipeOrder(String orderCode) {
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         Map map = new HashMap<>();
         map.put("status", 1);
@@ -277,10 +280,11 @@ public class RecipeTestService {
 
     /**
      * 手动物流下单
+     *
      * @param orderCode 订单编号
      */
     @RpcService
-    public void onlineOrder(String orderCode){
+    public void onlineOrder(String orderCode) {
         RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
         List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
         List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
@@ -288,5 +292,27 @@ public class RecipeTestService {
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
         RecipeResultBean result = RecipeResultBean.getSuccess();
         hisService.recipeDrugTake(recipes.get(0).getRecipeId(), order.getPayFlag(), result);
+    }
+
+    /**
+     * 迁移ext数据
+     */
+    @RpcService
+    public void moveOldData() {
+        List<RecipeOrder> moveData = recipeDAO.findMoveData();
+        moveData.forEach(order -> {
+            Map<String, Double> map = new HashMap<>();
+            map.put("preSettleTotalAmount",order.getPreSettletotalAmount());
+            map.put("fundAmount",order.getFundAmount());
+            map.put("cashAmount",order.getCashAmount());
+            recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), map);
+        });
+    }
+
+    @RpcService
+    public String getThreadPoolInfo(){
+        ThreadPoolTaskExecutor service = AppContextHolder.getBean("busTaskExecutor", ThreadPoolTaskExecutor.class);
+        ThreadPoolExecutor threadPoolExecutor = service.getThreadPoolExecutor();
+        return "当前线程池排队线程数:"+threadPoolExecutor.getQueue().size()+",当前线程池活动线程数:"+threadPoolExecutor.getActiveCount()+",当前线程池完成线程数:"+threadPoolExecutor.getCompletedTaskCount()+",当前线程池总线程数:"+threadPoolExecutor.getTaskCount();
     }
 }

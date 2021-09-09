@@ -1,7 +1,9 @@
 package recipe.presettle;
 
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.google.gson.JsonArray;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
@@ -50,6 +52,7 @@ public class MedicalPreSettleService implements IRecipePreSettleService {
     private static final Logger LOGGER = LoggerFactory.getLogger(MedicalPreSettleService.class);
     @Override
     public Map<String, Object> recipePreSettle(Integer recipeId, Map<String, Object> extInfo) {
+        LOGGER.info("MedicalPreSettleService.recipePreSettle req recipeId={} extInfo={}",recipeId, JSONArray.toJSONString(extInfo));
         Map<String, Object> result = Maps.newHashMap();
         result.put("code", "-1");
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);

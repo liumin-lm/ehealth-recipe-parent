@@ -18,7 +18,7 @@ import java.util.Date;
 public class RecipeExtend implements Serializable {
 
     private static final long serialVersionUID = -7396436464542532302L;
-    
+
     @ItemProperty(alias = "处方ID")
     private Integer recipeId;
 
@@ -40,7 +40,9 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "发病日期")
     private Date onsetDate;
 
-    /**互联网医院字段*/
+    /**
+     * 互联网医院字段
+     */
     @ItemProperty(alias = "现病史")
     private String historyOfPresentIllness;
 
@@ -51,23 +53,25 @@ public class RecipeExtend implements Serializable {
     private String physicalCheck;
 
     @ItemProperty(alias = "HIS处方关联的卡类型名称")
-    private String  cardTypeName;
+    private String cardTypeName;
 
     @ItemProperty(alias = "HIS处方关联的卡类型")
-    private String  cardType;
+    private String cardType;
 
     @ItemProperty(alias = "HIS处方关联的卡号")
-    private String  cardNo;
+    private String cardNo;
 
     @ItemProperty(alias = "医保备案号")
     private String putOnRecordID;
 
     @ItemProperty(alias = "患者类型 自费 0 商保 1 普通医保 2 慢病医保 3 省医保33 杭州市医保3301 衢州市医保3308 巨化医保3308A")
     private String patientType;
-    /**互联网医院字段*/
+    /**
+     * 互联网医院字段
+     */
 
     @ItemProperty(alias = "天猫返回处方编号")
-    private String  rxNo;
+    private String rxNo;
 
     @ItemProperty(alias = "his返回的取药方式1配送到家 2医院取药 3两者都支持")
     private String giveModeFormHis;
@@ -142,14 +146,23 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "病历索引Id")
     private Integer docIndexId;
 
-    @ItemProperty(alias = "皮肤反应测验")
-    private String skinTest;
-
-    @ItemProperty(alias="取药窗口")
+    @ItemProperty(alias = "取药窗口")
     private String pharmNo;
 
     @ItemProperty(alias = "是否是加急审核处方 0否 1是")
     private Integer canUrgentAuditRecipe;
+
+    @ItemProperty(alias = "诊断序号")
+    private String hisDiseaseSerial;
+
+    @Column(name = "hisDiseaseSerial")
+    public String getHisDiseaseSerial() {
+        return hisDiseaseSerial;
+    }
+
+    public void setHisDiseaseSerial(String hisDiseaseSerial) {
+        this.hisDiseaseSerial = hisDiseaseSerial;
+    }
 
     @Column(name = "pharmNo")
     public String getPharmNo() {
@@ -238,7 +251,7 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "处方退费当前节点状态")
     @Dictionary(id = "eh.cdr.dictionary.RecipeRefundNodeStatus")
     private Integer refundNodeStatus;
-    
+
 
     @Column(name = "recipeCostNumber")
     public String getRecipeCostNumber() {
@@ -716,15 +729,6 @@ public class RecipeExtend implements Serializable {
         this.docIndexId = docIndexId;
     }
 
-    @Column(name = "skin_test")
-    public String getSkinTest() {
-        return skinTest;
-    }
-
-    public void setSkinTest(String skinTest) {
-        this.skinTest = skinTest;
-    }
-
     /**
      * 处方退费当前节点状态。0-待审核；1-审核通过，退款成功；2-审核通过，退款失败；3-审核不通过
      */
@@ -739,6 +743,7 @@ public class RecipeExtend implements Serializable {
 
     /**
      * 加急处方
+     *
      * @return
      */
     @Column(name = "canUrgentAuditRecipe")

@@ -1,6 +1,9 @@
 package recipe.core.api;
 
+import com.ngari.recipe.recipe.model.GiveModeButtonBean;
+
 import java.util.List;
+import java.util.Set;
 
 /**
  * 机构相关服务
@@ -14,4 +17,11 @@ public interface IOrganBusinessService {
      * @return 机构列表
      */
     List<Integer> getOrganForWeb();
+
+    /**
+     * 获取机构购药方式配置
+     * @param organId organId
+     * @return 购药方式列表
+     */
+    List<GiveModeButtonBean> getOrganGiveModeConfig(Integer organId);
 }

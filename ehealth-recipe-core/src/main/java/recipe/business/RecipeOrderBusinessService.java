@@ -2,7 +2,7 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.ApothecaryDTO;
-import com.ngari.recipe.dto.SkipThirdBean;
+import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.ConfigStatusCheck;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -153,7 +153,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
      * @return
      */
     @Override
-    public SkipThirdBean getSkipUrl(SkipThirdReqVO skipThirdReqVO) {
+    public SkipThirdDTO getSkipUrl(SkipThirdReqVO skipThirdReqVO) {
         return orderManager.getThirdUrl(skipThirdReqVO.getRecipeIds().get(0), GiveModeTextEnum.getGiveMode(skipThirdReqVO.getGiveMode()));
     }
 

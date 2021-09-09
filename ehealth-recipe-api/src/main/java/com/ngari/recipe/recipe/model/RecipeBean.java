@@ -212,6 +212,9 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "微信端展示过期时间，处方离过期剩余小时数")
     private String recipeSurplusHours;
 
+    @ItemProperty(alias = "微信端展示时间")
+    private String wxDisplayTime;
+
     @ItemProperty(alias = "审核失败备注")
     private String checkFailMemo;
 
@@ -302,22 +305,22 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "处方发起者urt")
     private Integer requestUrt;
 
-    @ItemProperty(alias="当前clientId")
+    @ItemProperty(alias = "当前clientId")
     private Integer currentClient;
 
-    @ItemProperty(alias="前端页面跳转标记")
+    @ItemProperty(alias = "前端页面跳转标记")
     private int notation;
 
-    @ItemProperty(alias="处方详情信息")
+    @ItemProperty(alias = "处方详情信息")
     private RecipeExtendBean recipeExtend;
 
-    @ItemProperty(alias="处方审核方式")
+    @ItemProperty(alias = "处方审核方式")
     private Integer reviewType;
 
     @ItemProperty(alias = "审核途径 1平台审核 2his审核")
     private Integer checkMode;
 
-    @ItemProperty(alias="处方审核状态")
+    @ItemProperty(alias = "处方审核状态")
     private Integer checkStatus;
 
     @ItemProperty(alias = "处方单特殊来源标识：1省中，邵逸夫医保小程序; 默认null")
@@ -338,7 +341,7 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "主诉")
     private String mainDieaseDescribe;
 
-    @ItemProperty(alias = "处方来源类型 1 平台处方 2 线下转线上的处方")
+    @ItemProperty(alias = "处方来源类型 1 平台处方 2 线下转线上的处方 3 诊疗处方")
     private Integer recipeSourceType;
 
     @ItemProperty(alias = "处方支付类型 0 普通支付 1 不选择购药方式直接去支付")
@@ -374,6 +377,17 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "his中药处方代煎费")
     private BigDecimal decoctionFee;
 
+    @ItemProperty(alias = "签名的处方img")
+    private String signImg;
+
+    public String getSignImg() {
+        return signImg;
+    }
+
+    public void setSignImg(String signImg) {
+        this.signImg = signImg;
+    }
+
     public String getRecipeCostNumber() {
         return recipeCostNumber;
     }
@@ -398,100 +412,12 @@ public class RecipeBean implements Serializable {
         this.serialNumber = serialNumber;
     }
 
-    public RecipeBean() {
-    }
-
     public Integer getCheckStatus() {
         return checkStatus;
     }
 
     public void setCheckStatus(Integer checkStatus) {
         this.checkStatus = checkStatus;
-    }
-
-    /**
-     * 处方单设置默认值
-     */
-    public void setDefaultData() {
-        if (null == this.getRecipeType()) {
-            this.setRecipeId(0);
-        }
-
-        //默认为西药
-        if (null == this.getRecipeType()) {
-            this.setRecipeType(1);
-        }
-
-        //默认剂数为1
-        if (null == this.getCopyNum() || this.getCopyNum() < 1) {
-            this.setCopyNum(1);
-        }
-
-        //默认无法医保支付
-        if (null == this.getMedicalPayFlag()) {
-            this.setMedicalPayFlag(0);
-        }
-
-        //默认可以医院，药企发药
-        if (null == this.getDistributionFlag()) {
-            this.setDistributionFlag(0);
-        }
-
-        //默认来源为纳里APP处方
-        if (null == this.getFromflag()) {
-            this.setFromflag(1);
-        }
-
-        //默认到院取药
-        if (null == this.getGiveMode()) {
-            this.setGiveMode(2);
-        }
-
-        //默认未签名
-        if (null == this.getStatus()) {
-            this.setStatus(0);
-        }
-
-        if (null == this.getCreateDate()) {
-            Date now = new Date();
-            this.setCreateDate(now);
-            this.setLastModify(now);
-        }
-
-        //默认有效天数
-        if (null == this.getValueDays()) {
-            this.setValueDays(3);
-        }
-
-        //判断诊断备注是否为空，若为空则显示“无”
-//        if (StringUtils.isEmpty(this.getMemo())) {
-//            this.setMemo("无");
-//        }
-
-        if (null == this.getPayFlag()) {
-            this.setPayFlag(0);
-        }
-
-        if (null == this.getChooseFlag()) {
-            this.setChooseFlag(0);
-        }
-
-        if (null == this.getGiveFlag()) {
-            this.setGiveFlag(0);
-        }
-
-        if (null == this.getRemindFlag()) {
-            this.setRemindFlag(0);
-        }
-
-        if (null == this.getPushFlag()) {
-            this.setPushFlag(0);
-        }
-
-        if (null == this.getTakeMedicine()) {
-            this.setTakeMedicine(0);
-        }
-
     }
 
     public String getRegisterId() {
@@ -706,9 +632,13 @@ public class RecipeBean implements Serializable {
         return giveFlag;
     }
 
-    public String getGiveModeText() { return giveModeText; }
+    public String getGiveModeText() {
+        return giveModeText;
+    }
 
-    public void setGiveModeText(String giveModeText) { this.giveModeText = giveModeText; }
+    public void setGiveModeText(String giveModeText) {
+        this.giveModeText = giveModeText;
+    }
 
     public void setGiveFlag(Integer giveFlag) {
         this.giveFlag = giveFlag;
@@ -1271,9 +1201,13 @@ public class RecipeBean implements Serializable {
         this.checkMode = checkMode;
     }
 
-    public String getSignPharmacistCADate() { return signPharmacistCADate; }
+    public String getSignPharmacistCADate() {
+        return signPharmacistCADate;
+    }
 
-    public void setSignPharmacistCADate(String signPharmacistCADate) { this.signPharmacistCADate = signPharmacistCADate; }
+    public void setSignPharmacistCADate(String signPharmacistCADate) {
+        this.signPharmacistCADate = signPharmacistCADate;
+    }
 
     public String getSignRecipeCode() {
         return signRecipeCode;
@@ -1370,4 +1304,93 @@ public class RecipeBean implements Serializable {
     public void setDecoctionFee(BigDecimal decoctionFee) {
         this.decoctionFee = decoctionFee;
     }
+
+    public String getWxDisplayTime() {
+        return wxDisplayTime;
+    }
+
+    public void setWxDisplayTime(String wxDisplayTime) {
+        this.wxDisplayTime = wxDisplayTime;
+    }
+
+    /**
+     * 处方单设置默认值
+     */
+    public void setDefaultData() {
+        if (null == this.getRecipeType()) {
+            this.setRecipeId(0);
+        }
+
+        //默认为西药
+        if (null == this.getRecipeType()) {
+            this.setRecipeType(1);
+        }
+
+        //默认剂数为1
+        if (null == this.getCopyNum() || this.getCopyNum() < 1) {
+            this.setCopyNum(1);
+        }
+
+        //默认无法医保支付
+        if (null == this.getMedicalPayFlag()) {
+            this.setMedicalPayFlag(0);
+        }
+
+        //默认可以医院，药企发药
+        if (null == this.getDistributionFlag()) {
+            this.setDistributionFlag(0);
+        }
+
+        //默认来源为纳里APP处方
+        if (null == this.getFromflag()) {
+            this.setFromflag(1);
+        }
+
+        //默认到院取药
+        if (null == this.getGiveMode()) {
+            this.setGiveMode(2);
+        }
+
+        //默认未签名
+        if (null == this.getStatus()) {
+            this.setStatus(0);
+        }
+
+        if (null == this.getCreateDate()) {
+            Date now = new Date();
+            this.setCreateDate(now);
+            this.setLastModify(now);
+        }
+
+        //默认有效天数
+        if (null == this.getValueDays()) {
+            this.setValueDays(3);
+        }
+
+        if (null == this.getPayFlag()) {
+            this.setPayFlag(0);
+        }
+
+        if (null == this.getChooseFlag()) {
+            this.setChooseFlag(0);
+        }
+
+        if (null == this.getGiveFlag()) {
+            this.setGiveFlag(0);
+        }
+
+        if (null == this.getRemindFlag()) {
+            this.setRemindFlag(0);
+        }
+
+        if (null == this.getPushFlag()) {
+            this.setPushFlag(0);
+        }
+
+        if (null == this.getTakeMedicine()) {
+            this.setTakeMedicine(0);
+        }
+
+    }
+
 }

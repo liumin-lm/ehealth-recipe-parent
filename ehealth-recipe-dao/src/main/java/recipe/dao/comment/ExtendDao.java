@@ -27,6 +27,8 @@ import java.util.Map;
 public interface ExtendDao<T> {
     Logger logger = LoggerFactory.getLogger(ExtendDao.class);
 
+    String SQL_KEY_ID = "id";
+
     /**
      * 非null对象修改方法 ---null字段不做更新
      *

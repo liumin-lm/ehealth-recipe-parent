@@ -13,6 +13,7 @@ import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import eh.cdr.constant.OrderStatusConstant;
 import eh.cdr.constant.RecipeStatusConstant;
@@ -25,11 +26,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipeCheckPassResult;
+import recipe.business.RevisitTraceBusinessService;
+import recipe.client.RevisitClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.purchase.CommonOrder;
 
@@ -52,6 +56,11 @@ public class HisCallBackService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HisCallBackService.class);
 
+    private static RevisitClient revisitClient = AppContextHolder.getBean("revisitClient", RevisitClient.class);
+
+    private static RevisitTraceBusinessService revisitTraceBusinessService = AppContextHolder.getBean("revisitTraceBusinessService", RevisitTraceBusinessService.class);
+
+
     /**
      * 处方HIS审核通过成功
      *
@@ -67,23 +76,24 @@ public class HisCallBackService {
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 
         Map<String, Object> attrMap = Maps.newHashMap();
+        Map<String, Object> recipeExtUpdateDataMap = Maps.newHashMap();
         Recipe recipe = recipeDAO.get(result.getRecipeId());
         if (null == recipe) {
             LOGGER.error("checkPassSuccess 处方对象不存在");
             return;
         }
-        if(null != recipe.getStatus() && com.ngari.recipe.recipe.constant.RecipeStatusConstant.CHECK_PASS == recipe.getStatus()){
+        if (null != recipe.getStatus() && com.ngari.recipe.recipe.constant.RecipeStatusConstant.CHECK_PASS == recipe.getStatus()) {
             LOGGER.error("当前处方{}状态{}不能进行平台[checkPassSuccess]操作", result.getRecipeId(), recipe.getStatus());
             return;
         }
         // 更新处方拓展信息：his处方付费序号合集
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         Map<String, Object> extendMap = new HashedMap();
-        extendMap.put("recipeCostNumber",result.getRecipeCostNumber());
+        extendMap.put("recipeCostNumber", result.getRecipeCostNumber());
         // 将取药窗口更新到ext表
-        extendMap.put("pharmNo",result.getPharmNo());
+        extendMap.put("pharmNo", result.getPharmNo());
         recipeExtendDAO.updateRecipeExInfoByRecipeId(Integer.valueOf(result.getRecipeId()), extendMap);
-        LOGGER.info("checkPassSuccess.updateRecipeCostNumber,recipeId={},recipeCostNumber={}",result.getRecipeId(),result.getRecipeCostNumber());
+        LOGGER.info("checkPassSuccess.updateRecipeCostNumber,recipeId={},recipeCostNumber={}", result.getRecipeId(), result.getRecipeCostNumber());
         //todo---写死上海六院---在患者选完取药方式之后推送处方 第二次调用无需任何处理
         if (recipe.getClinicOrgan() == 1000899 && new Integer(1).equals(recipe.getChooseFlag())) {
             //日志记录
@@ -97,11 +107,14 @@ public class HisCallBackService {
             //病人医院病历号
             attrMap.put("patientID", result.getPatientID());
         }
+        if (StringUtils.isNotEmpty(result.getHisDiseaseSerial())) {
+            recipeExtUpdateDataMap.put("hisDiseaseSerial", result.getHisDiseaseSerial());
+        }
         //处方总金额， 外带药处方不做处理
         if (!Integer.valueOf(1).equals(recipe.getTakeMedicine()) && null != result.getTotalMoney()) {
             List<Recipedetail> recipedetailList = detailDAO.findByRecipeId(result.getRecipeId());
-            if (CollectionUtils.isNotEmpty(recipedetailList) && CollectionUtils.isNotEmpty(result.getDetailList())){
-                if (recipedetailList.size() == result.getDetailList().size()){
+            if (CollectionUtils.isNotEmpty(recipedetailList) && CollectionUtils.isNotEmpty(result.getDetailList())) {
+                if (recipedetailList.size() == result.getDetailList().size()) {
                     attrMap.put("totalMoney", result.getTotalMoney());
                     attrMap.put("actualPrice", result.getTotalMoney());
                 }
@@ -127,9 +140,11 @@ public class HisCallBackService {
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
 
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap);
-
+        if (!recipeExtUpdateDataMap.isEmpty()) {
+            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), recipeExtUpdateDataMap);
+        }
         //更新复诊挂号序号、卡类型卡号等信息如果有
-        updateRecipeRegisterID(recipe,result);
+        updateRecipeRegisterID(recipe, result);
         //updateRecipepatientType(recipe);
 
         OrganDrugListService organDrugListService = ApplicationUtils.getRecipeService(OrganDrugListService.class);
@@ -144,7 +159,7 @@ public class HisCallBackService {
                 detailAttrMap.put("drugGroup", detail.getDrugGroup());
                 detailAttrMap.put("orderNo", detail.getOrderNo());
 //                detailAttrMap.put("pharmNo", detail.getPharmNo());
-                
+
                 //因为从HIS返回回来的数据不是很全，所以要从DB获取一次
                 Recipedetail recipedetail = detailDAO.getByRecipeDetailId(detail.getRecipeDetailId());
                 //根据医院传入的价格更新药品总价
@@ -199,7 +214,7 @@ public class HisCallBackService {
                 IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
                 ConsultExDTO consultExDTO = exService.getByConsultId(recipe.getClinicId());
                 LOGGER.info("updateRecipeRegisterID consultExDTO:{}", JSONUtils.toString(consultExDTO));
-                exService.updateRecipeIdByConsultId(recipe.getClinicId(),recipe.getRecipeId());
+                exService.updateRecipeIdByConsultId(recipe.getClinicId(), recipe.getRecipeId());
                 if (null != consultExDTO) {
                     if (StringUtils.isNotEmpty(consultExDTO.getRegisterNo())) {
                         result.setRegisterID(consultExDTO.getRegisterNo());
@@ -215,10 +230,10 @@ public class HisCallBackService {
         if (recipeExtend != null) {
             if (StringUtils.isNotEmpty(result.getRegisterID())) {
                 map.put("registerID", result.getRegisterID());
-                if (StringUtils.isNotEmpty(result.getMedicalType()) && StringUtils.isEmpty(recipeExtend.getMedicalType())){
+                if (StringUtils.isNotEmpty(result.getMedicalType()) && StringUtils.isEmpty(recipeExtend.getMedicalType())) {
                     map.put("medicalType", result.getMedicalType());
                 }
-                if (StringUtils.isNotEmpty(result.getMedicalTypeText()) && StringUtils.isEmpty(recipeExtend.getMedicalTypeText())){
+                if (StringUtils.isNotEmpty(result.getMedicalTypeText()) && StringUtils.isEmpty(recipeExtend.getMedicalTypeText())) {
                     map.put("medicalTypeText", result.getMedicalTypeText());
                 }
                 recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), map);
@@ -260,14 +275,14 @@ public class HisCallBackService {
         //发送消息
         RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.HIS_FAIL);
         //复诊开方HIS确认失败 发送环信消息
-        Recipe recipe=recipeDAO.get(recipeId);
-        if(recipe==null){
-            return ;
+        Recipe recipe = recipeDAO.get(recipeId);
+        if (recipe == null) {
+            return;
         }
-        if(new Integer(2).equals(recipe.getBussSource())){
-            LOGGER.info("checkPassFail 复诊开方HIS确认失败 发送环信消息 recipeId:{}",recipeId);
+        if (new Integer(2).equals(recipe.getBussSource())) {
+            LOGGER.info("checkPassFail 复诊开方HIS确认失败 发送环信消息 recipeId:{}", recipeId);
             IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
-            recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(),recipe.getClinicId());
+            recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(), recipe.getClinicId());
         }
     }
 
@@ -290,7 +305,7 @@ public class HisCallBackService {
                 RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
                 Map<String, Object> extendMap = new HashedMap();
                 // 将取药窗口更新到ext表
-                extendMap.put("pharmNo",detail.getPharmNo());
+                extendMap.put("pharmNo", detail.getPharmNo());
                 recipeExtendDAO.updateRecipeExInfoByRecipeId(Integer.valueOf(detail.getRecipeId()), extendMap);
             }
 
@@ -367,7 +382,7 @@ public class HisCallBackService {
                 try {
                     recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
                 } catch (Exception e) {
-                    LOGGER.error("havePayRecipesFromHis HIS获取信息更新处方状态时存在相同处方数据,recipeCode:" + recipeCode + ",clinicOrgan:" + organId,e);
+                    LOGGER.error("havePayRecipesFromHis HIS获取信息更新处方状态时存在相同处方数据,recipeCode:" + recipeCode + ",clinicOrgan:" + organId, e);
                 }
                 if (null != recipe) {
                     //对于已经在线上支付的处方不能直接取消
@@ -439,26 +454,26 @@ public class HisCallBackService {
                 try {
                     recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
                 } catch (Exception e) {
-                    LOGGER.error("finishRecipesFromHis HIS获取信息更新处方状态时存在相同处方数据,recipeCode:" + recipeCode + ",clinicOrgan:" + organId,e);
+                    LOGGER.error("finishRecipesFromHis HIS获取信息更新处方状态时存在相同处方数据,recipeCode:" + recipeCode + ",clinicOrgan:" + organId, e);
                 }
-                if (null != recipe) {
+                if (null != recipe && !RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().equals(recipe.getStatus())) {
                     // 已支付,只对到院取药的数据更新 未支付,全部都更新
                     String orderCode = recipe.getOrderCode();
-                    if(Objects.isNull(orderCode)){
-                        finishForHis(recipe,attrMap,recipeDAO);
+                    if (Objects.isNull(orderCode)) {
+                        finishForHis(recipe, attrMap, recipeDAO);
                         return;
                     }
                     RecipeOrder byOrderCode = recipeOrderDAO.getByOrderCode(orderCode);
-                    if(Objects.isNull(byOrderCode)){
-                        finishForHis(recipe,attrMap,recipeDAO);
+                    if (Objects.isNull(byOrderCode)) {
+                        finishForHis(recipe, attrMap, recipeDAO);
                         return;
                     }
-                    if(Integer.valueOf(1).equals(byOrderCode.getPayFlag()) && RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())){
-                        finishForHis(recipe,attrMap,recipeDAO);
+                    if (Integer.valueOf(1).equals(byOrderCode.getPayFlag()) && RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
+                        finishForHis(recipe, attrMap, recipeDAO);
                         return;
                     }
-                    if(Integer.valueOf(0).equals(byOrderCode.getPayFlag())){
-                        finishForHis(recipe,attrMap,recipeDAO);
+                    if (Integer.valueOf(0).equals(byOrderCode.getPayFlag())) {
+                        finishForHis(recipe, attrMap, recipeDAO);
                         return;
                     }
 
@@ -467,7 +482,7 @@ public class HisCallBackService {
         }
     }
 
-    private static void finishForHis(Recipe recipe,Map<String, Object> attrMap,RecipeDAO recipeDAO){
+    private static void finishForHis(Recipe recipe, Map<String, Object> attrMap, RecipeDAO recipeDAO) {
         Integer recipeId = recipe.getRecipeId();
         Integer beforeStatus = recipe.getStatus();
 

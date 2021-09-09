@@ -376,6 +376,8 @@ public class DrugToolService implements IDrugToolService {
                         //中药不需要设置
                         if (!(new Integer(3).equals(drug.getDrugType()))) {
                             errMsg.append("转换系数不能为空").append(";");
+                        }else{
+                            drug.setPack(1);
                         }
                     } else {
                         drug.setPack(Integer.parseInt(getStrFromCell(row.getCell(9))));
@@ -995,7 +997,7 @@ public class DrugToolService implements IDrugToolService {
      */
     @RpcService
     public Map<String, Integer> drugManualCommit(int organId, int status) {
-        List<DrugListMatch> matchDataByOrgan = drugListMatchDAO.findMatchDataByOrgan(organId);
+        List<DrugListMatch> matchDataByOrgan = drugListMatchDAO.findMatchDataByOrganAndStatus(organId);
         final HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
             @SuppressWarnings("unchecked")
             @Override
@@ -1095,7 +1097,7 @@ public class DrugToolService implements IDrugToolService {
         Integer result = 0;
         try {
             if(CollectionUtils.isEmpty(lists)){
-                lists = drugListMatchDAO.findMatchDataByOrgan(organ);
+                lists = drugListMatchDAO.findMatchDataByOrganAndStatus(organ);
             }
             if (lists.size() > 0) {
                 for (DrugListMatch drugListMatch : lists) {

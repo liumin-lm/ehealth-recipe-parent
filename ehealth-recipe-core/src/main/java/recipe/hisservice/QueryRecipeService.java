@@ -10,6 +10,8 @@ import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.OrganDrugInfoTO;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
@@ -17,7 +19,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.OrganDrugChangeBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.DrugListBean;
-import com.ngari.recipe.dto.EmrDetail;
+import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.*;
 import com.ngari.recipe.hisprescription.service.IQueryRecipeService;
@@ -51,8 +53,10 @@ import recipe.bussutil.UsingRateFilter;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DocIndexClient;
 import recipe.dao.*;
+import recipe.drugTool.service.DrugToolService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.OrganDrugListService;
+import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ByteUtils;
@@ -227,7 +231,7 @@ public class QueryRecipeService implements IQueryRecipeService {
         try {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
             if (null != recipeExtend) {
-                EmrDetail emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
+                EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
                 recipeDTO.setCardType(recipeExtend.getCardType());
                 recipeDTO.setCardNo(recipeExtend.getCardNo());
                 recipeDTO.setRecipeExtendBean(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));

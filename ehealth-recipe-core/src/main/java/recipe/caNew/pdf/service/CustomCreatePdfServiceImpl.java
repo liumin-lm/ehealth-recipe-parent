@@ -9,7 +9,7 @@ import com.ngari.base.esign.model.SignRecipePdfVO;
 import com.ngari.base.esign.service.IESignBaseService;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
-import com.ngari.recipe.dto.RecipeLabelVO;
+import com.ngari.recipe.dto.RecipeLabelDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -330,7 +330,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             throw new DAOException(ErrorCode.SERVICE_ERROR, "模版错误");
         }
         //获取pdf值对象
-        RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDTO(recipe.getRecipeId());
+        RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDictionary(recipe.getRecipeId());
         //获取模版填充字段
         List<WordToPdfBean> generatePdfList = generatePdfList(recipe.getClinicOrgan(), map.keySet(), recipePdfDTO);
         //替换的模版字段
@@ -458,24 +458,24 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return null;
         }
-        List<RecipeLabelVO> list = new LinkedList<>();
+        List<RecipeLabelDTO> list = new LinkedList<>();
         for (int i = 0; i < recipeDetails.size(); i++) {
             String drugShowName = RecipeUtil.drugChineShowName(recipeDetails.get(i));
-            list.add(new RecipeLabelVO("药品名称", "recipeDetail.drugName_" + i, drugShowName));
+            list.add(new RecipeLabelDTO("药品名称", "recipeDetail.drugName_" + i, drugShowName));
         }
-        Recipedetail recipedetail = recipeDetails.get(0);
-        list.add(new RecipeLabelVO("药房", "recipeDetail.pharmacyName", recipedetail.getPharmacyName()));
-        list.add(new RecipeLabelVO("天数", "recipeDetail.useDays", getUseDays(recipedetail.getUseDaysB(), recipedetail.getUseDays())));
-        list.add(new RecipeLabelVO("用药途径", "recipeDetail.usePathways", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", recipedetail.getUsePathways())));
-        list.add(new RecipeLabelVO("用药频次", "recipeDetail.usingRate", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", recipedetail.getUsingRate())));
+        Recipedetail recipeDetail = recipeDetails.get(0);
+        list.add(new RecipeLabelDTO("药房", "recipeDetail.pharmacyName", recipeDetail.getPharmacyName()));
+        list.add(new RecipeLabelDTO("天数", "recipeDetail.useDays", getUseDays(recipeDetail.getUseDaysB(), recipeDetail.getUseDays())));
+        list.add(new RecipeLabelDTO("用药途径", "recipeDetail.usePathways", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", recipeDetail.getUsePathways())));
+        list.add(new RecipeLabelDTO("用药频次", "recipeDetail.usingRate", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", recipeDetail.getUsingRate())));
         Recipe recipe = recipeInfoDTO.getRecipe();
-        list.add(new RecipeLabelVO("贴数", "recipeDetail.copyNum", recipe.getCopyNum() + "贴"));
-        list.add(new RecipeLabelVO("嘱托", "recipeDetail.recipeMemo", ByteUtils.objValueOfString(recipe.getRecipeMemo())));
+        list.add(new RecipeLabelDTO("贴数", "recipeDetail.copyNum", recipe.getCopyNum() + "贴"));
+        list.add(new RecipeLabelDTO("嘱托", "recipeDetail.recipeMemo", ByteUtils.objValueOfString(recipe.getRecipeMemo())));
         RecipeExtend recipeExtend = recipeInfoDTO.getRecipeExtend();
-        list.add(new RecipeLabelVO("煎法", "recipeDetail.decoctionText", ByteUtils.objValueOfString(recipeExtend.getDecoctionText())));
-        list.add(new RecipeLabelVO("制法", "recipeDetail.makeMethodText", ByteUtils.objValueOfString(recipeExtend.getMakeMethodText())));
-        list.add(new RecipeLabelVO("每付取汁", "recipeDetail.juice", ByteUtils.objValueOfString(recipeExtend.getJuice()) + ByteUtils.objValueOfString(recipeExtend.getJuiceUnit())));
-        list.add(new RecipeLabelVO("每次用汁", "recipeDetail.minor", ByteUtils.objValueOfString(recipeExtend.getMinor()) + ByteUtils.objValueOfString(recipeExtend.getMinorUnit())));
+        list.add(new RecipeLabelDTO("煎法", "recipeDetail.decoctionText", ByteUtils.objValueOfString(recipeExtend.getDecoctionText())));
+        list.add(new RecipeLabelDTO("制法", "recipeDetail.makeMethodText", ByteUtils.objValueOfString(recipeExtend.getMakeMethodText())));
+        list.add(new RecipeLabelDTO("每付取汁", "recipeDetail.juice", ByteUtils.objValueOfString(recipeExtend.getJuice()) + ByteUtils.objValueOfString(recipeExtend.getJuiceUnit())));
+        list.add(new RecipeLabelDTO("每次用汁", "recipeDetail.minor", ByteUtils.objValueOfString(recipeExtend.getMinor()) + ByteUtils.objValueOfString(recipeExtend.getMinorUnit())));
         logger.info("CreateRecipePdfUtil createChineMedicinePDF list :{} ", JSON.toJSONString(list));
         return list.stream().collect(HashMap::new, (m, v) -> m.put(v.getEnglishName(), v.getValue()), HashMap::putAll);
     }
@@ -492,20 +492,20 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return null;
         }
-        List<RecipeLabelVO> list = new LinkedList<>();
+        List<RecipeLabelDTO> list = new LinkedList<>();
         for (int i = 0; i < recipeDetails.size(); i++) {
             Recipedetail detail = recipeDetails.get(i);
-            list.add(new RecipeLabelVO("药品名称", "recipeDetail.drugName_" + i, detail.getDrugName()));
-            list.add(new RecipeLabelVO("包装规格", "recipeDetail.drugSpec_" + i, ByteUtils.objValueOfString(detail.getDrugSpec()) + "/" + ByteUtils.objValueOfString(detail.getDrugUnit())));
-            list.add(new RecipeLabelVO("发药数量", "recipeDetail.useTotalDose_" + i, ByteUtils.objValueOfString(detail.getUseTotalDose()) + ByteUtils.objValueOfString(detail.getDrugUnit())));
-            list.add(new RecipeLabelVO("每次用量", "recipeDetail.useDose_" + i, "Sig: 每次 " + ByteUtils.objValueOfString(detail.getUseDose()) + ByteUtils.objValueOfString(detail.getUseDoseUnit())));
-            list.add(new RecipeLabelVO("用药频次", "recipeDetail.usingRate_" + i, DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", detail.getUsingRate())));
-            list.add(new RecipeLabelVO("用药途径", "recipeDetail.usePathways_" + i, DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", detail.getUsePathways())));
-            list.add(new RecipeLabelVO("用药天数", "recipeDetail.useDays_" + i, getUseDays(detail.getUseDaysB(), detail.getUseDays())));
-            list.add(new RecipeLabelVO("嘱托", "recipeDetail.memo_" + i, StringUtils.isNotEmpty(detail.getMemo()) ? "嘱托：" + detail.getMemo() : ""));
+            list.add(new RecipeLabelDTO("药品名称", "recipeDetail.drugName_" + i, detail.getDrugName()));
+            list.add(new RecipeLabelDTO("包装规格", "recipeDetail.drugSpec_" + i, ByteUtils.objValueOfString(detail.getDrugSpec()) + "/" + ByteUtils.objValueOfString(detail.getDrugUnit())));
+            list.add(new RecipeLabelDTO("发药数量", "recipeDetail.useTotalDose_" + i, ByteUtils.objValueOfString(detail.getUseTotalDose()) + ByteUtils.objValueOfString(detail.getDrugUnit())));
+            list.add(new RecipeLabelDTO("每次用量", "recipeDetail.useDose_" + i, "Sig: 每次 " + ByteUtils.objValueOfString(detail.getUseDose()) + ByteUtils.objValueOfString(detail.getUseDoseUnit())));
+            list.add(new RecipeLabelDTO("用药频次", "recipeDetail.usingRate_" + i, DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", detail.getUsingRate())));
+            list.add(new RecipeLabelDTO("用药途径", "recipeDetail.usePathways_" + i, DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", detail.getUsePathways())));
+            list.add(new RecipeLabelDTO("用药天数", "recipeDetail.useDays_" + i, getUseDays(detail.getUseDaysB(), detail.getUseDays())));
+            list.add(new RecipeLabelDTO("嘱托", "recipeDetail.memo_" + i, StringUtils.isNotEmpty(detail.getMemo()) ? "嘱托：" + detail.getMemo() : ""));
         }
         Recipedetail recipedetail = recipeDetails.get(0);
-        list.add(new RecipeLabelVO("药房", "recipeDetail.pharmacyName", recipedetail.getPharmacyName()));
+        list.add(new RecipeLabelDTO("药房", "recipeDetail.pharmacyName", recipedetail.getPharmacyName()));
         logger.info("CreateRecipePdfUtil createMedicinePDF list :{} ", JSON.toJSONString(list));
         return list.stream().collect(HashMap::new, (m, v) -> m.put(v.getEnglishName(), v.getValue()), HashMap::putAll);
     }

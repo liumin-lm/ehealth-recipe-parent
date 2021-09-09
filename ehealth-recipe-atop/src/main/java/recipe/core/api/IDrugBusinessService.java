@@ -1,0 +1,31 @@
+package recipe.core.api;
+
+import com.ngari.recipe.dto.PatientDrugWithEsDTO;
+import com.ngari.recipe.entity.Dispensatory;
+import com.ngari.recipe.vo.SearchDrugReqVo;
+
+import java.util.List;
+
+/**
+ * @description： 药品service 接口
+ * @author： whf
+ * @date： 2021-08-23 19:02
+ */
+public interface IDrugBusinessService {
+    /**
+     * 患者端搜索药品信息
+     *
+     * @param searchDrugReqVo
+     * @return
+     */
+    List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVo searchDrugReqVo);
+
+    /**
+     * 获取药品说明书
+     *
+     * @param organId       机构id
+     * @param organDrugCode 机构药品编码
+     * @return
+     */
+    Dispensatory getDrugBook(Integer organId, String organDrugCode);
+}

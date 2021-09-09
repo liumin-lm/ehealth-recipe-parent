@@ -1,5 +1,6 @@
 package recipe.core.api.patient;
 
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
@@ -64,4 +65,12 @@ public interface IOfflineRecipeBusinessService {
      * @date 2021/8/06
      */
     OffLineRecipeDetailVO getOffLineRecipeDetails(String mpiId, Integer clinicOrgan, String recipeCode);
+
+    /**
+     * 推送his诊疗处方信息
+     *
+     * @param recipeId 处方id
+     * @param pushType 推送类型: 1：提交处方，2:撤销处方
+     */
+    RecipeInfoDTO pushRecipe(Integer recipeId, Integer pushType);
 }

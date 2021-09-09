@@ -4,23 +4,32 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
-import com.ngari.recipe.dto.*;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.recipe.dto.DiseaseInfoDTO;
+import com.ngari.recipe.dto.OutPatientRecipeDTO;
+import com.ngari.recipe.dto.OutRecipeDetailDTO;
+import com.ngari.recipe.recipe.model.PatientInfoDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
+import eh.recipeaudit.api.IRecipeAuditService;
+import eh.recipeaudit.api.IRecipeCheckService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.client.DoctorClient;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
+import recipe.client.RevisitClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
-import recipe.dao.RecipeDAO;
+import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
-import com.ngari.recipe.recipe.model.PatientInfoDTO;
+import recipe.manager.OrderManager;
+import recipe.manager.RecipeManager;
+import recipe.manager.SignManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
 
@@ -46,6 +55,15 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private RecipeDAO recipeDAO;
 
     @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
+
+    @Autowired
+    private RecipeDetailDAO recipeDetailDAO;
+
+    @Autowired
+    private OrganDrugListDAO organDrugListDAO;
+
+    @Autowired
     private OfflineRecipeClient offlineRecipeClient;
 
     @Autowired
@@ -54,7 +72,35 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     private PatientClient patientClient;
 
+    @Autowired
+    private SignManager signManager;
 
+    @Autowired
+    private IRecipeCheckService recipeCheckService;
+
+    @Autowired
+    private IRecipeAuditService recipeAuditService;
+
+    @Autowired
+    private DoctorClient doctorClient;
+
+    @Autowired
+    private OrderManager orderManager;
+
+    @Autowired
+    private RecipeOrderBillDAO recipeOrderBillDAO;
+
+    @Autowired
+    private RecipeManager recipeManager;
+
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
+
+    @Autowired
+    private RecipeRefundDAO recipeRefundDAO;
+
+    @Autowired
+    private RevisitClient revisitClient;
 
 
     /**
@@ -157,6 +203,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         logger.info("RecipeBusinessService existUncheckRecipe recipesCount={}", recipesCount);
         return uncheckCount != 0;
     }
+
 
 }
 

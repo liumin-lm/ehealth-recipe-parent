@@ -28,7 +28,7 @@ public class RecipeOrder implements Serializable {
 
     @ItemProperty(alias = "订单ID")
     private Integer orderId;
-    
+
 
     @ItemProperty(alias = "订单编号")
     private String orderCode;
@@ -53,6 +53,7 @@ public class RecipeOrder implements Serializable {
     private String recipeIdList;
 
     @ItemProperty(alias = "支付标志 0未支付，1已支付，2退款中，3退款成功，4支付失败")
+    @Dictionary(id = "eh.bus.dictionary.PayFlag")
     private Integer payFlag;
 
     @ItemProperty(alias = "优惠券ID")
@@ -399,6 +400,10 @@ public class RecipeOrder implements Serializable {
         initData();
     }
 
+    public RecipeOrder(String orderCode) {
+
+    }
+
     public void initData() {
         this.setEffective(1);
         this.setDivisionFlag(0);
@@ -421,6 +426,7 @@ public class RecipeOrder implements Serializable {
         this.setThirdPayType(0);
         this.setThirdPayFee(0d);
     }
+
     @Column(name = "payeeCode")
     public Integer getPayeeCode() {
         return payeeCode;
@@ -1136,13 +1142,14 @@ public class RecipeOrder implements Serializable {
         this.sendType = sendType;
     }
 
-     public Integer getIsShowExpectSendDate() {
+    public Integer getIsShowExpectSendDate() {
         return isShowExpectSendDate;
     }
 
     public void setIsShowExpectSendDate(Integer isShowExpectSendDate) {
         this.isShowExpectSendDate = isShowExpectSendDate;
     }
+
     @Transient
     public Integer getExpectSendDateIsContainsWeekend() {
         return expectSendDateIsContainsWeekend;
@@ -1151,6 +1158,7 @@ public class RecipeOrder implements Serializable {
     public void setExpectSendDateIsContainsWeekend(Integer expectSendDateIsContainsWeekend) {
         this.expectSendDateIsContainsWeekend = expectSendDateIsContainsWeekend;
     }
+
     @Transient
     public String getSendDateText() {
         return sendDateText;
@@ -1238,6 +1246,7 @@ public class RecipeOrder implements Serializable {
     public void setExpectStartTakeTime(String expectStartTakeTime) {
         this.expectStartTakeTime = expectStartTakeTime;
     }
+
     @Column(name = "expectEndTakeTime")
     public String getExpectEndTakeTime() {
         return expectEndTakeTime;

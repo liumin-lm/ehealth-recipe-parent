@@ -1,24 +1,32 @@
 package recipe.atop.open;
 
 import ctd.persistence.exception.DAOException;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.api.open.IRecipeAtopService;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
+import recipe.core.api.IRevisitTraceBusinessService;
+import recipe.vo.second.RevisitRecipeTraceVo;
+
+import java.util.List;
 
 /**
  * 处方服务入口类
  *
- * @date 2021/7/19
  * @author zhaoh
+ * @date 2021/7/19
  */
 @RpcBean("recipeOpenAtop")
 public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
 
     @Autowired
     private IRecipeBusinessService recipeBusinessService;
+
+    @Autowired
+    private IRevisitTraceBusinessService revisitRecipeTrace;
 
     @Override
     public Boolean existUncheckRecipe(Integer bussSource, Integer clinicId) {
@@ -37,4 +45,55 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
+
+    /**
+     * 复诊处方追溯
+     *
+     * @param recipeId 处方ID
+     * @param clinicId 复诊ID
+     * @return
+     */
+    @Override
+    public List<RevisitRecipeTraceVo> revisitRecipeTrace(Integer recipeId, Integer clinicId) {
+        logger.info("RecipeOpenAtop revisitRecipeTrace bussSource={} clinicID={}", recipeId, clinicId);
+        if (clinicId == null && recipeId == null) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "请传入业务ID或复诊ID");
+        }
+        try {
+            List<RevisitRecipeTraceVo> result = revisitRecipeTrace.revisitRecipeTrace(recipeId, clinicId);
+            logger.info("RecipeOpenAtop existUncheckRecipe result = {}", result);
+            return result;
+        } catch (DAOException e1) {
+            logger.error("RecipeOpenAtop existUncheckRecipe error", e1);
+            throw new DAOException(e1.getCode(), e1.getMessage());
+        } catch (Exception e) {
+            logger.error("RecipeOpenAtop existUncheckRecipe error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 复诊处方追溯列表数据处理
+     *
+     * @param startTime
+     * @param endTime
+     * @param recipeIds
+     * @param organId
+     */
+    @Override
+    public void handDealRevisitTraceRecipe(String startTime, String endTime, List<Integer> recipeIds, Integer organId) {
+        logger.info("RecipeOpenAtop handDealRevisitTraceRecipe startTime={} endTime={} recipeIds={} organId={}", startTime, endTime, JSONUtils.toString(recipeIds), organId);
+        try {
+            revisitRecipeTrace.handDealRevisitTraceRecipe(startTime, endTime, recipeIds, organId);
+            logger.info("RecipeOpenAtop handDealRevisitTraceRecipe end");
+        } catch (DAOException e1) {
+            logger.error("RecipeOpenAtop handDealRevisitTraceRecipe error", e1);
+            throw new DAOException(e1.getCode(), e1.getMessage());
+        } catch (Exception e) {
+            logger.error("RecipeOpenAtop handDealRevisitTraceRecipe error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+
+    }
+
 }

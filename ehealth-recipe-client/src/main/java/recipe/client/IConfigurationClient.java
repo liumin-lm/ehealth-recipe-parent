@@ -3,10 +3,16 @@ package recipe.client;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.ngari.base.BaseAPI;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.base.scratchable.model.ScratchableBean;
+import com.ngari.base.scratchable.service.IScratchableService;
 import com.ngari.patient.service.OrganConfigService;
+import ctd.account.Client;
 import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -15,10 +21,7 @@ import recipe.util.ByteUtils;
 import recipe.util.RecipeUtil;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * 获取配置项 交互处理类
@@ -33,6 +36,46 @@ public class IConfigurationClient extends BaseClient {
     private OrganConfigService organConfigService;
     @Resource
     private IHisConfigService hisConfigService;
+
+
+    /**
+     * 获取终端id
+     *
+     * @return
+     */
+    public Integer getPropertyByClientId() {
+        try {
+            ICurrentUserInfoService userInfoService = AppContextHolder.getBean(
+                    "eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
+            Client client = userInfoService.getCurrentClient();
+            logger.info("IConfigurationClient getPropertyByClientId  client:{}", JSONArray.toJSONString(client));
+            return client.getClientConfigId();
+        } catch (Exception e) {
+            logger.error("IConfigurationClient getPropertyByClientId", e);
+            return null;
+        }
+    }
+
+
+    /**
+     * 获取多个机构配置
+     *
+     * @param organId 机构id
+     * @param keys    配置key
+     * @return
+     */
+    public Map<String, Object> getConfigurationByKeyList(Integer organId, List<String> keys) {
+        if (Objects.isNull(organId) || CollectionUtils.isEmpty(keys)) {
+            return null;
+        }
+        try {
+            Map<String, Object> configurations = configService.findConfigurations(organId, keys);
+            return configurations;
+        } catch (Exception e) {
+            logger.error("IConfigurationClient getConfigurationByKeyList organId:{}, keys:{}", organId, JSONArray.toJSONString(keys), e);
+            return null;
+        }
+    }
 
     /**
      * 根据配置获取 配置项值，捕获异常时返回默认值
@@ -269,6 +312,17 @@ public class IConfigurationClient extends BaseClient {
 
     }
 
-
-
+    /**
+     * 获取机构的购药方式
+     *
+     * @param organId 机构ID
+     * @return 机构配置
+     */
+    public List<ScratchableBean> getOrganGiveMode(Integer organId) {
+        logger.info("IConfigurationClient getOrganGiveMode organId:{}.", organId);
+        IScratchableService scratchableService = AppContextHolder.getBean("eh.scratchableService", IScratchableService.class);
+        List<ScratchableBean> scratchableBeans = scratchableService.findScratchableByPlatform("myRecipeDetailList", organId + "", 1);
+        logger.info("IConfigurationClient getOrganGiveMode scratchableBeans:{}.", JSON.toJSONString(scratchableBeans));
+        return scratchableBeans;
+    }
 }

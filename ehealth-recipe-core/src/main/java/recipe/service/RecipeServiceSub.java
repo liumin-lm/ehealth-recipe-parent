@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
@@ -37,7 +38,7 @@ import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.AttachSealPicDTO;
-import com.ngari.recipe.dto.GroupRecipeConf;
+import com.ngari.recipe.dto.GroupRecipeConfDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.model.*;
@@ -128,9 +129,8 @@ public class RecipeServiceSub {
 
     private static DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
 
-    private static DoctorExtendService doctorExtendService = ApplicationUtils.getBasicService(DoctorExtendService.class);
-
     private static OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+
     private static RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
     private static DepartmentService departmentService = ApplicationUtils.getBasicService(DepartmentService.class);
@@ -146,6 +146,10 @@ public class RecipeServiceSub {
     private static IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
 
     private static RecipeManager recipeManager = AppContextHolder.getBean("recipeManager", RecipeManager.class);
+
+    private static RecipeDetailManager recipeDetailManager = AppContextHolder.getBean("recipeDetailManager", RecipeDetailManager.class);
+
+    private static List<String> specitalOrganList = Lists.newArrayList("1005790", "1005217", "1005789");
 
     /**
      * @param recipeBean
@@ -306,25 +310,13 @@ public class RecipeServiceSub {
     }
 
     private static void setReciepeDetailsInfo(Integer flag, RecipeBean recipeBean, Recipe recipe, List<Recipedetail> details) {
-        if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(flag) || RecipeBussConstant.FROMFLAG_HIS_USE.equals(flag)) {
-            //设置药品详情数据
-            boolean isSucc = setDetailsInfo(recipe, details);
-            if (!isSucc) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "药品详情数据有误");
-            }
-            recipeBean.setTotalMoney(recipe.getTotalMoney());
-            recipeBean.setActualPrice(recipe.getActualPrice());
-        } else if (RecipeBussConstant.FROMFLAG_HIS.equals(flag)) {
-            //处方总价未计算
-            BigDecimal totalMoney = new BigDecimal(0d);
-            for (Recipedetail detail : details) {
-                if (null != detail.getDrugCost()) {
-                    totalMoney = totalMoney.add(detail.getDrugCost());
-                }
-            }
-            recipe.setTotalMoney(totalMoney);
-            recipe.setActualPrice(totalMoney);
+        //设置药品详情数据
+        boolean isSucc = setDetailsInfo(recipe, details);
+        if (!isSucc) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "药品详情数据有误");
         }
+        recipeBean.setTotalMoney(recipe.getTotalMoney());
+        recipeBean.setActualPrice(recipe.getActualPrice());
 
         //保存开处方时的单位剂量【规格单位】，单位【规格单位】，单位剂量【最小单位】，单位【最小单位】,以json对象的方式存储
         LOGGER.info("setReciepeDetailsInfo recipedetails:{}", JSONUtils.toString(details));
@@ -1343,7 +1335,6 @@ public class RecipeServiceSub {
     }
 
     public static RecipeBean convertRecipeForRAP(Recipe recipe) {
-        getMedicalInfo(recipe);
         RecipeBean r = new RecipeBean();
         r.setRecipeId(recipe.getRecipeId());
         r.setCreateDate(recipe.getCreateDate());
@@ -1534,7 +1525,7 @@ public class RecipeServiceSub {
             if (!ObjectUtils.isEmpty(mapList)) {
                 for (int i = 0; i < mapList.size(); i++) {
                     Map<String, Object> notPassMap = mapList.get(i);
-                    List results = (List)notPassMap.get("checkNotPassDetails");
+                    List results = (List) notPassMap.get("checkNotPassDetails");
                     List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtil.convert(results, RecipeDetailBean.class);
                     try {
                         for (RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
@@ -1670,8 +1661,8 @@ public class RecipeServiceSub {
             Boolean mergeRecipeFlag = false;
             try {
                 if (StringUtils.isEmpty(recipe.getOrderCode()) && StringUtils.isNotEmpty(recipeExtend.getRegisterID()) && !RecipeStatusEnum.RECIPE_STATUS_NO_OPERATOR.getType().equals(recipe.getStatus())) {
-                    GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
-                    mergeRecipeFlag = groupRecipeConf.getMergeRecipeFlag();
+                    GroupRecipeConfDTO groupRecipeConfDTO = groupRecipeManager.getMergeRecipeSetting();
+                    mergeRecipeFlag = groupRecipeConfDTO.getMergeRecipeFlag();
                     if (mergeRecipeFlag) {
                         String mergeRecipeWay = (String) configService.getConfiguration(recipe.getClinicOrgan(), "mergeRecipeWay");
                         Integer numCanMergeRecipe = recipeDAO.getNumCanMergeRecipeByMergeRecipeWay(recipe.getMpiid(), recipeExtend.getRegisterID(), recipe.getClinicOrgan(), mergeRecipeWay, recipeExtend.getChronicDiseaseName());
@@ -1867,6 +1858,7 @@ public class RecipeServiceSub {
 
             }
         }
+        recipeBean.setCheckerTel(LocalStringUtil.coverMobile(recipeBean.getCheckerTel()));
         map.put("recipe", recipeBean);
         //20200519 zhangx 是否展示退款按钮(重庆大学城退款流程)，前端调用patientRefundForRecipe
         map.put("showRefund", 0);
@@ -2588,23 +2580,29 @@ public class RecipeServiceSub {
      * @return
      */
     private static RecipeTagMsgBean getRecipeMsgTag(Recipe recipe, List<Recipedetail> details) {
-        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         IRecipeService recipeService = RecipeAPI.getService(IRecipeService.class);
-        //获取诊断疾病名称
-        String diseaseName = recipe.getOrganDiseaseName();
-        List<String> drugNames = Lists.newArrayList();
-        //取第一个药的药品显示拼接名
-        drugNames.add(DrugNameDisplayUtil.dealwithRecipeDrugName(details.get(0), recipe.getRecipeType(), recipe.getClinicOrgan()));
-
         RecipeTagMsgBean recipeTagMsg = new RecipeTagMsgBean();
-        recipeTagMsg.setDiseaseName(diseaseName);
-        recipeTagMsg.setDrugNames(drugNames);
-        recipeTagMsg.setTitle(recipe.getPatientName() + "的电子处方单");
+        if (new Integer(3).equals(recipe.getRecipeSourceType())) {
+            recipeTagMsg.setTitle(recipe.getPatientName() + "的诊疗处方");
+            Long count = recipeDetailManager.getCountByRecipeId(recipe.getRecipeId());
+            recipeTagMsg.setContent("共" + count + "个项目");
+            recipeTagMsg.setRecipeSourceType(recipe.getRecipeSourceType());
+        } else {
+            //获取诊断疾病名称
+            String diseaseName = recipe.getOrganDiseaseName();
+            List<String> drugNames = Lists.newArrayList();
+            //取第一个药的药品显示拼接名
+            drugNames.add(DrugNameDisplayUtil.dealwithRecipeDrugName(details.get(0), recipe.getRecipeType(), recipe.getClinicOrgan()));
+
+            recipeTagMsg.setDiseaseName(diseaseName);
+            recipeTagMsg.setDrugNames(drugNames);
+            recipeTagMsg.setTitle(recipe.getPatientName() + "的电子处方单");
+        }
         recipeTagMsg.setFlag(recipeService.getItemSkipType(recipe.getClinicOrgan()).get("itemList"));
         if (null != recipe.getRecipeId()) {
             recipeTagMsg.setRecipeId(recipe.getRecipeId());
         }
-
+        LOGGER.info("RecipeServiceSub getRecipeMsgTag recipeTagMsg:{}.", JSON.toJSONString(recipeTagMsg));
         return recipeTagMsg;
     }
 
@@ -2633,18 +2631,29 @@ public class RecipeServiceSub {
         if (null == patientDTO) {
             throw new DAOException(609, "患者信息不存在");
         }
-        if (StringUtils.isEmpty(recipeCode)) {
-            recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO);
+        String organName = "";
+        try {
+            organName = organService.getNameById(organId);
+        } catch (Exception e) {
+            LOGGER.info("getRecipeMsgTagWithOfflineRecipe getNameById error：{}", e);
+            e.printStackTrace();
+        }
+        if (specitalOrganList.contains(organId.toString()) || organName.contains("上海市第七人民医院")) {
+            recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO, true);
         } else {
-            //获取当前处方详情
-            HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = hisRecipeManager.queryData(organId, patientDTO, null, 1, recipeCode);
-            QueryHisRecipResTO queryHisRecipResTO = getRecipeInfoByRecipeCode(hisResponseTO, recipeCode);
-            if (queryHisRecipResTO == null || StringUtils.isEmpty(queryHisRecipResTO.getRecipeCode())) {
-                LOGGER.info("sendRecipeTagToPatientWithOfflineRecipe recipeCode：{} 根据recipeCode没查询到线下处方！！！", recipeCode);
-                recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO);
+            if (StringUtils.isEmpty(recipeCode)) {
+                recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO, false);
             } else {
-                //拼接卡片显示参数
-                recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(queryHisRecipResTO, patientDTO);
+                //获取当前处方详情
+                HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = hisRecipeManager.queryData(organId, patientDTO, null, 1, recipeCode);
+                QueryHisRecipResTO queryHisRecipResTO = getRecipeInfoByRecipeCode(hisResponseTO, recipeCode);
+                if (queryHisRecipResTO == null || StringUtils.isEmpty(queryHisRecipResTO.getRecipeCode())) {
+                    LOGGER.info("sendRecipeTagToPatientWithOfflineRecipe recipeCode：{} 根据recipeCode没查询到线下处方！！！", recipeCode);
+                    recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(patientDTO, false);
+                } else {
+                    //拼接卡片显示参数
+                    recipeTagMsg = getRecipeMsgTagWithOfflineRecipe(queryHisRecipResTO, patientDTO);
+                }
             }
         }
         //环信消息发送
@@ -2716,12 +2725,16 @@ public class RecipeServiceSub {
         return recipeTagMsg;
     }
 
-    private static RecipeTagMsgBean getRecipeMsgTagWithOfflineRecipe(PatientDTO patientDTO) {
+    private static RecipeTagMsgBean getRecipeMsgTagWithOfflineRecipe(PatientDTO patientDTO, boolean dumpMzjf) {
         LOGGER.info("getRecipeMsgTagWithOfflineRecipe param:{}", JSONUtils.toString(patientDTO));
         //获取诊断疾病名称
         RecipeTagMsgBean recipeTagMsg = new RecipeTagMsgBean();
         recipeTagMsg.setTitle(patientDTO.getPatientName() + "的电子处方单");
         recipeTagMsg.setFlag("1");
+        if (dumpMzjf) {
+            recipeTagMsg.setFlag("3");
+            recipeTagMsg.setContent("请点击查看处方单或检查检验单");
+        }
         recipeTagMsg.setCardId(patientDTO.getCardId());
         recipeTagMsg.setRecipeSourceType(2);
         LOGGER.info("getRecipeMsgTagWithOfflineRecipe response:{}", JSONUtils.toString(recipeTagMsg));

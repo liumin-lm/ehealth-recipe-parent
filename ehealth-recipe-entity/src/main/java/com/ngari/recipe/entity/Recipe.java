@@ -101,9 +101,6 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "支付日期")
     private Date payDate;
 
-    @ItemProperty(alias = "结算单号")
-    private Integer payListId;
-
     @ItemProperty(alias = "发药机构")
     private Integer giveOrgan;
 
@@ -135,10 +132,6 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "药师电话")
     private String checkerTel;
 
-    @ItemProperty(alias = "支付方式")
-    @Dictionary(id = "eh.cdr.dictionary.PayMode")
-    private Integer payMode;
-
     @ItemProperty(alias = "发药方式")
     private Integer giveMode;
 
@@ -153,36 +146,6 @@ public class Recipe implements Serializable {
     @FileToken(expires = 3600)
     private String chemistSignFile;
 
-    @ItemProperty(alias = "收货人")
-    private String receiver;
-
-    @ItemProperty(alias = "收货人手机号")
-    private String recMobile;
-
-    @ItemProperty(alias = "收货人电话")
-    private String recTel;
-
-    @ItemProperty(alias = "地址（省）")
-    @Dictionary(id = "eh.base.dictionary.AddrArea")
-    private String address1;
-
-    @ItemProperty(alias = "地址（市）")
-    @Dictionary(id = "eh.base.dictionary.AddrArea")
-    private String address2;
-
-    @ItemProperty(alias = "地址（区县）")
-    @Dictionary(id = "eh.base.dictionary.AddrArea")
-    private String address3;
-
-    @ItemProperty(alias = "详细地址")
-    private String address4;
-
-    @ItemProperty(alias = "邮政编码")
-    private String zipCode;
-
-    @ItemProperty(alias = "地址信息ID")
-    private Integer addressId;
-
     @ItemProperty(alias = "处方状态")
     @Dictionary(id = "eh.cdr.dictionary.RecipeStatus")
     private Integer status;
@@ -196,9 +159,6 @@ public class Recipe implements Serializable {
 
     @ItemProperty(alias = "开始配送时间")
     private Date startSendDate;
-
-    @ItemProperty(alias = "开始发药时间")
-    private Date sendDate;
 
     @ItemProperty(alias = "配送人")
     private String sender;
@@ -227,21 +187,6 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "处方失效前提醒标志位")
     private Integer remindFlag;
 
-    @ItemProperty(alias = "交易流水号")
-    private String tradeNo;
-
-    @ItemProperty(alias = "微信支付方式")
-    private String wxPayWay;
-
-    @ItemProperty(alias = "商户订单号")
-    private String outTradeNo;
-
-    @ItemProperty(alias = "支付机构id")
-    private String payOrganId;
-
-    @ItemProperty(alias = "微信支付错误码")
-    private String wxPayErrorCode;
-
     @ItemProperty(alias = "药企序号")
     private Integer enterpriseId;
 
@@ -250,9 +195,6 @@ public class Recipe implements Serializable {
 
     @ItemProperty(alias = "药师审核不通过的旧处方Id")
     private Integer oldRecipeId;
-
-    @ItemProperty(alias = "优惠券Id")
-    private Integer couponId;
 
     @ItemProperty(alias = "最后需支付费用")
     private BigDecimal actualPrice;
@@ -353,9 +295,6 @@ public class Recipe implements Serializable {
 
     @ItemProperty(alias = "处方支付类型 0 普通支付 1 不选择购药方式直接去支付")
     private Integer recipePayType;
-
-    @ItemProperty(alias = "调配人")
-    private String dispensPeople;
 
     @ItemProperty(alias = "失效时间")
     private Date invalidTime;
@@ -614,15 +553,6 @@ public class Recipe implements Serializable {
         this.payDate = payDate;
     }
 
-    @Column(name = "PayListID")
-    public Integer getPayListId() {
-        return this.payListId;
-    }
-
-    public void setPayListId(Integer payListId) {
-        this.payListId = payListId;
-    }
-
     @Column(name = "GiveOrgan")
     public Integer getGiveOrgan() {
         return this.giveOrgan;
@@ -695,15 +625,6 @@ public class Recipe implements Serializable {
         this.checkerTel = checkerTel;
     }
 
-    @Column(name = "PayMode")
-    public Integer getPayMode() {
-        return payMode;
-    }
-
-    public void setPayMode(Integer payMode) {
-        this.payMode = payMode;
-    }
-
     @Column(name = "GiveMode")
     public Integer getGiveMode() {
         return giveMode;
@@ -738,87 +659,6 @@ public class Recipe implements Serializable {
 
     public void setChemistSignFile(String chemistSignFile) {
         this.chemistSignFile = chemistSignFile;
-    }
-
-    @Column(name = "Receiver")
-    public String getReceiver() {
-        return receiver;
-    }
-
-    public void setReceiver(String receiver) {
-        this.receiver = receiver;
-    }
-
-    @Column(name = "recMobile")
-    public String getRecMobile() {
-        return recMobile;
-    }
-
-    public void setRecMobile(String recMobile) {
-        this.recMobile = recMobile;
-    }
-
-    @Column(name = "RecTel")
-    public String getRecTel() {
-        return recTel;
-    }
-
-    public void setRecTel(String recTel) {
-        this.recTel = recTel;
-    }
-
-    @Column(name = "Address1")
-    public String getAddress1() {
-        return address1;
-    }
-
-    public void setAddress1(String address1) {
-        this.address1 = address1;
-    }
-
-    @Column(name = "Address2")
-    public String getAddress2() {
-        return address2;
-    }
-
-    public void setAddress2(String address2) {
-        this.address2 = address2;
-    }
-
-    @Column(name = "Address3")
-    public String getAddress3() {
-        return address3;
-    }
-
-    public void setAddress3(String address3) {
-        this.address3 = address3;
-    }
-
-    @Column(name = "Address4")
-    public String getAddress4() {
-        return address4;
-    }
-
-    public void setAddress4(String address4) {
-        this.address4 = address4;
-    }
-
-    @Column(name = "ZipCode")
-    public String getZipCode() {
-        return zipCode;
-    }
-
-    public void setZipCode(String zipCode) {
-        this.zipCode = zipCode;
-    }
-
-    @Column(name = "AddressID")
-    public Integer getAddressId() {
-        return addressId;
-    }
-
-    public void setAddressId(Integer addressId) {
-        this.addressId = addressId;
     }
 
     @Column(name = "Status")
@@ -873,15 +713,6 @@ public class Recipe implements Serializable {
 
     public void setStartSendDate(Date startSendDate) {
         this.startSendDate = startSendDate;
-    }
-
-    @Column(name = "sendDate")
-    public Date getSendDate() {
-        return this.sendDate;
-    }
-
-    public void setSendDate(Date sendDate) {
-        this.sendDate = sendDate;
     }
 
     @Column(name = "SignDate")
@@ -956,42 +787,6 @@ public class Recipe implements Serializable {
         this.remindFlag = remindFlag;
     }
 
-    @Column(name = "TradeNo")
-    public String getTradeNo() {
-        return tradeNo;
-    }
-
-    public void setTradeNo(String tradeNo) {
-        this.tradeNo = tradeNo;
-    }
-
-    @Column(name = "WxPayWay")
-    public String getWxPayWay() {
-        return wxPayWay;
-    }
-
-    public void setWxPayWay(String wxPayWay) {
-        this.wxPayWay = wxPayWay;
-    }
-
-    @Column(name = "WxPayErrorCode")
-    public String getWxPayErrorCode() {
-        return wxPayErrorCode;
-    }
-
-    public void setWxPayErrorCode(String wxPayErrorCode) {
-        this.wxPayErrorCode = wxPayErrorCode;
-    }
-
-    @Column(name = "OutTradeNo")
-    public String getOutTradeNo() {
-        return outTradeNo;
-    }
-
-    public void setOutTradeNo(String outTradeNo) {
-        this.outTradeNo = outTradeNo;
-    }
-
     @Column(name = "Sender")
     public String getSender() {
         return sender;
@@ -1019,15 +814,6 @@ public class Recipe implements Serializable {
         this.pushFlag = pushFlag;
     }
 
-    @Column(name = "payOrganId")
-    public String getPayOrganId() {
-        return payOrganId;
-    }
-
-    public void setPayOrganId(String payOrganId) {
-        this.payOrganId = payOrganId;
-    }
-
     @Column(name = "OldRecipeId")
     public Integer getOldRecipeId() {
         return oldRecipeId;
@@ -1035,15 +821,6 @@ public class Recipe implements Serializable {
 
     public void setOldRecipeId(Integer oldRecipeId) {
         this.oldRecipeId = oldRecipeId;
-    }
-
-    @Column(name = "CouponId")
-    public Integer getCouponId() {
-        return couponId;
-    }
-
-    public void setCouponId(Integer couponId) {
-        this.couponId = couponId;
     }
 
     @Column(name = "ActualPrice")
@@ -1301,15 +1078,6 @@ public class Recipe implements Serializable {
 
     public void setRecipePayType(Integer recipePayType) {
         this.recipePayType = recipePayType;
-    }
-
-    @Column(name = "dispens_people")
-    public String getDispensPeople() {
-        return dispensPeople;
-    }
-
-    public void setDispensPeople(String dispensPeople) {
-        this.dispensPeople = dispensPeople;
     }
 
     @Column(name = "grabOrderStatus")

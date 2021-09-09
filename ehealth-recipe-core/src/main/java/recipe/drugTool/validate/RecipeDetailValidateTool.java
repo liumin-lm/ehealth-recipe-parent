@@ -19,7 +19,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.client.IConfigurationClient;
 import recipe.dao.DrugDecoctionWayDao;
 import recipe.dao.DrugMakingMethodDao;
-import recipe.manager.DrugManeger;
+import recipe.manager.DrugManager;
 import recipe.manager.OrganDrugListManager;
 import recipe.util.ValidateUtil;
 
@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 public class RecipeDetailValidateTool {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
     @Autowired
-    private DrugManeger drugManeger;
+    private DrugManager drugManager;
     @Autowired
     DrugDecoctionWayDao drugDecoctionWayDao;
     @Autowired
@@ -302,7 +302,7 @@ public class RecipeDetailValidateTool {
      */
     private boolean medicationsValidate(Integer organId, RecipeDetailBean recipeDetail) {
         boolean us = false;
-        UsingRateDTO usingRateDTO = drugManeger.usingRate(organId, recipeDetail.getOrganUsingRate());
+        UsingRateDTO usingRateDTO = drugManager.usingRate(organId, recipeDetail.getOrganUsingRate());
         if (null == usingRateDTO) {
             recipeDetail.setUsingRate(null);
             recipeDetail.setUsingRateTextFromHis(null);
@@ -313,7 +313,7 @@ public class RecipeDetailValidateTool {
             recipeDetail.setUsingRate(usingRateDTO.getUsingRateKey());
             recipeDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
         }
-        UsePathwaysDTO usePathwaysDTO = drugManeger.usePathways(organId, recipeDetail.getOrganUsePathways());
+        UsePathwaysDTO usePathwaysDTO = drugManager.usePathways(organId, recipeDetail.getOrganUsePathways());
         if (null == usePathwaysDTO) {
             recipeDetail.setUsePathways(null);
             recipeDetail.setUsePathwaysTextFromHis(null);

@@ -7,6 +7,7 @@ import java.io.Serializable;
 /**
  * Created by  on 2016/6/14 0014.
  * 处方发送his 新增成功后 返回的数据组装类
+ *
  * @author zhongzx
  */
 @Schema
@@ -102,6 +103,19 @@ public class OrderRepTO implements Serializable {
      * 药品包装数量
      */
     private Integer pack;
+
+    /**
+     * 诊断序号
+     */
+    private String hisDiseaseSerial;
+
+    public String getHisDiseaseSerial() {
+        return hisDiseaseSerial;
+    }
+
+    public void setHisDiseaseSerial(String hisDiseaseSerial) {
+        this.hisDiseaseSerial = hisDiseaseSerial;
+    }
 
     public String getIsDrugStock() {
         return isDrugStock;

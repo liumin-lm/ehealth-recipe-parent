@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.dto.EmrDetail;
+import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.EmrDetailValueDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import recipe.constant.RecipeEmrComment;
-import recipe.dto.EmrDetailDTO;
 import recipe.util.ByteUtils;
 import recipe.util.DictionaryUtil;
 import recipe.util.ValidateUtil;
@@ -69,7 +68,7 @@ public class DocIndexClient extends BaseClient {
      * @param docIndexId
      * @return
      */
-    public EmrDetail getEmrDetails(Integer docIndexId) {
+    public EmrDetailDTO getEmrDetails(Integer docIndexId) {
         MedicalDetailBean medicalDetailBean = getEmrMedicalDetail(docIndexId);
         if (null == medicalDetailBean) {
             return null;
@@ -78,7 +77,7 @@ public class DocIndexClient extends BaseClient {
         if (CollectionUtils.isEmpty(detailList)) {
             return null;
         }
-        EmrDetail emrDetail = getMedicalInfo(detailList);
+        EmrDetailDTO emrDetail = getMedicalInfo(detailList);
         logger.info("DocIndexClient getEmrDetails docIndexId={},  emrDetail:{}", docIndexId, JSON.toJSONString(emrDetail));
         return emrDetail;
     }
@@ -188,7 +187,21 @@ public class DocIndexClient extends BaseClient {
             recipeInfoReq.setDocIndexId(docId);
             if (null != recipeExtend) {
                 recipeInfoReq.setRegisterNo(recipeExtend.getRegisterID());
+                recipeInfoReq.setMakeMethodText(recipeExtend.getMakeMethodText());
+                recipeInfoReq.setDecoctionText(recipeExtend.getDecoctionText());
+                recipeInfoReq.setJuice(recipeExtend.getJuice());
+                recipeInfoReq.setJuiceUnit(recipeExtend.getJuiceUnit());
+                recipeInfoReq.setMinor(recipeExtend.getMinor());
+                recipeInfoReq.setMinorUnit(recipeExtend.getMinorUnit());
             }
+            recipeInfoReq.setRecipeType(recipe.getRecipeType());
+            recipeInfoReq.setRecipeMemo(recipe.getRecipeMemo());
+            recipeInfoReq.setCopyNum(ByteUtils.objValueOfString(recipe.getCopyNum()));
+            Recipedetail recipeDetail = recipeDetailList.get(0);
+            recipeInfoReq.setUseDays(ByteUtils.objValueOfString(recipeDetail.getUseDays()));
+            recipeInfoReq.setUsePathways(DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", recipeDetail.getUsePathways()));
+            recipeInfoReq.setUsingRate(DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", recipeDetail.getUsingRate()));
+            recipeInfoReq.setPharmacyName(recipeDetail.getPharmacyName());
             logger.info("EmrRecipeManager upDocIndex recipeInfoReq：{} ", JSON.toJSONString(recipeInfoReq));
             docIndexService.saveRpDetailRelation(recipeInfoReq);
         } catch (Exception e) {
@@ -255,28 +268,28 @@ public class DocIndexClient extends BaseClient {
     private void setMedicalDetailBean(Recipe recipe, RecipeExtend recipeExt, MedicalDetailBean medicalDetailBean) {
         List<EmrConfigRes> detail = new ArrayList<>();
         //设置主诉
-        detail.add(new EmrDetailDTO(RecipeEmrComment.COMPLAIN, "主诉", RecipeEmrComment.TEXT_AREA, ValidateUtil.isEmpty(recipeExt.getMainDieaseDescribe()), true));
+        detail.add(new recipe.dto.EmrDetailDTO(RecipeEmrComment.COMPLAIN, "主诉", RecipeEmrComment.TEXT_AREA, ValidateUtil.isEmpty(recipeExt.getMainDieaseDescribe()), true));
         //病史
-        detail.add(new EmrDetailDTO(RecipeEmrComment.MEDICAL_HISTORY, "病史", RecipeEmrComment.TEXT_AREA, ValidateUtil.isEmpty(recipeExt.getHistoryOfPresentIllness()), true));
+        detail.add(new recipe.dto.EmrDetailDTO(RecipeEmrComment.MEDICAL_HISTORY, "病史", RecipeEmrComment.TEXT_AREA, ValidateUtil.isEmpty(recipeExt.getHistoryOfPresentIllness()), true));
         //设置现病史
-        detail.add(new EmrDetailDTO(RecipeEmrComment.CURRENT_MEDICAL_HISTORY, "现病史", RecipeEmrComment.TEXT_AREA, ValidateUtil.isEmpty(recipeExt.getCurrentMedical()), false));
+        detail.add(new recipe.dto.EmrDetailDTO(RecipeEmrComment.CURRENT_MEDICAL_HISTORY, "现病史", RecipeEmrComment.TEXT_AREA, ValidateUtil.isEmpty(recipeExt.getCurrentMedical()), false));
         //设置既往史
-        detail.add(new EmrDetailDTO(RecipeEmrComment.PAST_MEDICAL_HISTORY, "既往史", RecipeEmrComment.TEXT_AREA, ValidateUtil.isEmpty(recipeExt.getHistroyMedical()), false));
+        detail.add(new recipe.dto.EmrDetailDTO(RecipeEmrComment.PAST_MEDICAL_HISTORY, "既往史", RecipeEmrComment.TEXT_AREA, ValidateUtil.isEmpty(recipeExt.getHistroyMedical()), false));
         //设置过敏史
-        detail.add(new EmrDetailDTO(RecipeEmrComment.ALLERGY_HISTORY, "过敏史", RecipeEmrComment.TEXT_AREA, ValidateUtil.isEmpty(recipeExt.getAllergyMedical()), false));
+        detail.add(new recipe.dto.EmrDetailDTO(RecipeEmrComment.ALLERGY_HISTORY, "过敏史", RecipeEmrComment.TEXT_AREA, ValidateUtil.isEmpty(recipeExt.getAllergyMedical()), false));
         //设置备注
-        detail.add(new EmrDetailDTO(RecipeEmrComment.REMARK, "备注", RecipeEmrComment.TEXT_AREA, ValidateUtil.isEmpty(recipe.getMemo()), false));
+        detail.add(new recipe.dto.EmrDetailDTO(RecipeEmrComment.REMARK, "备注", RecipeEmrComment.TEXT_AREA, ValidateUtil.isEmpty(recipe.getMemo()), false));
         //设置诊断
         if (!StringUtils.isEmpty(recipe.getOrganDiseaseName())) {
             String[] diseaseNames = ByteUtils.split(recipe.getOrganDiseaseName(), ByteUtils.SEMI_COLON_EN);
             String[] diseaseIds = ByteUtils.split(recipe.getOrganDiseaseId(), ByteUtils.SEMI_COLON_EN);
-            detail.add(new EmrDetailDTO(RecipeEmrComment.DIAGNOSIS, "诊断", RecipeEmrComment.MULTI_SEARCH, getEmrDetailValueDTO(diseaseNames, diseaseIds), true));
+            detail.add(new recipe.dto.EmrDetailDTO(RecipeEmrComment.DIAGNOSIS, "诊断", RecipeEmrComment.MULTI_SEARCH, getEmrDetailValueDTO(diseaseNames, diseaseIds), true));
         }
         //设置中医证候
         if (!StringUtils.isEmpty(recipeExt.getSymptomName())) {
             String[] symptomNames = ByteUtils.split(recipeExt.getSymptomName(), ByteUtils.SEMI_COLON_EN);
             String[] symptomIds = ByteUtils.split(recipeExt.getSymptomId(), ByteUtils.SEMI_COLON_EN);
-            detail.add(new EmrDetailDTO(RecipeEmrComment.TCM_SYNDROME, "中医证候", RecipeEmrComment.MULTI_SEARCH, getEmrDetailValueDTO(symptomNames, symptomIds), false));
+            detail.add(new recipe.dto.EmrDetailDTO(RecipeEmrComment.TCM_SYNDROME, "中医证候", RecipeEmrComment.MULTI_SEARCH, getEmrDetailValueDTO(symptomNames, symptomIds), false));
         }
         medicalDetailBean.setDetail(JSONUtils.toString(detail));
     }
@@ -319,8 +332,8 @@ public class DocIndexClient extends BaseClient {
     /**
      * 查询电子病例字段返回
      */
-    private EmrDetail getMedicalInfo(List<EmrConfigRes> detailList) {
-        EmrDetail emrDetail = new EmrDetail();
+    private EmrDetailDTO getMedicalInfo(List<EmrConfigRes> detailList) {
+        EmrDetailDTO emrDetail = new EmrDetailDTO();
         for (EmrConfigRes detailDTO : detailList) {
             if (null == detailDTO) {
                 continue;

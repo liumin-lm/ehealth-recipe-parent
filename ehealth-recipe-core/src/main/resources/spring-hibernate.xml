@@ -1,56 +1,58 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
-	<bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
-		<property name="url" value="${db.url}" />
-		<property name="username" value="${db.username}" />
-		<property name="password" value="${db.password}" />
-		<property name="filters" value="mergeStat,config,log4j" />
-		<property name="connectionProperties" value="config.decrypt=true;druid.stat.slowSqlMillis=3000;druid.stat.logSlowSql=true" />
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+        <property name="url" value="${db.url}"/>
+        <property name="username" value="${db.username}"/>
+        <property name="password" value="${db.password}"/>
+        <property name="filters" value="mergeStat,config,log4j"/>
+        <property name="connectionProperties"
+                  value="config.decrypt=true;druid.stat.slowSqlMillis=3000;druid.stat.logSlowSql=true"/>
 
         <property name="maxActive" value="${db.maxActive}"/>
         <property name="initialSize" value="${db.initialSize}"/>
-		<property name="maxWait" value="60000" />
-		<property name="minIdle" value="1" />
-		<property name="timeBetweenEvictionRunsMillis" value="60000" />
-		<property name="minEvictableIdleTimeMillis" value="300000" />
-		<property name="validationQuery" value="SELECT 'x'" />
-		<property name="testWhileIdle" value="true"/>
-		<property name="testOnBorrow" value="false"/>
-		<property name="testOnReturn" value="false"/>
-		<property name="proxyFilters">
-			<list>
-				<bean class="ctd.persistence.rw.druid.filter.DaoExecuteMonitorFilter"/>
-			</list>
-		</property>
-		<!--<property name="poolPreparedStatements" value="true" />-->
-		<!--<property name="maxPoolPreparedStatementPerConnectionSize" value="20" />-->
-	</bean>
-	<bean id="mySessionFactory" class="ctd.persistence.support.hibernate.MyLocalSessionFactoryBean">
-		<property name="dataSource" ref="dataSource" />
-		<property name="packagesToScan">
-			<array>
+        <property name="maxWait" value="60000"/>
+        <property name="minIdle" value="1"/>
+        <property name="timeBetweenEvictionRunsMillis" value="60000"/>
+        <property name="minEvictableIdleTimeMillis" value="300000"/>
+        <property name="validationQuery" value="SELECT 'x'"/>
+        <property name="testWhileIdle" value="true"/>
+        <property name="testOnBorrow" value="false"/>
+        <property name="testOnReturn" value="false"/>
+        <property name="proxyFilters">
+            <list>
+                <bean class="ctd.persistence.rw.druid.filter.DaoExecuteMonitorFilter"/>
+            </list>
+        </property>
+        <!--<property name="poolPreparedStatements" value="true" />-->
+        <!--<property name="maxPoolPreparedStatementPerConnectionSize" value="20" />-->
+    </bean>
+    <bean id="mySessionFactory" class="ctd.persistence.support.hibernate.MyLocalSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="packagesToScan">
+            <array>
                 <value>ctd.mvc.upload</value>
                 <value>ctd.net.rpc.logger</value>
                 <value>ctd.account.thirdparty</value>
                 <value>com.ngari.base.*.model</value>
                 <value>com.ngari.recipe</value>
+                <value>recipe.vo</value>
                 <value>com.ngari.patient.dto</value>
                 <value>com.ngari.consult</value>
                 <value>com.ngari.patient.ds</value>
-			</array>
-		</property>
-		<property name="hibernateProperties">
-			<props>
-				<prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>
-				<prop key="hibernate.show_sql">false</prop>
-				<prop key="hibernate.generate_statistics">false</prop>
-				<prop key="hibernate.connection.release_mode">auto</prop>
-				<prop key="hibernate.autoReconnect">true</prop>
-				<prop key="hibernate.cache.use_second_level_cache">false</prop>
-				<prop key="hibernate.jdbc.use_scrollable_resultset">true</prop>
-			</props>
-		</property>
-	</bean>
+            </array>
+        </property>
+        <property name="hibernateProperties">
+            <props>
+                <prop key="hibernate.dialect">org.hibernate.dialect.MySQL5Dialect</prop>
+                <prop key="hibernate.show_sql">false</prop>
+                <prop key="hibernate.generate_statistics">false</prop>
+                <prop key="hibernate.connection.release_mode">auto</prop>
+                <prop key="hibernate.autoReconnect">true</prop>
+                <prop key="hibernate.cache.use_second_level_cache">false</prop>
+                <prop key="hibernate.jdbc.use_scrollable_resultset">true</prop>
+            </props>
+        </property>
+    </bean>
 </beans>

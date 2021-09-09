@@ -3,12 +3,12 @@ package com.ngari.recipe.entity;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
-import static javax.persistence.GenerationType.IDENTITY;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
-import java.sql.Timestamp;
 import java.util.Date;
+
+import static javax.persistence.GenerationType.IDENTITY;
 
 /**
  * @author yuyun
@@ -47,137 +47,138 @@ public class Recipedetail implements java.io.Serializable {
 
 	@ItemProperty(alias = "药品包装数量")
 	private Integer pack;
-	
-	@ItemProperty(alias="药物单位")
+
+	@ItemProperty(alias = "药物单位")
 	private String drugUnit;
-	
-	@ItemProperty(alias="药物使用次剂量")
+
+	@ItemProperty(alias = "药物使用次剂量")
 	private Double useDose;
 
-	@ItemProperty(alias="默认每次剂量")
+	@ItemProperty(alias = "默认每次剂量")
 	private Double defaultUseDose;
 
-    @ItemProperty(alias="药物使用次剂量--中文标识-适量")
-    private String useDoseStr;
+	@ItemProperty(alias = "药物使用次剂量--中文标识-适量")
+	private String useDoseStr;
 
-	@ItemProperty(alias="药物使用规格单位")
+	@ItemProperty(alias = "药物使用规格单位")
 	private String useDoseUnit;
 
-	@ItemProperty(alias="药物剂量单位")
+	@ItemProperty(alias = "药物剂量单位")
 	private String dosageUnit;
 
-	@ItemProperty(alias="平台药物使用频率代码")
-    @Dictionary(id="eh.cdr.dictionary.UsingRate")
+	@ItemProperty(alias = "平台药物使用频率代码")
+	@Dictionary(id = "eh.cdr.dictionary.UsingRate")
 	private String usingRate;
 
-	@ItemProperty(alias="平台药物使用途径代码")
-    @Dictionary(id="eh.cdr.dictionary.UsePathways")
+	@ItemProperty(alias = "平台药物使用途径代码")
+	@Dictionary(id = "eh.cdr.dictionary.UsePathways")
 	private String usePathways;
 
-    @ItemProperty(alias = "使用频率id")
-    @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
-    private String usingRateId;
+	@ItemProperty(alias = "使用频率id")
+	@Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
+	private String usingRateId;
 
-    @ItemProperty(alias = "用药途径id")
-    @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
-    private String usePathwaysId;
+	@ItemProperty(alias = "用药途径id")
+	@Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
+	private String usePathwaysId;
 
-    @ItemProperty(
-            alias = "机构的频次代码"
-    )
-    private String organUsingRate;
-    @ItemProperty(
-            alias = "机构的用法代码"
-    )
-    private String organUsePathways;
+	@ItemProperty(alias = "机构的频次代码")
+	private String organUsingRate;
+	@ItemProperty(alias = "机构的用法代码")
+	private String organUsePathways;
 
 	//用药频率说明（来源his）
-	@ItemProperty(alias="用药频率说明")
+	@ItemProperty(alias = "用药频率说明")
 	private String usingRateTextFromHis; //防止覆盖原有usingRateText
 
 	//用药方式说明（来源his）
-	@ItemProperty(alias="用药方式说明")
+	@ItemProperty(alias = "用药方式说明")
 	private String usePathwaysTextFromHis;//防止覆盖原有usePathwaysText
 
-	@ItemProperty(alias="药物使用总数量")
+	@ItemProperty(alias = "药物使用总数量")
 	private Double useTotalDose;
-	
-	@ItemProperty(alias="药物发放数量")
+
+	@ItemProperty(alias = "药物发放数量")
 	private Double sendNumber;
-	
-	@ItemProperty(alias="药物使用天数")
+
+	@ItemProperty(alias = "药物使用天数")
 	private Integer useDays;
-	
-	@ItemProperty(alias="药物金额")
+
+	@ItemProperty(alias = "药物金额 = useTotalDose * salePrice")
 	private BigDecimal drugCost;
 
-	@ItemProperty(alias="药品嘱托Id")
+	@ItemProperty(alias = "药品嘱托Id")
 	private String entrustmentId;
 
-	@ItemProperty(alias="药品嘱托信息")
+	@ItemProperty(alias = "药品嘱托信息")
 	private String memo;
 
-	@ItemProperty(alias="药品嘱托编码")
+	@ItemProperty(alias = "药品嘱托编码")
 	private String drugEntrustCode;
 
-	@ItemProperty(alias="药品效期")
+	@ItemProperty(alias = "药品效期")
 	private Date validDate;
-	
-	@ItemProperty(alias="药品批号")
+
+	@ItemProperty(alias = "药品批号")
 	private String drugBatch;
-	
-	@ItemProperty(alias="创建时间")
+
+	@ItemProperty(alias = "创建时间")
 	private Date createDt;
-	
-	@ItemProperty(alias="最后修改时间")
+
+	@ItemProperty(alias = "最后修改时间")
 	private Date lastModify;
-	
-	@ItemProperty(alias="销售价格")
+
+	@ItemProperty(alias = "销售价格 = organDrug.salePrice")
 	private BigDecimal salePrice;
-	
-	@ItemProperty(alias="药品编码")
+
+	@ItemProperty(alias = "药品编码")
 	private String drugCode;
-	
-	@ItemProperty(alias="无税单价")
+
+	@ItemProperty(alias = "无税单价 = organDrug.salePrice")
+	@Deprecated
 	private BigDecimal price;
-	
-	@ItemProperty(alias="税率")
+
+	@ItemProperty(alias = "税率")
 	private Double rate;
-	
-	@ItemProperty(alias="含税单价")
+
+	@ItemProperty(alias = "含税单价 暂无使用")
+	@Deprecated
 	private BigDecimal ratePrice;
 
-    @ItemProperty(alias="无税总额")
-    private BigDecimal totalPrice;
+	@ItemProperty(alias = "无税总额 暂无使用")
+	@Deprecated
+	private BigDecimal totalPrice;
 
-    @ItemProperty(alias="税额")
-    private BigDecimal tax;
+	@ItemProperty(alias = "税额 暂无使用")
+	@Deprecated
+	private BigDecimal tax;
 
-    @ItemProperty(alias="含税总额")
-    private BigDecimal totalRatePrice;
+	@ItemProperty(alias = "含税总额 暂无使用")
+	@Deprecated
+	private BigDecimal totalRatePrice;
 
-    @ItemProperty(alias="医院系统医嘱号")
-    private String orderNo;
+	@ItemProperty(alias = "医院系统医嘱号")
+	private String orderNo;
 
-    @ItemProperty(alias="取药窗口")
-    private String pharmNo;
+	@ItemProperty(alias = "取药窗口")
+	private String pharmNo;
 
-    @ItemProperty(alias = "是否启用")
-    private Integer status;
+	@ItemProperty(alias = "是否启用")
+	private Integer status;
 
-    @ItemProperty(alias="药企发票编号")
-    private String invoiceNo;
+	@ItemProperty(alias = "药企发票编号")
+	private String invoiceNo;
 
-    @ItemProperty(alias="药企开票日期")
-    private Date invoiceDate;
+	@ItemProperty(alias = "药企开票日期")
+	private Date invoiceDate;
 
-    @ItemProperty(alias="医院给患者发票编号")
-    private String patientInvoiceNo;
+	@ItemProperty(alias = "医院给患者发票编号")
+	private String patientInvoiceNo;
 
-    @ItemProperty(alias="医院给患者开票日期")
-    private Date patientInvoiceDate;
+	@ItemProperty(alias = "医院给患者开票日期")
+	private Date patientInvoiceDate;
 
-	@ItemProperty(alias="处方明细单号")
+	@ItemProperty(alias = "处方明细单号")
 	private String recipedtlno;
 
 	@ItemProperty(alias = "剂型")
@@ -198,7 +199,7 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias = "生产厂家代码")
 	private String producerCode;
 
-	@ItemProperty(alias = "实际销售价格")
+	@ItemProperty(alias = "实际销售价格 真实支付后三方回写价格")
 	private BigDecimal actualSalePrice;
 
 	@ItemProperty(alias = "药企药品编码")
@@ -242,14 +243,19 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias = "中药禁忌原因")
 	private String tcmContraindicationCause;
 
-    @ItemProperty(alias = "前端展示的药品拼接名")
-    private String drugDisplaySplicedName;
+	@ItemProperty(alias = "前端展示的药品拼接名")
+	private String drugDisplaySplicedName;
 
-    @ItemProperty(alias = "前端展示的商品拼接名")
-    private String drugDisplaySplicedSaleName;
+	@ItemProperty(alias = "前端展示的商品拼接名")
+	private String drugDisplaySplicedSaleName;
 
 	@ItemProperty(alias = "单个药品医保类型")
 	private Integer drugMedicalFlag;
+
+	/**
+	 * 类型：1:药品，2:诊疗项目，3....
+	 */
+	private Integer type;
 
 	@Column(name = "drugEntrustCode")
 	public String getDrugEntrustCode() {
@@ -276,116 +282,7 @@ public class Recipedetail implements java.io.Serializable {
 		this.drugType = drugType;
 	}
 
-	public Recipedetail() {
-	}
 
-	public Recipedetail(Integer recipeId, Integer drugId, String drugName,
-			String drugSpec, String drugUnit, Double sendNumber, BigDecimal drugCost) {
-		this.recipeId = recipeId;
-		this.drugId = drugId;
-		this.drugName = drugName;
-		this.drugSpec = drugSpec;
-		this.drugUnit = drugUnit;
-		this.sendNumber = sendNumber;
-		this.drugCost = drugCost;
-	}
-
-	public Recipedetail(Integer recipeId, String drugGroup, Integer drugId,
-			String organDrugCode, String drugName, String drugSpec,
-			String drugUnit, Double useDose, String useDoseUnit,
-			String usingRate, String usePathways, Double useTotalDose, Double sendNumber,
-			Integer useDays, BigDecimal salePrice, BigDecimal drugCost, String memo,
-			Timestamp createDt, Timestamp lastModify, Timestamp validDate,
-			String drugBatch, String drugCode, BigDecimal price, Double rate, BigDecimal ratePrice) {
-		this.recipeId = recipeId;
-		this.drugGroup = drugGroup;
-		this.drugId = drugId;
-		this.organDrugCode = organDrugCode;
-		this.drugName = drugName;
-		this.drugSpec = drugSpec;
-		this.drugUnit = drugUnit;
-		this.useDose = useDose;
-		this.useDoseUnit = useDoseUnit;
-		this.usingRate = usingRate;
-		this.usePathways = usePathways;
-		this.useTotalDose = useTotalDose;
-		this.sendNumber = sendNumber;
-		this.useDays = useDays;
-		this.salePrice = salePrice;
-		this.drugCost = drugCost;
-		this.memo = memo;
-		this.createDt = createDt;
-		this.lastModify = lastModify;
-		this.validDate = validDate;
-		this.drugBatch = drugBatch;
-		this.drugCode = drugCode;
-		this.price = price;
-		this.rate = rate;
-		this.ratePrice = ratePrice;
-	}
-
-	public Recipedetail(Integer recipeDetailId, Integer recipeId, String drugGroup, Integer drugId, String organDrugCode, String drugName, String drugSpec, Integer pack, String drugUnit, Double useDose, Double defaultUseDose, String useDoseStr, String useDoseUnit, String dosageUnit, String usingRate, String usePathways, String organUsingRate, String organUsePathways, String usingRateTextFromHis, String usePathwaysTextFromHis, Double useTotalDose, Double sendNumber, Integer useDays, BigDecimal drugCost, String memo, Date validDate, String drugBatch, Date createDt, Date lastModify, BigDecimal salePrice, String drugCode, BigDecimal price, Double rate, BigDecimal ratePrice, BigDecimal totalPrice, BigDecimal tax, BigDecimal totalRatePrice, String orderNo, String pharmNo, Integer status, String invoiceNo, Date invoiceDate, String patientInvoiceNo, Date patientInvoiceDate, String recipedtlno, String drugForm, String producer, String licenseNumber, String producerCode, BigDecimal actualSalePrice, String saleDrugCode, Integer settlementMode, String useDaysB, Integer drugType, String medicalDrugCode, Integer pharmacyId, String pharmacyName, String drugUnitdoseAndUnit, Integer tcmContraindicationType, String tcmContraindicationCause) {
-		this.recipeDetailId = recipeDetailId;
-		this.recipeId = recipeId;
-		this.drugGroup = drugGroup;
-		this.drugId = drugId;
-		this.organDrugCode = organDrugCode;
-		this.drugName = drugName;
-		this.drugSpec = drugSpec;
-		this.pack = pack;
-		this.drugUnit = drugUnit;
-		this.useDose = useDose;
-		this.defaultUseDose = defaultUseDose;
-		this.useDoseStr = useDoseStr;
-		this.useDoseUnit = useDoseUnit;
-		this.dosageUnit = dosageUnit;
-		this.usingRate = usingRate;
-		this.usePathways = usePathways;
-		this.organUsingRate = organUsingRate;
-		this.organUsePathways = organUsePathways;
-		this.usingRateTextFromHis = usingRateTextFromHis;
-		this.usePathwaysTextFromHis = usePathwaysTextFromHis;
-		this.useTotalDose = useTotalDose;
-		this.sendNumber = sendNumber;
-		this.useDays = useDays;
-		this.drugCost = drugCost;
-		this.memo = memo;
-		this.validDate = validDate;
-		this.drugBatch = drugBatch;
-		this.createDt = createDt;
-		this.lastModify = lastModify;
-		this.salePrice = salePrice;
-		this.drugCode = drugCode;
-		this.price = price;
-		this.rate = rate;
-		this.ratePrice = ratePrice;
-		this.totalPrice = totalPrice;
-		this.tax = tax;
-		this.totalRatePrice = totalRatePrice;
-		this.orderNo = orderNo;
-		this.pharmNo = pharmNo;
-		this.status = status;
-		this.invoiceNo = invoiceNo;
-		this.invoiceDate = invoiceDate;
-		this.patientInvoiceNo = patientInvoiceNo;
-		this.patientInvoiceDate = patientInvoiceDate;
-		this.recipedtlno = recipedtlno;
-		this.drugForm = drugForm;
-		this.producer = producer;
-		this.licenseNumber = licenseNumber;
-		this.producerCode = producerCode;
-		this.actualSalePrice = actualSalePrice;
-		this.saleDrugCode = saleDrugCode;
-		this.settlementMode = settlementMode;
-		this.useDaysB = useDaysB;
-		this.drugType = drugType;
-		this.medicalDrugCode = medicalDrugCode;
-		this.pharmacyId = pharmacyId;
-		this.pharmacyName = pharmacyName;
-		this.drugUnitdoseAndUnit = drugUnitdoseAndUnit;
-		this.tcmContraindicationType = tcmContraindicationType;
-		this.tcmContraindicationCause = tcmContraindicationCause;
-	}
 
 	public Integer getTcmContraindicationType() {
 		return tcmContraindicationType;
@@ -944,14 +841,22 @@ public class Recipedetail implements java.io.Serializable {
 
     public void setDrugDisplaySplicedSaleName(String drugDisplaySplicedSaleName) {
         this.drugDisplaySplicedSaleName = drugDisplaySplicedSaleName;
-    }
+	}
 
-    @Column(name = "drugMedicalFlag")
+	@Column(name = "drugMedicalFlag")
 	public Integer getDrugMedicalFlag() {
 		return drugMedicalFlag;
 	}
 
 	public void setDrugMedicalFlag(Integer drugMedicalFlag) {
 		this.drugMedicalFlag = drugMedicalFlag;
+	}
+
+	public Integer getType() {
+		return type;
+	}
+
+	public void setType(Integer type) {
+		this.type = type;
 	}
 }

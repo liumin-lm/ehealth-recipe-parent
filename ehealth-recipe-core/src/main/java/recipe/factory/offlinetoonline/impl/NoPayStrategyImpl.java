@@ -3,7 +3,7 @@ package recipe.factory.offlinetoonline.impl;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.recipe.dto.GroupRecipeConf;
+import com.ngari.recipe.dto.GroupRecipeConfDTO;
 import com.ngari.recipe.entity.HisRecipe;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
@@ -187,9 +187,9 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
         LOGGER.info("NoPayServiceImpl findOnReadyHisRecipe request:{}", JSONUtils.toString(request));
         //查询线下待缴费处方
         List<MergeRecipeVO> result = new ArrayList<>();
-        GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
-        Boolean mergeRecipeFlag = groupRecipeConf.getMergeRecipeFlag();
-        String mergeRecipeWayAfter = groupRecipeConf.getMergeRecipeWayAfter();
+        GroupRecipeConfDTO groupRecipeConfDTO = groupRecipeManager.getMergeRecipeSetting();
+        Boolean mergeRecipeFlag = groupRecipeConfDTO.getMergeRecipeFlag();
+        String mergeRecipeWayAfter = groupRecipeConfDTO.getMergeRecipeWayAfter();
         if (mergeRecipeFlag) {
             //开启合并支付开关
             if (BY_REGISTERID.equals(mergeRecipeWayAfter)) {

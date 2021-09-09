@@ -10,7 +10,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
-import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.util.ValidateUtil;
 import recipe.vo.doctor.ValidateDetailVO;
@@ -27,9 +26,6 @@ public class RecipeDetailDoctorAtop extends BaseAtop {
 
     @Autowired
     private IRecipeDetailBusinessService recipeDetailService;
-
-    @Autowired
-    private IRecipeBusinessService recipeBusinessService;
 
     /**
      * 长处方标识 0 不是

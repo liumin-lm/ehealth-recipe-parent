@@ -29,9 +29,6 @@ public class PatientVO implements Serializable {
     private String mpiId;
 
     @ItemProperty(alias = "病人姓名")
-    //basic项目中也存在一个patienDs文件，与当前文件差异是，那个文件的姓名会根据配置有脱敏，
-    // 若后期患者姓名也需要脱敏的话，可使用basic中的对象
-//    @Desensitizations(type = DesensitizationsType.NAME)
     private String patientName;
 
     @ItemProperty(alias = "病人性别")
@@ -79,7 +76,6 @@ public class PatientVO implements Serializable {
     @Dictionary(id = "eh.mpi.dictionary.Status")
     private Integer status;
 
-//    @Desensitizations(type = DesensitizationsType.NAME)
     @ItemProperty(alias = "监护人姓名")
     private String guardianName;
 

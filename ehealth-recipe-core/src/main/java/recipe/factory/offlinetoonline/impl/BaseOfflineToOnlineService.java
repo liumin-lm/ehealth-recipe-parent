@@ -10,7 +10,7 @@ import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.dto.GroupRecipeConf;
+import com.ngari.recipe.dto.GroupRecipeConfDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
@@ -33,6 +33,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.business.RevisitTraceBusinessService;
 import recipe.client.RevisitClient;
 import recipe.dao.*;
 import recipe.dao.bean.HisRecipeListBean;
@@ -123,6 +124,9 @@ public class BaseOfflineToOnlineService {
 
     @Autowired
     private EmploymentService employmentService;
+
+    @Autowired
+    private RevisitTraceBusinessService revisitTraceBusinessService;
 
     final String BY_REGISTERID = "e.registerId";
 
@@ -253,8 +257,8 @@ public class BaseOfflineToOnlineService {
         Map<String, List<RecipeOrder>> recipeOrderMap = getRecipeOrderMap(hisRecipeListBeanMap.keySet());
 
         // 获取合并处方显示配置项
-        GroupRecipeConf groupRecipeConf = groupRecipeManager.getMergeRecipeSetting();
-        String mergeRecipeWay = groupRecipeConf.getMergeRecipeWayAfter();
+        GroupRecipeConfDTO groupRecipeConfDTO = groupRecipeManager.getMergeRecipeSetting();
+        String mergeRecipeWay = groupRecipeConfDTO.getMergeRecipeWayAfter();
 
         hisRecipeListBeans.forEach(hisRecipeListBean -> {
             List<HisRecipeVO> hisRecipeVos = new ArrayList<>();
@@ -283,7 +287,7 @@ public class BaseOfflineToOnlineService {
                     }
                     hisRecipeVos = setPatientTabStatusMerge(recipeMap, recipeOrder, hisRecipeListBeansList, recipeIds);
                 }
-                covertMergeRecipeVO(grpupField, groupRecipeConf.getMergeRecipeFlag(), mergeRecipeWay, hisRecipeListBean.getHisRecipeID(), giveModeButtonBean.getButtonSkipType(), hisRecipeVos, result);
+                covertMergeRecipeVO(grpupField, groupRecipeConfDTO.getMergeRecipeFlag(), mergeRecipeWay, hisRecipeListBean.getHisRecipeID(), giveModeButtonBean.getButtonSkipType(), hisRecipeVos, result);
             }
 
         });
@@ -511,6 +515,7 @@ public class BaseOfflineToOnlineService {
                 recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attMap);
             }
             LOGGER.info("BaseOfflineToOnlineService saveRecipeInfo res:{}", recipe.getRecipeId());
+            revisitTraceBusinessService.saveRevisitTracesList(recipe);
             return recipe.getRecipeId();
         }
         return null;
@@ -1011,8 +1016,6 @@ public class BaseOfflineToOnlineService {
         }
         if (!StringUtils.isEmpty(queryHisRecipResTo.getDiseaseName())) {
             hisRecipe.setDiseaseName(queryHisRecipResTo.getDiseaseName());
-        } else {
-            hisRecipe.setDiseaseName("无");
         }
         hisRecipe.setDisease(queryHisRecipResTo.getDisease());
         if (!StringUtils.isEmpty(queryHisRecipResTo.getDoctorCode())) {
