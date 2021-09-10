@@ -8,7 +8,7 @@ import recipe.api.open.IRecipeAtopService;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
-import recipe.core.api.IRevisitTraceBusinessService;
+import recipe.core.api.IRevisitBusinessService;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
 import java.util.List;
@@ -26,7 +26,7 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     private IRecipeBusinessService recipeBusinessService;
 
     @Autowired
-    private IRevisitTraceBusinessService revisitRecipeTrace;
+    private IRevisitBusinessService revisitRecipeTrace;
 
     @Override
     public Boolean existUncheckRecipe(Integer bussSource, Integer clinicId) {

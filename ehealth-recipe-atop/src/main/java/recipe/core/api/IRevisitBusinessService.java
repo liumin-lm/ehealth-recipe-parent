@@ -5,12 +5,12 @@ import recipe.vo.second.RevisitRecipeTraceVo;
 import java.util.List;
 
 /**
- * 复诊处方追溯
+ * 处方复诊处理接口
  *
  * @author liumin
  * @date 2021\7\16 0016 17:16
  */
-public interface IRevisitTraceBusinessService {
+public interface IRevisitBusinessService {
 
     /**
      * 复诊处方追溯详情

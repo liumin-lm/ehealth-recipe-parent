@@ -20,7 +20,7 @@ import org.springframework.util.ObjectUtils;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.client.DoctorClient;
 import recipe.client.RecipeAuditClient;
-import recipe.core.api.IRevisitTraceBusinessService;
+import recipe.core.api.IRevisitBusinessService;
 import recipe.dao.*;
 import recipe.easypay.IEasyPayService;
 import recipe.manager.OrderManager;
@@ -36,14 +36,14 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
- * 复诊处方追溯
+ * 处方复诊 核心处理类
  *
  * @Author liumin
  * @Date 2021/8/24 上午11:58
  * @Description
  */
 @Service
-public class RevisitTraceBusinessService extends BaseService implements IRevisitTraceBusinessService {
+public class RevisitBusinessService extends BaseService implements IRevisitBusinessService {
     @Autowired
     private RevisitManager revisitManager;
     @Autowired
@@ -83,7 +83,7 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
     private RecipeAuditClient recipeAuditClient;
 
     @Autowired
-    IEasyPayService iEasyPayService;
+    private IEasyPayService iEasyPayService;
 
     @Override
     public List<RevisitRecipeTraceVo> revisitRecipeTrace(Integer recipeId, Integer clinicId) {
