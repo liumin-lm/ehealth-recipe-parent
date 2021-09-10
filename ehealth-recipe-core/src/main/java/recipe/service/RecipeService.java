@@ -3668,17 +3668,7 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info("getRecipeStatusFromHis 需要同步HIS处方，数量=[{}]", (null == list) ? 0 : list.size());
         assembleQueryStatusFromHis(list, map);
         LOGGER.info("getRecipeStatusFromHis 需要同步HIS处方，机构数量=[{}]", map.keySet().size());
-        List<UpdateRecipeStatusFromHisCallable> callables = new ArrayList<>(0);
-        for (Integer organId : map.keySet()) {
-            callables.add(new UpdateRecipeStatusFromHisCallable(map.get(organId), organId));
-        }
-        if (CollectionUtils.isNotEmpty(callables)) {
-            try {
-                RecipeBusiThreadPool.submitList(callables);
-            } catch (InterruptedException e) {
-                LOGGER.error("getRecipeStatusFromHis 线程池异常");
-            }
-        }
+        RecipeBusiThreadPool.execute(new UpdateRecipeStatusFromHisCallable(map));
     }
 
     /**
