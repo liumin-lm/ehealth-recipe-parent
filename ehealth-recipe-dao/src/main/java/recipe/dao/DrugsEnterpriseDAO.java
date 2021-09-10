@@ -179,7 +179,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      *
      * @return
      */
-    @DAOMethod(sql = "select id from DrugsEnterprise where status=1 and createType = 1 ", limit = 0)
+    @DAOMethod(sql = "select id from DrugsEnterprise where status=1 and updateTokenFlag = 1 ", limit = 0)
     public abstract List<Integer> findNeedUpdateIds();
 
     /**
