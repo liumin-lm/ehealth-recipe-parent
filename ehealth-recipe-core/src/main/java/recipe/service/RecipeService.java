@@ -5676,7 +5676,6 @@ public class RecipeService extends RecipeBaseService {
                 RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipeIds, 1));
             }
         }
-
     }
 
     /**
