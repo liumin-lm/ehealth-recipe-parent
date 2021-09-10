@@ -1184,8 +1184,12 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
 
     @RpcService
     public void updateAccessTokenByDep(DrugsEnterprise drugsEnterprise) {
-        AccessDrugEnterpriseService service = getServiceByDep(drugsEnterprise);
-        service.tokenUpdateImpl(drugsEnterprise);
+        try {
+            AccessDrugEnterpriseService service = getServiceByDep(drugsEnterprise);
+            service.tokenUpdateImpl(drugsEnterprise);
+        } catch (Exception e) {
+            LOGGER.error("updateAccessTokenByDep drugsEnterprise:{}, error ", drugsEnterprise.getId(), e);
+        }
     }
 
     /**

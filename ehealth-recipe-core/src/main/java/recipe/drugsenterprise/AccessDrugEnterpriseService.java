@@ -64,21 +64,9 @@ public abstract class AccessDrugEnterpriseService {
      * @return
      */
     public String updateAccessToken(List<Integer> drugsEnterpriseIds) {
-        if (null != drugsEnterpriseIds && !drugsEnterpriseIds.isEmpty()) {
-            List<UpdateDrugsEpCallable> callables = new ArrayList<>(0);
-            for (int i = 0; i < drugsEnterpriseIds.size(); i++) {
-                callables.add(new UpdateDrugsEpCallable(drugsEnterpriseIds.get(i)));
-            }
-
-            if (!callables.isEmpty()) {
-                try {
-                    RecipeBusiThreadPool.submitList(callables);
-                } catch (InterruptedException e) {
-                    LOGGER.error("updateAccessToken 线程池异常", e);
-                }
-            }
+        if (CollectionUtils.isNotEmpty(drugsEnterpriseIds)) {
+            RecipeBusiThreadPool.execute(new UpdateDrugsEpCallable(drugsEnterpriseIds));
         }
-
         return null;
     }
 
