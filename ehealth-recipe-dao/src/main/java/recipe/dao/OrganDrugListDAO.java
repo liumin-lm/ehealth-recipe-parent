@@ -404,7 +404,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     if (!ObjectUtils.isEmpty(organId)){
                         OrganDTO byOrganId = BasicAPI.getService(OrganService.class).getByOrganId(organId);
                         listOrgan = BasicAPI.getService(OrganService.class).queryOrganByManageUnitList(byOrganId.getManageUnit(), listOrgan);
-                        hql.append(" and ( d.sourceOrgan is null or d.sourceOrgan in:organIds  ");
+                        hql.append(" and ( d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
                     }
                     Integer drugId = null;
                     if (!StringUtils.isEmpty(keyword)) {
