@@ -124,7 +124,7 @@
         <property name="wnPaHosCode" value="${wnpa.hoscode}"/>
     </bean>
 
-    <bean id="onsConfig" class="recipe.mq.OnsConfig">
+    <bean id="onsConfig" class="recipe.common.OnsConfig">
         <property name="onsSwitch" value="${ons.switch.on}"/>
         <property name="basicInfoTopic" value="${ons_topic_basicinfo}"/>
         <property name="hisCdrinfo" value="${ons_topic_his_cdrinfo}"/>

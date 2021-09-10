@@ -104,7 +104,6 @@ import recipe.bean.CheckYsInfoBean;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipeInvalidDTO;
 import recipe.business.DrugStockBusinessService;
-import recipe.business.RevisitTraceBusinessService;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.ca.vo.CaSignResultVo;
@@ -114,6 +113,7 @@ import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.IConfigurationClient;
 import recipe.client.OperationClient;
 import recipe.common.CommonConstant;
+import recipe.common.OnsConfig;
 import recipe.common.response.CommonResponse;
 import recipe.constant.*;
 import recipe.dao.*;
@@ -128,8 +128,8 @@ import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.RecipeManager;
+import recipe.manager.RevisitManager;
 import recipe.manager.SignManager;
-import recipe.mq.OnsConfig;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
@@ -250,7 +250,7 @@ public class RecipeService extends RecipeBaseService {
     private RemoteRecipeService remoteRecipeService;
 
     @Autowired
-    private RevisitTraceBusinessService revisitTraceBusinessService;
+    private RevisitManager revisitManager;
 
     /**
      * 药师审核不通过
@@ -1588,7 +1588,7 @@ public class RecipeService extends RecipeBaseService {
 
         // 处方失效时间处理
         handleRecipeInvalidTime(recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), recipeBean.getSignDate());
-        revisitTraceBusinessService.saveRevisitTracesList(recipeDAO.get(recipeBean.getRecipeId()));
+        revisitManager.saveRevisitTracesList(recipeDAO.get(recipeBean.getRecipeId()));
         return rMap;
     }
 

@@ -12,6 +12,7 @@ import eh.msg.constant.MqConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.common.OnsConfig;
 import recipe.constant.RecipeSystemConstant;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 

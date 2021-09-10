@@ -1,4 +1,4 @@
-package recipe.mq;
+package recipe.common;
 
 /**
  * Created by Administrator on 2016/6/13 0013.
