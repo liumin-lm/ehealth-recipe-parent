@@ -280,6 +280,7 @@ public class RecipeHisService extends RecipeBaseService {
 
                 EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
                 String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart());
+                request.setRecipeID(recipeId);
                 request.setDoctorNumber(jobNumber);
                 request.setDoctorName(recipe.getDoctorName());
                 if (recipeExtend != null) {
