@@ -1047,7 +1047,7 @@ public class RecipeService extends RecipeBaseService {
             }
         }
         //推送处方到监管平台
-        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
+        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
 
         //将原先互联网回调修改处方的推送的逻辑移到这里
         //判断是否是阿里药企，是阿里大药房就推送处方给药企
@@ -1269,7 +1269,6 @@ public class RecipeService extends RecipeBaseService {
         }
         LOGGER.info("当前ca异步接口返回：{}", JSONUtils.toString(resultVo));
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
         RecipeLogDAO recipeLogDAO = getDAO(RecipeLogDAO.class);
         Integer recipeId = resultVo.getRecipeId();
 
@@ -1432,7 +1431,7 @@ public class RecipeService extends RecipeBaseService {
             }
         });
         //推送处方到监管平台(审核后数据)
-        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 2));
+        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 2));
         //审核通过盖章
         RecipeBusiThreadPool.execute(() -> remoteRecipeService.generateSignetRecipePdf(recipe.getRecipeId(), recipe.getClinicOrgan()));
     }
@@ -3392,7 +3391,7 @@ public class RecipeService extends RecipeBaseService {
                         recipeCouponService.unuseCouponByRecipeId(recipeId);
                     }
                     //推送处方到监管平台
-                    RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
+                    RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
                     //HIS消息发送
                     boolean succFlag = hisService.recipeStatusUpdate(recipeId);
                     if (succFlag) {
@@ -3482,6 +3481,7 @@ public class RecipeService extends RecipeBaseService {
             RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
             StringBuilder memo = new StringBuilder();
             RecipeOrder order;
+            List<Integer> recipeIds = new ArrayList<>();
             for (Recipe recipe : recipeList) {
                 try {
                     Boolean lock = RedisClient.instance().setIfAbsentAndExpire(RecipeSystemConstant.RECIPE_INVALID_LOCK_KEY + recipe.getRecipeId(), recipe.getRecipeId(), RecipeSystemConstant.RECIPE_INVALID_LOCK_TIMEOUT);
@@ -3532,8 +3532,8 @@ public class RecipeService extends RecipeBaseService {
                         RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
                         recipeCouponService.unuseCouponByRecipeId(recipeId);
                     }
-                    //推送处方到监管平台
-                    RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
+                    //推送处方到监管平台的处方
+                    recipeIds.add(recipeId);
                     //HIS消息发送
                     boolean succFlag = hisService.recipeStatusUpdate(recipeId);
                     if (succFlag) {
@@ -3551,6 +3551,7 @@ public class RecipeService extends RecipeBaseService {
             }
             //修改cdr_his_recipe status为已处理
             orderService.updateHisRecieStatus(recipeList);
+            RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipeIds, 1));
         }
     }
 
@@ -5597,7 +5598,6 @@ public class RecipeService extends RecipeBaseService {
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
 
         //设置查询时间段
@@ -5612,6 +5612,7 @@ public class RecipeService extends RecipeBaseService {
         RecipeOrder order = new RecipeOrder();
         StringBuilder memo = new StringBuilder();
         Integer status;
+        List<Integer> recipeIds = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(recipeList)) {
             for (Recipe recipe : recipeList) {
                 if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
@@ -5662,7 +5663,7 @@ public class RecipeService extends RecipeBaseService {
                 RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
                 recipeCouponService.unuseCouponByRecipeId(recipeId);
                 //推送处方到监管平台
-                RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
+                recipeIds.add(recipeId);
                 //HIS消息发送
                 boolean succFlag = hisService.recipeStatusUpdate(recipeId);
                 if (succFlag) {
@@ -5672,7 +5673,7 @@ public class RecipeService extends RecipeBaseService {
                 }
                 //保存处方状态变更日志
                 RecipeLogService.saveRecipeLog(recipeId, status, RecipeStatusConstant.DELETE, memo.toString());
-
+                RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipeIds, 1));
             }
         }
 
@@ -5746,7 +5747,7 @@ public class RecipeService extends RecipeBaseService {
                 RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
                 recipeCouponService.unuseCouponByRecipeId(recipeId);
                 //推送处方到监管平台
-                RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
+                RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
                 //HIS消息发送
                 boolean succFlag = hisService.recipeStatusUpdate(recipeId);
                 if (succFlag) {
@@ -5816,7 +5817,7 @@ public class RecipeService extends RecipeBaseService {
                         recipeCouponService.unuseCouponByRecipeId(recipeId);
                     }
                     //推送处方到监管平台
-                    RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
+                    RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
                     //HIS消息发送
                     boolean succFlag = hisService.recipeStatusUpdate(recipeId);
                     if (succFlag) {

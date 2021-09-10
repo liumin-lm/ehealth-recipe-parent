@@ -41,9 +41,7 @@ import recipe.thread.PushRecipeToHisCallable;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -200,7 +198,7 @@ public abstract class AbstractCaProcessType {
             }
         }
         //推送处方到监管平台
-        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
+        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipeId), 1));
 
         //将原先互联网回调修改处方的推送的逻辑移到这里
         //判断是否是阿里药企，是阿里大药房就推送处方给药企

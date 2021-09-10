@@ -593,7 +593,7 @@ public class RecipePreserveService {
     @RpcService
     public void uploadRegulationAuditData(Integer recipeId){
         //手动推送处方到监管平台
-        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipeId,2));
+        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipeId),2));
     }
 
     /**
