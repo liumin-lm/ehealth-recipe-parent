@@ -1,6 +1,5 @@
 package recipe.business;
 
-import com.ngari.common.dto.RevisitTracesMsg;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -9,7 +8,6 @@ import com.ngari.recipe.dto.RecipeCancel;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeStatusConstant;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import ctd.net.broadcast.MQHelper;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import easypay.entity.po.AccountResult;
@@ -21,15 +19,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.client.DoctorClient;
-import recipe.client.PayClient;
 import recipe.client.RecipeAuditClient;
 import recipe.core.api.IRevisitTraceBusinessService;
 import recipe.dao.*;
 import recipe.easypay.IEasyPayService;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
+import recipe.manager.RevisitManager;
 import recipe.manager.SignManager;
-import recipe.mq.OnsConfig;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
 import java.util.ArrayList;
@@ -47,7 +44,8 @@ import java.util.stream.Collectors;
  */
 @Service
 public class RevisitTraceBusinessService extends BaseService implements IRevisitTraceBusinessService {
-
+    @Autowired
+    private RevisitManager revisitManager;
     @Autowired
     private RecipeDAO recipeDAO;
 
@@ -83,9 +81,6 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
 
     @Autowired
     private RecipeAuditClient recipeAuditClient;
-
-    @Autowired
-    private PayClient payClient;
 
     @Autowired
     IEasyPayService iEasyPayService;
@@ -196,6 +191,19 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
         );
         logger.info("RecipeBusinessService revisitRecipeTraceVos res:{}", JSONUtils.toString(revisitRecipeTraceVos));
         return revisitRecipeTraceVos;
+    }
+
+
+    @Override
+    public void handDealRevisitTraceRecipe(String startTime, String endTime, List<Integer> recipeIds, Integer organId) {
+        logger.info("handDealRevisitTraceRecipe start");
+        //时间预留 传null
+        List<Recipe> recipes = recipeDAO.queryRevisitTrace(startTime, endTime, recipeIds, organId);
+        recipes.forEach(recipe -> {
+            revisitManager.saveRevisitTracesList(recipe);
+            logger.info("handDealRevisitTraceRecipe recipeId:{}", recipe.getRecipeId());
+        });
+        logger.info("handDealRevisitTraceRecipe end");
     }
 
     /**
@@ -331,55 +339,6 @@ public class RevisitTraceBusinessService extends BaseService implements IRevisit
             e.printStackTrace();
         }
         logger.info("RecipeBusinessService obtainCheckNotPassDetail res:{}", JSONUtils.toString(revisitRecipeTraceVo));
-    }
-
-
-    @Override
-    public void handDealRevisitTraceRecipe(String startTime, String endTime, List<Integer> recipeIds, Integer organId) {
-        logger.info("handDealRevisitTraceRecipe start");
-        //时间预留 传null
-        List<Recipe> recipes = recipeDAO.queryRevisitTrace(startTime, endTime, recipeIds, organId);
-        recipes.forEach(recipe -> {
-            saveRevisitTracesList(recipe);
-            logger.info("handDealRevisitTraceRecipe recipeId:{}", recipe.getRecipeId());
-        });
-        logger.info("handDealRevisitTraceRecipe end");
-    }
-
-    /**
-     * 通知复诊——添加处方追溯数据
-     *
-     * @param recipe
-     */
-    public void saveRevisitTracesList(Recipe recipe) {
-        try {
-            if (recipe == null) {
-                logger.info("saveRevisitTracesList recipe is null ");
-                return;
-            }
-            if (recipe.getClinicId() == null || 2 != recipe.getBussSource()) {
-                logger.info("saveRevisitTracesList return param:{}", JSONUtils.toString(recipe));
-                return;
-            }
-            RevisitTracesMsg revisitTracesMsg = new RevisitTracesMsg();
-            revisitTracesMsg.setOrganId(recipe.getClinicOrgan());
-            revisitTracesMsg.setConsultId(recipe.getClinicId());
-            revisitTracesMsg.setBusId(recipe.getRecipeId().toString());
-            revisitTracesMsg.setBusType(1);
-            revisitTracesMsg.setBusNumOrder(10);
-            revisitTracesMsg.setBusOccurredTime(recipe.getCreateDate());
-            try {
-                logger.info("saveRevisitTracesList sendMsgToMq send to MQ start, busId:{}，revisitTracesMsg:{}", recipe.getRecipeId(), JSONUtils.toString(revisitTracesMsg));
-                MQHelper.getMqPublisher().publish(OnsConfig.revisitTraceTopic, revisitTracesMsg, null);
-                logger.info("saveRevisitTracesList sendMsgToMq send to MQ end, busId:{}", recipe.getRecipeId());
-            } catch (Exception e) {
-                logger.error("saveRevisitTracesList sendMsgToMq can't send to MQ,  busId:{}", recipe.getRecipeId(), e);
-            }
-            //  复诊的接口返回没有成功或失败 无法加标志 无法失败重试或批量处理失败数据
-        } catch (Exception e) {
-            logger.error("RevisitClient saveRevisitTracesList error recipeId:{}", recipe.getRecipeId(), e);
-            e.printStackTrace();
-        }
     }
 
 }

@@ -30,12 +30,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.business.DrugStockBusinessService;
-import recipe.business.RevisitTraceBusinessService;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.EmrRecipeManager;
+import recipe.manager.RevisitManager;
 import recipe.service.*;
 import recipe.thread.CardDataUploadRunable;
 import recipe.thread.PushRecipeToHisCallable;
@@ -82,7 +82,7 @@ public class RecipeSignService {
     private DrugStockBusinessService drugStockBusinessService;
 
     @Autowired
-    private RevisitTraceBusinessService revisitTraceBusinessService;
+    private RevisitManager revisitManager;
 
     /**
      * 武昌模式签名方法
@@ -431,7 +431,7 @@ public class RecipeSignService {
             }
             //健康卡数据上传
             RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(), "010106"));
-            revisitTraceBusinessService.saveRevisitTracesList(recipeDAO.get(recipeBean.getRecipeId()));
+            revisitManager.saveRevisitTracesList(recipeDAO.get(recipeBean.getRecipeId()));
         } catch (Exception e) {
             LOG.error("doSignRecipeNew error", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());

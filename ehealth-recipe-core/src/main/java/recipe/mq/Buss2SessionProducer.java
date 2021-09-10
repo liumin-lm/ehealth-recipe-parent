@@ -5,6 +5,7 @@ import com.ngari.recipe.entity.Recipe;
 import ctd.net.broadcast.MQHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.common.OnsConfig;
 
 /**
  * @author yinsheng
