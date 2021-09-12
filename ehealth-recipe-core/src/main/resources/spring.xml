@@ -2,13 +2,20 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:apollo="http://www.ctrip.com/schema/apollo" xmlns:ngari="http://www.ngarihealth.com/schema/ngari"
+       xmlns:aop="http://www.springframework.org/schema/aop"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-
-	http://www.ctrip.com/schema/apollo http://www.ctrip.com/schema/apollo.xsd http://www.ngarihealth.com/schema/ngari http://www.ngarihealth.com/schema/ngari/ngari.xsd">
+       http://www.ctrip.com/schema/apollo http://www.ctrip.com/schema/apollo.xsd
+       http://www.ngarihealth.com/schema/ngari
+       http://www.ngarihealth.com/schema/ngari/ngari.xsd
+       http://www.springframework.org/schema/aop
+       http://www.springframework.org/schema/aop/spring-aop.xsd">
 
     <!--<context:property-placeholder location="classpath:config.properties" file-encoding="UTF-8" />-->
     <apollo:config/>
     <apollo:config namespaces="DEV.publicUrl"/>
+
+    <!--开启aop配置 cglib-->
+    <aop:aspectj-autoproxy proxy-target-class="true"/>
 
     <import resource="classpath:/ctd/util/exp/spring-expr-base.xml"/>
     <import resource="spring-hibernate.xml"/>
@@ -26,6 +33,7 @@
     <import resource="spring-file.xml"/>
     <import resource="spring-service-casign.xml"/>
 
+    <bean id="recipeLogAspect" class="recipe.aop.RecipeLogAspect"/>
     <!--药企对接通用实现(国药协议)-->
     <bean id="commonRemoteService" class="recipe.drugsenterprise.CommonRemoteService"></bean>
 
