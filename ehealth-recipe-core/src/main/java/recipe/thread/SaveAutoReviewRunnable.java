@@ -29,24 +29,25 @@ import java.util.List;
  * @description： 保存审方信息
  * @version： 1.0
  */
-public class SaveAutoReviewRunable implements Runnable {
+public class SaveAutoReviewRunnable implements Runnable {
 
     /**
      * logger
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(SaveAutoReviewRunable.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SaveAutoReviewRunnable.class);
 
     private RecipeBean recipe;
 
     private List<RecipeDetailBean> details;
 
-    public SaveAutoReviewRunable(RecipeBean recipe, List<RecipeDetailBean> details) {
+    public SaveAutoReviewRunnable(RecipeBean recipe, List<RecipeDetailBean> details) {
         this.recipe = recipe;
         this.details = details;
     }
 
     @Override
     public void run() {
+        long start = System.currentTimeMillis();
         LOGGER.info("SaveAutoReviewRunnable start. recipe={}", JSON.toJSONString(recipe));
         try{
             Integer recipeId = recipe.getRecipeId();
@@ -108,6 +109,9 @@ public class SaveAutoReviewRunable implements Runnable {
             }
         }catch (Exception e){
             LOGGER.error("SaveAutoReviewRunnable error,recipe={}", JSON.toJSONString(recipe), e);
+        } finally {
+            long elapsedTime = System.currentTimeMillis() - start;
+            LOGGER.info("RecipeBusiThreadPool SaveAutoReviewRunnable 保存智能审方 执行时间:{}ms.", elapsedTime);
         }
         LOGGER.info("SaveAutoReviewRunnable finish. recipe={}", JSON.toJSONString(recipe));
     }

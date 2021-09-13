@@ -1,5 +1,6 @@
 package recipe.core.api;
 
+import com.ngari.recipe.entity.Recipe;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
 import java.util.List;
@@ -31,4 +32,16 @@ public interface IRevisitBusinessService {
      */
     void handDealRevisitTraceRecipe(String startTime, String endTime, List<Integer> recipeIds, Integer organId);
 
+    /**
+     * 校验有效复诊单
+     * <p>
+     * isUnderwayRevisit配置：
+     * 1、不判断任何状态；
+     * 2、只有存在进行中复诊（复诊单号）才可以开方；
+     * 3、只有存在进行中复诊（挂号序号）才可以开方；
+     *
+     * @param recipe 处方信息
+     * @return 能否开方 true： 能
+     */
+    Boolean revisitValidate(Recipe recipe);
 }

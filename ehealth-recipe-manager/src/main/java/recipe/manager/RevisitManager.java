@@ -4,16 +4,21 @@ import com.ngari.common.dto.RevisitTracesMsg;
 import com.ngari.recipe.entity.Recipe;
 import ctd.net.broadcast.MQHelper;
 import ctd.util.JSONUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.client.RevisitClient;
 import recipe.common.OnsConfig;
+import recipe.constant.RecipeSystemConstant;
 
 /**
  * 复诊处理通用类
+ *
  * @author fuzi
  */
 @Service
-public class RevisitManager extends BaseManager{
-
+public class RevisitManager extends BaseManager {
+    @Autowired
+    private RevisitClient revisitClient;
 
     /**
      * 通知复诊——添加处方追溯数据
@@ -48,5 +53,22 @@ public class RevisitManager extends BaseManager{
             logger.error("RevisitClient saveRevisitTracesList error recipeId:{}", recipe.getRecipeId(), e);
             e.printStackTrace();
         }
+    }
+
+    /**
+     * 获取医生下同一个患者 最新 复诊的id
+     *
+     * @param mpiId        患者id
+     * @param doctorId     医生id
+     * @param isRegisterNo 是否存在挂号序号
+     * @return 复诊id
+     */
+    public Integer getRevisitId(String mpiId, Integer doctorId, Boolean isRegisterNo) {
+        if (isRegisterNo) {
+            //获取存在挂号序号的复诊id
+            return revisitClient.getRevisitIdByRegisterNo(mpiId, doctorId, RecipeSystemConstant.CONSULT_TYPE_RECIPE, true);
+        }
+        //获取最新的复诊id
+        return revisitClient.getRevisitIdByRegisterNo(mpiId, doctorId, null, null);
     }
 }
