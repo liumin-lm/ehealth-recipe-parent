@@ -1,6 +1,7 @@
 package recipe.atop.doctor;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.persistence.exception.DAOException;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeDetailBusinessService;
+import recipe.core.api.IRevisitBusinessService;
 import recipe.util.ValidateUtil;
 import recipe.vo.doctor.ValidateDetailVO;
 
@@ -26,6 +28,8 @@ public class RecipeDetailDoctorAtop extends BaseAtop {
 
     @Autowired
     private IRecipeDetailBusinessService recipeDetailService;
+    @Autowired
+    private IRevisitBusinessService iRevisitBusinessService;
 
     /**
      * 长处方标识 0 不是
@@ -129,6 +133,36 @@ public class RecipeDetailDoctorAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("RecipeDetailAtop entrustValidate error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+
+    /**
+     * 校验有效复诊单
+     *
+     * @param mpiId    患者id
+     * @param doctorId 医生id
+     * @param organId  机构id
+     * @return
+     */
+    @RpcService
+    public Boolean revisitValidate(String mpiId, Integer doctorId, Integer organId) {
+        logger.info("RecipeDetailDoctorAtop revisitValidate mpiId: {},doctorId :{},organId :{}", mpiId, doctorId, organId);
+        validateAtop(mpiId, doctorId, organId);
+        try {
+            Recipe recipe = new Recipe();
+            recipe.setMpiid(mpiId);
+            recipe.setDoctor(doctorId);
+            recipe.setClinicOrgan(organId);
+            Boolean result = iRevisitBusinessService.revisitValidate(recipe);
+            logger.info("RecipeDetailDoctorAtop revisitValidate result = {}", JSON.toJSONString(result));
+            return result;
+        } catch (DAOException e1) {
+            logger.warn("RecipeDetailDoctorAtop revisitValidate error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("RecipeDetailDoctorAtop revisitValidate error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
