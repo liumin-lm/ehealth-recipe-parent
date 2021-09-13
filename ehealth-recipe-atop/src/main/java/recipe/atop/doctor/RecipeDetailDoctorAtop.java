@@ -150,11 +150,11 @@ public class RecipeDetailDoctorAtop extends BaseAtop {
     public Boolean revisitValidate(String mpiId, Integer doctorId, Integer organId) {
         logger.info("RecipeDetailDoctorAtop revisitValidate mpiId: {},doctorId :{},organId :{}", mpiId, doctorId, organId);
         validateAtop(mpiId, doctorId, organId);
+        Recipe recipe = new Recipe();
+        recipe.setMpiid(mpiId);
+        recipe.setDoctor(doctorId);
+        recipe.setClinicOrgan(organId);
         try {
-            Recipe recipe = new Recipe();
-            recipe.setMpiid(mpiId);
-            recipe.setDoctor(doctorId);
-            recipe.setClinicOrgan(organId);
             Boolean result = iRevisitBusinessService.revisitValidate(recipe);
             logger.info("RecipeDetailDoctorAtop revisitValidate result = {}", JSON.toJSONString(result));
             return result;
