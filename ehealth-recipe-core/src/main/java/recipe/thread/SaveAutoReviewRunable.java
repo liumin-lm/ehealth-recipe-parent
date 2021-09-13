@@ -47,6 +47,7 @@ public class SaveAutoReviewRunable implements Runnable {
 
     @Override
     public void run() {
+        long start = 0;
         LOGGER.info("SaveAutoReviewRunnable start. recipe={}", JSON.toJSONString(recipe));
         try{
             Integer recipeId = recipe.getRecipeId();
@@ -108,6 +109,9 @@ public class SaveAutoReviewRunable implements Runnable {
             }
         }catch (Exception e){
             LOGGER.error("SaveAutoReviewRunnable error,recipe={}", JSON.toJSONString(recipe), e);
+        } finally {
+            long elapsedTime = System.currentTimeMillis() - start;
+            LOGGER.info("RecipeBusiThreadPool SaveAutoReviewRunable 保存智能审方 执行时间:{}.", elapsedTime);
         }
         LOGGER.info("SaveAutoReviewRunnable finish. recipe={}", JSON.toJSONString(recipe));
     }
