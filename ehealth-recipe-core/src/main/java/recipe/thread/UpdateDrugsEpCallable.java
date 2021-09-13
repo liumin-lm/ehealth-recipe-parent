@@ -9,7 +9,7 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import java.util.List;
 
 /**
- * 更新药企token Callable
+ * 更新药企token Runnable
  * company: ngarihealth
  * @author: 0184/yu_yun
  * @date:2016/6/15.
