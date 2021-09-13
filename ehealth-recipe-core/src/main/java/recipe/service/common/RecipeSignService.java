@@ -40,7 +40,7 @@ import recipe.service.*;
 import recipe.thread.CardDataUploadRunable;
 import recipe.thread.PushRecipeToHisCallable;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.thread.SaveAutoReviewRunable;
+import recipe.thread.SaveAutoReviewRunnable;
 import recipe.util.DigestUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
@@ -408,7 +408,7 @@ public class RecipeSignService {
                 }
             }
             //更新审方信息
-            RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
+            RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(recipeBean, detailBeanList));
 
             recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.CHECKING_HOS, null);
 
@@ -598,7 +598,7 @@ public class RecipeSignService {
         }
 
         //更新审方信息
-        RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, details));
+        RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(recipeBean, details));
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, null);
         rMap.put("signResult", true);
         rMap.put("errorFlag", false);
@@ -715,7 +715,7 @@ public class RecipeSignService {
         RecipeBean recipeBeanDb = ObjectCopyUtils.convert(recipe, RecipeBean.class);
 
         //更新审方信息
-        RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBeanDb, details));
+        RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(recipeBeanDb, details));
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, ImmutableMap.of("distributionFlag", 1));
 
         //发送HIS处方开具消息

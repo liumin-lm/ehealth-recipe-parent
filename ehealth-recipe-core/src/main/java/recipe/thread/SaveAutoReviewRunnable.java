@@ -29,18 +29,18 @@ import java.util.List;
  * @description： 保存审方信息
  * @version： 1.0
  */
-public class SaveAutoReviewRunable implements Runnable {
+public class SaveAutoReviewRunnable implements Runnable {
 
     /**
      * logger
      */
-    private static final Logger LOGGER = LoggerFactory.getLogger(SaveAutoReviewRunable.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(SaveAutoReviewRunnable.class);
 
     private RecipeBean recipe;
 
     private List<RecipeDetailBean> details;
 
-    public SaveAutoReviewRunable(RecipeBean recipe, List<RecipeDetailBean> details) {
+    public SaveAutoReviewRunnable(RecipeBean recipe, List<RecipeDetailBean> details) {
         this.recipe = recipe;
         this.details = details;
     }
