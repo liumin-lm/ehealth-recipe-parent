@@ -1613,7 +1613,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public void pushRecipeToRegulation(Integer recipeId, Integer status) {
         //推送处方到监管平台(审核后数据)
-        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipeId, status));
+        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipeId), status));
     }
 
     @RpcService

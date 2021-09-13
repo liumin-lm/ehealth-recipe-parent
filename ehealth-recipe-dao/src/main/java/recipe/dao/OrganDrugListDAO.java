@@ -2,6 +2,9 @@ package recipe.dao;
 
 import com.alibaba.druid.util.StringUtils;
 import com.google.common.collect.Lists;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drug.model.DepSaleDrugInfo;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugsEnterprise;
@@ -397,6 +400,12 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     if (!StringUtils.isEmpty(drugClass)) {
                         hql.append(" and d.drugClass like :drugClass");
                     }
+                    List<Integer> listOrgan = new ArrayList<>();
+                    if (!ObjectUtils.isEmpty(organId)){
+                        OrganDTO byOrganId = BasicAPI.getService(OrganService.class).getByOrganId(organId);
+                        listOrgan = BasicAPI.getService(OrganService.class).queryOrganByManageUnitList(byOrganId.getManageUnit(), listOrgan);
+                        hql.append(" and ( d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
+                    }
                     Integer drugId = null;
                     if (!StringUtils.isEmpty(keyword)) {
                         try {
@@ -416,7 +425,9 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     if (!StringUtils.isEmpty(drugClass)) {
                         countQuery.setParameter("drugClass", drugClass + "%");
                     }
-
+                    if (!ObjectUtils.isEmpty(organId)){
+                        countQuery.setParameterList("organIds",listOrgan);
+                    }
                     if (drugId != null) {
                         countQuery.setParameter("drugId", drugId);
                     }
@@ -428,6 +439,9 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     Query query = ss.createQuery("select d " + hql.toString());
                     if (!StringUtils.isEmpty(drugClass)) {
                         query.setParameter("drugClass", drugClass + "%");
+                    }
+                    if (!ObjectUtils.isEmpty(organId)){
+                        query.setParameterList("organIds",listOrgan);
                     }
                     if (drugId != null) {
                         query.setParameter("drugId", drugId);

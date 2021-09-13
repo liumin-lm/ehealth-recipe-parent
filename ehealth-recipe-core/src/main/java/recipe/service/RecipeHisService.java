@@ -50,6 +50,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.aop.LogInfo;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.UsePathwaysFilter;
@@ -474,6 +475,7 @@ public class RecipeHisService extends RecipeBaseService {
      * @param organId
      */
     @RpcService
+    @LogInfo
     public void recipeListQuery(List<String> recipeCodes, Integer organId) {
         if (isHisEnable(organId)) {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);

@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.aop.LogInfo;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.client.PatientClient;
 import recipe.constant.ErrorCode;
@@ -1183,6 +1184,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
     }
 
     @RpcService
+    @LogInfo
     public void updateAccessTokenByDep(DrugsEnterprise drugsEnterprise) {
         try {
             AccessDrugEnterpriseService service = getServiceByDep(drugsEnterprise);
