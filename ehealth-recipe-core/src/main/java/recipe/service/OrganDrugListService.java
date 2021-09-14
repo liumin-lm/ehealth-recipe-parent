@@ -120,10 +120,10 @@ public class OrganDrugListService implements IOrganDrugListService {
         DrugToolService bean = AppDomainContext.getBean("eh.drugToolService", DrugToolService.class);
         List<OrganDrugList> lists= Lists.newArrayList();
         lists.add(organDrugList);
-        DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        List<DrugsEnterprise> drugsEnterprises = dao.findByOrganIdZj(organDrugList.getOrganId());
-        if (drugsEnterprises != null && drugsEnterprises.size() > 0 ){
-            for (DrugsEnterprise drugsEnterpris : drugsEnterprises) {
+        OrganAndDrugsepRelationDAO relationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        List<DrugsEnterprise> drugsEnterpriseList = relationDAO.findDrugsEnterpriseByOrganIdAndStatus(organDrugList.getOrganId(), 1);
+        if (drugsEnterpriseList != null && drugsEnterpriseList.size() > 0 ){
+            for (DrugsEnterprise drugsEnterpris : drugsEnterpriseList) {
                 try {
                     bean.saveOrUpdateOrganDrugDataToSaleDrugList(lists,organDrugList.getOrganId(),drugsEnterpris.getId(),true);
                 } catch (Exception e) {
@@ -138,14 +138,14 @@ public class OrganDrugListService implements IOrganDrugListService {
      * 同步自健药企药品
      * @param organDrugList
      */
-    public void organDrugSync2(OrganDrugList organDrugList,Integer status){
+    public void organDrugSyncDelete(OrganDrugList organDrugList,Integer status){
         DrugToolService bean = AppDomainContext.getBean("eh.drugToolService", DrugToolService.class);
         List<OrganDrugList> lists= Lists.newArrayList();
         lists.add(organDrugList);
-        DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        List<DrugsEnterprise> drugsEnterprises = dao.findByOrganIdZj(organDrugList.getOrganId());
-        if (drugsEnterprises != null && drugsEnterprises.size() > 0 ){
-            for (DrugsEnterprise drugsEnterpris : drugsEnterprises) {
+        OrganAndDrugsepRelationDAO relationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        List<DrugsEnterprise> drugsEnterpriseList = relationDAO.findDrugsEnterpriseByOrganIdAndStatus(organDrugList.getOrganId(), 1);
+        if (drugsEnterpriseList != null && drugsEnterpriseList.size() > 0 ){
+            for (DrugsEnterprise drugsEnterpris : drugsEnterpriseList) {
                 if (status==1){
                     bean.deleteOrganDrugDataToSaleDrugList(lists,drugsEnterpris.getId());
                 }else if (status == 2){
@@ -222,7 +222,7 @@ public class OrganDrugListService implements IOrganDrugListService {
         }
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         OrganDrugList organDrugList = organDrugListDAO.get(organDrugListId);
-        organDrugSync2(organDrugList,1);
+        organDrugSyncDelete(organDrugList,1);
         organDrugListDAO.remove(organDrugListId);
 
     }
@@ -278,7 +278,7 @@ public class OrganDrugListService implements IOrganDrugListService {
             organDrugList.setDisableReason(disableReason);
         }
         organDrugList.setLastModify(new Date());
-        organDrugSync2(organDrugList,2);
+        organDrugSyncDelete(organDrugList,2);
         organDrugListDAO.update(organDrugList);
         busActionLogService.recordBusinessLogRpcNew("机构药品管理", "", "OrganDrugList", "【" + organDTO.getName() + "】" + msg + "【" + organDrugList.getOrganDrugId() + "-" + organDrugList.getDrugName() + "】", organDTO.getName());
         IRegulationService iRegulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
