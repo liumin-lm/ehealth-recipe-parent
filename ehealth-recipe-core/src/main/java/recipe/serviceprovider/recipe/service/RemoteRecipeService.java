@@ -2803,31 +2803,4 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return recipe.getOrderCode();
     }
 
-    @Override
-    public void saveRecipeDocIndex(RecipeBean recipe) {
-        IDepartmentService iDepartmentService = ApplicationUtils.getBaseService(IDepartmentService.class);
-        DocIndexBean docIndex = new DocIndexBean();
-        String docType = "3";
-        try {
-            String docTypeText = DictionaryController.instance().get("eh.cdr.dictionary.DocType").getText(docType);
-            docIndex.setDocSummary(docTypeText);
-            docIndex.setDoctypeName(docTypeText);
-        } catch (ControllerException e) {
-            LOGGER.error("saveRecipeDocIndex DocType dictionary error! docType=", docType, e);
-        }
-        try {
-            String recipeTypeText = DictionaryController.instance().get("eh.cdr.dictionary.RecipeType").getText(recipe.getRecipeType());
-            docIndex.setDocTitle(recipeTypeText);
-        } catch (ControllerException e) {
-            LOGGER.error("saveRecipeDocIndex RecipeType dictionary error! recipeType=", recipe.getRecipeType(), e);
-        }
-        docIndex.setDocId(recipe.getRecipeId());
-        docIndex.setMpiid(recipe.getMpiid());
-        docIndex.setCreateOrgan(recipe.getClinicOrgan());
-        docIndex.setCreateDepart(recipe.getDepart());
-        docIndex.setCreateDoctor(recipe.getDoctor());
-        docIndex.setDoctorName(doctorService.getNameById(recipe.getDoctor()));
-        docIndex.setDepartName(iDepartmentService.getNameById(recipe.getDepart()));
-        iPatientService.saveRecipeDocIndex(docIndex, docType, 3);
-    }
 }
