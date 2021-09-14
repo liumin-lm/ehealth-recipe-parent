@@ -1378,6 +1378,8 @@ public class DrugToolService implements IDrugToolService {
             RecipeBusiThreadPool.execute(new Runnable() {
                 @Override
                 public void run() {
+                    LOGGER.info("addOrganDrugDataToSaleDrugList start");
+                    long start = System.currentTimeMillis();
                     try {
                         Map<String, Integer> stringIntegerMap = saveOrUpdateOrganDrugDataToSaleDrugList(partition.get(finalI), organId, depId, flag);
                         list1.add(stringIntegerMap.get("save"));
@@ -1386,6 +1388,8 @@ public class DrugToolService implements IDrugToolService {
                         e.printStackTrace();
                     } finally {
                         end.countDown();
+                        long elapsedTime = System.currentTimeMillis() - start;
+                        LOGGER.info("RecipeBusiThreadPool addOrganDrugDataToSaleDrugList 将机构药品数据保存或者更新到配送目录 执行时间:{}.", elapsedTime);
                     }
                 }
             });

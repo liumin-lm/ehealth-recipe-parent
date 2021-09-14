@@ -2963,6 +2963,7 @@ public class RecipeService extends RecipeBaseService {
         RecipeBusiThreadPool.execute(new Runnable() {
             @Override
             public void run() {
+                long start = System.currentTimeMillis();
                 IRecipeHisService recipeHisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
                 OrganDrugInfoResponseTO responseTO = new OrganDrugInfoResponseTO();
                 OrganDrugInfoRequestTO request = new OrganDrugInfoRequestTO();
@@ -3100,6 +3101,8 @@ public class RecipeService extends RecipeBaseService {
                 redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
                 redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
                 drugInfoSynTaskExt(organId);
+                long elapsedTime = System.currentTimeMillis() - start;
+                LOGGER.info("RecipeBusiThreadPool drugInfoSynMovementExt ES-推送药品 执行时间:{}.", elapsedTime);
             }
         });
         return map;

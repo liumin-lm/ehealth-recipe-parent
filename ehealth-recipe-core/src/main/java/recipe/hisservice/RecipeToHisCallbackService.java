@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.aop.LogInfo;
 import recipe.bean.RecipeCheckPassResult;
 import recipe.constant.RecipeMsgEnum;
 import recipe.dao.RecipeDAO;
@@ -57,6 +58,7 @@ public class RecipeToHisCallbackService {
      * @return his返回结果消息
      */
     @RpcService
+    @LogInfo
     public void sendSuccess(HisSendResTO response) {
         LOGGER.info("recipeSend recive success. recipeId={}, response={}", response.getRecipeId(), JSONUtils.toString(response));
         List<OrderRepTO> repList = response.getData();
@@ -172,6 +174,7 @@ public class RecipeToHisCallbackService {
      * @param response
      */
     @RpcService
+    @LogInfo
     public void sendFail(HisSendResTO response) {
         LOGGER.error("recipeSend recive fail. recipeId={}, response={}", response.getRecipeId(), JSONUtils.toString(response));
         // 给申请医生，患者发送推送消息
