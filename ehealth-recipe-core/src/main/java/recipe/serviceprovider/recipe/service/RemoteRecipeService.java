@@ -2509,8 +2509,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         if (RecipeRefundConfigEnum.HAVE_PAY.getType().equals(statusCode)){
             //判断是否有已支付成功的处方单
             for (RecipeOrder recipeOrder : recipeOrders) {
-                if (PayFlagEnum.PAYED.getType().equals(recipeOrder.getPayFlag())) {
-                    //表示为正常支付成功的处方单,复诊不能退款
+                if (PayFlagEnum.PAYED.getType().equals(recipeOrder.getPayFlag())
+                        || PayFlagEnum.NOPAY.getType().equals(recipeOrder.getPayFlag())
+                        || PayFlagEnum.REFUND_FAIL.getType().equals(recipeOrder.getPayFlag())) {
+                    //表示为正常支付成功/待支付/退款失败的处方单,复诊不能退款
                     return true;
                 }
             }

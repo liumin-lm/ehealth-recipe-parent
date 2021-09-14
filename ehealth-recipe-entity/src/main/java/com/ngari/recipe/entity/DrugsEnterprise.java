@@ -625,7 +625,7 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.orderMemo = orderMemo;
     }
 
-    @Column(name = "updateTokenFlag")
+    @Column(name = "update_token_flag")
     public Integer getUpdateTokenFlag() {
         return updateTokenFlag;
     }
