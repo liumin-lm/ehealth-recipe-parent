@@ -1,5 +1,6 @@
 package recipe.purchase;
 
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.hisconfig.service.IHisConfigService;
@@ -194,6 +195,7 @@ public class PurchaseService {
 
                 IPurchaseService purchaseService = getService(giveMode);
                 resultBean = purchaseService.findSupportDepList(dbRecipe, extInfo);
+                LOG.info("purchaseService.findSupportDepList 返回信息 recipeId={} resultBean={}", dbRecipe.getRecipeId(), JSONArray.toJSONString(resultBean));
                 // 药企查询成功的都放入集合
                 if (RecipeResultBean.SUCCESS.equals(resultBean.getCode()) && Objects.nonNull(resultBean.getObject())) {
                     depListBeans.add((DepListBean) resultBean.getObject());
