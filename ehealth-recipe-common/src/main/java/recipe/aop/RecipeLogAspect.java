@@ -39,7 +39,7 @@ public class RecipeLogAspect {
             logger.error("RecipeLogAspect doAround error", throwable);
         } finally {
             long elapsedTime = System.currentTimeMillis() - start;
-            logger.info("{} {},执行用时:{}ms.", className, methodName, elapsedTime);
+            logger.info("{} {} 执行用时:{}ms.", className, methodName, elapsedTime);
         }
         return result;
     }

@@ -2742,9 +2742,9 @@ public class RecipeService extends RecipeBaseService {
             if (ObjectUtils.isEmpty(organDrugChange.getUseDose())) {
                 list.add("useDose(单次剂量)");
             }
-            if (ObjectUtils.isEmpty(organDrugChange.getBaseDrug())) {
+            /*if (ObjectUtils.isEmpty(organDrugChange.getBaseDrug())) {
                 list.add("baseDrug(是否基药)");
-            }
+            }*/
             if (ObjectUtils.isEmpty(organDrugChange.getUseDoseUnit())) {
                 list.add("useDoseUnit(剂量单位)");
             }

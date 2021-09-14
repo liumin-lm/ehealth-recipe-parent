@@ -11,8 +11,11 @@ import com.ngari.base.clientconfig.service.IClientConfigService;
 import com.ngari.base.clientconfig.to.ClientConfigBean;
 import com.ngari.base.common.ICommonService;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
+import com.ngari.base.department.service.IDepartmentService;
+import com.ngari.base.patient.model.DocIndexBean;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.service.IHealthCardService;
+import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
@@ -173,6 +176,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private RevisitClient revisitClient;
     @Autowired
     private PatientClient patientClient;
+    @Autowired
+    private IDepartmentService iDepartmentService;
+    @Autowired
+    private  IPatientService iPatientService;
 
     @RpcService
     @Override
@@ -2502,8 +2509,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         if (RecipeRefundConfigEnum.HAVE_PAY.getType().equals(statusCode)){
             //判断是否有已支付成功的处方单
             for (RecipeOrder recipeOrder : recipeOrders) {
-                if (PayFlagEnum.PAYED.getType().equals(recipeOrder.getPayFlag())) {
-                    //表示为正常支付成功的处方单,复诊不能退款
+                if (PayFlagEnum.PAYED.getType().equals(recipeOrder.getPayFlag())
+                        || PayFlagEnum.NOPAY.getType().equals(recipeOrder.getPayFlag())
+                        || PayFlagEnum.REFUND_FAIL.getType().equals(recipeOrder.getPayFlag())) {
+                    //表示为正常支付成功/待支付/退款失败的处方单,复诊不能退款
                     return true;
                 }
             }
@@ -2794,5 +2803,33 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             return null;
         }
         return recipe.getOrderCode();
+    }
+
+    @Override
+    public void saveRecipeDocIndex(RecipeBean recipe) {
+        IDepartmentService iDepartmentService = ApplicationUtils.getBaseService(IDepartmentService.class);
+        DocIndexBean docIndex = new DocIndexBean();
+        String docType = "3";
+        try {
+            String docTypeText = DictionaryController.instance().get("eh.cdr.dictionary.DocType").getText(docType);
+            docIndex.setDocSummary(docTypeText);
+            docIndex.setDoctypeName(docTypeText);
+        } catch (ControllerException e) {
+            LOGGER.error("saveRecipeDocIndex DocType dictionary error! docType=", docType, e);
+        }
+        try {
+            String recipeTypeText = DictionaryController.instance().get("eh.cdr.dictionary.RecipeType").getText(recipe.getRecipeType());
+            docIndex.setDocTitle(recipeTypeText);
+        } catch (ControllerException e) {
+            LOGGER.error("saveRecipeDocIndex RecipeType dictionary error! recipeType=", recipe.getRecipeType(), e);
+        }
+        docIndex.setDocId(recipe.getRecipeId());
+        docIndex.setMpiid(recipe.getMpiid());
+        docIndex.setCreateOrgan(recipe.getClinicOrgan());
+        docIndex.setCreateDepart(recipe.getDepart());
+        docIndex.setCreateDoctor(recipe.getDoctor());
+        docIndex.setDoctorName(doctorService.getNameById(recipe.getDoctor()));
+        docIndex.setDepartName(iDepartmentService.getNameById(recipe.getDepart()));
+        iPatientService.saveRecipeDocIndex(docIndex, docType, 3);
     }
 }
