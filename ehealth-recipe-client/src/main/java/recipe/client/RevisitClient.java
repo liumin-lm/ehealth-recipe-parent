@@ -1,7 +1,9 @@
 package recipe.client;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.request.ValidRevisitRequest;
 import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.traces.service.IRevisitTracesSortService;
@@ -81,5 +83,24 @@ public class RevisitClient extends BaseClient {
         }
     }
 
-    
+
+    /**
+     * 获取医生下同一个患者 最新 复诊的id
+     *
+     * @param mpiId        患者id
+     * @param doctorId     医生id
+     * @param isRegisterNo 是否存在挂号序号 获取存在挂号序号的复诊id
+     * @return 复诊id
+     */
+    public Integer getRevisitIdByRegisterNo(String mpiId, Integer doctorId, Integer consultType, Boolean isRegisterNo) {
+        ValidRevisitRequest revisitRequest = new ValidRevisitRequest();
+        revisitRequest.setMpiId(mpiId);
+        revisitRequest.setDoctorID(doctorId);
+        revisitRequest.setRequestMode(consultType);
+        revisitRequest.setRegisterNo(isRegisterNo);
+        Integer revisitId = revisitService.findValidRevisitByMpiIdAndDoctorId(revisitRequest);
+        logger.info("RevisitClient getRevisitId revisitRequest = {},revisitId={}", JSON.toJSONString(revisitRequest), revisitId);
+        return revisitId;
+    }
+
 }

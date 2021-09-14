@@ -380,6 +380,17 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "签名的处方img")
     private String signImg;
 
+    @ItemProperty(alias = "处方审核状态")
+    private Integer checkFlag;
+
+    public Integer getCheckFlag() {
+        return checkFlag;
+    }
+
+    public void setCheckFlag(Integer checkFlag) {
+        this.checkFlag = checkFlag;
+    }
+
     public String getSignImg() {
         return signImg;
     }
