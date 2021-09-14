@@ -1115,6 +1115,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         return "0";
     }
 
+    @LogInfo
     public void uploadRecipePayToRegulation(String orderCode, int payFlag) {
         LOGGER.info("uploadRecipePayToRegulation param orderCode:{} ,payFlag:{}",orderCode,payFlag);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
