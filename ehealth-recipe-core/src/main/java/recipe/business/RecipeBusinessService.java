@@ -5,9 +5,8 @@ import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.recipe.dto.DiseaseInfoDTO;
-import com.ngari.recipe.dto.OutPatientRecipeDTO;
-import com.ngari.recipe.dto.OutRecipeDetailDTO;
+import com.ngari.recipe.dto.*;
+import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.recipe.model.PatientInfoDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -15,21 +14,17 @@ import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
-import eh.recipeaudit.api.IRecipeAuditService;
-import eh.recipeaudit.api.IRecipeCheckService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.client.DoctorClient;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
-import recipe.client.RevisitClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
-import recipe.dao.*;
+import recipe.dao.RecipeDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.manager.OrderManager;
+import recipe.manager.HisRecipeManager;
+import recipe.manager.PharmacyManager;
 import recipe.manager.RecipeManager;
-import recipe.manager.SignManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
 
@@ -53,54 +48,18 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Autowired
     private RecipeDAO recipeDAO;
-
-    @Autowired
-    private RecipeOrderDAO recipeOrderDAO;
-
-    @Autowired
-    private RecipeDetailDAO recipeDetailDAO;
-
-    @Autowired
-    private OrganDrugListDAO organDrugListDAO;
-
     @Autowired
     private OfflineRecipeClient offlineRecipeClient;
-
     @Autowired
     private RemoteRecipeService remoteRecipeService;
-
     @Autowired
     private PatientClient patientClient;
-
     @Autowired
-    private SignManager signManager;
-
-    @Autowired
-    private IRecipeCheckService recipeCheckService;
-
-    @Autowired
-    private IRecipeAuditService recipeAuditService;
-
-    @Autowired
-    private DoctorClient doctorClient;
-
-    @Autowired
-    private OrderManager orderManager;
-
-    @Autowired
-    private RecipeOrderBillDAO recipeOrderBillDAO;
-
+    private PharmacyManager pharmacyManager;
     @Autowired
     private RecipeManager recipeManager;
-
     @Autowired
-    private RecipeExtendDAO recipeExtendDAO;
-
-    @Autowired
-    private RecipeRefundDAO recipeRefundDAO;
-
-    @Autowired
-    private RevisitClient revisitClient;
+    private HisRecipeManager hisRecipeManager;
 
 
     /**
@@ -205,5 +164,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
 
+    @Override
+    public RecipeCancelDTO cancelRecipeValidate(Integer recipeId) {
+        RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDTO(recipeId);
+        Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(recipePdfDTO.getRecipe().getClinicOrgan());
+        return hisRecipeManager.cancelRecipeValidate(recipePdfDTO, pharmacyIdMap);
+    }
 }
 

@@ -2,6 +2,7 @@ package recipe.core.api;
 
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
+import com.ngari.recipe.dto.RecipeCancelDTO;
 import com.ngari.recipe.vo.*;
 
 import java.util.List;
@@ -53,5 +54,11 @@ public interface IRecipeBusinessService {
      */
     Boolean existUncheckRecipe(Integer bussSource, Integer clinicId);
 
-
+    /**
+     * 校验处方能否撤销
+     *
+     * @param recipeId 处方id
+     * @return
+     */
+    RecipeCancelDTO cancelRecipeValidate(Integer recipeId);
 }

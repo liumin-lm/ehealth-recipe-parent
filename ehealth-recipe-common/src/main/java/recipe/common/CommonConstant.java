@@ -16,11 +16,11 @@ public class CommonConstant {
     /**
      * 推送类型: 1：提交处方，2:撤销处方
      */
-    public static final Integer THERAPY_RECIPE_PUSH_TYPE = 1;
+    public static final Integer RECIPE_PUSH_TYPE = 1;
 
     /**
      * 推送类型: 1：提交处方，2:撤销处方
      */
-    public static final Integer THERAPY_RECIPE_CANCEL_TYPE = 2;
+    public static final Integer RECIPE_CANCEL_TYPE = 2;
 
 }

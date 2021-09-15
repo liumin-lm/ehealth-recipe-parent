@@ -29,6 +29,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.DateConversion;
@@ -73,23 +74,58 @@ public class OfflineRecipeClient extends BaseClient {
     }
 
     /**
-     * 推送处方 ，诊疗处方出参处理
+     * 推送处方
      *
      * @param pushType      推送类型: 1：提交处方，2:撤销处方
      * @param recipePdfDTO  处方明细
      * @param emrDetail     电子病历
      * @param pharmacyIdMap 药房
-     * @return
+     * @return 诊疗处方出参处理
      * @throws Exception
      */
-    public RecipeInfoDTO pushTherapyRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
-        com.ngari.platform.recipe.mode.RecipeDTO hisResponseData = pushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
+    public RecipeInfoDTO pushRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
+        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = recipeDTO(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
+        com.ngari.platform.recipe.mode.RecipeDTO hisResponseData;
+        try {
+            HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse = recipeHisService.pushRecipe(recipeDTO);
+            hisResponseData = getResponse(hisResponse);
+        } catch (Exception e) {
+            logger.error("OfflineRecipeClient offlineCommonRecipe hisResponse", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
         RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
         recipeInfoDTO.setRecipeTherapy(ObjectCopyUtils.convert(hisResponseData.getRecipeTherapy(), RecipeTherapy.class));
         recipeInfoDTO.getRecipeTherapy().setId(recipePdfDTO.getRecipeTherapy().getId());
         recipeInfoDTO.setRecipe(ObjectCopyUtils.convert(hisResponseData.getRecipeBean(), Recipe.class));
         recipeInfoDTO.setRecipeExtend(ObjectCopyUtils.convert(hisResponseData.getRecipeExtendBean(), RecipeExtend.class));
         return recipeInfoDTO;
+    }
+
+    /**
+     * 撤销处方校验
+     *
+     * @param recipePdfDTO  处方明细
+     * @param emrDetail     电子病历
+     * @param pharmacyIdMap 药房
+     * @return
+     * @throws Exception
+     */
+    public RecipeCancelDTO cancelRecipeValidate(RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap) {
+        try {
+            com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = recipeDTO(CommonConstant.RECIPE_CANCEL_TYPE, recipePdfDTO, emrDetail, pharmacyIdMap);
+            HisResponseTO<com.ngari.platform.recipe.mode.RecipeCancel> hisResponse = recipeHisService.cancelRecipeValidate(recipeDTO);
+            com.ngari.platform.recipe.mode.RecipeCancel recipeCancel = getResponseCatch(hisResponse);
+            RecipeCancelDTO recipeCancelDTO = new RecipeCancelDTO();
+            if (null == recipeCancel) {
+                recipeCancelDTO.setCancelRecipeFlag(true);
+            } else {
+                BeanUtils.copyProperties(recipeCancel, recipeCancelDTO);
+            }
+            return recipeCancelDTO;
+        } catch (Exception e) {
+            logger.error("OfflineRecipeClient cancelRecipeValidate hisResponse", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
     }
 
 
@@ -270,8 +306,9 @@ public class OfflineRecipeClient extends BaseClient {
         return data.get(0);
     }
 
+
     /**
-     * 推送处方
+     * 组织给his传参对象
      *
      * @param pushType      推送类型: 1：提交处方，2:撤销处方
      * @param recipePdfDTO  处方明细
@@ -280,7 +317,7 @@ public class OfflineRecipeClient extends BaseClient {
      * @return
      * @throws Exception
      */
-    private com.ngari.platform.recipe.mode.RecipeDTO pushRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
+    private com.ngari.platform.recipe.mode.RecipeDTO recipeDTO(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
         com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = new com.ngari.platform.recipe.mode.RecipeDTO();
         recipeDTO.setPushType(pushType);
         recipeDTO.setOrganId(recipePdfDTO.getRecipe().getClinicOrgan());
@@ -309,13 +346,7 @@ public class OfflineRecipeClient extends BaseClient {
         });
         recipeDTO.setRecipeDetails(detailList);
         logger.info("OfflineRecipeClient pushRecipe recipeDTO：{}", JSON.toJSONString(recipeDTO));
-        try {
-            HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse = recipeHisService.pushRecipe(recipeDTO);
-            return getResponse(hisResponse);
-        } catch (Exception e) {
-            logger.error("OfflineRecipeClient offlineCommonRecipe hisResponse", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
+        return recipeDTO;
     }
 
     /**

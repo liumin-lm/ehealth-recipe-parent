@@ -52,7 +52,7 @@ public class BaseClient {
 
     /**
      * 扩展 当 前置机没实现接口时特殊处理返回值
-     * 不建议使用，只保留特殊处理老代码风格
+     * 不建议使用，特殊处理新老医院对接问题
      *
      * @param hisResponse 前置机出参
      * @param <T>         范型

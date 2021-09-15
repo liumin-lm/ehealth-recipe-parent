@@ -17,7 +17,6 @@ import recipe.client.*;
 import recipe.common.CommonConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeLogDAO;
-import recipe.dao.RecipeRefundDAO;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.DictionaryUtil;
 import recipe.util.ValidateUtil;
@@ -44,8 +43,6 @@ public class RecipeManager extends BaseManager {
     private OfflineRecipeClient offlineRecipeClient;
     @Autowired
     private RevisitClient revisitClient;
-    @Autowired
-    private RecipeRefundDAO recipeRefundDAO;
 
     /**
      * 保存处方信息
@@ -97,23 +94,6 @@ public class RecipeManager extends BaseManager {
         return recipe;
     }
 
-    public Recipe getRecipeById(Integer recipeId) {
-        return recipeDAO.getByRecipeId(recipeId);
-    }
-
-    /**
-     * 通过recipeCode批量获取处方信息
-     *
-     * @param recipeCodeList
-     * @param clinicOrgan
-     * @return
-     */
-    public List<Recipe> findByRecipeCodeAndClinicOrgan(List<String> recipeCodeList, Integer clinicOrgan) {
-        logger.info("RecipeManager findByRecipeCodeAndClinicOrgan param recipeCodeList:{},clinicOrgan:{}", JSONUtils.toString(recipeCodeList), clinicOrgan);
-        List<Recipe> recipes = recipeDAO.findByRecipeCodeAndClinicOrgan(recipeCodeList, clinicOrgan);
-        logger.info("RecipeManager findByRecipeCodeAndClinicOrgan res recipes:{}", JSONUtils.toString(recipes));
-        return recipes;
-    }
 
     public List<Recipe> findByRecipeIds(List<Integer> recipeIds) {
         List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
@@ -287,8 +267,8 @@ public class RecipeManager extends BaseManager {
      * @param recipeId
      * @return
      */
-    public RecipeCancel getCancelReasonForPatient(int recipeId) {
-        RecipeCancel recipeCancel = new RecipeCancel();
+    public RecipeCancelDTO getCancelReasonForPatient(int recipeId) {
+        RecipeCancelDTO recipeCancel = new RecipeCancelDTO();
         String cancelReason = "";
         Date cancelDate = null;
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
@@ -314,7 +294,7 @@ public class RecipeManager extends BaseManager {
         if (null == recipeResult) {
             return;
         }
-        if (!CommonConstant.THERAPY_RECIPE_PUSH_TYPE.equals(pushType)) {
+        if (!CommonConstant.RECIPE_PUSH_TYPE.equals(pushType)) {
             return;
         }
         Recipe updateRecipe = new Recipe();
@@ -336,7 +316,7 @@ public class RecipeManager extends BaseManager {
         if (null == recipeExtendResult) {
             return;
         }
-        if (!CommonConstant.THERAPY_RECIPE_PUSH_TYPE.equals(pushType)) {
+        if (!CommonConstant.RECIPE_PUSH_TYPE.equals(pushType)) {
             return;
         }
         RecipeExtend updateRecipeExt = new RecipeExtend();

@@ -285,14 +285,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "delete from Recipe where recipeId in (:recipeIds)")
     public abstract void deleteByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
 
-    /**
-     * 根据处方id批量删除
-     *
-     * @param recipeIds
-     */
-    @DAOMethod(sql = "update Recipe  set status=10,ordercode=null  where recipeId in (:recipeIds)")
-    public abstract void updateRecipeStatusByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
-
     public List<Integer> findDoctorIdSortByCount(final String startDt, final String endDt, final List<Integer> organs, final List<Integer> testDocIds, final int start, final int limit) {
         HibernateStatelessResultAction<List<Integer>> action = new AbstractHibernateStatelessResultAction<List<Integer>>() {
             @Override
@@ -1092,29 +1084,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
-    /**
-     * 获取未缴费处方号
-     *
-     * @param recipeCodeList
-     * @param clinicOrgan
-     * @return
-     */
-    public List<String> findNoPayRecipeList(final List<String> recipeCodeList, final Integer clinicOrgan) {
-        HibernateStatelessResultAction<List<String>> action = new AbstractHibernateStatelessResultAction<List<String>>() {
-            @Override
-            public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder();
-                hql.append("select DISTINCT r.recipeCode from Recipe r, RecipeOrder o where r.orderCode=o.orderCode and clinicOrgan=:clinicOrgan and  recipeCode in (:recipeCodeList) and o.payFlag=0  ");
-                Query q = ss.createQuery(hql.toString());
-                q.setParameterList("recipeCodeList", recipeCodeList);
-                q.setParameter("clinicOrgan", clinicOrgan);
-                List<String> recipeCodes = q.list();
-                setResult(recipeCodes);
-            }
-        };
-        HibernateSessionTemplate.instance().execute(action);
-        return action.getResult();
-    }
 
     /**
      * 查询过期的沒有確認收貨的處方單
@@ -3229,16 +3198,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "select sum(totalMoney) from Recipe where clinicOrgan = :organId AND payFlag = 1 AND createDate BETWEEN :startDate AND :endDate AND bussSource = 2 AND depart in :deptIds")
     public abstract BigDecimal getRecipeIncome(@DAOParam("organId") Integer organId, @DAOParam("startDate") Date startDate, @DAOParam("endDate") Date endDate, @DAOParam("deptIds") List<Integer> deptIds);
 
-    /**
-     * 通过复诊业务来源调用查询处方
-     *
-     * @param bussSource
-     * @param clinicId
-     * @return
-     */
-    @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId")
-    public abstract List<Recipe> findRecipeByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId);
-
 
     /**
      * 通过复诊业务来源调用查询写入HIS处方
@@ -3270,9 +3229,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     @DAOMethod(sql = "from Recipe where recipeId=:recipeId  and bussSource =2")
     public abstract List<Recipe> findRecipeByRecipeId(@DAOParam("recipeId") Integer recipeId);
-
-    @DAOMethod(sql = "from Recipe where clinicId=:clinicId  and bussSource =2")
-    public abstract List<Recipe> findRecipeByClinicId(@DAOParam("clinicId") Integer clinicId);
 
     @DAOMethod
     public abstract List<Recipe> findByClinicId(Integer consultId);
