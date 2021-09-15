@@ -180,16 +180,8 @@ public class AuditPreMode extends AbstractAuidtMode {
             String defaultRecipecheckDoctor = (String) iConfigService.getConfiguration(organId, "defaultRecipecheckDoctor");
             if (intellectJudicialFlag == 3
                     && StringUtils.isNotEmpty(defaultRecipecheckDoctor) && StringUtils.isNotEmpty(autoRecipecheckLevel)) {
-                String[] levels = autoRecipecheckLevel.split(",");
-                Integer minLevel = Integer.valueOf(levels[0]);
-                Integer maxLevel = Integer.valueOf(levels[1]);
-                IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
-                Map<Integer, Integer> maxLevelMap = iAuditMedicinesService.queryRecipeMaxLevel(recipeId);
-                Integer dbMaxLevel = maxLevelMap.get(recipeId);
-                if (dbMaxLevel == null || (minLevel.intValue() <= dbMaxLevel.intValue() && dbMaxLevel.intValue() <= maxLevel.intValue())) {
-                    LOGGER.info("满足自动审方条件，已拦截，不推送药师消息，recipeId ={}", recipeId);
-                    return true;
-                }
+                // 这个只是一个范围判断
+                return true;
             }
             return false;
         } catch (Exception e) {
