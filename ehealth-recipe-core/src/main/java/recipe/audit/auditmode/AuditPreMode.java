@@ -172,14 +172,13 @@ public class AuditPreMode extends AbstractAuidtMode {
     }
 
     private boolean threeRecipeAutoCheck(Integer recipeId, Integer organId) {
-        LOGGER.info("judgeRecipeAutoCheck recipe={}", recipeId);
+        LOGGER.info("threeRecipeAutoCheck recipe={}", recipeId);
         try {
             IConfigurationCenterUtilsService iConfigService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            Boolean invokeRecipeAnalysis = (Boolean) iConfigService.getConfiguration(organId, "InvokeRecipeAnalysis");
             Integer intellectJudicialFlag = (Integer) iConfigService.getConfiguration(organId, "intellectJudicialFlag");
             String autoRecipecheckLevel = (String) iConfigService.getConfiguration(organId, "autoRecipecheckLevel");
             String defaultRecipecheckDoctor = (String) iConfigService.getConfiguration(organId, "defaultRecipecheckDoctor");
-            if (invokeRecipeAnalysis && intellectJudicialFlag == 3
+            if (intellectJudicialFlag == 3
                     && StringUtils.isNotEmpty(defaultRecipecheckDoctor) && StringUtils.isNotEmpty(autoRecipecheckLevel)) {
                 String[] levels = autoRecipecheckLevel.split(",");
                 Integer minLevel = Integer.valueOf(levels[0]);
@@ -194,7 +193,7 @@ public class AuditPreMode extends AbstractAuidtMode {
             }
             return false;
         } catch (Exception e) {
-            LOGGER.error("judgeRecipeAutoCheck error recipe={}", recipeId, e);
+            LOGGER.error("threeRecipeAutoCheck error recipe={}", recipeId, e);
             return false;
         }
 
