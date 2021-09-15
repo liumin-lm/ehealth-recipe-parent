@@ -1,6 +1,7 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.platform.recipe.mode.RecipeDetailBean;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
@@ -110,5 +111,10 @@ public class RecipeDetailManager extends BaseManager {
      */
     public Long getCountByRecipeId(Integer recipeId){
         return recipeDetailDAO.getCountByRecipeId(recipeId);
+    }
+
+
+    public List<RecipeDetailBean> getByRecipeId(Integer recipeId){
+        return null;
     }
 }
