@@ -128,7 +128,7 @@ public class AuditPreMode extends AbstractAuidtMode {
             boolean flag = judgeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
             boolean threeflag = threeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
             //平台审方途径下才发消息  满足自动审方的不推送
-            if (status == RecipeStatusConstant.READY_CHECK_YS && new Integer(1).equals(checkMode) &&  (!flag || threeflag)) {
+            if (status == RecipeStatusConstant.READY_CHECK_YS && new Integer(1).equals(checkMode) &&  (!flag || !threeflag)) {
                 if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
                     //增加药师首页待处理任务---创建任务
                     RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
