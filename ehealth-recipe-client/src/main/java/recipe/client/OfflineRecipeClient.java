@@ -332,18 +332,22 @@ public class OfflineRecipeClient extends BaseClient {
         //医生工号
         recipe.setDoctorCode(employmentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
         AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
-        //科室代码
-        recipe.setDepartCode(appointDepart.getAppointDepartCode());
-        //科室名称
-        recipe.setDepartName(appointDepart.getAppointDepartName());
+        if (null != appointDepart) {
+            //科室代码
+            recipe.setDepartCode(appointDepart.getAppointDepartCode());
+            //科室名称
+            recipe.setDepartName(appointDepart.getAppointDepartName());
+        }
         recipeDTO.setRecipeBean(recipe);
         List<RecipeDetailBean> detailList = ObjectCopyUtils.convert(recipePdfDTO.getRecipeDetails(), RecipeDetailBean.class);
-        detailList.forEach(a -> {
-            PharmacyTcm pharmacyTcm = pharmacyIdMap.get(a.getPharmacyId());
-            if (null != pharmacyTcm) {
-                a.setPharmacyCode(pharmacyTcm.getPharmacyCode());
-            }
-        });
+        if (!pharmacyIdMap.isEmpty()) {
+            detailList.forEach(a -> {
+                PharmacyTcm pharmacyTcm = pharmacyIdMap.get(a.getPharmacyId());
+                if (null != pharmacyTcm) {
+                    a.setPharmacyCode(pharmacyTcm.getPharmacyCode());
+                }
+            });
+        }
         recipeDTO.setRecipeDetails(detailList);
         logger.info("OfflineRecipeClient pushRecipe recipeDTO：{}", JSON.toJSONString(recipeDTO));
         return recipeDTO;
