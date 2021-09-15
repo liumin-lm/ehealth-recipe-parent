@@ -305,7 +305,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             phaCaInfo=signRecipeInfoService.getSignRecipeInfoByRecipeIdAndServerType(recipe.getRecipeId(),3);
             if (phaCaInfo != null) {
                 //药师签名值
-                req.setAuditDoctorSign(phaCaInfo.getSignCodePha());
+                req.setAuditDoctorSign(phaCaInfo.getSignCodeDoc());
             }
 
             //如果其他ca里取不到默认用e签宝的
