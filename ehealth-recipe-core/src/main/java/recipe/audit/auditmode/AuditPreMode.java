@@ -94,6 +94,7 @@ public class AuditPreMode extends AbstractAuidtMode {
         Integer checkMode = recipe.getCheckMode();
         // 是不是三方合理用药
         boolean flag = threeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
+        LOGGER.info("第三方智能审方flag:{}",flag);
         if(!new Integer(1).equals(checkMode)) {
             if (new Integer(2).equals(checkMode)) {
                 //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
@@ -104,6 +105,7 @@ public class AuditPreMode extends AbstractAuidtMode {
                 recipeAudit(recipe);
             }
         }else if (flag) {
+            LOGGER.info("第三方智能审方start");
             PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
             RecipeBean recipeBean = recipeService.getByRecipeId(recipe.getRecipeId());
@@ -111,6 +113,7 @@ public class AuditPreMode extends AbstractAuidtMode {
             List<Recipedetail> recipedetails = recipeDetailManager.findByRecipeId(recipe.getRecipeId());
             List<RecipeDetailBean> list =ObjectCopyUtils.convert(recipedetails,RecipeDetailBean.class);
             prescriptionService.analysis(recipeBean, list);
+            LOGGER.info("第三方智能审方end");
         }
         //异步添加水印
         RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunable(recipe.getRecipeId()));
