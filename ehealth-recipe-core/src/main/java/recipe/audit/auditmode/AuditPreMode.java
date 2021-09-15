@@ -92,7 +92,8 @@ public class AuditPreMode extends AbstractAuidtMode {
         //发送消息
         sendMsg(status, recipe, memo);
         Integer checkMode = recipe.getCheckMode();
-        boolean flag = judgeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
+        // 是不是三方合理用药
+        boolean flag = threeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
         if(!new Integer(1).equals(checkMode)) {
             if (new Integer(2).equals(checkMode)) {
                 //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
@@ -159,6 +160,35 @@ public class AuditPreMode extends AbstractAuidtMode {
                 }
             }
 
+            return false;
+        } catch (Exception e) {
+            LOGGER.error("judgeRecipeAutoCheck error recipe={}", recipeId, e);
+            return false;
+        }
+
+    }
+
+    private boolean threeRecipeAutoCheck(Integer recipeId, Integer organId) {
+        LOGGER.info("judgeRecipeAutoCheck recipe={}", recipeId);
+        try {
+            IConfigurationCenterUtilsService iConfigService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            Boolean invokeRecipeAnalysis = (Boolean) iConfigService.getConfiguration(organId, "InvokeRecipeAnalysis");
+            Integer intellectJudicialFlag = (Integer) iConfigService.getConfiguration(organId, "intellectJudicialFlag");
+            String autoRecipecheckLevel = (String) iConfigService.getConfiguration(organId, "autoRecipecheckLevel");
+            String defaultRecipecheckDoctor = (String) iConfigService.getConfiguration(organId, "defaultRecipecheckDoctor");
+            if (invokeRecipeAnalysis && intellectJudicialFlag == 3
+                    && StringUtils.isNotEmpty(defaultRecipecheckDoctor) && StringUtils.isNotEmpty(autoRecipecheckLevel)) {
+                String[] levels = autoRecipecheckLevel.split(",");
+                Integer minLevel = Integer.valueOf(levels[0]);
+                Integer maxLevel = Integer.valueOf(levels[1]);
+                IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
+                Map<Integer, Integer> maxLevelMap = iAuditMedicinesService.queryRecipeMaxLevel(recipeId);
+                Integer dbMaxLevel = maxLevelMap.get(recipeId);
+                if (dbMaxLevel == null || (minLevel.intValue() <= dbMaxLevel.intValue() && dbMaxLevel.intValue() <= maxLevel.intValue())) {
+                    LOGGER.info("满足自动审方条件，已拦截，不推送药师消息，recipeId ={}", recipeId);
+                    return true;
+                }
+            }
             return false;
         } catch (Exception e) {
             LOGGER.error("judgeRecipeAutoCheck error recipe={}", recipeId, e);
