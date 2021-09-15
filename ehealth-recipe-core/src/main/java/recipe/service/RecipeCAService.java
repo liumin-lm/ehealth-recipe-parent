@@ -196,7 +196,9 @@ public class RecipeCAService {
         Map<String, Object> extendMap = new HashMap<>();
         try {
             extendMap.put("recipeBean", JSONUtils.toString(recipe));
-            extendMap.put("detailBeanList", JSONUtils.toString(recipeDetailDAO.findDetailByOrderCode(recipe.getOrderCode())));
+            extendMap.put("detailBeanList", JSONUtils.toString(recipeDetailDAO.findByRecipeId(recipe.getRecipeId())));
+            extendMap.put("caMixData", JSONUtils.toString(obtainCaMixData(recipe.getRecipeId())));
+
         } catch (Exception e) {
             LOGGER.info("obtainExtendMap error ", e);
             e.printStackTrace();
@@ -402,6 +404,20 @@ public class RecipeCAService {
         return caAccountRequestTO;
     }
 
+    public RegulationRecipeIndicatorsReq obtainCaMixData(Integer recipeId) {
+        RecipeBean recipeBean = recipeService.getByRecipeId(recipeId);
+        if (null == recipeBean) {
+            LOGGER.warn("当前处方{}信息为空", recipeId);
+            return null;
+        }
+        RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
+        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
+
+        List<RecipeDetailBean> detailBeanList = ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class);
+
+        return getCATaskRecipeReq(recipeBean, detailBeanList);
+    }
+
     public RegulationRecipeIndicatorsReq getCATaskRecipeReq(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
         EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
         OrganDrugListDAO organDrugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
@@ -567,6 +583,7 @@ public class RecipeCAService {
             LOGGER.error("当前处方{}CA数据组装异常", recipeBean.getRecipeId(), e);
             throw new DAOException(609, "当前CA数据组装异常,返回空");
         }
+        LOGGER.info("getCATaskRecipeReq request:{}", JSONUtils.toString(request));
         return request;
     }
 
