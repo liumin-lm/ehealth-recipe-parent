@@ -1113,7 +1113,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         return "0";
     }
 
-    public void uploadRecipePayToRegulation(String orderCode, int payFlag) {
+    public void uploadRecipePayToRegulation(String orderCode, int payFlag,String refundNo) {
         LOGGER.info("uploadRecipePayToRegulation param orderCode:{} ,payFlag:{}",orderCode,payFlag);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
@@ -1189,8 +1189,12 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     }
                     req.setDeptClassCode("A99");
                     req.setDeptClassName("其他业务科室");
-                    /*req.setOriginalAccountNo(outPatient.getRefundNo());*/
+                    // 原交易流水号 缴费流水号
+                    req.setOriginalAccountNo(order.getTradeNo());
                     req.setOrderNo(order.getOutTradeNo());
+                    // 退费流水号
+                    req.setRefundNo(refundNo);
+
 
                     //从his返回的挂号序号
                     RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
