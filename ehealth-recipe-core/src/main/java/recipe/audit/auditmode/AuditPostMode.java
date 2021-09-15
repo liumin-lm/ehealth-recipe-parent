@@ -206,7 +206,7 @@ public class AuditPostMode extends AbstractAuidtMode {
                     boolean flag = judgeRecipeAutoCheck(dbRecipe.getRecipeId(),dbRecipe.getClinicOrgan());
                     boolean threeFlag = threeRecipeAutoCheck(dbRecipe.getRecipeId(),dbRecipe.getClinicOrgan());
                     //平台审方下才推送  满足自动审方的不推送
-                    if (new Integer(1).equals(dbRecipe.getCheckMode()) && (!flag || !threeFlag)){
+                    if (new Integer(1).equals(dbRecipe.getCheckMode()) && !(flag || threeFlag)){
                         //如果处方 在待药师审核状态 给对应机构的药师进行消息推送
                         RecipeMsgService.batchSendMsg(dbRecipe.getRecipeId(), status);
                         if(RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(dbRecipe.getRecipeMode())) {
