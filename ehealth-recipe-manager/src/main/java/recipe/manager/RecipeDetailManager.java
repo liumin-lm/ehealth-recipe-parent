@@ -114,7 +114,8 @@ public class RecipeDetailManager extends BaseManager {
     }
 
 
-    public List<RecipeDetailBean> getByRecipeId(Integer recipeId){
+    public List<RecipeDetailBean> findByRecipeId(Integer recipeId){
+        recipeDetailDAO.findByRecipeId(recipeId);
         return null;
     }
 }
