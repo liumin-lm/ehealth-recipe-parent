@@ -85,6 +85,7 @@ public abstract class AbstractAuidtMode implements IAuditMode {
             if (new Integer(1).equals(checkMode) && !flag) {
                 if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
                     //增加药师首页待处理任务---创建任务
+                    LOGGER.info("AbstractAuidtMode 不可能在这发消息吧");
                     if (status == RecipeStatusConstant.READY_CHECK_YS) {
                         RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
                         ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
