@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.aop.LogInfo;
 import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.dao.bean.DrugListAndOrganDrugList;
@@ -483,6 +484,7 @@ public class OrganDrugListService implements IOrganDrugListService {
      *
      * @param saveOrganDrugList
      */
+    @LogInfo
     public void uploadDrugToRegulation(OrganDrugList saveOrganDrugList) {
         List<RegulationDrugCategoryReq> drugCategoryReqs = new ArrayList<>();
         try {
