@@ -1,7 +1,6 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
-import com.ngari.platform.recipe.mode.RecipeDetailBean;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
@@ -119,8 +118,7 @@ public class RecipeDetailManager extends BaseManager {
      * @param recipeId 处方ID
      * @return 处方详情列表
      */
-    public List<RecipeDetailBean> findByRecipeId(Integer recipeId){
-        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
-        return ObjectCopyUtils.convert(recipeDetails, RecipeDetailBean.class);
+    public List<Recipedetail> findByRecipeId(Integer recipeId){
+        return recipeDetailDAO.findByRecipeId(recipeId);
     }
 }
