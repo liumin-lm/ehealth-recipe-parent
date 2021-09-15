@@ -29,11 +29,11 @@ public class RecipeDoctorAtop extends BaseAtop {
      */
     @RpcService
     public RecipeCancelDTO cancelRecipeValidate(Integer recipeId) {
-        logger.info("RecipeDoctorAtop cancelRecipeValidate recipeId:{}.", recipeId);
+        logger.info("RecipeDoctorAtop cancelRecipeValidate recipeId:{}", recipeId);
         validateAtop(recipeId);
         try {
             RecipeCancelDTO result = recipeBusinessService.cancelRecipeValidate(recipeId);
-            logger.info("RecipeDoctorAtop cancelRecipeValidate result:{}.", JSON.toJSONString(result));
+            logger.info("RecipeDoctorAtop cancelRecipeValidate result:{}", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
             logger.warn("RecipeDoctorAtop cancelRecipeValidate  error", e1);
