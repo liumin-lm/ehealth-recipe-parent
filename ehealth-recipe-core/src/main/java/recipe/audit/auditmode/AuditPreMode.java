@@ -109,9 +109,8 @@ public class AuditPreMode extends AbstractAuidtMode {
             PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
             RecipeBean recipeBean = recipeService.getByRecipeId(recipe.getRecipeId());
-            RecipeDetailManager recipeDetailManager = ApplicationUtils.getRecipeService(RecipeDetailManager.class);
-            List<Recipedetail> recipedetails = recipeDetailManager.findByRecipeId(recipe.getRecipeId());
-            List<RecipeDetailBean> list =ObjectCopyUtils.convert(recipedetails,RecipeDetailBean.class);
+            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            List<RecipeDetailBean> list =ObjectCopyUtils.convert(recipeDetailDAO.findByRecipeId(recipe.getRecipeId()),RecipeDetailBean.class);
             prescriptionService.analysis(recipeBean, list);
             LOGGER.info("第三方智能审方end");
         }
