@@ -7,6 +7,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
+import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 
 import java.math.BigDecimal;
@@ -113,9 +114,13 @@ public class RecipeDetailManager extends BaseManager {
         return recipeDetailDAO.getCountByRecipeId(recipeId);
     }
 
-
+    /**
+     * 获取处方详情列表
+     * @param recipeId 处方ID
+     * @return 处方详情列表
+     */
     public List<RecipeDetailBean> findByRecipeId(Integer recipeId){
-        recipeDetailDAO.findByRecipeId(recipeId);
-        return null;
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
+        return ObjectCopyUtils.convert(recipeDetails, RecipeDetailBean.class);
     }
 }
