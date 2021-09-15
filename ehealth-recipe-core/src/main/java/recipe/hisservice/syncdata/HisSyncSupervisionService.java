@@ -215,7 +215,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RecipeOrder recipeOrder;
         DoctorExtendDTO doctorExtendDTO;
         RevisitExDTO consultExDTO;
-        SignDoctorRecipeInfoDTO caInfo;
+        SignDoctorRecipeInfoDTO docCaInfo;
+        SignDoctorRecipeInfoDTO phaCaInfo;
         RedisClient redisClient = RedisClient.instance();
         String caSignature = null;
         for (Recipe recipe : recipeList) {
@@ -296,13 +297,17 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setDoctorNo(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
             req.setDoctorProTitle(doctorDTO.getProTitle());
             //江苏ca用到
-            caInfo=signRecipeInfoService.getSignRecipeInfoByRecipeIdAndServerType(recipe.getRecipeId(),1);
-            if (caInfo != null) {
+            docCaInfo=signRecipeInfoService.getSignRecipeInfoByRecipeIdAndServerType(recipe.getRecipeId(),1);
+            if (docCaInfo != null) {
                 //医生签名值
-                req.setDoctorSign(caInfo.getSignCodeDoc());
-                //药师签名值
-                req.setAuditDoctorSign(caInfo.getSignCodePha());
+                req.setDoctorSign(docCaInfo.getSignCodeDoc());
             }
+            phaCaInfo=signRecipeInfoService.getSignRecipeInfoByRecipeIdAndServerType(recipe.getRecipeId(),3);
+            if (phaCaInfo != null) {
+                //药师签名值
+                req.setAuditDoctorSign(phaCaInfo.getSignCodePha());
+            }
+
             //如果其他ca里取不到默认用e签宝的
             if (StringUtils.isEmpty(req.getDoctorSign()) && doctorDTO.getESignId() != null) {
                 //设置医生电子签名
