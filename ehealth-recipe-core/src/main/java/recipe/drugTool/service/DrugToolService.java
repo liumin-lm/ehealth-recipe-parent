@@ -2288,7 +2288,7 @@ public class DrugToolService implements IDrugToolService {
 
     @RpcService
     public void checkRecipeDrugList(List<DoctorDrugUsageRequest> request) {
-        request.forEach(a -> checkRecipeDrug(a));
+        request.forEach(this::checkRecipeDrug);
     }
 
     /**
