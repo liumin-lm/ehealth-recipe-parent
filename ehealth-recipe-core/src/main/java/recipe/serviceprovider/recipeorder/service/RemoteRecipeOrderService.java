@@ -76,11 +76,6 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         LOGGER.info("RemoteRecipeOrderService finishOrderPay orderCode={}, payFlag={} ,payMode={}", orderCode, payFlag, payMode);
         RecipeOrderService service = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         service.finishOrderPay(orderCode, payFlag, payMode);
-//        RecipeBusiThreadPool.submit(()->{
-//            HisSyncSupervisionService  hisSyncservice = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
-//            hisSyncservice.uploadRecipePayToRegulation(orderCode,payFlag);
-//            return null;
-//        });
     }
 
     @RpcService
