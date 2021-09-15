@@ -2286,8 +2286,14 @@ public class DrugToolService implements IDrugToolService {
         return result;
     }
 
+    @RpcService
+    public void checkRecipeDrugList(List<DoctorDrugUsageRequest> request) {
+        request.forEach(a -> checkRecipeDrug(a));
+    }
+
     /**
      * 处方校验-目前用于增加用于频次、途径使用次数
+     *
      * @param request
      */
     @RpcService
