@@ -110,10 +110,10 @@ public class SaveAutoReviewRunnable implements Runnable {
         }catch (Exception e){
             LOGGER.error("SaveAutoReviewRunnable error,recipe={}", JSON.toJSONString(recipe), e);
         } finally {
+            LOGGER.info("SaveAutoReviewRunnable finish. recipe={}", JSON.toJSONString(recipe));
             long elapsedTime = System.currentTimeMillis() - start;
             LOGGER.info("RecipeBusiThreadPool SaveAutoReviewRunnable 保存智能审方 执行时间:{}ms.", elapsedTime);
         }
-        LOGGER.info("SaveAutoReviewRunnable finish. recipe={}", JSON.toJSONString(recipe));
     }
 
 }

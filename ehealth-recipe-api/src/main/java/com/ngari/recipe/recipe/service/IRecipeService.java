@@ -920,14 +920,5 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     public List<DrugDetailResult> getDrugStockForArea(DrugInfoReq drugInfoReq);
 
-    /**
-     * @author maoze
-     * @date 2021/09/13
-     * @desc 保存电子遍历
-     * @param recipe
-     */
-    @RpcService
-    public void saveRecipeDocIndex(RecipeBean recipe);
-
 }
 

@@ -49,6 +49,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.aop.LogInfo;
 import recipe.bean.EleInvoiceDTO;
 import recipe.bussutil.RecipeUtil;
 import recipe.client.DoctorClient;
@@ -107,6 +108,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
     private static String HIS_SUCCESS = "200";
 
+    @LogInfo
     public void uploadRecipePrepareCheck(Integer recipeId) {
         LOGGER.info("HisSyncSupervisionService uploadRecipePrepareCheck recipeId={}", recipeId);
         if (null == recipeId) {
@@ -1113,6 +1115,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         return "0";
     }
 
+    @LogInfo
     public void uploadRecipePayToRegulation(String orderCode, int payFlag) {
         LOGGER.info("uploadRecipePayToRegulation param orderCode:{} ,payFlag:{}",orderCode,payFlag);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);

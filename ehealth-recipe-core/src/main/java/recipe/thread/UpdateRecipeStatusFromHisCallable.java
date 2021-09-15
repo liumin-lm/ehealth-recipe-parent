@@ -28,12 +28,17 @@ public class UpdateRecipeStatusFromHisCallable implements Runnable {
     @Override
     public void run() {
         //HIS消息发送
+        LOGGER.info("UpdateRecipeStatusFromHisCallable start");
+        long start = System.currentTimeMillis();
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
         for (Integer organId : map.keySet()) {
             try {
                 hisService.recipeListQuery(map.get(organId), organId);
             } catch (Exception e) {
                 LOGGER.error("UpdateRecipeStatusFromHisCallable map:{}, error", JSON.toJSONString(map), e);
+            }finally {
+                long elapsedTime = System.currentTimeMillis() - start;
+                LOGGER.info("RecipeBusiThreadPool UpdateRecipeStatusFromHisCallable 更新从HIS获取到的处方状态 执行时间:{}.", elapsedTime);
             }
         }
     }

@@ -52,6 +52,8 @@ public class SyncOrganDrugToEsCallable implements Callable<String> {
 
     @Override
     public String call() throws Exception {
+        LOG.info("SyncOrganDrugToEsCallable start");
+        long start = System.currentTimeMillis();
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         int total = this.end - this.start;
         if (total > 0) {
@@ -157,7 +159,8 @@ public class SyncOrganDrugToEsCallable implements Callable<String> {
                 }
             }
         }
-
+        long elapsedTime = System.currentTimeMillis() - start;
+        LOG.info("RecipeBusiThreadPool SyncOrganDrugToEsCallable ES-同步机构药品 执行时间:{}.", elapsedTime);
         return "";
     }
 }

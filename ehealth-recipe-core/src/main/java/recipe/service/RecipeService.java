@@ -98,6 +98,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.aop.LogInfo;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
@@ -747,6 +748,7 @@ public class RecipeService extends RecipeBaseService {
      * @param recipeId
      */
     @RpcService
+    @LogInfo
     public RecipeResultBean generateRecipePdfAndSign(Integer recipeId) {
         RecipeResultBean result = RecipeResultBean.getSuccess();
         if (null == recipeId) {
@@ -2344,6 +2346,8 @@ public class RecipeService extends RecipeBaseService {
             RecipeBusiThreadPool.submit(new Callable() {
                 @Override
                 public Object call() throws Exception {
+                    LOGGER.info("doHisReturnSuccessForOrgan start");
+                    long start = System.currentTimeMillis();
                     PatientService patientService = BasicAPI.getService(PatientService.class);
                     PatientDTO patientDTO = patientService.getPatientByMpiId(recipeBean.getMpiid());
                     Date now = DateTime.now().toDate();
@@ -2365,6 +2369,8 @@ public class RecipeService extends RecipeBaseService {
                     repList.add(orderRepTO);
                     response.setData(repList);
                     service.sendSuccess(response);
+                    long elapsedTime = System.currentTimeMillis() - start;
+                    LOGGER.info("RecipeBusiThreadPool doHisReturnSuccessForOrgan 个性化医院特殊处理，开完处方模拟his成功返回数据 执行时间:{}.", elapsedTime);
                     return null;
                 }
             });
@@ -2963,6 +2969,7 @@ public class RecipeService extends RecipeBaseService {
         RecipeBusiThreadPool.execute(new Runnable() {
             @Override
             public void run() {
+                long start = System.currentTimeMillis();
                 IRecipeHisService recipeHisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
                 OrganDrugInfoResponseTO responseTO = new OrganDrugInfoResponseTO();
                 OrganDrugInfoRequestTO request = new OrganDrugInfoRequestTO();
@@ -3100,6 +3107,8 @@ public class RecipeService extends RecipeBaseService {
                 redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
                 redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
                 drugInfoSynTaskExt(organId);
+                long elapsedTime = System.currentTimeMillis() - start;
+                LOGGER.info("RecipeBusiThreadPool drugInfoSynMovementExt ES-推送药品 执行时间:{}.", elapsedTime);
             }
         });
         return map;

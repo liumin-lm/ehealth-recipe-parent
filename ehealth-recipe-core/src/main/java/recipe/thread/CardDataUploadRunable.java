@@ -32,6 +32,7 @@ public class CardDataUploadRunable implements Runnable {
 
     @Override
     public void run() {
+        long start = System.currentTimeMillis();
         LOGGER.info("CardDataUploadRunable start. organId={} mpiid={} scene={}", organId,mpiid,scene);
         try {
             CardUploadDTO cardUploadDTO=new CardUploadDTO();
@@ -43,8 +44,12 @@ public class CardDataUploadRunable implements Runnable {
             iWholesomeService.cardDataUpload(cardUploadDTO);
         }catch (Exception e){
             LOGGER.error("CardDataUploadRunable error :{}",e);
+        }finally {
+            LOGGER.info("CardDataUploadRunable finish. organId={} mpiid={} scene={}", organId,mpiid,scene);
+            long elapsedTime = System.currentTimeMillis() - start;
+            LOGGER.info("RecipeBusiThreadPool CardDataUploadRunable 健康卡数据上传 执行时间:{}.", elapsedTime);
         }
-        LOGGER.info("CardDataUploadRunable finish. organId={} mpiid={} scene={}", organId,mpiid,scene);
+
     }
 
 }
