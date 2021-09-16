@@ -1,5 +1,6 @@
 package recipe.audit.auditmode;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.home.asyn.model.BussCreateEvent;
@@ -133,6 +134,7 @@ public class AuditPreMode extends AbstractAuidtMode {
                 if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
                     //增加药师首页待处理任务---创建任务
                     RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+                    LOGGER.info("AuditPreMode sendMsg recipeId:{},recipeBean:{}", recipe.getRecipeId(), JSON.toJSONString(recipeBean));
                     ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
                 }
             }
