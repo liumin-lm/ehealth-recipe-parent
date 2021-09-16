@@ -138,7 +138,7 @@ public class RecipeToHisService {
                                         map.put("recipeFee", recipeFee);
                                         totalMoney = totalMoney.add(recipeOrder.getAuditFee())
                                                 .add(recipeOrder.getRegisterFee())
-                                                .add(recipeOrder.getTcmFee())
+                                                .add(null==recipeOrder.getTcmFee()?BigDecimal.ZERO:recipeOrder.getTcmFee())
                                                 .add(recipeOrder.getOtherFee())
                                                 .add(recipeFee);
                                         map.put("totalFee", totalMoney);
