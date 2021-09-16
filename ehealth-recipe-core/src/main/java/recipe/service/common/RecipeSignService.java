@@ -681,7 +681,7 @@ public class RecipeSignService {
         Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_NGARI_SENDRECIPETOHIS_LIST);
         if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(recipeBean.getClinicOrgan().toString())) {
             //推送处方给his---recipesend
-            RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
+            RecipeBusiThreadPool.execute(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
         } else {
             //MQ推送处方开成功消息
             RecipeToHisMqService hisMqService = ApplicationUtils.getRecipeService(RecipeToHisMqService.class);

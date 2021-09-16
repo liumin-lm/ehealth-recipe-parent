@@ -106,7 +106,7 @@ public abstract class AbstractCaProcessType {
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         //前置签名，CA后操作，通过CA的结果做判断，通过则将处方推his
         //HIS消息发送--异步处理
-        RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
+        RecipeBusiThreadPool.execute(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
 
         //非可使用省医保的处方立即发送处方卡片，使用省医保的处方需要在药师审核通过后显示
         if (!recipeBean.canMedicalPay()) {
