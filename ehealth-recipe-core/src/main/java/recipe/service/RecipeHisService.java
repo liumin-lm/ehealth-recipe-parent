@@ -114,6 +114,7 @@ public class RecipeHisService extends RecipeBaseService {
      * @param recipeId
      */
     @RpcService
+    @LogInfo
     public boolean recipeSendHis(Integer recipeId, Integer otherOrganId) {
         boolean result = true;
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -1373,6 +1374,7 @@ public class RecipeHisService extends RecipeBaseService {
      * @param drugLists
      */
     @RpcService
+    @LogInfo
     public void syncDrugListToHis(List<DrugList> drugLists) {
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
         OrganService organService = ApplicationUtils.getBasicService(OrganService.class);

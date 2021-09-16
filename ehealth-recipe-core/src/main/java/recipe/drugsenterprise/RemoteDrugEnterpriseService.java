@@ -202,6 +202,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
 
 
     @RpcService
+    @LogInfo
     public void uploadRecipePdfToHis(Integer recipeId) {
         try {
             RecipeDAO dao = DAOFactory.getDAO(RecipeDAO.class);

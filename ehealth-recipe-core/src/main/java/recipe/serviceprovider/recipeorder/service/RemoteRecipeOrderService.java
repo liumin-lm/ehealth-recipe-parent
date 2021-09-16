@@ -76,11 +76,6 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         LOGGER.info("RemoteRecipeOrderService finishOrderPay orderCode={}, payFlag={} ,payMode={}", orderCode, payFlag, payMode);
         RecipeOrderService service = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         service.finishOrderPay(orderCode, payFlag, payMode);
-//        RecipeBusiThreadPool.submit(()->{
-//            HisSyncSupervisionService  hisSyncservice = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
-//            hisSyncservice.uploadRecipePayToRegulation(orderCode,payFlag);
-//            return null;
-//        });
     }
 
     @RpcService
@@ -437,4 +432,11 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         return recipeExtendDAO.updateRecipeExtByRecipeIdS(recipeId, ImmutableMap.of("pharmNo", pharmNo));
     }
 
+    @RpcService
+    @Override
+    public void finishOrderPayByRefund(String orderCode, int payFlag, Integer payMode, String refundNo) {
+        LOGGER.info("RemoteRecipeOrderService finishOrderPayByRefund orderCode={}, payFlag={} ,payMode={} refundNo={}", orderCode, payFlag, payMode,refundNo);
+        RecipeOrderService service = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+        service.finishOrderPayByRefund(orderCode, payFlag, payMode,refundNo);
+    }
 }

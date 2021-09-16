@@ -98,6 +98,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.aop.LogInfo;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
@@ -747,6 +748,7 @@ public class RecipeService extends RecipeBaseService {
      * @param recipeId
      */
     @RpcService
+    @LogInfo
     public RecipeResultBean generateRecipePdfAndSign(Integer recipeId) {
         RecipeResultBean result = RecipeResultBean.getSuccess();
         if (null == recipeId) {
@@ -1556,7 +1558,7 @@ public class RecipeService extends RecipeBaseService {
             PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
             if (prescriptionService.getIntellectJudicialFlag(recipeBean.getClinicOrgan()) == 1) {
                 //更新审方信息
-                RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
+                RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(recipeBean, detailBeanList));
             }
             //健康卡数据上传
             RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(), "010106"));
@@ -2118,7 +2120,7 @@ public class RecipeService extends RecipeBaseService {
             RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
             List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
             //更新审方信息
-            RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(ObjectCopyUtils.convert(recipe, RecipeBean.class), ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class)));
+            RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(ObjectCopyUtils.convert(recipe, RecipeBean.class), ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class)));
         }
         //健康卡数据上传
         RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipe.getClinicOrgan(), recipe.getMpiid(), "010106"));
@@ -2303,7 +2305,7 @@ public class RecipeService extends RecipeBaseService {
             PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
             if (prescriptionService.getIntellectJudicialFlag(recipeBean.getClinicOrgan()) == 1) {
                 //更新审方信息
-                RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
+                RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(recipeBean, detailBeanList));
             }
             //健康卡数据上传
             RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(), "010106"));
@@ -2344,6 +2346,8 @@ public class RecipeService extends RecipeBaseService {
             RecipeBusiThreadPool.submit(new Callable() {
                 @Override
                 public Object call() throws Exception {
+                    LOGGER.info("doHisReturnSuccessForOrgan start");
+                    long start = System.currentTimeMillis();
                     PatientService patientService = BasicAPI.getService(PatientService.class);
                     PatientDTO patientDTO = patientService.getPatientByMpiId(recipeBean.getMpiid());
                     Date now = DateTime.now().toDate();
@@ -2365,6 +2369,8 @@ public class RecipeService extends RecipeBaseService {
                     repList.add(orderRepTO);
                     response.setData(repList);
                     service.sendSuccess(response);
+                    long elapsedTime = System.currentTimeMillis() - start;
+                    LOGGER.info("RecipeBusiThreadPool doHisReturnSuccessForOrgan 个性化医院特殊处理，开完处方模拟his成功返回数据 执行时间:{}.", elapsedTime);
                     return null;
                 }
             });
@@ -2742,9 +2748,9 @@ public class RecipeService extends RecipeBaseService {
             if (ObjectUtils.isEmpty(organDrugChange.getUseDose())) {
                 list.add("useDose(单次剂量)");
             }
-            if (ObjectUtils.isEmpty(organDrugChange.getBaseDrug())) {
+            /*if (ObjectUtils.isEmpty(organDrugChange.getBaseDrug())) {
                 list.add("baseDrug(是否基药)");
-            }
+            }*/
             if (ObjectUtils.isEmpty(organDrugChange.getUseDoseUnit())) {
                 list.add("useDoseUnit(剂量单位)");
             }
@@ -2963,6 +2969,7 @@ public class RecipeService extends RecipeBaseService {
         RecipeBusiThreadPool.execute(new Runnable() {
             @Override
             public void run() {
+                long start = System.currentTimeMillis();
                 IRecipeHisService recipeHisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
                 OrganDrugInfoResponseTO responseTO = new OrganDrugInfoResponseTO();
                 OrganDrugInfoRequestTO request = new OrganDrugInfoRequestTO();
@@ -3100,6 +3107,8 @@ public class RecipeService extends RecipeBaseService {
                 redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
                 redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
                 drugInfoSynTaskExt(organId);
+                long elapsedTime = System.currentTimeMillis() - start;
+                LOGGER.info("RecipeBusiThreadPool drugInfoSynMovementExt ES-推送药品 执行时间:{}.", elapsedTime);
             }
         });
         return map;

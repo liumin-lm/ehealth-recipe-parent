@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.client.DoctorClient;
+import recipe.client.IConfigurationClient;
 import recipe.client.RecipeAuditClient;
 import recipe.core.api.IRevisitBusinessService;
 import recipe.dao.*;
@@ -27,6 +28,7 @@ import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.manager.RevisitManager;
 import recipe.manager.SignManager;
+import recipe.util.ValidateUtil;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
 import java.util.ArrayList;
@@ -44,46 +46,40 @@ import java.util.stream.Collectors;
  */
 @Service
 public class RevisitBusinessService extends BaseService implements IRevisitBusinessService {
+    private final String UNDERWAY_REVISIT_NO = "1";
+    private final String UNDERWAY_REVISIT_REGISTER_ID = "3";
+
     @Autowired
     private RevisitManager revisitManager;
     @Autowired
     private RecipeDAO recipeDAO;
-
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
-
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
-
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
-
     @Autowired
     private SignManager signManager;
-
     @Autowired
     private DoctorClient doctorClient;
-
     @Autowired
     private OrderManager orderManager;
-
     @Autowired
     private RecipeOrderBillDAO recipeOrderBillDAO;
-
     @Autowired
     private RecipeManager recipeManager;
-
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
-
     @Autowired
     private RecipeRefundDAO recipeRefundDAO;
-
     @Autowired
     private RecipeAuditClient recipeAuditClient;
-
     @Autowired
     private IEasyPayService iEasyPayService;
+    @Autowired
+    private IConfigurationClient configurationClient;
+
 
     @Override
     public List<RevisitRecipeTraceVo> revisitRecipeTrace(Integer recipeId, Integer clinicId) {
@@ -199,11 +195,19 @@ public class RevisitBusinessService extends BaseService implements IRevisitBusin
         logger.info("handDealRevisitTraceRecipe start");
         //时间预留 传null
         List<Recipe> recipes = recipeDAO.queryRevisitTrace(startTime, endTime, recipeIds, organId);
-        recipes.forEach(recipe -> {
-            revisitManager.saveRevisitTracesList(recipe);
-            logger.info("handDealRevisitTraceRecipe recipeId:{}", recipe.getRecipeId());
-        });
+        recipes.forEach(recipe -> revisitManager.saveRevisitTracesList(recipe));
         logger.info("handDealRevisitTraceRecipe end");
+    }
+
+    @Override
+    public Boolean revisitValidate(Recipe recipe) {
+        //开具处方时复诊状态判断配置
+        String isUnderwayRevisit = configurationClient.getValueEnumCatch(recipe.getClinicOrgan(), "isUnderwayRevisit", UNDERWAY_REVISIT_NO);
+        if (UNDERWAY_REVISIT_NO.equals(isUnderwayRevisit)) {
+            return true;
+        }
+        Integer revisitId = revisitManager.getRevisitId(recipe.getMpiid(), recipe.getDoctor(), UNDERWAY_REVISIT_REGISTER_ID.equals(isUnderwayRevisit));
+        return !ValidateUtil.integerIsEmpty(revisitId);
     }
 
     /**

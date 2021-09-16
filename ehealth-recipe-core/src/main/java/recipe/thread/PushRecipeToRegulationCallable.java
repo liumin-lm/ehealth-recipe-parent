@@ -63,6 +63,7 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
 
     @Override
     public String call() throws Exception {
+        long start = System.currentTimeMillis();
         if (CollectionUtils.isEmpty(recipeIds)){
             return null;
         }
@@ -140,6 +141,9 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
             }
         } catch (Exception e) {
             logger.error("uploadRecipeIndicators recipeIds:{},error",JSON.toJSONString(recipeIds), e);
+        }finally {
+            long elapsedTime = System.currentTimeMillis() - start;
+            logger.info("RecipeBusiThreadPool PushRecipeToRegulationCallable 监管平台-处方推送 执行时间:{}.", elapsedTime);
         }
         return null;
     }

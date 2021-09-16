@@ -30,6 +30,7 @@ public class UpdateWaterPrintRecipePdfRunable implements Runnable {
 
     @Override
     public void run() {
+        long start = System.currentTimeMillis();
         logger.info("UpdateWaterPrintRecipePdfRunable start. recipeId={}", recipeId);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.get(recipeId);
@@ -67,6 +68,9 @@ public class UpdateWaterPrintRecipePdfRunable implements Runnable {
 
         } catch (Exception e) {
             logger.error("UpdateWaterPrintRecipePdfRunable error recipeId={},e=", recipeId, e);
+        }finally {
+            long elapsedTime = System.currentTimeMillis() - start;
+            logger.info("RecipeBusiThreadPool UpdateWaterPrintRecipePdfRunable 在sendSuccess-PDF-添加水印 执行时间:{}.", elapsedTime);
         }
     }
 }

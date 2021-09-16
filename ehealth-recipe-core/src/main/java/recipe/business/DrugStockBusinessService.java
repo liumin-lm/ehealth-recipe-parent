@@ -179,6 +179,8 @@ public class DrugStockBusinessService extends BaseService {
      */
     private void saveGiveMode(com.ngari.platform.recipe.mode.RecipeResultBean scanResult, SupportDepListBean allSupportDepList, int checkFlag, Integer recipeId, int organId, List<String> configurations) {
         RecipeBusiThreadPool.execute(() -> {
+            logger.info("saveGiveMode start");
+            long start = System.currentTimeMillis();
             List<DrugsEnterprise> supportDepList = null;
             if (!Objects.isNull(allSupportDepList)) {
                 supportDepList = allSupportDepList.getHaveList();
@@ -190,6 +192,8 @@ public class DrugStockBusinessService extends BaseService {
                 attMap.put("recipeSupportGiveMode", join);
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, attMap);
             }
+            long elapsedTime = System.currentTimeMillis() - start;
+            logger.info("RecipeBusiThreadPool saveGiveMode 异步保存处方购药方式 执行时间:{}.", elapsedTime);
         });
     }
 

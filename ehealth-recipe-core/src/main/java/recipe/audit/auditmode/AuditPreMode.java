@@ -1,12 +1,15 @@
 package recipe.audit.auditmode;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import eh.base.constant.BussTypeConstant;
@@ -18,11 +21,13 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.audit.service.PrescriptionService;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.manager.RecipeDetailManager;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeService;
@@ -30,6 +35,8 @@ import recipe.service.RecipeServiceSub;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateWaterPrintRecipePdfRunable;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static ctd.persistence.DAOFactory.getDAO;
@@ -86,6 +93,9 @@ public class AuditPreMode extends AbstractAuidtMode {
         //发送消息
         sendMsg(status, recipe, memo);
         Integer checkMode = recipe.getCheckMode();
+        // 是不是三方合理用药
+        boolean flag = threeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
+        LOGGER.info("第三方智能审方flag:{}",flag);
         if(!new Integer(1).equals(checkMode)) {
             if (new Integer(2).equals(checkMode)) {
                 //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
@@ -95,6 +105,15 @@ public class AuditPreMode extends AbstractAuidtMode {
             } else {
                 recipeAudit(recipe);
             }
+        }else if (flag) {
+            LOGGER.info("第三方智能审方start");
+            PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
+            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+            RecipeBean recipeBean = recipeService.getByRecipeId(recipe.getRecipeId());
+            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            List<RecipeDetailBean> list =ObjectCopyUtils.convert(recipeDetailDAO.findByRecipeId(recipe.getRecipeId()),RecipeDetailBean.class);
+            prescriptionService.analysis(recipeBean, list);
+            LOGGER.info("第三方智能审方end");
         }
         //异步添加水印
         RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunable(recipe.getRecipeId()));
@@ -108,11 +127,14 @@ public class AuditPreMode extends AbstractAuidtMode {
             //发送消息--待审核消息
             RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
             boolean flag = judgeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
+            boolean threeflag = threeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
             //平台审方途径下才发消息  满足自动审方的不推送
-            if (status == RecipeStatusConstant.READY_CHECK_YS && new Integer(1).equals(checkMode) && !flag) {
+            LOGGER.info("sendMsg:判断:{}",(status == RecipeStatusConstant.READY_CHECK_YS && new Integer(1).equals(checkMode) &&  !(flag || threeflag)));
+            if (status == RecipeStatusConstant.READY_CHECK_YS && new Integer(1).equals(checkMode) &&  !(flag || threeflag)) {
                 if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
                     //增加药师首页待处理任务---创建任务
                     RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+                    LOGGER.info("AuditPreMode sendMsg recipeId:{},recipeBean:{}", recipe.getRecipeId(), JSON.toJSONString(recipeBean));
                     ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
                 }
             }
@@ -147,6 +169,26 @@ public class AuditPreMode extends AbstractAuidtMode {
             return false;
         } catch (Exception e) {
             LOGGER.error("judgeRecipeAutoCheck error recipe={}", recipeId, e);
+            return false;
+        }
+
+    }
+
+    private boolean threeRecipeAutoCheck(Integer recipeId, Integer organId) {
+        LOGGER.info("threeRecipeAutoCheck recipe={}", recipeId);
+        try {
+            IConfigurationCenterUtilsService iConfigService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            Integer intellectJudicialFlag = (Integer) iConfigService.getConfiguration(organId, "intellectJudicialFlag");
+            String autoRecipecheckLevel = (String) iConfigService.getConfiguration(organId, "autoRecipecheckLevel");
+            String defaultRecipecheckDoctor = (String) iConfigService.getConfiguration(organId, "defaultRecipecheckDoctor");
+            if (intellectJudicialFlag == 3
+                    && StringUtils.isNotEmpty(defaultRecipecheckDoctor) && StringUtils.isNotEmpty(autoRecipecheckLevel)) {
+                // 这个只是一个范围判断
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            LOGGER.error("threeRecipeAutoCheck error recipe={}", recipeId, e);
             return false;
         }
 
