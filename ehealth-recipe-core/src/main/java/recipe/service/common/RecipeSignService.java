@@ -189,9 +189,7 @@ public class RecipeSignService {
         }
 
         //签名
-        RecipeBusiThreadPool.submit(new Callable() {
-            @Override
-            public Object call() throws Exception {
+        RecipeBusiThreadPool.execute(() ->{
                 RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
                 try {
                     //生成pdf并签名
@@ -199,9 +197,7 @@ public class RecipeSignService {
                 } catch (Exception e) {
                     LOG.error("sign 签名服务异常，recipeId={}", recipeId, e);
                 }
-                return null;
-            }
-        });
+            });
 
 
         //修改订单
