@@ -1,5 +1,6 @@
 package recipe.audit.auditmode;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
@@ -10,7 +11,6 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
@@ -87,6 +87,7 @@ public abstract class AbstractAuidtMode implements IAuditMode {
                     //增加药师首页待处理任务---创建任务
                     if (status == RecipeStatusConstant.READY_CHECK_YS) {
                         RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+                        LOGGER.info("AbstractAuidtMode saveStatusAndSendMsg recipeId:{},recipeBean:{}", recipe.getRecipeId(), JSON.toJSONString(recipeBean));
                         ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
                     }
                 }
