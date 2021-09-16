@@ -120,10 +120,10 @@ public class OrganDrugListService implements IOrganDrugListService {
         DrugToolService bean = AppDomainContext.getBean("eh.drugToolService", DrugToolService.class);
         List<OrganDrugList> lists= Lists.newArrayList();
         lists.add(organDrugList);
-        OrganAndDrugsepRelationDAO relationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-        List<DrugsEnterprise> drugsEnterpriseList = relationDAO.findDrugsEnterpriseByOrganIdAndStatus(organDrugList.getOrganId(), 1);
-        if (drugsEnterpriseList != null && drugsEnterpriseList.size() > 0 ){
-            for (DrugsEnterprise drugsEnterpris : drugsEnterpriseList) {
+        DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        List<DrugsEnterprise> drugsEnterprises = dao.findByOrganIdZj(organDrugList.getOrganId());
+        if (drugsEnterprises != null && drugsEnterprises.size() > 0 ){
+            for (DrugsEnterprise drugsEnterpris : drugsEnterprises) {
                 try {
                     bean.saveOrUpdateOrganDrugDataToSaleDrugList(lists,organDrugList.getOrganId(),drugsEnterpris.getId(),true);
                 } catch (Exception e) {
@@ -142,10 +142,10 @@ public class OrganDrugListService implements IOrganDrugListService {
         DrugToolService bean = AppDomainContext.getBean("eh.drugToolService", DrugToolService.class);
         List<OrganDrugList> lists= Lists.newArrayList();
         lists.add(organDrugList);
-        OrganAndDrugsepRelationDAO relationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-        List<DrugsEnterprise> drugsEnterpriseList = relationDAO.findDrugsEnterpriseByOrganIdAndStatus(organDrugList.getOrganId(), 1);
-        if (drugsEnterpriseList != null && drugsEnterpriseList.size() > 0 ){
-            for (DrugsEnterprise drugsEnterpris : drugsEnterpriseList) {
+        DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        List<DrugsEnterprise> drugsEnterprises = dao.findByOrganIdZj(organDrugList.getOrganId());
+        if (drugsEnterprises != null && drugsEnterprises.size() > 0 ){
+            for (DrugsEnterprise drugsEnterpris : drugsEnterprises) {
                 if (status==1){
                     bean.deleteOrganDrugDataToSaleDrugList(lists,drugsEnterpris.getId());
                 }else if (status == 2){

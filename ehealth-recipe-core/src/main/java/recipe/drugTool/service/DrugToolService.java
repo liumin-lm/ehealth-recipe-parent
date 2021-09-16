@@ -2455,10 +2455,10 @@ public class DrugToolService implements IDrugToolService {
     public void organDrugSync(OrganDrugList organDrugList){
         List<OrganDrugList> lists= Lists.newArrayList();
         lists.add(organDrugList);
-        OrganAndDrugsepRelationDAO relationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-        List<DrugsEnterprise> drugsEnterpriseList = relationDAO.findDrugsEnterpriseByOrganIdAndStatus(organDrugList.getOrganId(), 1);
-        if (drugsEnterpriseList != null && drugsEnterpriseList.size() > 0 ){
-            for (DrugsEnterprise drugsEnterpris : drugsEnterpriseList) {
+        DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        List<DrugsEnterprise> drugsEnterprises = dao.findByOrganIdZj(organDrugList.getOrganId());
+        if (drugsEnterprises != null && drugsEnterprises.size() > 0 ){
+            for (DrugsEnterprise drugsEnterpris : drugsEnterprises) {
                 try {
                     saveOrUpdateOrganDrugDataToSaleDrugList(lists,organDrugList.getOrganId(),drugsEnterpris.getId(),true);
                 } catch (Exception e) {
