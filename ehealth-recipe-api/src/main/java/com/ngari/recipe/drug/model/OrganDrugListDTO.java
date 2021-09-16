@@ -36,6 +36,9 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "机构药品编码")
     private String organDrugCode;
 
+    @ItemProperty(alias = "药品规格")
+    private String drugSpec;
+
     @ItemProperty(alias = "销售价格")
     private BigDecimal salePrice;
 
@@ -317,6 +320,14 @@ public class OrganDrugListDTO implements java.io.Serializable {
 
     public void setRecommendedUseDose(Double recommendedUseDose) {
         this.recommendedUseDose = recommendedUseDose;
+    }
+
+    public String getDrugSpec() {
+        return drugSpec;
+    }
+
+    public void setDrugSpec(String drugSpec) {
+        this.drugSpec = drugSpec;
     }
 
     public Integer getPack() {
