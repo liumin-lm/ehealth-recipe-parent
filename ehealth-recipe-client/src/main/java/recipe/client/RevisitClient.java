@@ -8,6 +8,7 @@ import com.ngari.revisit.traces.service.IRevisitTracesSortService;
 import ctd.util.JSONUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.util.ValidateUtil;
 
 /**
  * 复诊相关服务
@@ -55,6 +56,9 @@ public class RevisitClient extends BaseClient {
      * @return 复诊信息
      */
     public RevisitExDTO getByClinicId(Integer clinicId) {
+        if (ValidateUtil.integerIsEmpty(clinicId)) {
+            return null;
+        }
         logger.info("RevisitClient getByClinicId param clinicId:{}", clinicId);
         RevisitExDTO consultExDTO = revisitExService.getByConsultId(clinicId);
         logger.info("RevisitClient getByClinicId res consultExDTO:{} ", JSONUtils.toString(consultExDTO));
