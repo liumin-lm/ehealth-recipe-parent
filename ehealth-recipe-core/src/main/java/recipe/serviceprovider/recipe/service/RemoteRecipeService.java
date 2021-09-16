@@ -100,6 +100,7 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.StandardEnterpriseCallService;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.type.BussSourceType;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeRefundConfigEnum;
@@ -286,11 +287,24 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 //药店待取药
                 RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_DRUG_HAVE_STOCK, recipe);
             } else if (new Integer(4).equals(recipeStatusReqTO.getStatus())){
+                //配送中的处方,更新订单状态
+                if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                    RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                    recipeOrder.setStatus(RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType());
+                    recipeOrderDAO.update(recipeOrder);
+                }
                 //信息推送
                 RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.IN_SEND);
             }
             if (new Integer(6).equals(recipe.getStatus())) {
                 if (new Integer(1).equals(recipe.getGiveMode())) {
+                    if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+                        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                        recipeOrder.setStatus(RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType());
+                        recipeOrderDAO.update(recipeOrder);
+                    }
                     //配送完成
                     RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.PATIENT_REACHPAY_FINISH);
                 } else if (new Integer(3).equals(recipe.getGiveMode())){
