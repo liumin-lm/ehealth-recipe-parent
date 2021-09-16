@@ -20,7 +20,6 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.base.mode.PatientTO;
 import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.recipe.dto.ApothecaryDTO;
-import com.ngari.recipe.entity.*;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -58,7 +57,6 @@ import recipe.common.ResponseUtils;
 import recipe.common.response.CommonResponse;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.hisservice.EleInvoiceService;
 import recipe.manager.EmrRecipeManager;
@@ -217,7 +215,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RecipeOrder recipeOrder;
         DoctorExtendDTO doctorExtendDTO;
         RevisitExDTO consultExDTO;
-        SignDoctorRecipeInfoDTO caInfo;
+        SignDoctorRecipeInfoDTO docCaInfo;
+        SignDoctorRecipeInfoDTO phaCaInfo;
         RedisClient redisClient = RedisClient.instance();
         String caSignature = null;
         for (Recipe recipe : recipeList) {
@@ -298,13 +297,17 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setDoctorNo(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
             req.setDoctorProTitle(doctorDTO.getProTitle());
             //江苏ca用到
-            caInfo=signRecipeInfoService.getSignRecipeInfoByRecipeIdAndServerType(recipe.getRecipeId(),1);
-            if (caInfo != null) {
+            docCaInfo = signRecipeInfoService.getSignRecipeInfoByRecipeIdAndServerType(recipe.getRecipeId(), 1);
+            if (docCaInfo != null) {
                 //医生签名值
-                req.setDoctorSign(caInfo.getSignCodeDoc());
-                //药师签名值
-                req.setAuditDoctorSign(caInfo.getSignCodePha());
+                req.setDoctorSign(docCaInfo.getSignCodeDoc());
             }
+            phaCaInfo = signRecipeInfoService.getSignRecipeInfoByRecipeIdAndServerType(recipe.getRecipeId(), 3);
+            if (phaCaInfo != null) {
+                //药师签名值
+                req.setAuditDoctorSign(phaCaInfo.getSignCodeDoc());
+            }
+
             //如果其他ca里取不到默认用e签宝的
             if (StringUtils.isEmpty(req.getDoctorSign()) && doctorDTO.getESignId() != null) {
                 //设置医生电子签名
@@ -1114,10 +1117,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
         return "0";
     }
-
-    @LogInfo
-    public void uploadRecipePayToRegulation(String orderCode, int payFlag) {
-        LOGGER.info("uploadRecipePayToRegulation param orderCode:{} ,payFlag:{}",orderCode,payFlag);
+    
+    public void uploadRecipePayToRegulation(String orderCode, int payFlag, String refundNo) {
+        LOGGER.info("uploadRecipePayToRegulation param orderCode:{} ,payFlag:{}", orderCode, payFlag);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
         RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
@@ -1192,8 +1194,12 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     }
                     req.setDeptClassCode("A99");
                     req.setDeptClassName("其他业务科室");
-                    /*req.setOriginalAccountNo(outPatient.getRefundNo());*/
+                    // 原交易流水号 缴费流水号
+                    req.setOriginalAccountNo(order.getTradeNo());
                     req.setOrderNo(order.getOutTradeNo());
+                    // 退费流水号
+                    req.setRefundNo(refundNo);
+
 
                     //从his返回的挂号序号
                     RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
