@@ -18,8 +18,7 @@ public class RecipeSendSuccessRunnable implements Runnable {
         this.response = response;
     }
     @Override
-    public void run()
-    {
+    public void run() {
         RecipeToHisCallbackService service = ApplicationUtils.getRecipeService(RecipeToHisCallbackService.class);
         service.sendSuccess(response);
     }
