@@ -3572,6 +3572,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         " cdr_recipe_ext e  on r.RecipeID = e.recipeId " +
                         " WHERE " +
                         " r.STATUS IN ( :recipeStatus ) AND r.mpiid IN ( :allMpiIds  ) AND r.recipeSourceType = 1");
+                if ("onready".equals(tabStatus)) {
+                    hql.append(" AND r.orderCode IS NULL ");
+                }
                 if ("ongoing".equals(tabStatus)) {
                     hql.append(" UNION ALL SELECT r.RecipeID,r.orderCode,r.STATUS,r.patientName,r.fromflag,r.recipeCode,r.doctorName,r.recipeType,r.organDiseaseName,r.clinicOrgan," +
                             " r.organName,r.signFile,r.chemistSignFile,r.signDate,r.recipeMode,r.recipeSource,r.mpiid,r.depart,r.enterpriseId,e.registerID,e.chronicDiseaseName," +
