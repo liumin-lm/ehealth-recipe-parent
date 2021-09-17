@@ -197,6 +197,9 @@ public class RecipeService extends RecipeBaseService {
     @Autowired
     private CreatePdfFactory createPdfFactory;
 
+    @Autowired
+    private IRecipeBusinessService recipeBusinessService;
+
     @Resource
     private AuditModeContext auditModeContext;
 
@@ -2659,9 +2662,6 @@ public class RecipeService extends RecipeBaseService {
     public List<AuditMedicinesBean> getAuditMedicineIssuesByRecipeId(int recipeId) {
         return RecipeServiceSub.getAuditMedicineIssuesByRecipeId(recipeId);
     }
-
-    @Autowired
-    private IRecipeBusinessService recipeBusinessService;
 
     /**
      * 处方撤销方法(供医生端使用)---无撤销原因时调用保留为了兼容---新方法在RecipeCancelService里
