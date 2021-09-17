@@ -23,6 +23,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.manager.EnterpriseManager;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeService;
@@ -163,9 +164,9 @@ public class AuditPreMode extends AbstractAuidtMode {
         RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
         Integer recipeId = recipe.getRecipeId();
         String recipeMode = recipe.getRecipeMode();
-        RecipeServiceSub recipeServiceSub = AppContextHolder.getBean("recipeServiceSub", RecipeServiceSub.class);
+        EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
         //药师审方后推送给前置机（扁鹊）
-        recipeServiceSub.pushRecipeForThird(recipe, 0);
+        enterpriseManager.pushRecipeForThird(recipe, 0);
         //正常平台处方
         if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
             //审核通过只有互联网发

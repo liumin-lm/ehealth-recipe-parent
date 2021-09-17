@@ -83,7 +83,6 @@ import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.AldyfRemoteService;
-import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.givemode.business.GiveModeFactory;
@@ -150,6 +149,7 @@ public class RecipeServiceSub {
     private static RecipeDetailManager recipeDetailManager = AppContextHolder.getBean("recipeDetailManager", RecipeDetailManager.class);
 
     private static List<String> specitalOrganList = Lists.newArrayList("1005790", "1005217", "1005789");
+
 
     /**
      * @param recipeBean
@@ -3053,27 +3053,6 @@ public class RecipeServiceSub {
 
             }
         }
-    }
-
-    public DrugEnterpriseResult pushRecipeForThird(Recipe recipe, Integer node) {
-        LOGGER.info("RecipeServiceSub pushRecipeForThird recipeId:{}, node:{}.", recipe.getRecipeId(), node);
-        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        try {
-            OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-            RemoteDrugEnterpriseService drugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-
-            List<DrugsEnterprise> retList = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
-            for (DrugsEnterprise drugsEnterprise : retList) {
-                if (new Integer(1).equals(drugsEnterprise.getOperationType())) {
-                    if ("bqEnterprise".equals(drugsEnterprise.getAccount())) {
-                        result = drugEnterpriseService.pushRecipeInfoForThird(recipe, drugsEnterprise, node);
-                    }
-                }
-            }
-        } catch (Exception e) {
-            LOGGER.info("RecipeServiceSub pushRecipeForThird error msg:{}.", e.getMessage(), e);
-        }
-        return result;
     }
 
     /**

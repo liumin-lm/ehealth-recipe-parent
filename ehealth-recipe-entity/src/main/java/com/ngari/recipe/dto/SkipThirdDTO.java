@@ -11,9 +11,12 @@ import java.io.Serializable;
  * @date 2020\12\9 0009 19:21
  */
 @Data
-public class SkipThirdDTO implements Serializable{
+public class SkipThirdDTO implements Serializable {
     private static final long serialVersionUID = 3897701688143179541L;
 
     private String url;
     private String appKey;
+
+    private Integer code;
+    private String msg;
 }
