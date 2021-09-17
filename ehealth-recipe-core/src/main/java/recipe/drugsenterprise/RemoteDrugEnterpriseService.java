@@ -133,7 +133,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             //上传处方pdf给第三方
             RecipeBusiThreadPool.execute(() -> uploadRecipePdfToHis(recipeNew.getRecipeId()));
         } else {
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.CHECK_PASS, "药企推送失败:" + responseTO.getMsg());
+            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), RecipeStatusConstant.CHECK_PASS, RecipeStatusConstant.CHECK_PASS, "购药按钮药企推送失败:" + responseTO.getMsg());
             result.setCode(0);
             result.setMsg(responseTO.getMsg());
         }

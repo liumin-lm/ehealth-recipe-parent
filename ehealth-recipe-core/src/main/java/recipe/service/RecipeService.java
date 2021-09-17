@@ -45,6 +45,7 @@ import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RequestVisitVO;
 import com.ngari.recipe.dto.ApothecaryDTO;
+import com.ngari.recipe.dto.RecipeCancelDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.dto.RecipeLabelDTO;
 import com.ngari.recipe.entity.*;
@@ -116,6 +117,7 @@ import recipe.client.OperationClient;
 import recipe.common.CommonConstant;
 import recipe.common.response.CommonResponse;
 import recipe.constant.*;
+import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugTool.service.DrugToolService;
@@ -2658,6 +2660,9 @@ public class RecipeService extends RecipeBaseService {
         return RecipeServiceSub.getAuditMedicineIssuesByRecipeId(recipeId);
     }
 
+    @Autowired
+    private IRecipeBusinessService recipeBusinessService;
+
     /**
      * 处方撤销方法(供医生端使用)---无撤销原因时调用保留为了兼容---新方法在RecipeCancelService里
      *
@@ -2668,6 +2673,20 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Map<String, Object> cancelRecipe(Integer recipeId) {
+        LOGGER.info("RecipeDoctorAtop cancelRecipeValidate recipeId:{}", recipeId);
+        try {
+            RecipeCancelDTO result = recipeBusinessService.cancelRecipeValidate(recipeId);
+            if (!result.getCancelRecipeFlag()) {
+                return ImmutableMap.of("result", false, "msg", result.getCancelReason());
+            }
+            LOGGER.info("RecipeDoctorAtop cancelRecipeValidate result:{}", JSON.toJSONString(result));
+        } catch (DAOException e1) {
+            LOGGER.warn("RecipeDoctorAtop cancelRecipeValidate  error", e1);
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            LOGGER.error("RecipeDoctorAtop cancelRecipeValidate error e", e);
+            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
         return RecipeServiceSub.cancelRecipeImpl(recipeId, 0, "", "");
     }
 
