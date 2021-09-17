@@ -1,5 +1,7 @@
 package recipe.atop.open;
 
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -9,6 +11,7 @@ import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRevisitBusinessService;
+import recipe.util.ObjectCopyUtils;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
 import java.util.List;
@@ -93,7 +96,24 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
             logger.error("RecipeOpenAtop handDealRevisitTraceRecipe error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
+    }
 
+    @Override
+    public RecipeBean getByRecipeId(Integer recipeId) {
+        logger.info("RecipeOpenAtop getByRecipeId recipeId={}", recipeId);
+        validateAtop(recipeId);
+        try {
+            Recipe recipe = recipeBusinessService.getByRecipeId(recipeId);
+            RecipeBean result = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+            logger.info("RecipeOpenAtop getByRecipeId  result = {}", JSONUtils.toString(result));
+            return result;
+        } catch (DAOException e1) {
+            logger.warn("RecipeOpenAtop getByRecipeId error", e1);
+            throw new DAOException(e1.getCode(), e1.getMessage());
+        } catch (Exception e) {
+            logger.error("RecipeOpenAtop getByRecipeId error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
     }
 
 }

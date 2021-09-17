@@ -3336,7 +3336,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("from Recipe r where doctor=:doctorId and fromflag=1 and status!=10  ");
+                hql.append("from Recipe r where doctor=:doctorId and fromflag=1 and status!=10 and recipeSourceType!= 3 ");
                 //通过条件查询status
                 if (tapStatus == null || tapStatus == 0) {
                     ;

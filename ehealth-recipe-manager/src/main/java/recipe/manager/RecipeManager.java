@@ -17,7 +17,6 @@ import recipe.client.*;
 import recipe.common.CommonConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeLogDAO;
-import recipe.dao.RecipeRefundDAO;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.DictionaryUtil;
 import recipe.util.ValidateUtil;
@@ -44,8 +43,6 @@ public class RecipeManager extends BaseManager {
     private OfflineRecipeClient offlineRecipeClient;
     @Autowired
     private RevisitClient revisitClient;
-    @Autowired
-    private RecipeRefundDAO recipeRefundDAO;
 
     /**
      * 保存处方信息
@@ -97,8 +94,22 @@ public class RecipeManager extends BaseManager {
         return recipe;
     }
 
+    /**
+     * 查询处方信息
+     *
+     * @param recipeId
+     * @return
+     */
     public Recipe getRecipeById(Integer recipeId) {
-        return recipeDAO.getByRecipeId(recipeId);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (StringUtils.isEmpty(recipe.getOrganDiseaseId())) {
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
+            recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
+            recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
+            recipe.setMemo(emrDetail.getMemo());
+        }
+        return recipe;
     }
 
     /**

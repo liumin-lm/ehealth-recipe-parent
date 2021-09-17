@@ -2091,7 +2091,7 @@ public class RecipeService extends RecipeBaseService {
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, null);
         //HIS消息发送--异步处理
         /*boolean result = hisService.recipeSendHis(recipeId, null);*/
-        RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeId));
+        RecipeBusiThreadPool.execute(new PushRecipeToHisCallable(recipeId));
         rMap.put("signResult", true);
         rMap.put("recipeId", recipeId);
         rMap.put("consultId", recipe.getClinicId());
@@ -2113,7 +2113,7 @@ public class RecipeService extends RecipeBaseService {
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, ImmutableMap.of("distributionFlag", 2));
         //HIS消息发送--异步处理
         /*boolean result = hisService.recipeSendHis(recipeId, null);*/
-        RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeId));
+        RecipeBusiThreadPool.execute(new PushRecipeToHisCallable(recipeId));
         //更新保存智能审方信息
         PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
         if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
@@ -2800,6 +2800,7 @@ public class RecipeService extends RecipeBaseService {
         }
         List<String> msg = Lists.newArrayList();
         for (OrganDrugInfoTO organDrug : organDrugs) {
+            LOGGER.info("syncOrganDrug推送药品信息"+organId+"{}", JSONUtils.toString(organDrug));
             List<String> check = checkOrganDrugInfoTO(organDrug);
             if (!ObjectUtils.isEmpty(check)) {
                 LOGGER.info("updateOrSaveOrganDrug 当前新增药品信息,信息缺失{}", JSONUtils.toString(check));

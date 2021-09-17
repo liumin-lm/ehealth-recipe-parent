@@ -58,8 +58,8 @@ public class RecipeToHisCallbackService {
      * @return his返回结果消息
      */
     @RpcService
-    @LogInfo
     public void sendSuccess(HisSendResTO response) {
+        long start = System.currentTimeMillis();
         LOGGER.info("recipeSend recive success. recipeId={}, response={}", response.getRecipeId(), JSONUtils.toString(response));
         List<OrderRepTO> repList = response.getData();
         if (CollectionUtils.isNotEmpty(repList)) {
@@ -165,6 +165,8 @@ public class RecipeToHisCallbackService {
         } catch (Exception e) {
             LOGGER.error("修改电子病例使用状态失败 ", e);
         }
+        long elapsedTime = System.currentTimeMillis() - start;
+        LOGGER.info("RecipeToHisCallbackService sendSuccess 推送处方成功 执行时间:{}ms.", elapsedTime);
     }
 
 
