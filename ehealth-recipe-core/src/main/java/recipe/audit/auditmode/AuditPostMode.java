@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.audit.handle.AutoCheckRecipe;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.constant.CacheConstant;
@@ -160,7 +161,7 @@ public class AuditPostMode extends AbstractAuidtMode {
         if (saveFlag) {
             //支付后调用
             Integer checkMode = dbRecipe.getCheckMode();
-            boolean flag = threeRecipeAutoCheck(dbRecipe.getRecipeId(), dbRecipe.getClinicOrgan());
+            boolean flag = AutoCheckRecipe.threeRecipeAutoCheck(dbRecipe.getRecipeId(), dbRecipe.getClinicOrgan());
             if (!new Integer(1).equals(checkMode)) {
                 if (new Integer(2).equals(checkMode)) {
                     //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
@@ -171,12 +172,9 @@ public class AuditPostMode extends AbstractAuidtMode {
                     recipeAudit(dbRecipe);
                 }
             }else if(flag){
-                PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
-                RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-                RecipeBean recipeBean = recipeService.getByRecipeId(dbRecipe.getRecipeId());
-                RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-                List<RecipeDetailBean> list =ObjectCopyUtils.convert(recipeDetailDAO.findByRecipeId(dbRecipe.getRecipeId()),RecipeDetailBean.class);
-                prescriptionService.analysis(recipeBean, list);
+                LOGGER.info("第三方智能审方start");
+                AutoCheckRecipe.doAutoRecipe(dbRecipe.getRecipeId());
+                LOGGER.info("第三方智能审方start");
             }
         }
 
@@ -205,7 +203,7 @@ public class AuditPostMode extends AbstractAuidtMode {
                         RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_READYCHECK_4HIS, dbRecipe);
                     }
                     boolean flag = judgeRecipeAutoCheck(dbRecipe.getRecipeId(),dbRecipe.getClinicOrgan());
-                    boolean threeFlag = threeRecipeAutoCheck(dbRecipe.getRecipeId(),dbRecipe.getClinicOrgan());
+                    boolean threeFlag = AutoCheckRecipe.threeRecipeAutoCheck(dbRecipe.getRecipeId(),dbRecipe.getClinicOrgan());
                     //平台审方下才推送  满足自动审方的不推送
                     if (new Integer(1).equals(dbRecipe.getCheckMode()) && !(flag || threeFlag)){
                         //如果处方 在待药师审核状态 给对应机构的药师进行消息推送
@@ -266,24 +264,5 @@ public class AuditPostMode extends AbstractAuidtMode {
         LOGGER.info("checkFlag {} 更新为待审核", recipe.getRecipeId());
     }
 
-    private boolean threeRecipeAutoCheck(Integer recipeId, Integer organId) {
-        LOGGER.info("threeRecipeAutoCheck recipe={}", recipeId);
-        try {
-            IConfigurationCenterUtilsService iConfigService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            Integer intellectJudicialFlag = (Integer) iConfigService.getConfiguration(organId, "intellectJudicialFlag");
-            String autoRecipecheckLevel = (String) iConfigService.getConfiguration(organId, "autoRecipecheckLevel");
-            String defaultRecipecheckDoctor = (String) iConfigService.getConfiguration(organId, "defaultRecipecheckDoctor");
-            if (intellectJudicialFlag == 3
-                    && StringUtils.isNotEmpty(defaultRecipecheckDoctor) && StringUtils.isNotEmpty(autoRecipecheckLevel)) {
-                // 这个只是一个范围判断
-                return true;
-            }
-            return false;
-        } catch (Exception e) {
-            LOGGER.error("threeRecipeAutoCheck error recipe={}", recipeId, e);
-            return false;
-        }
-
-    }
 
 }
