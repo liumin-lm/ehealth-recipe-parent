@@ -8,6 +8,7 @@ import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
@@ -84,7 +85,11 @@ public class RecipeOrderPatientAtop extends BaseAtop {
         validateAtop(skipThirdReqVO.getRecipeIds());
         try {
             //上传处方到第三方,上传失败提示HIS返回的失败信息
-            recipeOrderService.uploadRecipeInfoToThird(skipThirdReqVO);
+            SkipThirdDTO pushThirdUrl = recipeOrderService.uploadRecipeInfoToThird(skipThirdReqVO);
+            if (null != pushThirdUrl && StringUtils.isNotEmpty(pushThirdUrl.getUrl())) {
+                pushThirdUrl.setType(2);
+                return pushThirdUrl;
+            }
             //获取跳转链接
             SkipThirdDTO skipThirdDTO = recipeOrderService.getSkipUrl(skipThirdReqVO);
             logger.info("RecipeOrderPatientAtop skipThirdPage skipThirdBean:{}.", JSON.toJSONString(skipThirdDTO));

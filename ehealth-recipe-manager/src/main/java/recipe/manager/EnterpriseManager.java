@@ -3,23 +3,20 @@ package recipe.manager;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
-import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.mode.RecipePDFToHisTO;
-import com.ngari.his.recipe.service.IRecipeEnterpriseService;
-import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.*;
+import com.ngari.patient.service.AppointDepartService;
+import com.ngari.patient.service.DepartmentService;
+import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
+import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
-import ctd.mvc.upload.FileMetaRecord;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -30,6 +27,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.client.DoctorClient;
 import recipe.client.EnterpriseClient;
 import recipe.client.IConfigurationClient;
 import recipe.client.PatientClient;
@@ -55,46 +53,57 @@ public class EnterpriseManager extends BaseManager  {
      */
     private static String ENTERPRISE_BAN_QUE = "bqEnterprise";
     @Autowired
-    private IRecipeHisService recipeHisService;
-    @Autowired
     private PatientClient patientClient;
     @Autowired
     private EnterpriseClient enterpriseClient;
     @Autowired
     private IFileDownloadService fileDownloadService;
     @Autowired
-    private  EmploymentService iEmploymentService;
+    private EmploymentService iEmploymentService;
     @Autowired
     private AppointDepartService appointDepartService;
     @Autowired
-    private IRecipeEnterpriseService recipeEnterpriseService;
+    private DepartmentService departmentService;
     @Autowired
-    private  OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
+    private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
     @Autowired
     private IConfigurationClient configurationClient;
+    @Autowired
+    private DoctorClient doctorClient;
 
     /**
+     * 上传处方pdf给第三方
      *
+     * @param recipeId
+     */
+    public void uploadRecipePdfToHis(Integer recipeId) {
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        enterpriseClient.uploadRecipePdfToHis(recipe);
+    }
+
+    /**
      * @param organId
      * @param giveMode
      * @param recipeIds
      */
-    public void uploadRecipeInfoToThird(Integer organId,String giveMode, List<Integer> recipeIds) {
-        logger.info("EnterpriseManager uploadRecipeInfoToThird organId:{},giveMode:{},recipeIds:{}",organId ,giveMode,JSONUtils.toString(recipeIds));
+    public SkipThirdDTO uploadRecipeInfoToThird(Integer organId, String giveMode, List<Integer> recipeIds) {
+        logger.info("EnterpriseManager uploadRecipeInfoToThird organId:{},giveMode:{},recipeIds:{}", organId, giveMode, JSONUtils.toString(recipeIds));
         Boolean pushToHisAfterChoose = configurationClient.getValueBooleanCatch(organId, "pushToHisAfterChoose", false);
         if (!pushToHisAfterChoose) {
-            return;
+            return null;
         }
         List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
         //将处方上传到第三方
-        recipes.forEach(recipe -> {
+        SkipThirdDTO result = null;
+        for (Recipe recipe : recipes) {
             recipe.setGiveMode(GiveModeTextEnum.getGiveMode(giveMode));
-            SkipThirdDTO result = pushRecipeForThird(recipe, 1);
+            result = pushRecipeForThird(recipe, 1);
             //todo 一个报错就都不推送了？
             if (0 == result.getCode()) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, result.getMsg());
             }
-        });
+        }
+        return result;
     }
 
     public SkipThirdDTO pushRecipeForThird(Recipe recipe, Integer node) {
@@ -120,134 +129,89 @@ public class EnterpriseManager extends BaseManager  {
     }
 
 
-    public SkipThirdDTO pushRecipeInfoForThird(Recipe recipe, DrugsEnterprise enterprise, Integer node){
+    public SkipThirdDTO pushRecipeInfoForThird(Recipe recipe, DrugsEnterprise enterprise, Integer node) {
         logger.info("RemoteDrugEnterpriseService pushRecipeInfoForThird recipeId:{},enterprise:{},node:{}.", recipe.getRecipeId(), JSONUtils.toString(enterprise), node);
         //传过来的处方不是最新的需要重新从数据库获取
         Recipe recipeNew = recipeDAO.getByRecipeId(recipe.getRecipeId());
         recipeNew.setGiveMode(recipe.getGiveMode());
         //通过前置机进行推送
         PushRecipeAndOrder pushRecipeAndOrder = getPushRecipeAndOrder(recipeNew, enterprise);
-        pushRecipeAndOrder.setNode(node);
-        HisResponseTO responseTO = recipeEnterpriseService.pushSingleRecipeInfo(pushRecipeAndOrder);
-        logger.info("pushRecipeInfoForThird responseTO:{}.", JSONUtils.toString(responseTO));
-        SkipThirdDTO result = new SkipThirdDTO();
-        //推送药企失败
-        if (null == responseTO || !responseTO.isSuccess()) {
-            saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), "购药按钮药企推送失败:" + responseTO.getMsg());
-            result.setCode(0);
-            result.setMsg(responseTO.getMsg());
-            return result;
+        SkipThirdDTO skipThirdDTO = enterpriseClient.pushRecipeInfoForThird(pushRecipeAndOrder, node);
+        if (0 == skipThirdDTO.getCode()) {
+            saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), "购药按钮药企推送失败:" + skipThirdDTO.getMsg());
+            return skipThirdDTO;
         }
         //推送药企处方成功,判断是否为扁鹊平台
-        if (null != enterprise && ENTERPRISE_BAN_QUE.equals(enterprise.getAccount())){
+        if (null != enterprise && ENTERPRISE_BAN_QUE.equals(enterprise.getAccount())) {
             Recipe recipeUpdate = new Recipe();
             recipeUpdate.setRecipeId(recipeNew.getRecipeId());
-            recipeUpdate.setPushFlag(1);
             recipeUpdate.setEnterpriseId(enterprise.getId());
+            recipeUpdate.setPushFlag(1);
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-        }else {
-            String prescId = (String)responseTO.getExtend().get("prescId");
-            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-            if (StringUtils.isNotEmpty(prescId)) {
-                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeNew.getRecipeId(), ImmutableMap.of("rxid", prescId));
-            }
+        } else if (StringUtils.isNotEmpty(skipThirdDTO.getPrescId())) {
+            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeNew.getRecipeId(), ImmutableMap.of("rxid", skipThirdDTO.getPrescId()));
         }
-        result.setCode(1);
-        //上传处方pdf给第三方
-        Executors.newSingleThreadExecutor().execute(() -> uploadRecipePdfToHis(recipeNew.getRecipeId()));
-        return result;
+        Executors.newSingleThreadExecutor().execute(() -> enterpriseClient.uploadRecipePdfToHis(recipeNew));
+        return skipThirdDTO;
     }
 
-
-
-    public void uploadRecipePdfToHis(Integer recipeId) {
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        if (recipe == null || StringUtils.isEmpty(recipe.getSignFile())) {
-            return;
-        }
-        RecipePDFToHisTO req = new RecipePDFToHisTO();
-        req.setOrganId(recipe.getClinicOrgan());
-        req.setRecipeId(recipeId);
-        req.setRecipeCode(recipe.getRecipeCode());
-        FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(recipe.getSignFile());
-        if (fileMetaRecord != null) {
-            req.setRecipePdfName(fileMetaRecord.getFileName());
-        }
-        req.setRecipePdfData(fileDownloadService.downloadAsByte(recipe.getSignFile()));
-        recipeHisService.sendRecipePDFToHis(req);
-    }
 
     public PushRecipeAndOrder getPushRecipeAndOrder(Recipe recipe, DrugsEnterprise enterprise) {
         PushRecipeAndOrder pushRecipeAndOrder = new PushRecipeAndOrder();
         pushRecipeAndOrder.setOrganId(recipe.getClinicOrgan());
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
-        List<MargeRecipeBean> margeRecipeBeans = new ArrayList<>();
         //设置订单信息
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             pushRecipeAndOrder.setRecipeOrderBean(ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class));
-            String province = getAddress(recipeOrder.getAddress1());
-            String city = getAddress(recipeOrder.getAddress2());
-            String district = getAddress(recipeOrder.getAddress3());
-            String streetAddress = getAddress(recipeOrder.getStreetAddress());
             AddressBean addressBean = new AddressBean();
-            addressBean.setProvince(province);
-            addressBean.setCity(city);
-            addressBean.setDistrict(district);
-            addressBean.setStreetAddress(streetAddress);
+            addressBean.setProvince(getAddress(recipeOrder.getAddress1()));
+            addressBean.setCity(getAddress(recipeOrder.getAddress2()));
+            addressBean.setDistrict(getAddress(recipeOrder.getAddress3()));
+            addressBean.setStreetAddress(getAddress(recipeOrder.getStreetAddress()));
             pushRecipeAndOrder.setAddressBean(addressBean);
         }
-
         //设置医生信息
-        DoctorService doctorService = BasicAPI.getService(DoctorService.class);
-        DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getDoctor());
-        //设置医生工号
+        DoctorDTO doctorDTO = doctorClient.getDoctor(recipe.getDoctor());
         doctorDTO.setJobNumber(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
         pushRecipeAndOrder.setDoctorDTO(doctorDTO);
-        //设置患者信息
-        PatientService patientService = BasicAPI.getService(PatientService.class);
-        PatientDTO patientDTO = patientService.get(recipe.getMpiid());
-
-        pushRecipeAndOrder.setPatientDTO(patientDTO);
-        //设置用户信息
-        if (StringUtils.isNotEmpty(recipe.getRequestMpiId())) {
-            PatientDTO userDTO = patientService.get(recipe.getRequestMpiId());
-            pushRecipeAndOrder.setUserDTO(userDTO);
-        }
-        //设置科室信息
-        DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
-        DepartmentDTO departmentDTO = departmentService.get(recipe.getDepart());
-        pushRecipeAndOrder.setDepartmentDTO(departmentDTO);
+        //设置审方药师信息
+        AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
         RecipeAuditReq recipeAuditReq = new RecipeAuditReq();
         //科室代码
-        AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
         recipeAuditReq.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
         //科室名称
         recipeAuditReq.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
-        //设置审方药师信息
-        if (recipe.getChecker() != null && recipe.getChecker() != 0) {
-            DoctorDTO doctor = doctorService.getByDoctorId(recipe.getChecker());
-            if (doctor != null) {
-                recipeAuditReq.setAuditDoctorNo(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), doctor.getDepartment()));
-                recipeAuditReq.setAuditDoctorName(doctor.getName());
-            }
+        if (null != recipe.getChecker() && 0 != recipe.getChecker()) {
+            DoctorDTO doctor = doctorClient.getDoctor(recipe.getChecker());
+            recipeAuditReq.setAuditDoctorNo(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), doctor.getDepartment()));
+            recipeAuditReq.setAuditDoctorName(doctor.getName());
         }
         pushRecipeAndOrder.setRecipeAuditReq(recipeAuditReq);
+        //设置患者信息
+        PatientDTO patientDTO = patientClient.getPatientDTO(recipe.getMpiid());
+        pushRecipeAndOrder.setPatientDTO(ObjectCopyUtils.convert(patientDTO, com.ngari.patient.dto.PatientDTO.class));
+        //设置用户信息
+        if (StringUtils.isNotEmpty(recipe.getRequestMpiId())) {
+            PatientDTO userDTO = patientClient.getPatientDTO(recipe.getRequestMpiId());
+            pushRecipeAndOrder.setUserDTO(ObjectCopyUtils.convert(userDTO, com.ngari.patient.dto.PatientDTO.class));
+        }
+        //设置科室信息
+        DepartmentDTO departmentDTO = departmentService.get(recipe.getDepart());
+        pushRecipeAndOrder.setDepartmentDTO(departmentDTO);
         List<Recipe> recipes = Arrays.asList(recipe);
         //多处方处理
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
-            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             recipes = recipeDAO.findByRecipeIds(recipeIdList);
         }
-        if (CollectionUtils.isNotEmpty(recipes) && recipes.size() > 1) {
+        if (recipes.size() > 1) {
             //说明为多处方
             pushRecipeAndOrder.setMergeRecipeFlag(1);
         } else {
             pushRecipeAndOrder.setMergeRecipeFlag(0);
         }
+        List<MargeRecipeBean> margeRecipeBeans = new ArrayList<>();
         for (Recipe rec : recipes) {
             setSingleRecipeInfo(rec, enterprise, pushRecipeAndOrder, margeRecipeBeans);
         }
@@ -262,15 +226,11 @@ public class EnterpriseManager extends BaseManager  {
      * @param pushRecipeAndOrder 包装信息
      */
     private void setSingleRecipeInfo(Recipe recipe, DrugsEnterprise enterprise, PushRecipeAndOrder pushRecipeAndOrder, List<MargeRecipeBean> margeRecipeBeans){
-        MargeRecipeBean margeRecipeBean = new MargeRecipeBean();
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
         //设置处方信息
         pushRecipeAndOrder.setRecipeBean(ObjectCopyUtils.convert(recipe, RecipeBean.class));
         // 从复诊获取患者渠道id
         try {
-            if (recipe.getClinicId() != null) {
+            if (null != recipe.getClinicId()) {
                 IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
                 logger.info("queryPatientChannelId req={}", recipe.getClinicId());
                 RevisitExDTO revisitExDTO = exService.getByConsultId(recipe.getClinicId());
@@ -312,79 +272,67 @@ public class EnterpriseManager extends BaseManager  {
         }
         if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
             expandDTO.setSignFile(recipe.getChemistSignFile());
-        } else {
-            if (StringUtils.isNotEmpty(recipe.getSignFile())) {
-                expandDTO.setSignFile(recipe.getSignFile());
-            }
+        } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
+            expandDTO.setSignFile(recipe.getSignFile());
         }
         //设置pdf base 64内容
-        String signFileOssId = StringUtils.isNotBlank(recipe.getChemistSignFile()) ? recipe.getChemistSignFile() : recipe.getSignFile();
-        if(StringUtils.isNotBlank(signFileOssId)){
-            String imgHead = "data:image/jpeg;base64,";
+        String signFileOssId = expandDTO.getSignFile();
+        String imgHead = "data:image/jpeg;base64,";
+        if (StringUtils.isNotBlank(signFileOssId)) {
             try {
                 String imgStr = imgHead + fileDownloadService.downloadImg(signFileOssId);
-                if(StringUtils.isBlank(imgStr)){
-                    logger.info("getPushRecipeAndOrder:处方ID为{}的ossid为{}处方笺不存在", recipe.getRecipeId(), signFileOssId);
-                }
-                logger.warn("getPushRecipeAndOrder:{}处方", recipe.getRecipeId());
                 expandDTO.setPdfContent(imgStr);
             } catch (Exception e) {
-                logger.error("getPushRecipeAndOrder:{}处方，获取处方pdf:{},服务异常：", recipe.getRecipeId(),recipe.getSignFile(), e);
+                logger.error("getPushRecipeAndOrder:{}处方，获取处方pdf:{},服务异常：", recipe.getRecipeId(), recipe.getSignFile(), e);
             }
         }
-        if (enterprise != null && enterprise.getDownSignImgType() != null && enterprise.getDownSignImgType() == 1) {
+        if (null != enterprise && null != enterprise.getDownSignImgType() && 1 == enterprise.getDownSignImgType()) {
             //获取处方签链接
             RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
             String signImgFile = recipeParameterDao.getByName("fileImgUrl");
-            if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-                expandDTO.setPrescriptionImg(signImgFile + recipe.getChemistSignFile());
-            } else {
-                expandDTO.setPrescriptionImg(signImgFile + recipe.getSignFile());
-            }
+            expandDTO.setPrescriptionImg(signImgFile + expandDTO.getSignFile());
         } else {
             //设置处方笺base
             String ossId = recipe.getSignImg();
-            if(null != ossId){
-                String imgHead = "data:image/jpeg;base64,";
+            if (null != ossId) {
                 try {
                     String imgStr = imgHead + fileDownloadService.downloadImg(ossId);
-
                     expandDTO.setPrescriptionImg(imgStr);
                 } catch (Exception e) {
-                    e.printStackTrace();
-                    logger.error("getPushRecipeAndOrder:{}处方，获取处方图片服务异常：{}.", recipe.getRecipeId(), e.getMessage(),e );
+                    logger.error("getPushRecipeAndOrder 获取处方图片服务异常 recipeId:{}，", recipe.getRecipeId(), e);
                 }
             }
         }
-        IRecipeCheckService recipeCheckService=  RecipeAuditAPI.getService(IRecipeCheckService.class,"recipeCheckServiceImpl");
+        IRecipeCheckService recipeCheckService = RecipeAuditAPI.getService(IRecipeCheckService.class, "recipeCheckServiceImpl");
         RecipeCheckBean recipeCheckBean = recipeCheckService.getByRecipeId(recipe.getRecipeId());
         if (recipeCheckBean != null && StringUtils.isNotEmpty(recipeCheckBean.getCheckerName())) {
             expandDTO.setCheckerName(recipeCheckBean.getCheckerName());
         }
         pushRecipeAndOrder.setExpandDTO(expandDTO);
-
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         pushRecipeAndOrder.setRecipeExtendBean(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
         //制法Code 煎法Code 中医证候Code
-        try{
-            DrugDecoctionWayDao drugDecoctionWayDao=DAOFactory.getDAO(DrugDecoctionWayDao.class);
-            DrugMakingMethodDao drugMakingMethodDao=DAOFactory.getDAO(DrugMakingMethodDao.class);
-            SymptomDAO symptomDAO=DAOFactory.getDAO(SymptomDAO.class);
-            if(StringUtils.isNotBlank(recipeExtend.getDecoctionId())){
-                DecoctionWay decoctionWay=drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+        try {
+            DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
+            DrugMakingMethodDao drugMakingMethodDao = DAOFactory.getDAO(DrugMakingMethodDao.class);
+            if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
+                DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
                 pushRecipeAndOrder.getRecipeExtendBean().setDecoctionCode(decoctionWay.getDecoctionCode());
             }
-            if(StringUtils.isNotBlank(recipeExtend.getMakeMethodId())){
-                DrugMakingMethod drugMakingMethod=drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
+            if (StringUtils.isNotBlank(recipeExtend.getMakeMethodId())) {
+                DrugMakingMethod drugMakingMethod = drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
                 pushRecipeAndOrder.getRecipeExtendBean().setMakeMethod(drugMakingMethod.getMethodCode());
             }
-            if(StringUtils.isNotBlank(recipeExtend.getSymptomId())){
+            if (StringUtils.isNotBlank(recipeExtend.getSymptomId())) {
+                SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
                 Symptom symptom = symptomDAO.get(recipeExtend.getSymptomId());
                 pushRecipeAndOrder.getRecipeExtendBean().setSymptomCode(symptom.getSymptomCode());
             }
-        }catch(Exception e){
-            logger.error("getPushRecipeAndOrder recipe:{} error :{}",recipe.getRecipeId(),e );
+        } catch (Exception e) {
+            logger.error("getPushRecipeAndOrder recipe:{} error :{}", recipe.getRecipeId(), e);
         }
-        if (new Integer(1).equals(pushRecipeAndOrder.getMergeRecipeFlag())) {
+        if (1 == pushRecipeAndOrder.getMergeRecipeFlag()) {
+            MargeRecipeBean margeRecipeBean = new MargeRecipeBean();
             margeRecipeBean.setRecipeBean(pushRecipeAndOrder.getRecipeBean());
             margeRecipeBean.setPushDrugListBeans(pushDrugListBeans);
             margeRecipeBean.setExpandDTO(pushRecipeAndOrder.getExpandDTO());

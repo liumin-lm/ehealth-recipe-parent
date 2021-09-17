@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
-import recipe.client.PatientClient;
 import recipe.constant.ErrorCode;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
@@ -73,8 +72,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
     @Autowired
     DrugListDAO drugListDAO;
     DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
-    @Autowired
-    private PatientClient patientClient;
+
     @Resource
     private SaleDrugListDAO saleDrugListDAO;
 
