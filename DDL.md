@@ -10,37 +10,14 @@ cdr_hisprescription_detail
 物流信息跟支付一样,已存在order表中
 
 ```
-`AddressID` int(11) DEFAULT NULL COMMENT '收货地址ID',
-`Receiver` varchar(20) DEFAULT NULL COMMENT '收货人',
-`RecMobile` varchar(20) DEFAULT NULL COMMENT '收货人手机号',
-`RecTel` varchar(20) DEFAULT NULL COMMENT '收货人电话' ,
-`Address1` varchar(20) DEFAULT NULL COMMENT '省',
-`Address2` varchar(20) DEFAULT NULL COMMENT '市',
-`Address3` varchar(20) DEFAULT NULL COMMENT '区',
-`Address4` varchar(255) DEFAULT NULL COMMENT '详细地址',
-`ZipCode` varchar(20) DEFAULT NULL COMMENT  '邮政编码',
+
 `startSendDate` datetime DEFAULT NULL COMMENT  '准备配送时间',
 ```
-
-```
-`dispens_people` varchar(16) DEFAULT NULL COMMENT '调配人',(无代码调用,无意义,可删除)
-```
-
 
 
 支付 order已存在支付相关字段
 
-```
-`PayListID` int(11) DEFAULT NULL COMMENT '结算单号',
-`TransValue` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '运费',(recipe 类中没有)
-`CouponId` int(11) DEFAULT NULL COMMENT '优惠券Id',(order)
-`PayMode` tinyint(3) unsigned DEFAULT NULL COMMENT '支付方式 1线上支付 2货到付款 3到院支付',(order)
-`TradeNo` varchar(100) DEFAULT NULL COMMENT '交易流水号',(order)
-`WxPayWay` varchar(10) DEFAULT NULL COMMENT '支付方式',(order)
-`OutTradeNo` varchar(64) DEFAULT NULL COMMENT '商户订单号',(order)
-`payOrganId` varchar(30) DEFAULT NULL COMMENT '支付平台分配的机构id',(order)
-`WxPayErrorCode` varchar(32) DEFAULT NULL COMMENT '微信支付错误码',(order)
-```
+
 
 第二期 12 做掉
 
@@ -75,16 +52,12 @@ cdr_hisprescription_detail
 数据库有 类没有
 
 ```
-`registerNo` varchar(200) DEFAULT '' COMMENT '门诊挂号序号（医保）',
 `hisSettlementNo` varchar(200) DEFAULT '' COMMENT 'HIS收据号（医保）',
-`preSettleTotalAmount` varchar(10) DEFAULT NULL COMMENT '处方预结算返回支付总金额',
-`fundAmount` varchar(10) DEFAULT NULL COMMENT '处方预结算返回医保支付金额',
-`cashAmount` varchar(10) DEFAULT NULL COMMENT '处方预结算返回自费金额',
 
 ```
 
 ```
-`skin_test` varchar(64) DEFAULT NULL COMMENT '皮肤反应测验',
+
 ```
 
 第二期 ： 可以在第一期 删除字段的同时 与前端切换接口字段，切换之后第二期删除
@@ -240,4 +213,68 @@ ext 正在使用,先不动
 有2021年8月份的信息
 这两个字段订单表中没有 放到二期 一期要先加字段 迁移数据
 修改入库代码
+```
+
+
+ddl 第一期
+```
+recipe 删除字段
+`AddressID` int(11) DEFAULT NULL COMMENT '收货地址ID',
+`Receiver` varchar(20) DEFAULT NULL COMMENT '收货人',
+`RecMobile` varchar(20) DEFAULT NULL COMMENT '收货人手机号',
+`RecTel` varchar(20) DEFAULT NULL COMMENT '收货人电话' ,
+`Address1` varchar(20) DEFAULT NULL COMMENT '省',
+`Address2` varchar(20) DEFAULT NULL COMMENT '市',
+`Address3` varchar(20) DEFAULT NULL COMMENT '区',
+`Address4` varchar(255) DEFAULT NULL COMMENT '详细地址',
+`ZipCode` varchar(20) DEFAULT NULL COMMENT  '邮政编码',
+`dispens_people` varchar(16) DEFAULT NULL COMMENT '调配人',(无代码调用,无意义,可删除)
+`PayListID` int(11) DEFAULT NULL COMMENT '结算单号',
+`TransValue` decimal(10,2) NOT NULL DEFAULT '0.00' COMMENT '运费',(recipe 类中没有)
+`CouponId` int(11) DEFAULT NULL COMMENT '优惠券Id',(order)
+`PayMode` tinyint(3) unsigned DEFAULT NULL COMMENT '支付方式 1线上支付 2货到付款 3到院支付',(order)
+`TradeNo` varchar(100) DEFAULT NULL COMMENT '交易流水号',(order)
+`WxPayWay` varchar(10) DEFAULT NULL COMMENT '支付方式',(order)
+`OutTradeNo` varchar(64) DEFAULT NULL COMMENT '商户订单号',(order)
+`payOrganId` varchar(30) DEFAULT NULL COMMENT '支付平台分配的机构id',(order)
+`WxPayErrorCode` varchar(32) DEFAULT NULL COMMENT '微信支付错误码',(order)
+
+ext 删除字段
+`registerNo` varchar(200) DEFAULT '' COMMENT '门诊挂号序号（医保）',
+`preSettleTotalAmount` varchar(10) DEFAULT NULL COMMENT '处方预结算返回支付总金额',
+`fundAmount` varchar(10) DEFAULT NULL COMMENT '处方预结算返回医保支付金额',
+`cashAmount` varchar(10) DEFAULT NULL COMMENT '处方预结算返回自费金额',
+`skin_test` varchar(64) DEFAULT NULL COMMENT '皮肤反应测验',
+```
+
+sql
+```
+ALTER TABLE `cdr_recipe_ext` 
+DROP COLUMN `preSettleTotalAmount`,
+DROP COLUMN `fundAmount`,
+DROP COLUMN `skin_test`,
+DROP COLUMN `registerNo`,
+DROP COLUMN `cashAmount`;
+
+ALTER TABLE `cdr_recipe` 
+DROP COLUMN `AddressID`,
+DROP COLUMN `Receiver`,
+DROP COLUMN `RecMobile`,
+DROP COLUMN `RecTel`,
+DROP COLUMN `Address1`,
+DROP COLUMN `Address2`,
+DROP COLUMN `Address3`,
+DROP COLUMN `Address4`,
+DROP COLUMN `ZipCode`,
+DROP COLUMN `sendDate`,
+DROP COLUMN `dispens_people`,
+DROP COLUMN `TransValue`,
+DROP COLUMN `PayListID`,
+DROP COLUMN `CouponId`,
+DROP COLUMN `PayMode`,
+DROP COLUMN `TradeNo`,
+DROP COLUMN `WxPayWay`,
+DROP COLUMN `OutTradeNo`,
+DROP COLUMN `WxPayErrorCode`,
+DROP COLUMN `payOrganId`;
 ```
