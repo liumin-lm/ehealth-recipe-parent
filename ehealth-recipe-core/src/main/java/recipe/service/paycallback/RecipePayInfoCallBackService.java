@@ -273,7 +273,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
     @Override
     @RpcService
     public boolean doHandleAfterRefund(Order order, int targetPayflag, Map<String, String> refundResult) {
-        logger.info("doHandleAfterRefund outTradeNo={},targetPayflag={},refundResult={}",order.getOutTradeNo(),targetPayflag, JSONArray.toJSONString(refundResult));
+        logger.info("doHandleAfterRefund order={},targetPayflag={},refundResult={}",JSONArray.toJSONString(order),targetPayflag, JSONArray.toJSONString(refundResult));
         // 处方
         RecipeOrderBean recipeOrderBean = recipeOrderService.getByOutTradeNo(order.getOutTradeNo());
 
@@ -295,8 +295,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             }
         }
 
-
-        recipeOrderService.finishOrderPay(recipeOrderBean.getOrderCode(), targetPayflag, RecipeConstant.PAYMODE_ONLINE);
+        recipeOrderService.finishOrderPayByRefund(recipeOrderBean.getOrderCode(), targetPayflag, RecipeConstant.PAYMODE_ONLINE,order.getRefundNo());
         StringBuilder memo = new StringBuilder("订单=" + recipeOrderBean.getOrderCode() + " ");
         switch (targetPayflag) {
             case 3:

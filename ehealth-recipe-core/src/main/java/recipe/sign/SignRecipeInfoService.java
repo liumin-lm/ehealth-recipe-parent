@@ -119,7 +119,9 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
         return signDoctorRecipeInfoDAO.getRecipeInfoByRecipeId(recipeId);
     }
 
-    @Deprecated
+    /**
+    * 运营平台前端-处方详情页还在调用
+    **/
     @RpcService
     public SignDoctorRecipeInfo getSignInfoByRecipeId(Integer serverId) {
         return getSignInfoByServerIdAndServerType(serverId, 1);
@@ -134,7 +136,13 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "处方订单不存在");
         }
 
-        SignDoctorRecipeInfo signDoctorRecipeInfo = signDoctorRecipeInfoDAO.getRecipeInfoByRecipeIdAndServerType(serverId, serverType);
+        SignDoctorRecipeInfo signDoctorRecipeInfo =null;
+        //签名会签多次，有多条数据，取最新的一条
+        List<SignDoctorRecipeInfo>  signDoctorRecipeInfos = signDoctorRecipeInfoDAO.findRecipeInfoByRecipeIdAndServerType(serverId, 1);
+        if(signDoctorRecipeInfos!=null && signDoctorRecipeInfos.size()>0){
+            signDoctorRecipeInfo=signDoctorRecipeInfos.get(0);
+        }
+
         if (signDoctorRecipeInfo == null) {
             signDoctorRecipeInfo = new SignDoctorRecipeInfo();
             signDoctorRecipeInfo.setRecipeId(serverId);
@@ -152,12 +160,27 @@ public class SignRecipeInfoService implements ISignRecipeInfoService {
             }
         }
 
+
+        List<SignDoctorRecipeInfo>  signPhaRecipeInfos = signDoctorRecipeInfoDAO.findRecipeInfoByRecipeIdAndServerType(serverId, 3);
+        if(signPhaRecipeInfos!=null && signPhaRecipeInfos.size()>0){
+            SignDoctorRecipeInfo signPhaRecipeInfo=signPhaRecipeInfos.get(0);
+
+            signDoctorRecipeInfo.setCaSerCodePha(signPhaRecipeInfo.getCaSerCodeDoc());
+            signDoctorRecipeInfo.setSignCaDatePha(signPhaRecipeInfo.getSignCaDateDoc());
+            signDoctorRecipeInfo.setSignCodePha(signPhaRecipeInfo.getSignCodeDoc());
+            signDoctorRecipeInfo.setSignFilePha(signPhaRecipeInfo.getSignFileDoc());
+            signDoctorRecipeInfo.setCheckDatePha(signPhaRecipeInfo.getSignDate());
+            signDoctorRecipeInfo.setSignRemarkPha(signPhaRecipeInfo.getSignRemarkDoc());
+            signDoctorRecipeInfo.setSignPicturePha(signPhaRecipeInfo.getSignPictureDoc());
+        }
+
         if (recipeBean.getChecker() != null) {
             DoctorExtendDTO doctorExtendDTOPha = doctorExtendService.getByDoctorId(recipeBean.getChecker());
             if (doctorExtendDTOPha != null) {
                 signDoctorRecipeInfo.setSealDataPha(doctorExtendDTOPha.getSealData());
             }
         }
+
         return signDoctorRecipeInfo;
     }
 
