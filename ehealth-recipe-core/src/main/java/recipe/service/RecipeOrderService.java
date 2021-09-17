@@ -62,7 +62,6 @@ import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
-import recipe.client.IConfigurationClient;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.constant.*;
@@ -70,7 +69,6 @@ import recipe.dao.*;
 import recipe.drugsenterprise.*;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.givemode.business.GiveModeFactory;
-import recipe.givemode.business.GiveModeTextEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.HisRecipeManager;
@@ -144,12 +142,6 @@ public class RecipeOrderService extends RecipeBaseService {
 
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
-
-    @Autowired
-    private IConfigurationClient configurationClient;
-
-    @Autowired
-    private RecipeServiceSub recipeServiceSub;
 
     @Autowired
     private IConfigurationCenterUtilsService configService;
@@ -2334,25 +2326,6 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         return result;
-    }
-
-    public void uploadRecipeInfoToThird(SkipThirdReqVO skipThirdReqVO) {
-        LOGGER.info("RecipeOrderService uploadRecipeInfoToThird skipThirdReqVO:{}.", JSONUtils.toString(skipThirdReqVO));
-        Boolean pushToHisAfterChoose = configurationClient.getValueBooleanCatch(skipThirdReqVO.getOrganId(), "pushToHisAfterChoose", false);
-        if (!pushToHisAfterChoose) {
-            return;
-        }
-        List<Recipe> recipes = recipeDAO.findByRecipeIds(skipThirdReqVO.getRecipeIds());
-        //将处方上传到第三方
-        recipes.forEach(recipe -> {
-            recipe.setGiveMode(GiveModeTextEnum.getGiveMode(skipThirdReqVO.getGiveMode()));
-            DrugEnterpriseResult result = recipeServiceSub.pushRecipeForThird(recipe, 1);
-            LOGGER.info("RecipeOrderService uploadRecipeInfoToThird result:{}.", JSONUtils.toString(result));
-            if (new Integer(0).equals(result.getCode())) {
-                //表示上传失败
-                throw new DAOException(ErrorCode.SERVICE_ERROR, result.getMsg());
-            }
-        });
     }
 
     /**

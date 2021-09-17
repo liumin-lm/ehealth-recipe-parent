@@ -8,8 +8,6 @@ import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import ctd.util.FileAuth;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DoctorClient;
@@ -28,7 +26,6 @@ import java.util.List;
  */
 @Service
 public class SignManager extends BaseManager {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     /**
      * 第三方手签
      */

@@ -194,7 +194,6 @@ public class RecipeService extends RecipeBaseService {
     private RedisClient redisClient;
     @Autowired
     private CreatePdfFactory createPdfFactory;
-
     @Resource
     private AuditModeContext auditModeContext;
 
@@ -2667,6 +2666,7 @@ public class RecipeService extends RecipeBaseService {
      * 撤销失败返回 {"result":false,"msg":"失败原因"}
      */
     @RpcService
+    @Deprecated
     public Map<String, Object> cancelRecipe(Integer recipeId) {
         return RecipeServiceSub.cancelRecipeImpl(recipeId, 0, "", "");
     }

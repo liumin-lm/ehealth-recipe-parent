@@ -8,9 +8,9 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
-import recipe.ApplicationUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.dao.DrugsEnterpriseDAO;
-import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.manager.EnterpriseManager;
 import recipe.serviceprovider.BaseService;
 
 /**
@@ -21,6 +21,8 @@ import recipe.serviceprovider.BaseService;
  */
 @RpcBean("remoteDrugsEnterpriseService")
 public class RemoteDrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> implements IDrugsEnterpriseService {
+    @Autowired
+    private EnterpriseManager enterpriseManager;
 
     @Override
     public DrugsEnterpriseBean get(Object id) {
@@ -31,7 +33,6 @@ public class RemoteDrugsEnterpriseService extends BaseService<DrugsEnterpriseBea
 
     @Override
     public void pushRecipeInfoForThird(RecipeBean recipe, DrugsEnterpriseBean drugsEnterprise) {
-        RemoteDrugEnterpriseService drugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-        drugEnterpriseService.pushRecipeInfoForThird(ObjectCopyUtils.convert(recipe, Recipe.class), ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterprise.class), 0);
+        enterpriseManager.pushRecipeInfoForThird(ObjectCopyUtils.convert(recipe, Recipe.class), ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterprise.class), 0);
     }
 }
