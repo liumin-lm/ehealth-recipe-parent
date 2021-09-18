@@ -110,9 +110,9 @@ public class EnterpriseManager extends BaseManager {
     public SkipThirdDTO pushRecipeForThird(Recipe recipe, Integer node) {
         logger.info("EnterpriseManager pushRecipeForThird recipeId:{}, node:{}.", recipe.getRecipeId(), node);
         SkipThirdDTO result = new SkipThirdDTO();
-        result.setCode(1);
         List<DrugsEnterprise> drugsEnterpriseList = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
         if(CollectionUtils.isEmpty(drugsEnterpriseList)){
+            result.setCode(1);
             return result;
         }
         for (DrugsEnterprise drugsEnterprise : drugsEnterpriseList) {
