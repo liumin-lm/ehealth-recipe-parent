@@ -1980,6 +1980,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 drugList.setUesDays(convertParame(recipedetail.getUseDays()));
                 drugList.setUsingRate(convertParame(recipedetail.getUsingRate()));
                 drugList.setUsePathways(convertParame(recipedetail.getUsePathways()));
+                drugList.setDrugForm(convertParame(recipedetail.getDrugForm()));
                 if (recipe.getRecipeType() == 3 || recipe.getRecipeType() == 4) {
                     orderDetailBean.setTcmUsePathways(convertParame(recipedetail.getUsePathwaysTextFromHis()));
                     orderDetailBean.setTcmUsingRate(convertParame(recipedetail.getUsingRateTextFromHis()));
