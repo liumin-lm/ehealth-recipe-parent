@@ -71,6 +71,8 @@ public class CashPreSettleService implements IRecipePreSettleService {
             PatientDTO patientBean = patientService.get(recipe.getMpiid());
             request.setPatientName(patientBean.getPatientName());
             request.setIdcard(patientBean.getIdcard());
+            request.setMobile(patientBean.getMobile());
+            request.setPatientId(recipe.getPatientID());
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
             LOGGER.info("CashPreSettleService recipeId={} req={}", recipeId, JSONUtils.toString(request));
             HisResponseTO<RecipeCashPreSettleInfo> hisResult = service.recipeCashPreSettleHis(request);

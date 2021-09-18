@@ -24,7 +24,7 @@ public interface IRecipeOrderBusinessService {
      */
     ResultBean updateRecipeOrderStatus(UpdateOrderStatusVO updateOrderStatusVO);
 
-    void uploadRecipeInfoToThird(SkipThirdReqVO skipThirdReqVO);
+    SkipThirdDTO uploadRecipeInfoToThird(SkipThirdReqVO skipThirdReqVO);
 
     /**
      * 从微信模板消息跳转时 先获取一下是否需要跳转第三方地址

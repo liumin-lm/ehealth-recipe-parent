@@ -1,4 +1,4 @@
-package recipe.givemode.business;
+package recipe.enumerate.type;
 
 /**
  * 购药方式

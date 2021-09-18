@@ -43,13 +43,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import recipe.ApplicationUtils;
 import recipe.bean.PltPurchaseResponse;
-import recipe.client.IConfigurationClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.givemode.business.GiveModeTextEnum;
+import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.manager.EmrRecipeManager;
+import recipe.manager.EnterpriseManager;
 import recipe.manager.HisRecipeManager;
 import recipe.service.*;
 import recipe.util.MapValueUtil;
@@ -88,10 +88,8 @@ public class PurchaseService {
 
     @Autowired
     private RecipeOrderService recipeOrderService;
-
     @Autowired
-    private IConfigurationClient configurationClient;
-
+    private EnterpriseManager enterpriseManager;
     @Autowired
     HisRecipeManager hisRecipeManager;
 
@@ -261,7 +259,7 @@ public class PurchaseService {
             } catch (Exception e) {
                 LOG.error("filterSupportDepList error msg ", e);
             }
-            recipeOrderService.uploadRecipeInfoToThird(skipThirdReqVO);
+            enterpriseManager.uploadRecipeInfoToThird(skipThirdReqVO.getOrganId(), skipThirdReqVO.getGiveMode(), skipThirdReqVO.getRecipeIds());
         }
         return resultBean;
     }

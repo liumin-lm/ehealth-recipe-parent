@@ -3,8 +3,6 @@ package recipe.client;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.ngari.base.BaseAPI;
-import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.scratchable.model.ScratchableBean;
@@ -43,13 +41,13 @@ public class IConfigurationClient extends BaseClient {
      *
      * @return
      */
-    public Integer getPropertyByClientId() {
+    public Boolean getPropertyByClientId(String medicalPayConfigKey) {
         try {
-            ICurrentUserInfoService userInfoService = AppContextHolder.getBean(
-                    "eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
-            Client client = userInfoService.getCurrentClient();
+            Client client = currentUserInfoService.getCurrentClient();
             logger.info("IConfigurationClient getPropertyByClientId  client:{}", JSONArray.toJSONString(client));
-            return client.getClientConfigId();
+            Boolean valueBooleanCatch = (Boolean) configService.getPropertyByClientId(client.getClientConfigId(), medicalPayConfigKey);
+            logger.info("IConfigurationClient getPropertyByClientId  valueBooleanCatch:{}", valueBooleanCatch);
+            return valueBooleanCatch;
         } catch (Exception e) {
             logger.error("IConfigurationClient getPropertyByClientId", e);
             return null;
