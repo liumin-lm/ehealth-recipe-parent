@@ -104,6 +104,13 @@ public class EnterpriseClient extends BaseClient {
         recipeHisService.sendRecipePDFToHis(req);
     }
 
+    /**
+     * 前置机推送药企
+     *
+     * @param pushRecipeAndOrder
+     * @param node
+     * @return
+     */
     public SkipThirdDTO pushRecipeInfoForThird(PushRecipeAndOrder pushRecipeAndOrder, Integer node) {
         pushRecipeAndOrder.setNode(node);
         HisResponseTO responseTO = recipeEnterpriseService.pushSingleRecipeInfo(pushRecipeAndOrder);

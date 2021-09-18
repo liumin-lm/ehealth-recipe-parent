@@ -1,6 +1,7 @@
 package recipe.client;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.his.recipe.service.IRecipeHisService;
@@ -22,6 +23,8 @@ public class BaseClient {
     protected IRecipeHisService recipeHisService;
     @Autowired
     protected IPatientHisService patientHisService;
+    @Autowired
+    protected ICurrentUserInfoService currentUserInfoService;
 
 
     /**

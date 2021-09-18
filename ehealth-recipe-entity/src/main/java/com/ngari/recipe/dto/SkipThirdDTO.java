@@ -21,6 +21,9 @@ public class SkipThirdDTO implements Serializable {
      * 1 查询url ，2推送处方返回url
      */
     private Integer type;
+    /**
+     * 0 失败 1成功
+     */
     private Integer code;
     private String msg;
 
