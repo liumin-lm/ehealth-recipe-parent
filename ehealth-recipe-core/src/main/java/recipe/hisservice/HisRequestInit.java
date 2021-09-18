@@ -574,7 +574,7 @@ public class HisRequestInit {
             }
 
             requestTO.setAmount(recipe.getTotalMoney().toString());
-
+            requestTO.setMobile(patient.getMobile());
             requestTO.setIsMedicalSettle("0");
             if (recipe.getOrderCode() != null) {
                 RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
