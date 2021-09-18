@@ -224,7 +224,7 @@ public class RecipeManager extends BaseManager {
         recipeExtend.setCardTypeName(DictionaryUtil.getDictionary("eh.mpi.dictionary.CardType", recipeExtend.getCardType()));
         Integer docIndexId = recipeExtend.getDocIndexId();
         EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(docIndexId);
-        if (null == emrDetail) {
+        if (StringUtils.isEmpty(emrDetail.getOrganDiseaseId())) {
             return recipeDTO;
         }
         Recipe recipe = recipeDTO.getRecipe();

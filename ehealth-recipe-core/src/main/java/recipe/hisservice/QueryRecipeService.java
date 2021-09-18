@@ -10,8 +10,6 @@ import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
-import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.mode.OrganDrugInfoTO;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
@@ -53,10 +51,8 @@ import recipe.bussutil.UsingRateFilter;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DocIndexClient;
 import recipe.dao.*;
-import recipe.drugTool.service.DrugToolService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.OrganDrugListService;
-import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ByteUtils;
@@ -251,8 +247,10 @@ public class QueryRecipeService implements IQueryRecipeService {
                     //处理方法
                     recipeDTO.setCLFF(emrDetail.getHandleMethod());
                 }
-                recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
-                recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
+                if (StringUtils.isNotEmpty(emrDetail.getOrganDiseaseId())) {
+                    recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
+                    recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
+                }
                 recipeDTO.setSymptomValue(ObjectCopyUtils.convert(emrDetail.getSymptomValue(), EmrDetailValueVO.class));
                 recipeDTO.setDiseaseValue(ObjectCopyUtils.convert(emrDetail.getDiseaseValue(), EmrDetailValueVO.class));
                 Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
