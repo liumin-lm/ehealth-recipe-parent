@@ -126,16 +126,18 @@ public class DoctorClient extends BaseClient {
      * @param departId 开方科室id
      * @return 医生工号
      */
-    public String jobNumber(Integer organId, Integer doctorId, Integer departId) {
+    public DoctorDTO jobNumber(Integer organId, Integer doctorId, Integer departId) {
         if (ValidateUtil.validateObjects(organId, doctorId, departId)) {
             logger.info("DoctorClient jobNumber organId:{} ,doctorId:{}, departId:{}", organId, doctorId, departId);
-            return "";
+            return new DoctorDTO();
         }
         try {
-            return iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(doctorId, organId, departId);
+            DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
+            doctorDTO.setJobNumber(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(doctorId, organId, departId));
+            return doctorDTO;
         } catch (Exception e) {
-            logger.warn("DoctorClient getDoctor doctorId:{}", doctorId, e);
-            return "";
+            logger.warn("DoctorClient jobNumber doctorId:{}", doctorId, e);
+            return new DoctorDTO();
         }
     }
 
