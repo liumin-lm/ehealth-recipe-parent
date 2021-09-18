@@ -30,17 +30,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.business.DrugStockBusinessService;
-import recipe.business.RevisitTraceBusinessService;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.EmrRecipeManager;
+import recipe.manager.RevisitManager;
 import recipe.service.*;
 import recipe.thread.CardDataUploadRunable;
 import recipe.thread.PushRecipeToHisCallable;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.thread.SaveAutoReviewRunable;
+import recipe.thread.SaveAutoReviewRunnable;
 import recipe.util.DigestUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
@@ -82,7 +82,7 @@ public class RecipeSignService {
     private DrugStockBusinessService drugStockBusinessService;
 
     @Autowired
-    private RevisitTraceBusinessService revisitTraceBusinessService;
+    private RevisitManager revisitManager;
 
     /**
      * 武昌模式签名方法
@@ -189,9 +189,7 @@ public class RecipeSignService {
         }
 
         //签名
-        RecipeBusiThreadPool.submit(new Callable() {
-            @Override
-            public Object call() throws Exception {
+        RecipeBusiThreadPool.execute(() ->{
                 RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
                 try {
                     //生成pdf并签名
@@ -199,9 +197,7 @@ public class RecipeSignService {
                 } catch (Exception e) {
                     LOG.error("sign 签名服务异常，recipeId={}", recipeId, e);
                 }
-                return null;
-            }
-        });
+            });
 
 
         //修改订单
@@ -408,7 +404,7 @@ public class RecipeSignService {
                 }
             }
             //更新审方信息
-            RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
+            RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(recipeBean, detailBeanList));
 
             recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.CHECKING_HOS, null);
 
@@ -431,7 +427,7 @@ public class RecipeSignService {
             }
             //健康卡数据上传
             RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(), "010106"));
-            revisitTraceBusinessService.saveRevisitTracesList(recipeDAO.get(recipeBean.getRecipeId()));
+            revisitManager.saveRevisitTracesList(recipeDAO.get(recipeBean.getRecipeId()));
         } catch (Exception e) {
             LOG.error("doSignRecipeNew error", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
@@ -598,7 +594,7 @@ public class RecipeSignService {
         }
 
         //更新审方信息
-        RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, details));
+        RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(recipeBean, details));
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, null);
         rMap.put("signResult", true);
         rMap.put("errorFlag", false);
@@ -681,7 +677,7 @@ public class RecipeSignService {
         Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_NGARI_SENDRECIPETOHIS_LIST);
         if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(recipeBean.getClinicOrgan().toString())) {
             //推送处方给his---recipesend
-            RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
+            RecipeBusiThreadPool.execute(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
         } else {
             //MQ推送处方开成功消息
             RecipeToHisMqService hisMqService = ApplicationUtils.getRecipeService(RecipeToHisMqService.class);
@@ -715,7 +711,7 @@ public class RecipeSignService {
         RecipeBean recipeBeanDb = ObjectCopyUtils.convert(recipe, RecipeBean.class);
 
         //更新审方信息
-        RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBeanDb, details));
+        RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(recipeBeanDb, details));
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, ImmutableMap.of("distributionFlag", 1));
 
         //发送HIS处方开具消息

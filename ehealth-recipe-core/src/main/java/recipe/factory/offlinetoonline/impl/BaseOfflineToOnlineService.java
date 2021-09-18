@@ -33,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
-import recipe.business.RevisitTraceBusinessService;
 import recipe.client.RevisitClient;
 import recipe.dao.*;
 import recipe.dao.bean.HisRecipeListBean;
@@ -47,6 +46,7 @@ import recipe.givemode.business.IGiveModeBase;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.GroupRecipeManager;
 import recipe.manager.HisRecipeManager;
+import recipe.manager.RevisitManager;
 import recipe.service.DrugsEnterpriseService;
 import recipe.service.RecipeService;
 import recipe.util.RecipeUtil;
@@ -126,7 +126,7 @@ public class BaseOfflineToOnlineService {
     private EmploymentService employmentService;
 
     @Autowired
-    private RevisitTraceBusinessService revisitTraceBusinessService;
+    private RevisitManager revisitManager;
 
     final String BY_REGISTERID = "e.registerId";
 
@@ -515,7 +515,7 @@ public class BaseOfflineToOnlineService {
                 recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attMap);
             }
             LOGGER.info("BaseOfflineToOnlineService saveRecipeInfo res:{}", recipe.getRecipeId());
-            revisitTraceBusinessService.saveRevisitTracesList(recipe);
+            revisitManager.saveRevisitTracesList(recipe);
             return recipe.getRecipeId();
         }
         return null;

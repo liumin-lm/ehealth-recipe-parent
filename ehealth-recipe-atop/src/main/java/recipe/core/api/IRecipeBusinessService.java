@@ -2,6 +2,7 @@ package recipe.core.api;
 
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.vo.*;
 
 import java.util.List;
@@ -54,4 +55,5 @@ public interface IRecipeBusinessService {
     Boolean existUncheckRecipe(Integer bussSource, Integer clinicId);
 
 
+    Recipe getByRecipeId(Integer recipeId);
 }

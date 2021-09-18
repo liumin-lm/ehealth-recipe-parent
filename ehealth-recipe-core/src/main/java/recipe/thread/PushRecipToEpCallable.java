@@ -55,6 +55,8 @@ public class PushRecipToEpCallable implements Callable<String> {
 
     @Override
     public String call() throws Exception {
+        logger.info("PushRecipToEpCallable start");
+        long start = System.currentTimeMillis();
         if (null == enterpriseId || null == recipesList || recipesList.isEmpty()) {
             return null;
         }
@@ -156,7 +158,8 @@ public class PushRecipToEpCallable implements Callable<String> {
         } else {
             logger.error("PushRecipToEpCallable 推送药企处方，药企ID: " + enterpriseId + "，药企不存在");
         }
-
+        long elapsedTime = System.currentTimeMillis() - start;
+        logger.info("RecipeBusiThreadPool PushRecipToEpCallable 往药企推送处方数据 执行时间:{}.", elapsedTime);
         return null;
     }
 

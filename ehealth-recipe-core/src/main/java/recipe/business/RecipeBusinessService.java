@@ -8,6 +8,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutRecipeDetailDTO;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.PatientInfoDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -15,21 +16,15 @@ import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
-import eh.recipeaudit.api.IRecipeAuditService;
-import eh.recipeaudit.api.IRecipeCheckService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.client.DoctorClient;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
-import recipe.client.RevisitClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
-import recipe.dao.*;
+import recipe.dao.RecipeDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
-import recipe.manager.SignManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
 
@@ -50,18 +45,10 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     //药师审核不通过状态集合 供getUncheckRecipeByClinicId方法使用
     private final List<Integer> UncheckedStatus = Arrays.asList(RecipeStatusEnum.RECIPE_STATUS_UNCHECK.getType(), RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType(),
             RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_PHA.getType(), RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_PHA.getType(), RecipeStatusEnum.RECIPE_STATUS_SIGN_NO_CODE_PHA.getType());
-
+    @Autowired
+    private RecipeManager recipeManager;
     @Autowired
     private RecipeDAO recipeDAO;
-
-    @Autowired
-    private RecipeOrderDAO recipeOrderDAO;
-
-    @Autowired
-    private RecipeDetailDAO recipeDetailDAO;
-
-    @Autowired
-    private OrganDrugListDAO organDrugListDAO;
 
     @Autowired
     private OfflineRecipeClient offlineRecipeClient;
@@ -71,38 +58,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Autowired
     private PatientClient patientClient;
-
-    @Autowired
-    private SignManager signManager;
-
-    @Autowired
-    private IRecipeCheckService recipeCheckService;
-
-    @Autowired
-    private IRecipeAuditService recipeAuditService;
-
-    @Autowired
-    private DoctorClient doctorClient;
-
-    @Autowired
-    private OrderManager orderManager;
-
-    @Autowired
-    private RecipeOrderBillDAO recipeOrderBillDAO;
-
-    @Autowired
-    private RecipeManager recipeManager;
-
-    @Autowired
-    private RecipeExtendDAO recipeExtendDAO;
-
-    @Autowired
-    private RecipeRefundDAO recipeRefundDAO;
-
-    @Autowired
-    private RevisitClient revisitClient;
-
-
+    
     /**
      * 获取线下门诊处方诊断信息
      *
@@ -202,6 +158,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         int uncheckCount = recipesCount.intValue();
         logger.info("RecipeBusinessService existUncheckRecipe recipesCount={}", recipesCount);
         return uncheckCount != 0;
+    }
+
+    @Override
+    public Recipe getByRecipeId(Integer recipeId) {
+        return recipeManager.getRecipeById(recipeId);
     }
 
 

@@ -71,11 +71,11 @@ public class DocIndexClient extends BaseClient {
     public EmrDetailDTO getEmrDetails(Integer docIndexId) {
         MedicalDetailBean medicalDetailBean = getEmrMedicalDetail(docIndexId);
         if (null == medicalDetailBean) {
-            return null;
+            return new EmrDetailDTO();
         }
         List<EmrConfigRes> detailList = medicalDetailBean.getDetailList();
         if (CollectionUtils.isEmpty(detailList)) {
-            return null;
+            return new EmrDetailDTO();
         }
         EmrDetailDTO emrDetail = getMedicalInfo(detailList);
         logger.info("DocIndexClient getEmrDetails docIndexId={},  emrDetail:{}", docIndexId, JSON.toJSONString(emrDetail));
