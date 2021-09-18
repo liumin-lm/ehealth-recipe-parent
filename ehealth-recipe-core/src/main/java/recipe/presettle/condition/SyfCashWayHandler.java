@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import recipe.client.IConfigurationClient;
 import recipe.client.RevisitClient;
 import recipe.enumerate.type.BussSourceType;
+import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.enumerate.type.RecipePayTypeEnum;
 import recipe.presettle.RecipeOrderTypeEnum;
 import recipe.presettle.model.OrderTypeCreateConditionRequest;
@@ -40,10 +41,10 @@ public class SyfCashWayHandler implements IOrderTypeConditionHandler{
         }
         //查询复诊获取患者类型（自费or医保）
         RevisitExDTO revisitExDTO = revisitClient.getByClinicId(request.getRecipe().getClinicId());
-        if (new Integer(1).equals(revisitExDTO.getFromFlag())) {
+        if (MedicalTypeEnum.SELF_PAY.getType().equals(revisitExDTO.getMedicalFlag())) {
             //自费结算
             return RecipeOrderTypeEnum.HOSPITAL_SELF.getType();
-        } else if (new Integer(2).equals(revisitExDTO.getFromFlag())) {
+        } else if (MedicalTypeEnum.MEDICAL_PAY.equals(revisitExDTO.getMedicalFlag())) {
             //医保结算
             return RecipeOrderTypeEnum.PROVINCIAL_MEDICAL.getType();
         }
