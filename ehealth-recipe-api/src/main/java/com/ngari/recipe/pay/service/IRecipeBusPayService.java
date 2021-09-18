@@ -36,6 +36,15 @@ public interface IRecipeBusPayService {
     SimpleBusObject getSimpleBusObject(Integer busId);
 
     /**
+     * 获取处方审方费用(邵逸夫模式)
+     *
+     * @param busId
+     * @return
+     */
+    @RpcService
+    SimpleBusObject getRecipeAuditSimpleBusObject(Integer busId);
+
+    /**
      * 下单时保存平台订单号等信息
      *
      * @param order 订单数据

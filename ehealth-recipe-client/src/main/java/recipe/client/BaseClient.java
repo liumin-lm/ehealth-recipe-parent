@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.constant.ErrorCode;
 import recipe.constant.HisErrorCodeEnum;
+import recipe.util.DictionaryUtil;
 
 /**
  * his调用基类
@@ -73,5 +74,14 @@ public class BaseClient {
             logger.error("BaseClient getResponseCatch hisResponse= {}", JSON.toJSONString(hisResponse));
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         }
+    }
+
+    /**
+     * 获取地址枚举
+     *
+     * @param area
+     */
+    protected String getAddress(String area) {
+        return DictionaryUtil.getDictionary("eh.base.dictionary.AddrArea", area);
     }
 }
