@@ -51,6 +51,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.ObjectUtils;
+import recipe.client.RevisitClient;
+import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.manager.ButtonManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
@@ -80,6 +82,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     private DepartmentService departmentService;
     @Autowired
     private ButtonManager buttonManager;
+    @Autowired
+    private RevisitClient revisitClient;
 
 
     private IConfigurationCenterUtilsService utils = BaseAPI.getService(IConfigurationCenterUtilsService.class);
@@ -423,10 +427,16 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 simpleBusObject.setCardId(recipeExtend.getCardNo());
                 simpleBusObject.setCardType(recipeExtend.getCardType());
             }
-            simpleBusObject.setSettleType("1");
+            // 0自费 1医保
+            RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipeBean.getClinicId());
+            if (MedicalTypeEnum.SELF_PAY.getType().equals(revisitExDTO.getMedicalFlag())) {
+                simpleBusObject.setSettleType("1");
+            }else {
+                simpleBusObject.setSettleType("0");
+            }
         }
         log.info("结算getRecipeAuditSimpleBusObject={}", JSONUtils.toString(simpleBusObject));
-        return null;
+        return simpleBusObject;
     }
 
     /**
