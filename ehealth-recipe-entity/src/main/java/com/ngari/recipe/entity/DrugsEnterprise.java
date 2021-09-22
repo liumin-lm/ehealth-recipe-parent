@@ -175,6 +175,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "订单备注")
     private String orderMemo;
 
+    @ItemProperty(alias = "集揽模式")
+    private Integer collectMode;
+
     @Column(name = "consignorStreet")
     public String getConsignorStreet() {
         return consignorStreet;
@@ -620,5 +623,14 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setOrderMemo(String orderMemo) {
         this.orderMemo = orderMemo;
+    }
+
+    @Column(name = "collect_mode")
+    public Integer getCollectMode() {
+        return collectMode;
+    }
+
+    public void setCollectMode(Integer collectMode) {
+        this.collectMode = collectMode;
     }
 }

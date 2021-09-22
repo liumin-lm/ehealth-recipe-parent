@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
+import recipe.constant.HisDeliveryConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeDAO;
@@ -149,6 +150,12 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
                 String[] deliveryNameList = deliveryNames.split("\\|");
 
                 for(int i = 1; i < deliveryRecipeFeeList.length ; i++){
+
+                    //过滤支持药柜配送药企
+                    if(HisDeliveryConstant.YG_HIS_DELIVERY_CODE.equals(deliveryCodeList[i])) {
+                        continue;
+                    }
+
                     depDetailBean = new DepDetailBean();
                     //标识选择的药企是his推过来的
                     depDetailBean.setDepId(drugsEnterprise.getId());
