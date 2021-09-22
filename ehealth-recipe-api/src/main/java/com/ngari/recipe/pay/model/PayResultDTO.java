@@ -33,5 +33,10 @@ public class PayResultDTO implements Serializable {
 
     private String payWay;
 
+    /**
+     * 支付失败原因
+     */
+    private String failMessage;
+
     private Map<String, String> notifyMap;
 }

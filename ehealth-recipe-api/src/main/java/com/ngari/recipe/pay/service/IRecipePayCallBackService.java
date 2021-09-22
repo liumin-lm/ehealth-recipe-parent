@@ -21,6 +21,14 @@ public interface IRecipePayCallBackService {
     boolean doHandleAfterPay(PayResultDTO payResult);
 
     /**
+     * 支付失败回调
+     * @param payResult
+     * @return
+     */
+    @RpcService
+    boolean doHandleAfterPayFail(PayResultDTO payResult);
+
+    /**
      * 退款成功或失败回调
      *
      * @param order
