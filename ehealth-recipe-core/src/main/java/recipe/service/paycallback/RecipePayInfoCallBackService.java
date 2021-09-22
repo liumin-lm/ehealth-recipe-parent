@@ -1,10 +1,12 @@
 package recipe.service.paycallback;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeOrderBillReqTO;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.pay.model.PayResultDTO;
 import com.ngari.recipe.pay.service.IRecipePayCallBackService;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -29,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.constant.CacheConstant;
+import recipe.manager.OrderManager;
 import recipe.service.PayModeGiveModeUtil;
 import recipe.serviceprovider.recipelog.service.RemoteRecipeLogService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
@@ -51,6 +54,8 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
     private RemoteRecipeLogService recipeLogService;
     @Autowired
     private RedisClient redisClient;
+    @Autowired
+    private OrderManager orderManager;
 
     @Override
     @RpcService
@@ -109,6 +114,12 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
 
     @Override
     public boolean doHandleAfterPayFail(PayResultDTO payResult) {
+        logger.info("RecipePayInfoCallBackService doHandleAfterPayFail payResult:{}.", JSON.toJSONString(payResult));
+        RecipeOrder recipeOrder = orderManager.getByOutTradeNo(payResult.getOutTradeNo());
+        if (null != recipeOrder && StringUtils.isNotEmpty(payResult.getFailMessage())) {
+            recipeOrder.setCancelReason(payResult.getFailMessage());
+            return orderManager.updateNonNullFieldByPrimaryKey(recipeOrder);
+        }
         return false;
     }
 
