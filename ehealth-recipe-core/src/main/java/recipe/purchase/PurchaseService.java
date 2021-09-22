@@ -1,5 +1,6 @@
 package recipe.purchase;
 
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.hisconfig.service.IHisConfigService;
@@ -166,6 +167,7 @@ public class PurchaseService {
         //为了计算合并处方药品费
         extInfo.put("recipeIds", String.join(",", recipeIds.stream().map(String::valueOf).collect(Collectors.toList())));
         List<DepDetailBean> depListBeanList = Lists.newArrayList();
+        List<DepListBean> depListBeans = Lists.newArrayList();
         DepListBean depListBean = new DepListBean();
         for (Recipe dbRecipe : recipeList) {
             if (null == dbRecipe) {
@@ -186,56 +188,52 @@ public class PurchaseService {
             }
 
             try {
-                /*for (Integer i : payModes) {
-                    IPurchaseService purchaseService = getService(i);
-                    //如果涉及到多种购药方式合并成一个列表，此处需要进行合并
-                    resultBean = purchaseService.findSupportDepList(dbRecipe, extInfo);
-                }*/
                 // 根据paymode 替换givemode
                 Integer giveMode = PayModeGiveModeUtil.getGiveMode(payModes.get(0));
 
                 IPurchaseService purchaseService = getService(giveMode);
                 resultBean = purchaseService.findSupportDepList(dbRecipe, extInfo);
-                //有一个不成功就返回
-                if (!RecipeResultBean.SUCCESS.equals(resultBean.getCode())) {
-                    return resultBean;
-                }
-                depListBean = (DepListBean) resultBean.getObject();
-                if (depListBean != null) {
-                    //多个合并处方支持的药企列表取交集
-                    //第二个之后的如果没有的就没有
-                    if (CollectionUtils.isEmpty(depListBean.getList())) {
-                        return resultBean;
-                    } else {
-                        //当取第一个药企列表时先放入list再与后面的取交集
-                        if (CollectionUtils.isEmpty(depListBeanList)) {
-                            depListBeanList.addAll(depListBean.getList());
-                        } else {
-                            //交集需要处理
-                            depListBeanList.retainAll(depListBean.getList());
-                            //his管理的药企费用这里处理
-                            //如果存在交集则取一次交集加一次费用
-                            if (CollectionUtils.isNotEmpty(depListBeanList) && StringUtils.isNotEmpty(depListBeanList.get(0).getHisDepCode())) {
-                                Map<String, BigDecimal> stringObjectMap = depListBean.getList().stream().collect(Collectors.toMap(DepDetailBean::getHisDepCode, DepDetailBean::getHisDepFee));
-                                for (DepDetailBean depDetailBean : depListBeanList) {
-                                    if (depDetailBean.getHisDepFee() != null && StringUtils.isNotEmpty(depDetailBean.getHisDepCode()) && stringObjectMap.get(depDetailBean.getHisDepCode()) != null) {
-                                        depDetailBean.setHisDepFee(depDetailBean.getHisDepFee().add(stringObjectMap.get(depDetailBean.getHisDepCode())));
-                                    }
-                                }
-                            }
-                            //有可能前两个没取到交集直接结束
-                            if (CollectionUtils.isEmpty(depListBeanList)) {
-                                break;
-                            }
-                        }
-                    }
+                LOG.info("purchaseService.findSupportDepList 返回信息 recipeId={} resultBean={}", dbRecipe.getRecipeId(), JSONArray.toJSONString(resultBean));
+                // 药企查询成功的都放入集合
+                if (RecipeResultBean.SUCCESS.equals(resultBean.getCode()) && Objects.nonNull(resultBean.getObject())) {
+                    depListBeans.add((DepListBean) resultBean.getObject());
                 }
 
             } catch (Exception e) {
                 LOG.error("filterSupportDepList error", e);
                 throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
             }
+        }
+        if (CollectionUtils.isNotEmpty(depListBeans) && depListBeans.size() < recipeIds.size() && depListBeans.size() > 0) {
+            resultBean.setCode(RecipeResultBean.FAIL);
+            resultBean.setMsg("您选择的" + recipeIds.size() + "张处方，由于供药方不同，现不支持一起支付，请重新选择单张支付！如带来不便请谅解！");
+            return resultBean;
+        }
 
+        //当取第一个药企列表时先放入list再与后面的取交集
+        for (DepListBean depListBean1 : depListBeans) {
+            if (CollectionUtils.isEmpty(depListBeanList)) {
+                depListBeanList.addAll(depListBean1.getList());
+            } else {
+                //交集需要处理
+                depListBeanList.retainAll(depListBean1.getList());
+                //his管理的药企费用这里处理
+                //如果存在交集则取一次交集加一次费用
+                if (CollectionUtils.isNotEmpty(depListBeanList) && StringUtils.isNotEmpty(depListBeanList.get(0).getHisDepCode())) {
+                    Map<String, BigDecimal> stringObjectMap = depListBean1.getList().stream().collect(Collectors.toMap(DepDetailBean::getHisDepCode, DepDetailBean::getHisDepFee));
+                    for (DepDetailBean depDetailBean : depListBeanList) {
+                        if (depDetailBean.getHisDepFee() != null && StringUtils.isNotEmpty(depDetailBean.getHisDepCode()) && stringObjectMap.get(depDetailBean.getHisDepCode()) != null) {
+                            depDetailBean.setHisDepFee(depDetailBean.getHisDepFee().add(stringObjectMap.get(depDetailBean.getHisDepCode())));
+                        }
+                    }
+                }
+                //有可能前两个没取到交集直接结束
+                if (CollectionUtils.isEmpty(depListBeanList)) {
+                    resultBean.setCode(RecipeResultBean.FAIL);
+                    resultBean.setMsg("您选择的" + recipeIds.size() + "张处方，由于供药方不同，现不支持一起支付，请重新选择单张支付！如带来不便请谅解！");
+                    return resultBean;
+                }
+            }
         }
         //重新组装
         if (depListBean != null) {

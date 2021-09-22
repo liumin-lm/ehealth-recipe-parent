@@ -218,7 +218,10 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
 
             attr.put("PayBackPrice", payBackPrice);
             try {
-                attr.put("medicalSettleInfo", new String(Base64.decode(medicalSettleInfo, 1)));
+                medicalSettleInfo = new String(Base64.decode(medicalSettleInfo, 1));
+                if (StringUtils.isNotEmpty(medicalSettleInfo) && medicalSettleInfo.length() < 1500) {
+                    attr.put("medicalSettleInfo", medicalSettleInfo);
+                }
             } catch (Exception e) {
                 logger.error("doBusinessAfterOrderSuccess error busId={}", busId);
             }
@@ -275,7 +278,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
     @Override
     @RpcService
     public boolean doHandleAfterRefund(Order order, int targetPayflag, Map<String, String> refundResult) {
-        logger.info("doHandleAfterRefund outTradeNo={},targetPayflag={},refundResult={}",order.getOutTradeNo(),targetPayflag, JSONArray.toJSONString(refundResult));
+        logger.info("doHandleAfterRefund order={},targetPayflag={},refundResult={}",JSONArray.toJSONString(order),targetPayflag, JSONArray.toJSONString(refundResult));
         // 处方
         RecipeOrderBean recipeOrderBean = recipeOrderService.getByOutTradeNo(order.getOutTradeNo());
 
@@ -297,8 +300,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             }
         }
 
-
-        recipeOrderService.finishOrderPay(recipeOrderBean.getOrderCode(), targetPayflag, RecipeConstant.PAYMODE_ONLINE);
+        recipeOrderService.finishOrderPayByRefund(recipeOrderBean.getOrderCode(), targetPayflag, RecipeConstant.PAYMODE_ONLINE,order.getRefundNo());
         StringBuilder memo = new StringBuilder("订单=" + recipeOrderBean.getOrderCode() + " ");
         switch (targetPayflag) {
             case 3:

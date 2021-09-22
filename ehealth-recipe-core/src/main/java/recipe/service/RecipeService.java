@@ -98,13 +98,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.aop.LogInfo;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipeInvalidDTO;
 import recipe.business.DrugStockBusinessService;
-import recipe.business.RevisitTraceBusinessService;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.ca.vo.CaSignResultVo;
@@ -114,6 +114,7 @@ import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.IConfigurationClient;
 import recipe.client.OperationClient;
 import recipe.common.CommonConstant;
+import recipe.common.OnsConfig;
 import recipe.common.response.CommonResponse;
 import recipe.constant.*;
 import recipe.dao.*;
@@ -128,8 +129,8 @@ import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.RecipeManager;
+import recipe.manager.RevisitManager;
 import recipe.manager.SignManager;
-import recipe.mq.OnsConfig;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
@@ -249,7 +250,7 @@ public class RecipeService extends RecipeBaseService {
     private RemoteRecipeService remoteRecipeService;
 
     @Autowired
-    private RevisitTraceBusinessService revisitTraceBusinessService;
+    private RevisitManager revisitManager;
 
     /**
      * 药师审核不通过
@@ -746,6 +747,7 @@ public class RecipeService extends RecipeBaseService {
      * @param recipeId
      */
     @RpcService
+    @LogInfo
     public RecipeResultBean generateRecipePdfAndSign(Integer recipeId) {
         RecipeResultBean result = RecipeResultBean.getSuccess();
         if (null == recipeId) {
@@ -1046,7 +1048,7 @@ public class RecipeService extends RecipeBaseService {
             }
         }
         //推送处方到监管平台
-        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
+        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
 
         //将原先互联网回调修改处方的推送的逻辑移到这里
         //判断是否是阿里药企，是阿里大药房就推送处方给药企
@@ -1268,7 +1270,6 @@ public class RecipeService extends RecipeBaseService {
         }
         LOGGER.info("当前ca异步接口返回：{}", JSONUtils.toString(resultVo));
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
         RecipeLogDAO recipeLogDAO = getDAO(RecipeLogDAO.class);
         Integer recipeId = resultVo.getRecipeId();
 
@@ -1431,7 +1432,7 @@ public class RecipeService extends RecipeBaseService {
             }
         });
         //推送处方到监管平台(审核后数据)
-        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 2));
+        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 2));
         //审核通过盖章
         RecipeBusiThreadPool.execute(() -> remoteRecipeService.generateSignetRecipePdf(recipe.getRecipeId(), recipe.getClinicOrgan()));
     }
@@ -1556,7 +1557,7 @@ public class RecipeService extends RecipeBaseService {
             PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
             if (prescriptionService.getIntellectJudicialFlag(recipeBean.getClinicOrgan()) == 1) {
                 //更新审方信息
-                RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
+                RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(recipeBean, detailBeanList));
             }
             //健康卡数据上传
             RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(), "010106"));
@@ -1587,7 +1588,7 @@ public class RecipeService extends RecipeBaseService {
 
         // 处方失效时间处理
         handleRecipeInvalidTime(recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), recipeBean.getSignDate());
-        revisitTraceBusinessService.saveRevisitTracesList(recipeDAO.get(recipeBean.getRecipeId()));
+        revisitManager.saveRevisitTracesList(recipeDAO.get(recipeBean.getRecipeId()));
         return rMap;
     }
 
@@ -2089,7 +2090,7 @@ public class RecipeService extends RecipeBaseService {
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, null);
         //HIS消息发送--异步处理
         /*boolean result = hisService.recipeSendHis(recipeId, null);*/
-        RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeId));
+        RecipeBusiThreadPool.execute(new PushRecipeToHisCallable(recipeId));
         rMap.put("signResult", true);
         rMap.put("recipeId", recipeId);
         rMap.put("consultId", recipe.getClinicId());
@@ -2111,14 +2112,14 @@ public class RecipeService extends RecipeBaseService {
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, ImmutableMap.of("distributionFlag", 2));
         //HIS消息发送--异步处理
         /*boolean result = hisService.recipeSendHis(recipeId, null);*/
-        RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeId));
+        RecipeBusiThreadPool.execute(new PushRecipeToHisCallable(recipeId));
         //更新保存智能审方信息
         PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
         if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
             RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
             List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
             //更新审方信息
-            RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(ObjectCopyUtils.convert(recipe, RecipeBean.class), ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class)));
+            RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(ObjectCopyUtils.convert(recipe, RecipeBean.class), ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class)));
         }
         //健康卡数据上传
         RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipe.getClinicOrgan(), recipe.getMpiid(), "010106"));
@@ -2303,7 +2304,7 @@ public class RecipeService extends RecipeBaseService {
             PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
             if (prescriptionService.getIntellectJudicialFlag(recipeBean.getClinicOrgan()) == 1) {
                 //更新审方信息
-                RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
+                RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(recipeBean, detailBeanList));
             }
             //健康卡数据上传
             RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(), "010106"));
@@ -2344,6 +2345,8 @@ public class RecipeService extends RecipeBaseService {
             RecipeBusiThreadPool.submit(new Callable() {
                 @Override
                 public Object call() throws Exception {
+                    LOGGER.info("doHisReturnSuccessForOrgan start");
+                    long start = System.currentTimeMillis();
                     PatientService patientService = BasicAPI.getService(PatientService.class);
                     PatientDTO patientDTO = patientService.getPatientByMpiId(recipeBean.getMpiid());
                     Date now = DateTime.now().toDate();
@@ -2365,6 +2368,8 @@ public class RecipeService extends RecipeBaseService {
                     repList.add(orderRepTO);
                     response.setData(repList);
                     service.sendSuccess(response);
+                    long elapsedTime = System.currentTimeMillis() - start;
+                    LOGGER.info("RecipeBusiThreadPool doHisReturnSuccessForOrgan 个性化医院特殊处理，开完处方模拟his成功返回数据 执行时间:{}.", elapsedTime);
                     return null;
                 }
             });
@@ -2743,9 +2748,9 @@ public class RecipeService extends RecipeBaseService {
             if (ObjectUtils.isEmpty(organDrugChange.getUseDose())) {
                 list.add("useDose(单次剂量)");
             }
-            if (ObjectUtils.isEmpty(organDrugChange.getBaseDrug())) {
+            /*if (ObjectUtils.isEmpty(organDrugChange.getBaseDrug())) {
                 list.add("baseDrug(是否基药)");
-            }
+            }*/
             if (ObjectUtils.isEmpty(organDrugChange.getUseDoseUnit())) {
                 list.add("useDoseUnit(剂量单位)");
             }
@@ -2965,6 +2970,7 @@ public class RecipeService extends RecipeBaseService {
         RecipeBusiThreadPool.execute(new Runnable() {
             @Override
             public void run() {
+                long start = System.currentTimeMillis();
                 IRecipeHisService recipeHisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
                 OrganDrugInfoResponseTO responseTO = new OrganDrugInfoResponseTO();
                 OrganDrugInfoRequestTO request = new OrganDrugInfoRequestTO();
@@ -3102,6 +3108,8 @@ public class RecipeService extends RecipeBaseService {
                 redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
                 redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
                 drugInfoSynTaskExt(organId);
+                long elapsedTime = System.currentTimeMillis() - start;
+                LOGGER.info("RecipeBusiThreadPool drugInfoSynMovementExt ES-推送药品 执行时间:{}.", elapsedTime);
             }
         });
         return map;
@@ -3393,7 +3401,7 @@ public class RecipeService extends RecipeBaseService {
                         recipeCouponService.unuseCouponByRecipeId(recipeId);
                     }
                     //推送处方到监管平台
-                    RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
+                    RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
                     //HIS消息发送
                     boolean succFlag = hisService.recipeStatusUpdate(recipeId);
                     if (succFlag) {
@@ -3483,6 +3491,7 @@ public class RecipeService extends RecipeBaseService {
             RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
             StringBuilder memo = new StringBuilder();
             RecipeOrder order;
+            List<Integer> recipeIds = new ArrayList<>();
             for (Recipe recipe : recipeList) {
                 try {
                     Boolean lock = RedisClient.instance().setIfAbsentAndExpire(RecipeSystemConstant.RECIPE_INVALID_LOCK_KEY + recipe.getRecipeId(), recipe.getRecipeId(), RecipeSystemConstant.RECIPE_INVALID_LOCK_TIMEOUT);
@@ -3533,8 +3542,8 @@ public class RecipeService extends RecipeBaseService {
                         RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
                         recipeCouponService.unuseCouponByRecipeId(recipeId);
                     }
-                    //推送处方到监管平台
-                    RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
+                    //推送处方到监管平台的处方
+                    recipeIds.add(recipeId);
                     //HIS消息发送
                     boolean succFlag = hisService.recipeStatusUpdate(recipeId);
                     if (succFlag) {
@@ -3552,6 +3561,7 @@ public class RecipeService extends RecipeBaseService {
             }
             //修改cdr_his_recipe status为已处理
             orderService.updateHisRecieStatus(recipeList);
+            RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipeIds, 1));
         }
     }
 
@@ -3669,17 +3679,7 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info("getRecipeStatusFromHis 需要同步HIS处方，数量=[{}]", (null == list) ? 0 : list.size());
         assembleQueryStatusFromHis(list, map);
         LOGGER.info("getRecipeStatusFromHis 需要同步HIS处方，机构数量=[{}]", map.keySet().size());
-        List<UpdateRecipeStatusFromHisCallable> callables = new ArrayList<>(0);
-        for (Integer organId : map.keySet()) {
-            callables.add(new UpdateRecipeStatusFromHisCallable(map.get(organId), organId));
-        }
-        if (CollectionUtils.isNotEmpty(callables)) {
-            try {
-                RecipeBusiThreadPool.submitList(callables);
-            } catch (InterruptedException e) {
-                LOGGER.error("getRecipeStatusFromHis 线程池异常");
-            }
-        }
+        RecipeBusiThreadPool.execute(new UpdateRecipeStatusFromHisCallable(map));
     }
 
     /**
@@ -5608,7 +5608,6 @@ public class RecipeService extends RecipeBaseService {
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
 
         //设置查询时间段
@@ -5623,6 +5622,7 @@ public class RecipeService extends RecipeBaseService {
         RecipeOrder order = new RecipeOrder();
         StringBuilder memo = new StringBuilder();
         Integer status;
+        List<Integer> recipeIds = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(recipeList)) {
             for (Recipe recipe : recipeList) {
                 if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
@@ -5673,7 +5673,7 @@ public class RecipeService extends RecipeBaseService {
                 RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
                 recipeCouponService.unuseCouponByRecipeId(recipeId);
                 //推送处方到监管平台
-                RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
+                recipeIds.add(recipeId);
                 //HIS消息发送
                 boolean succFlag = hisService.recipeStatusUpdate(recipeId);
                 if (succFlag) {
@@ -5683,10 +5683,9 @@ public class RecipeService extends RecipeBaseService {
                 }
                 //保存处方状态变更日志
                 RecipeLogService.saveRecipeLog(recipeId, status, RecipeStatusConstant.DELETE, memo.toString());
-
+                RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipeIds, 1));
             }
         }
-
     }
 
     /**
@@ -5757,7 +5756,7 @@ public class RecipeService extends RecipeBaseService {
                 RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
                 recipeCouponService.unuseCouponByRecipeId(recipeId);
                 //推送处方到监管平台
-                RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
+                RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
                 //HIS消息发送
                 boolean succFlag = hisService.recipeStatusUpdate(recipeId);
                 if (succFlag) {
@@ -5827,7 +5826,7 @@ public class RecipeService extends RecipeBaseService {
                         recipeCouponService.unuseCouponByRecipeId(recipeId);
                     }
                     //推送处方到监管平台
-                    RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
+                    RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
                     //HIS消息发送
                     boolean succFlag = hisService.recipeStatusUpdate(recipeId);
                     if (succFlag) {

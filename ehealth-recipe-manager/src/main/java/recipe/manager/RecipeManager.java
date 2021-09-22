@@ -95,6 +95,24 @@ public class RecipeManager extends BaseManager {
     }
 
 
+    /**
+     * 查询处方信息
+     *
+     * @param recipeId
+     * @return
+     */
+    public Recipe getRecipeById(Integer recipeId) {
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (StringUtils.isEmpty(recipe.getOrganDiseaseId())) {
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
+            recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
+            recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
+            recipe.setMemo(emrDetail.getMemo());
+        }
+        return recipe;
+    }
+
     public List<Recipe> findByRecipeIds(List<Integer> recipeIds) {
         List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
         logger.info("RecipeManager findByRecipeIds recipeIds:{}, recipes:{}", JSON.toJSONString(recipeIds), JSON.toJSONString(recipes));
@@ -193,7 +211,7 @@ public class RecipeManager extends BaseManager {
         recipeExtend.setCardTypeName(DictionaryUtil.getDictionary("eh.mpi.dictionary.CardType", recipeExtend.getCardType()));
         Integer docIndexId = recipeExtend.getDocIndexId();
         EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(docIndexId);
-        if (null == emrDetail) {
+        if (StringUtils.isEmpty(emrDetail.getOrganDiseaseId())) {
             return recipeDTO;
         }
         Recipe recipe = recipeDTO.getRecipe();

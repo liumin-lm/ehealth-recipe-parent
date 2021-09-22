@@ -41,6 +41,8 @@ public class SyncDrugToEsRunable implements Runnable {
 
     @Override
     public void run() {
+        LOG.info("SyncDrugToEsRunable start");
+        long start = System.currentTimeMillis();
         DrugListDAO drugDao = DAOFactory.getDAO(DrugListDAO.class);
         int total = this.end - this.start;
         if (total > 0) {
@@ -80,6 +82,7 @@ public class SyncDrugToEsRunable implements Runnable {
                 }
             }
         }
-
+        long elapsedTime = System.currentTimeMillis() - start;
+        LOG.info("RecipeBusiThreadPool SyncDrugToEsRunable 同步基础库药品至ES 执行时间:{}.", elapsedTime);
     }
 }

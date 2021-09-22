@@ -1,5 +1,6 @@
 package recipe.api.open;
 
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.util.annotation.RpcService;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
@@ -44,4 +45,12 @@ public interface IRecipeAtopService {
     @RpcService
     void handDealRevisitTraceRecipe(String startTime, String endTime, List<Integer> recipeIds, Integer organId);
 
+    /**
+     * 获取处方信息
+     *
+     * @param recipeId 处方id
+     * @return
+     */
+    @RpcService
+    RecipeBean getByRecipeId(Integer recipeId);
 }

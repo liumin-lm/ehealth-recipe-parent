@@ -8,7 +8,7 @@ import ctd.util.annotation.RpcService;
 import eh.msg.constant.MqConstant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import recipe.mq.OnsConfig;
+import recipe.common.OnsConfig;
 
 /**
  * @author： 0184/yu_yun

@@ -304,24 +304,17 @@ public class HisRequestInit {
         //处方附带信息
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        try {
-            EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
-            requestTO.setIcdCode(emrDetail.getOrganDiseaseId());
-            requestTO.setIcdName(emrDetail.getOrganDiseaseName());
-            requestTO.setSymptomValue(ObjectCopyUtils.convert(emrDetail.getSymptomValue(), EmrDetailValueDTO.class));
-            requestTO.setDiseaseValue(ObjectCopyUtils.convert(emrDetail.getDiseaseValue(), EmrDetailValueDTO.class));
-            recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
-            recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
-            Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
-            requestTO.setMedicalInfoBean(medicalInfoBean);
-        } catch (Exception e) {
-            requestTO.setIcdCode(recipe.getOrganDiseaseId());
-            requestTO.setIcdName(recipe.getOrganDiseaseName());
-            LOGGER.error("RecipeHisService initRecipeSendRequestTO  IDocIndexService error", e);
-        }
         // 简要病史
-        requestTO.setDiseasesHistory(recipe.getOrganDiseaseName());
-        if (recipeExtend != null) {
+        if (null != recipeExtend) {
+            EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
+            if (StringUtils.isNotEmpty(emrDetail.getOrganDiseaseId())) {
+                recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
+                recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
+                requestTO.setSymptomValue(ObjectCopyUtils.convert(emrDetail.getSymptomValue(), EmrDetailValueDTO.class));
+                requestTO.setDiseaseValue(ObjectCopyUtils.convert(emrDetail.getDiseaseValue(), EmrDetailValueDTO.class));
+                Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
+                requestTO.setMedicalInfoBean(medicalInfoBean);
+            }
             //挂号序号
             requestTO.setRegisteredId(recipeExtend.getRegisterID());
             //主诉
@@ -346,7 +339,6 @@ public class HisRequestInit {
                 if (StringUtils.isNotBlank(recipeExtend.getMakeMethodId())) {
                     DrugMakingMethod drugMakingMethod = drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
                     requestTO.getRecipeExtend().setMakeMethod(drugMakingMethod.getMethodCode());
-
                 }
                 if (StringUtils.isNotBlank(recipeExtend.getSymptomId())) {
                     Symptom symptom = symptomDAO.get(Integer.parseInt(recipeExtend.getSymptomId()));
@@ -356,6 +348,9 @@ public class HisRequestInit {
                 LOGGER.error("initRecipeSendRequestTO recipeid:{} error ", recipe.getRecipeId(), e);
             }
         }
+        requestTO.setIcdCode(recipe.getOrganDiseaseId());
+        requestTO.setIcdName(recipe.getOrganDiseaseName());
+        requestTO.setDiseasesHistory(recipe.getOrganDiseaseName());
         try {
             if (recipe.getClinicId() != null) {
                 IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);

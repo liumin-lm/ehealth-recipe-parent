@@ -47,6 +47,7 @@ public class StatusProceedShippingImpl extends AbstractRecipeOrderStatus {
         logger.info("StatusProceedShippingImpl upRecipeThreadPool recipe={}", JSON.toJSONString(recipe));
         //监管平台上传配送信息(派药)
         RecipeBusiThreadPool.execute(() -> {
+            long start = System.currentTimeMillis();
             //HIS消息发送
             RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.IN_SEND);
             HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
@@ -54,6 +55,8 @@ public class StatusProceedShippingImpl extends AbstractRecipeOrderStatus {
             //记录日志
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeStatusConstant.IN_SEND,
                     "监管平台配送信息[派药]上传code" + response.getCode() + ",msg:" + response.getMsg());
+            long elapsedTime = System.currentTimeMillis() - start;
+            logger.info("RecipeBusiThreadPool upRecipeThreadPool 监管平台上传配置信息(派药) 执行时间:{}.", elapsedTime);
         });
     }
 }
