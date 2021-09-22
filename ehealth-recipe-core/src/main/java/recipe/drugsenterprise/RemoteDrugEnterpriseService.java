@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.aop.LogInfo;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.ErrorCode;
 import recipe.constant.ParameterConstant;
@@ -154,6 +155,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
 
 
     @RpcService
+    @LogInfo
     public void uploadRecipePdfToHis(Integer recipeId) {
         enterpriseManager.uploadRecipePdfToHis(recipeId);
     }
@@ -888,9 +890,14 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
     }
 
     @RpcService
+    @LogInfo
     public void updateAccessTokenByDep(DrugsEnterprise drugsEnterprise) {
-        AccessDrugEnterpriseService service = getServiceByDep(drugsEnterprise);
-        service.tokenUpdateImpl(drugsEnterprise);
+        try {
+            AccessDrugEnterpriseService service = getServiceByDep(drugsEnterprise);
+            service.tokenUpdateImpl(drugsEnterprise);
+        } catch (Exception e) {
+            LOGGER.error("updateAccessTokenByDep drugsEnterprise:{}, error ", drugsEnterprise.getId(), e);
+        }
     }
 
     /**

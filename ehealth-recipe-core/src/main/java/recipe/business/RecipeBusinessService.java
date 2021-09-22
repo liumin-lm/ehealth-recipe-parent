@@ -7,6 +7,7 @@ import com.ngari.his.recipe.mode.OutRecipeDetailReq;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.PharmacyTcm;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.PatientInfoDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -45,9 +46,10 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     //药师审核不通过状态集合 供getUncheckRecipeByClinicId方法使用
     private final List<Integer> UncheckedStatus = Arrays.asList(RecipeStatusEnum.RECIPE_STATUS_UNCHECK.getType(), RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType(),
             RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_PHA.getType(), RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_PHA.getType(), RecipeStatusEnum.RECIPE_STATUS_SIGN_NO_CODE_PHA.getType());
-
     @Autowired
     private RecipeDAO recipeDAO;
+    @Autowired
+    private RecipeManager recipeManager;
     @Autowired
     private OfflineRecipeClient offlineRecipeClient;
     @Autowired
@@ -57,10 +59,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     private PharmacyManager pharmacyManager;
     @Autowired
-    private RecipeManager recipeManager;
-    @Autowired
     private HisRecipeManager hisRecipeManager;
-
 
     /**
      * 获取线下门诊处方诊断信息
@@ -69,6 +68,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
      * @return 诊断列表
      */
     @Override
+
     public List<DiseaseInfoDTO> getOutRecipeDisease(PatientInfoVO patientInfoVO) {
         return offlineRecipeClient.queryPatientDisease(patientInfoVO.getOrganId(), patientInfoVO.getPatientName(), patientInfoVO.getRegisterID(), patientInfoVO.getPatientId());
     }
@@ -161,6 +161,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         int uncheckCount = recipesCount.intValue();
         logger.info("RecipeBusinessService existUncheckRecipe recipesCount={}", recipesCount);
         return uncheckCount != 0;
+    }
+
+    @Override
+    public Recipe getByRecipeId(Integer recipeId) {
+        return recipeManager.getRecipeById(recipeId);
     }
 
 

@@ -1,10 +1,12 @@
 package recipe.service.paycallback;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeOrderBillReqTO;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.pay.model.PayResultDTO;
 import com.ngari.recipe.pay.service.IRecipePayCallBackService;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -29,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.constant.CacheConstant;
+import recipe.manager.OrderManager;
 import recipe.service.PayModeGiveModeUtil;
 import recipe.serviceprovider.recipelog.service.RemoteRecipeLogService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
@@ -51,6 +54,8 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
     private RemoteRecipeLogService recipeLogService;
     @Autowired
     private RedisClient redisClient;
+    @Autowired
+    private OrderManager orderManager;
 
     @Override
     @RpcService
@@ -105,6 +110,17 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             couponService.useCouponById(order.getCouponId());
         }
         return true;
+    }
+
+    @Override
+    public boolean doHandleAfterPayFail(PayResultDTO payResult) {
+        logger.info("RecipePayInfoCallBackService doHandleAfterPayFail payResult:{}.", JSON.toJSONString(payResult));
+        RecipeOrder recipeOrder = orderManager.getByOutTradeNo(payResult.getOutTradeNo());
+        if (null != recipeOrder && StringUtils.isNotEmpty(payResult.getFailMessage())) {
+            recipeOrder.setCancelReason(payResult.getFailMessage());
+            return orderManager.updateNonNullFieldByPrimaryKey(recipeOrder);
+        }
+        return false;
     }
 
     /**
@@ -213,7 +229,10 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
 
             attr.put("PayBackPrice", payBackPrice);
             try {
-                attr.put("medicalSettleInfo", new String(Base64.decode(medicalSettleInfo, 1)));
+                medicalSettleInfo = new String(Base64.decode(medicalSettleInfo, 1));
+                if (StringUtils.isNotEmpty(medicalSettleInfo) && medicalSettleInfo.length() < 1500) {
+                    attr.put("medicalSettleInfo", medicalSettleInfo);
+                }
             } catch (Exception e) {
                 logger.error("doBusinessAfterOrderSuccess error busId={}", busId);
             }
@@ -270,7 +289,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
     @Override
     @RpcService
     public boolean doHandleAfterRefund(Order order, int targetPayflag, Map<String, String> refundResult) {
-        logger.info("doHandleAfterRefund outTradeNo={},targetPayflag={},refundResult={}",order.getOutTradeNo(),targetPayflag, JSONArray.toJSONString(refundResult));
+        logger.info("doHandleAfterRefund order={},targetPayflag={},refundResult={}",JSONArray.toJSONString(order),targetPayflag, JSONArray.toJSONString(refundResult));
         // 处方
         RecipeOrderBean recipeOrderBean = recipeOrderService.getByOutTradeNo(order.getOutTradeNo());
 
@@ -292,8 +311,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             }
         }
 
-
-        recipeOrderService.finishOrderPay(recipeOrderBean.getOrderCode(), targetPayflag, RecipeConstant.PAYMODE_ONLINE);
+        recipeOrderService.finishOrderPayByRefund(recipeOrderBean.getOrderCode(), targetPayflag, RecipeConstant.PAYMODE_ONLINE,order.getRefundNo());
         StringBuilder memo = new StringBuilder("订单=" + recipeOrderBean.getOrderCode() + " ");
         switch (targetPayflag) {
             case 3:

@@ -51,6 +51,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.ObjectUtils;
+import recipe.client.RevisitClient;
+import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.manager.ButtonManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
@@ -80,6 +82,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     private DepartmentService departmentService;
     @Autowired
     private ButtonManager buttonManager;
+    @Autowired
+    private RevisitClient revisitClient;
 
 
     private IConfigurationCenterUtilsService utils = BaseAPI.getService(IConfigurationCenterUtilsService.class);
@@ -276,7 +280,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             }
             OrganDTO organ = organService.getByManageUnit("eh3301");
             String cardType = "";
-            if(!ObjectUtils.isEmpty(organ)){
+            if (!ObjectUtils.isEmpty(organ)) {
                 HealthCardService healthCardService = BasicAPI.getService(HealthCardService.class);
                 List<HealthCardDTO> list = healthCardService.findByCardOrganAndMpiId(organ.getOrganId(), nowRecipeBean.getMpiid());
                 if (CollectionUtils.isNotEmpty(list)) {
@@ -388,6 +392,50 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
 
         }
         log.info("结算simpleBusObject={}", JSONUtils.toString(simpleBusObject));
+        return simpleBusObject;
+    }
+
+    @Override
+    public SimpleBusObject getRecipeAuditSimpleBusObject(Integer busId) {
+        log.info("getRecipeAuditSimpleBusObject req,busId[{}]", busId);
+        RecipeOrderBean order = recipeOrderService.get(busId);
+        SimpleBusObject simpleBusObject = new SimpleBusObject();
+
+        // todo 不知道为什么写 8
+        simpleBusObject.setSubBusType("8");
+        if (Objects.nonNull(order)) {
+            simpleBusObject.setBusId(busId);
+            // todo 总金额写订单总金额还是支付金额
+            simpleBusObject.setPrice(order.getTotalFee().stripTrailingZeros().doubleValue());
+            // todo  实际支付金额写运费 + 审方费用
+            BigDecimal otherFee = order.getAuditFee().add(order.getExpressFee());
+            simpleBusObject.setActualPrice(otherFee.stripTrailingZeros().doubleValue());
+            simpleBusObject.setCouponId(order.getCouponId());
+            simpleBusObject.setCouponName(order.getCouponName());
+            simpleBusObject.setMpiId(order.getMpiId());
+            simpleBusObject.setOrganId(order.getOrganId());
+            simpleBusObject.setOutTradeNo(order.getOutTradeNo());
+            simpleBusObject.setPayFlag(order.getPayFlag());
+            simpleBusObject.setBusObject(order);
+            List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+            RecipeBean recipeBean = recipeService.getByRecipeId(recipeIdList.get(0));
+            //获取就诊卡号--一般来说处方里已经保存了复诊里的就诊卡号了取不到再从复诊里取
+            simpleBusObject.setMrn(getMrnForRecipe(recipeBean));
+            //由于bug#70621新增卡号卡类型字段
+            RecipeExtendBean recipeExtend = recipeService.findRecipeExtendByRecipeId(recipeBean.getRecipeId());
+            if (recipeExtend != null) {
+                simpleBusObject.setCardId(recipeExtend.getCardNo());
+                simpleBusObject.setCardType(recipeExtend.getCardType());
+            }
+            // 0自费 1医保
+            RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipeBean.getClinicId());
+            if (MedicalTypeEnum.SELF_PAY.getType().equals(revisitExDTO.getMedicalFlag())) {
+                simpleBusObject.setSettleType("1");
+            }else {
+                simpleBusObject.setSettleType("0");
+            }
+        }
+        log.info("结算getRecipeAuditSimpleBusObject={}", JSONUtils.toString(simpleBusObject));
         return simpleBusObject;
     }
 

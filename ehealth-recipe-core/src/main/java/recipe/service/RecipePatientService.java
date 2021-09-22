@@ -55,6 +55,7 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.type.CheckPatientEnum;
+import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.ValidateUtil;
@@ -749,7 +750,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         if (null == revisitExDTO) {
             return patientMedicalTypeVO;
         }
-        if (null != revisitExDTO.getMedicalFlag() && new Integer(1).equals(revisitExDTO.getMedicalFlag())) {
+        if (null != revisitExDTO.getMedicalFlag() && MedicalTypeEnum.MEDICAL_PAY.getType().equals(revisitExDTO.getMedicalFlag())) {
             return new PatientMedicalTypeVO("2", "医保");
         } else {
             return patientMedicalTypeVO;

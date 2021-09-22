@@ -39,6 +39,8 @@ public class CommonSyncDrugCallable implements Callable<String> {
 
     @Override
     public String call() throws Exception {
+        logger.info("CommonSyncDrugCallable start");
+        long start = System.currentTimeMillis();
         if (null == drugsEnterprise || CollectionUtils.isEmpty(drugIdList)) {
             return null;
         }
@@ -91,8 +93,9 @@ public class CommonSyncDrugCallable implements Callable<String> {
                 logger.error("药企返回错误信息,message={}", MapValueUtil.getString(backMap, "message"));
             }
         }
-
         logger.info("SyncDrugCallable end " + logInfo);
+        long elapsedTime = System.currentTimeMillis() - start;
+        logger.info("RecipeBusiThreadPool CommonSyncDrugCallable 同步药品库存 执行时间:{}.", elapsedTime);
         return null;
     }
 }

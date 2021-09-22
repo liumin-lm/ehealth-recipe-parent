@@ -175,6 +175,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "订单备注")
     private String orderMemo;
 
+    @ItemProperty(alias = "药企更新token的标识")
+    private Integer updateTokenFlag;
+
     @ItemProperty(alias = "集揽模式")
     private Integer collectMode;
 
@@ -632,5 +635,14 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setCollectMode(Integer collectMode) {
         this.collectMode = collectMode;
+    }
+
+    @Column(name = "update_token_flag")
+    public Integer getUpdateTokenFlag() {
+        return updateTokenFlag;
+    }
+
+    public void setUpdateTokenFlag(Integer updateTokenFlag) {
+        this.updateTokenFlag = updateTokenFlag;
     }
 }

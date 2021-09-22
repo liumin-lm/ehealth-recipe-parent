@@ -151,6 +151,19 @@ public class OrderManager extends BaseManager {
     }
 
     /**
+     * 通过商户订单号获取订单
+     * @param outTradeNo 商户订单号
+     * @return 订单
+     */
+    public RecipeOrder getByOutTradeNo(String outTradeNo){
+        return recipeOrderDAO.getByOutTradeNo(outTradeNo);
+    }
+
+    public boolean updateNonNullFieldByPrimaryKey(RecipeOrder recipeOrder){
+        return recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+    }
+
+    /**
      * 处理患者信息
      *
      * @param mpiId

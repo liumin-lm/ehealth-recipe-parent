@@ -2110,7 +2110,22 @@ public class RecipeOrderService extends RecipeBaseService {
         if (null == payMode) {
             payMode = RecipeBussConstant.PAYMODE_ONLINE;
         }
-        return finishOrderPayImpl(orderCode, payFlag, payMode);
+        return finishOrderPayImpl(orderCode, payFlag, payMode, null);
+    }
+
+    /**
+     * 支付订单退款使用
+     *
+     * @param orderCode
+     * @param payFlag
+     * @return
+     */
+    @RpcService
+    public RecipeResultBean finishOrderPayByRefund(String orderCode, int payFlag, Integer payMode, String refundNo) {
+        if (null == payMode) {
+            payMode = RecipeBussConstant.PAYMODE_ONLINE;
+        }
+        return finishOrderPayImpl(orderCode, payFlag, payMode, refundNo);
     }
 
     /**
@@ -2121,10 +2136,10 @@ public class RecipeOrderService extends RecipeBaseService {
      */
     @RpcService
     public RecipeResultBean finishOrderPayWithoutPay(String orderCode, Integer payMode) {
-        return finishOrderPayImpl(orderCode, PayConstant.PAY_FLAG_NOT_PAY, payMode);
+        return finishOrderPayImpl(orderCode, PayConstant.PAY_FLAG_NOT_PAY, payMode, null);
     }
 
-    private RecipeResultBean finishOrderPayImpl(String orderCode, int payFlag, Integer payMode) {
+    private RecipeResultBean finishOrderPayImpl(String orderCode, int payFlag, Integer payMode, String refundNo) {
         LOGGER.info("finishOrderPayImpl is get! orderCode={} ,payFlag = {}", orderCode, payFlag);
         RecipeResultBean result = RecipeResultBean.getSuccess();
         RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
@@ -2187,7 +2202,7 @@ public class RecipeOrderService extends RecipeBaseService {
         // 处方支付信息上传 监管平台
         RecipeBusiThreadPool.submit(() -> {
             HisSyncSupervisionService hisSyncservice = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
-            hisSyncservice.uploadRecipePayToRegulation(orderCode, payFlag);
+            hisSyncservice.uploadRecipePayToRegulation(orderCode, payFlag, refundNo);
             return null;
         });
         return result;

@@ -8,9 +8,13 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.RecipePDFToHisTO;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.AddressBean;
 import com.ngari.platform.recipe.mode.PushRecipeAndOrder;
+import com.ngari.platform.recipe.mode.RecipeOrderBean;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
 import ctd.mvc.upload.FileMetaRecord;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -29,8 +33,6 @@ import recipe.util.ByteUtils;
 @Service
 public class EnterpriseClient extends BaseClient {
     @Autowired
-    private IRecipeEnterpriseService hisService;
-    @Autowired
     private ICurrentUserInfoService userInfoService;
     @Autowired
     private IFileDownloadService fileDownloadService;
@@ -46,7 +48,7 @@ public class EnterpriseClient extends BaseClient {
     public SkipThirdDTO skipThird(RecipeThirdUrlReqTO req) {
         logger.info("getRecipeThirdUrl request={}", JSONUtils.toString(req));
         try {
-            HisResponseTO<String> response = hisService.getRecipeThirdUrl(req);
+            HisResponseTO<String> response = recipeEnterpriseService.getRecipeThirdUrl(req);
             String thirdUrl = getResponse(response);
             SkipThirdDTO skipThirdDTO = new SkipThirdDTO();
             try {
@@ -128,4 +130,21 @@ public class EnterpriseClient extends BaseClient {
         result.setUrl(ByteUtils.objValueOf(responseTO.getExtend().get("urlCode")));
         return result;
     }
+
+    /**
+     * 推送数据组织地址
+     *
+     * @param recipeOrder        处方订单信息
+     * @param pushRecipeAndOrder 推送处方信息
+     */
+    public void addressBean(RecipeOrder recipeOrder, PushRecipeAndOrder pushRecipeAndOrder) {
+        pushRecipeAndOrder.setRecipeOrderBean(ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class));
+        AddressBean addressBean = new AddressBean();
+        addressBean.setProvince(getAddress(recipeOrder.getAddress1()));
+        addressBean.setCity(getAddress(recipeOrder.getAddress2()));
+        addressBean.setDistrict(getAddress(recipeOrder.getAddress3()));
+        addressBean.setStreetAddress(getAddress(recipeOrder.getStreetAddress()));
+        pushRecipeAndOrder.setAddressBean(addressBean);
+    }
+
 }
