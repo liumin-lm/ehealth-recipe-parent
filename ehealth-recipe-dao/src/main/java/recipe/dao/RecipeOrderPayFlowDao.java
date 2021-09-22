@@ -10,6 +10,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import recipe.dao.comment.ExtendDao;
 
+import java.util.List;
+
 /**
  * @description： 支付流水dao 邵逸夫模式专用
  * @author： whf
@@ -32,8 +34,8 @@ public abstract class RecipeOrderPayFlowDao extends HibernateSupportDelegateDAO<
      *
      * @param orderId
      */
-    @DAOMethod(sql = "FROM RecipeOrderPayFlow WHERE orderId =: orderId AND payFlag = '1'")
-    public abstract void deleteByDrugsEnterpriseId(@DAOParam("orderId") Integer orderId);
+    @DAOMethod(sql = "FROM RecipeOrderPayFlow WHERE orderId =:orderId AND payFlag = '1'")
+    public abstract List<RecipeOrderPayFlow> findByOrderId(@DAOParam("orderId") Integer orderId);
 
     /**
      * 根据orderId和payFlowType查询订单支付流水

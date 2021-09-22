@@ -227,6 +227,11 @@ public class AuditPostMode extends AbstractAuidtMode {
         }
     }
 
+    @Override
+    public Boolean notifyPharAudit(Recipe recipe) {
+        return null;
+    }
+
     private boolean judgeRecipeAutoCheck(Integer recipeId, Integer organId) {
         LOGGER.info("judgeRecipeAutoCheck recipe={}", recipeId);
         try {
