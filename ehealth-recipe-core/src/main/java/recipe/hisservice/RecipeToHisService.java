@@ -136,10 +136,8 @@ public class RecipeToHisService {
                                     if (null != recipeOrder && !"111".equals(recipeOrder.getWxPayWay())) {
                                         Map<String, Object> map = new HashMap<>();
                                         map.put("recipeFee", recipeFee);
-                                        totalMoney = totalMoney.add(recipeOrder.getAuditFee())
-                                                .add(recipeOrder.getRegisterFee())
-                                                .add(recipeOrder.getTcmFee())
-                                                .add(recipeOrder.getOtherFee())
+                                        totalMoney = totalMoney
+                                                .add(null==recipeOrder.getAuditFee()?BigDecimal.ZERO:recipeOrder.getAuditFee())
                                                 .add(recipeFee);
                                         map.put("totalFee", totalMoney);
                                         map.put("actualPrice", totalMoney.doubleValue());

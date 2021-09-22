@@ -10,7 +10,7 @@
         recipe.hisservice.**, recipe.serviceprovider.*,recipe.audit.*,recipe.prescription,recipe.mq,recipe.drugTool,
         recipe.purchase,recipe.medicationguide,recipe.logistics,recipe.ca,recipe.recipecheck,recipe.regulation,recipe.sign,
         recipe.comment,recipe.presettle,recipe.caNew,recipe.atop,recipe.operation,recipe.factory.*,recipe.givemode.business,recipe.retry,
-        recipe.openapi.*,recipe.service.afterpay,recipe.atop.**,recipe.client.**,recipe.manager.**,recipe.business"/>
+        recipe.openapi.*,recipe.service.afterpay,recipe.atop.**,recipe.client.**,recipe.manager.**,recipe.business,recipe.aop.RecipeLogAspect"/>
 
     <!--微信服务-->
     <reference interface="recipe.third.IWXServiceInterface" id="wx.wxService"/>

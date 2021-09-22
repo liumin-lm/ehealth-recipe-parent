@@ -41,9 +41,7 @@ import recipe.thread.PushRecipeToHisCallable;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static ctd.persistence.DAOFactory.getDAO;
 
@@ -108,7 +106,7 @@ public abstract class AbstractCaProcessType {
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         //前置签名，CA后操作，通过CA的结果做判断，通过则将处方推his
         //HIS消息发送--异步处理
-        RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
+        RecipeBusiThreadPool.execute(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
 
         //非可使用省医保的处方立即发送处方卡片，使用省医保的处方需要在药师审核通过后显示
         if (!recipeBean.canMedicalPay()) {
@@ -200,7 +198,7 @@ public abstract class AbstractCaProcessType {
             }
         }
         //推送处方到监管平台
-        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
+        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipeId), 1));
 
         //将原先互联网回调修改处方的推送的逻辑移到这里
         //判断是否是阿里药企，是阿里大药房就推送处方给药企

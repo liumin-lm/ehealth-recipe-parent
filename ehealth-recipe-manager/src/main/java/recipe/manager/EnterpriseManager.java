@@ -15,7 +15,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.client.*;
+import recipe.client.EnterpriseClient;
 import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -45,20 +45,9 @@ public class EnterpriseManager extends BaseManager {
      */
     private static String IMG_HEAD = "data:image/jpeg;base64,";
     @Autowired
-    private PatientClient patientClient;
-    @Autowired
-    private DoctorClient doctorClient;
-    @Autowired
-    private RevisitClient revisitClient;
-    @Autowired
-    private IConfigurationClient configurationClient;
-    @Autowired
     private EnterpriseClient enterpriseClient;
     @Autowired
-    private OrganClient organClient;
-    @Autowired
     private IFileDownloadService fileDownloadService;
-
     @Autowired
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
     @Resource
@@ -92,6 +81,7 @@ public class EnterpriseManager extends BaseManager {
      */
     public SkipThirdDTO uploadRecipeInfoToThird(Integer organId, String giveMode, List<Integer> recipeIds) {
         logger.info("EnterpriseManager uploadRecipeInfoToThird organId:{},giveMode:{},recipeIds:{}", organId, giveMode, JSONUtils.toString(recipeIds));
+        //处方选择购药方式时回写his
         Boolean pushToHisAfterChoose = configurationClient.getValueBooleanCatch(organId, "pushToHisAfterChoose", false);
         if (!pushToHisAfterChoose) {
             return null;
@@ -120,9 +110,9 @@ public class EnterpriseManager extends BaseManager {
     public SkipThirdDTO pushRecipeForThird(Recipe recipe, Integer node) {
         logger.info("EnterpriseManager pushRecipeForThird recipeId:{}, node:{}.", recipe.getRecipeId(), node);
         SkipThirdDTO result = new SkipThirdDTO();
+        result.setCode(1);
         List<DrugsEnterprise> drugsEnterpriseList = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
         if (CollectionUtils.isEmpty(drugsEnterpriseList)) {
-            result.setCode(1);
             return result;
         }
         for (DrugsEnterprise drugsEnterprise : drugsEnterpriseList) {

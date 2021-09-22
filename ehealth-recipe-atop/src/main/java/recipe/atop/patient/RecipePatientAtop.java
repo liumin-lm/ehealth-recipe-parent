@@ -72,6 +72,7 @@ public class RecipePatientAtop extends BaseAtop {
                 outPatientRecipeVO.setGiveModeText(OutRecipeGiveModeEnum.getName(outPatientRecipeVO.getGiveMode()));
                 outPatientRecipeVO.setRecipeTypeText(OutRecipeRecipeTypeEnum.getName(outPatientRecipeVO.getRecipeType()));
                 outPatientRecipeVO.setOrganId(outPatientRecipeReqVO.getOrganId());
+                outPatientRecipeVO.setMpiId(outPatientRecipeReqVO.getMpiId());
                 if (StringUtils.isEmpty(outPatientRecipeVO.getOrganName())) {
                     outPatientRecipeVO.setOrganName(outPatientRecipeReqVO.getOrganName());
                 }

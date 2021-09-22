@@ -63,6 +63,8 @@ public class RecipeAndOrderDetailBean implements Serializable{
     private String tcmUsePathways;
     private String tcmUsingRate;
     private String tcmNum;
+    private String decoctionId;
+    private String decoctionText;
     private String pharmacyCode;
     private String pharmacyName;
     private String recipeSignImg;

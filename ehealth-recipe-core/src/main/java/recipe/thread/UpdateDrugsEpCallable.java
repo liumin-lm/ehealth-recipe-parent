@@ -2,44 +2,34 @@ package recipe.thread;
 
 import com.ngari.recipe.entity.DrugsEnterprise;
 import ctd.persistence.DAOFactory;
-import org.apache.commons.lang3.StringUtils;
 import recipe.ApplicationUtils;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 
-import java.util.concurrent.Callable;
+import java.util.List;
 
 /**
- * 更新药企token Callable
+ * 更新药企token Runnable
  * company: ngarihealth
  * @author: 0184/yu_yun
  * @date:2016/6/15.
  */
-public class UpdateDrugsEpCallable implements Callable<String> {
+public class UpdateDrugsEpCallable implements Runnable {
 
-    private Integer _drugsEnterpriseId;
+    private List<Integer> _drugsEnterpriseIds;
 
-    public UpdateDrugsEpCallable(Integer drugsEnterpriseId) {
-        this._drugsEnterpriseId = drugsEnterpriseId;
+    public UpdateDrugsEpCallable(List<Integer> drugsEnterpriseIds) {
+        this._drugsEnterpriseIds = drugsEnterpriseIds;
     }
 
     @Override
-    public String call() throws Exception {
-
-        if (null == this._drugsEnterpriseId) {
-            return null;
-        }
-
+    public void run() {
+        RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(this._drugsEnterpriseId);
-        if (null != drugsEnterprise && StringUtils.isNotEmpty(drugsEnterprise.getAuthenUrl())) {
-            RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByIdIn(this._drugsEnterpriseIds);
+        for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
             service.updateAccessTokenByDep(drugsEnterprise);
-        } else {
-//            logger.warn("UpdateDrugsEpCallable 更新药企token功能，药企ID:" + this._drugsEnterpriseId + " 药企 AuthenUrl为空");
         }
-
-        return null;
     }
 
 }
