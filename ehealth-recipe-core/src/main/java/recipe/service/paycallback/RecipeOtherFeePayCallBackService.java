@@ -1,11 +1,11 @@
 package recipe.service.paycallback;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.RecipeOrderPayFlow;
 import com.ngari.recipe.pay.model.PayResultDTO;
 import com.ngari.recipe.pay.service.IRecipeOtherFeePayCallBackService;
-import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.util.annotation.RpcBean;
 import ctd.util.converter.ConversionUtils;
 import eh.entity.bus.Order;
@@ -15,8 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.PayFlowTypeEnum;
 import recipe.manager.OrderManager;
+import recipe.manager.RecipeManager;
 import recipe.manager.RecipeOrderPayFlowManager;
-import recipe.serviceprovider.recipelog.service.RemoteRecipeLogService;
+import recipe.service.RecipeOrderService;
 
 import java.util.Map;
 
@@ -37,7 +38,10 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
     private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
 
     @Autowired
-    private RemoteRecipeLogService recipeLogService;
+    private RecipeOrderService orderService;
+
+    @Autowired
+    private RecipeManager recipeManager;
 
     @Override
     public boolean doHandleAfterPay(PayResultDTO payResult) {
@@ -66,7 +70,31 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
             Double payBackPrice = ConversionUtils.convert(notifyMap.get("total_amount"), Double.class);
             recipeOrderPayFlow.setTotalFee(payBackPrice);
         }
-        return recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
+        recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
+        //如果不需要支付处方费用则订单直接完成
+
+        RecipeOrder recipeOrder = orderManager.getRecipeOrderById(busId);
+        if (null == recipeOrder) {
+            return false;
+        }
+        Recipe recipe = recipeManager.getByRecipeCodeAndClinicOrgan(recipeOrder.getOrderCode(), recipeOrder.getOrganId());
+        Integer giveMode = recipe.getGiveMode();
+        if (new Integer(2).equals(recipeOrder.getPayMode())) {
+            //表示该处方为线下付款
+            Integer payMode = 2;
+            switch (giveMode) {
+                case 2:
+                    payMode = 3;
+                    break;
+                case 3:
+                    payMode = 4;
+                    break;
+                default:
+                    break;
+            }
+            orderService.finishOrderPay(recipeOrder.getOrderCode(), PayFlagEnum.PAYED.getType(), payMode);
+        }
+        return true;
     }
 
     @Override
