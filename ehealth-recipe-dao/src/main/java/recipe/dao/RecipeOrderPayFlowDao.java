@@ -36,8 +36,6 @@ public abstract class RecipeOrderPayFlowDao extends HibernateSupportDelegateDAO<
      */
     @DAOMethod(sql = "FROM RecipeOrderPayFlow WHERE orderId =:orderId AND payFlag = '1'")
     public abstract List<RecipeOrderPayFlow> findByOrderId(@DAOParam("orderId") Integer orderId);
-    @DAOMethod(sql = "FROM RecipeOrderPayFlow WHERE orderId =: orderId AND payFlag = '1'")
-    public abstract void deleteByDrugsEnterpriseId(@DAOParam("orderId") Integer orderId);
 
     /**
      * 根据orderId和payFlowType查询订单支付流水
