@@ -11,6 +11,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.client.*;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.util.DictionaryUtil;
@@ -39,6 +40,16 @@ public class BaseManager {
     protected RecipeLogDAO recipeLogDao;
     @Autowired
     private RecipeLogDAO recipeLogDAO;
+    @Autowired
+    protected PatientClient patientClient;
+    @Autowired
+    protected DoctorClient doctorClient;
+    @Autowired
+    protected IConfigurationClient configurationClient;
+    @Autowired
+    protected RevisitClient revisitClient;
+    @Autowired
+    protected OrganClient organClient;
 
     /**
      * 获取处方相关信息

@@ -15,7 +15,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.client.*;
+import recipe.client.EnterpriseClient;
 import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -45,20 +45,9 @@ public class EnterpriseManager extends BaseManager {
      */
     private static String IMG_HEAD = "data:image/jpeg;base64,";
     @Autowired
-    private PatientClient patientClient;
-    @Autowired
-    private DoctorClient doctorClient;
-    @Autowired
-    private RevisitClient revisitClient;
-    @Autowired
-    private IConfigurationClient configurationClient;
-    @Autowired
     private EnterpriseClient enterpriseClient;
     @Autowired
-    private OrganClient organClient;
-    @Autowired
     private IFileDownloadService fileDownloadService;
-
     @Autowired
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
     @Resource
