@@ -1,15 +1,19 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.recipe.dto.RecipeFeeDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.RecipeOrderPayFlow;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.util.JSONUtils;
+import ctd.util.exp.standard.IN;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -19,12 +23,16 @@ import org.springframework.stereotype.Service;
 import recipe.client.EnterpriseClient;
 import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
+import recipe.constant.RecipeFeeEnum;
 import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.RecipeOrderPayFlowDao;
+import recipe.enumerate.type.PayFlagEnum;
+import recipe.enumerate.type.RecipeOrderDetailFeeEnum;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 订单
@@ -44,6 +52,29 @@ public class OrderManager extends BaseManager {
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
     private RevisitClient revisitClient;
+    @Resource
+    private RecipeOrderPayFlowDao recipeOrderPayFlowDao;
+
+
+    /**
+     * 根据处方订单code查询处方费用详情(邵逸夫模式专用)
+     *
+     * @param orderCode
+     * @return
+     */
+    public List<RecipeFeeDTO> findRecipeOrderDetailFee(String orderCode) {
+        logger.info("RecipeOrderManager findRecipeOrderDetailFee orderCode:{}", orderCode);
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
+        Integer payFlag = order.getPayFlag();
+        List<RecipeOrderPayFlow> byOrderId = recipeOrderPayFlowDao.findByOrderId(order.getOrderId());
+        List<RecipeFeeDTO> list = Lists.newArrayList();
+        for (RecipeOrderDetailFeeEnum value : RecipeOrderDetailFeeEnum.values()) {
+            addRecipeFeeDTO(list, value, payFlag, byOrderId);
+        }
+        logger.info("RecipeOrderManager findRecipeOrderDetailFee res :{}", JSONUtils.toString(list));
+        return list;
+    }
+
 
     /**
      * 通过订单号获取该订单下关联的所有处方
@@ -170,4 +201,42 @@ public class OrderManager extends BaseManager {
         }
         return patientBaseInfo;
     }
+
+    /**
+     * 获取处方详情费用
+     *
+     * @param list
+     * @param feeType
+     * @param payFlag
+     * @param byOrderId
+     */
+    private void addRecipeFeeDTO(List<RecipeFeeDTO> list, RecipeOrderDetailFeeEnum feeType, Integer payFlag, List<RecipeOrderPayFlow> byOrderId) {
+        RecipeFeeDTO recipeFeeDTO = new RecipeFeeDTO();
+        recipeFeeDTO.setFeeType(feeType.getName());
+        recipeFeeDTO.setPayFlag(payFlag);
+        if (payFlag.equals(PayFlagEnum.NOPAY.getType()) && CollectionUtils.isNotEmpty(byOrderId)) {
+            Map<Integer, List<RecipeOrderPayFlow>> collect = byOrderId.stream().collect(Collectors.groupingBy(RecipeOrderPayFlow::getPayFlowType));
+            recipeFeeDTO.setPayFlag(getPayFlag(feeType, collect));
+        }
+        list.add(recipeFeeDTO);
+    }
+
+    /**
+     * 获取支付状态
+     *
+     * @param recipeOrderDetailFeeEnum
+     * @param collect
+     * @return
+     */
+    private Integer getPayFlag(RecipeOrderDetailFeeEnum recipeOrderDetailFeeEnum, Map<Integer, List<RecipeOrderPayFlow>> collect) {
+        Integer payFlag = 0;
+        List<RecipeOrderPayFlow> recipeOrderPayFlows = collect.get(recipeOrderDetailFeeEnum.getType());
+        if (CollectionUtils.isEmpty(recipeOrderPayFlows)) {
+            payFlag = PayFlagEnum.NOPAY.getType();
+        } else {
+            payFlag = recipeOrderPayFlows.get(0).getPayFlag();
+        }
+        return payFlag;
+    }
+
 }
