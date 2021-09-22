@@ -123,6 +123,7 @@ import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugTool.service.DrugToolService;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
+import recipe.enumerate.type.PayBusType;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.PayFlowTypeEnum;
 import recipe.enumerate.type.RecipePayTypeEnum;
@@ -275,10 +276,6 @@ public class RecipeService extends RecipeBaseService {
      * 患者手动退款
      */
     public static final int REFUND_PATIENT = 5;
-
-    public static final String WX_RECIPE_BUSTYPE = "recipe";
-
-    private static final String WX_OTHER_TYPE = "Recipeotherfee";
 
     public static final Integer RECIPE_EXPIRED_DAYS = 3;
 
@@ -4393,10 +4390,10 @@ public class RecipeService extends RecipeBaseService {
                         recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
                     } else {
                         //说明需要正常退审方费
-                        refundClient.refund(order.getOrderId(), RecipeService.WX_OTHER_TYPE);
+                        refundClient.refund(order.getOrderId(), PayBusType.OTHER_BUS_TYPE.getName());
                     }
                 }
-                refundClient.refund(order.getOrderId(), RecipeService.WX_RECIPE_BUSTYPE);
+                refundClient.refund(order.getOrderId(), PayBusType.RECIPE_BUS_TYPE.getName());
             }
         } catch (Exception e) {
             LOGGER.error("wxPayRefundForRecipe " + errorInfo + "*****微信退款异常！recipeId[" + recipeId + "],err[" + e.getMessage() + "]", e);
