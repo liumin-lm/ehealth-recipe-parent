@@ -27,6 +27,7 @@ import recipe.factory.status.givemodefactory.GiveModeProxy;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.service.RecipeOrderService;
+import com.ngari.recipe.dto.RecipeFeeDTO;
 
 import java.util.HashMap;
 import java.util.List;
@@ -135,6 +136,11 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     @Override
     public SkipThirdDTO getSkipUrl(SkipThirdReqVO skipThirdReqVO) {
         return orderManager.getThirdUrl(skipThirdReqVO.getRecipeIds().get(0), GiveModeTextEnum.getGiveMode(skipThirdReqVO.getGiveMode()));
+    }
+
+    @Override
+    public List<RecipeFeeDTO> findRecipeOrderDetailFee(String orderCode) {
+        return orderManager.findRecipeOrderDetailFee(orderCode);
     }
 
 

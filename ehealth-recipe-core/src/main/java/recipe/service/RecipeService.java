@@ -113,6 +113,7 @@ import recipe.caNew.CaAfterProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.IConfigurationClient;
 import recipe.client.OperationClient;
+import recipe.client.RefundClient;
 import recipe.common.CommonConstant;
 import recipe.common.OnsConfig;
 import recipe.common.response.CommonResponse;
@@ -122,15 +123,15 @@ import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugTool.service.DrugToolService;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
+import recipe.enumerate.type.PayFlagEnum;
+import recipe.enumerate.type.PayFlowTypeEnum;
+import recipe.enumerate.type.RecipePayTypeEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
-import recipe.manager.EmrRecipeManager;
-import recipe.manager.RecipeManager;
-import recipe.manager.RevisitManager;
-import recipe.manager.SignManager;
+import recipe.manager.*;
 import recipe.purchase.PurchaseService;
 import recipe.service.common.RecipeCacheService;
 import recipe.service.common.RecipeSignService;
@@ -252,6 +253,12 @@ public class RecipeService extends RecipeBaseService {
     @Autowired
     private RevisitManager revisitManager;
 
+    @Autowired
+    private RefundClient refundClient;
+
+    @Autowired
+    private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
+
     /**
      * 药师审核不通过
      */
@@ -270,6 +277,8 @@ public class RecipeService extends RecipeBaseService {
     public static final int REFUND_PATIENT = 5;
 
     public static final String WX_RECIPE_BUSTYPE = "recipe";
+
+    private static final String WX_OTHER_TYPE = "Recipeotherfee";
 
     public static final Integer RECIPE_EXPIRED_DAYS = 3;
 
@@ -4372,9 +4381,23 @@ public class RecipeService extends RecipeBaseService {
         orderService.updateOrderInfo(order.getOrderCode(), ImmutableMap.of("refundFlag", 1, "refundTime", new Date()), null);
 
         try {
-            //退款
-            INgariRefundService rufundService = BaseAPI.getService(INgariRefundService.class);
-            rufundService.refund(order.getOrderId(), RecipeService.WX_RECIPE_BUSTYPE);
+            //退款,根据是否邵逸夫支付进行退款处理
+            Integer payType = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "payModeToHosOnlinePayConfig",1);
+            if (RecipePayTypeEnum.SY_PAY.getType().equals(payType)) {
+                //邵逸夫支付
+                RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(order.getOrderId(), PayFlowTypeEnum.RECIPE_AUDIT.getType());
+                if (null != recipeOrderPayFlow) {
+                    if (StringUtils.isEmpty(recipeOrderPayFlow.getOutTradeNo())) {
+                        //表示没有实际支付审方或者快递费,只需要更新状态
+                        recipeOrderPayFlow.setPayFlag(PayFlagEnum.REFUND_SUCCESS.getType());
+                        recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
+                    } else {
+                        //说明需要正常退审方费
+                        refundClient.refund(order.getOrderId(), RecipeService.WX_OTHER_TYPE);
+                    }
+                }
+                refundClient.refund(order.getOrderId(), RecipeService.WX_RECIPE_BUSTYPE);
+            }
         } catch (Exception e) {
             LOGGER.error("wxPayRefundForRecipe " + errorInfo + "*****微信退款异常！recipeId[" + recipeId + "],err[" + e.getMessage() + "]", e);
         }
@@ -6104,5 +6127,10 @@ public class RecipeService extends RecipeBaseService {
         button.setButtonFlag(buttonFlag);
         button.setRecipeIds(buttonList);
         list.add(button);
+    }
+
+    @RpcService
+    public boolean testNotifyPharAudit(Recipe recipe){
+        return auditModeContext.getAuditModes(recipe.getReviewType()).notifyPharAudit(recipe);
     }
 }

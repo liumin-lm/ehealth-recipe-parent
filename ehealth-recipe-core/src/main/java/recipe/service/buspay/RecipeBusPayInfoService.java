@@ -401,15 +401,12 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         RecipeOrderBean order = recipeOrderService.get(busId);
         SimpleBusObject simpleBusObject = new SimpleBusObject();
 
-        // todo 不知道为什么写 8
         simpleBusObject.setSubBusType("8");
         if (Objects.nonNull(order)) {
             simpleBusObject.setBusId(busId);
-            // todo 总金额写订单总金额还是支付金额
-            simpleBusObject.setPrice(order.getTotalFee().stripTrailingZeros().doubleValue());
-            // todo  实际支付金额写运费 + 审方费用
             BigDecimal otherFee = order.getAuditFee().add(order.getExpressFee());
-            simpleBusObject.setActualPrice(otherFee.stripTrailingZeros().doubleValue());
+            simpleBusObject.setPrice(otherFee.stripTrailingZeros().doubleValue());
+            simpleBusObject.setActualPrice(otherFee.doubleValue());
             simpleBusObject.setCouponId(order.getCouponId());
             simpleBusObject.setCouponName(order.getCouponName());
             simpleBusObject.setMpiId(order.getMpiId());
