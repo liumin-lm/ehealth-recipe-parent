@@ -107,6 +107,11 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
         return true;
     }
 
+    @Override
+    public boolean doHandleAfterPayFail(PayResultDTO payResult) {
+        return false;
+    }
+
     /**
      * 更新处方支付日志
      *
