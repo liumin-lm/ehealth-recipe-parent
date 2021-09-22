@@ -47,6 +47,14 @@ public abstract class RecipeOrderPayFlowDao extends HibernateSupportDelegateDAO<
     public abstract RecipeOrderPayFlow getByOrderIdAndType(@DAOParam("orderId") Integer orderId,
                                                            @DAOParam("payFlowType") Integer payFlowType);
 
+    /**
+     * 根据商户订单号获取支付流水
+     * @param outTradeNo 商户订单号
+     * @return RecipeOrderPayFlow
+     */
+    @DAOMethod(sql = "FROM RecipeOrderPayFlow WHERE outTradeNo =: outTradeNo")
+    public abstract RecipeOrderPayFlow getByOutTradeNo(@DAOParam("outTradeNo") String outTradeNo);
+
     @Override
     public boolean updateNonNullFieldByPrimaryKey(RecipeOrderPayFlow recipeOrderPayFlow) {
         return updateNonNullFieldByPrimaryKey(recipeOrderPayFlow, SQL_KEY_ID);

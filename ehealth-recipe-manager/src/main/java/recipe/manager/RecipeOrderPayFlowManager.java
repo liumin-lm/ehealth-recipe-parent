@@ -20,6 +20,10 @@ public class RecipeOrderPayFlowManager extends BaseManager{
         return recipeOrderPayFlowDao.getByOrderIdAndType(orderId, payFlowType);
     }
 
+    public RecipeOrderPayFlow getByOutTradeNo(String outTradeNo){
+        return recipeOrderPayFlowDao.getByOutTradeNo(outTradeNo);
+    }
+
     public boolean updateNonNullFieldByPrimaryKey(RecipeOrderPayFlow recipeOrderPayFlow){
         return recipeOrderPayFlowDao.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
     }
