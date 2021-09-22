@@ -6128,4 +6128,9 @@ public class RecipeService extends RecipeBaseService {
         button.setRecipeIds(buttonList);
         list.add(button);
     }
+
+    @RpcService
+    public void testNotifyPharAudit(Recipe recipe){
+        auditModeContext.getAuditModes(recipe.getReviewType()).notifyPharAudit(recipe);
+    }
 }
