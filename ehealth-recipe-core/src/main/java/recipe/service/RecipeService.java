@@ -6130,7 +6130,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
     @RpcService
-    public void testNotifyPharAudit(Recipe recipe){
-        auditModeContext.getAuditModes(recipe.getReviewType()).notifyPharAudit(recipe);
+    public boolean testNotifyPharAudit(Recipe recipe){
+        return auditModeContext.getAuditModes(recipe.getReviewType()).notifyPharAudit(recipe);
     }
 }

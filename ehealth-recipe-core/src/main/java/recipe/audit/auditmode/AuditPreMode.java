@@ -123,7 +123,7 @@ public class AuditPreMode extends AbstractAuidtMode {
     }
 
     public Boolean notifyPharAudit(Recipe recipe){
-        LOGGER.info("notifyPharAudit start");
+        LOGGER.info("notifyPharAudit start recipe={}",JSONUtils.toString(recipe));
         NotifyPharAuditTO request = new NotifyPharAuditTO();
         String registerNo="";
         String cardNo="";
