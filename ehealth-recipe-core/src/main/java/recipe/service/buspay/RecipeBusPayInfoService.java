@@ -51,8 +51,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.ObjectUtils;
+import recipe.client.IConfigurationClient;
 import recipe.client.RevisitClient;
 import recipe.enumerate.type.MedicalTypeEnum;
+import recipe.enumerate.type.RecipePayTypeEnum;
 import recipe.manager.ButtonManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
@@ -84,6 +86,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     private ButtonManager buttonManager;
     @Autowired
     private RevisitClient revisitClient;
+    @Autowired
+    private IConfigurationClient configurationClient;
 
 
     private IConfigurationCenterUtilsService utils = BaseAPI.getService(IConfigurationCenterUtilsService.class);
@@ -373,6 +377,24 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             } else {
                 simpleBusObject.setSettleType("1");
             }
+
+            // 邵逸夫模式
+            Integer payType = configurationClient.getValueCatchReturnInteger(order.getOrganId(), "payModeToHosOnlinePayConfig",1);
+            if (RecipePayTypeEnum.SY_PAY.getType().equals(payType)) {
+                BigDecimal fundAmount = BigDecimal.valueOf(order.getFundAmount() == null ? 0.00 : order.getFundAmount());
+                BigDecimal otherFee = order.getAuditFee().add(order.getExpressFee()).add(fundAmount);
+                simpleBusObject.setActualPrice(new Double(BigDecimal.valueOf(order.getActualPrice()).subtract(otherFee) + ""));
+
+                // 0自费 1医保
+                RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipeBean.getClinicId());
+                if (MedicalTypeEnum.SELF_PAY.getType().equals(revisitExDTO.getMedicalFlag())) {
+                    simpleBusObject.setSettleType("1");
+                }else {
+                    simpleBusObject.setSettleType("0");
+                }
+            }
+
+
             //date 20200402
             //添加字段
             if (null != recipeBean) {
