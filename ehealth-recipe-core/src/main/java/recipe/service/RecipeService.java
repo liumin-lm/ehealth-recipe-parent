@@ -260,6 +260,7 @@ public class RecipeService extends RecipeBaseService {
     @Autowired
     private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
 
+
     /**
      * 药师审核不通过
      */
@@ -3519,6 +3520,20 @@ public class RecipeService extends RecipeBaseService {
                     //相应订单处理
                     order = orderDAO.getOrderByRecipeId(recipeId);
                     orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
+                    // 邵逸夫模式下 需要查询有无支付审方费
+                    IConfigurationClient configurationClient = ApplicationUtils.getRecipeService(IConfigurationClient.class);
+                    Integer payType = configurationClient.getValueCatchReturnInteger(order.getOrganId(), "payModeToHosOnlinePayConfig",1);
+                    if (RecipePayTypeEnum.SY_PAY.getType().equals(payType)) {
+                        // 查询是否有流水
+                        RecipeOrderPayFlowDao recipeOrderPayFlowDao = ApplicationUtils.getRecipeService(RecipeOrderPayFlowDao.class);
+                        List<RecipeOrderPayFlow> byOrderId = recipeOrderPayFlowDao.findByOrderId(order.getOrderId());
+                        // 退费
+                        if(CollectionUtils.isNotEmpty(byOrderId)){
+                            RefundClient refundClient = ApplicationUtils.getRecipeService(RefundClient.class);
+                            refundClient.refund(order.getOrderId(),PayBusType.OTHER_BUS_TYPE.getName());
+                        }
+
+                    }
                     if (recipe.getFromflag().equals(RecipeBussConstant.FROMFLAG_HIS_USE)) {
                         if (null != order) {
                             orderDAO.updateByOrdeCode(order.getOrderCode(), ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
@@ -3559,6 +3574,8 @@ public class RecipeService extends RecipeBaseService {
                     }
                     //保存处方状态变更日志
                     RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, updateStatus, memo.toString());
+
+
                 } catch (Exception e) {
                     LOGGER.error("根据失效时间处理到期处方异常，处方={}", JSONObject.toJSONString(recipeList), e);
                 } finally {
