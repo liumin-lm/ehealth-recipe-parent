@@ -3,13 +3,23 @@ package recipe.audit.auditmode;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.consult.ConsultAPI;
+import com.ngari.consult.common.model.ConsultExDTO;
+import com.ngari.consult.common.service.IConsultExService;
+import com.ngari.his.recipe.mode.NotifyPharAuditTO;
+import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.persistence.DAOFactory;
+import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
+import ctd.util.JSONUtils;
 import eh.base.constant.BussTypeConstant;
 import eh.recipeaudit.api.IAuditMedicinesService;
 import eh.recipeaudit.api.IRecipeAuditService;
@@ -98,6 +108,8 @@ public class AuditPreMode extends AbstractAuidtMode {
                 IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
                 RecipeDTO recipeBean = ObjectCopyUtils.convert(recipe, RecipeDTO.class);
                 recipeAuditService.sendCheckRecipeInfo(recipeBean);
+            } else if (new Integer(5).equals(checkMode)){
+                notifyPharAudit(byRecipeId);
             } else {
                 recipeAudit(recipe);
             }
@@ -108,6 +120,59 @@ public class AuditPreMode extends AbstractAuidtMode {
         }
         //异步添加水印
         RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunable(recipe.getRecipeId()));
+    }
+
+    public Boolean notifyPharAudit(Recipe recipe){
+        LOGGER.info("notifyPharAudit start");
+        NotifyPharAuditTO request = new NotifyPharAuditTO();
+        String registerNo="";
+        String cardNo="";
+        Integer recipeId = recipe.getRecipeId();
+        Integer organId = recipe.getClinicOrgan();
+        if (null != recipe.getClinicId()) {
+            if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
+                IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
+                RevisitExDTO revisitExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
+                LOGGER.info("notifyPharAudit revisitExDTO:{}", JSONUtils.toString(revisitExDTO));
+                iRevisitExService.updateRecipeIdByConsultId(recipe.getClinicId(), recipe.getRecipeId());
+                if (null != revisitExDTO) {
+                    if (StringUtils.isNotEmpty(revisitExDTO.getRegisterNo())) {
+                        registerNo=revisitExDTO.getRegisterNo();
+                    }
+                    if (StringUtils.isNotEmpty(revisitExDTO.getCardId()) && StringUtils.isNotEmpty(revisitExDTO.getCardType())) {
+                        cardNo= revisitExDTO.getCardId();
+                    }
+                }
+            } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipe.getBussSource())) {
+                IConsultExService exService = ConsultAPI.getService(IConsultExService.class);
+                ConsultExDTO consultExDTO = exService.getByConsultId(recipe.getClinicId());
+                LOGGER.info("notifyPharAudit consultExDTO:{}", JSONUtils.toString(consultExDTO));
+                exService.updateRecipeIdByConsultId(recipe.getClinicId(), recipe.getRecipeId());
+                if (null != consultExDTO) {
+                    if (StringUtils.isNotEmpty(consultExDTO.getRegisterNo())) {
+                        registerNo=consultExDTO.getRegisterNo();
+                    }
+                    if (StringUtils.isNotEmpty(consultExDTO.getCardId()) && StringUtils.isNotEmpty(consultExDTO.getCardType())) {
+                        cardNo= consultExDTO.getCardId();
+                    }
+                }
+            }
+        }
+        request.setPatCode(cardNo);
+        request.setInHospNo(registerNo);
+        request.setVisitCode(String.valueOf(recipeId));
+        request.setOrganID(String.valueOf(organId));
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        LOGGER.info("notifyPharAudit request={}", JSONUtils.toString(request));
+        Boolean response = false;
+        try {
+            response = hisService.notifyPharAudit(request);
+            LOGGER.info("notifyPharAudit response={}", JSONUtils.toString(response));
+        } catch (Exception e) {
+            LOGGER.error("notifyPharAudit error ", e);
+        }
+        LOGGER.info("notifyPharAudit finsh");
+        return response;
     }
 
 
