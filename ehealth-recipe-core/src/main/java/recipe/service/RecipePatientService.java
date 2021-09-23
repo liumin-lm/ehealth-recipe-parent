@@ -520,19 +520,17 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
                 return list;
             }
             list = res.getData().getChronicDiseaseListResTOs();
-            if (CollectionUtils.isNotEmpty(list)) {
+            HashMap<String, String> finalChronicDiseaseFlagMap = getRedisChronicDiseaseMap(organId);
+            if (CollectionUtils.isNotEmpty(list) && finalChronicDiseaseFlagMap.size() > 0) {
                 LOGGER.info("慢病信息转化前的list={}",JSON.toJSONString(list));
-                HashMap<String, String> finalChronicDiseaseFlagMap = getRedisChronicDiseaseMap(organId);
-                if (finalChronicDiseaseFlagMap.size() > 0) {
-                    list.forEach(
-                            item -> {
-                                String chronicDiseaseFlag = finalChronicDiseaseFlagMap.get(item.getChronicDiseaseFlag());
-                                if(StringUtils.isNoneBlank(chronicDiseaseFlag)){
-                                    item.setChronicDiseaseFlag(chronicDiseaseFlag);
-                                }
+                list.forEach(
+                        item -> {
+                            String chronicDiseaseFlag = finalChronicDiseaseFlagMap.get(item.getChronicDiseaseFlag());
+                            if(StringUtils.isNoneBlank(chronicDiseaseFlag)){
+                                item.setChronicDiseaseFlag(chronicDiseaseFlag);
                             }
-                    );
-                }
+                        }
+                );
                 LOGGER.info("慢病信息转化后的list={}",JSON.toJSONString(list));
             }
             return list;
@@ -588,19 +586,17 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             }
             if (res != null && res.getData() != null) {
                 list = res.getData().getChronicDiseaseListResTOs();
-                if (CollectionUtils.isNotEmpty(list)) {
+                HashMap<String, String> finalChronicDiseaseFlagMap = getRedisChronicDiseaseMap(organId);
+                if (CollectionUtils.isNotEmpty(list) && finalChronicDiseaseFlagMap.size() > 0) {
                     LOGGER.info("慢病信息转化前的list={}",JSON.toJSONString(list));
-                    HashMap<String, String> finalChronicDiseaseFlagMap = getRedisChronicDiseaseMap(organId);
-                    if(finalChronicDiseaseFlagMap.size() > 0) {
-                        list.forEach(
-                                item -> {
-                                    String chronicDiseaseFlag = finalChronicDiseaseFlagMap.get(item.getChronicDiseaseFlag());
-                                    if(StringUtils.isNoneBlank(chronicDiseaseFlag)){
-                                        item.setChronicDiseaseFlag(chronicDiseaseFlag);
-                                    }
+                    list.forEach(
+                            item -> {
+                                String chronicDiseaseFlag = finalChronicDiseaseFlagMap.get(item.getChronicDiseaseFlag());
+                                if(StringUtils.isNoneBlank(chronicDiseaseFlag)){
+                                    item.setChronicDiseaseFlag(chronicDiseaseFlag);
                                 }
-                        );
-                    }
+                            }
+                    );
                     LOGGER.info("慢病信息转化后的list={}",JSON.toJSONString(list));
                 }
                 try {
