@@ -1209,7 +1209,7 @@ public class RecipeHisService extends RecipeBaseService {
         }
         hisCheckRecipeReqTO.setRecipeID(null != recipeBean.getRecipeCode() ? recipeBean.getRecipeCode() : recipeBean.getRecipeId().toString());
         hisCheckRecipeReqTO.setPlatRecipeID(recipeBean.getRecipeId());
-        //hisCheckRecipeReqTO.setIsLongRecipe(recipeBean.getRecipeExtend().getIsLongRecipe());
+        hisCheckRecipeReqTO.setIsLongRecipe(recipeBean.getRecipeExtend().getIsLongRecipe());
         IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
         //患者信息
         PatientBean patientBean = iPatientService.get(recipeBean.getMpiid());
