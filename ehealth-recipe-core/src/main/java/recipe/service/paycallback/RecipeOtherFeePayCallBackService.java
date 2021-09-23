@@ -71,6 +71,7 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
             recipeOrderPayFlow.setTradeNo(payResult.getTradeNo());
             recipeOrderPayFlow.setWnPayWay("");
             recipeOrderPayFlow.setWxPayWay(payResult.getPayWay());
+            recipeOrderPayFlowManager.save(recipeOrderPayFlow);
             logger.info("RecipeOtherFeePayCallBackService doHandleAfterPay recipeOrderPayFlow not exists, busId[{}]", busId);
             return true;
         }
