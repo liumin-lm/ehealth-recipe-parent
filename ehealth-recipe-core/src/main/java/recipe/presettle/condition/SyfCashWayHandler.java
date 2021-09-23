@@ -14,6 +14,8 @@ import recipe.enumerate.type.RecipePayTypeEnum;
 import recipe.presettle.RecipeOrderTypeEnum;
 import recipe.presettle.model.OrderTypeCreateConditionRequest;
 
+import java.util.Objects;
+
 /**
  * 邵逸夫医院新增结算方式
  */
@@ -34,17 +36,20 @@ public class SyfCashWayHandler implements IOrderTypeConditionHandler{
             return null;
         }
         //通过运营平台控制开关决定是否走此种模式
-        Integer payType = configurationClient.getValueCatchReturnInteger(organId, "payModeToHosOnlinePayConfig",1);
-        if (!RecipePayTypeEnum.SY_PAY.getType().equals(payType)) {
+        Boolean syfPayMode = configurationClient.getValueBooleanCatch(organId, "syfPayMode",false);
+        if (!syfPayMode) {
             //说明不需要走邵逸支付
             return null;
         }
         //查询复诊获取患者类型（自费or医保）
         RevisitExDTO revisitExDTO = revisitClient.getByClinicId(request.getRecipe().getClinicId());
+        if(Objects.isNull(revisitExDTO)){
+            return null;
+        }
         if (MedicalTypeEnum.SELF_PAY.getType().equals(revisitExDTO.getMedicalFlag())) {
             //自费结算
             return RecipeOrderTypeEnum.HOSPITAL_SELF.getType();
-        } else if (MedicalTypeEnum.MEDICAL_PAY.equals(revisitExDTO.getMedicalFlag())) {
+        } else if (MedicalTypeEnum.MEDICAL_PAY.getType().equals(revisitExDTO.getMedicalFlag())) {
             //医保结算
             return RecipeOrderTypeEnum.PROVINCIAL_MEDICAL.getType();
         }

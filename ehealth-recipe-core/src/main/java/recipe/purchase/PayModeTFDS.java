@@ -281,6 +281,14 @@ public class PayModeTFDS implements IPurchaseService{
                 purchaseService.updateRecipeDetail(reicpeId);
             }
         }
+        for (Integer recipeId2 : recipeIdLists){
+            PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+            purchaseService.updateRecipeDetail(recipeId2);
+            //date 20200318
+            //确认订单后同步配送信息接口
+            extInfo.put("payMode", "2");
+            CommonOrder.updateGoodsReceivingInfoToCreateOrder(recipeId2,extInfo);
+        }
         return result;
     }
 

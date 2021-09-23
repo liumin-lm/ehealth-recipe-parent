@@ -119,6 +119,7 @@ public class EnterpriseClient extends BaseClient {
         logger.info("pushRecipeInfoForThird responseTO:{}.", JSONUtils.toString(responseTO));
         SkipThirdDTO result = new SkipThirdDTO();
         //推送药企失败
+        result.setType(ByteUtils.strValueOf(ByteUtils.objValueOf(responseTO.getExtend().get("type"))));
         if (null == responseTO || !responseTO.isSuccess()) {
             result.setCode(0);
             result.setMsg(responseTO.getMsg());

@@ -3522,8 +3522,8 @@ public class RecipeService extends RecipeBaseService {
                     orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
                     // 邵逸夫模式下 需要查询有无支付审方费
                     IConfigurationClient configurationClient = ApplicationUtils.getRecipeService(IConfigurationClient.class);
-                    Integer payType = configurationClient.getValueCatchReturnInteger(order.getOrganId(), "payModeToHosOnlinePayConfig",1);
-                    if (RecipePayTypeEnum.SY_PAY.getType().equals(payType)) {
+                    Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
+                    if (syfPayMode) {
                         // 查询是否有流水
                         RecipeOrderPayFlowDao recipeOrderPayFlowDao = ApplicationUtils.getRecipeService(RecipeOrderPayFlowDao.class);
                         List<RecipeOrderPayFlow> byOrderId = recipeOrderPayFlowDao.findByOrderId(order.getOrderId());
@@ -4396,8 +4396,9 @@ public class RecipeService extends RecipeBaseService {
 
         try {
             //退款,根据是否邵逸夫支付进行退款处理
-            Integer payType = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "payModeToHosOnlinePayConfig",1);
-            if (RecipePayTypeEnum.SY_PAY.getType().equals(payType)) {
+            //通过运营平台控制开关决定是否走此种模式
+            Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode",false);
+            if (syfPayMode) {
                 //邵逸夫支付
                 RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(order.getOrderId(), PayFlowTypeEnum.RECIPE_AUDIT.getType());
                 if (null != recipeOrderPayFlow) {

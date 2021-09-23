@@ -1,6 +1,7 @@
 package recipe.atop.patient;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.dto.RecipeFeeDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.ResultBean;
@@ -14,7 +15,6 @@ import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.util.ValidateUtil;
-import com.ngari.recipe.dto.RecipeFeeDTO;
 
 import java.util.List;
 import java.util.Map;
@@ -115,8 +115,9 @@ public class RecipeOrderPatientAtop extends BaseAtop {
         try {
             //上传处方到第三方,上传失败提示HIS返回的失败信息
             SkipThirdDTO pushThirdUrl = recipeOrderService.uploadRecipeInfoToThird(skipThirdReqVO);
-            if (null != pushThirdUrl && StringUtils.isNotEmpty(pushThirdUrl.getUrl())) {
-                pushThirdUrl.setType(2);
+            if (null != pushThirdUrl && new Integer(2) .equals(pushThirdUrl.getType()) ) {
+                String msg = StringUtils.isEmpty(pushThirdUrl.getUrl()) ? "请在相关平台查看" : pushThirdUrl.getMsg();
+                pushThirdUrl.setMsg(msg);
                 return pushThirdUrl;
             }
             //获取跳转链接

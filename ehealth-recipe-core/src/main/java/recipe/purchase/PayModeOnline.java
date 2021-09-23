@@ -389,21 +389,16 @@ public class PayModeOnline implements IPurchaseService {
             purchaseService.updateRecipeDetail(recipeId2);
             //date 20200318
             //确认订单后同步配送信息接口
-            updateGoodsReceivingInfoToCreateOrder(recipeId2,extInfo);
+            extInfo.put("payMode", "1");
+            CommonOrder.updateGoodsReceivingInfoToCreateOrder(recipeId2,extInfo);
         }
         return result;
     }
 
     public HisResponseTO updateGoodsReceivingInfoToCreateOrder(Integer recipeId, Map<String, String> extInfo) {
         try{
-
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-            //杭州市三也要走杭州互联网医院流程固放开
-            /*//杭州市三除外
-            if (StringUtils.isNotEmpty(recipe.getOrganName())&&recipe.getOrganName().contains("杭州市第三人民医院")){
-                return new HisResponseTO().setSuccess();
-            }*/
             DoctorService doctorService = BasicAPI.getService(DoctorService.class);
             PatientService patientService = BasicAPI.getService(PatientService.class);
             PatientDTO patient = patientService.get(recipe.getMpiid());
@@ -492,29 +487,6 @@ public class PayModeOnline implements IPurchaseService {
             }
             //流转到这里来的属于物流配送
             updateTakeDrugWayReqTO.setDeliveryType("1");
-//
-//            RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-//
-//            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-//            RecipeExtend nowRecipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-//
-//            if(null != nowRecipeExtend){
-//                String deliveryRecipeFee = nowRecipeExtend.getDeliveryRecipeFee();
-//                if(StringUtils.isNotEmpty(deliveryRecipeFee)){
-//
-//                    //date 20200305
-//                    IRecipePlatformServiceNew platformService = AppDomainContext.getBean("his.recipePlatformService",IRecipePlatformServiceNew.class);
-//                    QueryRecipeReqHisDTO queryRecipeReqDTO = new QueryRecipeReqHisDTO();
-//                    queryRecipeReqDTO.setOrganId(null != recipe.getClinicOrgan() ? recipe.getClinicOrgan().toString() :  "");
-//                    queryRecipeReqDTO.setRecipeID(recipeId.toString());
-//                    QueryRecipeResultHisDTO queryRecipeResultHisDTO = platformService.queryRecipeInfo(queryRecipeReqDTO);
-//                    updateTakeDrugWayReqTO.setQueryRecipeResultHisDTO(queryRecipeResultHisDTO);
-//
-//                }
-//
-//            }else{
-//                LOG.info("当前处方{}没有关联的扩展信息", recipeId);
-//            }
             //date 2020-10-15 17:38 修改添加挂号序号
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend nowRecipeExtend = recipeExtendDAO.getByRecipeId(recipeId);

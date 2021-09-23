@@ -62,6 +62,7 @@ import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.client.IConfigurationClient;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.constant.*;
@@ -70,10 +71,7 @@ import recipe.drugsenterprise.*;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
-import recipe.manager.EmrRecipeManager;
-import recipe.manager.HisRecipeManager;
-import recipe.manager.OrderManager;
-import recipe.manager.RecipeManager;
+import recipe.manager.*;
 import recipe.purchase.PurchaseService;
 import recipe.service.afterpay.AfterPayBusService;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
@@ -148,6 +146,10 @@ public class RecipeOrderService extends RecipeBaseService {
 
     @Autowired
     private RecipeManager recipeManager;
+    @Autowired
+    private IConfigurationClient configurationClient;
+    @Autowired
+    private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
 
 
     /**
@@ -1728,6 +1730,18 @@ public class RecipeOrderService extends RecipeBaseService {
                             needFee = orderBean.getTotalFee().subtract(orderBean.getCouponFee());
                         } else {
                             needFee = orderBean.getTotalFee().subtract(orderBean.getCouponFee()).subtract(new BigDecimal(Double.toString(orderBean.getActualPrice())));
+                        }
+                        // 邵逸夫模式修改需付款
+                        Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
+                        if (syfPayMode) {
+                            List<RecipeOrderPayFlow> byOrderId = recipeOrderPayFlowManager.findByOrderId(orderBean.getOrderId());
+                            if(CollectionUtils.isNotEmpty(byOrderId)){
+                                Double otherFee = 0d;
+                                for (RecipeOrderPayFlow recipeOrderPayFlow : byOrderId) {
+                                    otherFee = otherFee + recipeOrderPayFlow.getTotalFee();
+                                }
+                                needFee = needFee.subtract(BigDecimal.valueOf(otherFee));
+                            }
                         }
                     } catch (Exception e) {
                         LOGGER.error("getOrderDetailById needFee计算需支付 error :{}", e);

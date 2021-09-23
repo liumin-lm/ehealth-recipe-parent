@@ -9,14 +9,12 @@ import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
-import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.EnterpriseClient;
-import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
@@ -92,9 +90,8 @@ public class EnterpriseManager extends BaseManager {
         for (Recipe recipe : recipes) {
             recipe.setGiveMode(GiveModeTextEnum.getGiveMode(giveMode));
             result = pushRecipeForThird(recipe, 1);
-            //todo 一个失败就都不推送了？
             if (0 == result.getCode()) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, result.getMsg());
+                break;
             }
         }
         return result;

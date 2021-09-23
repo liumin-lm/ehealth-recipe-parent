@@ -2819,13 +2819,13 @@ public class RecipeServiceSub {
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
             boolean succFlag = hisService.recipeStatusUpdate(recipeId);
             if (succFlag) {
-                memo.append("HIS推送成功,");
+                memo.append("HIS推送成功");
             } else {
-                memo.append("HIS推送失败,");
+                memo.append("his处方撤销失败");
                 result = false;
             }
         } else if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
-            memo.append("aldyf推送成功,");
+            memo.append("aldyf推送成功");
             hisMqService.recipeStatusToHis(HisMqRequestInit.initRecipeStatusToHisReq(recipe, HisBussConstant.TOHIS_RECIPE_STATUS_REVOKE));
             OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
             List<DrugsEnterprise> drugsEnterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(recipe.getClinicOrgan(), 1);
@@ -2860,7 +2860,7 @@ public class RecipeServiceSub {
         changeAttr.put("checkFlag", null);
         result = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), changeAttr);
         if (result) {
-            memo.append("处方撤销成功。");
+            memo.append("，处方撤销成功。");
             //将药品移出病历
             EmrRecipeManager emrRecipeManager = AppContextHolder.getBean("emrRecipeManager", EmrRecipeManager.class);
             emrRecipeManager.deleteRecipeDetailsFromDoc(recipeId);
@@ -2876,11 +2876,11 @@ public class RecipeServiceSub {
             //推送处方到监管平台
             RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
         } else {
-            memo.append("未知原因，处方撤销失败。");
+            memo.append("，未知原因，处方撤销失败。");
         }
 
         if (1 == flag) {
-            memo.append("处方撤销成功。撤销人：" + name + ",撤销原因：" + message);
+            memo.append("，处方撤销成功。撤销人：" + name + ",撤销原因：" + message);
         } else {
             if (result) {
                 if (StringUtils.isNotEmpty(message)) {
