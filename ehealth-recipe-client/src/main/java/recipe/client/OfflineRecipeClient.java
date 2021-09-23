@@ -29,7 +29,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
-import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.DateConversion;
@@ -99,33 +98,6 @@ public class OfflineRecipeClient extends BaseClient {
         recipeInfoDTO.setRecipe(ObjectCopyUtils.convert(hisResponseData.getRecipeBean(), Recipe.class));
         recipeInfoDTO.setRecipeExtend(ObjectCopyUtils.convert(hisResponseData.getRecipeExtendBean(), RecipeExtend.class));
         return recipeInfoDTO;
-    }
-
-    /**
-     * 撤销处方校验
-     *
-     * @param recipePdfDTO  处方明细
-     * @param emrDetail     电子病历
-     * @param pharmacyIdMap 药房
-     * @return
-     * @throws Exception
-     */
-    public RecipeCancelDTO cancelRecipeValidate(RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap) {
-        try {
-            com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = recipeDTO(CommonConstant.RECIPE_CANCEL_TYPE, recipePdfDTO, emrDetail, pharmacyIdMap);
-            HisResponseTO<com.ngari.platform.recipe.mode.RecipeCancel> hisResponse = recipeHisService.cancelRecipeValidate(recipeDTO);
-            com.ngari.platform.recipe.mode.RecipeCancel recipeCancel = getResponseCatch(hisResponse);
-            RecipeCancelDTO recipeCancelDTO = new RecipeCancelDTO();
-            if (null == recipeCancel) {
-                recipeCancelDTO.setCancelRecipeFlag(true);
-            } else {
-                BeanUtils.copyProperties(recipeCancel, recipeCancelDTO);
-            }
-            return recipeCancelDTO;
-        } catch (Exception e) {
-            logger.error("OfflineRecipeClient cancelRecipeValidate hisResponse", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
     }
 
 

@@ -5,7 +5,6 @@ import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.EmrDetailDTO;
-import com.ngari.recipe.dto.RecipeCancelDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
@@ -466,20 +465,6 @@ public class HisRecipeManager extends BaseManager {
     public RecipeInfoDTO pushRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
         EmrDetailDTO emrDetail = emrDetail(recipePdfDTO);
         return offlineRecipeClient.pushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
-    }
-
-    /**
-     * 校验处方能否撤销
-     *
-     * @param recipePdfDTO  处方信息
-     * @param pushType      推送类型: 1：提交处方，2:撤销处方
-     * @param pharmacyIdMap 药房
-     * @return 撤销信息
-     * @throws Exception
-     */
-    public RecipeCancelDTO cancelRecipeValidate(RecipeInfoDTO recipePdfDTO, Map<Integer, PharmacyTcm> pharmacyIdMap) {
-        EmrDetailDTO emrDetail = emrDetail(recipePdfDTO);
-        return offlineRecipeClient.cancelRecipeValidate(recipePdfDTO, emrDetail, pharmacyIdMap);
     }
 
     /**

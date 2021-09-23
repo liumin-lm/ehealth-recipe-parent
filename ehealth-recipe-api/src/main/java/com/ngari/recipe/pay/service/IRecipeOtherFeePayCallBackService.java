@@ -15,16 +15,16 @@ public interface IRecipeOtherFeePayCallBackService {
     /**
      * 支付成功回调
      *
-     * @param payResult
-     * @return
+     * @param payResult payResult
+     * @return boolean
      */
     @RpcService
     boolean doHandleAfterPay(PayResultDTO payResult);
 
     /**
      * 支付失败回调
-     * @param payResult
-     * @return
+     * @param payResult payResult
+     * @return boolean
      */
     @RpcService
     boolean doHandleAfterPayFail(PayResultDTO payResult);
@@ -32,11 +32,11 @@ public interface IRecipeOtherFeePayCallBackService {
     /**
      * 退款成功或失败回调
      *
-     * @param order
-     * @param targetPayflag
-     * @param refundResult
-     * @return
+     * @param order order
+     * @param targetPayFlag targetPayFlag
+     * @param refundResult refundResult
+     * @return boolean
      */
     @RpcService
-    boolean doHandleAfterRefund(Order order, int targetPayflag, Map<String, String> refundResult);
+    boolean doHandleAfterRefund(Order order, int targetPayFlag, Map<String, String> refundResult);
 }
