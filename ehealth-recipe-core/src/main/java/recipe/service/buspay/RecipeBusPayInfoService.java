@@ -20,6 +20,7 @@ import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.service.IDrugsEnterpriseService;
+import com.ngari.recipe.entity.RecipeOrderPayFlow;
 import com.ngari.recipe.pay.model.WnExtBusCdrRecipeDTO;
 import com.ngari.recipe.pay.service.IRecipeBusPayService;
 import com.ngari.recipe.recipe.constant.RecipePayTipEnum;
@@ -56,6 +57,7 @@ import recipe.client.RevisitClient;
 import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.enumerate.type.RecipePayTypeEnum;
 import recipe.manager.ButtonManager;
+import recipe.manager.RecipeOrderPayFlowManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.third.HztServiceInterface;
@@ -88,6 +90,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     private RevisitClient revisitClient;
     @Autowired
     private IConfigurationClient configurationClient;
+    @Autowired
+    private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
 
 
     private IConfigurationCenterUtilsService utils = BaseAPI.getService(IConfigurationCenterUtilsService.class);
@@ -181,8 +185,21 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             }
         }
         confirmOrder.setDiscountAmount(discountAmount.toString());
-        confirmOrder.setOrderAmount(order.getTotalFee().stripTrailingZeros().toPlainString());
+        BigDecimal orderAmount = order.getTotalFee();
         confirmOrder.setActualPrice(BigDecimal.valueOf(order.getActualPrice()).stripTrailingZeros().toPlainString());
+        // 邵逸夫模式修改需付款
+        Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
+        if (syfPayMode) {
+            List<RecipeOrderPayFlow> byOrderId = recipeOrderPayFlowManager.findByOrderId(order.getOrderId());
+            if(CollectionUtils.isNotEmpty(byOrderId)){
+                Double otherFee = 0d;
+                for (RecipeOrderPayFlow recipeOrderPayFlow : byOrderId) {
+                    otherFee = otherFee + recipeOrderPayFlow.getTotalFee();
+                }
+                orderAmount = orderAmount.subtract(BigDecimal.valueOf(otherFee));
+            }
+        }
+        confirmOrder.setOrderAmount(orderAmount.stripTrailingZeros().toPlainString());
         confirmOrder.setBusObject(order);
         //设置confirmOrder的扩展信息ext----一些配置信息
         confirmOrder.setExt(setConfirmOrderExtInfo(order, recipeId, extInfo, recipeExtend));
@@ -342,7 +359,6 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             if (order.getOrderType() != null && order.getOrderType() == 1) {
                 Double fundAmount = order.getFundAmount() == null ? 0.00 : order.getFundAmount();
                 simpleBusObject.setActualPrice(new Double(BigDecimal.valueOf(order.getActualPrice()).subtract(BigDecimal.valueOf(fundAmount)) + ""));
-
             }
             List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
             RecipeBean recipeBean = recipeService.getByRecipeId(recipeIdList.get(0));

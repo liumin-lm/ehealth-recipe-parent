@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import recipe.dao.RecipeOrderPayFlowDao;
 
 import java.util.Date;
+import java.util.List;
 
 /**
  * 交易流水处理
@@ -20,6 +21,10 @@ public class RecipeOrderPayFlowManager extends BaseManager{
 
     public RecipeOrderPayFlow getByOrderIdAndType(Integer orderId, Integer payFlowType){
         return recipeOrderPayFlowDao.getByOrderIdAndType(orderId, payFlowType);
+    }
+
+    public List<RecipeOrderPayFlow> findByOrderId(Integer orderId){
+        return recipeOrderPayFlowDao.findByOrderId(orderId);
     }
 
     public RecipeOrderPayFlow getByOutTradeNo(String outTradeNo){
