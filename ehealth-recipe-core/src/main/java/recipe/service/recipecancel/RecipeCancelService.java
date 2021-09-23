@@ -1,13 +1,9 @@
 package recipe.service.recipecancel;
 
-import com.alibaba.fastjson.JSON;
-import com.google.common.collect.ImmutableMap;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.platform.recipe.mode.HospitalReqTo;
-import com.ngari.recipe.dto.RecipeCancelDTO;
 import com.ngari.recipe.entity.Recipe;
-import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -16,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.client.PatientClient;
-import recipe.core.api.IRecipeBusinessService;
 import recipe.service.RecipeServiceSub;
 
 import java.util.Map;
@@ -33,9 +28,6 @@ public class RecipeCancelService {
     @Autowired
     private PatientClient patientClient;
 
-    @Autowired
-    private IRecipeBusinessService recipeBusinessService;
-
     /**
      * 处方撤销处方new----------(供医生端使用)
      *
@@ -45,20 +37,7 @@ public class RecipeCancelService {
      */
     @RpcService
     public Map<String, Object> cancelRecipe(Integer recipeId, String message) {
-        LOGGER.info("RecipeDoctorAtop cancelRecipeValidate recipeId:{}", recipeId);
-        try {
-            RecipeCancelDTO result = recipeBusinessService.cancelRecipeValidate(recipeId);
-            if (!result.getCancelRecipeFlag()) {
-                return ImmutableMap.of("result", false, "msg", result.getCancelReason());
-            }
-            LOGGER.info("RecipeDoctorAtop cancelRecipeValidate result:{}", JSON.toJSONString(result));
-        } catch (DAOException e1) {
-            LOGGER.warn("RecipeDoctorAtop cancelRecipeValidate  error", e1);
-            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            LOGGER.error("RecipeDoctorAtop cancelRecipeValidate error e", e);
-            throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
+        LOGGER.info("recipeCancelService cancelRecipe recipeId:{}", recipeId);
         return RecipeServiceSub.cancelRecipeImpl(recipeId, 0, "", message);
     }
 
