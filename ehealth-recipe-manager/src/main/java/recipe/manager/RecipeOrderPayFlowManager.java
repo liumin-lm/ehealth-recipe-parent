@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.dao.RecipeOrderPayFlowDao;
 
+import java.util.Date;
+
 /**
  * 交易流水处理
  *
@@ -26,5 +28,11 @@ public class RecipeOrderPayFlowManager extends BaseManager{
 
     public boolean updateNonNullFieldByPrimaryKey(RecipeOrderPayFlow recipeOrderPayFlow){
         return recipeOrderPayFlowDao.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
+    }
+
+    public void save(RecipeOrderPayFlow recipeOrderPayFlow){
+        Date date = new Date();
+        recipeOrderPayFlow.setCreateTime(date);
+        recipeOrderPayFlow.setModifiedTime(date);
     }
 }

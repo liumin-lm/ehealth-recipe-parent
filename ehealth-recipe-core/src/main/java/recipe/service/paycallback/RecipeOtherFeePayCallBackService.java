@@ -43,6 +43,8 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
     @Autowired
     private RecipeManager recipeManager;
 
+
+
     @Override
     public boolean doHandleAfterPay(PayResultDTO payResult) {
         logger.info("RecipeOtherFeePayCallBackService doHandleAfterPay payResult:{}.", JSON.toJSONString(payResult));
@@ -59,8 +61,18 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
         }
         RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(busId, PayFlowTypeEnum.RECIPE_AUDIT.getType());
         if (null == recipeOrderPayFlow) {
+            recipeOrderPayFlow = new RecipeOrderPayFlow();
+            recipeOrderPayFlow.setOrderId(order.getOrderId());
+            recipeOrderPayFlow.setTotalFee(Double.parseDouble(payResult.getNotifyMap().get("total_amount")));
+            recipeOrderPayFlow.setPayFlowType(2);
+            recipeOrderPayFlow.setPayFlag(1);
+            recipeOrderPayFlow.setOutTradeNo(payResult.getOutTradeNo());
+            recipeOrderPayFlow.setPayOrganId(payResult.getPayOrganId());
+            recipeOrderPayFlow.setTradeNo(payResult.getTradeNo());
+            recipeOrderPayFlow.setWnPayWay("");
+            recipeOrderPayFlow.setWxPayWay(payResult.getPayWay());
             logger.info("RecipeOtherFeePayCallBackService doHandleAfterPay recipeOrderPayFlow not exists, busId[{}]", busId);
-            return false;
+            return true;
         }
         recipeOrderPayFlow.setPayFlag(PayFlagEnum.PAYED.getType());
         recipeOrderPayFlow.setOutTradeNo(outTradeNo);
