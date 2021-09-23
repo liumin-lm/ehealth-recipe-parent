@@ -29,7 +29,7 @@ public class SyfCashWayHandler implements IOrderTypeConditionHandler{
 
     @Override
     public Integer getOrderType(OrderTypeCreateConditionRequest request) {
-        LOGGER.info("SyfCashWayHandler getOrderType request:{}.", JSONUtils.toBytes(request));
+        LOGGER.info("SyfCashWayHandler getOrderType request:{}.", JSONUtils.toString(request));
         Integer organId = request.getRecipe().getClinicOrgan();
         Integer bussSource = request.getRecipe().getBussSource();
         if (null == organId || BussSourceType.BUSSSOURCE_CONSULT.getType().equals(bussSource)) {
