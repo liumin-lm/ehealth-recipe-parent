@@ -155,9 +155,6 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "诊断序号")
     private String hisDiseaseSerial;
 
-    @ItemProperty(alias = "药柜取药码")
-    private String takeDrugCode;
-
     @Column(name = "hisDiseaseSerial")
     public String getHisDiseaseSerial() {
         return hisDiseaseSerial;
@@ -756,18 +753,5 @@ public class RecipeExtend implements Serializable {
 
     public void setCanUrgentAuditRecipe(Integer canUrgentAuditRecipe) {
         this.canUrgentAuditRecipe = canUrgentAuditRecipe;
-    }
-
-    /**
-     * 药柜取药码
-     * @return
-     */
-    @Column(name = "take_drug_code")
-    public String getTakeDrugCode() {
-        return takeDrugCode;
-    }
-
-    public void setTakeDrugCode(String takeDrugCode) {
-        this.takeDrugCode = takeDrugCode;
     }
 }

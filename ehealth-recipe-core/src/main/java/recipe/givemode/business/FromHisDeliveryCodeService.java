@@ -10,7 +10,6 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.stereotype.Component;
 import recipe.constant.HisDeliveryConstant;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
