@@ -120,12 +120,12 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
         }
         //为邵逸夫添加药品费用的支付流水
         Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode",false);
-        logger.info("syfPayMode:{}.", syfPayMode);
         if (syfPayMode) {
             try {
                 RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(busId, PayFlowTypeEnum.RECIPE_FLOW.getType());
                 logger.info("recipeOrderPayFlow :{}.", JSONUtils.toString(recipeOrderPayFlow));
                 if (null == recipeOrderPayFlow) {
+                    recipeOrderPayFlow = new RecipeOrderPayFlow();
                     recipeOrderPayFlow.setOrderId(order.getOrderId());
                     if (null != notifyMap && notifyMap.get("total_amount") != null) {
                         recipeOrderPayFlow.setTotalFee(Double.parseDouble(payResult.getNotifyMap().get("total_amount")));
