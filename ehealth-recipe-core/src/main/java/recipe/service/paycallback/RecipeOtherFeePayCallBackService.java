@@ -63,9 +63,11 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
         if (null == recipeOrderPayFlow) {
             recipeOrderPayFlow = new RecipeOrderPayFlow();
             recipeOrderPayFlow.setOrderId(order.getOrderId());
-            recipeOrderPayFlow.setTotalFee(Double.parseDouble(payResult.getNotifyMap().get("total_amount")));
-            recipeOrderPayFlow.setPayFlowType(2);
-            recipeOrderPayFlow.setPayFlag(1);
+            if (null != notifyMap && notifyMap.get("total_amount") != null) {
+                recipeOrderPayFlow.setTotalFee(Double.parseDouble(payResult.getNotifyMap().get("total_amount")));
+            }
+            recipeOrderPayFlow.setPayFlowType(PayFlowTypeEnum.RECIPE_AUDIT.getType());
+            recipeOrderPayFlow.setPayFlag(PayFlagEnum.PAYED.getType());
             recipeOrderPayFlow.setOutTradeNo(payResult.getOutTradeNo());
             recipeOrderPayFlow.setPayOrganId(payResult.getPayOrganId());
             recipeOrderPayFlow.setTradeNo(payResult.getTradeNo());
