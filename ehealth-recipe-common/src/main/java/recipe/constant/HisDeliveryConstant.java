@@ -7,6 +7,6 @@ package recipe.constant;
 public class HisDeliveryConstant {
 
     //药柜配送药企
-    public static final String YG_HIS_DELIVERY_CODE = "5";
+    public static final String YG_HIS_DELIVERY_CODE = "99";
 
 }

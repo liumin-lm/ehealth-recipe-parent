@@ -10,7 +10,6 @@ import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import org.apache.commons.lang3.StringUtils;
 import recipe.dao.HisRecipeDAO;
-import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 
 /**
@@ -50,7 +49,7 @@ public class GiveModeFactory {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
             OrganDTO organDTO = organService.get(recipe.getClinicOrgan());
             //判断是不是杭州互联网医院
-            if(null != organDTO && "eh3301".equals(organDTO.getManageUnit())) {
+            if(null != organDTO && organDTO.getManageUnit().indexOf("eh3301") != -1) {
                 if (null != recipeExtend && StringUtils.isNotEmpty(recipeExtend.getDeliveryCode())) {
                     return AppContextHolder.getBean("fromHisDeliveryCodeService", FromHisDeliveryCodeService.class);
                 }
@@ -59,4 +58,5 @@ public class GiveModeFactory {
 
         return giveModeBase;
     }
+
 }

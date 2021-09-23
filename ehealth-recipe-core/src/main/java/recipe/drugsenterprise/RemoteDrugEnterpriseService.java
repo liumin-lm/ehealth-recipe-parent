@@ -128,9 +128,10 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方成功");
                 result.setCode(1);
                 String prescId = (String)responseTO.getExtend().get("prescId");
+                String takeDrugCode = StringUtils.isNotEmpty((String)responseTO.getExtend().get("takeDrugCode"))?(String)responseTO.getExtend().get("takeDrugCode") : "";
                 RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
                 if (StringUtils.isNotEmpty(prescId)) {
-                    recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("rxid", prescId));
+                    recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("rxid", prescId,"take_drug_code",takeDrugCode));
                 }
             } else {
                 orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("pushFlag", -1), null);
