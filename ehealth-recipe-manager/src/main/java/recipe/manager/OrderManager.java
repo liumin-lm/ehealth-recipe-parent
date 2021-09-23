@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.EnterpriseClient;
+import recipe.client.IConfigurationClient;
 import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
 import recipe.constant.RecipeFeeEnum;
@@ -28,6 +29,7 @@ import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeOrderPayFlowDao;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeOrderDetailFeeEnum;
+import recipe.enumerate.type.RecipePayTypeEnum;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -54,7 +56,40 @@ public class OrderManager extends BaseManager {
     private RevisitClient revisitClient;
     @Resource
     private RecipeOrderPayFlowDao recipeOrderPayFlowDao;
+    @Resource
+    private IConfigurationClient configurationClient;
 
+    /**
+     * 邵逸夫模式下 订单没有运费与审方费用的情况下生成一条支付流水
+     *
+     * @param order
+     * @return
+     */
+    public void saveFlowByOrder(RecipeOrder order) {
+        logger.info("RecipeOrderManager saveFlowByOrder order:{}", JSONUtils.toString(order));
+        // 邵逸夫模式下 不需要审方物流费需要生成一条流水记录
+        Integer payType = configurationClient.getValueCatchReturnInteger(order.getOrganId(), "payModeToHosOnlinePayConfig",1);
+        if (RecipePayTypeEnum.SY_PAY.getType().equals(payType)) {
+            BigDecimal otherFee = order.getAuditFee().add(order.getExpressFee());
+            if(0d >= otherFee.doubleValue()){
+                RecipeOrderPayFlow recipeOrderPayFlow = new RecipeOrderPayFlow();
+                recipeOrderPayFlow.setOrderId(order.getOrderId());
+                recipeOrderPayFlow.setTotalFee(0d);
+                recipeOrderPayFlow.setPayFlowType(2);
+                recipeOrderPayFlow.setPayFlag(1);
+                recipeOrderPayFlow.setOutTradeNo("");
+                recipeOrderPayFlow.setPayOrganId("");
+                recipeOrderPayFlow.setTradeNo("");
+                recipeOrderPayFlow.setWnPayWay("");
+                recipeOrderPayFlow.setWxPayWay("");
+                Date date = new Date();
+                recipeOrderPayFlow.setCreateTime(date);
+                recipeOrderPayFlow.setModifiedTime(date);
+                recipeOrderPayFlowDao.save(recipeOrderPayFlow);
+            }
+        }
+
+    }
 
     /**
      * 根据处方订单code查询处方费用详情(邵逸夫模式专用)

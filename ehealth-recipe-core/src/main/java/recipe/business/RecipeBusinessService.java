@@ -5,8 +5,9 @@ import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.recipe.dto.*;
-import com.ngari.recipe.entity.PharmacyTcm;
+import com.ngari.recipe.dto.DiseaseInfoDTO;
+import com.ngari.recipe.dto.OutPatientRecipeDTO;
+import com.ngari.recipe.dto.OutRecipeDetailDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.PatientInfoDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -168,12 +169,5 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return recipeManager.getRecipeById(recipeId);
     }
 
-
-    @Override
-    public RecipeCancelDTO cancelRecipeValidate(Integer recipeId) {
-        RecipeInfoDTO recipePdfDTO = recipeManager.getRecipeInfoDTO(recipeId);
-        Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(recipePdfDTO.getRecipe().getClinicOrgan());
-        return hisRecipeManager.cancelRecipeValidate(recipePdfDTO, pharmacyIdMap);
-    }
 }
 

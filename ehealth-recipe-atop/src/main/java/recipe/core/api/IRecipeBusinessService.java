@@ -2,7 +2,6 @@ package recipe.core.api;
 
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
-import com.ngari.recipe.dto.RecipeCancelDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.vo.*;
 
@@ -55,19 +54,10 @@ public interface IRecipeBusinessService {
      */
     Boolean existUncheckRecipe(Integer bussSource, Integer clinicId);
 
-
-    /**
-     * 校验处方能否撤销
-     *
-     * @param recipeId 处方id
-     * @return
-     */
-    RecipeCancelDTO cancelRecipeValidate(Integer recipeId);
-
     /**
      * 获取处方信息
      *
-     * @param recipeId
+     * @param recipeId 处方id
      * @return
      */
     Recipe getByRecipeId(Integer recipeId);
