@@ -162,6 +162,7 @@ public class AuditPostMode extends AbstractAuidtMode {
             //支付后调用
             Integer checkMode = dbRecipe.getCheckMode();
             boolean flag = AutoCheckRecipe.threeRecipeAutoCheck(dbRecipe.getRecipeId(), dbRecipe.getClinicOrgan());
+            LOGGER.info("第三方智能审方flag:{}", flag);
             if (!new Integer(1).equals(checkMode)) {
                 if (new Integer(2).equals(checkMode)) {
                     //针对his审方的模式,先在此处处理,推送消息给前置机,让前置机取轮询HIS获取审方结果
