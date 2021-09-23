@@ -383,7 +383,7 @@ public class RecipeSignService {
         try {
             recipeBean.setDistributionFlag(continueFlag);
             //第一步暂存处方（处方状态未签名）
-            //doSignRecipeSave(recipeBean, detailBeanList);
+            doSignRecipeSave(recipeBean, detailBeanList);
             //第二步预校验
             if (continueFlag == 0) {
                 //his处方预检查
