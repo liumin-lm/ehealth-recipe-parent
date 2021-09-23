@@ -122,30 +122,35 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
         Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode",false);
         logger.info("syfPayMode:{}.", syfPayMode);
         if (syfPayMode) {
-            RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(busId, PayFlowTypeEnum.RECIPE_FLOW.getType());
-            if (null == recipeOrderPayFlow) {
-                recipeOrderPayFlow.setOrderId(order.getOrderId());
-                if (null != notifyMap && notifyMap.get("total_amount") != null) {
-                    recipeOrderPayFlow.setTotalFee(Double.parseDouble(payResult.getNotifyMap().get("total_amount")));
+            try {
+                RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(busId, PayFlowTypeEnum.RECIPE_FLOW.getType());
+                logger.info("recipeOrderPayFlow :{}.", JSONUtils.toString(recipeOrderPayFlow));
+                if (null == recipeOrderPayFlow) {
+                    recipeOrderPayFlow.setOrderId(order.getOrderId());
+                    if (null != notifyMap && notifyMap.get("total_amount") != null) {
+                        recipeOrderPayFlow.setTotalFee(Double.parseDouble(payResult.getNotifyMap().get("total_amount")));
+                    }
+                    recipeOrderPayFlow.setPayFlowType(PayFlowTypeEnum.RECIPE_FLOW.getType());
+                    recipeOrderPayFlow.setPayFlag(PayFlagEnum.PAYED.getType());
+                    recipeOrderPayFlow.setOutTradeNo(payResult.getOutTradeNo());
+                    recipeOrderPayFlow.setPayOrganId(payResult.getPayOrganId());
+                    recipeOrderPayFlow.setTradeNo(payResult.getTradeNo());
+                    recipeOrderPayFlow.setWnPayWay("");
+                    recipeOrderPayFlow.setWxPayWay(payResult.getPayWay());
+                    recipeOrderPayFlowManager.save(recipeOrderPayFlow);
+                } else {
+                    recipeOrderPayFlow.setPayFlag(PayFlagEnum.PAYED.getType());
+                    recipeOrderPayFlow.setOutTradeNo(outTradeNo);
+                    recipeOrderPayFlow.setTradeNo(tradeNo);
+                    recipeOrderPayFlow.setPayOrganId(payResult.getPayOrganId());
+                    if (notifyMap != null && notifyMap.get("total_amount") != null) {
+                        Double payBackPrice = ConversionUtils.convert(notifyMap.get("total_amount"), Double.class);
+                        recipeOrderPayFlow.setTotalFee(payBackPrice);
+                    }
+                    recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
                 }
-                recipeOrderPayFlow.setPayFlowType(PayFlowTypeEnum.RECIPE_FLOW.getType());
-                recipeOrderPayFlow.setPayFlag(PayFlagEnum.PAYED.getType());
-                recipeOrderPayFlow.setOutTradeNo(payResult.getOutTradeNo());
-                recipeOrderPayFlow.setPayOrganId(payResult.getPayOrganId());
-                recipeOrderPayFlow.setTradeNo(payResult.getTradeNo());
-                recipeOrderPayFlow.setWnPayWay("");
-                recipeOrderPayFlow.setWxPayWay(payResult.getPayWay());
-                recipeOrderPayFlowManager.save(recipeOrderPayFlow);
-            } else {
-                recipeOrderPayFlow.setPayFlag(PayFlagEnum.PAYED.getType());
-                recipeOrderPayFlow.setOutTradeNo(outTradeNo);
-                recipeOrderPayFlow.setTradeNo(tradeNo);
-                recipeOrderPayFlow.setPayOrganId(payResult.getPayOrganId());
-                if (notifyMap != null && notifyMap.get("total_amount") != null) {
-                    Double payBackPrice = ConversionUtils.convert(notifyMap.get("total_amount"), Double.class);
-                    recipeOrderPayFlow.setTotalFee(payBackPrice);
-                }
-                recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
+            } catch (Exception e) {
+                logger.error("error :" ,e);
             }
         }
         return true;
