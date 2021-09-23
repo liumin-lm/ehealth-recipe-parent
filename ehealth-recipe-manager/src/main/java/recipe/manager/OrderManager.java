@@ -68,8 +68,8 @@ public class OrderManager extends BaseManager {
     public void saveFlowByOrder(RecipeOrder order) {
         logger.info("RecipeOrderManager saveFlowByOrder order:{}", JSONUtils.toString(order));
         // 邵逸夫模式下 不需要审方物流费需要生成一条流水记录
-        Integer payType = configurationClient.getValueCatchReturnInteger(order.getOrganId(), "payModeToHosOnlinePayConfig",1);
-        if (RecipePayTypeEnum.SY_PAY.getType().equals(payType)) {
+        Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
+        if (syfPayMode) {
             BigDecimal otherFee = order.getAuditFee().add(order.getExpressFee());
             if(0d >= otherFee.doubleValue()){
                 RecipeOrderPayFlow recipeOrderPayFlow = new RecipeOrderPayFlow();
