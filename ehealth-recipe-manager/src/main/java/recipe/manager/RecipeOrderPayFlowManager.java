@@ -34,5 +34,6 @@ public class RecipeOrderPayFlowManager extends BaseManager{
         Date date = new Date();
         recipeOrderPayFlow.setCreateTime(date);
         recipeOrderPayFlow.setModifiedTime(date);
+        recipeOrderPayFlowDao.save(recipeOrderPayFlow);
     }
 }
