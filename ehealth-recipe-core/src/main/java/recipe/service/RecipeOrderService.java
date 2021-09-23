@@ -63,12 +63,16 @@ import recipe.bean.RecipePayModeSupportBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.IConfigurationClient;
+import recipe.client.RefundClient;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.PayBusType;
+import recipe.enumerate.type.PayFlagEnum;
+import recipe.enumerate.type.PayFlowTypeEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
@@ -150,6 +154,8 @@ public class RecipeOrderService extends RecipeBaseService {
     private IConfigurationClient configurationClient;
     @Autowired
     private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
+    @Autowired
+    private RefundClient refundClient;
 
 
     /**
@@ -1451,6 +1457,23 @@ public class RecipeOrderService extends RecipeBaseService {
                 //合并处方订单取消
                 List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
                 if (status.equals(OrderStatusConstant.CANCEL_MANUAL)) {
+
+                    // 邵逸夫手动取消要查看是否有支付审方费
+                    Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode",false);
+                    if (syfPayMode) {
+                        //邵逸夫支付
+                        RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(order.getOrderId(), PayFlowTypeEnum.RECIPE_AUDIT.getType());
+                        if (null != recipeOrderPayFlow) {
+                            if (StringUtils.isEmpty(recipeOrderPayFlow.getOutTradeNo())) {
+                                //表示没有实际支付审方或者快递费,只需要更新状态
+                                recipeOrderPayFlow.setPayFlag(PayFlagEnum.REFUND_SUCCESS.getType());
+                                recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
+                            } else {
+                                //说明需要正常退审方费
+                                refundClient.refund(order.getOrderId(), PayBusType.OTHER_BUS_TYPE.getName());
+                            }
+                        }
+                    }
                     //订单手动取消，处方单可以进行重新支付
                     //更新处方的orderCode
 
