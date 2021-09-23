@@ -3522,8 +3522,8 @@ public class RecipeService extends RecipeBaseService {
                     orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
                     // 邵逸夫模式下 需要查询有无支付审方费
                     IConfigurationClient configurationClient = ApplicationUtils.getRecipeService(IConfigurationClient.class);
-                    Integer payType = configurationClient.getValueCatchReturnInteger(order.getOrganId(), "payModeToHosOnlinePayConfig",1);
-                    if (RecipePayTypeEnum.SY_PAY.getType().equals(payType)) {
+                    Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
+                    if (syfPayMode) {
                         // 查询是否有流水
                         RecipeOrderPayFlowDao recipeOrderPayFlowDao = ApplicationUtils.getRecipeService(RecipeOrderPayFlowDao.class);
                         List<RecipeOrderPayFlow> byOrderId = recipeOrderPayFlowDao.findByOrderId(order.getOrderId());

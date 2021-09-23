@@ -379,8 +379,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             }
 
             // 邵逸夫模式
-            Integer payType = configurationClient.getValueCatchReturnInteger(order.getOrganId(), "payModeToHosOnlinePayConfig",1);
-            if (RecipePayTypeEnum.SY_PAY.getType().equals(payType)) {
+            Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
+            if (syfPayMode) {
                 BigDecimal fundAmount = BigDecimal.valueOf(order.getFundAmount() == null ? 0.00 : order.getFundAmount());
                 BigDecimal otherFee = order.getAuditFee().add(order.getExpressFee()).add(fundAmount);
                 simpleBusObject.setActualPrice(new Double(BigDecimal.valueOf(order.getActualPrice()).subtract(otherFee) + ""));
