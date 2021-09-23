@@ -31,9 +31,11 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
+import recipe.client.IConfigurationClient;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.ReviewTypeConstant;
@@ -44,7 +46,9 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.drugsenterprise.paymodeonlineshowdep.PayModeOnlineShowDepServiceProducer;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.RecipePayTypeEnum;
 import recipe.hisservice.RecipeToHisService;
+import recipe.manager.OrderManager;
 import recipe.presettle.factory.OrderTypeFactory;
 import recipe.presettle.model.OrderTypeCreateConditionRequest;
 import recipe.service.RecipeOrderService;
@@ -70,6 +74,9 @@ public class PayModeOnline implements IPurchaseService {
      * logger
      */
     private static final Logger LOG = LoggerFactory.getLogger(PayModeOnline.class);
+
+    @Autowired
+    private OrderManager orderManager;
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
@@ -370,6 +377,9 @@ public class PayModeOnline implements IPurchaseService {
             //如果不需要支付则不走支付
             orderService.finishOrderPay(order.getOrderCode(), 1, MapValueUtil.getInteger(extInfo, "payMode"));
         }else{
+            // 邵逸夫模式下 不需要审方物流费需要生成一条流水记录
+            orderManager.saveFlowByOrder(order);
+
             for (Integer recipeId3 : recipeIdLists) {
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId3, ImmutableMap.of("chooseFlag", 1));
             }
