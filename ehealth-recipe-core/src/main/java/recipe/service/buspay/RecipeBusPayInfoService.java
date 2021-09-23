@@ -446,12 +446,16 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 simpleBusObject.setCardId(recipeExtend.getCardNo());
                 simpleBusObject.setCardType(recipeExtend.getCardType());
             }
-            // 0自费 1医保
-            RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipeBean.getClinicId());
-            if (MedicalTypeEnum.SELF_PAY.getType().equals(revisitExDTO.getMedicalFlag())) {
-                simpleBusObject.setSettleType("1");
-            }else {
+            if (null == recipeBean.getClinicId()) {
                 simpleBusObject.setSettleType("0");
+            } else {
+                // 0自费 1医保
+                RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipeBean.getClinicId());
+                if (MedicalTypeEnum.SELF_PAY.getType().equals(revisitExDTO.getMedicalFlag())) {
+                    simpleBusObject.setSettleType("1");
+                }else {
+                    simpleBusObject.setSettleType("0");
+                }
             }
         }
         log.info("结算getRecipeAuditSimpleBusObject={}", JSONUtils.toString(simpleBusObject));
