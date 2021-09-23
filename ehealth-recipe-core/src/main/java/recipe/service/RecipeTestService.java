@@ -211,11 +211,7 @@ public class RecipeTestService {
         drugCategoryReq.setHospDrugManuf(organDrugList.getProducer());
 
         drugCategoryReq.setUseFlag(organDrugList.getStatus() + "");
-        if (drugList == null) {
-            drugCategoryReq.setDrugClass("1901");
-        } else {
-            drugCategoryReq.setDrugClass(drugList.getDrugClass());
-        }
+        drugCategoryReq.setDrugClass("1901");
         drugCategoryReq.setUpdateTime(new Date());
         drugCategoryReq.setCreateTime(new Date());
         LOGGER.info("RecipeTestService-packingDrugCategoryReq drugCategoryReq:" + JSONUtils.toString(drugCategoryReq));
