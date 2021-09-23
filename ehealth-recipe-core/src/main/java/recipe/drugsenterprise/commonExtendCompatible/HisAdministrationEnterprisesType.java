@@ -171,7 +171,7 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
                     //date 20200311
                     //医院返回的药企处方金额
                     depDetailBean.setHisDepFee(new BigDecimal(deliveryRecipeFeeList[i]));
-
+                    depDetailBean.setType(2); //药店
                     depDetailList.add(depDetailBean);
                 }
 
