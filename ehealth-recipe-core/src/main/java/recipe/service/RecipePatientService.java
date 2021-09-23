@@ -521,15 +521,19 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             }
             list = res.getData().getChronicDiseaseListResTOs();
             if (CollectionUtils.isNotEmpty(list)) {
+                LOGGER.info("慢病信息转化前的list={}",JSON.toJSONString(list));
                 HashMap<String, String> finalChronicDiseaseFlagMap = getRedisChronicDiseaseMap(organId);
-                list.forEach(
-                        item -> {
-                            String chronicDiseaseFlag = finalChronicDiseaseFlagMap.get(item.getChronicDiseaseFlag());
-                            if(StringUtils.isNoneBlank(chronicDiseaseFlag)){
-                                item.setChronicDiseaseFlag(chronicDiseaseFlag);
+                if (finalChronicDiseaseFlagMap.size() > 0) {
+                    list.forEach(
+                            item -> {
+                                String chronicDiseaseFlag = finalChronicDiseaseFlagMap.get(item.getChronicDiseaseFlag());
+                                if(StringUtils.isNoneBlank(chronicDiseaseFlag)){
+                                    item.setChronicDiseaseFlag(chronicDiseaseFlag);
+                                }
                             }
-                        }
-                );
+                    );
+                }
+                LOGGER.info("慢病信息转化后的list={}",JSON.toJSONString(list));
             }
             return list;
         }
@@ -585,15 +589,19 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             if (res != null && res.getData() != null) {
                 list = res.getData().getChronicDiseaseListResTOs();
                 if (CollectionUtils.isNotEmpty(list)) {
+                    LOGGER.info("慢病信息转化前的list={}",JSON.toJSONString(list));
                     HashMap<String, String> finalChronicDiseaseFlagMap = getRedisChronicDiseaseMap(organId);
-                    list.forEach(
-                            item -> {
-                                String chronicDiseaseFlag = finalChronicDiseaseFlagMap.get(item.getChronicDiseaseFlag());
-                                if(StringUtils.isNoneBlank(chronicDiseaseFlag)){
-                                    item.setChronicDiseaseFlag(chronicDiseaseFlag);
+                    if(finalChronicDiseaseFlagMap.size() > 0) {
+                        list.forEach(
+                                item -> {
+                                    String chronicDiseaseFlag = finalChronicDiseaseFlagMap.get(item.getChronicDiseaseFlag());
+                                    if(StringUtils.isNoneBlank(chronicDiseaseFlag)){
+                                        item.setChronicDiseaseFlag(chronicDiseaseFlag);
+                                    }
                                 }
-                            }
-                    );
+                        );
+                    }
+                    LOGGER.info("慢病信息转化后的list={}",JSON.toJSONString(list));
                 }
                 try {
                     if (CollectionUtils.isNotEmpty(list)&& (5 == diseaseType)){
@@ -791,7 +799,6 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         HashMap<String,String> chronicDiseaseFlagMap = new HashMap<>();
         try {
             RedisClient redisClient = AppContextHolder.getBean("redisClient", RedisClient.class);
-            redisClient.set(CacheConstant.KEY_CONFIG_RCP_AUTO_REVIEW+organId,"{'14':'13','9901':'15'}");
             String ChronicDiseaseFlagStr = redisClient.get(CacheConstant.KEY_CONFIG_RCP_AUTO_REVIEW+organId);
             if(StringUtils.isNoneBlank(ChronicDiseaseFlagStr)) {
                     chronicDiseaseFlagMap = JSON.parseObject(ChronicDiseaseFlagStr,HashMap.class);
@@ -800,6 +807,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         } catch (Exception e) {
             LOGGER.error("getRedisChronicDiseaseMap error",e);
         }
+        LOGGER.info("getRedisChronicDiseaseMap={}",JSON.toJSONString(chronicDiseaseFlagMap));
         return  chronicDiseaseFlagMap;
     }
 }
