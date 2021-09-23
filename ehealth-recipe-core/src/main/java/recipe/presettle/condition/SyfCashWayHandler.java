@@ -34,8 +34,8 @@ public class SyfCashWayHandler implements IOrderTypeConditionHandler{
             return null;
         }
         //通过运营平台控制开关决定是否走此种模式
-        Integer payType = configurationClient.getValueCatchReturnInteger(organId, "payModeToHosOnlinePayConfig",1);
-        if (!RecipePayTypeEnum.SY_PAY.getType().equals(payType)) {
+        Boolean syfPayMode = configurationClient.getValueBooleanCatch(organId, "syfPayMode",false);
+        if (!syfPayMode) {
             //说明不需要走邵逸支付
             return null;
         }
