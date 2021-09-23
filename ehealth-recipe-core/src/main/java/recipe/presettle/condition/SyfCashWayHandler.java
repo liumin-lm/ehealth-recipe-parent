@@ -51,7 +51,6 @@ public class SyfCashWayHandler implements IOrderTypeConditionHandler{
             return RecipeOrderTypeEnum.HOSPITAL_SELF.getType();
         } else if (MedicalTypeEnum.MEDICAL_PAY.getType().equals(revisitExDTO.getMedicalFlag())) {
             //医保结算
-            LOGGER.info("医保--------");
             return RecipeOrderTypeEnum.PROVINCIAL_MEDICAL.getType();
         }
         return null;
