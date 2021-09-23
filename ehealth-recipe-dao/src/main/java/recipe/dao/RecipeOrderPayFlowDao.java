@@ -43,7 +43,7 @@ public abstract class RecipeOrderPayFlowDao extends HibernateSupportDelegateDAO<
      * @param payFlowType payFlowType
      * @return RecipeOrderPayFlow
      */
-    @DAOMethod(sql = "FROM RecipeOrderPayFlow WHERE orderId =: orderId AND payFlowType =: payFlowType")
+    @DAOMethod(sql = "FROM RecipeOrderPayFlow WHERE orderId =:orderId AND payFlowType =:payFlowType")
     public abstract RecipeOrderPayFlow getByOrderIdAndType(@DAOParam("orderId") Integer orderId,
                                                            @DAOParam("payFlowType") Integer payFlowType);
 
@@ -52,7 +52,7 @@ public abstract class RecipeOrderPayFlowDao extends HibernateSupportDelegateDAO<
      * @param outTradeNo 商户订单号
      * @return RecipeOrderPayFlow
      */
-    @DAOMethod(sql = "FROM RecipeOrderPayFlow WHERE outTradeNo =: outTradeNo")
+    @DAOMethod(sql = "FROM RecipeOrderPayFlow WHERE outTradeNo =:outTradeNo")
     public abstract RecipeOrderPayFlow getByOutTradeNo(@DAOParam("outTradeNo") String outTradeNo);
 
     @Override
