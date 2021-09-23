@@ -189,10 +189,10 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         confirmOrder.setActualPrice(BigDecimal.valueOf(order.getActualPrice()).stripTrailingZeros().toPlainString());
         // 邵逸夫模式修改需付款
         Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
+        Double otherFee = 0d;
         if (syfPayMode) {
             List<RecipeOrderPayFlow> byOrderId = recipeOrderPayFlowManager.findByOrderId(order.getOrderId());
-            if(CollectionUtils.isNotEmpty(byOrderId)){
-                Double otherFee = 0d;
+            if (CollectionUtils.isNotEmpty(byOrderId)) {
                 for (RecipeOrderPayFlow recipeOrderPayFlow : byOrderId) {
                     otherFee = otherFee + recipeOrderPayFlow.getTotalFee();
                 }
@@ -202,12 +202,12 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         confirmOrder.setOrderAmount(orderAmount.stripTrailingZeros().toPlainString());
         confirmOrder.setBusObject(order);
         //设置confirmOrder的扩展信息ext----一些配置信息
-        confirmOrder.setExt(setConfirmOrderExtInfo(order, recipeId, extInfo, recipeExtend));
+        confirmOrder.setExt(setConfirmOrderExtInfo(order, recipeId, extInfo, recipeExtend, otherFee));
         log.info("obtainConfirmOrder recipeId:{} res ={}", recipeId, JSONUtils.toString(confirmOrder));
         return confirmOrder;
     }
 
-    private Map<String, String> setConfirmOrderExtInfo(RecipeOrderBean order, Integer recipeId, Map<String, String> extInfo, RecipeExtendBean recipeExtend) {
+    private Map<String, String> setConfirmOrderExtInfo(RecipeOrderBean order, Integer recipeId, Map<String, String> extInfo, RecipeExtendBean recipeExtend,Double orderOtherFee) {
         IDrugsEnterpriseService drugsEnterpriseService = RecipeAPI.getService(IDrugsEnterpriseService.class);
         Map<String, String> map = Maps.newHashMap();
         //返回是否医保处方单
@@ -220,6 +220,9 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         Double fundAmount = order.getFundAmount() == null ? 0.00 : order.getFundAmount();
         //自费金额=实际金额-医保金额
         BigDecimal cashAmount = BigDecimal.valueOf(order.getActualPrice()).subtract(BigDecimal.valueOf(fundAmount));
+        if(0d < orderOtherFee){
+            cashAmount = cashAmount.subtract(BigDecimal.valueOf(orderOtherFee));
+        }
         map.put("fundAmount", fundAmount + "");
         map.put("cashAmount", cashAmount + "");
         // 加载确认订单页面的时候需要将页面属性字段做成可配置的
@@ -405,7 +408,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipeBean.getClinicId());
                 if (MedicalTypeEnum.SELF_PAY.getType().equals(revisitExDTO.getMedicalFlag())) {
                     simpleBusObject.setSettleType("1");
-                }else {
+                } else {
                     simpleBusObject.setSettleType("0");
                 }
             }
@@ -469,7 +472,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipeBean.getClinicId());
                 if (MedicalTypeEnum.SELF_PAY.getType().equals(revisitExDTO.getMedicalFlag())) {
                     simpleBusObject.setSettleType("1");
-                }else {
+                } else {
                     simpleBusObject.setSettleType("0");
                 }
             }
