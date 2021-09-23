@@ -1806,7 +1806,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipes:{} .", JSONUtils.toString(recipes));
             Recipe recipe = recipes.get(0);
 
-            if (recipeOrder.getOrderType() != 1 && BigDecimal.ZERO.compareTo(recipeOrder.getCouponFee()) == 0
+            if (!new Integer(1).equals(recipeOrder.getOrderType()) && BigDecimal.ZERO.compareTo(recipeOrder.getCouponFee()) == 0
                     && new Integer(1).equals(recipeOrder.getPayMode())) {
                 //表示不是医保患者并且没有优惠券并且是线上支付的,那他一定要支付钱
                 if (StringUtils.isEmpty(recipeOrder.getOutTradeNo())) {
