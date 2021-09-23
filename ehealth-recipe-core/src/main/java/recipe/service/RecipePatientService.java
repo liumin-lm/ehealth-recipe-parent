@@ -59,6 +59,7 @@ import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.ValidateUtil;
+import recipe.util.RedisClient;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
@@ -518,7 +519,19 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             if (res == null || res.getData() == null) {
                 return list;
             }
-            return res.getData().getChronicDiseaseListResTOs();
+            list = res.getData().getChronicDiseaseListResTOs();
+            if (CollectionUtils.isNotEmpty(list)) {
+                HashMap<String, String> finalChronicDiseaseFlagMap = getRedisChronicDiseaseMap(organId);
+                list.forEach(
+                        item -> {
+                            String chronicDiseaseFlag = finalChronicDiseaseFlagMap.get(item.getChronicDiseaseFlag());
+                            if(StringUtils.isNoneBlank(chronicDiseaseFlag)){
+                                item.setChronicDiseaseFlag(chronicDiseaseFlag);
+                            }
+                        }
+                );
+            }
+            return list;
         }
     }
 
@@ -571,6 +584,17 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             }
             if (res != null && res.getData() != null) {
                 list = res.getData().getChronicDiseaseListResTOs();
+                if (CollectionUtils.isNotEmpty(list)) {
+                    HashMap<String, String> finalChronicDiseaseFlagMap = getRedisChronicDiseaseMap(organId);
+                    list.forEach(
+                            item -> {
+                                String chronicDiseaseFlag = finalChronicDiseaseFlagMap.get(item.getChronicDiseaseFlag());
+                                if(StringUtils.isNoneBlank(chronicDiseaseFlag)){
+                                    item.setChronicDiseaseFlag(chronicDiseaseFlag);
+                                }
+                            }
+                    );
+                }
                 try {
                     if (CollectionUtils.isNotEmpty(list)&& (5 == diseaseType)){
                         //第一层
@@ -755,5 +779,27 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         } else {
             return patientMedicalTypeVO;
         }
+    }
+
+    /**
+     * @desc 做一个疾病类型的适配
+     * @author 毛泽
+     * @param organId 
+     * @return
+     */
+    private HashMap<String,String> getRedisChronicDiseaseMap(Integer organId){
+        HashMap<String,String> chronicDiseaseFlagMap = new HashMap<>();
+        try {
+            RedisClient redisClient = AppContextHolder.getBean("redisClient", RedisClient.class);
+            redisClient.set(CacheConstant.KEY_CONFIG_RCP_AUTO_REVIEW+organId,"{'14':'13','9901':'15'}");
+            String ChronicDiseaseFlagStr = redisClient.get(CacheConstant.KEY_CONFIG_RCP_AUTO_REVIEW+organId);
+            if(StringUtils.isNoneBlank(ChronicDiseaseFlagStr)) {
+                    chronicDiseaseFlagMap = JSON.parseObject(ChronicDiseaseFlagStr,HashMap.class);
+
+            }
+        } catch (Exception e) {
+            LOGGER.error("getRedisChronicDiseaseMap error",e);
+        }
+        return  chronicDiseaseFlagMap;
     }
 }

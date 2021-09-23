@@ -10,6 +10,8 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import recipe.dao.comment.ExtendDao;
 
+import java.util.List;
+
 /**
  * @description： 支付流水dao 邵逸夫模式专用
  * @author： whf
@@ -32,8 +34,8 @@ public abstract class RecipeOrderPayFlowDao extends HibernateSupportDelegateDAO<
      *
      * @param orderId
      */
-    @DAOMethod(sql = "FROM RecipeOrderPayFlow WHERE orderId =: orderId AND payFlag = '1'")
-    public abstract void deleteByDrugsEnterpriseId(@DAOParam("orderId") Integer orderId);
+    @DAOMethod(sql = "FROM RecipeOrderPayFlow WHERE orderId =:orderId AND payFlag = '1'")
+    public abstract List<RecipeOrderPayFlow> findByOrderId(@DAOParam("orderId") Integer orderId);
 
     /**
      * 根据orderId和payFlowType查询订单支付流水
@@ -44,6 +46,14 @@ public abstract class RecipeOrderPayFlowDao extends HibernateSupportDelegateDAO<
     @DAOMethod(sql = "FROM RecipeOrderPayFlow WHERE orderId =: orderId AND payFlowType =: payFlowType")
     public abstract RecipeOrderPayFlow getByOrderIdAndType(@DAOParam("orderId") Integer orderId,
                                                            @DAOParam("payFlowType") Integer payFlowType);
+
+    /**
+     * 根据商户订单号获取支付流水
+     * @param outTradeNo 商户订单号
+     * @return RecipeOrderPayFlow
+     */
+    @DAOMethod(sql = "FROM RecipeOrderPayFlow WHERE outTradeNo =: outTradeNo")
+    public abstract RecipeOrderPayFlow getByOutTradeNo(@DAOParam("outTradeNo") String outTradeNo);
 
     @Override
     public boolean updateNonNullFieldByPrimaryKey(RecipeOrderPayFlow recipeOrderPayFlow) {

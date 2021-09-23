@@ -14,6 +14,11 @@ import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.util.ValidateUtil;
+import com.ngari.recipe.dto.RecipeFeeDTO;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 处方订单服务入口类
@@ -25,6 +30,30 @@ public class RecipeOrderPatientAtop extends BaseAtop {
 
     @Autowired
     private IRecipeOrderBusinessService recipeOrderService;
+
+    /**
+     * 查询订单 详细费用 (邵逸夫模式专用)
+     * @param orderCode
+     * @return
+     */
+    @RpcService
+    public Map<String, List<RecipeFeeDTO>> findRecipeOrderDetailFee(String orderCode){
+        logger.info("RecipeOrderAtop findRecipeOrderDetailFee orderCode = {}", orderCode);
+        if (StringUtils.isEmpty(orderCode)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
+        }
+        try {
+            List<RecipeFeeDTO> recipeOrderDetailFee = recipeOrderService.findRecipeOrderDetailFee(orderCode);
+            Map<String, List<RecipeFeeDTO>> stringListMap = recipeOrderDetailFee.stream().collect(Collectors.groupingBy(RecipeFeeDTO::getFeeType));
+            return stringListMap;
+        } catch (DAOException e1) {
+            logger.error("RecipeOrderAtop updateRecipeOrderStatus error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("RecipeOrderAtop updateRecipeOrderStatus error", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
 
     /**
      * 订单状态更新

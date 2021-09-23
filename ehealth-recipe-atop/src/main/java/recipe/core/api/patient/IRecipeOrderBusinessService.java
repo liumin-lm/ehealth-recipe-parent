@@ -5,6 +5,9 @@ import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.ResultBean;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
+import com.ngari.recipe.dto.RecipeFeeDTO;
+
+import java.util.List;
 
 public interface IRecipeOrderBusinessService {
     /**
@@ -33,4 +36,11 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     SkipThirdDTO getSkipUrl(SkipThirdReqVO skipThirdReqVO);
+
+    /**
+     * 获取订单费用详情(邵逸夫模式专用)
+     * @param orderCode
+     * @return
+     */
+    List<RecipeFeeDTO> findRecipeOrderDetailFee(String orderCode);
 }

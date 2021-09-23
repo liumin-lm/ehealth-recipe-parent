@@ -123,6 +123,7 @@ import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugTool.service.DrugToolService;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
+import recipe.enumerate.type.PayBusType;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.PayFlowTypeEnum;
 import recipe.enumerate.type.RecipePayTypeEnum;
@@ -259,6 +260,7 @@ public class RecipeService extends RecipeBaseService {
     @Autowired
     private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
 
+
     /**
      * 药师审核不通过
      */
@@ -275,10 +277,6 @@ public class RecipeService extends RecipeBaseService {
      * 患者手动退款
      */
     public static final int REFUND_PATIENT = 5;
-
-    public static final String WX_RECIPE_BUSTYPE = "recipe";
-
-    private static final String WX_OTHER_TYPE = "Recipeotherfee";
 
     public static final Integer RECIPE_EXPIRED_DAYS = 3;
 
@@ -3522,6 +3520,20 @@ public class RecipeService extends RecipeBaseService {
                     //相应订单处理
                     order = orderDAO.getOrderByRecipeId(recipeId);
                     orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
+                    // 邵逸夫模式下 需要查询有无支付审方费
+                    IConfigurationClient configurationClient = ApplicationUtils.getRecipeService(IConfigurationClient.class);
+                    Integer payType = configurationClient.getValueCatchReturnInteger(order.getOrganId(), "payModeToHosOnlinePayConfig",1);
+                    if (RecipePayTypeEnum.SY_PAY.getType().equals(payType)) {
+                        // 查询是否有流水
+                        RecipeOrderPayFlowDao recipeOrderPayFlowDao = ApplicationUtils.getRecipeService(RecipeOrderPayFlowDao.class);
+                        List<RecipeOrderPayFlow> byOrderId = recipeOrderPayFlowDao.findByOrderId(order.getOrderId());
+                        // 退费
+                        if(CollectionUtils.isNotEmpty(byOrderId)){
+                            RefundClient refundClient = ApplicationUtils.getRecipeService(RefundClient.class);
+                            refundClient.refund(order.getOrderId(),PayBusType.OTHER_BUS_TYPE.getName());
+                        }
+
+                    }
                     if (recipe.getFromflag().equals(RecipeBussConstant.FROMFLAG_HIS_USE)) {
                         if (null != order) {
                             orderDAO.updateByOrdeCode(order.getOrderCode(), ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
@@ -3562,6 +3574,8 @@ public class RecipeService extends RecipeBaseService {
                     }
                     //保存处方状态变更日志
                     RecipeLogService.saveRecipeLog(recipeId, RecipeStatusConstant.CHECK_PASS, updateStatus, memo.toString());
+
+
                 } catch (Exception e) {
                     LOGGER.error("根据失效时间处理到期处方异常，处方={}", JSONObject.toJSONString(recipeList), e);
                 } finally {
@@ -4393,10 +4407,10 @@ public class RecipeService extends RecipeBaseService {
                         recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
                     } else {
                         //说明需要正常退审方费
-                        refundClient.refund(order.getOrderId(), RecipeService.WX_OTHER_TYPE);
+                        refundClient.refund(order.getOrderId(), PayBusType.OTHER_BUS_TYPE.getName());
                     }
                 }
-                refundClient.refund(order.getOrderId(), RecipeService.WX_RECIPE_BUSTYPE);
+                refundClient.refund(order.getOrderId(), PayBusType.RECIPE_BUS_TYPE.getName());
             }
         } catch (Exception e) {
             LOGGER.error("wxPayRefundForRecipe " + errorInfo + "*****微信退款异常！recipeId[" + recipeId + "],err[" + e.getMessage() + "]", e);
@@ -6127,5 +6141,10 @@ public class RecipeService extends RecipeBaseService {
         button.setButtonFlag(buttonFlag);
         button.setRecipeIds(buttonList);
         list.add(button);
+    }
+
+    @RpcService
+    public boolean testNotifyPharAudit(Recipe recipe){
+        return auditModeContext.getAuditModes(recipe.getReviewType()).notifyPharAudit(recipe);
     }
 }
