@@ -163,6 +163,9 @@ public class DrugsEnterpriseDTO implements Serializable {
     @ItemProperty(alias = "寄件人街道编码")
     private String consignorStreet;
 
+    @ItemProperty(alias = "集揽模式")
+    private Integer collectMode;
+
 
     private List<DrugEnterpriseLogistics> drugEnterpriseLogisticsList;
 
@@ -548,5 +551,13 @@ public class DrugsEnterpriseDTO implements Serializable {
 
     public void setDrugEnterpriseLogisticsList(List<DrugEnterpriseLogistics> drugEnterpriseLogisticsList) {
         this.drugEnterpriseLogisticsList = drugEnterpriseLogisticsList;
+    }
+
+    public Integer getCollectMode() {
+        return collectMode;
+    }
+
+    public void setCollectMode(Integer collectMode) {
+        this.collectMode = collectMode;
     }
 }

@@ -109,6 +109,9 @@ public class DepDetailBean {
     //his的药企处方金额
     private BigDecimal hisDepFee;
 
+    //药店|药柜 区分类型
+    private Integer type;
+
     public BigDecimal getHisDepFee() {
         return hisDepFee;
     }
@@ -311,6 +314,15 @@ public class DepDetailBean {
     public void setMemo(String memo) {
         this.memo = memo;
     }
+
+    public Integer getType() {
+        return type;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
+    }
+
 
     @Override
     public boolean equals(Object o) {

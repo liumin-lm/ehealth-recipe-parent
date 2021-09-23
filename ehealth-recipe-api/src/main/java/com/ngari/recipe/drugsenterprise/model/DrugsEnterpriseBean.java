@@ -175,6 +175,9 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "订单备注")
     private String orderMemo;
 
+    @ItemProperty(alias = "集揽模式")
+    private Integer collectMode;
+
     public List<DrugEnterpriseLogisticsBean> getDrugEnterpriseLogisticsBeans() {
         return drugEnterpriseLogisticsBeans;
     }
@@ -581,5 +584,13 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setOrderMemo(String orderMemo) {
         this.orderMemo = orderMemo;
+    }
+
+    public Integer getCollectMode() {
+        return collectMode;
+    }
+
+    public void setCollectMode(Integer collectMode) {
+        this.collectMode = collectMode;
     }
 }

@@ -222,6 +222,8 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
         logisticsOrder.setAddresseeAddress(order.getAddress4());
         // 寄托物名称
         logisticsOrder.setDepositumName(DrugEnterpriseConstant.DEPOSITUM_NAME);
+        // 集揽模式
+        logisticsOrder.setCollectMode(enterprise.getCollectMode());
         // 就诊人信息
         try {
             IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);

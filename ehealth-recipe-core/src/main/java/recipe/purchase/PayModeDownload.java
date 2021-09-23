@@ -8,6 +8,7 @@ import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.OrderStatusConstant;
@@ -16,6 +17,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.manager.OrderManager;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
 
@@ -29,6 +31,9 @@ import java.util.Map;
 * @Date: 2019/8/6
 */
 public class PayModeDownload implements IPurchaseService{
+
+    @Autowired
+    private OrderManager orderManager;
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
@@ -102,6 +107,9 @@ public class PayModeDownload implements IPurchaseService{
             //如果不需要支付则不走支付,直接掉支付后的逻辑
             orderService.finishOrderPay(order.getOrderCode(), 1, MapValueUtil.getInteger(extInfo, "payMode"));
         }else{
+            // 邵逸夫模式下 不需要审方物流费需要生成一条流水记录
+            orderManager.saveFlowByOrder(order);
+
             //需要支付则走支付前的逻辑
             orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
         }
