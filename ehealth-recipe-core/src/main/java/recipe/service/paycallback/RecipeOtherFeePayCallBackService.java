@@ -43,6 +43,8 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
     @Autowired
     private RecipeManager recipeManager;
 
+
+
     @Override
     public boolean doHandleAfterPay(PayResultDTO payResult) {
         logger.info("RecipeOtherFeePayCallBackService doHandleAfterPay payResult:{}.", JSON.toJSONString(payResult));
@@ -59,18 +61,31 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
         }
         RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(busId, PayFlowTypeEnum.RECIPE_AUDIT.getType());
         if (null == recipeOrderPayFlow) {
-            logger.info("RecipeOtherFeePayCallBackService doHandleAfterPay recipeOrderPayFlow not exists, busId[{}]", busId);
-            return false;
+            recipeOrderPayFlow = new RecipeOrderPayFlow();
+            recipeOrderPayFlow.setOrderId(order.getOrderId());
+            if (null != notifyMap && notifyMap.get("total_amount") != null) {
+                recipeOrderPayFlow.setTotalFee(Double.parseDouble(payResult.getNotifyMap().get("total_amount")));
+            }
+            recipeOrderPayFlow.setPayFlowType(PayFlowTypeEnum.RECIPE_AUDIT.getType());
+            recipeOrderPayFlow.setPayFlag(PayFlagEnum.PAYED.getType());
+            recipeOrderPayFlow.setOutTradeNo(payResult.getOutTradeNo());
+            recipeOrderPayFlow.setPayOrganId(payResult.getPayOrganId());
+            recipeOrderPayFlow.setTradeNo(payResult.getTradeNo());
+            recipeOrderPayFlow.setWnPayWay("");
+            recipeOrderPayFlow.setWxPayWay(payResult.getPayWay());
+            recipeOrderPayFlowManager.save(recipeOrderPayFlow);
+        } else {
+            recipeOrderPayFlow.setPayFlag(PayFlagEnum.PAYED.getType());
+            recipeOrderPayFlow.setOutTradeNo(outTradeNo);
+            recipeOrderPayFlow.setTradeNo(tradeNo);
+            recipeOrderPayFlow.setPayOrganId(payOrderId);
+            if (notifyMap != null && notifyMap.get("total_amount") != null) {
+                Double payBackPrice = ConversionUtils.convert(notifyMap.get("total_amount"), Double.class);
+                recipeOrderPayFlow.setTotalFee(payBackPrice);
+            }
+            recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
         }
-        recipeOrderPayFlow.setPayFlag(PayFlagEnum.PAYED.getType());
-        recipeOrderPayFlow.setOutTradeNo(outTradeNo);
-        recipeOrderPayFlow.setTradeNo(tradeNo);
-        recipeOrderPayFlow.setPayOrganId(payOrderId);
-        if (notifyMap != null && notifyMap.get("total_amount") != null) {
-            Double payBackPrice = ConversionUtils.convert(notifyMap.get("total_amount"), Double.class);
-            recipeOrderPayFlow.setTotalFee(payBackPrice);
-        }
-        recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
+
         //如果不需要支付处方费用则订单直接完成
 
         RecipeOrder recipeOrder = orderManager.getRecipeOrderById(busId);

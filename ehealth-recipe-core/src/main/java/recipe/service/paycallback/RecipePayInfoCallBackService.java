@@ -7,6 +7,7 @@ import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeOrderBillReqTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.RecipeOrderPayFlow;
 import com.ngari.recipe.pay.model.PayResultDTO;
 import com.ngari.recipe.pay.service.IRecipePayCallBackService;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -30,8 +31,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.client.IConfigurationClient;
 import recipe.constant.CacheConstant;
+import recipe.enumerate.type.PayFlagEnum;
+import recipe.enumerate.type.PayFlowTypeEnum;
 import recipe.manager.OrderManager;
+import recipe.manager.RecipeOrderPayFlowManager;
 import recipe.service.PayModeGiveModeUtil;
 import recipe.serviceprovider.recipelog.service.RemoteRecipeLogService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
@@ -56,6 +61,10 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
     private RedisClient redisClient;
     @Autowired
     private OrderManager orderManager;
+    @Autowired
+    private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
+    @Autowired
+    private IConfigurationClient configurationClient;
 
     @Override
     @RpcService
@@ -108,6 +117,41 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
         if (ValidateUtil.notNullAndZeroInteger(order.getCouponId()) && order.getCouponId() != -1) {
             ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService", ICouponBaseService.class);
             couponService.useCouponById(order.getCouponId());
+        }
+        //为邵逸夫添加药品费用的支付流水
+        Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode",false);
+        if (syfPayMode) {
+            try {
+                RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(busId, PayFlowTypeEnum.RECIPE_FLOW.getType());
+                logger.info("recipeOrderPayFlow :{}.", JSONUtils.toString(recipeOrderPayFlow));
+                if (null == recipeOrderPayFlow) {
+                    recipeOrderPayFlow = new RecipeOrderPayFlow();
+                    recipeOrderPayFlow.setOrderId(order.getOrderId());
+                    if (null != notifyMap && notifyMap.get("total_amount") != null) {
+                        recipeOrderPayFlow.setTotalFee(Double.parseDouble(payResult.getNotifyMap().get("total_amount")));
+                    }
+                    recipeOrderPayFlow.setPayFlowType(PayFlowTypeEnum.RECIPE_FLOW.getType());
+                    recipeOrderPayFlow.setPayFlag(PayFlagEnum.PAYED.getType());
+                    recipeOrderPayFlow.setOutTradeNo(payResult.getOutTradeNo());
+                    recipeOrderPayFlow.setPayOrganId(payResult.getPayOrganId());
+                    recipeOrderPayFlow.setTradeNo(payResult.getTradeNo());
+                    recipeOrderPayFlow.setWnPayWay("");
+                    recipeOrderPayFlow.setWxPayWay(payResult.getPayWay());
+                    recipeOrderPayFlowManager.save(recipeOrderPayFlow);
+                } else {
+                    recipeOrderPayFlow.setPayFlag(PayFlagEnum.PAYED.getType());
+                    recipeOrderPayFlow.setOutTradeNo(outTradeNo);
+                    recipeOrderPayFlow.setTradeNo(tradeNo);
+                    recipeOrderPayFlow.setPayOrganId(payResult.getPayOrganId());
+                    if (notifyMap != null && notifyMap.get("total_amount") != null) {
+                        Double payBackPrice = ConversionUtils.convert(notifyMap.get("total_amount"), Double.class);
+                        recipeOrderPayFlow.setTotalFee(payBackPrice);
+                    }
+                    recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
+                }
+            } catch (Exception e) {
+                logger.error("error :" ,e);
+            }
         }
         return true;
     }

@@ -115,7 +115,7 @@ public class RecipeOrderPatientAtop extends BaseAtop {
         try {
             //上传处方到第三方,上传失败提示HIS返回的失败信息
             SkipThirdDTO pushThirdUrl = recipeOrderService.uploadRecipeInfoToThird(skipThirdReqVO);
-            if (null != pushThirdUrl && 2 == pushThirdUrl.getType()) {
+            if (null != pushThirdUrl && new Integer(2) .equals(pushThirdUrl.getType()) ) {
                 String msg = StringUtils.isEmpty(pushThirdUrl.getUrl()) ? "请在相关平台查看" : pushThirdUrl.getMsg();
                 pushThirdUrl.setMsg(msg);
                 return pushThirdUrl;
