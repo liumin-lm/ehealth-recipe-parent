@@ -6,6 +6,7 @@ import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.RecipeOrderPayFlow;
 import com.ngari.recipe.pay.model.PayResultDTO;
 import com.ngari.recipe.pay.service.IRecipeOtherFeePayCallBackService;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.converter.ConversionUtils;
 import eh.entity.bus.Order;
@@ -94,6 +95,7 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
         }
         Recipe recipe = recipeManager.getByRecipeCodeAndClinicOrgan(recipeOrder.getOrderCode(), recipeOrder.getOrganId());
         Integer giveMode = recipe.getGiveMode();
+        logger.info("doHandleAfterPay recipe:{}.", JSONUtils.toString(recipe));
         if (new Integer(2).equals(recipeOrder.getPayMode())) {
             //表示该处方为线下付款
             Integer payMode = 2;
@@ -107,7 +109,7 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
                 default:
                     break;
             }
-            orderService.finishOrderPay(recipeOrder.getOrderCode(), PayFlagEnum.PAYED.getType(), payMode);
+            //orderService.finishOrderPay(recipeOrder.getOrderCode(), PayFlagEnum.PAYED.getType(), payMode);
         }
         return true;
     }
