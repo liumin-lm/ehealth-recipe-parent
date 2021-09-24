@@ -310,7 +310,7 @@ public class RecipeManager extends BaseManager {
      * @return List<Recipe>
      */
     public List<Recipe> findRecipeByOrderCode(String orderCode){
-        return recipeDAO.findRecipeByOrdercode(orderCode);
+        return recipeDAO.findRecipeListByOrderCode(orderCode);
     }
 
     /**
