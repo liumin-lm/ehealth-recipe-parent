@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.patient.service.IPatientHisService;
-import com.ngari.his.recipe.mode.MedicineCodeResponseTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import ctd.persistence.exception.DAOException;
 import org.slf4j.Logger;
@@ -84,25 +83,5 @@ public class BaseClient {
      */
     protected String getAddress(String area) {
         return DictionaryUtil.getDictionary("eh.base.dictionary.AddrArea", area);
-    }
-
-
-    /**
-     * 解析前置机 出参
-     *
-     * @return 返回封装的data
-     * @throws DAOException 自定义前置机异常
-     * @throws Exception    运行异常
-     */
-    protected String getMedicineCodeResponse(MedicineCodeResponseTO medicineCodeResponseTO) throws DAOException, Exception {
-        logger.info("BaseClient getMedicineCodeResponse  MedicineCodeResponseTO= {}", JSON.toJSONString(medicineCodeResponseTO));
-        if (null == medicineCodeResponseTO) {
-            throw new DAOException(HisErrorCodeEnum.HIS_NULL_ERROR.getCode(), HisErrorCodeEnum.HIS_NULL_ERROR.getMsg());
-        }
-        if (!String.valueOf(HisErrorCodeEnum.HIS_SUCCEED.getCode()).equals(medicineCodeResponseTO.getMsgCode())) {
-            throw new DAOException(HisErrorCodeEnum.HIS_CODE_ERROR.getCode(), HisErrorCodeEnum.HIS_CODE_ERROR.getMsg());
-        }
-
-        return medicineCodeResponseTO.getMedicineCode();
     }
 }
