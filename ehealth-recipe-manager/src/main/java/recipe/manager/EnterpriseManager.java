@@ -144,8 +144,11 @@ public class EnterpriseManager extends BaseManager {
         PushRecipeAndOrder pushRecipeAndOrder = getPushRecipeAndOrder(recipeNew, enterprise);
         SkipThirdDTO skipThirdDTO = enterpriseClient.pushRecipeInfoForThird(pushRecipeAndOrder, node);
         if (0 == skipThirdDTO.getCode()) {
-            saveRecipeLog(recipeNew.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), "购药按钮药企推送失败:" + skipThirdDTO.getMsg());
+            saveRecipeLog(recipeNew.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS, "购药按钮药企推送失败:" + skipThirdDTO.getMsg());
             return skipThirdDTO;
+        }
+        if (StringUtils.isNotEmpty(skipThirdDTO.getUrl())) {
+            saveRecipeLog(recipeNew.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS, "购药按钮药企url:" + skipThirdDTO.getUrl());
         }
         //推送药企处方成功,判断是否为扁鹊平台
         if (null != enterprise && ENTERPRISE_BAN_QUE.equals(enterprise.getAccount())) {

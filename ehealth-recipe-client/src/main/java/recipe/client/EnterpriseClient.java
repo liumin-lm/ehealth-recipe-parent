@@ -116,7 +116,8 @@ public class EnterpriseClient extends BaseClient {
     public SkipThirdDTO pushRecipeInfoForThird(PushRecipeAndOrder pushRecipeAndOrder, Integer node) {
         pushRecipeAndOrder.setNode(node);
         HisResponseTO responseTO = recipeEnterpriseService.pushSingleRecipeInfo(pushRecipeAndOrder);
-        logger.info("pushRecipeInfoForThird responseTO:{}.", JSONUtils.toString(responseTO));
+        logger.info("EnterpriseClient pushRecipeInfoForThird recipeId:{} responseTO:{}.",
+                pushRecipeAndOrder.getRecipeBean().getRecipeId(), JSONUtils.toString(responseTO));
         SkipThirdDTO result = new SkipThirdDTO();
         //推送药企失败
         result.setType(ByteUtils.strValueOf(ByteUtils.objValueOf(responseTO.getExtend().get("type"))));
