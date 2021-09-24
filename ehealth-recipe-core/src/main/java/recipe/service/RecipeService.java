@@ -4411,8 +4411,8 @@ public class RecipeService extends RecipeBaseService {
                         refundClient.refund(order.getOrderId(), PayBusType.OTHER_BUS_TYPE.getName());
                     }
                 }
-                refundClient.refund(order.getOrderId(), PayBusType.RECIPE_BUS_TYPE.getName());
             }
+            refundClient.refund(order.getOrderId(), PayBusType.RECIPE_BUS_TYPE.getName());
         } catch (Exception e) {
             LOGGER.error("wxPayRefundForRecipe " + errorInfo + "*****微信退款异常！recipeId[" + recipeId + "],err[" + e.getMessage() + "]", e);
         }
