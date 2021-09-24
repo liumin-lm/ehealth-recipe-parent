@@ -385,7 +385,7 @@ public class OfflineRecipeClient extends BaseClient {
             medicineCodeInfoTO.setRecipeCode(recipeCode);
             logger.info("OfflineRecipeClient queryMedicineCode medicineCodeInfoTO:{}.", JSON.toJSONString(medicineCodeInfoTO));
             HisResponseTO<MedicineCodeResponseTO> medicineCodeResponseTO = recipeHisService.queryMedicineCode(medicineCodeInfoTO);
-            MedicineCodeResponseTO medicineCodeResponse = JSONUtils.parse(getResponse(medicineCodeResponseTO).toString(), MedicineCodeResponseTO.class);
+            MedicineCodeResponseTO medicineCodeResponse = getResponse(medicineCodeResponseTO);
             logger.info("OfflineRecipeClient queryMedicineCode medicineCodeResponse:{}.", JSONUtils.toString(medicineCodeResponse));
             return medicineCodeResponse.getMedicineCode();
         } catch (Exception e) {
