@@ -20,6 +20,7 @@ import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.service.IDrugsEnterpriseService;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.RecipeOrderPayFlow;
 import com.ngari.recipe.pay.model.WnExtBusCdrRecipeDTO;
 import com.ngari.recipe.pay.service.IRecipeBusPayService;
@@ -54,6 +55,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.ObjectUtils;
 import recipe.client.IConfigurationClient;
 import recipe.client.RevisitClient;
+import recipe.dao.DrugsEnterpriseDAO;
 import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.enumerate.type.RecipePayTypeEnum;
 import recipe.manager.ButtonManager;
@@ -92,6 +94,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     private IConfigurationClient configurationClient;
     @Autowired
     private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
+    @Autowired
+    private DrugsEnterpriseDAO drugsEnterpriseDAO;
 
 
     private IConfigurationCenterUtilsService utils = BaseAPI.getService(IConfigurationCenterUtilsService.class);
@@ -401,7 +405,11 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
             if (syfPayMode) {
                 BigDecimal fundAmount = BigDecimal.valueOf(order.getFundAmount() == null ? 0.00 : order.getFundAmount());
-                BigDecimal otherFee = order.getAuditFee().add(order.getExpressFee()).add(fundAmount);
+                BigDecimal otherFee = order.getAuditFee().add(fundAmount);
+                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+                if(new Integer(1).equals(drugsEnterprise.getExpressFeePayWay())){
+                    otherFee = otherFee.add(order.getExpressFee());
+                }
                 simpleBusObject.setActualPrice(new Double(BigDecimal.valueOf(order.getActualPrice()).subtract(otherFee) + ""));
 
                 // 0自费 1医保
@@ -445,7 +453,11 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         simpleBusObject.setSubBusType("8");
         if (Objects.nonNull(order)) {
             simpleBusObject.setBusId(busId);
-            BigDecimal otherFee = order.getAuditFee().add(order.getExpressFee());
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+            BigDecimal otherFee = order.getAuditFee();
+            if(new Integer(1).equals(drugsEnterprise.getExpressFeePayWay())){
+                otherFee = otherFee.add(order.getExpressFee());
+            }
             simpleBusObject.setPrice(otherFee.stripTrailingZeros().doubleValue());
             simpleBusObject.setActualPrice(otherFee.doubleValue());
             simpleBusObject.setCouponId(order.getCouponId());
@@ -454,6 +466,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             simpleBusObject.setOrganId(order.getOrganId());
             simpleBusObject.setOutTradeNo(order.getOutTradeNo());
             simpleBusObject.setPayFlag(order.getPayFlag());
+            // 运费不展示 医保与自费设置
+            order.setOrderType(0);
             simpleBusObject.setBusObject(order);
             List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
             RecipeBean recipeBean = recipeService.getByRecipeId(recipeIdList.get(0));
