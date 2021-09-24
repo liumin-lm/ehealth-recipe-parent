@@ -20,6 +20,7 @@ import recipe.manager.RecipeManager;
 import recipe.manager.RecipeOrderPayFlowManager;
 import recipe.service.RecipeOrderService;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -88,29 +89,26 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
         }
 
         //如果不需要支付处方费用则订单直接完成
-
-        RecipeOrder recipeOrder = orderManager.getRecipeOrderById(busId);
-        if (null == recipeOrder) {
-            return false;
-        }
-        Recipe recipe = recipeManager.getByRecipeCodeAndClinicOrgan(recipeOrder.getOrderCode(), recipeOrder.getOrganId());
-        Integer giveMode = recipe.getGiveMode();
-        logger.info("doHandleAfterPay recipe:{}.", JSONUtils.toString(recipe));
-        if (new Integer(2).equals(recipeOrder.getPayMode())) {
-            //表示该处方为线下付款
-            Integer payMode = 2;
-            switch (giveMode) {
-                case 2:
-                    payMode = 3;
-                    break;
-                case 3:
-                    payMode = 4;
-                    break;
-                default:
-                    break;
+        List<Recipe> recipes = recipeManager.findRecipeByOrderCode(order.getOrderCode());
+        recipes.forEach(recipe->{
+            Integer giveMode = recipe.getGiveMode();
+            if (new Integer(2).equals(order.getPayMode())) {
+                //表示该处方为线下付款
+                Integer payMode = 2;
+                switch (giveMode) {
+                    case 2:
+                        payMode = 3;
+                        break;
+                    case 3:
+                        payMode = 4;
+                        break;
+                    default:
+                        break;
+                }
+                orderService.finishOrderPay(order.getOrderCode(), PayFlagEnum.PAYED.getType(), payMode);
             }
-            orderService.finishOrderPay(recipeOrder.getOrderCode(), PayFlagEnum.PAYED.getType(), payMode);
-        }
+        });
+
         return true;
     }
 

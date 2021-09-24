@@ -305,6 +305,15 @@ public class RecipeManager extends BaseManager {
     }
 
     /**
+     * 根据订单号查询处方列表
+     * @param orderCode orderCode
+     * @return List<Recipe>
+     */
+    public List<Recipe> findRecipeByOrderCode(String orderCode){
+        return recipeDAO.findRecipeByOrdercode(orderCode);
+    }
+
+    /**
      * 更新推送his返回信息处方数据
      *
      * @param recipeResult 处方结果
