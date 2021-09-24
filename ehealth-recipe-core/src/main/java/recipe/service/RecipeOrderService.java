@@ -2221,8 +2221,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 attrMap.put("effective", 1);
             }
         }
+        LOGGER.info("finishOrderPayImpl orderCode:{},attrMap:{},result:{}.", orderCode, JSONUtils.toString(attrMap), JSONUtils.toString(result));
         updateOrderInfo(orderCode, attrMap, result);
-
         //处理处方单相关
         if (RecipeResultBean.SUCCESS.equals(result.getCode()) && CollectionUtils.isNotEmpty(recipes)) {
             Map<String, Object> recipeInfo = Maps.newHashMap();
