@@ -108,7 +108,7 @@ public class CommonOrder {
     }
 
     public static HisResponseTO updateGoodsReceivingInfoToCreateOrder(Integer recipeId, Map<String, String> extInfo) {
-        LOG.info("CommonOrder updateGoodsReceivingInfoToCreateOrder recipeId:{},extInfo:{}.", recipeId, JSONUtils.toBytes(extInfo));
+        LOG.info("CommonOrder updateGoodsReceivingInfoToCreateOrder recipeId:{},extInfo:{}.", recipeId, JSONUtils.toString(extInfo));
         try{
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
