@@ -90,6 +90,7 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
 
         //如果不需要支付处方费用则订单直接完成
         List<Recipe> recipes = recipeManager.findRecipeByOrderCode(order.getOrderCode());
+        logger.info("order:{},recipe:{}.", JSONUtils.toString(order), JSONUtils.toString(recipes));
         recipes.forEach(recipe->{
             Integer giveMode = recipe.getGiveMode();
             if (new Integer(2).equals(order.getPayMode())) {
