@@ -109,7 +109,7 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
                 default:
                     break;
             }
-            //orderService.finishOrderPay(recipeOrder.getOrderCode(), PayFlagEnum.PAYED.getType(), payMode);
+            orderService.finishOrderPay(recipeOrder.getOrderCode(), PayFlagEnum.PAYED.getType(), payMode);
         }
         return true;
     }

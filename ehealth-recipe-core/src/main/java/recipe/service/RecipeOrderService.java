@@ -2177,7 +2177,7 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     private RecipeResultBean finishOrderPayImpl(String orderCode, int payFlag, Integer payMode, String refundNo) {
-        LOGGER.info("finishOrderPayImpl is get! orderCode={} ,payFlag = {}", orderCode, payFlag);
+        LOGGER.info("finishOrderPayImpl is get! orderCode={} ,payFlag = {}, payMode:{}.", orderCode, payFlag, payMode);
         RecipeResultBean result = RecipeResultBean.getSuccess();
         RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
         Map<String, Object> attrMap = Maps.newHashMap();
