@@ -268,6 +268,9 @@ public class RecipeManager extends BaseManager {
                         qrName = recipe.getRecipeCode();
                     }
                     break;
+                case TAKE_DRUG_CODE:
+                    qrName = offlineRecipeClient.queryMidicineCode(recipe.getClinicOrgan(), recipe.getRecipeId(),recipe.getRecipeCode());
+                    break;
                 case SERIALNUMBER:
                     qrName = offlineRecipeClient.queryRecipeSerialNumber(recipe.getClinicOrgan(), recipe.getPatientName(), recipe.getPatientID(), recipeExtend.getRegisterID());
                 default:

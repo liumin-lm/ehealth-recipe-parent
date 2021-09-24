@@ -370,4 +370,25 @@ public class OfflineRecipeClient extends BaseClient {
     }
 
 
+    /**
+     *
+     * @param clinicOrgan
+     * @param recipeId
+     * @param recipeCode
+     * @return
+     */
+    public String queryMidicineCode(Integer clinicOrgan, Integer recipeId, String recipeCode) {
+        try {
+            MedicineCodeInfoTO medicineCodeInfoTO = new MedicineCodeInfoTO();
+            medicineCodeInfoTO.setOrganId(clinicOrgan);
+            medicineCodeInfoTO.setRecipeId(recipeId);
+            medicineCodeInfoTO.setRecipeCode(recipeCode);
+            logger.info("OfflineRecipeClient queryMidicineCode medicineCodeInfoTO:{}.", JSON.toJSONString(medicineCodeInfoTO));
+            MedicineCodeResponseTO medicineCodeResponseTO = recipeHisService.queryMedicineCode(medicineCodeInfoTO);
+            return getMedicineCodeResponse(medicineCodeResponseTO);
+        } catch (Exception e) {
+            logger.error("OfflineRecipeClient queryMidicineCodes medicineCodeResponseTO", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
 }
