@@ -10,6 +10,8 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.converter.ConversionUtils;
 import eh.entity.bus.Order;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,7 @@ import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.manager.RecipeOrderPayFlowManager;
 import recipe.service.RecipeOrderService;
+import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 
 import java.util.List;
 import java.util.Map;
@@ -45,7 +48,8 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
     @Autowired
     private RecipeManager recipeManager;
 
-
+    @Autowired
+    private RemoteRecipeOrderService recipeOrderService;
 
     @Override
     public boolean doHandleAfterPay(PayResultDTO payResult) {
@@ -138,7 +142,17 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
                 memo.append("支付 未知状态，payFlag:" + targetPayFlag);
                 break;
         }
+        recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
+        RecipeOrder recipeOrder = orderManager.getRecipeOrderById(order.getBusId());
+        if (StringUtils.isNotEmpty(recipeOrder.getRecipeIdList())) {
+            List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+            if (CollectionUtils.isNotEmpty(recipeIdList)) {
+                Integer bussId = recipeIdList.get(0);
+                //调用回调处方退费
+                recipeOrderService.refundCallback(bussId, targetPayFlag, null);
+            }
+        }
         logger.info("RecipeOtherFeePayCallBackService doHandleAfterRefund memo:{}.", memo.toString());
-        return recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
+        return true;
     }
 }
