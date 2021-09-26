@@ -274,8 +274,8 @@ public class RecipeTimedTaskService {
         }
         List<Recipe> recipes = new ArrayList<>();
         String currentTime = DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME);
-        List<Recipe> invalidRecipe = recipeDAO.findInvalidRecipeByOrganId(organId, currentTime);
-        List<Recipe> invalidOrder = recipeDAO.findInvalidOrderByOrganId(organId, currentTime);
+        List<Recipe> invalidRecipe = recipeDAO.findInvalidRecipeByOrganId(organId, new Date());
+        List<Recipe> invalidOrder = recipeDAO.findInvalidOrderByOrganId(organId, new Date());
         recipes.addAll(invalidRecipe);
         recipes.addAll(invalidOrder);
         LOGGER.info("recipeInvalidRemindTask recipes:{}.", JSONUtils.toString(recipes));
