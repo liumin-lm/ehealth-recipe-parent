@@ -409,7 +409,9 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 if(Objects.nonNull(order.getEnterpriseId())) {
                     DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
                     if (new Integer(1).equals(drugsEnterprise.getExpressFeePayWay())) {
-                        otherFee = otherFee.add(order.getExpressFee());
+                        if (null != order.getExpressFee()) {
+                            otherFee = otherFee.add(order.getExpressFee());
+                        }
                     }
                 }
                 simpleBusObject.setActualPrice(new Double(BigDecimal.valueOf(order.getActualPrice()).subtract(otherFee) + ""));
