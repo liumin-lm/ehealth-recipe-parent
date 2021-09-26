@@ -11,7 +11,6 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.service.IRecipeService;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import eh.base.constant.BussTypeConstant;
@@ -25,7 +24,6 @@ import eh.wxpay.constant.PayConstant;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.api.open.IRecipeAtopService;
 import recipe.atop.open.RecipeOpenAtop;
@@ -222,7 +220,7 @@ public abstract class AbstractAuidtMode implements IAuditMode {
         try {
             Integer recipeId = recipe.getRecipeId();
             //处方信息
-            IRecipeAtopService iRecipeAtopService = RecipeAPI.getService(RecipeOpenAtop.class);
+            IRecipeAtopService iRecipeAtopService = RecipeAPI.getService(IRecipeAtopService.class);
             RecipeBean recipeBean = iRecipeAtopService.getByRecipeId(recipeId);
             RecipeDTO recipeDTO = ObjectCopyUtils.convert(recipeBean, RecipeDTO.class);
             //查詢处方扩展 获取对应的挂号序号
