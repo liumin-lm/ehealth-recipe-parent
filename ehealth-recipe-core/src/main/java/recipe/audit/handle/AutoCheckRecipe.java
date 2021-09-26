@@ -36,6 +36,12 @@ public class AutoCheckRecipe {
         AutoCheckRecipe.recipeManager = recipeManager;
     }
 
+    /**
+     * @desc 获取完整的处方和病历信息
+     * @author maoze
+     * @param recipeId 
+     * @return
+     */
     public static Recipe getByRecipeId(Integer recipeId){
        return recipeManager.getRecipeById(recipeId);
     }
