@@ -2,6 +2,7 @@ package recipe.client;
 
 import com.ngari.recipe.dto.RefundResultDTO;
 import com.ngari.wxpay.service.INgariRefundService;
+import ctd.util.JSONUtils;
 import eh.utils.MapValueUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -38,6 +39,7 @@ public class RefundClient extends BaseClient {
         } catch (Exception e) {
             logger.error("RefundClient refund error ", e);
         }
+        logger.info("RefundClient refund refundResultDTO:{}.", JSONUtils.toString(refundResultDTO));
         return refundResultDTO;
     }
 

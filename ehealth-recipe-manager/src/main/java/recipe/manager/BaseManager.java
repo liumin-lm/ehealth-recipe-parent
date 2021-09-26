@@ -93,12 +93,12 @@ public class BaseManager {
     /**
      * 保存处方操作记录
      */
-    protected void saveRecipeLog(Integer recipeId, Integer beforeStatus, Integer afterStatus, String memo) {
+    protected void saveRecipeLog(Integer recipeId, RecipeStatusEnum beforeStatus, RecipeStatusEnum afterStatus, String memo) {
         if (ValidateUtil.integerIsEmpty(recipeId)) {
             return;
         }
-        beforeStatus = null == beforeStatus ? RecipeStatusEnum.NONE.getType() : beforeStatus;
-        afterStatus = null == afterStatus ? RecipeStatusEnum.NONE.getType() : afterStatus;
+        beforeStatus = null == beforeStatus ? RecipeStatusEnum.NONE : beforeStatus;
+        afterStatus = null == afterStatus ? RecipeStatusEnum.NONE : afterStatus;
         memo = StringUtils.defaultString(memo, "");
         if (StringUtils.isNotEmpty(memo) && memo.length() > 250) {
             memo = memo.substring(0, 250);
@@ -107,8 +107,8 @@ public class BaseManager {
             RecipeLog recipeLog = new RecipeLog();
             recipeLog.setRecipeId(recipeId);
             recipeLog.setModifyDate(DateTime.now().toDate());
-            recipeLog.setBeforeStatus(beforeStatus);
-            recipeLog.setAfterStatus(afterStatus);
+            recipeLog.setBeforeStatus(beforeStatus.getType());
+            recipeLog.setAfterStatus(afterStatus.getType());
             recipeLog.setMemo(memo);
             recipeLog.setExpand("");
             recipeLogDAO.saveRecipeLog(recipeLog);

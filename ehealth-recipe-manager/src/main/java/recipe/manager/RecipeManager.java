@@ -268,6 +268,9 @@ public class RecipeManager extends BaseManager {
                         qrName = recipe.getRecipeCode();
                     }
                     break;
+                case TAKE_DRUG_CODE:
+                    qrName = offlineRecipeClient.queryMedicineCode(recipe.getClinicOrgan(), recipe.getRecipeId(),recipe.getRecipeCode());
+                    break;
                 case SERIALNUMBER:
                     qrName = offlineRecipeClient.queryRecipeSerialNumber(recipe.getClinicOrgan(), recipe.getPatientName(), recipe.getPatientID(), recipeExtend.getRegisterID());
                 default:
@@ -299,6 +302,15 @@ public class RecipeManager extends BaseManager {
         recipeCancel.setCancelReason(cancelReason);
         logger.info("getCancelReasonForPatient recipeCancel:{}", JSONUtils.toString(recipeCancel));
         return recipeCancel;
+    }
+
+    /**
+     * 根据订单号查询处方列表
+     * @param orderCode orderCode
+     * @return List<Recipe>
+     */
+    public List<Recipe> findRecipeByOrderCode(String orderCode){
+        return recipeDAO.findRecipeListByOrderCode(orderCode);
     }
 
     /**

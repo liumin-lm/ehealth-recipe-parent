@@ -159,13 +159,13 @@ public class RecipeTestService {
 
     @RpcService
     public void insertDrugCategoryByOrganId(Integer organId, String createDate) {
-        List<RegulationDrugCategoryReq> drugCategoryReqs = new ArrayList<>();
         IRegulationService hisService =
                 AppDomainContext.getBean("his.regulationService", IRegulationService.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndCreateDt(organId, DateConversion.parseDate(createDate, "yyyy-MM-dd HH:mm:ss"));
         LOGGER.info("RecipeTestService-insertDrugCategoryByOrganId organDrugLists count:{}.", organDrugLists.size());
         for (OrganDrugList organDrugList : organDrugLists) {
+            List<RegulationDrugCategoryReq> drugCategoryReqs = new ArrayList<>();
             RegulationDrugCategoryReq drugCategoryReq = packingDrugCategoryReq(organDrugList);
             drugCategoryReqs.add(drugCategoryReq);
 
@@ -211,11 +211,7 @@ public class RecipeTestService {
         drugCategoryReq.setHospDrugManuf(organDrugList.getProducer());
 
         drugCategoryReq.setUseFlag(organDrugList.getStatus() + "");
-        if (drugList == null) {
-            drugCategoryReq.setDrugClass("1901");
-        } else {
-            drugCategoryReq.setDrugClass(drugList.getDrugClass());
-        }
+        drugCategoryReq.setDrugClass("1901");
         drugCategoryReq.setUpdateTime(new Date());
         drugCategoryReq.setCreateTime(new Date());
         LOGGER.info("RecipeTestService-packingDrugCategoryReq drugCategoryReq:" + JSONUtils.toString(drugCategoryReq));

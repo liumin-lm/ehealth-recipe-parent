@@ -4411,8 +4411,21 @@ public class RecipeService extends RecipeBaseService {
                         refundClient.refund(order.getOrderId(), PayBusType.OTHER_BUS_TYPE.getName());
                     }
                 }
+                RecipeOrderPayFlow recipeOrderPay = recipeOrderPayFlowManager.getByOrderIdAndType(order.getOrderId(), PayFlowTypeEnum.RECIPE_FLOW.getType());
+                if (null != recipeOrderPay) {
+                    if (StringUtils.isEmpty(recipeOrderPay.getOutTradeNo())) {
+                        //表示没有实际支付审方或者快递费,只需要更新状态
+                        recipeOrderPay.setPayFlag(PayFlagEnum.REFUND_SUCCESS.getType());
+                        recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPay);
+                    } else {
+                        //说明需要正常退药品费用费
+                        refundClient.refund(order.getOrderId(), PayBusType.RECIPE_BUS_TYPE.getName());
+                    }
+                }
+            } else {
                 refundClient.refund(order.getOrderId(), PayBusType.RECIPE_BUS_TYPE.getName());
             }
+            refundClient.refund(order.getOrderId(), PayBusType.RECIPE_BUS_TYPE.getName());
         } catch (Exception e) {
             LOGGER.error("wxPayRefundForRecipe " + errorInfo + "*****微信退款异常！recipeId[" + recipeId + "],err[" + e.getMessage() + "]", e);
         }

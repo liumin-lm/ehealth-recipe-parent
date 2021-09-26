@@ -62,18 +62,20 @@ import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.client.IConfigurationClient;
+import recipe.client.RefundClient;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.PayBusType;
+import recipe.enumerate.type.PayFlagEnum;
+import recipe.enumerate.type.PayFlowTypeEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
-import recipe.manager.EmrRecipeManager;
-import recipe.manager.HisRecipeManager;
-import recipe.manager.OrderManager;
-import recipe.manager.RecipeManager;
+import recipe.manager.*;
 import recipe.purchase.PurchaseService;
 import recipe.service.afterpay.AfterPayBusService;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
@@ -148,6 +150,12 @@ public class RecipeOrderService extends RecipeBaseService {
 
     @Autowired
     private RecipeManager recipeManager;
+    @Autowired
+    private IConfigurationClient configurationClient;
+    @Autowired
+    private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
+    @Autowired
+    private RefundClient refundClient;
 
 
     /**
@@ -1449,6 +1457,23 @@ public class RecipeOrderService extends RecipeBaseService {
                 //合并处方订单取消
                 List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
                 if (status.equals(OrderStatusConstant.CANCEL_MANUAL)) {
+
+                    // 邵逸夫手动取消要查看是否有支付审方费
+                    Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode",false);
+                    if (syfPayMode) {
+                        //邵逸夫支付
+                        RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(order.getOrderId(), PayFlowTypeEnum.RECIPE_AUDIT.getType());
+                        if (null != recipeOrderPayFlow) {
+                            if (StringUtils.isEmpty(recipeOrderPayFlow.getOutTradeNo())) {
+                                //表示没有实际支付审方或者快递费,只需要更新状态
+                                recipeOrderPayFlow.setPayFlag(PayFlagEnum.REFUND_SUCCESS.getType());
+                                recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
+                            } else {
+                                //说明需要正常退审方费
+                                refundClient.refund(order.getOrderId(), PayBusType.OTHER_BUS_TYPE.getName());
+                            }
+                        }
+                    }
                     //订单手动取消，处方单可以进行重新支付
                     //更新处方的orderCode
 
@@ -1728,6 +1753,20 @@ public class RecipeOrderService extends RecipeBaseService {
                             needFee = orderBean.getTotalFee().subtract(orderBean.getCouponFee());
                         } else {
                             needFee = orderBean.getTotalFee().subtract(orderBean.getCouponFee()).subtract(new BigDecimal(Double.toString(orderBean.getActualPrice())));
+                        }
+                        // 邵逸夫模式修改需付款
+                        if(!"supportToHos".equals(order.getGiveModeKey())) {
+                            Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
+                            if (syfPayMode) {
+                                List<RecipeOrderPayFlow> byOrderId = recipeOrderPayFlowManager.findByOrderId(orderBean.getOrderId());
+                                if (CollectionUtils.isNotEmpty(byOrderId)) {
+                                    Double otherFee = 0d;
+                                    for (RecipeOrderPayFlow recipeOrderPayFlow : byOrderId) {
+                                        otherFee = otherFee + recipeOrderPayFlow.getTotalFee();
+                                    }
+                                    needFee = needFee.subtract(BigDecimal.valueOf(otherFee));
+                                }
+                            }
                         }
                     } catch (Exception e) {
                         LOGGER.error("getOrderDetailById needFee计算需支付 error :{}", e);
@@ -2140,7 +2179,7 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     private RecipeResultBean finishOrderPayImpl(String orderCode, int payFlag, Integer payMode, String refundNo) {
-        LOGGER.info("finishOrderPayImpl is get! orderCode={} ,payFlag = {}", orderCode, payFlag);
+        LOGGER.info("finishOrderPayImpl is get! orderCode={} ,payFlag = {}, payMode:{}.", orderCode, payFlag, payMode);
         RecipeResultBean result = RecipeResultBean.getSuccess();
         RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
         Map<String, Object> attrMap = Maps.newHashMap();
@@ -2184,8 +2223,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 attrMap.put("effective", 1);
             }
         }
+        LOGGER.info("finishOrderPayImpl orderCode:{},attrMap:{},result:{}.", orderCode, JSONUtils.toString(attrMap), JSONUtils.toString(result));
         updateOrderInfo(orderCode, attrMap, result);
-
         //处理处方单相关
         if (RecipeResultBean.SUCCESS.equals(result.getCode()) && CollectionUtils.isNotEmpty(recipes)) {
             Map<String, Object> recipeInfo = Maps.newHashMap();
