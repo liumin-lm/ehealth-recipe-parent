@@ -3692,7 +3692,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
-    @DAOMethod(sql = "from Recipe where ClinicOrgan =:ClinicOrgan and orderCode is null and `status` = 2 and invalidTime >:currentTime", limit=0)
+    @DAOMethod(sql = "from Recipe where ClinicOrgan =:ClinicOrgan and orderCode is null and status = 2 and invalidTime >:currentTime", limit=0)
     public abstract List<Recipe> findInvalidRecipeByOrganId(@DAOParam("ClinicOrgan") Integer ClinicOrgan, @DAOParam("currentTime") String currentTime);
 
     @DAOMethod(sql = "from Recipe where ClinicOrgan =:ClinicOrgan and orderCode is not null and PayFlag = 0 and invalidTime >:currentTime ", limit=0)
