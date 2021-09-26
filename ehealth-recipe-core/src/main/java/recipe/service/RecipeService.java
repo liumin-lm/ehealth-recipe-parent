@@ -3521,18 +3521,21 @@ public class RecipeService extends RecipeBaseService {
                     order = orderDAO.getOrderByRecipeId(recipeId);
                     orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
                     // 邵逸夫模式下 需要查询有无支付审方费
-                    IConfigurationClient configurationClient = AppDomainContext.getBean("eh.iConfigurationClient",IConfigurationClient.class);
-                    Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
-                    if (syfPayMode) {
-                        // 查询是否有流水
-                        RecipeOrderPayFlowDao recipeOrderPayFlowDao = ApplicationUtils.getRecipeService(RecipeOrderPayFlowDao.class);
-                        List<RecipeOrderPayFlow> byOrderId = recipeOrderPayFlowDao.findByOrderId(order.getOrderId());
-                        // 退费
-                        if(CollectionUtils.isNotEmpty(byOrderId)){
-                            RefundClient refundClient = ApplicationUtils.getRecipeService(RefundClient.class);
-                            refundClient.refund(order.getOrderId(),PayBusType.OTHER_BUS_TYPE.getName());
-                        }
+                    if (null != order) {
+                        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+                        Object invalidInfoObject = configurationService.getConfiguration(order.getOrganId(), "syfPayMode");
+                        Boolean syfPayMode = (Boolean) invalidInfoObject;
+                        if (syfPayMode) {
+                            // 查询是否有流水
+                            RecipeOrderPayFlowDao recipeOrderPayFlowDao = ApplicationUtils.getRecipeService(RecipeOrderPayFlowDao.class);
+                            List<RecipeOrderPayFlow> byOrderId = recipeOrderPayFlowDao.findByOrderId(order.getOrderId());
+                            // 退费
+                            if(CollectionUtils.isNotEmpty(byOrderId)){
+                                RefundClient refundClient = ApplicationUtils.getRecipeService(RefundClient.class);
+                                refundClient.refund(order.getOrderId(),PayBusType.OTHER_BUS_TYPE.getName());
+                            }
 
+                        }
                     }
                     if (recipe.getFromflag().equals(RecipeBussConstant.FROMFLAG_HIS_USE)) {
                         if (null != order) {
