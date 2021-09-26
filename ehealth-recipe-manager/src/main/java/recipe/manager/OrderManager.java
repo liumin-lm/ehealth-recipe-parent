@@ -70,12 +70,14 @@ public class OrderManager extends BaseManager {
         // 邵逸夫模式下 不需要审方物流费需要生成一条流水记录
         Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
         if (syfPayMode) {
-            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
             BigDecimal otherFee = order.getAuditFee();
-            if(new Integer(1).equals(drugsEnterprise.getExpressFeePayWay())){
-                otherFee = otherFee.add(order.getExpressFee());
+            if (Objects.nonNull(order.getEnterpriseId())) {
+                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+                if (new Integer(1).equals(drugsEnterprise.getExpressFeePayWay())) {
+                    otherFee = otherFee.add(order.getExpressFee());
+                }
             }
-            if(0d >= otherFee.doubleValue()){
+            if (0d >= otherFee.doubleValue()) {
                 RecipeOrderPayFlow recipeOrderPayFlow = new RecipeOrderPayFlow();
                 recipeOrderPayFlow.setOrderId(order.getOrderId());
                 recipeOrderPayFlow.setTotalFee(0d);
@@ -222,14 +224,15 @@ public class OrderManager extends BaseManager {
 
     /**
      * 通过商户订单号获取订单
+     *
      * @param outTradeNo 商户订单号
      * @return 订单
      */
-    public RecipeOrder getByOutTradeNo(String outTradeNo){
+    public RecipeOrder getByOutTradeNo(String outTradeNo) {
         return recipeOrderDAO.getByOutTradeNo(outTradeNo);
     }
 
-    public boolean updateNonNullFieldByPrimaryKey(RecipeOrder recipeOrder){
+    public boolean updateNonNullFieldByPrimaryKey(RecipeOrder recipeOrder) {
         return recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
     }
 
