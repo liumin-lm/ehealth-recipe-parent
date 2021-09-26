@@ -274,6 +274,8 @@ public class CommonOrder {
         recipeOrder.setReceiver(address.getReceiver());
         recipeOrder.setRecMobile(address.getRecMobile());
         recipeOrder.setRecTel(address.getRecMobile());
+        recipeOrder.setDrugStoreCode(MapValueUtil.getString(extInfo,"drugStoreCode"));
+        recipeOrder.setDrugStoreName(MapValueUtil.getString(extInfo, "drugStoreName"));
         return recipeOrder;
     }
 }
