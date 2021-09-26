@@ -25,7 +25,10 @@ import eh.wxpay.constant.PayConstant;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.api.open.IRecipeAtopService;
+import recipe.atop.open.RecipeOpenAtop;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.RecipeDAO;
@@ -215,13 +218,13 @@ public abstract class AbstractAuidtMode implements IAuditMode {
      * @param recipe
      */
     protected void recipeAudit(Recipe recipe) {
+        LOGGER.info("AbstractAuidtMode recipeAudit recipe={}",JSON.toJSONString(recipe));
         try {
             Integer recipeId = recipe.getRecipeId();
             //处方信息
-            IRecipeService iRecipeService = RecipeAPI.getService(IRecipeService.class);
-            RecipeBean recipeBean = iRecipeService.getByRecipeId(recipeId);
+            IRecipeAtopService iRecipeAtopService = RecipeAPI.getService(RecipeOpenAtop.class);
+            RecipeBean recipeBean = iRecipeAtopService.getByRecipeId(recipeId);
             RecipeDTO recipeDTO = ObjectCopyUtils.convert(recipeBean, RecipeDTO.class);
-
             //查詢处方扩展 获取对应的挂号序号
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
@@ -230,8 +233,8 @@ public abstract class AbstractAuidtMode implements IAuditMode {
             RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
             List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
             List<RecipeDetailDTO> recipeDetailBeans = ObjectCopyUtils.convert(recipeDetails, RecipeDetailDTO.class);
-
             IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
+            LOGGER.info("AbstractAuidtMode recipeAudit recipeDTO={} recipeDetailBeans={}",JSON.toJSONString(recipeDTO),JSON.toJSONString(recipeDetailBeans));
             if (recipeDTO.getCheckMode().equals(3)) {
                 recipeAuditService.winningRecipeAudit(recipeDTO, recipeDetailBeans);
             } else {
