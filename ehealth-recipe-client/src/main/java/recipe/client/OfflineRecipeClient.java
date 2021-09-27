@@ -425,11 +425,11 @@ public class OfflineRecipeClient extends BaseClient {
         HisResponseTO<MedicineCodeResponseTO> medicineCodeResponseTO;
         try {
             medicineCodeResponseTO = retryer.call(() -> {
-                logger.info("OfflineRecipeClient queryMedicineCode retry");
+                logger.info("OfflineRecipeClient queryMedicineCode retry medicineCodeInfoTO={}",JSONUtils.toString(medicineCodeInfoTO));
                 return recipeHisService.queryMedicineCode(medicineCodeInfoTO);
             });
         } catch (Exception e) {
-            logger.info("未获取到取药凭证");
+            logger.info("未获取到取药凭证,medicineCodeInfoTO={}",JSONUtils.toString(medicineCodeInfoTO));
             throw new DAOException(609,"暂未获取到取药凭证，请刷新后重新进入");
         }
         return medicineCodeResponseTO;
