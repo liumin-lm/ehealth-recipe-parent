@@ -1755,15 +1755,17 @@ public class RecipeOrderService extends RecipeBaseService {
                             needFee = orderBean.getTotalFee().subtract(orderBean.getCouponFee()).subtract(new BigDecimal(Double.toString(orderBean.getActualPrice())));
                         }
                         // 邵逸夫模式修改需付款
-                        Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
-                        if (syfPayMode) {
-                            List<RecipeOrderPayFlow> byOrderId = recipeOrderPayFlowManager.findByOrderId(orderBean.getOrderId());
-                            if(CollectionUtils.isNotEmpty(byOrderId)){
-                                Double otherFee = 0d;
-                                for (RecipeOrderPayFlow recipeOrderPayFlow : byOrderId) {
-                                    otherFee = otherFee + recipeOrderPayFlow.getTotalFee();
+                        if(!"supportToHos".equals(order.getGiveModeKey())) {
+                            Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
+                            if (syfPayMode) {
+                                List<RecipeOrderPayFlow> byOrderId = recipeOrderPayFlowManager.findByOrderId(orderBean.getOrderId());
+                                if (CollectionUtils.isNotEmpty(byOrderId)) {
+                                    Double otherFee = 0d;
+                                    for (RecipeOrderPayFlow recipeOrderPayFlow : byOrderId) {
+                                        otherFee = otherFee + recipeOrderPayFlow.getTotalFee();
+                                    }
+                                    needFee = needFee.subtract(BigDecimal.valueOf(otherFee));
                                 }
-                                needFee = needFee.subtract(BigDecimal.valueOf(otherFee));
                             }
                         }
                     } catch (Exception e) {

@@ -70,11 +70,11 @@ public class OrderManager extends BaseManager {
         // 邵逸夫模式下 不需要审方物流费需要生成一条流水记录
         Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
         if (syfPayMode) {
-            BigDecimal otherFee = order.getAuditFee();
+            BigDecimal otherFee = Objects.isNull(order.getAuditFee()) ? BigDecimal.ZERO : order.getAuditFee();
             if (Objects.nonNull(order.getEnterpriseId())) {
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
                 if (new Integer(1).equals(drugsEnterprise.getExpressFeePayWay())) {
-                    otherFee = otherFee.add(order.getExpressFee());
+                    otherFee = otherFee.add(Objects.isNull(order.getExpressFee()) ? BigDecimal.ZERO : order.getExpressFee());
                 }
             }
             if (0d >= otherFee.doubleValue()) {
