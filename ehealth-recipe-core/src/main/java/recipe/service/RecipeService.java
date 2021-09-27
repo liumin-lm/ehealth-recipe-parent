@@ -2805,7 +2805,7 @@ public class RecipeService extends RecipeBaseService {
         }
         List<String> msg = Lists.newArrayList();
         for (OrganDrugInfoTO organDrug : organDrugs) {
-            LOGGER.info("syncOrganDrug推送药品信息" + organId + "{}", JSONUtils.toString(organDrug));
+            LOGGER.info("syncOrganDrug推送药品信息"+organId+"{}", JSONUtils.toString(organDrug));
             List<String> check = checkOrganDrugInfoTO(organDrug);
             if (!ObjectUtils.isEmpty(check)) {
                 LOGGER.info("updateOrSaveOrganDrug 当前新增药品信息,信息缺失{}", JSONUtils.toString(check));
@@ -3519,18 +3519,21 @@ public class RecipeService extends RecipeBaseService {
                     order = orderDAO.getOrderByRecipeId(recipeId);
                     orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
                     // 邵逸夫模式下 需要查询有无支付审方费
-                    IConfigurationClient configurationClient = ApplicationUtils.getRecipeService(IConfigurationClient.class);
-                    Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
-                    if (syfPayMode) {
-                        // 查询是否有流水
-                        RecipeOrderPayFlowDao recipeOrderPayFlowDao = ApplicationUtils.getRecipeService(RecipeOrderPayFlowDao.class);
-                        List<RecipeOrderPayFlow> byOrderId = recipeOrderPayFlowDao.findByOrderId(order.getOrderId());
-                        // 退费
-                        if (CollectionUtils.isNotEmpty(byOrderId)) {
-                            RefundClient refundClient = ApplicationUtils.getRecipeService(RefundClient.class);
-                            refundClient.refund(order.getOrderId(), PayBusType.OTHER_BUS_TYPE.getName());
-                        }
+                    if (null != order) {
+                        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+                        Object invalidInfoObject = configurationService.getConfiguration(order.getOrganId(), "syfPayMode");
+                        Boolean syfPayMode = (Boolean) invalidInfoObject;
+                        if (syfPayMode) {
+                            // 查询是否有流水
+                            RecipeOrderPayFlowDao recipeOrderPayFlowDao = ApplicationUtils.getRecipeService(RecipeOrderPayFlowDao.class);
+                            List<RecipeOrderPayFlow> byOrderId = recipeOrderPayFlowDao.findByOrderId(order.getOrderId());
+                            // 退费
+                            if(CollectionUtils.isNotEmpty(byOrderId)){
+                                RefundClient refundClient = ApplicationUtils.getRecipeService(RefundClient.class);
+                                refundClient.refund(order.getOrderId(),PayBusType.OTHER_BUS_TYPE.getName());
+                            }
 
+                        }
                     }
                     if (recipe.getFromflag().equals(RecipeBussConstant.FROMFLAG_HIS_USE)) {
                         if (null != order) {
@@ -4395,7 +4398,7 @@ public class RecipeService extends RecipeBaseService {
         try {
             //退款,根据是否邵逸夫支付进行退款处理
             //通过运营平台控制开关决定是否走此种模式
-            Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
+            Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode",false);
             if (syfPayMode) {
                 //邵逸夫支付
                 RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(order.getOrderId(), PayFlowTypeEnum.RECIPE_AUDIT.getType());
@@ -4409,6 +4412,19 @@ public class RecipeService extends RecipeBaseService {
                         refundClient.refund(order.getOrderId(), PayBusType.OTHER_BUS_TYPE.getName());
                     }
                 }
+                RecipeOrderPayFlow recipeOrderPay = recipeOrderPayFlowManager.getByOrderIdAndType(order.getOrderId(), PayFlowTypeEnum.RECIPE_FLOW.getType());
+                if (null != recipeOrderPay) {
+                    if (StringUtils.isEmpty(recipeOrderPay.getOutTradeNo())) {
+                        //表示没有实际支付审方或者快递费,只需要更新状态
+                        recipeOrderPay.setPayFlag(PayFlagEnum.REFUND_SUCCESS.getType());
+                        recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPay);
+                    } else {
+                        //说明需要正常退药品费用费
+                        refundClient.refund(order.getOrderId(), PayBusType.RECIPE_BUS_TYPE.getName());
+                    }
+                }
+            } else {
+                refundClient.refund(order.getOrderId(), PayBusType.RECIPE_BUS_TYPE.getName());
             }
             refundClient.refund(order.getOrderId(), PayBusType.RECIPE_BUS_TYPE.getName());
         } catch (Exception e) {

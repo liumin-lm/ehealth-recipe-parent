@@ -281,7 +281,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
                     || StringUtils.isBlank(drugsEnterpriseBean.getConsignorAddress())
                     || StringUtils.isBlank(drugsEnterpriseBean.getConsignorCity()) || StringUtils.isBlank(drugsEnterpriseBean.getConsignorDistrict())
                     || StringUtils.isBlank(drugsEnterpriseBean.getConsignorMobile()) || StringUtils.isBlank(drugsEnterpriseBean.getConsignorName())
-                    || StringUtils.isBlank(drugsEnterpriseBean.getConsignorProvince()) || StringUtils.isBlank(drugsEnterpriseBean.getConsignorStreet())) {
+                    || StringUtils.isBlank(drugsEnterpriseBean.getConsignorProvince())) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "平台对接物流，物流公司、寄件人信息不能为空!");
             }
         }

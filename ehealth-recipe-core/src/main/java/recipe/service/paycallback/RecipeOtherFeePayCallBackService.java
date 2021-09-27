@@ -10,6 +10,8 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.converter.ConversionUtils;
 import eh.entity.bus.Order;
+import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +21,9 @@ import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.manager.RecipeOrderPayFlowManager;
 import recipe.service.RecipeOrderService;
+import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -44,7 +48,8 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
     @Autowired
     private RecipeManager recipeManager;
 
-
+    @Autowired
+    private RemoteRecipeOrderService recipeOrderService;
 
     @Override
     public boolean doHandleAfterPay(PayResultDTO payResult) {
@@ -88,29 +93,27 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
         }
 
         //如果不需要支付处方费用则订单直接完成
-
-        RecipeOrder recipeOrder = orderManager.getRecipeOrderById(busId);
-        if (null == recipeOrder) {
-            return false;
-        }
-        Recipe recipe = recipeManager.getByRecipeCodeAndClinicOrgan(recipeOrder.getOrderCode(), recipeOrder.getOrganId());
-        Integer giveMode = recipe.getGiveMode();
-        logger.info("doHandleAfterPay recipe:{}.", JSONUtils.toString(recipe));
-        if (new Integer(2).equals(recipeOrder.getPayMode())) {
-            //表示该处方为线下付款
-            Integer payMode = 2;
-            switch (giveMode) {
-                case 2:
-                    payMode = 3;
-                    break;
-                case 3:
-                    payMode = 4;
-                    break;
-                default:
-                    break;
+        List<Recipe> recipes = recipeManager.findRecipeByOrderCode(order.getOrderCode());
+        logger.info("order:{},recipe:{}.", JSONUtils.toString(order), JSONUtils.toString(recipes));
+        recipes.forEach(recipe->{
+            Integer giveMode = recipe.getGiveMode();
+            if (new Integer(2).equals(order.getPayMode())) {
+                //表示该处方为线下付款
+                Integer payMode = 2;
+                switch (giveMode) {
+                    case 2:
+                        payMode = 3;
+                        break;
+                    case 3:
+                        payMode = 4;
+                        break;
+                    default:
+                        break;
+                }
+                orderService.finishOrderPay(order.getOrderCode(), PayFlagEnum.PAYED.getType(), payMode);
             }
-            //orderService.finishOrderPay(recipeOrder.getOrderCode(), PayFlagEnum.PAYED.getType(), payMode);
-        }
+        });
+
         return true;
     }
 
@@ -139,7 +142,17 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
                 memo.append("支付 未知状态，payFlag:" + targetPayFlag);
                 break;
         }
+        recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
+        RecipeOrder recipeOrder = orderManager.getRecipeOrderById(order.getBusId());
+        if (StringUtils.isNotEmpty(recipeOrder.getRecipeIdList())) {
+            List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+            if (CollectionUtils.isNotEmpty(recipeIdList)) {
+                Integer bussId = recipeIdList.get(0);
+                //调用回调处方退费
+                recipeOrderService.refundCallback(bussId, targetPayFlag, null);
+            }
+        }
         logger.info("RecipeOtherFeePayCallBackService doHandleAfterRefund memo:{}.", memo.toString());
-        return recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
+        return true;
     }
 }
