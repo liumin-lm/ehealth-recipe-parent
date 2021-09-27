@@ -415,11 +415,15 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 simpleBusObject.setActualPrice(new Double(BigDecimal.valueOf(order.getActualPrice()).subtract(otherFee) + ""));
 
                 // 0自费 1医保
-                RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipeBean.getClinicId());
-                if (MedicalTypeEnum.SELF_PAY.getType().equals(revisitExDTO.getMedicalFlag())) {
-                    simpleBusObject.setSettleType("1");
-                } else {
+                if(Objects.isNull(recipeBean.getClinicId())){
                     simpleBusObject.setSettleType("0");
+                }else {
+                    RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipeBean.getClinicId());
+                    if (MedicalTypeEnum.SELF_PAY.getType().equals(revisitExDTO.getMedicalFlag())) {
+                        simpleBusObject.setSettleType("1");
+                    } else {
+                        simpleBusObject.setSettleType("0");
+                    }
                 }
             }
 
