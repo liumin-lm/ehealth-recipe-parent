@@ -58,7 +58,6 @@ import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.request.ValidRevisitRequest;
 import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
-import com.ngari.wxpay.service.INgariRefundService;
 import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -126,7 +125,6 @@ import recipe.drugsenterprise.bean.YdUrlPatient;
 import recipe.enumerate.type.PayBusType;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.PayFlowTypeEnum;
-import recipe.enumerate.type.RecipePayTypeEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
 import recipe.hisservice.RecipeToHisCallbackService;
@@ -2807,7 +2805,7 @@ public class RecipeService extends RecipeBaseService {
         }
         List<String> msg = Lists.newArrayList();
         for (OrganDrugInfoTO organDrug : organDrugs) {
-            LOGGER.info("syncOrganDrug推送药品信息"+organId+"{}", JSONUtils.toString(organDrug));
+            LOGGER.info("syncOrganDrug推送药品信息" + organId + "{}", JSONUtils.toString(organDrug));
             List<String> check = checkOrganDrugInfoTO(organDrug);
             if (!ObjectUtils.isEmpty(check)) {
                 LOGGER.info("updateOrSaveOrganDrug 当前新增药品信息,信息缺失{}", JSONUtils.toString(check));
@@ -3528,9 +3526,9 @@ public class RecipeService extends RecipeBaseService {
                         RecipeOrderPayFlowDao recipeOrderPayFlowDao = ApplicationUtils.getRecipeService(RecipeOrderPayFlowDao.class);
                         List<RecipeOrderPayFlow> byOrderId = recipeOrderPayFlowDao.findByOrderId(order.getOrderId());
                         // 退费
-                        if(CollectionUtils.isNotEmpty(byOrderId)){
+                        if (CollectionUtils.isNotEmpty(byOrderId)) {
                             RefundClient refundClient = ApplicationUtils.getRecipeService(RefundClient.class);
-                            refundClient.refund(order.getOrderId(),PayBusType.OTHER_BUS_TYPE.getName());
+                            refundClient.refund(order.getOrderId(), PayBusType.OTHER_BUS_TYPE.getName());
                         }
 
                     }
@@ -4397,7 +4395,7 @@ public class RecipeService extends RecipeBaseService {
         try {
             //退款,根据是否邵逸夫支付进行退款处理
             //通过运营平台控制开关决定是否走此种模式
-            Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode",false);
+            Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
             if (syfPayMode) {
                 //邵逸夫支付
                 RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(order.getOrderId(), PayFlowTypeEnum.RECIPE_AUDIT.getType());
@@ -6145,7 +6143,8 @@ public class RecipeService extends RecipeBaseService {
     }
 
     @RpcService
-    public boolean testNotifyPharAudit(Recipe recipe){
+    public boolean testNotifyPharAudit(int recipeId) {
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         return auditModeContext.getAuditModes(recipe.getReviewType()).notifyPharAudit(recipe);
     }
 }
