@@ -287,6 +287,8 @@ public class PayModeTFDS implements IPurchaseService{
             //date 20200318
             //确认订单后同步配送信息接口
             extInfo.put("payMode", "2");
+            extInfo.put("drugStoreCode", order.getDrugStoreCode());
+            extInfo.put("drugStoreName", order.getDrugStoreName());
             CommonOrder.updateGoodsReceivingInfoToCreateOrder(recipeId2,extInfo);
         }
         return result;

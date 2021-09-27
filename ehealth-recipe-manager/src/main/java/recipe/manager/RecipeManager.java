@@ -245,8 +245,6 @@ public class RecipeManager extends BaseManager {
             Integer qrTypeForRecipe = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "getQrTypeForRecipe", 1);
             RecipeShowQrConfigEnum qrConfigEnum = RecipeShowQrConfigEnum.getEnumByType(qrTypeForRecipe);
             switch (qrConfigEnum) {
-                case NO_HAVE:
-                    break;
                 case CARD_NO:
                     //就诊卡号
                     if (StringUtils.isNotEmpty(recipeExtend.getCardNo())) {
@@ -302,6 +300,15 @@ public class RecipeManager extends BaseManager {
         recipeCancel.setCancelReason(cancelReason);
         logger.info("getCancelReasonForPatient recipeCancel:{}", JSONUtils.toString(recipeCancel));
         return recipeCancel;
+    }
+
+    /**
+     * 根据订单号查询处方列表
+     * @param orderCode orderCode
+     * @return List<Recipe>
+     */
+    public List<Recipe> findRecipeByOrderCode(String orderCode){
+        return recipeDAO.findRecipeListByOrderCode(orderCode);
     }
 
     /**

@@ -406,18 +406,26 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             if (syfPayMode) {
                 BigDecimal fundAmount = BigDecimal.valueOf(order.getFundAmount() == null ? 0.00 : order.getFundAmount());
                 BigDecimal otherFee = order.getAuditFee().add(fundAmount);
-                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-                if(new Integer(1).equals(drugsEnterprise.getExpressFeePayWay())){
-                    otherFee = otherFee.add(order.getExpressFee());
+                if(Objects.nonNull(order.getEnterpriseId())) {
+                    DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+                    if (new Integer(1).equals(drugsEnterprise.getExpressFeePayWay())) {
+                        if (null != order.getExpressFee()) {
+                            otherFee = otherFee.add(order.getExpressFee());
+                        }
+                    }
                 }
                 simpleBusObject.setActualPrice(new Double(BigDecimal.valueOf(order.getActualPrice()).subtract(otherFee) + ""));
 
                 // 0自费 1医保
-                RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipeBean.getClinicId());
-                if (MedicalTypeEnum.SELF_PAY.getType().equals(revisitExDTO.getMedicalFlag())) {
-                    simpleBusObject.setSettleType("1");
-                } else {
+                if(Objects.isNull(recipeBean.getClinicId())){
                     simpleBusObject.setSettleType("0");
+                }else {
+                    RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipeBean.getClinicId());
+                    if (MedicalTypeEnum.SELF_PAY.getType().equals(revisitExDTO.getMedicalFlag())) {
+                        simpleBusObject.setSettleType("1");
+                    } else {
+                        simpleBusObject.setSettleType("0");
+                    }
                 }
             }
 
@@ -453,10 +461,14 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         simpleBusObject.setSubBusType("8");
         if (Objects.nonNull(order)) {
             simpleBusObject.setBusId(busId);
-            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
             BigDecimal otherFee = order.getAuditFee();
-            if(new Integer(1).equals(drugsEnterprise.getExpressFeePayWay())){
-                otherFee = otherFee.add(order.getExpressFee());
+            if(Objects.nonNull(order.getEnterpriseId())) {
+                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+                if (new Integer(1).equals(drugsEnterprise.getExpressFeePayWay())) {
+                    if (null != order.getExpressFee()) {
+                        otherFee = otherFee.add(order.getExpressFee());
+                    }
+                }
             }
             simpleBusObject.setPrice(otherFee.stripTrailingZeros().doubleValue());
             simpleBusObject.setActualPrice(otherFee.doubleValue());

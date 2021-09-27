@@ -1755,15 +1755,17 @@ public class RecipeOrderService extends RecipeBaseService {
                             needFee = orderBean.getTotalFee().subtract(orderBean.getCouponFee()).subtract(new BigDecimal(Double.toString(orderBean.getActualPrice())));
                         }
                         // 邵逸夫模式修改需付款
-                        Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
-                        if (syfPayMode) {
-                            List<RecipeOrderPayFlow> byOrderId = recipeOrderPayFlowManager.findByOrderId(orderBean.getOrderId());
-                            if(CollectionUtils.isNotEmpty(byOrderId)){
-                                Double otherFee = 0d;
-                                for (RecipeOrderPayFlow recipeOrderPayFlow : byOrderId) {
-                                    otherFee = otherFee + recipeOrderPayFlow.getTotalFee();
+                        if(!"supportToHos".equals(order.getGiveModeKey())) {
+                            Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
+                            if (syfPayMode) {
+                                List<RecipeOrderPayFlow> byOrderId = recipeOrderPayFlowManager.findByOrderId(orderBean.getOrderId());
+                                if (CollectionUtils.isNotEmpty(byOrderId)) {
+                                    Double otherFee = 0d;
+                                    for (RecipeOrderPayFlow recipeOrderPayFlow : byOrderId) {
+                                        otherFee = otherFee + recipeOrderPayFlow.getTotalFee();
+                                    }
+                                    needFee = needFee.subtract(BigDecimal.valueOf(otherFee));
                                 }
-                                needFee = needFee.subtract(BigDecimal.valueOf(otherFee));
                             }
                         }
                     } catch (Exception e) {
@@ -2177,7 +2179,7 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     private RecipeResultBean finishOrderPayImpl(String orderCode, int payFlag, Integer payMode, String refundNo) {
-        LOGGER.info("finishOrderPayImpl is get! orderCode={} ,payFlag = {}", orderCode, payFlag);
+        LOGGER.info("finishOrderPayImpl is get! orderCode={} ,payFlag = {}, payMode:{}.", orderCode, payFlag, payMode);
         RecipeResultBean result = RecipeResultBean.getSuccess();
         RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
         Map<String, Object> attrMap = Maps.newHashMap();
@@ -2221,8 +2223,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 attrMap.put("effective", 1);
             }
         }
+        LOGGER.info("finishOrderPayImpl orderCode:{},attrMap:{},result:{}.", orderCode, JSONUtils.toString(attrMap), JSONUtils.toString(result));
         updateOrderInfo(orderCode, attrMap, result);
-
         //处理处方单相关
         if (RecipeResultBean.SUCCESS.equals(result.getCode()) && CollectionUtils.isNotEmpty(recipes)) {
             Map<String, Object> recipeInfo = Maps.newHashMap();
