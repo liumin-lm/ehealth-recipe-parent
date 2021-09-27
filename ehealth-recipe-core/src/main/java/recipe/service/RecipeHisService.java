@@ -137,6 +137,7 @@ public class RecipeHisService extends RecipeBaseService {
                 sendRecipe(recipeId, sendOrganId);
             } catch (Exception e) {
                 LOGGER.error("recipeSendHis error, recipeId={}", recipeId, e);
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "sendRecipe error" + e.getMessage());
             }
         } else {
             result = false;
