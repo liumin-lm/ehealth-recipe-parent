@@ -2819,7 +2819,7 @@ public class RecipeService extends RecipeBaseService {
                     LOGGER.info("syncOrganDrug机构药品数据推送 删除" + organDrug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(organDrug));
                     OrganDrugList delete = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, organDrug.getOrganDrugCode());
                     if (ObjectUtils.isEmpty(delete)) {
-                        msg.add(organDrug.getOrganDrugCode() + ":机构未找到该编码药品 " + organDrug.getDrugName() + " 无法删除!");
+                        msg.add(organDrug.getOrganDrugCode() + ":机构未找到该编码药品 " + organDrug.getDrugName() + ", 禁用药品 无法删除!");
                         continue;
                     }
                     try {
