@@ -1,6 +1,10 @@
 package recipe.client;
 
 import com.alibaba.fastjson.JSON;
+import com.github.rholder.retry.Retryer;
+import com.github.rholder.retry.RetryerBuilder;
+import com.github.rholder.retry.StopStrategies;
+import com.github.rholder.retry.WaitStrategies;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.EmrDetailValueDTO;
@@ -37,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * his处方 交互处理类
@@ -384,7 +389,7 @@ public class OfflineRecipeClient extends BaseClient {
             medicineCodeInfoTO.setRecipeId(recipeId);
             medicineCodeInfoTO.setRecipeCode(recipeCode);
             logger.info("OfflineRecipeClient queryMedicineCode medicineCodeInfoTO:{}.", JSON.toJSONString(medicineCodeInfoTO));
-            HisResponseTO<MedicineCodeResponseTO> medicineCodeResponseTO = recipeHisService.queryMedicineCode(medicineCodeInfoTO);
+            HisResponseTO<MedicineCodeResponseTO> medicineCodeResponseTO = queryMedicineCodeRetry(medicineCodeInfoTO);
             MedicineCodeResponseTO medicineCodeResponse = getResponse(medicineCodeResponseTO);
             logger.info("OfflineRecipeClient queryMedicineCode medicineCodeResponse:{}.", JSONUtils.toString(medicineCodeResponse));
             return medicineCodeResponse.getMedicineCode();
@@ -392,5 +397,41 @@ public class OfflineRecipeClient extends BaseClient {
             logger.error("OfflineRecipeClient queryMedicineCode medicineCodeResponseTO", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
+    }
+
+    /**
+     * his获取取药凭证重试
+     * @param medicineCodeInfoTO
+     * @return HisResponseTO<MedicineCodeResponseTO>
+     */
+    private HisResponseTO<MedicineCodeResponseTO> queryMedicineCodeRetry(MedicineCodeInfoTO medicineCodeInfoTO) {
+        Retryer<HisResponseTO<MedicineCodeResponseTO>> retryer = RetryerBuilder.<HisResponseTO<MedicineCodeResponseTO>>newBuilder()
+                //抛出指定异常重试
+                .retryIfExceptionOfType(Exception.class)
+                //取药凭证为空重试
+                .retryIfResult(medicineCodeResponseTO -> {
+                        try {
+                            return StringUtils.isEmpty(getResponse(medicineCodeResponseTO).getMedicineCode());
+                        } catch (Exception e) {
+                            logger.error("OfflineRecipeClient queryMedicineCode medicineCodeResponseTO", e);
+                            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+                        }
+                })
+                //停止重试策略
+                .withStopStrategy(StopStrategies.stopAfterAttempt(3))
+                //每次等待重试时间间隔
+                .withWaitStrategy(WaitStrategies.fixedWait(2000, TimeUnit.MILLISECONDS))
+                .build();
+        HisResponseTO<MedicineCodeResponseTO> medicineCodeResponseTO;
+        try {
+            medicineCodeResponseTO = retryer.call(() -> {
+                logger.info("OfflineRecipeClient queryMedicineCode retry");
+                return recipeHisService.queryMedicineCode(medicineCodeInfoTO);
+            });
+        } catch (Exception e) {
+            logger.info("未获取到取药凭证");
+            throw new DAOException(609,"暂未获取到取药凭证，请刷新后重新进入");
+        }
+        return medicineCodeResponseTO;
     }
 }
