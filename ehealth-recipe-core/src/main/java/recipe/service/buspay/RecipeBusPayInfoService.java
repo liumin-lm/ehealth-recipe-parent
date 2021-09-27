@@ -202,6 +202,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 }
                 orderAmount = orderAmount.subtract(BigDecimal.valueOf(otherFee));
             }
+            confirmOrder.setActualPrice(orderAmount.stripTrailingZeros().toPlainString());
         }
         confirmOrder.setOrderAmount(orderAmount.stripTrailingZeros().toPlainString());
         confirmOrder.setBusObject(order);
