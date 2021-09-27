@@ -52,7 +52,7 @@ public class RecipeBusiThreadPool {
         try {
             if (null != service) {
                 ThreadPoolExecutor threadPoolExecutor = service.getThreadPoolExecutor();
-                if (null != threadPoolExecutor && threadPoolExecutor.getQueue().size() > 40) {
+                if (null != threadPoolExecutor && threadPoolExecutor.getQueue().size() > 10) {
                     LOGGER.info("RecipeBusiThreadPool printThreadPoolInfo 当前线程池排队线程数:{},当前线程池活动线程数:{},当前线程池完成线程数:{},当前线程池总线程数:{}.", threadPoolExecutor.getQueue().size(), threadPoolExecutor.getActiveCount(), threadPoolExecutor.getCompletedTaskCount(), threadPoolExecutor.getTaskCount());
                 }
             }
