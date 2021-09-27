@@ -245,8 +245,6 @@ public class RecipeManager extends BaseManager {
             Integer qrTypeForRecipe = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "getQrTypeForRecipe", 1);
             RecipeShowQrConfigEnum qrConfigEnum = RecipeShowQrConfigEnum.getEnumByType(qrTypeForRecipe);
             switch (qrConfigEnum) {
-                case NO_HAVE:
-                    break;
                 case CARD_NO:
                     //就诊卡号
                     if (StringUtils.isNotEmpty(recipeExtend.getCardNo())) {

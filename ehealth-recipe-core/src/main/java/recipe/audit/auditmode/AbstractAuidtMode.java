@@ -11,7 +11,6 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.service.IRecipeService;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import eh.base.constant.BussTypeConstant;
@@ -25,10 +24,10 @@ import eh.wxpay.constant.PayConstant;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.api.open.IRecipeAtopService;
 import recipe.atop.open.RecipeOpenAtop;
+import recipe.audit.handle.AutoCheckRecipe;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.RecipeDAO;
@@ -221,10 +220,9 @@ public abstract class AbstractAuidtMode implements IAuditMode {
         LOGGER.info("AbstractAuidtMode recipeAudit recipe={}",JSON.toJSONString(recipe));
         try {
             Integer recipeId = recipe.getRecipeId();
-            //处方信息
-            IRecipeAtopService iRecipeAtopService = RecipeAPI.getService(RecipeOpenAtop.class);
-            RecipeBean recipeBean = iRecipeAtopService.getByRecipeId(recipeId);
-            RecipeDTO recipeDTO = ObjectCopyUtils.convert(recipeBean, RecipeDTO.class);
+            //处方信息 AND 病历信息重新拉去
+            Recipe recipeManagBean = AutoCheckRecipe.getByRecipeId(recipeId);
+            RecipeDTO recipeDTO = ObjectCopyUtils.convert(recipeManagBean, RecipeDTO.class);
             //查詢处方扩展 获取对应的挂号序号
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
