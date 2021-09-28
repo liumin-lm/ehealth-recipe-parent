@@ -24,6 +24,10 @@
             <artifactId>ngari-mvc</artifactId>
         </dependency>
         <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ngari-utils</artifactId>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.data</groupId>
             <artifactId>spring-data-redis</artifactId>
         </dependency>
