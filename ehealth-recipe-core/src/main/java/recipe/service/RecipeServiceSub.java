@@ -2813,15 +2813,30 @@ public class RecipeServiceSub {
             rMap.put("msg", msg);
             return rMap;
         }
-        StringBuilder memo = new StringBuilder();
+
+        Map<String, Integer> changeAttr = Maps.newHashMap();
+        if (order != null) {
+            if (!recipe.canMedicalPay()) {
+                changeAttr.put("chooseFlag", 1);
+            }
+            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
+        }
+        //撤销处方
+        changeAttr.put("checkFlag", null);
+        Boolean result = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), changeAttr);
+        if (!result) {
+            rMap.put("result", false);
+            rMap.put("msg", "未知原因，处方撤销失败");
+            return rMap;
+        }
         //HIS消息发送
-        Boolean result = true;
+        StringBuilder memo = new StringBuilder();
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
             boolean succFlag = hisService.recipeStatusUpdate(recipeId);
             if (succFlag) {
                 memo.append("HIS推送成功");
             } else {
-                memo.append("his处方撤销失败");
+                memo.append("HIS推送失败");
                 result = false;
             }
         } else if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
@@ -2843,56 +2858,42 @@ public class RecipeServiceSub {
                 }
             }
         }
+        //通知his失败
         if (!result) {
+            //回滚数据
+            recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
             rMap.put("result", false);
             rMap.put("msg", memo.toString());
             return rMap;
         }
 
-        Map<String, Integer> changeAttr = Maps.newHashMap();
-        if (order != null) {
-            if (!recipe.canMedicalPay()) {
-                changeAttr.put("chooseFlag", 1);
-            }
-            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
+        memo.append("，处方撤销成功。");
+        EmrRecipeManager emrRecipeManager = AppContextHolder.getBean("emrRecipeManager", EmrRecipeManager.class);
+        emrRecipeManager.deleteRecipeDetailsFromDoc(recipeId);
+        //向患者推送处方撤销消息
+        if (!(RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType().equals(recipe.getStatus()) && recipe.canMedicalPay())) {
+            //医保的处方待审核时患者无法看到处方，不发送撤销消息提示
+            RecipeMsgService.batchSendMsg(recipe, RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType());
         }
-        //撤销处方
-        changeAttr.put("checkFlag", null);
-        result = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), changeAttr);
-        if (result) {
-            memo.append("，处方撤销成功。");
-            //将药品移出病历
-            EmrRecipeManager emrRecipeManager = AppContextHolder.getBean("emrRecipeManager", EmrRecipeManager.class);
-            emrRecipeManager.deleteRecipeDetailsFromDoc(recipeId);
-            //向患者推送处方撤销消息
-            if (!(RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType().equals(recipe.getStatus()) && recipe.canMedicalPay())) {
-                //医保的处方待审核时患者无法看到处方，不发送撤销消息提示
-                RecipeMsgService.batchSendMsg(recipe, RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType());
-            }
-            //如果是待审核要取消未结束任务
-            if (RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType().equals(beforeStatus)) {
-                ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCancelEvent(recipeId, BussTypeConstant.RECIPE));
-            }
-            //推送处方到监管平台
-            RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
-        } else {
-            memo.append("，未知原因，处方撤销失败。");
+        //如果是待审核要取消未结束任务
+        if (RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType().equals(beforeStatus)) {
+            ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCancelEvent(recipeId, BussTypeConstant.RECIPE));
         }
+        //推送处方到监管平台
+        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
 
         if (1 == flag) {
             memo.append("，处方撤销成功。撤销人：" + name + ",撤销原因：" + message);
         } else {
-            if (result) {
-                if (StringUtils.isNotEmpty(message)) {
-                    memo = new StringBuilder(message);
-                } else {
-                    memo = new StringBuilder("无");
-                }
+            if (StringUtils.isNotEmpty(message)) {
+                memo = new StringBuilder(message);
+            } else {
+                memo = new StringBuilder("无");
             }
         }
         //记录日志
         RecipeLogService.saveRecipeLog(recipeId, beforeStatus, RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), memo.toString());
-        rMap.put("result", result);
+        rMap.put("result", true);
         rMap.put("msg", msg);
         LOGGER.info("cancelRecipe execute ok rMap:{}， result:{}", JSONUtils.toString(rMap), memo.toString());
         return rMap;
