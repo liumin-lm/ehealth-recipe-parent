@@ -358,7 +358,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
             }
             stringBuilder.append(" \n ");
             //每次剂量+剂量单位
-            String useDose = null == d.getUseDose() ? "" : d.getUseDose() + d.getUseDoseUnit();
+            String useDose = StringUtils.isNotEmpty(d.getUseDoseStr()) ? d.getUseDoseStr() : d.getUseDose() + d.getUseDoseUnit();
             String uDose = "Sig: 每次" + useDose;
 
             //用药频次

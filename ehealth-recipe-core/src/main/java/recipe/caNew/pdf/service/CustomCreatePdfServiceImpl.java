@@ -498,7 +498,8 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             list.add(new RecipeLabelDTO("药品名称", "recipeDetail.drugName_" + i, detail.getDrugName()));
             list.add(new RecipeLabelDTO("包装规格", "recipeDetail.drugSpec_" + i, ByteUtils.objValueOfString(detail.getDrugSpec()) + "/" + ByteUtils.objValueOfString(detail.getDrugUnit())));
             list.add(new RecipeLabelDTO("发药数量", "recipeDetail.useTotalDose_" + i, ByteUtils.objValueOfString(detail.getUseTotalDose()) + ByteUtils.objValueOfString(detail.getDrugUnit())));
-            list.add(new RecipeLabelDTO("每次用量", "recipeDetail.useDose_" + i, "Sig: 每次 " + ByteUtils.objValueOfString(detail.getUseDose()) + ByteUtils.objValueOfString(detail.getUseDoseUnit())));
+            String useDose = StringUtils.isNotEmpty(detail.getUseDoseStr()) ? detail.getUseDoseStr() : detail.getUseDose() + detail.getUseDoseUnit();
+            list.add(new RecipeLabelDTO("每次用量", "recipeDetail.useDose_" + i, "Sig: 每次 " + useDose));
             list.add(new RecipeLabelDTO("用药频次", "recipeDetail.usingRate_" + i, DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", detail.getUsingRate())));
             list.add(new RecipeLabelDTO("用药途径", "recipeDetail.usePathways_" + i, DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", detail.getUsePathways())));
             list.add(new RecipeLabelDTO("用药天数", "recipeDetail.useDays_" + i, getUseDays(detail.getUseDaysB(), detail.getUseDays())));
