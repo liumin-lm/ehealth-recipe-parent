@@ -2832,7 +2832,7 @@ public class RecipeServiceSub {
         //HIS消息发送
         StringBuilder memo = new StringBuilder();
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
-            boolean succFlag = hisService.recipeStatusUpdate(recipeId);
+            boolean succFlag = hisService.cancelRecipeImpl(recipeId, null, null);
             if (succFlag) {
                 memo.append("HIS推送成功");
             } else {

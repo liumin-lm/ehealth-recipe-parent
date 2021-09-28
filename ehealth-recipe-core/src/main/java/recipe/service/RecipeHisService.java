@@ -302,6 +302,88 @@ public class RecipeHisService extends RecipeBaseService {
         return flag;
     }
 
+
+    /**
+     * 发送指定HIS修改处方状态
+     *
+     * @param recipeId
+     * @param otherOrganId
+     * @return
+     */
+    @RpcService
+    public boolean cancelRecipeImpl(Integer recipeId, Integer otherOrganId, String hisRecipeStatus) {
+        LOGGER.info("recipeStatusUpdateWithOrganIdV1  recipeId = {},otherOrganId={},hisRecipeStatus:{}", recipeId, otherOrganId, hisRecipeStatus);
+        boolean flag = true;
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (null == recipe) {
+            return false;
+        }
+        if (skipHis(recipe)) {
+            return flag;
+        }
+
+        Integer sendOrganId = (null == otherOrganId) ? recipe.getClinicOrgan() : otherOrganId;
+        if (isHisEnable(sendOrganId)) {
+            LOGGER.info("recipeStatusUpdateWithOrganIdV1  sendOrganId:{}", sendOrganId);
+            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+
+            List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
+
+            try {
+                PatientBean patientBean = iPatientService.get(recipe.getMpiid());
+                HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
+                RecipeStatusUpdateReqTO request = hisRequestInit.initRecipeStatusUpdateReqTO(recipe, details, patientBean, cardBean);
+                //是否是武昌机构，替换请求体
+                Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_WUCHANG_ORGAN_LIST);
+                if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(sendOrganId.toString())) {
+                    request = hisRequestInit.initRecipeStatusUpdateReqForWuChang(recipe, details, patientBean, cardBean);
+                }
+                request.setOrganID(sendOrganId.toString());
+                if (StringUtils.isNotEmpty(hisRecipeStatus)) {
+                    request.setRecipeStatus(hisRecipeStatus);
+                }
+                if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+                    //科室代码
+                    AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
+                    AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
+                    request.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
+                    //科室名称
+                    request.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
+                } else {
+                    //互联网环境下没有挂号科室 取department表
+                    DepartmentService departService = ApplicationUtils.getBasicService(DepartmentService.class);
+                    DepartmentDTO departmentDTO = departService.getById(recipe.getDepart());
+                    //科室编码
+                    request.setDepartCode((null != departmentDTO) ? departmentDTO.getCode() : "");
+                    //科室名称
+                    request.setDepartName((null != departmentDTO) ? departmentDTO.getName() : "");
+                }
+
+                EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
+                String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart());
+                request.setRecipeID(recipeId);
+                request.setDoctorNumber(jobNumber);
+                request.setDoctorName(recipe.getDoctorName());
+                if (recipeExtend != null) {
+                    request.setHisDiseaseSerial(recipeExtend.getHisDiseaseSerial());
+                }
+                LOGGER.info("recipeStatusUpdateWithOrganIdV1  request:{}", JSONUtils.toString(request));
+                flag = service.cancelRecipeImpl(request);
+            } catch (Exception e) {
+                LOGGER.error("recipeStatusUpdateWithOrganIdV1 error ", e);
+            }
+        } else {
+            flag = false;
+            LOGGER.error(" recipeStatusUpdateWithOrganIdV1 recipeStatusUpdate 医院HIS未启用[organId:" + sendOrganId + ",recipeId:" + recipeId + "]");
+        }
+
+        return flag;
+    }
+
     /**
      * 处方退款推送his服务
      *
