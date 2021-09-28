@@ -212,7 +212,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         return confirmOrder;
     }
 
-    private Map<String, String> setConfirmOrderExtInfo(RecipeOrderBean order, Integer recipeId, Map<String, String> extInfo, RecipeExtendBean recipeExtend,Double orderOtherFee) {
+    private Map<String, String> setConfirmOrderExtInfo(RecipeOrderBean order, Integer recipeId, Map<String, String> extInfo, RecipeExtendBean recipeExtend, Double orderOtherFee) {
         IDrugsEnterpriseService drugsEnterpriseService = RecipeAPI.getService(IDrugsEnterpriseService.class);
         Map<String, String> map = Maps.newHashMap();
         //返回是否医保处方单
@@ -225,7 +225,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         Double fundAmount = order.getFundAmount() == null ? 0.00 : order.getFundAmount();
         //自费金额=实际金额-医保金额
         BigDecimal cashAmount = BigDecimal.valueOf(order.getActualPrice()).subtract(BigDecimal.valueOf(fundAmount));
-        if(0d < orderOtherFee){
+        if (0d < orderOtherFee) {
             cashAmount = cashAmount.subtract(BigDecimal.valueOf(orderOtherFee));
         }
         map.put("fundAmount", fundAmount + "");
@@ -407,9 +407,9 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             if (syfPayMode) {
                 BigDecimal fundAmount = BigDecimal.valueOf(order.getFundAmount() == null ? 0.00 : order.getFundAmount());
                 BigDecimal otherFee = order.getAuditFee().add(fundAmount);
-                if(Objects.nonNull(order.getEnterpriseId())) {
+                if (Objects.nonNull(order.getEnterpriseId())) {
                     DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-                    if (new Integer(1).equals(drugsEnterprise.getExpressFeePayWay())) {
+                    if (checkExpressFeePayWay(drugsEnterprise.getExpressFeePayWay())) {
                         if (null != order.getExpressFee()) {
                             otherFee = otherFee.add(order.getExpressFee());
                         }
@@ -418,9 +418,9 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 simpleBusObject.setActualPrice(new Double(BigDecimal.valueOf(order.getActualPrice()).subtract(otherFee) + ""));
 
                 // 0自费 1医保
-                if(Objects.isNull(recipeBean.getClinicId())){
+                if (Objects.isNull(recipeBean.getClinicId())) {
                     simpleBusObject.setSettleType("0");
-                }else {
+                } else {
                     RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipeBean.getClinicId());
                     if (MedicalTypeEnum.SELF_PAY.getType().equals(revisitExDTO.getMedicalFlag())) {
                         simpleBusObject.setSettleType("1");
@@ -463,9 +463,9 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         if (Objects.nonNull(order)) {
             simpleBusObject.setBusId(busId);
             BigDecimal otherFee = order.getAuditFee();
-            if(Objects.nonNull(order.getEnterpriseId())) {
+            if (Objects.nonNull(order.getEnterpriseId())) {
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-                if (new Integer(1).equals(drugsEnterprise.getExpressFeePayWay())) {
+                if (checkExpressFeePayWay(drugsEnterprise.getExpressFeePayWay())) {
                     if (null != order.getExpressFee()) {
                         otherFee = otherFee.add(order.getExpressFee());
                     }
@@ -506,6 +506,18 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         }
         log.info("结算getRecipeAuditSimpleBusObject={}", JSONUtils.toString(simpleBusObject));
         return simpleBusObject;
+    }
+
+    /**
+     * 是否需要计算运费
+     * @param expressFeePayWay
+     * @return
+     */
+    private Boolean checkExpressFeePayWay(Integer expressFeePayWay) {
+        if (new Integer(2).equals(expressFeePayWay) || new Integer(3).equals(expressFeePayWay) || new Integer(4).equals(expressFeePayWay)) {
+            return false;
+        }
+        return true;
     }
 
     /**

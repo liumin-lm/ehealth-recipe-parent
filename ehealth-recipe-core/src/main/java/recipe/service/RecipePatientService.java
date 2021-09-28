@@ -795,7 +795,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         HashMap<String,String> chronicDiseaseFlagMap = new HashMap<>();
         try {
             RedisClient redisClient = AppContextHolder.getBean("redisClient", RedisClient.class);
-            String ChronicDiseaseFlagStr = redisClient.get(CacheConstant.KEY_CONFIG_RCP_AUTO_REVIEW+organId);
+            String ChronicDiseaseFlagStr = redisClient.get(CacheConstant.KEY_CHRONIC_DISEASE_FLAG+organId);
             if(StringUtils.isNoneBlank(ChronicDiseaseFlagStr)) {
                     chronicDiseaseFlagMap = JSON.parseObject(ChronicDiseaseFlagStr,HashMap.class);
 
