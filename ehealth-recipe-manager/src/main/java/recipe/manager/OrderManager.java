@@ -73,7 +73,7 @@ public class OrderManager extends BaseManager {
             BigDecimal otherFee = Objects.isNull(order.getAuditFee()) ? BigDecimal.ZERO : order.getAuditFee();
             if (Objects.nonNull(order.getEnterpriseId())) {
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-                if (new Integer(1).equals(drugsEnterprise.getExpressFeePayWay())) {
+                if (checkExpressFeePayWay(drugsEnterprise.getExpressFeePayWay())) {
                     otherFee = otherFee.add(Objects.isNull(order.getExpressFee()) ? BigDecimal.ZERO : order.getExpressFee());
                 }
             }
@@ -292,6 +292,18 @@ public class OrderManager extends BaseManager {
             payFlag = recipeOrderPayFlows.get(0).getPayFlag();
         }
         return payFlag;
+    }
+
+    /**
+     * 是否需要计算运费
+     * @param expressFeePayWay
+     * @return
+     */
+    private Boolean checkExpressFeePayWay(Integer expressFeePayWay) {
+        if (new Integer(2).equals(expressFeePayWay) || new Integer(3).equals(expressFeePayWay) || new Integer(4).equals(expressFeePayWay)) {
+            return false;
+        }
+        return true;
     }
 
 }
