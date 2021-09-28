@@ -58,7 +58,6 @@ import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.request.ValidRevisitRequest;
 import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
-import com.ngari.wxpay.service.INgariRefundService;
 import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -126,7 +125,6 @@ import recipe.drugsenterprise.bean.YdUrlPatient;
 import recipe.enumerate.type.PayBusType;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.PayFlowTypeEnum;
-import recipe.enumerate.type.RecipePayTypeEnum;
 import recipe.givemode.business.GiveModeFactory;
 import recipe.givemode.business.IGiveModeBase;
 import recipe.hisservice.RecipeToHisCallbackService;
@@ -2819,7 +2817,7 @@ public class RecipeService extends RecipeBaseService {
                     LOGGER.info("syncOrganDrug机构药品数据推送 删除" + organDrug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(organDrug));
                     OrganDrugList delete = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId, organDrug.getOrganDrugCode());
                     if (ObjectUtils.isEmpty(delete)) {
-                        msg.add(organDrug.getOrganDrugCode() + ":机构未找到该编码药品 " + organDrug.getDrugName() + ", 禁用药品 无法删除!");
+                        msg.add(organDrug.getOrganDrugCode() + ":机构未找到该编码药品 " + organDrug.getDrugName() + " !");
                         continue;
                     }
                     try {
@@ -6161,7 +6159,8 @@ public class RecipeService extends RecipeBaseService {
     }
 
     @RpcService
-    public boolean testNotifyPharAudit(Recipe recipe){
+    public boolean testNotifyPharAudit(int recipeId) {
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         return auditModeContext.getAuditModes(recipe.getReviewType()).notifyPharAudit(recipe);
     }
 }

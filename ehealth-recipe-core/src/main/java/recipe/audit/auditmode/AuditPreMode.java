@@ -61,7 +61,7 @@ public class AuditPreMode extends AbstractAuidtMode {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe byRecipeId = recipeDAO.getByRecipeId(recipe.getRecipeId());
         if (byRecipeId.getStatus() == 9) {
-            LOGGER.info("afterHisCallBackChange 处方单已经撤销,recipeid:{}",recipe.getRecipeId());
+            LOGGER.info("afterHisCallBackChange 处方单已经撤销,recipeid:{}", recipe.getRecipeId());
             return;
         }
         if (status == RecipeStatusConstant.CHECK_PASS) {
@@ -85,7 +85,7 @@ public class AuditPreMode extends AbstractAuidtMode {
         //}
         //生成文件成功后再去更新处方状态
         if (recipeDAO.getByRecipeId(recipe.getRecipeId()).getStatus() == 9) {
-            LOGGER.info("afterHisCallBackChange 处方单已经撤销再次判断,recipeid:{}",recipe.getRecipeId());
+            LOGGER.info("afterHisCallBackChange 处方单已经撤销再次判断,recipeid:{}", recipe.getRecipeId());
             return;
         }
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), status, null);
@@ -108,7 +108,7 @@ public class AuditPreMode extends AbstractAuidtMode {
                 IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
                 RecipeDTO recipeBean = ObjectCopyUtils.convert(recipe, RecipeDTO.class);
                 recipeAuditService.sendCheckRecipeInfo(recipeBean);
-            } else if (new Integer(5).equals(checkMode)){
+            } else if (new Integer(5).equals(checkMode)) {
                 notifyPharAudit(byRecipeId);
             } else {
                 recipeAudit(recipe);
@@ -122,11 +122,11 @@ public class AuditPreMode extends AbstractAuidtMode {
         RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunable(recipe.getRecipeId()));
     }
 
-    public Boolean notifyPharAudit(Recipe recipe){
-        LOGGER.info("notifyPharAudit start recipe={}",JSONUtils.toString(recipe));
+    public Boolean notifyPharAudit(Recipe recipe) {
+        LOGGER.info("notifyPharAudit start recipe={}", JSONUtils.toString(recipe));
         NotifyPharAuditTO request = new NotifyPharAuditTO();
-        String registerNo="";
-        String cardNo="";
+        String registerNo = "";
+        String cardNo = "";
         Integer recipeId = recipe.getRecipeId();
         Integer organId = recipe.getClinicOrgan();
         if (null != recipe.getClinicId()) {
@@ -137,10 +137,10 @@ public class AuditPreMode extends AbstractAuidtMode {
                 iRevisitExService.updateRecipeIdByConsultId(recipe.getClinicId(), recipe.getRecipeId());
                 if (null != revisitExDTO) {
                     if (StringUtils.isNotEmpty(revisitExDTO.getRegisterNo())) {
-                        registerNo=revisitExDTO.getRegisterNo();
+                        registerNo = revisitExDTO.getRegisterNo();
                     }
                     if (StringUtils.isNotEmpty(revisitExDTO.getCardId()) && StringUtils.isNotEmpty(revisitExDTO.getCardType())) {
-                        cardNo= revisitExDTO.getCardId();
+                        cardNo = revisitExDTO.getCardId();
                     }
                 }
             } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipe.getBussSource())) {
@@ -150,10 +150,10 @@ public class AuditPreMode extends AbstractAuidtMode {
                 exService.updateRecipeIdByConsultId(recipe.getClinicId(), recipe.getRecipeId());
                 if (null != consultExDTO) {
                     if (StringUtils.isNotEmpty(consultExDTO.getRegisterNo())) {
-                        registerNo=consultExDTO.getRegisterNo();
+                        registerNo = consultExDTO.getRegisterNo();
                     }
                     if (StringUtils.isNotEmpty(consultExDTO.getCardId()) && StringUtils.isNotEmpty(consultExDTO.getCardType())) {
-                        cardNo= consultExDTO.getCardId();
+                        cardNo = consultExDTO.getCardId();
                     }
                 }
             }
@@ -169,7 +169,7 @@ public class AuditPreMode extends AbstractAuidtMode {
             response = hisService.notifyPharAudit(request);
             LOGGER.info("notifyPharAudit response={}", JSONUtils.toString(response));
         } catch (Exception e) {
-            LOGGER.error("notifyPharAudit error ", e);
+            LOGGER.error("notifyPharAudit error request:{}", JSONUtils.toString(request), e);
         }
         LOGGER.info("notifyPharAudit finsh");
         return response;
