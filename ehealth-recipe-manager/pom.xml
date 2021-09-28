@@ -30,6 +30,10 @@
             <artifactId>ehealth-recipe-client</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ngari-broadcast-support</artifactId>
+        </dependency>
     </dependencies>
 
 </project>

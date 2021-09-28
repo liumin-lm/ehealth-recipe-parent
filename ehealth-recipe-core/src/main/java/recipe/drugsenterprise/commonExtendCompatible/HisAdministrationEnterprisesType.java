@@ -150,12 +150,10 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
                 String[] deliveryNameList = deliveryNames.split("\\|");
 
                 for(int i = 1; i < deliveryRecipeFeeList.length ; i++){
-
                     //过滤支持药柜配送药企
                     if(HisDeliveryConstant.YG_HIS_DELIVERY_CODE.equals(deliveryCodeList[i])) {
                         continue;
                     }
-
                     depDetailBean = new DepDetailBean();
                     //标识选择的药企是his推过来的
                     depDetailBean.setDepId(drugsEnterprise.getId());
@@ -174,11 +172,7 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
                     depDetailBean.setType(2); //药店
                     depDetailList.add(depDetailBean);
                 }
-
-
-
             }
-
         }
         LOGGER.info("findSupportDepList-【his管理的药企】-虚拟药企处方{}查询his药企列表展示信息：{}", recipeId, JSONUtils.toString(depDetailList));
         result.setObject(depDetailList);
@@ -191,7 +185,6 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
             result.setError("传入的处方id为空！");
             return false;
         }
-
         return true;
     }
 

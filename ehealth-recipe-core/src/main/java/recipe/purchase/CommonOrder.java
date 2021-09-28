@@ -115,7 +115,7 @@ public class CommonOrder {
             DoctorService doctorService = BasicAPI.getService(DoctorService.class);
             PatientService patientService = BasicAPI.getService(PatientService.class);
             PatientDTO patient = patientService.get(recipe.getMpiid());
-            if (patient == null){
+            if (null == patient){
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "平台查询不到患者信息");
             }
             //患者信息
@@ -132,14 +132,14 @@ public class CommonOrder {
             updateTakeDrugWayReqTO.setRecipeID(recipe.getRecipeCode());
             updateTakeDrugWayReqTO.setNgarRecipeId(recipe.getRecipeId().toString());
             //审方药师工号和姓名
-            if (recipe.getChecker()!=null){
+            if (null != recipe.getChecker()){
                 IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
                 EmploymentBean primaryEmp = iEmploymentService.getPrimaryEmpByDoctorId(recipe.getChecker());
-                if (primaryEmp != null){
+                if (null != primaryEmp){
                     updateTakeDrugWayReqTO.setCheckerId(primaryEmp.getJobNumber());
                 }
                 DoctorDTO doctorDTO = doctorService.getByDoctorId(recipe.getChecker());
-                if (doctorDTO!=null){
+                if (null != doctorDTO){
                     updateTakeDrugWayReqTO.setCheckerName(doctorDTO.getName());
                 }
             }
@@ -152,7 +152,7 @@ public class CommonOrder {
             updateTakeDrugWayReqTO.setPayMode(payMode);
             RecipeOrder order = createOrderBySendMap(extInfo);
             LOG.info("组装的order信息：{}", JSONUtils.toString(order));
-            if (order!=null){
+            if (null != order){
                 //收货人
                 updateTakeDrugWayReqTO.setConsignee(order.getReceiver());
                 //联系电话
@@ -162,12 +162,11 @@ public class CommonOrder {
                 //修改推送的地址细节：address ：address4,receiveAddress:集合，receiveAddrCode：address3
                 CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
                 updateTakeDrugWayReqTO.setAddress(order.getAddress4());
-                if(order.getStreetAddress() != null){
+                if(null != order.getStreetAddress()){
                     updateTakeDrugWayReqTO.setReceiveAddrCode(order.getStreetAddress());
                 } else {
                     updateTakeDrugWayReqTO.setReceiveAddrCode(order.getAddress3());
                 }
-
                 updateTakeDrugWayReqTO.setReceiveAddress(commonRemoteService.getCompleteAddressToSend(order));
 
                 //date 20200314
@@ -175,13 +174,14 @@ public class CommonOrder {
                 if ("1".equals(payMode)) {
                     updateTakeDrugWayReqTO.setDeliveryCode(order.getHisEnterpriseCode());
                     updateTakeDrugWayReqTO.setDeliveryName(order.getHisEnterpriseName());
-                } else if ("2".equals(payMode)) {
+                    //流转到这里来的属于物流配送
+                    updateTakeDrugWayReqTO.setDeliveryType("1");
+                } else if ("4".equals(payMode)) {
                     updateTakeDrugWayReqTO.setDeliveryCode(order.getDrugStoreCode());
                     updateTakeDrugWayReqTO.setDeliveryName(order.getDrugStoreName());
                 }
                 updateTakeDrugWayReqTO.setConsignee(order.getReceiver());
                 updateTakeDrugWayReqTO.setContactTel(order.getRecTel());
-                SimpleDateFormat formatter = new SimpleDateFormat(DateConversion.DEFAULT_DATE_TIME);
                 updateTakeDrugWayReqTO.setPlanDate(StringUtils.isNotEmpty(order.getExpectSendDate())?
                         order.getExpectSendDate() + " 00:00:00" : null);
                 updateTakeDrugWayReqTO.setPlanTime(order.getExpectSendTime());
@@ -204,8 +204,6 @@ public class CommonOrder {
             if (recipe.getClinicId() != null) {
                 updateTakeDrugWayReqTO.setClinicID(recipe.getClinicId().toString());
             }
-            //流转到这里来的属于物流配送
-            updateTakeDrugWayReqTO.setDeliveryType("1");
             //date 2020-10-15 17:38 修改添加挂号序号
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend nowRecipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
