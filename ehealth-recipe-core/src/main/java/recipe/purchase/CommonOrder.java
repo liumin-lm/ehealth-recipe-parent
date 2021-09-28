@@ -174,6 +174,8 @@ public class CommonOrder {
                 if ("1".equals(payMode)) {
                     updateTakeDrugWayReqTO.setDeliveryCode(order.getHisEnterpriseCode());
                     updateTakeDrugWayReqTO.setDeliveryName(order.getHisEnterpriseName());
+                    //流转到这里来的属于物流配送
+                    updateTakeDrugWayReqTO.setDeliveryType("1");
                 } else if ("4".equals(payMode)) {
                     updateTakeDrugWayReqTO.setDeliveryCode(order.getDrugStoreCode());
                     updateTakeDrugWayReqTO.setDeliveryName(order.getDrugStoreName());
@@ -202,8 +204,6 @@ public class CommonOrder {
             if (recipe.getClinicId() != null) {
                 updateTakeDrugWayReqTO.setClinicID(recipe.getClinicId().toString());
             }
-            //流转到这里来的属于物流配送
-            updateTakeDrugWayReqTO.setDeliveryType("1");
             //date 2020-10-15 17:38 修改添加挂号序号
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend nowRecipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
