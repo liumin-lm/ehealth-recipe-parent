@@ -94,6 +94,7 @@ public class RecipeManager extends BaseManager {
         return recipe;
     }
 
+
     /**
      * 查询处方信息
      *
@@ -110,20 +111,6 @@ public class RecipeManager extends BaseManager {
             recipe.setMemo(emrDetail.getMemo());
         }
         return recipe;
-    }
-
-    /**
-     * 通过recipeCode批量获取处方信息
-     *
-     * @param recipeCodeList
-     * @param clinicOrgan
-     * @return
-     */
-    public List<Recipe> findByRecipeCodeAndClinicOrgan(List<String> recipeCodeList, Integer clinicOrgan) {
-        logger.info("RecipeManager findByRecipeCodeAndClinicOrgan param recipeCodeList:{},clinicOrgan:{}", JSONUtils.toString(recipeCodeList), clinicOrgan);
-        List<Recipe> recipes = recipeDAO.findByRecipeCodeAndClinicOrgan(recipeCodeList, clinicOrgan);
-        logger.info("RecipeManager findByRecipeCodeAndClinicOrgan res recipes:{}", JSONUtils.toString(recipes));
-        return recipes;
     }
 
     public List<Recipe> findByRecipeIds(List<Integer> recipeIds) {
@@ -258,8 +245,6 @@ public class RecipeManager extends BaseManager {
             Integer qrTypeForRecipe = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "getQrTypeForRecipe", 1);
             RecipeShowQrConfigEnum qrConfigEnum = RecipeShowQrConfigEnum.getEnumByType(qrTypeForRecipe);
             switch (qrConfigEnum) {
-                case NO_HAVE:
-                    break;
                 case CARD_NO:
                     //就诊卡号
                     if (StringUtils.isNotEmpty(recipeExtend.getCardNo())) {
@@ -281,6 +266,9 @@ public class RecipeManager extends BaseManager {
                         qrName = recipe.getRecipeCode();
                     }
                     break;
+                case TAKE_DRUG_CODE:
+                    qrName = offlineRecipeClient.queryMedicineCode(recipe.getClinicOrgan(), recipe.getRecipeId(),recipe.getRecipeCode());
+                    break;
                 case SERIALNUMBER:
                     qrName = offlineRecipeClient.queryRecipeSerialNumber(recipe.getClinicOrgan(), recipe.getPatientName(), recipe.getPatientID(), recipeExtend.getRegisterID());
                 default:
@@ -298,8 +286,8 @@ public class RecipeManager extends BaseManager {
      * @param recipeId
      * @return
      */
-    public RecipeCancel getCancelReasonForPatient(int recipeId) {
-        RecipeCancel recipeCancel = new RecipeCancel();
+    public RecipeCancelDTO getCancelReasonForPatient(int recipeId) {
+        RecipeCancelDTO recipeCancel = new RecipeCancelDTO();
         String cancelReason = "";
         Date cancelDate = null;
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
@@ -315,6 +303,15 @@ public class RecipeManager extends BaseManager {
     }
 
     /**
+     * 根据订单号查询处方列表
+     * @param orderCode orderCode
+     * @return List<Recipe>
+     */
+    public List<Recipe> findRecipeByOrderCode(String orderCode){
+        return recipeDAO.findRecipeListByOrderCode(orderCode);
+    }
+
+    /**
      * 更新推送his返回信息处方数据
      *
      * @param recipeResult 处方结果
@@ -325,7 +322,7 @@ public class RecipeManager extends BaseManager {
         if (null == recipeResult) {
             return;
         }
-        if (!CommonConstant.THERAPY_RECIPE_PUSH_TYPE.equals(pushType)) {
+        if (!CommonConstant.RECIPE_PUSH_TYPE.equals(pushType)) {
             return;
         }
         Recipe updateRecipe = new Recipe();
@@ -347,7 +344,7 @@ public class RecipeManager extends BaseManager {
         if (null == recipeExtendResult) {
             return;
         }
-        if (!CommonConstant.THERAPY_RECIPE_PUSH_TYPE.equals(pushType)) {
+        if (!CommonConstant.RECIPE_PUSH_TYPE.equals(pushType)) {
             return;
         }
         RecipeExtend updateRecipeExt = new RecipeExtend();

@@ -1,6 +1,7 @@
 package recipe.client;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.his.recipe.service.IRecipeHisService;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.constant.ErrorCode;
 import recipe.constant.HisErrorCodeEnum;
+import recipe.util.DictionaryUtil;
 
 /**
  * his调用基类
@@ -22,6 +24,8 @@ public class BaseClient {
     protected IRecipeHisService recipeHisService;
     @Autowired
     protected IPatientHisService patientHisService;
+    @Autowired
+    protected ICurrentUserInfoService currentUserInfoService;
 
 
     /**
@@ -52,7 +56,7 @@ public class BaseClient {
 
     /**
      * 扩展 当 前置机没实现接口时特殊处理返回值
-     * 不建议使用，只保留特殊处理老代码风格
+     * 不建议使用，特殊处理新老医院对接问题
      *
      * @param hisResponse 前置机出参
      * @param <T>         范型
@@ -70,5 +74,14 @@ public class BaseClient {
             logger.error("BaseClient getResponseCatch hisResponse= {}", JSON.toJSONString(hisResponse));
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         }
+    }
+
+    /**
+     * 获取地址枚举
+     *
+     * @param area
+     */
+    protected String getAddress(String area) {
+        return DictionaryUtil.getDictionary("eh.base.dictionary.AddrArea", area);
     }
 }

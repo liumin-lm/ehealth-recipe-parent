@@ -791,6 +791,8 @@ public class QueryRecipeService implements IQueryRecipeService {
                     nowSaleDrugList.setOrganDrugCode(organDrugChangeBean.getCloudPharmDrugCode());
                     nowSaleDrugList.setOrganId(drugsEnterpriseId);
                     nowSaleDrugList.setPrice(organDrugChangeBean.getSalePrice());
+                    nowSaleDrugList.setSaleName(organDrugChangeBean.getSaleName());
+                    nowSaleDrugList.setDrugName(organDrugChangeBean.getDrugName());
                     nowSaleDrugList.setLastModify(now);
                     LOGGER.info("updateOrSaveOrganDrug 更新配送药品信息{}", JSONUtils.toString(nowSaleDrugList));
                     saleDrugListDAO.update(nowSaleDrugList);
@@ -815,6 +817,8 @@ public class QueryRecipeService implements IQueryRecipeService {
                     newSaleDrugList.setPrice(organDrugChangeBean.getSalePrice());
                     newSaleDrugList.setStatus(1);
                     newSaleDrugList.setCreateDt(now);
+                    newSaleDrugList.setSaleName(organDrugChangeBean.getSaleName());
+                    newSaleDrugList.setDrugName(organDrugChangeBean.getDrugName());
                     LOGGER.info("updateOrSaveOrganDrug 添加配送药品信息{}", JSONUtils.toString(newSaleDrugList));
                     saleDrugListDAO.save(newSaleDrugList);
 
@@ -851,6 +855,8 @@ public class QueryRecipeService implements IQueryRecipeService {
                 nowSaleDrugList.setOrganDrugCode(organDrugChangeBean.getCloudPharmDrugCode());
                 nowSaleDrugList.setOrganId(drugsEnterpriseId);
                 nowSaleDrugList.setPrice(organDrugChangeBean.getSalePrice());
+                nowSaleDrugList.setSaleName(organDrugChangeBean.getSaleName());
+                nowSaleDrugList.setDrugName(organDrugChangeBean.getDrugName());
                 nowSaleDrugList.setLastModify(now);
                 LOGGER.info("updateOrSaveOrganDrug 更新配送药品信息{}", JSONUtils.toString(nowSaleDrugList));
                 saleDrugListDAO.update(nowSaleDrugList);

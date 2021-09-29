@@ -1,11 +1,15 @@
 package recipe.givemode.business;
 
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.entity.HisRecipe;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import org.apache.commons.lang3.StringUtils;
+import recipe.constant.RecipeBussConstant;
 import recipe.dao.HisRecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 
@@ -26,14 +30,34 @@ public class GiveModeFactory {
                 return AppContextHolder.getBean("bjGiveModeService", BjGiveModeService.class);
             }
         }
-        if (recipe.getRecipeId() != null) {
+        /*if (recipe.getRecipeId() != null) {
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             //杭州市互联网用到从预校验中his返回的配送方式
             if (null != recipeExtend && null != recipeExtend.getGiveModeFormHis()) {
                 return AppContextHolder.getBean("fromHisGiveModeService", FromHisGiveModeService.class);
             }
+        }*/
+
+
+        //his并没有返回值"recipeExtend.getGiveModeFormHis()"
+        //杭州市互联网用预校验中his返回的deliveryCode作为配送方式的选择
+        Integer recipeId = recipe.getRecipeId();
+        if(null != recipeId) {
+            OrganService organService = BasicAPI.getService(OrganService.class);
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            OrganDTO organDTO = organService.get(recipe.getClinicOrgan());
+            //判断是不是杭州互联网医院
+            if(null != organDTO && organDTO.getManageUnit().indexOf("eh3301") != -1 && RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
+                if (null != recipeExtend && StringUtils.isNotEmpty(recipeExtend.getDeliveryCode())) {
+                    return AppContextHolder.getBean("fromHisDeliveryCodeService", FromHisDeliveryCodeService.class);
+                }
+            }
         }
+
         return giveModeBase;
     }
+
 }

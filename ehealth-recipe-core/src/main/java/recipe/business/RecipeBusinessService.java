@@ -24,6 +24,8 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.RecipeDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.manager.HisRecipeManager;
+import recipe.manager.PharmacyManager;
 import recipe.manager.RecipeManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
@@ -46,19 +48,20 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private final List<Integer> UncheckedStatus = Arrays.asList(RecipeStatusEnum.RECIPE_STATUS_UNCHECK.getType(), RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType(),
             RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_PHA.getType(), RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_PHA.getType(), RecipeStatusEnum.RECIPE_STATUS_SIGN_NO_CODE_PHA.getType());
     @Autowired
+    private RecipeDAO recipeDAO;
+    @Autowired
     private RecipeManager recipeManager;
     @Autowired
-    private RecipeDAO recipeDAO;
-
-    @Autowired
     private OfflineRecipeClient offlineRecipeClient;
-
     @Autowired
     private RemoteRecipeService remoteRecipeService;
-
     @Autowired
     private PatientClient patientClient;
-    
+    @Autowired
+    private PharmacyManager pharmacyManager;
+    @Autowired
+    private HisRecipeManager hisRecipeManager;
+
     /**
      * 获取线下门诊处方诊断信息
      *
@@ -66,6 +69,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
      * @return 诊断列表
      */
     @Override
+
     public List<DiseaseInfoDTO> getOutRecipeDisease(PatientInfoVO patientInfoVO) {
         return offlineRecipeClient.queryPatientDisease(patientInfoVO.getOrganId(), patientInfoVO.getPatientName(), patientInfoVO.getRegisterID(), patientInfoVO.getPatientId());
     }
@@ -164,7 +168,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public Recipe getByRecipeId(Integer recipeId) {
         return recipeManager.getRecipeById(recipeId);
     }
-
 
 }
 

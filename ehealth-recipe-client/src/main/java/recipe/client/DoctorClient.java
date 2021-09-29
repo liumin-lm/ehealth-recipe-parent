@@ -5,6 +5,7 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.DoctorExtendDTO;
 import com.ngari.patient.service.DoctorExtendService;
 import com.ngari.patient.service.DoctorService;
+import com.ngari.patient.service.EmploymentService;
 import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.entity.Recipe;
 import ctd.util.JSONUtils;
@@ -28,7 +29,8 @@ public class DoctorClient extends BaseClient {
     private IConfigurationClient configurationClient;
     @Autowired
     private DoctorExtendService doctorExtendService;
-
+    @Autowired
+    private EmploymentService iEmploymentService;
 
     /**
      * 获取平台药师信息 无选择发药药师 则获取默认发药药师
@@ -115,6 +117,30 @@ public class DoctorClient extends BaseClient {
             return new DoctorDTO();
         }
     }
+
+    /**
+     * 获取 医生工号
+     *
+     * @param organId  机构id
+     * @param doctorId 医生id
+     * @param departId 开方科室id
+     * @return 医生工号
+     */
+    public DoctorDTO jobNumber(Integer organId, Integer doctorId, Integer departId) {
+        if (ValidateUtil.validateObjects(organId, doctorId, departId)) {
+            logger.info("DoctorClient jobNumber organId:{} ,doctorId:{}, departId:{}", organId, doctorId, departId);
+            return new DoctorDTO();
+        }
+        try {
+            DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
+            doctorDTO.setJobNumber(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(doctorId, organId, departId));
+            return doctorDTO;
+        } catch (Exception e) {
+            logger.warn("DoctorClient jobNumber doctorId:{}", doctorId, e);
+            return new DoctorDTO();
+        }
+    }
+
 
     /**
      * 获取 机构默认发药药师

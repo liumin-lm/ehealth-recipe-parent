@@ -44,13 +44,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import recipe.ApplicationUtils;
 import recipe.bean.PltPurchaseResponse;
-import recipe.client.IConfigurationClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.givemode.business.GiveModeTextEnum;
+import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.manager.EmrRecipeManager;
+import recipe.manager.EnterpriseManager;
 import recipe.manager.HisRecipeManager;
 import recipe.service.*;
 import recipe.util.MapValueUtil;
@@ -89,10 +89,8 @@ public class PurchaseService {
 
     @Autowired
     private RecipeOrderService recipeOrderService;
-
     @Autowired
-    private IConfigurationClient configurationClient;
-
+    private EnterpriseManager enterpriseManager;
     @Autowired
     HisRecipeManager hisRecipeManager;
 
@@ -259,7 +257,7 @@ public class PurchaseService {
             } catch (Exception e) {
                 LOG.error("filterSupportDepList error msg ", e);
             }
-            recipeOrderService.uploadRecipeInfoToThird(skipThirdReqVO);
+            enterpriseManager.uploadRecipeInfoToThird(skipThirdReqVO.getOrganId(), skipThirdReqVO.getGiveMode(), skipThirdReqVO.getRecipeIds());
         }
         return resultBean;
     }
@@ -274,7 +272,7 @@ public class PurchaseService {
     @RpcService
     public OrderCreateResult orderForRecipe(Integer recipeId, Map<String, String> extInfo) {
         OrderCreateResult orderCreateResult = checkOrderInfo(Arrays.asList(recipeId), extInfo);
-        if (RecipeResultBean.FAIL == orderCreateResult.getCode()) {
+        if (RecipeResultBean.CHECKFAIL == orderCreateResult.getCode()) {
             return orderCreateResult;
         }
         return order(Arrays.asList(recipeId), extInfo);
@@ -290,7 +288,7 @@ public class PurchaseService {
     @RpcService
     public OrderCreateResult orderForRecipeNew(List<Integer> recipeIds, Map<String, String> extInfo) {
         OrderCreateResult orderCreateResult = checkOrderInfo(recipeIds, extInfo);
-        if (RecipeResultBean.FAIL == orderCreateResult.getCode()) {
+        if (RecipeResultBean.CHECKFAIL == orderCreateResult.getCode()) {
             return orderCreateResult;
         }
         return order(recipeIds, extInfo);
@@ -321,6 +319,9 @@ public class PurchaseService {
                 result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
                 LOG.info("checkOrderInfo recipeId:{} 处方不存在", recipeId);
                 return result;
+            }
+            if (!new Integer(2).equals(dbRecipe.getRecipeSourceType())) {
+                continue;
             }
             if (null == hisRecipe) {
                 result.setCode(RecipeResultBean.CHECKFAIL);
@@ -364,7 +365,7 @@ public class PurchaseService {
             if (!covertData(queryHisRecipResTO.getDisease()).equals(covertData(hisRecipe.getDisease())) || !covertData(queryHisRecipResTO.getDiseaseName()).equals(covertData(hisRecipe.getDiseaseName()))) {
                 result.setCode(RecipeResultBean.CHECKFAIL);
                 result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
-                LOG.info("checkOrderInfo recipeId:{} hisRecipe已被删除", recipeId);
+                LOG.info("checkOrderInfo recipeId:{} 诊断信息不一致");
             }
             //药品详情变更或数据是否由他人生成
             List<Integer> hisRecipeIds = new ArrayList<>();

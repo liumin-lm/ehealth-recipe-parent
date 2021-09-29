@@ -54,6 +54,11 @@ public interface IRecipeBusinessService {
      */
     Boolean existUncheckRecipe(Integer bussSource, Integer clinicId);
 
-
+    /**
+     * 获取处方信息
+     *
+     * @param recipeId 处方id
+     * @return
+     */
     Recipe getByRecipeId(Integer recipeId);
 }

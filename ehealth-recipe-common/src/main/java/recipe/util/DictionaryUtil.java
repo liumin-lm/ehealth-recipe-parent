@@ -11,7 +11,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -21,7 +20,7 @@ import java.util.List;
  */
 public class DictionaryUtil {
     private static final Logger LOGGER = LoggerFactory.getLogger(DictionaryUtil.class);
-
+    private static DictionaryLocalService ser = AppContextHolder.getBean("eh.dictionaryService", DictionaryLocalService.class);
     /**
      * 根据key 查询字典数据 value
      *
@@ -79,10 +78,6 @@ public class DictionaryUtil {
         }
         value = value.trim();
         List<DictionaryItem> list = findAllItem(strDic);
-
-        if (list.size() == 0) {
-            throw new DAOException(" dicId is not exist");
-        }
         for (DictionaryItem item : list) {
             if (value.equals(item.getText())) {
                 return item.getKey();
@@ -92,17 +87,12 @@ public class DictionaryUtil {
     }
 
     private static List<DictionaryItem> findAllItem(String strDic) {
-        DictionaryLocalService ser = AppContextHolder.getBean("eh.dictionaryService", DictionaryLocalService.class);
-        List<DictionaryItem> list = new ArrayList<DictionaryItem>();
         try {
-            DictionarySliceRecordSet var = ser.getSlice(
-                    strDic, "", 0, "", 0, 0);
-            list = var.getItems();
-
+            DictionarySliceRecordSet var = ser.getSlice(strDic, "", 0, "", 0, 0);
+            return var.getItems();
         } catch (ControllerException e) {
             LOGGER.error("DictionaryUtil findAllItem", e);
+            throw new DAOException(" dicId is not exist");
         }
-        return list;
     }
-
 }

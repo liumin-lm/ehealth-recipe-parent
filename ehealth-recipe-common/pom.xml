@@ -5,7 +5,7 @@
     <parent>
         <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>3.9.2.3.master-SNAPSHOT</version>
+        <version>3.9.2.8.master-SNAPSHOT</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -22,6 +22,10 @@
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>ngari-mvc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ngari-utils</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.data</groupId>

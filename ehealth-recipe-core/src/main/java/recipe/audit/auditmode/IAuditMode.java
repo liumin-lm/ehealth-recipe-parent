@@ -35,4 +35,6 @@ public interface IAuditMode {
      * 支付后的变更
      */
     void afterPayChange(Boolean saveFlag, Recipe recipe, RecipeResultBean result, Map<String, Object> attrMap);
+
+    Boolean notifyPharAudit(Recipe recipe);
 }

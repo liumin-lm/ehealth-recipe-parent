@@ -4,7 +4,7 @@ import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.dto.ApothecaryDTO;
-import com.ngari.recipe.dto.RecipeCancel;
+import com.ngari.recipe.dto.RecipeCancelDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeStatusConstant;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -174,7 +174,7 @@ public class RevisitBusinessService extends BaseService implements IRevisitBusin
                     }
 
                     //医生撤销
-                    RecipeCancel recipeCancel = recipeManager.getCancelReasonForPatient(recipe.getRecipeId());
+                    RecipeCancelDTO recipeCancel = recipeManager.getCancelReasonForPatient(recipe.getRecipeId());
                     if (recipeCancel != null) {
                         RevisitRecipeTraceVo.RecipeCancel innerRecipeCancel = new RevisitRecipeTraceVo.RecipeCancel();
                         BeanUtils.copy(recipeCancel, innerRecipeCancel);

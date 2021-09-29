@@ -369,4 +369,21 @@ public abstract class AbstractGiveModeService implements IGiveModeBase {
             }
         }
     }
+
+    /**
+     * 多个按钮显示
+     * @param giveModeButtonBeans
+     * @param addGiveModeList
+     */
+    protected void addGiveModeData(List<GiveModeButtonBean> giveModeButtonBeans, List<String> addGiveModeList) {
+        Iterator iterator = giveModeButtonBeans.iterator();
+        while (iterator.hasNext()) {
+            GiveModeButtonBean giveModeShowButtonVO = (GiveModeButtonBean) iterator.next();
+            if(!addGiveModeList.contains(giveModeShowButtonVO.getShowButtonKey())){
+                iterator.remove();
+            }
+        }
+    }
+
+
 }

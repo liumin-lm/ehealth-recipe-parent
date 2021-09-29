@@ -251,7 +251,6 @@ public class HisRecipeManager extends BaseManager {
             recipeLog.setMemo("线下转线上：修改处方状态为已删除,数据是：" + JSONUtils.toString(recipeMap.get(a)));
             recipeLogDao.saveRecipeLog(recipeLog);
             revisitClient.deleteByBusIdAndBusNumOrder(a);
-//            RecipeBusiThreadPool.execute(() -> revisitClient.deleteByBusIdAndBusNumOrder(a));
         });
         LOGGER.info("HisRecipeManager deleteSetRecipeCode is delete end ");
     }
@@ -463,13 +462,22 @@ public class HisRecipeManager extends BaseManager {
      * @return
      * @throws Exception
      */
-    public RecipeInfoDTO pushTherapyRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
+    public RecipeInfoDTO pushRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
+        EmrDetailDTO emrDetail = emrDetail(recipePdfDTO);
+        return offlineRecipeClient.pushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
+    }
+
+    /**
+     * 获取 电子病历信息诊断等
+     *
+     * @param recipePdfDTO 处方信息
+     * @return 电子病历信息
+     */
+    private EmrDetailDTO emrDetail(RecipeInfoDTO recipePdfDTO) {
         RecipeExtend recipeExtend = recipePdfDTO.getRecipeExtend();
-        Integer docIndexId = null;
-        if (null != recipeExtend) {
-            docIndexId = recipeExtend.getDocIndexId();
+        if (null == recipeExtend) {
+            return null;
         }
-        EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(docIndexId);
-        return offlineRecipeClient.pushTherapyRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
+        return docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
     }
 }

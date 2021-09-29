@@ -286,7 +286,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         RecipeInfoDTO result;
         try {
             Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(recipePdfDTO.getRecipe().getClinicOrgan());
-            result = hisRecipeManager.pushTherapyRecipe(recipePdfDTO, pushType, pharmacyIdMap);
+            result = hisRecipeManager.pushRecipe(recipePdfDTO, pushType, pharmacyIdMap);
             recipeManager.updatePushHisRecipe(result.getRecipe(), recipeId, pushType);
             recipeManager.updatePushHisRecipeExt(result.getRecipeExtend(), recipeId, pushType);
         } catch (Exception e) {
@@ -295,7 +295,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             logger.error("RecipeBusinessService pushRecipeExecute error", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方推送his失败");
         }
-        if (CommonConstant.THERAPY_RECIPE_PUSH_TYPE.equals(pushType)) {
+        if (CommonConstant.RECIPE_PUSH_TYPE.equals(pushType)) {
             emrRecipeManager.updateDisease(recipeId);
             RecipeServiceSub.sendRecipeTagToPatient(recipePdfDTO.getRecipe(), null, null, true);
         }

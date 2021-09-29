@@ -11,9 +11,13 @@ import java.util.Date;
  * @Description 处方撤销
  */
 @Data
-public class RecipeCancel {
+public class RecipeCancelDTO {
     @ItemProperty(alias = "原因")
     private String cancelReason;
+    /**
+     * 能否撤销处方标识 true：可以， false：不可 需要原因
+     */
+    private Boolean cancelRecipeFlag;
 
     @ItemProperty(alias = "时间")
     private Date cancelDate;

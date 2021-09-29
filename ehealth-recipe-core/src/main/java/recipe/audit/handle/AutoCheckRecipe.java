@@ -2,16 +2,20 @@ package recipe.audit.handle;
 
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditPreMode;
 import recipe.audit.service.PrescriptionService;
 import recipe.dao.RecipeDetailDAO;
+import recipe.manager.RecipeManager;
 import recipe.service.RecipeService;
 
 import java.util.List;
@@ -20,9 +24,27 @@ import java.util.List;
  * @desc 三方自动审核
  * @author maoze
  */
+@Component
 public class AutoCheckRecipe {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AutoCheckRecipe.class);
+
+    private static RecipeManager recipeManager;
+
+    @Autowired
+    public AutoCheckRecipe(RecipeManager recipeManager) {
+        AutoCheckRecipe.recipeManager = recipeManager;
+    }
+
+    /**
+     * @desc 获取完整的处方和病历信息
+     * @author maoze
+     * @param recipeId 
+     * @return
+     */
+    public static Recipe getByRecipeId(Integer recipeId){
+       return recipeManager.getRecipeById(recipeId);
+    }
 
     /**
      * @return

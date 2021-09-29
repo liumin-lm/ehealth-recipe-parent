@@ -310,6 +310,15 @@ public class HisRequestInit {
             if (StringUtils.isNotEmpty(emrDetail.getOrganDiseaseId())) {
                 recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
                 recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
+                recipeExtend.setMainDieaseDescribe(emrDetail.getMainDieaseDescribe());
+                recipeExtend.setHistoryOfPresentIllness(emrDetail.getHistoryOfPresentIllness());
+                recipeExtend.setSymptomId(emrDetail.getSymptomId());
+                recipeExtend.setSymptomName(emrDetail.getSymptomName());
+                recipeExtend.setCurrentMedical(emrDetail.getCurrentMedical());
+                recipeExtend.setHistroyMedical(emrDetail.getHistroyMedical());
+                recipeExtend.setAllergyMedical(emrDetail.getAllergyMedical());
+                recipeExtend.setPhysicalCheck(emrDetail.getPhysicalCheck());
+                recipeExtend.setHandleMethod(emrDetail.getHandleMethod());
                 requestTO.setSymptomValue(ObjectCopyUtils.convert(emrDetail.getSymptomValue(), EmrDetailValueDTO.class));
                 requestTO.setDiseaseValue(ObjectCopyUtils.convert(emrDetail.getDiseaseValue(), EmrDetailValueDTO.class));
                 Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
@@ -569,7 +578,7 @@ public class HisRequestInit {
             }
 
             requestTO.setAmount(recipe.getTotalMoney().toString());
-
+            requestTO.setMobile(patient.getMobile());
             requestTO.setIsMedicalSettle("0");
             if (recipe.getOrderCode() != null) {
                 RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);

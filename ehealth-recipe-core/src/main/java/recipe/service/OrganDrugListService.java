@@ -138,7 +138,7 @@ public class OrganDrugListService implements IOrganDrugListService {
      * 同步自健药企药品
      * @param organDrugList
      */
-    public void organDrugSync2(OrganDrugList organDrugList,Integer status){
+    public void organDrugSyncDelete(OrganDrugList organDrugList,Integer status){
         DrugToolService bean = AppDomainContext.getBean("eh.drugToolService", DrugToolService.class);
         List<OrganDrugList> lists= Lists.newArrayList();
         lists.add(organDrugList);
@@ -222,7 +222,7 @@ public class OrganDrugListService implements IOrganDrugListService {
         }
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         OrganDrugList organDrugList = organDrugListDAO.get(organDrugListId);
-        organDrugSync2(organDrugList,1);
+        organDrugSyncDelete(organDrugList,1);
         organDrugListDAO.remove(organDrugListId);
 
     }
@@ -278,7 +278,7 @@ public class OrganDrugListService implements IOrganDrugListService {
             organDrugList.setDisableReason(disableReason);
         }
         organDrugList.setLastModify(new Date());
-        organDrugSync2(organDrugList,2);
+        organDrugSyncDelete(organDrugList,2);
         organDrugListDAO.update(organDrugList);
         busActionLogService.recordBusinessLogRpcNew("机构药品管理", "", "OrganDrugList", "【" + organDTO.getName() + "】" + msg + "【" + organDrugList.getOrganDrugId() + "-" + organDrugList.getDrugName() + "】", organDTO.getName());
         IRegulationService iRegulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
