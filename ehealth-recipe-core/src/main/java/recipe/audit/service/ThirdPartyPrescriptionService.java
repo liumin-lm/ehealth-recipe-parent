@@ -192,6 +192,8 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
     private ThirdPartyPatientData packThirdPartyPatientData(PatientDTO patientDTO) {
         ThirdPartyPatientData thirdPartyPatientData = new ThirdPartyPatientData();
         thirdPartyPatientData.setIdCard(patientDTO.getIdcard());
+        thirdPartyPatientData.setCertificate(patientDTO.getCertificate());
+        thirdPartyPatientData.setCertificateType(patientDTO.getCertificateType());
         thirdPartyPatientData.setName(patientDTO.getPatientName());
         thirdPartyPatientData.setAddress(patientDTO.getAddress());
         thirdPartyPatientData.setPhone(patientDTO.getMobile());
