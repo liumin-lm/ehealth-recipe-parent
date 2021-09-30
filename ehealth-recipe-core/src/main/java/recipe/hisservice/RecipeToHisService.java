@@ -644,6 +644,7 @@ public class RecipeToHisService {
      * 处方预结算(新)
      */
     public HisResponseTO<RecipeMedicalPreSettleInfo> recipeMedicalPreSettleN(MedicalPreSettleReqNTO request) {
+        LOGGER.info("RecipeToHisService recipeMedicalPreSettleN request={}", JSONUtils.toString(request));
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.recipeMedicalPreSettleN(request);
     }
