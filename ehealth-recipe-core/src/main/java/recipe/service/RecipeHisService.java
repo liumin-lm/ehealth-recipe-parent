@@ -569,7 +569,12 @@ public class RecipeHisService extends RecipeBaseService {
                 Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 RecipeListQueryReqTO recipeListQueryReqTO = new RecipeListQueryReqTO();
-                recipeListQueryReqTO.setCertID(patientService.getPatientBeanByMpiId(recipe.getMpiid()) == null ? null : patientService.getPatientBeanByMpiId(recipe.getMpiid()).getCardId());
+                PatientDTO patientDTO = patientService.getPatientBeanByMpiId(recipe.getMpiid());
+                if(patientDTO != null){
+                    recipeListQueryReqTO.setCertID(patientDTO.getCardId());
+                    recipeListQueryReqTO.setCertificate(patientDTO.getCertificate());
+                    recipeListQueryReqTO.setCertificateType(patientDTO.getCertificateType());
+                }
                 recipeListQueryReqTO.setOrganID((null != organId) ? Integer.toString(organId) : null);
                 recipeListQueryReqTO.setCardNo(recipeExtend == null ? null : recipeExtend.getCardNo());
                 recipeListQueryReqTO.setCardType(recipeExtend == null ? null : recipeExtend.getCardType());
