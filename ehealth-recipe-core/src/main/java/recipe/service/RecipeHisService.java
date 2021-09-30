@@ -1299,6 +1299,8 @@ public class RecipeHisService extends RecipeBaseService {
         if (null != patientBean) {
             //身份证
             hisCheckRecipeReqTO.setCertID(patientBean.getIdcard());
+            hisCheckRecipeReqTO.setCertificate(patientBean.getCertificate());
+            hisCheckRecipeReqTO.setCertificateType(patientBean.getCertificateType());
             //患者名
             hisCheckRecipeReqTO.setPatientName(patientBean.getPatientName());
             //患者性别

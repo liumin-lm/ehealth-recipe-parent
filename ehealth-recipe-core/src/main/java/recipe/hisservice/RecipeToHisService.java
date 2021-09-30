@@ -576,6 +576,7 @@ public class RecipeToHisService {
      * （HIS系统对互联网医院待新增处方进行医保校验）
      */
     public HisResponseTO hisCheckRecipe(HisCheckRecipeReqTO request){
+        LOGGER.info("RecipeToHisService hisCheckRecipe request={}",JSONUtils.toString(request));
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.hisCheckRecipe(request);
 
