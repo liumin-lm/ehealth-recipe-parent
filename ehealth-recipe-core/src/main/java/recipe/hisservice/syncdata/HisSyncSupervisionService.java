@@ -796,6 +796,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //陪诊人信息
             req.setGuardianName(patientDTO.getGuardianName());
             req.setGuardianCertID(patientDTO.getGuardianCertificate());
+            req.setGuardianCertificateType(patientDTO.getGuardianCertificateType());
             //支付时间
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             req.setPayTime(recipeOrder.getPayTime());
@@ -1119,7 +1120,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
         return "0";
     }
-    
+
     public void uploadRecipePayToRegulation(String orderCode, int payFlag, String refundNo) {
         LOGGER.info("uploadRecipePayToRegulation param orderCode:{} ,payFlag:{}", orderCode, payFlag);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
