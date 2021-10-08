@@ -568,6 +568,7 @@ public class HisRequestInit {
             if (null != patient) {
                 // 患者信息
                 requestTO.setCertID(patient.getCertificate());
+                requestTO.setCertificateType(patient.getCertificateType());
                 requestTO.setPatientName(patient.getPatientName());
             }
             requestTO.setPatId(recipe.getPatientID());
