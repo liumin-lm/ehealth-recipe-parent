@@ -348,6 +348,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                     }
                 }
                 recipeDTO.setCertID(idCard);
+                recipeDTO.setCertificateType(patient.getCertificateType());
                 recipeDTO.setPatientName(patient.getPatientName());
                 recipeDTO.setMobile(patient.getMobile());
                 recipeDTO.setPatientSex(patient.getPatientSex());
