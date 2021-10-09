@@ -576,6 +576,7 @@ public class RecipeToHisService {
      * （HIS系统对互联网医院待新增处方进行医保校验）
      */
     public HisResponseTO hisCheckRecipe(HisCheckRecipeReqTO request){
+        LOGGER.info("RecipeToHisService hisCheckRecipe request={}",JSONUtils.toString(request));
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.hisCheckRecipe(request);
 
@@ -643,6 +644,7 @@ public class RecipeToHisService {
      * 处方预结算(新)
      */
     public HisResponseTO<RecipeMedicalPreSettleInfo> recipeMedicalPreSettleN(MedicalPreSettleReqNTO request) {
+        LOGGER.info("RecipeToHisService recipeMedicalPreSettleN request={}", JSONUtils.toString(request));
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.recipeMedicalPreSettleN(request);
     }
@@ -651,6 +653,7 @@ public class RecipeToHisService {
      * 处方自费预结算
      */
     public HisResponseTO<RecipeCashPreSettleInfo> recipeCashPreSettleHis(RecipeCashPreSettleReqTO request) {
+        LOGGER.info("RecipeToHisService recipeCashPreSettleHis request={}", JSONUtils.toString(request));
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.recipeCashPreSettle(request);
     }

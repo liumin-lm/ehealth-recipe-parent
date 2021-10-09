@@ -71,6 +71,8 @@ public class CashPreSettleService implements IRecipePreSettleService {
             PatientDTO patientBean = patientService.get(recipe.getMpiid());
             request.setPatientName(patientBean.getPatientName());
             request.setIdcard(patientBean.getIdcard());
+            request.setCertificate(patientBean.getCertificate());
+            request.setCertificateType(patientBean.getCertificateType());
             request.setMobile(patientBean.getMobile());
             request.setPatientId(recipe.getPatientID());
             request.setDepartId(null!=recipe.getDepart()?recipe.getDepart().toString():"");

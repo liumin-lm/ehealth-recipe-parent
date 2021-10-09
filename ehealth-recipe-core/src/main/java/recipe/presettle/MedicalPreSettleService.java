@@ -113,6 +113,8 @@ public class MedicalPreSettleService implements IRecipePreSettleService {
             PatientDTO patientBean = patientService.get(recipe.getMpiid());
             request.setPatientName(patientBean.getPatientName());
             request.setIdcard(patientBean.getIdcard());
+            request.setCertificate(patientBean.getCertificate());
+            request.setCertificateType(patientBean.getCertificateType());
             request.setBirthday(patientBean.getBirthday());
             request.setAddress(patientBean.getAddress());
             request.setMobile(patientBean.getMobile());
