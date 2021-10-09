@@ -186,6 +186,7 @@ public class OfflineRecipeClient extends BaseClient {
         patientBaseInfo.setMpi(patientDTO.getMpiId());
         patientBaseInfo.setCardID(patientDTO.getCardId());
         patientBaseInfo.setCertificate(patientDTO.getCertificate());
+        patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
 
         QueryRecipeRequestTO queryRecipeRequestTo = new QueryRecipeRequestTO();
         queryRecipeRequestTo.setPatientInfo(patientBaseInfo);
