@@ -569,7 +569,12 @@ public class RecipeHisService extends RecipeBaseService {
                 Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 RecipeListQueryReqTO recipeListQueryReqTO = new RecipeListQueryReqTO();
-                recipeListQueryReqTO.setCertID(patientService.getPatientBeanByMpiId(recipe.getMpiid()) == null ? null : patientService.getPatientBeanByMpiId(recipe.getMpiid()).getCardId());
+                PatientDTO patientDTO = patientService.getPatientBeanByMpiId(recipe.getMpiid());
+                if(patientDTO != null){
+                    recipeListQueryReqTO.setCertID(patientDTO.getCardId());
+                    recipeListQueryReqTO.setCertificate(patientDTO.getCertificate());
+                    recipeListQueryReqTO.setCertificateType(patientDTO.getCertificateType());
+                }
                 recipeListQueryReqTO.setOrganID((null != organId) ? Integer.toString(organId) : null);
                 recipeListQueryReqTO.setCardNo(recipeExtend == null ? null : recipeExtend.getCardNo());
                 recipeListQueryReqTO.setCardType(recipeExtend == null ? null : recipeExtend.getCardType());
@@ -872,6 +877,8 @@ public class RecipeHisService extends RecipeBaseService {
             PatientDTO patientBean = patientService.get(recipe.getMpiid());
             request.setPatientName(patientBean.getPatientName());
             request.setIdcard(patientBean.getIdcard());
+            request.setCertificate(patientBean.getCertificate());
+            request.setCertificateType(patientBean.getCertificateType());
             request.setBirthday(patientBean.getBirthday());
             request.setAddress(patientBean.getAddress());
             request.setMobile(patientBean.getMobile());
@@ -1034,6 +1041,8 @@ public class RecipeHisService extends RecipeBaseService {
             PatientDTO patientBean = patientService.get(recipe.getMpiid());
             request.setPatientName(patientBean.getPatientName());
             request.setIdcard(patientBean.getIdcard());
+            request.setCertificate(patientBean.getCertificate());
+            request.setCertificateType(patientBean.getCertificateType());
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
             LOGGER.info("provincialCashPreSettle recipeId={} req={}", recipeId, JSONUtils.toString(request));
             HisResponseTO<RecipeCashPreSettleInfo> hisResult = service.recipeCashPreSettleHis(request);
@@ -1299,6 +1308,8 @@ public class RecipeHisService extends RecipeBaseService {
         if (null != patientBean) {
             //身份证
             hisCheckRecipeReqTO.setCertID(patientBean.getIdcard());
+            hisCheckRecipeReqTO.setCertificate(patientBean.getCertificate());
+            hisCheckRecipeReqTO.setCertificateType(patientBean.getCertificateType());
             //患者名
             hisCheckRecipeReqTO.setPatientName(patientBean.getPatientName());
             //患者性别

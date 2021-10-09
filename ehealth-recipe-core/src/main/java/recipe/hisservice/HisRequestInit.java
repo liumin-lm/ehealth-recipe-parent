@@ -410,6 +410,7 @@ public class HisRequestInit {
             requestTO.setCertID(idCard);
             requestTO.setPatientName(patient.getPatientName());
             requestTO.setMobile(patient.getMobile());
+            requestTO.setCertificateType(patient.getCertificateType());
         }
 
         //根据处方单设置配送方式
@@ -567,6 +568,7 @@ public class HisRequestInit {
             if (null != patient) {
                 // 患者信息
                 requestTO.setCertID(patient.getCertificate());
+                requestTO.setCertificateType(patient.getCertificateType());
                 requestTO.setPatientName(patient.getPatientName());
             }
             requestTO.setPatId(recipe.getPatientID());
