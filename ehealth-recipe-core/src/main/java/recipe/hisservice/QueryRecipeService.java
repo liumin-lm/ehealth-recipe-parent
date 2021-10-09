@@ -185,7 +185,7 @@ public class QueryRecipeService implements IQueryRecipeService {
         }
         HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
         List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
-        LOGGER.info("queryRegulationRecipeData start");
+        LOGGER.info("queryRegulationRecipeData start:recipeList={},request={}",JSONUtils.toString(recipeList),JSONUtils.toString(request));
         service.splicingBackRecipeData(recipeList, request);
         List<RegulationRecipeIndicatorsDTO> result = ObjectCopyUtils.convert(request, RegulationRecipeIndicatorsDTO.class);
         LOGGER.info("queryRegulationRecipeData data={}", JSONUtils.toString(result));
