@@ -685,6 +685,7 @@ public class HisRequestInit {
             if (null != patient) {
                 requestTO.setPatientName(patient.getPatientName());
                 requestTO.setCertID(patient.getCertificate());
+                requestTO.setCertificateType(patient.getCertificateType());
                 requestTO.setMobile(patient.getMobile());
             }
             RecipeOrder order = null;
