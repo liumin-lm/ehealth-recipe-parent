@@ -169,7 +169,7 @@ public class HisRequestInit {
                 requestTO.setCertID(idCard);
                 requestTO.setPatientName(patient.getPatientName());
                 requestTO.setMobile(patient.getMobile());
-
+                requestTO.setCertificateType(patient.getCertificateType());
             }
             /*if (null != card) {
                 requestTO.setCardType(card.getCardType());//2-医保卡
