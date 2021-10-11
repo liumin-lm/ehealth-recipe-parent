@@ -18,7 +18,6 @@ import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.patient.model.DocIndexBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
-import com.ngari.base.payment.service.IPaymentService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
@@ -978,6 +977,8 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.info("retryDoctorSignCheck 处方单已经撤销，recipeid：{}", recipe.getRecipeId());
             return;
         }
+
+        recipeManager.isOpenRecipeNumber(recipe.getClinicId(), recipe.getClinicOrgan());
         try {
             //写入his成功后，生成pdf并签名
             //date 20200827 修改his返回请求CA
@@ -1473,7 +1474,7 @@ public class RecipeService extends RecipeBaseService {
         if (null == recipe || null == recipe.getStatus() || (recipe.getStatus() != RecipeStatusConstant.CHECKING_HOS && recipe.getStatus() != RecipeStatusConstant.HIS_FAIL)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方不能重试");
         }
-
+        recipeManager.isOpenRecipeNumber(recipe.getClinicId(), recipe.getClinicOrgan());
         //his写回提示，处方推送成功，否则再次推送
         String recipeCode = recipe.getRecipeCode();
         if (StringUtils.isNotEmpty(recipeCode)) {
@@ -1739,14 +1740,8 @@ public class RecipeService extends RecipeBaseService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
         }
 
-        RequestVisitVO requestVisitVO = new RequestVisitVO();
-        requestVisitVO.setDoctor(recipe.getDoctor());
-        requestVisitVO.setMpiid(recipe.getRequestMpiId());
-        requestVisitVO.setOrganId(recipe.getClinicOrgan());
-        requestVisitVO.setClinicId(recipe.getClinicId());
-        LOGGER.info("doSignRecipeSave前端入参:requestVisitVO={}", JSONUtils.toString(requestVisitVO));
         //校验开处方单数限制
-        isOpenRecipeNumber(requestVisitVO);
+        recipeManager.isOpenRecipeNumber(recipe.getClinicId(), recipe.getClinicOrgan());
 
         recipe.setStatus(RecipeStatusConstant.UNSIGN);
         recipe.setSignDate(DateTime.now().toDate());
@@ -3942,12 +3937,6 @@ public class RecipeService extends RecipeBaseService {
         return backDepId;
     }
 
-    private String getWxAppIdForRecipeFromOps(Integer recipeId, Integer busOrgan) {
-        IPaymentService iPaymentService = ApplicationUtils.getBaseService(IPaymentService.class);
-        //参数二 PayWayEnum.WEIXIN_WAP
-        //参数三 BusTypeEnum.RECIPE
-        return iPaymentService.getPayAppId(busOrgan, "40", BusTypeEnum.RECIPE.getCode());
-    }
 
     /**
      * 根据开方机构分配药企进行配送并入库 （获取某一购药方式最合适的供应商）
@@ -5960,29 +5949,7 @@ public class RecipeService extends RecipeBaseService {
 
     @RpcService
     public Boolean isOpenRecipeNumber(RequestVisitVO requestVisitVO) {
-        LOGGER.info(" 当前复诊入参来源数：requestVisitVO={}", JSONUtils.toString(requestVisitVO));
-        if (requestVisitVO.getClinicId() == null) {
-            return true;
-        }
-
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        String openRecipeNumber = (String) configurationService.getConfiguration(requestVisitVO.getOrganId(), "openRecipeNumber");
-        //运营平台没有处方单数限制，默认可以无限进行开处方
-        if (StringUtils.isEmpty(openRecipeNumber)) {
-            return true;
-        }
-        Integer openRecipeNumber2 = Integer.valueOf(openRecipeNumber);
-        LOGGER.info(" 运营平台配置可开方数：openRecipeNumber2={}", openRecipeNumber2);
-        //查询当前复诊存在的有效处方单
-        List<Recipe> recipeCount = recipeDAO.findRecipeCountByClinicIdAndValidStatus(requestVisitVO.getClinicId());
-        if (CollectionUtils.isNotEmpty(recipeCount)) {
-            LOGGER.info(" 当前复诊Id查询出有效的处方单数：recipeCount.size()={}", recipeCount.size());
-            if (recipeCount.size() >= openRecipeNumber2) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "开方张数已超出医院限定范围，不能继续开方。");
-            }
-        }
-        return true;
+        return recipeManager.isOpenRecipeNumber(requestVisitVO.getClinicId(), requestVisitVO.getOrganId());
     }
 
     /**

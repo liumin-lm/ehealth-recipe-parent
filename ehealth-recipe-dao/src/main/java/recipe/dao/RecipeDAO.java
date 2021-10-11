@@ -3498,7 +3498,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param clinicId
      * @return
      */
-    @DAOMethod(sql = "from Recipe where clinicId=:clinicId and status not in(-1,15,9,0,10,13,14,16)")
+    @DAOMethod(sql = "from Recipe where clinicId=:clinicId and status not in(-1,0,9,10,13,14,15)")
     public abstract List<Recipe> findRecipeCountByClinicIdAndValidStatus(@DAOParam("clinicId") Integer clinicId);
 
     /**
@@ -3509,8 +3509,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param endDate
      * @return
      */
-
-
     public List<Recipe> findRecipeListByOrganIdAndTime(final Integer organId, final String startDate, final String endDate) {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
