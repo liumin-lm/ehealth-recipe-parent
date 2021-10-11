@@ -3332,7 +3332,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      *
      * @param organs
      * @param searchString
-     * @param searchFlag   1-审方医生 2-患者姓名 3-病历号
+     * @param searchFlag   1-审方医生 2-患者姓名 3-处方号
      * @param start
      * @param limit
      * @return
@@ -3349,14 +3349,19 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 } else if (2 == searchFlag) {
                     hql.append(" where r.patientName like:searchString ");
                 } else if (3 == searchFlag) {
-                    hql.append(" where r.patientID like:searchString ");
+                    hql.append(" where r.recipeId =:searchString ");
                 } else {
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "searchFlag is invalid");
                 }
                 hql.append("and (r.checkDateYs is not null or r.status = 8) " + "and r.clinicOrgan in (:organs) order by r.signDate desc");
 
                 Query q = ss.createQuery(hql.toString());
-                q.setParameter("searchString", "%" + searchString + "%");
+                if (3 == searchFlag) {
+                    Integer recipeId = Integer.parseInt(searchString);
+                    q.setParameter("searchString", recipeId);
+                } else {
+                    q.setParameter("searchString", "%" + searchString + "%");
+                }
                 q.setParameterList("organs", organs);
                 if (null != start && null != limit) {
                     q.setFirstResult(start);
@@ -3498,7 +3503,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param clinicId
      * @return
      */
-    @DAOMethod(sql = "from Recipe where clinicId=:clinicId and status not in(-1,15,9,0,10,13,14,16)")
+    @DAOMethod(sql = "from Recipe where clinicId=:clinicId and status not in(-1,0,9,10,13,14,15)")
     public abstract List<Recipe> findRecipeCountByClinicIdAndValidStatus(@DAOParam("clinicId") Integer clinicId);
 
     /**
@@ -3509,8 +3514,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param endDate
      * @return
      */
-
-
     public List<Recipe> findRecipeListByOrganIdAndTime(final Integer organId, final String startDate, final String endDate) {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
