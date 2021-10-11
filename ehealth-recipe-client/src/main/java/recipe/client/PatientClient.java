@@ -8,6 +8,8 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.PatientDTO;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -116,15 +118,16 @@ public class PatientClient extends BaseClient {
 
     /**
      * 查询线下患者信息
+     *
      * @param patientQueryRequestTO
      * @return
      */
-    public PatientQueryRequestTO queryPatient(PatientQueryRequestTO patientQueryRequestTO){
-        logger.info("PatientClient queryPatient patientQueryRequestTO:{}." , JSON.toJSONString(patientQueryRequestTO));
+    public PatientQueryRequestTO queryPatient(PatientQueryRequestTO patientQueryRequestTO) {
+        logger.info("PatientClient queryPatient patientQueryRequestTO:{}.", JSON.toJSONString(patientQueryRequestTO));
         try {
             HisResponseTO<PatientQueryRequestTO> response = patientHisService.queryPatient(patientQueryRequestTO);
             PatientQueryRequestTO result = getResponse(response);
-            if (result == null){
+            if (result == null) {
                 return null;
             }
             result.setCardID(null);
@@ -152,6 +155,14 @@ public class PatientClient extends BaseClient {
         }
         if (StringUtils.isNotEmpty(p.getIdcard())) {
             p.setIdcard(ChinaIDNumberUtil.hideIdCard(p.getIdcard()));
+        }
+        try {
+            if (StringUtils.isNotEmpty(p.getCertificate()) && null != p.getCertificateType()
+                    && "身份证".equals(DictionaryController.instance().get("eh.mpi.dictionary.CertificateType").getText(patient.getCertificateType()))) {
+                p.setCertificate(ChinaIDNumberUtil.hideIdCard(p.getCertificate()));
+            }
+        } catch (ControllerException e) {
+            e.printStackTrace();
         }
         p.setAge(null == p.getBirthday() ? 0 : DateConversion.getAge(p.getBirthday()));
         p.setIdcard2(null);
