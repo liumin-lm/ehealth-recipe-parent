@@ -7,7 +7,9 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeLog;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
+import eh.base.constant.ErrorCode;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -357,4 +359,35 @@ public class RecipeManager extends BaseManager {
         recipeExtendDAO.updateNonNullFieldByPrimaryKey(updateRecipeExt);
         logger.info("RecipeManager updatePushHisRecipeExt updateRecipeExt:{}.", JSON.toJSONString(updateRecipeExt));
     }
+
+    /**
+     * 校验开处方单数限制
+     *
+     * @param clinicId 复诊id
+     * @param organId  机构id
+     * @return true 可开方
+     */
+    public Boolean isOpenRecipeNumber(Integer clinicId, Integer organId) {
+        logger.info("RecipeManager isOpenRecipeNumber clinicId: {},organId: {}", clinicId, organId);
+        if (ValidateUtil.integerIsEmpty(clinicId)) {
+            return true;
+        }
+        //运营平台没有处方单数限制，默认可以无限进行开处方
+        Integer openRecipeNumber = configurationClient.getValueCatch(organId, "openRecipeNumber", 99);
+        logger.info("RecipeManager isOpenRecipeNumber openRecipeNumber={}", openRecipeNumber);
+        if (ValidateUtil.integerIsEmpty(openRecipeNumber)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "开方张数0已超出医院限定范围，不能继续开方。");
+        }
+        //查询当前复诊存在的有效处方单
+        List<Recipe> recipeCount = recipeDAO.findRecipeCountByClinicIdAndValidStatus(clinicId);
+        if (CollectionUtils.isEmpty(recipeCount)) {
+            return true;
+        }
+        logger.info("RecipeManager isOpenRecipeNumber recipeCount={}", recipeCount.size());
+        if (recipeCount.size() >= openRecipeNumber) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "开方张数已超出医院限定范围，不能继续开方。");
+        }
+        return true;
+    }
+
 }
