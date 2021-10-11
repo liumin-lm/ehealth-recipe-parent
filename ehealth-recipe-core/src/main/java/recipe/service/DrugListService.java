@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.searchcontent.model.SearchContentBean;
@@ -24,12 +25,10 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bussutil.RecipeUtil;
-import recipe.dao.DispensatoryDAO;
-import recipe.dao.DrugListDAO;
-import recipe.dao.DrugSourcesDAO;
-import recipe.dao.SaleDrugListDAO;
+import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.serviceprovider.BaseService;
 
@@ -380,10 +379,10 @@ public class DrugListService extends BaseService<DrugListBean> {
      */
     @RpcService
     public QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(final String drugClass, final String keyword,
-                                                                              final Integer status,final Integer drugSourcesId,Integer type,
+                                                                              final Integer status,final Integer drugSourcesId,Integer type,Integer isStandardDrug,
                                                                               final int start, final int limit) {
         DrugListDAO dao = getDAO(DrugListDAO.class);
-        QueryResult<DrugList> result = dao.queryDrugListsByDrugNameAndStartAndLimit(drugClass, keyword, status, drugSourcesId, type, start, limit);
+        QueryResult<DrugList> result = dao.queryDrugListsByDrugNameAndStartAndLimit(drugClass, keyword, status, drugSourcesId, type,isStandardDrug, start, limit);
         QueryResult<DrugListBean> result2=new QueryResult<>();
         List items = result.getItems();
         if (items != null && items.size() > 0 ){
@@ -395,6 +394,99 @@ public class DrugListService extends BaseService<DrugListBean> {
         }
         return result2;
     }
+
+    /**
+     * 运营平台 药品查询服务  查询标准药品
+     *
+     * @param start     分页起始位置
+     * @param limit     每页限制条数
+     * @return QueryResult<DrugList>
+     * @author houxr
+     */
+    @RpcService
+    public List<DrugList> findDrugListsByName(final String drugName, final int start, final int limit) {
+        if (ObjectUtils.isEmpty(drugName)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "drugName is required!");
+        }
+        DrugListDAO dao = getDAO(DrugListDAO.class);
+        String name="%"+drugName+"%";
+        List<DrugList> drugLists = dao.findDrugListByName(name, start, limit);
+        return drugLists;
+    }
+
+    public void checkDrugList(DrugList drug){
+        if (ObjectUtils.isEmpty(drug.getDrugName())){
+            throw new DAOException(DAOException.VALUE_NEEDED, "该药品 药品名称 为空不具备成为标准药品条件!");
+        }
+        if (ObjectUtils.isEmpty(drug.getDrugSpec())){
+            throw new DAOException(DAOException.VALUE_NEEDED, "该药品 药品规格 为空不具备成为标准药品条件!");
+        }
+        if (ObjectUtils.isEmpty(drug.getDrugForm())){
+            throw new DAOException(DAOException.VALUE_NEEDED, "该药品 药品剂型 为空不具备成为标准药品条件!");
+        }
+        if (ObjectUtils.isEmpty(drug.getDrugType())){
+            throw new DAOException(DAOException.VALUE_NEEDED, "该药品 药品类型 为空不具备成为标准药品条件!");
+        }
+        if (ObjectUtils.isEmpty(drug.getProducer())){
+            throw new DAOException(DAOException.VALUE_NEEDED, "该药品 生产厂家 为空不具备成为标准药品条件!");
+        }
+    }
+
+    /**
+     * 运营平台 通用药品  检测 审核药品 是否存在标准药品
+     * @author houxr
+     */
+    @RpcService
+    public Boolean findStandardDrug( DrugList drug) {
+        if (ObjectUtils.isEmpty(drug)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "drug is required!");
+        }
+        checkDrugList(drug);
+        DrugListDAO dao = getDAO(DrugListDAO.class);
+        if (ObjectUtils.isEmpty(drug.getSourceOrgan())){
+            List<DrugList> standardDrugSourceOrgan = dao.findStandardDrugSourceOrgan(drug.getDrugName(), drug.getDrugType(), drug.getDrugSpec(), drug.getProducer(), drug.getDrugForm());
+            if (!ObjectUtils.isEmpty(standardDrugSourceOrgan)){
+                return true;
+            }
+        }else {
+            List<DrugList> standardDrugSourceOrgan = dao.findStandardDrug(drug.getDrugName(), drug.getDrugType(), drug.getDrugSpec(), drug.getProducer(),drug.getSourceOrgan(), drug.getDrugForm());
+            if (!ObjectUtils.isEmpty(standardDrugSourceOrgan)){
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    /**
+     * 运营平台 通用药品  非标准药品关联标准药品  关联机构和药企的药品将调整绑定到标准药品
+     * @author houxr
+     */
+    @RpcService
+    public void correlationStandardDrug( Integer drugId,Integer standardDrugId) {
+        if (ObjectUtils.isEmpty(drugId)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "药品ID is required!");
+        }
+        if (ObjectUtils.isEmpty(standardDrugId)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "关联标准药品ID is required!");
+        }
+        OrganDrugListDAO organDrugListDAO = getDAO(OrganDrugListDAO.class);
+        SaleDrugListDAO saleDrugListDAO = getDAO(SaleDrugListDAO.class);
+        DrugListDAO dao = getDAO(DrugListDAO.class);
+        DrugList drugList = dao.get(drugId);
+        if (ObjectUtils.isEmpty(drugList)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "药品不存在!");
+        }
+        DrugList drugList1 = dao.get(standardDrugId);
+        if (ObjectUtils.isEmpty(drugList1)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "关联标准药品不存在!");
+        }
+        organDrugListDAO.updateOrganDrugListDrugId(drugId,standardDrugId);
+        saleDrugListDAO.updateOrganDrugListDrugId(drugId,standardDrugId);
+        dao.remove(drugId);
+    }
+
+
 
     /**
      * 患者端 获取对应机构的西药 或者 中药的药品有效全目录（现在目录有二级）

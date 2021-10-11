@@ -78,6 +78,14 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
     };
 
     /**
+     * 原同步非标准药品id 关联到 通用标准药品ID
+     */
+    @DAOMethod(sql = "update SaleDrugList  a set a.drugId=:standardDrugId where a.drugId=:drugId ")
+    public abstract void updateOrganDrugListDrugId(@DAOParam("drugId") int drugId, @DAOParam("standardDrugId") int standardDrugId);
+
+
+
+    /**
      * 设置某些药品为无效
      *
      * @param organId

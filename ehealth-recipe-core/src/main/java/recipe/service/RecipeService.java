@@ -2960,6 +2960,17 @@ public class RecipeService extends RecipeBaseService {
         if (!CollectionUtils.isEmpty(details)) {
             drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
         }
+        if (ObjectUtils.isEmpty(drugForms)){
+            OrganConfigDTO byOrganId = organConfigService.getByOrganId(organId);
+            String drugFromList = byOrganId.getDrugFromList();
+            if (!ObjectUtils.isEmpty(drugFromList)){
+                String[] split = drugFromList.split(",");
+                for (String s : split) {
+                    drugForms.add(s);
+                }
+            }
+        }
+        LOGGER.info("drugInfoSynMovement剂型list organId=[{}] drugFromList=[{}]", organId, JSONUtils.toString(drugForms));
         //LOGGER.info("drugInfoSynMovement map organId=[{}] map=[{}]", organId, JSONUtils.toString(drugMap));
         return drugInfoSynMovementExt(organId, drugForms, drugMap, urt.getUserName(), sync, add, commit);
     }
