@@ -670,6 +670,7 @@ public class RecipeToHisService {
     }
 
     public HisResponseTO<MedicInsurSettleApplyResTO> recipeMedicInsurPreSettle(MedicInsurSettleApplyReqTO reqTO){
+        LOGGER.info("RecipeToHisService recipeMedicInsurPreSettle request={}",JSONUtils.toString(reqTO));
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.recipeMedicInsurPreSettle(reqTO);
     }
