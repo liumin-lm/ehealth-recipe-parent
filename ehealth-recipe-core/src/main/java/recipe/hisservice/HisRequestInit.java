@@ -541,6 +541,7 @@ public class HisRequestInit {
 
         if (null != patient) {
             requestTO.setCertID(patient.getCertificate());
+            requestTO.setCertificateType(patient.getCertificateType());
             requestTO.setPatientName(patient.getPatientName());
             requestTO.setPatientSex(patient.getPatientSex());
             requestTO.setMobile(patient.getMobile());
