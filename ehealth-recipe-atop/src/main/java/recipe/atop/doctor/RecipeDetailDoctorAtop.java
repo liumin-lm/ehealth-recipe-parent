@@ -3,7 +3,6 @@ package recipe.atop.doctor;
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -14,6 +13,7 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.core.api.IRevisitBusinessService;
 import recipe.util.ValidateUtil;
+import recipe.vo.ResultBean;
 import recipe.vo.doctor.ValidateDetailVO;
 
 import java.util.List;
@@ -36,32 +36,6 @@ public class RecipeDetailDoctorAtop extends BaseAtop {
      */
     private static final String IS_LONG_RECIPE_FALSE = "0";
 
-    /**
-     * todo 过期方法新调用 使用： validateDetailV1
-     * 校验线上线下 药品数据 用于续方需求
-     *
-     * @param organId       机构id
-     * @param recipeDetails 处方明细
-     * @return
-     */
-    @RpcService
-    @Deprecated
-    public List<RecipeDetailBean> validateDetail(Integer organId, Integer recipeType, List<RecipeDetailBean> recipeDetails) {
-        logger.info("RecipeDetailAtop validateDetail recipeDetails = {}，organId= {}，recipeType= {}", JSON.toJSONString(recipeDetails), organId, recipeType);
-        validateAtop(organId, recipeType, recipeDetails);
-        ValidateDetailVO validateDetailVO = new ValidateDetailVO(organId, recipeType, recipeDetails, new RecipeExtendBean(), true);
-        try {
-            List<RecipeDetailBean> result = recipeDetailService.continueRecipeValidateDrug(validateDetailVO).getRecipeDetails();
-            logger.info("RecipeDetailAtop validateDetail result = {}", JSON.toJSONString(result));
-            return result;
-        } catch (DAOException e1) {
-            logger.error("RecipeDetailAtop validateDetail error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("RecipeDetailAtop validateDetail error e", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
-    }
 
     /**
      * 校验线上线下 药品数据 用于续方需求
@@ -163,6 +137,34 @@ public class RecipeDetailDoctorAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("RecipeDetailDoctorAtop revisitValidate error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 重复处方规则校验
+     *
+     * @param validateDetailVO 当前处方药品
+     * @return
+     */
+    @RpcService
+    public ResultBean<String> validateRepeatRecipe(ValidateDetailVO validateDetailVO) {
+        logger.info("RecipeDetailAtop validateRepeatRecipe validateDetailVO ：{}", JSON.toJSONString(validateDetailVO));
+        validateAtop(validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeBean().getClinicOrgan(), validateDetailVO.getRecipeDetails());
+        if (ValidateUtil.integerIsEmpty(validateDetailVO.getRecipeBean().getClinicId())) {
+            ResultBean<String> resultBean = new ResultBean<>();
+            resultBean.setBool(true);
+            return resultBean;
+        }
+        try {
+            ResultBean<String> result = recipeDetailService.validateRepeatRecipe(validateDetailVO);
+            logger.info("RecipeDetailAtop validateRepeatRecipe result = {}", JSON.toJSONString(result));
+            return result;
+        } catch (DAOException e1) {
+            logger.error("RecipeDetailAtop validateRepeatRecipe error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("RecipeDetailAtop validateRepeatRecipe error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }

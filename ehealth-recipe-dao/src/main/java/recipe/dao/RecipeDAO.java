@@ -3498,8 +3498,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param clinicId
      * @return
      */
-    @DAOMethod(sql = "from Recipe where clinicId=:clinicId and status not in(-1,0,9,10,13,14,15)")
-    public abstract List<Recipe> findRecipeCountByClinicIdAndValidStatus(@DAOParam("clinicId") Integer clinicId);
+    @DAOMethod(sql = "from Recipe where clinicId=:clinicId and status not in(:status)")
+    public abstract List<Recipe> findRecipeClinicIdAndStatus(@DAOParam("clinicId") Integer clinicId, @DAOParam("status") List<Integer> status);
 
     /**
      * 处方数据  处方明细数据
@@ -3515,8 +3515,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("SELECT * from cdr_recipe r where fromflag=1 and clinicOrgan =:organId and r.status>0" + " and ( (r.signDate between '" + startDate + "' and '" + endDate + "') ");
                 hql.append(")");
-//                Query query = ss.createQuery(hql.toString());
-//                setResult(query.list());
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameter("organId", organId);
                 ((SQLQuery) q).addEntity(Recipe.class);

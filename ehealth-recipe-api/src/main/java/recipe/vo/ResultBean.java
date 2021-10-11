@@ -1,50 +1,32 @@
-package com.ngari.recipe.vo;
+package recipe.vo;
 
+import com.ngari.recipe.vo.CodeEnum;
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
 /**
- * 废弃 与原有架构不符
- *
  * @author fuzi
  */
 @Setter
 @Getter
-@Deprecated
-public class ResultBean {
+public class ResultBean<T> {
 
+    @Deprecated
     private Integer code;
+
+    private boolean bool;
 
     private String msg;
 
-    private Object data;
+    private T data;
 
     public ResultBean() {
     }
 
-
     public ResultBean(Integer code, String msg) {
         this.code = code;
         this.msg = msg;
-    }
-
-    public ResultBean(Integer code, String msg, Object data) {
-        this.code = code;
-        this.msg = msg;
-        this.data = data;
-    }
-
-    public static ResultBean getResult(CodeEnum codeEnum) {
-        return new ResultBean(codeEnum.getCode(), codeEnum.getName());
-    }
-
-    public static ResultBean getResult(CodeEnum codeEnum, Object data) {
-        return new ResultBean(codeEnum.getCode(), codeEnum.getName(), data);
-    }
-
-    public static ResultBean succeed(Object data) {
-        return new ResultBean(CodeEnum.SERVICE_SUCCEED.getCode(), CodeEnum.SERVICE_SUCCEED.getName(), data);
     }
 
     public static ResultBean succeed() {

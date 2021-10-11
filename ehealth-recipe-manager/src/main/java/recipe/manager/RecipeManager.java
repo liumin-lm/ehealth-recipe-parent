@@ -19,6 +19,7 @@ import recipe.client.*;
 import recipe.common.CommonConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeLogDAO;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.DictionaryUtil;
 import recipe.util.ValidateUtil;
@@ -379,7 +380,7 @@ public class RecipeManager extends BaseManager {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "开方张数0已超出医院限定范围，不能继续开方。");
         }
         //查询当前复诊存在的有效处方单
-        List<Recipe> recipeCount = recipeDAO.findRecipeCountByClinicIdAndValidStatus(clinicId);
+        List<Recipe> recipeCount = recipeDAO.findRecipeClinicIdAndStatus(clinicId, RecipeStatusEnum.RECIPE_REPEAT_COUNT);
         if (CollectionUtils.isEmpty(recipeCount)) {
             return true;
         }

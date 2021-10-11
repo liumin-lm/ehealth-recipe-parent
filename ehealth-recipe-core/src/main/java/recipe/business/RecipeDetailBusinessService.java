@@ -1,5 +1,6 @@
 package recipe.business;
 
+import com.google.common.base.Joiner;
 import com.ngari.recipe.entity.DrugEntrust;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
@@ -20,7 +21,9 @@ import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.manager.DrugManager;
 import recipe.manager.OrganDrugListManager;
 import recipe.manager.PharmacyManager;
+import recipe.manager.RecipeDetailManager;
 import recipe.util.MapValueUtil;
+import recipe.vo.ResultBean;
 import recipe.vo.doctor.ValidateDetailVO;
 
 import java.util.List;
@@ -37,6 +40,12 @@ import static recipe.drugTool.validate.RecipeDetailValidateTool.VALIDATE_STATUS_
 @Service
 public class RecipeDetailBusinessService implements IRecipeDetailBusinessService {
     private final Logger logger = LoggerFactory.getLogger(this.getClass());
+    /**
+     * 1、不可开重复处方；2、不可开重复药品;3、重复药品提示但可开;4、不需要校验
+     */
+    private final static String REPEAT_OPEN_RULE_NO = "4";
+    private final static String REPEAT_OPEN_RULE_RECIPE = "1";
+
     @Autowired
     private IConfigurationClient configurationClient;
     @Autowired
@@ -49,6 +58,8 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
     private DrugManager drugManager;
     @Autowired
     private OrganDrugListManager organDrugListManager;
+    @Autowired
+    private RecipeDetailManager recipeDetailManager;
 
 
     @Override
@@ -134,6 +145,48 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
 
         return stringBuilder.toString();
     }
+
+    @Override
+    public ResultBean<String> validateRepeatRecipe(ValidateDetailVO validateDetailVO) {
+        ResultBean<String> resultBean = new ResultBean<>();
+        resultBean.setBool(true);
+        String repeatRecipeOpenRule = configurationClient.getValueEnumCatch(validateDetailVO.getRecipeBean().getClinicOrgan(), "repeatRecipeOpenRule", "4");
+        resultBean.setData(repeatRecipeOpenRule);
+        //不需要校验
+        if (REPEAT_OPEN_RULE_NO.equals(repeatRecipeOpenRule)) {
+            return resultBean;
+        }
+        List<Recipedetail> recipeDetails = recipeDetailManager.findRecipeDetailsByClinicId(validateDetailVO.getRecipeBean().getClinicId(), validateDetailVO.getRecipeBean().getRecipeId());
+        if (CollectionUtils.isEmpty(recipeDetails)) {
+            return resultBean;
+        }
+        //不可开重复处方
+        if (REPEAT_OPEN_RULE_RECIPE.equals(repeatRecipeOpenRule)) {
+            //需要校验的药品id
+            List<Integer> validateDrugIds = validateDetailVO.getRecipeDetails().stream().map(RecipeDetailBean::getDrugId).sorted().collect(Collectors.toList());
+            Map<Integer, List<Recipedetail>> recipeDetailMap = recipeDetails.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
+            for (List<Recipedetail> recipeDetailList : recipeDetailMap.values()) {
+                List<Integer> drugIds = recipeDetailList.stream().map(Recipedetail::getDrugId).sorted().collect(Collectors.toList());
+                if (validateDrugIds.equals(drugIds)) {
+                    resultBean.setBool(false);
+                    //  resultBean.setMsg("同一次诊疗不可开具重复处方！");
+                    return resultBean;
+                }
+            }
+            return resultBean;
+        }
+        //不可开重复药品/重复药品提示但可开
+        List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
+        List<String> drugNames = validateDetailVO.getRecipeDetails().stream().filter(a -> drugIds.contains(a.getDrugId())).map(RecipeDetailBean::getDrugName).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(drugNames)) {
+            return resultBean;
+        }
+        String nameStr = Joiner.on(",").join(drugNames);
+        resultBean.setMsg(nameStr);
+        resultBean.setBool(false);
+        return resultBean;
+    }
+
 
     /**
      * 返回前端必须字段

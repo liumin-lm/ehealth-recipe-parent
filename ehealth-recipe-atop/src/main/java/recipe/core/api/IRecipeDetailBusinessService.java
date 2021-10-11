@@ -1,6 +1,7 @@
 package recipe.core.api;
 
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import recipe.vo.ResultBean;
 import recipe.vo.doctor.ValidateDetailVO;
 
 import java.util.List;
@@ -43,4 +44,12 @@ public interface IRecipeDetailBusinessService {
      * @return
      */
     String getDrugName(String orderCode);
+
+    /**
+     * 校验复诊下重复处方/药品
+     *
+     * @param validateDetailVO 当前处方药品
+     * @return
+     */
+    ResultBean<String> validateRepeatRecipe(ValidateDetailVO validateDetailVO);
 }

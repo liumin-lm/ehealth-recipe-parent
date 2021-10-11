@@ -4,9 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
-import recipe.util.ObjectCopyUtils;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.util.ValidateUtil;
 
 import java.math.BigDecimal;
@@ -62,6 +63,30 @@ public class RecipeDetailManager extends BaseManager {
         logger.info("RecipeDetailManager findRecipeDetails recipeDetails:{}", JSON.toJSONString(recipeDetails));
         return Optional.ofNullable(recipeDetails).orElseGet(Collections::emptyList)
                 .stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
+    }
+
+    /**
+     * 根据复诊id获取处方明细，并排除 特定处方id
+     *
+     * @param clinicId 复诊id
+     * @param recipeId 特定处方id
+     * @return 处方明细
+     */
+    public List<Recipedetail> findRecipeDetailsByClinicId(Integer clinicId, Integer recipeId) {
+        List<Recipe> recipeList = recipeDAO.findRecipeClinicIdAndStatus(clinicId, RecipeStatusEnum.RECIPE_REPEAT_COUNT);
+        logger.info("RecipeDetailManager findRecipeDetailsByClinicId recipeList:{}", JSON.toJSONString(recipeList));
+        if (CollectionUtils.isEmpty(recipeList)) {
+            return null;
+        }
+        List<Integer> recipeIds;
+        if (ValidateUtil.integerIsEmpty(recipeId)) {
+            recipeIds = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        } else {
+            recipeIds = recipeList.stream().filter(a -> !a.getRecipeId().equals(recipeId)).map(Recipe::getRecipeId).collect(Collectors.toList());
+        }
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIds);
+        logger.info("RecipeDetailManager findRecipeDetailsByClinicId recipeDetails:{}", JSON.toJSONString(recipeDetails));
+        return recipeDetails;
     }
 
     /**

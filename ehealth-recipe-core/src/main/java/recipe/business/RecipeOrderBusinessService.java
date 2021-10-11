@@ -2,12 +2,12 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.ApothecaryDTO;
+import com.ngari.recipe.dto.RecipeFeeDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.ConfigStatusCheck;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
-import com.ngari.recipe.vo.ResultBean;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -27,7 +27,7 @@ import recipe.factory.status.givemodefactory.GiveModeProxy;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.service.RecipeOrderService;
-import com.ngari.recipe.dto.RecipeFeeDTO;
+import recipe.vo.ResultBean;
 
 import java.util.HashMap;
 import java.util.List;
