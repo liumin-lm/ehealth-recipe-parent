@@ -162,10 +162,10 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
         //不可开重复处方
         if (REPEAT_OPEN_RULE_RECIPE.equals(repeatRecipeOpenRule)) {
             //需要校验的药品id
-            List<Integer> validateDrugIds = validateDetailVO.getRecipeDetails().stream().map(RecipeDetailBean::getDrugId).sorted().collect(Collectors.toList());
+            List<Integer> validateDrugIds = validateDetailVO.getRecipeDetails().stream().map(RecipeDetailBean::getDrugId).distinct().sorted().collect(Collectors.toList());
             Map<Integer, List<Recipedetail>> recipeDetailMap = recipeDetails.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
             for (List<Recipedetail> recipeDetailList : recipeDetailMap.values()) {
-                List<Integer> drugIds = recipeDetailList.stream().map(Recipedetail::getDrugId).sorted().collect(Collectors.toList());
+                List<Integer> drugIds = recipeDetailList.stream().map(Recipedetail::getDrugId).distinct().sorted().collect(Collectors.toList());
                 if (validateDrugIds.equals(drugIds)) {
                     resultBean.setBool(false);
                     return resultBean;
