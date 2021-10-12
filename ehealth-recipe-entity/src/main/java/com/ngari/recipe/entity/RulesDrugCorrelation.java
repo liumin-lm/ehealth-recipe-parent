@@ -34,13 +34,13 @@ public class RulesDrugCorrelation  implements Serializable {
     private Integer drugRelationship;
 
     @ItemProperty(alias = "规则药品Id")
-    private String drugId;
+    private Integer drugId;
 
     @ItemProperty(alias = "规则药品名称")
     private String drugName;
 
     @ItemProperty(alias = "规则关联药品Id")
-    private String correlationDrugId;
+    private Integer correlationDrugId;
 
     @ItemProperty(alias = "规则关联药品名称")
     private String correlationDrugName;
@@ -89,22 +89,26 @@ public class RulesDrugCorrelation  implements Serializable {
 
 
     @Column(name = "drugId")
-    public String getDrugId() {
+    public Integer getDrugId() {
         return drugId;
     }
 
-    public void setDrugId(String drugId) {
+    public void setDrugId(Integer drugId) {
         this.drugId = drugId;
     }
 
+
+
     @Column(name = "correlationDrugId")
-    public String getCorrelationDrugId() {
+    public Integer getCorrelationDrugId() {
         return correlationDrugId;
     }
 
-    public void setCorrelationDrugId(String correlationDrugId) {
+    public void setCorrelationDrugId(Integer correlationDrugId) {
         this.correlationDrugId = correlationDrugId;
     }
+
+
 
     @Column(name = "drugName")
     public String getDrugName() {

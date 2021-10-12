@@ -38,12 +38,12 @@ public abstract class RulesDrugCorrelationDAO extends HibernateSupportDelegateDA
 
 
 
-    @DAOMethod(sql = "from RulesDrugCorrelation where medicationRulesId=:medicationRulesId  and  drugCode=:drugCode and  correlationDrugCode=:correlationDrugCode ", limit = 0)
-    public abstract RulesDrugCorrelation getDrugCorrelationByCodeAndRulesId(@DAOParam("medicationRulesId") Integer medicationRulesId,@DAOParam("drugCode") String DrugCode,@DAOParam("correlationDrugCode") String correlationDrugCode);
+    @DAOMethod(sql = "from RulesDrugCorrelation where medicationRulesId=:medicationRulesId  and  drugId=:drugId and  correlationDrugId=:correlationDrugId ", limit = 0)
+    public abstract RulesDrugCorrelation getDrugCorrelationByCodeAndRulesId(@DAOParam("medicationRulesId") Integer medicationRulesId,@DAOParam("drugId") Integer drugId,@DAOParam("correlationDrugId") Integer correlationDrugId);
 
 
-    @DAOMethod(sql = "from RulesDrugCorrelation where medicationRulesId=:medicationRulesId  and  drugCode=:drugCode  ", limit = 0)
-    public abstract RulesDrugCorrelation getDrugCorrelationByDrugCodeAndRulesId(@DAOParam("medicationRulesId") Integer medicationRulesId,@DAOParam("drugCode") String DrugCode);
+    @DAOMethod(sql = "from RulesDrugCorrelation where medicationRulesId=:medicationRulesId  and  drugId=:drugId  ", limit = 0)
+    public abstract RulesDrugCorrelation getDrugCorrelationByDrugCodeAndRulesId(@DAOParam("medicationRulesId") Integer medicationRulesId,@DAOParam("drugId") Integer drugId);
 
 
     public QueryResult<RulesDrugCorrelationDTO> queryMedicationRulesBynameAndRecipeType( String input, int start, int limit) {

@@ -61,7 +61,7 @@ public class RulesDrugCorrelationService implements IRulesDrugCorrelationService
     public void  checkSaveRulesDrugCorrelations( List<RulesDrugCorrelationDTO>  lists,Integer rulesId) {
         if (!ObjectUtils.isEmpty(lists)){
             for (RulesDrugCorrelationDTO list : lists) {
-                RulesDrugCorrelation drugCorrelation = rulesDrugCorrelationDAO.getDrugCorrelationByDrugCodeAndRulesId(rulesId, list.getDrugCode());
+                RulesDrugCorrelation drugCorrelation = rulesDrugCorrelationDAO.getDrugCorrelationByDrugCodeAndRulesId(rulesId, list.getDrugId());
                 if (!ObjectUtils.isEmpty(drugCorrelation)){
                     throw new DAOException(DAOException.VALUE_NEEDED, "保存数据"+list.getDrugName() +"此药品已存在，请重新填写!");
                 }
@@ -117,7 +117,7 @@ public class RulesDrugCorrelationService implements IRulesDrugCorrelationService
      */
     @RpcService
     public Boolean  checkRulesDrugCorrelations( RulesDrugCorrelationDTO correlationDTO,Integer rulesId) {
-        RulesDrugCorrelation drugCorrelation = rulesDrugCorrelationDAO.getDrugCorrelationByCodeAndRulesId(rulesId, correlationDTO.getDrugCode(), correlationDTO.getCorrelationDrugCode());
+        RulesDrugCorrelation drugCorrelation = rulesDrugCorrelationDAO.getDrugCorrelationByCodeAndRulesId(rulesId, correlationDTO.getDrugId(), correlationDTO.getCorrelationDrugId());
         if (!ObjectUtils.isEmpty(drugCorrelation)){
             return true;
         }
