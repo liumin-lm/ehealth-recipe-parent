@@ -106,6 +106,14 @@ public class RecipeRulesDrugcorrelation implements Serializable {
         MaximumDosageRange = maximumDosageRange;
     }
 
+    public BigDecimal getMinimumDosageRange() {
+        return minimumDosageRange;
+    }
+
+    public BigDecimal getMaximumDosageRange() {
+        return MaximumDosageRange;
+    }
+
     public String getDrugName() {
         return drugName;
     }
