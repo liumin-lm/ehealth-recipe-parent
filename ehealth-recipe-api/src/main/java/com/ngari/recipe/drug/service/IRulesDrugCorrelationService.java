@@ -9,7 +9,7 @@ import java.util.List;
 public interface IRulesDrugCorrelationService {
 
     @RpcService
-    QueryResult<RulesDrugCorrelationDTO> queryRulesDrugCorrelationByDrugCodeOrname(String input, int start, int limit);
+    QueryResult<RulesDrugCorrelationDTO> queryRulesDrugCorrelationByDrugCodeOrname(Integer drugId, String input,Integer rulesId, int start, int limit);
 
     @RpcService
     void  deleteRulesDrugCorrelationById( Integer drugCorrelationId);

@@ -35,8 +35,11 @@ public class RulesDrugCorrelationService implements IRulesDrugCorrelationService
      * @return
      */
     @RpcService
-    public QueryResult<RulesDrugCorrelationDTO> queryRulesDrugCorrelationByDrugCodeOrname( String input, int start, int limit) {
-        QueryResult<RulesDrugCorrelationDTO> result = rulesDrugCorrelationDAO.queryMedicationRulesBynameAndRecipeType(input, start, limit);
+    public QueryResult<RulesDrugCorrelationDTO> queryRulesDrugCorrelationByDrugCodeOrname(Integer drugId, String input,Integer rulesId, int start, int limit) {
+        if (ObjectUtils.isEmpty(rulesId)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "规则ID is required!");
+        }
+        QueryResult<RulesDrugCorrelationDTO> result = rulesDrugCorrelationDAO.queryMedicationRulesBynameAndRecipeType(drugId,input,rulesId, start, limit);
         return result;
     }
 

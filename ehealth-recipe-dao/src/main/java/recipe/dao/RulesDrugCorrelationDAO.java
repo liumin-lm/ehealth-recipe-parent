@@ -46,13 +46,19 @@ public abstract class RulesDrugCorrelationDAO extends HibernateSupportDelegateDA
     public abstract RulesDrugCorrelation getDrugCorrelationByDrugCodeAndRulesId(@DAOParam("medicationRulesId") Integer medicationRulesId,@DAOParam("drugId") Integer drugId);
 
 
-    public QueryResult<RulesDrugCorrelationDTO> queryMedicationRulesBynameAndRecipeType( String input, int start, int limit) {
+    public QueryResult<RulesDrugCorrelationDTO> queryMedicationRulesBynameAndRecipeType(Integer drugId, String input,Integer rulesId, int start, int limit) {
         HibernateStatelessResultAction<QueryResult<RulesDrugCorrelationDTO>> action = new AbstractHibernateStatelessResultAction<QueryResult<RulesDrugCorrelationDTO>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder(" from  RulesDrugCorrelation  where 1=1  ");
+                /*if (!ObjectUtils.isEmpty(drugId)) {
+                    hql.append(" and ( drugId =:drugId  or correlationDrugId =:drugId    )");
+                }*/
                 if (!ObjectUtils.isEmpty(input)) {
-                    hql.append(" and ( drugId like:input or drugName like:input or correlationDrugId like:input or correlationDrugName like:input   )");
+                    hql.append(" and (  drugName like:input  or correlationDrugName like:input   )");
+                }
+                if (!ObjectUtils.isEmpty(rulesId)) {
+                    hql.append(" and medicationRulesId =:rulesId ");
                 }
 
                 hql.append("  order by createDt desc");
@@ -60,17 +66,28 @@ public abstract class RulesDrugCorrelationDAO extends HibernateSupportDelegateDA
                 if (!ObjectUtils.isEmpty(input)) {
                     countQuery.setParameter("input", "%" + input + "%");
                 }
+                /*if (!ObjectUtils.isEmpty(drugId)) {
+                    countQuery.setParameter("drugId", drugId);
+                }*/
+                if (!ObjectUtils.isEmpty(rulesId)) {
+                    countQuery.setParameter("rulesId", rulesId);
+                }
                 Long total = (Long) countQuery.uniqueResult();
 
                 Query q = ss.createQuery(hql.toString());
                 if (!ObjectUtils.isEmpty(input)) {
                     q.setParameter("input", "%" + input + "%");
                 }
+               /* if (!ObjectUtils.isEmpty(drugId)) {
+                    q.setParameter("drugId", drugId);
+                }*/
+                if (!ObjectUtils.isEmpty(rulesId)) {
+                    q.setParameter("rulesId", rulesId);
+                }
                 q.setFirstResult(start);
                 q.setMaxResults(limit);
-                List<RulesDrugCorrelation> lists = q.list();
-                List<RulesDrugCorrelationDTO> convert = ObjectCopyUtils.convert(lists, RulesDrugCorrelationDTO.class);
-                setResult( new QueryResult<RulesDrugCorrelationDTO>(total, q.getFirstResult(), q.getMaxResults(), convert));
+                List<RulesDrugCorrelationDTO> lists = q.list();
+                setResult( new QueryResult<RulesDrugCorrelationDTO>(total, q.getFirstResult(), q.getMaxResults(), lists));
             }
         };
         HibernateSessionTemplate.instance().execute(action);
