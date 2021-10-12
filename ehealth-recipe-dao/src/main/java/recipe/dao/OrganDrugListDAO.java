@@ -72,7 +72,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
     /**
      * 原同步非标准药品id 关联到 通用标准药品ID
      */
-    @DAOMethod(sql = "update OrganDrugList  a set a.drugId=:standardDrugId where a.drugId=:drugId ")
+    @DAOMethod(sql = "update OrganDrugList  set drugId=:standardDrugId where drugId=:drugId ")
     public abstract void updateOrganDrugListDrugId(@DAOParam("drugId") int drugId, @DAOParam("standardDrugId") int standardDrugId);
 
 

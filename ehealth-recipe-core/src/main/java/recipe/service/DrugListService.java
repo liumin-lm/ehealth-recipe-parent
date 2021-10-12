@@ -482,7 +482,7 @@ public class DrugListService extends BaseService<DrugListBean> {
             throw new DAOException(DAOException.VALUE_NEEDED, "关联标准药品不存在!");
         }
         organDrugListDAO.updateOrganDrugListDrugId(drugId,standardDrugId);
-        saleDrugListDAO.updateOrganDrugListDrugId(drugId,standardDrugId);
+        saleDrugListDAO.updateSaleDrugListDrugId(drugId,standardDrugId);
         dao.remove(drugId);
     }
 

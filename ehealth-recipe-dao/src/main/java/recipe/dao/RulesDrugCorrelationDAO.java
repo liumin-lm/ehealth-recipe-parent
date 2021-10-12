@@ -63,7 +63,7 @@ public abstract class RulesDrugCorrelationDAO extends HibernateSupportDelegateDA
 
                 Query q = ss.createQuery(hql.toString());
                 if (!ObjectUtils.isEmpty(input)) {
-                    countQuery.setParameter("input", "%" + input + "%");
+                    q.setParameter("input", "%" + input + "%");
                 }
                 q.setFirstResult(start);
                 q.setMaxResults(limit);

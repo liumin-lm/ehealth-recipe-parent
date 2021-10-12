@@ -40,7 +40,7 @@ public class MedicationRulesDAO extends HibernateSupportDelegateDAO<MedicationRu
                     hql.append(" and medicationRulesName like:name ");
                 }
                 if (!ObjectUtils.isEmpty(recipeType)) {
-                    hql.append("and recipeType =:recipeType) ");
+                    hql.append("and recipeType =:recipeType ");
                 }
                 Query q = ss.createQuery(hql.toString());
                 if (!ObjectUtils.isEmpty(name)) {
