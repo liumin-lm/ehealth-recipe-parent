@@ -1156,6 +1156,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     if (patientDTO != null) {
                         req.setIdcardTypeCode("01");
                         req.setIdcardNo(patientDTO.getIdcard());
+                        req.setCertificate(patientDTO.getCertificate());
+                        req.setCertificateType(patientDTO.getCertificateType());
                         req.setName(patientDTO.getPatientName());
                         req.setGenderCode(patientDTO.getPatientSex());
                         req.setBirthdate(patientDTO.getBirthday());
@@ -1572,6 +1574,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 if (patientDTO != null) {
                     req.setIdcardTypeCode("01");
                     req.setIdcardNo(patientDTO.getIdcard());
+                    req.setCertificate(patientDTO.getCertificate());
+                    req.setCertificateType(patientDTO.getCertificateType());
                     req.setName(patientDTO.getPatientName());
                     req.setGenderCode(patientDTO.getPatientSex());
                     req.setBirthdate(patientDTO.getBirthday());

@@ -70,7 +70,7 @@ public abstract class RulesDrugCorrelationDAO extends HibernateSupportDelegateDA
                 q.setMaxResults(limit);
                 List<RulesDrugCorrelation> lists = q.list();
                 List<RulesDrugCorrelationDTO> convert = ObjectCopyUtils.convert(lists, RulesDrugCorrelationDTO.class);
-                new QueryResult<RulesDrugCorrelationDTO>(total, q.getFirstResult(), q.getMaxResults(), convert);
+                setResult( new QueryResult<RulesDrugCorrelationDTO>(total, q.getFirstResult(), q.getMaxResults(), convert));
             }
         };
         HibernateSessionTemplate.instance().execute(action);
