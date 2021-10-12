@@ -23,7 +23,7 @@ public class RulesDrugCorrelation  implements Serializable {
     private static final long serialVersionUID = -1918938219429895165L;
 
     @ItemProperty(alias = "规则关联药品表ID")
-    private Integer rulesDrugCorrelationId;
+    private Integer id;
 
 
     @ItemProperty(alias = "合理用药规则Id")
@@ -60,13 +60,13 @@ public class RulesDrugCorrelation  implements Serializable {
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
-    @Column(name = "rulesDrugCorrelationId", unique = true, nullable = false)
-    public Integer getRulesDrugCorrelationId() {
-        return rulesDrugCorrelationId;
+    @Column(name = "id", unique = true, nullable = false)
+    public Integer getId() {
+        return id;
     }
 
-    public void setRulesDrugCorrelationId(Integer rulesDrugCorrelationId) {
-        this.rulesDrugCorrelationId = rulesDrugCorrelationId;
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     @Column(name = "medicationRulesId")

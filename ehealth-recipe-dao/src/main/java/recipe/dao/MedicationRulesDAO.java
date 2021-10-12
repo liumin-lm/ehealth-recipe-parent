@@ -27,7 +27,7 @@ public class MedicationRulesDAO extends HibernateSupportDelegateDAO<MedicationRu
     public MedicationRulesDAO() {
         super();
         this.setEntityName(MedicationRules.class.getName());
-        this.setKeyField("medicationRulesId");
+        this.setKeyField("id");
     }
 
     public List<MedicationRulesDTO> queryMedicationRulesBynameAndRecipeType(final String name,

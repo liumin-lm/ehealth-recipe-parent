@@ -17,7 +17,7 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
     private static final long serialVersionUID = -7235240394983438859L;
 
     @ItemProperty(alias = "规则关联药品表ID")
-    private Integer rulesDrugCorrelationId;
+    private Integer id;
 
 
     @ItemProperty(alias = "合理用药规则Id")
@@ -51,12 +51,12 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
     @ItemProperty(alias = "最后修改时间")
     private Date LastModify;
 
-    public Integer getRulesDrugCorrelationId() {
-        return rulesDrugCorrelationId;
+    public Integer getId() {
+        return id;
     }
 
-    public void setRulesDrugCorrelationId(Integer rulesDrugCorrelationId) {
-        this.rulesDrugCorrelationId = rulesDrugCorrelationId;
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public Integer getMedicationRulesId() {

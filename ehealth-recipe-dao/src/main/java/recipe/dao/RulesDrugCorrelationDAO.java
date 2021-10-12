@@ -31,7 +31,7 @@ public abstract class RulesDrugCorrelationDAO extends HibernateSupportDelegateDA
     public RulesDrugCorrelationDAO() {
         super();
         this.setEntityName(RulesDrugCorrelation.class.getName());
-        this.setKeyField("rulesDrugCorrelationId");
+        this.setKeyField("id");
     }
 
 

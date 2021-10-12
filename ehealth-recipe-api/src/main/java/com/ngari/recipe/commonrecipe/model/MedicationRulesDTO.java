@@ -17,7 +17,7 @@ public class MedicationRulesDTO implements java.io.Serializable {
 
 
     @ItemProperty(alias = "合理用药规则Id")
-    private Integer medicationRulesId;
+    private Integer id;
 
     @ItemProperty(alias = "合理用药规则名称")
     private String medicationRulesName;
@@ -35,12 +35,12 @@ public class MedicationRulesDTO implements java.io.Serializable {
     @ItemProperty(alias = "最后修改时间")
     private Date LastModify;
 
-    public Integer getMedicationRulesId() {
-        return medicationRulesId;
+    public Integer getId() {
+        return id;
     }
 
-    public void setMedicationRulesId(Integer medicationRulesId) {
-        this.medicationRulesId = medicationRulesId;
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     public String getMedicationRulesName() {
