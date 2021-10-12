@@ -172,6 +172,8 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
         patientData.setDeptId(String.valueOf(recipe.getDepart()));
         patientData.setIdType("身份证");
         patientData.setIdNo(patient.getIdcard());
+        patientData.setCertificate(patient.getCertificate());
+        patientData.setCertificateType(patient.getCertificateType());
         patientData.setPayType("自费");//病人付费类型，如：自费，市医保，省医保等。
         patientData.setHeight(patient.getHeight());//身高
         patientData.setWeight(patient.getWeight());//体重
