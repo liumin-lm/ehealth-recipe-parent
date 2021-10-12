@@ -33,14 +33,14 @@ public class RulesDrugCorrelation  implements Serializable {
     @Dictionary(id = "eh.cdr.dictionary.DrugRelationship")
     private Integer drugRelationship;
 
-    @ItemProperty(alias = "规则药品编码")
-    private String drugCode;
+    @ItemProperty(alias = "规则药品Id")
+    private String drugId;
 
     @ItemProperty(alias = "规则药品名称")
     private String drugName;
 
-    @ItemProperty(alias = "规则关联药品编码")
-    private String correlationDrugCode;
+    @ItemProperty(alias = "规则关联药品Id")
+    private String correlationDrugId;
 
     @ItemProperty(alias = "规则关联药品名称")
     private String correlationDrugName;
@@ -87,13 +87,23 @@ public class RulesDrugCorrelation  implements Serializable {
         this.drugRelationship = drugRelationship;
     }
 
-    @Column(name = "drugCode")
-    public String getDrugCode() {
-        return drugCode;
+
+    @Column(name = "drugId")
+    public String getDrugId() {
+        return drugId;
     }
 
-    public void setDrugCode(String drugCode) {
-        this.drugCode = drugCode;
+    public void setDrugId(String drugId) {
+        this.drugId = drugId;
+    }
+
+    @Column(name = "correlationDrugId")
+    public String getCorrelationDrugId() {
+        return correlationDrugId;
+    }
+
+    public void setCorrelationDrugId(String correlationDrugId) {
+        this.correlationDrugId = correlationDrugId;
     }
 
     @Column(name = "drugName")
@@ -105,14 +115,6 @@ public class RulesDrugCorrelation  implements Serializable {
         this.drugName = drugName;
     }
 
-    @Column(name = "correlationDrugCode")
-    public String getCorrelationDrugCode() {
-        return correlationDrugCode;
-    }
-
-    public void setCorrelationDrugCode(String correlationDrugCode) {
-        this.correlationDrugCode = correlationDrugCode;
-    }
 
     @Column(name = "correlationDrugName")
     public String getCorrelationDrugName() {

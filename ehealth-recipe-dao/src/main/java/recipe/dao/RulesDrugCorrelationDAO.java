@@ -52,7 +52,7 @@ public abstract class RulesDrugCorrelationDAO extends HibernateSupportDelegateDA
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder(" from  RulesDrugCorrelation  where 1=1  ");
                 if (!ObjectUtils.isEmpty(input)) {
-                    hql.append(" and ( DrugCode like:input or DrugName like:input or correlationDrugCode like:input or correlationDrugName like:input   )");
+                    hql.append(" and ( drugId like:input or drugName like:input or correlationDrugId like:input or correlationDrugName like:input   )");
                 }
 
                 hql.append("  order by createDt desc");
