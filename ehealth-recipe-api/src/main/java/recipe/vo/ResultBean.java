@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.List;
+
 /**
  * @author fuzi
  */
@@ -18,6 +20,8 @@ public class ResultBean<T> {
     private boolean bool;
 
     private String msg;
+
+    private List<String> msgList;
 
     private T data;
 

@@ -1,6 +1,5 @@
 package recipe.business;
 
-import com.google.common.base.Joiner;
 import com.ngari.recipe.entity.DrugEntrust;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
@@ -169,7 +168,6 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
                 List<Integer> drugIds = recipeDetailList.stream().map(Recipedetail::getDrugId).sorted().collect(Collectors.toList());
                 if (validateDrugIds.equals(drugIds)) {
                     resultBean.setBool(false);
-                    //  resultBean.setMsg("同一次诊疗不可开具重复处方！");
                     return resultBean;
                 }
             }
@@ -181,8 +179,7 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
         if (CollectionUtils.isEmpty(drugNames)) {
             return resultBean;
         }
-        String nameStr = Joiner.on(",").join(drugNames);
-        resultBean.setMsg(nameStr);
+        resultBean.setMsgList(drugNames);
         resultBean.setBool(false);
         return resultBean;
     }

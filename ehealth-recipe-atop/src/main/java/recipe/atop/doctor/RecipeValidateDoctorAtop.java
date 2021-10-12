@@ -10,6 +10,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
+import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.core.api.IRevisitBusinessService;
 import recipe.util.ValidateUtil;
@@ -24,12 +25,15 @@ import java.util.List;
  * @author fuzi
  */
 @RpcBean("recipeDetailAtop")
-public class RecipeDetailDoctorAtop extends BaseAtop {
+public class RecipeValidateDoctorAtop extends BaseAtop {
 
     @Autowired
     private IRecipeDetailBusinessService recipeDetailService;
     @Autowired
     private IRevisitBusinessService iRevisitBusinessService;
+
+    @Autowired
+    private IRecipeBusinessService recipeBusinessService;
 
     /**
      * 长处方标识 0 不是
@@ -160,6 +164,28 @@ public class RecipeDetailDoctorAtop extends BaseAtop {
             ResultBean<String> result = recipeDetailService.validateRepeatRecipe(validateDetailVO);
             logger.info("RecipeDetailAtop validateRepeatRecipe result = {}", JSON.toJSONString(result));
             return result;
+        } catch (DAOException e1) {
+            logger.error("RecipeDetailAtop validateRepeatRecipe error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
+        } catch (Exception e) {
+            logger.error("RecipeDetailAtop validateRepeatRecipe error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 校验开处方单数限制
+     *
+     * @param clinicId 复诊id
+     * @param organId  机构id
+     * @return true 可开方
+     */
+    @RpcService
+    public Boolean validateOpenRecipeNumber(Integer clinicId, Integer organId) {
+        logger.info("RecipeDetailAtop validateRepeatRecipe clinicId ：{},organId ：{}", clinicId, organId);
+        validateAtop(organId);
+        try {
+            return recipeBusinessService.validateOpenRecipeNumber(clinicId, organId);
         } catch (DAOException e1) {
             logger.error("RecipeDetailAtop validateRepeatRecipe error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());

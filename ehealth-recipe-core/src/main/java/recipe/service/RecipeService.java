@@ -42,7 +42,6 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.ScanRequestBean;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.common.RequestVisitVO;
 import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.dto.RecipeLabelDTO;
@@ -5945,11 +5944,6 @@ public class RecipeService extends RecipeBaseService {
     public void pharmacyToRecipePDF(Integer recipeId) {
         LOGGER.info("recipe pharmacyToRecipePDF,recipeId={}", recipeId);
         createPdfFactory.updateCheckNamePdf(recipeId);
-    }
-
-    @RpcService
-    public Boolean isOpenRecipeNumber(RequestVisitVO requestVisitVO) {
-        return recipeManager.isOpenRecipeNumber(requestVisitVO.getClinicId(), requestVisitVO.getOrganId());
     }
 
     /**

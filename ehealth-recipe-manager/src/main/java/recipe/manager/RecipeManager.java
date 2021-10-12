@@ -363,11 +363,13 @@ public class RecipeManager extends BaseManager {
 
     /**
      * 校验开处方单数限制
+     * todo 废弃 其他接口中的引用 ，目前提供前端调用接口，暂时保留老代码支持兼容老app使用
      *
      * @param clinicId 复诊id
      * @param organId  机构id
      * @return true 可开方
      */
+    @Deprecated
     public Boolean isOpenRecipeNumber(Integer clinicId, Integer organId) {
         logger.info("RecipeManager isOpenRecipeNumber clinicId: {},organId: {}", clinicId, organId);
         if (ValidateUtil.integerIsEmpty(clinicId)) {

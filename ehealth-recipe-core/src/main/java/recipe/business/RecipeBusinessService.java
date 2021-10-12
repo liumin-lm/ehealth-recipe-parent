@@ -24,8 +24,6 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.RecipeDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.manager.HisRecipeManager;
-import recipe.manager.PharmacyManager;
 import recipe.manager.RecipeManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
@@ -57,10 +55,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private RemoteRecipeService remoteRecipeService;
     @Autowired
     private PatientClient patientClient;
-    @Autowired
-    private PharmacyManager pharmacyManager;
-    @Autowired
-    private HisRecipeManager hisRecipeManager;
 
     /**
      * 获取线下门诊处方诊断信息
@@ -167,6 +161,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public Recipe getByRecipeId(Integer recipeId) {
         return recipeManager.getRecipeById(recipeId);
+    }
+
+    @Override
+    public Boolean validateOpenRecipeNumber(Integer clinicId, Integer organId) {
+        return recipeManager.isOpenRecipeNumber(clinicId, organId);
     }
 
 }

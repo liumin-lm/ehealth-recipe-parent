@@ -61,4 +61,13 @@ public interface IRecipeBusinessService {
      * @return
      */
     Recipe getByRecipeId(Integer recipeId);
+
+    /**
+     * 校验开处方单数限制
+     *
+     * @param clinicId 复诊id
+     * @param organId  机构id
+     * @return true 可开方
+     */
+    Boolean validateOpenRecipeNumber(Integer clinicId, Integer organId);
 }
