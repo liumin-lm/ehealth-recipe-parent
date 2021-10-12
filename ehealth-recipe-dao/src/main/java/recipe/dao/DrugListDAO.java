@@ -601,6 +601,34 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
     }
 
     /**
+     * 根据名称 查询标准药品
+     * @param drugName
+     * @param start
+     * @param limit
+     * @return
+     */
+    @DAOMethod(sql = "from DrugList where drugName like:drugName and isStandardDrug=1   and  status= 1",limit = 0)
+    public abstract List<DrugList> findDrugListByName(@DAOParam("drugName") String drugName,@DAOParam(pageStart = true) int start,@DAOParam(pageLimit = true) int limit);
+
+
+    /**
+     * 查询所选药品是否存在对应标准药品
+     * @param drugName
+     * @param drugType
+     * @param drugSpec
+     * @param producer
+     * @param sourceOrgan
+     * @param drugForm
+     * @return
+     */
+    @DAOMethod(sql = "from DrugList where drugName =:drugName and drugType=:drugType and drugSpec=:drugSpec and producer=producer and sourceOrgan=:sourceOrgan and drugForm=drugForm and isStandardDrug=1 and  status= 1")
+    public abstract List<DrugList> findStandardDrug(@DAOParam("drugName") String drugName,@DAOParam("drugType") Integer drugType,@DAOParam("drugSpec") String drugSpec,@DAOParam("producer") String producer,@DAOParam("sourceOrgan") int sourceOrgan,@DAOParam("drugForm") String drugForm);
+
+    @DAOMethod(sql = "from DrugList where drugName =:drugName and drugType=:drugType and drugSpec=:drugSpec and producer=producer and sourceOrgan is null  and drugForm=drugForm and isStandardDrug=1 and  status= 1")
+    public abstract List<DrugList> findStandardDrugSourceOrgan(@DAOParam("drugName") String drugName,@DAOParam("drugType") Integer drugType,@DAOParam("drugSpec") String drugSpec,@DAOParam("producer") String producer,@DAOParam("drugForm") String drugForm);
+
+
+    /**
      * 运营平台 药品查询服务
      *
      * @param drugClass 药品分类
@@ -612,7 +640,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
      * @author houxr
      */
     public QueryResult<DrugList> queryDrugListsByDrugNameAndStartAndLimit(final String drugClass, final String keyword,
-                                                                              final Integer status, final Integer sourceOrgan, Integer type,
+                                                                              final Integer status, final Integer sourceOrgan, Integer type,Integer isStandardDrug,
                                                                               final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<DrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugList>>() {
             @SuppressWarnings("unchecked")
@@ -642,6 +670,9 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 if (!ObjectUtils.isEmpty(type)) {
                     hql.append(" and drugType =:drugType");
                 }
+                if (!ObjectUtils.isEmpty(isStandardDrug)) {
+                    hql.append(" and isStandardDrug =:isStandardDrug");
+                }
                 if (!ObjectUtils.isEmpty(sourceOrgan)) {
                     if (sourceOrgan == 0){
                         hql.append(" and sourceOrgan is null ");
@@ -657,6 +688,9 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 }
                 if (!ObjectUtils.isEmpty(type)) {
                     countQuery.setParameter("drugType", type);
+                }
+                if (!ObjectUtils.isEmpty(isStandardDrug)) {
+                    countQuery.setParameter("isStandardDrug", isStandardDrug);
                 }
                 if (!ObjectUtils.isEmpty(sourceOrgan)) {
                     if (sourceOrgan != 0){
@@ -680,6 +714,9 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 }
                 if (!ObjectUtils.isEmpty(type)) {
                     query.setParameter("drugType", type);
+                }
+                if (!ObjectUtils.isEmpty(isStandardDrug)) {
+                    query.setParameter("isStandardDrug", isStandardDrug);
                 }
                 if (drugId != null) {
                     query.setParameter("drugId", drugId);
