@@ -9,10 +9,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
-import com.ngari.recipe.entity.Dispensatory;
-import com.ngari.recipe.entity.DrugList;
-import com.ngari.recipe.entity.DrugSources;
-import com.ngari.recipe.entity.SaleDrugList;
+import com.ngari.recipe.entity.*;
 import ctd.dictionary.DictionaryItem;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
@@ -481,8 +478,20 @@ public class DrugListService extends BaseService<DrugListBean> {
         if (ObjectUtils.isEmpty(drugList1)){
             throw new DAOException(DAOException.VALUE_NEEDED, "关联标准药品不存在!");
         }
-        organDrugListDAO.updateOrganDrugListDrugId(drugId,standardDrugId);
-        saleDrugListDAO.updateSaleDrugListDrugId(drugId,standardDrugId);
+        List<OrganDrugList> byDrugId = organDrugListDAO.findByDrugId(drugId);
+        if (!ObjectUtils.isEmpty(byDrugId)){
+            for (OrganDrugList organDrugList : byDrugId) {
+                organDrugList.setDrugId(standardDrugId);
+                organDrugListDAO.update(organDrugList);
+            }
+        }
+        List<SaleDrugList> byDrugId1 = saleDrugListDAO.findByDrugId(drugId);
+        if (!ObjectUtils.isEmpty(byDrugId1)){
+            for (SaleDrugList saleDrugList : byDrugId1) {
+                saleDrugList.setDrugId(standardDrugId);
+                saleDrugListDAO.update(saleDrugList);
+            }
+        }
         dao.remove(drugId);
     }
 

@@ -1,5 +1,6 @@
 package recipe.dao;
 
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.commonrecipe.model.MedicationRulesDTO;
 import com.ngari.recipe.commonrecipe.model.RulesDrugCorrelationDTO;
 import com.ngari.recipe.entity.DrugList;
@@ -67,8 +68,9 @@ public abstract class RulesDrugCorrelationDAO extends HibernateSupportDelegateDA
                 }
                 q.setFirstResult(start);
                 q.setMaxResults(limit);
-                List<RulesDrugCorrelationDTO> lists = q.list();
-                new QueryResult<RulesDrugCorrelationDTO>(total, q.getFirstResult(), q.getMaxResults(), lists);
+                List<RulesDrugCorrelation> lists = q.list();
+                List<RulesDrugCorrelationDTO> convert = ObjectCopyUtils.convert(lists, RulesDrugCorrelationDTO.class);
+                new QueryResult<RulesDrugCorrelationDTO>(total, q.getFirstResult(), q.getMaxResults(), convert);
             }
         };
         HibernateSessionTemplate.instance().execute(action);

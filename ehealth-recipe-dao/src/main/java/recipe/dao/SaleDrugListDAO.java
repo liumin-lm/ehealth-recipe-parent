@@ -77,11 +77,6 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
         return action.getResult();
     };
 
-    /**
-     * 原同步非标准药品id 关联到 通用标准药品ID
-     */
-    @DAOMethod(sql = "update SaleDrugList  set drugId=:standardDrugId where drugId=:drugId ")
-    public abstract void updateSaleDrugListDrugId(@DAOParam("drugId") int drugId, @DAOParam("standardDrugId") int standardDrugId);
 
 
 
@@ -166,6 +161,11 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
      */
     @DAOMethod(sql = "select drugId from SaleDrugList where organId=:organId and status=1", limit = 0)
     public abstract List<Integer> findDrugIdByOrganId(@DAOParam("organId") int organId);
+
+
+
+    @DAOMethod(sql = " from SaleDrugList where drugId=:drugId and status=1", limit = 0)
+    public abstract List<SaleDrugList> findByDrugId(@DAOParam("drugId") int drugId);
 
     /**
      * 获取药品与配送药企关系 （药品1:药企A,药企B）

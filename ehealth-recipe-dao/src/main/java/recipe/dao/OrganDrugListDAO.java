@@ -69,12 +69,6 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
     @DAOMethod(sql = "update OrganDrugList  a set a.status=:status where a.organId=:organId ")
     public abstract void updateDrugStatus(@DAOParam("organId") int organId, @DAOParam("status") int status);
 
-    /**
-     * 原同步非标准药品id 关联到 通用标准药品ID
-     */
-    @DAOMethod(sql = "update OrganDrugList  set drugId=:standardDrugId where drugId=:drugId ")
-    public abstract void updateOrganDrugListDrugId(@DAOParam("drugId") int drugId, @DAOParam("standardDrugId") int standardDrugId);
-
 
     /**
      * 通过药品id及机构id获取(已废弃，有可能会获取到多条)
@@ -282,6 +276,15 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      */
     @DAOMethod(sql = "from OrganDrugList where drugId=:drugId and organId=:organId ")
     public abstract List<OrganDrugList> findByDrugIdAndOrganId(@DAOParam("drugId") int drugId, @DAOParam("organId") int organId);
+
+    /**
+     * 通过药品id获取
+     *
+     * @param drugId
+     * @return
+     */
+    @DAOMethod(sql = "from OrganDrugList where drugId=:drugId  ")
+    public abstract List<OrganDrugList> findByDrugId(@DAOParam("drugId") int drugId);
 
     public List<OrganDrugList> findByDrugIdAndOrganId(final List<Integer> recipeIds) {
         HibernateStatelessResultAction<List<OrganDrugList>> action = new AbstractHibernateStatelessResultAction<List<OrganDrugList>>() {

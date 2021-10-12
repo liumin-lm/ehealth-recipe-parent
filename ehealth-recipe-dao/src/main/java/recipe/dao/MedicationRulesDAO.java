@@ -35,7 +35,7 @@ public class MedicationRulesDAO extends HibernateSupportDelegateDAO<MedicationRu
         HibernateStatelessResultAction<List<MedicationRulesDTO>> action = new AbstractHibernateStatelessResultAction<List<MedicationRulesDTO>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("select *  from  MedicationRules  where 1=1  ");
+                StringBuilder hql = new StringBuilder(" from  MedicationRules  where 1=1  ");
                 if (!ObjectUtils.isEmpty(name)) {
                     hql.append(" and medicationRulesName like:name ");
                 }
