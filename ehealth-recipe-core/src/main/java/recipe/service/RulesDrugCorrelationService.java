@@ -15,6 +15,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import recipe.dao.RulesDrugCorrelationDAO;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -89,6 +90,8 @@ public class RulesDrugCorrelationService implements IRulesDrugCorrelationService
                         throw new DAOException(DAOException.VALUE_NEEDED, "保存数据【"+list.getDrugName() +"】规则关联【"+list.getCorrelationDrugName()+"】关联关系数据已存在!");
                     }
                     //新增 反 畏  规则下 药品关系
+                    convert.setCreateDt(new Date());
+                    convert.setLastModify(new Date());
                     rulesDrugCorrelationDAO.save(convert);
                 }
             }
@@ -99,6 +102,8 @@ public class RulesDrugCorrelationService implements IRulesDrugCorrelationService
                 for (RulesDrugCorrelationDTO list : lists) {
                     RulesDrugCorrelation convert = ObjectCopyUtils.convert(list, RulesDrugCorrelation.class);
                     //新增 超量 规则下 药品关系
+                    convert.setCreateDt(new Date());
+                    convert.setLastModify(new Date());
                     rulesDrugCorrelationDAO.save(convert);
                 }
             }
