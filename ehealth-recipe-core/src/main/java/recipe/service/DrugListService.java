@@ -511,7 +511,7 @@ public class DrugListService extends BaseService<DrugListBean> {
                 }
             }
         }
-        if (ObjectUtils.isEmpty(organDrugListerror)&&ObjectUtils.isEmpty(saleDrugListterror)){
+        if (ObjectUtils.isEmpty(organDrugListerror) && ObjectUtils.isEmpty(saleDrugListterror)){
             if (!ObjectUtils.isEmpty(byDrugId)){
                 for (OrganDrugList organDrugList : byDrugId) {
                     organDrugList.setDrugId(standardDrugId);
