@@ -8,6 +8,7 @@ import com.ngari.base.searchcontent.service.ISearchContentService;
 import com.ngari.his.regulation.service.IRegulationService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.OrganDrugChangeBean;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
@@ -410,22 +411,24 @@ public class DrugListService extends BaseService<DrugListBean> {
         return drugListByName;
     }
 
-    public void checkDrugList(DrugList drug){
+    public List<String> checkDrugList(DrugList drug){
+        List<String> list = Lists.newArrayList();
         if (ObjectUtils.isEmpty(drug.getDrugName())){
-            throw new DAOException(DAOException.VALUE_NEEDED, "该药品 药品名称 为空不具备成为标准药品条件!");
+            list.add("药品名称 DrugName");
         }
         if (ObjectUtils.isEmpty(drug.getDrugSpec())){
-            throw new DAOException(DAOException.VALUE_NEEDED, "该药品 药品规格 为空不具备成为标准药品条件!");
+            list.add("药品规格 DrugSpec");
         }
         if (ObjectUtils.isEmpty(drug.getDrugForm())){
-            throw new DAOException(DAOException.VALUE_NEEDED, "该药品 药品剂型 为空不具备成为标准药品条件!");
+            list.add("药品剂型 DrugForm");
         }
         if (ObjectUtils.isEmpty(drug.getDrugType())){
-            throw new DAOException(DAOException.VALUE_NEEDED, "该药品 药品类型 为空不具备成为标准药品条件!");
+            list.add("药品类型 DrugType");
         }
         if (ObjectUtils.isEmpty(drug.getProducer())){
-            throw new DAOException(DAOException.VALUE_NEEDED, "该药品 生产厂家 为空不具备成为标准药品条件!");
+            list.add("生产厂家 Producer");
         }
+        return list;
     }
 
     /**
@@ -437,7 +440,10 @@ public class DrugListService extends BaseService<DrugListBean> {
         if (ObjectUtils.isEmpty(drug)){
             throw new DAOException(DAOException.VALUE_NEEDED, "drug is required!");
         }
-        checkDrugList(drug);
+        List<String> checkDrugList = checkDrugList(drug);
+        if (!ObjectUtils.isEmpty(checkDrugList)) {
+            throw new DAOException(DAOException.VALUE_NEEDED,"当前药品信息缺失(包括:" + checkDrugList.toString() + "),药品条件不具备成为标准药品!");
+        }
         DrugListDAO dao = getDAO(DrugListDAO.class);
         if (ObjectUtils.isEmpty(drug.getSourceOrgan())){
             List<DrugList> standardDrugSourceOrgan = dao.findStandardDrugSourceOrgan(drug.getDrugName(), drug.getDrugType(), drug.getDrugSpec(), drug.getProducer(), drug.getDrugForm());
@@ -511,7 +517,7 @@ public class DrugListService extends BaseService<DrugListBean> {
                 }
             }
         }
-        if (ObjectUtils.isEmpty(organDrugListerror)&&ObjectUtils.isEmpty(saleDrugListterror)){
+        if (ObjectUtils.isEmpty(organDrugListerror) && ObjectUtils.isEmpty(saleDrugListterror)){
             if (!ObjectUtils.isEmpty(byDrugId)){
                 for (OrganDrugList organDrugList : byDrugId) {
                     organDrugList.setDrugId(standardDrugId);
