@@ -84,6 +84,9 @@ public class RecipeDetailManager extends BaseManager {
         } else {
             recipeIds = recipeList.stream().filter(a -> !a.getRecipeId().equals(recipeId)).map(Recipe::getRecipeId).collect(Collectors.toList());
         }
+        if (CollectionUtils.isEmpty(recipeList)) {
+            return null;
+        }
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIds);
         logger.info("RecipeDetailManager findRecipeDetailsByClinicId recipeDetails:{}", JSON.toJSONString(recipeDetails));
         return recipeDetails;
