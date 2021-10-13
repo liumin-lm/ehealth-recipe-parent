@@ -666,7 +666,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
      * @author houxr
      */
     public QueryResult<DrugList> queryDrugListsByDrugNameAndStartAndLimit(final String drugClass, final String keyword,
-                                                                              final Integer status, final Integer sourceOrgan, Integer type,Integer isStandardDrug,
+                                                                              final Integer status, final Integer sourceOrgan, Integer type,final Integer isStandardDrug,
                                                                               final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<DrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugList>>() {
             @SuppressWarnings("unchecked")
@@ -697,7 +697,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                     hql.append(" and drugType =:drugType");
                 }
                 if (!ObjectUtils.isEmpty(isStandardDrug)) {
-                    hql.append(" and isStandardDrug =:isStandardDrug");
+                    hql.append(" and isStandardDrug =:isStandardDrug ");
                 }
                 if (!ObjectUtils.isEmpty(sourceOrgan)) {
                     if (sourceOrgan == 0){
