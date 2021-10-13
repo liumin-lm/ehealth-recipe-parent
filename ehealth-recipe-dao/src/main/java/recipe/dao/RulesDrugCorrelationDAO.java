@@ -50,25 +50,25 @@ public abstract class RulesDrugCorrelationDAO extends HibernateSupportDelegateDA
         HibernateStatelessResultAction<QueryResult<RulesDrugCorrelationDTO>> action = new AbstractHibernateStatelessResultAction<QueryResult<RulesDrugCorrelationDTO>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder(" from  RulesDrugCorrelation  where 1=1  ");
+                StringBuilder hql = new StringBuilder(" from  RulesDrugCorrelation a  where 1=1  ");
                 /*if (!ObjectUtils.isEmpty(drugId)) {
                     hql.append(" and ( drugId =:drugId  or correlationDrugId =:drugId    )");
                 }*/
                 if (!ObjectUtils.isEmpty(input)) {
-                    hql.append(" and (  drugName like:input  or correlationDrugName like:input   )");
+                    hql.append(" and (  a.drugName like:input  or a.correlationDrugName like:input   )");
                 }
                 if (!ObjectUtils.isEmpty(rulesId)) {
-                    hql.append(" and medicationRulesId =:rulesId ");
+                    hql.append(" and a.medicationRulesId =:rulesId ");
                 }
 
-                hql.append("  order by createDt desc , id desc ");
+                hql.append("  order by a.createDt desc ");
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                 if (!ObjectUtils.isEmpty(input)) {
                     countQuery.setParameter("input", "%" + input + "%");
                 }
-                /*if (!ObjectUtils.isEmpty(drugId)) {
+                if (!ObjectUtils.isEmpty(drugId)) {
                     countQuery.setParameter("drugId", drugId);
-                }*/
+                }
                 if (!ObjectUtils.isEmpty(rulesId)) {
                     countQuery.setParameter("rulesId", rulesId);
                 }
@@ -78,9 +78,9 @@ public abstract class RulesDrugCorrelationDAO extends HibernateSupportDelegateDA
                 if (!ObjectUtils.isEmpty(input)) {
                     q.setParameter("input", "%" + input + "%");
                 }
-               /* if (!ObjectUtils.isEmpty(drugId)) {
+                if (!ObjectUtils.isEmpty(drugId)) {
                     q.setParameter("drugId", drugId);
-                }*/
+                }
                 if (!ObjectUtils.isEmpty(rulesId)) {
                     q.setParameter("rulesId", rulesId);
                 }

@@ -43,13 +43,13 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
     private Double minimumDosageRange;
 
     @ItemProperty(alias = "最大规则药品 用量范围  中药药品超量规则 用")
-    private Double MaximumDosageRange;
+    private Double maximumDosageRange;
 
     @ItemProperty(alias = "创建时间")
     private Date createDt;
 
     @ItemProperty(alias = "最后修改时间")
-    private Date LastModify;
+    private Date lastModify;
 
     public Integer getId() {
         return id;
@@ -116,13 +116,6 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
         this.minimumDosageRange = minimumDosageRange;
     }
 
-    public Double getMaximumDosageRange() {
-        return MaximumDosageRange;
-    }
-
-    public void setMaximumDosageRange(Double maximumDosageRange) {
-        MaximumDosageRange = maximumDosageRange;
-    }
 
     public Date getCreateDt() {
         return createDt;
@@ -132,11 +125,19 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
         this.createDt = createDt;
     }
 
+    public Double getMaximumDosageRange() {
+        return maximumDosageRange;
+    }
+
+    public void setMaximumDosageRange(Double maximumDosageRange) {
+        this.maximumDosageRange = maximumDosageRange;
+    }
+
     public Date getLastModify() {
-        return LastModify;
+        return lastModify;
     }
 
     public void setLastModify(Date lastModify) {
-        LastModify = lastModify;
+        this.lastModify = lastModify;
     }
 }
