@@ -5,6 +5,8 @@ import com.google.common.collect.Maps;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
+import com.ngari.his.regulation.service.IRegulationService;
+import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
@@ -14,6 +16,7 @@ import ctd.dictionary.DictionaryItem;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.PyConverter;
@@ -456,7 +459,7 @@ public class DrugListService extends BaseService<DrugListBean> {
      * @author houxr
      */
     @RpcService
-    public void correlationStandardDrug( Integer drugId,Integer standardDrugId) {
+    public Map<String, Object> correlationStandardDrug( Integer drugId,Integer standardDrugId) {
         if (ObjectUtils.isEmpty(drugId)){
             throw new DAOException(DAOException.VALUE_NEEDED, "药品ID is required!");
         }
@@ -474,21 +477,62 @@ public class DrugListService extends BaseService<DrugListBean> {
         if (ObjectUtils.isEmpty(drugList1)){
             throw new DAOException(DAOException.VALUE_NEEDED, "关联标准药品不存在!");
         }
+        Map<String, Object> map=Maps.newHashMap();
         List<OrganDrugList> byDrugId = organDrugListDAO.findByDrugId(drugId);
+        List<String> organDrugListerror=Lists.newArrayList();
         if (!ObjectUtils.isEmpty(byDrugId)){
+            OrganService bean = AppDomainContext.getBean("basic.organService", OrganService.class);
             for (OrganDrugList organDrugList : byDrugId) {
-                organDrugList.setDrugId(standardDrugId);
-                organDrugListDAO.update(organDrugList);
+                List<Integer> list=Lists.newArrayList();
+                list.add(standardDrugId);
+                List<OrganDrugList> byOrganIdAndDrugIds = organDrugListDAO.findByOrganIdAndDrugIds(organDrugList.getOrganId(), list);
+                if (!ObjectUtils.isEmpty(byOrganIdAndDrugIds)){
+                    for (OrganDrugList byOrganIdAndDrugId : byOrganIdAndDrugIds) {
+                        String error = ("机构【" + bean.getByOrganId(organDrugList.getOrganId()).getName() + "】存在药品" +
+                                "【"+byOrganIdAndDrugId.getDrugName()+"】编码【"+byOrganIdAndDrugId.getOrganDrugCode()+"】 已绑定标准药品【"+drugList1.getDrugName()+"】编码【"+drugList1.getDrugId()+"】" +
+                                "不支持关联,请处理数据后再执行关联操作!" + "\n");
+                        organDrugListerror.add(error);
+                    }
+                }
             }
         }
         List<SaleDrugList> byDrugId1 = saleDrugListDAO.findByDrugId(drugId);
+        List<String> saleDrugListterror=Lists.newArrayList();
         if (!ObjectUtils.isEmpty(byDrugId1)){
             for (SaleDrugList saleDrugList : byDrugId1) {
-                saleDrugList.setDrugId(standardDrugId);
-                saleDrugListDAO.update(saleDrugList);
+                DrugsEnterpriseDAO enterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
+                List<Integer> list=Lists.newArrayList();
+                SaleDrugList byOrganIdAndDrugId = saleDrugListDAO.getByOrganIdAndDrugId(saleDrugList.getOrganId(), standardDrugId);
+                if (!ObjectUtils.isEmpty(byOrganIdAndDrugId)){
+                    String error = ("药企【" + enterpriseDAO.getById(byOrganIdAndDrugId.getOrganId()).getName() + "】存在药品" +
+                            "【"+byOrganIdAndDrugId.getDrugName()+"】编码【"+byOrganIdAndDrugId.getOrganDrugCode()+"】 已绑定标准药品【"+drugList1.getDrugName()+"】编码【"+drugList1.getDrugId()+"】" +
+                            "不支持关联,请处理数据后再执行关联操作!" + "\n");
+                    saleDrugListterror.add(error);
+                }
             }
         }
-        dao.remove(drugId);
+        if (ObjectUtils.isEmpty(organDrugListerror)&&ObjectUtils.isEmpty(saleDrugListterror)){
+            if (!ObjectUtils.isEmpty(byDrugId)){
+                for (OrganDrugList organDrugList : byDrugId) {
+                    organDrugList.setDrugId(standardDrugId);
+                    organDrugListDAO.update(organDrugList);
+                }
+            }
+            if (!ObjectUtils.isEmpty(byDrugId1)){
+                for (SaleDrugList saleDrugList : byDrugId1) {
+                    saleDrugList.setDrugId(standardDrugId);
+                    saleDrugListDAO.update(saleDrugList);
+                }
+            }
+            dao.remove(drugId);
+        }else {
+            map.put("code", 609);
+            map.put("saleDrugListterror",saleDrugListterror);
+            map.put("organDrugListerror",organDrugListerror);
+            return map;
+        }
+        map.put("code", 200);
+        return map;
     }
 
 
