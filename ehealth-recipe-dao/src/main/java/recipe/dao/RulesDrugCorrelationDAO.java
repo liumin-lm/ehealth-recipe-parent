@@ -61,7 +61,7 @@ public abstract class RulesDrugCorrelationDAO extends HibernateSupportDelegateDA
                     hql.append(" and medicationRulesId =:rulesId ");
                 }
 
-                hql.append("  order by createDt desc");
+                hql.append("  order by createDt desc , id desc ");
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                 if (!ObjectUtils.isEmpty(input)) {
                     countQuery.setParameter("input", "%" + input + "%");
