@@ -27,14 +27,14 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
     @Dictionary(id = "eh.cdr.dictionary.DrugRelationship")
     private Integer drugRelationship;
 
-    @ItemProperty(alias = "规则药品编码")
-    private String drugCode;
+    @ItemProperty(alias = "规则药品Id")
+    private Integer drugId;
 
     @ItemProperty(alias = "规则药品名称")
     private String drugName;
 
-    @ItemProperty(alias = "规则关联药品编码")
-    private String correlationDrugCode;
+    @ItemProperty(alias = "规则关联药品Id")
+    private Integer correlationDrugId;
 
     @ItemProperty(alias = "规则关联药品名称")
     private String correlationDrugName;
@@ -43,13 +43,13 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
     private Double minimumDosageRange;
 
     @ItemProperty(alias = "最大规则药品 用量范围  中药药品超量规则 用")
-    private Double MaximumDosageRange;
+    private Double maximumDosageRange;
 
     @ItemProperty(alias = "创建时间")
     private Date createDt;
 
     @ItemProperty(alias = "最后修改时间")
-    private Date LastModify;
+    private Date lastModify;
 
     public Integer getId() {
         return id;
@@ -75,13 +75,6 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
         this.drugRelationship = drugRelationship;
     }
 
-    public String getDrugCode() {
-        return drugCode;
-    }
-
-    public void setDrugCode(String drugCode) {
-        this.drugCode = drugCode;
-    }
 
     public String getDrugName() {
         return drugName;
@@ -91,12 +84,20 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
         this.drugName = drugName;
     }
 
-    public String getCorrelationDrugCode() {
-        return correlationDrugCode;
+    public Integer getDrugId() {
+        return drugId;
     }
 
-    public void setCorrelationDrugCode(String correlationDrugCode) {
-        this.correlationDrugCode = correlationDrugCode;
+    public void setDrugId(Integer drugId) {
+        this.drugId = drugId;
+    }
+
+    public Integer getCorrelationDrugId() {
+        return correlationDrugId;
+    }
+
+    public void setCorrelationDrugId(Integer correlationDrugId) {
+        this.correlationDrugId = correlationDrugId;
     }
 
     public String getCorrelationDrugName() {
@@ -115,13 +116,6 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
         this.minimumDosageRange = minimumDosageRange;
     }
 
-    public Double getMaximumDosageRange() {
-        return MaximumDosageRange;
-    }
-
-    public void setMaximumDosageRange(Double maximumDosageRange) {
-        MaximumDosageRange = maximumDosageRange;
-    }
 
     public Date getCreateDt() {
         return createDt;
@@ -131,11 +125,19 @@ public class RulesDrugCorrelationDTO  implements java.io.Serializable {
         this.createDt = createDt;
     }
 
+    public Double getMaximumDosageRange() {
+        return maximumDosageRange;
+    }
+
+    public void setMaximumDosageRange(Double maximumDosageRange) {
+        this.maximumDosageRange = maximumDosageRange;
+    }
+
     public Date getLastModify() {
-        return LastModify;
+        return lastModify;
     }
 
     public void setLastModify(Date lastModify) {
-        LastModify = lastModify;
+        this.lastModify = lastModify;
     }
 }

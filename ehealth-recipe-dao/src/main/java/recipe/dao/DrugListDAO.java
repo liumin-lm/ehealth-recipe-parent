@@ -600,15 +600,51 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
         }
     }
 
-    /**
+   /* *//**
      * 根据名称 查询标准药品
      * @param drugName
      * @param start
      * @param limit
      * @return
-     */
+     *//*
     @DAOMethod(sql = "from DrugList where drugName like:drugName and isStandardDrug=1   and  status= 1",limit = 0)
     public abstract List<DrugList> findDrugListByName(@DAOParam("drugName") String drugName,@DAOParam(pageStart = true) int start,@DAOParam(pageLimit = true) int limit);
+*/
+    /**
+     * 药品名模糊查询 药品
+     *
+     * @param name
+     * @return
+     * @author zhongzx
+     */
+    public QueryResult<DrugList> findDrugListByName(final String name,final int start, final int limit) {
+        HibernateStatelessResultAction<QueryResult<DrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugList>>() {
+            @Override
+            public void execute(StatelessSession ss) throws DAOException {
+                StringBuilder hql = new StringBuilder("from DrugList where status=1 ");
+                if (!ObjectUtils.isEmpty(name)) {
+                    hql.append(" and drugName like:name ");
+                }
+                hql.append(" order by createDt desc");
+                Query countQuery = ss.createQuery("select count(*) " + hql.toString());
+                if (!ObjectUtils.isEmpty(name)) {
+                    countQuery.setParameter("name", "%" + name + "%");
+                }
+                Long total = (Long) countQuery.uniqueResult();
+
+                Query q = ss.createQuery(hql.toString());
+                if (!ObjectUtils.isEmpty(name)) {
+                    q.setParameter("name", "%" + name + "%");
+                }
+                q.setFirstResult(start);
+                q.setMaxResults(limit);
+                List<DrugList> list = q.list();
+                setResult(new QueryResult<DrugList>(total, q.getFirstResult(), q.getMaxResults(), list));
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 
 
     /**

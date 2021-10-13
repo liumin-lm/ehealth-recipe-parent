@@ -31,7 +31,7 @@ public class MedicationRulesDAO extends HibernateSupportDelegateDAO<MedicationRu
     }
 
     public List<MedicationRulesDTO> queryMedicationRulesBynameAndRecipeType(final String name,
-                                                                            final int recipeType) {
+                                                                            final Integer recipeType) {
         HibernateStatelessResultAction<List<MedicationRulesDTO>> action = new AbstractHibernateStatelessResultAction<List<MedicationRulesDTO>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {

@@ -44,6 +44,8 @@ public class DrugManager extends BaseManager {
     private OrganDrugListDAO organDrugListDAO;
     @Autowired
     private DispensatoryDAO dispensatoryDAO;
+    @Autowired
+    private RecipeRulesDrugcorrelationDao recipeRulesDrugcorrelationDao;
 
     /**
      * todo 分层不合理 静态不合理 方法使用不合理 需要修改 （尹盛）
@@ -271,4 +273,19 @@ public class DrugManager extends BaseManager {
         logger.info("DrugManager.getDrugBook res dispensatory={} drugId={}", dispensatory, drugId);
         return dispensatory;
     }
+
+    public List<RecipeRulesDrugcorrelation> getListDrugRules(List<Integer> list, Integer ruleId){
+        logger.info("DrugManager.getListDrugRules req list={} ruleId={}", JSON.toJSONString(list), ruleId);
+        List<RecipeRulesDrugcorrelation> result = new ArrayList<>();
+        if(CollectionUtils.isEmpty(list)){
+            return result;
+        }
+        if(ruleId == null){
+            return result;
+        }
+        result = recipeRulesDrugcorrelationDao.findListRules(list,ruleId);
+        logger.info("DrugManager.getDrugBook res result={} drugId={}", JSON.toJSONString(result));
+        return result;
+    }
+
 }

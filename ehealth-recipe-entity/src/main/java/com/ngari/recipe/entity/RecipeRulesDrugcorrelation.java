@@ -1,66 +1,63 @@
 package com.ngari.recipe.entity;
 
-import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
 import javax.persistence.*;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
 /**
- * 合理用药规则 药品关系表
- * @author renfuhao
+ * @author maoze
+ * @description
+ * @date 2021年10月12日 14:15
  */
 @Entity
 @Schema
-@Table(name = "recipe_rules_drugCorrelation")
+@Table(name = "recipe_rules_drugcorrelation")
 @Access(AccessType.PROPERTY)
-public class RulesDrugCorrelation  implements Serializable {
+public class RecipeRulesDrugcorrelation implements Serializable {
 
-    private static final long serialVersionUID = -1918938219429895165L;
+    private static final long serialVersionUID = -6170665419368031590L;
 
-    @ItemProperty(alias = "规则关联药品表ID")
+    @ItemProperty(alias = "主键ID")
     private Integer id;
-
 
     @ItemProperty(alias = "合理用药规则Id")
     private Integer medicationRulesId;
 
-    @ItemProperty(alias = "药品关系")
-    @Dictionary(id = "eh.cdr.dictionary.DrugRelationship")
+    @ItemProperty(alias = "合理用药规则Id")
     private Integer drugRelationship;
 
-    @ItemProperty(alias = "规则药品Id")
+    @ItemProperty(alias = "规则药品编码")
     private Integer drugId;
 
     @ItemProperty(alias = "规则药品名称")
     private String drugName;
 
-    @ItemProperty(alias = "规则关联药品Id")
+    @ItemProperty(alias = "规则药品名称")
     private Integer correlationDrugId;
 
-    @ItemProperty(alias = "规则关联药品名称")
+    @ItemProperty(alias = "规则药品名称")
     private String correlationDrugName;
 
-    @ItemProperty(alias = "最小规则药品 用量范围  中药药品超量规则 用")
-    private Double minimumDosageRange;
+    @ItemProperty(alias = "最小规则药品 用量范围")
+    private BigDecimal minimumDosageRange;
 
-    @ItemProperty(alias = "最大规则药品 用量范围  中药药品超量规则 用")
-    private Double maximumDosageRange;
+    @ItemProperty(alias = "最大规则药品 用量范围")
+    private BigDecimal MaximumDosageRange;
 
     @ItemProperty(alias = "创建时间")
     private Date createDt;
 
     @ItemProperty(alias = "最后修改时间")
-    private Date lastModify;
-
+    private Date LastModify;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
-    @Column(name = "id", unique = true, nullable = false)
     public Integer getId() {
         return id;
     }
@@ -69,7 +66,6 @@ public class RulesDrugCorrelation  implements Serializable {
         this.id = id;
     }
 
-    @Column(name = "medicationRulesId")
     public Integer getMedicationRulesId() {
         return medicationRulesId;
     }
@@ -78,7 +74,6 @@ public class RulesDrugCorrelation  implements Serializable {
         this.medicationRulesId = medicationRulesId;
     }
 
-    @Column(name = "drugRelationship")
     public Integer getDrugRelationship() {
         return drugRelationship;
     }
@@ -87,8 +82,6 @@ public class RulesDrugCorrelation  implements Serializable {
         this.drugRelationship = drugRelationship;
     }
 
-
-    @Column(name = "drugId")
     public Integer getDrugId() {
         return drugId;
     }
@@ -97,9 +90,6 @@ public class RulesDrugCorrelation  implements Serializable {
         this.drugId = drugId;
     }
 
-
-
-    @Column(name = "correlationDrugId")
     public Integer getCorrelationDrugId() {
         return correlationDrugId;
     }
@@ -108,9 +98,22 @@ public class RulesDrugCorrelation  implements Serializable {
         this.correlationDrugId = correlationDrugId;
     }
 
+    public void setMinimumDosageRange(BigDecimal minimumDosageRange) {
+        this.minimumDosageRange = minimumDosageRange;
+    }
 
+    public void setMaximumDosageRange(BigDecimal maximumDosageRange) {
+        MaximumDosageRange = maximumDosageRange;
+    }
 
-    @Column(name = "drugName")
+    public BigDecimal getMinimumDosageRange() {
+        return minimumDosageRange;
+    }
+
+    public BigDecimal getMaximumDosageRange() {
+        return MaximumDosageRange;
+    }
+
     public String getDrugName() {
         return drugName;
     }
@@ -120,7 +123,7 @@ public class RulesDrugCorrelation  implements Serializable {
     }
 
 
-    @Column(name = "correlationDrugName")
+
     public String getCorrelationDrugName() {
         return correlationDrugName;
     }
@@ -129,25 +132,6 @@ public class RulesDrugCorrelation  implements Serializable {
         this.correlationDrugName = correlationDrugName;
     }
 
-    @Column(name = "minimumDosageRange")
-    public Double getMinimumDosageRange() {
-        return minimumDosageRange;
-    }
-
-    public void setMinimumDosageRange(Double minimumDosageRange) {
-        this.minimumDosageRange = minimumDosageRange;
-    }
-
-    @Column(name = "MaximumDosageRange")
-    public Double getMaximumDosageRange() {
-        return maximumDosageRange;
-    }
-
-    public void setMaximumDosageRange(Double maximumDosageRange) {
-        this.maximumDosageRange = maximumDosageRange;
-    }
-
-    @Column(name = "createDt")
     public Date getCreateDt() {
         return createDt;
     }
@@ -156,12 +140,11 @@ public class RulesDrugCorrelation  implements Serializable {
         this.createDt = createDt;
     }
 
-    @Column(name = "LastModify")
     public Date getLastModify() {
-        return lastModify;
+        return LastModify;
     }
 
     public void setLastModify(Date lastModify) {
-        this.lastModify = lastModify;
+        LastModify = lastModify;
     }
 }

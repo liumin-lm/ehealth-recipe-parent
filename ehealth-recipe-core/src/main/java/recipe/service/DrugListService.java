@@ -401,14 +401,10 @@ public class DrugListService extends BaseService<DrugListBean> {
      * @author houxr
      */
     @RpcService
-    public List<DrugList> findDrugListsByName(final String drugName, final int start, final int limit) {
-        if (ObjectUtils.isEmpty(drugName)){
-            throw new DAOException(DAOException.VALUE_NEEDED, "drugName is required!");
-        }
+    public QueryResult<DrugList> findDrugListsByName(final String drugName, final int start, final int limit) {
         DrugListDAO dao = getDAO(DrugListDAO.class);
-        String name="%"+drugName+"%";
-        List<DrugList> drugLists = dao.findDrugListByName(name, start, limit);
-        return drugLists;
+        QueryResult<DrugList> drugListByName = dao.findDrugListByName(drugName, start, limit);
+        return drugListByName;
     }
 
     public void checkDrugList(DrugList drug){

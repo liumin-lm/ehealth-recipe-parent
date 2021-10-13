@@ -2,6 +2,7 @@ package recipe.business;
 
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.entity.Dispensatory;
+import com.ngari.recipe.entity.RecipeRulesDrugcorrelation;
 import com.ngari.recipe.vo.SearchDrugReqVo;
 import org.springframework.stereotype.Service;
 import recipe.core.api.IDrugBusinessService;
@@ -33,5 +34,10 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     public Dispensatory getDrugBook(Integer organId, String organDrugCode) {
         Dispensatory dispensatory = drugManager.getDrugBook(organId,organDrugCode);
         return dispensatory;
+    }
+
+    @Override
+    public List<RecipeRulesDrugcorrelation> getListDrugRules(List<Integer> list, Integer ruleId) {
+        return drugManager.getListDrugRules(list,ruleId);
     }
 }

@@ -9,6 +9,7 @@ import recipe.atop.BaseAtop;
 import recipe.core.api.IConfigStatusBusinessService;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 获取配置状态服务入口类
@@ -47,10 +48,14 @@ public class ConfigStatusDoctorAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public List<ConfigStatusCheckVO> getConfigStatusBySource(Integer location, Integer source) {
+    public List<ConfigStatusCheckVO> getConfigStatusBySource(Integer location, Integer source, Integer organId) {
         logger.info("ConfigStatusService getConfigStatus location = {}", location);
         try {
             List<ConfigStatusCheckVO> configStatusCheckList = configStatusService.findByLocationAndSource(location, source);
+            if (new Integer(1).equals(organId)) {
+                return configStatusCheckList.stream().filter(configStatusCheckVO -> "已发药".equals(configStatusCheckVO.getTargetName())
+                || "已拒发".equals(configStatusCheckVO.getTargetName())).collect(Collectors.toList());
+            }
             logger.info("ConfigStatusService getConfigStatus configStatusCheckList = {}", JSON.toJSONString(configStatusCheckList));
             return configStatusCheckList;
         } catch (Exception e) {

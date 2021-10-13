@@ -763,6 +763,7 @@ public class HisRequestInit {
             requestTO.setRecipeNo(recipe.getRecipeCode());
             requestTO.setRecipeType((null != recipe.getRecipeType()) ? Integer.toString(recipe.getRecipeType()) : null);
 
+            requestTO.setRecipeStatus(recipe.getStatus());
             // 医院系统医嘱号（一张处方多条记录用|分隔）
             StringBuilder str = new StringBuilder("");
             if (null != list && list.size() != 0) {

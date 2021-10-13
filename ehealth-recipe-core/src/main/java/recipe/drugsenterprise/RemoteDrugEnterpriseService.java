@@ -18,6 +18,7 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
+import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -34,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.aop.LogInfo;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.client.RevisitClient;
 import recipe.constant.ErrorCode;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
@@ -82,6 +84,9 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
     @Autowired
     private EnterpriseManager enterpriseManager;
 
+    @Autowired
+    private RevisitClient revisitClient;
+
     //手动推送给第三方
     @RpcService
     public void pushRecipeInfoForThirdSd(Integer recipeId, Integer depId) {
@@ -125,16 +130,16 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             if (responseTO != null && responseTO.isSuccess()) {
                 //推送药企处方成功
                 orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("pushFlag", 1), null);
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方成功");
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给" + enterprise.getName() + "推送处方成功");
                 result.setCode(1);
-                String prescId = (String)responseTO.getExtend().get("prescId");
+                String prescId = (String) responseTO.getExtend().get("prescId");
                 RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
                 if (StringUtils.isNotEmpty(prescId)) {
                     recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("rxid", prescId));
                 }
             } else {
                 orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("pushFlag", -1), null);
-                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方失败");
+                RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给" + enterprise.getName() + "推送处方失败");
                 result.setCode(0);
             }
         } else {
@@ -230,14 +235,14 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
             List<Integer> drugIds = recipeDetailDAO.findDrugIdByRecipeId(recipeId);
             List<SaleDrugList> list = saleDrugListDAO.getByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
-            if(Objects.isNull(list)){
+            if (Objects.isNull(list)) {
                 result.setCode(DrugEnterpriseResult.FAIL);
                 return result;
             }
             Map<Integer, List<SaleDrugList>> collect = list.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
             Integer code = DrugEnterpriseResult.SUCCESS;
             for (Integer drugId : drugIds) {
-                if( Objects.isNull(collect.get(drugId))){
+                if (Objects.isNull(collect.get(drugId))) {
                     code = DrugEnterpriseResult.FAIL;
                 }
             }
@@ -249,12 +254,12 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         //查询医院库存  药企配置：校验药品库存标志 0 不需要校验 1 校验药企库存 2 药店没库存时可以备货 3 校验医院库存
         //根据处方查询医院库存
         if (drugsEnterprise != null && drugsEnterprise.getCheckInventoryFlag() != null && drugsEnterprise.getCheckInventoryFlag() == 3) {
-            return HosscanStock(recipeId,drugsEnterprise);
+            return HosscanStock(recipeId, drugsEnterprise);
         }
 
         if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getOperationType())) {
             //通过前置机调用
-            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
+            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService", IRecipeEnterpriseService.class);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             ScanRequestBean scanRequestBean = getScanRequestBean(recipe, drugsEnterprise);
@@ -298,7 +303,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         return null;
     }
 
-    public static ScanRequestBean getScanRequestBean(Recipe recipe, DrugsEnterprise drugsEnterprise) {
+    private ScanRequestBean getScanRequestBean(Recipe recipe, DrugsEnterprise drugsEnterprise) {
         ScanRequestBean scanRequestBean = new ScanRequestBean();
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
@@ -315,17 +320,29 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             }
             scanDrugListBean.setDrugSpec(recipedetail.getDrugSpec());
             scanDrugListBean.setProducerCode(recipedetail.getProducerCode());
+            scanDrugListBean.setProducer(recipedetail.getProducer());
             scanDrugListBean.setPharmacy(recipedetail.getPharmacyName());
+            scanDrugListBean.setName(recipedetail.getSaleName());
+            scanDrugListBean.setGname(recipedetail.getDrugName());
+            try {
+                RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
+                if (revisitExDTO != null) {
+                    scanDrugListBean.setChannelCode(revisitExDTO.getProjectChannel());
+                }
+            } catch (Exception e) {
+                LOGGER.error("queryPatientChannelId error:", e);
+            }
         }
         scanRequestBean.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
         scanRequestBean.setScanDrugListBeans(scanDrugListBeans);
         scanRequestBean.setOrganId(recipe.getClinicOrgan());
+
         LOGGER.info("getScanRequestBean scanRequestBean:{}.", JSONUtils.toString(scanRequestBean));
         return scanRequestBean;
     }
 
     @RpcService
-    public String getDrugInventory(Integer depId, Integer drugId, Integer organId){
+    public String getDrugInventory(Integer depId, Integer drugId, Integer organId) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         LOGGER.info("getDrugInventory depId:{}, drugId:{}", depId, drugId);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
@@ -343,19 +360,19 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                 return "无库存";
             } else {
                 //前置机返回0或者200
-                if (Integer.valueOf(0).equals(response.getMsgCode()) || Integer.valueOf(200).equals(response.getMsgCode())){
-                    if (CollectionUtils.isEmpty(response.getData())){
+                if (Integer.valueOf(0).equals(response.getMsgCode()) || Integer.valueOf(200).equals(response.getMsgCode())) {
+                    if (CollectionUtils.isEmpty(response.getData())) {
                         return "有库存";
-                    }else {
+                    } else {
                         List<DrugInfoTO> data = response.getData();
                         Double stockAmount = data.get(0).getStockAmount();
-                        if (stockAmount != null){
+                        if (stockAmount != null) {
                             return BigDecimal.valueOf(stockAmount).toPlainString();
-                        }else {
+                        } else {
                             return "有库存";
                         }
                     }
-                }else {
+                } else {
                     if (StringUtils.isNotEmpty(response.getNoInventoryTip())) {
                         return response.getNoInventoryTip();
                     }
@@ -366,24 +383,24 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
 
         if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getOperationType())) {
             //通过前置机调用
-            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
+            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService", IRecipeEnterpriseService.class);
             List<com.ngari.recipe.recipe.model.RecipeDetailBean> recipeDetailBeans = new ArrayList<>();
             com.ngari.recipe.recipe.model.RecipeDetailBean recipeDetailBean = new com.ngari.recipe.recipe.model.RecipeDetailBean();
             recipeDetailBean.setDrugId(drugId);
             recipeDetailBeans.add(recipeDetailBean);
             ScanRequestBean scanRequestBean = getDrugInventoryRequestBean(drugsEnterprise.getOrganId(), drugsEnterprise, recipeDetailBeans);
             LOGGER.info("getDrugInventory requestBean:{}.", JSONUtils.toString(scanRequestBean));
-            HisResponseTO responseTO =  recipeEnterpriseService.scanStock(scanRequestBean);
+            HisResponseTO responseTO = recipeEnterpriseService.scanStock(scanRequestBean);
             LOGGER.info("getDrugInventory responseTO:{}.", JSONUtils.toString(responseTO));
             if (null != responseTO && responseTO.isSuccess()) {
-                String inventor = (String)responseTO.getExtend().get("inventor");
+                String inventor = (String) responseTO.getExtend().get("inventor");
                 if (StringUtils.isEmpty(inventor)) {
                     return "有库存";
                 }
                 return inventor;
             } else {
                 if (null != responseTO) {
-                    String inventor = (String)responseTO.getExtend().get("inventor");
+                    String inventor = (String) responseTO.getExtend().get("inventor");
                     if (StringUtils.isNotEmpty(inventor)) {
                         return inventor;
                     }
@@ -392,7 +409,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             }
         } else {
             if (DrugEnterpriseResult.SUCCESS.equals(result.getCode()) && null != result.getAccessDrugEnterpriseService()) {
-                return  result.getAccessDrugEnterpriseService().getDrugInventory(drugId, drugsEnterprise, organId);
+                return result.getAccessDrugEnterpriseService().getDrugInventory(drugId, drugsEnterprise, organId);
             } else {
                 return "无库存";
             }
@@ -400,23 +417,25 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
 
     }
 
-    /**;
+    /**
+     * ;
      * 医生端展示药品库存情况
+     *
      * @param drugsDataBean 药品数据
      * @return 药品数据
      */
     @RpcService
-    public List getDrugsEnterpriseInventory(DrugsDataBean drugsDataBean){
+    public List getDrugsEnterpriseInventory(DrugsDataBean drugsDataBean) {
         LOGGER.info("getDrugsEnterpriseInventory drugsDataBean:{}.", JSONUtils.toString(drugsDataBean));
         List result = new ArrayList();
         Map payOnlineType = new HashMap();
         Map payShowSendToHosType = new HashMap();
         Map toStoreType = new HashMap();
-        Map toHosType= new HashMap();
+        Map toHosType = new HashMap();
         Map downLoadType = new HashMap();
         DrugEnterpriseResult drugEnterpriseResult = DrugEnterpriseResult.getSuccess();
         //通过前置机调用
-        IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
+        IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService", IRecipeEnterpriseService.class);
         OrganService organService = BasicAPI.getService(OrganService.class);
         OrganDTO organDTO = organService.getByOrganId(drugsDataBean.getOrganId());
         if (organDTO == null) {
@@ -430,14 +449,14 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         GiveModeShowButtonVO giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(drugsDataBean.getOrganId());
         Map configurations = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
 
-        Map<String, List> supportOnlineMap ;
+        Map<String, List> supportOnlineMap;
         List supportOnlineList = new ArrayList();
-        Map<String, List> supportSendToHosMap ;
+        Map<String, List> supportSendToHosMap;
         List supportSendToHosList = new ArrayList();
-        Map<String, List> toStoreMap ;
+        Map<String, List> toStoreMap;
         List toStoreList = new ArrayList();
-        List<String> haveInventoryForOnlineList ;
-        List<String> haveInventoryForStoreList ;
+        List<String> haveInventoryForOnlineList;
+        List<String> haveInventoryForStoreList;
         //查找非自建药企配送主体为药企的药企
         if (configurations.containsKey("showSendToEnterprises") || configurations.containsKey("supportTFDS") || configurations.containsKey("showSendToHos")) {
             for (DrugsEnterprise drugsEnterprise : drugsEnterprises) {
@@ -445,7 +464,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                 if (new Integer(2).equals(drugsEnterprise.getSendType())) {
                     supportOnlineMap = new LinkedHashMap<>();
                     drugEnterpriseResult.setAccessDrugEnterpriseService(this.getServiceByDep(drugsEnterprise));
-                    if (payModeSupport(drugsEnterprise , 1) && configurations.containsKey("showSendToEnterprises")) {
+                    if (payModeSupport(drugsEnterprise, 1) && configurations.containsKey("showSendToEnterprises")) {
                         //获取医院或者药企库存（看配置）
                         haveInventoryForOnlineList = compareGetHaveDrugInventoryForApp(drugsEnterprise, result, drugEnterpriseResult, drugsDataBean, recipeEnterpriseService, 1);
                         LOGGER.info("getDrugsEnterpriseInventory haveInventoryForOnlineList:{}.", JSONUtils.toString(haveInventoryForOnlineList));
@@ -458,7 +477,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                     //医院配送
                     supportSendToHosMap = new LinkedHashMap<>();
                     drugEnterpriseResult.setAccessDrugEnterpriseService(this.getServiceByDep(drugsEnterprise));
-                    if (payModeSupport(drugsEnterprise , 1) && configurations.containsKey("showSendToHos")) {
+                    if (payModeSupport(drugsEnterprise, 1) && configurations.containsKey("showSendToHos")) {
                         //获取医院或者药企库存（看配置）
                         haveInventoryForOnlineList = compareGetHaveDrugInventoryForApp(drugsEnterprise, result, drugEnterpriseResult, drugsDataBean, recipeEnterpriseService, 1);
                         if (CollectionUtils.isNotEmpty(haveInventoryForOnlineList)) {
@@ -469,7 +488,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                 }
 
                 toStoreMap = new LinkedHashMap<>();
-                if (payModeSupport(drugsEnterprise , 3) && configurations.containsKey("supportTFDS")) {
+                if (payModeSupport(drugsEnterprise, 3) && configurations.containsKey("supportTFDS")) {
                     //该药企配置了这个药品,可以查询该药品在药企是否有库存了
                     //获取医院或者药企库存（看配置）
                     haveInventoryForStoreList = compareGetHaveDrugInventoryForApp(drugsEnterprise, result, drugEnterpriseResult, drugsDataBean, recipeEnterpriseService, 2);
@@ -511,7 +530,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         }
         if (configurations.containsKey("supportToHos")) {
             IHisConfigService iHisConfigService = ApplicationUtils.getBaseService(IHisConfigService.class);
-            if (iHisConfigService.isHisEnable(drugsDataBean.getOrganId())){
+            if (iHisConfigService.isHisEnable(drugsDataBean.getOrganId())) {
                 //到院取药,需要验证HIS
                 List<String> list = new ArrayList<>();
                 //获取医院库存，把有库存的药放到list中
@@ -567,7 +586,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                 String[] pharmacys = organDrugList.getPharmacy().split(",");
                 for (String pharmacy : pharmacys) {
                     PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(Integer.parseInt(pharmacy));
-                    if (pharmacyTcm != null && "院外药房".equals(pharmacyTcm.getType())){
+                    if (pharmacyTcm != null && "院外药房".equals(pharmacyTcm.getType())) {
                         return true;
                     }
                 }
@@ -620,22 +639,22 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             getHosDrugInventory(drugsDataBean, haveInventoryList);
         }
         //不需要校验库存
-        else if (new Integer(0).equals(drugsEnterprise.getCheckInventoryFlag())){
+        else if (new Integer(0).equals(drugsEnterprise.getCheckInventoryFlag())) {
             List<com.ngari.recipe.recipe.model.RecipeDetailBean> recipeDetailBeans = drugsDataBean.getRecipeDetailBeans();
             // 药企如果没有其中一个药品,就不展示
             List<Integer> drugIds = recipeDetailBeans.stream().map(com.ngari.recipe.recipe.model.RecipeDetailBean::getDrugId).collect(Collectors.toList());
             List<SaleDrugList> list = saleDrugListDAO.getByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
-            if(Objects.isNull(list)){
+            if (Objects.isNull(list)) {
                 return haveInventoryList;
             }
             Map<Integer, List<SaleDrugList>> collect = list.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
             for (Integer drugId : drugIds) {
-                if( Objects.isNull(collect.get(drugId))){
+                if (Objects.isNull(collect.get(drugId))) {
                     return haveInventoryList;
                 }
             }
-            for (com.ngari.recipe.recipe.model.RecipeDetailBean drugresult:recipeDetailBeans){
-               haveInventoryList.add(drugresult.getDrugName());
+            for (com.ngari.recipe.recipe.model.RecipeDetailBean drugresult : recipeDetailBeans) {
+                haveInventoryList.add(drugresult.getDrugName());
             }
             return haveInventoryList;
         } else {
@@ -662,15 +681,16 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
 
     /**
      * 查询药企是否支持指定的购药方式
-     * @param drugsEnterprise  药企
-     * @param type             支持类型
-     * @return  是否支持
+     *
+     * @param drugsEnterprise 药企
+     * @param type            支持类型
+     * @return 是否支持
      */
-    public static boolean payModeSupport(DrugsEnterprise drugsEnterprise, Integer type){
-        Integer[] online_pay = {RecipeBussConstant.DEP_SUPPORT_ONLINE,RecipeBussConstant.DEP_SUPPORT_COD,RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS,
-                RecipeBussConstant.DEP_SUPPORT_COD_TFDS,RecipeBussConstant.DEP_SUPPORT_COD,RecipeBussConstant.DEP_SUPPORT_ALL};
+    public static boolean payModeSupport(DrugsEnterprise drugsEnterprise, Integer type) {
+        Integer[] online_pay = {RecipeBussConstant.DEP_SUPPORT_ONLINE, RecipeBussConstant.DEP_SUPPORT_COD, RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS,
+                RecipeBussConstant.DEP_SUPPORT_COD_TFDS, RecipeBussConstant.DEP_SUPPORT_COD, RecipeBussConstant.DEP_SUPPORT_ALL};
         List<Integer> online_pay_list = Arrays.asList(online_pay);
-        Integer[] to_tfds = {RecipeBussConstant.DEP_SUPPORT_TFDS,RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS,RecipeBussConstant.DEP_SUPPORT_COD_TFDS,
+        Integer[] to_tfds = {RecipeBussConstant.DEP_SUPPORT_TFDS, RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS, RecipeBussConstant.DEP_SUPPORT_COD_TFDS,
                 RecipeBussConstant.DEP_SUPPORT_ALL};
         List<Integer> to_tfds_list = Arrays.asList(to_tfds);
         if (new Integer(1).equals(type)) {
@@ -707,18 +727,19 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         if (CollectionUtils.isNotEmpty(giveModeButtonBeans)) {
             flag = true;
         }
-        return  flag;
+        return flag;
     }
 
     /**
      * 封装前置机所需参数
+     *
      * @param organId
      * @param drugsEnterprise
      * @return
      */
-    private ScanRequestBean getDrugInventoryRequestBean( Integer organId,DrugsEnterprise drugsEnterprise, List<com.ngari.recipe.recipe.model.RecipeDetailBean> recipeDetailBeans) {
+    private ScanRequestBean getDrugInventoryRequestBean(Integer organId, DrugsEnterprise drugsEnterprise, List<com.ngari.recipe.recipe.model.RecipeDetailBean> recipeDetailBeans) {
         ScanRequestBean scanRequestBean = new ScanRequestBean();
-        try{
+        try {
             SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
@@ -748,8 +769,8 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             scanRequestBean.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
             scanRequestBean.setScanDrugListBeans(scanDrugListBeans);
             LOGGER.info("getDrugInventoryRequestBean :{}.", JSONUtils.toString(scanRequestBean));
-        }catch (Exception e){
-            LOGGER.info("getDrugInventoryRequestBean error: {}",e.getMessage(), e);
+        } catch (Exception e) {
+            LOGGER.info("getDrugInventoryRequestBean error: {}", e.getMessage(), e);
         }
         scanRequestBean.setOrganId(organId);
         return scanRequestBean;
@@ -785,7 +806,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getOperationType())) {
             //通过前置机调用
-            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
+            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService", IRecipeEnterpriseService.class);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeIds.get(0));
@@ -796,7 +817,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                 scanRequestBean.setRxid(recipeExtend.getRxid());
             }
             LOGGER.info("findSupportDep 发给前置机入参:{}.", JSONUtils.toString(scanRequestBean));
-            List<DepDetailBean> depDetailBeans =  recipeEnterpriseService.findSupportDep(scanRequestBean);
+            List<DepDetailBean> depDetailBeans = recipeEnterpriseService.findSupportDep(scanRequestBean);
             LOGGER.info("findSupportDep 前置机出参:{}.", JSONUtils.toString(depDetailBeans));
             result.setObject(ObjectCopyUtils.convert(depDetailBeans, com.ngari.recipe.drugsenterprise.model.DepDetailBean.class));
             return result;
@@ -919,7 +940,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             //PS:药企ID取的是订单表的药企ID
             Integer depId = recipeOrderDAO.getEnterpriseIdByRecipeId(recipeId);
-            if (depId==null){
+            if (depId == null) {
                 depId = recipeDAO.getByRecipeId(recipeId).getEnterpriseId();
             }
             if (null != depId) {
@@ -963,7 +984,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                 LOGGER.info("getServiceByDep 获取[{}]协议实现.service=[{}]", drugsEnterprise.getName(), beanName);
                 drugEnterpriseService = getBean(beanName, AccessDrugEnterpriseService.class);
             } catch (Exception e) {
-                LOGGER.warn("getServiceByDep 未找到[{}]药企实现，使用通用协议处理. beanName={}", drugsEnterprise.getName(), beanName,e);
+                LOGGER.warn("getServiceByDep 未找到[{}]药企实现，使用通用协议处理. beanName={}", drugsEnterprise.getName(), beanName, e);
                 drugEnterpriseService = getBean(COMMON_SERVICE, AccessDrugEnterpriseService.class);
             }
         }
@@ -1003,7 +1024,8 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
     }
 
     /**
-     *  获取运费
+     * 获取运费
+     *
      * @return
      */
     @RpcService
@@ -1026,15 +1048,15 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             String province = (String) parames.get("province"); //获取省份
             String city = (String) parames.get("city"); //获取市
             String district = (String) parames.get("district"); //获取区县
-            String address = (String)parames.get("address");
-            String recvMobilePhone = (String)parames.get("phone");
+            String address = (String) parames.get("address");
+            String recvMobilePhone = (String) parames.get("phone");
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
             String rxid = recipeExtend.getRxid();
             //通过前置机调用
-            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
+            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService", IRecipeEnterpriseService.class);
             EnterpriseResTo enterpriseResTo = new EnterpriseResTo();
             enterpriseResTo.setOrganId(recipe.getClinicOrgan());
             enterpriseResTo.setDepId(depId.toString());
@@ -1051,7 +1073,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             if (hisResponseTO != null && hisResponseTO.isSuccess()) {
                 //表示获取第三方运费成功
                 Map<String, Object> extend = hisResponseTO.getExtend();
-                Boolean expressFeeFlag = (Boolean)extend.get("result");
+                Boolean expressFeeFlag = (Boolean) extend.get("result");
                 Object expressFee = extend.get("postagePrice");
                 if (expressFeeFlag) {
                     result.put("expressFee", expressFee);
@@ -1077,7 +1099,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             try {
                 return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
             } catch (ControllerException e) {
-                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area, e);
             }
         }
         return "";
@@ -1085,29 +1107,30 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
 
     /**
      * 通过机构分页查找药品库存
+     *
      * @param organId
      * @param start
      * @param limit
      * @return
      */
     @RpcService
-    public List<Map<String,Object>> findEnterpriseStockByPage(String  organId, Integer start, Integer limit){
-        LOGGER.info("syncEnterpriseStockByOrganIdForHis organId:{}, start:{}, limit:{}", organId, start,limit);
-        IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService",IRecipeEnterpriseService.class);
+    public List<Map<String, Object>> findEnterpriseStockByPage(String organId, Integer start, Integer limit) {
+        LOGGER.info("syncEnterpriseStockByOrganIdForHis organId:{}, start:{}, limit:{}", organId, start, limit);
+        IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService", IRecipeEnterpriseService.class);
         FindEnterpriseStockByPageTo findEnterpriseStockByPageTo = new FindEnterpriseStockByPageTo();
         findEnterpriseStockByPageTo.setOrgan(organId);
         findEnterpriseStockByPageTo.setStart(start);
         findEnterpriseStockByPageTo.setLimit(limit);
         LOGGER.info("findEnterpriseStockByPage requestBean:{}.", JSONUtils.toString(findEnterpriseStockByPageTo));
-        HisResponseTO<List<Map<String,Object>>> responseTO =  recipeEnterpriseService.findEnterpriseStockByPage(findEnterpriseStockByPageTo);
+        HisResponseTO<List<Map<String, Object>>> responseTO = recipeEnterpriseService.findEnterpriseStockByPage(findEnterpriseStockByPageTo);
         LOGGER.info("String responseTO:{}.", JSONUtils.toString(responseTO));
-        if(responseTO.isSuccess()){
+        if (responseTO.isSuccess()) {
             return responseTO.getData();
         }
         return new ArrayList<>();
     }
 
-    public DrugEnterpriseResult HosscanStock(Integer recipeId, DrugsEnterprise drugsEnterprise){
+    public DrugEnterpriseResult HosscanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         LOGGER.info("scanStock recipeId:{}, drugsEnterprise:{}", recipeId, JSONUtils.toString(drugsEnterprise));
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();//result=0检验失败
         //1.医院处方服务
@@ -1115,7 +1138,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         //2.根据处方Id查询医院的库存
         RecipeResultBean recipeResultBean = hisService.scanDrugStockByRecipeId(recipeId);
         //返回code=1,代表有库存，否则没有库存
-        if (recipeResultBean.getCode()==RecipeResultBean.SUCCESS){
+        if (recipeResultBean.getCode() == RecipeResultBean.SUCCESS) {
             result.setCode(DrugEnterpriseResult.SUCCESS);
             return result;
         }

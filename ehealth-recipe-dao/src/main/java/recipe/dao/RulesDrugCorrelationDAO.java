@@ -38,27 +38,39 @@ public abstract class RulesDrugCorrelationDAO extends HibernateSupportDelegateDA
 
 
 
-    @DAOMethod(sql = "from RulesDrugCorrelation where medicationRulesId=:medicationRulesId  and  drugCode=:drugCode and  correlationDrugCode=:correlationDrugCode ", limit = 0)
-    public abstract RulesDrugCorrelation getDrugCorrelationByCodeAndRulesId(@DAOParam("medicationRulesId") Integer medicationRulesId,@DAOParam("drugCode") String DrugCode,@DAOParam("correlationDrugCode") String correlationDrugCode);
+    @DAOMethod(sql = "from RulesDrugCorrelation where medicationRulesId=:medicationRulesId  and  drugId=:drugId and  correlationDrugId=:correlationDrugId ", limit = 0)
+    public abstract RulesDrugCorrelation getDrugCorrelationByCodeAndRulesId(@DAOParam("medicationRulesId") Integer medicationRulesId,@DAOParam("drugId") Integer drugId,@DAOParam("correlationDrugId") Integer correlationDrugId);
 
 
-    @DAOMethod(sql = "from RulesDrugCorrelation where medicationRulesId=:medicationRulesId  and  drugCode=:drugCode  ", limit = 0)
-    public abstract RulesDrugCorrelation getDrugCorrelationByDrugCodeAndRulesId(@DAOParam("medicationRulesId") Integer medicationRulesId,@DAOParam("drugCode") String DrugCode);
+    @DAOMethod(sql = "from RulesDrugCorrelation where medicationRulesId=:medicationRulesId  and  drugId=:drugId  ", limit = 0)
+    public abstract RulesDrugCorrelation getDrugCorrelationByDrugCodeAndRulesId(@DAOParam("medicationRulesId") Integer medicationRulesId,@DAOParam("drugId") Integer drugId);
 
 
-    public QueryResult<RulesDrugCorrelationDTO> queryMedicationRulesBynameAndRecipeType( String input, int start, int limit) {
+    public QueryResult<RulesDrugCorrelationDTO> queryMedicationRulesBynameAndRecipeType(Integer drugId, String input,Integer rulesId, int start, int limit) {
         HibernateStatelessResultAction<QueryResult<RulesDrugCorrelationDTO>> action = new AbstractHibernateStatelessResultAction<QueryResult<RulesDrugCorrelationDTO>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder(" from  RulesDrugCorrelation  where 1=1  ");
+                StringBuilder hql = new StringBuilder(" from  RulesDrugCorrelation a  where 1=1  ");
+                /*if (!ObjectUtils.isEmpty(drugId)) {
+                    hql.append(" and ( drugId =:drugId  or correlationDrugId =:drugId    )");
+                }*/
                 if (!ObjectUtils.isEmpty(input)) {
-                    hql.append(" and ( DrugCode like:input or DrugName like:input or correlationDrugCode like:input or correlationDrugName like:input   )");
+                    hql.append(" and (  a.drugName like:input  or a.correlationDrugName like:input   )");
+                }
+                if (!ObjectUtils.isEmpty(rulesId)) {
+                    hql.append(" and a.medicationRulesId =:rulesId ");
                 }
 
-                hql.append("  order by createDt desc");
+                hql.append("  order by a.createDt desc ");
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                 if (!ObjectUtils.isEmpty(input)) {
                     countQuery.setParameter("input", "%" + input + "%");
+                }
+                if (!ObjectUtils.isEmpty(drugId)) {
+                    countQuery.setParameter("drugId", drugId);
+                }
+                if (!ObjectUtils.isEmpty(rulesId)) {
+                    countQuery.setParameter("rulesId", rulesId);
                 }
                 Long total = (Long) countQuery.uniqueResult();
 
@@ -66,11 +78,16 @@ public abstract class RulesDrugCorrelationDAO extends HibernateSupportDelegateDA
                 if (!ObjectUtils.isEmpty(input)) {
                     q.setParameter("input", "%" + input + "%");
                 }
+                if (!ObjectUtils.isEmpty(drugId)) {
+                    q.setParameter("drugId", drugId);
+                }
+                if (!ObjectUtils.isEmpty(rulesId)) {
+                    q.setParameter("rulesId", rulesId);
+                }
                 q.setFirstResult(start);
                 q.setMaxResults(limit);
-                List<RulesDrugCorrelation> lists = q.list();
-                List<RulesDrugCorrelationDTO> convert = ObjectCopyUtils.convert(lists, RulesDrugCorrelationDTO.class);
-                new QueryResult<RulesDrugCorrelationDTO>(total, q.getFirstResult(), q.getMaxResults(), convert);
+                List<RulesDrugCorrelationDTO> lists = q.list();
+                setResult( new QueryResult<RulesDrugCorrelationDTO>(total, q.getFirstResult(), q.getMaxResults(), lists));
             }
         };
         HibernateSessionTemplate.instance().execute(action);
