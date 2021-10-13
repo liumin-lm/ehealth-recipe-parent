@@ -533,7 +533,7 @@ public class DrugListService extends BaseService<DrugListBean> {
             dao.remove(drugId);
         }else {
             map.put("code", 609);
-            map.put("saleDrugListterror",saleDrugListterror);
+            map.put("saleDrugListrror",saleDrugListterror);
             map.put("organDrugListerror",organDrugListerror);
             return map;
         }
