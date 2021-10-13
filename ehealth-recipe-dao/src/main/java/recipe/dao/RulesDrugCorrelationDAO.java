@@ -51,9 +51,9 @@ public abstract class RulesDrugCorrelationDAO extends HibernateSupportDelegateDA
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder(" from  RulesDrugCorrelation a  where 1=1  ");
-                /*if (!ObjectUtils.isEmpty(drugId)) {
+                if (!ObjectUtils.isEmpty(drugId)) {
                     hql.append(" and ( drugId =:drugId  or correlationDrugId =:drugId    )");
-                }*/
+                }
                 if (!ObjectUtils.isEmpty(input)) {
                     hql.append(" and (  a.drugName like:input  or a.correlationDrugName like:input   )");
                 }
