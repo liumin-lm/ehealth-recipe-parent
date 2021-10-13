@@ -396,12 +396,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                                               Integer depart, int start, int limit, List<Integer> organIds,
                                               Integer giveMode, Integer sendType, Integer fromflag,
                                               Integer recipeId, Integer enterpriseId, Integer checkStatus,
-                                              Integer payFlag, Integer orderType, Integer refundNodeStatus) {
+                                              Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         QueryResult<Map> result = recipeDAO.findRecipesByInfo(organId, status, doctor, patientName,
                 bDate, eDate, dateType, depart, start, limit, organIds,
                 giveMode, sendType, fromflag, recipeId, enterpriseId,
-                checkStatus, payFlag, orderType, refundNodeStatus);
+                checkStatus, payFlag, orderType, refundNodeStatus,recipeType);
         List<Map> records = result.getItems();
         for (Map record : records) {
             Recipe recipe = recipeDAO.getByRecipeId((int) record.get("recipeId"));
@@ -425,7 +425,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 , recipesQueryVO.getPatientName(), recipesQueryVO.getBDate(), recipesQueryVO.getEDate(), recipesQueryVO.getDateType()
                 , recipesQueryVO.getDepart(), recipesQueryVO.getStart(), recipesQueryVO.getLimit(), recipesQueryVO.getOrganIds()
                 , recipesQueryVO.getGiveMode(), recipesQueryVO.getSendType(), recipesQueryVO.getFromFlag(), recipesQueryVO.getRecipeId()
-                , recipesQueryVO.getEnterpriseId(), recipesQueryVO.getCheckStatus(), recipesQueryVO.getPayFlag(), recipesQueryVO.getOrderType(), null);
+                , recipesQueryVO.getEnterpriseId(), recipesQueryVO.getCheckStatus(), recipesQueryVO.getPayFlag(), recipesQueryVO.getOrderType(), null, null);
 
     }
 

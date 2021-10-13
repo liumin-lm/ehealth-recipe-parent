@@ -41,6 +41,8 @@ public class RecipeInfoExportDTO implements Serializable{
     private Integer sumDose;
     private  Integer sendType;
     private String outTradeNo;
+    @Dictionary(id = "eh.cdr.dictionary.RecipeType")
+    private Integer recipeType;
 
     @ItemProperty(alias = "结算方式（医保 自费）")
     private Integer orderType;
