@@ -16,8 +16,10 @@ import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.client.IConfigurationClient;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
 import recipe.constant.ErrorCode;
@@ -27,7 +29,9 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.manager.RecipeManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
+import recipe.util.ValidateUtil;
 
+import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -55,6 +59,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private RemoteRecipeService remoteRecipeService;
     @Autowired
     private PatientClient patientClient;
+    @Resource
+    private IConfigurationClient configurationClient;
 
     /**
      * 获取线下门诊处方诊断信息
@@ -165,7 +171,26 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public Boolean validateOpenRecipeNumber(Integer clinicId, Integer organId) {
-        return recipeManager.isOpenRecipeNumber(clinicId, organId);
+        logger.info("RecipeBusinessService validateOpenRecipeNumber clinicId: {},organId: {}", clinicId, organId);
+        if (ValidateUtil.integerIsEmpty(clinicId)) {
+            return true;
+        }
+        //运营平台没有处方单数限制，默认可以无限进行开处方
+        Integer openRecipeNumber = configurationClient.getValueCatch(organId, "openRecipeNumber", 99);
+        logger.info("RecipeBusinessService validateOpenRecipeNumber openRecipeNumber={}", openRecipeNumber);
+        if (ValidateUtil.integerIsEmpty(openRecipeNumber)) {
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "开方张数0已超出医院限定范围，不能继续开方。");
+        }
+        //查询当前复诊存在的有效处方单
+        List<Recipe> recipeCount = recipeDAO.findRecipeClinicIdAndStatus(clinicId, RecipeStatusEnum.RECIPE_REPEAT_COUNT);
+        if (CollectionUtils.isEmpty(recipeCount)) {
+            return true;
+        }
+        logger.info("RecipeBusinessService validateOpenRecipeNumber recipeCount={}", recipeCount.size());
+        if (recipeCount.size() >= openRecipeNumber) {
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "开方张数已超出医院限定范围，不能继续开方。");
+        }
+        return true;
     }
 
 }
