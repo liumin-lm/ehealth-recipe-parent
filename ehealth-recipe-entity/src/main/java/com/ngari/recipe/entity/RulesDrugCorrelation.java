@@ -49,13 +49,13 @@ public class RulesDrugCorrelation  implements Serializable {
     private Double minimumDosageRange;
 
     @ItemProperty(alias = "最大规则药品 用量范围  中药药品超量规则 用")
-    private Double MaximumDosageRange;
+    private Double maximumDosageRange;
 
     @ItemProperty(alias = "创建时间")
     private Date createDt;
 
     @ItemProperty(alias = "最后修改时间")
-    private Date LastModify;
+    private Date lastModify;
 
 
     @Id
@@ -140,11 +140,11 @@ public class RulesDrugCorrelation  implements Serializable {
 
     @Column(name = "MaximumDosageRange")
     public Double getMaximumDosageRange() {
-        return MaximumDosageRange;
+        return maximumDosageRange;
     }
 
     public void setMaximumDosageRange(Double maximumDosageRange) {
-        MaximumDosageRange = maximumDosageRange;
+        this.maximumDosageRange = maximumDosageRange;
     }
 
     @Column(name = "createDt")
@@ -158,10 +158,10 @@ public class RulesDrugCorrelation  implements Serializable {
 
     @Column(name = "LastModify")
     public Date getLastModify() {
-        return LastModify;
+        return lastModify;
     }
 
     public void setLastModify(Date lastModify) {
-        LastModify = lastModify;
+        this.lastModify = lastModify;
     }
 }

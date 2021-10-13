@@ -623,7 +623,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
             public void execute(StatelessSession ss) throws DAOException {
                 StringBuilder hql = new StringBuilder("from DrugList where status=1 ");
                 if (!ObjectUtils.isEmpty(name)) {
-                    hql.append(" and name like:name ");
+                    hql.append(" and drugName like:name ");
                 }
                 hql.append(" order by createDt desc");
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());
