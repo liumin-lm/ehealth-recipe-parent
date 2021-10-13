@@ -2665,6 +2665,8 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info("findRecipeAndDetailById recipeId = {}", recipeId);
         try {
             Map<String, Object> result = getRecipeAndDetailByIdImpl(recipeId, true);
+            // 智能预审临时操作 bug 79725 【实施】【嘉定区中心医院】【B】【BUG】自动审方结果跟问题说明产生矛盾
+            result.remove("medicines");
             PatientDTO patient = (PatientDTO) result.get("patient");
             result.put("patient", ObjectCopyUtils.convert(patient, PatientVO.class));
             RecipeBean recipeBean = (RecipeBean) result.get("recipe");
