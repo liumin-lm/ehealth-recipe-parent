@@ -67,7 +67,8 @@ public interface IRecipeBusinessService {
      *
      * @param clinicId 复诊id
      * @param organId  机构id
+     * @param recipeId 排除的处方id
      * @return true 可开方
      */
-    Boolean validateOpenRecipeNumber(Integer clinicId, Integer organId);
+    Boolean validateOpenRecipeNumber(Integer clinicId, Integer organId, Integer recipeId);
 }
