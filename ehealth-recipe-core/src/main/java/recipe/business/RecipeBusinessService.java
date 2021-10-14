@@ -170,21 +170,21 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     @Override
-    public Boolean validateOpenRecipeNumber(Integer clinicId, Integer organId) {
+    public Boolean validateOpenRecipeNumber(Integer clinicId, Integer organId, Integer recipeId) {
         logger.info("RecipeBusinessService validateOpenRecipeNumber clinicId: {},organId: {}", clinicId, organId);
         //运营平台没有处方单数限制，默认可以无限进行开处方
-        Integer openRecipeNumber = configurationClient.getValueCatch(organId, "openRecipeNumber", 99);
+        Integer openRecipeNumber = configurationClient.getValueCatch(organId, "openRecipeNumber", 999);
         logger.info("RecipeBusinessService validateOpenRecipeNumber openRecipeNumber={}", openRecipeNumber);
         if (ValidateUtil.integerIsEmpty(openRecipeNumber)) {
             throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "开方张数0已超出医院限定范围，不能继续开方。");
         }
         //查询当前复诊存在的有效处方单
-        List<Recipe> recipeCount = recipeDAO.findRecipeClinicIdAndStatus(clinicId, RecipeStatusEnum.RECIPE_REPEAT_COUNT);
-        if (CollectionUtils.isEmpty(recipeCount)) {
+        List<Integer> recipeIds = recipeManager.findRecipeByClinicId(clinicId, recipeId, RecipeStatusEnum.RECIPE_REPEAT_COUNT);
+        if (CollectionUtils.isEmpty(recipeIds)) {
             return true;
         }
-        logger.info("RecipeBusinessService validateOpenRecipeNumber recipeCount={}", recipeCount.size());
-        if (recipeCount.size() >= openRecipeNumber) {
+        logger.info("RecipeBusinessService validateOpenRecipeNumber recipeCount={}", recipeIds.size());
+        if (recipeIds.size() >= openRecipeNumber) {
             throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "开方张数已超出医院限定范围，不能继续开方。");
         }
         return true;
