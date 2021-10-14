@@ -498,7 +498,7 @@ public class RecipeSignService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
         }
 
-        recipeManager.isOpenRecipeNumber(recipeBean.getClinicId(), recipeBean.getClinicOrgan());
+        recipeManager.isOpenRecipeNumber(recipeBean.getClinicId(), recipeBean.getClinicOrgan(), null);
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
         details.stream().filter(a -> "无特殊煎法".equals(a.getMemo())).forEach(a -> a.setMemo(""));
         if (null != recipeId && recipeId > 0) {
@@ -733,7 +733,7 @@ public class RecipeSignService {
         if (null == dbRecipe || canNoRetryStatus(dbRecipe.getStatus())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方不能重试");
         }
-        recipeManager.isOpenRecipeNumber(dbRecipe.getClinicId(), dbRecipe.getClinicOrgan());
+        recipeManager.isOpenRecipeNumber(dbRecipe.getClinicId(), dbRecipe.getClinicOrgan(), recipeId);
         //获取处方回写单号  提示推送成功，否则继续推送
         String recipeCode = dbRecipe.getRecipeCode();
         if (StringUtils.isNotEmpty(recipeCode)) {

@@ -371,7 +371,7 @@ public class RecipeManager extends BaseManager {
      * @return true 可开方
      */
     @Deprecated
-    public Boolean isOpenRecipeNumber(Integer clinicId, Integer organId) {
+    public Boolean isOpenRecipeNumber(Integer clinicId, Integer organId, Integer recipeId) {
         logger.info("RecipeManager isOpenRecipeNumber clinicId: {},organId: {}", clinicId, organId);
         if (ValidateUtil.integerIsEmpty(clinicId)) {
             return true;
@@ -387,8 +387,17 @@ public class RecipeManager extends BaseManager {
         if (CollectionUtils.isEmpty(recipeCount)) {
             return true;
         }
-        logger.info("RecipeManager isOpenRecipeNumber recipeCount={}", recipeCount.size());
-        if (recipeCount.size() >= openRecipeNumber) {
+        List<Integer> recipeIds;
+        if (ValidateUtil.integerIsEmpty(recipeId)) {
+            recipeIds = recipeCount.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        } else {
+            recipeIds = recipeCount.stream().filter(a -> !a.getRecipeId().equals(recipeId)).map(Recipe::getRecipeId).collect(Collectors.toList());
+        }
+        if (CollectionUtils.isEmpty(recipeIds)) {
+            return true;
+        }
+        logger.info("RecipeManager isOpenRecipeNumber recipeCount={}", recipeIds.size());
+        if (recipeIds.size() >= openRecipeNumber) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "开方张数已超出医院限定范围，不能继续开方。");
         }
         return true;

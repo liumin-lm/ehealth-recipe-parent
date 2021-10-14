@@ -984,7 +984,7 @@ public class RecipeService extends RecipeBaseService {
             return;
         }
 
-        recipeManager.isOpenRecipeNumber(recipe.getClinicId(), recipe.getClinicOrgan());
+        recipeManager.isOpenRecipeNumber(recipe.getClinicId(), recipe.getClinicOrgan(), recipeId);
         try {
             //写入his成功后，生成pdf并签名
             //date 20200827 修改his返回请求CA
@@ -1480,7 +1480,7 @@ public class RecipeService extends RecipeBaseService {
         if (null == recipe || null == recipe.getStatus() || (recipe.getStatus() != RecipeStatusConstant.CHECKING_HOS && recipe.getStatus() != RecipeStatusConstant.HIS_FAIL)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方不能重试");
         }
-        recipeManager.isOpenRecipeNumber(recipe.getClinicId(), recipe.getClinicOrgan());
+        recipeManager.isOpenRecipeNumber(recipe.getClinicId(), recipe.getClinicOrgan(), recipeId);
         //his写回提示，处方推送成功，否则再次推送
         String recipeCode = recipe.getRecipeCode();
         if (StringUtils.isNotEmpty(recipeCode)) {
@@ -1747,7 +1747,7 @@ public class RecipeService extends RecipeBaseService {
         }
 
         //校验开处方单数限制
-        recipeManager.isOpenRecipeNumber(recipe.getClinicId(), recipe.getClinicOrgan());
+        recipeManager.isOpenRecipeNumber(recipe.getClinicId(), recipe.getClinicOrgan(), null);
 
         recipe.setStatus(RecipeStatusConstant.UNSIGN);
         recipe.setSignDate(DateTime.now().toDate());
@@ -2188,7 +2188,7 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     @Deprecated
     public Boolean isOpenRecipeNumber(RequestVisitVO requestVisitVO) {
-        return recipeManager.isOpenRecipeNumber(requestVisitVO.getClinicId(), requestVisitVO.getOrganId());
+        return recipeManager.isOpenRecipeNumber(requestVisitVO.getClinicId(), requestVisitVO.getOrganId(), null);
     }
 
 
