@@ -49,18 +49,18 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
      */
     @RpcService
     public ValidateDetailVO validateDetailV1(ValidateDetailVO validateDetailVO) {
-        logger.info("RecipeDetailAtop validateDetailV1 validateDetailVO ：{}", JSON.toJSONString(validateDetailVO));
+        logger.info("RecipeValidateDoctorAtop validateDetailV1 validateDetailVO ：{}", JSON.toJSONString(validateDetailVO));
         validateAtop(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
         validateDetailVO.setLongRecipe(!IS_LONG_RECIPE_FALSE.equals(validateDetailVO.getRecipeExtendBean().getIsLongRecipe()));
         try {
             ValidateDetailVO result = recipeDetailService.continueRecipeValidateDrug(validateDetailVO);
-            logger.info("RecipeDetailAtop validateDetailV1 result = {}", JSON.toJSONString(result));
+            logger.info("RecipeValidateDoctorAtop validateDetailV1 result = {}", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
-            logger.error("RecipeDetailAtop validateDetailV1 error", e1);
+            logger.error("RecipeValidateDoctorAtop validateDetailV1 error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
-            logger.error("RecipeDetailAtop validateDetailV1 error e", e);
+            logger.error("RecipeValidateDoctorAtop validateDetailV1 error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
@@ -73,15 +73,15 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
      */
     @RpcService
     public List<RecipeDetailBean> useDayValidate(ValidateDetailVO validateDetailVO) {
-        logger.info("RecipeDetailAtop useDayValidate validateDetailVO {}", JSON.toJSONString(validateDetailVO));
+        logger.info("RecipeValidateDoctorAtop useDayValidate validateDetailVO {}", JSON.toJSONString(validateDetailVO));
         validateAtop(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), validateDetailVO.getRecipeExtendBean(), validateDetailVO.getRecipeDetails());
         validateDetailVO.setLongRecipe(!IS_LONG_RECIPE_FALSE.equals(validateDetailVO.getRecipeExtendBean().getIsLongRecipe()));
         try {
             List<RecipeDetailBean> result = recipeDetailService.useDayValidate(validateDetailVO);
-            logger.info("RecipeDetailAtop useDayValidate result = {}", JSON.toJSONString(result));
+            logger.info("RecipeValidateDoctorAtop useDayValidate result = {}", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
-            logger.error("RecipeDetailAtop useDayValidate error", e1);
+            logger.error("RecipeValidateDoctorAtop useDayValidate error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("RecipeDetailAtop useDayValidate error e", e);
@@ -98,19 +98,19 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
      */
     @RpcService
     public List<RecipeDetailBean> entrustValidate(Integer organId, List<RecipeDetailBean> recipeDetails) {
-        logger.info("RecipeDetailAtop entrustValidate recipeDetails = {}，organId= {}", JSON.toJSONString(recipeDetails), organId);
+        logger.info("RecipeValidateDoctorAtop entrustValidate recipeDetails = {}，organId= {}", JSON.toJSONString(recipeDetails), organId);
         if (ValidateUtil.integerIsEmpty(organId) || CollectionUtils.isEmpty(recipeDetails)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
         }
         try {
             List<RecipeDetailBean> result = recipeDetailService.entrustValidate(organId, recipeDetails);
-            logger.info("RecipeDetailAtop entrustValidate result = {}", JSON.toJSONString(result));
+            logger.info("RecipeValidateDoctorAtop entrustValidate result = {}", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
-            logger.error("RecipeDetailAtop entrustValidate error", e1);
+            logger.error("RecipeValidateDoctorAtop entrustValidate error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
-            logger.error("RecipeDetailAtop entrustValidate error e", e);
+            logger.error("RecipeValidateDoctorAtop entrustValidate error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
@@ -126,7 +126,7 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
      */
     @RpcService
     public Boolean revisitValidate(String mpiId, Integer doctorId, Integer organId) {
-        logger.info("RecipeDetailDoctorAtop revisitValidate mpiId: {},doctorId :{},organId :{}", mpiId, doctorId, organId);
+        logger.info("RecipeValidateDoctorAtop revisitValidate mpiId: {},doctorId :{},organId :{}", mpiId, doctorId, organId);
         validateAtop(mpiId, doctorId, organId);
         Recipe recipe = new Recipe();
         recipe.setMpiid(mpiId);
@@ -134,13 +134,13 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
         recipe.setClinicOrgan(organId);
         try {
             Boolean result = iRevisitBusinessService.revisitValidate(recipe);
-            logger.info("RecipeDetailDoctorAtop revisitValidate result = {}", JSON.toJSONString(result));
+            logger.info("RecipeValidateDoctorAtop revisitValidate result = {}", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
-            logger.warn("RecipeDetailDoctorAtop revisitValidate error", e1);
+            logger.warn("RecipeValidateDoctorAtop revisitValidate error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
-            logger.error("RecipeDetailDoctorAtop revisitValidate error e", e);
+            logger.error("RecipeValidateDoctorAtop revisitValidate error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
@@ -153,7 +153,7 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
      */
     @RpcService
     public ResultBean<String> validateRepeatRecipe(ValidateDetailVO validateDetailVO) {
-        logger.info("RecipeDetailAtop validateRepeatRecipe validateDetailVO ：{}", JSON.toJSONString(validateDetailVO));
+        logger.info("RecipeValidateDoctorAtop validateRepeatRecipe validateDetailVO ：{}", JSON.toJSONString(validateDetailVO));
         validateAtop(validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeBean().getClinicOrgan(), validateDetailVO.getRecipeDetails());
         if (ValidateUtil.integerIsEmpty(validateDetailVO.getRecipeBean().getClinicId())) {
             ResultBean<String> resultBean = new ResultBean<>();
@@ -162,13 +162,13 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
         }
         try {
             ResultBean<String> result = recipeDetailService.validateRepeatRecipe(validateDetailVO);
-            logger.info("RecipeDetailAtop validateRepeatRecipe result = {}", JSON.toJSONString(result));
+            logger.info("RecipeValidateDoctorAtop validateRepeatRecipe result = {}", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {
-            logger.error("RecipeDetailAtop validateRepeatRecipe error", e1);
+            logger.error("RecipeValidateDoctorAtop validateRepeatRecipe error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
-            logger.error("RecipeDetailAtop validateRepeatRecipe error e", e);
+            logger.error("RecipeValidateDoctorAtop validateRepeatRecipe error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
@@ -182,7 +182,7 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
      */
     @RpcService
     public Boolean validateOpenRecipeNumber(Integer clinicId, Integer organId, Integer recipeId) {
-        logger.info("RecipeDetailAtop validateRepeatRecipe clinicId ：{},organId ：{},recipeId ：{}", clinicId, organId, recipeId);
+        logger.info("RecipeValidateDoctorAtop validateOpenRecipeNumber clinicId ：{},organId ：{},recipeId ：{}", clinicId, organId, recipeId);
         validateAtop(organId);
         if (ValidateUtil.integerIsEmpty(clinicId)) {
             return true;
@@ -190,10 +190,10 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
         try {
             return recipeBusinessService.validateOpenRecipeNumber(clinicId, organId, recipeId);
         } catch (DAOException e1) {
-            logger.error("RecipeDetailAtop validateRepeatRecipe error", e1);
+            logger.error("RecipeValidateDoctorAtop validateOpenRecipeNumber error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
-            logger.error("RecipeDetailAtop validateRepeatRecipe error e", e);
+            logger.error("RecipeValidateDoctorAtop validateOpenRecipeNumber error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
