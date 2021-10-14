@@ -48,6 +48,9 @@ public class RecipeExportDTO implements Serializable{
     private String patientName;
     @ItemProperty(alias = "患者医院病历号")
     private String patientID;
+    @ItemProperty(alias = "处方类型")
+    @Dictionary(id = "eh.cdr.dictionary.RecipeType")
+    private Integer recipeType;
 
     @Column(name = "doctorName")
     public String getDoctorName() {
@@ -159,4 +162,11 @@ public class RecipeExportDTO implements Serializable{
         this.fromflag = fromflag;
     }
 
+    public Integer getRecipeType() {
+        return recipeType;
+    }
+
+    public void setRecipeType(Integer recipeType) {
+        this.recipeType = recipeType;
+    }
 }
