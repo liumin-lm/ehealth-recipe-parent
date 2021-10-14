@@ -767,8 +767,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     @Deprecated
     public List<Object[]> findRecipeOrdersByInfoForExcel(Integer organId, List<Integer> organIds, Integer status, Integer doctor, String patientName, Date bDate,
-                                                         Date eDate, Integer dateType, Integer depart, Integer giveMode, Integer fromflag, Integer recipeId) {
-        LOGGER.info("findRecipeOrdersByInfoForExcel查询处方订单导出信息入参:{},{},{},{},{},{},{},{},{},{},{},{}", organId, organIds, status, doctor, patientName, bDate, eDate, dateType, depart, giveMode, fromflag, recipeId);
+                                                         Date eDate, Integer dateType, Integer depart, Integer giveMode, Integer fromflag, Integer recipeId, Integer recipeType) {
+        LOGGER.info("findRecipeOrdersByInfoForExcel查询处方订单导出信息入参:{},{},{},{},{},{},{},{},{},{},{},{}", organId, organIds, status, doctor, patientName, bDate, eDate, dateType, depart, giveMode, fromflag, recipeId, recipeType);
         RecipesQueryVO recipesQueryVO = new RecipesQueryVO();
         recipesQueryVO.setOrganIds(organIds);
         recipesQueryVO.setOrganId(organId);
@@ -782,6 +782,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         recipesQueryVO.setRecipeId(recipeId);
         recipesQueryVO.setStatus(status);
         recipesQueryVO.setPatientName(patientName);
+        recipesQueryVO.setRecipeType(recipeType);
 
         List<Object[]> objectList = findRecipeOrdersByInfoForExcel2(recipesQueryVO);
         return objectList;
