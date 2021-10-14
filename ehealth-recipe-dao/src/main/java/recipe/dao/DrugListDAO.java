@@ -607,24 +607,33 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
      * @return
      * @author zhongzx
      */
-    public QueryResult<DrugList> findDrugListByName(final String name,final int start, final int limit) {
+    public QueryResult<DrugList> findDrugListByName(final String name,final String producer,final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<DrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugList>>() {
             @Override
             public void execute(StatelessSession ss) throws DAOException {
                 StringBuilder hql = new StringBuilder("from DrugList where status=1 ");
                 if (!ObjectUtils.isEmpty(name)) {
-                    hql.append(" and drugName like:name ");
+                    hql.append(" and ( drugName like:name or saleName like:name  )");
+                }
+                if (!ObjectUtils.isEmpty(producer)) {
+                    hql.append(" and producer like:producer ");
                 }
                 hql.append(" order by createDt desc");
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                 if (!ObjectUtils.isEmpty(name)) {
                     countQuery.setParameter("name", "%" + name + "%");
                 }
+                if (!ObjectUtils.isEmpty(producer)) {
+                    countQuery.setParameter("producer", "%" + producer + "%");
+                }
                 Long total = (Long) countQuery.uniqueResult();
 
                 Query q = ss.createQuery(hql.toString());
                 if (!ObjectUtils.isEmpty(name)) {
                     q.setParameter("name", "%" + name + "%");
+                }
+                if (!ObjectUtils.isEmpty(producer)) {
+                    q.setParameter("producer", "%" + producer + "%");
                 }
                 q.setFirstResult(start);
                 q.setMaxResults(limit);

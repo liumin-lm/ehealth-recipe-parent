@@ -27,6 +27,7 @@ import recipe.util.ValidateUtil;
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 处方
@@ -391,6 +392,28 @@ public class RecipeManager extends BaseManager {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "开方张数已超出医院限定范围，不能继续开方。");
         }
         return true;
+    }
+
+    /**
+     * 根据复诊id获取处方明细，并排除 特定处方id
+     *
+     * @param clinicId 复诊id
+     * @param recipeId 特定处方id
+     * @return 处方明细
+     */
+    public List<Integer> findRecipeByClinicId(Integer clinicId, Integer recipeId, List<Integer> status) {
+        List<Recipe> recipeList = recipeDAO.findRecipeClinicIdAndStatus(clinicId, status);
+        logger.info("RecipeManager findRecipeByClinicId recipeList:{}", JSON.toJSONString(recipeList));
+        if (CollectionUtils.isEmpty(recipeList)) {
+            return null;
+        }
+        List<Integer> recipeIds;
+        if (ValidateUtil.integerIsEmpty(recipeId)) {
+            recipeIds = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        } else {
+            recipeIds = recipeList.stream().filter(a -> !a.getRecipeId().equals(recipeId)).map(Recipe::getRecipeId).collect(Collectors.toList());
+        }
+        return recipeIds;
     }
 
 }

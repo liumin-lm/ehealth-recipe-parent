@@ -157,16 +157,18 @@ public class PatientClient extends BaseClient {
             p.setIdcard(ChinaIDNumberUtil.hideIdCard(p.getIdcard()));
         }
         try {
-            if (StringUtils.isNotEmpty(p.getCertificate()) && null != p.getCertificateType()
-                    && "身份证".equals(DictionaryController.instance().get("eh.mpi.dictionary.CertificateType").getText(patient.getCertificateType()))) {
-                p.setCertificate(ChinaIDNumberUtil.hideIdCard(p.getCertificate()));
+            if (null != p.getCertificateType()) {
+                String certificateTypeText = DictionaryController.instance().get("eh.mpi.dictionary.CertificateType").getText(patient.getCertificateType());
+                if (StringUtils.isNotEmpty(p.getCertificate())
+                        && "身份证".equals(certificateTypeText)) {
+                    p.setCertificate(ChinaIDNumberUtil.hideIdCard(p.getCertificate()));
+                }
             }
         } catch (ControllerException e) {
             e.printStackTrace();
         }
         p.setAge(null == p.getBirthday() ? 0 : DateConversion.getAge(p.getBirthday()));
         p.setIdcard2(null);
-        p.setCertificate(null);
         return p;
     }
 

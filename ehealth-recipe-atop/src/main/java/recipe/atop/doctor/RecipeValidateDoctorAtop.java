@@ -181,11 +181,14 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
      * @return true 可开方
      */
     @RpcService
-    public Boolean validateOpenRecipeNumber(Integer clinicId, Integer organId) {
-        logger.info("RecipeDetailAtop validateRepeatRecipe clinicId ：{},organId ：{}", clinicId, organId);
+    public Boolean validateOpenRecipeNumber(Integer clinicId, Integer organId, Integer recipeId) {
+        logger.info("RecipeDetailAtop validateRepeatRecipe clinicId ：{},organId ：{},recipeId ：{}", clinicId, organId, recipeId);
         validateAtop(organId);
+        if (ValidateUtil.integerIsEmpty(clinicId)) {
+            return true;
+        }
         try {
-            return recipeBusinessService.validateOpenRecipeNumber(clinicId, organId);
+            return recipeBusinessService.validateOpenRecipeNumber(clinicId, organId, recipeId);
         } catch (DAOException e1) {
             logger.error("RecipeDetailAtop validateRepeatRecipe error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());

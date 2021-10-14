@@ -17,10 +17,8 @@ import recipe.client.IConfigurationClient;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
-import recipe.manager.DrugManager;
-import recipe.manager.OrganDrugListManager;
-import recipe.manager.PharmacyManager;
-import recipe.manager.RecipeDetailManager;
+import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.manager.*;
 import recipe.util.MapValueUtil;
 import recipe.vo.ResultBean;
 import recipe.vo.doctor.ValidateDetailVO;
@@ -59,7 +57,8 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
     private OrganDrugListManager organDrugListManager;
     @Autowired
     private RecipeDetailManager recipeDetailManager;
-
+    @Autowired
+    private RecipeManager recipeManager;
 
     @Override
     public ValidateDetailVO continueRecipeValidateDrug(ValidateDetailVO validateDetailVO) {
@@ -155,10 +154,13 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
         if (REPEAT_OPEN_RULE_NO.equals(repeatRecipeOpenRule)) {
             return resultBean;
         }
-        List<Recipedetail> recipeDetails = recipeDetailManager.findRecipeDetailsByClinicId(validateDetailVO.getRecipeBean().getClinicId(), validateDetailVO.getRecipeBean().getRecipeId());
+
+        List<Integer> recipeIds = recipeManager.findRecipeByClinicId(validateDetailVO.getRecipeBean().getClinicId(), validateDetailVO.getRecipeBean().getRecipeId(), RecipeStatusEnum.RECIPE_REPEAT);
+        List<Recipedetail> recipeDetails = recipeDetailManager.findRecipeDetails(recipeIds);
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return resultBean;
         }
+
         //不可开重复处方
         if (REPEAT_OPEN_RULE_RECIPE.equals(repeatRecipeOpenRule)) {
             //需要校验的药品id
