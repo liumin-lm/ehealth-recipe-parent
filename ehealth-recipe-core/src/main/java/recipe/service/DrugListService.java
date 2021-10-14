@@ -405,9 +405,9 @@ public class DrugListService extends BaseService<DrugListBean> {
      * @author houxr
      */
     @RpcService
-    public QueryResult<DrugList> findDrugListsByName(final String drugName, final int start, final int limit) {
+    public QueryResult<DrugList> findDrugListsByName(final String drugName,final String producer, final int start, final int limit) {
         DrugListDAO dao = getDAO(DrugListDAO.class);
-        QueryResult<DrugList> drugListByName = dao.findDrugListByName(drugName, start, limit);
+        QueryResult<DrugList> drugListByName = dao.findDrugListByName(drugName,producer, start, limit);
         return drugListByName;
     }
 
