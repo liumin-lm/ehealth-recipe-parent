@@ -380,6 +380,7 @@ public class RecipeManager extends BaseManager {
         Integer openRecipeNumber = configurationClient.getValueCatch(organId, "openRecipeNumber", 99);
         logger.info("RecipeManager isOpenRecipeNumber openRecipeNumber={}", openRecipeNumber);
         if (ValidateUtil.integerIsEmpty(openRecipeNumber)) {
+            saveRecipeLog(recipeId, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS, "开方张数已超出医院限定范围，不能继续开方。");
             throw new DAOException(ErrorCode.SERVICE_ERROR, "开方张数0已超出医院限定范围，不能继续开方。");
         }
         //查询当前复诊存在的有效处方单
@@ -398,6 +399,7 @@ public class RecipeManager extends BaseManager {
         }
         logger.info("RecipeManager isOpenRecipeNumber recipeCount={}", recipeIds.size());
         if (recipeIds.size() >= openRecipeNumber) {
+            saveRecipeLog(recipeId, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS, "开方张数已超出医院限定范围，不能继续开方。");
             throw new DAOException(ErrorCode.SERVICE_ERROR, "开方张数已超出医院限定范围，不能继续开方。");
         }
         return true;
