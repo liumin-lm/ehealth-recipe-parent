@@ -615,7 +615,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 if (!ObjectUtils.isEmpty(name)) {
                     hql.append(" and ( drugName like:name or saleName like:name  )");
                 }
-                if (!ObjectUtils.isEmpty(name)) {
+                if (!ObjectUtils.isEmpty(producer)) {
                     hql.append(" and producer like:producer ");
                 }
                 hql.append(" order by createDt desc");
