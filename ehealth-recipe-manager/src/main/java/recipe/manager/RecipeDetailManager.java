@@ -73,7 +73,7 @@ public class RecipeDetailManager extends BaseManager {
      * @return 处方明细
      */
     public List<Recipedetail> findRecipeDetailsByClinicId(Integer clinicId, Integer recipeId) {
-        List<Recipe> recipeList = recipeDAO.findRecipeClinicIdAndStatus(clinicId, RecipeStatusEnum.RECIPE_REPEAT_COUNT);
+        List<Recipe> recipeList = recipeDAO.findRecipeClinicIdAndStatus(clinicId, RecipeStatusEnum.RECIPE_REPEAT);
         logger.info("RecipeDetailManager findRecipeDetailsByClinicId recipeList:{}", JSON.toJSONString(recipeList));
         if (CollectionUtils.isEmpty(recipeList)) {
             return null;

@@ -69,6 +69,12 @@ public enum RecipeStatusEnum {
      */
     public static final List<Integer> RECIPE_REPEAT_COUNT = Arrays.asList(RECIPE_STATUS_CHECK_NOT_PASS.type, RECIPE_STATUS_UNSIGNED.type,
             RECIPE_STATUS_REVOKE.type, RECIPE_STATUS_DELETE.type, RECIPE_STATUS_NO_PAY.type, RECIPE_STATUS_NO_OPERATOR.type, RECIPE_STATUS_CHECK_NOT_PASS_YS.type);
+    /**
+     * 重复 处方/药品 -1,0,9,10,13,14,15
+     */
+    public static final List<Integer> RECIPE_REPEAT = Arrays.asList(RECIPE_STATUS_CHECK_NOT_PASS.type, RECIPE_STATUS_UNSIGNED.type,
+            RECIPE_STATUS_REVOKE.type, RECIPE_STATUS_DELETE.type, RECIPE_STATUS_NO_PAY.type, RECIPE_STATUS_NO_OPERATOR.type);
+
 
     RecipeStatusEnum(Integer type, String name, String desc) {
         this.type = type;
