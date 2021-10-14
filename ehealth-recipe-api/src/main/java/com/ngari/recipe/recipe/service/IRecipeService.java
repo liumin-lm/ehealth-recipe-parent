@@ -190,7 +190,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
                                        Integer depart, int start, int limit, List<Integer> organIds,
                                        Integer giveMode, Integer sendType, Integer fromflag,
                                        Integer recipeId, Integer enterpriseId, Integer checkStatus,
-                                       Integer payFlag, Integer orderType, Integer refundNodeStatus);
+                                       Integer payFlag, Integer orderType, Integer refundNodeStatus,Integer recipeType);
 
     /**
      * 运营平台使用

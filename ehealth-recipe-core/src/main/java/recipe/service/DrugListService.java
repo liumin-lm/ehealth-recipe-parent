@@ -380,7 +380,7 @@ public class DrugListService extends BaseService<DrugListBean> {
      */
     @RpcService
     public QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(final String drugClass, final String keyword,
-                                                                              final Integer status,final Integer drugSourcesId,Integer type,Integer isStandardDrug,
+                                                                              final Integer status,final Integer drugSourcesId,Integer type,final Integer isStandardDrug,
                                                                               final int start, final int limit) {
         DrugListDAO dao = getDAO(DrugListDAO.class);
         QueryResult<DrugList> result = dao.queryDrugListsByDrugNameAndStartAndLimit(drugClass, keyword, status, drugSourcesId, type,isStandardDrug, start, limit);
@@ -533,7 +533,7 @@ public class DrugListService extends BaseService<DrugListBean> {
             dao.remove(drugId);
         }else {
             map.put("code", 609);
-            map.put("saleDrugListterror",saleDrugListterror);
+            map.put("saleDrugListrror",saleDrugListterror);
             map.put("organDrugListerror",organDrugListerror);
             return map;
         }

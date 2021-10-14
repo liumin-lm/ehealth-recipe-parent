@@ -600,16 +600,6 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
         }
     }
 
-   /* *//**
-     * 根据名称 查询标准药品
-     * @param drugName
-     * @param start
-     * @param limit
-     * @return
-     *//*
-    @DAOMethod(sql = "from DrugList where drugName like:drugName and isStandardDrug=1   and  status= 1",limit = 0)
-    public abstract List<DrugList> findDrugListByName(@DAOParam("drugName") String drugName,@DAOParam(pageStart = true) int start,@DAOParam(pageLimit = true) int limit);
-*/
     /**
      * 药品名模糊查询 药品
      *
@@ -676,7 +666,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
      * @author houxr
      */
     public QueryResult<DrugList> queryDrugListsByDrugNameAndStartAndLimit(final String drugClass, final String keyword,
-                                                                              final Integer status, final Integer sourceOrgan, Integer type,Integer isStandardDrug,
+                                                                              final Integer status, final Integer sourceOrgan, Integer type,final Integer isStandardDrug,
                                                                               final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<DrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugList>>() {
             @SuppressWarnings("unchecked")
@@ -707,7 +697,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                     hql.append(" and drugType =:drugType");
                 }
                 if (!ObjectUtils.isEmpty(isStandardDrug)) {
-                    hql.append(" and isStandardDrug =:isStandardDrug");
+                    hql.append(" and isStandardDrug =:isStandardDrug ");
                 }
                 if (!ObjectUtils.isEmpty(sourceOrgan)) {
                     if (sourceOrgan == 0){

@@ -52,7 +52,7 @@ public class ConfigStatusDoctorAtop extends BaseAtop {
         logger.info("ConfigStatusService getConfigStatus location = {}", location);
         try {
             List<ConfigStatusCheckVO> configStatusCheckList = configStatusService.findByLocationAndSource(location, source);
-            if (new Integer(1).equals(organId)) {
+            if (new Integer(1003991).equals(organId)) {
                 return configStatusCheckList.stream().filter(configStatusCheckVO -> "已发药".equals(configStatusCheckVO.getTargetName())
                 || "已拒发".equals(configStatusCheckVO.getTargetName())).collect(Collectors.toList());
             }
