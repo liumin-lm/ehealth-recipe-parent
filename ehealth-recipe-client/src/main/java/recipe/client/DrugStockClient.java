@@ -10,6 +10,7 @@ import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.entity.*;
+import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -32,6 +33,9 @@ public class DrugStockClient extends BaseClient {
 
     @Resource
     private IRecipeEnterpriseService recipeEnterpriseService;
+
+    @Resource
+    private RevisitClient revisitClient;
 
 
     /**
@@ -212,6 +216,18 @@ public class DrugStockClient extends BaseClient {
                 scanDrugListBean.setProducerCode(recipedetail.getProducerCode());
                 scanDrugListBean.setPharmacyCode(String.valueOf(recipedetail.getPharmacyId()));
                 scanDrugListBean.setPharmacy(recipedetail.getPharmacyName());
+                scanDrugListBean.setProducer(recipedetail.getProducer());
+                scanDrugListBean.setName(recipedetail.getSaleName());
+                scanDrugListBean.setGname(recipedetail.getDrugName());
+                try {
+                    RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
+                    if (revisitExDTO != null) {
+                        scanDrugListBean.setChannelCode(revisitExDTO.getProjectChannel());
+                    }
+                } catch (Exception e) {
+                    logger.error("queryPatientChannelId error:", e);
+                }
+
             }
             return scanDrugListBean;
         }).collect(Collectors.toList());
