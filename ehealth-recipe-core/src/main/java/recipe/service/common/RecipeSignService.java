@@ -498,7 +498,7 @@ public class RecipeSignService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
         }
 
-        recipeManager.isOpenRecipeNumber(recipeBean.getClinicId(), recipeBean.getClinicOrgan(), null);
+        recipeManager.isOpenRecipeNumber(recipeBean.getClinicId(), recipeBean.getClinicOrgan(), recipeBean.getRecipeId());
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
         details.stream().filter(a -> "无特殊煎法".equals(a.getMemo())).forEach(a -> a.setMemo(""));
         if (null != recipeId && recipeId > 0) {

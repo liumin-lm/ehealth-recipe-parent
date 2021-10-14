@@ -1747,7 +1747,7 @@ public class RecipeService extends RecipeBaseService {
         }
 
         //校验开处方单数限制
-        recipeManager.isOpenRecipeNumber(recipe.getClinicId(), recipe.getClinicOrgan(), null);
+        recipeManager.isOpenRecipeNumber(recipe.getClinicId(), recipe.getClinicOrgan(), recipe.getRecipeId());
 
         recipe.setStatus(RecipeStatusConstant.UNSIGN);
         recipe.setSignDate(DateTime.now().toDate());
