@@ -172,9 +172,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public Boolean validateOpenRecipeNumber(Integer clinicId, Integer organId) {
         logger.info("RecipeBusinessService validateOpenRecipeNumber clinicId: {},organId: {}", clinicId, organId);
-        if (ValidateUtil.integerIsEmpty(clinicId)) {
-            return true;
-        }
         //运营平台没有处方单数限制，默认可以无限进行开处方
         Integer openRecipeNumber = configurationClient.getValueCatch(organId, "openRecipeNumber", 99);
         logger.info("RecipeBusinessService validateOpenRecipeNumber openRecipeNumber={}", openRecipeNumber);

@@ -184,6 +184,9 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
     public Boolean validateOpenRecipeNumber(Integer clinicId, Integer organId) {
         logger.info("RecipeDetailAtop validateRepeatRecipe clinicId ：{},organId ：{}", clinicId, organId);
         validateAtop(organId);
+        if (ValidateUtil.integerIsEmpty(clinicId)) {
+            return true;
+        }
         try {
             return recipeBusinessService.validateOpenRecipeNumber(clinicId, organId);
         } catch (DAOException e1) {
