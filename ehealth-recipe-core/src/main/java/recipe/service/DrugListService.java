@@ -419,9 +419,9 @@ public class DrugListService extends BaseService<DrugListBean> {
         if (ObjectUtils.isEmpty(drug.getDrugSpec())){
             list.add("药品规格 DrugSpec");
         }
-        if (ObjectUtils.isEmpty(drug.getDrugForm())){
+        /*if (ObjectUtils.isEmpty(drug.getDrugForm())){
             list.add("药品剂型 DrugForm");
-        }
+        }*/
         if (ObjectUtils.isEmpty(drug.getDrugType())){
             list.add("药品类型 DrugType");
         }
@@ -445,15 +445,20 @@ public class DrugListService extends BaseService<DrugListBean> {
             throw new DAOException(DAOException.VALUE_NEEDED,"当前药品信息缺失(包括:" + checkDrugList.toString() + "),药品条件不具备成为标准药品!");
         }
         DrugListDAO dao = getDAO(DrugListDAO.class);
-        if (ObjectUtils.isEmpty(drug.getSourceOrgan())){
-            List<DrugList> standardDrugSourceOrgan = dao.findStandardDrugSourceOrgan(drug.getDrugName(), drug.getDrugType(), drug.getDrugSpec(), drug.getProducer(), drug.getDrugForm());
+        if (ObjectUtils.isEmpty(drug.getDrugForm())){
+            List<DrugList> standardDrugSourceOrgan = dao.findStandardDrugDrugFrom(drug.getDrugName(), drug.getDrugType(), drug.getDrugSpec(), drug.getProducer());
             if (!ObjectUtils.isEmpty(standardDrugSourceOrgan)){
                 return true;
             }
         }else {
-            List<DrugList> standardDrugSourceOrgan = dao.findStandardDrug(drug.getDrugName(), drug.getDrugType(), drug.getDrugSpec(), drug.getProducer(),drug.getSourceOrgan(), drug.getDrugForm());
+            List<DrugList> standardDrugSourceOrgan = dao.findStandardDrug(drug.getDrugName(), drug.getDrugType(), drug.getDrugSpec(), drug.getProducer(), drug.getDrugForm());
             if (!ObjectUtils.isEmpty(standardDrugSourceOrgan)){
                 return true;
+            }else {
+                List<DrugList> drugLists = dao.findStandardDrugDrugFrom(drug.getDrugName(), drug.getDrugType(), drug.getDrugSpec(), drug.getProducer());
+                if (!ObjectUtils.isEmpty(drugLists)){
+                    return true;
+                }
             }
         }
         return false;
