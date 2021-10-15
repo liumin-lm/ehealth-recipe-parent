@@ -1,5 +1,7 @@
 package com.ngari.recipe.dto;
 
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.schema.annotation.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -89,6 +91,9 @@ public class PatientDTO implements Serializable {
     @ItemProperty(alias = "证件类型")
     @Dictionary(id = "eh.mpi.dictionary.CertificateType")
     private Integer certificateType;
+
+    @ItemProperty(alias = "证件类型枚举值")
+    private String certificateTypeText;
 
     @ItemProperty(alias = "地址(省市区)")
     private String fullHomeArea;
@@ -196,4 +201,14 @@ public class PatientDTO implements Serializable {
 
     private String weight;
 
+    public String getCertificateTypeText() {
+        if(this.certificateType != null){
+            try {
+                return DictionaryController.instance().get("eh.mpi.dictionary.CertificateType").getText(this.certificateType);
+            } catch (ControllerException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
 }
