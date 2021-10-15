@@ -909,7 +909,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 Map<Integer, DrugEntrustDTO> drugEntrustsMap = drugEntrusts.stream().collect(Collectors.toMap(DrugEntrustDTO::getDrugEntrustId, a -> a, (k1, k2) -> k1));
                 Integer drugEntrustId = ByteUtils.strValueOf(drugList.getDrugEntrust());
                 DrugEntrustDTO drugEntrustDTO = drugEntrustsMap.get(drugEntrustId);
-                if (null != drugEntrustDTO && ValidateUtil.integerIsEmpty(drugEntrustId)) {
+                if (null != drugEntrustDTO && !ValidateUtil.integerIsEmpty(drugEntrustId)) {
                     drugList.setDrugEntrustId(drugEntrustDTO.getDrugEntrustId().toString());
                     drugList.setDrugEntrustCode(drugEntrustDTO.getDrugEntrustCode());
                     drugList.setDrugEntrust(drugEntrustDTO.getDrugEntrustValue());
