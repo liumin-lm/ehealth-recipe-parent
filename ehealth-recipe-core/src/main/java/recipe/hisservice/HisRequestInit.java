@@ -8,6 +8,7 @@ import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.constant.RecipeHisStatusEnum;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
@@ -763,7 +764,10 @@ public class HisRequestInit {
             requestTO.setRecipeNo(recipe.getRecipeCode());
             requestTO.setRecipeType((null != recipe.getRecipeType()) ? Integer.toString(recipe.getRecipeType()) : null);
 
-            requestTO.setRecipeStatus(recipe.getStatus());
+            RecipeHisStatusEnum recipeHisStatusEnum = RecipeHisStatusEnum.getRecipeHisStatusEnum(recipe.getStatus());
+            if(Objects.nonNull(recipeHisStatusEnum)) {
+                requestTO.setRecipeStatus(recipeHisStatusEnum.getValue());
+            }
             // 医院系统医嘱号（一张处方多条记录用|分隔）
             StringBuilder str = new StringBuilder("");
             if (null != list && list.size() != 0) {

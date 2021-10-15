@@ -611,7 +611,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
         HibernateStatelessResultAction<QueryResult<DrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugList>>() {
             @Override
             public void execute(StatelessSession ss) throws DAOException {
-                StringBuilder hql = new StringBuilder("from DrugList where status=1 ");
+                StringBuilder hql = new StringBuilder("from DrugList where status=1 and isStandardDrug=1 ");
                 if (!ObjectUtils.isEmpty(name)) {
                     hql.append(" and ( drugName like:name or saleName like:name  )");
                 }
@@ -652,15 +652,14 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
      * @param drugType
      * @param drugSpec
      * @param producer
-     * @param sourceOrgan
      * @param drugForm
      * @return
      */
-    @DAOMethod(sql = "from DrugList where drugName =:drugName and drugType=:drugType and drugSpec=:drugSpec and producer=producer and sourceOrgan=:sourceOrgan and drugForm=drugForm and isStandardDrug=1 and  status= 1")
-    public abstract List<DrugList> findStandardDrug(@DAOParam("drugName") String drugName,@DAOParam("drugType") Integer drugType,@DAOParam("drugSpec") String drugSpec,@DAOParam("producer") String producer,@DAOParam("sourceOrgan") int sourceOrgan,@DAOParam("drugForm") String drugForm);
+    @DAOMethod(sql = "from DrugList where drugName =:drugName and drugType=:drugType and drugSpec=:drugSpec and producer=producer and drugForm=drugForm and isStandardDrug=1 and  status= 1")
+    public abstract List<DrugList> findStandardDrug(@DAOParam("drugName") String drugName,@DAOParam("drugType") Integer drugType,@DAOParam("drugSpec") String drugSpec,@DAOParam("producer") String producer,@DAOParam("drugForm") String drugForm);
 
-    @DAOMethod(sql = "from DrugList where drugName =:drugName and drugType=:drugType and drugSpec=:drugSpec and producer=producer and sourceOrgan is null  and drugForm=drugForm and isStandardDrug=1 and  status= 1")
-    public abstract List<DrugList> findStandardDrugSourceOrgan(@DAOParam("drugName") String drugName,@DAOParam("drugType") Integer drugType,@DAOParam("drugSpec") String drugSpec,@DAOParam("producer") String producer,@DAOParam("drugForm") String drugForm);
+    @DAOMethod(sql = "from DrugList where drugName =:drugName and drugType=:drugType and drugSpec=:drugSpec and producer=producer and sourceOrgan is null   and isStandardDrug=1 and  status= 1")
+    public abstract List<DrugList> findStandardDrugDrugFrom(@DAOParam("drugName") String drugName,@DAOParam("drugType") Integer drugType,@DAOParam("drugSpec") String drugSpec,@DAOParam("producer") String producer);
 
 
     /**

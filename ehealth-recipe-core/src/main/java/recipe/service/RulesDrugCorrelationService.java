@@ -120,9 +120,22 @@ public class RulesDrugCorrelationService implements IRulesDrugCorrelationService
      */
     @RpcService
     public Boolean  checkRulesDrugCorrelations( RulesDrugCorrelationDTO correlationDTO,Integer rulesId) {
-        RulesDrugCorrelation drugCorrelation = rulesDrugCorrelationDAO.getDrugCorrelationByCodeAndRulesId(rulesId, correlationDTO.getDrugId(), correlationDTO.getCorrelationDrugId());
-        if (!ObjectUtils.isEmpty(drugCorrelation)){
-            return true;
+        if (ObjectUtils.isEmpty(rulesId)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "rulesId is required!");
+        }
+        if (ObjectUtils.isEmpty(correlationDTO.getDrugId())){
+            throw new DAOException(DAOException.VALUE_NEEDED, "drugId is required!");
+        }
+        if (rulesId != 3){
+            RulesDrugCorrelation drugCorrelation = rulesDrugCorrelationDAO.getDrugCorrelationByCodeAndRulesId(rulesId, correlationDTO.getDrugId(), correlationDTO.getCorrelationDrugId());
+            if (!ObjectUtils.isEmpty(drugCorrelation)){
+                return true;
+            }
+        }else {
+            RulesDrugCorrelation drugCorrelation = rulesDrugCorrelationDAO.getDrugCorrelationByDrugCodeAndRulesId(rulesId, correlationDTO.getDrugId());
+            if (!ObjectUtils.isEmpty(drugCorrelation)){
+                return true;
+            }
         }
         return false;
     }
