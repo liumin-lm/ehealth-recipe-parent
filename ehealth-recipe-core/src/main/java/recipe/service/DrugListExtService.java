@@ -904,6 +904,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             }
             if (null != organId && 3 == drugType) {
                 List<DrugEntrustDTO> drugEntrusts = drugEntrustService.querDrugEntrustByOrganId(organId);
+                boolean drugEntrustName = drugEntrusts.stream().anyMatch(a -> "无特殊煎法".equals(a.getDrugEntrustName()));
                 //查询嘱托Id
                 Map<Integer, DrugEntrustDTO> drugEntrustsMap = drugEntrusts.stream().collect(Collectors.toMap(DrugEntrustDTO::getDrugEntrustId, a -> a, (k1, k2) -> k1));
                 Integer drugEntrustId = ByteUtils.strValueOf(drugList.getDrugEntrust());
@@ -912,7 +913,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     drugList.setDrugEntrustId(drugEntrustDTO.getDrugEntrustId().toString());
                     drugList.setDrugEntrustCode(drugEntrustDTO.getDrugEntrustCode());
                     drugList.setDrugEntrust(drugEntrustDTO.getDrugEntrustValue());
-                } else {
+                } else if (drugEntrustName) {
                     //运营平台没有配置默认值，没有嘱托Id，中药特殊处理,药品没有维护字典--默认无特殊煎法
                     drugList.setDrugEntrustId("56");
                     drugList.setDrugEntrustCode("sos");
