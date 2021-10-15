@@ -42,9 +42,6 @@ public abstract class RulesDrugCorrelationDAO extends HibernateSupportDelegateDA
     public abstract RulesDrugCorrelation getDrugCorrelationByCodeAndRulesId(@DAOParam("medicationRulesId") Integer medicationRulesId,@DAOParam("drugId") Integer drugId,@DAOParam("correlationDrugId") Integer correlationDrugId);
 
 
-    @DAOMethod(sql = "from RulesDrugCorrelation where medicationRulesId=:medicationRulesId  and  drugId=:drugId ", limit = 0)
-    public abstract RulesDrugCorrelation getDrugCorrelationByIdAndRulesId(@DAOParam("medicationRulesId") Integer medicationRulesId,@DAOParam("drugId") Integer drugId);
-
 
     @DAOMethod(sql = "from RulesDrugCorrelation where medicationRulesId=:medicationRulesId  and  drugId=:drugId  ", limit = 0)
     public abstract RulesDrugCorrelation getDrugCorrelationByDrugCodeAndRulesId(@DAOParam("medicationRulesId") Integer medicationRulesId,@DAOParam("drugId") Integer drugId);
