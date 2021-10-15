@@ -1,5 +1,6 @@
 package com.ngari.recipe.entity.comment;
 
+import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
 import javax.persistence.*;
@@ -12,19 +13,22 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Table(name = "cdr_recipe_comment")
 public class RecipeComment {
 
+    @ItemProperty(alias = "主键")
     private Integer id;
 
-    /**处方编号*/
+    @ItemProperty(alias = "处方编号")
     private Integer recipeId;
 
-    /**点评结果*/
+    @ItemProperty(alias = "点评结果")
     private String commentResult;
 
-    /**点评备注*/
+    @ItemProperty(alias = "点评备注")
     private String commentRemark;
 
+    @ItemProperty(alias = "创建时间")
     private Date createDate;
 
+    @ItemProperty(alias = "最后修改时间")
     private Date lastmodify;
 
     @Id
