@@ -760,7 +760,7 @@ public class RecipeOrderService extends RecipeBaseService {
             } else {
                 LOGGER.info("getDefaultAddressByMpiid mpiid:{}", operMpiId);
                 //获取默认收货地址
-                address = addressService.getDefaultAddressByMpiid(operMpiId);
+                address = addressService.getDefaultAddressDTO();
                 //address = addressService.getLastAddressByMpiId(operMpiId);
                 if (address != null) {
                     //判断街道是否完善
