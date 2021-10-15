@@ -611,7 +611,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
         HibernateStatelessResultAction<QueryResult<DrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugList>>() {
             @Override
             public void execute(StatelessSession ss) throws DAOException {
-                StringBuilder hql = new StringBuilder("from DrugList where status=1 ");
+                StringBuilder hql = new StringBuilder("from DrugList where status=1 and isStandardDrug=1 ");
                 if (!ObjectUtils.isEmpty(name)) {
                     hql.append(" and ( drugName like:name or saleName like:name  )");
                 }
