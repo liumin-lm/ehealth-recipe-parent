@@ -132,7 +132,7 @@ public class RulesDrugCorrelationService implements IRulesDrugCorrelationService
                 return true;
             }
         }else {
-            RulesDrugCorrelation drugCorrelation = rulesDrugCorrelationDAO.getDrugCorrelationByIdAndRulesId(rulesId, correlationDTO.getDrugId());
+            RulesDrugCorrelation drugCorrelation = rulesDrugCorrelationDAO.getDrugCorrelationByDrugCodeAndRulesId(rulesId, correlationDTO.getDrugId());
             if (!ObjectUtils.isEmpty(drugCorrelation)){
                 return true;
             }
