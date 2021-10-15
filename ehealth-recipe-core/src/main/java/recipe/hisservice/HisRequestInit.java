@@ -783,7 +783,7 @@ public class HisRequestInit {
         } catch (Exception e) {
             LOGGER.error("initDrugTakeChangeReqTO error", e);
         }
-
+        LOGGER.info("HisRequestInit initDrugTakeChangeReqTO requestTO:{}.", JSONUtils.toString(requestTO));
         return requestTO;
     }
 
