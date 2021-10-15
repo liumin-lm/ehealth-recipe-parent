@@ -89,7 +89,8 @@ public class RulesDrugCorrelationService implements IRulesDrugCorrelationService
                 for (RulesDrugCorrelationDTO list : lists) {
                     RulesDrugCorrelation convert = ObjectCopyUtils.convert(list, RulesDrugCorrelation.class);
                     RulesDrugCorrelation drugCorrelation = rulesDrugCorrelationDAO.getDrugCorrelationByCodeAndRulesId(rulesId, convert.getDrugId(), convert.getCorrelationDrugId());
-                    if (!ObjectUtils.isEmpty(drugCorrelation)) {
+                    RulesDrugCorrelation drugCorrelation1 = rulesDrugCorrelationDAO.getDrugCorrelationByCodeAndRulesId(rulesId, convert.getCorrelationDrugId(), convert.getDrugId());
+                    if (!ObjectUtils.isEmpty(drugCorrelation)||!ObjectUtils.isEmpty(drugCorrelation1)) {
                         throw new DAOException(DAOException.VALUE_NEEDED, "保存数据【"+list.getDrugName() +"】规则关联【"+list.getCorrelationDrugName()+"】关联关系数据已存在!");
                     }
                     //新增 反 畏  规则下 药品关系
@@ -128,7 +129,8 @@ public class RulesDrugCorrelationService implements IRulesDrugCorrelationService
         }
         if (rulesId != 3){
             RulesDrugCorrelation drugCorrelation = rulesDrugCorrelationDAO.getDrugCorrelationByCodeAndRulesId(rulesId, correlationDTO.getDrugId(), correlationDTO.getCorrelationDrugId());
-            if (!ObjectUtils.isEmpty(drugCorrelation)){
+            RulesDrugCorrelation drugCorrelation1 = rulesDrugCorrelationDAO.getDrugCorrelationByCodeAndRulesId(rulesId, correlationDTO.getCorrelationDrugId(), correlationDTO.getDrugId());
+            if (!ObjectUtils.isEmpty(drugCorrelation)||!ObjectUtils.isEmpty(drugCorrelation1)){
                 return true;
             }
         }else {
