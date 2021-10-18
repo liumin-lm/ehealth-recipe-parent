@@ -902,7 +902,13 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 drugList.setPrice1(null == drugList.getPrice1() ? drugListNow.getPrice1() : drugList.getPrice1());
                 drugList.setPrice2(null == drugList.getPrice2() ? drugListNow.getPrice2() : drugList.getPrice2());
             }
-            if (null != organId && 3 == drugType) {
+            //药品库存标志-是否查药企库存
+            if (null != organId) {
+                boolean drugInventoryFlag = drugsEnterpriseService.isExistDrugsEnterprise(organId, drugList.getDrugId());
+                drugList.setDrugInventoryFlag(drugInventoryFlag);
+            }
+            //替换嘱托
+            if (null != organId && null != drugType && 3 == drugType) {
                 List<DrugEntrustDTO> drugEntrusts = drugEntrustService.querDrugEntrustByOrganId(organId);
                 boolean drugEntrustName = drugEntrusts.stream().anyMatch(a -> "无特殊煎法".equals(a.getDrugEntrustName()));
                 //查询嘱托Id
@@ -920,12 +926,6 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                     drugList.setDrugEntrust("无特殊煎法");
                 }
                 LOGGER.info("searchDrugListWithES DrugSearchTO drugInfo5:{}", drugInfo);
-            }
-
-            //药品库存标志-是否查药企库存
-            if (null != organId) {
-                boolean drugInventoryFlag = drugsEnterpriseService.isExistDrugsEnterprise(organId, drugList.getDrugId());
-                drugList.setDrugInventoryFlag(drugInventoryFlag);
             }
             //设置医生端每次剂量和剂量单位联动关系
             List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = Lists.newArrayList();
