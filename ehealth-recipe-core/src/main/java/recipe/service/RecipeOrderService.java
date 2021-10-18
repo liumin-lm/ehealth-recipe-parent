@@ -776,7 +776,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                 }
             }
-            LOGGER.info("setOrderFee mpiid:{} address:{}", operMpiId, address);
+            LOGGER.info("setOrderFee mpiid:{} address:{}", operMpiId, JSONUtils.toString(address));
             //此字段前端已不使用
             order.setAddressCanSend(false);
             Recipe recipe = recipeList.get(0);
