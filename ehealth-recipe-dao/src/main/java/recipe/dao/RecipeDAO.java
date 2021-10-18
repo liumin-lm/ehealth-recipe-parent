@@ -3366,7 +3366,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
                 Query q = ss.createQuery(hql.toString());
                 if (3 == searchFlag) {
-                    Integer recipeId = Integer.parseInt(searchString);
+                    Integer recipeId = null;
+                    try {
+                        recipeId = Integer.parseInt(searchString);
+                    } catch (NumberFormatException e) {
+                        recipeId = -1;
+                    }
                     q.setParameter("searchString", recipeId);
                 } else {
                     q.setParameter("searchString", "%" + searchString + "%");

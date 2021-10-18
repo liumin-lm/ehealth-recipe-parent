@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -391,6 +392,7 @@ public class RecipeHisService extends RecipeBaseService {
      */
     @RpcService
     public String recipeRefund(Integer recipeId) {
+        LOGGER.info("RecipeHisService recipeRefund recipeId:{}.", recipeId);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
@@ -407,9 +409,14 @@ public class RecipeHisService extends RecipeBaseService {
 
             List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
             PatientBean patientBean = iPatientService.get(recipe.getMpiid());
-            HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
+            HealthCardBean cardBean = null;
+            try {
+                cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
+            } catch (Exception e) {
+                LOGGER.error("RecipeHisService recipeRefund 健康卡获取失败 error", e);
+            }
             RecipeRefundReqTO request = hisRequestInit.initRecipeRefundReqTO(recipe, details, patientBean, cardBean);
-
+            LOGGER.info("RecipeHisService recipeRefund request:{}.", JSONUtils.toString(request));
             RecipeRefundResTO response = service.recipeRefund(request);
             if (null == response || null == response.getMsgCode()) {
                 backInfo = "response is null";

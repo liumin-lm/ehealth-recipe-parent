@@ -564,6 +564,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @param toDbFlag
      */
     public void setOrderFee(OrderCreateResult result, RecipeOrder order, List<Integer> recipeIds, List<Recipe> recipeList, RecipePayModeSupportBean payModeSupport, Map<String, String> extInfo, Integer toDbFlag) {
+        LOGGER.info("setOrderFee recipeIds:{},payModeSupport:{},extInfo:{},toDbFlag:{}.", JSONUtils.toString(recipeIds), JSONUtils.toString(payModeSupport), JSONUtils.toString(extInfo), toDbFlag);
         IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
         IConfigurationCenterUtilsService configurationCenterUtilsService = (IConfigurationCenterUtilsService) AppContextHolder.getBean("eh.configurationCenterUtils");
         RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
@@ -633,15 +634,6 @@ public class RecipeOrderService extends RecipeBaseService {
         if (order.getDecoctionUnitPrice() != null) {
             needCalDecFee = (order.getDecoctionUnitPrice().compareTo(BigDecimal.ZERO) == 1) ? true : false;
         }
-        //        Integer decoctionFlag = MapValueUtil.getInteger(extInfo, "decoctionFlag");
-        //1表示待煎
-//        if (Integer.valueOf(1).equals(decoctionFlag)) {
-        //待煎单价(代煎费 -1不支持代煎 大于等于0时为代煎费)
-//            BigDecimal recipeDecoctionPrice = order.getDecoctionUnitPrice();
-//            //根据机构获取代煎费
-//            order.setDecoctionUnitPrice(null != recipeDecoctionPrice ? recipeDecoctionPrice : BigDecimal.valueOf(-1));
-//            needCalDecFee = (order.getDecoctionUnitPrice().compareTo(BigDecimal.ZERO) == 1) ? true : false;
-//        }
 
         //设置膏方制作费
         Integer gfFeeFlag = MapValueUtil.getInteger(extInfo, "gfFeeFlag");
@@ -652,7 +644,6 @@ public class RecipeOrderService extends RecipeBaseService {
             if (null == gfFeeUnitPrice) {
                 gfFeeUnitPrice = BigDecimal.ZERO;
             }
-//            order.setDecoctionUnitPrice(gfFeeUnitPrice);
             //存在制作单价且大于0
             if (gfFeeUnitPrice.compareTo(BigDecimal.ZERO) == 1) {
                 Double totalDose = recipeDetailDAO.getUseTotalDoseByRecipeIds(recipeIds);
@@ -776,7 +767,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                 }
             }
-            LOGGER.info("setOrderFee mpiid:{} address:{}", operMpiId, address);
+            LOGGER.info("setOrderFee recipeIds:{},mpiId:{} address:{}", JSONUtils.toString(recipeIds), operMpiId, JSONUtils.toString(address));
             //此字段前端已不使用
             order.setAddressCanSend(false);
             Recipe recipe = recipeList.get(0);
@@ -947,6 +938,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     expressFee = getExpressFee(order.getEnterpriseId(), address.getAddress3());
                 }
             }
+            LOGGER.info("setOrderaAddress recipeIds:{}, expressFee:{}.", JSONUtils.toString(recipeIds), expressFee);
             order.setExpressFee(expressFee);
             order.setReceiver(address.getReceiver());
             order.setRecMobile(address.getRecMobile());
@@ -2125,11 +2117,13 @@ public class RecipeOrderService extends RecipeBaseService {
      * @return
      */
     private BigDecimal getExpressFee(Integer enterpriseId, String address) {
+        LOGGER.info("getExpressFee enterpriseId:{}, address:{}.", enterpriseId, address);
         if (null == enterpriseId || StringUtils.isEmpty(address)) {
             return null;
         }
         DrugDistributionPriceService priceService = ApplicationUtils.getRecipeService(DrugDistributionPriceService.class);
         DrugDistributionPriceBean expressFee = priceService.getDistributionPriceByEnterpriseIdAndAddrArea(enterpriseId, address);
+        LOGGER.info("getExpressFee expressFee:{}.", expressFee);
         if (null != expressFee) {
             return expressFee.getDistributionPrice();
         }

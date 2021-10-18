@@ -763,8 +763,9 @@ public class HisRequestInit {
 
             requestTO.setRecipeNo(recipe.getRecipeCode());
             requestTO.setRecipeType((null != recipe.getRecipeType()) ? Integer.toString(recipe.getRecipeType()) : null);
-
-            RecipeHisStatusEnum recipeHisStatusEnum = RecipeHisStatusEnum.getRecipeHisStatusEnum(recipe.getStatus());
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe nowRecipe = recipeDAO.getByRecipeId(recipe.getRecipeId());
+            RecipeHisStatusEnum recipeHisStatusEnum = RecipeHisStatusEnum.getRecipeHisStatusEnum(nowRecipe.getStatus());
             if(Objects.nonNull(recipeHisStatusEnum)) {
                 requestTO.setRecipeStatus(recipeHisStatusEnum.getValue());
             }
@@ -783,7 +784,7 @@ public class HisRequestInit {
         } catch (Exception e) {
             LOGGER.error("initDrugTakeChangeReqTO error", e);
         }
-
+        LOGGER.info("HisRequestInit initDrugTakeChangeReqTO requestTO:{}.", JSONUtils.toString(requestTO));
         return requestTO;
     }
 
