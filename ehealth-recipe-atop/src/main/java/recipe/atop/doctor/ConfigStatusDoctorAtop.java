@@ -7,6 +7,7 @@ import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.core.api.IConfigStatusBusinessService;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -53,8 +54,8 @@ public class ConfigStatusDoctorAtop extends BaseAtop {
         try {
             List<ConfigStatusCheckVO> configStatusCheckList = configStatusService.findByLocationAndSource(location, source);
             if (new Integer(1003991).equals(organId)) {
-                return configStatusCheckList.stream().filter(configStatusCheckVO -> "已发药".equals(configStatusCheckVO.getTargetName())
-                || "已拒发".equals(configStatusCheckVO.getTargetName())).collect(Collectors.toList());
+                return configStatusCheckList.stream().filter(configStatusCheckVO -> !(RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType().equals(configStatusCheckVO.getTarget())
+                        || RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType().equals(configStatusCheckVO.getTarget()))).collect(Collectors.toList());
             }
             logger.info("ConfigStatusService getConfigStatus configStatusCheckList = {}", JSON.toJSONString(configStatusCheckList));
             return configStatusCheckList;
