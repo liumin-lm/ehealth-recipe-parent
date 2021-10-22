@@ -95,6 +95,9 @@ public class SaleDrugListService implements ISaleDrugListService {
         if (drugList == null){
             drugList = new DrugList();
         }
+        if (ObjectUtils.isEmpty(saleDrugList.getSaleDrugCode())){
+            saleDrugList.setSaleDrugCode(saleDrugList.getOrganDrugCode());
+        }
         //验证药品必要信息
         validateSaleDrugList(saleDrugList);
         saleDrugList.setCreateDt(new Date());
@@ -178,6 +181,19 @@ public class SaleDrugListService implements ISaleDrugListService {
         }
         SaleDrugListDAO dao = DAOFactory.getDAO(SaleDrugListDAO.class);
         dao.updateInvalidByOrganId(organId);
+    }
+
+    /**
+     * 一键删除
+     * @param organId 药企
+     */
+    @RpcService
+    public void deleteByOrganId(Integer organId) {
+        if (ObjectUtils.isEmpty(organId)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "organId is required");
+        }
+        SaleDrugListDAO dao = DAOFactory.getDAO(SaleDrugListDAO.class);
+        dao.deleteByOrganId(organId);
     }
 
     /**

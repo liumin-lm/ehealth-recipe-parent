@@ -29,6 +29,9 @@ public class SaleDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "机构药品编码")
     private String organDrugCode;
 
+    @ItemProperty(alias = "药企药品编码")
+    private String saleDrugCode;
+
     @ItemProperty(alias = "机构药品名称")
     private String drugName;
 
@@ -97,6 +100,14 @@ public class SaleDrugListDTO implements java.io.Serializable {
 
     public void setOrganDrugCode(String organDrugCode) {
         this.organDrugCode = organDrugCode;
+    }
+
+    public String getSaleDrugCode() {
+        return saleDrugCode;
+    }
+
+    public void setSaleDrugCode(String saleDrugCode) {
+        this.saleDrugCode = saleDrugCode;
     }
 
     public BigDecimal getInventory() {

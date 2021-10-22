@@ -97,6 +97,14 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
     @DAOMethod(sql = "update SaleDrugList set status=0 where organId=:organId ")
     public abstract void updateInvalidByOrganId(@DAOParam("organId") int organId);
 
+    /**
+     * 一键删除
+     *
+     * @param organId
+     */
+    @DAOMethod(sql = "delete from SaleDrugList  where organId=:organId ")
+    public abstract void deleteByOrganId(@DAOParam("organId") int organId);
+
 
     /**
      * 设置某些药品为有效
