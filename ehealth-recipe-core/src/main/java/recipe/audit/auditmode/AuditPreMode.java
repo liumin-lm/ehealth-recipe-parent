@@ -182,6 +182,8 @@ public class AuditPreMode extends AbstractAuidtMode {
             Integer checkMode = recipe.getCheckMode();
             //发送消息--待审核消息
             RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
+            //测试用
+            RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.RECIPE_PAY_CALL_SUCCESS);
             boolean flag = judgeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
             boolean threeflag = AutoCheckRecipe.threeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
             //平台审方途径下才发消息  满足自动审方的不推送

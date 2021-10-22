@@ -282,54 +282,7 @@ public class RecipeMsgService {
 
     private static void getPayInfo(Recipe recipe, Map<String, String> extendValue) {
 
-        String remarkFlag = "remarkflag=0";
-        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
-            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-            RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-            // 医保支付的卫宁付情况下需要发送支付内容
-            if (Objects.nonNull(order) && Objects.nonNull(order.getHealthInsurancePayContent()) &&
-                    "111".equals(order.getWxPayWay()) && !new Integer(0).equals(order.getOrderType())) {
-
-                String healthInsurancePayContent = order.getHealthInsurancePayContent();
-                Map<String, String> healthInsurancePayContentMap = JSONUtils.parse(healthInsurancePayContent, Map.class);
-                if (Objects.nonNull(healthInsurancePayContentMap)) {
-                    remarkFlag = "remarkflag=1";
-                    // 总金额
-                    Double preSettletotalAmount = order.getPreSettletotalAmount();
-                    // 现金支付
-                    String xjzf = StringUtils.defaultString(healthInsurancePayContentMap.get("xjzf"), "0");
-                    // 医保统筹支付
-                    String ybtczf = StringUtils.defaultString(healthInsurancePayContentMap.get("ybtczf"), "0");
-                    // 个人账户支付
-                    String grzhzf = StringUtils.defaultString(healthInsurancePayContentMap.get("grzhzf"), "0");
-                    // 附加支付
-                    String fjzf = StringUtils.defaultString(healthInsurancePayContentMap.get("fjzf"), "0");
-                    // 分类自负
-                    String flzifu = StringUtils.defaultString(healthInsurancePayContentMap.get("flzifu"), "0");
-                    // 现金自负
-                    String xjzifu = StringUtils.defaultString(healthInsurancePayContentMap.get("xjzifu"), "0");
-                    // 自费
-                    String zifei = StringUtils.defaultString(healthInsurancePayContentMap.get("zifei"), "0");
-                    // 当年账户余额
-                    String dnzhye = StringUtils.defaultString(healthInsurancePayContentMap.get("dnzhye"), "0");
-                    // 历年账户余额
-                    String lnzhye = StringUtils.defaultString(healthInsurancePayContentMap.get("lnzhye"), "0");
-
-                    extendValue.put("preSettletotalAmount", preSettletotalAmount.toString());
-                    extendValue.put("xjzf", xjzf);
-                    extendValue.put("ybtczf", ybtczf);
-                    extendValue.put("grzhzf", grzhzf);
-                    extendValue.put("fjzf", fjzf);
-                    extendValue.put("flzifu", flzifu);
-                    extendValue.put("xjzifu", xjzifu);
-                    extendValue.put("zifei", zifei);
-                    extendValue.put("dnzhye", dnzhye);
-                    extendValue.put("lnzhye", lnzhye);
-                }
-            }
-        }
-        extendValue.put("remarkflag", remarkFlag);
-        extendValue.put("payTime", "aa");
+        extendValue.put("patientName", recipe.getPatientName());
 
     }
 
