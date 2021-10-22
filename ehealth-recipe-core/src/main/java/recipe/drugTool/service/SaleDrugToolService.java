@@ -10,6 +10,7 @@ import com.ngari.opbase.xls.service.IImportExcelInfoService;
 import com.ngari.recipe.drugTool.service.ISaleDrugToolService;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.ImportDrugRecord;
+import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.SaleDrugList;
 import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
@@ -21,6 +22,7 @@ import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.ObjectUtils;
 import recipe.dao.DrugListDAO;
 import recipe.dao.ImportDrugRecordDAO;
 import recipe.dao.OrganDrugListDAO;
@@ -120,8 +122,8 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             if (rowIndex == 0) {
                 String drugCode = getStrFromCell(row.getCell(2));
                 String drugName = getStrFromCell(row.getCell(3));
-                String retrievalCode = getStrFromCell(row.getCell(8));
-                if ("药品名".equals(drugCode) && "商品名".equals(drugName) && "默认单次剂量".equals(retrievalCode)) {
+                String status = getStrFromCell(row.getCell(5));
+                if ("药品名".equals(drugCode) && "商品名".equals(drugName) && "状态".equals(status)) {
                     continue;
                 } else {
                     result.put("code", 609);
@@ -133,90 +135,101 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             drug = new SaleDrugList();
             StringBuilder errMsg = new StringBuilder();
             /*try{*/
-            try {
-                if (StringUtils.isEmpty(getStrFromCell(row.getCell(0)))) {
-                    errMsg.append("药企药品编码不能为空").append(";");
+
+                try {
+                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(1)))) {
+                        errMsg.append("【平台药品编码】未填写").append(";");
+                    }
+                    DrugList drugList = drugListDAO.get(Integer.parseInt(getStrFromCell(row.getCell(1)).trim()));
+                    if (ObjectUtils.isEmpty(drugList)){
+                        errMsg.append("平台未找到该平台通用药品").append(";");
+                    }
+                    if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(0)))) {
+                        SaleDrugList byDrugIdAndOrganId = saleDrugListDAO.getByDrugIdAndOrganId(Integer.parseInt(getStrFromCell(row.getCell(1)).trim()), organId);
+                        if (!ObjectUtils.isEmpty(byDrugIdAndOrganId)){
+                            errMsg.append("药企已存在药品关联该平台药品").append(";");
+                        }
+                        drug.setDrugId(Integer.parseInt(getStrFromCell(row.getCell(0)).trim()));
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("平台药品编码有误 ," + e.getMessage(), e);
+                    errMsg.append("平台药品编码有误").append(";");
                 }
-                drug.setOrganDrugCode(getStrFromCell(row.getCell(0)));
-            } catch (Exception e) {
-                LOGGER.error("药品编号有误 ," + e.getMessage(),e);
-                errMsg.append("药品编号有误").append(";");
-            }
 
-
-
-            try {
-                if (StringUtils.isEmpty(getStrFromCell(row.getCell(2)))) {
-                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(31)))) {
-                        errMsg.append("平台药品编号不能为空").append(";");
+                try {
+                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(1)))) {
+                        errMsg.append("【机构药品编码】未填写").append(";");
                     }
-                    DrugList byId = drugListDAO.getById(Integer.parseInt(getStrFromCell(row.getCell(31))));
-                    if (byId != null){
-                        drug.setDrugName(byId.getDrugName());
+                    drug.setOrganDrugCode(getStrFromCell(row.getCell(1)));
+                } catch (Exception e) {
+                    LOGGER.error("机构药品编码有误 ," + e.getMessage(), e);
+                    errMsg.append("机构药品编码有误").append(";");
+                }
+                try {
+                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(2)))) {
+                        errMsg.append("【药品名】未填写").append(";");
                     }
-                }else {
                     drug.setDrugName(getStrFromCell(row.getCell(2)));
+                } catch (Exception e) {
+                    LOGGER.error("药品名有误 ," + e.getMessage(), e);
+                    errMsg.append("药品名有误").append(";");
                 }
-            } catch (Exception e) {
-                LOGGER.error("药品名有误 ," + e.getMessage(),e);
-                errMsg.append("药品名有误").append(";");
-            }
-
-            try {
-                if (StringUtils.isEmpty(getStrFromCell(row.getCell(3)))) {
-                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(31)))) {
-                        errMsg.append("平台药品编号不能为空").append(";");
+                try {
+                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(3)))) {
+                        errMsg.append("【商品名】未填写").append(";");
                     }
-                    DrugList byId = drugListDAO.getById(Integer.parseInt(getStrFromCell(row.getCell(31))));
-                    if (byId != null){
-                        drug.setDrugName(byId.getSaleName());
-                    }
-                }else {
                     drug.setSaleName(getStrFromCell(row.getCell(3)));
+                } catch (Exception e) {
+                    LOGGER.error("药品商品名有误 ," + e.getMessage(), e);
+                    errMsg.append("药品商品名有误").append(";");
                 }
-            } catch (Exception e) {
-                LOGGER.error("药品商品名有误 ," + e.getMessage(),e);
-                errMsg.append("药品商品名有误").append(";");
-            }
 
-            try {
-                    drug.setDrugSpec(getStrFromCell(row.getCell(6)));
-            } catch (Exception e) {
-                LOGGER.error("药品规格有误 ," + e.getMessage(),e);
-                errMsg.append("药品规格有误").append(";");
-            }
-            if (!StringUtils.isEmpty(getStrFromCell(row.getCell(31)))) {
-                SaleDrugList byOrganIdAndDrugId = saleDrugListDAO.getByOrganIdAndDrugId(organId, Integer.parseInt(getStrFromCell(row.getCell(31))));
-                if (byOrganIdAndDrugId!=null){
-                    errMsg.append("药品已存在").append(";");
+                try {
+                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(4)))) {
+                        errMsg.append("【药企药品编码】未填写").append(";");
+                    }
+                    drug.setSaleDrugCode(getStrFromCell(row.getCell(4)));
+                } catch (Exception e) {
+                    LOGGER.error("药企药品编码有误 ," + e.getMessage(), e);
+                    errMsg.append("药企药品编码有误").append(";");
                 }
-            }
-            try {
-                if (StringUtils.isEmpty(getStrFromCell(row.getCell(31)))) {
-                    errMsg.append("平台药品编号不能为空").append(";");
+
+                try {
+                    if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(5)))) {
+                        drug.setStatus(Integer.parseInt(getStrFromCell(row.getCell(5)).trim()));
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("平台药品状态有误 ," + e.getMessage(), e);
+                    errMsg.append("平台药品状态有误").append(";");
                 }
-                drug.setDrugId(Integer.parseInt(getStrFromCell(row.getCell(31))));
-            } catch (Exception e) {
-                LOGGER.error("平台药品编号有误 ," + e.getMessage(),e);
-                errMsg.append("平台药品编号有误").append(";");
-            }
-
-            try {
-                if (StringUtils.isEmpty(getStrFromCell(row.getCell(20)))) {
-                    errMsg.append("价格不能为空").append(";");
+                try {
+                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(6)))) {
+                        errMsg.append("【价格(不含税)】未填写").append(";");
+                    }
+                    String priceCell = getStrFromCell(row.getCell(6));
+                    drug.setPrice(new BigDecimal(priceCell));
+                } catch (Exception e) {
+                    LOGGER.error("药品价格(不含税)有误 ," + e.getMessage(), e);
+                    errMsg.append("药品价格(不含税)有误").append(";");
                 }
-                    drug.setPrice(BigDecimal.valueOf(Double.parseDouble(getStrFromCell(row.getCell(20)))));
-                    drug.setRate(0.00);
-                    drug.setRatePrice(Double.parseDouble(getStrFromCell(row.getCell(20))));
-            } catch (Exception e) {
-                LOGGER.error("价格有误 ," + e.getMessage(),e);
-                errMsg.append("价格有误").append(";");
-            }
+                try {
+                    if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(7)))) {
+                        drug.setRate(Double.parseDouble(getStrFromCell(row.getCell(7))));
+                    }
+                } catch (Exception e) {
+                    LOGGER.error("药品税率有误," + e.getMessage(), e);
+                    errMsg.append("药品税率有误").append(";");
+                }
+                if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(0)))) {
+                    DrugList drugList = drugListDAO.get(Integer.parseInt(getStrFromCell(row.getCell(0))));
+                    if (!ObjectUtils.isEmpty(drugList)){
+                        drug.setDrugSpec(drugList.getDrugSpec());
+                    }
+                }
 
-            if (!drugListDAO.exist(drug.getDrugId())) {
-                errMsg.append("平台药品编号错误！").append(";");
+            if (!ObjectUtils.isEmpty(drug.getRate())){
+                drug.setRatePrice(drug.getPrice().doubleValue()*(1-drug.getRate()));
             }
-
 
             drug.setStatus(1);
             drug.setOrganId(organId);

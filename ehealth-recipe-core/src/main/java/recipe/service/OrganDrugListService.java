@@ -228,6 +228,20 @@ public class OrganDrugListService implements IOrganDrugListService {
     }
 
     /**
+     * 删除机构药品数据
+     *
+     * @param organId 入参机构ID
+     */
+    @RpcService
+    public void deleteByOrganId(Integer organId) {
+        if (organId == null) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "organId is required");
+        }
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        organDrugListDAO.deleteByOrganId(organId);
+    }
+
+    /**
      * 批量删除机构药品数据
      *
      * @param organDrugListIds 入参药品参数集合
