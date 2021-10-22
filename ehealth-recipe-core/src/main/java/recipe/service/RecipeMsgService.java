@@ -11,7 +11,6 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -26,7 +25,6 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.common.RecipeCacheService;
@@ -116,6 +114,9 @@ public class RecipeMsgService {
     private static final String RECIPE_DRUG_HAVE_STOCK = "RecipeDrugHaveStock";
 
     private static final String RECIPE_TAKE_MEDICINE_FINISH = "RecipeTakeMedicineFinish";
+
+    //支付完成后给药师发送系统消息
+    private static final String RECIPE_PAY_CALL = "RecipePayCall";
 
     /**
      * 单个处方信息推送（根据处方ID）
@@ -263,7 +264,10 @@ public class RecipeMsgService {
                         extendValue.put("expireDate", DateConversion.formatDate(DateConversion.getDateAftXDays(recipe.getSignDate(), expiredDays)));
                         break;
                     case RECIPE_HAVE_PAY:
-                        setRemarkFlag(recipe,extendValue);
+                        setRemarkFlag(recipe, extendValue);
+                        break;
+                    case RECIPE_PAY_CALL_SUCCESS:
+                        getPayInfo(recipe, extendValue);
                         break;
                     default:
 
@@ -273,6 +277,59 @@ public class RecipeMsgService {
             }
 
         }
+
+    }
+
+    private static void getPayInfo(Recipe recipe, Map<String, String> extendValue) {
+
+        String remarkFlag = "remarkflag=0";
+        if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
+            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            // 医保支付的卫宁付情况下需要发送支付内容
+            if (Objects.nonNull(order) && Objects.nonNull(order.getHealthInsurancePayContent()) &&
+                    "111".equals(order.getWxPayWay()) && !new Integer(0).equals(order.getOrderType())) {
+
+                String healthInsurancePayContent = order.getHealthInsurancePayContent();
+                Map<String, String> healthInsurancePayContentMap = JSONUtils.parse(healthInsurancePayContent, Map.class);
+                if (Objects.nonNull(healthInsurancePayContentMap)) {
+                    remarkFlag = "remarkflag=1";
+                    // 总金额
+                    Double preSettletotalAmount = order.getPreSettletotalAmount();
+                    // 现金支付
+                    String xjzf = StringUtils.defaultString(healthInsurancePayContentMap.get("xjzf"), "0");
+                    // 医保统筹支付
+                    String ybtczf = StringUtils.defaultString(healthInsurancePayContentMap.get("ybtczf"), "0");
+                    // 个人账户支付
+                    String grzhzf = StringUtils.defaultString(healthInsurancePayContentMap.get("grzhzf"), "0");
+                    // 附加支付
+                    String fjzf = StringUtils.defaultString(healthInsurancePayContentMap.get("fjzf"), "0");
+                    // 分类自负
+                    String flzifu = StringUtils.defaultString(healthInsurancePayContentMap.get("flzifu"), "0");
+                    // 现金自负
+                    String xjzifu = StringUtils.defaultString(healthInsurancePayContentMap.get("xjzifu"), "0");
+                    // 自费
+                    String zifei = StringUtils.defaultString(healthInsurancePayContentMap.get("zifei"), "0");
+                    // 当年账户余额
+                    String dnzhye = StringUtils.defaultString(healthInsurancePayContentMap.get("dnzhye"), "0");
+                    // 历年账户余额
+                    String lnzhye = StringUtils.defaultString(healthInsurancePayContentMap.get("lnzhye"), "0");
+
+                    extendValue.put("preSettletotalAmount", preSettletotalAmount.toString());
+                    extendValue.put("xjzf", xjzf);
+                    extendValue.put("ybtczf", ybtczf);
+                    extendValue.put("grzhzf", grzhzf);
+                    extendValue.put("fjzf", fjzf);
+                    extendValue.put("flzifu", flzifu);
+                    extendValue.put("xjzifu", xjzifu);
+                    extendValue.put("zifei", zifei);
+                    extendValue.put("dnzhye", dnzhye);
+                    extendValue.put("lnzhye", lnzhye);
+                }
+            }
+        }
+        extendValue.put("remarkflag", remarkFlag);
+        extendValue.put("payTime", "aa");
 
     }
 
@@ -361,7 +418,7 @@ public class RecipeMsgService {
         }
     }
 
-    private static void setRemarkFlag(Recipe recipe, Map<String, String> extendValue){
+    private static void setRemarkFlag(Recipe recipe, Map<String, String> extendValue) {
         String remarkFlag = "remarkflag=0";
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -408,8 +465,9 @@ public class RecipeMsgService {
                 }
             }
         }
-        extendValue.put("remarkflag",remarkFlag);
+        extendValue.put("remarkflag", remarkFlag);
     }
+
     private static String getRecipeExpressFeeRemindNoPayUrl(Recipe recipe) {
         //获取配置动态链接
         IDynamicLinkService dynamicLinkService = AppContextHolder.getBean("opbase.dynamicLinkService", IDynamicLinkService.class);
