@@ -1,4 +1,4 @@
-package com.ngari.recipe.recipe.constant;
+package recipe.enumerate.type;
 
 /**
  * @description： 库存校验枚举

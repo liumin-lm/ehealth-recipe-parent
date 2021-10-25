@@ -38,9 +38,10 @@ import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.AttachSealPicDTO;
+import com.ngari.recipe.dto.GiveModeButtonDTO;
+import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.dto.GroupRecipeConfDTO;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.revisit.RevisitAPI;
@@ -85,8 +86,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.AldyfRemoteService;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.givemode.business.GiveModeFactory;
-import recipe.givemode.business.IGiveModeBase;
+import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.*;
@@ -146,6 +146,7 @@ public class RecipeServiceSub {
 
     private static RecipeManager recipeManager = AppContextHolder.getBean("recipeManager", RecipeManager.class);
 
+    private static ButtonManager buttonManager = AppContextHolder.getBean("buttonManager", ButtonManager.class);
     private static RecipeDetailManager recipeDetailManager = AppContextHolder.getBean("recipeDetailManager", RecipeDetailManager.class);
 
     private static List<String> specitalOrganList = Lists.newArrayList("1005790", "1005217", "1005789");
@@ -1794,7 +1795,7 @@ public class RecipeServiceSub {
             map.put("recipeExtend", recipeExtend);
         }
         RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
-        recipeBean.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
+        recipeBean.setGiveModeText(buttonManager.getGiveModeTextByRecipe(recipe));
         if (recipe.getRecipeSourceType().equals(1) && null != recipeBean.getChecker() && StringUtils.isEmpty(recipeBean.getCheckerText())) {
             recipeBean.setCheckerText(DictionaryUtil.getDictionary("eh.base.dictionary.Doctor", recipeBean.getChecker()));
         }
@@ -1923,29 +1924,11 @@ public class RecipeServiceSub {
     private static void patientRecipeInfoButtonShowNew(Map<String, Object> map, Recipe recipe, RecipeOrder order) {
         //是否可以下载处方签
         map.put("isDownload", getDownConfig(recipe, order));
-        GiveModeShowButtonVO giveModeShowButtonVO;
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(recipe);
-        try {
-            //校验数据
-            giveModeBase.validRecipeData(recipe);
-        } catch (Exception e) {
-            LOGGER.error("patientRecipeInfoBottonShowNew error:{}.", e.getMessage());
-            return;
-        }
-        //从运营平台获取配置项
-        giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(recipe.getClinicOrgan());
-        //设置按钮是否可点击
-        giveModeBase.setButtonOptional(giveModeShowButtonVO, recipe);
-        //设置按钮展示类型
-        giveModeBase.setButtonType(giveModeShowButtonVO, recipe);
-        //设置其他按钮
-        giveModeBase.setOtherButton(giveModeShowButtonVO, recipe);
-        //设置特殊按钮
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        giveModeBase.setSpecialItem(giveModeShowButtonVO, recipe, recipeExtend);
-        giveModeBase.afterSetting(giveModeShowButtonVO, recipe);
-        giveModeBase.setShowButton(giveModeShowButtonVO, recipe);
+        GiveModeShowButtonDTO giveModeShowButtonDTO = buttonManager.getShowButtonNew(recipe);
+        GiveModeShowButtonVO giveModeShowButtonVO = new GiveModeShowButtonVO();
+        BeanUtils.copyProperties(giveModeShowButtonDTO, giveModeShowButtonVO);
+        giveModeShowButtonVO.setListItem(ObjectCopyUtils.convert(giveModeShowButtonDTO.getListItem(), GiveModeButtonBean.class));
+        giveModeShowButtonVO.setGiveModeButtons(ObjectCopyUtils.convert(giveModeShowButtonDTO.getGiveModeButtons(), GiveModeButtonBean.class));
         map.put("giveModeShowButtonVO", giveModeShowButtonVO);
         GiveModeButtonBean giveModeButtonBean = getShowThirdOrder(recipe);
         if (null != giveModeButtonBean) {
@@ -2485,33 +2468,7 @@ public class RecipeServiceSub {
      * @return
      */
     public static List<Integer> getDepSupportMode(Integer payMode) {
-        //具体见DrugsEnterprise的payModeSupport字段
-        //配送模式支持 0:不支持 1:线上付款 2:货到付款 3:药店取药 8:货到付款和药店取药 9:都支持
-        List<Integer> supportMode = new ArrayList<>();
-        if (null == payMode) {
-            return supportMode;
-        }
-
-        if (RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
-            supportMode.add(RecipeBussConstant.DEP_SUPPORT_ONLINE);
-            supportMode.add(RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS);
-        } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
-            supportMode.add(RecipeBussConstant.DEP_SUPPORT_COD);
-            supportMode.add(RecipeBussConstant.DEP_SUPPORT_COD_TFDS);
-        } else if (RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
-            supportMode.add(RecipeBussConstant.DEP_SUPPORT_TFDS);
-            supportMode.add(RecipeBussConstant.DEP_SUPPORT_COD_TFDS);
-            supportMode.add(RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS);
-        } else if (RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(payMode)) {
-            //医保选用线上支付配送方式
-            supportMode.add(RecipeBussConstant.DEP_SUPPORT_ONLINE);
-        }
-
-        if (CollectionUtils.isNotEmpty(supportMode)) {
-            supportMode.add(RecipeBussConstant.DEP_SUPPORT_ALL);
-        }
-
-        return supportMode;
+        return RecipeBussConstant.getDepSupportMode(payMode);
     }
 
     /**
@@ -2912,8 +2869,8 @@ public class RecipeServiceSub {
         //平台的取平台配置项
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
             //获取配置项
-            GiveModeShowButtonVO giveModeShowButtonVO = GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeSettingFromYypt(organId);
-            Map result = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
+            GiveModeShowButtonDTO giveModeShowButtonVO = buttonManager.getGiveModeSettingFromYypt(organId);
+            Map result = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
             return result.containsKey("supportToHos");
         } else {
             return organService.getTakeMedicineFlagById(organId);

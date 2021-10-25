@@ -1,4 +1,4 @@
-package recipe.business;
+package recipe.factoryManager.button;
 
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.ConfigStatusCheck;

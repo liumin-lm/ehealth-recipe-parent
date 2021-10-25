@@ -1,4 +1,4 @@
-package recipe.business;
+package recipe.factoryManager.button;
 
 import com.ngari.recipe.entity.DrugEntrust;
 import com.ngari.recipe.entity.OrganDrugList;

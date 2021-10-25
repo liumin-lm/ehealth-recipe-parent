@@ -7,6 +7,7 @@ import com.ngari.recipe.entity.Recipedetail;
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
+import recipe.BaseManager;
 import recipe.util.ValidateUtil;
 
 import java.math.BigDecimal;

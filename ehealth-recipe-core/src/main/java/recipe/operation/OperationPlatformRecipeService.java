@@ -53,7 +53,7 @@ import recipe.bussutil.AESUtils;
 import recipe.client.DoctorClient;
 import recipe.constant.*;
 import recipe.dao.*;
-import recipe.givemode.business.GiveModeFactory;
+import recipe.manager.ButtonManager;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
 import recipe.util.ByteUtils;
@@ -86,7 +86,8 @@ public class OperationPlatformRecipeService {
 
     @Autowired
     private DoctorClient doctorClient;
-
+    @Autowired
+    private ButtonManager buttonManager;
     @Autowired
     private IAuditMedicinesService auditMedicinesService;
 
@@ -176,7 +177,7 @@ public class OperationPlatformRecipeService {
         //配送方式
         r.setGiveMode(recipe.getGiveMode());
         //配送方式文案
-        r.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
+        r.setGiveModeText(buttonManager.getGiveModeTextByRecipe(recipe));
         //支付状态
         r.setPayFlag(recipe.getPayFlag());
         //医生签名文件

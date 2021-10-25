@@ -11,11 +11,8 @@ import com.ngari.base.clientconfig.service.IClientConfigService;
 import com.ngari.base.clientconfig.to.ClientConfigBean;
 import com.ngari.base.common.ICommonService;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
-import com.ngari.base.department.service.IDepartmentService;
-import com.ngari.base.patient.model.DocIndexBean;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.service.IHealthCardService;
-import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.hosrelation.model.HosrelationBean;
 import com.ngari.bus.hosrelation.service.IHosrelationService;
@@ -50,11 +47,11 @@ import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.model.StandardResultBean;
 import com.ngari.recipe.drugsenterprise.model.ThirdResultBean;
 import com.ngari.recipe.dto.ApothecaryDTO;
+import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.constant.RecipePayTextEnum;
-import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -104,12 +101,9 @@ import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.type.BussSourceType;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeRefundConfigEnum;
-import recipe.givemode.business.GiveModeFactory;
+import recipe.enumerate.type.RecipeSendTypeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
-import recipe.manager.EmrRecipeManager;
-import recipe.manager.HisRecipeManager;
-import recipe.manager.OrderManager;
-import recipe.manager.RecipeManager;
+import recipe.manager.*;
 import recipe.medicationguide.service.WinningMedicationGuideService;
 import recipe.operation.OperationPlatformRecipeService;
 import recipe.service.*;
@@ -178,9 +172,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Autowired
     private PatientClient patientClient;
     @Autowired
-    private IDepartmentService iDepartmentService;
-    @Autowired
-    private  IPatientService iPatientService;
+    private ButtonManager buttonManager;
 
     @RpcService
     @Override
@@ -405,7 +397,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         List<Map> records = result.getItems();
         for (Map record : records) {
             Recipe recipe = recipeDAO.getByRecipeId((int) record.get("recipeId"));
-            record.put("giveModeText", GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
+            record.put("giveModeText", buttonManager.getGiveModeTextByRecipe(recipe));
             RecipeOrder recipeOrder = (RecipeOrder) record.get("recipeOrder");
             if (recipeOrder.getDispensingTime() != null) {
                 ApothecaryDTO giveUserDefault = doctorClient.getGiveUserDefault(recipe);
@@ -2116,8 +2108,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public Map<String, String> getItemSkipType(Integer organId) {
         Map<String, String> map = new HashMap<>();
-        Recipe recipe = new Recipe();
-        GiveModeShowButtonVO giveModeShowButtonVO = GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeSettingFromYypt(organId);
+        GiveModeShowButtonDTO giveModeShowButtonVO = buttonManager.getGiveModeSettingFromYypt(organId);
         map.put("itemList", giveModeShowButtonVO.getListItem().getButtonSkipType());
         return map;
     }
@@ -2126,7 +2117,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public String getGiveModeText(Integer recipeId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        return GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe);
+        return buttonManager.getGiveModeTextByRecipe(recipe);
     }
 
 

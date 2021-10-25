@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import recipe.BaseManager;
 import recipe.client.DocIndexClient;
 import recipe.client.DoctorClient;
 import recipe.constant.ErrorCode;

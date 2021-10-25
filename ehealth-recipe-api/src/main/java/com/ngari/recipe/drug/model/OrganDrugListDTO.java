@@ -133,6 +133,10 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "配送药企ids")
     private String drugsEnterpriseIds;
 
+    @ItemProperty(alias = "实际单位剂量（最小单位）")
+    private Double smallestUnitUseDose;
+
+
     public OrganDrugListDTO() {
     }
 
@@ -438,5 +442,13 @@ public class OrganDrugListDTO implements java.io.Serializable {
 
     public void setDrugsEnterpriseIds(String drugsEnterpriseIds) {
         this.drugsEnterpriseIds = drugsEnterpriseIds;
+    }
+
+    public Double getSmallestUnitUseDose() {
+        return smallestUnitUseDose;
+    }
+
+    public void setSmallestUnitUseDose(Double smallestUnitUseDose) {
+        this.smallestUnitUseDose = smallestUnitUseDose;
     }
 }
