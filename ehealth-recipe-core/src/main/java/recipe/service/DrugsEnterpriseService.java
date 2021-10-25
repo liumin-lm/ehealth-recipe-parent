@@ -156,6 +156,12 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
 
         //存储药企信息
         DrugsEnterprise newDrugsEnterprise = drugsEnterpriseDAO.save(drugsEnterprise);
+        //新增药企配置
+        DrugsEnterpriseConfigService bean = AppContextHolder.getBean("eh.drugsEnterpriseConfigService", DrugsEnterpriseConfigService.class);
+        DrugsEnterpriseConfig config=new DrugsEnterpriseConfig();
+        config.setDrugsenterpriseId(newDrugsEnterprise.getId());
+        config.setEnable_drug_sync(1);
+        bean.addOrUpdateDrugsEnterpriseConfig(config);
         // 写入药企关联物流公司信息
         drugEnterpriseLogisticsService.saveDrugEnterpriseLogistics(drugsEnterpriseBean.getDrugEnterpriseLogisticsBeans(), newDrugsEnterprise.getId());
         //更新管理单元
