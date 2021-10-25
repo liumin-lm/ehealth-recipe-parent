@@ -143,6 +143,9 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         if (StringUtils.isEmpty(drugsEnterprise.getCallSys())) {
             drugsEnterprise.setCallSys("commonSelf");
         }
+        if (Objects.isNull(drugsEnterprise.getIsShowToday())) {
+            drugsEnterprise.setIsShowToday(0);
+        }
         // 药企物流对接方式默认药企对接
         if (null == drugsEnterprise.getLogisticsType()) {
             drugsEnterprise.setLogisticsType(DrugEnterpriseConstant.LOGISTICS_ENT);

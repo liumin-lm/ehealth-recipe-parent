@@ -166,8 +166,18 @@ public class DrugsEnterpriseDTO implements Serializable {
     @ItemProperty(alias = "集揽模式")
     private Integer collectMode;
 
+    @ItemProperty(alias = "到院取药日期是否展示今天 0 否 1 是")
+    private Integer isShowToday;
 
     private List<DrugEnterpriseLogistics> drugEnterpriseLogisticsList;
+
+    public Integer getIsShowToday() {
+        return isShowToday;
+    }
+
+    public void setIsShowToday(Integer isShowToday) {
+        this.isShowToday = isShowToday;
+    }
 
     public Integer getId() {
         return id;
