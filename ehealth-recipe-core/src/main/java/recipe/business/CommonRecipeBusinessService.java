@@ -1,4 +1,4 @@
-package recipe.factoryManager.button;
+package recipe.business;
 
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.commonrecipe.model.CommonDTO;

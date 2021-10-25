@@ -6,7 +6,6 @@ import ctd.net.broadcast.MQHelper;
 import ctd.util.JSONUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.BaseManager;
 import recipe.client.RevisitClient;
 import recipe.common.OnsConfig;
 import recipe.constant.RecipeSystemConstant;

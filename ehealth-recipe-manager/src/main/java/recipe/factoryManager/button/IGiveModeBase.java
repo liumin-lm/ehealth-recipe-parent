@@ -11,13 +11,6 @@ import com.ngari.recipe.entity.RecipeExtend;
  */
 public interface IGiveModeBase {
     /**
-     * 通过机构ID从运营平台获取购药方式的基本配置项
-     * @param organId 机构ID
-     * @return        运营平台的配置项
-     */
-    GiveModeShowButtonDTO getGiveModeSettingFromYypt(Integer organId);
-
-    /**
      * 设置平台和互联网关于按钮个性化显示
      * @param giveModeShowButtonVO
      * @param recipe
@@ -27,9 +20,12 @@ public interface IGiveModeBase {
 
     /**
      * 获取按钮对象
+     *
      * @param recipe
      * @return
      */
-    GiveModeShowButtonDTO getShowButtonNew(Recipe recipe);
+    GiveModeShowButtonDTO getShowButton(Recipe recipe);
+
+    GiveModeShowButtonDTO getShowButtonV1(Recipe recipe);
 
 }

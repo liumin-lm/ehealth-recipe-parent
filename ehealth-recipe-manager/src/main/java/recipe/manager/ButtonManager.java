@@ -13,18 +13,17 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.BaseManager;
+import recipe.client.OperationClient;
 import recipe.constant.RecipeBussConstant;
-import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.type.PayButtonEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.enumerate.type.RecipeSendTypeEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.factoryManager.button.IGiveModeBase;
-import recipe.factoryManager.button.impl.BjGiveModeService;
-import recipe.factoryManager.button.impl.CommonGiveModeService;
-import recipe.factoryManager.button.impl.FromHisDeliveryCodeService;
+import recipe.factoryManager.button.impl.BjGiveModeServiceImpl;
+import recipe.factoryManager.button.impl.CommonGiveModeServiceImpl;
+import recipe.factoryManager.button.impl.FromHisGiveModeServiceImpl;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,14 +39,13 @@ public class ButtonManager extends BaseManager {
     private static final String provincialMedicalPayFlagKey = "provincialMedicalPayFlag";
 
     @Autowired
-    private CommonGiveModeService commonGiveModeService;
+    private CommonGiveModeServiceImpl commonGiveModeService;
     @Autowired
-    private BjGiveModeService bjGiveModeService;
+    private BjGiveModeServiceImpl bjGiveModeService;
     @Autowired
-    private FromHisDeliveryCodeService fromHisDeliveryCodeService;
+    private FromHisGiveModeServiceImpl fromHisGiveModeServiceImpl;
     @Autowired
-    private IGiveModeBase iGiveModeBase;
-
+    private OperationClient operationClient;
 
     /**
      * 获取支付按钮 仅杭州市互联网医院使用
@@ -166,8 +164,9 @@ public class ButtonManager extends BaseManager {
      * @return 运营平台的配置项
      */
     public GiveModeShowButtonDTO getGiveModeSettingFromYypt(Integer organId) {
-        return iGiveModeBase.getGiveModeSettingFromYypt(organId);
+        return operationClient.getGiveModeSettingFromYypt(organId);
     }
+
 
     /**
      * 获取按钮
@@ -192,11 +191,19 @@ public class ButtonManager extends BaseManager {
     }
 
 
-    public GiveModeShowButtonDTO getShowButtonNew(Recipe recipe) {
+    public GiveModeShowButtonDTO getShowButton(Recipe recipe) {
         IGiveModeBase giveModeBase = getGiveModeBaseByRecipe(recipe);
-        GiveModeShowButtonDTO giveModeShowButtonDTO = giveModeBase.getShowButtonNew(recipe);
+        GiveModeShowButtonDTO giveModeShowButtonDTO = giveModeBase.getShowButton(recipe);
         //设置特殊按钮
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        giveModeBase.setSpecialItem(giveModeShowButtonDTO, recipe, recipeExtend);
+        return giveModeShowButtonDTO;
+    }
+
+    public GiveModeShowButtonDTO getShowButtonV1(Recipe recipe) {
+        IGiveModeBase giveModeBase = getGiveModeBaseByRecipe(recipe);
+        GiveModeShowButtonDTO giveModeShowButtonDTO = giveModeBase.getShowButtonV1(recipe);
+        //设置特殊按钮
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         giveModeBase.setSpecialItem(giveModeShowButtonDTO, recipe, recipeExtend);
         return giveModeShowButtonDTO;
@@ -313,7 +320,7 @@ public class ButtonManager extends BaseManager {
             //判断是不是杭州互联网医院
             if (null != organDTO && organDTO.getManageUnit().indexOf("eh3301") != -1 && RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
                 if (null != recipeExtend && StringUtils.isNotEmpty(recipeExtend.getDeliveryCode())) {
-                    return fromHisDeliveryCodeService;
+                    return fromHisGiveModeServiceImpl;
                 }
             }
         }

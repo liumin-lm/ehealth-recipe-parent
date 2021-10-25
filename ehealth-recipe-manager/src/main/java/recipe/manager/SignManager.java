@@ -10,7 +10,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.BaseManager;
 import recipe.client.DoctorClient;
 import recipe.client.IConfigurationClient;
 import recipe.constant.CARecipeTypeConstant;

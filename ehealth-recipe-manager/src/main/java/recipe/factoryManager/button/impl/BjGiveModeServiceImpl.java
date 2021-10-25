@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.HisRecipeDAO;
 import recipe.factoryManager.button.GiveModeManager;
-import recipe.factoryManager.button.IGiveModeBase;
 
 import java.util.List;
 
@@ -21,7 +20,7 @@ import java.util.List;
  * @date 2020\12\3 0003 19:58
  */
 @Service
-public class BjGiveModeService extends GiveModeManager implements IGiveModeBase {
+public class BjGiveModeServiceImpl extends GiveModeManager {
     @Autowired
     protected HisRecipeDAO hisRecipeDAO;
     @Autowired

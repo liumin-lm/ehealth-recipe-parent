@@ -1,4 +1,4 @@
-package recipe.factoryManager.button;
+package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.ApothecaryDTO;

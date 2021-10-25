@@ -1,4 +1,4 @@
-package recipe;
+package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.RecipeDTO;
@@ -42,7 +42,6 @@ public class BaseManager {
     protected HisRecipeDAO hisRecipeDAO;
     @Autowired
     private RecipeLogDAO recipeLogDAO;
-    
     @Autowired
     protected PatientClient patientClient;
     @Autowired

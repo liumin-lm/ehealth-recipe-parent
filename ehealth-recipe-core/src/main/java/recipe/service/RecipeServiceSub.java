@@ -1924,7 +1924,7 @@ public class RecipeServiceSub {
     private static void patientRecipeInfoButtonShowNew(Map<String, Object> map, Recipe recipe, RecipeOrder order) {
         //是否可以下载处方签
         map.put("isDownload", getDownConfig(recipe, order));
-        GiveModeShowButtonDTO giveModeShowButtonDTO = buttonManager.getShowButtonNew(recipe);
+        GiveModeShowButtonDTO giveModeShowButtonDTO = buttonManager.getShowButtonV1(recipe);
         GiveModeShowButtonVO giveModeShowButtonVO = new GiveModeShowButtonVO();
         BeanUtils.copyProperties(giveModeShowButtonDTO, giveModeShowButtonVO);
         giveModeShowButtonVO.setListItem(ObjectCopyUtils.convert(giveModeShowButtonDTO.getListItem(), GiveModeButtonBean.class));

@@ -3,7 +3,6 @@ package recipe.manager;
 import com.ngari.recipe.entity.RecipeOrderPayFlow;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.BaseManager;
 import recipe.dao.RecipeOrderPayFlowDao;
 
 import java.util.Date;

@@ -5,7 +5,6 @@ import com.ngari.base.esign.model.CoOrdinateVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import recipe.BaseManager;
 import recipe.constant.CacheConstant;
 import recipe.util.RedisClient;
 import recipe.util.ValidateUtil;

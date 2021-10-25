@@ -5,9 +5,11 @@ import com.google.common.collect.Maps;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.patient.model.PatientBean;
+import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.AppointDepartService;
 import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
@@ -202,6 +204,22 @@ public class OperationPlatformRecipeService {
             r.setShowTip(showTip);
         } catch (ControllerException e) {
             e.printStackTrace();
+        }
+        //挂号科室代码
+        AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
+        AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartIDAndCancleFlag(recipe.getClinicOrgan(), recipe.getDepart());
+        //挂号科室名称
+        r.setAppointDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
+        //机构所属一级科室
+        r.setOrganProfession((null != appointDepart) ? appointDepart.getOrganProfession() : null);
+        //互联网环境下没有挂号科室 取department表
+        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
+            DepartmentService departService = ApplicationUtils.getBasicService(DepartmentService.class);
+            DepartmentDTO departmentDTO = departService.getById(recipe.getDepart());
+            //挂号科室名称
+            r.setAppointDepartName((null != departmentDTO) ? departmentDTO.getName() : "");
+            //机构所属一级科室
+            r.setOrganProfession((null != departmentDTO) ? departmentDTO.getOrganProfession() : null);
         }
         //取医生的手机号
         DoctorDTO doctor = new DoctorDTO();
