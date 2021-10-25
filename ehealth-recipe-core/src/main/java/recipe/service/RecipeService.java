@@ -4953,7 +4953,7 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
         }
-        if (!ObjectUtils.isEmpty(drug.getDrugsEnterpriseCode())) {
+        /*if (!ObjectUtils.isEmpty(drug.getDrugsEnterpriseCode())) {
             String pharmacyCode = drug.getDrugsEnterpriseCode();queryDrugListsByDrugNameAndStartAndLimit
             String[] split = pharmacyCode.split(",");
             StringBuilder ss = new StringBuilder();
@@ -4970,7 +4970,7 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
             drugListMatch.setDrugsEnterpriseIds(ss.toString());
-        }
+        }*/
         if (!ObjectUtils.isEmpty(drug.getRegulationDrugCode())) {
             drugListMatch.setRegulationDrugCode(drug.getRegulationDrugCode());
         }
@@ -5102,7 +5102,7 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getIndicationsDeclare())) {
             organDrug.setIndicationsDeclare(drug.getIndicationsDeclare());
         }
-        if (!ObjectUtils.isEmpty(drug.getDrugsEnterpriseCode())) {
+        /*if (!ObjectUtils.isEmpty(drug.getDrugsEnterpriseCode())) {
             String pharmacyCode = drug.getDrugsEnterpriseCode();
 
             String[] split = pharmacyCode.split(",");
@@ -5125,7 +5125,7 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
             organDrug.setDrugsEnterpriseIds(drugsEnterpriseIds);
-        }
+        }*/
         //使用状态 0 无效 1 有效
         if (!ObjectUtils.isEmpty(drug.getStatus())) {
             organDrug.setStatus(drug.getStatus());
