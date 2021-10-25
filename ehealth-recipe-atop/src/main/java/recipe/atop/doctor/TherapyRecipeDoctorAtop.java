@@ -18,6 +18,7 @@ import org.springframework.util.CollectionUtils;
 import recipe.atop.BaseAtop;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
+import recipe.constant.PageInfoConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
@@ -287,8 +288,15 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
     @RpcService
     public List<ItemListVO> searchItemListByKeyWord(ItemListVO itemListVO){
         logger.info("TherapyRecipeDoctorAtop searchItemListByKeyWord itemListVO:{}.", JSON.toJSONString(itemListVO));
-        validateAtop(itemListVO, itemListVO.getOrganId(),itemListVO.getItemName(), itemListVO.getLimit());
+        validateAtop(itemListVO, itemListVO.getOrganId());
         try {
+            //drugName 为空时可以查询默认的  默认第一个分页数据
+            if(ValidateUtil.integerIsEmpty(itemListVO.getStart())){
+                itemListVO.setStart(PageInfoConstant.PAGE_NO);
+            }
+            if(ValidateUtil.integerIsEmpty(itemListVO.getLimit())){
+                itemListVO.setLimit(PageInfoConstant.PAGE_SIZE);
+            }
             List<ItemListVO> result = therapyRecipeBusinessService.searchItemListByKeyWord(itemListVO);
             logger.info("TherapyRecipeDoctorAtop searchItemListByKeyWord result:{}.", JSON.toJSONString(result));
             return result;

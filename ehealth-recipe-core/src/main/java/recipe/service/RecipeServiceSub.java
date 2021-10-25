@@ -2504,6 +2504,34 @@ public class RecipeServiceSub {
         }
     }
 
+    // todo 需要修改
+    public static void sendRecipeTagToPatientAfterPay(Recipe recipe, List<Recipedetail> details, Map<String, Object> rMap, boolean send) {
+        IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
+        IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+        getMedicalInfo(recipe);
+        RecipeTagMsgBean recipeTagMsg = getRecipeMsgTag(recipe, details);
+        // 重写信息头
+        recipeTagMsg.setTitle("完成处方购药");
+        //由于就诊人改造，已经可以知道申请人的信息，所以可以直接往当前咨询发消息
+        if (StringUtils.isNotEmpty(recipe.getRequestMpiId()) && null != recipe.getDoctor()) {
+            sendRecipeMsgTag(recipe.getRequestMpiId(), recipe, recipeTagMsg, rMap, send);
+        } else if (StringUtils.isNotEmpty(recipe.getMpiid()) && null != recipe.getDoctor()) {
+            //处方的患者编号在咨询单里其实是就诊人编号，不是申请人编号
+            List<String> requestMpiIds;
+            if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
+                requestMpiIds = iRevisitService.findPendingConsultByMpiIdAndDoctor(recipe.getMpiid(), recipe.getDoctor());
+            } else {
+                requestMpiIds = iConsultService.findPendingConsultByMpiIdAndDoctor(recipe.getMpiid(), recipe.getDoctor());
+            }
+
+            if (CollectionUtils.isNotEmpty(requestMpiIds)) {
+                for (String requestMpiId : requestMpiIds) {
+                    sendRecipeMsgTag(requestMpiId, recipe, recipeTagMsg, rMap, send);
+                }
+            }
+        }
+    }
+
     private static void sendRecipeMsgTag(String requestMpiId, Recipe recipe, RecipeTagMsgBean recipeTagMsg, Map<String, Object> rMap, boolean send) {
         INetworkclinicMsgService iNetworkclinicMsgService = MessageAPI.getService(INetworkclinicMsgService.class);
         ConsultMessageService iConsultMessageService = MessageAPI.getService(ConsultMessageService.class);

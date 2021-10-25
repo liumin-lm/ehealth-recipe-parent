@@ -82,7 +82,7 @@ public class DrugStockBusinessService extends BaseService {
         }
 
         //获取按钮
-        List<String> configurations = buttonManager.getGiveMode(recipe.getRecipeId(), recipe.getClinicOrgan());
+        List<String> configurations = buttonManager.getGiveMode(recipe.getClinicOrgan());
         if (CollectionUtils.isEmpty(configurations)) {
             drugStockManager.doSignRecipe(doSignRecipe, null, "抱歉，机构未配置购药方式，无法开处方");
             return MapValueUtil.beanToMap(doSignRecipe);
@@ -185,10 +185,9 @@ public class DrugStockBusinessService extends BaseService {
         List<DrugsEnterprise> haveList = new ArrayList<>();
         List<DrugEnterpriseResult> noHaveList = new ArrayList<>();
         //线上支付能力判断
-        boolean onlinePay = configurationClient.isHisEnable(recipe.getClinicOrgan());
         for (DrugsEnterprise dep : drugsEnterpriseList) {
             //不支持在线支付跳过该药企
-            if (1 == dep.getPayModeSupport() && !onlinePay) {
+            if (1 == dep.getPayModeSupport()) {
                 noHaveList.add(new DrugEnterpriseResult(RecipeResultBean.FAIL));
                 continue;
             }
@@ -259,7 +258,7 @@ public class DrugStockBusinessService extends BaseService {
             return result;
         }
         //通过前置机调用
-        if (drugsEnterprise != null && 1 == drugsEnterprise.getOperationType()) {
+        if (null != drugsEnterprise && 1 == drugsEnterprise.getOperationType()) {
             Integer code = drugStockManager.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
             result.setCode(code);
             return result;
