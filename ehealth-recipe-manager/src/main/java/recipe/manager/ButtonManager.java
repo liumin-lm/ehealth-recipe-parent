@@ -169,12 +169,12 @@ public class ButtonManager extends BaseManager {
 
 
     /**
-     * 获取按钮
+     * 获取机构配置的 购药按钮
      *
      * @return
      */
-    public List<String> getGiveMode(Integer recipeId, Integer organId) {
-        logger.info("DrugStockBusinessService.configurations recipeId={} organId={}", recipeId, organId);
+    public List<String> getGiveMode(Integer organId) {
+        logger.info("DrugStockBusinessService.configurations organId={}", organId);
         //添加按钮配置项key
         GiveModeShowButtonDTO giveModeShowButtonVO = getGiveModeSettingFromYypt(organId);
         List<GiveModeButtonDTO> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();

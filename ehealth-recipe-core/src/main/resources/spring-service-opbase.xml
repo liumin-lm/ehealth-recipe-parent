@@ -11,5 +11,6 @@
     <reference interface="com.ngari.opbase.base.service.IDynamicLinkService" id="opbase.dynamicLinkService"/>
     <reference interface="com.ngari.opbase.xls.service.IImportExcelInfoService" id="opbase.importExcelInfoService"/>
     <reference interface="com.ngari.opbase.auth.service.ISecurityService" id="opbase.securityService" />
+    <reference interface="com.ngari.opbase.log.service.IDataSyncLogService" id="opbase.dataSyncLogService" />
 
 </s:beans>
