@@ -44,6 +44,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.HisSearchDrugDTO;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.constant.PageInfoConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
@@ -758,7 +759,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         LOGGER.info("findDrugListsByNameOrCodePageStaticNew req={}", JSONUtils.toString(req));
         //医生查询药品信息
         List<SearchDrugDetailDTO> resultList = searchDrugListWithES(req.getOrganId(),
-                req.getDrugType(), req.getDrugName(), req.getPharmacyId(), req.getStart(), 10);
+                req.getDrugType(), req.getDrugName(), req.getPharmacyId(), req.getStart(), PageInfoConstant.PAGE_SIZE);
         //过滤不符合条件的药品
 
         if (req.getPharmacyId() != null) {
