@@ -383,6 +383,13 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "处方审核状态")
     private Integer checkFlag;
 
+    @ItemProperty(alias="挂号科室名称")
+    private String appointDepartName;
+
+    @ItemProperty(alias = "机构一级科室编码")
+    @Dictionary(id = "eh.base.dictionary.OrganProfession")
+    private Integer organProfession;
+
     public Integer getCheckFlag() {
         return checkFlag;
     }
@@ -1322,6 +1329,22 @@ public class RecipeBean implements Serializable {
 
     public void setWxDisplayTime(String wxDisplayTime) {
         this.wxDisplayTime = wxDisplayTime;
+    }
+
+    public String getAppointDepartName() {
+        return appointDepartName;
+    }
+
+    public void setAppointDepartName(String appointDepartName) {
+        this.appointDepartName = appointDepartName;
+    }
+
+    public Integer getOrganProfession() {
+        return organProfession;
+    }
+
+    public void setOrganProfession(Integer organProfession) {
+        this.organProfession = organProfession;
     }
 
     /**
