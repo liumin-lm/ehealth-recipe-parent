@@ -1,8 +1,6 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSONArray;
-import com.ngari.base.scratchable.model.ScratchableBean;
-import com.ngari.base.scratchable.service.IScratchableService;
 import com.ngari.platform.recipe.mode.RecipeResultBean;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
@@ -15,6 +13,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.client.OperationClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.type.PayButtonEnum;
@@ -45,9 +44,8 @@ public class ButtonManager extends BaseManager {
     private BjGiveModeServiceImpl bjGiveModeService;
     @Autowired
     private FromHisDeliveryCodeServiceImpl fromHisDeliveryCodeService;
-//    @Autowired
-//    private GiveModeManager giveModeManager;
-
+    @Autowired
+    private OperationClient operationClient;
 
     /**
      * 获取支付按钮 仅杭州市互联网医院使用
@@ -165,38 +163,8 @@ public class ButtonManager extends BaseManager {
      * @param organId 机构ID
      * @return 运营平台的配置项
      */
-//    public GiveModeShowButtonDTO getGiveModeSettingFromYypt(Integer organId) {
-//        return getGiveModeSettingFromYypt(organId);
-//    }
-
-    @Autowired
-    private IScratchableService scratchableService;
-
     public GiveModeShowButtonDTO getGiveModeSettingFromYypt(Integer organId) {
-        List<GiveModeButtonDTO> giveModeButtonBeans = new ArrayList<>();
-        GiveModeShowButtonDTO giveModeShowButtonVO = new GiveModeShowButtonDTO();
-        List<ScratchableBean> scratchableBeans = scratchableService.findScratchableByPlatform("myRecipeDetailList", organId + "", 1);
-        scratchableBeans.forEach(giveModeButton -> {
-            GiveModeButtonDTO giveModeButtonBean = new GiveModeButtonDTO();
-            giveModeButtonBean.setShowButtonKey(giveModeButton.getBoxLink());
-            giveModeButtonBean.setShowButtonName(giveModeButton.getBoxTxt());
-            giveModeButtonBean.setButtonSkipType(giveModeButton.getRecipeskip());
-            if (!"listItem".equals(giveModeButtonBean.getShowButtonKey())) {
-                giveModeButtonBeans.add(giveModeButtonBean);
-            } else {
-                giveModeShowButtonVO.setListItem(giveModeButtonBean);
-            }
-        });
-        giveModeShowButtonVO.setGiveModeButtons(giveModeButtonBeans);
-        if (giveModeShowButtonVO.getListItem() == null) {
-            //说明运营平台没有配置列表
-            GiveModeButtonDTO giveModeButtonBean = new GiveModeButtonDTO();
-            giveModeButtonBean.setShowButtonKey("listItem");
-            giveModeButtonBean.setShowButtonName("列表项");
-            giveModeButtonBean.setButtonSkipType("1");
-            giveModeShowButtonVO.setListItem(giveModeButtonBean);
-        }
-        return giveModeShowButtonVO;
+        return operationClient.getGiveModeSettingFromYypt(organId);
     }
 
 

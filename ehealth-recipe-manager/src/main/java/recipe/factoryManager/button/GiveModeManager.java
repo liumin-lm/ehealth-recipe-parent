@@ -1,8 +1,6 @@
 package recipe.factoryManager.button;
 
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
-import com.ngari.base.scratchable.model.ScratchableBean;
-import com.ngari.base.scratchable.service.IScratchableService;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.entity.DrugsEnterprise;
@@ -18,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.client.OperationClient;
 import recipe.constant.*;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganAndDrugsepRelationDAO;
@@ -47,35 +46,8 @@ public abstract class GiveModeManager implements IGiveModeBase {
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
-    private IScratchableService scratchableService;
+    private OperationClient operationClient;
 
-
-    private GiveModeShowButtonDTO getGiveModeSettingFromYypt(Integer organId) {
-        List<GiveModeButtonDTO> giveModeButtonBeans = new ArrayList<>();
-        GiveModeShowButtonDTO giveModeShowButtonVO = new GiveModeShowButtonDTO();
-        List<ScratchableBean> scratchableBeans = scratchableService.findScratchableByPlatform("myRecipeDetailList", organId + "", 1);
-        scratchableBeans.forEach(giveModeButton -> {
-            GiveModeButtonDTO giveModeButtonBean = new GiveModeButtonDTO();
-            giveModeButtonBean.setShowButtonKey(giveModeButton.getBoxLink());
-            giveModeButtonBean.setShowButtonName(giveModeButton.getBoxTxt());
-            giveModeButtonBean.setButtonSkipType(giveModeButton.getRecipeskip());
-            if (!"listItem".equals(giveModeButtonBean.getShowButtonKey())) {
-                giveModeButtonBeans.add(giveModeButtonBean);
-            } else {
-                giveModeShowButtonVO.setListItem(giveModeButtonBean);
-            }
-        });
-        giveModeShowButtonVO.setGiveModeButtons(giveModeButtonBeans);
-        if (giveModeShowButtonVO.getListItem() == null) {
-            //说明运营平台没有配置列表
-            GiveModeButtonDTO giveModeButtonBean = new GiveModeButtonDTO();
-            giveModeButtonBean.setShowButtonKey("listItem");
-            giveModeButtonBean.setShowButtonName("列表项");
-            giveModeButtonBean.setButtonSkipType("1");
-            giveModeShowButtonVO.setListItem(giveModeButtonBean);
-        }
-        return giveModeShowButtonVO;
-    }
 
     @Override
     public void setSpecialItem(GiveModeShowButtonDTO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
@@ -115,7 +87,7 @@ public abstract class GiveModeManager implements IGiveModeBase {
             return giveModeShowButtonDTO;
         }
         //从运营平台获取配置项
-        giveModeShowButtonDTO = getGiveModeSettingFromYypt(recipe.getClinicOrgan());
+        giveModeShowButtonDTO = operationClient.getGiveModeSettingFromYypt(recipe.getClinicOrgan());
         if (CollectionUtils.isEmpty(giveModeShowButtonDTO.getGiveModeButtons())) {
             return giveModeShowButtonDTO;
         }
@@ -288,7 +260,7 @@ public abstract class GiveModeManager implements IGiveModeBase {
         saveGiveModeDatas(giveModeButtonBeans, list);
 
         //从运营平台获取配置项和现在的按钮集合取交集
-        GiveModeShowButtonDTO giveModeShowButton = getGiveModeSettingFromYypt(recipe.getClinicOrgan());
+        GiveModeShowButtonDTO giveModeShowButton = operationClient.getGiveModeSettingFromYypt(recipe.getClinicOrgan());
         List<GiveModeButtonDTO> fromYyptButtons = giveModeShowButton.getGiveModeButtons();
         if (fromYyptButtons != null) {
             fromYyptButtons.retainAll(giveModeShowButtonVO.getGiveModeButtons());
