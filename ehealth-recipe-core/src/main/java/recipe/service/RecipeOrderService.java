@@ -1215,11 +1215,11 @@ public class RecipeOrderService extends RecipeBaseService {
 
         //支付处理
         Map<String, Object> recipeInfo = Maps.newHashMap();
-        if (RecipeBussConstant.PAYMODE_COMPLEX.equals(payMode)) {
-            recipeInfo.put("payMode", null);
-        } else {
-            recipeInfo.put("payMode", payMode);
-        }
+//        if (RecipeBussConstant.PAYMODE_COMPLEX.equals(payMode)) {
+//            recipeInfo.put("payMode", null);
+//        } else {
+//            recipeInfo.put("payMode", payMode);
+//        }
         recipeInfo.put("payFlag", PayConstant.PAY_FLAG_NOT_PAY);
         recipeInfo.put("enterpriseId", order.getEnterpriseId());
         //更新处方信息
