@@ -23,7 +23,7 @@ import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.factoryManager.button.IGiveModeBase;
 import recipe.factoryManager.button.impl.BjGiveModeServiceImpl;
 import recipe.factoryManager.button.impl.CommonGiveModeServiceImpl;
-import recipe.factoryManager.button.impl.FromHisDeliveryCodeServiceImpl;
+import recipe.factoryManager.button.impl.FromHisGiveModeServiceImpl;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -43,7 +43,7 @@ public class ButtonManager extends BaseManager {
     @Autowired
     private BjGiveModeServiceImpl bjGiveModeService;
     @Autowired
-    private FromHisDeliveryCodeServiceImpl fromHisDeliveryCodeService;
+    private FromHisGiveModeServiceImpl fromHisGiveModeServiceImpl;
     @Autowired
     private OperationClient operationClient;
 
@@ -320,7 +320,7 @@ public class ButtonManager extends BaseManager {
             //判断是不是杭州互联网医院
             if (null != organDTO && organDTO.getManageUnit().indexOf("eh3301") != -1 && RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
                 if (null != recipeExtend && StringUtils.isNotEmpty(recipeExtend.getDeliveryCode())) {
-                    return fromHisDeliveryCodeService;
+                    return fromHisGiveModeServiceImpl;
                 }
             }
         }
