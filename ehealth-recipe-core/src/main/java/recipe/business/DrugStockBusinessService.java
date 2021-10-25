@@ -81,8 +81,15 @@ public class DrugStockBusinessService extends BaseService {
             return MapValueUtil.beanToMap(doSignRecipe);
         }
 
+        // 医院配置药品不能存在机构药品编号为空的情况
+        boolean organDrugCode = recipeDetails.stream().anyMatch(a -> StringUtils.isEmpty(a.getOrganDrugCode()));
+        if (organDrugCode) {
+            drugStockManager.doSignRecipe(doSignRecipe, null, "医院配置药品存在编号为空的数据");
+            return MapValueUtil.beanToMap(doSignRecipe);
+        }
+
         //获取按钮
-        List<String> configurations = buttonManager.getGiveMode(recipe.getClinicOrgan());
+        List<String> configurations = buttonManager.getGiveModeButtonKey(recipe.getClinicOrgan());
         if (CollectionUtils.isEmpty(configurations)) {
             drugStockManager.doSignRecipe(doSignRecipe, null, "抱歉，机构未配置购药方式，无法开处方");
             return MapValueUtil.beanToMap(doSignRecipe);

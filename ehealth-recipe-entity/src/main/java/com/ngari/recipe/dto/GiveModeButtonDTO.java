@@ -5,6 +5,8 @@ import lombok.Data;
 import java.io.Serializable;
 
 /**
+ * 关联枚举为： RecipeSupportGiveModeEnum
+ *
  * @author yinsheng
  * @date 2020\12\3 0003 13:49
  */
