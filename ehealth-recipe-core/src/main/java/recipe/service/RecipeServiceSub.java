@@ -2504,6 +2504,7 @@ public class RecipeServiceSub {
         }
     }
 
+    // todo 需要修改
     public static void sendRecipeTagToPatientAfterPay(Recipe recipe, List<Recipedetail> details, Map<String, Object> rMap, boolean send) {
         IConsultService iConsultService = ApplicationUtils.getConsultService(IConsultService.class);
         IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
