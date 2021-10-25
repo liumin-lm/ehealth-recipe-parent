@@ -640,7 +640,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             }
             map.put("addNum", addNum);
             map.put("updateNum", updateNum);
-            map.put("deleteNum", deleteNum);
+            map.put("falseNum", 0);
             map.put("Date", myFmt2.format(new Date()));
             map.put("Status", 1);
             redisClient.del(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
