@@ -208,9 +208,6 @@ public class RecipeService extends RecipeBaseService {
     private SignManager signManager;
     @Autowired
     private OperationClient operationClient;
-
-    @Autowired
-    private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
