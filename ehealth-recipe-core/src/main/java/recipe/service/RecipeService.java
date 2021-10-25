@@ -4553,6 +4553,7 @@ public class RecipeService extends RecipeBaseService {
             giveMode = null;
         }
         attrMap.put("giveMode", giveMode);
+        attrMap.remove("payMode");
         LOGGER.info("recipe updateRecipePayResultImplForOrder giveMode={}", giveMode);
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
 
