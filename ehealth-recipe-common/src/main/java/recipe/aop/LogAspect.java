@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  * 对异常处理向外抛出
  */
 @Aspect
-//@Component(value = "logAspect")
+@Component(value = "logAspect")
 @Slf4j
 //Order值越小，优先级越高！
 @Order(10)
