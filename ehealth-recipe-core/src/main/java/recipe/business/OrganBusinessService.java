@@ -24,7 +24,6 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 
 @Service
 public class OrganBusinessService extends BaseService implements IOrganBusinessService {
@@ -63,9 +62,9 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
 
     @Override
     public EnterpriseStock organStock(Recipe recipe, List<Recipedetail> detailList) {
-        Map<String, String> configurations = buttonManager.getGiveModeMap(recipe.getClinicOrgan());
-        String showButtonName = configurations.get(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
+        List<GiveModeButtonDTO> giveModeButtonBeans = buttonManager.getGiveModeMap(recipe.getClinicOrgan());
         //无到院取药
+        String showButtonName = RecipeSupportGiveModeEnum.checkOrgan(giveModeButtonBeans);
         if (StringUtils.isEmpty(showButtonName)) {
             return null;
         }

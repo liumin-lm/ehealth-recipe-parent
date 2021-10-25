@@ -1,7 +1,13 @@
 package recipe.enumerate.type;
 
+import com.ngari.recipe.dto.GiveModeButtonDTO;
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.util.StringUtils;
+
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @description： 处方支持的购药方式
@@ -72,7 +78,7 @@ public enum RecipeSupportGiveModeEnum {
         return name;
     }
 
-    private static List<String> enterpriseList = Arrays.asList(SHOW_SEND_TO_HOS.text, SHOW_SEND_TO_ENTERPRISES.text, SUPPORT_TFDS.text);
+    public static List<String> enterpriseList = Arrays.asList(SHOW_SEND_TO_HOS.text, SHOW_SEND_TO_ENTERPRISES.text, SUPPORT_TFDS.text);
 
     /**
      * 校验何种类型库存
@@ -93,4 +99,42 @@ public enum RecipeSupportGiveModeEnum {
         }
         return hospital + enterprise;
     }
+
+    /**
+     * 判断是否校验药企库存
+     *
+     * @param giveModeButtonBeans
+     * @return false 无配置 不校验
+     */
+    public static boolean checkEnterprise(List<GiveModeButtonDTO> giveModeButtonBeans) {
+        if (CollectionUtils.isEmpty(giveModeButtonBeans)) {
+            return false;
+        }
+        List<String> configurations = giveModeButtonBeans.stream().map(GiveModeButtonDTO::getShowButtonKey).collect(Collectors.toList());
+        boolean enterprise = configurations.stream().anyMatch(a -> RecipeSupportGiveModeEnum.enterpriseList.contains(a));
+        if (!enterprise) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 判断是否校验机构库存
+     *
+     * @param giveModeButtonBeans
+     * @return 到院取药按钮名称
+     */
+    public static String checkOrgan(List<GiveModeButtonDTO> giveModeButtonBeans) {
+        if (CollectionUtils.isEmpty(giveModeButtonBeans)) {
+            return null;
+        }
+        Map<String, String> configurations = giveModeButtonBeans.stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
+        String showButtonName = configurations.get(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
+        //无到院取药
+        if (StringUtils.isEmpty(showButtonName)) {
+            return null;
+        }
+        return showButtonName;
+    }
+
 }

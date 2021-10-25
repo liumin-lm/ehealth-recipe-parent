@@ -174,23 +174,14 @@ public class ButtonManager extends BaseManager {
      * @return
      */
     public List<String> getGiveModeButtonKey(Integer organId) {
-        logger.info("ButtonManager.getGiveMode organId={}", organId);
-        //添加按钮配置项key
-        GiveModeShowButtonDTO giveModeShowButtonVO = getGiveModeSettingFromYypt(organId);
-        List<GiveModeButtonDTO> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
-        if (null == giveModeButtonBeans) {
-            return null;
-        }
+        List<GiveModeButtonDTO> giveModeButtonBeans = getGiveModeMap(organId);
         List<String> configurations = giveModeButtonBeans.stream().map(GiveModeButtonDTO::getShowButtonKey).collect(Collectors.toList());
         //收集按钮信息用于判断校验哪边库存 0是什么都没有，1是指配置了到院取药，2是配置到药企相关，3是医院药企都配置了
-        if (CollectionUtils.isEmpty(configurations)) {
-            return null;
-        }
         logger.info("ButtonManager.getGiveMode res={}", JSONArray.toJSONString(configurations));
         return configurations;
     }
 
-    public Map<String, String> getGiveModeMap(Integer organId) {
+    public List<GiveModeButtonDTO> getGiveModeMap(Integer organId) {
         logger.info("ButtonManager.getGiveModeMap organId={}", organId);
         //添加按钮配置项key
         GiveModeShowButtonDTO giveModeShowButtonVO = getGiveModeSettingFromYypt(organId);
@@ -198,13 +189,7 @@ public class ButtonManager extends BaseManager {
         if (null == giveModeButtonBeans) {
             return null;
         }
-        Map<String, String> configurations = giveModeButtonBeans.stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
-        //收集按钮信息用于判断校验哪边库存 0是什么都没有，1是指配置了到院取药，2是配置到药企相关，3是医院药企都配置了
-        if (configurations.isEmpty()) {
-            return null;
-        }
-        logger.info("ButtonManager.getGiveModeMap res={}", JSONArray.toJSONString(configurations));
-        return configurations;
+        return giveModeButtonBeans;
     }
 
 

@@ -1,6 +1,7 @@
 package recipe.client;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.scratchable.model.ScratchableBean;
 import com.ngari.base.scratchable.service.IScratchableService;
@@ -188,6 +189,7 @@ public class OperationClient extends BaseClient {
             giveModeButtonBean.setButtonSkipType("1");
             giveModeShowButtonVO.setListItem(giveModeButtonBean);
         }
+        logger.info("OperationClient.getGiveModeSettingFromYypt res={}", JSONArray.toJSONString(giveModeShowButtonVO));
         return giveModeShowButtonVO;
     }
 
