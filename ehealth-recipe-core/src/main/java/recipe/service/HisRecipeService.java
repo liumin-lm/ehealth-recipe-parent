@@ -10,10 +10,15 @@ import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.DrugListBean;
+import com.ngari.recipe.dto.GiveModeButtonDTO;
+import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.dto.GroupRecipeConfDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
-import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipe.model.HisPatientTabStatusMergeRecipeVO;
+import com.ngari.recipe.recipe.model.HisRecipeDetailVO;
+import com.ngari.recipe.recipe.model.HisRecipeVO;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
@@ -44,8 +49,7 @@ import recipe.dao.bean.HisRecipeListBean;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.givemode.business.GiveModeFactory;
-import recipe.givemode.business.IGiveModeBase;
+import recipe.manager.ButtonManager;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.GroupRecipeManager;
 import recipe.util.MapValueUtil;
@@ -85,10 +89,8 @@ public class HisRecipeService {
     private EmrRecipeManager emrRecipeManager;
     @Resource
     private DrugsEnterpriseService drugsEnterpriseService;
-    @Resource
-    private RecipeService recipeService;
     @Autowired
-    private IConfigurationCenterUtilsService configService;
+    private ButtonManager buttonManager;
     @Autowired
     private GroupRecipeManager groupRecipeManager;
 
@@ -145,10 +147,9 @@ public class HisRecipeService {
         PatientDTO patientDTO = patientService.getPatientBeanByMpiId(mpiId);
         patientDTO.setCardId(StringUtils.isNotEmpty(carId) ? carId : "");
 
-        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
         //获取机构配制的购药按钮
-        GiveModeShowButtonVO giveModeShowButtons = giveModeBase.getGiveModeSettingFromYypt(organId);
-        GiveModeButtonBean giveModeButtonBean = giveModeShowButtons.getListItem();
+        GiveModeShowButtonDTO giveModeShowButtons = buttonManager.getGiveModeSettingFromYypt(organId);
+        GiveModeButtonDTO giveModeButtonBean = giveModeShowButtons.getListItem();
 
         //表示获取待缴费或者已处理的处方,此时需要查询HIS
         HisResponseTO<List<QueryHisRecipResTO>> hisResponseTO = queryData(organId, patientDTO, timeQuantum, OfflineToOnlineEnum.getOfflineToOnlineType(status), null);
@@ -175,7 +176,7 @@ public class HisRecipeService {
      * @return 前端需要展示的进行中的处方单集合, 先获取进行中的处方返回给前端展示, 然后对处方数据进行校验, 处方发生
      * 变更需要删除处方,当患者点击处方列表时如果订单已删除,会弹框提示"该处方单信息已变更，请退出重新获取处方信息"
      */
-    private List<HisPatientTabStatusMergeRecipeVO> findOngoingHisRecipe(Integer organId, List<QueryHisRecipResTO> data, PatientDTO patientDTO, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
+    private List<HisPatientTabStatusMergeRecipeVO> findOngoingHisRecipe(Integer organId, List<QueryHisRecipResTO> data, PatientDTO patientDTO, GiveModeButtonDTO giveModeButtonBean, Integer start, Integer limit) {
         LOGGER.info("hisRecipeService findOngoingHisRecipe request:{}", JSONUtils.toString(data));
         List<HisPatientTabStatusMergeRecipeVO> result = Lists.newArrayList();
         //先查询进行中处方(目前仅指的是待支付的处方单)
@@ -274,7 +275,7 @@ public class HisRecipeService {
      * @param request his的处方单集合
      * @return 前端需要的处方单集合
      */
-    private List<HisPatientTabStatusMergeRecipeVO> findOnReadyHisRecipe(List<HisRecipeVO> request, GiveModeButtonBean giveModeButtonBean) {
+    private List<HisPatientTabStatusMergeRecipeVO> findOnReadyHisRecipe(List<HisRecipeVO> request, GiveModeButtonDTO giveModeButtonBean) {
         LOGGER.info("hisRecipeService findOnReadyHisRecipe request:{}", JSONUtils.toString(request));
 
         //查询线下待缴费处方
@@ -356,7 +357,7 @@ public class HisRecipeService {
         return result;
     }
 
-    private void setMergeRecipeVO(List<HisRecipeVO> recipes, String mergeRecipeWayAfter, Boolean mergeRecipeFlag, List<HisPatientTabStatusMergeRecipeVO> result, GiveModeButtonBean giveModeButtonBean) {
+    private void setMergeRecipeVO(List<HisRecipeVO> recipes, String mergeRecipeWayAfter, Boolean mergeRecipeFlag, List<HisPatientTabStatusMergeRecipeVO> result, GiveModeButtonDTO giveModeButtonBean) {
         for (HisRecipeVO hisRecipeVO : recipes) {
             Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(hisRecipeVO.getRecipeCode(), hisRecipeVO.getClinicOrgan());
             if (recipe != null && StringUtils.isNotEmpty(recipe.getOrderCode())) {
@@ -382,7 +383,7 @@ public class HisRecipeService {
      * @param limit
      * @return
      */
-    public List<HisPatientTabStatusMergeRecipeVO> findFinishHisRecipes(Integer organId, String mpiId, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
+    public List<HisPatientTabStatusMergeRecipeVO> findFinishHisRecipes(Integer organId, String mpiId, GiveModeButtonDTO giveModeButtonBean, Integer start, Integer limit) {
         LOGGER.info("findFinishHisRecipes mpiId:{} giveModeButtonBean : {} index:{} limit:{} ", mpiId, giveModeButtonBean, start, limit);
         Assert.hasLength(mpiId, "findFinishHisRecipes mpiId为空!");
         List<HisPatientTabStatusMergeRecipeVO> result = new ArrayList<>();

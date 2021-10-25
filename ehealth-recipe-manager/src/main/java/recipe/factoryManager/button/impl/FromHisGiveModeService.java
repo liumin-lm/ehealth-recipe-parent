@@ -1,11 +1,12 @@
-package recipe.givemode.business;
+package recipe.factoryManager.button.impl;
 
+import com.ngari.recipe.dto.GiveModeButtonDTO;
+import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.recipe.model.GiveModeButtonBean;
-import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
-import com.ngari.recipe.recipe.model.PatientTabStatusRecipeDTO;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+import recipe.factoryManager.button.GiveModeManager;
+import recipe.factoryManager.button.IGiveModeBase;
 
 import java.util.List;
 
@@ -13,12 +14,12 @@ import java.util.List;
  * @author yinsheng
  * @date 2020\12\3 0003 19:58
  */
-@Component("fromHisGiveModeService")
-public class FromHisGiveModeService extends AbstractGiveModeService implements IGiveModeBase {
+@Service
+public class FromHisGiveModeService extends GiveModeManager implements IGiveModeBase {
     @Override
-    public void setSpecialItem(GiveModeShowButtonVO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
+    public void setSpecialItem(GiveModeShowButtonDTO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
         super.setSpecialItem(giveModeShowButtonVO, recipe, recipeExtend);
-        List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
+        List<GiveModeButtonDTO> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
         //浙江省的购药方式按钮显示需要从HIS获取，目前正式环境一条数据都没有
         if ("1".equals(recipeExtend.getGiveModeFormHis())) {
             //只支持配送到家

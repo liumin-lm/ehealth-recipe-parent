@@ -1,5 +1,7 @@
-package com.ngari.recipe.recipe.constant;
+package recipe.enumerate.type;
 
+
+import recipe.constant.RecipeBussConstant;
 
 import java.util.Arrays;
 import java.util.Collections;

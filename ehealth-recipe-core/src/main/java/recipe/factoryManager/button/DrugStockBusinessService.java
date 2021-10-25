@@ -1,4 +1,4 @@
-package recipe.business;
+package recipe.factoryManager.button;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -8,10 +8,6 @@ import com.ngari.recipe.dto.DoSignRecipeDTO;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.recipe.constant.DrugStockCheckEnum;
-import com.ngari.recipe.recipe.constant.RecipeSupportGiveModeEnum;
-import com.ngari.recipe.recipe.model.GiveModeButtonBean;
-import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -27,9 +23,10 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.givemode.business.GiveModeFactory;
+import recipe.enumerate.type.DrugStockCheckEnum;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
+import recipe.manager.ButtonManager;
 import recipe.manager.DrugStockManager;
-import recipe.service.DrugsEnterpriseService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
@@ -47,24 +44,19 @@ import java.util.stream.Collectors;
 public class DrugStockBusinessService extends BaseService {
     @Resource
     private RecipeDAO recipeDAO;
-
-    @Resource
-    private DrugsEnterpriseService drugsEnterpriseService;
-
     @Resource
     private DrugStockManager drugStockManager;
-
     @Resource
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
-
     @Resource
     private RecipeDetailDAO recipeDetailDAO;
-
     @Resource
     private SaleDrugListDAO saleDrugListDAO;
-
     @Autowired
     private IConfigurationClient configurationClient;
+    @Autowired
+    private ButtonManager buttonManager;
+
 
     /**
      * 开方时对库存的操作
@@ -73,7 +65,7 @@ public class DrugStockBusinessService extends BaseService {
      * @return
      */
     public Map<String, Object> doSignRecipeCheckAndGetGiveMode(RecipeBean recipe) {
-        logger.info("进入 DrugStockBusinessService.doSignRecipeCheckAndGetGiveMode recipeId ={}" ,recipe.getRecipeId());
+        logger.info("进入 DrugStockBusinessService.doSignRecipeCheckAndGetGiveMode recipeId ={}", recipe.getRecipeId());
         Integer recipeId = recipe.getRecipeId();
         DoSignRecipeDTO doSignRecipe = new DoSignRecipeDTO(true, false, null, "", recipeId, null);
 
@@ -89,9 +81,9 @@ public class DrugStockBusinessService extends BaseService {
             return MapValueUtil.beanToMap(doSignRecipe);
         }
 
-        //获取按钮
-        List<String> configurations = configurations(recipe);
-        if(CollectionUtils.isEmpty(configurations)){
+        // todo 获取按钮
+        List<String> configurations = buttonManager.getGiveMode(recipe.getRecipeId(), recipe.getClinicOrgan());
+        if (CollectionUtils.isEmpty(configurations)) {
             drugStockManager.doSignRecipe(doSignRecipe, null, "抱歉，机构未配置购药方式，无法开处方");
             return MapValueUtil.beanToMap(doSignRecipe);
         }
@@ -114,8 +106,8 @@ public class DrugStockBusinessService extends BaseService {
             }
         } else if (DrugStockCheckEnum.ENT_CHECK_STOCK.getType().equals(checkFlag)) {
             //查询药企库存
-            allSupportDepList = findAllSupportDepList(recipeNew, recipeDetails);
             drugStockManager.checkDrugEnterprise(doSignRecipe, recipe.getClinicOrgan(), recipeDetails);
+            allSupportDepList = findAllSupportDepList(recipeNew, recipeDetails);
             List<DrugEnterpriseResult> drugEnterpriseResults = allSupportDepList.getNoHaveList();
             if (CollectionUtils.isNotEmpty(drugEnterpriseResults)) {
                 List<Object> object = drugEnterpriseResults.stream().map(RecipeResultBean::getObject).collect(Collectors.toList());
@@ -124,8 +116,8 @@ public class DrugStockBusinessService extends BaseService {
         } else if (DrugStockCheckEnum.ALL_CHECK_STOCK.getType().equals(checkFlag)) {
             /**校验 医院+药企 库存*/
             //药企库存
-            allSupportDepList = findAllSupportDepList(recipeNew, recipeDetails);
             drugStockManager.checkDrugEnterprise(doSignRecipe, recipe.getClinicOrgan(), recipeDetails);
+            allSupportDepList = findAllSupportDepList(recipeNew, recipeDetails);
             List<String> enterpriseDrugName = null;
             List<DrugEnterpriseResult> drugEnterpriseResults = allSupportDepList.getNoHaveList();
             if (CollectionUtils.isNotEmpty(drugEnterpriseResults)) {
@@ -140,32 +132,7 @@ public class DrugStockBusinessService extends BaseService {
         //保存药品购药方式
         saveGiveMode(scanResult, allSupportDepList, checkFlag, recipeId, recipe.getClinicOrgan(), configurations);
         return MapValueUtil.beanToMap(doSignRecipe);
-
     }
-
-    /**
-     * 获取按钮
-     *
-     * @param recipe
-     * @return
-     */
-    private List<String> configurations(RecipeBean recipe) {
-        logger.info("DrugStockBusinessService.configurations recipeId={} organId={}",recipe.getRecipeId(),recipe.getClinicOrgan());
-        //添加按钮配置项key
-        GiveModeShowButtonVO giveModeShowButtonVO = GiveModeFactory.getGiveModeBaseByRecipe(recipeDAO.getByRecipeId(recipe.getRecipeId())).getGiveModeSettingFromYypt(recipe.getClinicOrgan());
-        List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
-        if (null == giveModeButtonBeans) {
-            return null;
-        }
-        List<String> configurations = giveModeButtonBeans.stream().map(GiveModeButtonBean::getShowButtonKey).collect(Collectors.toList());
-        //收集按钮信息用于判断校验哪边库存 0是什么都没有，1是指配置了到院取药，2是配置到药企相关，3是医院药企都配置了
-        if (CollectionUtils.isEmpty(configurations)) {
-            return null;
-        }
-        logger.info("DrugStockBusinessService.configurations res={}",JSONArray.toJSONString(configurations));
-        return configurations;
-    }
-
 
     /**
      * 异步保存处方购药方式
@@ -185,7 +152,7 @@ public class DrugStockBusinessService extends BaseService {
             if (!Objects.isNull(allSupportDepList)) {
                 supportDepList = allSupportDepList.getHaveList();
             }
-            List<Integer> recipeGiveMode = drugsEnterpriseService.getRecipeGiveMode(scanResult, supportDepList, checkFlag, recipeId, organId, configurations);
+            List<Integer> recipeGiveMode = buttonManager.getRecipeGiveMode(scanResult, supportDepList, checkFlag, recipeId, organId, configurations);
             if (CollectionUtils.isNotEmpty(recipeGiveMode)) {
                 Map<String, Object> attMap = new HashMap<>();
                 String join = StringUtils.join(recipeGiveMode, ",");
@@ -243,7 +210,7 @@ public class DrugStockBusinessService extends BaseService {
                 noHaveList.add(new DrugEnterpriseResult(RecipeResultBean.FAIL));
                 continue;
             }
-            //通过查询该药企库存，最终确定能否配送
+            //todo 通过查询该药企库存，最终确定能否配送
             DrugEnterpriseResult result = findUnSupportDrugEnterprise(recipe, dep, recipeDetails);
             if (DrugEnterpriseResult.SUCCESS.equals(result.getCode()) || 2 == dep.getCheckInventoryFlag()) {
                 haveList.add(dep);

@@ -1,6 +1,4 @@
-package com.ngari.recipe.recipe.constant;
-
-import org.apache.commons.collections.CollectionUtils;
+package recipe.enumerate.type;
 
 import java.util.Arrays;
 import java.util.List;

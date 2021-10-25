@@ -1,4 +1,4 @@
-package recipe.business;
+package recipe.factoryManager.button;
 
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;

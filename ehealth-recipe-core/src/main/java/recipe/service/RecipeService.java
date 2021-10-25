@@ -36,6 +36,7 @@ import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.ds.PatientDS;
+import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -45,13 +46,9 @@ import com.ngari.platform.recipe.mode.ScanRequestBean;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RequestVisitVO;
-import com.ngari.recipe.dto.ApothecaryDTO;
-import com.ngari.recipe.dto.RecipeInfoDTO;
-import com.ngari.recipe.dto.RecipeLabelDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
-import com.ngari.recipe.recipe.constant.RecipeSupportGiveModeEnum;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderInfoBean;
@@ -105,7 +102,6 @@ import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipeInvalidDTO;
-import recipe.business.DrugStockBusinessService;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.ca.vo.CaSignResultVo;
@@ -125,11 +121,8 @@ import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugTool.service.DrugToolService;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
-import recipe.enumerate.type.PayBusType;
-import recipe.enumerate.type.PayFlagEnum;
-import recipe.enumerate.type.PayFlowTypeEnum;
-import recipe.givemode.business.GiveModeFactory;
-import recipe.givemode.business.IGiveModeBase;
+import recipe.enumerate.type.*;
+import recipe.factoryManager.button.DrugStockBusinessService;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
@@ -263,7 +256,8 @@ public class RecipeService extends RecipeBaseService {
 
     @Autowired
     private RevisitClient revisitClient;
-
+    @Autowired
+    private ButtonManager buttonManager;
     /**
      * 药师审核不通过
      */
@@ -1780,13 +1774,11 @@ public class RecipeService extends RecipeBaseService {
     public Map<String, Object> doSignRecipeCheck(RecipeBean recipe) {
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
         DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-
         Map<String, Object> rMap = Maps.newHashMap();
         Integer recipeId = recipe.getRecipeId();
         //添加按钮配置项key
-        GiveModeShowButtonVO giveModeShowButtonVO = GiveModeFactory.getGiveModeBaseByRecipe(recipeDAO.getByRecipeId(recipeId)).getGiveModeSettingFromYypt(recipe.getClinicOrgan());
-        List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
+        GiveModeShowButtonDTO giveModeShowButtonVO = buttonManager.getGiveModeSettingFromYypt(recipe.getClinicOrgan());
+        List<GiveModeButtonDTO> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
         int checkFlag = 0;
         if (null != giveModeButtonBeans) {
             List<String> configurations = giveModeButtonBeans.stream().map(e -> e.getShowButtonKey()).collect(Collectors.toList());
@@ -4223,30 +4215,6 @@ public class RecipeService extends RecipeBaseService {
     }
 
 
-    private int getFlag(DrugsEnterprise drugsEnterprise, Recipe recipe) {
-        int flag = -1;
-        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
-        GiveModeShowButtonVO giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(recipe.getClinicOrgan());
-        Map configurations = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
-        if (configurations.containsKey("showSendToEnterprises") || configurations.containsKey("supportTFDS") || configurations.containsKey("showSendToHos")) {
-            //药企配送
-            if (new Integer(2).equals(drugsEnterprise.getSendType())) {
-                if (RemoteDrugEnterpriseService.payModeSupport(drugsEnterprise, 1) && configurations.containsKey("showSendToEnterprises")) {
-                    flag = 1;
-                }
-            } else {
-                //医院配送
-                if (RemoteDrugEnterpriseService.payModeSupport(drugsEnterprise, 1) && configurations.containsKey("showSendToHos")) {
-                    flag = 1;
-                }
-            }
-            if (RemoteDrugEnterpriseService.payModeSupport(drugsEnterprise, 3) && configurations.containsKey("supportTFDS")) {
-                flag = 2;
-            }
-        }
-        return flag;
-    }
-
     /**
      * 查询药企无库存药品信息 DrugEnterpriseResult.Object=List<DrugName>
      *
@@ -5942,8 +5910,7 @@ public class RecipeService extends RecipeBaseService {
 
     private String getGiveModeText(String supportType, Integer organId) {
         Recipe recipe = new Recipe();
-        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(recipe);
-        Map<String, String> map = giveModeBase.getGiveModeSettingFromYypt(organId).getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
+        Map<String, String> map = buttonManager.getGiveModeSettingFromYypt(organId).getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
         return map.get(supportType);
     }
 
@@ -6101,14 +6068,13 @@ public class RecipeService extends RecipeBaseService {
             return list;
         }
         // 从运营平台获取所有的购药方式
-        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
-        GiveModeShowButtonVO giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(recipes.get(0).getClinicOrgan());
+        GiveModeShowButtonDTO giveModeShowButtonVO = buttonManager.getGiveModeSettingFromYypt(recipes.get(0).getClinicOrgan());
 
-        List<GiveModeButtonBean> giveModeButtons = giveModeShowButtonVO.getGiveModeButtons();
+        List<GiveModeButtonDTO> giveModeButtons = giveModeShowButtonVO.getGiveModeButtons();
         LOGGER.info("getRecipeGiveModeButtonRes.giveModeButtons{}", JSONUtils.toString(giveModeButtons));
-        Map<String, List<GiveModeButtonBean>> buttonsMap = giveModeButtons.stream().collect(Collectors.groupingBy(GiveModeButtonBean::getShowButtonKey));
+        Map<String, List<GiveModeButtonDTO>> buttonsMap = giveModeButtons.stream().collect(Collectors.groupingBy(GiveModeButtonDTO::getShowButtonKey));
         // 例外支付单独处理 只要机构配置了例外支付,所有处方都支持
-        List<GiveModeButtonBean> giveModeButtonBeans = buttonsMap.get(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
+        List<GiveModeButtonDTO> giveModeButtonBeans = buttonsMap.get(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
         if (CollectionUtils.isNotEmpty(giveModeButtonBeans)) {
             RecipeGiveModeButtonRes supportMedicalPaymentButton = new RecipeGiveModeButtonRes(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText(),
                     giveModeButtonBeans.get(0).getShowButtonName(), recipeIds, true, giveModeButtonBeans.get(0).getButtonSkipType());
@@ -6123,8 +6089,8 @@ public class RecipeService extends RecipeBaseService {
         return list;
     }
 
-    private void getGiveModeButton(RecipeSupportGiveModeEnum recipeSupportGiveModeEnum, List<Recipe> recipes, Map<String, List<GiveModeButtonBean>> buttonsMap, List<RecipeGiveModeButtonRes> list, Integer size) {
-        List<GiveModeButtonBean> giveModeButtonBeans = buttonsMap.get(recipeSupportGiveModeEnum.getText());
+    private void getGiveModeButton(RecipeSupportGiveModeEnum recipeSupportGiveModeEnum, List<Recipe> recipes, Map<String, List<GiveModeButtonDTO>> buttonsMap, List<RecipeGiveModeButtonRes> list, Integer size) {
+        List<GiveModeButtonDTO> giveModeButtonBeans = buttonsMap.get(recipeSupportGiveModeEnum.getText());
         if (CollectionUtils.isEmpty(giveModeButtonBeans) || RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText().equals(giveModeButtonBeans.get(0).getShowButtonKey())) {
             return;
         }
