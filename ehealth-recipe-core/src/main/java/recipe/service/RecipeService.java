@@ -215,6 +215,9 @@ public class RecipeService extends RecipeBaseService {
     private SignManager signManager;
     @Autowired
     private OperationClient operationClient;
+
+    @Autowired
+    private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
@@ -4950,6 +4953,24 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
         }
+        if (!ObjectUtils.isEmpty(drug.getDrugsEnterpriseCode())) {
+            String pharmacyCode = drug.getDrugsEnterpriseCode();queryDrugListsByDrugNameAndStartAndLimit
+            String[] split = pharmacyCode.split(",");
+            StringBuilder ss = new StringBuilder();
+            for (int i = 0; i < split.length; i++) {
+                DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i]);
+                if (ObjectUtils.isEmpty(byEnterpriseCode)) {
+                    throw new DAOException(DAOException.VALUE_NEEDED, "平台根据药企编码"+split[i]+" 未找到药企");
+                } else {
+                    if (i != split.length - 1) {
+                        ss.append(byEnterpriseCode.getId().toString() + ",");
+                    } else {
+                        ss.append(byEnterpriseCode.getId().toString());
+                    }
+                }
+            }
+            drugListMatch.setDrugsEnterpriseIds(ss.toString());
+        }
         if (!ObjectUtils.isEmpty(drug.getRegulationDrugCode())) {
             drugListMatch.setRegulationDrugCode(drug.getRegulationDrugCode());
         }
@@ -5081,6 +5102,30 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getIndicationsDeclare())) {
             organDrug.setIndicationsDeclare(drug.getIndicationsDeclare());
         }
+        if (!ObjectUtils.isEmpty(drug.getDrugsEnterpriseCode())) {
+            String pharmacyCode = drug.getDrugsEnterpriseCode();
+
+            String[] split = pharmacyCode.split(",");
+            StringBuilder ss = new StringBuilder();
+            String drugsEnterpriseIds = organDrug.getDrugsEnterpriseIds();
+            for (int i = 0; i < split.length; i++) {
+                DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i]);
+                if (ObjectUtils.isEmpty(byEnterpriseCode)) {
+                    throw new DAOException(DAOException.VALUE_NEEDED, "平台根据药企编码"+split[i]+" 未找到药企");
+                } else {
+                    if (ObjectUtils.isEmpty(drugsEnterpriseIds)){
+                        if (i != split.length - 1) {
+                            ss.append(byEnterpriseCode.getId().toString() + ",");
+                        } else {
+                            ss.append(byEnterpriseCode.getId().toString());
+                        }
+                    }else {
+                        drugsEnterpriseIds=addOne(drugsEnterpriseIds,byEnterpriseCode.getId());
+                    }
+                }
+            }
+            organDrug.setDrugsEnterpriseIds(drugsEnterpriseIds);
+        }
         //使用状态 0 无效 1 有效
         if (!ObjectUtils.isEmpty(drug.getStatus())) {
             organDrug.setStatus(drug.getStatus());
@@ -5094,6 +5139,31 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.info("机构药品手动同步修改同步对应药企" + e);
 
         }
+    }
+
+
+    /**
+     * 添加指定药企 药企字符串中  此药企ID
+     * @param pharmacyIds
+     * @param pharmacyId
+     * @return
+     */
+    public static String addOne(String pharmacyIds, Integer pharmacyId) {
+        // 返回结果
+        String result = "";
+        // 判断是否存在。如果存在，移除指定药房 ID；如果不存在，则直接返回空
+        // 拆分成数组
+        String[] userIdArray = pharmacyIds.split(",");
+        // 数组转集合
+        List<String> userIdList = new ArrayList<String>(Arrays.asList(userIdArray));
+        if(userIdList.indexOf(pharmacyId)==-1){
+            // 添加指定药企 ID
+            userIdList.add(pharmacyId.toString());
+            // 把剩下的药企 ID 再拼接起来
+            result = com.aliyun.openservices.shade.org.apache.commons.lang3.StringUtils.join(userIdList, ",");
+        }
+        // 返回
+        return result;
     }
 
     /**
