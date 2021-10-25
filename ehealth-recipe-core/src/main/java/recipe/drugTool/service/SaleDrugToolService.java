@@ -488,11 +488,11 @@ public class SaleDrugToolService implements ISaleDrugToolService {
       ArrayList<DataSyncDTO> list = Lists.newArrayList();
       dataSyncDTO.setOrganId(drugsEnterpriseId.toString());
       if (status==1){
-          dataSyncDTO.setReqMsg(" 更新 " + update.getDrugName() + " 药企Id=["+drugsEnterpriseId+"] 药企药品=["+JSONUtils.toString(update)+"]  机构药品=["+JSONUtils.toString(detail)+"]" );
+          dataSyncDTO.setReqMsg(JSONUtils.toString(update));
           dataSyncDTO.setRespMsg("更新成功");
       }
       if (status==2){
-          dataSyncDTO.setReqMsg(" 新增 " + update.getDrugName() + " 药企Id=["+drugsEnterpriseId+"] 药企药品=["+JSONUtils.toString(update)+"]  机构药品=["+JSONUtils.toString(detail)+"]" );
+          dataSyncDTO.setReqMsg(JSONUtils.toString(update));
           dataSyncDTO.setRespMsg("新增成功");
       }
       dataSyncDTO.setType("7");
