@@ -60,17 +60,17 @@ public enum RecipeMsgEnum {
     /**
      * fromflag=2的处方超时未支付
      */
-    RECIPE_CANCEL_4HIS(118,"RecipeCancel4His"),
+    RECIPE_CANCEL_4HIS(118, "RecipeCancel4His"),
 
     /**
      * 武昌新增，无库存情况
      */
-    RECIPE_HOSSUPPORT_NOINVENTORY(119,"RecipeHosSupportNoInventory"),
+    RECIPE_HOSSUPPORT_NOINVENTORY(119, "RecipeHosSupportNoInventory"),
 
     /**
      * 武昌新增，有库存情况
      */
-    RECIPE_HOSSUPPORT_INVENTORY(120,"RecipeHosSupportInventory"),
+    RECIPE_HOSSUPPORT_INVENTORY(120, "RecipeHosSupportInventory"),
 
     /**
      * Date:2019/09/09
@@ -148,7 +148,12 @@ public enum RecipeMsgEnum {
     /**
      * 到院取药
      */
-    RECIPE_HOS_TAKE_MEDICINE(139,"RecipeHosTakeMedicine"),
+    RECIPE_HOS_TAKE_MEDICINE(139, "RecipeHosTakeMedicine"),
+
+    /**
+     * 不存在的状态，用于系统消息发送，患者支付成功后,给药师发送系统消息
+     */
+    RECIPE_PAY_CALL_SUCCESS(140, "RecipePayCallSuccess"),
 
     /**
      * 默认消息
@@ -159,7 +164,7 @@ public enum RecipeMsgEnum {
 
     private int status;
 
-    private RecipeMsgEnum(int status, String msgType){
+    private RecipeMsgEnum(int status, String msgType) {
         this.status = status;
         this.msgType = msgType;
     }

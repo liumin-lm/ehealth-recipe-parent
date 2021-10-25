@@ -8,15 +8,13 @@ import com.ngari.his.recipe.mode.DrugInfoResponseTO;
 import com.ngari.platform.recipe.mode.RecipeResultBean;
 import com.ngari.recipe.dto.DoSignRecipeDTO;
 import com.ngari.recipe.entity.*;
-import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.BaseManager;
 import recipe.client.DrugStockClient;
-import recipe.client.IConfigurationClient;
 import recipe.dao.OrganAndDrugsepRelationDAO;
-import recipe.dao.OrganDrugListDAO;
 import recipe.dao.PharmacyTcmDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.util.ListValueUtil;
@@ -35,23 +33,15 @@ import java.util.stream.Collectors;
  */
 @Service
 public class DrugStockManager extends BaseManager {
-
-    @Resource
-    private IConfigurationClient configurationClient;
-
     @Resource
     private DrugStockClient drugStockClient;
-
     @Resource
     private PharmacyTcmDAO pharmacyTcmDAO;
-
-    @Resource
-    private OrganDrugListDAO organDrugListDAO;
-
     @Autowired
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
     @Resource
     private SaleDrugListDAO saleDrugListDAO;
+
 
     /**
      * 校验医院库存
@@ -77,14 +67,7 @@ public class DrugStockManager extends BaseManager {
             result.setError("处方没有详情");
             return result;
         }
-
-        // 判断是否需要对接HIS
-        List<String> recipeTypes = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "getRecipeTypeToHis", null);
-        if (!recipeTypes.contains(Integer.toString(recipe.getRecipeType()))) {
-            return result;
-        }
-
-        // 判断his 是否存在
+        // 判断his 是否启用
         if (!configurationClient.isHisEnable(recipe.getClinicOrgan())) {
             result.setCode(RecipeResultBean.FAIL);
             result.setError("医院HIS未启用。");
@@ -107,16 +90,15 @@ public class DrugStockManager extends BaseManager {
             result.setError("医院配置药品存在编号为空的数据");
             return result;
         }
-
+        // 判断是否需要对接HIS
+        List<String> recipeTypes = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "getRecipeTypeToHis", null);
+        if (!recipeTypes.contains(Integer.toString(recipe.getRecipeType()))) {
+            return result;
+        }
         // 请求his
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(recipe.getClinicOrgan(), drugIdList);
         List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(pharmaIds);
         DrugInfoResponseTO response = drugStockClient.scanDrugStock(detailList, recipe.getClinicOrgan(), organDrugList, pharmacyTcmByIds);
-        if (null == response) {
-            //his未配置该服务则还是可以通过
-            result.setError("HIS返回为NULL");
-            return result;
-        }
         if (0 != response.getMsgCode()) {
             String organCodeStr = response.getMsg();
             List<String> nameList = new ArrayList<>();
@@ -129,7 +111,6 @@ public class DrugStockManager extends BaseManager {
             result.setObject(nameList);
             result.setExtendValue("1");
             result.setCode(RecipeResultBean.FAIL);
-            logger.warn("scanDrugStock 存在无库存药品. response={} ", JSONUtils.toString(response));
         }
         logger.info("scanDrugStock 结果={}", JSONObject.toJSONString(result));
         return result;
@@ -147,7 +128,7 @@ public class DrugStockManager extends BaseManager {
         List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
         List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
         HisResponseTO hisResponseTO = drugStockClient.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails, saleDrugLists);
-        if (hisResponseTO != null && hisResponseTO.isSuccess()) {
+        if (null != hisResponseTO && hisResponseTO.isSuccess()) {
             return 1;
         } else {
             return 0;
@@ -270,7 +251,6 @@ public class DrugStockManager extends BaseManager {
 
 
     /**
-     * todo canOpenRecipeDrugs 调整如下代码 需要确认
      * 是否有一个药企存在药品
      * 验证能否药品配送以及能否开具到一张处方单上
      *
@@ -312,5 +292,4 @@ public class DrugStockManager extends BaseManager {
         List<String> drugNames = recipeDetails.stream().filter(a -> !finalDepDrugIdList.contains(a.getDrugId())).map(Recipedetail::getDrugName).collect(Collectors.toList());
         doSignRecipe(doSignRecipe, drugNames, "不支持同一家药企配送或不在该机构药企可配送的药品目录里面");
     }
-
 }

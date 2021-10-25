@@ -73,7 +73,6 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.PayBusType;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.PayFlowTypeEnum;
-import recipe.givemode.business.GiveModeFactory;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
 import recipe.purchase.PurchaseService;
@@ -156,7 +155,8 @@ public class RecipeOrderService extends RecipeBaseService {
     private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
     @Autowired
     private RefundClient refundClient;
-
+    @Autowired
+    private ButtonManager buttonManager;
 
     /**
      * 处方结算时创建临时订单
@@ -1627,7 +1627,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     if (StringUtils.isNotEmpty(order.getGiveModeText())) {
                         recipeBean.setGiveModeText(order.getGiveModeText());
                     } else {
-                        recipeBean.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
+                        recipeBean.setGiveModeText(buttonManager.getGiveModeTextByRecipe(recipe));
                     }
                     if (new Integer(3).equals(recipe.getRecipeType())) {
                         tcmFlag = true;

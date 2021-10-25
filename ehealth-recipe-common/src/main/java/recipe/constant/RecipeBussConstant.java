@@ -1,7 +1,13 @@
 package recipe.constant;
 
+import org.apache.commons.collections.CollectionUtils;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * date:2017/3/13.
  */
@@ -194,5 +200,36 @@ public class RecipeBussConstant {
      * 处方订单类型-杭州市医保
      */
     public static Integer ORDERTYPE_HZS = 2;
+
+
+    public static List<Integer> getDepSupportMode(Integer payMode) {
+        //具体见DrugsEnterprise的payModeSupport字段
+        //配送模式支持 0:不支持 1:线上付款 2:货到付款 3:药店取药 8:货到付款和药店取药 9:都支持
+        List<Integer> supportMode = new ArrayList<>();
+        if (null == payMode) {
+            return supportMode;
+        }
+
+        if (RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
+            supportMode.add(RecipeBussConstant.DEP_SUPPORT_ONLINE);
+            supportMode.add(RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS);
+        } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
+            supportMode.add(RecipeBussConstant.DEP_SUPPORT_COD);
+            supportMode.add(RecipeBussConstant.DEP_SUPPORT_COD_TFDS);
+        } else if (RecipeBussConstant.PAYMODE_TFDS.equals(payMode)) {
+            supportMode.add(RecipeBussConstant.DEP_SUPPORT_TFDS);
+            supportMode.add(RecipeBussConstant.DEP_SUPPORT_COD_TFDS);
+            supportMode.add(RecipeBussConstant.DEP_SUPPORT_ONLINE_TFDS);
+        } else if (RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(payMode)) {
+            //医保选用线上支付配送方式
+            supportMode.add(RecipeBussConstant.DEP_SUPPORT_ONLINE);
+        }
+
+        if (CollectionUtils.isNotEmpty(supportMode)) {
+            supportMode.add(RecipeBussConstant.DEP_SUPPORT_ALL);
+        }
+
+        return supportMode;
+    }
 
 }

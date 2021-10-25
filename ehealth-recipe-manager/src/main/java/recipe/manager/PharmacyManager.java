@@ -5,6 +5,7 @@ import com.ngari.recipe.entity.PharmacyTcm;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.BaseManager;
 import recipe.dao.PharmacyTcmDAO;
 import recipe.util.ByteUtils;
 import recipe.util.ValidateUtil;

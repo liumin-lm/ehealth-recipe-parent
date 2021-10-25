@@ -10,6 +10,7 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.PatientDTO;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
+import ctd.persistence.exception.DAOException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -140,6 +141,35 @@ public class PatientClient extends BaseClient {
             return null;
         }
     }
+
+
+    /**
+     * todo  与 queryPatient 合成一个接口
+     * 判断是否是医保患者
+     *
+     * @return
+     */
+    public Boolean isMedicarePatient(Integer organId, String mpiId) {
+        //获取his患者信息判断是否医保患者
+        PatientQueryRequestTO req = new PatientQueryRequestTO();
+        req.setOrgan(organId);
+        PatientDTO patient = getPatientDTO(mpiId);
+        req.setPatientName(patient.getPatientName());
+        req.setCertificateType(patient.getCertificateType());
+        req.setCertificate(patient.getCertificate());
+        try {
+            HisResponseTO<PatientQueryRequestTO> response = patientHisService.queryPatient(req);
+            PatientQueryRequestTO result = getResponse(response);
+            if (result != null && "2".equals(result.getPatientType())) {
+                return true;
+            }
+        } catch (Exception e) {
+            logger.error("PatientClient isMedicarePatient error ", e);
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "查询患者信息异常，请稍后重试");
+        }
+        return false;
+    }
+
 
     /**
      * 患者信息脱敏

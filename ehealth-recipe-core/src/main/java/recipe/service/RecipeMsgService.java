@@ -11,7 +11,6 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -26,7 +25,6 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.common.RecipeCacheService;
@@ -34,10 +32,7 @@ import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 import recipe.util.RecipeMsgUtils;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * company: ngarihealth
@@ -116,6 +111,9 @@ public class RecipeMsgService {
     private static final String RECIPE_DRUG_HAVE_STOCK = "RecipeDrugHaveStock";
 
     private static final String RECIPE_TAKE_MEDICINE_FINISH = "RecipeTakeMedicineFinish";
+
+    //支付完成后给药师发送系统消息
+    private static final String RECIPE_PAY_CALL = "RecipePayCall";
 
     /**
      * 单个处方信息推送（根据处方ID）
@@ -263,7 +261,10 @@ public class RecipeMsgService {
                         extendValue.put("expireDate", DateConversion.formatDate(DateConversion.getDateAftXDays(recipe.getSignDate(), expiredDays)));
                         break;
                     case RECIPE_HAVE_PAY:
-                        setRemarkFlag(recipe,extendValue);
+                        setRemarkFlag(recipe, extendValue);
+                        break;
+                    case RECIPE_PAY_CALL_SUCCESS:
+                        getPayInfo(recipe, extendValue);
                         break;
                     default:
 
@@ -274,6 +275,18 @@ public class RecipeMsgService {
 
         }
 
+    }
+
+    private static void getPayInfo(Recipe recipe, Map<String, String> extendValue) {
+        Date createTime = recipe.getCreateDate();
+        Calendar c = Calendar.getInstance();
+        c.setTime(createTime);
+        int month = c.get(Calendar.MONTH) + 1;
+        int day = c.get(Calendar.DAY_OF_MONTH);
+        extendValue.put("month", String.valueOf(month));
+        extendValue.put("day", String.valueOf(day));
+        extendValue.put("doctorName", recipe.getDoctorName());
+        extendValue.put("patientName", recipe.getPatientName());
     }
 
     /**
@@ -361,7 +374,7 @@ public class RecipeMsgService {
         }
     }
 
-    private static void setRemarkFlag(Recipe recipe, Map<String, String> extendValue){
+    private static void setRemarkFlag(Recipe recipe, Map<String, String> extendValue) {
         String remarkFlag = "remarkflag=0";
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -408,8 +421,9 @@ public class RecipeMsgService {
                 }
             }
         }
-        extendValue.put("remarkflag",remarkFlag);
+        extendValue.put("remarkflag", remarkFlag);
     }
+
     private static String getRecipeExpressFeeRemindNoPayUrl(Recipe recipe) {
         //获取配置动态链接
         IDynamicLinkService dynamicLinkService = AppContextHolder.getBean("opbase.dynamicLinkService", IDynamicLinkService.class);

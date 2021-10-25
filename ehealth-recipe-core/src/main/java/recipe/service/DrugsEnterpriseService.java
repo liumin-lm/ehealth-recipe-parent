@@ -8,12 +8,9 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DrugEnterpriseLogisticsBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
+import com.ngari.recipe.dto.GiveModeButtonDTO;
+import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
-import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
-import com.ngari.recipe.recipe.constant.RecipeSupportGiveModeEnum;
-import com.ngari.recipe.recipe.model.GiveModeButtonBean;
-import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
 import ctd.account.UserRoleToken;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -34,8 +31,8 @@ import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.givemode.business.GiveModeFactory;
-import recipe.givemode.business.IGiveModeBase;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
+import recipe.manager.ButtonManager;
 import recipe.manager.DrugStockManager;
 import recipe.service.drugs.IDrugEnterpriseLogisticsService;
 import recipe.serviceprovider.BaseService;
@@ -69,6 +66,9 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
     private RecipeService recipeService;
     @Autowired
     private DrugStockManager drugStockManager;
+    @Autowired
+    private ButtonManager buttonManager;
+
 
     /**
      * 有效药企查询 status为1
@@ -143,6 +143,9 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         if (StringUtils.isEmpty(drugsEnterprise.getCallSys())) {
             drugsEnterprise.setCallSys("commonSelf");
         }
+        if (Objects.isNull(drugsEnterprise.getIsShowToday())) {
+            drugsEnterprise.setIsShowToday(0);
+        }
         // 药企物流对接方式默认药企对接
         if (null == drugsEnterprise.getLogisticsType()) {
             drugsEnterprise.setLogisticsType(DrugEnterpriseConstant.LOGISTICS_ENT);
@@ -153,6 +156,12 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
 
         //存储药企信息
         DrugsEnterprise newDrugsEnterprise = drugsEnterpriseDAO.save(drugsEnterprise);
+        //新增药企配置
+        DrugsEnterpriseConfigService bean = AppContextHolder.getBean("eh.drugsEnterpriseConfigService", DrugsEnterpriseConfigService.class);
+        DrugsEnterpriseConfig config=new DrugsEnterpriseConfig();
+        config.setDrugsenterpriseId(newDrugsEnterprise.getId());
+        config.setEnable_drug_sync(1);
+        bean.addOrUpdateDrugsEnterpriseConfig(config);
         // 写入药企关联物流公司信息
         drugEnterpriseLogisticsService.saveDrugEnterpriseLogistics(drugsEnterpriseBean.getDrugEnterpriseLogisticsBeans(), newDrugsEnterprise.getId());
         //更新管理单元
@@ -673,9 +682,8 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         LOGGER.info("getDrugsEnterpriseContinue recipeId = {} organId= {}}", recipeId, organId);
         List<Integer> recipeSupportGiveModeList = new ArrayList<>();
         // 获取机构支持的配置
-        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
-        GiveModeShowButtonVO giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(organId);
-        List<GiveModeButtonBean> giveModeButtons = giveModeShowButtonVO.getGiveModeButtons();
+        GiveModeShowButtonDTO giveModeShowButtonVO = buttonManager.getGiveModeSettingFromYypt(organId);
+        List<GiveModeButtonDTO> giveModeButtons = giveModeShowButtonVO.getGiveModeButtons();
         if (CollectionUtils.isEmpty(giveModeButtons)) {
             return recipeSupportGiveModeList;
         }
@@ -721,41 +729,6 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
 
         setOtherGiveMode(configurations,recipeId,organId,recipeSupportGiveModeList);
         LOGGER.info("getDrugsEnterpriseContinue  recipeId= {} recipeSupportGiveModeList= {}", recipeId, JSONUtils.toString(recipeSupportGiveModeList));
-        return recipeSupportGiveModeList;
-    }
-
-    /**
-     * 传入库存信息,获取处方的购药方式
-     * @param scanResult
-     * @param supportDepList
-     * @param checkFlag
-     * @param recipeId
-     * @param organId
-     * @return
-     */
-    public List<Integer> getRecipeGiveMode(com.ngari.platform.recipe.mode.RecipeResultBean scanResult, List<DrugsEnterprise> supportDepList, int checkFlag, Integer recipeId, int organId, List<String> configurations) {
-        LOGGER.info("getRecipeGiveMode scanResult = {} supportDepList= {} checkFlag={} recipeId={} organId={} configurations = {}", JSONArray.toJSONString(scanResult), JSONArray.toJSONString(supportDepList),checkFlag,recipeId,organId,JSONArray.toJSONString(configurations));
-        List<Integer> recipeSupportGiveModeList = new ArrayList<>();
-        switch (checkFlag) {
-            case 1:
-                if (RecipeResultBean.SUCCESS.equals(scanResult.getCode())) {
-                    recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
-                }
-                break;
-            case 2:
-                recipeSupportGiveModeList = getGiveModeBuEnterprise(supportDepList,recipeSupportGiveModeList, recipeId, organId);
-                break;
-            case 3:
-                recipeSupportGiveModeList = getGiveModeBuEnterprise(supportDepList,recipeSupportGiveModeList, recipeId, organId);
-                if (RecipeResultBean.SUCCESS.equals(scanResult.getCode())) {
-                    recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
-                }
-                break;
-            default:
-                break;
-        }
-        setOtherGiveMode(configurations,recipeId,organId,recipeSupportGiveModeList);
-        LOGGER.info("getRecipeGiveMode  recipeId= {} recipeSupportGiveModeList= {}", recipeId, JSONUtils.toString(recipeSupportGiveModeList));
         return recipeSupportGiveModeList;
     }
 
@@ -814,82 +787,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         // 获取所有有库存的药企
         List<DrugsEnterprise> supportDepList = recipeService.findSupportDepList(list, organId, null, false, null);
         LOGGER.info("getGiveModeWhenContinueOne recipeId = {} ,supportDepList = {} ", recipeId, JSONUtils.toString(supportDepList));
-       return getGiveModeBuEnterprise(supportDepList,recipeSupportGiveModeList,recipeId,organId);
-    }
-
-    /**
-     *  传入药企信息
-     * @param supportDepList
-     * @param recipeSupportGiveModeList
-     * @param recipeId
-     * @param organId
-     * @return
-     */
-    private List<Integer> getGiveModeBuEnterprise(List<DrugsEnterprise> supportDepList,List<Integer> recipeSupportGiveModeList, Integer recipeId, int organId) {
-        Set<Integer> sendTypes = new HashSet<>();
-        // 获取所有药企支持的购药方式
-        if (CollectionUtils.isNotEmpty(supportDepList)) {
-            Set<Integer> collect = supportDepList.stream().map(drugsEnterprise -> {
-                Integer payModeSupport = drugsEnterprise.getPayModeSupport();
-                Integer sendType = drugsEnterprise.getSendType();
-                sendTypes.add(sendType);
-                if (RecipeDistributionFlagEnum.drugsEnterpriseAll.contains(payModeSupport)) {
-                    return RecipeDistributionFlagEnum.DRUGS_HAVE.getType();
-                } else if (RecipeDistributionFlagEnum.drugsEnterpriseTo.contains(payModeSupport)) {
-                    return RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType();
-                } else if (RecipeDistributionFlagEnum.drugsEnterpriseSend.contains(payModeSupport)) {
-                    return RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType();
-                }
-                return null;
-            }).filter(Objects::nonNull).collect(Collectors.toSet());
-
-            // 是否支持到店自取
-            boolean drugHaveTo = collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType());
-            // 是否支持配送
-            boolean drugHaveSend = collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType());
-            // 根据药企的配送方式获取支持模式
-            if (collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE.getType()) || (drugHaveTo && drugHaveSend)) {
-                recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
-                sendTypes(sendTypes, recipeSupportGiveModeList);
-            } else if (drugHaveTo) {
-                recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
-            } else if (drugHaveSend) {
-                // 根据配送主体区分医院配送还是药企配送
-                sendTypes(sendTypes, recipeSupportGiveModeList);
-            }
-            LOGGER.info("getGiveModeWhenContinueOne  recipeId= {} recipeSupportGiveModeList= {}", recipeId, JSONUtils.toString(recipeSupportGiveModeList));
-            return recipeSupportGiveModeList;
-        } else {
-            LOGGER.info("getGiveModeWhenContinueOne 药企没有库存 recipeId = {} recipeSupportGiveModeList= {}", recipeId, JSONUtils.toString(recipeSupportGiveModeList));
-            return recipeSupportGiveModeList;
-        }
-    }
-    /**
-     * 根据配送主体获取购药方式
-     *
-     * @param sendTypes
-     * @param recipeSupportGiveModeList
-     */
-    private void sendTypes(Set<Integer> sendTypes, List<Integer> recipeSupportGiveModeList) {
-        if (CollectionUtils.isEmpty(sendTypes)) {
-            recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
-            recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
-            return;
-        }
-        boolean alReadyPay = sendTypes.contains(RecipeSendTypeEnum.ALRAEDY_PAY.getSendType());
-        boolean noPay = sendTypes.contains(RecipeSendTypeEnum.NO_PAY.getSendType());
-        if (alReadyPay && noPay) {
-            recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
-            recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
-            return;
-        }
-        if (alReadyPay) {
-            recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
-            return;
-        }
-        if (noPay) {
-            recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
-        }
+        return buttonManager.getGiveModeBuEnterprise(supportDepList, recipeSupportGiveModeList, recipeId, organId);
     }
 
 }

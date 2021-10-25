@@ -10,6 +10,7 @@ import ctd.persistence.exception.DAOException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.BaseManager;
 import recipe.client.PatientClient;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;

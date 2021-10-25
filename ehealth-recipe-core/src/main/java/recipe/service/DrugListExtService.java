@@ -17,10 +17,10 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.*;
+import com.ngari.recipe.dto.GiveModeButtonDTO;
+import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.DrugEntrustDTO;
-import com.ngari.recipe.recipe.model.GiveModeButtonBean;
-import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
 import com.ngari.recipe.recipe.service.IDrugEntrustService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -47,8 +47,7 @@ import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.givemode.business.GiveModeFactory;
-import recipe.givemode.business.IGiveModeBase;
+import recipe.manager.ButtonManager;
 import recipe.serviceprovider.BaseService;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
@@ -93,6 +92,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
     private DrugEntrustDAO drugEntrustDAO;
     @Autowired
     private IDrugEntrustService drugEntrustService;
+    @Autowired
+    private ButtonManager buttonManager;
 
     @RpcService
     public DrugListBean getById(int drugId) {
@@ -1235,11 +1236,10 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         return drugListBeans;
     }
 
-    private boolean getOrganGiveMode(Integer organId, String giveModeText){
+    private boolean getOrganGiveMode(Integer organId, String giveModeText) {
         //获取机构支持的购药方式
-        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
-        GiveModeShowButtonVO giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(organId);
-        Map configurations = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
+        GiveModeShowButtonDTO giveModeShowButtonVO = buttonManager.getGiveModeSettingFromYypt(organId);
+        Map configurations = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
         return !configurations.containsKey(giveModeText);
     }
 

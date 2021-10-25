@@ -1,4 +1,4 @@
-package com.ngari.recipe.recipe.constant;
+package recipe.enumerate.type;
 
 import java.util.Arrays;
 import java.util.Map;

@@ -81,6 +81,15 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
     @DAOMethod(sql = "from DrugsEnterprise where  name=:name")
     public abstract DrugsEnterprise getByName(@DAOParam("name") String name);
 
+
+    /**
+     * 根据name获取自建药企
+     * @param enterpriseCode
+     * @return
+     */
+    @DAOMethod(sql = "from DrugsEnterprise where  enterpriseCode=:enterpriseCode")
+    public abstract DrugsEnterprise getByEnterpriseCode(@DAOParam("enterpriseCode") String enterpriseCode);
+
     /**
     /**
      * 根据机构id及配送模式支持获取
