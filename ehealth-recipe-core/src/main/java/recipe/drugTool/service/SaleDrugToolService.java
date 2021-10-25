@@ -373,7 +373,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         Integer addNum=0;
         Integer updateNum=0;
         Integer deleteNum = 0;
-        if (!ObjectUtils.isEmpty(config.getEnable_drug_syncType())){
+        if (ObjectUtils.isEmpty(config.getEnable_drug_syncType())){
             throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企[数据同步类型]配置数据!");
         }
         String[] strings = config.getEnable_drug_syncType().split(",");
