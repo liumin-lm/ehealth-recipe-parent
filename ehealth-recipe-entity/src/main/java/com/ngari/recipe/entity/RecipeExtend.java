@@ -152,6 +152,18 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "诊断序号")
     private String hisDiseaseSerial;
 
+    @ItemProperty(alias = "处方指定药企类型 1医院 2药企 默认 0")
+    private String appointEnterpriseType;
+
+    @Column(name = "appoint_enterprise_type")
+    public String getAppointEnterpriseType() {
+        return appointEnterpriseType;
+    }
+
+    public void setAppointEnterpriseType(String appointEnterpriseType) {
+        this.appointEnterpriseType = appointEnterpriseType;
+    }
+
     @Column(name = "hisDiseaseSerial")
     public String getHisDiseaseSerial() {
         return hisDiseaseSerial;

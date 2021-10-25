@@ -2,10 +2,9 @@ package recipe.client;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.base.scratchable.model.ScratchableBean;
 import com.ngari.base.scratchable.service.IScratchableService;
-import com.ngari.recipe.dto.ApothecaryDTO;
-import com.ngari.recipe.dto.RecipeInfoDTO;
-import com.ngari.recipe.dto.RecipeLabelDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.exception.DAOException;
@@ -22,10 +21,7 @@ import recipe.constant.OperationConstant;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 运营平台信息处理类
@@ -161,6 +157,40 @@ public class OperationClient extends BaseClient {
         }
         return "";
     }
+
+    /**
+     * 从运营平台获取 购药按钮配置项
+     *
+     * @param organId
+     * @return
+     */
+    public GiveModeShowButtonDTO getGiveModeSettingFromYypt(Integer organId) {
+        List<ScratchableBean> scratchableBeans = scratchableService.findScratchableByPlatform("myRecipeDetailList", organId + "", 1);
+        List<GiveModeButtonDTO> giveModeButtonBeans = new ArrayList<>();
+        GiveModeShowButtonDTO giveModeShowButtonVO = new GiveModeShowButtonDTO();
+        scratchableBeans.forEach(giveModeButton -> {
+            GiveModeButtonDTO giveModeButtonBean = new GiveModeButtonDTO();
+            giveModeButtonBean.setShowButtonKey(giveModeButton.getBoxLink());
+            giveModeButtonBean.setShowButtonName(giveModeButton.getBoxTxt());
+            giveModeButtonBean.setButtonSkipType(giveModeButton.getRecipeskip());
+            if (!"listItem".equals(giveModeButtonBean.getShowButtonKey())) {
+                giveModeButtonBeans.add(giveModeButtonBean);
+            } else {
+                giveModeShowButtonVO.setListItem(giveModeButtonBean);
+            }
+        });
+        giveModeShowButtonVO.setGiveModeButtons(giveModeButtonBeans);
+        if (giveModeShowButtonVO.getListItem() == null) {
+            //说明运营平台没有配置列表
+            GiveModeButtonDTO giveModeButtonBean = new GiveModeButtonDTO();
+            giveModeButtonBean.setShowButtonKey("listItem");
+            giveModeButtonBean.setShowButtonName("列表项");
+            giveModeButtonBean.setButtonSkipType("1");
+            giveModeShowButtonVO.setListItem(giveModeButtonBean);
+        }
+        return giveModeShowButtonVO;
+    }
+
 
     private Object getFieldValue(Scratchable scratchable, RecipeInfoDTO recipePdfDTO) {
         if (StringUtils.isEmpty(scratchable.getBoxLink())) {
