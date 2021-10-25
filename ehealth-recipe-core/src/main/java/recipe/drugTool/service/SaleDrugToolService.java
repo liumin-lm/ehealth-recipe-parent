@@ -601,10 +601,10 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                                 }
                             } else if (config.getSyncDataRange() == 2) {
                                 //同步数据范围 药品类型
-                                if (!ObjectUtils.isEmpty(config.getSyncDrugType())) {
+                                if (ObjectUtils.isEmpty(config.getSyncDrugType())) {
                                     throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企[同步药品类型]配置数据!");
                                 }
-                                if (!ObjectUtils.isEmpty(config.getSyncDrugType())) {
+                                if (ObjectUtils.isEmpty(config.getSyncDrugType())) {
                                     throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企[数据同步类型]配置数据!");
                                 }
                                 String[] strings1 = config.getEnable_drug_syncType().split(",");
