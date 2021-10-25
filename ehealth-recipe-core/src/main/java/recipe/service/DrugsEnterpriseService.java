@@ -143,6 +143,9 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         if (StringUtils.isEmpty(drugsEnterprise.getCallSys())) {
             drugsEnterprise.setCallSys("commonSelf");
         }
+        if (Objects.isNull(drugsEnterprise.getIsShowToday())) {
+            drugsEnterprise.setIsShowToday(0);
+        }
         // 药企物流对接方式默认药企对接
         if (null == drugsEnterprise.getLogisticsType()) {
             drugsEnterprise.setLogisticsType(DrugEnterpriseConstant.LOGISTICS_ENT);
@@ -153,6 +156,12 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
 
         //存储药企信息
         DrugsEnterprise newDrugsEnterprise = drugsEnterpriseDAO.save(drugsEnterprise);
+        //新增药企配置
+        DrugsEnterpriseConfigService bean = AppContextHolder.getBean("eh.drugsEnterpriseConfigService", DrugsEnterpriseConfigService.class);
+        DrugsEnterpriseConfig config=new DrugsEnterpriseConfig();
+        config.setDrugsenterpriseId(newDrugsEnterprise.getId());
+        config.setEnable_drug_sync(1);
+        bean.addOrUpdateDrugsEnterpriseConfig(config);
         // 写入药企关联物流公司信息
         drugEnterpriseLogisticsService.saveDrugEnterpriseLogistics(drugsEnterpriseBean.getDrugEnterpriseLogisticsBeans(), newDrugsEnterprise.getId());
         //更新管理单元

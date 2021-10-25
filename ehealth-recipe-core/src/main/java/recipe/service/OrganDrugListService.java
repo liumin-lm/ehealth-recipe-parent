@@ -118,20 +118,7 @@ public class OrganDrugListService implements IOrganDrugListService {
      */
     public void organDrugSync(OrganDrugList organDrugList){
         DrugToolService bean = AppDomainContext.getBean("eh.drugToolService", DrugToolService.class);
-        List<OrganDrugList> lists= Lists.newArrayList();
-        lists.add(organDrugList);
-        DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        List<DrugsEnterprise> drugsEnterprises = dao.findByOrganIdZj(organDrugList.getOrganId());
-        if (drugsEnterprises != null && drugsEnterprises.size() > 0 ){
-            for (DrugsEnterprise drugsEnterpris : drugsEnterprises) {
-                try {
-                    bean.saveOrUpdateOrganDrugDataToSaleDrugList(lists,organDrugList.getOrganId(),drugsEnterpris.getId(),true);
-                } catch (Exception e) {
-                    logger.info("机构药品新增修改同步对应药企"+e);
-
-                }
-            }
-        }
+        bean.organDrugSync(organDrugList);
     }
 
     /**
@@ -143,16 +130,22 @@ public class OrganDrugListService implements IOrganDrugListService {
         List<OrganDrugList> lists= Lists.newArrayList();
         lists.add(organDrugList);
         DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterpriseConfigService configService = AppContextHolder.getBean("eh.drugsEnterpriseConfigService", DrugsEnterpriseConfigService.class);
         List<DrugsEnterprise> drugsEnterprises = dao.findByOrganIdZj(organDrugList.getOrganId());
         if (drugsEnterprises != null && drugsEnterprises.size() > 0 ){
             for (DrugsEnterprise drugsEnterpris : drugsEnterprises) {
-                if (status==1){
-                    bean.deleteOrganDrugDataToSaleDrugList(lists,drugsEnterpris.getId());
-                }else if (status == 2){
-                    try {
-                        bean.updateOrganDrugDataToSaleDrugList(lists,drugsEnterpris.getId());
-                    } catch (Exception e) {
-                        logger.info("机构药品禁用删除同步对应药企"+e);
+                DrugsEnterpriseConfig config = configService.getConfigByDrugsenterpriseId(drugsEnterpris.getId());
+                String[] strings = config.getEnable_drug_syncType().split(",");
+                List<String> syncTypeList = new ArrayList<String>(Arrays.asList(strings));
+                if (syncTypeList.indexOf("3")!=-1){
+                    if (status==1){
+                        bean.deleteOrganDrugDataToSaleDrugList(lists,drugsEnterpris.getId());
+                    }else if (status == 2){
+                        try {
+                            bean.updateOrganDrugDataToSaleDrugList(lists,drugsEnterpris.getId());
+                        } catch (Exception e) {
+                            logger.info("机构药品禁用删除同步对应药企"+e);
+                        }
                     }
                 }
             }
@@ -225,6 +218,20 @@ public class OrganDrugListService implements IOrganDrugListService {
         organDrugSyncDelete(organDrugList,1);
         organDrugListDAO.remove(organDrugListId);
 
+    }
+
+    /**
+     * 删除机构药品数据
+     *
+     * @param organId 入参机构ID
+     */
+    @RpcService
+    public void deleteByOrganId(Integer organId) {
+        if (organId == null) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "organId is required");
+        }
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        organDrugListDAO.deleteByOrganId(organId);
     }
 
     /**

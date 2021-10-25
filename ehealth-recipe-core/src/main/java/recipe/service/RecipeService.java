@@ -208,6 +208,9 @@ public class RecipeService extends RecipeBaseService {
     private SignManager signManager;
     @Autowired
     private OperationClient operationClient;
+
+    @Autowired
+    private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
@@ -2967,10 +2970,10 @@ public class RecipeService extends RecipeBaseService {
         if (!CollectionUtils.isEmpty(details)) {
             drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
         }
-        if (ObjectUtils.isEmpty(drugForms)){
+        if (ObjectUtils.isEmpty(drugForms)) {
             OrganConfigDTO byOrganId = organConfigService.getByOrganId(organId);
             String drugFromList = byOrganId.getDrugFromList();
-            if (!ObjectUtils.isEmpty(drugFromList)){
+            if (!ObjectUtils.isEmpty(drugFromList)) {
                 String[] split = drugFromList.split(",");
                 for (String s : split) {
                     drugForms.add(s);
@@ -4918,6 +4921,24 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
         }
+        /*if (!ObjectUtils.isEmpty(drug.getDrugsEnterpriseCode())) {
+            String pharmacyCode = drug.getDrugsEnterpriseCode();queryDrugListsByDrugNameAndStartAndLimit
+            String[] split = pharmacyCode.split(",");
+            StringBuilder ss = new StringBuilder();
+            for (int i = 0; i < split.length; i++) {
+                DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i]);
+                if (ObjectUtils.isEmpty(byEnterpriseCode)) {
+                    throw new DAOException(DAOException.VALUE_NEEDED, "平台根据药企编码"+split[i]+" 未找到药企");
+                } else {
+                    if (i != split.length - 1) {
+                        ss.append(byEnterpriseCode.getId().toString() + ",");
+                    } else {
+                        ss.append(byEnterpriseCode.getId().toString());
+                    }
+                }
+            }
+            drugListMatch.setDrugsEnterpriseIds(ss.toString());
+        }*/
         if (!ObjectUtils.isEmpty(drug.getRegulationDrugCode())) {
             drugListMatch.setRegulationDrugCode(drug.getRegulationDrugCode());
         }
@@ -5049,6 +5070,30 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getIndicationsDeclare())) {
             organDrug.setIndicationsDeclare(drug.getIndicationsDeclare());
         }
+        /*if (!ObjectUtils.isEmpty(drug.getDrugsEnterpriseCode())) {
+            String pharmacyCode = drug.getDrugsEnterpriseCode();
+
+            String[] split = pharmacyCode.split(",");
+            StringBuilder ss = new StringBuilder();
+            String drugsEnterpriseIds = organDrug.getDrugsEnterpriseIds();
+            for (int i = 0; i < split.length; i++) {
+                DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i]);
+                if (ObjectUtils.isEmpty(byEnterpriseCode)) {
+                    throw new DAOException(DAOException.VALUE_NEEDED, "平台根据药企编码"+split[i]+" 未找到药企");
+                } else {
+                    if (ObjectUtils.isEmpty(drugsEnterpriseIds)){
+                        if (i != split.length - 1) {
+                            ss.append(byEnterpriseCode.getId().toString() + ",");
+                        } else {
+                            ss.append(byEnterpriseCode.getId().toString());
+                        }
+                    }else {
+                        drugsEnterpriseIds=addOne(drugsEnterpriseIds,byEnterpriseCode.getId());
+                    }
+                }
+            }
+            organDrug.setDrugsEnterpriseIds(drugsEnterpriseIds);
+        }*/
         //使用状态 0 无效 1 有效
         if (!ObjectUtils.isEmpty(drug.getStatus())) {
             organDrug.setStatus(drug.getStatus());
@@ -5062,6 +5107,31 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.info("机构药品手动同步修改同步对应药企" + e);
 
         }
+    }
+
+
+    /**
+     * 添加指定药企 药企字符串中  此药企ID
+     * @param pharmacyIds
+     * @param pharmacyId
+     * @return
+     */
+    public static String addOne(String pharmacyIds, Integer pharmacyId) {
+        // 返回结果
+        String result = "";
+        // 判断是否存在。如果存在，移除指定药房 ID；如果不存在，则直接返回空
+        // 拆分成数组
+        String[] userIdArray = pharmacyIds.split(",");
+        // 数组转集合
+        List<String> userIdList = new ArrayList<String>(Arrays.asList(userIdArray));
+        if(userIdList.indexOf(pharmacyId)==-1){
+            // 添加指定药企 ID
+            userIdList.add(pharmacyId.toString());
+            // 把剩下的药企 ID 再拼接起来
+            result = com.aliyun.openservices.shade.org.apache.commons.lang3.StringUtils.join(userIdList, ",");
+        }
+        // 返回
+        return result;
     }
 
     /**
@@ -6128,6 +6198,24 @@ public class RecipeService extends RecipeBaseService {
     public boolean testNotifyPharAudit(int recipeId) {
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         return auditModeContext.getAuditModes(recipe.getReviewType()).notifyPharAudit(recipe);
+    }
+
+    @RpcService
+    public boolean testMethod(int recipeId, String type) {
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if ("1".equals(type)) {
+            //支付完成后
+            RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.RECIPE_PAY_CALL_SUCCESS);
+        } else if ("2".equals(type)) {
+            return auditModeContext.getAuditModes(recipe.getReviewType()).notifyPharAudit(recipe);
+        } else if ("3".equals(type)) {
+            //发送消息--待审核消息
+            RecipeMsgService.batchSendMsg(recipe.getRecipeId(), 2);
+        } else if ("4".equals(type)) {
+            //发送消息--待审核消息
+            RecipeMsgService.batchSendMsg(recipe.getRecipeId(), 8);
+        }
+        return true;
     }
 
     private ScanRequestBean getScanRequestBean(Recipe recipe, DrugsEnterprise drugsEnterprise) {

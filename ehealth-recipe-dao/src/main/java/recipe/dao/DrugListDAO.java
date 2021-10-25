@@ -709,7 +709,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 }
                 if (!ObjectUtils.isEmpty(sourceOrgan)) {
                     if (sourceOrgan == 0){
-                        hql.append(" and sourceOrgan is null ");
+                        hql.append(" and ( sourceOrgan is null or sourceOrgan=0 )   ");
                     }else {
                         hql.append(" and sourceOrgan =:sourceOrgan ");
                     }

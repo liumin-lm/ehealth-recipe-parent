@@ -181,6 +181,18 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "集揽模式")
     private Integer collectMode;
 
+    @ItemProperty(alias = "到院取药日期是否展示今天 0 否 1 是")
+    private Integer isShowToday;
+
+    @Column(name = "is_show_today")
+    public Integer getIsShowToday() {
+        return isShowToday;
+    }
+
+    public void setIsShowToday(Integer isShowToday) {
+        this.isShowToday = isShowToday;
+    }
+
     @Column(name = "consignorStreet")
     public String getConsignorStreet() {
         return consignorStreet;
