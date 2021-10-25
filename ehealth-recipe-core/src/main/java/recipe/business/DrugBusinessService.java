@@ -1,4 +1,4 @@
-package recipe.bussiness;
+package recipe.business;
 
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.entity.Dispensatory;

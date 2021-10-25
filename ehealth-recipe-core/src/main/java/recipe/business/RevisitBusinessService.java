@@ -1,4 +1,4 @@
-package recipe.bussiness;
+package recipe.business;
 
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.patient.dto.DoctorDTO;

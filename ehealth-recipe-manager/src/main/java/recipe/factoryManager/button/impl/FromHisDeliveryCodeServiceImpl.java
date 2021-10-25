@@ -10,7 +10,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import recipe.constant.HisDeliveryConstant;
 import recipe.factoryManager.button.GiveModeManager;
-import recipe.factoryManager.button.IGiveModeBase;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -21,7 +20,7 @@ import java.util.stream.Collectors;
  * @author hss
  */
 @Service
-public class FromHisDeliveryCodeService extends GiveModeManager implements IGiveModeBase {
+public class FromHisDeliveryCodeServiceImpl extends GiveModeManager {
     @Override
     public void setSpecialItem(GiveModeShowButtonDTO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
         super.setSpecialItem(giveModeShowButtonVO, recipe, recipeExtend);
@@ -31,16 +30,16 @@ public class FromHisDeliveryCodeService extends GiveModeManager implements IGive
         /**
          * 药房有库存时显示企业配送，药柜有库存时显示药柜取药；药柜和云药房都有库存时药柜取药和企业配送按钮；
          */
-        if(CollectionUtils.isNotEmpty(deliveryCodeList)){
+        if (CollectionUtils.isNotEmpty(deliveryCodeList)) {
             int size = deliveryCodeList.size();
             boolean boo = deliveryCodeList.contains(HisDeliveryConstant.YG_HIS_DELIVERY_CODE);
-            if(!boo){
+            if (!boo) {
                 //药企配送按钮
                 saveGiveModeData(giveModeButtonBeans, "showSendToEnterprises");
-            }else if(size == 1 && boo){
+            } else if (size == 1 && boo) {
                 //药柜取药按钮
                 saveGiveModeData(giveModeButtonBeans, "supportTFDS");
-            }else if(size > 1 && boo){
+            } else if (size > 1 && boo) {
                 //"药企配送" && "药柜取药"
                 addGiveModeData(giveModeButtonBeans, Arrays.asList("showSendToEnterprises","supportTFDS"));
             }else{

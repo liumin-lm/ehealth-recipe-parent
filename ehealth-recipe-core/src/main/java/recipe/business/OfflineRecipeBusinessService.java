@@ -1,4 +1,4 @@
-package recipe.bussiness;
+package recipe.business;
 
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;

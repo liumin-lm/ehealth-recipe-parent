@@ -46,7 +46,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.cqJgptBussData.AdditionalDiagnosis;
 import recipe.bean.cqJgptBussData.Drug;
 import recipe.bean.cqJgptBussData.RecipeDocSignatureXML;
-import recipe.bussiness.DrugStockBusinessService;
+import recipe.business.DrugStockBusinessService;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.XstreamUtil;
 import recipe.ca.vo.CaSignResultVo;

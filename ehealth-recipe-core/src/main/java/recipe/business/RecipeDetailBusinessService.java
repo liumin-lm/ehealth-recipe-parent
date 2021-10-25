@@ -1,4 +1,4 @@
-package recipe.bussiness;
+package recipe.business;
 
 import com.ngari.recipe.entity.DrugEntrust;
 import com.ngari.recipe.entity.OrganDrugList;

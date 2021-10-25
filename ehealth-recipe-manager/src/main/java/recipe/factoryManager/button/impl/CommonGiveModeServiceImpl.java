@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.PatientClient;
 import recipe.factoryManager.button.GiveModeManager;
-import recipe.factoryManager.button.IGiveModeBase;
 
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -19,17 +18,18 @@ import java.util.stream.Collectors;
  * @date 2020\12\3 0003 19:58
  */
 @Service
-public class CommonGiveModeService extends GiveModeManager implements IGiveModeBase {
+public class CommonGiveModeServiceImpl extends GiveModeManager {
     @Autowired
     private PatientClient patientClient;
+
     @Override
     public void setSpecialItem(GiveModeShowButtonDTO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
         super.setSpecialItem(giveModeShowButtonVO, recipe, recipeExtend);
         //设置临沭医保例外支付的个性化按钮设置
-        if (recipe.getClinicOrgan() == 1002753){
+        if (recipe.getClinicOrgan() == 1002753) {
             Map result = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
             boolean supportMedicalPayment = result.containsKey("supportMedicalPayment");
-            if (supportMedicalPayment && !patientClient.isMedicarePatient(recipe.getClinicOrgan(), recipe.getMpiid())){
+            if (supportMedicalPayment && !patientClient.isMedicarePatient(recipe.getClinicOrgan(), recipe.getMpiid())) {
                 super.removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "supportMedicalPayment");
             }
         }

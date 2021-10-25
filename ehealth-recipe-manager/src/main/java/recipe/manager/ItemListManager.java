@@ -3,7 +3,6 @@ package recipe.manager;
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.ItemList;
 import org.springframework.stereotype.Service;
-import recipe.BaseManager;
 import recipe.dao.ItemListDAO;
 
 import javax.annotation.Resource;

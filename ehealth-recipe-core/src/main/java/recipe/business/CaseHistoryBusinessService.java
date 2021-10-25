@@ -1,4 +1,4 @@
-package recipe.bussiness;
+package recipe.business;
 
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.vo.CaseHistoryVO;

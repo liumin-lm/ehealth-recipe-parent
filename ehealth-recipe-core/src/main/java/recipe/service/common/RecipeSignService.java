@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
-import recipe.bussiness.DrugStockBusinessService;
+import recipe.business.DrugStockBusinessService;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.hisservice.HisMqRequestInit;

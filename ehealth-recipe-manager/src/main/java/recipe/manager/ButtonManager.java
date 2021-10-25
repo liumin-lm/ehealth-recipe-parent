@@ -1,6 +1,8 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSONArray;
+import com.ngari.base.scratchable.model.ScratchableBean;
+import com.ngari.base.scratchable.service.IScratchableService;
 import com.ngari.platform.recipe.mode.RecipeResultBean;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
@@ -13,7 +15,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.BaseManager;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.type.PayButtonEnum;
@@ -21,9 +22,9 @@ import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.enumerate.type.RecipeSendTypeEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.factoryManager.button.IGiveModeBase;
-import recipe.factoryManager.button.impl.BjGiveModeService;
-import recipe.factoryManager.button.impl.CommonGiveModeService;
-import recipe.factoryManager.button.impl.FromHisDeliveryCodeService;
+import recipe.factoryManager.button.impl.BjGiveModeServiceImpl;
+import recipe.factoryManager.button.impl.CommonGiveModeServiceImpl;
+import recipe.factoryManager.button.impl.FromHisDeliveryCodeServiceImpl;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -39,13 +40,13 @@ public class ButtonManager extends BaseManager {
     private static final String provincialMedicalPayFlagKey = "provincialMedicalPayFlag";
 
     @Autowired
-    private CommonGiveModeService commonGiveModeService;
+    private CommonGiveModeServiceImpl commonGiveModeService;
     @Autowired
-    private BjGiveModeService bjGiveModeService;
+    private BjGiveModeServiceImpl bjGiveModeService;
     @Autowired
-    private FromHisDeliveryCodeService fromHisDeliveryCodeService;
-    @Autowired
-    private IGiveModeBase iGiveModeBase;
+    private FromHisDeliveryCodeServiceImpl fromHisDeliveryCodeService;
+//    @Autowired
+//    private GiveModeManager giveModeManager;
 
 
     /**
@@ -164,9 +165,40 @@ public class ButtonManager extends BaseManager {
      * @param organId 机构ID
      * @return 运营平台的配置项
      */
+//    public GiveModeShowButtonDTO getGiveModeSettingFromYypt(Integer organId) {
+//        return getGiveModeSettingFromYypt(organId);
+//    }
+
+    @Autowired
+    private IScratchableService scratchableService;
+
     public GiveModeShowButtonDTO getGiveModeSettingFromYypt(Integer organId) {
-        return iGiveModeBase.getGiveModeSettingFromYypt(organId);
+        List<GiveModeButtonDTO> giveModeButtonBeans = new ArrayList<>();
+        GiveModeShowButtonDTO giveModeShowButtonVO = new GiveModeShowButtonDTO();
+        List<ScratchableBean> scratchableBeans = scratchableService.findScratchableByPlatform("myRecipeDetailList", organId + "", 1);
+        scratchableBeans.forEach(giveModeButton -> {
+            GiveModeButtonDTO giveModeButtonBean = new GiveModeButtonDTO();
+            giveModeButtonBean.setShowButtonKey(giveModeButton.getBoxLink());
+            giveModeButtonBean.setShowButtonName(giveModeButton.getBoxTxt());
+            giveModeButtonBean.setButtonSkipType(giveModeButton.getRecipeskip());
+            if (!"listItem".equals(giveModeButtonBean.getShowButtonKey())) {
+                giveModeButtonBeans.add(giveModeButtonBean);
+            } else {
+                giveModeShowButtonVO.setListItem(giveModeButtonBean);
+            }
+        });
+        giveModeShowButtonVO.setGiveModeButtons(giveModeButtonBeans);
+        if (giveModeShowButtonVO.getListItem() == null) {
+            //说明运营平台没有配置列表
+            GiveModeButtonDTO giveModeButtonBean = new GiveModeButtonDTO();
+            giveModeButtonBean.setShowButtonKey("listItem");
+            giveModeButtonBean.setShowButtonName("列表项");
+            giveModeButtonBean.setButtonSkipType("1");
+            giveModeShowButtonVO.setListItem(giveModeButtonBean);
+        }
+        return giveModeShowButtonVO;
     }
+
 
     /**
      * 获取按钮

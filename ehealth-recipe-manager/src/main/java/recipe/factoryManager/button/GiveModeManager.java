@@ -18,7 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 import recipe.constant.*;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganAndDrugsepRelationDAO;
@@ -35,7 +34,6 @@ import java.util.stream.Collectors;
  * @author yinsheng
  * @date 2020\12\3 0003 20:01
  */
-@Service
 public abstract class GiveModeManager implements IGiveModeBase {
     private static final Logger LOGGER = LoggerFactory.getLogger(GiveModeManager.class);
     private static final String LIST_TYPE_RECIPE = "1";
@@ -52,9 +50,7 @@ public abstract class GiveModeManager implements IGiveModeBase {
     private IScratchableService scratchableService;
 
 
-
-    @Override
-    public GiveModeShowButtonDTO getGiveModeSettingFromYypt(Integer organId) {
+    private GiveModeShowButtonDTO getGiveModeSettingFromYypt(Integer organId) {
         List<GiveModeButtonDTO> giveModeButtonBeans = new ArrayList<>();
         GiveModeShowButtonDTO giveModeShowButtonVO = new GiveModeShowButtonDTO();
         List<ScratchableBean> scratchableBeans = scratchableService.findScratchableByPlatform("myRecipeDetailList", organId + "", 1);

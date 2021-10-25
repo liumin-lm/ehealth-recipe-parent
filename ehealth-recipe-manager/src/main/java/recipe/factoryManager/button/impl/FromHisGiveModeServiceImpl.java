@@ -6,7 +6,6 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import org.springframework.stereotype.Service;
 import recipe.factoryManager.button.GiveModeManager;
-import recipe.factoryManager.button.IGiveModeBase;
 
 import java.util.List;
 
@@ -15,7 +14,7 @@ import java.util.List;
  * @date 2020\12\3 0003 19:58
  */
 @Service
-public class FromHisGiveModeService extends GiveModeManager implements IGiveModeBase {
+public class FromHisGiveModeServiceImpl extends GiveModeManager {
     @Override
     public void setSpecialItem(GiveModeShowButtonDTO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
         super.setSpecialItem(giveModeShowButtonVO, recipe, recipeExtend);
