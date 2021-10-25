@@ -211,7 +211,7 @@ public class OperationPlatformRecipeService {
         //挂号科室名称
         r.setAppointDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
         //机构所属一级科室
-        r.setOrganProfession((null != appointDepart) ? appointDepart.getOrganProfession() : Integer.valueOf(""));
+        r.setOrganProfession((null != appointDepart) ? appointDepart.getOrganProfession() : null);
         //互联网环境下没有挂号科室 取department表
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
             DepartmentService departService = ApplicationUtils.getBasicService(DepartmentService.class);
@@ -219,7 +219,7 @@ public class OperationPlatformRecipeService {
             //挂号科室名称
             r.setAppointDepartName((null != departmentDTO) ? departmentDTO.getName() : "");
             //机构所属一级科室
-            r.setOrganProfession((null != departmentDTO) ? departmentDTO.getOrganProfession() : Integer.valueOf(""));
+            r.setOrganProfession((null != departmentDTO) ? departmentDTO.getOrganProfession() : null);
         }
         //取医生的手机号
         DoctorDTO doctor = new DoctorDTO();
