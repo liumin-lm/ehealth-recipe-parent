@@ -579,7 +579,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             //获取药企关联机构药品目录
             List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(drugsEnterprise.getOrganId());
             total = details.size();
-            if (ObjectUtils.isEmpty(details)){
+            if (!ObjectUtils.isEmpty(details)){
                 for (OrganDrugList detail : details) {
                     if (config.getSyncDataRange() == 1) {
                         //同步数据范围 配送药企
