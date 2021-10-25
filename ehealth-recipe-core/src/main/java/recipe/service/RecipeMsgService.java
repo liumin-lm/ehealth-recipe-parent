@@ -32,10 +32,7 @@ import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 import recipe.util.RecipeMsgUtils;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * company: ngarihealth
@@ -281,9 +278,15 @@ public class RecipeMsgService {
     }
 
     private static void getPayInfo(Recipe recipe, Map<String, String> extendValue) {
-
+        Date createTime = recipe.getCreateDate();
+        Calendar c = Calendar.getInstance();
+        c.setTime(createTime);
+        int month = c.get(Calendar.MONTH) + 1;
+        int day = c.get(Calendar.DAY_OF_MONTH);
+        extendValue.put("month", String.valueOf(month));
+        extendValue.put("day", String.valueOf(day));
+        extendValue.put("doctorName", recipe.getDoctorName());
         extendValue.put("patientName", recipe.getPatientName());
-
     }
 
     /**

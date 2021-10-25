@@ -2975,10 +2975,10 @@ public class RecipeService extends RecipeBaseService {
         if (!CollectionUtils.isEmpty(details)) {
             drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
         }
-        if (ObjectUtils.isEmpty(drugForms)){
+        if (ObjectUtils.isEmpty(drugForms)) {
             OrganConfigDTO byOrganId = organConfigService.getByOrganId(organId);
             String drugFromList = byOrganId.getDrugFromList();
-            if (!ObjectUtils.isEmpty(drugFromList)){
+            if (!ObjectUtils.isEmpty(drugFromList)) {
                 String[] split = drugFromList.split(",");
                 for (String s : split) {
                     drugForms.add(s);
@@ -6162,6 +6162,24 @@ public class RecipeService extends RecipeBaseService {
     public boolean testNotifyPharAudit(int recipeId) {
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         return auditModeContext.getAuditModes(recipe.getReviewType()).notifyPharAudit(recipe);
+    }
+
+    @RpcService
+    public boolean testMethod(int recipeId, String type) {
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if ("1".equals(type)) {
+            //支付完成后
+            RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.RECIPE_PAY_CALL_SUCCESS);
+        } else if ("2".equals(type)) {
+            return auditModeContext.getAuditModes(recipe.getReviewType()).notifyPharAudit(recipe);
+        } else if ("3".equals(type)) {
+            //发送消息--待审核消息
+            RecipeMsgService.batchSendMsg(recipe.getRecipeId(), 2);
+        } else if ("4".equals(type)) {
+            //发送消息--待审核消息
+            RecipeMsgService.batchSendMsg(recipe.getRecipeId(), 8);
+        }
+        return true;
     }
 
     private ScanRequestBean getScanRequestBean(Recipe recipe, DrugsEnterprise drugsEnterprise) {
