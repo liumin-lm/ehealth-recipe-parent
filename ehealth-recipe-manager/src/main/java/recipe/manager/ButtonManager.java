@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.BaseManager;
 import recipe.constant.RecipeBussConstant;
-import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.type.PayButtonEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
@@ -192,11 +191,19 @@ public class ButtonManager extends BaseManager {
     }
 
 
-    public GiveModeShowButtonDTO getShowButtonNew(Recipe recipe) {
+    public GiveModeShowButtonDTO getShowButton(Recipe recipe) {
         IGiveModeBase giveModeBase = getGiveModeBaseByRecipe(recipe);
-        GiveModeShowButtonDTO giveModeShowButtonDTO = giveModeBase.getShowButtonNew(recipe);
+        GiveModeShowButtonDTO giveModeShowButtonDTO = giveModeBase.getShowButton(recipe);
         //设置特殊按钮
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        giveModeBase.setSpecialItem(giveModeShowButtonDTO, recipe, recipeExtend);
+        return giveModeShowButtonDTO;
+    }
+
+    public GiveModeShowButtonDTO getShowButtonV1(Recipe recipe) {
+        IGiveModeBase giveModeBase = getGiveModeBaseByRecipe(recipe);
+        GiveModeShowButtonDTO giveModeShowButtonDTO = giveModeBase.getShowButtonV1(recipe);
+        //设置特殊按钮
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         giveModeBase.setSpecialItem(giveModeShowButtonDTO, recipe, recipeExtend);
         return giveModeShowButtonDTO;
