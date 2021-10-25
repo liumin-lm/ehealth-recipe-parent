@@ -1569,7 +1569,7 @@ public class RecipeListService extends RecipeBaseService {
 
 
     private GiveModeShowButtonVO getShowButtonNew(PatientTabStatusRecipeDTO record, Recipe recipe) {
-        GiveModeShowButtonDTO giveModeShowButtonDTO = buttonManager.getShowButtonNew(recipe);
+        GiveModeShowButtonDTO giveModeShowButtonDTO = buttonManager.getShowButton(recipe);
         GiveModeShowButtonVO giveModeShowButtonVO = new GiveModeShowButtonVO();
         BeanUtils.copyProperties(giveModeShowButtonDTO, giveModeShowButtonVO);
         giveModeShowButtonVO.setListItem(ObjectCopyUtils.convert(giveModeShowButtonDTO.getListItem(), GiveModeButtonBean.class));

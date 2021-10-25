@@ -27,9 +27,12 @@ public interface IGiveModeBase {
 
     /**
      * 获取按钮对象
+     *
      * @param recipe
      * @return
      */
-    GiveModeShowButtonDTO getShowButtonNew(Recipe recipe);
+    GiveModeShowButtonDTO getShowButton(Recipe recipe);
+
+    GiveModeShowButtonDTO getShowButtonV1(Recipe recipe);
 
 }

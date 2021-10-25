@@ -102,6 +102,7 @@ import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipeInvalidDTO;
+import recipe.bussiness.DrugStockBusinessService;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.ca.vo.CaSignResultVo;
@@ -122,7 +123,6 @@ import recipe.drugTool.service.DrugToolService;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
 import recipe.enumerate.type.*;
-import recipe.factoryManager.button.DrugStockBusinessService;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
@@ -208,9 +208,6 @@ public class RecipeService extends RecipeBaseService {
     private SignManager signManager;
     @Autowired
     private OperationClient operationClient;
-
-    @Autowired
-    private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired

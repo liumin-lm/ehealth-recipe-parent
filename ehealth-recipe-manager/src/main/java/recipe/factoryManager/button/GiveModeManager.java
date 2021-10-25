@@ -110,11 +110,11 @@ public abstract class GiveModeManager implements IGiveModeBase {
     }
 
     @Override
-    public GiveModeShowButtonDTO getShowButtonNew(Recipe recipe) {
+    public GiveModeShowButtonDTO getShowButton(Recipe recipe) {
         GiveModeShowButtonDTO giveModeShowButtonDTO = new GiveModeShowButtonDTO();
         try {
             //校验数据
-           validRecipeData(recipe);
+            validRecipeData(recipe);
         } catch (Exception e) {
             return giveModeShowButtonDTO;
         }
@@ -131,13 +131,17 @@ public abstract class GiveModeManager implements IGiveModeBase {
         setItemListNoShow(giveModeShowButtonDTO, recipe);
         //后置设置处理
         afterSetting(giveModeShowButtonDTO, recipe);
+        return giveModeShowButtonDTO;
+    }
 
+    @Override
+    public GiveModeShowButtonDTO getShowButtonV1(Recipe recipe) {
+        GiveModeShowButtonDTO giveModeShowButtonDTO = getShowButton(recipe);
         setShowButton(giveModeShowButtonDTO, recipe);
         //设置其他按钮
         setOtherButton(giveModeShowButtonDTO, recipe);
         return giveModeShowButtonDTO;
     }
-
 
 
     protected void removeGiveModeData(List<GiveModeButtonDTO> giveModeButtonBeans, String remoteGiveMode) {

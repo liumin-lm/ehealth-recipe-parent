@@ -1,4 +1,4 @@
-package recipe.factoryManager.button;
+package recipe.bussiness;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -81,7 +81,7 @@ public class DrugStockBusinessService extends BaseService {
             return MapValueUtil.beanToMap(doSignRecipe);
         }
 
-        // todo 获取按钮
+        //获取按钮
         List<String> configurations = buttonManager.getGiveMode(recipe.getRecipeId(), recipe.getClinicOrgan());
         if (CollectionUtils.isEmpty(configurations)) {
             drugStockManager.doSignRecipe(doSignRecipe, null, "抱歉，机构未配置购药方式，无法开处方");
