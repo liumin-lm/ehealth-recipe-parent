@@ -158,34 +158,22 @@ public class DrugStockClient extends BaseClient {
      * @return
      */
     public HisResponseTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, List<SaleDrugList> saleDrugLists) {
-        ScanRequestBean scanRequestBean = getScanRequestBean(recipe, drugsEnterprise, recipeDetails, saleDrugLists);
-        logger.info("findUnSupportDrugEnterprise-scanStock scanRequestBean:{}.", JSONUtils.toString(scanRequestBean));
-        HisResponseTO responseTO = recipeEnterpriseService.scanStock(scanRequestBean);
-        logger.info("findUnSupportDrugEnterprise recipeId={},前置机调用查询结果={}", recipe.getRecipeId(), JSONObject.toJSONString(responseTO));
-        return responseTO;
-    }
-
-    /**
-     * 拼装 前置机请求 request
-     *
-     * @param recipe
-     * @param drugsEnterprise
-     * @return
-     */
-    private ScanRequestBean getScanRequestBean(Recipe recipe, DrugsEnterprise drugsEnterprise,
-                                               List<Recipedetail> recipedetails, List<SaleDrugList> saleDrugLists) {
-        ScanRequestBean scanRequestBean = new ScanRequestBean();
-        Map<Integer, List<SaleDrugList>> saleDrugListMap = new HashMap<>();
-        if (CollectionUtils.isNotEmpty(saleDrugLists)) {
-            saleDrugListMap = saleDrugLists.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
+        String channelCode = null;
+        try {
+            RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
+            if (revisitExDTO != null) {
+                channelCode = revisitExDTO.getProjectChannel();
+            }
+        } catch (Exception e) {
+            logger.error("queryPatientChannelId error:", e);
         }
-        Map<Integer, List<SaleDrugList>> finalSaleDrugListMap = saleDrugListMap;
-        List<ScanDrugListBean> scanDrugListBeans = recipedetails.stream().map(recipedetail -> {
+        String finalChannelCode = channelCode;
+        Map<Integer, List<SaleDrugList>> saleDrugListMap = saleDrugLists.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
+        List<ScanDrugListBean> scanDrugListBeans = recipeDetails.stream().map(recipedetail -> {
             ScanDrugListBean scanDrugListBean = new ScanDrugListBean();
-            List<SaleDrugList> saleDrugLists1 = finalSaleDrugListMap.get(recipedetail.getDrugId());
-            if (CollectionUtils.isNotEmpty(saleDrugLists1) && Objects.nonNull(saleDrugLists1.get(0))) {
-                SaleDrugList saleDrugList = saleDrugLists1.get(0);
-                scanDrugListBean.setDrugCode(saleDrugList.getOrganDrugCode());
+            List<SaleDrugList> saleDrugLists1 = saleDrugListMap.get(recipedetail.getDrugId());
+            if (CollectionUtils.isNotEmpty(saleDrugLists1)) {
+                scanDrugListBean.setDrugCode(saleDrugLists1.get(0).getOrganDrugCode());
                 scanDrugListBean.setTotal(recipedetail.getUseTotalDose().toString());
                 scanDrugListBean.setUnit(recipedetail.getDrugUnit());
                 scanDrugListBean.setDrugSpec(recipedetail.getDrugSpec());
@@ -195,23 +183,17 @@ public class DrugStockClient extends BaseClient {
                 scanDrugListBean.setProducer(recipedetail.getProducer());
                 scanDrugListBean.setName(recipedetail.getSaleName());
                 scanDrugListBean.setGname(recipedetail.getDrugName());
-                try {
-                    RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
-                    if (revisitExDTO != null) {
-                        scanDrugListBean.setChannelCode(revisitExDTO.getProjectChannel());
-                    }
-                } catch (Exception e) {
-                    logger.error("queryPatientChannelId error:", e);
-                }
-
+                scanDrugListBean.setChannelCode(finalChannelCode);
             }
             return scanDrugListBean;
         }).collect(Collectors.toList());
+        ScanRequestBean scanRequestBean = new ScanRequestBean();
         scanRequestBean.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
         scanRequestBean.setScanDrugListBeans(scanDrugListBeans);
         scanRequestBean.setOrganId(recipe.getClinicOrgan());
-        logger.info("getScanRequestBean scanRequestBean:{}.", JSONUtils.toString(scanRequestBean));
-        return scanRequestBean;
+        logger.info("findUnSupportDrugEnterprise-scanStock scanRequestBean:{}.", JSONUtils.toString(scanRequestBean));
+        HisResponseTO responseTO = recipeEnterpriseService.scanStock(scanRequestBean);
+        logger.info("findUnSupportDrugEnterprise recipeId={},前置机调用查询结果={}", recipe.getRecipeId(), JSONObject.toJSONString(responseTO));
+        return responseTO;
     }
-
 }
