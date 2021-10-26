@@ -672,20 +672,27 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                                     }
                                 }
                             }
+                            LOGGER.info("syncSaleOrganDrug哈哈哈" ,"for循环结束了");
+                            map.put("addNum", addNum);
+                            map.put("updateNum", updateNum);
+                            map.put("falseNum", 0);
+                            map.put("Date", myFmt2.format(new Date()));
+                            map.put("Status", 1);
+                            redisClient.del(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
+                            redisClient.set(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString(), map);
                         } catch (DAOException e) {
                             LOGGER.info("syncSaleOrganDrug error" ,e);
                         }
-                        LOGGER.info("syncSaleOrganDrug哈哈哈" ,"for循环结束了");
                     }
                 }
                 LOGGER.info("syncSaleOrganDrug哈哈哈" ,"开始了");
-                map.put("addNum", addNum);
+               /* map.put("addNum", addNum);
                 map.put("updateNum", updateNum);
                 map.put("falseNum", 0);
                 map.put("Date", myFmt2.format(new Date()));
                 map.put("Status", 1);
                 redisClient.del(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
-                redisClient.set(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString(), map);
+                redisClient.set(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString(), map);*/
                 LOGGER.info("syncSaleOrganDrug哈哈哈" ,"结束了");
                 long elapsedTime = System.currentTimeMillis() - start;
                 LOGGER.info("RecipeBusiThreadPool drugInfoSynMovementExt ES-推送药品 执行时间:{}.", elapsedTime);
