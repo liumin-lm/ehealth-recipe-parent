@@ -12,7 +12,6 @@ import com.ngari.base.clientconfig.to.ClientConfigBean;
 import com.ngari.base.common.ICommonService;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.department.service.IDepartmentService;
-import com.ngari.base.patient.model.DocIndexBean;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.service.IHealthCardService;
 import com.ngari.base.patient.service.IPatientService;
@@ -101,7 +100,7 @@ import recipe.drugsenterprise.StandardEnterpriseCallService;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
-import recipe.enumerate.type.BussSourceType;
+import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeRefundConfigEnum;
 import recipe.givemode.business.GiveModeFactory;
@@ -2456,7 +2455,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @return 是否可以取消复诊  true 不可以 false 可以
      */
     private Boolean getOfflineEffectiveRecipeFlag(Integer bussSource, Integer clinicId) {
-        if (BussSourceType.BUSSSOURCE_CONSULT.getType().equals(bussSource)) {
+        if (BussSourceTypeEnum.BUSSSOURCE_CONSULT.getType().equals(bussSource)) {
             //咨询获取不到挂号序号
             return false;
         }
