@@ -208,6 +208,8 @@ public abstract class AccessDrugEnterpriseService {
      * @return
      */
     public DrugEnterpriseResult enterpriseStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        //todo 自建药企-查询药企库存默认有库存 如果要查询平台对接药企 需要实现其他实现类
+        LOGGER.info("自建药企-查询药企库存默认有库存 {}", drugsEnterprise.getName());
         return DrugEnterpriseResult.getSuccess();
     }
 

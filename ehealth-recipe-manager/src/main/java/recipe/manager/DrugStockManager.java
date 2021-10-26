@@ -1,5 +1,6 @@
 package recipe.manager;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
@@ -253,26 +254,41 @@ public class DrugStockManager extends BaseManager {
         }
         //找到每一个药能支持的药企关系
         List<DrugsEnterprise> enterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
-        List<Integer> deps = enterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
-        List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
-        //获取药企与配送药品关系 （药企A:药品1,药品2）
-        Map<Integer, List<Integer>> depDrugRel = saleDrugListDAO.findDepDrugRelation(drugIds, deps);
+        List<Integer> enterpriseIds = enterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
+        Map<Integer, List<String>> enterpriseDrugNameGroup = checkEnterpriseDrugName(enterpriseIds, recipeDetails);
 
-        List<Integer> depDrugIdList = null;
-        Collections.sort(drugIds);
-        for (List<Integer> depDrug : depDrugRel.values()) {
-            Collections.sort(depDrug);
-            if (drugIds.toString().equals(depDrug.toString())) {
-                depDrugIdList = null;
+        Set<String> drugNames = new HashSet<>();
+        boolean result = false;
+        for (List<String> drugNameList : enterpriseDrugNameGroup.values()) {
+            if (CollectionUtils.isEmpty(drugNameList)) {
+                result = true;
                 break;
             }
-            depDrugIdList = depDrug;
+            drugNames.addAll(drugNameList);
         }
-        if (CollectionUtils.isEmpty(depDrugIdList)) {
+        if (result) {
             return;
         }
-        List<Integer> finalDepDrugIdList = depDrugIdList;
-        List<String> drugNames = recipeDetails.stream().filter(a -> !finalDepDrugIdList.contains(a.getDrugId())).map(Recipedetail::getDrugName).collect(Collectors.toList());
-        doSignRecipe(doSignRecipe, drugNames, "不支持同一家药企配送或不在该机构药企可配送的药品目录里面");
+        doSignRecipe(doSignRecipe, new ArrayList(drugNames), "不支持同一家药企配送或不在该机构药企可配送的药品目录里面");
+    }
+
+    /**
+     * 检查 药企药品 是否满足开方药品
+     * 验证能否药品配送以及能否开具到一张处方单上
+     *
+     * @param enterpriseIds 药企id
+     * @param recipeDetails 处方明显-开方药品
+     * @return 药企-不满足的 药品名称
+     */
+    public Map<Integer, List<String>> checkEnterpriseDrugName(List<Integer> enterpriseIds, List<Recipedetail> recipeDetails) {
+        List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
+        Map<Integer, List<Integer>> enterpriseDrugIdGroup = saleDrugListDAO.findDepDrugRelation(drugIds, enterpriseIds);
+        Map<Integer, List<String>> enterpriseDrugNameGroup = new HashMap<>();
+        enterpriseDrugIdGroup.forEach((k, v) -> {
+            List<String> names = recipeDetails.stream().filter(a -> !v.contains(a.getDrugId())).map(Recipedetail::getDrugName).collect(Collectors.toList());
+            enterpriseDrugNameGroup.put(k, names);
+        });
+        logger.info("DrugStockManager enterpriseDrugNameGroup enterpriseDrugNameGroup= {}", JSON.toJSONString(enterpriseDrugNameGroup));
+        return enterpriseDrugNameGroup;
     }
 }

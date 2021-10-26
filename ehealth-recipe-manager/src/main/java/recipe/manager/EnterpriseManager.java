@@ -1,13 +1,10 @@
 package recipe.manager;
 
-import com.alibaba.fastjson.JSON;
 import com.google.common.collect.ImmutableMap;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
-import com.ngari.recipe.dto.EnterpriseStock;
-import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.*;
@@ -21,14 +18,14 @@ import recipe.client.EnterpriseClient;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
-import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.third.IFileDownloadService;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 /**
  * 药企 功能处理类
@@ -61,42 +58,6 @@ public class EnterpriseManager extends BaseManager {
     private DrugDecoctionWayDao drugDecoctionWayDao;
     @Autowired
     private SymptomDAO symptomDAO;
-
-    /**
-     * 根据 按钮配置 获取 药企购药配置-库存对象
-     *
-     * @param organId             机构id
-     * @param giveModeButtonBeans 机构按钮配置
-     * @return 药企购药配置
-     */
-    public List<EnterpriseStock> enterpriseStockList(Integer organId, List<GiveModeButtonDTO> giveModeButtonBeans) {
-        List<DrugsEnterprise> enterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
-        logger.info("EnterpriseManager enterpriseStockList organId:{},enterprises:{}", organId, JSON.toJSONString(enterprises));
-
-        List<EnterpriseStock> list = new LinkedList<>();
-        if (CollectionUtils.isEmpty(enterprises)) {
-            return list;
-        }
-        Map<String, String> configGiveModeMap;
-        if (null != giveModeButtonBeans) {
-            configGiveModeMap = giveModeButtonBeans.stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
-        } else {
-            configGiveModeMap = new HashMap<>();
-        }
-        List<String> configGiveMode = RecipeSupportGiveModeEnum.checkEnterprise(giveModeButtonBeans);
-        for (DrugsEnterprise drugsEnterprise : enterprises) {
-            EnterpriseStock enterpriseStock = new EnterpriseStock();
-            enterpriseStock.setDrugsEnterprise(drugsEnterprise);
-            enterpriseStock.setDeliveryName(drugsEnterprise.getName());
-            enterpriseStock.setDeliveryCode(drugsEnterprise.getEnterpriseCode());
-            enterpriseStock.setAppointEnterpriseType(2);
-            List<GiveModeButtonDTO> giveModeButton = RecipeSupportGiveModeEnum.giveModeButtonList(drugsEnterprise, configGiveMode, configGiveModeMap);
-            enterpriseStock.setGiveModeButton(giveModeButton);
-            list.add(enterpriseStock);
-        }
-        logger.info("EnterpriseManager enterpriseStockList list:{}", JSON.toJSONString(list));
-        return list;
-    }
 
     /**
      * 上传处方pdf给第三方
