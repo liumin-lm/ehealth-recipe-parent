@@ -33,6 +33,12 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
     @Autowired
     private IOrganBusinessService organBusinessService;
 
+    /**
+     * 医生指定药企列表
+     *
+     * @param validateDetailVO
+     * @return
+     */
     @RpcService
     public List<EnterpriseStock> enterpriseStockList(ValidateDetailVO validateDetailVO) {
         logger.info("DrugEnterprisePatientAtop enterpriseStockList organId:{}.", validateDetailVO);

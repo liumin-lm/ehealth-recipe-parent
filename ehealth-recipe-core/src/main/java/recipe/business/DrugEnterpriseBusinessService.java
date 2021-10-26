@@ -51,7 +51,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         }
         //每个药企对应的 不满足的药品列表
         List<Integer> enterpriseIds = enterpriseStockList.stream().map(EnterpriseStock::getDrugsEnterpriseId).collect(Collectors.toList());
-        Map<Integer, List<String>> enterpriseDrugNameGroup = drugStockManager.checkEnterpriseDrugName(enterpriseIds, recipeDetails);
+        Map<Integer, List<String>> enterpriseDrugNameGroup = enterpriseManager.checkEnterpriseDrugName(enterpriseIds, recipeDetails);
         //校验药企库存
         for (EnterpriseStock enterpriseStock : enterpriseStockList) {
             enterpriseStock.setStock(false);
