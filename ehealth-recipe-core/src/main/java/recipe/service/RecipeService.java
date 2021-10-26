@@ -3556,7 +3556,7 @@ public class RecipeService extends RecipeBaseService {
                             // 退费
                             if (CollectionUtils.isNotEmpty(byOrderId)) {
                                 RefundClient refundClient = ApplicationUtils.getRecipeService(RefundClient.class);
-                                refundClient.refund(order.getOrderId(), PayBusType.OTHER_BUS_TYPE.getName());
+                                refundClient.refund(order.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
                             }
 
                         }
@@ -4405,7 +4405,7 @@ public class RecipeService extends RecipeBaseService {
                         recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
                     } else {
                         //说明需要正常退审方费
-                        refundClient.refund(order.getOrderId(), PayBusType.OTHER_BUS_TYPE.getName());
+                        refundClient.refund(order.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
                     }
                 }
                 RecipeOrderPayFlow recipeOrderPay = recipeOrderPayFlowManager.getByOrderIdAndType(order.getOrderId(), PayFlowTypeEnum.RECIPE_FLOW.getType());
@@ -4416,11 +4416,11 @@ public class RecipeService extends RecipeBaseService {
                         recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPay);
                     } else {
                         //说明需要正常退药品费用费
-                        refundClient.refund(order.getOrderId(), PayBusType.RECIPE_BUS_TYPE.getName());
+                        refundClient.refund(order.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
                     }
                 }
             } else {
-                refundClient.refund(order.getOrderId(), PayBusType.RECIPE_BUS_TYPE.getName());
+                refundClient.refund(order.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
             }
         } catch (Exception e) {
             LOGGER.error("wxPayRefundForRecipe " + errorInfo + "*****微信退款异常！recipeId[" + recipeId + "],err[" + e.getMessage() + "]", e);
@@ -4553,6 +4553,7 @@ public class RecipeService extends RecipeBaseService {
             giveMode = null;
         }
         attrMap.put("giveMode", giveMode);
+        attrMap.remove("payMode");
         LOGGER.info("recipe updateRecipePayResultImplForOrder giveMode={}", giveMode);
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
 

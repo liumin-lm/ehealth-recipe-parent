@@ -21,7 +21,6 @@ import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 
@@ -52,11 +51,6 @@ public class DrugStockManager extends BaseManager {
     public RecipeResultBean scanDrugStockByRecipeId(Recipe recipe, List<Recipedetail> detailList) {
         logger.info("scanHisDrugStockByRecipeId req recipe={}  recipeDetails = {}", JSONArray.toJSONString(recipe), JSONArray.toJSONString(detailList));
         RecipeResultBean result = RecipeResultBean.getSuccess();
-        if (Objects.isNull(recipe)) {
-            result.setCode(RecipeResultBean.FAIL);
-            result.setError("没有该处方");
-            return result;
-        }
         if (1 == recipe.getTakeMedicine()) {
             //外带药处方则不进行校验
             return RecipeResultBean.getSuccess();
@@ -74,21 +68,11 @@ public class DrugStockManager extends BaseManager {
             return result;
         }
         Set<Integer> pharmaIds = new HashSet<>();
-        AtomicReference<Boolean> organDrugCodeFlag = new AtomicReference<>(false);
-        List<Integer> drugIdList = detailList.stream().map(detail -> {
-            pharmaIds.add(detail.getPharmacyId());
-            if (StringUtils.isEmpty(detail.getOrganDrugCode())) {
-                organDrugCodeFlag.set(true);
-            }
-            return detail.getDrugId();
+        List<Integer> drugIdList = detailList.stream().map(a -> {
+            pharmaIds.add(a.getPharmacyId());
+            return a.getDrugId();
         }).collect(Collectors.toList());
-        // 医院配置药品不能存在机构药品编号为空的情况
-        if (organDrugCodeFlag.get()) {
-            logger.warn("scanDrugStock 医院配置药品存在编号为空的数据.");
-            result.setCode(RecipeResultBean.FAIL);
-            result.setError("医院配置药品存在编号为空的数据");
-            return result;
-        }
+
         // 判断是否需要对接HIS
         List<String> recipeTypes = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "getRecipeTypeToHis", null);
         if (!recipeTypes.contains(Integer.toString(recipe.getRecipeType()))) {
@@ -121,7 +105,7 @@ public class DrugStockManager extends BaseManager {
      * @param recipe
      * @param drugsEnterprise
      * @param recipeDetails
-     * @return
+     * @return 1 有库存 0 无库存
      */
     public Integer scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
         List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());

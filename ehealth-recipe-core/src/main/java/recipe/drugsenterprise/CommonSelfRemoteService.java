@@ -2,10 +2,7 @@ package recipe.drugsenterprise;
 
 import com.google.common.collect.Lists;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Pharmacy;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
@@ -62,6 +59,11 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
     @RpcService
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         return CommonExtendRemoteTypeEnum.getTypeFromRecipeIds(Lists.newArrayList(recipeId)).scanStock(recipeId, drugsEnterprise);
+    }
+
+    @Override
+    public DrugEnterpriseResult enterpriseStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        return CommonExtendRemoteTypeEnum.getTypeFromOrganId(recipe.getClinicOrgan()).enterpriseStock(recipe, drugsEnterprise, recipeDetails);
     }
 
     @Override

@@ -180,6 +180,7 @@ public class OfflineRecipeClient extends BaseClient {
         logger.info("OfflineRecipeClient queryData param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}",organId,JSONUtils.toString(patientDTO),timeQuantum,flag,recipeCode);
         PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
         patientBaseInfo.setBirthday(patientDTO.getBirthday());
+        patientBaseInfo.setPatientID(patientDTO.getPatId());
         patientBaseInfo.setPatientName(patientDTO.getPatientName());
         patientBaseInfo.setPatientSex(patientDTO.getPatientSex());
         patientBaseInfo.setMobile(patientDTO.getMobile());

@@ -28,7 +28,10 @@ import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateDrugsEpCallable;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -196,6 +199,17 @@ public abstract class AccessDrugEnterpriseService {
      * @return
      */
     public abstract DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise);
+
+
+    /**
+     * 库存检验
+     *
+     * @param drugsEnterprise 药企
+     * @return
+     */
+    public DrugEnterpriseResult enterpriseStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        return DrugEnterpriseResult.getSuccess();
+    }
 
     /**
      * 定时同步药企库存

@@ -70,7 +70,7 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.type.PayBusType;
+import recipe.enumerate.type.PayBusTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.PayFlowTypeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -1462,7 +1462,7 @@ public class RecipeOrderService extends RecipeBaseService {
                                 recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
                             } else {
                                 //说明需要正常退审方费
-                                refundClient.refund(order.getOrderId(), PayBusType.OTHER_BUS_TYPE.getName());
+                                refundClient.refund(order.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
                             }
                         }
                     }
@@ -2316,6 +2316,7 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
     }
+
 
 
     /**

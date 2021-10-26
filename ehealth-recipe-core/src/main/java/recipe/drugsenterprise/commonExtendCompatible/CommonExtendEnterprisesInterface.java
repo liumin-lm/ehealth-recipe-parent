@@ -4,6 +4,7 @@ import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
@@ -24,9 +25,20 @@ public interface CommonExtendEnterprisesInterface {
 
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise);
 
+    /**
+     * 查询药企库存
+     *
+     * @param recipe          处方信息
+     * @param drugsEnterprise 药企信息
+     * @param recipeDetails   处方明细
+     * @return 库存状态
+     */
+    DrugEnterpriseResult enterpriseStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails);
+
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise);
 
     public boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds);
+
 
     public String appEnterprise(RecipeOrder order);
 
@@ -43,5 +55,6 @@ public interface CommonExtendEnterprisesInterface {
     public void sendDeliveryMsgToHis(Integer recipeId);
 
     public DrugEnterpriseResult sendMsgResultMap(Integer recipeId, Map<String, String> extInfo, DrugEnterpriseResult payResult);
+
 
 }

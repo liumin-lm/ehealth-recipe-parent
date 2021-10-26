@@ -534,6 +534,7 @@ public class HisRequestInit {
         RecipeRefundReqTO requestTO = new RecipeRefundReqTO();
         if (null != recipe) {
             requestTO.setOrganID(String.valueOf(recipe.getClinicOrgan()));
+            requestTO.setPatId(recipe.getPatientID());
         }
 
         if (null != details && !details.isEmpty()) {
@@ -796,7 +797,7 @@ public class HisRequestInit {
         OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
         //组织机构编码
         requestTO.setOrganizeCode(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
-
+        requestTO.setPatientID(recipe.getPatientID());
         if (null != patient) {
             // 患者信息
             requestTO.setCertID(patient.getCertificate());
@@ -1015,6 +1016,7 @@ public class HisRequestInit {
             requestTO.setPatientIdCard(patientBean.getIdcard());
             requestTO.setPatientName(patientBean.getPatientName());
             requestTO.setPatientSex(patientBean.getPatientSex());
+            requestTO.setPatientId(recipe.getPatientID());
             //出生日期
             requestTO.setBirthDay(DateConversion.formatDate(patientBean.getBirthday()));
             //复诊标记（0：初诊 1：复诊）

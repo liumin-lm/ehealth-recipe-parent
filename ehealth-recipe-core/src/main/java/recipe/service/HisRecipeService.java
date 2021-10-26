@@ -516,6 +516,7 @@ public class HisRecipeService {
         PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
         patientBaseInfo.setBirthday(patientDTO.getBirthday());
         patientBaseInfo.setPatientName(patientDTO.getPatientName());
+        patientBaseInfo.setPatientID(patientDTO.getPatId());
         patientBaseInfo.setPatientSex(patientDTO.getPatientSex());
         patientBaseInfo.setMobile(patientDTO.getMobile());
         patientBaseInfo.setMpi(patientDTO.getMpiId());

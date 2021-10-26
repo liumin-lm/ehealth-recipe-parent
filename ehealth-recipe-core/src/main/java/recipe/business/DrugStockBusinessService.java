@@ -36,11 +36,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
+ * todo 之后把 查询库存相关 写在 对应的 机构类和 药企类里
+ *
  * @description： 药品库存业务 service
  * @author： whf
  * @date： 2021-07-19 15:41
  */
 @Service
+@Deprecated
 public class DrugStockBusinessService extends BaseService {
     @Resource
     private RecipeDAO recipeDAO;
@@ -81,8 +84,15 @@ public class DrugStockBusinessService extends BaseService {
             return MapValueUtil.beanToMap(doSignRecipe);
         }
 
+        // 医院配置药品不能存在机构药品编号为空的情况
+        boolean organDrugCode = recipeDetails.stream().anyMatch(a -> StringUtils.isEmpty(a.getOrganDrugCode()));
+        if (organDrugCode) {
+            drugStockManager.doSignRecipe(doSignRecipe, null, "医院配置药品存在编号为空的数据");
+            return MapValueUtil.beanToMap(doSignRecipe);
+        }
+
         //获取按钮
-        List<String> configurations = buttonManager.getGiveMode(recipe.getRecipeId(), recipe.getClinicOrgan());
+        List<String> configurations = buttonManager.getGiveModeButtonKey(recipe.getClinicOrgan());
         if (CollectionUtils.isEmpty(configurations)) {
             drugStockManager.doSignRecipe(doSignRecipe, null, "抱歉，机构未配置购药方式，无法开处方");
             return MapValueUtil.beanToMap(doSignRecipe);
@@ -185,10 +195,9 @@ public class DrugStockBusinessService extends BaseService {
         List<DrugsEnterprise> haveList = new ArrayList<>();
         List<DrugEnterpriseResult> noHaveList = new ArrayList<>();
         //线上支付能力判断
-        boolean onlinePay = configurationClient.isHisEnable(recipe.getClinicOrgan());
         for (DrugsEnterprise dep : drugsEnterpriseList) {
             //不支持在线支付跳过该药企
-            if (1 == dep.getPayModeSupport() && !onlinePay) {
+            if (1 == dep.getPayModeSupport()) {
                 noHaveList.add(new DrugEnterpriseResult(RecipeResultBean.FAIL));
                 continue;
             }
@@ -259,7 +268,7 @@ public class DrugStockBusinessService extends BaseService {
             return result;
         }
         //通过前置机调用
-        if (drugsEnterprise != null && 1 == drugsEnterprise.getOperationType()) {
+        if (null != drugsEnterprise && 1 == drugsEnterprise.getOperationType()) {
             Integer code = drugStockManager.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
             result.setCode(code);
             return result;
