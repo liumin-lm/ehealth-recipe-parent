@@ -17,7 +17,6 @@ public class EnterpriseStock {
      * 配送药企代码
      */
     private String deliveryCode;
-
     /**
      * 配送药企名称
      */
@@ -25,7 +24,7 @@ public class EnterpriseStock {
     /**
      *  0默认，1医院配送，2药企配送
      */
-    private Integer deliveryType;
+    private Integer appointEnterpriseType;
     /**
      * 是否有库存 true：有 ，F：无
      */

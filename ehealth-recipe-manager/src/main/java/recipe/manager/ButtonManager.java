@@ -173,21 +173,23 @@ public class ButtonManager extends BaseManager {
      *
      * @return
      */
-    public List<String> getGiveMode(Integer organId) {
-        logger.info("DrugStockBusinessService.configurations organId={}", organId);
+    public List<String> getGiveModeButtonKey(Integer organId) {
+        List<GiveModeButtonDTO> giveModeButtonBeans = getGiveModeMap(organId);
+        List<String> configurations = giveModeButtonBeans.stream().map(GiveModeButtonDTO::getShowButtonKey).collect(Collectors.toList());
+        //收集按钮信息用于判断校验哪边库存 0是什么都没有，1是指配置了到院取药，2是配置到药企相关，3是医院药企都配置了
+        logger.info("ButtonManager.getGiveMode res={}", JSONArray.toJSONString(configurations));
+        return configurations;
+    }
+
+    public List<GiveModeButtonDTO> getGiveModeMap(Integer organId) {
+        logger.info("ButtonManager.getGiveModeMap organId={}", organId);
         //添加按钮配置项key
         GiveModeShowButtonDTO giveModeShowButtonVO = getGiveModeSettingFromYypt(organId);
         List<GiveModeButtonDTO> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
         if (null == giveModeButtonBeans) {
             return null;
         }
-        List<String> configurations = giveModeButtonBeans.stream().map(GiveModeButtonDTO::getShowButtonKey).collect(Collectors.toList());
-        //收集按钮信息用于判断校验哪边库存 0是什么都没有，1是指配置了到院取药，2是配置到药企相关，3是医院药企都配置了
-        if (CollectionUtils.isEmpty(configurations)) {
-            return null;
-        }
-        logger.info("DrugStockBusinessService.configurations res={}", JSONArray.toJSONString(configurations));
-        return configurations;
+        return giveModeButtonBeans;
     }
 
 

@@ -11,5 +11,11 @@ import java.util.List;
  * @author fuzi
  */
 public interface IDrugEnterpriseBusinessService {
+    /**
+     * 获取药企库存列表
+     *
+     * @param validateDetailVO
+     * @return
+     */
     List<EnterpriseStock> enterpriseStockList(ValidateDetailVO validateDetailVO);
 }
