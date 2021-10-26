@@ -219,14 +219,18 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     errMsg.append("药企药品编码有误").append(";");
                 }
 
-                try {
+                /*try {
                     if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(5)))) {
-                        drug.setStatus(Integer.parseInt(getStrFromCell(row.getCell(5)).trim()));
+                        if ("有效".equals(getStrFromCell(row.getCell(5)).trim())){
+                            drug.setStatus(1);
+                        }else if ("无效".equals(getStrFromCell(row.getCell(5)).trim())){
+                            drug.setStatus(0);
+                        }
                     }
                 } catch (Exception e) {
                     LOGGER.error("平台药品状态有误 ," + e.getMessage(), e);
                     errMsg.append("平台药品状态有误").append(";");
-                }
+                }*/
                 try {
                     if (StringUtils.isEmpty(getStrFromCell(row.getCell(6)))) {
                         errMsg.append("【价格(不含税)】未填写").append(";");
@@ -599,13 +603,6 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 Integer updateNum = 0;
                 Integer addNum = 0;
                 Integer deleteNum = 0;
-                //List<OrganDrugInfoTO> finalData = data;
-                long start = System.currentTimeMillis();
-                //查询起始下标
-                int startIndex = 0;
-                List<OrganDrugInfoTO> addList = Lists.newArrayList();
-                List<OrganDrugInfoTO> updateList = Lists.newArrayList();
-                boolean finishFlag = true;
                 long total = 0;
                 if (config.getSyncDataSource() == 1) {
                     //数据来源 关联管理机构
@@ -632,10 +629,10 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                               if (ObjectUtils.isEmpty(config.getSyncDrugType())) {
                                   throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企[同步药品类型]配置数据!");
                               }
-                              if (ObjectUtils.isEmpty(config.getSyncDrugType())) {
+                              if (ObjectUtils.isEmpty(config.getEnable_drug_syncType())) {
                                   throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企[数据同步类型]配置数据!");
                               }
-                              String[] strings1 = config.getEnable_drug_syncType().split(",");
+                              String[] strings1 = config.getSyncDrugType().split(",");
                               List<String> syncDrugTypeList = new ArrayList<String>(Arrays.asList(strings1));
                               //西药
                               if (syncDrugTypeList.indexOf("1") != -1) {
@@ -682,8 +679,6 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 redisClient.del(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
                 redisClient.set(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString(), map);
                 LOGGER.info("syncSaleOrganDrug哈哈哈" ,"结束了");
-                long elapsedTime = System.currentTimeMillis() - start;
-                LOGGER.info("RecipeBusiThreadPool drugInfoSynMovementExt ES-推送药品 执行时间:{}.", elapsedTime);
             }
         });
 
@@ -728,16 +723,12 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             throw new DAOException(DAOException.VALUE_NEEDED, "请先确认 基础数据-药品目录-药企药品目录-同步设置-【药企药品是否支持同步】已开启，再尝试进行同步!");
         }
 
-        //List<OrganDrugInfoTO> finalData = data;
-        long start = System.currentTimeMillis();
         //查询起始下标
         Integer updateNum = 0;
         Integer addNum = 0;
         Integer deleteNum = 0;
-        int startIndex = 0;
         List<OrganDrugInfoTO> addList = Lists.newArrayList();
         List<OrganDrugInfoTO> updateList = Lists.newArrayList();
-        boolean finishFlag = true;
         long total = 0;
         Map<String, Object> map = Maps.newHashMap();
         SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");

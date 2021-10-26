@@ -370,14 +370,16 @@ public class DrugToolService implements IDrugToolService {
                 LOGGER.error("药品院内检索码有误 ," + e.getMessage(), e);
                 errMsg.append("药品院内检索码有误").append(";");
             }
-            try {
+           /* try {
                 if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(7)))) {
-                    drug.setStatus(Integer.parseInt(getStrFromCell(row.getCell(7)).trim()));
+                    if ("有效".equals(getStrFromCell(row.getCell(7)).trim())){
+                        drug.setStatus(1);
+                    }
                 }
             } catch (Exception e) {
                 LOGGER.error("药品状态有误 ," + e.getMessage(), e);
                 errMsg.append("药品状态有误").append(";");
-            }
+            }*/
             try {
                 if (StringUtils.isEmpty(getStrFromCell(row.getCell(8)))) {
                     errMsg.append("【药品类型】未填写").append(";");
