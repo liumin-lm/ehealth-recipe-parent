@@ -99,6 +99,13 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         ORGANIZATION = recipeService.getRecipeParam("organization", "");
     }
 
+    @RpcService
+    public void test(){
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(206);
+        tokenUpdateImpl(drugsEnterprise);
+    }
+
     @Override
     @RpcService
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
