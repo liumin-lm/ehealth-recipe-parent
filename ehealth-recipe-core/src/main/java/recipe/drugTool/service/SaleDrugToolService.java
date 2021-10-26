@@ -675,8 +675,10 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                         } catch (DAOException e) {
                             LOGGER.info("syncSaleOrganDrug error" ,e);
                         }
+                        LOGGER.info("syncSaleOrganDrug哈哈哈" ,"for循环结束了");
                     }
                 }
+                LOGGER.info("syncSaleOrganDrug哈哈哈" ,"开始了");
                 map.put("addNum", addNum);
                 map.put("updateNum", updateNum);
                 map.put("falseNum", 0);
@@ -684,6 +686,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 map.put("Status", 1);
                 redisClient.del(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
                 redisClient.set(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString(), map);
+                LOGGER.info("syncSaleOrganDrug哈哈哈" ,"结束了");
                 long elapsedTime = System.currentTimeMillis() - start;
                 LOGGER.info("RecipeBusiThreadPool drugInfoSynMovementExt ES-推送药品 执行时间:{}.", elapsedTime);
             }
