@@ -479,6 +479,12 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         return getList(drugsEnterpriseDAO.findByOrganId(organId), DrugsEnterpriseBean.class);
     }
 
+    @RpcService
+    public List<DrugsEnterpriseBean> findDrugsEnterpriseByOrganId(Integer organId) {
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        return getList(drugsEnterpriseDAO.findByOrganIdZj(organId), DrugsEnterpriseBean.class);
+    }
+
     /**
      * 检查开处方是否需要进行药企库存校验
      *

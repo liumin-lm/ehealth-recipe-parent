@@ -153,14 +153,14 @@ public class RecipeExtend implements Serializable {
     private String hisDiseaseSerial;
 
     @ItemProperty(alias = "处方指定药企类型 1医院 2药企 默认 0")
-    private String appointEnterpriseType;
+    private Integer appointEnterpriseType;
 
     @Column(name = "appoint_enterprise_type")
-    public String getAppointEnterpriseType() {
+    public Integer getAppointEnterpriseType() {
         return appointEnterpriseType;
     }
 
-    public void setAppointEnterpriseType(String appointEnterpriseType) {
+    public void setAppointEnterpriseType(Integer appointEnterpriseType) {
         this.appointEnterpriseType = appointEnterpriseType;
     }
 
