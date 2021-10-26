@@ -882,6 +882,7 @@ public class RecipeHisService extends RecipeBaseService {
             //患者信息
             PatientService patientService = BasicAPI.getService(PatientService.class);
             PatientDTO patientBean = patientService.get(recipe.getMpiid());
+            request.setPatientId(recipe.getPatientID());
             request.setPatientName(patientBean.getPatientName());
             request.setIdcard(patientBean.getIdcard());
             request.setCertificate(patientBean.getCertificate());
@@ -1050,6 +1051,7 @@ public class RecipeHisService extends RecipeBaseService {
             request.setIdcard(patientBean.getIdcard());
             request.setCertificate(patientBean.getCertificate());
             request.setCertificateType(patientBean.getCertificateType());
+            request.setPatientId(recipe.getPatientID());
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
             LOGGER.info("provincialCashPreSettle recipeId={} req={}", recipeId, JSONUtils.toString(request));
             HisResponseTO<RecipeCashPreSettleInfo> hisResult = service.recipeCashPreSettleHis(request);
@@ -1309,6 +1311,7 @@ public class RecipeHisService extends RecipeBaseService {
         hisCheckRecipeReqTO.setRecipeID(null != recipeBean.getRecipeCode() ? recipeBean.getRecipeCode() : recipeBean.getRecipeId().toString());
         hisCheckRecipeReqTO.setPlatRecipeID(recipeBean.getRecipeId());
         hisCheckRecipeReqTO.setIsLongRecipe(recipeBean.getRecipeExtend().getIsLongRecipe());
+        hisCheckRecipeReqTO.setPatientId(recipeBean.getPatientID());
         IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
         //患者信息
         PatientBean patientBean = iPatientService.get(recipeBean.getMpiid());

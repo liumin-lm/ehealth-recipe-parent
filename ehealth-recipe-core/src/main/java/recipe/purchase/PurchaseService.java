@@ -939,6 +939,7 @@ public class PurchaseService {
             MedicInsurSettleApplyReqTO reqTO = new MedicInsurSettleApplyReqTO();
             reqTO.setOrganId(organId);
             reqTO.setOrganName(Optional.ofNullable(organ.getShortName()).orElse(""));
+            reqTO.setPatientId(patient.getPatId());
             reqTO.setPatientName(patient.getPatientName());
             reqTO.setCertId(patient.getIdcard());
             reqTO.setCertificate(patient.getCertificate());

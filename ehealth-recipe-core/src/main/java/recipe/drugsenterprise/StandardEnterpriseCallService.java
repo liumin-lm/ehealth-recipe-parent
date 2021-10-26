@@ -828,6 +828,7 @@ public class StandardEnterpriseCallService {
         request.setExplain("无");
         request.setRecipeRecordStatus(2);
         request.setRecipeStatus("1");
+        request.setPatientID(request.getPatientId());
         Boolean flag = service.recipeUpdate(request);
         if (flag) {
             result.setCode(StandardResultDTO.SUCCESS);
