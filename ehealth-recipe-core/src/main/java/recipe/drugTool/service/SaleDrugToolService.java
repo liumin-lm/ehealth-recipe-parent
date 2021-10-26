@@ -419,7 +419,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                             break;
                     }
                     SaleDrugList update = saleDrugListDAO.update(saleDrugList1);
-                    dataSyncLog(drugsEnterpriseId,update,1,detail);
+                    //dataSyncLog(drugsEnterpriseId,update,1,detail);
                     LOGGER.info("syncOrganDrugDataToSaleDrugList 更新 " + update.getDrugName() + " 药企Id=[{}] 药企药品=[{}]  机构药品=[{}]", drugsEnterpriseId, JSONUtils.toString(update),JSONUtils.toString(detail));
                     updateNum++;
                 }
@@ -456,7 +456,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     saleDrugList.setCreateDt(new Date());
                     saleDrugList.setLastModify(new Date());
                     SaleDrugList save = saleDrugListDAO.save(saleDrugList);
-                    dataSyncLog(drugsEnterpriseId,save,2,detail);
+                    //dataSyncLog(drugsEnterpriseId,save,2,detail);
                     LOGGER.info("syncOrganDrugDataToSaleDrugList 新增 " + save.getDrugName() + " 药企Id=[{}] 药企药品=[{}]  机构药品=[{}]", drugsEnterpriseId, JSONUtils.toString(save),JSONUtils.toString(detail));
                     addNum++;
                 }
