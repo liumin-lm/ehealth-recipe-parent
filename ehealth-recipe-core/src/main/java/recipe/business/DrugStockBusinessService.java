@@ -36,11 +36,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
+ * todo 之后把 查询库存相关 写在 对应的 机构类和 药企类里
+ *
  * @description： 药品库存业务 service
  * @author： whf
  * @date： 2021-07-19 15:41
  */
 @Service
+@Deprecated
 public class DrugStockBusinessService extends BaseService {
     @Resource
     private RecipeDAO recipeDAO;

@@ -48,7 +48,7 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
         List<Recipedetail> detailList = ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), Recipedetail.class);
         try {
             //药企库存
-            List<EnterpriseStock> result = iDrugEnterpriseBusinessService.enterpriseStockList(validateDetailVO);
+            List<EnterpriseStock> result = iDrugEnterpriseBusinessService.enterpriseStockCheck(recipe, detailList);
             //医院库存
             EnterpriseStock enterpriseStock = organBusinessService.organStock(recipe, detailList);
             result.add(enterpriseStock);

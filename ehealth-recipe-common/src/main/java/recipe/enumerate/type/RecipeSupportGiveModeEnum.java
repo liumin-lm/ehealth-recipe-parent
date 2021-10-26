@@ -180,9 +180,12 @@ public enum RecipeSupportGiveModeEnum {
         if (null == enterpriseGiveMode || null == configGiveMode) {
             return null;
         }
-        List<String> intersection = enterpriseGiveMode.stream().filter(configGiveMode::contains).collect(toList());
+        List<String> giveModeKey = enterpriseGiveMode.stream().filter(configGiveMode::contains).collect(toList());
+        if (CollectionUtils.isEmpty(giveModeKey)) {
+            return null;
+        }
         List<GiveModeButtonDTO> giveModeButton = new LinkedList<>();
-        intersection.forEach(a -> {
+        giveModeKey.forEach(a -> {
             GiveModeButtonDTO giveModeButtonDTO = new GiveModeButtonDTO();
             giveModeButtonDTO.setShowButtonKey(a);
             giveModeButtonDTO.setShowButtonName(configGiveModeMap.get(a));
