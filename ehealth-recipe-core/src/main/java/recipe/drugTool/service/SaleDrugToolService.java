@@ -686,6 +686,8 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                         redisClient.set(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString(), map);
                     }
                 }
+                long elapsedTime = System.currentTimeMillis() - start;
+                LOGGER.info("RecipeBusiThreadPool drugInfoSynMovementExt ES-推送药品 执行时间:{}.", elapsedTime);
             }
         });
 
