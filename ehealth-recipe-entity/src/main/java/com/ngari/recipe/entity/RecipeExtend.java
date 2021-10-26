@@ -76,10 +76,10 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "his返回的取药方式1配送到家 2医院取药 3两者都支持")
     private String giveModeFormHis;
 
-    @ItemProperty(alias = "his返回的配送药企代码")
+    @ItemProperty(alias = "配送药企代码")
     private String deliveryCode;
 
-    @ItemProperty(alias = "his返回的配送药企名称")
+    @ItemProperty(alias = "配送药企名称")
     private String deliveryName;
 
     @ItemProperty(alias = "医保返回的医院机构编码")
