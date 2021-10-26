@@ -70,7 +70,7 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.type.PayBusType;
+import recipe.enumerate.type.PayBusTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.PayFlowTypeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -1462,7 +1462,7 @@ public class RecipeOrderService extends RecipeBaseService {
                                 recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
                             } else {
                                 //说明需要正常退审方费
-                                refundClient.refund(order.getOrderId(), PayBusType.OTHER_BUS_TYPE.getName());
+                                refundClient.refund(order.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
                             }
                         }
                     }
@@ -2202,15 +2202,6 @@ public class RecipeOrderService extends RecipeBaseService {
                 //支付成功后，对来源于HIS的处方单状态更新为已处理
                 updateHisRecieStatus(recipes);
                 purchaseService.setRecipePayWay(order);
-                // 发送处方成功的消息
-                try {
-                    LOGGER.info("sendPaySuccessMsg start nowRecipe:{}", nowRecipe);
-                    sendPaySuccessMsg(nowRecipe);
-                } catch (Exception e) {
-                    LOGGER.error("sendPaySuccessMsg Exception:{}", e);
-                } finally {
-                    LOGGER.info("sendPaySuccessMsg end");
-                }
             } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag && null != order) {
                 attrMap.put("status", getPayStatus(reviewType, giveMode, nowRecipe));
                 //支付前调用
@@ -2326,14 +2317,6 @@ public class RecipeOrderService extends RecipeBaseService {
 
     }
 
-
-    /**
-     * 支付成功给医生发送卡片消息
-     */
-    private void sendPaySuccessMsg(Recipe recipe){
-        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        RecipeServiceSub.sendRecipeTagToPatientAfterPay(recipe, detailDAO.findByRecipeId(recipe.getRecipeId()), null, true);
-    }
 
 
     /**

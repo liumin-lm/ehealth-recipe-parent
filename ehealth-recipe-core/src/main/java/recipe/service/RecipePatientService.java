@@ -506,6 +506,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             patientBaseInfo.setPatientName(patientDTO.getPatientName());
             patientBaseInfo.setCertificate(patientDTO.getCertificate());
             patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
+            patientBaseInfo.setPatientID(patientDTO.getPatId());
             req.setPatient(patientBaseInfo);
             req.setOrganId(organId);
             HisResponseTO<PatientChronicDiseaseRes> res = service.findPatientChronicDiseaseList(req);
@@ -574,6 +575,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             patientBaseInfo.setPatientName(patientDTO.getPatientName());
             patientBaseInfo.setCertificate(patientDTO.getCertificate());
             patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
+            patientBaseInfo.setPatientID(patientDTO.getPatId());
             req.setPatient(patientBaseInfo);
             req.setOrganId(organId);
             HisResponseTO<PatientChronicDiseaseRes> res = service.findPatientChronicDiseaseList(req);
@@ -666,6 +668,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
         BeanUtils.copyProperties(patientDTO, patientBaseInfo);
         patientBaseInfo.setMpi(patientDTO.getMpiId());
+        patientBaseInfo.setPatientID(patientDTO.getPatId());
         request.setPatient(patientBaseInfo);
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
         service.findPatientDiagnose(request);
