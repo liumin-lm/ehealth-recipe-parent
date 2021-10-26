@@ -26,6 +26,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeServiceSub;
@@ -52,6 +53,8 @@ public class PayModeTFDS implements IPurchaseService{
 
     @Autowired
     private OrderManager orderManager;
+    @Autowired
+    private EnterpriseManager enterpriseManager;
 
     public PayModeTFDS(){
         RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
@@ -92,7 +95,8 @@ public class PayModeTFDS implements IPurchaseService{
             return resultBean;
         }
         RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), payModeSupport);
+        // 获取药企
+        List<DrugsEnterprise> drugsEnterprises = enterpriseManager.findEnterpriseByTFDS(recipe,payModeSupport);
         if (CollectionUtils.isEmpty(drugsEnterprises)) {
             //该机构没有对应可药店取药的药企
             resultBean.setCode(RecipeResultBean.FAIL);
