@@ -2514,7 +2514,7 @@ public class RecipeServiceSub {
         recipeTagMsg.setTitle("完成处方购药");
         //由于就诊人改造，已经可以知道申请人的信息，所以可以直接往当前咨询发消息
         if (StringUtils.isNotEmpty(recipe.getRequestMpiId()) && null != recipe.getDoctor()) {
-            sendRecipeMsgTag(recipe.getRequestMpiId(), recipe, recipeTagMsg, rMap, send);
+            sendRecipeMsgTag1(recipe.getRequestMpiId(), recipe, recipeTagMsg, rMap, send);
         } else if (StringUtils.isNotEmpty(recipe.getMpiid()) && null != recipe.getDoctor()) {
             //处方的患者编号在咨询单里其实是就诊人编号，不是申请人编号
             List<String> requestMpiIds;
@@ -2526,7 +2526,33 @@ public class RecipeServiceSub {
 
             if (CollectionUtils.isNotEmpty(requestMpiIds)) {
                 for (String requestMpiId : requestMpiIds) {
-                    sendRecipeMsgTag(requestMpiId, recipe, recipeTagMsg, rMap, send);
+                    sendRecipeMsgTag1(requestMpiId, recipe, recipeTagMsg, rMap, send);
+                }
+            }
+        }
+    }
+
+
+    private static void sendRecipeMsgTag1(String requestMpiId, Recipe recipe, RecipeTagMsgBean recipeTagMsg, Map<String, Object> rMap, boolean send) {
+        INetworkclinicMsgService iNetworkclinicMsgService = MessageAPI.getService(INetworkclinicMsgService.class);
+        ConsultMessageService iConsultMessageService = MessageAPI.getService(ConsultMessageService.class);
+        Integer consultId = recipe.getClinicId();
+        Integer bussSource = recipe.getBussSource();
+        if (consultId != null) {
+            if (null != rMap && null == rMap.get("consultId")) {
+                rMap.put("consultId", consultId);
+                rMap.put("bussSource", bussSource);
+            }
+            if (send) {
+                //11月大版本改造--咨询单或者网络门诊单是否正在处理中有他们那边判断
+                LOGGER.info("sendRecipeMsgTag recipeTagMsg={}", JSONUtils.toString(recipeTagMsg));
+                if (RecipeBussConstant.BUSS_SOURCE_WLZX.equals(bussSource)) {
+                    iNetworkclinicMsgService.handleRecipeMsg(consultId, recipeTagMsg, Integer.valueOf(recipe.getMpiid()));
+                } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(bussSource)) {
+                    iConsultMessageService.handleRecipeMsg(consultId, recipeTagMsg, Integer.valueOf(recipe.getDoctor()));
+                } else if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(bussSource)) {
+                    IRevisitMessageService revisitMessageService = MessageAPI.getService(IRevisitMessageService.class);
+                    revisitMessageService.handleRecipeMsg(consultId, recipeTagMsg, Integer.valueOf(recipe.getDoctor()));
                 }
             }
         }
