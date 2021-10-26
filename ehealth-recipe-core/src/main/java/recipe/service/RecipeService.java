@@ -122,7 +122,7 @@ import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugTool.service.DrugToolService;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
-import recipe.enumerate.type.PayBusTypeEnum;
+import recipe.enumerate.type.PayBusType;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.PayFlowTypeEnum;
 import recipe.givemode.business.GiveModeFactory;
@@ -3543,7 +3543,7 @@ public class RecipeService extends RecipeBaseService {
                             // 退费
                             if (CollectionUtils.isNotEmpty(byOrderId)) {
                                 RefundClient refundClient = ApplicationUtils.getRecipeService(RefundClient.class);
-                                refundClient.refund(order.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
+                                refundClient.refund(order.getOrderId(), PayBusType.OTHER_BUS_TYPE.getName());
                             }
 
                         }
@@ -4422,7 +4422,7 @@ public class RecipeService extends RecipeBaseService {
                         recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
                     } else {
                         //说明需要正常退审方费
-                        refundClient.refund(order.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
+                        refundClient.refund(order.getOrderId(), PayBusType.OTHER_BUS_TYPE.getName());
                     }
                 }
                 RecipeOrderPayFlow recipeOrderPay = recipeOrderPayFlowManager.getByOrderIdAndType(order.getOrderId(), PayFlowTypeEnum.RECIPE_FLOW.getType());
@@ -4433,13 +4433,13 @@ public class RecipeService extends RecipeBaseService {
                         recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPay);
                     } else {
                         //说明需要正常退药品费用费
-                        refundClient.refund(order.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
+                        refundClient.refund(order.getOrderId(), PayBusType.RECIPE_BUS_TYPE.getName());
                     }
                 }
             } else {
-                refundClient.refund(order.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
+                refundClient.refund(order.getOrderId(), PayBusType.RECIPE_BUS_TYPE.getName());
             }
-            refundClient.refund(order.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
+            refundClient.refund(order.getOrderId(), PayBusType.RECIPE_BUS_TYPE.getName());
         } catch (Exception e) {
             LOGGER.error("wxPayRefundForRecipe " + errorInfo + "*****微信退款异常！recipeId[" + recipeId + "],err[" + e.getMessage() + "]", e);
         }
