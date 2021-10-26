@@ -64,7 +64,7 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
     public EnterpriseStock organStock(Recipe recipe, List<Recipedetail> detailList) {
         List<GiveModeButtonDTO> giveModeButtonBeans = buttonManager.getGiveModeMap(recipe.getClinicOrgan());
         //无到院取药
-        String showButtonName = RecipeSupportGiveModeEnum.checkOrgan(giveModeButtonBeans);
+        String showButtonName = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
         if (StringUtils.isEmpty(showButtonName)) {
             return null;
         }

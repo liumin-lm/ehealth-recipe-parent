@@ -5,6 +5,8 @@ import lombok.Data;
 import java.util.List;
 
 /**
+ * 药企购药配置-库存对象
+ *
  * @author fuzi
  */
 @Data
