@@ -70,7 +70,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      * @param organId
      * @return
      */
-    @DAOMethod(sql = "from DrugsEnterprise where status=1 and organId=:organId")
+    @DAOMethod(sql = "from DrugsEnterprise where status=1 and organId=:organId and createType=0  ")
     public abstract List<DrugsEnterprise> findByOrganIdZj(@DAOParam("organId") Integer organId);
 
     /**
