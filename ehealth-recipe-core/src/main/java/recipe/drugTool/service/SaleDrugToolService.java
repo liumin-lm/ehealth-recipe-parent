@@ -677,14 +677,14 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                         } catch (DAOException e) {
                             LOGGER.info("syncSaleOrganDrug error" ,e);
                         }
-                        map.put("addNum", addNum);
-                        map.put("updateNum", updateNum);
-                        map.put("falseNum", 0);
-                        map.put("Date", myFmt2.format(new Date()));
-                        map.put("Status", 1);
-                        redisClient.del(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
-                        redisClient.set(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString(), map);
                     }
+                    map.put("addNum", addNum);
+                    map.put("updateNum", updateNum);
+                    map.put("falseNum", 0);
+                    map.put("Date", myFmt2.format(new Date()));
+                    map.put("Status", 1);
+                    redisClient.del(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
+                    redisClient.set(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString(), map);
                 }
                 long elapsedTime = System.currentTimeMillis() - start;
                 LOGGER.info("RecipeBusiThreadPool drugInfoSynMovementExt ES-推送药品 执行时间:{}.", elapsedTime);
