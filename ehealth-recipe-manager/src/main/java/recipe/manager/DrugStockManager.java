@@ -105,7 +105,7 @@ public class DrugStockManager extends BaseManager {
      * @param recipe
      * @param drugsEnterprise
      * @param recipeDetails
-     * @return
+     * @return 1 有库存 0 无库存
      */
     public Integer scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
         List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());

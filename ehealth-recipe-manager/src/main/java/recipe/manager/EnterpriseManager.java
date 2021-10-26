@@ -188,10 +188,16 @@ public class EnterpriseManager extends BaseManager {
         if (CollectionUtils.isEmpty(enterprises)) {
             return list;
         }
-        Map<String, String> configGiveModeMap = giveModeButtonBeans.stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
+        Map<String, String> configGiveModeMap;
+        if (null != giveModeButtonBeans) {
+            configGiveModeMap = giveModeButtonBeans.stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
+        } else {
+            configGiveModeMap = new HashMap<>();
+        }
         List<String> configGiveMode = RecipeSupportGiveModeEnum.checkEnterprise(giveModeButtonBeans);
         for (DrugsEnterprise drugsEnterprise : enterprises) {
             EnterpriseStock enterpriseStock = new EnterpriseStock();
+            enterpriseStock.setDrugsEnterprise(drugsEnterprise);
             enterpriseStock.setDeliveryName(drugsEnterprise.getName());
             enterpriseStock.setDeliveryCode(drugsEnterprise.getEnterpriseCode());
             enterpriseStock.setAppointEnterpriseType(2);

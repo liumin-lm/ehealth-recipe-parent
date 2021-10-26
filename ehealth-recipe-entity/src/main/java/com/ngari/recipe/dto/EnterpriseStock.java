@@ -1,5 +1,6 @@
 package com.ngari.recipe.dto;
 
+import com.ngari.recipe.entity.DrugsEnterprise;
 import lombok.Data;
 
 import java.util.List;
@@ -35,6 +36,8 @@ public class EnterpriseStock {
      * 提示药品名称
      */
     private List<String> drugName;
-
-
+    /**
+     * 药企对象
+     */
+    private DrugsEnterprise drugsEnterprise;
 }
