@@ -5110,6 +5110,7 @@ public class RecipeService extends RecipeBaseService {
 
     /**
      * 添加指定药企 药企字符串中  此药企ID
+     *
      * @param pharmacyIds
      * @param pharmacyId
      * @return
@@ -5122,7 +5123,7 @@ public class RecipeService extends RecipeBaseService {
         String[] userIdArray = pharmacyIds.split(",");
         // 数组转集合
         List<String> userIdList = new ArrayList<String>(Arrays.asList(userIdArray));
-        if(userIdList.indexOf(pharmacyId)==-1){
+        if (userIdList.indexOf(pharmacyId) == -1) {
             // 添加指定药企 ID
             userIdList.add(pharmacyId.toString());
             // 把剩下的药企 ID 再拼接起来
@@ -6212,6 +6213,9 @@ public class RecipeService extends RecipeBaseService {
         } else if ("4".equals(type)) {
             //发送消息--待审核消息
             RecipeMsgService.batchSendMsg(recipe.getRecipeId(), 8);
+        } else if ("5".equals(type)) {
+            auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(8, recipe, "ood");
+
         }
         return true;
     }
