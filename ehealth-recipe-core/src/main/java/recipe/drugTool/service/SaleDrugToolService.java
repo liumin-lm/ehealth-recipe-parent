@@ -593,7 +593,6 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         Map<String, Object> map = Maps.newHashMap();
         map.put("Date", myFmt2.format(new Date()));
         map.put("Status", 0);
-        map.put("Exception", 0);
         redisClient.del(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
         redisClient.set(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString(), map);
 
@@ -603,13 +602,13 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 Integer updateNum = 0;
                 Integer addNum = 0;
                 Integer deleteNum = 0;
-                long total = 0;
+                Integer total = 0;
                 if (config.getSyncDataSource() == 1) {
                     //数据来源 关联管理机构
                     //获取药企关联机构药品目录
                     List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(drugsEnterprise.getOrganId());
-                    total = details.size();
                     if (!ObjectUtils.isEmpty(details)){
+                        total = details.size();
                         for (OrganDrugList detail : details) {
                           if (config.getSyncDataRange() == 1) {
                               //同步数据范围 配送药企
@@ -676,6 +675,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 map.put("addNum", addNum);
                 map.put("updateNum", updateNum);
                 map.put("falseNum", 0);
+                map.put("total", total);
                 map.put("Date", myFmt2.format(new Date()));
                 map.put("Status", 1);
                 redisClient.del(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
@@ -727,15 +727,15 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         Integer deleteNum = 0;
         List<OrganDrugInfoTO> addList = Lists.newArrayList();
         List<OrganDrugInfoTO> updateList = Lists.newArrayList();
-        long total = 0;
+        Integer total = 0;
         Map<String, Object> map = Maps.newHashMap();
         SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         if (config.getSyncDataSource() == 1) {
             //数据来源 关联管理机构
             //获取药企关联机构药品目录
             List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(drugsEnterprise.getOrganId());
-            total = details.size();
             if (!ObjectUtils.isEmpty(details)){
+                total=details.size();
                 try {
                     for (OrganDrugList detail : details) {
                         if (config.getSyncDataRange() == 1) {
@@ -806,6 +806,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         map.put("addNum", addNum);
         map.put("updateNum", updateNum);
         map.put("falseNum", 0);
+        map.put("total", total);
         map.put("Date", myFmt2.format(new Date()));
         map.put("Status", 1);
         redisClient.del(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
