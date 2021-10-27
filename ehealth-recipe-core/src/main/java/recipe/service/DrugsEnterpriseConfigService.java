@@ -70,7 +70,7 @@ public class DrugsEnterpriseConfigService {
             DrugsEnterpriseConfig save = drugsEnterpriseConfigDAO.save(drugsEnterpriseConfig);
             if (!ObjectUtils.isEmpty(urt)){
                 busActionLogService.recordBusinessLogRpcNew("药企配置管理", "", "DrugsEnterpriseConfig", "【" + urt.getUserName() + "】新增药企配置【" + JSONUtils.toString(save)
-                        +"】药品", drugsEnterpriseDAO.getById(drugsEnterpriseConfig.getDrugsenterpriseId()).getName());
+                        +"】", drugsEnterpriseDAO.getById(drugsEnterpriseConfig.getDrugsenterpriseId()).getName());
             }
             return save;
         }else {
@@ -79,7 +79,7 @@ public class DrugsEnterpriseConfigService {
             DrugsEnterpriseConfig update = drugsEnterpriseConfigDAO.update(drugsEnterpriseConfig);
             if (!ObjectUtils.isEmpty(urt)){
                 busActionLogService.recordBusinessLogRpcNew("药企配置管理", "", "DrugsEnterpriseConfig", "【" + urt.getUserName() + "】更新药企配置【"+JSONUtils.toString(drugsEnterpriseConfig)+"】-》【" + JSONUtils.toString(update)
-                        +"】药品", drugsEnterpriseDAO.getById(byDrugsenterpriseId.getDrugsenterpriseId()).getName());
+                        +"】", drugsEnterpriseDAO.getById(byDrugsenterpriseId.getDrugsenterpriseId()).getName());
             }
             return update;
         }
