@@ -80,13 +80,15 @@ public class EnterpriseManager extends BaseManager {
         logger.info("DrugStockManager enterpriseDrugNameGroup enterpriseDrugIdGroup= {}", JSON.toJSONString(enterpriseDrugIdGroup));
         Map<Integer, List<String>> enterpriseDrugNameGroup = new HashMap<>();
         enterpriseDrugIdGroup.forEach((k, v) -> {
-            List<String> names = recipeDetails.stream().filter(a -> !v.contains(a.getDrugId())).map(Recipedetail::getDrugName).collect(Collectors.toList());
+            //因为value范型是Integer 但是实际是String
+            List<String> names = recipeDetails.stream().filter(a -> !v.contains(String.valueOf(a.getDrugId()))).map(Recipedetail::getDrugName).collect(Collectors.toList());
             enterpriseDrugNameGroup.put(k, names);
         });
         logger.info("DrugStockManager enterpriseDrugNameGroup enterpriseDrugNameGroup= {}", JSON.toJSONString(enterpriseDrugNameGroup));
         return enterpriseDrugNameGroup;
     }
-    
+
+
     /**
      * 到店取药 药企获取
      *
