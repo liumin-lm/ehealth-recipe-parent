@@ -5,6 +5,7 @@ import com.ngari.base.scratchable.model.ScratchableBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
+import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
@@ -76,9 +77,10 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
         giveModeButtonDTO.setShowButtonName(showButtonName);
         giveModeButton.add(giveModeButtonDTO);
 
+        OrganDTO organDTO = organClient.organDTO(recipe.getClinicOrgan());
         EnterpriseStock enterpriseStock = new EnterpriseStock();
         enterpriseStock.setGiveModeButton(giveModeButton);
-        enterpriseStock.setDeliveryName(recipe.getOrganName());
+        enterpriseStock.setDeliveryName(organDTO.getName() + "门诊药房");
         enterpriseStock.setDeliveryCode(recipe.getClinicOrgan().toString());
         enterpriseStock.setAppointEnterpriseType(1);
         enterpriseStock.setStock(true);

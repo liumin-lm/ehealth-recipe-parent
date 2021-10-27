@@ -19,27 +19,30 @@ import recipe.dao.SaleDrugListDAO;
 import recipe.util.ListValueUtil;
 import recipe.util.ValidateUtil;
 
-import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
 
 /**
+ * todo 之后把 查询库存相关 写在 对应的 机构类和 药企类里
+ *
  * @description： 库存检查
  * @author： whf
  * @date： 2021-07-19 9:48
  */
 @Service
+@Deprecated
 public class DrugStockManager extends BaseManager {
-    @Resource
+    @Autowired
     private DrugStockClient drugStockClient;
-    @Resource
+    @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
-    @Resource
+    @Autowired
     private SaleDrugListDAO saleDrugListDAO;
-
+    @Autowired
+    private EnterpriseManager enterpriseManager;
 
     /**
      * 校验医院库存
@@ -51,7 +54,7 @@ public class DrugStockManager extends BaseManager {
     public RecipeResultBean scanDrugStockByRecipeId(Recipe recipe, List<Recipedetail> detailList) {
         logger.info("scanHisDrugStockByRecipeId req recipe={}  recipeDetails = {}", JSONArray.toJSONString(recipe), JSONArray.toJSONString(detailList));
         RecipeResultBean result = RecipeResultBean.getSuccess();
-        if (1 == recipe.getTakeMedicine()) {
+        if (null != recipe.getTakeMedicine() && 1 == recipe.getTakeMedicine()) {
             //外带药处方则不进行校验
             return RecipeResultBean.getSuccess();
         }
@@ -105,7 +108,7 @@ public class DrugStockManager extends BaseManager {
      * @param recipe
      * @param drugsEnterprise
      * @param recipeDetails
-     * @return
+     * @return 1 有库存 0 无库存
      */
     public Integer scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
         List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
@@ -253,26 +256,21 @@ public class DrugStockManager extends BaseManager {
         }
         //找到每一个药能支持的药企关系
         List<DrugsEnterprise> enterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
-        List<Integer> deps = enterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
-        List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
-        //获取药企与配送药品关系 （药企A:药品1,药品2）
-        Map<Integer, List<Integer>> depDrugRel = saleDrugListDAO.findDepDrugRelation(drugIds, deps);
+        List<Integer> enterpriseIds = enterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
+        Map<Integer, List<String>> enterpriseDrugNameGroup = enterpriseManager.checkEnterpriseDrugName(enterpriseIds, recipeDetails);
 
-        List<Integer> depDrugIdList = null;
-        Collections.sort(drugIds);
-        for (List<Integer> depDrug : depDrugRel.values()) {
-            Collections.sort(depDrug);
-            if (drugIds.toString().equals(depDrug.toString())) {
-                depDrugIdList = null;
+        Set<String> drugNames = new HashSet<>();
+        boolean result = false;
+        for (List<String> drugNameList : enterpriseDrugNameGroup.values()) {
+            if (CollectionUtils.isEmpty(drugNameList)) {
+                result = true;
                 break;
             }
-            depDrugIdList = depDrug;
+            drugNames.addAll(drugNameList);
         }
-        if (CollectionUtils.isEmpty(depDrugIdList)) {
+        if (result) {
             return;
         }
-        List<Integer> finalDepDrugIdList = depDrugIdList;
-        List<String> drugNames = recipeDetails.stream().filter(a -> !finalDepDrugIdList.contains(a.getDrugId())).map(Recipedetail::getDrugName).collect(Collectors.toList());
-        doSignRecipe(doSignRecipe, drugNames, "不支持同一家药企配送或不在该机构药企可配送的药品目录里面");
+        doSignRecipe(doSignRecipe, new ArrayList(drugNames), "不支持同一家药企配送或不在该机构药企可配送的药品目录里面");
     }
 }

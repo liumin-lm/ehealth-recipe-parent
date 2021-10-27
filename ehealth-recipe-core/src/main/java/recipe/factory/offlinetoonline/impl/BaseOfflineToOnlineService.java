@@ -43,6 +43,7 @@ import recipe.dao.bean.HisRecipeListBean;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.*;
@@ -787,6 +788,7 @@ public class BaseOfflineToOnlineService {
         recipeExtend.setRegisterID(hisRecipe.getRegisteredId());
         recipeExtend.setChronicDiseaseCode(hisRecipe.getChronicDiseaseCode());
         recipeExtend.setChronicDiseaseName(hisRecipe.getChronicDiseaseName());
+        recipeExtend.setAppointEnterpriseType(AppointEnterpriseTypeEnum.DEFAULT.getType());
         //设置煎法
         if (StringUtils.isNotEmpty(hisRecipe.getDecoctionText())) {
             recipeExtend.setDecoctionText(hisRecipe.getDecoctionText());

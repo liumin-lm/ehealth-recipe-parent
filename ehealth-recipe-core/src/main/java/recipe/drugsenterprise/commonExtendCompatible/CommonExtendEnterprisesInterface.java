@@ -28,6 +28,7 @@ public interface CommonExtendEnterprisesInterface {
 
     public boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds);
 
+
     public String appEnterprise(RecipeOrder order);
 
     public BigDecimal orderToRecipeFee(RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, BigDecimal recipeFee, Map<String, String> extInfo);
@@ -43,5 +44,6 @@ public interface CommonExtendEnterprisesInterface {
     public void sendDeliveryMsgToHis(Integer recipeId);
 
     public DrugEnterpriseResult sendMsgResultMap(Integer recipeId, Map<String, String> extInfo, DrugEnterpriseResult payResult);
+
 
 }

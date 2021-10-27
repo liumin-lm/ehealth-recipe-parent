@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  * 对异常处理向外抛出
  */
 @Aspect
-@Component(value = "logAspect")
+//@Component(value = "logAspect")
 @Slf4j
 //Order值越小，优先级越高！
 @Order(10)
@@ -25,7 +25,7 @@ public class LogAspect {
     private static final Logger logger = LoggerFactory.getLogger(LogAspect.class);
 
     //切点问题
-    @Pointcut("!execution(* recipe.util..*.*(..)) && execution(* recipe.service..*.*(..))")
+    @Pointcut("!execution(* recipe.util..*.*(..)) && execution(* recipe..*.*(..))")
     public void conPoint(){}
 
 

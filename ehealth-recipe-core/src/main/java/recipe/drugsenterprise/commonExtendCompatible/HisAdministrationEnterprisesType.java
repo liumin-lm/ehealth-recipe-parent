@@ -75,16 +75,16 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
         }
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipeId);
-        if(null != extend){
+        if (null != extend) {
             //获取当前his返回的药企信息，以及价格信息
             String deliveryRecipeFees = extend.getDeliveryRecipeFee();
             String deliveryCodes = extend.getDeliveryCode();
             String deliveryNames = extend.getDeliveryName();
-            if(StringUtils.isNotEmpty(deliveryRecipeFees) &&
-                    StringUtils.isNotEmpty(deliveryCodes) && StringUtils.isNotEmpty(deliveryNames)){
+            if (StringUtils.isNotEmpty(deliveryRecipeFees) &&
+                    StringUtils.isNotEmpty(deliveryCodes) && StringUtils.isNotEmpty(deliveryNames)) {
                 //只有杭州是互联网医院返回的是库存足够
                 result.setCode(DrugEnterpriseResult.SUCCESS);
-                result.setMsg("调用[" + drugsEnterprise.getName() + "][ scanStock ]结果返回成功,有库存,处方单ID:"+recipeId+".");
+                result.setMsg("调用[" + drugsEnterprise.getName() + "][ scanStock ]结果返回成功,有库存,处方单ID:" + recipeId + ".");
                 return result;
             }
         }

@@ -1,7 +1,8 @@
 package recipe.core.api.patient;
 
 import com.ngari.recipe.dto.EnterpriseStock;
-import recipe.vo.doctor.ValidateDetailVO;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.Recipedetail;
 
 import java.util.List;
 
@@ -12,10 +13,11 @@ import java.util.List;
  */
 public interface IDrugEnterpriseBusinessService {
     /**
-     * 获取药企库存列表
+     * 校验药企库存
      *
-     * @param validateDetailVO
-     * @return
+     * @param recipe     处方信息
+     * @param detailList 处方明细信息
+     * @return 返回药企库存信息
      */
-    List<EnterpriseStock> enterpriseStockList(ValidateDetailVO validateDetailVO);
+    List<EnterpriseStock> enterpriseStockCheck(Recipe recipe, List<Recipedetail> detailList);
 }

@@ -55,10 +55,6 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
     @Override
     @RpcService
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-//        LOGGER.info("PublicSelfRemoteService scanStock not implement.");
-//        return DrugEnterpriseResult.getSuccess();
-
-        //date 20200525
         //判断库存是否足够，如果是配送主体是医院取药的，通过医院库存接口判断库存是否足够
         if(null == recipeId){
             LOGGER.warn("判断当前处方库存是否足够，处方id为空，校验失败！");
@@ -89,25 +85,23 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
             //当前医院呢库存接口，前置机对接了，则按对接的算
             //前置机没对接算库存足够
             RecipeResultBean scanResult = hisService.scanDrugStockByRecipeId(recipeId);
-            if(null != scanResult){
-                if(RecipeResultBean.SUCCESS == scanResult.getCode()){
+            if (null != scanResult) {
+                if (RecipeResultBean.SUCCESS == scanResult.getCode()) {
                     LOGGER.warn("当前处方{}调用医院库存，库存足够", recipeId);
                     return DrugEnterpriseResult.getSuccess();
-                }else{
+                } else {
                     LOGGER.warn("当前处方{}调用医院库存，库存不足", recipeId);
                     return DrugEnterpriseResult.getFail();
                 }
-            }else{
+            } else {
                 LOGGER.warn("当前处方{}调用医院库存，返回为空，默认无库存", recipeId);
                 return DrugEnterpriseResult.getFail();
             }
 
-        }else{
+        } else {
             //当前配送主体不是医院配送，默认库存足够
             return DrugEnterpriseResult.getSuccess();
         }
-
-
     }
 
     @Override
@@ -204,6 +198,7 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
     public DrugEnterpriseResult sendMsgResultMap(Integer recipeId, Map<String, String> extInfo, DrugEnterpriseResult payResult) {
         return null;
     }
+
 
     private List<Pharmacy> getPharmacies(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise, DrugEnterpriseResult result) {
         PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);

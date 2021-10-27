@@ -28,7 +28,10 @@ import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateDrugsEpCallable;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -196,6 +199,19 @@ public abstract class AccessDrugEnterpriseService {
      * @return
      */
     public abstract DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise);
+
+
+    /**
+     * 库存检验
+     *
+     * @param drugsEnterprise 药企
+     * @return
+     */
+    public DrugEnterpriseResult enterpriseStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        //todo 自建药企-查询药企库存默认有库存 如果要查询平台对接药企 需要实现其他实现类
+        LOGGER.info("自建药企-查询药企库存默认有库存 {}", drugsEnterprise.getName());
+        return DrugEnterpriseResult.getSuccess();
+    }
 
     /**
      * 定时同步药企库存

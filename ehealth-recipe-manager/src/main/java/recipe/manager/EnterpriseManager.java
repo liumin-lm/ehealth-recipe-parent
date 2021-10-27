@@ -6,12 +6,12 @@ import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
-import com.ngari.recipe.dto.EnterpriseStock;
-import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -20,8 +20,8 @@ import org.springframework.stereotype.Service;
 import recipe.client.EnterpriseClient;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
-import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.third.IFileDownloadService;
 import recipe.util.ValidateUtil;
 
@@ -61,35 +61,134 @@ public class EnterpriseManager extends BaseManager {
     private DrugDecoctionWayDao drugDecoctionWayDao;
     @Autowired
     private SymptomDAO symptomDAO;
+    @Autowired
+    private DrugsEnterpriseDAO drugsEnterpriseDAO;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
 
     /**
-     * 根据 按钮配置 获取 药企购药配置-库存对象
+     * 检查 药企药品 是否满足开方药品
+     * 验证能否药品配送以及能否开具到一张处方单上
      *
-     * @param organId             机构id
-     * @param giveModeButtonBeans 机构按钮配置
-     * @return 药企购药配置
+     * @param enterpriseIds 药企id
+     * @param recipeDetails 处方明显-开方药品
+     * @return 药企-不满足的 药品名称
      */
-    public List<EnterpriseStock> enterpriseStockList(Integer organId, List<GiveModeButtonDTO> giveModeButtonBeans) {
-        List<DrugsEnterprise> enterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
-        logger.info("EnterpriseManager enterpriseStockList organId:{},enterprises:{}", organId, JSON.toJSONString(enterprises));
+    public Map<Integer, List<String>> checkEnterpriseDrugName(List<Integer> enterpriseIds, List<Recipedetail> recipeDetails) {
+        List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
+        Map<Integer, List<Integer>> enterpriseDrugIdGroup = saleDrugListDAO.findDepDrugRelation(drugIds, enterpriseIds);
+        Map<Integer, List<String>> enterpriseDrugNameGroup = new HashMap<>();
+        enterpriseDrugIdGroup.forEach((k, v) -> {
+            List<String> names = recipeDetails.stream().filter(a -> !v.contains(a.getDrugId())).map(Recipedetail::getDrugName).collect(Collectors.toList());
+            enterpriseDrugNameGroup.put(k, names);
+        });
+        logger.info("DrugStockManager enterpriseDrugNameGroup enterpriseDrugNameGroup= {}", JSON.toJSONString(enterpriseDrugNameGroup));
+        return enterpriseDrugNameGroup;
+    }
+    
+    /**
+     * 到店取药 药企获取
+     *
+     * @param recipe
+     * @param payModeSupport
+     * @return
+     */
+    public List<DrugsEnterprise> findEnterpriseByTFDS(Recipe recipe, List<Integer> payModeSupport) {
+        logger.info("EnterpriseManager findEnterpriseByTFDS req payModeSupport:{},recipe:{}", JSONUtils.toString(payModeSupport), JSONUtils.toString(recipe));
 
-        List<EnterpriseStock> list = new LinkedList<>();
-        if (CollectionUtils.isEmpty(enterprises)) {
-            return list;
+        List<DrugsEnterprise> drugsEnterpriseList = new ArrayList<>();
+        Integer recipeId = recipe.getRecipeId();
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+
+        Integer appointEnterpriseType = recipeExtend.getAppointEnterpriseType();
+        logger.info("EnterpriseManager findEnterpriseByTFDS  appointEnterpriseType={}", appointEnterpriseType);
+        AppointEnterpriseTypeEnum appointEnterpriseTypeEnum = AppointEnterpriseTypeEnum.getAppointEnterpriseTypeEnum(appointEnterpriseType);
+
+        switch (appointEnterpriseTypeEnum) {
+            case ORGAN_APPOINT:
+                break;
+            case ENTERPRISE_APPOINT:
+                String deliveryCode = recipeExtend.getDeliveryCode();
+                if (StringUtils.isEmpty(deliveryCode)) {
+                    throw new DAOException("指定药企为空");
+                }
+                List<String> deliveryCodeList = Arrays.asList(deliveryCode.split("\\|"));
+                drugsEnterpriseList = drugsEnterpriseDAO.findByAccount(deliveryCodeList);
+                break;
+            case DEFAULT:
+            default:
+                drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), payModeSupport);
+                break;
         }
-        Map<String, String> configGiveModeMap = giveModeButtonBeans.stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
-        List<String> configGiveMode = RecipeSupportGiveModeEnum.checkEnterprise(giveModeButtonBeans);
-        for (DrugsEnterprise drugsEnterprise : enterprises) {
-            EnterpriseStock enterpriseStock = new EnterpriseStock();
-            enterpriseStock.setDeliveryName(drugsEnterprise.getName());
-            enterpriseStock.setDeliveryCode(drugsEnterprise.getEnterpriseCode());
-            enterpriseStock.setAppointEnterpriseType(2);
-            List<GiveModeButtonDTO> giveModeButton = RecipeSupportGiveModeEnum.giveModeButtonList(drugsEnterprise, configGiveMode, configGiveModeMap);
-            enterpriseStock.setGiveModeButton(giveModeButton);
-            list.add(enterpriseStock);
+        logger.info("EnterpriseManager findEnterpriseByTFDS  res={}", JSONUtils.toString(drugsEnterpriseList));
+        return drugsEnterpriseList;
+
+    }
+
+    /**
+     * 配送到家模式下获取药企
+     *
+     * @param sendType
+     * @param payModeSupport
+     * @param recipe
+     * @return
+     */
+    public List<DrugsEnterprise> findEnterpriseByOnLine(String sendType, List<Integer> payModeSupport, Recipe recipe) {
+        logger.info("EnterpriseManager findEnterpriseByOnLine req sendType:{},payModeSupport:{},recipe:{}", sendType, JSONUtils.toString(payModeSupport), JSONUtils.toString(recipe));
+        List<DrugsEnterprise> drugsEnterpriseList = new ArrayList<>();
+        if (new Integer(2).equals(recipe.getRecipeSource())) {
+            //北京互联网根据HIS传过来的药企进行展示
+            HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
+            OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+            HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
+            if (hisRecipe != null && StringUtils.isNotEmpty(hisRecipe.getDeliveryCode())) {
+                DrugsEnterprise enterprise = drugsEnterpriseDAO.getByAccount(hisRecipe.getDeliveryCode());
+                if (enterprise != null) {
+                    OrganAndDrugsepRelation organAndDrugsepRelation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(recipe.getClinicOrgan(), enterprise.getId());
+                    if (organAndDrugsepRelation != null) {
+                        drugsEnterpriseList.add(enterprise);
+                    }
+                }
+            }
+            logger.info("EnterpriseManager findEnterpriseByOnLine 北京互联网 res={}", JSONUtils.toString(drugsEnterpriseList));
+            return drugsEnterpriseList;
         }
-        logger.info("EnterpriseManager enterpriseStockList list:{}", JSON.toJSONString(list));
-        return list;
+        //筛选出来的数据已经去掉不支持任何方式配送的药企
+        Integer recipeId = recipe.getRecipeId();
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+
+        Integer appointEnterpriseType = recipeExtend.getAppointEnterpriseType();
+        logger.info("EnterpriseManager findEnterpriseByOnLine  appointEnterpriseType={}", appointEnterpriseType);
+
+        AppointEnterpriseTypeEnum appointEnterpriseTypeEnum = AppointEnterpriseTypeEnum.getAppointEnterpriseTypeEnum(appointEnterpriseType);
+
+        switch (appointEnterpriseTypeEnum) {
+            case ORGAN_APPOINT:
+                break;
+            case ENTERPRISE_APPOINT:
+                String deliveryCode = recipeExtend.getDeliveryCode();
+                if (StringUtils.isEmpty(deliveryCode)) {
+                    throw new DAOException("指定药企为空");
+                }
+                List<String> deliveryCodeList = Arrays.asList(deliveryCode.split("\\|"));
+                drugsEnterpriseList = drugsEnterpriseDAO.findByAccount(deliveryCodeList);
+                break;
+            case DEFAULT:
+            default:
+                if (StringUtils.isNotEmpty(sendType)) {
+                    if (Integer.valueOf(1).equals(recipe.getRecipeSource())) {
+                        drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndOtherAndSendType(recipe.getClinicOrgan(), payModeSupport, Integer.parseInt(sendType));
+                    } else {
+                        drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupportAndSendType(recipe.getClinicOrgan(), payModeSupport, Integer.parseInt(sendType));
+                    }
+                } else {
+                    //考虑到浙江省互联网项目的药店取药也会走这里,sendType是"" 还是需要查询一下支持的药企
+                    drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), payModeSupport);
+                }
+                break;
+        }
+        logger.info("EnterpriseManager findEnterpriseByOnLine  res={}", JSONUtils.toString(drugsEnterpriseList));
+        return drugsEnterpriseList;
     }
 
     /**
@@ -401,5 +500,7 @@ public class EnterpriseManager extends BaseManager {
         }
         return expandDTO;
     }
+
+
 }
 

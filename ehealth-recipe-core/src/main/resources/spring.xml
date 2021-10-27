@@ -34,6 +34,7 @@
     <import resource="spring-service-casign.xml"/>
 
     <bean id="recipeLogAspect" class="recipe.aop.RecipeLogAspect"/>
+    <bean id="logAspect" class="recipe.aop.LogAspect"/>
     <!--药企对接通用实现(国药协议)-->
     <bean id="commonRemoteService" class="recipe.drugsenterprise.CommonRemoteService"></bean>
 
