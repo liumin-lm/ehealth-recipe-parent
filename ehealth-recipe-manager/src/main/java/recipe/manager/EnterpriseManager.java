@@ -77,6 +77,7 @@ public class EnterpriseManager extends BaseManager {
     public Map<Integer, List<String>> checkEnterpriseDrugName(List<Integer> enterpriseIds, List<Recipedetail> recipeDetails) {
         List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
         Map<Integer, List<Integer>> enterpriseDrugIdGroup = saleDrugListDAO.findDepDrugRelation(drugIds, enterpriseIds);
+        logger.info("DrugStockManager enterpriseDrugNameGroup enterpriseDrugIdGroup= {}", JSON.toJSONString(enterpriseDrugIdGroup));
         Map<Integer, List<String>> enterpriseDrugNameGroup = new HashMap<>();
         enterpriseDrugIdGroup.forEach((k, v) -> {
             List<String> names = recipeDetails.stream().filter(a -> !v.contains(a.getDrugId())).map(Recipedetail::getDrugName).collect(Collectors.toList());
