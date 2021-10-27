@@ -525,6 +525,22 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         return (Map<String, Object>) redisClient.get(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
     }
 
+    /**
+     * 从缓存中实时获取同步情况 ()
+     *
+     * @param drugsEnterpriseId
+     * @return
+     * @throws ParseException
+     */
+    @RpcService
+    public Map<String, Object> getOrganDrugSyncDataRedis(Integer drugsEnterpriseId) throws ParseException {
+        Map<String, Object> maps=Maps.newHashMap();
+        Map<String, Object> map = (Map<String, Object>) redisClient.get(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
+        maps.put("Date", map.get("Date"));
+        return maps;
+    }
+
+
 
     /**
      * 从缓存中删除异常同步情况
@@ -537,6 +553,8 @@ public class SaleDrugToolService implements ISaleDrugToolService {
     public void deleteOrganDrugSyncData(Integer drugsEnterpriseId) {
         redisClient.del(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
     }
+
+
 
 
     /**
