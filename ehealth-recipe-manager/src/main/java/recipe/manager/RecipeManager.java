@@ -246,6 +246,7 @@ public class RecipeManager extends BaseManager {
                 }
             }
         } catch (ControllerException e) {
+            logger.info("getRecipeDTO 医保卡处理异常", e);
             e.printStackTrace();
         }
         return recipeDTO;
