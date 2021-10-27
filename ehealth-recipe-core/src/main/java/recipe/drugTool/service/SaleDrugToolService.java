@@ -15,6 +15,8 @@ import com.ngari.opbase.log.service.IDataSyncLogService;
 import com.ngari.opbase.xls.mode.ImportExcelInfoDTO;
 import com.ngari.opbase.xls.service.IImportExcelInfoService;
 import com.ngari.patient.dto.OrganConfigDTO;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugTool.service.ISaleDrugToolService;
 import com.ngari.recipe.entity.*;
 import ctd.account.UserRoleToken;
@@ -596,6 +598,8 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         if (ObjectUtils.isEmpty(organId)){
             throw new DAOException(DAOException.VALUE_NEEDED, "该药企["+drugsEnterprise.getName()+"]未找到关联机构!");
         }
+        OrganService organService = AppDomainContext.getBean("basic.organService", OrganService.class);
+        OrganDTO byOrganId = organService.getByOrganId(organId);
         SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Map<String, Object> map = Maps.newHashMap();
         map.put("Date", myFmt2.format(new Date()));
@@ -684,6 +688,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 map.put("updateNum", updateNum);
                 map.put("falseNum", 0);
                 map.put("total", total);
+                map.put("organName", byOrganId.getName());
                 map.put("Date", myFmt2.format(new Date()));
                 map.put("Status", 1);
                 redisClient.del(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
@@ -734,6 +739,8 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         if (ObjectUtils.isEmpty(organId)){
             throw new DAOException(DAOException.VALUE_NEEDED, "该药企["+drugsEnterprise.getName()+"]未找到关联机构!");
         }
+        OrganService organService = AppDomainContext.getBean("basic.organService", OrganService.class);
+        OrganDTO byOrganId = organService.getByOrganId(organId);
         //查询起始下标
         Integer updateNum = 0;
         Integer addNum = 0;
@@ -820,6 +827,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         map.put("updateNum", updateNum);
         map.put("falseNum", 0);
         map.put("total", total);
+        map.put("organName", byOrganId.getName());
         map.put("Date", myFmt2.format(new Date()));
         map.put("Status", 1);
         redisClient.del(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
