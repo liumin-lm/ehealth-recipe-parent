@@ -48,6 +48,7 @@ import recipe.thread.SaveAutoReviewRunnable;
 import recipe.util.DigestUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
+import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -400,7 +401,8 @@ public class RecipeSignService {
                 }
             }
             //第三步校验库存
-            if (continueFlag == 0 || continueFlag == 4) {
+            Integer appointEnterpriseType = recipeBean.getRecipeExtend().getAppointEnterpriseType();
+            if ((continueFlag == 0 || continueFlag == 4) && ValidateUtil.integerIsEmpty(appointEnterpriseType)) {
                 rMap = drugStockBusinessService.doSignRecipeCheckAndGetGiveMode(recipeBean);
                 boolean signResult = Boolean.parseBoolean(rMap.get("signResult").toString());
                 if (!signResult) {

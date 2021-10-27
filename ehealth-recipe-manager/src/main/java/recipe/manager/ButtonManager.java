@@ -1,7 +1,9 @@
 package recipe.manager;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.platform.recipe.mode.RecipeResultBean;
+import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.dto.OrganDTO;
@@ -15,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.OperationClient;
 import recipe.constant.RecipeBussConstant;
+import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.type.PayButtonEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
@@ -46,6 +49,8 @@ public class ButtonManager extends BaseManager {
     private FromHisGiveModeServiceImpl fromHisGiveModeServiceImpl;
     @Autowired
     private OperationClient operationClient;
+    @Autowired
+    private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
 
     /**
      * 获取支付按钮 仅杭州市互联网医院使用
@@ -56,7 +61,7 @@ public class ButtonManager extends BaseManager {
      * @return
      */
     public Integer getPayButton(Integer organId, String cardType, Boolean isForce) {
-        logger.info("ButtonManager.getPayButton req organId={} cardType={} isForce={}",organId,cardType,isForce);
+        logger.info("ButtonManager.getPayButton req organId={} cardType={} isForce={}", organId, cardType, isForce);
 
         // 强制自费 + 健康卡 展示 自费支付
         if (isForce) {
@@ -249,6 +254,43 @@ public class ButtonManager extends BaseManager {
         List<GiveModeButtonDTO> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
         Map<String, String> result = giveModeButtonBeans.stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
         return result.get(giveModeKey);
+    }
+
+    /**
+     * 根据 按钮配置 获取 药企购药配置-库存对象
+     *
+     * @param organId             机构id
+     * @param giveModeButtonBeans 机构按钮配置
+     * @return 药企购药配置
+     */
+    public List<EnterpriseStock> enterpriseStockList(Integer organId, List<GiveModeButtonDTO> giveModeButtonBeans) {
+        List<DrugsEnterprise> enterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
+        logger.info("ButtonManager enterpriseStockList organId:{},enterprises:{}", organId, JSON.toJSONString(enterprises));
+
+        List<EnterpriseStock> list = new LinkedList<>();
+        if (CollectionUtils.isEmpty(enterprises)) {
+            return list;
+        }
+        Map<String, String> configGiveModeMap;
+        if (null != giveModeButtonBeans) {
+            configGiveModeMap = giveModeButtonBeans.stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
+        } else {
+            configGiveModeMap = new HashMap<>();
+        }
+        List<String> configGiveMode = RecipeSupportGiveModeEnum.checkEnterprise(giveModeButtonBeans);
+        for (DrugsEnterprise drugsEnterprise : enterprises) {
+            EnterpriseStock enterpriseStock = new EnterpriseStock();
+            enterpriseStock.setDrugsEnterprise(drugsEnterprise);
+            enterpriseStock.setDrugsEnterpriseId(drugsEnterprise.getId());
+            enterpriseStock.setDeliveryName(drugsEnterprise.getName());
+            enterpriseStock.setDeliveryCode(drugsEnterprise.getAccount());
+            enterpriseStock.setAppointEnterpriseType(2);
+            List<GiveModeButtonDTO> giveModeButton = RecipeSupportGiveModeEnum.giveModeButtonList(drugsEnterprise, configGiveMode, configGiveModeMap);
+            enterpriseStock.setGiveModeButton(giveModeButton);
+            list.add(enterpriseStock);
+        }
+        logger.info("ButtonManager enterpriseStockList list:{}", JSON.toJSONString(list));
+        return list;
     }
 
 

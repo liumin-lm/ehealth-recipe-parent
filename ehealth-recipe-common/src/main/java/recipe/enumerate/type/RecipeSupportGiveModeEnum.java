@@ -141,6 +141,13 @@ public enum RecipeSupportGiveModeEnum {
 
     /**
      * 根据配送模式与配送主体 确定药企 购药方式
+     * 0->gg
+     * 1->(2/3)
+     * 2->(2/3)
+     * 3->1
+     * 7->1,(2/3)
+     * 8->1,(2/3)
+     * 9->1,(2/3)
      *
      * @param payModeSupport 配送模式支持 0:不支持 1:线上付款 2:货到付款 3:药店取药 8:货到付款和药店取药 9:都支持
      * @param sendType       配送主体类型 1医院配送 2 药企配送
@@ -170,10 +177,10 @@ public enum RecipeSupportGiveModeEnum {
     /**
      * 根据 药企-机构配置获取 购药按钮对象
      *
-     * @param drugsEnterprise
-     * @param configGiveMode
-     * @param configGiveModeMap
-     * @return
+     * @param drugsEnterprise   药企信息
+     * @param configGiveMode    机构按钮配置
+     * @param configGiveModeMap 机构按钮配置 key ：text ， value ： name
+     * @return 药企展示的购药按钮
      */
     public static List<GiveModeButtonDTO> giveModeButtonList(DrugsEnterprise drugsEnterprise, List<String> configGiveMode, Map<String, String> configGiveModeMap) {
         List<String> enterpriseGiveMode = enterpriseEnum(drugsEnterprise.getPayModeSupport(), drugsEnterprise.getSendType());

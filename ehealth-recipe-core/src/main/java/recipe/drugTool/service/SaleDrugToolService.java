@@ -9,6 +9,7 @@ import com.ngari.his.recipe.mode.OrganDrugInfoRequestTO;
 import com.ngari.his.recipe.mode.OrganDrugInfoResponseTO;
 import com.ngari.his.recipe.mode.OrganDrugInfoTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.opbase.base.service.IBusActionLogService;
 import com.ngari.opbase.log.mode.DataSyncDTO;
 import com.ngari.opbase.log.service.IDataSyncLogService;
 import com.ngari.opbase.xls.mode.ImportExcelInfoDTO;
@@ -567,6 +568,10 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         if (ObjectUtils.isEmpty(drugsEnterprise)){
             throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企"+drugsEnterpriseId);
         }
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
+        busActionLogService.recordBusinessLogRpcNew("药企药品管理", "", "SaleDrugList", "【" + urt.getUserName() + "】调用 药企药品目录-》手动同步【" + drugsEnterprise.getName()
+                +"】",drugsEnterprise.getName());
         Map<String, Object> hget = (Map<String, Object>) redisClient.get(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
         if (hget != null) {
             Integer status = (Integer) hget.get("Status");
@@ -575,12 +580,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             if (minutes < 10L) {
                 throw new DAOException(DAOException.VALUE_NEEDED, "距离上次手动同步未超过10分钟，请稍后再尝试数据同步!");
             }
-            if (status == 0) {
-                throw new DAOException(DAOException.VALUE_NEEDED, "药品数据正在同步中，请耐心等待...");
-            }
         }
-        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-        UserRoleToken urt = UserRoleToken.getCurrent();
         DrugsEnterpriseConfigService bean = AppContextHolder.getBean("eh.drugsEnterpriseConfigService", DrugsEnterpriseConfigService.class);
         DrugsEnterpriseConfig config = bean.getConfigByDrugsenterpriseId(drugsEnterpriseId);
         if (ObjectUtils.isEmpty(config)){
@@ -673,7 +673,6 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                           }
                       }
                     }
-                LOGGER.info("syncSaleOrganDrug哈哈哈" ,"开始了");
                 map.put("addNum", addNum);
                 map.put("updateNum", updateNum);
                 map.put("falseNum", 0);
@@ -681,7 +680,6 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 map.put("Status", 1);
                 redisClient.del(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
                 redisClient.set(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString(), map);
-                LOGGER.info("syncSaleOrganDrug哈哈哈" ,"结束了");
             }
         });
 

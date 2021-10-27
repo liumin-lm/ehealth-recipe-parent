@@ -13,6 +13,7 @@ import com.ngari.recipe.drug.service.ISaleDrugListService;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.SaleDrugList;
+import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -189,11 +190,20 @@ public class SaleDrugListService implements ISaleDrugListService {
      */
     @RpcService
     public void deleteByOrganId(Integer organId) {
+        IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
+        UserRoleToken urt = UserRoleToken.getCurrent();
         if (ObjectUtils.isEmpty(organId)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "organId is required");
         }
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(organId);
+        if (ObjectUtils.isEmpty(drugsEnterprise)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企!");
+        }
         SaleDrugListDAO dao = DAOFactory.getDAO(SaleDrugListDAO.class);
         dao.deleteByOrganId(organId);
+        busActionLogService.recordBusinessLogRpcNew("药企药品管理", "", "SaleDrugList", "【" + urt.getUserName() + "】一键删除【" + drugsEnterprise.getName()
+                +"】药品", drugsEnterprise.getName());
     }
 
     /**

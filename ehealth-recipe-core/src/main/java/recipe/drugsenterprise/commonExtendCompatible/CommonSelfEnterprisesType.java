@@ -104,15 +104,6 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
         }
     }
 
-
-    @Override
-    public DrugEnterpriseResult enterpriseStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
-        LOGGER.info("当前配送主体不是医院配送，默认库存足够 {}", drugsEnterprise.getName());
-        //当前配送主体不是医院配送，默认库存足够
-        return DrugEnterpriseResult.getSuccess();
-    }
-
-
     @Override
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();

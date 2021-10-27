@@ -1,9 +1,15 @@
 package recipe.service;
 
+import com.ngari.opbase.base.service.IBusActionLogService;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.DrugsEnterpriseConfig;
 import com.ngari.recipe.entity.SaleDrugList;
+import ctd.account.UserRoleToken;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.slf4j.Logger;
@@ -52,16 +58,29 @@ public class DrugsEnterpriseConfigService {
         if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getDrugsenterpriseId())){
             throw new DAOException(DAOException.VALUE_NEEDED, "药企ID is required");
         }
-        if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getEnable_drug_sync())){
+
+        if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getDrugsenterpriseId())){
             throw new DAOException(DAOException.VALUE_NEEDED, "同步医院药品开关值 is required");
         }
-        if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getId())){
+        IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        DrugsEnterpriseConfig byDrugsenterpriseId = drugsEnterpriseConfigDAO.getByDrugsenterpriseId(drugsEnterpriseConfig.getDrugsenterpriseId());
+        if (ObjectUtils.isEmpty(byDrugsenterpriseId)){
             checkConfig(drugsEnterpriseConfig);
             DrugsEnterpriseConfig save = drugsEnterpriseConfigDAO.save(drugsEnterpriseConfig);
+            if (!ObjectUtils.isEmpty(urt)){
+                busActionLogService.recordBusinessLogRpcNew("药企配置管理", "", "DrugsEnterpriseConfig", "【" + urt.getUserName() + "】新增药企配置【" + JSONUtils.toString(save)
+                        +"】药品", drugsEnterpriseDAO.getById(drugsEnterpriseConfig.getDrugsenterpriseId()).getName());
+            }
             return save;
         }else {
             checkConfig(drugsEnterpriseConfig);
+            drugsEnterpriseConfig.setId(byDrugsenterpriseId.getId());
             DrugsEnterpriseConfig update = drugsEnterpriseConfigDAO.update(drugsEnterpriseConfig);
+            if (!ObjectUtils.isEmpty(urt)){
+                busActionLogService.recordBusinessLogRpcNew("药企配置管理", "", "DrugsEnterpriseConfig", "【" + urt.getUserName() + "】更新药企配置【"+JSONUtils.toString(drugsEnterpriseConfig)+"】-》【" + JSONUtils.toString(update)
+                        +"】药品", drugsEnterpriseDAO.getById(byDrugsenterpriseId.getDrugsenterpriseId()).getName());
+            }
             return update;
         }
     }

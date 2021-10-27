@@ -37,6 +37,10 @@ public class EnterpriseStock {
      */
     private List<String> drugName;
     /**
+     * 药企id
+     */
+    private Integer drugsEnterpriseId;
+    /**
      * 药企对象
      */
     private DrugsEnterprise drugsEnterprise;

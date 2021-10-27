@@ -20,8 +20,9 @@ import recipe.manager.ButtonManager;
 import recipe.manager.DrugStockManager;
 import recipe.manager.EnterpriseManager;
 
-import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 药企处理实现类
@@ -34,8 +35,9 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
     private ButtonManager buttonManager;
     @Autowired
     private EnterpriseManager enterpriseManager;
-    @Resource
+    @Autowired
     private DrugStockManager drugStockManager;
+
 
     @Override
     public List<EnterpriseStock> enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails) {
@@ -43,18 +45,26 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         //获取机构配置按钮
         List<GiveModeButtonDTO> giveModeButtonBeans = buttonManager.getGiveModeMap(organId);
         //获取需要查询库存的药企对象
-        List<EnterpriseStock> enterpriseStockList = enterpriseManager.enterpriseStockList(organId, giveModeButtonBeans);
+        List<EnterpriseStock> enterpriseStockList = buttonManager.enterpriseStockList(organId, giveModeButtonBeans);
         if (CollectionUtils.isEmpty(enterpriseStockList)) {
             return enterpriseStockList;
         }
+        //每个药企对应的 不满足的药品列表
+        List<Integer> enterpriseIds = enterpriseStockList.stream().map(EnterpriseStock::getDrugsEnterpriseId).collect(Collectors.toList());
+        Map<Integer, List<String>> enterpriseDrugNameGroup = enterpriseManager.checkEnterpriseDrugName(enterpriseIds, recipeDetails);
         //校验药企库存
         for (EnterpriseStock enterpriseStock : enterpriseStockList) {
+            enterpriseStock.setStock(false);
             //药企无对应的购药按钮则 无需查询库存-返回无库存
             if (CollectionUtils.isEmpty(enterpriseStock.getGiveModeButton())) {
-                enterpriseStock.setStock(false);
                 continue;
             }
-            DrugsEnterprise drugsEnterprise = enterpriseStock.getDrugsEnterprise();
+            //验证能否药品配送以及能否开具到一张处方单上
+            List<String> drugNames = enterpriseDrugNameGroup.get(enterpriseStock.getDrugsEnterpriseId());
+            if (CollectionUtils.isNotEmpty(drugNames)) {
+                enterpriseStock.setDrugName(drugNames);
+                continue;
+            }
             //根据药企配置查询 库存
             enterpriseStock(enterpriseStock, recipe, recipeDetails);
         }
@@ -74,8 +84,8 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         if (null == checkInventoryFlag) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, drugsEnterprise.getName() + "checkInventoryFlag is null");
         }
-        enterpriseStock.setStock(true);
         if (0 == drugsEnterprise.getCheckInventoryFlag()) {
+            enterpriseStock.setStock(true);
             return;
         }
         //医院自建药企-查询医院库存
@@ -83,9 +93,10 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             com.ngari.platform.recipe.mode.RecipeResultBean scanResult = drugStockManager.scanDrugStockByRecipeId(recipe, recipeDetails);
             //无库存
             if (RecipeResultBean.FAIL.equals(scanResult.getCode())) {
-                List<String> drugName = ObjectUtils.isEmpty(scanResult.getObject()) ? null : (List<String>) scanResult.getObject();
-                enterpriseStock.setDrugName(drugName);
-                enterpriseStock.setStock(false);
+                List<String> drugNames = ObjectUtils.isEmpty(scanResult.getObject()) ? null : (List<String>) scanResult.getObject();
+                enterpriseStock.setDrugName(drugNames);
+            } else {
+                enterpriseStock.setStock(true);
             }
             return;
         }

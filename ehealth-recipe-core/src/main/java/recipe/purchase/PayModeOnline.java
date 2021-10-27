@@ -46,6 +46,7 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.drugsenterprise.paymodeonlineshowdep.PayModeOnlineShowDepServiceProducer;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.hisservice.RecipeToHisService;
+import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.presettle.factory.OrderTypeFactory;
 import recipe.presettle.model.OrderTypeCreateConditionRequest;
@@ -75,6 +76,8 @@ public class PayModeOnline implements IPurchaseService {
 
     @Autowired
     private OrderManager orderManager;
+    @Autowired
+    private EnterpriseManager enterpriseManager;
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
@@ -113,37 +116,10 @@ public class PayModeOnline implements IPurchaseService {
             return resultBean;
         }
         LOG.info("drugsEnterpriseList organId:{}, payModeSupport:{}", dbRecipe.getClinicOrgan(), payModeSupport);
-        //筛选出来的数据已经去掉不支持任何方式配送的药企
-        List<DrugsEnterprise> drugsEnterpriseList;
-        if (StringUtils.isNotEmpty(extInfo.get("sendType"))) {
-            if (Integer.valueOf(1).equals(dbRecipe.getRecipeSource())) {
-                //            drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndOther(dbRecipe.getClinicOrgan(), payModeSupport);
-                drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndOtherAndSendType(dbRecipe.getClinicOrgan(), payModeSupport, Integer.parseInt(extInfo.get("sendType")));
-            } else {
-                //            drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(dbRecipe.getClinicOrgan(), payModeSupport);
-                drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupportAndSendType(dbRecipe.getClinicOrgan(), payModeSupport, Integer.parseInt(extInfo.get("sendType")));
-            }
-        } else {
-            //考虑到浙江省互联网项目的药店取药也会走这里,sendType是"" 还是需要查询一下支持的药企
-            drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(dbRecipe.getClinicOrgan(), payModeSupport);
-            //drugsEnterpriseList = new ArrayList<DrugsEnterprise>();
-        }
-        if (new Integer(2).equals(dbRecipe.getRecipeSource())) {
-            //北京互联网根据HIS传过来的药企进行展示
-            HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
-            OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-            HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(dbRecipe.getClinicOrgan(), dbRecipe.getRecipeCode());
-            if (hisRecipe != null && StringUtils.isNotEmpty(hisRecipe.getDeliveryCode())) {
-                DrugsEnterprise enterprise = drugsEnterpriseDAO.getByAccount(hisRecipe.getDeliveryCode());
-                drugsEnterpriseList.clear();
-                if (enterprise != null) {
-                    OrganAndDrugsepRelation organAndDrugsepRelation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(dbRecipe.getClinicOrgan(), enterprise.getId());
-                    if (organAndDrugsepRelation != null) {
-                        drugsEnterpriseList.add(enterprise);
-                    }
-                }
-            }
-        }
+
+        // 获取药企
+        List<DrugsEnterprise> drugsEnterpriseList = enterpriseManager.findEnterpriseByOnLine(extInfo.get("sendType"), payModeSupport, dbRecipe);
+
         if (CollectionUtils.isEmpty(drugsEnterpriseList)) {
             LOG.warn("findSupportDepList 处方[{}]没有任何药企可以进行配送！", recipeId);
             resultBean.setCode(5);

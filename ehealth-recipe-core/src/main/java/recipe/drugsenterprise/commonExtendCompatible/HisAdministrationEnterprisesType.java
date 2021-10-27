@@ -6,10 +6,12 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DeliveryList;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
-import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -19,7 +21,6 @@ import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
-import recipe.constant.ErrorCode;
 import recipe.constant.HisDeliveryConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.OrganAndDrugsepRelationDAO;
@@ -88,11 +89,6 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
             }
         }
         return result;
-    }
-
-    @Override
-    public DrugEnterpriseResult enterpriseStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
-        throw new DAOException(ErrorCode.SERVICE_ERROR, drugsEnterprise.getName() + "HisAdministrationEnterprisesType enterpriseStock is null");
     }
 
     private boolean valiScanStock(Integer recipeId, DrugsEnterprise drugsEnterprise, DrugEnterpriseResult result) {
