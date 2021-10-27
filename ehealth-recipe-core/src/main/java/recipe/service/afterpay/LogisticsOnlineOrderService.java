@@ -118,9 +118,11 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
                 //将物流支付状态,物流费同步到基础平台
                 IWaybillService waybillService = AppContextHolder.getBean("infra.waybillService", IWaybillService.class);
                 if (ExpressFeePayWayEnum.ONLINE.getType().equals(order.getExpressFeePayWay())) {
-                    waybillService.updatePayplatStatus(trackingNumber, 1);
+                    LOGGER.info("基础物流更新快递单号：{}的支付支付方式为线上支付和快递费用：{}", trackingNumber, order.getExpressFee());
+                    waybillService.updatePayplatStatus(trackingNumber, 1, order.getExpressFee());
                 } else {
-                    waybillService.updatePayplatStatus(trackingNumber, 0);
+                    LOGGER.info("基础物流更新快递单号：{}的支付支付方式为线下支付和快递费用：{}", trackingNumber, order.getExpressFee());
+                    waybillService.updatePayplatStatus(trackingNumber, 0, order.getExpressFee());
                 }
             } else {
                 // 下单失败发起退款，退款原因=物流下单失败
