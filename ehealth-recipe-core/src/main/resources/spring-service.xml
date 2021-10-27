@@ -43,6 +43,7 @@
     <reference id="account.thirdPartyMappingService" interface="eh.account.api.ThirdPartyMappingService"/>
     <!--物流基础服务-->
     <reference id="infra.logisticsOrderService" interface="com.ngari.infra.logistics.service.ILogisticsOrderService"/>
+    <reference id="infra.waybillService" interface="com.ngari.infra.logistics.service.IWaybillService"/>
     <!--支付平台记账-->
     <reference id="easypay.payService" interface="recipe.easypay.IEasyPayService"/>
     <reference id="eh.scratchableService" interface="com.ngari.base.scratchable.service.IScratchableService"/>

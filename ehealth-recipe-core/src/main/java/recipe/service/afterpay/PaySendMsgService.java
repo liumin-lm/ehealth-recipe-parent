@@ -7,8 +7,11 @@ import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.service.IRevisitService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import recipe.client.IConfigurationClient;
 import recipe.constant.RecipeStatusConstant;
+import recipe.constant.ReviewTypeConstant;
 import recipe.mq.Buss2SessionProducer;
 import recipe.service.RecipeMsgService;
 
@@ -22,6 +25,9 @@ import java.util.List;
 public class PaySendMsgService implements IAfterPayBussService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(PaySendMsgService.class);
+
+    @Autowired
+    private IConfigurationClient configurationClient;
 
     /**
      * 发送支付后信息
@@ -47,7 +53,8 @@ public class PaySendMsgService implements IAfterPayBussService {
                 }
             }
             //推送给审方药师
-            if (new Integer("1").equals(a.getRecipeCode())) {
+            Integer phaPayControlType = configurationClient.getValueCatchReturnInteger(a.getClinicOrgan(), "phaPayControlType", 2);
+            if (new Integer("1").equals(phaPayControlType) && ReviewTypeConstant.Preposition_Check.equals(a.getReviewType())) {
                 RecipeMsgService.batchSendMsg(a, RecipeStatusConstant.RECIPE_PAY_CALL_SUCCESS);
             }
         });
