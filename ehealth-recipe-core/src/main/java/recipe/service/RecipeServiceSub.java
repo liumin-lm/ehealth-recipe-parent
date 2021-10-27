@@ -1760,9 +1760,10 @@ public class RecipeServiceSub {
                 }
             }
         }
-        //获取药师撤销原因
-        if (recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS && ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType())) {
-            map.put("cancelReason", getCancelReasonForChecker(recipeId));
+        //获取药师撤销原因  在未审核和审核不通过需要查询药师撤销原因
+        if ((recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS || recipe.getStatus() == RecipeStatusConstant.CHECK_NOT_PASS_YS )
+                && ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType())) {
+              map.put("cancelReason", getCancelReasonForChecker(recipeId));
         }
         //Date:2019/12/16
         //Explain:添加判断展示处方参考价格
