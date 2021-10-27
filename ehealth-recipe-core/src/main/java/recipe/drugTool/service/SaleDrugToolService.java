@@ -77,6 +77,9 @@ public class SaleDrugToolService implements ISaleDrugToolService {
     @Resource
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
 
+@Resource
+    private OrganAndDrugsepRelationDAO relationDAO;
+
 
     @Resource
     private SaleDrugListDAO saleDrugListDAO;
@@ -589,6 +592,10 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         if (config.getEnable_drug_sync()==0){
             throw new DAOException(DAOException.VALUE_NEEDED, "请先确认 基础数据-药品目录-药企药品目录-同步设置-【药企药品是否支持同步】已开启，再尝试进行同步!");
         }
+        Integer organId = drugsEnterprise.getOrganId();
+        if (ObjectUtils.isEmpty(organId)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "该药企["+drugsEnterprise.getName()+"]未找到关联机构!");
+        }
         SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Map<String, Object> map = Maps.newHashMap();
         map.put("Date", myFmt2.format(new Date()));
@@ -720,7 +727,10 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         if (config.getEnable_drug_sync()==0){
             throw new DAOException(DAOException.VALUE_NEEDED, "请先确认 基础数据-药品目录-药企药品目录-同步设置-【药企药品是否支持同步】已开启，再尝试进行同步!");
         }
-
+        Integer organId = drugsEnterprise.getOrganId();
+        if (ObjectUtils.isEmpty(organId)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "该药企["+drugsEnterprise.getName()+"]未找到关联机构!");
+        }
         //查询起始下标
         Integer updateNum = 0;
         Integer addNum = 0;
