@@ -15,6 +15,8 @@ import com.ngari.opbase.log.service.IDataSyncLogService;
 import com.ngari.opbase.xls.mode.ImportExcelInfoDTO;
 import com.ngari.opbase.xls.service.IImportExcelInfoService;
 import com.ngari.patient.dto.OrganConfigDTO;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugTool.service.ISaleDrugToolService;
 import com.ngari.recipe.entity.*;
 import ctd.account.UserRoleToken;
@@ -76,6 +78,9 @@ public class SaleDrugToolService implements ISaleDrugToolService {
 
     @Resource
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
+
+@Resource
+    private OrganAndDrugsepRelationDAO relationDAO;
 
 
     @Resource
@@ -520,6 +525,22 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         return (Map<String, Object>) redisClient.get(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
     }
 
+    /**
+     * 从缓存中实时获取同步情况 ()
+     *
+     * @param drugsEnterpriseId
+     * @return
+     * @throws ParseException
+     */
+    @RpcService
+    public Map<String, Object> getOrganDrugSyncDataRedis(Integer drugsEnterpriseId) throws ParseException {
+        Map<String, Object> maps=Maps.newHashMap();
+        Map<String, Object> map = (Map<String, Object>) redisClient.get(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
+        maps.put("Date", map.get("Date"));
+        return maps;
+    }
+
+
 
     /**
      * 从缓存中删除异常同步情况
@@ -532,6 +553,8 @@ public class SaleDrugToolService implements ISaleDrugToolService {
     public void deleteOrganDrugSyncData(Integer drugsEnterpriseId) {
         redisClient.del(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
     }
+
+
 
 
     /**
@@ -589,27 +612,33 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         if (config.getEnable_drug_sync()==0){
             throw new DAOException(DAOException.VALUE_NEEDED, "请先确认 基础数据-药品目录-药企药品目录-同步设置-【药企药品是否支持同步】已开启，再尝试进行同步!");
         }
+        Integer organId = drugsEnterprise.getOrganId();
+        if (ObjectUtils.isEmpty(organId)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "该药企["+drugsEnterprise.getName()+"]未找到关联机构!");
+        }
+        OrganService organService = AppDomainContext.getBean("basic.organService", OrganService.class);
+        OrganDTO byOrganId = organService.getByOrganId(organId);
         SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Map<String, Object> map = Maps.newHashMap();
         map.put("Date", myFmt2.format(new Date()));
         map.put("Status", 0);
-        map.put("Exception", 0);
         redisClient.del(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
         redisClient.set(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString(), map);
 
         RecipeBusiThreadPool.execute(new Runnable() {
             @Override
             public void run() {
+                long start = System.currentTimeMillis();
                 Integer updateNum = 0;
                 Integer addNum = 0;
                 Integer deleteNum = 0;
-                long total = 0;
+                Integer total = 0;
                 if (config.getSyncDataSource() == 1) {
                     //数据来源 关联管理机构
                     //获取药企关联机构药品目录
                     List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(drugsEnterprise.getOrganId());
-                    total = details.size();
                     if (!ObjectUtils.isEmpty(details)){
+                        total = details.size();
                         for (OrganDrugList detail : details) {
                           if (config.getSyncDataRange() == 1) {
                               //同步数据范围 配送药企
@@ -676,10 +705,14 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 map.put("addNum", addNum);
                 map.put("updateNum", updateNum);
                 map.put("falseNum", 0);
+                map.put("total", total);
+                map.put("organName", byOrganId.getName());
                 map.put("Date", myFmt2.format(new Date()));
                 map.put("Status", 1);
                 redisClient.del(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
                 redisClient.set(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString(), map);
+                long elapsedTime = System.currentTimeMillis() - start;
+                LOGGER.info("RecipeBusiThreadPool saleDrugInfoSynMovement ES-推送药品 执行时间:{}.", elapsedTime);
             }
         });
 
@@ -709,9 +742,6 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             if (minutes < 10L) {
                 throw new DAOException(DAOException.VALUE_NEEDED, "距离上次手动同步未超过10分钟，请稍后再尝试数据同步!");
             }
-            if (status == 0) {
-                throw new DAOException(DAOException.VALUE_NEEDED, "药品数据正在同步中，请耐心等待...");
-            }
         }
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
         UserRoleToken urt = UserRoleToken.getCurrent();
@@ -723,22 +753,27 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         if (config.getEnable_drug_sync()==0){
             throw new DAOException(DAOException.VALUE_NEEDED, "请先确认 基础数据-药品目录-药企药品目录-同步设置-【药企药品是否支持同步】已开启，再尝试进行同步!");
         }
-
+        Integer organId = drugsEnterprise.getOrganId();
+        if (ObjectUtils.isEmpty(organId)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "该药企["+drugsEnterprise.getName()+"]未找到关联机构!");
+        }
+        OrganService organService = AppDomainContext.getBean("basic.organService", OrganService.class);
+        OrganDTO byOrganId = organService.getByOrganId(organId);
         //查询起始下标
         Integer updateNum = 0;
         Integer addNum = 0;
         Integer deleteNum = 0;
         List<OrganDrugInfoTO> addList = Lists.newArrayList();
         List<OrganDrugInfoTO> updateList = Lists.newArrayList();
-        long total = 0;
+        Integer total = 0;
         Map<String, Object> map = Maps.newHashMap();
         SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         if (config.getSyncDataSource() == 1) {
             //数据来源 关联管理机构
             //获取药企关联机构药品目录
             List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(drugsEnterprise.getOrganId());
-            total = details.size();
             if (!ObjectUtils.isEmpty(details)){
+                total=details.size();
                 try {
                     for (OrganDrugList detail : details) {
                         if (config.getSyncDataRange() == 1) {
@@ -809,6 +844,8 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         map.put("addNum", addNum);
         map.put("updateNum", updateNum);
         map.put("falseNum", 0);
+        map.put("total", total);
+        map.put("organName", byOrganId.getName());
         map.put("Date", myFmt2.format(new Date()));
         map.put("Status", 1);
         redisClient.del(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
