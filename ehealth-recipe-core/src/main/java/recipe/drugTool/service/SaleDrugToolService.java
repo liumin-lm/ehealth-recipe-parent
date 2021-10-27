@@ -606,6 +606,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         RecipeBusiThreadPool.execute(new Runnable() {
             @Override
             public void run() {
+                long start = System.currentTimeMillis();
                 Integer updateNum = 0;
                 Integer addNum = 0;
                 Integer deleteNum = 0;
@@ -687,6 +688,8 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 map.put("Status", 1);
                 redisClient.del(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString());
                 redisClient.set(KEY_THE_DRUG_SYNC + drugsEnterpriseId.toString(), map);
+                long elapsedTime = System.currentTimeMillis() - start;
+                LOGGER.info("RecipeBusiThreadPool saleDrugInfoSynMovement ES-推送药品 执行时间:{}.", elapsedTime);
             }
         });
 
