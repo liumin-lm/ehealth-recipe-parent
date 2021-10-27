@@ -52,15 +52,18 @@ public class DrugsEnterpriseConfigService {
         if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getDrugsenterpriseId())){
             throw new DAOException(DAOException.VALUE_NEEDED, "药企ID is required");
         }
-        if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getEnable_drug_sync())){
+
+        if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getDrugsenterpriseId())){
             throw new DAOException(DAOException.VALUE_NEEDED, "同步医院药品开关值 is required");
         }
-        if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getId())){
+        DrugsEnterpriseConfig byDrugsenterpriseId = drugsEnterpriseConfigDAO.getByDrugsenterpriseId(drugsEnterpriseConfig.getDrugsenterpriseId());
+        if (ObjectUtils.isEmpty(byDrugsenterpriseId)){
             checkConfig(drugsEnterpriseConfig);
             DrugsEnterpriseConfig save = drugsEnterpriseConfigDAO.save(drugsEnterpriseConfig);
             return save;
         }else {
             checkConfig(drugsEnterpriseConfig);
+            drugsEnterpriseConfig.setId(byDrugsenterpriseId.getId());
             DrugsEnterpriseConfig update = drugsEnterpriseConfigDAO.update(drugsEnterpriseConfig);
             return update;
         }
