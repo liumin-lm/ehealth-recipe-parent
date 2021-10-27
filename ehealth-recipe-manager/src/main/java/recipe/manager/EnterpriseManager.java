@@ -79,10 +79,15 @@ public class EnterpriseManager extends BaseManager {
         Map<Integer, List<Integer>> enterpriseDrugIdGroup = saleDrugListDAO.findDepDrugRelation(drugIds, enterpriseIds);
         logger.info("DrugStockManager enterpriseDrugNameGroup enterpriseDrugIdGroup= {}", JSON.toJSONString(enterpriseDrugIdGroup));
         Map<Integer, List<String>> enterpriseDrugNameGroup = new HashMap<>();
-        enterpriseDrugIdGroup.forEach((k, v) -> {
-            //因为value范型是Integer 但是实际是String
-            List<String> names = recipeDetails.stream().filter(a -> !v.contains(String.valueOf(a.getDrugId()))).map(Recipedetail::getDrugName).collect(Collectors.toList());
-            enterpriseDrugNameGroup.put(k, names);
+        List<String> nameList = recipeDetails.stream().map(Recipedetail::getDrugName).collect(Collectors.toList());
+        enterpriseIds.forEach(a -> {
+            List<Integer> drugIdList = enterpriseDrugIdGroup.get(a);
+            if (CollectionUtils.isEmpty(drugIdList)) {
+                enterpriseDrugNameGroup.put(a, nameList);
+                return;
+            }
+            List<String> names = recipeDetails.stream().filter(recipeDetail -> !drugIdList.contains(String.valueOf(recipeDetail.getDrugId()))).map(Recipedetail::getDrugName).collect(Collectors.toList());
+            enterpriseDrugNameGroup.put(a, names);
         });
         logger.info("DrugStockManager enterpriseDrugNameGroup enterpriseDrugNameGroup= {}", JSON.toJSONString(enterpriseDrugNameGroup));
         return enterpriseDrugNameGroup;
