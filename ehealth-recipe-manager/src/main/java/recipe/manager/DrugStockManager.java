@@ -54,7 +54,7 @@ public class DrugStockManager extends BaseManager {
     public RecipeResultBean scanDrugStockByRecipeId(Recipe recipe, List<Recipedetail> detailList) {
         logger.info("scanHisDrugStockByRecipeId req recipe={}  recipeDetails = {}", JSONArray.toJSONString(recipe), JSONArray.toJSONString(detailList));
         RecipeResultBean result = RecipeResultBean.getSuccess();
-        if (1 == recipe.getTakeMedicine()) {
+        if (null != recipe.getTakeMedicine() && 1 == recipe.getTakeMedicine()) {
             //外带药处方则不进行校验
             return RecipeResultBean.getSuccess();
         }
