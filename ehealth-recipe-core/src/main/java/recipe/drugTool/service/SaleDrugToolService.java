@@ -385,6 +385,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         Integer addNum=0;
         Integer updateNum=0;
         Integer deleteNum = 0;
+        Map<String,Integer> map=new HashMap<>();
         if (ObjectUtils.isEmpty(config.getEnable_drug_syncType())){
             throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企[数据同步类型]配置数据!");
         }
@@ -400,10 +401,14 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 byOrganIdAndDrugCode=saleDrugListDAO.findByOrganIdAndDrugCode(drugsEnterpriseId, detail.getDrugId().toString());
                 break;
             case 3:
-                byOrganIdAndDrugCode=saleDrugListDAO.findByOrganIdAndDrugCode(drugsEnterpriseId, detail.getMedicalDrugCode());
+                if (!ObjectUtils.isEmpty(detail.getMedicalDrugCode())){
+                    byOrganIdAndDrugCode=saleDrugListDAO.findByOrganIdAndDrugCode(drugsEnterpriseId, detail.getMedicalDrugCode());
+                }
                 break;
             case 4:
-                byOrganIdAndDrugCode=saleDrugListDAO.findByOrganIdAndDrugCode(drugsEnterpriseId, detail.getProducerCode());
+                if (!ObjectUtils.isEmpty(detail.getProducerCode())){
+                    byOrganIdAndDrugCode=saleDrugListDAO.findByOrganIdAndDrugCode(drugsEnterpriseId, detail.getProducerCode());
+                }
                 break;
             default:
                 break;
@@ -470,10 +475,24 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                             saleDrugList.setSaleDrugCode(detail.getDrugId().toString());
                             break;
                         case 3:
-                            saleDrugList.setSaleDrugCode(detail.getMedicalDrugCode());
+                            if (!ObjectUtils.isEmpty(detail.getMedicalDrugCode())){
+                                saleDrugList.setSaleDrugCode(detail.getMedicalDrugCode());
+                            }else {
+                                map.put("addNum",0);
+                                map.put("updateNum",0);
+                                map.put("deleteNum",1);
+                                return map;
+                            }
                             break;
                         case 4:
-                            saleDrugList.setSaleDrugCode(detail.getProducerCode());
+                            if (!ObjectUtils.isEmpty(detail.getProducerCode())){
+                                saleDrugList.setSaleDrugCode(detail.getProducerCode());
+                            }else {
+                                map.put("addNum",0);
+                                map.put("updateNum",0);
+                                map.put("deleteNum",1);
+                                return map;
+                            }
                             break;
                         default:
                             break;
@@ -489,7 +508,6 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 }
             }
         }
-        Map<String,Integer> map=new HashMap<>();
         map.put("addNum",addNum);
         map.put("updateNum",updateNum);
         map.put("deleteNum",deleteNum);
