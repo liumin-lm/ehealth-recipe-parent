@@ -205,8 +205,11 @@ public class EnterpriseManager extends BaseManager {
                 if (StringUtils.isEmpty(deliveryCode)) {
                     throw new DAOException("指定药企为空");
                 }
-                List<String> deliveryCodeList = Arrays.asList(deliveryCode.split("\\|"));
-                drugsEnterpriseList = drugsEnterpriseDAO.findByAccount(deliveryCodeList);
+                List<String> ids = Arrays.asList(deliveryCode.split("\\|"));
+                List<Integer> collect = ids.stream().map(id -> {
+                    return Integer.valueOf(id);
+                }).collect(Collectors.toList());
+                drugsEnterpriseList = drugsEnterpriseDAO.findByIds(collect);
                 break;
             case DEFAULT:
             default:
@@ -263,8 +266,11 @@ public class EnterpriseManager extends BaseManager {
                 if (StringUtils.isEmpty(deliveryCode)) {
                     throw new DAOException("指定药企为空");
                 }
-                List<String> deliveryCodeList = Arrays.asList(deliveryCode.split("\\|"));
-                drugsEnterpriseList = drugsEnterpriseDAO.findByAccount(deliveryCodeList);
+                List<String> ids = Arrays.asList(deliveryCode.split("\\|"));
+                List<Integer> collect = ids.stream().map(id -> {
+                    return Integer.valueOf(id);
+                }).collect(Collectors.toList());
+                drugsEnterpriseList = drugsEnterpriseDAO.findByIds(collect);
                 break;
             case DEFAULT:
             default:
