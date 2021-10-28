@@ -58,8 +58,15 @@ public class SaleDrugListService implements ISaleDrugListService {
             throw new DAOException(DAOException.VALUE_NEEDED, "organId is needed");
         }
         if (null == saleDrugList.getPrice()) {
-            throw new DAOException(DAOException.VALUE_NEEDED, "price is needed");
+            throw new DAOException(DAOException.VALUE_NEEDED, "药品价格 必填!");
         }
+        if (null == saleDrugList.getDrugName()) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "药品名 必填!");
+        }
+        if (null == saleDrugList.getOrganDrugCode()) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "药品编码 必填!");
+        }
+
     }
 
     /**
@@ -136,6 +143,9 @@ public class SaleDrugListService implements ISaleDrugListService {
             Integer newStatus = saleDrugList.getStatus();
             BeanUtils.map(saleDrugList, target);
             validateSaleDrugList(target);
+            if (ObjectUtils.isEmpty(saleDrugList.getSaleDrugCode())){
+                saleDrugList.setSaleDrugCode(saleDrugList.getOrganDrugCode());
+            }
             target.setLastModify(new Date());
             target = saleDrugListDAO.update(target);
             DrugList drugList = drugListDAO.get(saleDrugList.getDrugId());
