@@ -384,6 +384,6 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
     @DAOMethod(sql = "from DrugsEnterprise where manageUnit=:manageUnit", limit = 1)
     public abstract DrugsEnterprise getByManageUnit(@DAOParam("manageUnit") String manageUnit);
 
-    @DAOMethod(sql = "from DrugsEnterprise where status=1 and account in(:deliveryCodeList)")
-    public abstract List<DrugsEnterprise> findByAccount(@DAOParam("deliveryCodeList") List<String> deliveryCodeList);
+    @DAOMethod(sql = "from DrugsEnterprise where status=1 and id in(:ids)")
+    public abstract List<DrugsEnterprise> findByIds(@DAOParam("ids") List<Integer> ids);
 }
