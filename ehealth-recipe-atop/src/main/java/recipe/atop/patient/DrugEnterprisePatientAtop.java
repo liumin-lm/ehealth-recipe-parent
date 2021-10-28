@@ -57,8 +57,10 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
             //药企库存
             List<EnterpriseStock> result = iDrugEnterpriseBusinessService.enterpriseStockCheck(recipe, detailList);
             //医院库存
-            EnterpriseStock enterpriseStock = organBusinessService.organStock(recipe, detailList);
-            result.add(enterpriseStock);
+            EnterpriseStock organStock = organBusinessService.organStock(recipe, detailList);
+            if (null != organStock) {
+                result.add(organStock);
+            }
             result.forEach(a -> a.setDrugsEnterprise(null));
             logger.info("DrugEnterprisePatientAtop enterpriseStockList result:{}", JSONArray.toJSONString(result));
             return result;
