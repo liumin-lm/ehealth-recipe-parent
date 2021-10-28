@@ -738,14 +738,18 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                           }
                       }
                     }
-                Map<String, OrganDrugList> drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
-                List<SaleDrugList> saleDrugListsByOrganId = saleDrugListDAO.findSaleDrugListsByOrganId(drugsEnterpriseId);
-                if (!ObjectUtils.isEmpty(saleDrugListsByOrganId)){
-                    for (SaleDrugList saleDrugList : saleDrugListsByOrganId) {
-                        OrganDrugList organDrug = drugMap.get(saleDrugList.getOrganDrugCode());
-                        if (ObjectUtils.isEmpty(organDrug)) {
-                            saleDrugListDAO.remove(saleDrugList.getOrganDrugId());
-                            deleteNum++;
+                String[] strings = config.getEnable_drug_syncType().split(",");
+                List<String> syncTypeList = new ArrayList<String>(Arrays.asList(strings));
+                if (syncTypeList.indexOf("3")!=-1){
+                    Map<String, OrganDrugList> drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+                    List<SaleDrugList> saleDrugListsByOrganId = saleDrugListDAO.findSaleDrugListsByOrganId(drugsEnterpriseId);
+                    if (!ObjectUtils.isEmpty(saleDrugListsByOrganId)){
+                        for (SaleDrugList saleDrugList : saleDrugListsByOrganId) {
+                            OrganDrugList organDrug = drugMap.get(saleDrugList.getOrganDrugCode());
+                            if (ObjectUtils.isEmpty(organDrug)) {
+                                saleDrugListDAO.remove(saleDrugList.getOrganDrugId());
+                                deleteNum++;
+                            }
                         }
                     }
                 }
@@ -892,14 +896,18 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 }
             }
         }
-        Map<String, OrganDrugList> drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
-        List<SaleDrugList> saleDrugListsByOrganId = saleDrugListDAO.findSaleDrugListsByOrganId(drugsEnterpriseId);
-        if (!ObjectUtils.isEmpty(saleDrugListsByOrganId)){
-            for (SaleDrugList saleDrugList : saleDrugListsByOrganId) {
-                OrganDrugList organDrug = drugMap.get(saleDrugList.getOrganDrugCode());
-                if (ObjectUtils.isEmpty(organDrug)) {
-                    saleDrugListDAO.remove(saleDrugList.getOrganDrugId());
-                    deleteNum++;
+        String[] strings = config.getEnable_drug_syncType().split(",");
+        List<String> syncTypeList = new ArrayList<String>(Arrays.asList(strings));
+        if (syncTypeList.indexOf("3")!=-1){
+            Map<String, OrganDrugList> drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+            List<SaleDrugList> saleDrugListsByOrganId = saleDrugListDAO.findSaleDrugListsByOrganId(drugsEnterpriseId);
+            if (!ObjectUtils.isEmpty(saleDrugListsByOrganId)){
+                for (SaleDrugList saleDrugList : saleDrugListsByOrganId) {
+                    OrganDrugList organDrug = drugMap.get(saleDrugList.getOrganDrugCode());
+                    if (ObjectUtils.isEmpty(organDrug)) {
+                        saleDrugListDAO.remove(saleDrugList.getOrganDrugId());
+                        deleteNum++;
+                    }
                 }
             }
         }
