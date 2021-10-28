@@ -51,6 +51,12 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LogisticsOnlineOrderService.class);
 
+    //基础物流快递已支付
+    private static final Integer LOGISTICS_HAS_PAY = 1;
+
+    //基础物流快递未支付
+    private static final Integer LOGISTICS_NO_PAY = 0;
+
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
 
@@ -96,6 +102,8 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
             }
             LOGGER.info("基础服务物流下单结果={}", trackingNumber);
             if (StringUtils.isNotBlank(trackingNumber)) {
+                //更新支付方式为线上支付和快递费用
+                updatePayPlatStatus(order, trackingNumber);
                 for (int i = 0; i < recipeS.size(); i++) {
                     Recipe recipe = recipeS.get(i);
                     RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "基础服务物流下单成功");
@@ -115,15 +123,6 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
                 recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), orderAttrMap);
                 RecipeMsgService.batchSendMsg(recipeS.get(0).getRecipeId(), RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
                 LOGGER.info("基础服务物流下单成功，更新物流单号={},物流公司={},orderId={}", trackingNumber, order.getLogisticsCompany(), order.getOrderId());
-                //将物流支付状态,物流费同步到基础平台
-                IWaybillService waybillService = AppContextHolder.getBean("infra.waybillService", IWaybillService.class);
-                if (ExpressFeePayWayEnum.ONLINE.getType().equals(order.getExpressFeePayWay())) {
-                    LOGGER.info("基础物流更新快递单号：{}的支付支付方式为线上支付和快递费用：{}", trackingNumber, order.getExpressFee());
-                    waybillService.updatePayplatStatus(trackingNumber, 1, order.getExpressFee());
-                } else {
-                    LOGGER.info("基础物流更新快递单号：{}的支付支付方式为线下支付和快递费用：{}", trackingNumber, order.getExpressFee());
-                    waybillService.updatePayplatStatus(trackingNumber, 0, order.getExpressFee());
-                }
             } else {
                 // 下单失败发起退款，退款原因=物流下单失败
                 LOGGER.info("基础服务物流下单失败，发起退款流程 orderId={}", order.getOrderId());
@@ -135,6 +134,23 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
             LOGGER.info("基础服务物流下单入参 req={}", JSONUtils.toString(orderDto));
             String res = logisticsOrderService.writeBackLogisticsOrder(orderDto);
             LOGGER.info("基础服务物流下单结果 res={}", res);
+        }
+    }
+
+    private void updatePayPlatStatus(RecipeOrder order, String trackingNumber) {
+        LOGGER.info("基础物流更新 order:{}, trackingNumber:{}.", order.getOrderId(), trackingNumber);
+        try {
+            //将物流支付状态,物流费同步到基础平台
+            IWaybillService waybillService = AppContextHolder.getBean("infra.waybillService", IWaybillService.class);
+            if (ExpressFeePayWayEnum.ONLINE.getType().equals(order.getExpressFeePayWay())) {
+                LOGGER.info("基础物流更新快递单号：{}的支付支付方式为线上支付和快递费用：{}", trackingNumber, order.getExpressFee());
+                waybillService.updatePayplatStatus(trackingNumber, LOGISTICS_HAS_PAY, order.getExpressFee());
+            } else {
+                LOGGER.info("基础物流更新快递单号：{}的支付支付方式为线下支付和快递费用：{}", trackingNumber, order.getExpressFee());
+                waybillService.updatePayplatStatus(trackingNumber, LOGISTICS_NO_PAY, order.getExpressFee());
+            }
+        } catch (Exception e) {
+            LOGGER.error("基础物流更新付支付方式和快递费用失败", e);
         }
     }
 

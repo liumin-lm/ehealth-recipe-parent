@@ -768,6 +768,7 @@ public class HisRequestInit {
             requestTO.setRecipeType((null != recipe.getRecipeType()) ? Integer.toString(recipe.getRecipeType()) : null);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe nowRecipe = recipeDAO.getByRecipeId(recipe.getRecipeId());
+            LOGGER.info("HisRequestInit initDrugTakeChangeReqTO recipe:{}.", JSONUtils.toString(nowRecipe));
             RecipeHisStatusEnum recipeHisStatusEnum = RecipeHisStatusEnum.getRecipeHisStatusEnum(nowRecipe.getStatus());
             if(Objects.nonNull(recipeHisStatusEnum)) {
                 requestTO.setRecipeStatus(recipeHisStatusEnum.getValue());
