@@ -744,7 +744,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     for (SaleDrugList saleDrugList : saleDrugListsByOrganId) {
                         OrganDrugList organDrug = drugMap.get(saleDrugList.getOrganDrugCode());
                         if (ObjectUtils.isEmpty(organDrug)) {
-                            saleDrugListDAO.remove(saleDrugList);
+                            saleDrugListDAO.remove(saleDrugList.getOrganDrugId());
                             deleteNum++;
                         }
                     }
@@ -898,7 +898,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             for (SaleDrugList saleDrugList : saleDrugListsByOrganId) {
                 OrganDrugList organDrug = drugMap.get(saleDrugList.getOrganDrugCode());
                 if (ObjectUtils.isEmpty(organDrug)) {
-                    saleDrugListDAO.remove(saleDrugList);
+                    saleDrugListDAO.remove(saleDrugList.getOrganDrugId());
                     deleteNum++;
                 }
             }
