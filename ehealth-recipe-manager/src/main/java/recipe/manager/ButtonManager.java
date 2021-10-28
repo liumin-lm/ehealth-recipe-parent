@@ -286,7 +286,7 @@ public class ButtonManager extends BaseManager {
             enterpriseStock.setDrugsEnterprise(drugsEnterprise);
             enterpriseStock.setDrugsEnterpriseId(drugsEnterprise.getId());
             enterpriseStock.setDeliveryName(drugsEnterprise.getName());
-            enterpriseStock.setDeliveryCode(drugsEnterprise.getAccount());
+            enterpriseStock.setDeliveryCode(drugsEnterprise.getId().toString());
             enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ENTERPRISE_APPOINT.getType());
             List<GiveModeButtonDTO> giveModeButton = RecipeSupportGiveModeEnum.giveModeButtonList(drugsEnterprise, configGiveMode, configGiveModeMap);
             enterpriseStock.setGiveModeButton(giveModeButton);
