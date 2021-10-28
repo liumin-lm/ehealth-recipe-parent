@@ -17,6 +17,7 @@ import org.springframework.util.StringUtils;
 import recipe.client.IConfigurationClient;
 import recipe.client.OrganClient;
 import recipe.core.api.IOrganBusinessService;
+import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.OrganDrugListManager;
@@ -81,7 +82,7 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
         enterpriseStock.setGiveModeButton(giveModeButton);
         enterpriseStock.setDeliveryName(organDTO.getName() + "门诊药房");
         enterpriseStock.setDeliveryCode(recipe.getClinicOrgan().toString());
-        enterpriseStock.setAppointEnterpriseType(1);
+        enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ORGAN_APPOINT.getType());
         enterpriseStock.setStock(true);
         //校验医院库存
         com.ngari.platform.recipe.mode.RecipeResultBean scanResult = organDrugListManager.scanDrugStockByRecipeId(recipe, detailList);
