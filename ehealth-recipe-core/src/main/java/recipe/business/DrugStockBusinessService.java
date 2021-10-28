@@ -200,7 +200,7 @@ public class DrugStockBusinessService extends BaseService {
         //线上支付能力判断
         for (DrugsEnterprise dep : drugsEnterpriseList) {
             //不支持在线支付跳过该药企
-            if (1 == dep.getPayModeSupport()) {
+            if (0 == dep.getPayModeSupport()) {
                 noHaveList.add(new DrugEnterpriseResult(RecipeResultBean.FAIL));
                 continue;
             }
