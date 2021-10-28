@@ -384,7 +384,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
     public Map<String,Integer>   syncOrganDrugDataToSaleDrugList(OrganDrugList detail,DrugsEnterpriseConfig config, Integer drugsEnterpriseId) {
         Integer addNum=0;
         Integer updateNum=0;
-        Integer deleteNum = 0;
+        Integer falseNum = 0;
         Map<String,Integer> map=new HashMap<>();
         if (ObjectUtils.isEmpty(config.getEnable_drug_syncType())){
             throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企[数据同步类型]配置数据!");
@@ -421,7 +421,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                         saleDrugListDAO.remove(saleDrugList);
                         LOGGER.info("syncOrganDrugDataToSaleDrugList 删除" + detail.getDrugName() + " 药企Id=[{}] 药企药品=[{}]  机构药品=[{}]", drugsEnterpriseId, JSONUtils.toString(saleDrugList),JSONUtils.toString(detail));
                     }
-                    deleteNum++;
+                    //deleteNum++;
                 }
             }
             if (syncTypeList.indexOf("2")!=-1){
@@ -480,7 +480,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                             }else {
                                 map.put("addNum",0);
                                 map.put("updateNum",0);
-                                map.put("deleteNum",1);
+                                map.put("falseNum",1);
                                 return map;
                             }
                             break;
@@ -490,7 +490,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                             }else {
                                 map.put("addNum",0);
                                 map.put("updateNum",0);
-                                map.put("deleteNum",1);
+                                map.put("falseNum",1);
                                 return map;
                             }
                             break;
@@ -510,7 +510,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         }
         map.put("addNum",addNum);
         map.put("updateNum",updateNum);
-        map.put("deleteNum",deleteNum);
+        map.put("falseNum",falseNum);
         return map;
     }
 
@@ -666,7 +666,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 long start = System.currentTimeMillis();
                 Integer updateNum = 0;
                 Integer addNum = 0;
-                Integer deleteNum = 0;
+                Integer falseNum = 0;
                 Integer total = 0;
                 if (config.getSyncDataSource() == 1) {
                     //数据来源 关联管理机构
@@ -685,7 +685,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                                       LOGGER.info("syncSaleOrganDrug药企药品数据同步 配送 " + detail.getDrugName() + " 药企Id=[{}] drug=[{}]", drugsEnterpriseId, JSONUtils.toString(detail));
                                       addNum = addNum + stringIntegerMap.get("addNum");
                                       updateNum = updateNum + stringIntegerMap.get("updateNum");
-                                      deleteNum = deleteNum + stringIntegerMap.get("deleteNum");
+                                      falseNum = falseNum + stringIntegerMap.get("falseNum");
                                   }
                               }
                           } else if (config.getSyncDataRange() == 2) {
@@ -708,7 +708,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                                               LOGGER.info("syncSaleOrganDrug药企药品数据同步 西药 " + detail.getDrugName() + " 药企Id=[{}] drug=[{}]", drugsEnterpriseId, JSONUtils.toString(detail));
                                               addNum = addNum + stringIntegerMap.get("addNum");
                                               updateNum = updateNum + stringIntegerMap.get("updateNum");
-                                              deleteNum = deleteNum + stringIntegerMap.get("deleteNum");
+                                              falseNum = falseNum + stringIntegerMap.get("falseNum");
                                           }
                                       }
                                       //中成药
@@ -718,7 +718,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                                               LOGGER.info("syncSaleOrganDrug药企药品数据同步 中成药 " + detail.getDrugName() + " 药企Id=[{}] drug=[{}]", drugsEnterpriseId, JSONUtils.toString(detail));
                                               addNum = addNum + stringIntegerMap.get("addNum");
                                               updateNum = updateNum + stringIntegerMap.get("updateNum");
-                                              deleteNum = deleteNum + stringIntegerMap.get("deleteNum");
+                                              falseNum = falseNum + stringIntegerMap.get("falseNum");
                                           }
                                       }
                                       //中药
@@ -728,7 +728,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                                               LOGGER.info("syncSaleOrganDrug药企药品数据同步 中药 " + detail.getDrugName() + " 药企Id=[{}] drug=[{}]", drugsEnterpriseId, JSONUtils.toString(detail));
                                               addNum = addNum + stringIntegerMap.get("addNum");
                                               updateNum = updateNum + stringIntegerMap.get("updateNum");
-                                              deleteNum = deleteNum + stringIntegerMap.get("deleteNum");
+                                              falseNum = falseNum + stringIntegerMap.get("falseNum");
                                           }
                                       }
                                   }
@@ -739,7 +739,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     }
                 map.put("addNum", addNum);
                 map.put("updateNum", updateNum);
-                map.put("falseNum", 0);
+                map.put("falseNum", falseNum);
                 map.put("total", total);
                 map.put("organName", byOrganId.getName());
                 map.put("Date", myFmt2.format(new Date()));
