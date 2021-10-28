@@ -179,14 +179,20 @@ public class ButtonManager extends BaseManager {
      * @return
      */
     public List<String> getGiveModeButtonKey(Integer organId) {
-        List<GiveModeButtonDTO> giveModeButtonBeans = getGiveModeMap(organId);
+        List<GiveModeButtonDTO> giveModeButtonBeans = getOrganGiveModeMap(organId);
         List<String> configurations = giveModeButtonBeans.stream().map(GiveModeButtonDTO::getShowButtonKey).collect(Collectors.toList());
         //收集按钮信息用于判断校验哪边库存 0是什么都没有，1是指配置了到院取药，2是配置到药企相关，3是医院药企都配置了
         logger.info("ButtonManager.getGiveMode res={}", JSONArray.toJSONString(configurations));
         return configurations;
     }
 
-    public List<GiveModeButtonDTO> getGiveModeMap(Integer organId) {
+    /**
+     * 通过机构ID从运营平台获取购药方式的基本配置项
+     *
+     * @param organId 机构ID
+     * @return 运营平台的配置项
+     */
+    public List<GiveModeButtonDTO> getOrganGiveModeMap(Integer organId) {
         logger.info("ButtonManager.getGiveModeMap organId={}", organId);
         //添加按钮配置项key
         GiveModeShowButtonDTO giveModeShowButtonVO = getGiveModeSettingFromYypt(organId);

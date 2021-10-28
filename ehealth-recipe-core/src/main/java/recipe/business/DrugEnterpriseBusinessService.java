@@ -43,7 +43,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
     public List<EnterpriseStock> enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails) {
         Integer organId = recipe.getClinicOrgan();
         //获取机构配置按钮
-        List<GiveModeButtonDTO> giveModeButtonBeans = buttonManager.getGiveModeMap(organId);
+        List<GiveModeButtonDTO> giveModeButtonBeans = buttonManager.getOrganGiveModeMap(organId);
         //获取需要查询库存的药企对象
         List<EnterpriseStock> enterpriseStockList = buttonManager.enterpriseStockList(organId, giveModeButtonBeans);
         if (CollectionUtils.isEmpty(enterpriseStockList)) {

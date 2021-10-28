@@ -75,11 +75,15 @@ public class EnterpriseManager extends BaseManager {
      * @return 药企-不满足的 药品名称
      */
     public Map<Integer, List<String>> checkEnterpriseDrugName(List<Integer> enterpriseIds, List<Recipedetail> recipeDetails) {
-        List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
+        List<String> nameList = new LinkedList<>();
+        List<Integer> drugIds = recipeDetails.stream().map(a -> {
+            nameList.add(a.getDrugName());
+            return a.getDrugId();
+        }).collect(Collectors.toList());
         Map<Integer, List<Integer>> enterpriseDrugIdGroup = saleDrugListDAO.findDepDrugRelation(drugIds, enterpriseIds);
         logger.info("DrugStockManager enterpriseDrugNameGroup enterpriseDrugIdGroup= {}", JSON.toJSONString(enterpriseDrugIdGroup));
+        
         Map<Integer, List<String>> enterpriseDrugNameGroup = new HashMap<>();
-        List<String> nameList = recipeDetails.stream().map(Recipedetail::getDrugName).collect(Collectors.toList());
         enterpriseIds.forEach(a -> {
             List<Integer> drugIdList = enterpriseDrugIdGroup.get(a);
             if (CollectionUtils.isEmpty(drugIdList)) {
