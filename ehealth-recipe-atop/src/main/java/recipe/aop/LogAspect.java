@@ -41,7 +41,7 @@ public class LogAspect {
             logger.info("LogAspect-{} {} ,入参={}",className, methodName, JSON.toJSONString(objects));
             result =  joinPoint.proceed();
         } catch (Throwable throwable) {
-            logger.error("LogAspect-{} {},Exception={}",className,methodName ,throwable);
+            logger.error("LogAspect-{} {},Exception",className,methodName ,throwable);
             throw new DAOException(ErrorCode.SERVICE_ERROR, throwable.getMessage());
         } finally {
             long elapsedTime = System.currentTimeMillis() - startTime;
