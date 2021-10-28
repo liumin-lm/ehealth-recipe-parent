@@ -154,7 +154,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 String drugCode = getStrFromCell(row.getCell(2));
                 String drugName = getStrFromCell(row.getCell(3));
                 String status = getStrFromCell(row.getCell(5));
-                if ("药品名".equals(drugCode) && "商品名".equals(drugName) && "状态".equals(status)) {
+                if ("药品名*".equals(drugCode) && "商品名*".equals(drugName) && "状态".equals(status)) {
                     continue;
                 } else {
                     result.put("code", 609);
@@ -390,7 +390,24 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         }
         String[] strings = config.getEnable_drug_syncType().split(",");
         List<String> syncTypeList = new ArrayList<String>(Arrays.asList(strings));
-        List<SaleDrugList> byOrganIdAndDrugCode = saleDrugListDAO.findByOrganIdAndDrugCode(drugsEnterpriseId, detail.getOrganDrugCode());
+        List<SaleDrugList> byOrganIdAndDrugCode =Lists.newArrayList();
+
+        switch (config.getSyncSaleDrugCodeType()) {
+            case 1:
+                byOrganIdAndDrugCode=saleDrugListDAO.findByOrganIdAndDrugCode(drugsEnterpriseId, detail.getOrganDrugCode());
+                break;
+            case 2:
+                byOrganIdAndDrugCode=saleDrugListDAO.findByOrganIdAndDrugCode(drugsEnterpriseId, detail.getDrugId().toString());
+                break;
+            case 3:
+                byOrganIdAndDrugCode=saleDrugListDAO.findByOrganIdAndDrugCode(drugsEnterpriseId, detail.getMedicalDrugCode());
+                break;
+            case 4:
+                byOrganIdAndDrugCode=saleDrugListDAO.findByOrganIdAndDrugCode(drugsEnterpriseId, detail.getProducerCode());
+                break;
+            default:
+                break;
+        }
         SaleDrugList byDrugIdAndOrganId = saleDrugListDAO.getByDrugIdAndOrganId(detail.getDrugId(), drugsEnterpriseId);
         if (byOrganIdAndDrugCode != null && byOrganIdAndDrugCode.size()>0) {
             if (syncTypeList.indexOf("3")!=-1){
