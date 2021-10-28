@@ -51,6 +51,12 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LogisticsOnlineOrderService.class);
 
+    //基础物流快递已支付
+    private static final Integer LOGISTICS_HAS_PAY = 1;
+
+    //基础物流快递未支付
+    private static final Integer LOGISTICS_NO_PAY = 0;
+
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
 
@@ -138,10 +144,10 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
             IWaybillService waybillService = AppContextHolder.getBean("infra.waybillService", IWaybillService.class);
             if (ExpressFeePayWayEnum.ONLINE.getType().equals(order.getExpressFeePayWay())) {
                 LOGGER.info("基础物流更新快递单号：{}的支付支付方式为线上支付和快递费用：{}", trackingNumber, order.getExpressFee());
-                waybillService.updatePayplatStatus(trackingNumber, 1, order.getExpressFee());
+                waybillService.updatePayplatStatus(trackingNumber, LOGISTICS_HAS_PAY, order.getExpressFee());
             } else {
                 LOGGER.info("基础物流更新快递单号：{}的支付支付方式为线下支付和快递费用：{}", trackingNumber, order.getExpressFee());
-                waybillService.updatePayplatStatus(trackingNumber, 0, order.getExpressFee());
+                waybillService.updatePayplatStatus(trackingNumber, LOGISTICS_NO_PAY, order.getExpressFee());
             }
         } catch (Exception e) {
             LOGGER.error("基础物流更新付支付方式和快递费用失败", e);
