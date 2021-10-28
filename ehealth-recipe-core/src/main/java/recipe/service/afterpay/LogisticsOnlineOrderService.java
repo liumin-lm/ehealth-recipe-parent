@@ -96,7 +96,7 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
             }
             LOGGER.info("基础服务物流下单结果={}", trackingNumber);
             if (StringUtils.isNotBlank(trackingNumber)) {
-                //更新支付支付方式为线上支付和快递费用
+                //更新支付方式为线上支付和快递费用
                 updatePayPlatStatus(order, trackingNumber);
                 for (int i = 0; i < recipeS.size(); i++) {
                     Recipe recipe = recipeS.get(i);
