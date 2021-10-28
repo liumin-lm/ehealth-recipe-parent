@@ -1198,8 +1198,16 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                         req.setDeptCode(departmentDTO.getCode());
                         req.setDeptName(departmentDTO.getName());
                     }
-                    req.setDeptClassCode("A99");
-                    req.setDeptClassName("其他业务科室");
+                    SubCodeService subCodeService = BasicAPI.getService(SubCodeService.class);
+                    //设置专科编码等
+                    SubCodeDTO subCodeDTO = subCodeService.getByNgariProfessionCode(departmentDTO.getProfessionCode());
+                    if (null == subCodeDTO) {
+                        //专科编码没设置不应该导致推送不了处方到监管平台
+                        LOGGER.warn("uploadRecipePayToRegulation subCode is null. recipe.professionCode={}", departmentDTO.getProfessionCode());
+                    } else {
+                        req.setDeptClassCode(subCodeDTO.getSubCode());
+                        req.setDeptClassName(subCodeDTO.getSubName());
+                    }
                     // 原交易流水号 缴费流水号
                     req.setOriginalAccountNo(order.getTradeNo());
                     req.setOrderNo(order.getOutTradeNo());
@@ -1602,8 +1610,16 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     req.setDeptCode(departmentDTO.getCode());
                     req.setDeptName(departmentDTO.getName());
                 }
-                req.setDeptClassCode("A99");
-                req.setDeptClassName("其他业务科室");
+                SubCodeService subCodeService = BasicAPI.getService(SubCodeService.class);
+                //设置专科编码等
+                SubCodeDTO subCodeDTO = subCodeService.getByNgariProfessionCode(departmentDTO.getProfessionCode());
+                if (null == subCodeDTO) {
+                    //专科编码没设置不应该导致推送不了处方到监管平台
+                    LOGGER.warn("pakRegulationSendMedicineReq subCode is null. recipe.professionCode={}", departmentDTO.getProfessionCode());
+                } else {
+                    req.setDeptClassCode(subCodeDTO.getSubCode());
+                    req.setDeptClassName(subCodeDTO.getSubName());
+                }
                 /*req.setOriginalAccountNo(outPatient.getRefundNo());*/
                 req.setOrderNo(order.getOutTradeNo());
 

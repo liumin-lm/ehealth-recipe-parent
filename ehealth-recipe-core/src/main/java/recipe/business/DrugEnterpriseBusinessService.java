@@ -17,8 +17,8 @@ import recipe.core.api.patient.IDrugEnterpriseBusinessService;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.manager.ButtonManager;
-import recipe.manager.DrugStockManager;
 import recipe.manager.EnterpriseManager;
+import recipe.manager.OrganDrugListManager;
 
 import java.util.List;
 import java.util.Map;
@@ -36,14 +36,13 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
     @Autowired
     private EnterpriseManager enterpriseManager;
     @Autowired
-    private DrugStockManager drugStockManager;
-
+    private OrganDrugListManager organDrugListManager;
 
     @Override
     public List<EnterpriseStock> enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails) {
         Integer organId = recipe.getClinicOrgan();
         //获取机构配置按钮
-        List<GiveModeButtonDTO> giveModeButtonBeans = buttonManager.getGiveModeMap(organId);
+        List<GiveModeButtonDTO> giveModeButtonBeans = buttonManager.getOrganGiveModeMap(organId);
         //获取需要查询库存的药企对象
         List<EnterpriseStock> enterpriseStockList = buttonManager.enterpriseStockList(organId, giveModeButtonBeans);
         if (CollectionUtils.isEmpty(enterpriseStockList)) {
@@ -90,7 +89,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         }
         //医院自建药企-查询医院库存
         if (3 == drugsEnterprise.getCheckInventoryFlag()) {
-            com.ngari.platform.recipe.mode.RecipeResultBean scanResult = drugStockManager.scanDrugStockByRecipeId(recipe, recipeDetails);
+            com.ngari.platform.recipe.mode.RecipeResultBean scanResult = organDrugListManager.scanDrugStockByRecipeId(recipe, recipeDetails);
             //无库存
             if (RecipeResultBean.FAIL.equals(scanResult.getCode())) {
                 List<String> drugNames = ObjectUtils.isEmpty(scanResult.getObject()) ? null : (List<String>) scanResult.getObject();
@@ -102,7 +101,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         }
         //通过前置机调用
         if (1 == drugsEnterprise.getOperationType()) {
-            Integer code = drugStockManager.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
+            Integer code = enterpriseManager.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
             enterpriseStock.setStock(RecipeResultBean.SUCCESS.equals(code));
             return;
         }

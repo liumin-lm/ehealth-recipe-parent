@@ -33,7 +33,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.manager.ButtonManager;
-import recipe.manager.DrugStockManager;
+import recipe.manager.EnterpriseManager;
 import recipe.service.drugs.IDrugEnterpriseLogisticsService;
 import recipe.serviceprovider.BaseService;
 
@@ -65,7 +65,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
     @Resource
     private RecipeService recipeService;
     @Autowired
-    private DrugStockManager drugStockManager;
+    private EnterpriseManager enterpriseManager;
     @Autowired
     private ButtonManager buttonManager;
   @Autowired
@@ -493,7 +493,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
      */
     @RpcService
     public boolean checkEnterprise(Integer organId) {
-        return drugStockManager.checkEnterprise(organId);
+        return enterpriseManager.checkEnterprise(organId);
     }
 
     /**

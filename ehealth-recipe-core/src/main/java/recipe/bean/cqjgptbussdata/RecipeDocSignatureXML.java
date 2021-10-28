@@ -1,4 +1,4 @@
-package recipe.bean.cqJgptBussData;
+package recipe.bean.cqjgptbussdata;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import lombok.Data;

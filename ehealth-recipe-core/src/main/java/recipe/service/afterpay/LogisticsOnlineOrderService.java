@@ -6,6 +6,7 @@ import com.ngari.base.patient.service.IPatientService;
 import com.ngari.infra.logistics.mode.CreateLogisticsOrderDto;
 import com.ngari.infra.logistics.mode.WriteBackLogisticsOrderDto;
 import com.ngari.infra.logistics.service.ILogisticsOrderService;
+import com.ngari.infra.logistics.service.IWaybillService;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
@@ -30,6 +31,7 @@ import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.enumerate.status.GiveModeEnum;
+import recipe.enumerate.type.ExpressFeePayWayEnum;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.util.AddressUtils;
@@ -113,6 +115,15 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
                 recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), orderAttrMap);
                 RecipeMsgService.batchSendMsg(recipeS.get(0).getRecipeId(), RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
                 LOGGER.info("基础服务物流下单成功，更新物流单号={},物流公司={},orderId={}", trackingNumber, order.getLogisticsCompany(), order.getOrderId());
+                //将物流支付状态,物流费同步到基础平台
+                IWaybillService waybillService = AppContextHolder.getBean("infra.waybillService", IWaybillService.class);
+                if (ExpressFeePayWayEnum.ONLINE.getType().equals(order.getExpressFeePayWay())) {
+                    LOGGER.info("基础物流更新快递单号：{}的支付支付方式为线上支付和快递费用：{}", trackingNumber, order.getExpressFee());
+                    waybillService.updatePayplatStatus(trackingNumber, 1, order.getExpressFee());
+                } else {
+                    LOGGER.info("基础物流更新快递单号：{}的支付支付方式为线下支付和快递费用：{}", trackingNumber, order.getExpressFee());
+                    waybillService.updatePayplatStatus(trackingNumber, 0, order.getExpressFee());
+                }
             } else {
                 // 下单失败发起退款，退款原因=物流下单失败
                 LOGGER.info("基础服务物流下单失败，发起退款流程 orderId={}", order.getOrderId());
