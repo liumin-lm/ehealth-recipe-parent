@@ -1,11 +1,14 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
+import com.ngari.recipe.dto.DoSignRecipeDTO;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.*;
@@ -17,6 +20,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.client.DrugStockClient;
 import recipe.client.EnterpriseClient;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -65,6 +69,8 @@ public class EnterpriseManager extends BaseManager {
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
+    @Autowired
+    private DrugStockClient drugStockClient;
 
     /**
      * 检查 药企药品 是否满足开方药品
@@ -82,7 +88,7 @@ public class EnterpriseManager extends BaseManager {
         }).collect(Collectors.toList());
         Map<Integer, List<Integer>> enterpriseDrugIdGroup = saleDrugListDAO.findDepDrugRelation(drugIds, enterpriseIds);
         logger.info("DrugStockManager enterpriseDrugNameGroup enterpriseDrugIdGroup= {}", JSON.toJSONString(enterpriseDrugIdGroup));
-        
+
         Map<Integer, List<String>> enterpriseDrugNameGroup = new HashMap<>();
         enterpriseIds.forEach(a -> {
             List<Integer> drugIdList = enterpriseDrugIdGroup.get(a);
@@ -95,6 +101,81 @@ public class EnterpriseManager extends BaseManager {
         });
         logger.info("DrugStockManager enterpriseDrugNameGroup enterpriseDrugNameGroup= {}", JSON.toJSONString(enterpriseDrugNameGroup));
         return enterpriseDrugNameGroup;
+    }
+
+    /**
+     * 是否有一个药企存在药品
+     * 验证能否药品配送以及能否开具到一张处方单上
+     *
+     * @param organId
+     * @param recipeDetails
+     * @return
+     */
+    public void checkDrugEnterprise(DoSignRecipeDTO doSignRecipe, Integer organId, List<Recipedetail> recipeDetails) {
+        //检查开处方是否需要进行药企库存校验
+        boolean checkEnterprise = checkEnterprise(organId);
+        if (!checkEnterprise) {
+            return;
+        }
+        Integer enterprisesDockType = configurationClient.getValueCatch(organId, "EnterprisesDockType", 0);
+        if (0 != enterprisesDockType) {
+            return;
+        }
+        //找到每一个药能支持的药企关系
+        List<DrugsEnterprise> enterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
+        List<Integer> enterpriseIds = enterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
+        Map<Integer, List<String>> enterpriseDrugNameGroup = checkEnterpriseDrugName(enterpriseIds, recipeDetails);
+
+        Set<String> drugNames = new HashSet<>();
+        boolean result = false;
+        for (List<String> drugNameList : enterpriseDrugNameGroup.values()) {
+            if (CollectionUtils.isEmpty(drugNameList)) {
+                result = true;
+                break;
+            }
+            drugNames.addAll(drugNameList);
+        }
+        if (result) {
+            return;
+        }
+        doSignRecipe(doSignRecipe, new ArrayList(drugNames), "不支持同一家药企配送或不在该机构药企可配送的药品目录里面");
+    }
+
+
+    /**
+     * 检查开处方是否需要进行药企库存校验
+     *
+     * @param organId
+     * @return true:需要校验  false:不需要校验
+     */
+    public boolean checkEnterprise(Integer organId) {
+        Integer checkEnterprise = configurationClient.getCheckEnterpriseByOrganId(organId);
+        if (ValidateUtil.integerIsEmpty(checkEnterprise)) {
+            return false;
+        }
+        //获取机构配置的药企是否存在 如果有则需要校验 没有则不需要
+        List<DrugsEnterprise> enterprise = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
+        return CollectionUtils.isNotEmpty(enterprise);
+    }
+
+
+    /**
+     * 药企库存
+     *
+     * @param recipe
+     * @param drugsEnterprise
+     * @param recipeDetails
+     * @return 1 有库存 0 无库存
+     */
+    public Integer scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
+        HisResponseTO hisResponseTO = drugStockClient.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails, saleDrugLists);
+        if (null != hisResponseTO && hisResponseTO.isSuccess()) {
+            return 1;
+        } else {
+            return 0;
+        }
     }
 
 
@@ -384,6 +465,29 @@ public class EnterpriseManager extends BaseManager {
         pushRecipeAndOrder.setMargeRecipeBeans(margeRecipeBeans);
         logger.info("getPushRecipeAndOrder pushRecipeAndOrder:{}.", JSONUtils.toString(pushRecipeAndOrder));
         return pushRecipeAndOrder;
+    }
+
+
+    /**
+     * 组织返回结果msg
+     *
+     * @param doSignRecipe
+     * @param object
+     * @param msg
+     * @return
+     */
+    public void doSignRecipe(DoSignRecipeDTO doSignRecipe, Object object, String msg) {
+        doSignRecipe.setSignResult(false);
+        doSignRecipe.setErrorFlag(true);
+        doSignRecipe.setCanContinueFlag("-1");
+        if (null != object) {
+            List<String> nameList = (List<String>) object;
+            if (CollectionUtils.isNotEmpty(nameList)) {
+                String nameStr = "【" + Joiner.on("、").join(nameList) + "】";
+                msg = "由于该处方单上的" + nameStr + msg;
+            }
+        }
+        doSignRecipe.setMsg(msg);
     }
 
 

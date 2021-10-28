@@ -19,9 +19,8 @@ import recipe.client.OrganClient;
 import recipe.core.api.IOrganBusinessService;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.manager.ButtonManager;
-import recipe.manager.DrugStockManager;
+import recipe.manager.OrganDrugListManager;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -34,8 +33,8 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
     private OrganClient organClient;
     @Autowired
     private IConfigurationClient configurationClient;
-    @Resource
-    private DrugStockManager drugStockManager;
+    @Autowired
+    private OrganDrugListManager organDrugListManager;
 
     @Override
     public List<Integer> getOrganForWeb() {
@@ -85,7 +84,7 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
         enterpriseStock.setAppointEnterpriseType(1);
         enterpriseStock.setStock(true);
         //校验医院库存
-        com.ngari.platform.recipe.mode.RecipeResultBean scanResult = drugStockManager.scanDrugStockByRecipeId(recipe, detailList);
+        com.ngari.platform.recipe.mode.RecipeResultBean scanResult = organDrugListManager.scanDrugStockByRecipeId(recipe, detailList);
         //无库存
         if (RecipeResultBean.FAIL.equals(scanResult.getCode())) {
             List<String> drugName = ObjectUtils.isEmpty(scanResult.getObject()) ? null : (List<String>) scanResult.getObject();
