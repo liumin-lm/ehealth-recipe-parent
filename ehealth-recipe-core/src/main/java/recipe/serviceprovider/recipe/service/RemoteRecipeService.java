@@ -121,7 +121,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 
-
 /**
  * company: ngarihealth
  *
@@ -278,7 +277,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 recipe.setGiveMode(3);
                 //药店待取药
                 RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_DRUG_HAVE_STOCK, recipe);
-            } else if (new Integer(4).equals(recipeStatusReqTO.getStatus())){
+            } else if (new Integer(4).equals(recipeStatusReqTO.getStatus())) {
                 //配送中的处方,更新订单状态
                 if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
                     RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -299,7 +298,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                     }
                     //配送完成
                     RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.PATIENT_REACHPAY_FINISH);
-                } else if (new Integer(3).equals(recipe.getGiveMode())){
+                } else if (new Integer(3).equals(recipe.getGiveMode())) {
                     //发送取药完成消息
                     RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_TAKE_MEDICINE_FINISH);
                 }
@@ -393,7 +392,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         QueryResult<Map> result = recipeDAO.findRecipesByInfo(organId, status, doctor, patientName,
                 bDate, eDate, dateType, depart, start, limit, organIds,
                 giveMode, sendType, fromflag, recipeId, enterpriseId,
-                checkStatus, payFlag, orderType, refundNodeStatus,recipeType);
+                checkStatus, payFlag, orderType, refundNodeStatus, recipeType);
         List<Map> records = result.getItems();
         for (Map record : records) {
             Recipe recipe = recipeDAO.getByRecipeId((int) record.get("recipeId"));
@@ -1342,8 +1341,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     /**
      * 获取创业第三方药品库存接口
+     *
      * @param drugInfoReq
-     * @return  review 2021/5/11--fix
+     * @return review 2021/5/11--fix
      */
     @Override
     @RpcService
@@ -2423,7 +2423,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * 复诊查询处方状态是否有效
      *
      * @param bussSource 咨询/复诊
-     * @param clinicId 咨询/复诊单号
+     * @param clinicId   咨询/复诊单号
      * @param statusCode 运营平台配置项(退费限制 refundPattern)
      *                   1 开过业务单不退费 2 有未退费或取消的业务单不允许退费
      * @return 是否可以取消复诊  true 不可以 false 可以
@@ -2443,8 +2443,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     /**
      * 获取线下有效处方的标志,查询患者该挂号序号下是否有待缴费/已缴费处方
+     *
      * @param bussSource 咨询/复诊
-     * @param clinicId 咨询/复诊单号
+     * @param clinicId   咨询/复诊单号
      * @return 是否可以取消复诊  true 不可以 false 可以
      */
     private Boolean getOfflineEffectiveRecipeFlag(Integer bussSource, Integer clinicId) {
@@ -2489,8 +2490,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     /**
      * 获取线上有效处方的标志
+     *
      * @param bussSource 咨询/复诊
-     * @param clinicId 咨询/复诊单号
+     * @param clinicId   咨询/复诊单号
      * @param statusCode 运营平台配置项(退费限制 refundPattern)
      *                   1 开过业务单不退费 2 有未退费或取消的业务单不允许退费
      * @return 是否可以取消复诊  true 不可以 false 可以
@@ -2512,7 +2514,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             LOGGER.info("RemoteRecipeService judgeRecipeStatus writeRecipeList size:{}", writeRecipeList.size());
             return true;
         }
-        if (RecipeRefundConfigEnum.HAVE_PAY.getType().equals(statusCode)){
+        if (RecipeRefundConfigEnum.HAVE_PAY.getType().equals(statusCode)) {
             //判断是否有已支付成功的处方单
             for (RecipeOrder recipeOrder : recipeOrders) {
                 if (PayFlagEnum.PAYED.getType().equals(recipeOrder.getPayFlag())
@@ -2803,12 +2805,20 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
-    public String getOrderCodeByRecipeCode(Integer organId, String recipeCode){
+    public String getOrderCodeByRecipeCode(Integer organId, String recipeCode) {
         Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
         if (null == recipe) {
             return null;
         }
         return recipe.getOrderCode();
     }
+
+    @Override
+    @RpcService
+    public String getGiveModeTextByRecipe(RecipeBean recipe) {
+        Recipe recipe1 = ObjectCopyUtils.convert(recipe, Recipe.class);
+        return buttonManager.getGiveModeTextByRecipe(recipe1);
+    }
+
 
 }
