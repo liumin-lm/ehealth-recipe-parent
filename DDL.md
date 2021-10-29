@@ -62,7 +62,7 @@ cdr_hisprescription_detail
 
 第二期 ： 可以在第一期 删除字段的同时 与前端切换接口字段，切换之后第二期删除
 
-电子病历相关 都已经同步在电子病历 （兼容老接口所以字段在用 涉及到前端改动）
+电子病历相关 都已经同步在电子病历 （兼容老接口所以字段在用 涉及到前端改动）（老pc）
 
 ```
 `mainDieaseDescribe` varchar(100) DEFAULT NULL COMMENT '主诉',
