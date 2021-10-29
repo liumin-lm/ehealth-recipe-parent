@@ -302,6 +302,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 //处方审核方式 0不需要审方 1审方前置 2审方后置
                 map.put("reviewType", nowRecipeBean.getReviewType().toString());
             }
+            log.info("setConfirmOrderExtInfo payMode:{}, drugsEnterpriseBean:{}.", payMode, JSONUtils.toString(drugsEnterpriseBean));
             //药店取药 支付方式
             if (new Integer(4).equals(payMode) && drugsEnterpriseBean != null) {
                 //@ItemProperty(alias = "0:不支付药品费用，1:全部支付 【 1线上支付  非1就是线下支付】")
@@ -320,6 +321,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             Integer payButton = buttonManager.getPayButton(nowRecipeBean.getClinicOrgan(), cardType, "0".equals(recipeExtend.getMedicalType()));
             map.put("payButton", payButton.toString());
         }
+        log.info("setConfirmOrderExtInfo map:{}.", JSONUtils.toString(map));
         return map;
     }
 
