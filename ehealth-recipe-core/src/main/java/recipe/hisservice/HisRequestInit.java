@@ -19,6 +19,8 @@ import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.platform.recipe.mode.RecipeOrderBean;
 import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.entity.*;
+import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeSendTypeEnum;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -766,9 +768,14 @@ public class HisRequestInit {
             requestTO.setRecipeType((null != recipe.getRecipeType()) ? Integer.toString(recipe.getRecipeType()) : null);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe nowRecipe = recipeDAO.getByRecipeId(recipe.getRecipeId());
+            LOGGER.info("HisRequestInit initDrugTakeChangeReqTO recipe:{}.", JSONUtils.toString(nowRecipe));
             RecipeHisStatusEnum recipeHisStatusEnum = RecipeHisStatusEnum.getRecipeHisStatusEnum(nowRecipe.getStatus());
             if(Objects.nonNull(recipeHisStatusEnum)) {
                 requestTO.setRecipeStatus(recipeHisStatusEnum.getValue());
+            }
+            if (null == requestTO.getRecipeStatus() && null != order && PayFlagEnum.PAYED.getType().equals(order.getPayFlag())
+                    && RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType().equals(nowRecipe.getStatus())) {
+                requestTO.setRecipeStatus(0);
             }
             // 医院系统医嘱号（一张处方多条记录用|分隔）
             StringBuilder str = new StringBuilder("");

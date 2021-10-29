@@ -597,6 +597,15 @@ public class RecipePreserveService {
     }
 
     /**
+     * 手动批量推送处方审核数据到监管平台
+     * @param
+     */
+    @RpcService
+    public void uploadRegulationAuditDatas(){
+
+    }
+
+    /**
      * 手动接收从HIS发来的处方状态变更消息
      */
     @RpcService

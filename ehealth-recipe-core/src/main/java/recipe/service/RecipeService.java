@@ -2205,7 +2205,9 @@ public class RecipeService extends RecipeBaseService {
         Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
 
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
-        recipe.setRecipeSupportGiveMode(dbRecipe.getRecipeSupportGiveMode());
+        if (StringUtils.isEmpty(recipe.getRecipeSupportGiveMode())) {
+            recipe.setRecipeSupportGiveMode(dbRecipe.getRecipeSupportGiveMode());
+        }
         if (null == dbRecipe.getStatus() || (dbRecipe.getStatus() > RecipeStatusConstant.UNSIGN) && dbRecipe.getStatus() != RecipeStatusConstant.HIS_FAIL) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不是新处方或者审核失败的处方，不能修改");
         }
@@ -4919,11 +4921,12 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
         }
-        /*if (!ObjectUtils.isEmpty(drug.getDrugsEnterpriseCode())) {
-            String pharmacyCode = drug.getDrugsEnterpriseCode();queryDrugListsByDrugNameAndStartAndLimit
+        if (!ObjectUtils.isEmpty(drug.getDrugsEnterpriseCode())) {
+            String pharmacyCode = drug.getDrugsEnterpriseCode();
             String[] split = pharmacyCode.split(",");
             StringBuilder ss = new StringBuilder();
             for (int i = 0; i < split.length; i++) {
+                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                 DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i]);
                 if (ObjectUtils.isEmpty(byEnterpriseCode)) {
                     throw new DAOException(DAOException.VALUE_NEEDED, "平台根据药企编码"+split[i]+" 未找到药企");
@@ -4936,7 +4939,7 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
             drugListMatch.setDrugsEnterpriseIds(ss.toString());
-        }*/
+        }
         if (!ObjectUtils.isEmpty(drug.getRegulationDrugCode())) {
             drugListMatch.setRegulationDrugCode(drug.getRegulationDrugCode());
         }
@@ -5068,13 +5071,14 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getIndicationsDeclare())) {
             organDrug.setIndicationsDeclare(drug.getIndicationsDeclare());
         }
-        /*if (!ObjectUtils.isEmpty(drug.getDrugsEnterpriseCode())) {
+        if (!ObjectUtils.isEmpty(drug.getDrugsEnterpriseCode())) {
             String pharmacyCode = drug.getDrugsEnterpriseCode();
 
             String[] split = pharmacyCode.split(",");
             StringBuilder ss = new StringBuilder();
             String drugsEnterpriseIds = organDrug.getDrugsEnterpriseIds();
             for (int i = 0; i < split.length; i++) {
+                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                 DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i]);
                 if (ObjectUtils.isEmpty(byEnterpriseCode)) {
                     throw new DAOException(DAOException.VALUE_NEEDED, "平台根据药企编码"+split[i]+" 未找到药企");
@@ -5091,7 +5095,7 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
             organDrug.setDrugsEnterpriseIds(drugsEnterpriseIds);
-        }*/
+        }
         //使用状态 0 无效 1 有效
         if (!ObjectUtils.isEmpty(drug.getStatus())) {
             organDrug.setStatus(drug.getStatus());

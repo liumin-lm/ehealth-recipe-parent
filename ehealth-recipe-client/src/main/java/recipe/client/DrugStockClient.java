@@ -111,7 +111,7 @@ public class DrugStockClient extends BaseClient {
         List<DrugInfoTO> data = new LinkedList<>();
         detailList.forEach(a -> {
             DrugInfoTO drugInfo = new DrugInfoTO(a.getOrganDrugCode());
-            drugInfo.setPack(a.getPack().toString());
+            drugInfo.setPack(String.valueOf(a.getPack()));
             drugInfo.setPackUnit(a.getDrugUnit());
             drugInfo.setUseTotalDose(a.getUseTotalDose());
             OrganDrugList organDrugs = organDrugListMap.get(a.getOrganDrugCode() + a.getDrugId());

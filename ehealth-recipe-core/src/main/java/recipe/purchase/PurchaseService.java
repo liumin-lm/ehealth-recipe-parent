@@ -155,6 +155,7 @@ public class PurchaseService {
      */
     @RpcService
     public RecipeResultBean filterSupportDepList(List<Integer> recipeIds, List<Integer> payModes, Map<String, String> extInfo) {
+        LOG.info("PurchaseService filterSupportDepList recipeIds:{}, payModes:{}, extInfo:{}.", JSONUtils.toString(recipeIds), JSONUtils.toString(payModes), JSONUtils.toString(extInfo));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();

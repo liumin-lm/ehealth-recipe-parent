@@ -236,16 +236,18 @@ public class RecipeManager extends BaseManager {
         }
         //当卡类型是医保卡的时候，调用端的配置判断是否开启，如果开启，则调用端提供的工具进行卡号的展示
         try {
-            if (DictionaryController.instance().get("eh.mpi.dictionary.CertificateType").getText(recipeExtend.getCardType()).equals("医保卡")) {
-                boolean getQrTypeForRecipe = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "getQrTypeForRecipe", false);
-                logger.info("RecipeOrderManager getRecipeDTO 获取机构配置 getQrTypeForRecipe return:{}", getQrTypeForRecipe);
-                if (getQrTypeForRecipe
+            logger.info(DictionaryController.instance().get("eh.mpi.dictionary.CardType").getText(recipeExtend.getCardType()));
+            if (DictionaryController.instance().get("eh.mpi.dictionary.CardType").getText(recipeExtend.getCardType()).equals("医保卡")) {
+                boolean hospitalCardLengthControl = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "hospitalCardLengthControl", false);
+                logger.info("RecipeOrderManager getRecipeDTO 获取机构配置 hospitalCardLengthControl return:{}", hospitalCardLengthControl);
+                if (hospitalCardLengthControl
                         && StringUtils.isNotBlank(recipeExtend.getCardNo())
                         && recipeExtend.getCardNo().length() == 28) {
                     recipeExtend.setCardNo(recipeExtend.getCardNo().substring(0, 10));
                 }
             }
         } catch (ControllerException e) {
+            logger.info("getRecipeDTO 医保卡处理异常", e);
             e.printStackTrace();
         }
         return recipeDTO;

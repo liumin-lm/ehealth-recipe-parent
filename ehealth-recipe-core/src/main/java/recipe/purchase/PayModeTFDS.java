@@ -63,7 +63,7 @@ public class PayModeTFDS implements IPurchaseService{
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe recipe, Map<String, String> extInfo) {
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        LOGGER.info("PayModeTFDS findSupportDepList recipe:{}, extInfo:{}.", JSONUtils.toString(recipe), JSONUtils.toString(extInfo));
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         DepListBean depListBean = new DepListBean();
         Integer recipeId = recipe.getRecipeId();

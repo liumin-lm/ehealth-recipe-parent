@@ -21,6 +21,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.*;
 import com.ngari.recipe.drug.service.IOrganDrugListService;
 import com.ngari.recipe.entity.*;
+import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -232,6 +233,16 @@ public class OrganDrugListService implements IOrganDrugListService {
         }
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         organDrugListDAO.deleteByOrganId(organId);
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        OrganService bean = AppDomainContext.getBean("basic.organService", OrganService.class);
+
+        OrganDTO byOrganId = bean.getByOrganId(organId);
+        if (ObjectUtils.isEmpty(byOrganId)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "未找到该机构!");
+        }
+        IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
+        busActionLogService.recordBusinessLogRpcNew("机构药品管理", "", "OrganDrugList", "【" + urt.getUserName() + "】一键删除【" + byOrganId.getName()
+                +"】药品", byOrganId.getName());
     }
 
     /**

@@ -1,5 +1,6 @@
 package recipe.atop.patient;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.entity.Recipe;
@@ -41,7 +42,7 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
      */
     @RpcService
     public List<EnterpriseStock> enterpriseStockList(ValidateDetailVO validateDetailVO) {
-        logger.info("DrugEnterprisePatientAtop enterpriseStockList organId:{}.", validateDetailVO);
+        logger.info("DrugEnterprisePatientAtop enterpriseStockList validateDetailVO:{}", JSON.toJSONString(validateDetailVO));
         validateAtop(validateDetailVO, validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeDetails());
         RecipeBean recipeBean = validateDetailVO.getRecipeBean();
         validateAtop(recipeBean.getRecipeType(), recipeBean.getClinicOrgan());
@@ -56,10 +57,12 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
             //药企库存
             List<EnterpriseStock> result = iDrugEnterpriseBusinessService.enterpriseStockCheck(recipe, detailList);
             //医院库存
-            EnterpriseStock enterpriseStock = organBusinessService.organStock(recipe, detailList);
-            result.add(enterpriseStock);
+            EnterpriseStock organStock = organBusinessService.organStock(recipe, detailList);
+            if (null != organStock) {
+                result.add(organStock);
+            }
             result.forEach(a -> a.setDrugsEnterprise(null));
-            logger.info("DrugEnterprisePatientAtop enterpriseStockList result:{}.", JSONArray.toJSONString(result));
+            logger.info("DrugEnterprisePatientAtop enterpriseStockList result:{}", JSONArray.toJSONString(result));
             return result;
         } catch (DAOException e1) {
             logger.warn("DrugEnterprisePatientAtop enterpriseStockList error", e1);
