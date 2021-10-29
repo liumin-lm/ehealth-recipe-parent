@@ -202,7 +202,6 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "处方流转模式")
     private String recipeMode;
 
-    @Dictionary(id = "eh.cdr.dictionary.GiveMode")
     @ItemProperty(alias = "购药方式")
     private Integer giveMode;
 
