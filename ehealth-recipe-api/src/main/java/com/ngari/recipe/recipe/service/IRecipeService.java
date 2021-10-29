@@ -101,6 +101,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     /**
      * 根据第三方传的状态更新处方相关信息,用于订单在第三方生成模式
+     *
      * @param recipeStatusReqTO
      * @return
      */
@@ -167,6 +168,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     /**
      * 运营平台使用
      * 查询处方详细信息
+     *
      * @param organId
      * @param status
      * @param doctor
@@ -190,7 +192,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
                                        Integer depart, int start, int limit, List<Integer> organIds,
                                        Integer giveMode, Integer sendType, Integer fromflag,
                                        Integer recipeId, Integer enterpriseId, Integer checkStatus,
-                                       Integer payFlag, Integer orderType, Integer refundNodeStatus,Integer recipeType);
+                                       Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType);
 
     /**
      * 运营平台使用
@@ -360,7 +362,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService(timeout = 600000)
     @Deprecated
     List<Object[]> findRecipeOrdersByInfoForExcel(Integer organId, List<Integer> organIds, Integer status, Integer doctor, String patientName, Date bDate, Date eDate, Integer dateType,
-                                             Integer depart, Integer giveMode, Integer fromflag, Integer recipeId, Integer recipeType);
+                                                  Integer depart, Integer giveMode, Integer fromflag, Integer recipeId, Integer recipeType);
 
     /**
      * 处方订单导出Excel
@@ -560,11 +562,12 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     /**
      * 推送处方到监管平台(审核后数据)
+     *
      * @param recipeId
      * @param status
      */
     @RpcService
-    void pushRecipeToRegulation(Integer recipeId,Integer status);
+    void pushRecipeToRegulation(Integer recipeId, Integer status);
 
     @RpcService
     ThirdResultBean readyToSend(Map<String, Object> paramMap);
@@ -596,31 +599,31 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     /**
      * 根据审核状态查询处方列表
      *
-     * @param organ 机构集合
-     * @param recipeIds 处方集合
+     * @param organ       机构集合
+     * @param recipeIds   处方集合
      * @param recipeTypes 处方类型集合
-     * @param flag  审核标记
-     * @param start 当前页
-     * @param limit 页数
+     * @param flag        审核标记
+     * @param start       当前页
+     * @param limit       页数
      * @return
      */
     @RpcService
-    List<RecipeBean> findRecipeByFlag(List<Integer> organ,List<Integer> recipeIds,List<Integer> recipeTypes, int flag, int start, int limit);
+    List<RecipeBean> findRecipeByFlag(List<Integer> organ, List<Integer> recipeIds, List<Integer> recipeTypes, int flag, int start, int limit);
 
 
     /**
      * 根据审核状态查询处方列表
      *
-     * @param organ 机构集合
-     * @param recipeIds 处方集合
+     * @param organ       机构集合
+     * @param recipeIds   处方集合
      * @param recipeTypes 处方类型集合
-     * @param flag  审核标记
-     * @param start 当前页
-     * @param limit 页数
+     * @param flag        审核标记
+     * @param start       当前页
+     * @param limit       页数
      * @return
      */
     @RpcService
-    Long findRecipeCountByFlag(List<Integer> organ,List<Integer> recipeIds,List<Integer> recipeTypes, int flag, int start, int limit);
+    Long findRecipeCountByFlag(List<Integer> organ, List<Integer> recipeIds, List<Integer> recipeTypes, int flag, int start, int limit);
 
     /**
      * 审核不通过后处理
@@ -632,18 +635,20 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * 处方药师审核通过后处理
      */
     @RpcService
-    void afterCheckPassYs(Integer auditMode,RecipeBean recipeBean);
+    void afterCheckPassYs(Integer auditMode, RecipeBean recipeBean);
 
     /**
      * 处方药师审核不通过后处理
+     *
      * @param auditMode
      * @param recipeBean
      */
     @RpcService
-    void afterCheckNotPassYs(Integer auditMode,RecipeBean recipeBean);
+    void afterCheckNotPassYs(Integer auditMode, RecipeBean recipeBean);
 
     /**
      * 获取审核处方状态
+     *
      * @param reviewType
      * @return
      */
@@ -652,6 +657,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     /**
      * 单个处方信息推送
+     *
      * @param recipe
      * @param afterStatus
      */
@@ -660,34 +666,37 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     /**
      * 审方处方列表全文检索查询
-     * @param organs  机构id
-     * @param searchFlag 检索类型
-     * @param searchString  检索内容
+     *
+     * @param organs       机构id
+     * @param searchFlag   检索类型
+     * @param searchString 检索内容
      * @param start
      * @param limit
      * @return
      */
     @RpcService
-    List<RecipeBean> searchRecipe( Set<Integer> organs, Integer searchFlag,  String searchString,
-                                   Integer start,  Integer limit);
+    List<RecipeBean> searchRecipe(Set<Integer> organs, Integer searchFlag, String searchString,
+                                  Integer start, Integer limit);
 
     /**
-     *  审方处方列表
+     * 审方处方列表
+     *
      * @param recipeIds
      * @param organIds
      * @return
      */
     @RpcService
-    List<RecipeBean> findByRecipeAndOrganId( List<Integer> recipeIds, Set<Integer> organIds);
+    List<RecipeBean> findByRecipeAndOrganId(List<Integer> recipeIds, Set<Integer> organIds);
 
     /**
      * 查询药师审核平台待审核、已审核、或者所有的处方单的总条数
+     *
      * @param organ
      * @param flag  标志位
      * @return
      */
     @RpcService
-    long  getRecipeCountByFlag( List<Integer> organ,  int flag);
+    long getRecipeCountByFlag(List<Integer> organ, int flag);
 
 
     @RpcService
@@ -703,27 +712,29 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     Integer recipeStatusNotice(Map<String, Object> paramMap);
 
     @RpcService
-    Map<String, Object>   findRecipeCanRefundByClinicId(Map<String,String> params);
+    Map<String, Object> findRecipeCanRefundByClinicId(Map<String, String> params);
 
     @RpcService
     List<RecipeRefundBean> findRefundListByRecipeId(Integer recipeId);
 
     /**
      * 根据审方环境模型查询待审核处方数据
+     *
      * @param checkMode
      * @return
      */
     @RpcService
-    List<RecipeBean>  findReadyCheckRecipeByCheckMode(Integer checkMode);
+    List<RecipeBean> findReadyCheckRecipeByCheckMode(Integer checkMode);
 
     /**
      * 根据审方环境模型查询待审核处方数据
+     *
      * @param organIds
      * @param checkMode
      * @return
      */
     @RpcService
-    List<RecipeBean>  findReadyCheckRecipeByOrganIdsCheckMode(List<Integer> organIds,Integer checkMode);
+    List<RecipeBean> findReadyCheckRecipeByOrganIdsCheckMode(List<Integer> organIds, Integer checkMode);
 
     @RpcService
     void saveRecipeInfoForBjCa(CaSignResultTo caSignResultTo);
@@ -736,7 +747,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     @RpcService
-    List<Integer> queryRecipeIdByOrgan(List<Integer> organIds,List<Integer>recipeTypes,Integer  type);
+    List<Integer> queryRecipeIdByOrgan(List<Integer> organIds, List<Integer> recipeTypes, Integer type);
 
 
     /**
@@ -746,7 +757,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     @RpcService
-    List<RecipeBean> queryRecipeInfoByOrganAndRecipeType(List<Integer> organIds,List<Integer>recipeTypes);
+    List<RecipeBean> queryRecipeInfoByOrganAndRecipeType(List<Integer> organIds, List<Integer> recipeTypes);
 
 
     /**
@@ -756,10 +767,11 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     @RpcService
-    List<RecipeDetailBean> findRecipeDetailsByRecipeIds(List<Integer>recipeIds);
+    List<RecipeDetailBean> findRecipeDetailsByRecipeIds(List<Integer> recipeIds);
 
     /**
      * 获取parametervalue
+     *
      * @return
      */
     @RpcService
@@ -820,6 +832,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     /**
      * 获取该机构对应的列表跳转的类型
+     *
      * @param organId
      * @return
      */
@@ -831,12 +844,13 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     /**
      * 深圳二院药房工作量统计报表服务
+     *
      * @param organId 机构ID
      * @return Map<String, Object>
      * @Author dxx
      */
     @RpcService
-    public Map<String, Object> workloadTop(Integer organId,Date startDate, Date endDate, String doctorName, String recipeType, Integer start, Integer limit);
+    public Map<String, Object> workloadTop(Integer organId, Date startDate, Date endDate, String doctorName, String recipeType, Integer start, Integer limit);
 
     @RpcService
     public Map<String, Object> pharmacyMonthlyReport(Integer organId, String depart, String recipeType, Date startDate, Date endDate, Integer start, Integer limit);
@@ -846,19 +860,21 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     /**
      * 复诊查询处方状态是否有效
-     * @param bussSource  业务来源（复诊）
-     * @param clinicId  复诊Id
-     * @param statusCode  1 类型1  2类型2
+     *
+     * @param bussSource 业务来源（复诊）
+     * @param clinicId   复诊Id
+     * @param statusCode 1 类型1  2类型2
      * @return
      */
     @RpcService
-    public Boolean judgeRecipeStatus(Integer bussSource,Integer clinicId,Integer statusCode);
+    public Boolean judgeRecipeStatus(Integer bussSource, Integer clinicId, Integer statusCode);
 
     @RpcService
     List<RecipeBean> findToAuditPlatformRecipe();
 
     /**
      * ca组装参数 供casign调用
+     *
      * @param recipeBean
      * @param detailBeanList
      * @return
@@ -868,13 +884,16 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     /**
      * ca调用接口 供getTaskcode接口调用
+     *
      * @param recipeList
      * @param request
      */
     @RpcService
     void splicingBackRecipeDataForCaServer(List<RecipeBean> recipeList, List<RegulationRecipeIndicatorsReq> request);
+
     /**
      * 深圳二院财务报表  处方费用
+     *
      * @param organId
      * @param depart
      * @param createTime
@@ -885,17 +904,18 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
 
     /**
      * 处方 医疗费  自费+医保
+     *
      * @param organId
      * @param createTime
      * @param endTime
      * @return
      */
     @RpcService
-    public  HosBusFundsReportResult getRecipeMedAndCash(Integer organId, Date createTime, Date endTime);
+    public HosBusFundsReportResult getRecipeMedAndCash(Integer organId, Date createTime, Date endTime);
 
 
     @RpcService
-    public void sendRecipeTagToPatientWithOfflineRecipe(String mpiId, Integer organId, String recipeCode, String cardId, Integer consultId, Integer doctorId) ;
+    public void sendRecipeTagToPatientWithOfflineRecipe(String mpiId, Integer organId, String recipeCode, String cardId, Integer consultId, Integer doctorId);
 
     /**
      * 根据配置项sealDataFrom获取签章图片
@@ -907,18 +927,22 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     @RpcService
-    public  Map<String, String> attachSealPic(Integer clinicOrgan, Integer doctorId, Integer checker, Integer recipeId);
+    public Map<String, String> attachSealPic(Integer clinicOrgan, Integer doctorId, Integer checker, Integer recipeId);
 
     @RpcService
     public String getOrderCodeByRecipeCode(Integer organId, String recipeCode);
 
     /**
      * 查询第三方药品库存
+     *
      * @param drugInfoReq
      * @return
      */
     @RpcService
     public List<DrugDetailResult> getDrugStockForArea(DrugInfoReq drugInfoReq);
+
+    @RpcService
+    public String getGiveModeTextByRecipe(RecipeBean recipe);
 
 }
 
