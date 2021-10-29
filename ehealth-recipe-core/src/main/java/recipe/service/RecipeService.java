@@ -2205,7 +2205,6 @@ public class RecipeService extends RecipeBaseService {
         Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
 
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
-        recipe.setRecipeSupportGiveMode(dbRecipe.getRecipeSupportGiveMode());
         if (null == dbRecipe.getStatus() || (dbRecipe.getStatus() > RecipeStatusConstant.UNSIGN) && dbRecipe.getStatus() != RecipeStatusConstant.HIS_FAIL) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不是新处方或者审核失败的处方，不能修改");
         }
