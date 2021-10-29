@@ -3596,7 +3596,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }else if ("ongoing".equals(tabStatus)){
                     hql.append(" AND r.STATUS IN ( :recipeStatus )  ");
                 }else if ("isover".equals(tabStatus)){
-                    hql.append(" AND r.RecipeID not in (select RecipeID from cdr_recipe where  reviewType = 1 AND checkStatus = 1 AND STATUS = 15)   ");
+                    hql.append(" AND r.STATUS IN ( :recipeStatus ) AND r.RecipeID not in (select RecipeID from cdr_recipe where  reviewType = 1 AND checkStatus = 1 AND STATUS = 15)   ");
                 }
                 if ("ongoing".equals(tabStatus)) {
                     hql.append(" UNION ALL SELECT r.RecipeID,r.orderCode,r.STATUS,r.patientName,r.fromflag,r.recipeCode,r.doctorName,r.recipeType,r.organDiseaseName,r.clinicOrgan," +
