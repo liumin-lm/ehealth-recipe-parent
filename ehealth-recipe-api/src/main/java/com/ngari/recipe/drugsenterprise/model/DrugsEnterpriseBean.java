@@ -29,7 +29,7 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "药企名称")
     private String name;
 
-    @ItemProperty(alias = "药企固定编码")
+    @ItemProperty(alias = "平台自定义药企编码")
     private String enterpriseCode;
 
     @ItemProperty(alias = "药企关键机构")
