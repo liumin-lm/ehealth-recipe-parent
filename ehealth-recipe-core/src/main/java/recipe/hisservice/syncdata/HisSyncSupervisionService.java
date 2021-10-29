@@ -544,6 +544,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     if (null != consultExDTO) {
                         req.setCardNo(consultExDTO.getCardId());
                         req.setCardType(consultExDTO.getCardType());
+                        req.setRegisterId(consultExDTO.getRegisterNo());
                     }
                 }
             }
