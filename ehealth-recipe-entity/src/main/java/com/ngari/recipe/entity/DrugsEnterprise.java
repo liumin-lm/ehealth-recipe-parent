@@ -184,6 +184,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "到院取药日期是否展示今天 0 否 1 是")
     private Integer isShowToday;
 
+    @ItemProperty(alias = "第三方药企编码")
+    private String thirdEnterpriseCode;
+
     @Column(name = "is_show_today")
     public Integer getIsShowToday() {
         return isShowToday;
@@ -656,5 +659,14 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setUpdateTokenFlag(Integer updateTokenFlag) {
         this.updateTokenFlag = updateTokenFlag;
+    }
+
+    @Column(name = "third_enterprise_code")
+    public String getThirdEnterpriseCode() {
+        return thirdEnterpriseCode;
+    }
+
+    public void setThirdEnterpriseCode(String thirdEnterpriseCode) {
+        this.thirdEnterpriseCode = thirdEnterpriseCode;
     }
 }

@@ -181,6 +181,9 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "到院取药日期是否展示今天 0 否 1 是")
     private Integer isShowToday;
 
+    @ItemProperty(alias = "第三方药企编码")
+    private String thirdEnterpriseCode;
+
     public List<DrugEnterpriseLogisticsBean> getDrugEnterpriseLogisticsBeans() {
         return drugEnterpriseLogisticsBeans;
     }
@@ -603,5 +606,13 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setCollectMode(Integer collectMode) {
         this.collectMode = collectMode;
+    }
+
+    public String getThirdEnterpriseCode() {
+        return thirdEnterpriseCode;
+    }
+
+    public void setThirdEnterpriseCode(String thirdEnterpriseCode) {
+        this.thirdEnterpriseCode = thirdEnterpriseCode;
     }
 }
