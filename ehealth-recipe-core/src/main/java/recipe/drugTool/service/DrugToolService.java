@@ -1626,11 +1626,11 @@ public class DrugToolService implements IDrugToolService {
             if (byOrganIdAndDrugCode != null && byOrganIdAndDrugCode.size()>0) {
                 for (SaleDrugList drugList : byOrganIdAndDrugCode) {
                     saleDrugListDAO.remove(drugList.getOrganDrugId());
-                    LOGGER.info("deleteOrganDrugDataToSaleDrugList 删除（delete）= " + drugList + " 药品 ：机构药品（）= " + organDrugList +" !");
+                    LOGGER.info("deleteOrganDrugDataToSaleDrugList 删除（delete）= " + JSONUtils.toString(drugList) + " 药品 ：机构药品（）= " +JSONUtils.toString(organDrugList)  +" !");
                 }
             }else if (byDrugIdAndOrganId != null ){
                 saleDrugListDAO.remove(byDrugIdAndOrganId.getOrganDrugId());
-                LOGGER.info("deleteOrganDrugDataToSaleDrugList 删除2（delete）= " + byDrugIdAndOrganId + " 药品 ：机构药品（）= " + organDrugList +" !");
+                LOGGER.info("deleteOrganDrugDataToSaleDrugList 删除2（delete）= " + JSONUtils.toString(byDrugIdAndOrganId) + " 药品 ：机构药品（）= " + JSONUtils.toString(organDrugList) +" !");
             }
         }
     }
@@ -2675,10 +2675,10 @@ public class DrugToolService implements IDrugToolService {
                         }
                     } else if (config.getSyncDataRange() == 2) {
                         //同步数据范围 药品类型
-                        if (!ObjectUtils.isEmpty(config.getSyncDrugType())) {
+                        if (ObjectUtils.isEmpty(config.getSyncDrugType())) {
                             throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企[同步药品类型]配置数据!");
                         }
-                        if (!ObjectUtils.isEmpty(config.getSyncDrugType())) {
+                        if (ObjectUtils.isEmpty(config.getSyncDrugType())) {
                             throw new DAOException(DAOException.VALUE_NEEDED, "未找到该药企[数据同步类型]配置数据!");
                         }
                         String[] strings1 = config.getEnable_drug_syncType().split(",");
