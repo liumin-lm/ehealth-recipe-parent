@@ -3581,7 +3581,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
                 hql.append("select * from (");
                 hql.append("SELECT r.RecipeID,r.orderCode,(CASE WHEN ( r.reviewType = 1 AND r.checkStatus = 1 AND r.STATUS = 15 ) THEN" +
-                        "8 ELSE r.STATUS " +
+                        " 8 ELSE r.STATUS " +
                         "END ) AS STATUS,r.patientName,r.fromflag,r.recipeCode,r.doctorName,r.recipeType,r.organDiseaseName, " +
                         "r.clinicOrgan,r.organName,r.signFile,r.chemistSignFile,r.signDate,r.recipeMode,r.recipeSource,r.mpiid,r.depart, " +
                         "r.enterpriseId,e.registerID,e.chronicDiseaseName,o.OrderId,IFNULL(o.CreateTime,r.signDate) as time ,o.Status as orderStatus,r.GiveMode,o.PayMode" +
