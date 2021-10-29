@@ -482,7 +482,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
     @RpcService
     public List<DrugsEnterpriseBean> findDrugsEnterpriseByOrganId(Integer organId) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        return getList(drugsEnterpriseDAO.findByOrganId(organId), DrugsEnterpriseBean.class);
+        return getList(drugsEnterpriseDAO.findByOrganIdZj(organId), DrugsEnterpriseBean.class);
     }
 
     /**
