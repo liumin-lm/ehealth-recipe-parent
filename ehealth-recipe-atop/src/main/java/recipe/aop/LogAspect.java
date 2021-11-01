@@ -45,7 +45,7 @@ public class LogAspect {
             throw new DAOException(ErrorCode.SERVICE_ERROR, throwable.getMessage());
         } finally {
             long elapsedTime = System.currentTimeMillis() - startTime;
-            logger.info("LogAspect-{} {} ,耗时:{}ms ,出参={}",className, methodName,elapsedTime, result);
+            logger.info("LogAspect-{} {} ,耗时:{}ms ,出参={}",className, methodName,elapsedTime, result == null?result:JSON.toJSONString(result));
         }
         return result;
     }
