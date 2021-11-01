@@ -434,6 +434,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     saleDrugList1.setDrugSpec(detail.getDrugSpec());
                     saleDrugList1.setStatus(detail.getStatus());
                     saleDrugList1.setLastModify(new Date());
+                    saleDrugList1.setOrganDrugCode(String.valueOf(detail.getOrganDrugCode()));
                     switch (config.getSyncSaleDrugCodeType()) {
                         case 1:
                             saleDrugList1.setSaleDrugCode(detail.getOrganDrugCode());
@@ -740,8 +741,15 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     }
                 String[] strings = config.getEnable_drug_syncType().split(",");
                 List<String> syncTypeList = new ArrayList<String>(Arrays.asList(strings));
+                Map<String, OrganDrugList> drugMap = Maps.newHashMap();
                 if (syncTypeList.indexOf("3")!=-1){
-                    Map<String, OrganDrugList> drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+                    if (config.getSyncDataRange()==1){
+                        String drugsEnterprise="%"+drugsEnterpriseId.toString()+"%";
+                        List<OrganDrugList> drugLists = organDrugListDAO.findOrganDrugByOrganIdAndDrugsEnterpriseId(organId, drugsEnterprise);
+                        drugMap = drugLists.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+                    }else {
+                        drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+                    }
                     List<SaleDrugList> saleDrugListsByOrganId = saleDrugListDAO.findSaleDrugListsByOrganId(drugsEnterpriseId);
                     if (!ObjectUtils.isEmpty(saleDrugListsByOrganId)){
                         for (SaleDrugList saleDrugList : saleDrugListsByOrganId) {
@@ -898,8 +906,16 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         }
         String[] strings = config.getEnable_drug_syncType().split(",");
         List<String> syncTypeList = new ArrayList<String>(Arrays.asList(strings));
+        Map<String, OrganDrugList> drugMap = Maps.newHashMap();
+
         if (syncTypeList.indexOf("3")!=-1){
-            Map<String, OrganDrugList> drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+            if (config.getSyncDataRange()==1){
+                String drugsEnt="%"+drugsEnterpriseId.toString()+"%";
+                List<OrganDrugList> drugLists = organDrugListDAO.findOrganDrugByOrganIdAndDrugsEnterpriseId(organId, drugsEnt);
+                drugMap = drugLists.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+            }else {
+                drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+            }
             List<SaleDrugList> saleDrugListsByOrganId = saleDrugListDAO.findSaleDrugListsByOrganId(drugsEnterpriseId);
             if (!ObjectUtils.isEmpty(saleDrugListsByOrganId)){
                 for (SaleDrugList saleDrugList : saleDrugListsByOrganId) {

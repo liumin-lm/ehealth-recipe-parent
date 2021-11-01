@@ -43,7 +43,7 @@ public enum TabStatusEnumNew {
      * 不展示已删除的处方
      * 已下载(待取药)的处方归并到已完成里
      */
-    Isover_Recipe_StatusList("isover", "recipe", Arrays.asList(14, 17, 13, 15, 12, 6, 9, 11, 20, 23, 18, 41, 42, 43));
+    Isover_Recipe_StatusList("isover", "recipe", Arrays.asList(14, 17, 13, 15, 12, 6, 9,20, 23, 18, 41, 42, 43));
 
     private String tabStatus;
 

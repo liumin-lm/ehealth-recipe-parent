@@ -907,6 +907,15 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
     @DAOMethod(sql = "from OrganDrugList where organId=:organId", limit = 0)
     public abstract List<OrganDrugList> findOrganDrugByOrganId(@DAOParam("organId") int organId);
 
+    /**
+     * 根据机构id 和配送药企ID 获取机构药品
+     *
+     * @param organId
+     * @return
+     */
+    @DAOMethod(sql = "from OrganDrugList where organId=:organId and drugsEnterpriseIds like:drugsEnterpriseIds    ", limit = 0)
+    public abstract List<OrganDrugList> findOrganDrugByOrganIdAndDrugsEnterpriseId(@DAOParam("organId") int organId,@DAOParam("drugsEnterpriseIds") String drugsEnterpriseIds);
+
     public boolean updateData(final OrganDrugList drug) {
         final HashMap<String, Object> map = BeanUtils.map(drug, HashMap.class);
         HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {

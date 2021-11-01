@@ -768,13 +768,14 @@ public class HisRequestInit {
             requestTO.setRecipeType((null != recipe.getRecipeType()) ? Integer.toString(recipe.getRecipeType()) : null);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe nowRecipe = recipeDAO.getByRecipeId(recipe.getRecipeId());
-            LOGGER.info("HisRequestInit initDrugTakeChangeReqTO recipe:{}.", JSONUtils.toString(nowRecipe));
+            LOGGER.info("HisRequestInit initDrugTakeChangeReqTO recipe:{},order:{}.", JSONUtils.toString(nowRecipe), JSONUtils.toString(order));
             RecipeHisStatusEnum recipeHisStatusEnum = RecipeHisStatusEnum.getRecipeHisStatusEnum(nowRecipe.getStatus());
             if(Objects.nonNull(recipeHisStatusEnum)) {
                 requestTO.setRecipeStatus(recipeHisStatusEnum.getValue());
             }
             if (null == requestTO.getRecipeStatus() && null != order && PayFlagEnum.PAYED.getType().equals(order.getPayFlag())
-                    && RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType().equals(nowRecipe.getStatus())) {
+                    && (RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType().equals(nowRecipe.getStatus()) ||
+                    RecipeStatusEnum.RECIPE_STATUS_WAIT_SEND.getType().equals(nowRecipe.getStatus()))) {
                 requestTO.setRecipeStatus(0);
             }
             // 医院系统医嘱号（一张处方多条记录用|分隔）

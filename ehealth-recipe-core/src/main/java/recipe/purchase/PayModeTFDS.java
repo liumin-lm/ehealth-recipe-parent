@@ -421,7 +421,7 @@ public class PayModeTFDS implements IPurchaseService{
 
     private List<DepDetailBean> findAllSupportDeps(DrugEnterpriseResult drugEnterpriseResult, DrugsEnterprise dep, Map<String, String> extInfo){
         List<DepDetailBean> depDetailList = new ArrayList<>();
-        if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
+        if (null != drugEnterpriseResult && DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
             Object result = drugEnterpriseResult.getObject();
             if (result != null && result instanceof List) {
                 List<DepDetailBean> ysqList = (List) result;
