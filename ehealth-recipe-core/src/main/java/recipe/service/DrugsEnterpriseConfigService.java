@@ -40,7 +40,7 @@ public class DrugsEnterpriseConfigService {
             drugsEnterpriseConfig.setSyncDataSource(1);
         }
         if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getEnable_drug_syncType())){
-            drugsEnterpriseConfig.setEnable_drug_syncType("1,2,3");
+            drugsEnterpriseConfig.setEnable_drug_syncType("1,2");
         }
         if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getSyncSaleDrugCodeType())){
             drugsEnterpriseConfig.setSyncSaleDrugCodeType(1);
