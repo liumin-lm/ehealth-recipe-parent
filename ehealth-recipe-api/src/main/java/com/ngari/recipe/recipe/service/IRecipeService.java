@@ -190,7 +190,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
                                        Integer depart, int start, int limit, List<Integer> organIds,
                                        Integer giveMode, Integer sendType, Integer fromflag,
                                        Integer recipeId, Integer enterpriseId, Integer checkStatus,
-                                       Integer payFlag, Integer orderType, Integer refundNodeStatus);
+                                       Integer payFlag, Integer orderType, Integer refundNodeStatus,Integer recipeType);
 
     /**
      * 运营平台使用
@@ -360,7 +360,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService(timeout = 600000)
     @Deprecated
     List<Object[]> findRecipeOrdersByInfoForExcel(Integer organId, List<Integer> organIds, Integer status, Integer doctor, String patientName, Date bDate, Date eDate, Integer dateType,
-                                             Integer depart, Integer giveMode, Integer fromflag, Integer recipeId);
+                                             Integer depart, Integer giveMode, Integer fromflag, Integer recipeId, Integer recipeType);
 
     /**
      * 处方订单导出Excel

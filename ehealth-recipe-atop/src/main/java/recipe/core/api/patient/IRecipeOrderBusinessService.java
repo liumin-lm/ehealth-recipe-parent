@@ -1,11 +1,11 @@
 package recipe.core.api.patient;
 
 
+import com.ngari.recipe.dto.RecipeFeeDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
-import com.ngari.recipe.vo.ResultBean;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
-import com.ngari.recipe.dto.RecipeFeeDTO;
+import recipe.vo.ResultBean;
 
 import java.util.List;
 

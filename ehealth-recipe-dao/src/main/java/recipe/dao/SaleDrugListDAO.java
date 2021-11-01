@@ -77,6 +77,9 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
         return action.getResult();
     };
 
+
+
+
     /**
      * 设置某些药品为无效
      *
@@ -158,6 +161,11 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
      */
     @DAOMethod(sql = "select drugId from SaleDrugList where organId=:organId and status=1", limit = 0)
     public abstract List<Integer> findDrugIdByOrganId(@DAOParam("organId") int organId);
+
+
+
+    @DAOMethod(sql = " from SaleDrugList where drugId=:drugId and status=1", limit = 0)
+    public abstract List<SaleDrugList> findByDrugId(@DAOParam("drugId") int drugId);
 
     /**
      * 获取药品与配送药企关系 （药品1:药企A,药企B）

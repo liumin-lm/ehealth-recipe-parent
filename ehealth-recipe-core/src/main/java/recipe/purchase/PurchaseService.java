@@ -941,6 +941,8 @@ public class PurchaseService {
             reqTO.setOrganName(Optional.ofNullable(organ.getShortName()).orElse(""));
             reqTO.setPatientName(patient.getPatientName());
             reqTO.setCertId(patient.getIdcard());
+            reqTO.setCertificate(patient.getCertificate());
+            reqTO.setCertificateType(patient.getCertificateType());
             reqTO.setRecipeId(recipeId.toString());
             reqTO.setRecipeCode(dbRecipe.getRecipeCode());
             reqTO.setClinicId(Optional.ofNullable(dbRecipe.getClinicId().toString()).orElse(""));

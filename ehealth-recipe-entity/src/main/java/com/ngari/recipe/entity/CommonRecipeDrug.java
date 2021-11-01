@@ -225,7 +225,6 @@ public class CommonRecipeDrug implements java.io.Serializable{
         return drugSpec;
     }
 
-    @Column(name = "DrugSpec")
     public void setDrugSpec(String drugSpec) {
         this.drugSpec = drugSpec;
     }

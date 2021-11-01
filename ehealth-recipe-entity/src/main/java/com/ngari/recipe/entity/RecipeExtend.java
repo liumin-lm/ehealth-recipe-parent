@@ -105,19 +105,16 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "可开长处方按钮状态、长处方开药天数、非长处方开药天数")
     private String recipeJsonConfig;
 
-    /**
-     * 患者医保类型（编码）
-     */
+
+    @ItemProperty(alias = "患者医保类型（编码）")
     private String medicalType;
 
-    /**
-     * 患者医保类型（名称）
-     */
+
+    @ItemProperty(alias = "患者医保类型（名称）")
     private String medicalTypeText;
 
-    /**
-     * 第三方处方ID
-     */
+
+    @ItemProperty(alias = "第三方处方ID")
     private String rxid;
 
     @ItemProperty(alias = "制法")

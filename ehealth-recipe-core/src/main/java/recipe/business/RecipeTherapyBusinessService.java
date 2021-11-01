@@ -95,7 +95,7 @@ public class RecipeTherapyBusinessService extends BaseService implements ITherap
         List<Integer> recipeIds = recipeTherapyList.stream().map(RecipeTherapy::getRecipeId).collect(Collectors.toList());
         List<Recipe> recipeList = recipeManager.findByRecipeIds(recipeIds);
         Map<Integer, Recipe> recipeMap = recipeList.stream().collect(Collectors.toMap(Recipe::getRecipeId, a -> a, (k1, k2) -> k1));
-        Map<Integer, List<Recipedetail>> recipeDetailGroup = recipeDetailManager.findRecipeDetails(recipeIds);
+        Map<Integer, List<Recipedetail>> recipeDetailGroup = recipeDetailManager.findRecipeDetailMap(recipeIds);
         List<String> mpiIds = recipeTherapyList.stream().map(RecipeTherapy::getMpiId).distinct().collect(Collectors.toList());
         Map<String, PatientDTO> patientMap = patientClient.findPatientMap(mpiIds);
         recipeTherapyList.forEach(a -> {

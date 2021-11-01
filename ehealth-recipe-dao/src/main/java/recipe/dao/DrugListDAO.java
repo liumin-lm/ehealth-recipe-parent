@@ -601,6 +601,68 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
     }
 
     /**
+     * 药品名模糊查询 药品
+     *
+     * @param name
+     * @return
+     * @author zhongzx
+     */
+    public QueryResult<DrugList> findDrugListByName(final String name,final String producer,final int start, final int limit) {
+        HibernateStatelessResultAction<QueryResult<DrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugList>>() {
+            @Override
+            public void execute(StatelessSession ss) throws DAOException {
+                StringBuilder hql = new StringBuilder("from DrugList where status=1 and isStandardDrug=1 ");
+                if (!ObjectUtils.isEmpty(name)) {
+                    hql.append(" and ( drugName like:name or saleName like:name  )");
+                }
+                if (!ObjectUtils.isEmpty(producer)) {
+                    hql.append(" and producer like:producer ");
+                }
+                hql.append(" order by createDt desc");
+                Query countQuery = ss.createQuery("select count(*) " + hql.toString());
+                if (!ObjectUtils.isEmpty(name)) {
+                    countQuery.setParameter("name", "%" + name + "%");
+                }
+                if (!ObjectUtils.isEmpty(producer)) {
+                    countQuery.setParameter("producer", "%" + producer + "%");
+                }
+                Long total = (Long) countQuery.uniqueResult();
+
+                Query q = ss.createQuery(hql.toString());
+                if (!ObjectUtils.isEmpty(name)) {
+                    q.setParameter("name", "%" + name + "%");
+                }
+                if (!ObjectUtils.isEmpty(producer)) {
+                    q.setParameter("producer", "%" + producer + "%");
+                }
+                q.setFirstResult(start);
+                q.setMaxResults(limit);
+                List<DrugList> list = q.list();
+                setResult(new QueryResult<DrugList>(total, q.getFirstResult(), q.getMaxResults(), list));
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+
+    /**
+     * 查询所选药品是否存在对应标准药品
+     * @param drugName
+     * @param drugType
+     * @param drugSpec
+     * @param producer
+     * @param drugForm
+     * @return
+     */
+    @DAOMethod(sql = "from DrugList where drugName =:drugName and drugType=:drugType and drugSpec=:drugSpec and producer=producer and drugForm=drugForm and isStandardDrug=1 and  status= 1")
+    public abstract List<DrugList> findStandardDrug(@DAOParam("drugName") String drugName,@DAOParam("drugType") Integer drugType,@DAOParam("drugSpec") String drugSpec,@DAOParam("producer") String producer,@DAOParam("drugForm") String drugForm);
+
+    @DAOMethod(sql = "from DrugList where drugName =:drugName and drugType=:drugType and drugSpec=:drugSpec and producer=producer and sourceOrgan is null   and isStandardDrug=1 and  status= 1")
+    public abstract List<DrugList> findStandardDrugDrugFrom(@DAOParam("drugName") String drugName,@DAOParam("drugType") Integer drugType,@DAOParam("drugSpec") String drugSpec,@DAOParam("producer") String producer);
+
+
+    /**
      * 运营平台 药品查询服务
      *
      * @param drugClass 药品分类
@@ -612,7 +674,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
      * @author houxr
      */
     public QueryResult<DrugList> queryDrugListsByDrugNameAndStartAndLimit(final String drugClass, final String keyword,
-                                                                              final Integer status, final Integer sourceOrgan, Integer type,
+                                                                              final Integer status, final Integer sourceOrgan, Integer type,final Integer isStandardDrug,
                                                                               final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<DrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugList>>() {
             @SuppressWarnings("unchecked")
@@ -642,6 +704,9 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 if (!ObjectUtils.isEmpty(type)) {
                     hql.append(" and drugType =:drugType");
                 }
+                if (!ObjectUtils.isEmpty(isStandardDrug)) {
+                    hql.append(" and isStandardDrug =:isStandardDrug ");
+                }
                 if (!ObjectUtils.isEmpty(sourceOrgan)) {
                     if (sourceOrgan == 0){
                         hql.append(" and sourceOrgan is null ");
@@ -657,6 +722,9 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 }
                 if (!ObjectUtils.isEmpty(type)) {
                     countQuery.setParameter("drugType", type);
+                }
+                if (!ObjectUtils.isEmpty(isStandardDrug)) {
+                    countQuery.setParameter("isStandardDrug", isStandardDrug);
                 }
                 if (!ObjectUtils.isEmpty(sourceOrgan)) {
                     if (sourceOrgan != 0){
@@ -680,6 +748,9 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 }
                 if (!ObjectUtils.isEmpty(type)) {
                     query.setParameter("drugType", type);
+                }
+                if (!ObjectUtils.isEmpty(isStandardDrug)) {
+                    query.setParameter("isStandardDrug", isStandardDrug);
                 }
                 if (drugId != null) {
                     query.setParameter("drugId", drugId);

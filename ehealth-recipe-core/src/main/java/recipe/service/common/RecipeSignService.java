@@ -9,7 +9,10 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.common.*;
+import com.ngari.recipe.common.RecipeCommonBaseTO;
+import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.common.RecipeStandardReqTO;
+import com.ngari.recipe.common.RecipeStandardResTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -35,6 +38,7 @@ import recipe.dao.*;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.EmrRecipeManager;
+import recipe.manager.RecipeManager;
 import recipe.manager.RevisitManager;
 import recipe.service.*;
 import recipe.thread.CardDataUploadRunable;
@@ -47,7 +51,6 @@ import recipe.util.RedisClient;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
@@ -66,7 +69,8 @@ public class RecipeSignService {
      * logger
      */
     private static final Logger LOG = LoggerFactory.getLogger(RecipeSignService.class);
-
+    @Autowired
+    private RecipeManager recipeManager;
     @Autowired
     private RecipeDAO recipeDAO;
 
@@ -487,12 +491,6 @@ public class RecipeSignService {
         Boolean openRecipe = (Boolean) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "isOpenRecipeByRegisterId");
         LOG.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}", openRecipe);
 
-      /*  //如果前端没有传入咨询id则从进行中的复诊或者咨询里取
-        //获取咨询单id,有进行中的复诊则优先取复诊，若没有则取进行中的图文咨询
-        if (recipeBean.getClinicId()==null){
-            recipeService.getConsultIdForRecipeSource(recipeBean,openRecipe);
-        }*/
-
         boolean optimize = recipeService.openRecipOptimize(recipeBean, openRecipe);
         //配置开启，根据有效的挂号序号进行判断
         if (!optimize) {
@@ -500,14 +498,7 @@ public class RecipeSignService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
         }
 
-        RequestVisitVO requestVisitVO = new RequestVisitVO();
-        requestVisitVO.setDoctor(recipeBean.getDoctor());
-        requestVisitVO.setMpiid(recipeBean.getRequestMpiId());
-        requestVisitVO.setOrganId(recipeBean.getClinicOrgan());
-        requestVisitVO.setClinicId(recipeBean.getClinicId());
-        LOG.info("当前前端入参：requestVisitVO={}", JSONUtils.toString(requestVisitVO));
-        recipeService.isOpenRecipeNumber(requestVisitVO);
-
+        recipeManager.isOpenRecipeNumber(recipeBean.getClinicId(), recipeBean.getClinicOrgan(), recipeBean.getRecipeId());
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
         details.stream().filter(a -> "无特殊煎法".equals(a.getMemo())).forEach(a -> a.setMemo(""));
         if (null != recipeId && recipeId > 0) {
@@ -742,7 +733,7 @@ public class RecipeSignService {
         if (null == dbRecipe || canNoRetryStatus(dbRecipe.getStatus())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方不能重试");
         }
-
+        recipeManager.isOpenRecipeNumber(dbRecipe.getClinicId(), dbRecipe.getClinicOrgan(), recipeId);
         //获取处方回写单号  提示推送成功，否则继续推送
         String recipeCode = dbRecipe.getRecipeCode();
         if (StringUtils.isNotEmpty(recipeCode)) {

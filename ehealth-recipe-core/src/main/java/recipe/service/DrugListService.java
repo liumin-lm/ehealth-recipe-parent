@@ -1,21 +1,23 @@
 package recipe.service;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
+import com.ngari.his.regulation.service.IRegulationService;
+import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.OrganDrugChangeBean;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
-import com.ngari.recipe.entity.Dispensatory;
-import com.ngari.recipe.entity.DrugList;
-import com.ngari.recipe.entity.DrugSources;
-import com.ngari.recipe.entity.SaleDrugList;
+import com.ngari.recipe.entity.*;
 import ctd.dictionary.DictionaryItem;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.PyConverter;
@@ -24,12 +26,10 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
+import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bussutil.RecipeUtil;
-import recipe.dao.DispensatoryDAO;
-import recipe.dao.DrugListDAO;
-import recipe.dao.DrugSourcesDAO;
-import recipe.dao.SaleDrugListDAO;
+import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.serviceprovider.BaseService;
 
@@ -380,10 +380,10 @@ public class DrugListService extends BaseService<DrugListBean> {
      */
     @RpcService
     public QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(final String drugClass, final String keyword,
-                                                                              final Integer status,final Integer drugSourcesId,Integer type,
+                                                                              final Integer status,final Integer drugSourcesId,Integer type,final Integer isStandardDrug,
                                                                               final int start, final int limit) {
         DrugListDAO dao = getDAO(DrugListDAO.class);
-        QueryResult<DrugList> result = dao.queryDrugListsByDrugNameAndStartAndLimit(drugClass, keyword, status, drugSourcesId, type, start, limit);
+        QueryResult<DrugList> result = dao.queryDrugListsByDrugNameAndStartAndLimit(drugClass, keyword, status, drugSourcesId, type,isStandardDrug, start, limit);
         QueryResult<DrugListBean> result2=new QueryResult<>();
         List items = result.getItems();
         if (items != null && items.size() > 0 ){
@@ -395,6 +395,158 @@ public class DrugListService extends BaseService<DrugListBean> {
         }
         return result2;
     }
+
+    /**
+     * 运营平台 药品查询服务  查询标准药品
+     *
+     * @param start     分页起始位置
+     * @param limit     每页限制条数
+     * @return QueryResult<DrugList>
+     * @author houxr
+     */
+    @RpcService
+    public QueryResult<DrugList> findDrugListsByName(final String drugName,final String producer, final int start, final int limit) {
+        DrugListDAO dao = getDAO(DrugListDAO.class);
+        QueryResult<DrugList> drugListByName = dao.findDrugListByName(drugName,producer, start, limit);
+        return drugListByName;
+    }
+
+    public List<String> checkDrugList(DrugList drug){
+        List<String> list = Lists.newArrayList();
+        if (ObjectUtils.isEmpty(drug.getDrugName())){
+            list.add("药品名称 DrugName");
+        }
+        if (ObjectUtils.isEmpty(drug.getDrugSpec())){
+            list.add("药品规格 DrugSpec");
+        }
+        /*if (ObjectUtils.isEmpty(drug.getDrugForm())){
+            list.add("药品剂型 DrugForm");
+        }*/
+        if (ObjectUtils.isEmpty(drug.getDrugType())){
+            list.add("药品类型 DrugType");
+        }
+        if (ObjectUtils.isEmpty(drug.getProducer())){
+            list.add("生产厂家 Producer");
+        }
+        return list;
+    }
+
+    /**
+     * 运营平台 通用药品  检测 审核药品 是否存在标准药品
+     * @author houxr
+     */
+    @RpcService
+    public Boolean findStandardDrug( DrugList drug) {
+        if (ObjectUtils.isEmpty(drug)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "drug is required!");
+        }
+        List<String> checkDrugList = checkDrugList(drug);
+        if (!ObjectUtils.isEmpty(checkDrugList)) {
+            throw new DAOException(DAOException.VALUE_NEEDED,"当前药品信息缺失(包括:" + checkDrugList.toString() + "),药品条件不具备成为标准药品!");
+        }
+        DrugListDAO dao = getDAO(DrugListDAO.class);
+        if (ObjectUtils.isEmpty(drug.getDrugForm())){
+            List<DrugList> standardDrugSourceOrgan = dao.findStandardDrugDrugFrom(drug.getDrugName(), drug.getDrugType(), drug.getDrugSpec(), drug.getProducer());
+            if (!ObjectUtils.isEmpty(standardDrugSourceOrgan)){
+                return true;
+            }
+        }else {
+            List<DrugList> standardDrugSourceOrgan = dao.findStandardDrug(drug.getDrugName(), drug.getDrugType(), drug.getDrugSpec(), drug.getProducer(), drug.getDrugForm());
+            if (!ObjectUtils.isEmpty(standardDrugSourceOrgan)){
+                return true;
+            }else {
+                List<DrugList> drugLists = dao.findStandardDrugDrugFrom(drug.getDrugName(), drug.getDrugType(), drug.getDrugSpec(), drug.getProducer());
+                if (!ObjectUtils.isEmpty(drugLists)){
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+
+    /**
+     * 运营平台 通用药品  非标准药品关联标准药品  关联机构和药企的药品将调整绑定到标准药品
+     * @author houxr
+     */
+    @RpcService
+    public Map<String, Object> correlationStandardDrug( Integer drugId,Integer standardDrugId) {
+        if (ObjectUtils.isEmpty(drugId)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "药品ID is required!");
+        }
+        if (ObjectUtils.isEmpty(standardDrugId)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "关联标准药品ID is required!");
+        }
+        OrganDrugListDAO organDrugListDAO = getDAO(OrganDrugListDAO.class);
+        SaleDrugListDAO saleDrugListDAO = getDAO(SaleDrugListDAO.class);
+        DrugListDAO dao = getDAO(DrugListDAO.class);
+        DrugList drugList = dao.get(drugId);
+        if (ObjectUtils.isEmpty(drugList)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "药品不存在!");
+        }
+        DrugList drugList1 = dao.get(standardDrugId);
+        if (ObjectUtils.isEmpty(drugList1)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "关联标准药品不存在!");
+        }
+        Map<String, Object> map=Maps.newHashMap();
+        List<OrganDrugList> byDrugId = organDrugListDAO.findByDrugId(drugId);
+        List<String> organDrugListerror=Lists.newArrayList();
+        if (!ObjectUtils.isEmpty(byDrugId)){
+            OrganService bean = AppDomainContext.getBean("basic.organService", OrganService.class);
+            for (OrganDrugList organDrugList : byDrugId) {
+                List<Integer> list=Lists.newArrayList();
+                list.add(standardDrugId);
+                List<OrganDrugList> byOrganIdAndDrugIds = organDrugListDAO.findByOrganIdAndDrugIds(organDrugList.getOrganId(), list);
+                if (!ObjectUtils.isEmpty(byOrganIdAndDrugIds)){
+                    for (OrganDrugList byOrganIdAndDrugId : byOrganIdAndDrugIds) {
+                        String error = ("机构【" + bean.getByOrganId(organDrugList.getOrganId()).getName() + "】存在药品" +
+                                "【"+byOrganIdAndDrugId.getDrugName()+"】编码【"+byOrganIdAndDrugId.getOrganDrugCode()+"】 已绑定标准药品【"+drugList1.getDrugName()+"】编码【"+drugList1.getDrugId()+"】" +
+                                "不支持关联,请处理数据后再执行关联操作!" + "\n");
+                        organDrugListerror.add(error);
+                    }
+                }
+            }
+        }
+        List<SaleDrugList> byDrugId1 = saleDrugListDAO.findByDrugId(drugId);
+        List<String> saleDrugListterror=Lists.newArrayList();
+        if (!ObjectUtils.isEmpty(byDrugId1)){
+            for (SaleDrugList saleDrugList : byDrugId1) {
+                DrugsEnterpriseDAO enterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
+                List<Integer> list=Lists.newArrayList();
+                SaleDrugList byOrganIdAndDrugId = saleDrugListDAO.getByOrganIdAndDrugId(saleDrugList.getOrganId(), standardDrugId);
+                if (!ObjectUtils.isEmpty(byOrganIdAndDrugId)){
+                    String error = ("药企【" + enterpriseDAO.getById(byOrganIdAndDrugId.getOrganId()).getName() + "】存在药品" +
+                            "【"+byOrganIdAndDrugId.getDrugName()+"】编码【"+byOrganIdAndDrugId.getOrganDrugCode()+"】 已绑定标准药品【"+drugList1.getDrugName()+"】编码【"+drugList1.getDrugId()+"】" +
+                            "不支持关联,请处理数据后再执行关联操作!" + "\n");
+                    saleDrugListterror.add(error);
+                }
+            }
+        }
+        if (ObjectUtils.isEmpty(organDrugListerror) && ObjectUtils.isEmpty(saleDrugListterror)){
+            if (!ObjectUtils.isEmpty(byDrugId)){
+                for (OrganDrugList organDrugList : byDrugId) {
+                    organDrugList.setDrugId(standardDrugId);
+                    organDrugListDAO.update(organDrugList);
+                }
+            }
+            if (!ObjectUtils.isEmpty(byDrugId1)){
+                for (SaleDrugList saleDrugList : byDrugId1) {
+                    saleDrugList.setDrugId(standardDrugId);
+                    saleDrugListDAO.update(saleDrugList);
+                }
+            }
+            dao.remove(drugId);
+        }else {
+            map.put("code", 609);
+            map.put("saleDrugListrror",saleDrugListterror);
+            map.put("organDrugListerror",organDrugListerror);
+            return map;
+        }
+        map.put("code", 200);
+        return map;
+    }
+
+
 
     /**
      * 患者端 获取对应机构的西药 或者 中药的药品有效全目录（现在目录有二级）

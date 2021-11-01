@@ -2,6 +2,9 @@ package recipe.api.open;
 
 import ctd.util.annotation.RpcService;
 import recipe.vo.doctor.DrugBookVo;
+import recipe.vo.drug.RecipeRulesDrugcorrelationVo;
+
+import java.util.List;
 
 /**
  * @description： 二方药品请求入口
@@ -19,4 +22,14 @@ public interface IDrugAtopService {
      */
     @RpcService
     DrugBookVo getDrugBook(Integer organId, String organDrugCode);
+
+    /**
+     * 获取药品规则
+     * @param list
+     * @param ruleId
+     * @return
+     */
+    @RpcService
+    List<RecipeRulesDrugcorrelationVo> getListDrugRules(List<Integer> list, Integer ruleId);
+
 }

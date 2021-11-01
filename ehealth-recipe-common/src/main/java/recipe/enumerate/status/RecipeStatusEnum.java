@@ -61,8 +61,21 @@ public enum RecipeStatusEnum {
     private Integer type;
     private String name;
     private String desc;
-    private static List<Integer> recipeStatusCheckList = Arrays.asList(RECIPE_STATUS_SIGN_ING_CODE_PHA.type, RECIPE_STATUS_READY_CHECK_YS.type,RECIPE_STATUS_CHECK_PASS.type,RECIPE_STATUS_SIGN_NO_CODE_PHA.type,RECIPE_STATUS_SIGN_ERROR_CODE_PHA.type);
-    private static List<Integer> recipeStatusShowList = Arrays.asList(RECIPE_STATUS_SIGN_ING_CODE_PHA.type, RECIPE_STATUS_READY_CHECK_YS.type,RECIPE_STATUS_SIGN_NO_CODE_PHA.type,RECIPE_STATUS_SIGN_ERROR_CODE_PHA.type);
+    private static List<Integer> recipeStatusCheckList = Arrays.asList(RECIPE_STATUS_SIGN_ING_CODE_PHA.type, RECIPE_STATUS_READY_CHECK_YS.type, RECIPE_STATUS_CHECK_PASS.type, RECIPE_STATUS_SIGN_NO_CODE_PHA.type, RECIPE_STATUS_SIGN_ERROR_CODE_PHA.type);
+    private static List<Integer> recipeStatusShowList = Arrays.asList(RECIPE_STATUS_SIGN_ING_CODE_PHA.type, RECIPE_STATUS_READY_CHECK_YS.type, RECIPE_STATUS_SIGN_NO_CODE_PHA.type, RECIPE_STATUS_SIGN_ERROR_CODE_PHA.type);
+
+    /**
+     * 处方重复张数 -1,0,9,10,13,14,15
+     */
+    public static final List<Integer> RECIPE_REPEAT_COUNT = Arrays.asList(RECIPE_STATUS_CHECK_NOT_PASS.type, RECIPE_STATUS_UNSIGNED.type,
+            RECIPE_STATUS_REVOKE.type, RECIPE_STATUS_DELETE.type, RECIPE_STATUS_NO_PAY.type, RECIPE_STATUS_NO_OPERATOR.type, RECIPE_STATUS_CHECK_NOT_PASS_YS.type);
+    /**
+     * 重复处方/药品 -1,0,9,10,11,12,13,14,26
+     */
+    public static final List<Integer> RECIPE_REPEAT = Arrays.asList(RECIPE_STATUS_CHECK_NOT_PASS.type, RECIPE_STATUS_UNSIGNED.type,
+            RECIPE_STATUS_REVOKE.type, RECIPE_STATUS_DELETE.type, RECIPE_STATUS_NO_PAY.type,
+            RECIPE_STATUS_NO_OPERATOR.type, RECIPE_STATUS_NO_DRUG.type, RECIPE_STATUS_HIS_FAIL.type, RECIPE_STATUS_SIGN_ERROR_CODE_DOC.type);
+
 
     RecipeStatusEnum(Integer type, String name, String desc) {
         this.type = type;
@@ -80,11 +93,6 @@ public enum RecipeStatusEnum {
     }
 
 
-    /**
-     * 待审核 list
-     */
-    public static final List<Integer> READY_CHECK = Arrays.asList(RECIPE_STATUS_SIGN_ERROR_CODE_PHA.getType(), RECIPE_STATUS_SIGN_ING_CODE_PHA.getType()
-            , RECIPE_STATUS_SIGN_NO_CODE_PHA.getType(), RECIPE_STATUS_READY_CHECK_YS.getType());
 
     /**
      * 根据类型获取名称

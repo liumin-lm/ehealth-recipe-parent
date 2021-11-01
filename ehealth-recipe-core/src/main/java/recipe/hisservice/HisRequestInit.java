@@ -8,6 +8,7 @@ import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.constant.RecipeHisStatusEnum;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
@@ -169,7 +170,7 @@ public class HisRequestInit {
                 requestTO.setCertID(idCard);
                 requestTO.setPatientName(patient.getPatientName());
                 requestTO.setMobile(patient.getMobile());
-
+                requestTO.setCertificateType(patient.getCertificateType());
             }
             /*if (null != card) {
                 requestTO.setCardType(card.getCardType());//2-医保卡
@@ -376,7 +377,7 @@ public class HisRequestInit {
         }
         //科室代码
         AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
-        AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
+        AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartIDAndCancleFlag(recipe.getClinicOrgan(), recipe.getDepart());
         requestTO.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
         //科室名称
         requestTO.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
@@ -410,6 +411,7 @@ public class HisRequestInit {
             requestTO.setCertID(idCard);
             requestTO.setPatientName(patient.getPatientName());
             requestTO.setMobile(patient.getMobile());
+            requestTO.setCertificateType(patient.getCertificateType());
         }
 
         //根据处方单设置配送方式
@@ -540,6 +542,7 @@ public class HisRequestInit {
 
         if (null != patient) {
             requestTO.setCertID(patient.getCertificate());
+            requestTO.setCertificateType(patient.getCertificateType());
             requestTO.setPatientName(patient.getPatientName());
             requestTO.setPatientSex(patient.getPatientSex());
             requestTO.setMobile(patient.getMobile());
@@ -567,6 +570,7 @@ public class HisRequestInit {
             if (null != patient) {
                 // 患者信息
                 requestTO.setCertID(patient.getCertificate());
+                requestTO.setCertificateType(patient.getCertificateType());
                 requestTO.setPatientName(patient.getPatientName());
             }
             requestTO.setPatId(recipe.getPatientID());
@@ -683,6 +687,7 @@ public class HisRequestInit {
             if (null != patient) {
                 requestTO.setPatientName(patient.getPatientName());
                 requestTO.setCertID(patient.getCertificate());
+                requestTO.setCertificateType(patient.getCertificateType());
                 requestTO.setMobile(patient.getMobile());
             }
             RecipeOrder order = null;
@@ -758,7 +763,12 @@ public class HisRequestInit {
 
             requestTO.setRecipeNo(recipe.getRecipeCode());
             requestTO.setRecipeType((null != recipe.getRecipeType()) ? Integer.toString(recipe.getRecipeType()) : null);
-
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe nowRecipe = recipeDAO.getByRecipeId(recipe.getRecipeId());
+            RecipeHisStatusEnum recipeHisStatusEnum = RecipeHisStatusEnum.getRecipeHisStatusEnum(nowRecipe.getStatus());
+            if(Objects.nonNull(recipeHisStatusEnum)) {
+                requestTO.setRecipeStatus(recipeHisStatusEnum.getValue());
+            }
             // 医院系统医嘱号（一张处方多条记录用|分隔）
             StringBuilder str = new StringBuilder("");
             if (null != list && list.size() != 0) {
@@ -774,7 +784,7 @@ public class HisRequestInit {
         } catch (Exception e) {
             LOGGER.error("initDrugTakeChangeReqTO error", e);
         }
-
+        LOGGER.info("HisRequestInit initDrugTakeChangeReqTO requestTO:{}.", JSONUtils.toString(requestTO));
         return requestTO;
     }
 
@@ -790,6 +800,7 @@ public class HisRequestInit {
         if (null != patient) {
             // 患者信息
             requestTO.setCertID(patient.getCertificate());
+            requestTO.setCertificateType(patient.getCertificateType());
             requestTO.setPatientName(patient.getPatientName());
         }
 
@@ -826,6 +837,7 @@ public class HisRequestInit {
         if (null != patient) {
             // 患者信息
             requestTO.setCertID(patient.getCertificate());
+            requestTO.setCertificateType(patient.getCertificateType());
             requestTO.setPatientName(patient.getPatientName());
         }
 

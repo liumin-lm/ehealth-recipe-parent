@@ -18,6 +18,7 @@ public class RecipeParameter implements Serializable {
     @ItemProperty(alias = "参数值")
     private String paramValue;
 
+    @ItemProperty(alias = "参数备注")
     private String paramAlias;
 
     @Id

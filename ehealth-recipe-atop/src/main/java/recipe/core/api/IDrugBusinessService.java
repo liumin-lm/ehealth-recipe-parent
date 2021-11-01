@@ -2,6 +2,7 @@ package recipe.core.api;
 
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.entity.Dispensatory;
+import com.ngari.recipe.entity.RecipeRulesDrugcorrelation;
 import com.ngari.recipe.vo.SearchDrugReqVo;
 
 import java.util.List;
@@ -28,4 +29,13 @@ public interface IDrugBusinessService {
      * @return
      */
     Dispensatory getDrugBook(Integer organId, String organDrugCode);
+
+
+    /**
+     * 测试
+     * @param list
+     * @param ruleId
+     * @return
+     */
+    List<RecipeRulesDrugcorrelation> getListDrugRules(List<Integer> list, Integer ruleId);
 }

@@ -35,6 +35,7 @@ public class RecipesQueryVO implements Serializable {
     private Integer checkStatus;
     private Integer payFlag;
     private Integer orderType;
+    private Integer recipeType;
 
     private int start;
     private int limit;

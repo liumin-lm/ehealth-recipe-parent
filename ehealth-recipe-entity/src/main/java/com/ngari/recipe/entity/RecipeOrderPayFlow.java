@@ -1,5 +1,6 @@
 package com.ngari.recipe.entity;
 
+import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 import lombok.ToString;
 
@@ -21,64 +22,52 @@ import static javax.persistence.GenerationType.IDENTITY;
 @ToString
 public class RecipeOrderPayFlow implements Serializable {
 
-    /**
-     * 自增id
-     */
+
+    @ItemProperty(alias = "自增id")
     private Integer id;
 
-    /**
-     * 订单主键id
-     */
+
+    @ItemProperty(alias = "订单主键id")
     private Integer orderId;
 
-    /**
-     * 支付流水类型 1.药品费用 2审方费用
-     */
+
+    @ItemProperty(alias = "支付流水类型 1.药品费用 2审方费用")
     private Integer payFlowType;
 
-    /**
-     * 支付总费用
-     */
+
+    @ItemProperty(alias = "支付总费用")
     private Double totalFee;
 
-    /**
-     * 交易流水号
-     */
+
+    @ItemProperty(alias = "交易流水号")
     private String tradeNo;
 
-    /**
-     * 支付方式
-     */
+
+    @ItemProperty(alias = "支付方式")
     private String wxPayWay;
 
-    /**
-     * 卫宁付下的支付方式
-     */
+
+    @ItemProperty(alias = "卫宁付下的支付方式")
     private String wnPayWay;
 
-    /**
-     * 商户订单号
-     */
+
+    @ItemProperty(alias = "商户订单号")
     private String outTradeNo;
 
-    /**
-     * 支付平台分配的机构id
-     */
+
+    @ItemProperty(alias = "支付平台分配的机构id")
     private String payOrganId;
 
-    /**
-     * 支付状态 1.已支付  3.退款成功
-     */
+
+    @ItemProperty(alias = "支付状态 1.已支付  3.退款成功")
     private Integer payFlag;
 
-    /**
-     *  创建时间
-     */
+
+    @ItemProperty(alias = "创建时间")
     private Date createTime;
 
-    /**
-     * 修改时间
-     */
+
+    @ItemProperty(alias = "修改时间")
     private Date modifiedTime;
 
     @Id

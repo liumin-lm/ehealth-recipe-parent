@@ -391,6 +391,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //陪诊人信息
             req.setGuardianName(patientDTO.getGuardianName());
             req.setGuardianCertID(patientDTO.getGuardianCertificate());
+            req.setGuardianCertificateType(patientDTO.getGuardianCertificateType());
             //儿童的手机号就是陪诊人的手机号
             if (StringUtils.isNotEmpty(patientDTO.getGuardianCertificate())) {
                 req.setGuardianMobile(patientDTO.getMobile());
@@ -796,6 +797,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //陪诊人信息
             req.setGuardianName(patientDTO.getGuardianName());
             req.setGuardianCertID(patientDTO.getGuardianCertificate());
+            req.setGuardianCertificateType(patientDTO.getGuardianCertificateType());
             //支付时间
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             req.setPayTime(recipeOrder.getPayTime());
@@ -1119,7 +1121,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
         return "0";
     }
-    
+
     public void uploadRecipePayToRegulation(String orderCode, int payFlag, String refundNo) {
         LOGGER.info("uploadRecipePayToRegulation param orderCode:{} ,payFlag:{}", orderCode, payFlag);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
@@ -1154,6 +1156,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     if (patientDTO != null) {
                         req.setIdcardTypeCode("01");
                         req.setIdcardNo(patientDTO.getIdcard());
+                        req.setCertificate(patientDTO.getCertificate());
+                        req.setCertificateType(patientDTO.getCertificateType());
                         req.setName(patientDTO.getPatientName());
                         req.setGenderCode(patientDTO.getPatientSex());
                         req.setBirthdate(patientDTO.getBirthday());
@@ -1570,6 +1574,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 if (patientDTO != null) {
                     req.setIdcardTypeCode("01");
                     req.setIdcardNo(patientDTO.getIdcard());
+                    req.setCertificate(patientDTO.getCertificate());
+                    req.setCertificateType(patientDTO.getCertificateType());
                     req.setName(patientDTO.getPatientName());
                     req.setGenderCode(patientDTO.getPatientSex());
                     req.setBirthdate(patientDTO.getBirthday());
