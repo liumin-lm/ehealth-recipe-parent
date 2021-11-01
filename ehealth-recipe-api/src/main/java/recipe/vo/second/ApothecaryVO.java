@@ -42,4 +42,6 @@ public class ApothecaryVO implements Serializable {
      * 发药药师身份证 明文 运营平台使用
      */
     private String giveUserIdCardCleartext;
+    private String giveUserSignImg;
+    private String giveUserSignImgToken;
 }
