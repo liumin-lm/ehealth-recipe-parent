@@ -434,6 +434,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     saleDrugList1.setDrugSpec(detail.getDrugSpec());
                     saleDrugList1.setStatus(detail.getStatus());
                     saleDrugList1.setLastModify(new Date());
+                    saleDrugList1.setOrganDrugCode(String.valueOf(detail.getOrganDrugCode()));
                     switch (config.getSyncSaleDrugCodeType()) {
                         case 1:
                             saleDrugList1.setSaleDrugCode(detail.getOrganDrugCode());
