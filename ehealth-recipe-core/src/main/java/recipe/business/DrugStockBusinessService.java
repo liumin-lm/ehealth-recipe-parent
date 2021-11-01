@@ -103,6 +103,7 @@ public class DrugStockBusinessService extends BaseService {
         //获取校验何种类型库存
         Integer checkFlag = RecipeSupportGiveModeEnum.checkFlag(configurations);
         if (ValidateUtil.integerIsEmpty(checkFlag)) {
+            saveGiveMode(null, null, checkFlag, recipeId, recipe.getClinicOrgan(), configurations);
             return MapValueUtil.beanToMap(doSignRecipe);
         }
         logger.info("doSignRecipeCheckAndGetGiveMode recipeId={}, checkFlag={}", recipeId, checkFlag);
@@ -159,7 +160,7 @@ public class DrugStockBusinessService extends BaseService {
      */
     private void saveGiveMode(com.ngari.platform.recipe.mode.RecipeResultBean scanResult, SupportDepListBean allSupportDepList, int checkFlag, Integer recipeId, int organId, List<String> configurations) {
         RecipeBusiThreadPool.execute(() -> {
-            logger.info("saveGiveMode start");
+            logger.info("saveGiveMode start recipeId={}", recipeId);
             long start = System.currentTimeMillis();
             List<DrugsEnterprise> supportDepList = null;
             if (!Objects.isNull(allSupportDepList)) {

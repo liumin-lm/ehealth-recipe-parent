@@ -773,7 +773,7 @@ public class HisRequestInit {
             if(Objects.nonNull(recipeHisStatusEnum)) {
                 requestTO.setRecipeStatus(recipeHisStatusEnum.getValue());
             }
-            if (null != requestTO.getRecipeStatus() && PayFlagEnum.PAYED.getType().equals(nowRecipe.getPayFlag())
+            if (null == requestTO.getRecipeStatus() && null != order && PayFlagEnum.PAYED.getType().equals(order.getPayFlag())
                     && RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType().equals(nowRecipe.getStatus())) {
                 requestTO.setRecipeStatus(0);
             }

@@ -494,6 +494,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setIcdName(organDiseaseName);
             //门诊号处理
             if (recipeExtend != null) {
+                //咨询宋国超 目前是拿ghxh当的门诊号 这个广东在用最好不要动
                 req.setPatientNumber(recipeExtend.getRegisterID());
                 req.setCardNo(recipeExtend.getCardNo());
                 req.setCardType(recipeExtend.getCardType());
@@ -544,6 +545,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     if (null != consultExDTO) {
                         req.setCardNo(consultExDTO.getCardId());
                         req.setCardType(consultExDTO.getCardType());
+                        req.setRegisterId(consultExDTO.getRegisterNo());
                     }
                 }
             }

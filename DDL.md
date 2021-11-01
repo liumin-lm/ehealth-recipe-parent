@@ -20,6 +20,14 @@ cdr_hisprescription_detail
 
 
 第二期 12 做掉
+第一期延后
+```
+`Sender` varchar(30) DEFAULT NULL COMMENT '配送人',
+`startSendDate` datetime DEFAULT NULL COMMENT  '准备配送时间',
+有2021年8月份的信息
+这两个字段订单表中没有 放到二期 一期要先加字段 迁移数据
+修改入库代码
+```
 
 这部分字段已经迁移到ca表
 
@@ -42,7 +50,10 @@ cdr_hisprescription_detail
 `CheckDateYs` datetime DEFAULT NULL COMMENT '药师审核时间',(人工审方时间)
 `CheckDate` datetime DEFAULT NULL COMMENT '审核时间',(CheckDateYs重复,自动审方时使用区分自动审方与人工审方可以使用checkType区分)
 ```
+审方 也已经同步在审方表
 
+```
+`drugEntrustment` varchar(2000) DEFAULT NULL COMMENT '审方用药医嘱',(平台审方时药师写的医嘱)(拿掉)
 
 
 
@@ -62,7 +73,7 @@ cdr_hisprescription_detail
 
 第二期 ： 可以在第一期 删除字段的同时 与前端切换接口字段，切换之后第二期删除
 
-电子病历相关 都已经同步在电子病历 （兼容老接口所以字段在用 涉及到前端改动）
+电子病历相关 都已经同步在电子病历 （兼容老接口所以字段在用 涉及到前端改动）（老pc）
 
 ```
 `mainDieaseDescribe` varchar(100) DEFAULT NULL COMMENT '主诉',
@@ -74,10 +85,7 @@ cdr_hisprescription_detail
 `handleMethod` varchar(100) CHARACTER SET utf8 DEFAULT NULL COMMENT '处理方法',
 `physicalCheck` varchar(100) CHARACTER SET utf8 DEFAULT NULL COMMENT '体格检查',
 ```
-审方 也已经同步在审方表
 
-```
-`drugEntrustment` varchar(2000) DEFAULT NULL COMMENT '审方用药医嘱',(平台审方时药师写的医嘱)(拿掉)
 ```
 
 
@@ -206,14 +214,7 @@ ext 正在使用,先不动
 ```
 `payAmount` varchar(10) CHARACTER SET utf8 DEFAULT NULL COMMENT '预结算返回应付金额',
 ```
-第一期延后
-```
-`Sender` varchar(30) DEFAULT NULL COMMENT '配送人',
-`startSendDate` datetime DEFAULT NULL COMMENT  '准备配送时间',
-有2021年8月份的信息
-这两个字段订单表中没有 放到二期 一期要先加字段 迁移数据
-修改入库代码
-```
+
 
 
 ddl 第一期
