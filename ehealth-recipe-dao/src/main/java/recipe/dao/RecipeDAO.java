@@ -3394,7 +3394,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     /**
      * 根据需要变更的状态获取处方ID集合
      *
-     * @param cancelStatus
+     * @param
      * @return
      */
     public List<Recipe> getRecipeListForSignCancelRecipe(final String startDt, final String endDt) {
@@ -3580,7 +3580,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 StringBuilder hql = new StringBuilder();
 
                 hql.append("select * from (");
-                hql.append("SELECT r.RecipeID,r.orderCode,r.STATUS,r.patientName,r.fromflag,r.recipeCode,r.doctorName,r.recipeType,r.organDiseaseName, " +
+                hql.append("SELECT r.RecipeID,r.orderCode,(CASE WHEN ( r.reviewType = 1 AND r.checkStatus = 1 AND r.STATUS = 15 ) THEN" +
+                        " 8 ELSE r.STATUS " +
+                        "END ) AS STATUS,r.patientName,r.fromflag,r.recipeCode,r.doctorName,r.recipeType,r.organDiseaseName, " +
                         "r.clinicOrgan,r.organName,r.signFile,r.chemistSignFile,r.signDate,r.recipeMode,r.recipeSource,r.mpiid,r.depart, " +
                         "r.enterpriseId,e.registerID,e.chronicDiseaseName,o.OrderId,IFNULL(o.CreateTime,r.signDate) as time ,o.Status as orderStatus,r.GiveMode,o.PayMode" +
                         " FROM cdr_recipe r left join cdr_recipeorder o on r.OrderCode = o.OrderCode left join " +
@@ -3588,11 +3590,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         " WHERE " +
                         " r.mpiid IN ( :allMpiIds  ) AND r.recipeSourceType = 1");
                 if ("onready".equals(tabStatus)) {
-                    hql.append(" AND ((r.recipeMode != 'zjjgpt' && r.STATUS IN ( :recipeStatus )" +
+                    hql.append(" AND ((r.recipeMode != 'zjjgpt' && r.STATUS IN ( :recipeStatus ) OR ( r.reviewType = 1 AND r.checkStatus = 1 AND r.STATUS = 15 ) " +
                             ") OR ( r.recipeMode = 'zjjgpt' AND r.STATUS IN ( 2, 22 ) ) ) ");
                     hql.append(" AND r.orderCode IS NULL ");
-                }else {
+                }else if ("ongoing".equals(tabStatus)){
                     hql.append(" AND r.STATUS IN ( :recipeStatus )  ");
+                }else if ("isover".equals(tabStatus)){
+                    hql.append(" AND r.STATUS IN ( :recipeStatus ) AND r.RecipeID not in (select RecipeID from cdr_recipe where  reviewType = 1 AND checkStatus = 1 AND STATUS = 15)   ");
                 }
                 if ("ongoing".equals(tabStatus)) {
                     hql.append(" UNION ALL SELECT r.RecipeID,r.orderCode,r.STATUS,r.patientName,r.fromflag,r.recipeCode,r.doctorName,r.recipeType,r.organDiseaseName,r.clinicOrgan," +
