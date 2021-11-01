@@ -774,7 +774,8 @@ public class HisRequestInit {
                 requestTO.setRecipeStatus(recipeHisStatusEnum.getValue());
             }
             if (null == requestTO.getRecipeStatus() && null != order && PayFlagEnum.PAYED.getType().equals(order.getPayFlag())
-                    && RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType().equals(nowRecipe.getStatus())) {
+                    && (RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType().equals(nowRecipe.getStatus()) ||
+                    RecipeStatusEnum.RECIPE_STATUS_WAIT_SEND.getType().equals(nowRecipe.getStatus()))) {
                 requestTO.setRecipeStatus(0);
             }
             // 医院系统医嘱号（一张处方多条记录用|分隔）
