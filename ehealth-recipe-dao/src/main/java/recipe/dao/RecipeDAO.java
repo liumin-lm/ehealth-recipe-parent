@@ -2267,6 +2267,38 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
+    /**
+     * maoze
+     * 杨柳郡专用
+     * @param mpiId
+     * @param organId
+     * @param start
+     * @param limit
+     * @return
+     */
+    public QueryResult<Recipe> findRecipeListByMpiIDForYang(final String mpiId, final Integer organId, final int start, final int limit) {
+        HibernateStatelessResultAction<QueryResult<Recipe>> action = new AbstractHibernateStatelessResultAction<QueryResult<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "from Recipe where requestMpiId=:mpiid and clinicOrgan =:clinicOrgan and status in (2,3,4,5,6,7,8,9,12,13,14,15,40,41,42) order by createDate desc";
+                Query query = ss.createQuery(hql);
+                query.setParameter("mpiid", mpiId);
+                query.setParameter("clinicOrgan", organId);
+                query.setFirstResult(start);
+                query.setMaxResults(limit);
+
+                Query countQuery = ss.createQuery("select count(*) " + hql);
+                countQuery.setParameter("mpiid", mpiId);
+                countQuery.setParameter("clinicOrgan", organId);
+                Long total = (Long) countQuery.uniqueResult();
+                List<Recipe> lists = query.list();
+                setResult(new QueryResult<Recipe>(total, query.getFirstResult(), query.getMaxResults(), lists));
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
     public List<Recipe> findRecipeListForDate(final List<Integer> organList, final String startDt, final String endDt) {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
