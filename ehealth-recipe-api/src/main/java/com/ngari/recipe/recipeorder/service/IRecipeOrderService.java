@@ -217,11 +217,21 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
      * 退款时使用
      *
      * @param orderCode 订单编号
-     * @param payFlag 支付状态
-     * @param payMode 购药方式
-     * @param refundNo 退款流水号
+     * @param payFlag   支付状态
+     * @param payMode   购药方式
+     * @param refundNo  退款流水号
      */
     @RpcService
     void finishOrderPayByRefund(String orderCode, int payFlag, Integer payMode, String refundNo);
+
+    /**
+     * 老版paymode使用
+     *
+     * @param payMode
+     * @param giveMode
+     * @return
+     */
+    @RpcService
+    Integer obtainPayMode(Integer payMode, Integer giveMode);
 
 }
