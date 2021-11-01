@@ -3590,13 +3590,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         " WHERE " +
                         " r.mpiid IN ( :allMpiIds  ) AND r.recipeSourceType = 1");
                 if ("onready".equals(tabStatus)) {
-                    hql.append(" AND ((r.recipeMode != 'zjjgpt' && r.STATUS IN ( :recipeStatus ) OR ( r.reviewType = 1 AND r.checkStatus = 1 AND r.STATUS = 15 ) " +
+                    hql.append(" AND ((r.recipeMode != 'zjjgpt' && r.STATUS IN ( :recipeStatus ) OR ( r.reviewType != 0 AND r.checkStatus = 1 AND r.STATUS = 15 ) " +
                             ") OR ( r.recipeMode = 'zjjgpt' AND r.STATUS IN ( 2, 22 ) ) ) ");
                     hql.append(" AND r.orderCode IS NULL ");
                 }else if ("ongoing".equals(tabStatus)){
-                    hql.append(" AND r.STATUS IN ( :recipeStatus )  ");
+                    hql.append(" AND (( r.STATUS IN ( :recipeStatus ) ) or (r.reviewType = 2 AND r.checkStatus = 1 AND r.STATUS = 15)) ");
                 }else if ("isover".equals(tabStatus)){
-                    hql.append(" AND r.STATUS IN ( :recipeStatus ) AND r.RecipeID not in (select RecipeID from cdr_recipe where  reviewType = 1 AND checkStatus = 1 AND STATUS = 15)   ");
+                    hql.append(" AND r.STATUS IN ( :recipeStatus ) AND r.RecipeID not in (select RecipeID from cdr_recipe where  reviewType != 0 AND checkStatus = 1 AND STATUS = 15)   ");
                 }
                 if ("ongoing".equals(tabStatus)) {
                     hql.append(" UNION ALL SELECT r.RecipeID,r.orderCode,r.STATUS,r.patientName,r.fromflag,r.recipeCode,r.doctorName,r.recipeType,r.organDiseaseName,r.clinicOrgan," +
