@@ -161,6 +161,7 @@ public class PayModeOnline implements IPurchaseService {
             resultBean.setMsg("抱歉，没有可选择的药企");
             return resultBean;
         }
+        LOG.info("findSupportDepList subDepList:{}.", JSONUtils.toString(subDepList));
         //这里是为了同一个药企下能显示在线支付和货到付款
         subDepList = getAllSubDepList(subDepList);
         DepDetailBean depDetailBean;
