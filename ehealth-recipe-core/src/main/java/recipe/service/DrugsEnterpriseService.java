@@ -163,10 +163,12 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         config.setDrugsenterpriseId(newDrugsEnterprise.getId());
         if (newDrugsEnterprise.getCreateType()==0){
             config.setEnable_drug_sync(1);
+            drugsEnterpriseConfigService.addOrUpdateDrugsEnterpriseConfig(config);
         }else {
+            DrugsEnterpriseConfigDAO dao = DAOFactory.getDAO(DrugsEnterpriseConfigDAO.class);
             config.setEnable_drug_sync(0);
+            dao.save(config);
         }
-        drugsEnterpriseConfigService.addOrUpdateDrugsEnterpriseConfig(config);
         // 写入药企关联物流公司信息
         drugEnterpriseLogisticsService.saveDrugEnterpriseLogistics(drugsEnterpriseBean.getDrugEnterpriseLogisticsBeans(), newDrugsEnterprise.getId());
         //更新管理单元
