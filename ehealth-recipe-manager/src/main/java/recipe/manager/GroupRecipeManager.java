@@ -72,7 +72,14 @@ public class GroupRecipeManager extends BaseManager {
         if (CollectionUtils.isEmpty(organIds)) {
             return result;
         }
-        Boolean mergeRecipeFlag = organIds.stream().allMatch(a -> configurationClient.getValueBooleanCatch(a, "mergeRecipeFlag", false));
+        Boolean mergeRecipeFlag = true;
+        for (Integer organId : organIds) {
+            Boolean mergeRecipeFlag1 = configurationClient.getValueBooleanCatch(organId, "mergeRecipeFlag", false);
+            if (!mergeRecipeFlag1) {
+                mergeRecipeFlag = false;
+            }
+        }
+
         logger.info("GroupRecipeManager getMergeRecipeSetting mergeRecipeFlag={}", JSON.toJSONString(mergeRecipeFlag));
         result.setMergeRecipeFlag(mergeRecipeFlag);
         if (!mergeRecipeFlag) {
