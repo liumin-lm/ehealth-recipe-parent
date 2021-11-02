@@ -52,23 +52,6 @@ public class DrugsEnterpriseConfigService {
             drugsEnterpriseConfig.setSyncDrugType("1,2,3");
         }
     }
-    public void checkConfigCreateType(DrugsEnterpriseConfig drugsEnterpriseConfig){
-        if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getSyncDataSource())){
-            drugsEnterpriseConfig.setSyncDataSource(1);
-        }
-        if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getEnable_drug_syncType())){
-            drugsEnterpriseConfig.setEnable_drug_syncType("1,2");
-        }
-        if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getSyncSaleDrugCodeType())){
-            drugsEnterpriseConfig.setSyncSaleDrugCodeType(1);
-        }
-        if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getSyncDataRange())){
-            drugsEnterpriseConfig.setSyncDataRange(2);
-        }
-        if (ObjectUtils.isEmpty(drugsEnterpriseConfig.getSyncDrugType())){
-            drugsEnterpriseConfig.setSyncDrugType("1,2,3");
-        }
-    }
 
     @RpcService
     public DrugsEnterpriseConfig addOrUpdateDrugsEnterpriseConfig(DrugsEnterpriseConfig drugsEnterpriseConfig){
