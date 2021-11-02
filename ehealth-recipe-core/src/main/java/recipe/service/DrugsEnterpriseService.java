@@ -167,6 +167,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         }else {
             DrugsEnterpriseConfigDAO dao = DAOFactory.getDAO(DrugsEnterpriseConfigDAO.class);
             config.setEnable_drug_sync(0);
+            config.setSyncDataSource(1);
             dao.save(config);
         }
         // 写入药企关联物流公司信息
