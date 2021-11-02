@@ -75,6 +75,7 @@ public class GroupRecipeManager extends BaseManager {
         Boolean mergeRecipeFlag = true;
         for (Integer organId : organIds) {
             Boolean mergeRecipeFlag1 = configurationClient.getValueBooleanCatch(organId, "mergeRecipeFlag", false);
+            logger.info("GroupRecipeManager getMergeRecipeSetting organId={} ,mergeRecipeFlag1={}", JSON.toJSONString(organIds),mergeRecipeFlag1);
             if (!mergeRecipeFlag1) {
                 mergeRecipeFlag = false;
             }
