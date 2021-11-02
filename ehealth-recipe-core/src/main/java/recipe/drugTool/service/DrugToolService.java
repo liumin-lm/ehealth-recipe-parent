@@ -465,7 +465,7 @@ public class DrugToolService implements IDrugToolService {
                     }
 
                 } else {
-                    drug.setUseDose(Double.parseDouble(getStrFromCell(row.getCell(14))));
+                    drug.setUseDoseUnit(getStrFromCell(row.getCell(14)));
                 }
             } catch (Exception e) {
                 LOGGER.error("规格单位有误 ," + e.getMessage(), e);

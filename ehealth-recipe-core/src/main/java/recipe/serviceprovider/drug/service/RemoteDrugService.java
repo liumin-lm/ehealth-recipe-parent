@@ -360,7 +360,6 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         }
     }
 
-    @RpcService
     @Override
     public QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(String drugClass, String keyword,
                                                                               Integer status,final Integer drugSourcesId,Integer type, Integer isStandardDrug, int start, int limit) {

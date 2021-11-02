@@ -60,6 +60,7 @@ import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.enumerate.type.RecipePayTypeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.RecipeOrderPayFlowManager;
+import recipe.purchase.PayModeTFDS;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.third.HztServiceInterface;
@@ -286,7 +287,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 }
 
                 //这里应该是药店取药支付方式为1时不展示支付提示信息
-                if (drugsEnterpriseBean != null && Integer.valueOf(1).equals(drugsEnterpriseBean.getStorePayFlag())) {
+                if (drugsEnterpriseBean != null && new Integer(4).equals(payMode) && Integer.valueOf(1).equals(drugsEnterpriseBean.getStorePayFlag())) {
                     map.put("payTip", "");
                     map.put("payNote", "");
                 } else {
