@@ -161,7 +161,11 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         //新增药企配置
         DrugsEnterpriseConfig config=new DrugsEnterpriseConfig();
         config.setDrugsenterpriseId(newDrugsEnterprise.getId());
-        config.setEnable_drug_sync(1);
+        if (newDrugsEnterprise.getCreateType()==0){
+            config.setEnable_drug_sync(1);
+        }else {
+            config.setEnable_drug_sync(0);
+        }
         drugsEnterpriseConfigService.addOrUpdateDrugsEnterpriseConfig(config);
         // 写入药企关联物流公司信息
         drugEnterpriseLogisticsService.saveDrugEnterpriseLogistics(drugsEnterpriseBean.getDrugEnterpriseLogisticsBeans(), newDrugsEnterprise.getId());
