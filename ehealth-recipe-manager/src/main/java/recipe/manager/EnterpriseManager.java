@@ -636,10 +636,12 @@ public class EnterpriseManager extends BaseManager {
             } else if (RecipeDistributionFlagEnum.drugsEnterpriseTo.contains(drugsEnterprise.getPayModeSupport())
                     && strings.contains(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType().toString())
                     && RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType().equals(type)) {
+
                 // 药企支付到店取药
                 drugsEnterpriseList.add(drugsEnterprise);
             } else if (RecipeDistributionFlagEnum.drugsEnterpriseSend.contains(drugsEnterprise.getPayModeSupport())
                     && RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().equals(type)) {
+
                 if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(drugsEnterprise.getSendType()) &&
                         strings.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString())) {
                     // 医院配送
