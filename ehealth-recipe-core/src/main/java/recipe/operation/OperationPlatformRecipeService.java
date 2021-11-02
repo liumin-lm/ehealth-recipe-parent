@@ -209,10 +209,11 @@ public class OperationPlatformRecipeService {
         AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
         AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartIDAndCancleFlag(recipe.getClinicOrgan(), recipe.getDepart());
         //挂号科室名称
+        LOGGER.info("findRecipeAndDetailsAndCheckById reicpeid={},appointDepart={}",recipeId,JSONUtils.toString(appointDepart));
         r.setAppointDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
         //机构所属一级科室
         r.setOrganProfession((null != appointDepart) ? appointDepart.getOrganProfession() : null);
-
+        LOGGER.info("findRecipeAndDetailsAndCheckById reicpeid={},r={}",recipeId,JSONUtils.toString(r));
         //取医生的手机号
         DoctorDTO doctor = new DoctorDTO();
         try {
