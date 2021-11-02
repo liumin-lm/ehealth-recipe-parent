@@ -201,7 +201,7 @@ public class EnterpriseManager extends BaseManager {
                 break;
             case ENTERPRISE_APPOINT:
                 String deliveryCode = recipeExtend.getDeliveryCode();
-                drugsEnterpriseList = findEnterpriseListByAppoint(deliveryCode, recipe);
+                drugsEnterpriseList = findEnterpriseListByAppoint(deliveryCode, recipe,RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
                 break;
             case DEFAULT:
             default:
@@ -255,7 +255,7 @@ public class EnterpriseManager extends BaseManager {
                 break;
             case ENTERPRISE_APPOINT:
                 String deliveryCode = recipeExtend.getDeliveryCode();
-                drugsEnterpriseList = findEnterpriseListByAppoint(deliveryCode, recipe);
+                drugsEnterpriseList = findEnterpriseListByAppoint(deliveryCode, recipe,RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
                 break;
             case DEFAULT:
             default:
@@ -615,7 +615,7 @@ public class EnterpriseManager extends BaseManager {
      * @param deliveryCode
      * @return
      */
-    private List<DrugsEnterprise> findEnterpriseListByAppoint(String deliveryCode, Recipe recipe) {
+    private List<DrugsEnterprise> findEnterpriseListByAppoint(String deliveryCode, Recipe recipe, Integer type) {
         List<DrugsEnterprise> drugsEnterpriseList = new ArrayList<>();
         if (StringUtils.isEmpty(deliveryCode)) {
             throw new DAOException("指定药企为空");
@@ -629,15 +629,17 @@ public class EnterpriseManager extends BaseManager {
         // 根据 药企的购药方式 过滤信息
         String[] recipeSupportGiveMode = recipe.getRecipeSupportGiveMode().split(",");
         List<String> strings = Arrays.asList(recipeSupportGiveMode);
-        logger.info("EnterpriseManager findEnterpriseListByAppoint  drugsEnterprises={},recipeSupportGiveMode={}", JSONUtils.toString(drugsEnterprises),JSONUtils.toString(recipeSupportGiveMode));
+        logger.info("EnterpriseManager findEnterpriseListByAppoint  drugsEnterprises={},recipeSupportGiveMode={}", JSONUtils.toString(drugsEnterprises), JSONUtils.toString(recipeSupportGiveMode));
         drugsEnterprises.forEach(drugsEnterprise -> {
             if (RecipeDistributionFlagEnum.drugsEnterpriseAll.contains(drugsEnterprise.getPayModeSupport())) {
                 drugsEnterpriseList.add(drugsEnterprise);
             } else if (RecipeDistributionFlagEnum.drugsEnterpriseTo.contains(drugsEnterprise.getPayModeSupport())
-                    && strings.contains(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType().toString())) {
+                    && strings.contains(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType().toString())
+                    && RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType().equals(type)) {
                 // 药企支付到店取药
                 drugsEnterpriseList.add(drugsEnterprise);
-            } else if (RecipeDistributionFlagEnum.drugsEnterpriseSend.contains(drugsEnterprise.getPayModeSupport())) {
+            } else if (RecipeDistributionFlagEnum.drugsEnterpriseSend.contains(drugsEnterprise.getPayModeSupport())
+                    && RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().equals(type)) {
                 if (RecipeSendTypeEnum.ALRAEDY_PAY.getSendType().equals(drugsEnterprise.getSendType()) &&
                         strings.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType().toString())) {
                     // 医院配送
