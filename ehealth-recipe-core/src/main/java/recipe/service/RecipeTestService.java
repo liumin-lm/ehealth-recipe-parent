@@ -61,9 +61,9 @@ public class RecipeTestService {
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
 
     @RpcService
-    public PushRecipeAndOrder getPushRecipeAndOrder(Integer recipeId, Integer depId){
+    public PushRecipeAndOrder getPushRecipeAndOrder(Integer recipeId){
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
         return enterpriseManager.getPushRecipeAndOrder(recipe, drugsEnterprise);
     }
 

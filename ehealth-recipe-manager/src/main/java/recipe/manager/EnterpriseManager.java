@@ -399,7 +399,8 @@ public class EnterpriseManager extends BaseManager {
         pushRecipeAndOrder.setDoctorDTO(doctorClient.jobNumber(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getDepart()));
         //设置审方药师信息
         pushRecipeAndOrder.setRecipeAuditReq(recipeAuditReq(recipe.getClinicOrgan(), recipe.getChecker(), recipe.getDepart()));
-
+        //设置药企信息
+        pushRecipeAndOrder.setDrugsEnterpriseBean(ObjectCopyUtils.convert(enterprise, DrugsEnterpriseBean.class));
         //设置患者信息
         PatientDTO patientDTO = patientClient.getPatientDTO(recipe.getMpiid());
         pushRecipeAndOrder.setPatientDTO(ObjectCopyUtils.convert(patientDTO, com.ngari.patient.dto.PatientDTO.class));
