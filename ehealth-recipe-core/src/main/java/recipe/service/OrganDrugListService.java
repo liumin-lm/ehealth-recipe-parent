@@ -136,16 +136,18 @@ public class OrganDrugListService implements IOrganDrugListService {
         if (drugsEnterprises != null && drugsEnterprises.size() > 0 ){
             for (DrugsEnterprise drugsEnterpris : drugsEnterprises) {
                 DrugsEnterpriseConfig config = configService.getConfigByDrugsenterpriseId(drugsEnterpris.getId());
-                String[] strings = config.getEnable_drug_syncType().split(",");
-                List<String> syncTypeList = new ArrayList<String>(Arrays.asList(strings));
-                if (syncTypeList.indexOf("3")!=-1){
-                    if (status==1){
-                        bean.deleteOrganDrugDataToSaleDrugList(lists,drugsEnterpris.getId());
-                    }else if (status == 2){
-                        try {
-                            bean.updateOrganDrugDataToSaleDrugList(lists,drugsEnterpris.getId());
-                        } catch (Exception e) {
-                            logger.info("机构药品禁用删除同步对应药企"+e);
+                if (config.getEnable_drug_sync()==1){
+                    String[] strings = config.getEnable_drug_syncType().split(",");
+                    List<String> syncTypeList = new ArrayList<String>(Arrays.asList(strings));
+                    if (syncTypeList.indexOf("3")!=-1){
+                        if (status==1){
+                            bean.deleteOrganDrugDataToSaleDrugList(lists,drugsEnterpris.getId());
+                        }else if (status == 2){
+                            try {
+                                bean.updateOrganDrugDataToSaleDrugList(lists,drugsEnterpris.getId());
+                            } catch (Exception e) {
+                                logger.info("机构药品禁用删除同步对应药企"+e);
+                            }
                         }
                     }
                 }
