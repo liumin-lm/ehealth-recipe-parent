@@ -176,7 +176,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                         errMsg.append("平台未找到该平台通用药品").append(";");
                     }
                     if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(0)))) {
-                        SaleDrugList byDrugIdAndOrganId = saleDrugListDAO.getByDrugIdAndOrganId(Integer.parseInt(getStrFromCell(row.getCell(1)).trim()), organId);
+                        SaleDrugList byDrugIdAndOrganId = saleDrugListDAO.getByDrugIdAndOrganId(Integer.parseInt(getStrFromCell(row.getCell(0)).trim()), organId);
                         if (!ObjectUtils.isEmpty(byDrugIdAndOrganId)){
                             errMsg.append("药企已存在药品关联该平台药品").append(";");
                         }
