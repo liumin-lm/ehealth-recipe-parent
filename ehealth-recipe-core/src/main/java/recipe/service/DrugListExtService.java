@@ -484,7 +484,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(commonDrugListDTO.getPharmacyId());
             List<String> pharmacyCategaryList = new LinkedList<>();
             if (null != pharmacyTcm) {
-                pharmacyCategaryList = Arrays.asList(pharmacyTcmDAO.get(commonDrugListDTO.getPharmacyId()).getPharmacyCategray().split(","));
+                pharmacyCategaryList = Arrays.asList(pharmacyTcm.getPharmacyCategray().split(","));
             }
             List<DrugListBean> pharmacyCategaryListResult = new ArrayList<>();
             for (DrugListBean drugListBean : drugListBeans) {
