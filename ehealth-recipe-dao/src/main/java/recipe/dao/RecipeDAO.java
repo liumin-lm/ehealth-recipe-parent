@@ -3719,6 +3719,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         if (null != objs[19]) {
                             recipeListBean.setRegisterID(objs[19].toString());
                         }
+                        if (null == objs[19]) {
+                            recipeListBean.setRegisterID("-1");
+                        }
                         if (null != objs[20]) {
                             recipeListBean.setChronicDiseaseName(objs[20].toString());
                         }

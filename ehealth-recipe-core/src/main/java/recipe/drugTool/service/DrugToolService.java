@@ -465,7 +465,7 @@ public class DrugToolService implements IDrugToolService {
                     }
 
                 } else {
-                    drug.setUseDose(Double.parseDouble(getStrFromCell(row.getCell(14))));
+                    drug.setUseDoseUnit(getStrFromCell(row.getCell(14)));
                 }
             } catch (Exception e) {
                 LOGGER.error("规格单位有误 ," + e.getMessage(), e);
@@ -602,7 +602,7 @@ public class DrugToolService implements IDrugToolService {
                         if (ObjectUtils.isEmpty(usePathwaysDTO)){
                             errMsg.append("平台未找到该用药途径").append(";");
                         }else {
-                            drug.setUsingRateId(usePathwaysDTO.getId().toString());
+                            drug.setUsePathwaysId(usePathwaysDTO.getId().toString());
                         }
 
                     }else {
@@ -610,7 +610,7 @@ public class DrugToolService implements IDrugToolService {
                         if (ObjectUtils.isEmpty(usePathwaysDTO)){
                             errMsg.append("机构未找到该用药途径").append(";");
                         }else {
-                            drug.setUsingRateId(usePathwaysDTO.getId().toString());
+                            drug.setUsePathwaysId(usePathwaysDTO.getId().toString());
                         }
                     }
                 }
@@ -1229,6 +1229,7 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setLicenseNumber(drugListMatch.getLicenseNumber());
                         organDrugList.setPharmacyName(drugListMatch.getPharmacy());
                         organDrugList.setChemicalName(drugListMatch.getChemicalName());
+                        organDrugList.setPackingMaterials(drugListMatch.getPackingMaterials());
                         organDrugList.setTakeMedicine(0);
                         organDrugList.setStatus(1);
                         organDrugList.setProducerCode("");
@@ -1364,6 +1365,8 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setRegulationDrugCode(drugListMatch.getRegulationDrugCode());
                         organDrugList.setLicenseNumber(drugListMatch.getLicenseNumber());
                         organDrugList.setPharmacy(drugListMatch.getPharmacy());
+                        organDrugList.setPackingMaterials(drugListMatch.getPackingMaterials());
+
                         organDrugList.setTakeMedicine(0);
                         organDrugList.setStatus(1);
                         organDrugList.setProducerCode("");

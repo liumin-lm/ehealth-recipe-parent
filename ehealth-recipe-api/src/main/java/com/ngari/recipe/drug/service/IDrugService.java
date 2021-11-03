@@ -101,7 +101,7 @@ public interface IDrugService extends IBaseService<DrugListBean> {
      * @param limit
      * @return
      */
-    @RpcService
+    @RpcService(timeout = 600)
     QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(String drugClass, String keyword,
                                                                        Integer status, Integer drugSourcesId,Integer type,Integer isStandardDrug, int start, int limit);
     @RpcService

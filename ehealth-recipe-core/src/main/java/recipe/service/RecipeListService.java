@@ -1232,12 +1232,18 @@ public class RecipeListService extends RecipeBaseService {
                     patientTabStatusMergeRecipeDTO.setGroupField(key);
                     List<PatientTabStatusRecipeDTO> recipe = Lists.newArrayList();
 
-                    List<RecipeListBean> recipeListBeans = finalRecipeListMap.get(key);
-                    recipeListBeans.forEach(recipeListBean1 -> {
-                        PatientTabStatusRecipeDTO patientTabStatusRecipeDTO = PatientTabStatusRecipeConvert(recipeListBean1);
+                    if("-1".equals(key)){
+                        patientTabStatusMergeRecipeDTO.setGroupField(null);
+                        PatientTabStatusRecipeDTO patientTabStatusRecipeDTO = PatientTabStatusRecipeConvert(recipeListBean);
                         recipe.add(patientTabStatusRecipeDTO);
-                        recipeIds.add(recipeListBean1.getRecipeId());
-                    });
+                    } else {
+                        List<RecipeListBean> recipeListBeans = finalRecipeListMap.get(key);
+                        recipeListBeans.forEach(recipeListBean1 -> {
+                            PatientTabStatusRecipeDTO patientTabStatusRecipeDTO = PatientTabStatusRecipeConvert(recipeListBean1);
+                            recipe.add(patientTabStatusRecipeDTO);
+                            recipeIds.add(recipeListBean1.getRecipeId());
+                        });
+                    }
                 patientTabStatusMergeRecipeDTO.setRecipe(recipe);
                 result.add(patientTabStatusMergeRecipeDTO);
                 }

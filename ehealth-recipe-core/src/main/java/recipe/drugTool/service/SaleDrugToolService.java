@@ -168,10 +168,10 @@ public class SaleDrugToolService implements ISaleDrugToolService {
             /*try{*/
 
                 try {
-                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(1)))) {
+                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(0)))) {
                         errMsg.append("【平台药品编码】未填写").append(";");
                     }
-                    DrugList drugList = drugListDAO.get(Integer.parseInt(getStrFromCell(row.getCell(1)).trim()));
+                    DrugList drugList = drugListDAO.get(Integer.parseInt(getStrFromCell(row.getCell(0)).trim()));
                     if (ObjectUtils.isEmpty(drugList)){
                         errMsg.append("平台未找到该平台通用药品").append(";");
                     }
