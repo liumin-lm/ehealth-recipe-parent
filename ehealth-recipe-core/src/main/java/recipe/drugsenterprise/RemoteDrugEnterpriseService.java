@@ -88,6 +88,8 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
     private RevisitClient revisitClient;
     @Autowired
     private ButtonManager buttonManager;
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
 
     //手动推送给第三方
     @RpcService
@@ -743,14 +745,18 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+            String total = recipeParameterDao.getByName(organId + "_drugsEnterprise_num");
             List<ScanDrugListBean> scanDrugListBeans = new ArrayList<>();
             for (com.ngari.recipe.recipe.model.RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
                 SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
-
                 if (saleDrugList != null) {
                     ScanDrugListBean scanDrugListBean = new ScanDrugListBean();
                     scanDrugListBean.setDrugCode(saleDrugList.getOrganDrugCode());
-                    scanDrugListBean.setTotal("5");
+                    if (StringUtils.isNotEmpty(total)) {
+                        scanDrugListBean.setTotal(total);
+                    } else {
+                        scanDrugListBean.setTotal("5");
+                    }
                     if (organId != null && organId < 0) {
                         DrugList drugList = drugListDAO.getById(recipeDetailBean.getDrugId());
                         scanDrugListBean.setUnit(drugList.getUnit());
