@@ -602,7 +602,7 @@ public class DrugToolService implements IDrugToolService {
                         if (ObjectUtils.isEmpty(usePathwaysDTO)){
                             errMsg.append("平台未找到该用药途径").append(";");
                         }else {
-                            drug.setUsingRateId(usePathwaysDTO.getId().toString());
+                            drug.setUsePathwaysId(usePathwaysDTO.getId().toString());
                         }
 
                     }else {
@@ -610,7 +610,7 @@ public class DrugToolService implements IDrugToolService {
                         if (ObjectUtils.isEmpty(usePathwaysDTO)){
                             errMsg.append("机构未找到该用药途径").append(";");
                         }else {
-                            drug.setUsingRateId(usePathwaysDTO.getId().toString());
+                            drug.setUsePathwaysId(usePathwaysDTO.getId().toString());
                         }
                     }
                 }
