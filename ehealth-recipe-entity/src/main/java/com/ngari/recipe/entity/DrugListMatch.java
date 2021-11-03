@@ -194,6 +194,10 @@ public class DrugListMatch implements java.io.Serializable {
     private String drugsEnterpriseIds;
 
 
+    @ItemProperty(alias = "单位剂量单位（最小单位）")
+    private String useDoseSmallestUnit;
+
+
     @Column(name = "retrievalCode ")
     public String getRetrievalCode() {
         return retrievalCode;
@@ -595,5 +599,14 @@ public class DrugListMatch implements java.io.Serializable {
 
     public void setUsePathwaysId(String usePathwaysId) {
         this.usePathwaysId = usePathwaysId;
+    }
+
+    @Column(name = "useDoseSmallestUnit")
+    public String getUseDoseSmallestUnit() {
+        return useDoseSmallestUnit;
+    }
+
+    public void setUseDoseSmallestUnit(String useDoseSmallestUnit) {
+        this.useDoseSmallestUnit = useDoseSmallestUnit;
     }
 }

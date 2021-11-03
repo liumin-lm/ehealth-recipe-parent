@@ -422,7 +422,7 @@ public class DrugToolService implements IDrugToolService {
                     }
                 }
                 if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(11)))) {
-                    drug.setSmallestUnitUseDose(Double.parseDouble(getStrFromCell(row.getCell(11)).trim()));
+                    drug.setUseDoseSmallestUnit(getStrFromCell(row.getCell(11)));
                 }
             } catch (Exception e) {
                 LOGGER.error("药品最小单位有误 ," + e.getMessage(), e);
@@ -1245,6 +1245,7 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setSmallestUnitUseDose(drugListMatch.getSmallestUnitUseDose());
                         organDrugList.setRecommendedUseDose(drugListMatch.getRecommendedUseDose());
                         organDrugList.setDrugsEnterpriseIds(drugListMatch.getDrugsEnterpriseIds());
+                        organDrugList.setUseDoseSmallestUnit(drugListMatch.getUseDoseSmallestUnit());
 
                         Boolean isSuccess = organDrugListDAO.updateData(organDrugList);
                         if (!isSuccess) {
@@ -1366,6 +1367,7 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setLicenseNumber(drugListMatch.getLicenseNumber());
                         organDrugList.setPharmacy(drugListMatch.getPharmacy());
                         organDrugList.setPackingMaterials(drugListMatch.getPackingMaterials());
+                        organDrugList.setUseDoseSmallestUnit(drugListMatch.getUseDoseSmallestUnit());
 
                         organDrugList.setTakeMedicine(0);
                         organDrugList.setStatus(1);
