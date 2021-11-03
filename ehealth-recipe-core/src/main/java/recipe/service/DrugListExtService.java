@@ -1367,7 +1367,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         Future<? extends List<? extends IDrugInventory>> fiveSecondsTask =
                 GlobalEventExecFactory.instance().getExecutor().submit(() -> setDrugsEnterpriseInventories(organId, drugListBeans));
         try {
-            fiveSecondsTask.get(5000, TimeUnit.MILLISECONDS);
+            fiveSecondsTask.get(10000, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             LOGGER.error("查询药企药品库存错误setDrugsEnterpriseInventoriesByFiveSeconds ", e);
             //单个药库存对象
