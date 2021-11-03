@@ -142,7 +142,7 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
         try {
             //将物流支付状态,物流费同步到基础平台
             IWaybillService waybillService = AppContextHolder.getBean("infra.waybillService", IWaybillService.class);
-            if (ExpressFeePayWayEnum.ONLINE.getType().equals(order.getExpressFeePayWay())) {
+            if (null == order.getExpressFeePayWay() || ExpressFeePayWayEnum.ONLINE.getType().equals(order.getExpressFeePayWay())) {
                 LOGGER.info("基础物流更新快递单号：{}的支付支付方式为线上支付和快递费用：{}", trackingNumber, order.getExpressFee());
                 waybillService.updatePayplatStatus(trackingNumber, LOGISTICS_HAS_PAY, order.getExpressFee());
             } else {
