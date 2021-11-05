@@ -7,6 +7,7 @@ import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.bus.op.service.IUsingRateService;
+import com.ngari.opbase.base.service.IBusActionLogService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
@@ -26,9 +27,11 @@ import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugListMatch;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.squareup.moshi.Json;
+import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
@@ -357,7 +360,6 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         }
     }
 
-    @RpcService
     @Override
     public QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(String drugClass, String keyword,
                                                                               Integer status,final Integer drugSourcesId,Integer type, Integer isStandardDrug, int start, int limit) {
@@ -637,12 +639,16 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         }
 
         DrugListDAO dao = DAOFactory.getDAO(DrugListDAO.class);
+        IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
         DrugList target = dao.getById(drugId);
         if (null == target) {
             throw new DAOException(DAOException.ENTITIY_NOT_FOUND, "Can't found drugList");
         }
         target.setStatus(0);
+        UserRoleToken urt = UserRoleToken.getCurrent();
         DrugList drugList = dao.update(target);
+        busActionLogService.recordBusinessLogRpcNew("通用药品管理", "", "DrugList", "【" + urt.getUserName() + "】删除药品【" + target.getDrugName()
+                +"】","平台通用药品");
         return getBean(drugList, DrugListBean.class);
 
     }

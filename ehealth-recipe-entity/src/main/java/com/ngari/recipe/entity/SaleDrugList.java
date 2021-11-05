@@ -34,6 +34,9 @@ public class SaleDrugList implements java.io.Serializable {
     @ItemProperty(alias = "机构药品编码")
     private String organDrugCode;
 
+    @ItemProperty(alias = "药企药品编码")
+    private String saleDrugCode;
+
     @ItemProperty(alias = "机构药品名称")
     private String drugName;
 
@@ -124,6 +127,15 @@ public class SaleDrugList implements java.io.Serializable {
 
     public void setOrganDrugCode(String organDrugCode) {
         this.organDrugCode = organDrugCode;
+    }
+
+    @Column(name = "saleDrugCode", length = 30)
+    public String getSaleDrugCode() {
+        return saleDrugCode;
+    }
+
+    public void setSaleDrugCode(String saleDrugCode) {
+        this.saleDrugCode = saleDrugCode;
     }
 
     @Column(name = "drugName", length = 64)

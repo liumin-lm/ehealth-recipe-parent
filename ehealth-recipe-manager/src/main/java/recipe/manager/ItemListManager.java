@@ -10,11 +10,12 @@ import java.util.List;
 
 /**
  * 项目列表
+ *
  * @author yinsheng
  * @date 2021\8\21 0021 09:41
  */
 @Service
-public class ItemListManager extends BaseManager{
+public class ItemListManager extends BaseManager {
 
     @Resource
     private ItemListDAO itemListDAO;

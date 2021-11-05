@@ -14,16 +14,16 @@ import java.util.List;
  * @author yinsheng
  */
 @Service
-public class RecipeOrderPayFlowManager extends BaseManager{
+public class RecipeOrderPayFlowManager extends BaseManager {
 
     @Autowired
     private RecipeOrderPayFlowDao recipeOrderPayFlowDao;
 
-    public RecipeOrderPayFlow getByOrderIdAndType(Integer orderId, Integer payFlowType){
+    public RecipeOrderPayFlow getByOrderIdAndType(Integer orderId, Integer payFlowType) {
         return recipeOrderPayFlowDao.getByOrderIdAndType(orderId, payFlowType);
     }
 
-    public List<RecipeOrderPayFlow> findByOrderId(Integer orderId){
+    public List<RecipeOrderPayFlow> findByOrderId(Integer orderId) {
         return recipeOrderPayFlowDao.findByOrderId(orderId);
     }
 

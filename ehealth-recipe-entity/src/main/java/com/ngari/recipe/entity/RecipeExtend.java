@@ -76,10 +76,10 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "his返回的取药方式1配送到家 2医院取药 3两者都支持")
     private String giveModeFormHis;
 
-    @ItemProperty(alias = "his返回的配送药企代码")
+    @ItemProperty(alias = "配送药企代码")
     private String deliveryCode;
 
-    @ItemProperty(alias = "his返回的配送药企名称")
+    @ItemProperty(alias = "配送药企名称")
     private String deliveryName;
 
     @ItemProperty(alias = "医保返回的医院机构编码")
@@ -151,6 +151,18 @@ public class RecipeExtend implements Serializable {
 
     @ItemProperty(alias = "诊断序号")
     private String hisDiseaseSerial;
+
+    @ItemProperty(alias = "处方指定药企类型 1医院 2药企 默认 0")
+    private Integer appointEnterpriseType;
+
+    @Column(name = "appoint_enterprise_type")
+    public Integer getAppointEnterpriseType() {
+        return appointEnterpriseType;
+    }
+
+    public void setAppointEnterpriseType(Integer appointEnterpriseType) {
+        this.appointEnterpriseType = appointEnterpriseType;
+    }
 
     @Column(name = "hisDiseaseSerial")
     public String getHisDiseaseSerial() {

@@ -8,7 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import recipe.client.IConfigurationClient;
 import recipe.client.RevisitClient;
-import recipe.enumerate.type.BussSourceType;
+import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.presettle.RecipeOrderTypeEnum;
 import recipe.presettle.model.OrderTypeCreateConditionRequest;
@@ -31,7 +31,7 @@ public class SyfCashWayHandler implements IOrderTypeConditionHandler{
         LOGGER.info("SyfCashWayHandler getOrderType request:{}.", JSONUtils.toString(request));
         Integer organId = request.getRecipe().getClinicOrgan();
         Integer bussSource = request.getRecipe().getBussSource();
-        if (null == organId || BussSourceType.BUSSSOURCE_CONSULT.getType().equals(bussSource)) {
+        if (null == organId || BussSourceTypeEnum.BUSSSOURCE_CONSULT.getType().equals(bussSource)) {
             return null;
         }
         //通过运营平台控制开关决定是否走此种模式

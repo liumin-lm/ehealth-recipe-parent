@@ -17,10 +17,10 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.*;
+import com.ngari.recipe.dto.GiveModeButtonDTO;
+import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.DrugEntrustDTO;
-import com.ngari.recipe.recipe.model.GiveModeButtonBean;
-import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
 import com.ngari.recipe.recipe.service.IDrugEntrustService;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -44,11 +44,11 @@ import recipe.ApplicationUtils;
 import recipe.bean.HisSearchDrugDTO;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.constant.PageInfoConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.givemode.business.GiveModeFactory;
-import recipe.givemode.business.IGiveModeBase;
+import recipe.manager.ButtonManager;
 import recipe.serviceprovider.BaseService;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
@@ -93,6 +93,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
     private DrugEntrustDAO drugEntrustDAO;
     @Autowired
     private IDrugEntrustService drugEntrustService;
+    @Autowired
+    private ButtonManager buttonManager;
 
     @RpcService
     public DrugListBean getById(int drugId) {
@@ -482,7 +484,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(commonDrugListDTO.getPharmacyId());
             List<String> pharmacyCategaryList = new LinkedList<>();
             if (null != pharmacyTcm) {
-                pharmacyCategaryList = Arrays.asList(pharmacyTcmDAO.get(commonDrugListDTO.getPharmacyId()).getPharmacyCategray().split(","));
+                pharmacyCategaryList = Arrays.asList(pharmacyTcm.getPharmacyCategray().split(","));
             }
             List<DrugListBean> pharmacyCategaryListResult = new ArrayList<>();
             for (DrugListBean drugListBean : drugListBeans) {
@@ -757,7 +759,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         LOGGER.info("findDrugListsByNameOrCodePageStaticNew req={}", JSONUtils.toString(req));
         //医生查询药品信息
         List<SearchDrugDetailDTO> resultList = searchDrugListWithES(req.getOrganId(),
-                req.getDrugType(), req.getDrugName(), req.getPharmacyId(), req.getStart(), 10);
+                req.getDrugType(), req.getDrugName(), req.getPharmacyId(), req.getStart(), PageInfoConstant.PAGE_SIZE);
         //过滤不符合条件的药品
 
         if (req.getPharmacyId() != null) {
@@ -1235,11 +1237,10 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         return drugListBeans;
     }
 
-    private boolean getOrganGiveMode(Integer organId, String giveModeText){
+    private boolean getOrganGiveMode(Integer organId, String giveModeText) {
         //获取机构支持的购药方式
-        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
-        GiveModeShowButtonVO giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(organId);
-        Map configurations = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
+        GiveModeShowButtonDTO giveModeShowButtonVO = buttonManager.getGiveModeSettingFromYypt(organId);
+        Map configurations = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
         return !configurations.containsKey(giveModeText);
     }
 
@@ -1366,7 +1367,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         Future<? extends List<? extends IDrugInventory>> fiveSecondsTask =
                 GlobalEventExecFactory.instance().getExecutor().submit(() -> setDrugsEnterpriseInventories(organId, drugListBeans));
         try {
-            fiveSecondsTask.get(5000, TimeUnit.MILLISECONDS);
+            fiveSecondsTask.get(8000, TimeUnit.MILLISECONDS);
         } catch (Exception e) {
             LOGGER.error("查询药企药品库存错误setDrugsEnterpriseInventoriesByFiveSeconds ", e);
             //单个药库存对象

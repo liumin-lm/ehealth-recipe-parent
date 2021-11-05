@@ -10,7 +10,7 @@
         recipe.hisservice.**, recipe.serviceprovider.*,recipe.audit.*,recipe.prescription,recipe.mq,recipe.drugTool,
         recipe.purchase,recipe.medicationguide,recipe.logistics,recipe.ca,recipe.recipecheck,recipe.regulation,recipe.sign,
         recipe.comment,recipe.presettle,recipe.caNew,recipe.atop,recipe.operation,recipe.factory.*,recipe.givemode.business,recipe.retry,
-        recipe.openapi.*,recipe.service.afterpay,recipe.atop.**,recipe.client.**,recipe.manager.**,recipe.business,recipe.aop.RecipeLogAspect"/>
+        recipe.openapi.*,recipe.service.afterpay,recipe.atop.**,recipe.client.**,recipe.manager.**,recipe.factoryManager.button.**,recipe.business,recipe.aop.RecipeLogAspect"/>
 
     <!--微信服务-->
     <reference interface="recipe.third.IWXServiceInterface" id="wx.wxService"/>
@@ -43,6 +43,7 @@
     <reference id="account.thirdPartyMappingService" interface="eh.account.api.ThirdPartyMappingService"/>
     <!--物流基础服务-->
     <reference id="infra.logisticsOrderService" interface="com.ngari.infra.logistics.service.ILogisticsOrderService"/>
+    <reference id="infra.waybillService" interface="com.ngari.infra.logistics.service.IWaybillService"/>
     <!--支付平台记账-->
     <reference id="easypay.payService" interface="recipe.easypay.IEasyPayService"/>
     <reference id="eh.scratchableService" interface="com.ngari.base.scratchable.service.IScratchableService"/>

@@ -1,5 +1,7 @@
-package com.ngari.recipe.recipe.constant;
+package recipe.enumerate.type;
 
+
+import recipe.constant.RecipeBussConstant;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -61,13 +63,14 @@ public enum RecipeDistributionFlagEnum {
         this.text = text;
         this.type = type;
     }
-    public static RecipeDistributionFlagEnum getRecipeDistributionFlagEnum(Integer type) {
-        for (RecipeDistributionFlagEnum e : RecipeDistributionFlagEnum.values()) {
-            if (e.getType().equals(type)) {
-                return e;
-            }
-        }
-        return null;
+
+
+    public String getText() {
+        return text;
+    }
+
+    public Integer getType() {
+        return type;
     }
 
     /**
@@ -83,12 +86,4 @@ public enum RecipeDistributionFlagEnum {
      */
     public static final List<Integer> drugsEnterpriseSend = Arrays.asList(RecipeBussConstant.DEP_SUPPORT_ONLINE, RecipeBussConstant.DEP_SUPPORT_COD);
 
-
-    public String getText() {
-        return text;
-    }
-
-    public Integer getType() {
-        return type;
-    }
 }

@@ -23,7 +23,6 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
@@ -49,6 +48,7 @@ import recipe.dao.*;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
+import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.HisRecipeManager;
@@ -155,6 +155,7 @@ public class PurchaseService {
      */
     @RpcService
     public RecipeResultBean filterSupportDepList(List<Integer> recipeIds, List<Integer> payModes, Map<String, String> extInfo) {
+        LOG.info("PurchaseService filterSupportDepList recipeIds:{}, payModes:{}, extInfo:{}.", JSONUtils.toString(recipeIds), JSONUtils.toString(payModes), JSONUtils.toString(extInfo));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
@@ -939,6 +940,7 @@ public class PurchaseService {
             MedicInsurSettleApplyReqTO reqTO = new MedicInsurSettleApplyReqTO();
             reqTO.setOrganId(organId);
             reqTO.setOrganName(Optional.ofNullable(organ.getShortName()).orElse(""));
+            reqTO.setPatientId(patient.getPatId());
             reqTO.setPatientName(patient.getPatientName());
             reqTO.setCertId(patient.getIdcard());
             reqTO.setCertificate(patient.getCertificate());

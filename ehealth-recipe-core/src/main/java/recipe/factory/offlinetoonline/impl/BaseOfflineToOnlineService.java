@@ -10,12 +10,16 @@ import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.dto.GiveModeButtonDTO;
+import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.dto.GroupRecipeConfDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
 import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
-import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipe.model.HisRecipeVO;
+import com.ngari.recipe.recipe.model.MergeRecipeVO;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
@@ -39,14 +43,10 @@ import recipe.dao.bean.HisRecipeListBean;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
-import recipe.givemode.business.GiveModeFactory;
-import recipe.givemode.business.IGiveModeBase;
-import recipe.manager.EmrRecipeManager;
-import recipe.manager.GroupRecipeManager;
-import recipe.manager.HisRecipeManager;
-import recipe.manager.RevisitManager;
+import recipe.manager.*;
 import recipe.service.DrugsEnterpriseService;
 import recipe.service.RecipeService;
 import recipe.util.RecipeUtil;
@@ -133,7 +133,8 @@ public class BaseOfflineToOnlineService {
     private static final Integer HISRECIPESTATUS_NOIDEAL = 1;
 
     private static final Integer HISRECIPESTATUS_ALREADYIDEAL = 2;
-
+    @Autowired
+    private ButtonManager buttonManager;
 
     /**
      * 获取购药按钮
@@ -223,7 +224,7 @@ public class BaseOfflineToOnlineService {
      * @param limit              查询条数
      * @return
      */
-    public List<MergeRecipeVO> findFinishHisRecipeList(Integer organId, String mpiId, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
+    public List<MergeRecipeVO> findFinishHisRecipeList(Integer organId, String mpiId, GiveModeButtonDTO giveModeButtonBean, Integer start, Integer limit) {
         LOGGER.info("BaseOfflineToOnlineService findFinishHisRecipeList mpiId:{} giveModeButtonBean : {} index:{} limit:{} ", mpiId, giveModeButtonBean, start, limit);
         List<MergeRecipeVO> result = new ArrayList<>();
         // 获取所有已处理的线下处方
@@ -247,7 +248,7 @@ public class BaseOfflineToOnlineService {
      * @param limit
      * @return
      */
-    List<MergeRecipeVO> listShow(List<HisRecipeListBean> hisRecipeListBeans, Integer organId, String mpiId, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit) {
+    List<MergeRecipeVO> listShow(List<HisRecipeListBean> hisRecipeListBeans, Integer organId, String mpiId, GiveModeButtonDTO giveModeButtonBean, Integer start, Integer limit) {
         LOGGER.info("BaseOfflineToOnlineService listShow hisRecipeListBeans:{},organId:{},mpiId:{},giveModeButtonBean:{}", JSONUtils.toString(hisRecipeListBeans), organId, mpiId, JSONUtils.toString(giveModeButtonBean));
         List<MergeRecipeVO> result = new ArrayList<>();
         Set<Integer> recipeIds = new HashSet<>();
@@ -438,12 +439,11 @@ public class BaseOfflineToOnlineService {
      * @param organId 机构id
      * @return
      */
-    public GiveModeButtonBean getGiveModeButtonBean(Integer organId) {
+    public GiveModeButtonDTO getGiveModeButtonBean(Integer organId) {
         LOGGER.info("BaseOfflineToOnlineService getGiveModeButtonBean param organId:{}", organId);
-        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
         //获取机构配制的购药按钮
-        GiveModeShowButtonVO giveModeShowButtons = giveModeBase.getGiveModeSettingFromYypt(organId);
-        GiveModeButtonBean res = giveModeShowButtons.getListItem();
+        GiveModeShowButtonDTO giveModeShowButtons = buttonManager.getGiveModeSettingFromYypt(organId);
+        GiveModeButtonDTO res = giveModeShowButtons.getListItem();
         LOGGER.info("BaseOfflineToOnlineService getGiveModeButtonBean res :{}", JSONUtils.toString(res));
         return res;
     }
@@ -788,6 +788,7 @@ public class BaseOfflineToOnlineService {
         recipeExtend.setRegisterID(hisRecipe.getRegisteredId());
         recipeExtend.setChronicDiseaseCode(hisRecipe.getChronicDiseaseCode());
         recipeExtend.setChronicDiseaseName(hisRecipe.getChronicDiseaseName());
+        recipeExtend.setAppointEnterpriseType(AppointEnterpriseTypeEnum.DEFAULT.getType());
         //设置煎法
         if (StringUtils.isNotEmpty(hisRecipe.getDecoctionText())) {
             recipeExtend.setDecoctionText(hisRecipe.getDecoctionText());

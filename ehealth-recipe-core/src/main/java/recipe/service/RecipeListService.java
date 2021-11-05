@@ -17,9 +17,9 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.dto.GroupRecipeConfDTO;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.constant.RecipeListTabStatusEnum;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
@@ -57,8 +57,8 @@ import recipe.dao.bean.RecipeRollingInfo;
 import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.givemode.business.GiveModeFactory;
-import recipe.givemode.business.IGiveModeBase;
+import recipe.enumerate.type.RecipeDistributionFlagEnum;
+import recipe.manager.ButtonManager;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.GroupRecipeManager;
 import recipe.service.common.RecipeCacheService;
@@ -118,6 +118,8 @@ public class RecipeListService extends RecipeBaseService {
     private RecipeRefundDAO recipeRefundDAO;
     @Autowired
     private GroupRecipeManager groupRecipeManager;
+    @Autowired
+    private ButtonManager buttonManager;
     @Resource
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Resource
@@ -1230,12 +1232,18 @@ public class RecipeListService extends RecipeBaseService {
                     patientTabStatusMergeRecipeDTO.setGroupField(key);
                     List<PatientTabStatusRecipeDTO> recipe = Lists.newArrayList();
 
-                    List<RecipeListBean> recipeListBeans = finalRecipeListMap.get(key);
-                    recipeListBeans.forEach(recipeListBean1 -> {
-                        PatientTabStatusRecipeDTO patientTabStatusRecipeDTO = PatientTabStatusRecipeConvert(recipeListBean1);
+                    if("-1".equals(key)){
+                        patientTabStatusMergeRecipeDTO.setGroupField(null);
+                        PatientTabStatusRecipeDTO patientTabStatusRecipeDTO = PatientTabStatusRecipeConvert(recipeListBean);
                         recipe.add(patientTabStatusRecipeDTO);
-                        recipeIds.add(recipeListBean1.getRecipeId());
-                    });
+                    } else {
+                        List<RecipeListBean> recipeListBeans = finalRecipeListMap.get(key);
+                        recipeListBeans.forEach(recipeListBean1 -> {
+                            PatientTabStatusRecipeDTO patientTabStatusRecipeDTO = PatientTabStatusRecipeConvert(recipeListBean1);
+                            recipe.add(patientTabStatusRecipeDTO);
+                            recipeIds.add(recipeListBean1.getRecipeId());
+                        });
+                    }
                 patientTabStatusMergeRecipeDTO.setRecipe(recipe);
                 result.add(patientTabStatusMergeRecipeDTO);
                 }
@@ -1672,32 +1680,11 @@ public class RecipeListService extends RecipeBaseService {
 
 
     private GiveModeShowButtonVO getShowButtonNew(PatientTabStatusRecipeDTO record, Recipe recipe) {
+        GiveModeShowButtonDTO giveModeShowButtonDTO = buttonManager.getShowButton(recipe);
         GiveModeShowButtonVO giveModeShowButtonVO = new GiveModeShowButtonVO();
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(recipe);
-        try {
-            //校验数据
-            giveModeBase.validRecipeData(recipe);
-        } catch (Exception e) {
-            LOGGER.error("getShowButtonNew error:{}.", e.getMessage());
-            return giveModeShowButtonVO;
-        }
-        //从运营平台获取配置项
-        giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(recipe.getClinicOrgan());
-        if (CollectionUtils.isEmpty(giveModeShowButtonVO.getGiveModeButtons())) {
-            return giveModeShowButtonVO;
-        }
-        //设置按钮是否可点击
-        giveModeBase.setButtonOptional(giveModeShowButtonVO, recipe);
-        //设置按钮展示类型
-        giveModeBase.setButtonType(giveModeShowButtonVO, recipe);
-        //设置特殊按钮
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        giveModeBase.setSpecialItem(giveModeShowButtonVO, recipe, recipeExtend);
-        //设置列表不显示的按钮
-        giveModeBase.setItemListNoShow(giveModeShowButtonVO, recipe);
-        //后置设置处理
-        giveModeBase.afterSetting(giveModeShowButtonVO, recipe);
+        BeanUtils.copyProperties(giveModeShowButtonDTO, giveModeShowButtonVO);
+        giveModeShowButtonVO.setListItem(ObjectCopyUtils.convert(giveModeShowButtonDTO.getListItem(), GiveModeButtonBean.class));
+        giveModeShowButtonVO.setGiveModeButtons(ObjectCopyUtils.convert(giveModeShowButtonDTO.getGiveModeButtons(), GiveModeButtonBean.class));
         return giveModeShowButtonVO;
     }
 

@@ -10,6 +10,7 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
+import com.ngari.platform.recipe.mode.PushRecipeAndOrder;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.*;
@@ -30,6 +31,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import recipe.ApplicationUtils;
 import recipe.common.OnsConfig;
 import recipe.dao.*;
+import recipe.manager.EnterpriseManager;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
 import recipe.service.recipecancel.RecipeCancelService;
 import recipe.util.DateConversion;
@@ -53,6 +55,17 @@ public class RecipeTestService {
     private LogisticsOnlineOrderService logisticsOnlineOrderService;
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
+    @Autowired
+    private EnterpriseManager enterpriseManager;
+    @Autowired
+    private DrugsEnterpriseDAO drugsEnterpriseDAO;
+
+    @RpcService
+    public PushRecipeAndOrder getPushRecipeAndOrder(Integer recipeId){
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
+        return enterpriseManager.getPushRecipeAndOrder(recipe, drugsEnterprise);
+    }
 
     /**
      * logger

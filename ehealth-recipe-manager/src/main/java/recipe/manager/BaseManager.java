@@ -39,6 +39,8 @@ public class BaseManager {
     @Autowired
     protected RecipeLogDAO recipeLogDao;
     @Autowired
+    protected HisRecipeDAO hisRecipeDAO;
+    @Autowired
     private RecipeLogDAO recipeLogDAO;
     @Autowired
     protected PatientClient patientClient;

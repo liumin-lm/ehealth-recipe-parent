@@ -14,10 +14,11 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
+import com.ngari.recipe.dto.GiveModeButtonDTO;
+import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
-import com.ngari.recipe.recipe.model.GiveModeShowButtonVO;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -41,9 +42,8 @@ import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
-import recipe.givemode.business.GiveModeFactory;
-import recipe.givemode.business.IGiveModeBase;
 import recipe.hisservice.RecipeToHisService;
+import recipe.manager.ButtonManager;
 import recipe.manager.EnterpriseManager;
 import recipe.service.DrugListExtService;
 import recipe.service.RecipeHisService;
@@ -86,6 +86,10 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
 
     @Autowired
     private RevisitClient revisitClient;
+    @Autowired
+    private ButtonManager buttonManager;
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
 
     //手动推送给第三方
     @RpcService
@@ -445,9 +449,8 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         OrganAndDrugsepRelationDAO drugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
         List<DrugsEnterprise> drugsEnterprises = drugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(drugsDataBean.getOrganId(), 1);
 
-        IGiveModeBase giveModeBase = GiveModeFactory.getGiveModeBaseByRecipe(new Recipe());
-        GiveModeShowButtonVO giveModeShowButtonVO = giveModeBase.getGiveModeSettingFromYypt(drugsDataBean.getOrganId());
-        Map configurations = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonBean::getShowButtonKey, GiveModeButtonBean::getShowButtonName));
+        GiveModeShowButtonDTO giveModeShowButtonVO = buttonManager.getGiveModeSettingFromYypt(drugsDataBean.getOrganId());
+        Map configurations = giveModeShowButtonVO.getGiveModeButtons().stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
 
         Map<String, List> supportOnlineMap;
         List supportOnlineList = new ArrayList();
@@ -714,9 +717,8 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
     @RpcService
     public Boolean isShowSendTypeButton(Integer organId) {
         Boolean flag = false;
-        Recipe recipe = new Recipe();
-        GiveModeShowButtonVO giveModeShowButtonVO = GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeSettingFromYypt(organId);
-        List<GiveModeButtonBean> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
+        GiveModeShowButtonDTO giveModeShowButtonVO = buttonManager.getGiveModeSettingFromYypt(organId);
+        List<GiveModeButtonDTO> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
         Iterator iterator = giveModeButtonBeans.iterator();
         while (iterator.hasNext()) {
             GiveModeButtonBean giveModeButtonBean = (GiveModeButtonBean) iterator.next();
@@ -743,14 +745,18 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+            String total = recipeParameterDao.getByName(organId + "_drugsEnterprise_num");
             List<ScanDrugListBean> scanDrugListBeans = new ArrayList<>();
             for (com.ngari.recipe.recipe.model.RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
                 SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
-
                 if (saleDrugList != null) {
                     ScanDrugListBean scanDrugListBean = new ScanDrugListBean();
                     scanDrugListBean.setDrugCode(saleDrugList.getOrganDrugCode());
-                    scanDrugListBean.setTotal("5");
+                    if (StringUtils.isNotEmpty(total)) {
+                        scanDrugListBean.setTotal(total);
+                    } else {
+                        scanDrugListBean.setTotal("5");
+                    }
                     if (organId != null && organId < 0) {
                         DrugList drugList = drugListDAO.getById(recipeDetailBean.getDrugId());
                         scanDrugListBean.setUnit(drugList.getUnit());

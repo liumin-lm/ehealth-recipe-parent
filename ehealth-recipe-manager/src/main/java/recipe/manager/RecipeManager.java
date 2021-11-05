@@ -6,6 +6,8 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeLog;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -232,6 +234,22 @@ public class RecipeManager extends BaseManager {
                 recipeExtend.setCardType(consultExDTO.getCardType());
             }
         }
+        //当卡类型是医保卡的时候，调用端的配置判断是否开启，如果开启，则调用端提供的工具进行卡号的展示
+        try {
+            logger.info(DictionaryController.instance().get("eh.mpi.dictionary.CardType").getText(recipeExtend.getCardType()));
+            if (DictionaryController.instance().get("eh.mpi.dictionary.CardType").getText(recipeExtend.getCardType()).equals("医保卡")) {
+                boolean hospitalCardLengthControl = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "hospitalCardLengthControl", false);
+                logger.info("RecipeOrderManager getRecipeDTO 获取机构配置 hospitalCardLengthControl return:{}", hospitalCardLengthControl);
+                if (hospitalCardLengthControl
+                        && StringUtils.isNotBlank(recipeExtend.getCardNo())
+                        && recipeExtend.getCardNo().length() == 28) {
+                    recipeExtend.setCardNo(recipeExtend.getCardNo().substring(0, 10));
+                }
+            }
+        } catch (ControllerException e) {
+            logger.info("getRecipeDTO 医保卡处理异常", e);
+            e.printStackTrace();
+        }
         return recipeDTO;
     }
 
@@ -271,7 +289,7 @@ public class RecipeManager extends BaseManager {
                     }
                     break;
                 case TAKE_DRUG_CODE:
-                    qrName = offlineRecipeClient.queryMedicineCode(recipe.getClinicOrgan(), recipe.getRecipeId(),recipe.getRecipeCode());
+                    qrName = offlineRecipeClient.queryMedicineCode(recipe.getClinicOrgan(), recipe.getRecipeId(), recipe.getRecipeCode());
                     break;
                 case SERIALNUMBER:
                     qrName = offlineRecipeClient.queryRecipeSerialNumber(recipe.getClinicOrgan(), recipe.getPatientName(), recipe.getPatientID(), recipeExtend.getRegisterID());
@@ -308,10 +326,11 @@ public class RecipeManager extends BaseManager {
 
     /**
      * 根据订单号查询处方列表
+     *
      * @param orderCode orderCode
      * @return List<Recipe>
      */
-    public List<Recipe> findRecipeByOrderCode(String orderCode){
+    public List<Recipe> findRecipeByOrderCode(String orderCode) {
         return recipeDAO.findRecipeListByOrderCode(orderCode);
     }
 

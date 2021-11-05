@@ -106,8 +106,29 @@ public class DrugStockClient extends BaseClient {
      * @return
      */
     public DrugInfoResponseTO scanDrugStock(List<Recipedetail> detailList, int organId, List<OrganDrugList> organDrugList, List<PharmacyTcm> pharmacyTcms) {
-        // 拼装请求参数
-        DrugInfoRequestTO request = scanDrugStockRequest(detailList, organId, organDrugList, pharmacyTcms);
+        Map<Integer, List<PharmacyTcm>> pharmacyTcmMap = Optional.ofNullable(pharmacyTcms).orElseGet(Collections::emptyList).stream().collect(Collectors.groupingBy(PharmacyTcm::getPharmacyId));
+        Map<String, OrganDrugList> organDrugListMap = organDrugList.stream().collect(Collectors.toMap(k -> k.getOrganDrugCode() + k.getDrugId(), a -> a, (k1, k2) -> k1));
+        List<DrugInfoTO> data = new LinkedList<>();
+        detailList.forEach(a -> {
+            DrugInfoTO drugInfo = new DrugInfoTO(a.getOrganDrugCode());
+            drugInfo.setPack(String.valueOf(a.getPack()));
+            drugInfo.setPackUnit(a.getDrugUnit());
+            drugInfo.setUseTotalDose(a.getUseTotalDose());
+            OrganDrugList organDrugs = organDrugListMap.get(a.getOrganDrugCode() + a.getDrugId());
+            if (null != organDrugs && StringUtils.isNotEmpty(organDrugs.getProducerCode())) {
+                drugInfo.setManfcode(organDrugs.getProducerCode());
+            }
+            //药房
+            List<PharmacyTcm> tcm = pharmacyTcmMap.get(a.getPharmacyId());
+            if (CollectionUtils.isNotEmpty(tcm)) {
+                drugInfo.setPharmacyCode(tcm.get(0).getPharmacyCode());
+                drugInfo.setPharmacy(tcm.get(0).getPharmacyName());
+            }
+            data.add(drugInfo);
+        });
+        DrugInfoRequestTO request = new DrugInfoRequestTO();
+        request.setOrganId(organId);
+        request.setData(data);
         logger.info("scanDrugStock request={}", JSONUtils.toString(request));
         DrugInfoResponseTO response;
         try {
@@ -118,6 +139,11 @@ public class DrugStockClient extends BaseClient {
             //抛异常流程不应该继续下去
             response = new DrugInfoResponseTO();
             response.setMsgCode(1);
+        }
+        //his未配置该服务则还是可以通过
+        if (null == response) {
+            response = new DrugInfoResponseTO();
+            response.setMsgCode(0);
         }
         return response;
     }
@@ -132,84 +158,22 @@ public class DrugStockClient extends BaseClient {
      * @return
      */
     public HisResponseTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, List<SaleDrugList> saleDrugLists) {
-        ScanRequestBean scanRequestBean = getScanRequestBean(recipe, drugsEnterprise, recipeDetails, saleDrugLists);
-        logger.info("findUnSupportDrugEnterprise-scanStock scanRequestBean:{}.", JSONUtils.toString(scanRequestBean));
-        HisResponseTO responseTO = recipeEnterpriseService.scanStock(scanRequestBean);
-        logger.info("findUnSupportDrugEnterprise recipeId={},前置机调用查询结果={}", recipe.getRecipeId(), JSONObject.toJSONString(responseTO));
-        return responseTO;
-    }
-
-
-    /**
-     * 拼装 his 库存请求参数
-     *
-     * @param detailList
-     * @param organId
-     * @return
-     */
-    private DrugInfoRequestTO scanDrugStockRequest(List<Recipedetail> detailList, int organId, List<OrganDrugList> organDrugList, List<PharmacyTcm> pharmacyTcms) {
-        if (CollectionUtils.isEmpty(detailList)) {
-            return null;
-        }
-        DrugInfoRequestTO request = new DrugInfoRequestTO();
-        request.setOrganId(organId);
-
-        Map<String, List<OrganDrugList>> drugIdAndProduce = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
-        Map<Integer, List<PharmacyTcm>> pharmacyTcmMap = null;
-        if (CollectionUtils.isNotEmpty(pharmacyTcms)) {
-            pharmacyTcmMap = pharmacyTcms.stream().collect(Collectors.groupingBy(PharmacyTcm::getPharmacyId));
-        }
-        List<DrugInfoTO> data = new ArrayList<>(detailList.size());
-        Map<Integer, List<PharmacyTcm>> finalPharmacyTcmMap = pharmacyTcmMap;
-        detailList.forEach(a -> {
-            DrugInfoTO drugInfo = new DrugInfoTO(a.getOrganDrugCode());
-            drugInfo.setPack(a.getPack().toString());
-            drugInfo.setPackUnit(a.getDrugUnit());
-            drugInfo.setUseTotalDose(a.getUseTotalDose());
-            List<OrganDrugList> organDrugs = drugIdAndProduce.get(a.getOrganDrugCode());
-            if (CollectionUtils.isNotEmpty(organDrugs)) {
-                Map<Integer, String> producerCodeMap = organDrugs.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, OrganDrugList::getProducerCode));
-                String producerCode = producerCodeMap.get(a.getDrugId());
-                if (StringUtils.isNotEmpty(producerCode)) {
-                    drugInfo.setManfcode(producerCode);
-                }
+        String channelCode = null;
+        try {
+            RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
+            if (revisitExDTO != null) {
+                channelCode = revisitExDTO.getProjectChannel();
             }
-            //药房
-            if (a.getPharmacyId() != null) {
-                PharmacyTcm tcm = finalPharmacyTcmMap.get(a.getPharmacyId()).get(0);
-                if (tcm != null) {
-                    drugInfo.setPharmacyCode(tcm.getPharmacyCode());
-                    drugInfo.setPharmacy(tcm.getPharmacyName());
-                }
-            }
-            data.add(drugInfo);
-        });
-        request.setData(data);
-
-        return request;
-    }
-
-    /**
-     * 拼装 前置机请求 request
-     *
-     * @param recipe
-     * @param drugsEnterprise
-     * @return
-     */
-    private ScanRequestBean getScanRequestBean(Recipe recipe, DrugsEnterprise drugsEnterprise,
-                                               List<Recipedetail> recipedetails, List<SaleDrugList> saleDrugLists) {
-        ScanRequestBean scanRequestBean = new ScanRequestBean();
-        Map<Integer, List<SaleDrugList>> saleDrugListMap = new HashMap<>();
-        if (CollectionUtils.isNotEmpty(saleDrugLists)) {
-            saleDrugListMap = saleDrugLists.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
+        } catch (Exception e) {
+            logger.error("queryPatientChannelId error:", e);
         }
-        Map<Integer, List<SaleDrugList>> finalSaleDrugListMap = saleDrugListMap;
-        List<ScanDrugListBean> scanDrugListBeans = recipedetails.stream().map(recipedetail -> {
+        String finalChannelCode = channelCode;
+        Map<Integer, List<SaleDrugList>> saleDrugListMap = saleDrugLists.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
+        List<ScanDrugListBean> scanDrugListBeans = recipeDetails.stream().map(recipedetail -> {
             ScanDrugListBean scanDrugListBean = new ScanDrugListBean();
-            List<SaleDrugList> saleDrugLists1 = finalSaleDrugListMap.get(recipedetail.getDrugId());
-            if (CollectionUtils.isNotEmpty(saleDrugLists1) && Objects.nonNull(saleDrugLists1.get(0))) {
-                SaleDrugList saleDrugList = saleDrugLists1.get(0);
-                scanDrugListBean.setDrugCode(saleDrugList.getOrganDrugCode());
+            List<SaleDrugList> saleDrugLists1 = saleDrugListMap.get(recipedetail.getDrugId());
+            if (CollectionUtils.isNotEmpty(saleDrugLists1)) {
+                scanDrugListBean.setDrugCode(saleDrugLists1.get(0).getOrganDrugCode());
                 scanDrugListBean.setTotal(recipedetail.getUseTotalDose().toString());
                 scanDrugListBean.setUnit(recipedetail.getDrugUnit());
                 scanDrugListBean.setDrugSpec(recipedetail.getDrugSpec());
@@ -219,24 +183,17 @@ public class DrugStockClient extends BaseClient {
                 scanDrugListBean.setProducer(recipedetail.getProducer());
                 scanDrugListBean.setName(recipedetail.getSaleName());
                 scanDrugListBean.setGname(recipedetail.getDrugName());
-                try {
-                    RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
-                    if (revisitExDTO != null) {
-                        scanDrugListBean.setChannelCode(revisitExDTO.getProjectChannel());
-                    }
-                } catch (Exception e) {
-                    logger.error("queryPatientChannelId error:", e);
-                }
-
+                scanDrugListBean.setChannelCode(finalChannelCode);
             }
             return scanDrugListBean;
         }).collect(Collectors.toList());
-
+        ScanRequestBean scanRequestBean = new ScanRequestBean();
         scanRequestBean.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
         scanRequestBean.setScanDrugListBeans(scanDrugListBeans);
         scanRequestBean.setOrganId(recipe.getClinicOrgan());
-        logger.info("getScanRequestBean scanRequestBean:{}.", JSONUtils.toString(scanRequestBean));
-        return scanRequestBean;
+        logger.info("findUnSupportDrugEnterprise-scanStock scanRequestBean:{}.", JSONUtils.toString(scanRequestBean));
+        HisResponseTO responseTO = recipeEnterpriseService.scanStock(scanRequestBean);
+        logger.info("findUnSupportDrugEnterprise recipeId={},前置机调用查询结果={}", recipe.getRecipeId(), JSONObject.toJSONString(responseTO));
+        return responseTO;
     }
-
 }

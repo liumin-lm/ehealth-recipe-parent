@@ -507,7 +507,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
      * @param limit
      * @return
      */
-    @DAOMethod(sql = "from DrugList where status=1 and sourceOrgan is null order by drugId")
+    @DAOMethod(sql = "from DrugList where status=1 and ( sourceOrgan is null or sourceOrgan=0  ) order by drugId")
     public abstract List<DrugList> findAllForPage(@DAOParam(pageStart = true) int start,
                                                    @DAOParam(pageLimit = true) int limit);
 
@@ -709,7 +709,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 }
                 if (!ObjectUtils.isEmpty(sourceOrgan)) {
                     if (sourceOrgan == 0){
-                        hql.append(" and sourceOrgan is null ");
+                        hql.append(" and ( sourceOrgan is null or sourceOrgan=0 )   ");
                     }else {
                         hql.append(" and sourceOrgan =:sourceOrgan ");
                     }

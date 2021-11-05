@@ -30,10 +30,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.constant.RefundNodeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
-import recipe.service.RecipeLogService;
-import recipe.service.RecipeMsgService;
-import recipe.service.RecipeOrderService;
-import recipe.service.RecipeRefundService;
+import recipe.service.*;
 import recipe.serviceprovider.BaseService;
 import recipe.util.MapValueUtil;
 
@@ -135,7 +132,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     @Override
     public BigDecimal reCalculateRecipeFee(Integer enterpriseId, List<Integer> recipeIds, Map<String, String> extInfo) {
         RecipeOrderService service = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        return service.reCalculateRecipeFee(enterpriseId,recipeIds,extInfo);
+        return service.reCalculateRecipeFee(enterpriseId, recipeIds, extInfo);
     }
 
     @RpcService
@@ -150,21 +147,21 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     public RecipeBillResponse<BillRecipeDetailVo> getRecipePayInfoByDate(RecipeBillRequest request) {
 //        List<BillRecipeDetailVo> list = new ArrayList<BillRecipeDetailVo>();
         RecipeBillResponse<BillRecipeDetailVo> rep = new RecipeBillResponse<BillRecipeDetailVo>();
-        if(request == null){
+        if (request == null) {
             LOGGER.error("参数不能为空");
             return null;
         }
-        if(request.getStartTime() == null){
+        if (request.getStartTime() == null) {
             LOGGER.error("开始时间不能为空");
             return null;
         }
-        if(request.getEndTime() == null){
+        if (request.getEndTime() == null) {
             LOGGER.error("结束时间不能为空");
             return null;
         }
 
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        List<BillRecipeDetailVo> list = recipeOrderDAO.getPayAndRefundInfoByTime(request.getStartTime(), request.getEndTime(),request.getStart(),request.getPageSize());
+        List<BillRecipeDetailVo> list = recipeOrderDAO.getPayAndRefundInfoByTime(request.getStartTime(), request.getEndTime(), request.getStart(), request.getPageSize());
 
         rep.setStart(request.getStart());
         rep.setPageSize(request.getPageSize());
@@ -204,16 +201,16 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
      * 根据日期获取电子处方药企配送订单明细
      *
      * @param startTime 开始时间
-     * @param endTime 截止时间
-     * @param organId 机构ID
-     * @param depId 药企ID
+     * @param endTime   截止时间
+     * @param organId   机构ID
+     * @param depId     药企ID
      * @return RecipeOrderBean
      */
     @Override
     @RpcService
-    public Map<String, Object> recipeOrderDetailedStatistics(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer drugId, String orderColumn, String orderType,Integer recipeId, Integer payType, int start, int limit){
-        List<Map<String, Object>> list = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeOrderDetailed(startTime, endTime, organId, organIds, depId, drugId, orderColumn, orderType, recipeId,payType,start, limit);
-        Map<String, Object> map = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeOrderDetailedTotal(startTime, endTime, organId, organIds, depId, drugId,recipeId, payType);
+    public Map<String, Object> recipeOrderDetailedStatistics(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer drugId, String orderColumn, String orderType, Integer recipeId, Integer payType, int start, int limit) {
+        List<Map<String, Object>> list = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeOrderDetailed(startTime, endTime, organId, organIds, depId, drugId, orderColumn, orderType, recipeId, payType, start, limit);
+        Map<String, Object> map = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeOrderDetailedTotal(startTime, endTime, organId, organIds, depId, drugId, recipeId, payType);
         map.put("orderData", list);
         return map;
     }
@@ -222,14 +219,14 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
      * 电子处方药企配送药品统计
      *
      * @param startTime 开始时间
-     * @param endTime 截止时间
-     * @param organId 机构ID
-     * @param depId 药企ID
+     * @param endTime   截止时间
+     * @param organId   机构ID
+     * @param depId     药企ID
      * @return RecipeOrderBean
      */
     @Override
     @RpcService
-    public Map<String, Object> recipeDrugStatistics(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer recipeId, String orderColumn, String orderType, int start, int limit){
+    public Map<String, Object> recipeDrugStatistics(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer recipeId, String orderColumn, String orderType, int start, int limit) {
         List<Map<String, Object>> list = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeDrug(startTime, endTime, organId, organIds, depId, recipeId, orderColumn, orderType, start, limit);
         Map<String, Object> map = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeDrugtotal(startTime, endTime, organId, organIds, depId, recipeId);
         map.put("drugData", list);
@@ -256,11 +253,11 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     }
 
     @Override
-    public void refundCallback(Integer busId, Integer refundStatus, String msg){
+    public void refundCallback(Integer busId, Integer refundStatus, String msg) {
         LOGGER.info("RemoteRecipeOrderService.refundCallback busId:{},refundStatus:{},msg:{}.", busId, refundStatus, msg);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(busId);
-        if(null == recipe){
+        if (null == recipe) {
             LOGGER.warn("当前处方{}不存在无法退费！", busId);
             return;
         }
@@ -268,7 +265,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder recipeOrder = recipeOrderDAO.getRecipeOrderByRecipeId(busId);
-        if(null == recipeOrder){
+        if (null == recipeOrder) {
             LOGGER.warn("当前处方订单{}不存在无法退费！", busId);
             return;
         }
@@ -285,7 +282,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         switch (refundStatus) {
             case 3:
                 List<RecipeRefund> recipeRefunds = recipeRefundDAO.findRefundListByRecipeIdAndNodes(busId, Arrays.asList(9));
-                LOGGER.info("退款完成开始处理：{}",recipe.getRecipeId());
+                LOGGER.info("退款完成开始处理：{}", recipe.getRecipeId());
                 if (CollectionUtils.isNotEmpty(recipeRefunds)) {
                     return;
                 }
@@ -294,8 +291,8 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
                 List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
                 recipes.forEach(recipe1 -> {
-                    recipeDAO.updateRecipeInfoByRecipeId(recipe1.getRecipeId(), RecipeStatusConstant.REVOKE, ImmutableMap.of("payFlag",3));
-                    LOGGER.info("退款完成修改处方状态：{}",recipe1.getRecipeId());
+                    recipeDAO.updateRecipeInfoByRecipeId(recipe1.getRecipeId(), RecipeStatusConstant.REVOKE, ImmutableMap.of("payFlag", 3));
+                    LOGGER.info("退款完成修改处方状态：{}", recipe1.getRecipeId());
                 });
                 //订单状态修改
                 Map<String, Object> orderAttrMap = Maps.newHashMap();
@@ -306,9 +303,9 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 orderAttrMap.put("refundFlag", 1);
                 orderAttrMap.put("refundTime", new Date());
                 recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
-                LOGGER.info("退款完成修改订单状态：{}",recipe.getRecipeId());
+                LOGGER.info("退款完成修改订单状态：{}", recipe.getRecipeId());
                 RecipeLogService.saveRecipeLog(busId, recipe.getStatus(), RecipeStatusConstant.REVOKE, msg);
-                LOGGER.info("存储退款完成记录-remoteRecipeOrderService：{}",recipe.getRecipeId());
+                LOGGER.info("存储退款完成记录-remoteRecipeOrderService：{}", recipe.getRecipeId());
                 recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
                 break;
             case 4:
@@ -342,67 +339,67 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     @RpcService
     public Boolean updateRecipeTrannckingInfo(RecipeTrannckingReqTO trannckingReqTO) {
         LOGGER.info("updateRecipeTrannckingInfo.req={}", JSONObject.toJSONString(trannckingReqTO));
-        if (StringUtils.isBlank(trannckingReqTO.getLogisticsCompany()) || StringUtils.isBlank(trannckingReqTO.getTrackingNumber()) || null == trannckingReqTO.getTrackingStatus()){
-            throw new DAOException(DAOException.VALUE_NEEDED,"物流公司、编号、状态值不能为空");
+        if (StringUtils.isBlank(trannckingReqTO.getLogisticsCompany()) || StringUtils.isBlank(trannckingReqTO.getTrackingNumber()) || null == trannckingReqTO.getTrackingStatus()) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "物流公司、编号、状态值不能为空");
         }
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        String orderCode = recipeOrderDAO.getOrderCodeByLogisticsCompanyAndTrackingNumber(Integer.parseInt(trannckingReqTO.getLogisticsCompany()),trannckingReqTO.getTrackingNumber());
-        LOGGER.info("updateRecipeTrannckingInfo.queryRecipeOrderCode={}",orderCode);
+        String orderCode = recipeOrderDAO.getOrderCodeByLogisticsCompanyAndTrackingNumber(Integer.parseInt(trannckingReqTO.getLogisticsCompany()), trannckingReqTO.getTrackingNumber());
+        LOGGER.info("updateRecipeTrannckingInfo.queryRecipeOrderCode={}", orderCode);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         try {
-            if(StringUtils.isNotBlank(orderCode)){
+            if (StringUtils.isNotBlank(orderCode)) {
                 List<Recipe> recipeList = recipeDAO.findRecipeListByOrderCode(orderCode);
-                LOGGER.info("updateRecipeTrannckingInfo.queryRcipe={}",JSONObject.toJSONString(recipeList));
-                if(recipeList.size() > 0){
+                LOGGER.info("updateRecipeTrannckingInfo.queryRcipe={}", JSONObject.toJSONString(recipeList));
+                if (recipeList.size() > 0) {
                     Recipe recipe = recipeList.get(0);
                     RecipeBaseTrackingStatusEnum statusEnum = RecipeBaseTrackingStatusEnum.getByBaseCode(trannckingReqTO.getTrackingStatus());
-                    if (null != statusEnum){
+                    if (null != statusEnum) {
                         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
                         RecipeOrder order = orderDAO.getOrderByRecipeId(recipe.getRecipeId());
-                        if (statusEnum.getRecipeCode().equals(order.getStatus())){
+                        if (statusEnum.getRecipeCode().equals(order.getStatus())) {
                             return true;
                         }
                         Map<String, Object> paramMap = new HashedMap();
-                        paramMap.put("recipeId",recipe.getRecipeId());
-                        paramMap.put("sendDate",trannckingReqTO.getSendDate());
-                        paramMap.put("sender",trannckingReqTO.getSender());
-                        paramMap.put("logisticsCompany",trannckingReqTO.getLogisticsCompany());
-                        paramMap.put("trackingNumber",trannckingReqTO.getTrackingNumber());
-                        LOGGER.info("updateRecipeTrannckingInfo.updateTrannckingInfo={}",JSONObject.toJSONString(paramMap));
+                        paramMap.put("recipeId", recipe.getRecipeId());
+                        paramMap.put("sendDate", trannckingReqTO.getSendDate());
+                        paramMap.put("sender", trannckingReqTO.getSender());
+                        paramMap.put("logisticsCompany", trannckingReqTO.getLogisticsCompany());
+                        paramMap.put("trackingNumber", trannckingReqTO.getTrackingNumber());
+                        LOGGER.info("updateRecipeTrannckingInfo.updateTrannckingInfo={}", JSONObject.toJSONString(paramMap));
                         ThirdEnterpriseCallService callService = ApplicationUtils.getRecipeService(ThirdEnterpriseCallService.class, "takeDrugService");
                         ThirdResultBean sendCallResult = null;
-                        switch (statusEnum.getRecipeCode()){
+                        switch (statusEnum.getRecipeCode()) {
                             case 3:
                                 // 待配送
                                 sendCallResult = callService.readyToSend(paramMap);
                                 break;
-                           case 4:
-                               // 配送中
-                               sendCallResult = callService.toSend(paramMap);
-                               break;
-                           case 5:
-                               // 配送完成
-                               paramMap.put("recipeCode",recipe.getRecipeCode());
-                               paramMap.put("sendDate",trannckingReqTO.getFinishDate());
-                               sendCallResult = callService.finishRecipe(paramMap);
-                               break;
-                           default:
-                               break;
-                       }
-                        LOGGER.info("updateRecipeTrannckingInfo.updateResult={}",JSONObject.toJSONString(sendCallResult));
-                        if (sendCallResult != null && 200 == sendCallResult.getCode()){
+                            case 4:
+                                // 配送中
+                                sendCallResult = callService.toSend(paramMap);
+                                break;
+                            case 5:
+                                // 配送完成
+                                paramMap.put("recipeCode", recipe.getRecipeCode());
+                                paramMap.put("sendDate", trannckingReqTO.getFinishDate());
+                                sendCallResult = callService.finishRecipe(paramMap);
+                                break;
+                            default:
+                                break;
+                        }
+                        LOGGER.info("updateRecipeTrannckingInfo.updateResult={}", JSONObject.toJSONString(sendCallResult));
+                        if (sendCallResult != null && 200 == sendCallResult.getCode()) {
                             return true;
                         }
-                    }else {
+                    } else {
                         LOGGER.info("updateRecipeTrannckingInfo.statusEnum is null not update");
                         return true;
                     }
                 }
-            }else {
-                throw new DAOException(DAOException.VALUE_NEEDED,"查询不到处方订单");
+            } else {
+                throw new DAOException(DAOException.VALUE_NEEDED, "查询不到处方订单");
             }
         } catch (Exception e) {
-            LOGGER.error("updateRecipeTrannckingInfo.error:",e);
+            LOGGER.error("updateRecipeTrannckingInfo.error:", e);
         }
 
         return false;
@@ -411,7 +408,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     @Override
     @RpcService
     public Boolean saveRecipeOrderBill(RecipeOrderBillReqTO orderBillReqTO) {
-        LOGGER.info("保存处方订单电子票据入参={}",JSONObject.toJSONString(orderBillReqTO));
+        LOGGER.info("保存处方订单电子票据入参={}", JSONObject.toJSONString(orderBillReqTO));
         RecipeOrderBillDAO orderBillDAO = DAOFactory.getDAO(RecipeOrderBillDAO.class);
         RecipeOrderBill bill = new RecipeOrderBill();
         bill.setRecipeOrderCode(orderBillReqTO.getRecipeOrderCode());
@@ -420,7 +417,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         bill.setBillBathCode(orderBillReqTO.getBillBathCode());
         bill.setBillNumber(orderBillReqTO.getBillNumber());
         bill.setCreateTime(new Date());
-        LOGGER.info("保存处方订单电子票据信息={}",JSONObject.toJSONString(bill));
+        LOGGER.info("保存处方订单电子票据信息={}", JSONObject.toJSONString(bill));
         orderBillDAO.save(bill);
         return true;
     }
@@ -435,8 +432,20 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     @RpcService
     @Override
     public void finishOrderPayByRefund(String orderCode, int payFlag, Integer payMode, String refundNo) {
-        LOGGER.info("RemoteRecipeOrderService finishOrderPayByRefund orderCode={}, payFlag={} ,payMode={} refundNo={}", orderCode, payFlag, payMode,refundNo);
+        LOGGER.info("RemoteRecipeOrderService finishOrderPayByRefund orderCode={}, payFlag={} ,payMode={} refundNo={}", orderCode, payFlag, payMode, refundNo);
         RecipeOrderService service = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        service.finishOrderPayByRefund(orderCode, payFlag, payMode,refundNo);
+        service.finishOrderPayByRefund(orderCode, payFlag, payMode, refundNo);
     }
+
+    /**
+     * 老版paymode使用
+     *
+     * @return
+     */
+    @Override
+    public Integer obtainPayMode(Integer payMode, Integer giveMode) {
+        return PayModeGiveModeUtil.getPayMode(payMode, giveMode);
+
+    }
+
 }

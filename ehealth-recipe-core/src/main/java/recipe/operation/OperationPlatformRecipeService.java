@@ -5,9 +5,11 @@ import com.google.common.collect.Maps;
 import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.patient.model.PatientBean;
+import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.AppointDepartService;
 import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
@@ -53,7 +55,7 @@ import recipe.bussutil.AESUtils;
 import recipe.client.DoctorClient;
 import recipe.constant.*;
 import recipe.dao.*;
-import recipe.givemode.business.GiveModeFactory;
+import recipe.manager.ButtonManager;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
 import recipe.util.ByteUtils;
@@ -86,7 +88,8 @@ public class OperationPlatformRecipeService {
 
     @Autowired
     private DoctorClient doctorClient;
-
+    @Autowired
+    private ButtonManager buttonManager;
     @Autowired
     private IAuditMedicinesService auditMedicinesService;
 
@@ -176,7 +179,7 @@ public class OperationPlatformRecipeService {
         //配送方式
         r.setGiveMode(recipe.getGiveMode());
         //配送方式文案
-        r.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
+        r.setGiveModeText(buttonManager.getGiveModeTextByRecipe(recipe));
         //支付状态
         r.setPayFlag(recipe.getPayFlag());
         //医生签名文件
@@ -202,6 +205,15 @@ public class OperationPlatformRecipeService {
         } catch (ControllerException e) {
             e.printStackTrace();
         }
+        //挂号科室代码
+        AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
+        AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartIDAndCancleFlag(recipe.getClinicOrgan(), recipe.getDepart());
+        //挂号科室名称
+        LOGGER.info("findRecipeAndDetailsAndCheckById reicpeid={},appointDepart={}",recipeId,JSONUtils.toString(appointDepart));
+        r.setAppointDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
+        //机构所属一级科室
+        r.setOrganProfession((null != appointDepart) ? appointDepart.getOrganProfession() : null);
+        LOGGER.info("findRecipeAndDetailsAndCheckById reicpeid={},r={}",recipeId,JSONUtils.toString(r));
         //取医生的手机号
         DoctorDTO doctor = new DoctorDTO();
         try {

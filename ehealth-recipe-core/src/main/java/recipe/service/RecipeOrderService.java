@@ -70,10 +70,9 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.type.PayBusType;
+import recipe.enumerate.type.PayBusTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.PayFlowTypeEnum;
-import recipe.givemode.business.GiveModeFactory;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
 import recipe.purchase.PurchaseService;
@@ -156,7 +155,8 @@ public class RecipeOrderService extends RecipeBaseService {
     private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
     @Autowired
     private RefundClient refundClient;
-
+    @Autowired
+    private ButtonManager buttonManager;
 
     /**
      * 处方结算时创建临时订单
@@ -1462,7 +1462,7 @@ public class RecipeOrderService extends RecipeBaseService {
                                 recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
                             } else {
                                 //说明需要正常退审方费
-                                refundClient.refund(order.getOrderId(), PayBusType.OTHER_BUS_TYPE.getName());
+                                refundClient.refund(order.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
                             }
                         }
                     }
@@ -1627,7 +1627,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     if (StringUtils.isNotEmpty(order.getGiveModeText())) {
                         recipeBean.setGiveModeText(order.getGiveModeText());
                     } else {
-                        recipeBean.setGiveModeText(GiveModeFactory.getGiveModeBaseByRecipe(recipe).getGiveModeTextByRecipe(recipe));
+                        recipeBean.setGiveModeText(buttonManager.getGiveModeTextByRecipe(recipe));
                     }
                     if (new Integer(3).equals(recipe.getRecipeType())) {
                         tcmFlag = true;
@@ -2316,6 +2316,7 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
     }
+
 
 
     /**

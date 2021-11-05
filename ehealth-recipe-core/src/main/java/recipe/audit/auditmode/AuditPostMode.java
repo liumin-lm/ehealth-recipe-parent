@@ -8,6 +8,7 @@ import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
@@ -33,6 +34,7 @@ import recipe.constant.RecipeMsgEnum;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
@@ -72,8 +74,12 @@ public class AuditPostMode extends AbstractAuidtMode {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Integer giveMode = null == MapValueUtil.getInteger(attrMap,"giveMode") ? dbRecipe.getGiveMode() : MapValueUtil.getInteger(attrMap,"giveMode");
 //        Integer payMode = null == MapValueUtil.getInteger(attrMap, "payMode") ? dbRecipe.getPayMode() : MapValueUtil.getInteger(attrMap,"payMode");
-        Integer payMode = MapValueUtil.getInteger(attrMap, "payMode") ;
+//        Integer payMode = MapValueUtil.getInteger(attrMap, "payMode") ;
         Integer payFlag = MapValueUtil.getInteger(attrMap, "payFlag");
+        // 获取paymode
+        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeOrder byOrderCode = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
+        Integer payMode = byOrderCode.getPayMode();
         //根据传入的方式来处理, 因为供应商列表，钥世圈提供的有可能是多种方式都支持，当时这2个值是保存为null的
         if (saveFlag) {
             attrMap.put("chooseFlag", 1);
@@ -94,15 +100,17 @@ public class AuditPostMode extends AbstractAuidtMode {
                     } else {
                         memo = "配送到家-线上支付失败";
                     }
-                } else if (RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(payMode)) {
-                    if (dbRecipe.canMedicalPay()) {
-                        //可医保支付的单子在用户看到之前已进行审核
-                        status = RecipeStatusConstant.CHECK_PASS_YS;
-                        memo = "医保支付成功，发送药企处方";
-                        //更新CheckFlag
-                        updateCheckFlagByRecipeid(recipeDAO, dbRecipe);
-                    }
-                } else if (RecipeBussConstant.PAYMODE_OFFLINE.equals(payMode)) {
+                }
+//                else if (RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(payMode)) {
+//                    if (dbRecipe.canMedicalPay()) {
+//                        //可医保支付的单子在用户看到之前已进行审核
+//                        status = RecipeStatusConstant.CHECK_PASS_YS;
+//                        memo = "医保支付成功，发送药企处方";
+//                        //更新CheckFlag
+//                        updateCheckFlagByRecipeid(recipeDAO, dbRecipe);
+//                    }
+//                }
+                else if (RecipeBussConstant.PAYMODE_OFFLINE.equals(payMode)) {
 //                    //收到userConfirm通知
 //                    status = RecipeStatusConstant.READY_CHECK_YS;
 //                    memo = "配送到家-货到付款成功";

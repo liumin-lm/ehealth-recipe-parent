@@ -32,7 +32,6 @@ public class RecipeStatusConstant {
     public static final int UNCHECK = 1;
 
     /**
-     *
      * 审核通过(医院平台)
      */
     public static final int CHECK_PASS = 2;
@@ -308,6 +307,11 @@ public class RecipeStatusConstant {
      * 当药企/物流/运营平台配置返回了处方单的快递单号时，将给收货人的手机号码推送短信
      */
     public static final int EXPRESSINFO_REMIND = 138;
+
+    /**
+     * 不存在的状态，用于系统消息发送，患者支付成功后,给药师发送系统消息
+     */
+    public static final int RECIPE_PAY_CALL_SUCCESS = 140;
 
 
 }

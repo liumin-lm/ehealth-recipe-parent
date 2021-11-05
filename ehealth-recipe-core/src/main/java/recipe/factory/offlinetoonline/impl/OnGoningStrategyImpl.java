@@ -4,12 +4,12 @@ import com.google.common.collect.Lists;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.entity.HisRecipe;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
 import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
-import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -48,7 +48,7 @@ public class OnGoningStrategyImpl extends BaseOfflineToOnlineService implements 
     public List<MergeRecipeVO> findHisRecipeList(HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos, PatientDTO patientDTO, FindHisRecipeListVO request) {
         LOGGER.info("OnGoningStrategyImpl findHisRecipeList hisRecipeInfos:{}", JSONUtils.toString(hisRecipeInfos));
         // 2、返回进行中的线下处方
-        GiveModeButtonBean giveModeButtonBean = getGiveModeButtonBean(request.getOrganId());
+        GiveModeButtonDTO giveModeButtonBean = getGiveModeButtonBean(request.getOrganId());
         List<MergeRecipeVO> res = findOngoingHisRecipeList(hisRecipeInfos.getData(), patientDTO, giveModeButtonBean, request.getStart(), request.getLimit(), request.getOrganId());
         LOGGER.info("OnGoningStrategyImpl res:{}", JSONUtils.toString(hisRecipeInfos));
         return res;
@@ -107,7 +107,7 @@ public class OnGoningStrategyImpl extends BaseOfflineToOnlineService implements 
      * @return 前端需要展示的进行中的处方单集合, 先获取进行中的处方返回给前端展示, 然后对处方数据进行校验, 处方发生
      * 变更需要删除处方,当患者点击处方列表时如果订单已删除,会弹框提示"该处方单信息已变更，请退出重新获取处方信息"
      */
-    public List<MergeRecipeVO> findOngoingHisRecipeList(List<QueryHisRecipResTO> data, PatientDTO patientDTO, GiveModeButtonBean giveModeButtonBean, Integer start, Integer limit, Integer organId) {
+    public List<MergeRecipeVO> findOngoingHisRecipeList(List<QueryHisRecipResTO> data, PatientDTO patientDTO, GiveModeButtonDTO giveModeButtonBean, Integer start, Integer limit, Integer organId) {
         LOGGER.info("OnGoningStrategyImpl findOngoingHisRecipeList request:{}", JSONUtils.toString(data));
         List<MergeRecipeVO> result = Lists.newArrayList();
         //查询所有进行中的线下处方

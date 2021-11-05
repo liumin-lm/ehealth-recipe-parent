@@ -60,6 +60,7 @@ import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.enumerate.type.RecipePayTypeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.RecipeOrderPayFlowManager;
+import recipe.purchase.PayModeTFDS;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.third.HztServiceInterface;
@@ -286,7 +287,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 }
 
                 //这里应该是药店取药支付方式为1时不展示支付提示信息
-                if (drugsEnterpriseBean != null && Integer.valueOf(1).equals(drugsEnterpriseBean.getStorePayFlag())) {
+                if (drugsEnterpriseBean != null && new Integer(4).equals(payMode) && Integer.valueOf(1).equals(drugsEnterpriseBean.getStorePayFlag())) {
                     map.put("payTip", "");
                     map.put("payNote", "");
                 } else {
@@ -302,6 +303,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 //处方审核方式 0不需要审方 1审方前置 2审方后置
                 map.put("reviewType", nowRecipeBean.getReviewType().toString());
             }
+            log.info("setConfirmOrderExtInfo payMode:{}, drugsEnterpriseBean:{}.", payMode, JSONUtils.toString(drugsEnterpriseBean));
             //药店取药 支付方式
             if (new Integer(4).equals(payMode) && drugsEnterpriseBean != null) {
                 //@ItemProperty(alias = "0:不支付药品费用，1:全部支付 【 1线上支付  非1就是线下支付】")
@@ -320,6 +322,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             Integer payButton = buttonManager.getPayButton(nowRecipeBean.getClinicOrgan(), cardType, "0".equals(recipeExtend.getMedicalType()));
             map.put("payButton", payButton.toString());
         }
+        log.info("setConfirmOrderExtInfo map:{}.", JSONUtils.toString(map));
         return map;
     }
 

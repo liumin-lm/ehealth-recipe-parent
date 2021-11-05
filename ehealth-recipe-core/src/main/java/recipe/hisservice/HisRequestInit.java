@@ -19,8 +19,9 @@ import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.platform.recipe.mode.RecipeOrderBean;
 import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
-import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.PayFlagEnum;
+import recipe.enumerate.type.RecipeSendTypeEnum;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
@@ -47,6 +48,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
+import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.manager.EmrRecipeManager;
 import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
@@ -534,6 +536,7 @@ public class HisRequestInit {
         RecipeRefundReqTO requestTO = new RecipeRefundReqTO();
         if (null != recipe) {
             requestTO.setOrganID(String.valueOf(recipe.getClinicOrgan()));
+            requestTO.setPatId(recipe.getPatientID());
         }
 
         if (null != details && !details.isEmpty()) {
@@ -765,9 +768,15 @@ public class HisRequestInit {
             requestTO.setRecipeType((null != recipe.getRecipeType()) ? Integer.toString(recipe.getRecipeType()) : null);
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe nowRecipe = recipeDAO.getByRecipeId(recipe.getRecipeId());
+            LOGGER.info("HisRequestInit initDrugTakeChangeReqTO recipe:{},order:{}.", JSONUtils.toString(nowRecipe), JSONUtils.toString(order));
             RecipeHisStatusEnum recipeHisStatusEnum = RecipeHisStatusEnum.getRecipeHisStatusEnum(nowRecipe.getStatus());
             if(Objects.nonNull(recipeHisStatusEnum)) {
                 requestTO.setRecipeStatus(recipeHisStatusEnum.getValue());
+            }
+            if (null == requestTO.getRecipeStatus() && null != order && PayFlagEnum.PAYED.getType().equals(order.getPayFlag())
+                    && (RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType().equals(nowRecipe.getStatus()) ||
+                    RecipeStatusEnum.RECIPE_STATUS_WAIT_SEND.getType().equals(nowRecipe.getStatus()))) {
+                requestTO.setRecipeStatus(0);
             }
             // 医院系统医嘱号（一张处方多条记录用|分隔）
             StringBuilder str = new StringBuilder("");
@@ -796,7 +805,7 @@ public class HisRequestInit {
         OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
         //组织机构编码
         requestTO.setOrganizeCode(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
-
+        requestTO.setPatientID(recipe.getPatientID());
         if (null != patient) {
             // 患者信息
             requestTO.setCertID(patient.getCertificate());
@@ -1015,6 +1024,7 @@ public class HisRequestInit {
             requestTO.setPatientIdCard(patientBean.getIdcard());
             requestTO.setPatientName(patientBean.getPatientName());
             requestTO.setPatientSex(patientBean.getPatientSex());
+            requestTO.setPatientId(recipe.getPatientID());
             //出生日期
             requestTO.setBirthDay(DateConversion.formatDate(patientBean.getBirthday()));
             //复诊标记（0：初诊 1：复诊）
