@@ -1,6 +1,5 @@
 package recipe.service;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -27,6 +26,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.hisprescription.model.DiseaseInfo;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.revisit.RevisitAPI;
@@ -372,6 +372,7 @@ public class RecipeHisService extends RecipeBaseService {
                 if (recipeExtend != null) {
                     request.setHisDiseaseSerial(recipeExtend.getHisDiseaseSerial());
                 }
+                request.setTakeMedicine(recipe.getTakeMedicine());
                 LOGGER.info("recipeStatusUpdateWithOrganIdV1  request:{}", JSONUtils.toString(request));
                 flag = service.cancelRecipeImpl(request);
             } catch (Exception e) {
@@ -577,7 +578,7 @@ public class RecipeHisService extends RecipeBaseService {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 RecipeListQueryReqTO recipeListQueryReqTO = new RecipeListQueryReqTO();
                 PatientDTO patientDTO = patientService.getPatientBeanByMpiId(recipe.getMpiid());
-                if(patientDTO != null){
+                if (patientDTO != null) {
                     recipeListQueryReqTO.setCertID(patientDTO.getCardId());
                     recipeListQueryReqTO.setCertificate(patientDTO.getCertificate());
                     recipeListQueryReqTO.setCertificateType(patientDTO.getCertificateType());
@@ -1414,8 +1415,8 @@ public class RecipeHisService extends RecipeBaseService {
             hisCheckRecipeReqTO.setOrderList(list);
         }
         //date 20200222杭州市互联网(添加诊断)
-        List<DiseaseInfo> diseaseInfos = new ArrayList<>();
-        DiseaseInfo diseaseInfo;
+        List<com.ngari.recipe.hisprescription.model.DiseaseInfo> diseaseInfos = new ArrayList<>();
+        com.ngari.recipe.hisprescription.model.DiseaseInfo diseaseInfo;
         if (StringUtils.isNotEmpty(recipeBean.getOrganDiseaseId()) && StringUtils.isNotEmpty(recipeBean.getOrganDiseaseName())) {
             String[] diseaseIds = recipeBean.getOrganDiseaseId().split(ByteUtils.SEMI_COLON_EN);
             String[] diseaseNames = recipeBean.getOrganDiseaseName().split(ByteUtils.SEMI_COLON_EN);
