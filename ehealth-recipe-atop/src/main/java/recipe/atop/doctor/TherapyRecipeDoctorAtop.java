@@ -99,7 +99,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         logger.info("TherapyRecipeDoctorAtop submitTherapyRecipe recipeInfoVO = {}", JSON.toJSONString(recipeInfoVO));
         validateAtop(recipeInfoVO, recipeInfoVO.getRecipeDetails());
         Integer recipeId = saveTherapyRecipe(recipeInfoVO);
-        //异步推送his
+        //推送his
         RecipeInfoDTO recipeInfoDTO = offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_PUSH_TYPE);
         therapyRecipeBusinessService.updatePushTherapyRecipe(recipeInfoDTO.getRecipeTherapy(), CommonConstant.RECIPE_PUSH_TYPE);
         return recipeId;

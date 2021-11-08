@@ -2,6 +2,7 @@ package recipe.atop.patient;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.RecipeFeeDTO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
@@ -11,7 +12,9 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
+import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
+import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
@@ -30,14 +33,17 @@ public class RecipeOrderPatientAtop extends BaseAtop {
 
     @Autowired
     private IRecipeOrderBusinessService recipeOrderService;
+    @Autowired
+    private IOfflineRecipeBusinessService offlineToOnlineService;
 
     /**
      * 查询订单 详细费用 (邵逸夫模式专用)
+     *
      * @param orderCode
      * @return
      */
     @RpcService
-    public Map<String, List<RecipeFeeDTO>> findRecipeOrderDetailFee(String orderCode){
+    public Map<String, List<RecipeFeeDTO>> findRecipeOrderDetailFee(String orderCode) {
         logger.info("RecipeOrderAtop findRecipeOrderDetailFee orderCode = {}", orderCode);
         if (StringUtils.isEmpty(orderCode)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
@@ -131,5 +137,19 @@ public class RecipeOrderPatientAtop extends BaseAtop {
             logger.error("RecipeOrderPatientAtop skipThirdPage error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
+    }
+
+
+    /**
+     * 患者创建订单 根据配送方式上传处方给his
+     *
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    public boolean createRecipeHis(Integer recipeId) {
+        validateAtop(recipeId);
+        RecipeInfoDTO recipeInfoDTO = offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_PUSH_TYPE);
+        return true;
     }
 }
