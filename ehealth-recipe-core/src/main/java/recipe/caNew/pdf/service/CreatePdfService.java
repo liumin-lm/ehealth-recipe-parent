@@ -92,6 +92,15 @@ public interface CreatePdfService {
     CoOrdinateVO updateTotalPdf(Recipe recipe, BigDecimal recipeFee);
 
     /**
+     * 在pdf中添加 发药时间
+     *
+     * @param recipe
+     * @param dispensingTime
+     * @return
+     */
+    CoOrdinateVO updateDispensingTimePdf(Recipe recipe, String dispensingTime);
+
+    /**
      * pdf 处方号和患者病历号
      *
      * @param recipeId
