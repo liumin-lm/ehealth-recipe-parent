@@ -45,4 +45,9 @@ public class RecipeItemBusinessService extends BaseService implements ITherapyIt
         itemListManager.saveItemList(itemList);
     }
 
+    @Override
+    public void updateItemList(ItemList itemList) {
+        itemListManager.updateItemList(itemList);
+    }
+
 }

@@ -34,8 +34,11 @@ public class ItemListManager extends BaseManager {
         itemListDAO.delete(id);
     }
 
-    public void saveItemList(ItemList itemListVO) {
-        itemListDAO.save(itemListVO);
+    public void saveItemList(ItemList itemList) {
+        itemListDAO.save(itemList);
     }
 
+    public void updateItemList(ItemList itemList) {
+        itemListDAO.update(itemList);
+    }
 }

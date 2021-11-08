@@ -75,4 +75,24 @@ public class TherapyItemOpenAtop extends BaseAtop {
         return result;
     }
 
+    /**
+     * 运营平台修改诊疗项目
+     *
+     * @param itemList
+     * @return
+     */
+    @RpcService
+    public boolean updateItemList(ItemList itemList) {
+        validateAtop(itemList, itemList.getOrganID());
+        boolean result = false;
+        try {
+            therapyItemBusinessService.updateItemList(itemList);
+            result = true;
+        } catch (DAOException e1) {
+            logger.error("TherapyItemOpenAtop searchItemListByKeyWord  error", e1);
+        }
+        logger.info("TherapyItemOpenAtop saveItemList result:{}", result);
+        return result;
+    }
+
 }
