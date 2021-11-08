@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.bus.op.service.IUsePathwaysService;
@@ -47,6 +48,7 @@ import recipe.drugTool.service.DrugToolService;
 import recipe.drugsenterprise.ByRemoteService;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.util.*;
 
 /**
@@ -330,6 +332,29 @@ public class OrganDrugListService implements IOrganDrugListService {
             logger.info("一键禁用机构药品[updateOrganDrugListStatusByOrganId]:" + e);
         }
     }
+
+
+    /**
+     * 药品目录-机构药品目录增加一个权限策略，一键禁用（只在监管平台增加此权限），支持将当前有效状态的药品全部更改为无效状态；
+     *
+     * @param organId 机构Id
+     */
+    @RpcService
+    public void updateOrganDrugListStatusById(Integer organId,Integer organDrugId) {
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        OrganDrugList organDrugList = organDrugListDAO.get(organDrugId);
+        try {
+            organDrugList.setStatus(0);
+            OrganDrugList update = organDrugListDAO.update(organDrugList);
+            OrganService organService = BasicAPI.getService(OrganService.class);
+            OrganDTO organDTO = organService.getByOrganId(organId);
+            IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
+            busActionLogService.recordBusinessLogRpcNew("机构药品管理", "", "OrganDrugList", "【" + organDTO.getName() + "】" + "药品同步 药品禁用!"+update.getDrugName() , organDTO.getName());
+        } catch (Exception e) {
+            logger.info("同步药品禁用药品[updateOrganDrugListStatusById]:" + e);
+        }
+    }
+
 
     /**
      * 更新药品在医院中的信息
@@ -656,6 +681,48 @@ public class OrganDrugListService implements IOrganDrugListService {
                                                                                                final int start, final int limit) {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         QueryResult result = organDrugListDAO.queryOrganDrugListByOrganIdAndKeyword(organId, drugClass, keyword, status, start, limit);
+        result.setItems(covertData(result.getItems()));
+        return result;
+    }
+
+
+
+    /**
+     * 获取需要审核药品数量 以及 机构未关联监管平台药品数量
+     *
+     * @param organId
+     * @return
+     * @throws ParseException
+     */
+    @RpcService
+    public Map<String, Object> getOrganDrugSyncSituation(Integer organId){
+        Map<String, Object> map= Maps.newHashMap();
+        DrugListMatchDAO dao = DAOFactory.getDAO(DrugListMatchDAO.class);
+        List<DrugListMatch> matchList = dao.findMatchDataByOrganAndStatusAndrugSource(organId);
+        map.put("DrugListMatch",matchList.size());
+        List<OrganDrugList> drugLists = organDrugListDAO.findByOrganIdAndRegulationDrugCode(organId);
+        map.put("OrganDrugList",drugLists.size());
+        return map;
+    }
+
+    /**
+     * * 运营平台（新增机构药品 查询）
+     *
+     * @param organId
+     * @param drugClass
+     * @param keyword
+     * @param status
+     * @param start
+     * @param limit
+     * @return
+     */
+    @RpcService
+    public QueryResult<DrugListAndOrganDrugListDTO> queryOrganDrugListByOrganIdAndKeywordAndProducer(final Integer organId,
+                                                                                               final String drugClass,
+                                                                                               final String keyword,final String producer, final Integer status,
+                                                                                               final int start, final int limit) {
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        QueryResult result = organDrugListDAO.queryOrganDrugListByOrganIdAndKeywordAndProducer(organId, drugClass, keyword,producer, status, start, limit);
         result.setItems(covertData(result.getItems()));
         return result;
     }
