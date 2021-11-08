@@ -119,30 +119,6 @@ public class RecipeValidateUtil {
                 "doctor is required!");
         }
 
-        //      放开疾病校验，暂存时可保持只选了患者的处方
-//        if (StringUtils.isEmpty(recipe.getOrganDiseaseName())) {
-//            throw new DAOException(DAOException.VALUE_NEEDED,
-//                    "organDiseaseName is required!");
-//        }
-//
-//        //判断诊断备注是否超过50字
-//        int i = 50;
-//        if (StringUtils.isNotEmpty(recipe.getMemo()) && recipe.getMemo().length() > i) {
-//            throw new DAOException("备注内容字数限制50字");
-//        }
-//
-//        if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
-//            if (recipe.getTcmUsePathways() == null) {
-//                throw new DAOException(DAOException.VALUE_NEEDED,
-//                        "tcmUsePathways is required!");
-//            }
-//
-//            if (recipe.getTcmUsingRate() == null) {
-//                throw new DAOException(DAOException.VALUE_NEEDED,
-//                        "tcmUsingRate is required!");
-//            }
-//        }
-
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         PatientDTO patient = patientService.get(recipe.getMpiid());
         //解决旧版本因为wx2.6患者身份证为null，而业务申请不成功

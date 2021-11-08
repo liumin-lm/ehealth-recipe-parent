@@ -45,6 +45,7 @@ public interface ITherapyRecipeBusinessService {
 
     /**
      * 作废诊疗处方
+     *
      * @param recipeId 处方ID
      * @return 作废结果
      */
@@ -54,7 +55,7 @@ public interface ITherapyRecipeBusinessService {
      * 复诊关闭作废诊疗处方
      *
      * @param bussSource 业务类型
-     * @param clinicId 复诊ID
+     * @param clinicId   复诊ID
      * @return 作废结果
      */
     boolean abolishTherapyRecipeForRevisitClose(Integer bussSource, Integer clinicId);
@@ -69,6 +70,7 @@ public interface ITherapyRecipeBusinessService {
 
     /**
      * 搜索诊疗项目
+     *
      * @param itemListVO 诊疗项目
      * @return 诊疗项目列表
      */
@@ -76,12 +78,11 @@ public interface ITherapyRecipeBusinessService {
 
     /**
      * 更新诊疗处方信息
-     * @param organId 机构ID
-     * @param recipeCode 处方单号
+     *
+     * @param organId          机构ID
+     * @param recipeCode       处方单号
      * @param recipeTherapyDTO 诊疗信息
      * @return 是否成功
      */
     boolean updateTherapyRecipe(Integer organId, String recipeCode, RecipeTherapyDTO recipeTherapyDTO);
-
-
 }
