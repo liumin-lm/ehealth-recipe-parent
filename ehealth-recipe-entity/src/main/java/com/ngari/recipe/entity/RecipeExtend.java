@@ -767,6 +767,7 @@ public class RecipeExtend implements Serializable {
         this.canUrgentAuditRecipe = canUrgentAuditRecipe;
     }
 
+    @Column(name = "child_recipe_flag")
     public Integer getChildRecipeFlag() {
         return childRecipeFlag;
     }
