@@ -614,7 +614,7 @@ public class DrugListMatch implements java.io.Serializable {
         this.useDoseSmallestUnit = useDoseSmallestUnit;
     }
 
-    @Column(name = "drugSource")
+    @Column(name = "drug_source")
     public Integer getDrugSource() {
         return drugSource;
     }
