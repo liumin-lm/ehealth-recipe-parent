@@ -5,6 +5,11 @@ import com.ngari.recipe.vo.ItemListVO;
 
 import java.util.List;
 
+/**
+ * 诊疗项目服务
+ *
+ * @author fuzi
+ */
 public interface ITherapyItemBusinessService {
 
     /**

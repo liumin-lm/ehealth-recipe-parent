@@ -5,32 +5,19 @@ import com.ngari.recipe.entity.ItemList;
 import com.ngari.recipe.vo.ItemListVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.client.OrganClient;
-import recipe.client.PatientClient;
 import recipe.core.api.doctor.ITherapyItemBusinessService;
-import recipe.manager.*;
+import recipe.manager.ItemListManager;
 
 import java.util.List;
 
 /**
- * 诊疗项目
+ * 诊疗项目服务实现类
  *
  * @author liumin
  */
 @Service
 public class RecipeItemBusinessService extends BaseService implements ITherapyItemBusinessService {
-    @Autowired
-    private RecipeManager recipeManager;
-    @Autowired
-    private RecipeTherapyManager recipeTherapyManager;
-    @Autowired
-    private RecipeDetailManager recipeDetailManager;
-    @Autowired
-    private OrganDrugListManager organDrugListManager;
-    @Autowired
-    private PatientClient patientClient;
-    @Autowired
-    private OrganClient organClient;
+
     @Autowired
     private ItemListManager itemListManager;
 
