@@ -220,6 +220,11 @@ public class RecipeServiceSub {
                 recipeExtend.setGuardianName(patient.getGuardianName());
                 recipeExtend.setGuardianCertificate(patient.getGuardianCertificate());
                 recipeExtend.setGuardianMobile(patient.getMobile());
+                if(patient.getPatientUserType() == 1 || patient.getPatientUserType() == 2){
+                    recipeExtend.setChildRecipeFlag(1);
+                }else if (patient.getPatientUserType() == 0){
+                    recipeExtend.setChildRecipeFlag(0);
+                }
             }
             //根据复诊id 保存就诊卡号和就诊卡类型
             Integer consultId = recipeBean.getClinicId();
@@ -1461,7 +1466,7 @@ public class RecipeServiceSub {
             RecipeServiceSub.setPatientMoreInfo(patientBean, recipe.getDoctor());
             patient = RecipeServiceSub.patientDesensitization(patientBean);
             //判断该就诊人是否为儿童就诊人
-            if (patient.getAge() <= 5 && !ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
+            if (patient.getPatientUserType() == 1 || patient.getPatientUserType() == 2) {
                 GuardianBean guardian = new GuardianBean();
                 guardian.setName(patient.getGuardianName());
                 try {
@@ -1706,18 +1711,6 @@ public class RecipeServiceSub {
             recipe.setRecipeSurplusHours(getRecipeSurplusHours(recipe.getSignDate()));
         }
 
-        //获取该医生所在科室，判断是否为儿科科室
-        Integer departId = recipe.getDepart();
-        DepartmentDTO departmentDTO = departmentService.get(departId);
-        Boolean childRecipeFlag = false;
-        if (!ObjectUtils.isEmpty(departmentDTO)) {
-            if (departmentDTO.getName().contains("儿科") || departmentDTO.getName().contains("新生儿科") || departmentDTO.getName().contains("儿内科") || departmentDTO.getName().contains("儿外科")) {
-                childRecipeFlag = true;
-            }
-        }
-        map.put("childRecipeFlag", childRecipeFlag);
-
-
         //慢病列表配置
         try {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
@@ -1783,6 +1776,7 @@ public class RecipeServiceSub {
         }
         map.put("showChecker", showChecker);
 
+        Boolean childRecipeFlag = false;
         //医生端/患者端获取处方扩展信息
         if (recipeExtend != null) {
             if (recipeExtend.getDecoctionId() != null && recipeExtend.getDecoctionText() != null) {
@@ -1792,6 +1786,11 @@ public class RecipeServiceSub {
                     recipeExtend.setDecoctionPrice(decoctionWay.getDecoctionPrice());
                 }
             }
+            //判断是否为儿童处方
+            if(recipeExtend.getChildRecipeFlag() == 1){
+                childRecipeFlag = true;
+            }
+            map.put("childRecipeFlag", childRecipeFlag);
             //EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
             map.put("recipeExtend", recipeExtend);
         }
