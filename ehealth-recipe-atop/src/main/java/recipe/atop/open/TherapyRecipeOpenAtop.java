@@ -2,21 +2,15 @@ package recipe.atop.open;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.recipe.model.RecipeTherapyDTO;
-import com.ngari.recipe.vo.ItemListVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
-import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.api.open.ITherapyRecipeOpenService;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
-import recipe.constant.PageInfoConstant;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.enumerate.type.TherapyCancellationTypeEnum;
-import recipe.util.ValidateUtil;
-
-import java.util.List;
 
 /**
  * 提供复诊关闭调用
@@ -82,34 +76,6 @@ public class TherapyRecipeOpenAtop extends BaseAtop implements ITherapyRecipeOpe
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("TherapyRecipeOpenAtop therapyPayNotice error e", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
-    }
-
-    /**
-     * 运营平台搜索诊疗项目
-     *
-     * @param itemListVO itemListVO
-     * @return List<ItemListVO>
-     */
-    @RpcService
-    public List<ItemListVO> searchItemListByKeyWord(ItemListVO itemListVO) {
-        validateAtop(itemListVO, itemListVO.getOrganId());
-        try {
-            if (ValidateUtil.integerIsEmpty(itemListVO.getStart())) {
-                itemListVO.setStart(PageInfoConstant.PAGE_NO);
-            }
-            if (ValidateUtil.integerIsEmpty(itemListVO.getLimit())) {
-                itemListVO.setLimit(PageInfoConstant.PAGE_SIZE);
-            }
-            List<ItemListVO> result = therapyRecipeBusinessService.searchItemListByKeyWord(itemListVO);
-            logger.info("TherapyRecipeOpenAtop searchItemListByKeyWord result:{}.", JSON.toJSONString(result));
-            return result;
-        } catch (DAOException e1) {
-            logger.warn("TherapyRecipeOpenAtop searchItemListByKeyWord  error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("TherapyRecipeOpenAtop searchItemListByKeyWord  error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
