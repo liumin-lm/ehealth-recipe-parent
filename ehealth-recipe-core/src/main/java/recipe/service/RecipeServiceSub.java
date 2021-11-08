@@ -1580,9 +1580,8 @@ public class RecipeServiceSub {
 
             //增加医生返回智能审方结果药品问题列表 2018.11.26 shiyp
             //判断开关是否开启
-            PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
+            //去掉智能预审结果展示问题在生成的时候控制
             if (recipe.getStatus() != 0) {
-                if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
                     List<AuditMedicinesBean> auditMedicines = getAuditMedicineIssuesByRecipeId(recipeId);
                     map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId)); //返回药品分析数据
 //                AuditMedicineIssueDAO auditMedicineIssueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
@@ -1607,7 +1606,6 @@ public class RecipeServiceSub {
                         });
                         map.put("recipeDangers", recipeDangers); //返回处方分析数据
                     }
-                }
             }
             //医生处方单详情页按钮显示
             doctorRecipeInfoBottonShow(map, recipe);
