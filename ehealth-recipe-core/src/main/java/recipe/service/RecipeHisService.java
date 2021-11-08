@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -371,7 +372,6 @@ public class RecipeHisService extends RecipeBaseService {
                 if (recipeExtend != null) {
                     request.setHisDiseaseSerial(recipeExtend.getHisDiseaseSerial());
                 }
-                request.setTakeMedicine(recipe.getTakeMedicine());
                 LOGGER.info("recipeStatusUpdateWithOrganIdV1  request:{}", JSONUtils.toString(request));
                 flag = service.cancelRecipeImpl(request);
             } catch (Exception e) {
@@ -577,7 +577,7 @@ public class RecipeHisService extends RecipeBaseService {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 RecipeListQueryReqTO recipeListQueryReqTO = new RecipeListQueryReqTO();
                 PatientDTO patientDTO = patientService.getPatientBeanByMpiId(recipe.getMpiid());
-                if (patientDTO != null) {
+                if(patientDTO != null){
                     recipeListQueryReqTO.setCertID(patientDTO.getCardId());
                     recipeListQueryReqTO.setCertificate(patientDTO.getCertificate());
                     recipeListQueryReqTO.setCertificateType(patientDTO.getCertificateType());
