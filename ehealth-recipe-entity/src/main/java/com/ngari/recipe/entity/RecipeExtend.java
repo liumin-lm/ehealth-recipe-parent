@@ -155,7 +155,7 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "处方指定药企类型 1医院 2药企 默认 0")
     private Integer appointEnterpriseType;
 
-    @ItemProperty(alias = "是否是儿童处方 0否 1是")
+    @ItemProperty(alias = "是否是儿童处方 0:普通处方 1:儿童处方")
     private Integer childRecipeFlag;
 
     @Column(name = "appoint_enterprise_type")
