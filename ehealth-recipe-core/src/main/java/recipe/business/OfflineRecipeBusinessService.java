@@ -14,6 +14,7 @@ import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.HisRecipe;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
@@ -21,6 +22,7 @@ import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
 import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import com.ngari.recipe.vo.OffLineRecipeDetailVO;
+import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.BeanUtils;
 import ngari.openapi.util.JSONUtils;
@@ -36,6 +38,8 @@ import recipe.client.OfflineRecipeClient;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
@@ -215,17 +219,26 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
 
         //判断是否为儿科 设置部门名称
         DepartmentDTO departmentDTO = departmentService.getByCodeAndOrgan(queryHisRecipResTO.getDepartCode(), queryHisRecipResTO.getClinicOrgan());
-        if (!ObjectUtils.isEmpty(departmentDTO)) {
-            if (departmentDTO.getName().contains("儿科") || departmentDTO.getName().contains("新生儿科")
-                    || departmentDTO.getName().contains("儿内科") || departmentDTO.getName().contains("儿外科")) {
-                offLineRecipeDetailDTO.setChildRecipeFlag(true);
-                //设置监护人字段
-                if (!ObjectUtils.isEmpty(patient)) {
-                    offLineRecipeDetailDTO.setGuardianName(patient.getGuardianName());
-                    offLineRecipeDetailDTO.setGuardianAge(patient.getGuardianAge());
-                    offLineRecipeDetailDTO.setGuardianSex(patient.getGuardianSex());
+        try {
+            RecipeDAO recipeDao = DAOFactory.getDAO(RecipeDAO.class);
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            if(StringUtils.isNotEmpty(mpiId) && clinicOrgan != null && StringUtils.isNotEmpty(recipeCode)){
+                Recipe recipe = recipeDao.getByHisRecipeCodeAndClinicOrganAndMpiid(mpiId, recipeCode, clinicOrgan);
+                if(recipe != null){
+                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                    if (recipeExtend != null && recipeExtend.getChildRecipeFlag() == 1) {
+                        offLineRecipeDetailDTO.setChildRecipeFlag(true);
+                        //设置监护人字段
+                        if (!ObjectUtils.isEmpty(patient)) {
+                            offLineRecipeDetailDTO.setGuardianName(patient.getGuardianName());
+                            offLineRecipeDetailDTO.setGuardianAge(patient.getGuardianAge());
+                            offLineRecipeDetailDTO.setGuardianSex(patient.getGuardianSex());
+                        }
+                    }
                 }
             }
+        }catch (Exception e){
+            logger.error("RecipeBusinessService getOffLineRecipeDetails", e);
         }
         //优先使用HIS返回的departName如果为空则查表
         if (!org.springframework.util.StringUtils.isEmpty(queryHisRecipResTO.getDepartName())){

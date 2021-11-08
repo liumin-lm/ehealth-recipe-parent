@@ -155,6 +155,9 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "处方指定药企类型 1医院 2药企 默认 0")
     private Integer appointEnterpriseType;
 
+    @ItemProperty(alias = "是否是儿童处方 0否 1是")
+    private Integer childRecipeFlag;
+
     @Column(name = "appoint_enterprise_type")
     public Integer getAppointEnterpriseType() {
         return appointEnterpriseType;
@@ -762,5 +765,13 @@ public class RecipeExtend implements Serializable {
 
     public void setCanUrgentAuditRecipe(Integer canUrgentAuditRecipe) {
         this.canUrgentAuditRecipe = canUrgentAuditRecipe;
+    }
+
+    public Integer getChildRecipeFlag() {
+        return childRecipeFlag;
+    }
+
+    public void setChildRecipeFlag(Integer childRecipeFlag) {
+        this.childRecipeFlag = childRecipeFlag;
     }
 }
