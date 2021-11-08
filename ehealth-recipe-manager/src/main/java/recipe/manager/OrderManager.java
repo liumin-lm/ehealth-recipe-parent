@@ -27,6 +27,7 @@ import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeOrderPayFlowDao;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeOrderDetailFeeEnum;
+import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -231,6 +232,24 @@ public class OrderManager extends BaseManager {
 
     public boolean updateNonNullFieldByPrimaryKey(RecipeOrder recipeOrder) {
         return recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+    }
+
+    /**
+     * 根据 处方ID 或者 订单id 查询订单数据
+     *
+     * @param recipeId 处方ID
+     * @param orderId  订单id
+     * @return 订单数据
+     */
+    public RecipeOrder getRecipeOrder(Integer recipeId, Integer orderId) {
+        RecipeOrder recipeOrder = null;
+        if (!ValidateUtil.integerIsEmpty(orderId)) {
+            recipeOrder = recipeOrderDAO.getByOrderId(orderId);
+        }
+        if (!ValidateUtil.integerIsEmpty(recipeId)) {
+            recipeOrder = recipeOrderDAO.getOrderByRecipeId(recipeId);
+        }
+        return recipeOrder;
     }
 
     /**

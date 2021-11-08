@@ -101,7 +101,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         Integer recipeId = saveTherapyRecipe(recipeInfoVO);
         //推送his
         RecipeInfoDTO recipeInfoDTO = offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_PUSH_TYPE);
-        therapyRecipeBusinessService.updatePushTherapyRecipe(recipeInfoDTO.getRecipeTherapy(), CommonConstant.RECIPE_PUSH_TYPE);
+        therapyRecipeBusinessService.updatePushTherapyRecipe(recipeId, recipeInfoDTO.getRecipeTherapy(), CommonConstant.RECIPE_PUSH_TYPE);
         return recipeId;
     }
 
@@ -227,7 +227,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
             //异步推送his
             offlineToOnlineService.pushRecipe(recipeTherapyVO.getRecipeId(), CommonConstant.RECIPE_CANCEL_TYPE);
             RecipeTherapy recipeTherapy = ObjectCopyUtils.convert(recipeTherapyVO, RecipeTherapy.class);
-            therapyRecipeBusinessService.updatePushTherapyRecipe(recipeTherapy, CommonConstant.RECIPE_CANCEL_TYPE);
+            therapyRecipeBusinessService.updatePushTherapyRecipe(recipeTherapyVO.getRecipeId(), recipeTherapy, CommonConstant.RECIPE_CANCEL_TYPE);
             return true;
         } catch (DAOException e1) {
             logger.warn("TherapyRecipeDoctorAtop cancelRecipe  error", e1);

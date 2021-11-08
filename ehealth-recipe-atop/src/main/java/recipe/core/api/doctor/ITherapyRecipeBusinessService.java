@@ -65,7 +65,7 @@ public interface ITherapyRecipeBusinessService {
      * @param recipeTherapy 诊疗处方
      * @param pushType      推送类型: 1：提交处方，2:撤销处方
      */
-    void updatePushTherapyRecipe(RecipeTherapy recipeTherapy, Integer pushType);
+    void updatePushTherapyRecipe(Integer recipeId, RecipeTherapy recipeTherapy, Integer pushType);
 
     /**
      * 搜索诊疗项目

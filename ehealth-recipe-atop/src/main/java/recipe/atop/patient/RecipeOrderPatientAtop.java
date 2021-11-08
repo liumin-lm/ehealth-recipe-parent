@@ -2,7 +2,6 @@ package recipe.atop.patient;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.RecipeFeeDTO;
-import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
@@ -14,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
+import recipe.core.api.IOrganBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.util.ValidateUtil;
@@ -35,6 +35,8 @@ public class RecipeOrderPatientAtop extends BaseAtop {
     private IRecipeOrderBusinessService recipeOrderService;
     @Autowired
     private IOfflineRecipeBusinessService offlineToOnlineService;
+    @Autowired
+    private IOrganBusinessService iOrganBusinessService;
 
     /**
      * 查询订单 详细费用 (邵逸夫模式专用)
@@ -43,6 +45,7 @@ public class RecipeOrderPatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
+
     public Map<String, List<RecipeFeeDTO>> findRecipeOrderDetailFee(String orderCode) {
         logger.info("RecipeOrderAtop findRecipeOrderDetailFee orderCode = {}", orderCode);
         if (StringUtils.isEmpty(orderCode)) {
@@ -147,9 +150,32 @@ public class RecipeOrderPatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public boolean createRecipeHis(Integer recipeId) {
+    public void submitRecipeHis(Integer recipeId) {
         validateAtop(recipeId);
-        RecipeInfoDTO recipeInfoDTO = offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_PUSH_TYPE);
-        return true;
+        //过滤按钮
+        boolean validate = iOrganBusinessService.giveModeValidate(recipeId, null);
+        if (!validate) {
+            return;
+        }
+        //推送his
+        offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_PUSH_TYPE);
+    }
+
+    /**
+     * 患者取消订单 根据配送方式上传处方给his 撤销处方
+     *
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    public void cancelRecipeHis(Integer recipeId, Integer orderId) {
+        validateAtop(recipeId, orderId);
+        //过滤按钮 拿订单的购药方式 过滤
+        boolean validate = iOrganBusinessService.giveModeValidate(recipeId, orderId);
+        if (!validate) {
+            return;
+        }
+        //推送his
+        offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_CANCEL_TYPE);
     }
 }

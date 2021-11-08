@@ -13,10 +13,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import recipe.client.OrganClient;
 import recipe.client.PatientClient;
+import recipe.common.CommonConstant;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.enumerate.type.TherapyCancellationTypeEnum;
 import recipe.manager.*;
+import recipe.service.RecipeServiceSub;
 import recipe.vo.doctor.RecipeInfoVO;
 
 import java.util.LinkedList;
@@ -45,6 +47,8 @@ public class RecipeTherapyBusinessService extends BaseService implements ITherap
     private OrganClient organClient;
     @Autowired
     private ItemListManager itemListManager;
+    @Autowired
+    private EmrRecipeManager emrRecipeManager;
 
     @Override
     public Integer saveTherapyRecipe(RecipeInfoVO recipeInfoVO) {
@@ -141,7 +145,12 @@ public class RecipeTherapyBusinessService extends BaseService implements ITherap
     }
 
     @Override
-    public void updatePushTherapyRecipe(RecipeTherapy recipeTherapy, Integer pushType) {
+    public void updatePushTherapyRecipe(Integer recipeId, RecipeTherapy recipeTherapy, Integer pushType) {
+        if (CommonConstant.RECIPE_PUSH_TYPE.equals(pushType)) {
+            emrRecipeManager.updateDisease(recipeId);
+            Recipe recipe = recipeManager.getRecipeById(recipeId);
+            RecipeServiceSub.sendRecipeTagToPatient(recipe, null, null, true);
+        }
         recipeTherapyManager.updatePushTherapyRecipe(recipeTherapy, pushType);
     }
 
