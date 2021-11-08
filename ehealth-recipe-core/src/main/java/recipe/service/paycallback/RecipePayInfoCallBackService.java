@@ -42,6 +42,7 @@ import recipe.serviceprovider.recipelog.service.RemoteRecipeLogService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.util.RedisClient;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -290,6 +291,20 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                     //存储到处方是4-普通医保
                     attr.put("orderType", 4);
                 }
+            }
+            try {
+                //更新订单表实际支付金额(订单表的实际支付金额可能与患者实际支付不一致，对于不一致的进行更新)
+                if (order.getActualPrice() != payBackPrice) {
+                    attr.put("actualPrice", payBackPrice);
+                }
+                if (null != order.getCouponFee() && order.getCouponFee().doubleValue() != 0.0) {
+                    BigDecimal total_fee = new BigDecimal(payBackPrice + order.getCouponFee().doubleValue());
+                    attr.put("totalFee", total_fee);
+                } else {
+                    attr.put("totalFee", payBackPrice);
+                }
+            } catch (Exception e) {
+                logger.error("设置实际支付金额失败 ", e);
             }
         }
         //更新订单信息
