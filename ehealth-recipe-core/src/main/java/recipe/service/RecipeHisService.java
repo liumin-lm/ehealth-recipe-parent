@@ -372,7 +372,7 @@ public class RecipeHisService extends RecipeBaseService {
                 if (recipeExtend != null) {
                     request.setHisDiseaseSerial(recipeExtend.getHisDiseaseSerial());
                 }
-                //request.setTakeMedicine(recipe.getTakeMedicine());
+                request.setTakeMedicine(recipe.getTakeMedicine());
                 LOGGER.info("recipeStatusUpdateWithOrganIdV1  request:{}", JSONUtils.toString(request));
                 flag = service.cancelRecipeImpl(request);
             } catch (Exception e) {
