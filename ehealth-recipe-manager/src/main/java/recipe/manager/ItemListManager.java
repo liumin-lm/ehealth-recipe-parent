@@ -20,17 +20,29 @@ public class ItemListManager extends BaseManager {
     @Resource
     private ItemListDAO itemListDAO;
 
-    public List<ItemList> findItemList(Integer organId, String itemName, int start, int limit) {
-        List<ItemList> itemLists = itemListDAO.findItemList(organId, itemName, start, limit);
+    public List<ItemList> findItemList(Integer organId, Integer status, String itemName, int start, int limit) {
+        List<ItemList> itemLists = itemListDAO.findItemList(organId, status, itemName, start, limit);
         logger.info("ItemListManager findItemList itemLists:{}.", JSON.toJSONString(itemLists));
         return itemLists;
     }
 
-    public void updateItemListStatusById(Integer id, Integer status){
+    public void updateItemListStatusById(Integer id, Integer status) {
         itemListDAO.updateStatus(id, status);
     }
 
-    public void deleteItemListById(Integer id){
+    public void deleteItemListById(Integer id) {
         itemListDAO.delete(id);
+    }
+
+    public void saveItemList(ItemList itemList) {
+        itemListDAO.save(itemList);
+    }
+
+    public void updateItemList(ItemList itemList) {
+        itemListDAO.update(itemList);
+    }
+
+    public ItemList getItemListById(ItemList itemList) {
+        return itemListDAO.get(itemList);
     }
 }
