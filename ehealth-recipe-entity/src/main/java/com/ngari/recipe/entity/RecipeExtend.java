@@ -156,7 +156,7 @@ public class RecipeExtend implements Serializable {
     private Integer appointEnterpriseType;
 
     @ItemProperty(alias = "是否是儿童处方 0:普通处方 1:儿童处方")
-    private Integer childRecipeFlag;
+    private Integer childRecipeFlagNew;
 
     @Column(name = "appoint_enterprise_type")
     public Integer getAppointEnterpriseType() {
@@ -768,11 +768,11 @@ public class RecipeExtend implements Serializable {
     }
 
     @Column(name = "child_recipe_flag")
-    public Integer getChildRecipeFlag() {
-        return childRecipeFlag;
+    public Integer getChildRecipeFlagNew() {
+        return childRecipeFlagNew;
     }
 
-    public void setChildRecipeFlag(Integer childRecipeFlag) {
-        this.childRecipeFlag = childRecipeFlag;
+    public void setChildRecipeFlagNew(Integer childRecipeFlagNew) {
+        this.childRecipeFlagNew = childRecipeFlagNew;
     }
 }

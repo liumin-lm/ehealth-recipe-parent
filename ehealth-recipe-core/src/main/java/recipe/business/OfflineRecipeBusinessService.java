@@ -226,8 +226,11 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
                 Recipe recipe = recipeDao.getByHisRecipeCodeAndClinicOrganAndMpiid(mpiId, recipeCode, clinicOrgan);
                 if(recipe != null){
                     RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                    if (recipeExtend != null && recipeExtend.getChildRecipeFlag() == 1) {
+                    if (recipeExtend != null && recipeExtend.getChildRecipeFlagNew() == 1) {
+                        //兼容老版本（此版本暂时不做删除）
                         offLineRecipeDetailDTO.setChildRecipeFlag(true);
+                        //新版本使用
+                        offLineRecipeDetailDTO.setChildRecipeFlagNew(recipeExtend.getChildRecipeFlagNew());
                         //设置监护人字段
                         if (!ObjectUtils.isEmpty(patient)) {
                             offLineRecipeDetailDTO.setGuardianName(patient.getGuardianName());
