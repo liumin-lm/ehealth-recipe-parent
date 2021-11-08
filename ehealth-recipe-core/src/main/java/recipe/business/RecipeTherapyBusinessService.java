@@ -120,7 +120,7 @@ public class RecipeTherapyBusinessService extends BaseService implements ITherap
     }
 
     @Override
-    public boolean abolishTherapyRecipe(Integer recipeId){
+    public boolean abolishTherapyRecipe(Integer recipeId) {
         return recipeTherapyManager.abolishTherapyRecipe(recipeId);
     }
 
@@ -147,7 +147,7 @@ public class RecipeTherapyBusinessService extends BaseService implements ITherap
 
     @Override
     public List<ItemListVO> searchItemListByKeyWord(ItemListVO itemListVO) {
-        List<ItemList> itemLists = itemListManager.findItemList(itemListVO.getOrganId(), itemListVO.getItemName(), itemListVO.getStart(), itemListVO.getLimit());
+        List<ItemList> itemLists = itemListManager.findItemList(itemListVO.getOrganId(), itemListVO.getStatus(), itemListVO.getItemName(), itemListVO.getStart(), itemListVO.getLimit());
         return ObjectCopyUtils.convert(itemLists, ItemListVO.class);
     }
 

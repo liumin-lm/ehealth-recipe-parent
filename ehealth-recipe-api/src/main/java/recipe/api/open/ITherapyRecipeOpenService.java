@@ -5,6 +5,7 @@ import ctd.util.annotation.RpcService;
 
 /**
  * 诊疗处方
+ *
  * @author yinsheng
  * @date 2021\8\30 0030 10:10
  */
@@ -12,6 +13,7 @@ public interface ITherapyRecipeOpenService {
 
     /**
      * 复诊关闭作废诊疗处方
+     *
      * @param bussSource
      * @param clinicId
      * @return
@@ -21,6 +23,7 @@ public interface ITherapyRecipeOpenService {
 
     /**
      * HIS作废处方
+     *
      * @param organId
      * @param recipeCode
      * @return
@@ -30,6 +33,7 @@ public interface ITherapyRecipeOpenService {
 
     /**
      * 诊疗处方缴费通知
+     *
      * @param organId
      * @param recipeCode
      * @param recipeTherapyDTO
@@ -37,4 +41,6 @@ public interface ITherapyRecipeOpenService {
      */
     @RpcService
     boolean therapyPayNotice(Integer organId, String recipeCode, RecipeTherapyDTO recipeTherapyDTO);
+
+
 }
