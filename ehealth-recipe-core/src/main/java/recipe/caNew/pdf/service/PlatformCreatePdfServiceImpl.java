@@ -152,6 +152,20 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         return coords;
     }
 
+    @Override
+    public CoOrdinateVO updateDispensingTimePdf(Recipe recipe, String dispensingTime) {
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoordsHeight(recipe.getRecipeId(), "recipeOrder.dispensingTime");
+        if (null == ordinateVO) {
+            return null;
+        }
+        CoOrdinateVO coords = new CoOrdinateVO();
+        coords.setValue(dispensingTime);
+        coords.setX(ordinateVO.getX());
+        coords.setY(ordinateVO.getY());
+        coords.setRepeatWrite(true);
+        return coords;
+    }
+
 
     @Override
     public String updateCodePdf(Recipe recipe) throws Exception {

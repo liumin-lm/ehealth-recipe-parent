@@ -27,6 +27,7 @@ import recipe.dao.RecipeOrderDAO;
 import recipe.manager.SignManager;
 import recipe.service.RecipeLogService;
 import recipe.thread.RecipeBusiThreadPool;
+import recipe.util.ByteUtils;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
@@ -366,11 +367,6 @@ public class CreatePdfFactory {
     public void updateGiveUser(Recipe recipe) {
         long start = System.currentTimeMillis();
         logger.info("CreatePdfFactory updateGiveUser recipe={}", JSON.toJSONString(recipe));
-        //获取 核对发药药师签名id
-        ApothecaryDTO apothecaryDTO = signManager.giveUser(recipe.getClinicOrgan(), recipe.getGiveUser(), recipe.getRecipeId());
-        if (StringUtils.isEmpty(apothecaryDTO.getGiveUserSignImg())) {
-            return;
-        }
         //判断发药状态
         if (StringUtils.isEmpty(recipe.getOrderCode())) {
             return;
@@ -379,14 +375,37 @@ public class CreatePdfFactory {
         if (null == recipeOrder || null == recipeOrder.getDispensingTime()) {
             return;
         }
-        //获取pdf坐标
+        Recipe recipeUpdate = new Recipe();
+        recipeUpdate.setRecipeId(recipe.getRecipeId());
         CreatePdfService createPdfService = createPdfService(recipe);
+        //写入发药时间
+        CoOrdinateVO coords = createPdfService.updateDispensingTimePdf(recipe, ByteUtils.dateToSting(recipeOrder.getDispensingTime()));
+        try {
+            if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+                String fileId = CreateRecipePdfUtil.generateCoOrdinatePdf(recipe.getChemistSignFile(), coords);
+                recipeUpdate.setChemistSignFile(fileId);
+                recipe.setChemistSignFile(fileId);
+            } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
+                String fileId = CreateRecipePdfUtil.generateCoOrdinatePdf(recipe.getSignFile(), coords);
+                recipeUpdate.setSignFile(fileId);
+                recipe.setSignFile(fileId);
+            }
+        } catch (Exception e) {
+            logger.error("CreatePdfFactory updateGiveUser updateDispensingTimePdf  recipe: {}", recipe.getRecipeId(), e);
+            return;
+        }
+        recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+        //获取 核对发药药师签名id
+        ApothecaryDTO apothecaryDTO = signManager.giveUser(recipe.getClinicOrgan(), recipe.getGiveUser(), recipe.getRecipeId());
+        if (StringUtils.isEmpty(apothecaryDTO.getGiveUserSignImg())) {
+            return;
+        }
+        //获取pdf坐标
         SignImgNode signImgNode = createPdfService.updateGiveUser(recipe);
         if (null == signImgNode) {
             return;
         }
         signImgNode.setSignImgFileId(apothecaryDTO.getGiveUserSignImg());
-        Recipe recipeUpdate = new Recipe();
         try {
             if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
                 signImgNode.setSignFileId(recipe.getChemistSignFile());
@@ -400,14 +419,9 @@ public class CreatePdfFactory {
         } catch (Exception e) {
             logger.error("CreatePdfFactory updateGiveUser  recipe: {}", recipe.getRecipeId(), e);
             return;
-        }finally {
-            recipeUpdate.setRecipeId(recipe.getRecipeId());
-            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-            logger.info("CreatePdfFactory updateGiveUser recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
-            long elapsedTime = System.currentTimeMillis() - start;
-            logger.info("RecipeBusiThreadPool updateGiveUser 将发药人信息放置到PDF 执行时间:{}.", elapsedTime);
         }
-
+        recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+        logger.info("CreatePdfFactory updateGiveUser recipeUpdate ={},执行时间:{}", JSON.toJSONString(recipeUpdate), System.currentTimeMillis() - start);
     }
 
 
