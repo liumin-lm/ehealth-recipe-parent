@@ -11,6 +11,7 @@ import java.math.BigDecimal;
 
 /**
  * 项目列表
+ *
  * @author yinsheng
  * @date 2021\8\21 0021 09:24
  */
@@ -18,7 +19,7 @@ import java.math.BigDecimal;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ItemListVO implements Serializable{
+public class ItemListVO implements Serializable {
     private static final long serialVersionUID = 8715047453386510666L;
 
     @ItemProperty(alias = "项目id")
