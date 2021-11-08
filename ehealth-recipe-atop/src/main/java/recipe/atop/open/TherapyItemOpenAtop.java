@@ -69,14 +69,14 @@ public class TherapyItemOpenAtop extends BaseAtop {
             therapyItemBusinessService.saveItemList(itemList);
             result = true;
         } catch (DAOException e1) {
-            logger.error("TherapyItemOpenAtop searchItemListByKeyWord  error", e1);
+            logger.error("TherapyItemOpenAtop saveItemList  error", e1);
         }
         logger.info("TherapyItemOpenAtop saveItemList result:{}", result);
         return result;
     }
 
     /**
-     * 运营平台修改诊疗项目
+     * 运营平台修改诊疗项目(1、启用、禁用 2、删除 3、修改数据保存)
      *
      * @param itemList
      * @return
@@ -89,10 +89,11 @@ public class TherapyItemOpenAtop extends BaseAtop {
             therapyItemBusinessService.updateItemList(itemList);
             result = true;
         } catch (DAOException e1) {
-            logger.error("TherapyItemOpenAtop searchItemListByKeyWord  error", e1);
+            logger.error("TherapyItemOpenAtop updateItemList  error", e1);
         }
-        logger.info("TherapyItemOpenAtop saveItemList result:{}", result);
+        logger.info("TherapyItemOpenAtop updateItemList result:{}", result);
         return result;
     }
+
 
 }
