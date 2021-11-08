@@ -267,6 +267,7 @@ public class OperationPlatformRecipeService {
 
         Map<String, Object> map = Maps.newHashMap();
         //判断是否为儿童处方
+        //兼容老版本（此版本暂时不做删除）
         Boolean childRecipeFlag = false;
         if (extend != null) {
             if(extend.getChildRecipeFlagNew() == 1){

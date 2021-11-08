@@ -1793,7 +1793,7 @@ public class RecipeServiceSub {
             showChecker = false;
         }
         map.put("showChecker", showChecker);
-
+        //兼容老版本（此版本暂时不做删除）
         Boolean childRecipeFlag = false;
         //医生端/患者端获取处方扩展信息
         if (recipeExtend != null) {
