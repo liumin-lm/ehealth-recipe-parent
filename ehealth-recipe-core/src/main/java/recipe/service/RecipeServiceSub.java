@@ -81,12 +81,15 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.client.IConfigurationClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.AldyfRemoteService;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.DecoctionDeployTypeEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
+import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.*;
@@ -244,7 +247,8 @@ public class RecipeServiceSub {
     public static void setRecipeMoreInfo(Recipe recipe, List<Recipedetail> details, RecipeBean recipeBean, Integer flag) {
         //校验处方和明细保存数据
         validateRecipeAndDetailData(recipe, details);
-
+        //校验处方扩展信息
+        validateRecipeExtData(recipeBean);
         //设置处方默认数据
         RecipeUtil.setDefaultData(recipe);
         //设置处方明细数据
@@ -280,6 +284,22 @@ public class RecipeServiceSub {
         }
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         recipeService.setMergeDrugType(details, recipe);
+    }
+
+    /**
+     * 校验处方扩展信息
+     * @param recipeBean 处方扩展信息
+     */
+    private static void validateRecipeExtData(RecipeBean recipeBean) {
+        //校验中草药当配置为医生端选择煎法时，煎法为必填项
+        if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipeBean.getRecipeType())) {
+            IConfigurationClient configurationClient = AppContextHolder.getBean("iConfigurationClient", IConfigurationClient.class);
+            String decoctionDeploy = configurationClient.getValueEnumCatch(recipeBean.getClinicOrgan(), "decoctionDeploy", null);
+            if (DecoctionDeployTypeEnum.DECOCTION_DEPLOY_DOCTOR.getType().equals(decoctionDeploy) && null == recipeBean.getRecipeExtend().getDecoctionId()) {
+                //表示配置为医生选择，则必须要传煎法
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "中草药医生选择煎法不能为空");
+            }
+        }
     }
 
     private static void saveOperationRecordsForRecipe(PatientDTO patient, Recipe recipe) {
@@ -1580,9 +1600,8 @@ public class RecipeServiceSub {
 
             //增加医生返回智能审方结果药品问题列表 2018.11.26 shiyp
             //判断开关是否开启
-            PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
+            //去掉智能预审结果展示问题在生成的时候控制
             if (recipe.getStatus() != 0) {
-                if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
                     List<AuditMedicinesBean> auditMedicines = getAuditMedicineIssuesByRecipeId(recipeId);
                     map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId)); //返回药品分析数据
 //                AuditMedicineIssueDAO auditMedicineIssueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
@@ -1607,7 +1626,6 @@ public class RecipeServiceSub {
                         });
                         map.put("recipeDangers", recipeDangers); //返回处方分析数据
                     }
-                }
             }
             //医生处方单详情页按钮显示
             doctorRecipeInfoBottonShow(map, recipe);
