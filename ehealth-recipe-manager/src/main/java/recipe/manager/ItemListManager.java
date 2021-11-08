@@ -41,4 +41,8 @@ public class ItemListManager extends BaseManager {
     public void updateItemList(ItemList itemList) {
         itemListDAO.update(itemList);
     }
+
+    public ItemList getItemListById(ItemList itemList) {
+        return itemListDAO.get(itemList);
+    }
 }

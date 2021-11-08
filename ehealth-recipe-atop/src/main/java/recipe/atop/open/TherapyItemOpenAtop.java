@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.ItemList;
 import com.ngari.recipe.vo.ItemListVO;
 import ctd.persistence.exception.DAOException;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +29,7 @@ public class TherapyItemOpenAtop extends BaseAtop {
     private ITherapyItemBusinessService therapyItemBusinessService;
 
     /**
-     * 运营平台搜索诊疗项目
+     * 运营平台搜索诊疗项目（查询诊疗项目列表）
      *
      * @param itemListVO itemListVO
      * @return List<ItemListVO>
@@ -53,6 +54,24 @@ public class TherapyItemOpenAtop extends BaseAtop {
             logger.error("TherapyItemOpenAtop listItemList  error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
+    }
+
+    /**
+     * 获取诊疗项目详情
+     *
+     * @param itemList
+     * @return
+     */
+    @RpcService
+    public ItemList getItemListById(ItemList itemList) {
+        validateAtop(itemList, itemList.getId());
+        try {
+            itemList = therapyItemBusinessService.getItemListById(itemList);
+        } catch (DAOException e1) {
+            logger.error("TherapyItemOpenAtop saveItemList  error", e1);
+        }
+        logger.info("TherapyItemOpenAtop saveItemList result:{}", JSONUtils.toString(itemList));
+        return itemList;
     }
 
     /**

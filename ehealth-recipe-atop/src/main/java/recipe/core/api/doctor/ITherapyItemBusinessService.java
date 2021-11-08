@@ -30,4 +30,12 @@ public interface ITherapyItemBusinessService {
      * @param itemList
      */
     void updateItemList(ItemList itemList);
+
+    /**
+     * 获取单个诊疗项目
+     *
+     * @param itemList
+     * @return
+     */
+    ItemList getItemListById(ItemList itemList);
 }
