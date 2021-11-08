@@ -7,6 +7,7 @@ import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import org.apache.commons.collections.CollectionUtils;
@@ -20,6 +21,7 @@ import recipe.core.api.IOrganBusinessService;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.manager.ButtonManager;
+import recipe.manager.OrderManager;
 import recipe.manager.OrganDrugListManager;
 
 import java.util.ArrayList;
@@ -36,6 +38,8 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
     private IConfigurationClient configurationClient;
     @Autowired
     private OrganDrugListManager organDrugListManager;
+    @Autowired
+    private OrderManager orderManager;
 
     @Override
     public List<Integer> getOrganForWeb() {
@@ -95,4 +99,19 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
         }
         return enterpriseStock;
     }
+
+
+    @Override
+    public boolean giveModeValidate(Integer recipeId, Integer orderId) {
+        RecipeOrder recipeOrder = orderManager.getRecipeOrder(recipeId, orderId);
+        if (null == recipeOrder) {
+            return false;
+        }
+        List<String> recipeTypes = configurationClient.getValueListCatch(recipeOrder.getOrganId(), "patientRecipeUploadHis", null);
+        if (CollectionUtils.isEmpty(recipeTypes)) {
+            return false;
+        }
+        return recipeTypes.contains(recipeOrder.getGiveModeKey());
+    }
+
 }

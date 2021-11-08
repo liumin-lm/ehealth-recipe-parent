@@ -35,7 +35,6 @@ import org.springframework.util.ObjectUtils;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.OfflineRecipeClient;
-import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.dao.RecipeDAO;
@@ -45,7 +44,6 @@ import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
 import recipe.manager.*;
 import recipe.service.RecipeLogService;
-import recipe.service.RecipeServiceSub;
 import recipe.util.MapValueUtil;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
 
@@ -299,21 +297,17 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     public RecipeInfoDTO pushRecipe(Integer recipeId, Integer pushType) {
         logger.info("RecipeBusinessService pushRecipeExecute recipeId={}", recipeId);
         RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);
+        Recipe recipe = recipePdfDTO.getRecipe();
         RecipeInfoDTO result;
         try {
-            Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(recipePdfDTO.getRecipe().getClinicOrgan());
+            Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
             result = hisRecipeManager.pushRecipe(recipePdfDTO, pushType, pharmacyIdMap);
             recipeManager.updatePushHisRecipe(result.getRecipe(), recipeId, pushType);
             recipeManager.updatePushHisRecipeExt(result.getRecipeExtend(), recipeId, pushType);
         } catch (Exception e) {
-            Recipe recipe = recipePdfDTO.getRecipe();
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
             logger.error("RecipeBusinessService pushRecipeExecute error", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方推送his失败");
-        }
-        if (CommonConstant.RECIPE_PUSH_TYPE.equals(pushType)) {
-            emrRecipeManager.updateDisease(recipeId);
-            RecipeServiceSub.sendRecipeTagToPatient(recipePdfDTO.getRecipe(), null, null, true);
         }
         logger.info("RecipeBusinessService pushRecipeExecute end recipeId:{}", recipeId);
         return result;
