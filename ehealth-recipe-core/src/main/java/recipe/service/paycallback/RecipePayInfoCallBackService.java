@@ -297,7 +297,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                 if (order.getActualPrice() != payBackPrice) {
                     attr.put("actualPrice", payBackPrice);
                 }
-                if (null != order.getCouponFee() && order.getCouponFee().doubleValue() != 0.0) {
+                if (null != order.getCouponFee() && order.getCouponFee().compareTo(BigDecimal.ZERO) > 0) {
                     BigDecimal total_fee = new BigDecimal(payBackPrice + order.getCouponFee().doubleValue());
                     attr.put("totalFee", total_fee);
                 } else {
