@@ -269,7 +269,7 @@ public class OperationPlatformRecipeService {
         //判断是否为儿童处方
         Boolean childRecipeFlag = false;
         if (extend != null) {
-            if(extend.getChildRecipeFlag() == 1){
+            if(extend.getChildRecipeFlagNew() == 1){
                 childRecipeFlag = true;
             }
             map.put("recipeExtend", extend);

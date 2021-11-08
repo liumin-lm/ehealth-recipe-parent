@@ -221,9 +221,9 @@ public class RecipeServiceSub {
                 recipeExtend.setGuardianCertificate(patient.getGuardianCertificate());
                 recipeExtend.setGuardianMobile(patient.getMobile());
                 if(patient.getPatientUserType() == 1 || patient.getPatientUserType() == 2){
-                    recipeExtend.setChildRecipeFlag(1);
+                    recipeExtend.setChildRecipeFlagNew(1);
                 }else if (patient.getPatientUserType() == 0){
-                    recipeExtend.setChildRecipeFlag(0);
+                    recipeExtend.setChildRecipeFlagNew(0);
                 }
             }
             //根据复诊id 保存就诊卡号和就诊卡类型
@@ -1787,7 +1787,7 @@ public class RecipeServiceSub {
                 }
             }
             //判断是否为儿童处方
-            if(recipeExtend.getChildRecipeFlag() == 1){
+            if(recipeExtend.getChildRecipeFlagNew() == 1){
                 childRecipeFlag = true;
             }
             map.put("childRecipeFlag", childRecipeFlag);
