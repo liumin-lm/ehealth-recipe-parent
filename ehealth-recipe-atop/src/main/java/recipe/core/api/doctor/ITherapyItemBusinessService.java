@@ -27,7 +27,7 @@ public interface ITherapyItemBusinessService {
      * @param itemListVO
      * @return
      */
-    void saveItemList(ItemList itemListVO);
+    ItemList saveItemList(ItemList itemListVO);
 
     /**
      * 更新诊疗项目

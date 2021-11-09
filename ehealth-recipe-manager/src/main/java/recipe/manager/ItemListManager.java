@@ -2,6 +2,7 @@ package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.ItemList;
+import ctd.util.JSONUtils;
 import org.springframework.stereotype.Service;
 import recipe.dao.ItemListDAO;
 
@@ -34,8 +35,10 @@ public class ItemListManager extends BaseManager {
         itemListDAO.delete(id);
     }
 
-    public void saveItemList(ItemList itemList) {
-        itemListDAO.save(itemList);
+    public ItemList saveItemList(ItemList itemList) {
+        ItemList itemList1 = itemListDAO.save(itemList);
+        logger.info("saveItemList result:{}", JSONUtils.toString(itemList));
+        return itemList1;
     }
 
     public void updateItemList(ItemList itemList) {
