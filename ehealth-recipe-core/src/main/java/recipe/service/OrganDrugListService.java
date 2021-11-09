@@ -12,6 +12,7 @@ import com.ngari.his.regulation.entity.RegulationNotifyDataReq;
 import com.ngari.his.regulation.service.IRegulationService;
 import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.opbase.base.service.IBusActionLogService;
+import com.ngari.opbase.util.OpSecurityUtil;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.ProvUploadOrganDTO;
 import com.ngari.patient.dto.zjs.RegulationDoctorIndicatorsBean;
@@ -745,6 +746,7 @@ public class OrganDrugListService implements IOrganDrugListService {
                                                                                final Integer isregulationDrug,
              final Integer type,final int start, final int limit, Boolean canDrugSend) {
         QueryResult result = null;
+        OpSecurityUtil.isAuthorisedOrgan(organId);
         try {
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             result = organDrugListDAO.queryOrganDrugAndSaleForOp(startTime, endTime, organId, drugClass, keyword, status,isregulationDrug,type, start, limit, canDrugSend);
