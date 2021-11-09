@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.ItemList;
 import com.ngari.recipe.vo.ItemListVO;
 import ctd.persistence.exception.DAOException;
-import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,10 +66,10 @@ public class TherapyItemOpenAtop extends BaseAtop {
         validateAtop(itemList, itemList.getId());
         try {
             itemList = therapyItemBusinessService.getItemListById(itemList);
-        } catch (DAOException e1) {
-            logger.error("TherapyItemOpenAtop saveItemList  error", e1);
+        } catch (Exception e1) {
+            logger.error("TherapyItemOpenAtop getItemListById  error", e1);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         }
-        logger.info("TherapyItemOpenAtop saveItemList result:{}", JSONUtils.toString(itemList));
         return itemList;
     }
 
@@ -90,7 +89,6 @@ public class TherapyItemOpenAtop extends BaseAtop {
         } catch (DAOException e1) {
             logger.error("TherapyItemOpenAtop saveItemList  error", e1);
         }
-        logger.info("TherapyItemOpenAtop saveItemList result:{}", result);
         return result;
     }
 
@@ -102,7 +100,7 @@ public class TherapyItemOpenAtop extends BaseAtop {
      */
     @RpcService
     public boolean updateItemList(ItemList itemList) {
-        validateAtop(itemList, itemList.getOrganID());
+        validateAtop(itemList, itemList.getId());
         boolean result = false;
         try {
             therapyItemBusinessService.updateItemList(itemList);
@@ -110,7 +108,6 @@ public class TherapyItemOpenAtop extends BaseAtop {
         } catch (DAOException e1) {
             logger.error("TherapyItemOpenAtop updateItemList  error", e1);
         }
-        logger.info("TherapyItemOpenAtop updateItemList result:{}", result);
         return result;
     }
 
