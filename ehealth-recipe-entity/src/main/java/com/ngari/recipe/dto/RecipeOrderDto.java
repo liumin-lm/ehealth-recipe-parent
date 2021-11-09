@@ -1,7 +1,5 @@
 package com.ngari.recipe.dto;
 
-import com.ngari.recipe.entity.Recipe;
-import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -42,6 +40,13 @@ public class RecipeOrderDto implements Serializable {
     @ItemProperty(alias = "订单总费用")
     private BigDecimal totalFee;
 
-    @ItemProperty(alias = "订单下处方详情")
-    private List<RecipeBeanDTO> recipeList;
+    @ItemProperty(alias = "创建时间")
+    private Date createTime;
+
+    @ItemProperty(alias = "最后修改时间")
+    private Date lastModifyTime;
+
+    @ItemProperty(alias = "订单下处方信息")
+    private List<RecipeBeanDTO> recipeVos;
+
 }
