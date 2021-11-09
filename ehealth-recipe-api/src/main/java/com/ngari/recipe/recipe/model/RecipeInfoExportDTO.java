@@ -52,6 +52,9 @@ public class RecipeInfoExportDTO implements Serializable{
     @ItemProperty(alias = "自费金额")
     private Double cashAmount;
 
+    @ItemProperty(alias = "发药药师")
+    private String giveUser;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     public Integer getRecipeId() {
@@ -220,5 +223,13 @@ public class RecipeInfoExportDTO implements Serializable{
 
     public void setRecipeType(Integer recipeType) {
         this.recipeType = recipeType;
+    }
+
+    public String getGiveUser() {
+        return giveUser;
+    }
+
+    public void setGiveUser(String giveUser) {
+        this.giveUser = giveUser;
     }
 }
