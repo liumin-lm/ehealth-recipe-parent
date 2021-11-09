@@ -26,7 +26,7 @@ public class LogRecordAspect {
     private static final Logger logger = LoggerFactory.getLogger(LogRecordAspect.class);
 
 
-    @Pointcut("@annotation(recipe.aop.logRecord)")
+    @Pointcut("@annotation(recipe.aop.LogRecord)")
     public void conPoint(){}
 
     @Around(value = "conPoint()")

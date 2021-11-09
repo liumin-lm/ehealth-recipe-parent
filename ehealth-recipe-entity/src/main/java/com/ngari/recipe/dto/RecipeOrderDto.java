@@ -47,6 +47,6 @@ public class RecipeOrderDto implements Serializable {
     private Date lastModifyTime;
 
     @ItemProperty(alias = "订单下处方信息")
-    private List<RecipeBeanDTO> recipeVos;
+    private List<RecipeBeanDTO> recipeList;
 
 }
