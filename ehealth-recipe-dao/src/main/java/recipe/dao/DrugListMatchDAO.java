@@ -61,7 +61,7 @@ public abstract class DrugListMatchDAO extends HibernateSupportDelegateDAO<DrugL
             @SuppressWarnings("unchecked")
             @Override
             public void execute(StatelessSession ss) throws DAOException {
-                StringBuilder hql = new StringBuilder("From DrugListMatch where sourceOrgan=:sourceOrgan");
+                StringBuilder hql = new StringBuilder("From DrugListMatch where sourceOrgan=:sourceOrgan  and drugSource=0  ");
                 if (!StringUtils.isEmpty(keyword)) {
                     hql.append(" and (");
                     hql.append(" drugName like :keyword or producer like :keyword or saleName like :keyword or organDrugCode like :keyword ");
