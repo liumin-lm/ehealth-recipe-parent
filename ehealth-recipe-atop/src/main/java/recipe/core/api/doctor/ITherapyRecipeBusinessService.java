@@ -85,4 +85,14 @@ public interface ITherapyRecipeBusinessService {
      * @return 是否成功
      */
     boolean updateTherapyRecipe(Integer organId, String recipeCode, RecipeTherapyDTO recipeTherapyDTO);
+
+    /**
+     * 获取就诊人诊疗处方列表
+     *
+     * @param mpiId         患者信息
+     * @param start         页数
+     * @param limit         每页条数
+     * @return
+     */
+    List<RecipeInfoDTO> therapyRecipeListForPatient(String mpiId, int start, int limit);
 }
