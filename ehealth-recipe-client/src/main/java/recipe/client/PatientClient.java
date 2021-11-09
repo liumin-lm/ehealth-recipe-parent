@@ -8,8 +8,6 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.PatientDTO;
-import ctd.controller.exception.ControllerException;
-import ctd.dictionary.DictionaryController;
 import ctd.persistence.exception.DAOException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -186,16 +184,8 @@ public class PatientClient extends BaseClient {
         if (StringUtils.isNotEmpty(p.getIdcard())) {
             p.setIdcard(ChinaIDNumberUtil.hideIdCard(p.getIdcard()));
         }
-        try {
-            if (null != p.getCertificateType()) {
-                String certificateTypeText = DictionaryController.instance().get("eh.mpi.dictionary.CertificateType").getText(patient.getCertificateType());
-                if (StringUtils.isNotEmpty(p.getCertificate())
-                        && "身份证".equals(certificateTypeText)) {
-                    p.setCertificate(ChinaIDNumberUtil.hideIdCard(p.getCertificate()));
-                }
-            }
-        } catch (ControllerException e) {
-            e.printStackTrace();
+        if (null != p.getCertificateType() && 1 == p.getCertificateType() && StringUtils.isNotEmpty(p.getCertificate())) {
+            p.setCertificate(ChinaIDNumberUtil.hideIdCard(p.getCertificate()));
         }
         p.setAge(null == p.getBirthday() ? 0 : DateConversion.getAge(p.getBirthday()));
         p.setIdcard2(null);

@@ -1,18 +1,27 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
+import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.DoctorService;
+import com.ngari.recipe.dto.RecipeBeanDTO;
 import com.ngari.recipe.dto.RecipeFeeDTO;
+import com.ngari.recipe.dto.RecipeOrderDto;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.RecipeOrderPayFlow;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import ctd.dictionary.DictionaryController;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
+import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -27,6 +36,7 @@ import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeOrderPayFlowDao;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeOrderDetailFeeEnum;
+import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -55,6 +65,8 @@ public class OrderManager extends BaseManager {
     private RecipeOrderPayFlowDao recipeOrderPayFlowDao;
     @Resource
     private IConfigurationClient configurationClient;
+    @Autowired
+    private DoctorService doctorService;
 
     /**
      * 邵逸夫模式下 订单没有运费与审方费用的情况下生成一条支付流水
@@ -234,6 +246,24 @@ public class OrderManager extends BaseManager {
     }
 
     /**
+     * 根据 处方ID 或者 订单id 查询订单数据
+     *
+     * @param recipeId 处方ID
+     * @param orderId  订单id
+     * @return 订单数据
+     */
+    public RecipeOrder getRecipeOrder(Integer recipeId, Integer orderId) {
+        RecipeOrder recipeOrder = null;
+        if (!ValidateUtil.integerIsEmpty(orderId)) {
+            recipeOrder = recipeOrderDAO.getByOrderId(orderId);
+        }
+        if (!ValidateUtil.integerIsEmpty(recipeId)) {
+            recipeOrder = recipeOrderDAO.getOrderByRecipeId(recipeId);
+        }
+        return recipeOrder;
+    }
+
+    /**
      * 处理患者信息
      *
      * @param mpiId
@@ -293,6 +323,7 @@ public class OrderManager extends BaseManager {
 
     /**
      * 是否需要计算运费
+     *
      * @param expressFeePayWay
      * @return
      */
@@ -303,4 +334,42 @@ public class OrderManager extends BaseManager {
         return true;
     }
 
+    /**
+     * 端 用查询订单信息
+     *
+     * @param orderId
+     * @return
+     */
+    public RecipeOrderDto getRecipeOrderByBusId(Integer orderId) {
+        logger.info("RecipeOrderManager getRecipeOrderByBusId orderId:{}", orderId);
+        RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
+        String recipeIdList = recipeOrder.getRecipeIdList();
+
+        List<Integer> recipeIds = JSONArray.parseArray(recipeIdList, Integer.class);
+
+        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
+        RecipeOrderDto recipeOrderDto = new RecipeOrderDto();
+        BeanCopyUtils.copy(recipeOrder, recipeOrderDto);
+        List<RecipeBeanDTO> recipeBeanDTOS = recipeList.stream().map(recipe -> {
+            RecipeBeanDTO recipeBeanDTO = new RecipeBeanDTO();
+            recipeBeanDTO.setOrganDiseaseName(recipe.getOrganDiseaseName());
+            recipeBeanDTO.setOrganName(recipe.getOrganName());
+            recipeBeanDTO.setRecipeId(recipe.getRecipeId());
+            if (recipe.getDepart() != null) {
+                try {
+                    recipeBeanDTO.setDepart(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
+                } catch (Exception e) {
+                    logger.error("获取医生科室出错 recipeId={}", recipe.getRecipeId());
+                }
+            }
+            if (null != recipe.getDoctor()) {
+                DoctorDTO doctorDTO = doctorService.get(recipe.getDoctor());
+                recipeBeanDTO.setDoctor(doctorDTO.getName());
+            }
+            return recipeBeanDTO;
+        }).collect(Collectors.toList());
+        recipeOrderDto.setRecipeList(recipeBeanDTOS);
+        logger.info("RecipeOrderManager getRecipeOrderByBusId res recipeOrderDto :{}", JSONArray.toJSONString(recipeOrderDto));
+        return recipeOrderDto;
+    }
 }

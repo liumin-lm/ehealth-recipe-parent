@@ -28,7 +28,7 @@ public enum AppointEnterpriseTypeEnum {
                 return value;
             }
         }
-        return null;
+        return DEFAULT;
     }
 
     public Integer getType() {

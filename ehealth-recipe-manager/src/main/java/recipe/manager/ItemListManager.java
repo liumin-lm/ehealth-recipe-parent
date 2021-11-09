@@ -33,4 +33,16 @@ public class ItemListManager extends BaseManager {
     public void deleteItemListById(Integer id) {
         itemListDAO.delete(id);
     }
+
+    public void saveItemList(ItemList itemList) {
+        itemListDAO.save(itemList);
+    }
+
+    public void updateItemList(ItemList itemList) {
+        itemListDAO.update(itemList);
+    }
+
+    public ItemList getItemListById(ItemList itemList) {
+        return itemListDAO.get(itemList);
+    }
 }
