@@ -34,6 +34,7 @@ import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeOrderPayFlowDao;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeOrderDetailFeeEnum;
 import recipe.util.ValidateUtil;
@@ -350,6 +351,7 @@ public class OrderManager extends BaseManager {
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
         RecipeOrderDto recipeOrderDto = new RecipeOrderDto();
         BeanCopyUtils.copy(recipeOrder, recipeOrderDto);
+        recipeOrderDto.setStatusText(getStatusText(recipeOrderDto.getStatus()));
         List<RecipeBeanDTO> recipeBeanDTOS = recipeList.stream().map(recipe -> {
             RecipeBeanDTO recipeBeanDTO = new RecipeBeanDTO();
             recipeBeanDTO.setOrganDiseaseName(recipe.getOrganDiseaseName());
@@ -371,5 +373,26 @@ public class OrderManager extends BaseManager {
         recipeOrderDto.setRecipeList(recipeBeanDTOS);
         logger.info("RecipeOrderManager getRecipeOrderByBusId res recipeOrderDto :{}", JSONArray.toJSONString(recipeOrderDto));
         return recipeOrderDto;
+    }
+
+    /**
+     * 获取订单状态
+     * @param status
+     * @return
+     */
+    private String getStatusText(Integer status) {
+        String statusText = "";
+        switch (RecipeOrderStatusEnum.getRecipeOrderStatusEnum(status)) {
+            case ORDER_STATUS_HAS_DRUG:
+                statusText = "待取药";
+                break;
+            case ORDER_STATUS_NO_DRUG:
+                statusText = "准备中";
+                break;
+            default:
+                statusText = RecipeOrderStatusEnum.getOrderStatus(status);
+                break;
+        }
+        return statusText;
     }
 }

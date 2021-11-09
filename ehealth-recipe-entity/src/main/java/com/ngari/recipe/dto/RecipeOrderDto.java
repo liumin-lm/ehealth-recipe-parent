@@ -37,7 +37,7 @@ public class RecipeOrderDto implements Serializable {
     private Integer status;
 
     @ItemProperty(alias = "订单状态")
-    private Integer statusText;
+    private String statusText;
 
     @ItemProperty(alias = "订单总费用")
     private BigDecimal totalFee;

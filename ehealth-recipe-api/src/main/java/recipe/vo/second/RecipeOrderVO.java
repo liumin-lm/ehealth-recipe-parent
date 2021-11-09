@@ -31,6 +31,9 @@ public class RecipeOrderVO implements Serializable {
     @ItemProperty(alias = "订单状态")
     private Integer status;
 
+    @ItemProperty(alias = "订单状态")
+    private String statusText;
+
     @ItemProperty(alias = "订单总费用")
     private BigDecimal totalFee;
 
