@@ -19,6 +19,7 @@ import recipe.client.DocIndexClient;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
+import recipe.common.CommonConstant;
 import recipe.dao.HisRecipeDAO;
 import recipe.dao.HisRecipeDetailDAO;
 import recipe.dao.HisRecipeExtDAO;
@@ -462,10 +463,15 @@ public class HisRecipeManager extends BaseManager {
      * @return
      * @throws Exception
      */
-    public RecipeInfoDTO pushRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
+    public RecipeInfoDTO pushRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType, Map<Integer, PharmacyTcm> pharmacyIdMap, Integer sysType) throws Exception {
         EmrDetailDTO emrDetail = emrDetail(recipePdfDTO);
-        return offlineRecipeClient.pushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
+        if (CommonConstant.RECIPE_DOCTOR_TYPE.equals(sysType)) {
+            return offlineRecipeClient.pushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
+        } else {
+            return offlineRecipeClient.patientPushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
+        }
     }
+
 
     /**
      * 获取 电子病历信息诊断等
