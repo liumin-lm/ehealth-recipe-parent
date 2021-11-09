@@ -282,7 +282,7 @@ public class OrganDrugListService implements IOrganDrugListService {
      * @param status          入参药品参数
      */
     @RpcService
-    public void updateOrganDrugListStatusById(Integer organDrugListId, Integer status, String disableReason) {
+    public OrganDrugList updateOrganDrugListStatusById(Integer organDrugListId, Integer status, String disableReason) {
         if (organDrugListId == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "organDrugId is required");
         }
@@ -301,8 +301,8 @@ public class OrganDrugListService implements IOrganDrugListService {
             organDrugList.setDisableReason(disableReason);
         }
         organDrugList.setLastModify(new Date());
-        organDrugSyncDelete(organDrugList,2);
-        organDrugListDAO.update(organDrugList);
+        //organDrugSyncDelete(organDrugList,2);
+        OrganDrugList update = organDrugListDAO.update(organDrugList);
         busActionLogService.recordBusinessLogRpcNew("机构药品管理", "", "OrganDrugList", "【" + organDTO.getName() + "】" + msg + "【" + organDrugList.getOrganDrugId() + "-" + organDrugList.getDrugName() + "】", organDTO.getName());
         IRegulationService iRegulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
         RegulationNotifyDataReq req = new RegulationNotifyDataReq();
@@ -310,6 +310,7 @@ public class OrganDrugListService implements IOrganDrugListService {
         req.setNotifyTime(System.currentTimeMillis() - 1000);
         req.setOrganId(organDrugList.getOrganId());
         iRegulationService.notifyData(organDrugList.getOrganId(), req);
+        return update;
     }
     /**
      * 药品目录-机构药品目录增加一个权限策略，一键禁用（只在监管平台增加此权限），支持将当前有效状态的药品全部更改为无效状态；
