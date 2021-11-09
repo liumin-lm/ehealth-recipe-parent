@@ -39,10 +39,10 @@ public class ItemListManager extends BaseManager {
     }
 
     public void updateItemList(ItemList itemList) {
-        itemListDAO.update(itemList);
+        itemListDAO.updateNonNullFieldByPrimaryKey(itemList);
     }
 
     public ItemList getItemListById(ItemList itemList) {
-        return itemListDAO.get(itemList);
+        return itemListDAO.get(itemList.getId());
     }
 }

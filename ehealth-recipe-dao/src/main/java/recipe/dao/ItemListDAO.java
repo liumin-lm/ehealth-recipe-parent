@@ -32,6 +32,11 @@ public abstract class ItemListDAO extends HibernateSupportDelegateDAO<ItemList> 
         this.setKeyField(SQL_KEY_ID);
     }
 
+    @Override
+    public boolean updateNonNullFieldByPrimaryKey(ItemList itemList) {
+        return updateNonNullFieldByPrimaryKey(itemList, SQL_KEY_ID);
+    }
+
     public List<ItemList> findItemList(final Integer organId, final Integer status, final String itemName, final int start, final int limit) {
         HibernateStatelessResultAction<List<ItemList>> action =
                 new AbstractHibernateStatelessResultAction<List<ItemList>>() {

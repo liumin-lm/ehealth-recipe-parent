@@ -80,6 +80,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
@@ -896,6 +897,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
+    @LogRecord
     public RecipeExtendBean findRecipeExtendByRecipeId(Integer recipeId) {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
