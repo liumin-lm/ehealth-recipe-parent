@@ -3,6 +3,7 @@ package com.ngari.recipe.entity;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -18,6 +19,7 @@ import java.util.Date;
 @Entity
 @Schema
 @DynamicInsert
+@DynamicUpdate
 @Table(name = "base_item_list")
 @Access(AccessType.PROPERTY)
 public class ItemList implements Serializable {
