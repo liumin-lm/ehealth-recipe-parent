@@ -1,6 +1,7 @@
 package recipe.client;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.jgpt.zjs.service.IMinkeOrganService;
@@ -166,6 +167,20 @@ public class PatientClient extends BaseClient {
             throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "查询患者信息异常，请稍后重试");
         }
         return false;
+    }
+
+    /**
+     * 获取当前患者所有家庭成员(包括自己)
+     * @param mpiId 当前就诊人
+     * @return 所有就诊人
+     */
+    public List<String> getAllMemberPatientsByCurrentPatient(String mpiId) {
+        List<String> allMpiIds = Lists.newArrayList();
+        String loginId = patientService.getLoginIdByMpiId(mpiId);
+        if (StringUtils.isNotEmpty(loginId)) {
+            allMpiIds = patientService.findMpiIdsByLoginId(loginId);
+        }
+        return allMpiIds;
     }
 
 

@@ -110,10 +110,7 @@ import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
 import recipe.caNew.CaAfterProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
-import recipe.client.IConfigurationClient;
-import recipe.client.OperationClient;
-import recipe.client.RefundClient;
-import recipe.client.RevisitClient;
+import recipe.client.*;
 import recipe.common.CommonConstant;
 import recipe.common.OnsConfig;
 import recipe.common.response.CommonResponse;
@@ -259,6 +256,8 @@ public class RecipeService extends RecipeBaseService {
     private RevisitClient revisitClient;
     @Autowired
     private ButtonManager buttonManager;
+    @Resource
+    private PatientClient patientClient;
     /**
      * 药师审核不通过
      */
@@ -4723,21 +4722,6 @@ public class RecipeService extends RecipeBaseService {
     }
 
     /**
-     * 获取当前患者所有家庭成员(包括自己)
-     *
-     * @param mpiId
-     * @return
-     */
-    public List<String> getAllMemberPatientsByCurrentPatient(String mpiId) {
-        List<String> allMpiIds = Lists.newArrayList();
-        String loginId = patientService.getLoginIdByMpiId(mpiId);
-        if (StringUtils.isNotEmpty(loginId)) {
-            allMpiIds = patientService.findMpiIdsByLoginId(loginId);
-        }
-        return allMpiIds;
-    }
-
-    /**
      * 在线续方首页，获取当前登录患者待处理处方单
      *
      * @param mpiid 当前登录患者mpiid
@@ -4748,7 +4732,7 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info("getHomePageTaskForPatient mpiId={}", mpiid);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         //根据mpiid获取当前患者所有家庭成员(包括自己)
-        List<String> allMpiIds = getAllMemberPatientsByCurrentPatient(mpiid);
+        List<String> allMpiIds = patientClient.getAllMemberPatientsByCurrentPatient(mpiid);
         //获取患者待处理处方单id
         List<Integer> recipeIds = recipeDAO.findPendingRecipes(allMpiIds, RecipeStatusConstant.CHECK_PASS, 0, Integer.MAX_VALUE);
         //获取患者历史处方单，有一个即不为空
