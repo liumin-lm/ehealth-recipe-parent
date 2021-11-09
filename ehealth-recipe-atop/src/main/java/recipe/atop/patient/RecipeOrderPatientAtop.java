@@ -150,15 +150,16 @@ public class RecipeOrderPatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public void submitRecipeHis(Integer recipeId) {
+    public boolean submitRecipeHis(Integer recipeId, Integer orderId) {
         validateAtop(recipeId);
         //过滤按钮
-        boolean validate = iOrganBusinessService.giveModeValidate(recipeId, null);
+        boolean validate = iOrganBusinessService.giveModeValidate(recipeId, orderId);
         if (!validate) {
-            return;
+            return false;
         }
         //推送his
         offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_PUSH_TYPE);
+        return true;
     }
 
     /**
@@ -168,14 +169,15 @@ public class RecipeOrderPatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public void cancelRecipeHis(Integer recipeId, Integer orderId) {
+    public boolean cancelRecipeHis(Integer recipeId, Integer orderId) {
         validateAtop(recipeId, orderId);
         //过滤按钮 拿订单的购药方式 过滤
         boolean validate = iOrganBusinessService.giveModeValidate(recipeId, orderId);
         if (!validate) {
-            return;
+            return false;
         }
         //推送his
         offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_CANCEL_TYPE);
+        return true;
     }
 }

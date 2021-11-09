@@ -2721,7 +2721,7 @@ public class DrugToolService implements IDrugToolService {
      */
     public void organDrugSync(OrganDrugList detail){
         DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        List<DrugsEnterprise> drugsEnterprises = dao.findByOrganIdZj(detail.getOrganId());
+        List<DrugsEnterprise> drugsEnterprises = dao.findByOrganId(detail.getOrganId());
         DrugsEnterpriseConfigService bean = AppContextHolder.getBean("eh.drugsEnterpriseConfigService", DrugsEnterpriseConfigService.class);
         if (drugsEnterprises != null && drugsEnterprises.size() > 0 ){
             for (DrugsEnterprise drugsEnterpris : drugsEnterprises) {
