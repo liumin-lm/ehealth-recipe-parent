@@ -66,11 +66,14 @@ public interface IOfflineRecipeBusinessService {
      */
     OffLineRecipeDetailVO getOffLineRecipeDetails(String mpiId, Integer clinicOrgan, String recipeCode);
 
+
     /**
-     * 推送his诊疗处方信息
+     * 推送处方信息到his
      *
      * @param recipeId 处方id
      * @param pushType 推送类型: 1：提交处方，2:撤销处方
+     * @param sysType  处方端类型 1 医生端 2患者端
+     * @return RecipeInfoDTO 处方信息
      */
-    RecipeInfoDTO pushRecipe(Integer recipeId, Integer pushType);
+    RecipeInfoDTO pushRecipe(Integer recipeId, Integer pushType, Integer sysType);
 }

@@ -294,22 +294,21 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
 
 
     @Override
-    public RecipeInfoDTO pushRecipe(Integer recipeId, Integer pushType) {
-        logger.info("RecipeBusinessService pushRecipeExecute recipeId={}", recipeId);
+    public RecipeInfoDTO pushRecipe(Integer recipeId, Integer pushType, Integer sysType) {
+        logger.info("RecipeBusinessService pushRecipe recipeId={}", recipeId);
         RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);
         Recipe recipe = recipePdfDTO.getRecipe();
-        RecipeInfoDTO result;
         try {
             Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
-            result = hisRecipeManager.pushRecipe(recipePdfDTO, pushType, pharmacyIdMap);
+            RecipeInfoDTO result = hisRecipeManager.pushRecipe(recipePdfDTO, pushType, pharmacyIdMap, sysType);
             recipeManager.updatePushHisRecipe(result.getRecipe(), recipeId, pushType);
             recipeManager.updatePushHisRecipeExt(result.getRecipeExtend(), recipeId, pushType);
+            logger.info("RecipeBusinessService pushRecipe end recipeId:{}", recipeId);
+            return result;
         } catch (Exception e) {
+            logger.error("RecipeBusinessService pushRecipe error", e);
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "当前处方推送his失败:" + e.getMessage());
-            logger.error("RecipeBusinessService pushRecipeExecute error", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方推送his失败");
         }
-        logger.info("RecipeBusinessService pushRecipeExecute end recipeId:{}", recipeId);
-        return result;
     }
 }
