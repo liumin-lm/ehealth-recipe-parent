@@ -31,11 +31,17 @@ public class RecipeOrderVO implements Serializable {
     @ItemProperty(alias = "订单状态")
     private Integer status;
 
+    @ItemProperty(alias = "订单状态")
+    private String statusText;
+
     @ItemProperty(alias = "订单总费用")
     private BigDecimal totalFee;
 
     @ItemProperty(alias = "创建时间")
     private Date createTime;
+
+    @ItemProperty(alias = "最后修改时间")
+    private Date lastModifyTime;
 
     @ItemProperty(alias = "订单下处方信息")
     private List<RecipeVo> recipeVos;
