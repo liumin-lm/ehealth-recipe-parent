@@ -53,7 +53,7 @@ public class RecipeExportDTO implements Serializable{
     private Integer recipeType;
 
     @ItemProperty(alias = "发药药师")
-    private Integer giveUser;
+    private String giveUser;
 
     @Column(name = "doctorName")
     public String getDoctorName() {
@@ -173,11 +173,11 @@ public class RecipeExportDTO implements Serializable{
         this.recipeType = recipeType;
     }
 
-    public Integer getGiveUser() {
+    public String getGiveUser() {
         return giveUser;
     }
 
-    public void setGiveUser(Integer giveUser) {
+    public void setGiveUser(String giveUser) {
         this.giveUser = giveUser;
     }
 }

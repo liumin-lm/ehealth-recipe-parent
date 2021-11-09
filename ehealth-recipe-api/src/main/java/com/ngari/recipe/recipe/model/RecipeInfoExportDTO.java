@@ -53,7 +53,7 @@ public class RecipeInfoExportDTO implements Serializable{
     private Double cashAmount;
 
     @ItemProperty(alias = "发药药师")
-    private Integer giveUser;
+    private String giveUser;
 
     @ItemProperty(alias = "发药时间")
     private Date dispensingTime;
@@ -229,11 +229,11 @@ public class RecipeInfoExportDTO implements Serializable{
         this.recipeType = recipeType;
     }
 
-    public Integer getGiveUser() {
+    public String getGiveUser() {
         return giveUser;
     }
 
-    public void setGiveUser(Integer giveUser) {
+    public void setGiveUser(String giveUser) {
         this.giveUser = giveUser;
     }
 
