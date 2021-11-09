@@ -98,8 +98,10 @@ public class OfflineRecipeClient extends BaseClient {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
         RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
-        recipeInfoDTO.setRecipeTherapy(ObjectCopyUtils.convert(hisResponseData.getRecipeTherapy(), RecipeTherapy.class));
-        recipeInfoDTO.getRecipeTherapy().setId(recipePdfDTO.getRecipeTherapy().getId());
+        if (null != recipePdfDTO.getRecipeTherapy()) {
+            recipeInfoDTO.setRecipeTherapy(ObjectCopyUtils.convert(hisResponseData.getRecipeTherapy(), RecipeTherapy.class));
+            recipeInfoDTO.getRecipeTherapy().setId(recipePdfDTO.getRecipeTherapy().getId());
+        }
         recipeInfoDTO.setRecipe(ObjectCopyUtils.convert(hisResponseData.getRecipeBean(), Recipe.class));
         recipeInfoDTO.setRecipeExtend(ObjectCopyUtils.convert(hisResponseData.getRecipeExtendBean(), RecipeExtend.class));
         return recipeInfoDTO;

@@ -2,6 +2,7 @@ package recipe.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
+import com.ngari.opbase.util.OpSecurityUtil;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -385,16 +386,14 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
 
     @RpcService
     public DrugsEnterpriseBean getDrugsEnterpriseByIdForOp(Integer drugsEnterpriseId){
-        /*ISecurityService securityService = AppContextHolder.getBean("opbase.securityService",ISecurityService.class);*/
         DrugsEnterpriseBean bean = getDrugsEnterpriseById(drugsEnterpriseId);
-        /*UserRoleToken urt = UserRoleToken.getCurrent();
+        UserRoleToken urt = UserRoleToken.getCurrent();
         String mu = urt.getManageUnit();
         if (bean != null){
-            if (!"eh".equals(mu) && null == bean.getOrganId()){
-                throw new DAOException(DAOException.ACCESS_DENIED,"权限验证失败");
+            if (!"eh".equals(mu) && null != bean.getOrganId()){
+                OpSecurityUtil.isAuthorisedOrgan(bean.getOrganId());
             }
-            securityService.isAuthoritiedOrganNew(bean.getOrganId());
-        }*/
+        }
         return bean;
     }
 
