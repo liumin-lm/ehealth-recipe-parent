@@ -131,6 +131,6 @@ public class OffLineRecipeDetailDTO implements Serializable {
     @ItemProperty(alias = "关联病例ID")
     private Integer docIndexId;
 
-    @ItemProperty(alias = "是否是儿童处方 0:普通处方 1:儿童处方")
-    private Integer childRecipeFlagNew;
+    @ItemProperty(alias = "处方标识 0:普通处方 1:儿童处方")
+    private Integer recipeFlag;
 }
