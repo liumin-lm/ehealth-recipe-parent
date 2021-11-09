@@ -4,6 +4,7 @@ import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -17,7 +18,7 @@ import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
-
+import recipe.vo.second.OrganVO;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -77,5 +78,24 @@ public class TherapyRecipePatientAtop extends BaseAtop {
             result.add(recipeInfoVO);
         });
         return result;
+    }
+
+    /**
+     * 获取诊疗处方明细
+     *
+     * @param recipeId 处方id
+     * @return
+     */
+    @RpcService
+    public RecipeInfoVO therapyRecipeInfo(Integer recipeId) {
+        RecipeInfoDTO result = therapyRecipeBusinessService.therapyRecipeInfo(recipeId);
+        RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
+        recipeInfoVO.setPatientVO(ObjectCopyUtils.convert(result.getPatientBean(), PatientVO.class));
+        recipeInfoVO.setRecipeBean(ObjectCopyUtils.convert(result.getRecipe(), RecipeBean.class));
+        recipeInfoVO.setRecipeExtendBean(ObjectCopyUtils.convert(result.getRecipeExtend(), RecipeExtendBean.class));
+        recipeInfoVO.setRecipeDetails(ObjectCopyUtils.convert(result.getRecipeDetails(), RecipeDetailBean.class));
+        recipeInfoVO.setRecipeTherapyVO(ObjectCopyUtils.convert(result.getRecipeTherapy(), RecipeTherapyVO.class));
+        recipeInfoVO.setOrganVO(ObjectCopyUtils.convert(result.getOrgan(), OrganVO.class));
+        return recipeInfoVO;
     }
 }
