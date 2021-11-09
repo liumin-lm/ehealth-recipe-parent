@@ -4587,6 +4587,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public void wxPayRefundForRecipe(int flag, int recipeId, String log) {
+        LOGGER.info("wxPayRefundForRecipe flag:{}, recipeId:{}, log:{}.", flag, recipeId, log);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
 
