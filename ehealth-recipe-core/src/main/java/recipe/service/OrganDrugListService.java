@@ -931,6 +931,7 @@ public class OrganDrugListService implements IOrganDrugListService {
                 backDTO.setOrganDrugList(ObjectCopyUtils.convert(daod.getOrganDrugList(), OrganDrugListDTO.class));
                 backDTO.setCanDrugSend(daod.getCanDrugSend());
                 backDTO.setDepSaleDrugInfos(daod.getDepSaleDrugInfos());
+                backDTO.setCanAssociated(daod.getCanAssociated());
                 newList.add(backDTO);
             }
         }
