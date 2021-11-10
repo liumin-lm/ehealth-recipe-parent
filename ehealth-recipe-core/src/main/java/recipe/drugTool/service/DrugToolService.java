@@ -1883,6 +1883,7 @@ public class DrugToolService implements IDrugToolService {
         }
     }
 
+    @RpcService
     private String checkOrganAddrArea(int organId) {
         //查询是否有意需要更新状态的药品（将匹配药品中已匹配的和已提交）
         //这里直接判断机构对应省药品有无药品
@@ -2125,6 +2126,9 @@ public class DrugToolService implements IDrugToolService {
         }
         String addrArea = checkOrganAddrArea(organId);
         ProvinceDrugList provinceDrugList = provinceDrugListDAO.getByProvinceIdAndDrugId(addrArea, provinceDrugcode, 1);
+        if (ObjectUtils.isEmpty(provinceDrugList)){
+            return null;
+        }
         return ObjectCopyUtils.convert(provinceDrugList, ProvinceDrugListBean.class);
 
     }
