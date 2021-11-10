@@ -14,8 +14,6 @@ import recipe.constant.PageInfoConstant;
 import recipe.core.api.doctor.ITherapyItemBusinessService;
 import recipe.util.ValidateUtil;
 
-import java.util.List;
-
 /**
  * 诊疗项目
  *
@@ -23,7 +21,7 @@ import java.util.List;
  * @date 2021/11/8
  */
 @RpcBean
-public class TherapyItemOpenAtop extends BaseAtop {
+public class TherapyItemOpenAtop extends BaseAtop implements ITherapyItemOpenAtopService {
 
     @Autowired
     private ITherapyItemBusinessService therapyItemBusinessService;
@@ -131,5 +129,36 @@ public class TherapyItemOpenAtop extends BaseAtop {
         return result;
     }
 
+    @Override
+    @RpcService
+    public Boolean checkExistByOrganIdAndItemNameOrCode(Integer organId, String itemName, String itemCode){
+        List<ItemList> list = therapyItemBusinessService.findItemListByOrganIdAndItemNameOrCode(organId, itemName, itemCode);
+        return CollectionUtils.isNotEmpty(list);
+    }
 
+    @Override
+    @RpcService
+    public void saveOrUpdateBean(ItemListBean itemListBean) {
+        ItemList itemListInfo = ObjectCopyUtils.convert(itemListBean, ItemList.class);
+        List<ItemList> existList = therapyItemBusinessService.findItemListByOrganIdAndItemNameOrCode(itemListInfo.getOrganID(), itemListInfo.getItemName(), itemListInfo.getItemCode());
+        //更新
+        if (CollectionUtils.isNotEmpty(existList)){
+            for (ItemList item : existList) {
+                item.setStatus(1);
+                item.setItemName(itemListInfo.getItemName());
+                item.setItemCode(itemListInfo.getItemCode());
+                item.setItemUnit(itemListInfo.getItemUnit());
+                item.setItemPrice(itemListInfo.getItemPrice());
+                item.setGmtModified(new Date());
+                updateItemList(item);
+            }
+        } else {
+        //新增
+            itemListInfo.setDeleted(0);
+            itemListInfo.setStatus(1);
+            itemListInfo.setGmtCreate(new Date());
+            itemListInfo.setGmtModified(new Date());
+            saveItemList(itemListInfo);
+        }
+    }
 }

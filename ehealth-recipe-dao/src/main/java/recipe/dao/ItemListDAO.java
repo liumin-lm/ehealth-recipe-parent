@@ -112,6 +112,9 @@ public abstract class ItemListDAO extends HibernateSupportDelegateDAO<ItemList> 
         return (QueryResult<ItemList>) HqlUtils.execHqlFindQueryResult(hql.toString(), paramMap, start, limit);
     }
 
+    @DAOMethod(sql = " from ItemList where organ_id =:organId and is_deleted = 0 and (item_name=:itemName or item_code=:itemCode)")
+    public abstract List<ItemList> findItemListByOrganIdAndItemNameOrCode(@DAOParam("organId") Integer organId, @DAOParam("itemName") String itemName,
+                                                                          @DAOParam("itemCode") String itemCode);
     @DAOMethod(sql = "update ItemList set is_deleted = 1 where id =:id ")
     public abstract void delete(@DAOParam("id") Integer id);
 
