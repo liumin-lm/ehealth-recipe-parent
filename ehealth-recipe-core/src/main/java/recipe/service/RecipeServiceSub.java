@@ -1808,7 +1808,6 @@ public class RecipeServiceSub {
                 childRecipeFlag = true;
             }
             map.put("childRecipeFlag", childRecipeFlag);
-            //EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
             map.put("recipeExtend", recipeExtend);
         }
         RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
