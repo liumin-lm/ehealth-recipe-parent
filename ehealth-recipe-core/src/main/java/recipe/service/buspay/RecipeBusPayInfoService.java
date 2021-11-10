@@ -321,6 +321,13 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             // 杭州互联网 支付按钮
             Integer payButton = buttonManager.getPayButton(nowRecipeBean.getClinicOrgan(), cardType, "0".equals(recipeExtend.getMedicalType()));
             map.put("payButton", payButton.toString());
+
+            // 到院取药是否支持线上支付
+            Boolean supportToHosPayFlag = configurationClient.getValueBooleanCatch(nowRecipeBean.getClinicOrgan(), "supportToHosPayFlag", false);
+            map.put("supportToHosPayFlag",supportToHosPayFlag.toString());
+            if (supportToHosPayFlag){
+                map.put("payTip", "");
+            }
         }
         log.info("setConfirmOrderExtInfo map:{}.", JSONUtils.toString(map));
         return map;

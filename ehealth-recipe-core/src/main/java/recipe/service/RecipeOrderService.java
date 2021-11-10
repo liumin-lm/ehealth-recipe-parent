@@ -831,7 +831,9 @@ public class RecipeOrderService extends RecipeBaseService {
                 if (RecipeBussConstant.PAYMODE_TO_HOS.equals(payMode)) {
                     PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
                     //卫宁付
-                    if (purchaseService.getToHosPayConfig(firstRecipe.getClinicOrgan())) {
+                    // 到院取药是否支持线上支付
+                    Boolean supportToHosPayFlag = configurationClient.getValueBooleanCatch(order.getOrganId(), "supportToHosPayFlag", false);
+                    if (purchaseService.getToHosPayConfig(firstRecipe.getClinicOrgan()) || supportToHosPayFlag) {
                         order.setActualPrice(totalFee.doubleValue());
                     } else {
                         //此时的实际费用是不包含药品费用的
@@ -1811,12 +1813,27 @@ public class RecipeOrderService extends RecipeBaseService {
             getShowAuditFeeAndTips(result, order, recipeList);
             /*//在扩展内容中添加医保结算金额明细数据----已经要求卫宁互联网在支付回调memo字段里拼接好格式返回了所以此处不要了
             getShowMedicalRespData(result,recipeList);*/
+            // 到院取药是否支持线上支付 标志
+            putSupportToHosPayFlag(result,order);
         } else {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("不存在ID为" + orderId + "的订单");
         }
         LOGGER.info("getOrderDetailById.result={}", JSONUtils.toString(result));
         return result;
+    }
+
+    /**
+     * 到院取药是否支持线上支付 标志
+     * @param result
+     * @param order
+     */
+    private void putSupportToHosPayFlag(RecipeResultBean result, RecipeOrder order){
+        Map<String, Object> map = result.getExt();
+        // 到院取药是否支持线上支付
+        Boolean supportToHosPayFlag = configurationClient.getValueBooleanCatch(order.getOrganId(), "supportToHosPayFlag", false);
+        map.put("supportToHosPayFlag",supportToHosPayFlag.toString());
+        result.setExt(map);
     }
 
     private void getShowMedicalRespData(RecipeResultBean result, List<Recipe> recipeList) {
