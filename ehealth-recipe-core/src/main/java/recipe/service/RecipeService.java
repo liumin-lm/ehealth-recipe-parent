@@ -3502,7 +3502,7 @@ public class RecipeService extends RecipeBaseService {
                                 for (OrganDrugList detail : details) {
                                     OrganDrugInfoTO organDrugInfoTO = collect.get(detail.getOrganDrugCode());
                                     if (ObjectUtils.isEmpty(organDrugInfoTO)) {
-                                        organDrugListService.updateOrganDrugListStatusById(organId,detail.getOrganDrugId());
+                                        organDrugListService.updateOrganDrugListStatusByIdSync(organId,detail.getOrganDrugId());
                                         deleteNum++;
                                     }
                                 }

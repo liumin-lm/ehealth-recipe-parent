@@ -345,7 +345,7 @@ public class OrganDrugListService implements IOrganDrugListService {
      * @param organId 机构Id
      */
     @RpcService
-    public void updateOrganDrugListStatusById(Integer organId,Integer organDrugId) {
+    public void updateOrganDrugListStatusByIdSync(Integer organId,Integer organDrugId) {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         OrganDrugList organDrugList = organDrugListDAO.get(organDrugId);
         try {
