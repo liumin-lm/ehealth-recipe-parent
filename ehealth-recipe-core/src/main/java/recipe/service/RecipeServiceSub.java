@@ -76,7 +76,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.audit.bean.PAWebRecipeDanger;
-import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
@@ -1805,7 +1804,7 @@ public class RecipeServiceSub {
                 }
             }
             //判断是否为儿童处方
-            if(1 == recipeExtend.getRecipeFlag()){
+            if (Integer.valueOf(1).equals(recipeExtend.getRecipeFlag())) {
                 childRecipeFlag = true;
             }
             map.put("childRecipeFlag", childRecipeFlag);
