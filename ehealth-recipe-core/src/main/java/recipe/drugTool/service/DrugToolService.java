@@ -24,6 +24,7 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.drug.model.DrugListBean;
+import com.ngari.recipe.drug.model.OrganDrugListDTO;
 import com.ngari.recipe.drug.model.ProvinceDrugListBean;
 import com.ngari.recipe.drug.service.IOrganDrugListService;
 import com.ngari.recipe.drug.service.ISaleDrugListService;
@@ -2113,6 +2114,21 @@ public class DrugToolService implements IDrugToolService {
 
         return status;
     }
+
+    /**
+     * 省药品详情搜索
+     */
+    @RpcService
+    public ProvinceDrugListBean getprovinceDrugMatch(Integer organId,String provinceDrugcode) {
+        if (ObjectUtils.isEmpty(provinceDrugcode)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "未找到机构配置!");
+        }
+        String addrArea = checkOrganAddrArea(organId);
+        ProvinceDrugList provinceDrugList = provinceDrugListDAO.getByProvinceIdAndDrugId(addrArea, provinceDrugcode, 1);
+        return ObjectCopyUtils.convert(provinceDrugList, ProvinceDrugListBean.class);
+
+    }
+
     /**
      * 省药品匹配
      */

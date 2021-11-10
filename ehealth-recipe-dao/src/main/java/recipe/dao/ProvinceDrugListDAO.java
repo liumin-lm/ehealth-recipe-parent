@@ -59,19 +59,19 @@ public abstract class ProvinceDrugListDAO extends HibernateSupportDelegateDAO<Pr
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("from ProvinceDrugList where provinceId = :address and status = 1 and saleName like :name");
-                if(null != seacrhString){
+                if(!ObjectUtils.isEmpty(seacrhString)){
                     hql.append(" and (saleName like :seacrhString OR drugName like :seacrhString or producer like :seacrhString )");
                 }
-                if(null != drugType){
+                if(!ObjectUtils.isEmpty(drugType)){
                     hql.append(" and drugType =:drugType ");
                 }
                 Query q = ss.createQuery(hql.toString());
                 q.setParameter("name", "%" + name + "%");
                 q.setParameter("address", address);
-                if(null != seacrhString){
+                if(!ObjectUtils.isEmpty(seacrhString)){
                     q.setParameter("seacrhString", "%" + seacrhString + "%");
                 }
-                if(null != drugType){
+                if(!ObjectUtils.isEmpty(drugType)){
                     q.setParameter("drugType",drugType);
                 }
                 q.setMaxResults(limit);
@@ -92,25 +92,25 @@ public abstract class ProvinceDrugListDAO extends HibernateSupportDelegateDAO<Pr
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("from ProvinceDrugList where provinceId = :address and status = 1 ");
-                if(null != input){
+                if(!ObjectUtils.isEmpty(input)){
                     hql.append(" and (saleName like :input OR drugName like :input or provinceDrugId like :input ) ");
                 }
-                if(null != producer){
+                if(!ObjectUtils.isEmpty(producer)){
                     hql.append(" and producer like :producer ");
                 }
-                if(null != drugType){
+                if(!ObjectUtils.isEmpty(drugType)){
                     hql.append(" and drugType =:drugType ");
                 }
                 Query q = ss.createQuery(hql.toString());
 
                 q.setParameter("address", address);
-                if(null != input){
+                if(!ObjectUtils.isEmpty(input)){
                     q.setParameter("input", "%" + input + "%");
                 }
-                if(null != producer){
+                if(!ObjectUtils.isEmpty(producer)){
                     q.setParameter("producer", "%" + producer + "%");
                 }
-                if(null != drugType){
+                if(!ObjectUtils.isEmpty(drugType)){
                     q.setParameter("drugType",drugType);
                 }
                 q.setMaxResults(limit);
