@@ -40,4 +40,8 @@ public class RecipeInfoVO {
      * 医院信息
      */
     private OrganVO organVO;
+    /**
+     * 复诊时间
+     */
+    private String revisitTime;
 }

@@ -8,11 +8,13 @@ import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeTherapyDTO;
 import com.ngari.recipe.vo.ItemListVO;
+import com.ngari.revisit.RevisitBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import recipe.client.OrganClient;
 import recipe.client.PatientClient;
+import recipe.client.RevisitClient;
 import recipe.common.CommonConstant;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.dao.RecipeTherapyDAO;
@@ -20,6 +22,7 @@ import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.enumerate.type.TherapyCancellationTypeEnum;
 import recipe.manager.*;
 import recipe.service.RecipeServiceSub;
+import recipe.util.DateConversion;
 import recipe.vo.doctor.RecipeInfoVO;
 
 import javax.annotation.Resource;
@@ -54,6 +57,8 @@ public class RecipeTherapyBusinessService extends BaseService implements ITherap
     private EmrRecipeManager emrRecipeManager;
     @Resource
     private RecipeTherapyDAO recipeTherapyDAO;
+    @Resource
+    private RevisitClient revisitClient;
 
     @Override
     public Integer saveTherapyRecipe(RecipeInfoVO recipeInfoVO) {
@@ -195,10 +200,14 @@ public class RecipeTherapyBusinessService extends BaseService implements ITherap
         Map<Integer, Recipe> recipeMap = recipeList.stream().collect(Collectors.toMap(Recipe::getRecipeId, a -> a, (k1, k2) -> k1));
         Map<Integer, List<Recipedetail>> recipeDetailGroup = recipeDetailManager.findRecipeDetailMap(recipeIds);
         List<String> mpiIds = recipeTherapyList.stream().map(RecipeTherapy::getMpiId).distinct().collect(Collectors.toList());
+        List<Integer> clinicIds = recipeTherapyList.stream().map(RecipeTherapy::getClinicId).collect(Collectors.toList());
+        List<RevisitBean> revisitBeans = revisitClient.findByConsultIds(clinicIds);
+        Map<Integer, RevisitBean> revisitBeanMap = revisitBeans.stream().collect(Collectors.toMap(RevisitBean::getConsultId, a ->a, (k1, k2) -> k1));
         Map<String, PatientDTO> patientMap = patientClient.findPatientMap(mpiIds);
         recipeTherapyList.forEach(a -> {
             RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
             recipeInfoDTO.setRecipeTherapy(a);
+            recipeInfoDTO.setRevisitTime(DateConversion.getDateFormatter(revisitBeanMap.get(a.getClinicId()).getRequestTime(), DateConversion.DEFAULT_DATE_TIME));
             recipeInfoDTO.setRecipe(recipeMap.get(a.getRecipeId()));
             recipeInfoDTO.setRecipeDetails(recipeDetailGroup.get(a.getRecipeId()));
             recipeInfoDTO.setPatientBean(patientMap.get(a.getMpiId()));
