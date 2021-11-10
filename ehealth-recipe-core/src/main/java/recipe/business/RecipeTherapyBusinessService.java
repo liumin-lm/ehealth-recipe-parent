@@ -15,12 +15,15 @@ import recipe.client.OrganClient;
 import recipe.client.PatientClient;
 import recipe.common.CommonConstant;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
+import recipe.dao.RecipeTherapyDAO;
 import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.enumerate.type.TherapyCancellationTypeEnum;
 import recipe.manager.*;
 import recipe.service.RecipeServiceSub;
 import recipe.vo.doctor.RecipeInfoVO;
 
+import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +52,8 @@ public class RecipeTherapyBusinessService extends BaseService implements ITherap
     private ItemListManager itemListManager;
     @Autowired
     private EmrRecipeManager emrRecipeManager;
+    @Resource
+    private RecipeTherapyDAO recipeTherapyDAO;
 
     @Override
     public Integer saveTherapyRecipe(RecipeInfoVO recipeInfoVO) {
@@ -90,27 +95,8 @@ public class RecipeTherapyBusinessService extends BaseService implements ITherap
 
     @Override
     public List<RecipeInfoDTO> therapyRecipeList(RecipeTherapy recipeTherapy, int start, int limit) {
-        List<RecipeInfoDTO> list = new LinkedList<>();
         List<RecipeTherapy> recipeTherapyList = recipeTherapyManager.therapyRecipeList(recipeTherapy, start, limit);
-        logger.info("TherapyRecipeBusinessService therapyRecipeList recipeTherapyList:{}", JSON.toJSONString(recipeTherapyList));
-        if (CollectionUtils.isEmpty(recipeTherapyList)) {
-            return list;
-        }
-        List<Integer> recipeIds = recipeTherapyList.stream().map(RecipeTherapy::getRecipeId).collect(Collectors.toList());
-        List<Recipe> recipeList = recipeManager.findByRecipeIds(recipeIds);
-        Map<Integer, Recipe> recipeMap = recipeList.stream().collect(Collectors.toMap(Recipe::getRecipeId, a -> a, (k1, k2) -> k1));
-        Map<Integer, List<Recipedetail>> recipeDetailGroup = recipeDetailManager.findRecipeDetailMap(recipeIds);
-        List<String> mpiIds = recipeTherapyList.stream().map(RecipeTherapy::getMpiId).distinct().collect(Collectors.toList());
-        Map<String, PatientDTO> patientMap = patientClient.findPatientMap(mpiIds);
-        recipeTherapyList.forEach(a -> {
-            RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
-            recipeInfoDTO.setRecipeTherapy(a);
-            recipeInfoDTO.setRecipe(recipeMap.get(a.getRecipeId()));
-            recipeInfoDTO.setRecipeDetails(recipeDetailGroup.get(a.getRecipeId()));
-            recipeInfoDTO.setPatientBean(patientMap.get(a.getMpiId()));
-            list.add(recipeInfoDTO);
-        });
-        return list;
+        return paddingRecipeInfoDTO(recipeTherapyList);
     }
 
     @Override
@@ -166,6 +152,45 @@ public class RecipeTherapyBusinessService extends BaseService implements ITherap
         RecipeTherapy recipeTherapy = recipeTherapyManager.getRecipeTherapyByRecipeId(recipe.getRecipeId());
         ObjectCopyUtils.copyPropertiesIgnoreNull(recipeTherapyDTO, recipeTherapy);
         return recipeTherapyManager.updateRecipeTherapy(recipeTherapy);
+    }
+
+    @Override
+    public List<RecipeInfoDTO> therapyRecipeListForPatient(String mpiId, int start, int limit) {
+        //获取当前用户下所有就诊人
+        List<String> allMpiIds = patientClient.getAllMemberPatientsByCurrentPatient(mpiId);
+        if (CollectionUtils.isEmpty(allMpiIds)) {
+            return new ArrayList<>();
+        }
+        List<RecipeTherapy> recipeTherapyList = recipeTherapyDAO.findTherapyByMpiIds(allMpiIds, start, limit);
+        return paddingRecipeInfoDTO(recipeTherapyList);
+    }
+
+    /**
+     * 包装数据 返回填充对象
+     * @param recipeTherapyList 诊疗列表
+     * @return 填充后的诊疗信息
+     */
+    private List<RecipeInfoDTO> paddingRecipeInfoDTO(List<RecipeTherapy> recipeTherapyList) {
+        List<RecipeInfoDTO> list = new LinkedList<>();
+        logger.info("TherapyRecipeBusinessService paddingRecipeInfoDTO recipeTherapyList:{}", JSON.toJSONString(recipeTherapyList));
+        if (CollectionUtils.isEmpty(recipeTherapyList)) {
+            return list;
+        }
+        List<Integer> recipeIds = recipeTherapyList.stream().map(RecipeTherapy::getRecipeId).collect(Collectors.toList());
+        List<Recipe> recipeList = recipeManager.findByRecipeIds(recipeIds);
+        Map<Integer, Recipe> recipeMap = recipeList.stream().collect(Collectors.toMap(Recipe::getRecipeId, a -> a, (k1, k2) -> k1));
+        Map<Integer, List<Recipedetail>> recipeDetailGroup = recipeDetailManager.findRecipeDetailMap(recipeIds);
+        List<String> mpiIds = recipeTherapyList.stream().map(RecipeTherapy::getMpiId).distinct().collect(Collectors.toList());
+        Map<String, PatientDTO> patientMap = patientClient.findPatientMap(mpiIds);
+        recipeTherapyList.forEach(a -> {
+            RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
+            recipeInfoDTO.setRecipeTherapy(a);
+            recipeInfoDTO.setRecipe(recipeMap.get(a.getRecipeId()));
+            recipeInfoDTO.setRecipeDetails(recipeDetailGroup.get(a.getRecipeId()));
+            recipeInfoDTO.setPatientBean(patientMap.get(a.getMpiId()));
+            list.add(recipeInfoDTO);
+        });
+        return list;
     }
 
 }

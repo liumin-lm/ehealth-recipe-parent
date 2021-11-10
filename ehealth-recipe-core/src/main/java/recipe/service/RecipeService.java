@@ -110,10 +110,7 @@ import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.AbstractCaProcessType;
 import recipe.caNew.CaAfterProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
-import recipe.client.IConfigurationClient;
-import recipe.client.OperationClient;
-import recipe.client.RefundClient;
-import recipe.client.RevisitClient;
+import recipe.client.*;
 import recipe.common.CommonConstant;
 import recipe.common.OnsConfig;
 import recipe.common.response.CommonResponse;
@@ -259,6 +256,8 @@ public class RecipeService extends RecipeBaseService {
     private RevisitClient revisitClient;
     @Autowired
     private ButtonManager buttonManager;
+    @Resource
+    private PatientClient patientClient;
     /**
      * 药师审核不通过
      */
@@ -3318,7 +3317,7 @@ public class RecipeService extends RecipeBaseService {
         if (ObjectUtils.isEmpty(dataRange)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "未找到药品同步 数据范围 配置!");
         }
-        if (!"1".equals(dockingMode)){
+        if (dockingMode == 2){
             throw new DAOException(DAOException.VALUE_NEEDED, "同步模式 为【主动推送】 调用无效!");
         }
         if (!sync) {
@@ -3503,7 +3502,7 @@ public class RecipeService extends RecipeBaseService {
                                 for (OrganDrugList detail : details) {
                                     OrganDrugInfoTO organDrugInfoTO = collect.get(detail.getOrganDrugCode());
                                     if (ObjectUtils.isEmpty(organDrugInfoTO)) {
-                                        organDrugListService.updateOrganDrugListStatusById(organId,detail.getOrganDrugId());
+                                        organDrugListService.updateOrganDrugListStatusByIdSync(organId,detail.getOrganDrugId());
                                         deleteNum++;
                                     }
                                 }
@@ -4588,6 +4587,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public void wxPayRefundForRecipe(int flag, int recipeId, String log) {
+        LOGGER.info("wxPayRefundForRecipe flag:{}, recipeId:{}, log:{}.", flag, recipeId, log);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
 
@@ -4723,21 +4723,6 @@ public class RecipeService extends RecipeBaseService {
     }
 
     /**
-     * 获取当前患者所有家庭成员(包括自己)
-     *
-     * @param mpiId
-     * @return
-     */
-    public List<String> getAllMemberPatientsByCurrentPatient(String mpiId) {
-        List<String> allMpiIds = Lists.newArrayList();
-        String loginId = patientService.getLoginIdByMpiId(mpiId);
-        if (StringUtils.isNotEmpty(loginId)) {
-            allMpiIds = patientService.findMpiIdsByLoginId(loginId);
-        }
-        return allMpiIds;
-    }
-
-    /**
      * 在线续方首页，获取当前登录患者待处理处方单
      *
      * @param mpiid 当前登录患者mpiid
@@ -4748,7 +4733,7 @@ public class RecipeService extends RecipeBaseService {
         LOGGER.info("getHomePageTaskForPatient mpiId={}", mpiid);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         //根据mpiid获取当前患者所有家庭成员(包括自己)
-        List<String> allMpiIds = getAllMemberPatientsByCurrentPatient(mpiid);
+        List<String> allMpiIds = patientClient.getAllMemberPatientsByCurrentPatient(mpiid);
         //获取患者待处理处方单id
         List<Integer> recipeIds = recipeDAO.findPendingRecipes(allMpiIds, RecipeStatusConstant.CHECK_PASS, 0, Integer.MAX_VALUE);
         //获取患者历史处方单，有一个即不为空
