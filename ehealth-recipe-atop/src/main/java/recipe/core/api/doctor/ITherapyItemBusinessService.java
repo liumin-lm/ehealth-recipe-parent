@@ -2,6 +2,7 @@ package recipe.core.api.doctor;
 
 import com.ngari.recipe.entity.ItemList;
 import com.ngari.recipe.vo.ItemListVO;
+import ctd.persistence.bean.QueryResult;
 
 import java.util.List;
 
@@ -18,8 +19,9 @@ public interface ITherapyItemBusinessService {
      * @param itemListVO 诊疗项目
      * @return 诊疗项目列表
      */
-    List<ItemListVO> listItemList(ItemListVO itemListVO);
+    List<ItemList> listItemList(ItemListVO itemListVO);
 
+    QueryResult<ItemList> pageItemList(ItemListVO itemListVO);
 
     /**
      * 添加诊疗项目

@@ -3,6 +3,7 @@ package recipe.atop.open;
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.ItemList;
 import com.ngari.recipe.vo.ItemListVO;
+import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -12,8 +13,6 @@ import recipe.constant.ErrorCode;
 import recipe.constant.PageInfoConstant;
 import recipe.core.api.doctor.ITherapyItemBusinessService;
 import recipe.util.ValidateUtil;
-
-import java.util.List;
 
 /**
  * 诊疗项目
@@ -34,7 +33,7 @@ public class TherapyItemOpenAtop extends BaseAtop {
      * @return List<ItemListVO>
      */
     @RpcService
-    public List<ItemListVO> listItemList(ItemListVO itemListVO) {
+    public QueryResult<ItemList> listItemList(ItemListVO itemListVO) {
         validateAtop(itemListVO, itemListVO.getOrganId());
         try {
             if (ValidateUtil.integerIsEmpty(itemListVO.getStart())) {
@@ -43,7 +42,7 @@ public class TherapyItemOpenAtop extends BaseAtop {
             if (ValidateUtil.integerIsEmpty(itemListVO.getLimit())) {
                 itemListVO.setLimit(PageInfoConstant.PAGE_SIZE);
             }
-            List<ItemListVO> result = therapyItemBusinessService.listItemList(itemListVO);
+            QueryResult<ItemList> result = therapyItemBusinessService.pageItemList(itemListVO);
             logger.info("TherapyItemOpenAtop listItemList result:{}.", JSON.toJSONString(result));
             return result;
         } catch (DAOException e1) {

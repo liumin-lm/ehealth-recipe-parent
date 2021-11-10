@@ -1,8 +1,8 @@
 package recipe.business;
 
-import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.ItemList;
 import com.ngari.recipe.vo.ItemListVO;
+import ctd.persistence.bean.QueryResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.core.api.doctor.ITherapyItemBusinessService;
@@ -22,9 +22,14 @@ public class RecipeItemBusinessService extends BaseService implements ITherapyIt
     private ItemListManager itemListManager;
 
     @Override
-    public List<ItemListVO> listItemList(ItemListVO itemListVO) {
-        List<ItemList> itemLists = itemListManager.findItemList(itemListVO.getOrganId(), itemListVO.getStatus(), itemListVO.getItemName(), itemListVO.getStart(), itemListVO.getLimit());
-        return ObjectCopyUtils.convert(itemLists, ItemListVO.class);
+    public List<ItemList> listItemList(ItemListVO itemListVO) {
+        return itemListManager.findItemList(itemListVO.getOrganId(), itemListVO.getStatus(), itemListVO.getItemName(), itemListVO.getStart(), itemListVO.getLimit(), itemListVO.getId(), itemListVO.getItemCode());
+    }
+
+    @Override
+    public QueryResult<ItemList> pageItemList(ItemListVO itemListVO) {
+        QueryResult<ItemList> itemLists = itemListManager.pageItemList(itemListVO.getOrganId(), itemListVO.getStatus(), itemListVO.getItemName(), itemListVO.getStart(), itemListVO.getLimit(), itemListVO.getId(), itemListVO.getItemCode());
+        return itemLists;
     }
 
     @Override
