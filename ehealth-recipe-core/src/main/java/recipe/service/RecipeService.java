@@ -1518,6 +1518,7 @@ public class RecipeService extends RecipeBaseService {
      * @return Map<String, Object>
      */
     @RpcService
+    @LogInfo
     public Map<String, Object> doSignRecipeNew(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, int continueFlag) {
         LOGGER.info("RecipeService.doSignRecipeNew param: recipeBean={} detailBean={} continueFlag={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList), continueFlag);
         //将密码放到redis中
