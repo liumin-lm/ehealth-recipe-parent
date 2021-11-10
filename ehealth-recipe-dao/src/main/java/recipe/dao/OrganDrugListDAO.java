@@ -463,17 +463,19 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     query.setMaxResults(limit);
                     List<DrugList> list = query.list();
                     List<DrugListAndOrganDrugList> result = new ArrayList<DrugListAndOrganDrugList>();
-                    for (DrugList drug : list) {
-                        DrugListAndOrganDrugList drugListAndOrganDrugList = new DrugListAndOrganDrugList(drug, null);
-                        if (!ObjectUtils.isEmpty(drug)){
-                            List<OrganDrugList> byDrugIdAndOrganId = findByDrugIdAndOrganId(drug.getDrugId(), organId);
-                            if (ObjectUtils.isEmpty(byDrugIdAndOrganId)){
-                                drugListAndOrganDrugList.setCanAssociated(false);
-                            }else {
-                                drugListAndOrganDrugList.setCanAssociated(true);
+                    if (!ObjectUtils.isEmpty(list)){
+                        for (DrugList drug : list) {
+                            DrugListAndOrganDrugList drugListAndOrganDrugList = new DrugListAndOrganDrugList(drug, null);
+                            if (!ObjectUtils.isEmpty(drug)){
+                                List<OrganDrugList> byDrugIdAndOrganId = findByDrugIdAndOrganId(drug.getDrugId(), organId);
+                                if (ObjectUtils.isEmpty(byDrugIdAndOrganId)){
+                                    drugListAndOrganDrugList.setCanAssociated(false);
+                                }else {
+                                    drugListAndOrganDrugList.setCanAssociated(true);
+                                }
                             }
+                            result.add(drugListAndOrganDrugList);
                         }
-                        result.add(drugListAndOrganDrugList);
                     }
                     setResult(new QueryResult<DrugListAndOrganDrugList>(total, query.getFirstResult(), query.getMaxResults(), result));
                 } else {
@@ -679,17 +681,19 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     query.setMaxResults(limit);
                     List<DrugList> list = query.list();
                     List<DrugListAndOrganDrugList> result = new ArrayList<DrugListAndOrganDrugList>();
-                    for (DrugList drug : list) {
-                        DrugListAndOrganDrugList drugListAndOrganDrugList = new DrugListAndOrganDrugList(drug, null);
-                        if (!ObjectUtils.isEmpty(drug)){
-                            List<OrganDrugList> byDrugIdAndOrganId = findByDrugIdAndOrganId(drug.getDrugId(), organId);
-                            if (ObjectUtils.isEmpty(byDrugIdAndOrganId)){
-                                drugListAndOrganDrugList.setCanAssociated(false);
-                            }else {
-                                drugListAndOrganDrugList.setCanAssociated(true);
+                    if (!ObjectUtils.isEmpty(list)){
+                        for (DrugList drug : list) {
+                            DrugListAndOrganDrugList drugListAndOrganDrugList = new DrugListAndOrganDrugList(drug, null);
+                            if (!ObjectUtils.isEmpty(drug)){
+                                List<OrganDrugList> byDrugIdAndOrganId = findByDrugIdAndOrganId(drug.getDrugId(), organId);
+                                if (ObjectUtils.isEmpty(byDrugIdAndOrganId)){
+                                    drugListAndOrganDrugList.setCanAssociated(false);
+                                }else {
+                                    drugListAndOrganDrugList.setCanAssociated(true);
+                                }
                             }
+                            result.add(drugListAndOrganDrugList);
                         }
-                        result.add(drugListAndOrganDrugList);
                     }
 
                     setResult(new QueryResult<DrugListAndOrganDrugList>(total, query.getFirstResult(), query.getMaxResults(), result));
