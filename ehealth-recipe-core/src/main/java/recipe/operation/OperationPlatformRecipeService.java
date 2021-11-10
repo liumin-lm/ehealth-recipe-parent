@@ -270,7 +270,7 @@ public class OperationPlatformRecipeService {
         //兼容老版本（此版本暂时不做删除）
         Boolean childRecipeFlag = false;
         if (extend != null) {
-            if(1 == extend.getRecipeFlag() ){
+            if(Integer.valueOf(1).equals(extend.getRecipeFlag())){
                 childRecipeFlag = true;
             }
             map.put("recipeExtend", extend);
