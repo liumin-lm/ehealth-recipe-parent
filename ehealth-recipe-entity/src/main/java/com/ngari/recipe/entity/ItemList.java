@@ -3,7 +3,6 @@ package com.ngari.recipe.entity;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 import org.hibernate.annotations.DynamicInsert;
-import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -19,7 +18,6 @@ import java.util.Date;
 @Entity
 @Schema
 @DynamicInsert
-@DynamicUpdate
 @Table(name = "base_item_list")
 @Access(AccessType.PROPERTY)
 public class ItemList implements Serializable {
@@ -28,6 +26,8 @@ public class ItemList implements Serializable {
     private Integer id;
     @ItemProperty(alias = "机构id")
     private Integer organID;
+    @ItemProperty(alias = "机构id")
+    private String organName;
     @ItemProperty(alias = "项目名称")
     private String itemName;
     @ItemProperty(alias = "项目编码")
@@ -73,6 +73,15 @@ public class ItemList implements Serializable {
 
     public void setOrganID(Integer organID) {
         this.organID = organID;
+    }
+
+    @Column(name = "organ_name")
+    public String getOrganName() {
+        return organName;
+    }
+
+    public void setOrganName(String organName) {
+        this.organName = organName;
     }
 
     @Column(name = "item_code")
