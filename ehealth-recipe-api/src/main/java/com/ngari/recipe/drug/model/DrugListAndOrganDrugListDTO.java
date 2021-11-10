@@ -24,6 +24,9 @@ public class DrugListAndOrganDrugListDTO implements Serializable {
     /**是否可配送*/
     private Boolean canDrugSend;
 
+    /**机构是否已有药品关联该平台药品*/
+    private Boolean canAssociated ;
+
     public List<DepSaleDrugInfo> getDepSaleDrugInfos() {
         return depSaleDrugInfos;
     }
@@ -58,5 +61,13 @@ public class DrugListAndOrganDrugListDTO implements Serializable {
 
     public void setCanDrugSend(Boolean canDrugSend) {
         this.canDrugSend = canDrugSend;
+    }
+
+    public Boolean getCanAssociated() {
+        return canAssociated;
+    }
+
+    public void setCanAssociated(Boolean canAssociated) {
+        this.canAssociated = canAssociated;
     }
 }

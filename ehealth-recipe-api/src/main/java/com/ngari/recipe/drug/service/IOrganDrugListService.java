@@ -1,5 +1,6 @@
 package com.ngari.recipe.drug.service;
 
+import com.ngari.recipe.drug.model.DepSaleDrugInfo;
 import com.ngari.recipe.drug.model.DrugListAndOrganDrugListDTO;
 import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.drug.model.RegulationDrugCategoryBean;
@@ -57,4 +58,6 @@ public interface IOrganDrugListService {
 
     @RpcService
     Long getCountByDrugId(int drugId);
+    @RpcService
+    List<DepSaleDrugInfo> queryDepSaleDrugInfosByDrugId(final Integer organId,final Integer drugId);
 }

@@ -303,9 +303,7 @@ public class OrganDrugListService implements IOrganDrugListService {
         logger.info("禁用机构药品:" + JSONUtils.toString(organDrugList));
         organDrugList.setLastModify(new Date());
         organDrugSyncDelete(organDrugList,2);
-        logger.info("禁用机构药品01:" + JSONUtils.toString(organDrugList));
         OrganDrugList update = organDrugListDAO.update(organDrugList);
-        logger.info("禁用机构药品02:" + JSONUtils.toString(update));
         busActionLogService.recordBusinessLogRpcNew("机构药品管理", "", "OrganDrugList", "【" + organDTO.getName() + "】" + msg + "【" + organDrugList.getOrganDrugId() + "-" + organDrugList.getDrugName() + "】", organDTO.getName());
         IRegulationService iRegulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
         RegulationNotifyDataReq req = new RegulationNotifyDataReq();
@@ -340,23 +338,38 @@ public class OrganDrugListService implements IOrganDrugListService {
 
 
     /**
-     * 药品目录-机构药品目录增加一个权限策略，一键禁用（只在监管平台增加此权限），支持将当前有效状态的药品全部更改为无效状态；
+     * 药品目录-机构药品禁用手动同步调用
      *
      * @param organId 机构Id
      */
     @RpcService
-    public void updateOrganDrugListStatusById(Integer organId,Integer organDrugId) {
+    public void updateOrganDrugListStatusByIdSync(Integer organId,Integer organDrugId) {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         OrganDrugList organDrugList = organDrugListDAO.get(organDrugId);
         try {
             organDrugList.setStatus(0);
             OrganDrugList update = organDrugListDAO.update(organDrugList);
-            OrganService organService = BasicAPI.getService(OrganService.class);
-            OrganDTO organDTO = organService.getByOrganId(organId);
-            IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
-            busActionLogService.recordBusinessLogRpcNew("机构药品管理", "", "OrganDrugList", "【" + organDTO.getName() + "】" + "药品同步 药品禁用!"+update.getDrugName() , organDTO.getName());
+            logger.info("手动同步药品禁用药品 :" + update.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(update));
         } catch (Exception e) {
-            logger.info("同步药品禁用药品[updateOrganDrugListStatusById]:" + e);
+            logger.info("手动同步药品禁用药品[updateOrganDrugListStatusById]:" + e);
+        }
+    }
+
+    /**
+     * 药品目录-机构药品禁用定时同步调用
+     *
+     * @param organId 机构Id
+     */
+    @RpcService
+    public void updateOrganDrugListStatusByIdSyncT(Integer organId,String organDrugCode) {
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId,organDrugCode);
+        try {
+            organDrugList.setStatus(0);
+            OrganDrugList update = organDrugListDAO.update(organDrugList);
+            logger.info("定时同步药品禁用药品 :" + update.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(update));
+        } catch (Exception e) {
+            logger.info("定时药品禁用药品[updateOrganDrugListStatusById]:" + e);
         }
     }
 
@@ -762,6 +775,17 @@ public class OrganDrugListService implements IOrganDrugListService {
         return result;
     }
 
+    @Override
+    public List<DepSaleDrugInfo> queryDepSaleDrugInfosByDrugId(final Integer organId,final Integer drugId) {
+        List<DepSaleDrugInfo> result = null;
+        try {
+            result = organDrugListDAO.queryDepSaleDrugInfosByDrugId(organId,drugId);
+        } catch (Exception e) {
+            logger.error("queryDepSaleDrugInfosByDrugId error", e);
+            throw new DAOException(609, e.getMessage());
+        }
+        return result;
+    }
 
     @Override
     public List<RegulationDrugCategoryBean> queryRegulationDrug(Map<String, Object> params) {
@@ -907,6 +931,7 @@ public class OrganDrugListService implements IOrganDrugListService {
                 backDTO.setOrganDrugList(ObjectCopyUtils.convert(daod.getOrganDrugList(), OrganDrugListDTO.class));
                 backDTO.setCanDrugSend(daod.getCanDrugSend());
                 backDTO.setDepSaleDrugInfos(daod.getDepSaleDrugInfos());
+                backDTO.setCanAssociated(daod.getCanAssociated());
                 newList.add(backDTO);
             }
         }
