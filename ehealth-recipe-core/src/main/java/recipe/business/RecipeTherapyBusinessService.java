@@ -94,6 +94,20 @@ public class RecipeTherapyBusinessService extends BaseService implements ITherap
     }
 
     @Override
+    public Integer therapyRecipeByMpiIdTotal(String mpiId) {
+        //获取当前用户下所有就诊人
+        List<String> allMpiIds = patientClient.getAllMemberPatientsByCurrentPatient(mpiId);
+        if (CollectionUtils.isEmpty(allMpiIds)) {
+            return 0;
+        }
+        List<RecipeTherapy> recipeTherapyList = recipeTherapyDAO.findTherapyByMpiIds(allMpiIds);
+        if (CollectionUtils.isEmpty(recipeTherapyList)) {
+            return 0;
+        }
+        return recipeTherapyList.size();
+    }
+
+    @Override
     public List<RecipeInfoDTO> therapyRecipeList(RecipeTherapy recipeTherapy, int start, int limit) {
         List<RecipeTherapy> recipeTherapyList = recipeTherapyManager.therapyRecipeList(recipeTherapy, start, limit);
         return paddingRecipeInfoDTO(recipeTherapyList);
@@ -161,7 +175,7 @@ public class RecipeTherapyBusinessService extends BaseService implements ITherap
         if (CollectionUtils.isEmpty(allMpiIds)) {
             return new ArrayList<>();
         }
-        List<RecipeTherapy> recipeTherapyList = recipeTherapyDAO.findTherapyByMpiIds(allMpiIds, start, limit);
+        List<RecipeTherapy> recipeTherapyList = recipeTherapyDAO.findTherapyPageByMpiIds(allMpiIds, start, limit);
         return paddingRecipeInfoDTO(recipeTherapyList);
     }
 

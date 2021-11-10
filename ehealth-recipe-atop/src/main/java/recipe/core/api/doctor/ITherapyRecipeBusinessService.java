@@ -26,6 +26,13 @@ public interface ITherapyRecipeBusinessService {
     Integer therapyRecipeTotal(RecipeTherapy recipeTherapy);
 
     /**
+     * 根据mpiId查诊疗处方总数
+     * @param mpiId
+     * @return
+     */
+    Integer therapyRecipeByMpiIdTotal(String mpiId);
+
+    /**
      * 获取诊疗处方列表
      *
      * @param recipeTherapy 诊疗处方对象
