@@ -959,20 +959,22 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         List<SaleDrugList> saleDrugLists;
-        saleDrugLists = saleDrugListDAO.findByDrugIdAndOrganIds(drugId, depIds);
         List<DepSaleDrugInfo> depSaleDrugInfos = Lists.newArrayList();
-        for (SaleDrugList saleDrugList : saleDrugLists) {
-            DepSaleDrugInfo info = new DepSaleDrugInfo();
-            info.setDrugEnterpriseId(saleDrugList.getOrganId());
-            info.setSaleDrugCode(saleDrugList.getOrganDrugCode());
-            info.setDrugId(saleDrugList.getDrugId());
-            DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(saleDrugList.getOrganId());
-            if (enterprise != null) {
-                info.setDrugEnterpriseName(enterprise.getName());
-            } else {
-                info.setDrugEnterpriseName("无");
+        if (!CollectionUtils.isEmpty(depIds)) {
+            saleDrugLists = saleDrugListDAO.findByDrugIdAndOrganIds(drugId, depIds);
+            for (SaleDrugList saleDrugList : saleDrugLists) {
+                DepSaleDrugInfo info = new DepSaleDrugInfo();
+                info.setDrugEnterpriseId(saleDrugList.getOrganId());
+                info.setSaleDrugCode(saleDrugList.getOrganDrugCode());
+                info.setDrugId(saleDrugList.getDrugId());
+                DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(saleDrugList.getOrganId());
+                if (enterprise != null) {
+                    info.setDrugEnterpriseName(enterprise.getName());
+                } else {
+                    info.setDrugEnterpriseName("无");
+                }
+                depSaleDrugInfos.add(info);
             }
-            depSaleDrugInfos.add(info);
         }
         return depSaleDrugInfos;
     }

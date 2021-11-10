@@ -764,7 +764,7 @@ public class OrganDrugListService implements IOrganDrugListService {
     public List<DepSaleDrugInfo> queryDepSaleDrugInfosByDrugId(final Integer organId,final Integer drugId) {
         List<DepSaleDrugInfo> result = null;
         try {
-            result = organDrugListDAO.queryDepSaleDrugInfosByDrugId(drugId, organId);
+            result = organDrugListDAO.queryDepSaleDrugInfosByDrugId(organId,drugId);
         } catch (Exception e) {
             logger.error("queryDepSaleDrugInfosByDrugId error", e);
             throw new DAOException(609, e.getMessage());
