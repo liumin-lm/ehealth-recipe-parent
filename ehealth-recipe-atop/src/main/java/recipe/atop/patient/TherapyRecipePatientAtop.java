@@ -18,7 +18,10 @@ import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
+import recipe.vo.doctor.TherapyRecipePageVO;
 import recipe.vo.second.OrganVO;
+
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -42,7 +45,7 @@ public class TherapyRecipePatientAtop extends BaseAtop {
      * @return key 复诊id
      */
     @RpcService
-    public List<RecipeInfoVO> therapyRecipeList(RecipeTherapyVO recipeTherapyVO, int start, int limit) {
+    public TherapyRecipePageVO therapyRecipeList(RecipeTherapyVO recipeTherapyVO, int start, int limit) {
         validateAtop(recipeTherapyVO);
         if (ValidateUtil.validateObjects(recipeTherapyVO.getMpiId())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
@@ -50,6 +53,15 @@ public class TherapyRecipePatientAtop extends BaseAtop {
         List<RecipeInfoDTO> recipeInfoList = therapyRecipeBusinessService.therapyRecipeListForPatient(recipeTherapyVO.getMpiId(), start, limit);
         List<RecipeInfoVO> result = new LinkedList<>();
 
+        Integer total = therapyRecipeBusinessService.therapyRecipeByMpiIdTotal(recipeTherapyVO.getMpiId());
+        TherapyRecipePageVO therapyRecipePageVO = new TherapyRecipePageVO();
+        therapyRecipePageVO.setLimit(limit);
+        therapyRecipePageVO.setStart(start);
+        therapyRecipePageVO.setTotal(total);
+        if (ValidateUtil.validateObjects(total)) {
+            therapyRecipePageVO.setRecipeInfoList(Collections.emptyList());
+            return therapyRecipePageVO;
+        }
         recipeInfoList.forEach(a -> {
             RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
             recipeInfoVO.setPatientVO(ObjectCopyUtils.convert(a.getPatientBean(), PatientVO.class));
@@ -77,7 +89,8 @@ public class TherapyRecipePatientAtop extends BaseAtop {
             }
             result.add(recipeInfoVO);
         });
-        return result;
+        therapyRecipePageVO.setRecipeInfoList(result);
+        return therapyRecipePageVO;
     }
 
     /**

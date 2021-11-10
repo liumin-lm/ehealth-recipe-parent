@@ -78,8 +78,11 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
      * @return  诊疗列表
      */
     @DAOMethod(sql = "from RecipeTherapy where mpi_id in (:mpiIds) and status != 1 group by clinic_id ,recipe_id  ORDER BY clinic_id desc,gmt_create desc")
-    public abstract List<RecipeTherapy> findTherapyByMpiIds(@DAOParam("mpiIds") List<String> mpiIds
+    public abstract List<RecipeTherapy> findTherapyPageByMpiIds(@DAOParam("mpiIds") List<String> mpiIds
             , @DAOParam(pageStart = true) int start, @DAOParam(pageLimit = true) int limit);
+
+    @DAOMethod(sql = "from RecipeTherapy where mpi_id in (:mpiIds) and status != 1 ", limit = 0)
+    public abstract List<RecipeTherapy> findTherapyByMpiIds(@DAOParam("mpiIds") List<String> mpiIds);
 
     /**
      * 根据医生id与复诊id 获取诊疗信息
