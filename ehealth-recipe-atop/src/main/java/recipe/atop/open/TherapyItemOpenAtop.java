@@ -27,7 +27,7 @@ import java.util.List;
  * @author 刘敏
  * @date 2021/11/8
  */
-@RpcBean
+@RpcBean("therapyItemOpenAtop")
 public class TherapyItemOpenAtop extends BaseAtop implements ITherapyItemOpenAtopService {
 
     @Autowired
