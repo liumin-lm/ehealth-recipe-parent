@@ -232,10 +232,12 @@ public class RecipeServiceSub {
             Integer consultId = recipeBean.getClinicId();
             if (consultId != null) {
                 IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
-                RevisitExDTO consultExDTO = exService.getByConsultId(consultId);
-                if (consultExDTO != null) {
-                    recipeExtend.setCardNo(consultExDTO.getCardId());
-                    recipeExtend.setCardType(consultExDTO.getCardType());
+                RevisitExDTO revisitExDTO = exService.getByConsultId(consultId);
+                if (revisitExDTO != null) {
+                    recipeExtend.setCardNo(revisitExDTO.getCardId());
+                    recipeExtend.setCardType(revisitExDTO.getCardType());
+                    recipeExtend.setRegisterID(revisitExDTO.getRegisterNo());
+                    revisitExDTO.getPatId();
                 }
             }
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
@@ -268,6 +270,11 @@ public class RecipeServiceSub {
         // 根据咨询单特殊来源标识设置处方单特殊来源标识
         if (null != recipe.getClinicId()) {
             if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
+                IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+                RevisitExDTO revisitExDTO = exService.getByConsultId(recipe.getClinicId());
+                if (null != revisitExDTO) {
+                    recipe.setPatientID(revisitExDTO.getPatId());
+                }
                 IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
                 RevisitBean consultBean = iRevisitService.getById(recipe.getClinicId());
                 if ((null != consultBean) && (Integer.valueOf(1).equals(consultBean.getConsultSource()))) {

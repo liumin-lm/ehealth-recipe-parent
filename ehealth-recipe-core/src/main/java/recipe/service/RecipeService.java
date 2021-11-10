@@ -35,7 +35,6 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
-import com.ngari.opbase.base.service.IPropertyOrganService;
 import com.ngari.opbase.log.mode.DataSyncDTO;
 import com.ngari.opbase.log.service.IDataSyncLogService;
 import com.ngari.patient.ds.PatientDS;
@@ -546,19 +545,6 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Integer saveRecipeData(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
-        //获取运营平台是否复诊开处方单有效判断配置
-        try {
-            LOGGER.info(" saveRecipeData start ");
-            if (new Integer("0").equals(recipeBean.getBussSource()) || recipeBean.getBussSource() == null) {
-                IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-                Boolean openRecipe = (Boolean) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "isOpenRecipeByRegisterId");
-                LOGGER.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}", openRecipe);
-                openRecipOptimize(recipeBean, openRecipe);
-            }
-        } catch (Exception e) {
-            LOGGER.info(" saveRecipeData error ", e);
-            e.printStackTrace();
-        }
         Integer recipeId = recipeServiceSub.saveRecipeDataImpl(recipeBean, detailBeanList, 1);
         if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipeBean.getFromflag())) {
             //生成订单数据，与 HosPrescriptionService 中 createPrescription 方法一致
