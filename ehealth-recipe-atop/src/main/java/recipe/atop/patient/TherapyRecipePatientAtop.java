@@ -66,7 +66,7 @@ public class TherapyRecipePatientAtop extends BaseAtop {
             RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
             recipeInfoVO.setPatientVO(ObjectCopyUtils.convert(a.getPatientBean(), PatientVO.class));
             recipeInfoVO.setRecipeTherapyVO(ObjectCopyUtils.convert(a.getRecipeTherapy(), RecipeTherapyVO.class));
-
+            recipeInfoVO.setRevisitTime(a.getRevisitTime());
             RecipeBean recipeBean = new RecipeBean();
             recipeBean.setRecipeId(a.getRecipe().getRecipeId());
             recipeBean.setClinicId(a.getRecipe().getClinicId());
