@@ -47,4 +47,10 @@ public class RecipeItemBusinessService extends BaseService implements ITherapyIt
         return itemListManager.getItemListById(itemList);
     }
 
+    @Override
+    public List<ItemList> findItemListByOrganIdAndItemNameOrCode(Integer organId, String itemName, String itemCode) {
+        return itemListManager.findItemListByOrganIdAndItemNameOrCode(organId, itemName, itemCode);
+    }
+
+
 }
