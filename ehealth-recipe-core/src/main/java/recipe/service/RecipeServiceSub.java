@@ -1805,7 +1805,7 @@ public class RecipeServiceSub {
                 }
             }
             //判断是否为儿童处方
-            if(recipeExtend.getRecipeFlag() == 1){
+            if(1 == recipeExtend.getRecipeFlag()){
                 childRecipeFlag = true;
             }
             map.put("childRecipeFlag", childRecipeFlag);

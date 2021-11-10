@@ -206,6 +206,7 @@ public class PatientClient extends BaseClient {
         }
         p.setAge(null == p.getBirthday() ? 0 : DateConversion.getAge(p.getBirthday()));
         p.setIdcard2(null);
+        p.setPhoto(null == p.getPhoto() ? "" : p.getPhoto());
         return p;
     }
 

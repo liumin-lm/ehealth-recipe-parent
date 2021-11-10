@@ -72,9 +72,9 @@ public class TherapyRecipePatientAtop extends BaseAtop {
             recipeBean.setClinicId(a.getRecipe().getClinicId());
             recipeBean.setOrganDiseaseName(a.getRecipe().getOrganDiseaseName());
             recipeBean.setCreateDate(a.getRecipe().getCreateDate());
-            if (null != recipeBean.getCreateDate()) {
-                recipeBean.setWxDisplayTime(DateConversion.convertRequestDateForBussNew(recipeBean.getCreateDate()));
-            }
+            recipeBean.setDoctorName(a.getRecipe().getDoctorName());
+            recipeBean.setDepart(a.getRecipe().getDepart());
+            recipeBean.setOrganName(a.getRecipe().getOrganName());
             recipeInfoVO.setRecipeBean(recipeBean);
 
             List<RecipeDetailBean> recipeDetails = new LinkedList<>();
