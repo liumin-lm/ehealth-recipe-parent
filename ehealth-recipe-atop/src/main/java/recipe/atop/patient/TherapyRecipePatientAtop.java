@@ -50,7 +50,7 @@ public class TherapyRecipePatientAtop extends BaseAtop {
         if (ValidateUtil.validateObjects(recipeTherapyVO.getMpiId())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参错误");
         }
-        List<RecipeInfoDTO> recipeInfoList = therapyRecipeBusinessService.therapyRecipeListForPatient(recipeTherapyVO.getMpiId(), start, limit);
+        List<RecipeInfoDTO> recipeInfoList = therapyRecipeBusinessService.therapyRecipeListForPatient(recipeTherapyVO.getMpiId(), start * limit, limit);
         List<RecipeInfoVO> result = new LinkedList<>();
 
         Integer total = therapyRecipeBusinessService.therapyRecipeByMpiIdTotal(recipeTherapyVO.getMpiId());
