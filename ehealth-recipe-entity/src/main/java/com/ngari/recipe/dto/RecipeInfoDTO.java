@@ -29,5 +29,9 @@ public class RecipeInfoDTO extends RecipeDTO implements Serializable {
      * 机构信息
      */
     private OrganDTO organ;
+    /**
+     * 复诊时间
+     */
+    private String revisitTime;
 
 }
