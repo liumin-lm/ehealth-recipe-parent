@@ -156,7 +156,7 @@ public class RecipeTherapyBusinessService extends BaseService implements ITherap
 
     @Override
     public List<ItemListVO> searchItemListByKeyWord(ItemListVO itemListVO) {
-        List<ItemList> itemLists = itemListManager.findItemList(itemListVO.getOrganId(), itemListVO.getStatus(), itemListVO.getItemName(), itemListVO.getStart(), itemListVO.getLimit());
+        List<ItemList> itemLists = itemListManager.findItemList(itemListVO.getOrganId(), itemListVO.getStatus(), itemListVO.getItemName(), itemListVO.getStart(), itemListVO.getLimit(), itemListVO.getId(), itemListVO.getItemCode());
         return ObjectCopyUtils.convert(itemLists, ItemListVO.class);
     }
 

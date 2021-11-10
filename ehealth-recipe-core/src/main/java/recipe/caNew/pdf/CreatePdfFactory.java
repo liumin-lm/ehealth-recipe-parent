@@ -170,7 +170,7 @@ public class CreatePdfFactory {
      *
      * @param recipeId
      */
-    public void updateCheckNamePdf(Integer recipeId) {
+    public void updateCheckNamePdf(Integer recipeId,Boolean caFlag) {
         Recipe recipe = validate(recipeId);
         logger.info("CreatePdfFactory updateCheckNamePdf recipeId:{}", recipeId);
         boolean usePlatform = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", true);
@@ -178,8 +178,11 @@ public class CreatePdfFactory {
             return;
         }
         //获取签名图片
-        AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
-        String signImageId = sttachSealPicDTO.getCheckerSignImg();
+        String signImageId = null;
+        if(caFlag){
+            AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
+            signImageId = sttachSealPicDTO.getCheckerSignImg();
+        }
         try {
             CreatePdfService createPdfService = createPdfService(recipe);
             String fileId = createPdfService.updateCheckNamePdf(recipe, signImageId);
@@ -211,15 +214,18 @@ public class CreatePdfFactory {
         if (!usePlatform) {
             return;
         }
+        // todo 下载签名文件
         byte[] chemistSignFileByte = CreateRecipePdfUtil.signFileByte(recipe.getSignFile());
 
         SignRecipePdfVO pdfEsign = new SignRecipePdfVO();
         pdfEsign.setData(chemistSignFileByte);
         pdfEsign.setWidth(100f);
         pdfEsign.setFileName("recipecheck" + recipe.getRecipeId() + ".pdf");
+        // todo 这个是默认的值吗
         pdfEsign.setDoctorId(recipe.getChecker());
         pdfEsign.setQrCodeSign(false);
         try {
+            // todo 这个是签名对象
             byte[] data = createPdfService.updateCheckNamePdfEsign(recipeId, pdfEsign);
             if (null == data) {
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "药师E签宝签名部分生成null");
@@ -228,6 +234,7 @@ public class CreatePdfFactory {
             String fileId = CreateRecipePdfUtil.signFileByte(data, "recipecheck" + recipe.getRecipeId() + ".pdf");
             Recipe recipeUpdate = new Recipe();
             recipeUpdate.setRecipeId(recipe.getRecipeId());
+            // todo 处方签名图片
             recipeUpdate.setChemistSignFile(fileId);
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
             logger.info("CreatePdfFactory updateCheckNamePdfEsign  recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
