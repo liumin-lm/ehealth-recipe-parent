@@ -49,6 +49,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.IConfigurationClient;
+import recipe.client.PatientClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
@@ -124,6 +125,8 @@ public class RecipeListService extends RecipeBaseService {
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Resource
     private IConfigurationClient configurationClient;
+    @Resource
+    private PatientClient patientClient;
     //历史处方显示的状态：未处理、未支付、审核不通过、失败、已完成、his失败、取药失败
     //date 20191016
     //历史处方展示的状态不包含已删除，已撤销，同步his失败（原已取消状态）
@@ -248,7 +251,7 @@ public class RecipeListService extends RecipeBaseService {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
-        List<String> allMpiIds = recipeService.getAllMemberPatientsByCurrentPatient(mpiId);
+        List<String> allMpiIds = patientClient.getAllMemberPatientsByCurrentPatient(mpiId);
         List<Integer> recipeIds = recipeDAO.findPendingRecipes(allMpiIds, RecipeStatusConstant.CHECK_PASS, 0, 1);
         String title;
         String recipeGetModeTip = "";
@@ -288,10 +291,9 @@ public class RecipeListService extends RecipeBaseService {
     public List<PatientRecipeDS> findOtherRecipesForPatient(String mpiId, Integer index, Integer limit) {
         Assert.hasLength(mpiId, "findOtherRecipesForPatient mpiId is null.");
         checkUserHasPermissionByMpiId(mpiId);
-        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
-        List<String> allMpiIds = recipeService.getAllMemberPatientsByCurrentPatient(mpiId);
+        List<String> allMpiIds = patientClient.getAllMemberPatientsByCurrentPatient(mpiId);
         //获取待处理那边最新的一单
         List<Integer> recipeIds = recipeDAO.findPendingRecipes(allMpiIds, RecipeStatusConstant.CHECK_PASS, 0, 1);
         List<PatientRecipeBean> backList = recipeDAO.findOtherRecipesForPatient(allMpiIds, recipeIds, index, limit);
@@ -1004,10 +1006,9 @@ public class RecipeListService extends RecipeBaseService {
         List<PatientTabStatusRecipeDTO> recipeList = new ArrayList<>();
         Assert.hasLength(mpiId, "findRecipesForPatientAndTabStatus 用户id为空!");
         checkUserHasPermissionByMpiId(mpiId);
-        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
-        List<String> allMpiIds = recipeService.getAllMemberPatientsByCurrentPatient(mpiId);
+        List<String> allMpiIds = patientClient.getAllMemberPatientsByCurrentPatient(mpiId);
         //获取页面展示的对象
         TabStatusEnum recipeStatusList = TabStatusEnum.fromTabStatusAndStatusType(tabStatus, "recipe");
         if (null == recipeStatusList) {
@@ -1058,9 +1059,7 @@ public class RecipeListService extends RecipeBaseService {
         LOGGER.info("findRecipesForPatientAndTabStatusNew tabStatus:{} mpiId:{} index:{} limit:{} ", tabStatus, mpiId, index, limit);
         Assert.hasLength(mpiId, "findRecipesForPatientAndTabStatusNew mpiId为空!");
         checkUserHasPermissionByMpiId(mpiId);
-        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-
-        List<String> allMpiIds = recipeService.getAllMemberPatientsByCurrentPatient(mpiId);
+        List<String> allMpiIds = patientClient.getAllMemberPatientsByCurrentPatient(mpiId);
         LOGGER.info("findRecipesForPatientAndTabStatusNew allMpiIds:{}", JSONArray.toJSONString(allMpiIds));
 
         List<PatientTabStatusMergeRecipeDTO> patientTabStatusMergeRecipeDTOS = Lists.newArrayList();

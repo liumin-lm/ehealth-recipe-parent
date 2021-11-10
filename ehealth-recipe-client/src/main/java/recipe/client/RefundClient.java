@@ -28,16 +28,16 @@ public class RefundClient extends BaseClient {
      */
     public RefundResultDTO refund(Integer orderId, String busType){
         logger.info("RefundClient refund orderId:{},busType:{}.", orderId, busType);
-        Map<String, Object> refundResult = refundService.refund(orderId, busType);
         RefundResultDTO refundResultDTO = new RefundResultDTO();
         try {
+            Map<String, Object> refundResult = refundService.refund(orderId, busType);
             if (null != refundResult) {
                 refundResultDTO.setStatus(MapValueUtil.getInteger(refundResult, "status"));
                 refundResultDTO.setRefundId(MapValueUtil.getString(refundResult, "refund_id"));
                 refundResultDTO.setRefundAmount(MapValueUtil.getString(refundResult, "refund_amount"));
             }
         } catch (Exception e) {
-            logger.error("RefundClient refund error ", e);
+            logger.error("RefundClient refund error orderId:{}", orderId, e);
         }
         logger.info("RefundClient refund refundResultDTO:{}.", JSONUtils.toString(refundResultDTO));
         return refundResultDTO;
