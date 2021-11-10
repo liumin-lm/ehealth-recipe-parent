@@ -19,6 +19,7 @@ import java.util.List;
 
 /**
  * 项目数据表
+ *
  * @author yinsheng
  * @date 2021\8\20 0020 16:52
  */
@@ -31,13 +32,21 @@ public abstract class ItemListDAO extends HibernateSupportDelegateDAO<ItemList> 
         this.setKeyField(SQL_KEY_ID);
     }
 
-    public List<ItemList> findItemList(final Integer organId, final String itemName, final int start, final int limit) {
+    @Override
+    public boolean updateNonNullFieldByPrimaryKey(ItemList itemList) {
+        return updateNonNullFieldByPrimaryKey(itemList, SQL_KEY_ID);
+    }
+
+    public List<ItemList> findItemList(final Integer organId, final Integer status, final String itemName, final int start, final int limit) {
         HibernateStatelessResultAction<List<ItemList>> action =
                 new AbstractHibernateStatelessResultAction<List<ItemList>>() {
                     @SuppressWarnings("unchecked")
                     @Override
                     public void execute(StatelessSession ss) throws DAOException {
                         StringBuilder hql = new StringBuilder(" from ItemList where organ_id =:organId and is_deleted = 0 and status = 1  ");
+                        if (null != status) {
+                            hql.append(" and status = :status ");
+                        }
                         if (!StringUtils.isEmpty(itemName)) {
                             hql.append(" and item_name like :itemName ");
                         }
@@ -49,6 +58,9 @@ public abstract class ItemListDAO extends HibernateSupportDelegateDAO<ItemList> 
                         }
                         if (null != organId) {
                             query.setParameter("organId", organId);
+                        }
+                        if (null != status) {
+                            query.setParameter("status", status);
                         }
                         query.setFirstResult(start);
                         query.setMaxResults(limit);

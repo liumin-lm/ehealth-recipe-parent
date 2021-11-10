@@ -185,6 +185,9 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "电子处方监管平台流水号")
     private String superviseRecipecode;
 
+    @ItemProperty(alias = "处方标识 0:普通处方 1:儿童处方")
+    private Integer recipeFlag;
+
     public Integer getAppointEnterpriseType() {
         return appointEnterpriseType;
     }
@@ -683,5 +686,13 @@ public class RecipeExtendBean implements Serializable {
 
     public void setSuperviseRecipecode(String superviseRecipecode) {
         this.superviseRecipecode = superviseRecipecode;
+    }
+
+    public Integer getRecipeFlag() {
+        return recipeFlag;
+    }
+
+    public void setRecipeFlag(Integer recipeFlag) {
+        this.recipeFlag = recipeFlag;
     }
 }

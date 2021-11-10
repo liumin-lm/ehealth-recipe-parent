@@ -130,4 +130,7 @@ public class OffLineRecipeDetailDTO implements Serializable {
     //预留字段
     @ItemProperty(alias = "关联病例ID")
     private Integer docIndexId;
+
+    @ItemProperty(alias = "处方标识 0:普通处方 1:儿童处方")
+    private Integer recipeFlag;
 }

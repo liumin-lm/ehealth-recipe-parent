@@ -52,6 +52,9 @@ public class RecipeExportDTO implements Serializable{
     @Dictionary(id = "eh.cdr.dictionary.RecipeType")
     private Integer recipeType;
 
+    @ItemProperty(alias = "发药药师")
+    private String giveUser;
+
     @Column(name = "doctorName")
     public String getDoctorName() {
         return doctorName;
@@ -168,5 +171,13 @@ public class RecipeExportDTO implements Serializable{
 
     public void setRecipeType(Integer recipeType) {
         this.recipeType = recipeType;
+    }
+
+    public String getGiveUser() {
+        return giveUser;
+    }
+
+    public void setGiveUser(String giveUser) {
+        this.giveUser = giveUser;
     }
 }

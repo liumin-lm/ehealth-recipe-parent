@@ -43,7 +43,7 @@ public abstract class RecipeOrderPayFlowDao extends HibernateSupportDelegateDAO<
      * @param payFlowType payFlowType
      * @return RecipeOrderPayFlow
      */
-    @DAOMethod(sql = "FROM RecipeOrderPayFlow WHERE orderId =:orderId AND payFlowType =:payFlowType")
+    @DAOMethod(sql = "FROM RecipeOrderPayFlow WHERE orderId =:orderId AND payFlowType =:payFlowType AND payFlag = '1'")
     public abstract RecipeOrderPayFlow getByOrderIdAndType(@DAOParam("orderId") Integer orderId,
                                                            @DAOParam("payFlowType") Integer payFlowType);
 

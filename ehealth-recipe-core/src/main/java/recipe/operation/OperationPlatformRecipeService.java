@@ -6,7 +6,6 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.patient.dto.AppointDepartDTO;
-import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.AppointDepartService;
@@ -47,7 +46,6 @@ import org.apache.http.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.audit.bean.PAWebRecipeDanger;
 import recipe.audit.service.PrescriptionService;
@@ -242,7 +240,7 @@ public class OperationPlatformRecipeService {
                 p.setMpiId(patient.getMpiId());
                 p.setCertificateType(patient.getCertificateType());
                 //判断该就诊人是否为儿童就诊人
-                if (!ObjectUtils.isEmpty(patient.getGuardianCertificate())) {
+                if (patient.getPatientUserType() == 1 || patient.getPatientUserType() == 2) {
                     if (null != extend && StringUtils.isNotEmpty(extend.getGuardianCertificate())) {
                         guardian.setName(extend.getGuardianName());
                         guardian.setGuardianCertificate(hideIdCard(extend.getGuardianCertificate()));
@@ -268,7 +266,13 @@ public class OperationPlatformRecipeService {
         }
 
         Map<String, Object> map = Maps.newHashMap();
+        //判断是否为儿童处方
+        //兼容老版本（此版本暂时不做删除）
+        Boolean childRecipeFlag = false;
         if (extend != null) {
+            if(extend.getRecipeFlag() == 1){
+                childRecipeFlag = true;
+            }
             map.put("recipeExtend", extend);
             r.setMedicalType(extend.getMedicalType());
             r.setMedicalTypeText(extend.getMedicalTypeText());
@@ -345,16 +349,6 @@ public class OperationPlatformRecipeService {
 
         }
 
-        //获取该医生所在科室，判断是否为儿科科室
-        Integer departId = recipe.getDepart();
-        DepartmentDTO departmentDTO = departmentService.get(departId);
-        Boolean childRecipeFlag = false;
-        if (!ObjectUtils.isEmpty(departmentDTO)) {
-            if (departmentDTO.getName().contains("儿科") || departmentDTO.getName().contains("新生儿科")
-                    || departmentDTO.getName().contains("儿内科") || departmentDTO.getName().contains("儿外科")) {
-                childRecipeFlag = true;
-            }
-        }
         //药师能否撤销标识
         Boolean cancelRecipeFlag = false;
         //只有审核通过的才有标识

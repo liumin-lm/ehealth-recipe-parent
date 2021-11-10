@@ -198,6 +198,10 @@ public class DrugListMatch implements java.io.Serializable {
     private String useDoseSmallestUnit;
 
 
+    @ItemProperty(alias = "药品来源  0 批量导入 1 手动同步")
+    @Dictionary(id = "eh.cdr.dictionary.DrugListMatchSource")
+    private Integer drugSource;
+
     @Column(name = "retrievalCode ")
     public String getRetrievalCode() {
         return retrievalCode;
@@ -608,5 +612,14 @@ public class DrugListMatch implements java.io.Serializable {
 
     public void setUseDoseSmallestUnit(String useDoseSmallestUnit) {
         this.useDoseSmallestUnit = useDoseSmallestUnit;
+    }
+
+    @Column(name = "drug_source")
+    public Integer getDrugSource() {
+        return drugSource;
+    }
+
+    public void setDrugSource(Integer drugSource) {
+        this.drugSource = drugSource;
     }
 }

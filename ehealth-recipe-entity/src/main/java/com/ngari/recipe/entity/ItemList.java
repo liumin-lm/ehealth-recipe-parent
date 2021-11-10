@@ -2,6 +2,8 @@ package com.ngari.recipe.entity;
 
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
+import org.hibernate.annotations.DynamicInsert;
+import org.hibernate.annotations.DynamicUpdate;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -10,14 +12,17 @@ import java.util.Date;
 
 /**
  * 项目目录
+ *
  * @author yinsheng
  * @date 2021\8\20 0020 16:28
  */
 @Entity
 @Schema
+@DynamicInsert
+@DynamicUpdate
 @Table(name = "base_item_list")
 @Access(AccessType.PROPERTY)
-public class ItemList implements Serializable{
+public class ItemList implements Serializable {
     private static final long serialVersionUID = 7143045971223592496L;
     @ItemProperty(alias = "项目id")
     private Integer id;

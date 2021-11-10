@@ -30,7 +30,7 @@ public class RecipeLogAspect {
         String methodName = joinPoint.getSignature().getName();
         //获取参数
         String paramString = getParam(joinPoint);
-        logger.info("{} {},parameter:{}.", className, methodName, paramString);
+        logger.info("RecipeLogAspect doAround {} {},parameter:{}", className, methodName, paramString);
         long start = 0;
         try {
             start = System.currentTimeMillis();
@@ -39,7 +39,7 @@ public class RecipeLogAspect {
             logger.error("RecipeLogAspect doAround error", throwable);
         } finally {
             long elapsedTime = System.currentTimeMillis() - start;
-            logger.info("{} {} 执行时间:{}ms.", className, methodName, elapsedTime);
+            logger.info("RecipeLogAspect doAround {} {} 执行时间:{}ms", className, methodName, elapsedTime);
         }
         return result;
     }

@@ -36,4 +36,13 @@ public interface IOrganBusinessService {
      * @return
      */
     EnterpriseStock organStock(Recipe recipe, List<Recipedetail> detailList);
+
+    /**
+     * 校验购药方式是否满足机构配置项
+     *
+     * @param recipeId
+     * @param orderId
+     * @return
+     */
+    boolean giveModeValidate(Integer recipeId, Integer orderId);
 }
