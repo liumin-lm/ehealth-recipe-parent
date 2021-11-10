@@ -689,6 +689,17 @@ public class OrganDrugListService implements IOrganDrugListService {
         return result;
     }
 
+    @Override
+    public List<DepSaleDrugInfo> queryDepSaleDrugInfosByDrugId(final Integer organId,final Integer drugId) {
+        List<DepSaleDrugInfo> result = null;
+        try {
+            result = organDrugListDAO.queryDepSaleDrugInfosByDrugId(drugId, organId);
+        } catch (Exception e) {
+            logger.error("queryDepSaleDrugInfosByDrugId error", e);
+            throw new DAOException(609, e.getMessage());
+        }
+        return result;
+    }
 
     @Override
     public List<RegulationDrugCategoryBean> queryRegulationDrug(Map<String, Object> params) {

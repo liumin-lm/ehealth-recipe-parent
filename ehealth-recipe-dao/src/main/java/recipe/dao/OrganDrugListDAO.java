@@ -754,6 +754,30 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
         return action.getResult();
     }
 
+    public List<DepSaleDrugInfo> queryDepSaleDrugInfosByDrugId(final Integer organId,final Integer drugId) {
+        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        List<Integer> depIds = organAndDrugsepRelationDAO.findDrugsEnterpriseIdByOrganIdAndStatus(organId, 1);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        List<SaleDrugList> saleDrugLists;
+        saleDrugLists = saleDrugListDAO.findByDrugIdAndOrganIds(drugId, depIds);
+        List<DepSaleDrugInfo> depSaleDrugInfos = Lists.newArrayList();
+        for (SaleDrugList saleDrugList : saleDrugLists) {
+            DepSaleDrugInfo info = new DepSaleDrugInfo();
+            info.setDrugEnterpriseId(saleDrugList.getOrganId());
+            info.setSaleDrugCode(saleDrugList.getOrganDrugCode());
+            info.setDrugId(saleDrugList.getDrugId());
+            DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(saleDrugList.getOrganId());
+            if (enterprise != null) {
+                info.setDrugEnterpriseName(enterprise.getName());
+            } else {
+                info.setDrugEnterpriseName("无");
+            }
+            depSaleDrugInfos.add(info);
+        }
+        return depSaleDrugInfos;
+    }
+
     /**
      * 根据机构id获取数量
      *
