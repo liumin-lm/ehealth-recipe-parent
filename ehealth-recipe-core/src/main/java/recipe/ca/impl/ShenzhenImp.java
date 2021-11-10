@@ -169,4 +169,35 @@ public class ShenzhenImp implements CAInterface {
             recipeService.retryCaPharmacistCallBackToRecipe(signResultVo);
         }
     }
+
+    @Override
+    public CaSignResultVo commonSeal(CaSealRequestTO requestSealTO, Recipe recipe, Integer organId, String userAccount, String caPassword) {
+        logger.info("ShenzhenCA commonSeal start requestSealTO=[{}],requestSealTO=[{}],organId=[{}],userAccount=[{}]",JSONUtils.toString(requestSealTO),JSONUtils.toString(recipe),organId,userAccount);
+        CaSignResultVo caSignResultVo = new CaSignResultVo();
+        caSignResultVo.setRecipeId(recipe.getRecipeId());
+        try {
+            //深圳CA为工号 recipe.getChecker() 为null的为医生
+            Integer doctorId;
+            if(recipe.getChecker() == null) {
+                doctorId =recipe.getDoctor();
+            }else {
+                doctorId =recipe.getChecker();
+            }
+
+            caSignResultVo.setCode(200);
+            caSignResultVo.setResultCode(1);
+        } catch (Exception e) {
+            caSignResultVo.setResultCode(0);
+            logger.error("shenzhenCAImpl commonCASignAndSeal 调用前置机失败 requestTO={}", e);
+        } finally {
+            logger.error("shenzhenCAImpl finally callback signResultVo={}", JSONUtils.toString(caSignResultVo));
+            // ca结果失败 删除token进行重新签名
+            if(caSignResultVo.getResultCode() != 1){
+                redisClient.del("encryptedToken_"+userAccount);
+            }
+            this.callbackRecipe(caSignResultVo, null == recipe.getChecker());
+        }
+        logger.info("ShanxiCAImpl commonCASignAndSeal end recipeId={},params: {}", recipe.getRecipeId(), JSONUtils.toString(caSignResultVo));
+        return caSignResultVo;
+    }
 }

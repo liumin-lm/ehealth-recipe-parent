@@ -195,4 +195,56 @@ public class TianjinCAImpl implements CAInterface {
             recipeService.retryCaPharmacistCallBackToRecipe(signResultVo);
         }
     }
+
+
+    @Override
+    public CaSignResultVo commonSeal(CaSealRequestTO requestSealTO, Recipe recipe, Integer organId, String userAccount, String caPassword) {
+        LOGGER.info("TianjinCAImpl commonSeal start requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
+                JSONUtils.toString(requestSealTO),recipe.getRecipeId(), organId, userAccount, caPassword);
+        CaSignResultVo signResultVo = new CaSignResultVo();
+        Integer signDoc = recipe.getChecker() == null?recipe.getDoctor():recipe.getChecker();
+        signResultVo.setRecipeId(recipe.getRecipeId());
+        signResultVo.setSignDoctor(signDoc);
+
+        try {
+            //电子签名
+            CaSignRequestTO caSignRequestTO = new CaSignRequestTO();
+
+            // 电子签章
+            requestSealTO.setOrganId(organId);
+            requestSealTO.setUserPin(caPassword);
+            requestSealTO.setUserAccount(userAccount);
+            DoctorExtendService doctorExtendService = BasicAPI.getService(DoctorExtendService.class);
+            DoctorExtendDTO doctorExtendDTO = doctorExtendService.getByDoctorId(recipe.getChecker());
+            if (doctorExtendDTO != null && doctorExtendDTO.getSealData() != null) {
+                requestSealTO.setSealBase64Str(doctorExtendDTO.getSealData());
+            } else {
+                requestSealTO.setSealBase64Str("");
+            }
+            LOGGER.info("caSealBusiness before requestSealTO={}", JSONUtils.toString(requestSealTO));
+            CaSealResponseTO responseSealTO = iCommonCAServcie.caSealBusiness(requestSealTO);
+            LOGGER.info("caSealBusiness end responseSealTO={}", JSONUtils.toString(responseSealTO));
+
+            if (responseSealTO == null || responseSealTO.getCode() != 200){
+                signResultVo.setResultCode(0);
+                signResultVo.setCode(responseSealTO.getCode());
+                signResultVo.setMsg(responseSealTO.getMsg());
+                LOGGER.error("caSealBusiness Romote error, signResultVo={}", JSONUtils.toString(signResultVo));
+                return signResultVo;
+            }
+            signResultVo.setPdfBase64(responseSealTO.getPdfBase64File());
+            signResultVo.setResultCode(1);
+        } catch (Exception e){
+            signResultVo.setResultCode(0);
+            LOGGER.error("TianjinCAImpl commonCASignAndSeal 调用前置机失败 requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
+                    JSONUtils.toString(requestSealTO), recipe.getRecipeId(),organId, userAccount, caPassword,e );
+        }finally {
+            LOGGER.error("TianjinCAImpl finally callback signResultVo={}", JSONUtils.toString(signResultVo));
+            this.callbackRecipe(signResultVo, null == recipe.getChecker());
+        }
+
+        LOGGER.info("TianjinCAImpl commonCASignAndSeal end recipeId={},params: {}", recipe.getRecipeId(),JSONUtils.toString(signResultVo));
+        return signResultVo;
+    }
+
 }
