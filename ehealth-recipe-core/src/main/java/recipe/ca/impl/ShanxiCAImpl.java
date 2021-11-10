@@ -179,4 +179,43 @@ public class ShanxiCAImpl implements CAInterface {
     }
 
 
+    @Override
+    public CaSignResultVo commonSeal(CaSealRequestTO requestSealTO, Recipe recipe, Integer organId, String userAccount, String caPassword) {
+        LOGGER.info("ShanxiCAImpl commonSeal start requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
+                JSONUtils.toString(requestSealTO), recipe.getRecipeId(),organId, userAccount, caPassword);
+        CaSignResultVo signResultVo = new CaSignResultVo();
+        Integer signDoc = recipe.getChecker() == null?recipe.getDoctor():recipe.getChecker();
+        signResultVo.setRecipeId(recipe.getRecipeId());
+        signResultVo.setSignDoctor(signDoc);
+        try {
+            //电子签名（暂不实现）
+            //电子签章业务
+            requestSealTO.setOrganId(organId);
+            requestSealTO.setUserAccount(userAccount);
+            requestSealTO.setUserPin(caPassword);
+            requestSealTO.setCertMsg(null);
+            requestSealTO.setRightX(1);
+            requestSealTO.setRightY(1);
+            requestSealTO.setKeyWord("");
+            requestSealTO.setSzIndexes(0);
+            CaSealResponseTO responseSealTO = iCommonCAServcie.caSealBusiness(requestSealTO);
+
+            if (responseSealTO == null || responseSealTO.getCode() != 200){
+                signResultVo.setResultCode(0);
+                return signResultVo;
+            }
+            signResultVo.setPdfBase64(responseSealTO.getPdfBase64File());
+            signResultVo.setCode(200);
+            signResultVo.setResultCode(1);
+        } catch (Exception e){
+            signResultVo.setResultCode(0);
+            LOGGER.error("ShanxiCAImpl commonCASignAndSeal 调用前置机失败 requestTO={}", requestSealTO.toString(),e);
+        }finally {
+            LOGGER.error("ShanxiCAImpl finally callback signResultVo={}", JSONUtils.toString(signResultVo));
+            this.callbackRecipe(signResultVo, null == recipe.getChecker());
+        }
+        LOGGER.info("ShanxiCAImpl commonCASignAndSeal end recipeId={},params: {}", recipe.getRecipeId(),JSONUtils.toString(signResultVo));
+        return signResultVo;
+    }
+
 }

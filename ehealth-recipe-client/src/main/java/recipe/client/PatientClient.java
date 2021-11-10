@@ -1,6 +1,7 @@
 package recipe.client;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.jgpt.zjs.service.IMinkeOrganService;
@@ -168,6 +169,22 @@ public class PatientClient extends BaseClient {
         return false;
     }
 
+    /**
+     * 获取当前患者所有家庭成员(包括自己)
+     * @param mpiId 当前就诊人
+     * @return 所有就诊人
+     */
+    public List<String> getAllMemberPatientsByCurrentPatient(String mpiId) {
+        logger.info("getAllMemberPatientsByCurrentPatient mpiId:{}.", mpiId);
+        List<String> allMpiIds = Lists.newArrayList();
+        String loginId = patientService.getLoginIdByMpiId(mpiId);
+        if (StringUtils.isNotEmpty(loginId)) {
+            allMpiIds = patientService.findMpiIdsByLoginId(loginId);
+        }
+        logger.info("getAllMemberPatientsByCurrentPatient allMpiIds:{}.", JSON.toJSONString(allMpiIds));
+        return allMpiIds;
+    }
+
 
     /**
      * 患者信息脱敏
@@ -189,6 +206,7 @@ public class PatientClient extends BaseClient {
         }
         p.setAge(null == p.getBirthday() ? 0 : DateConversion.getAge(p.getBirthday()));
         p.setIdcard2(null);
+        p.setPhoto(null == p.getPhoto() ? "" : p.getPhoto());
         return p;
     }
 

@@ -3,6 +3,7 @@ package com.ngari.recipe.entity;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
+import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -15,6 +16,7 @@ import java.util.Date;
 @Schema
 @Table(name = "cdr_recipe_ext")
 @Access(AccessType.PROPERTY)
+@DynamicInsert
 public class RecipeExtend implements Serializable {
 
     private static final long serialVersionUID = -7396436464542532302L;

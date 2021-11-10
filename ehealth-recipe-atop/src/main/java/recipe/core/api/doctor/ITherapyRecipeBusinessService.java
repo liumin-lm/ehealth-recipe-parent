@@ -26,6 +26,13 @@ public interface ITherapyRecipeBusinessService {
     Integer therapyRecipeTotal(RecipeTherapy recipeTherapy);
 
     /**
+     * 根据mpiId查诊疗处方总数
+     * @param mpiId
+     * @return
+     */
+    Integer therapyRecipeByMpiIdTotal(String mpiId);
+
+    /**
      * 获取诊疗处方列表
      *
      * @param recipeTherapy 诊疗处方对象
@@ -85,4 +92,14 @@ public interface ITherapyRecipeBusinessService {
      * @return 是否成功
      */
     boolean updateTherapyRecipe(Integer organId, String recipeCode, RecipeTherapyDTO recipeTherapyDTO);
+
+    /**
+     * 获取就诊人诊疗处方列表
+     *
+     * @param mpiId         患者信息
+     * @param start         页数
+     * @param limit         每页条数
+     * @return
+     */
+    List<RecipeInfoDTO> therapyRecipeListForPatient(String mpiId, int start, int limit);
 }

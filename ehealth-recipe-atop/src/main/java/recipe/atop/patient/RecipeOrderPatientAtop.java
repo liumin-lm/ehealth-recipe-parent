@@ -158,7 +158,7 @@ public class RecipeOrderPatientAtop extends BaseAtop {
             return false;
         }
         //推送his
-        offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_PUSH_TYPE);
+        offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE);
         return true;
     }
 
@@ -177,7 +177,7 @@ public class RecipeOrderPatientAtop extends BaseAtop {
             return false;
         }
         //推送his
-        offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_CANCEL_TYPE);
+        offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_CANCEL_TYPE, CommonConstant.RECIPE_PATIENT_TYPE);
         return true;
     }
 }

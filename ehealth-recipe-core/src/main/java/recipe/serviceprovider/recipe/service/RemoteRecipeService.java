@@ -1622,6 +1622,15 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
+    public CaSignResultBean commonSealOrganId(CaSealRequestTO requestSealTO, RecipeBean recipe, Integer organId, String userAccount, String caPassword) {
+        CommonCAFactory commonCAFactory = ApplicationUtils.getRecipeService(CommonCAFactory.class);
+        CAInterface caInterface = commonCAFactory.useCAFunction(organId);
+        Recipe recipe1 = ObjectCopyUtils.convert(recipe, Recipe.class);
+        CaSignResultVo resultVo = caInterface.commonCASignAndSeal(requestSealTO, recipe1, organId, userAccount, caPassword);
+        return ObjectCopyUtils.convert(resultVo, CaSignResultBean.class);
+    }
+
+    @Override
     public void generateSignetRecipePdf(Integer recipeId, Integer organId) {
         createPdfFactory.updatesealPdfExecute(recipeId);
     }
@@ -2044,12 +2053,17 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public void pharmacyToRecipePDF(Integer recipeId) {
-        createPdfFactory.updateCheckNamePdf(recipeId);
+        createPdfFactory.updateCheckNamePdf(recipeId,true);
     }
 
     @Override
     public void pharmacyToRecipePDF(Integer recipeId, Integer checker) {
-        createPdfFactory.updateCheckNamePdfESign(recipeId);
+            createPdfFactory.updateCheckNamePdfESign(recipeId);
+    }
+
+    @Override
+    public void pharmacyToRecipePDFNoCA(Integer recipeId) {
+        createPdfFactory.updateCheckNamePdf(recipeId,false);
     }
 
     @Override

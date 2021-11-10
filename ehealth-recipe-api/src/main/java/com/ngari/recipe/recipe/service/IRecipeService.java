@@ -551,6 +551,18 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     CaSignResultBean commonCASignAndSealOrganId(CaSealRequestTO requestSealTO, RecipeBean recipe, Integer organId, String userAccount, String caPassword);
 
     /**
+     * 更具机构盖章
+     * @param requestSealTO
+     * @param recipe
+     * @param organId
+     * @param userAccount
+     * @param caPassword
+     * @return
+     */
+    @RpcService
+    CaSignResultBean commonSealOrganId(CaSealRequestTO requestSealTO, RecipeBean recipe, Integer organId, String userAccount, String caPassword);
+
+    /**
      * 为 处方 pdf 盖章
      *
      * @param recipeId
@@ -810,6 +822,14 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      */
     @RpcService
     void pharmacyToRecipePDF(Integer recipeId, Integer checker);
+
+    /**
+     * 药师签名接口不调用ca参数
+     * @param recipeId
+     */
+    @RpcService
+    public void pharmacyToRecipePDFNoCA(Integer recipeId);
+
 
 
     /**
