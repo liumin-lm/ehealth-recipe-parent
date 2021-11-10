@@ -464,7 +464,16 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     List<DrugList> list = query.list();
                     List<DrugListAndOrganDrugList> result = new ArrayList<DrugListAndOrganDrugList>();
                     for (DrugList drug : list) {
-                        result.add(new DrugListAndOrganDrugList(drug, null));
+                        DrugListAndOrganDrugList drugListAndOrganDrugList = new DrugListAndOrganDrugList(drug, null);
+                        if (!ObjectUtils.isEmpty(drug)){
+                            List<OrganDrugList> byDrugIdAndOrganId = findByDrugIdAndOrganId(drug.getDrugId(), organId);
+                            if (ObjectUtils.isEmpty(byDrugIdAndOrganId)){
+                                drugListAndOrganDrugList.setCanAssociated(false);
+                            }else {
+                                drugListAndOrganDrugList.setCanAssociated(true);
+                            }
+                        }
+                        result.add(drugListAndOrganDrugList);
                     }
                     setResult(new QueryResult<DrugListAndOrganDrugList>(total, query.getFirstResult(), query.getMaxResults(), result));
                 } else {
@@ -671,8 +680,18 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     List<DrugList> list = query.list();
                     List<DrugListAndOrganDrugList> result = new ArrayList<DrugListAndOrganDrugList>();
                     for (DrugList drug : list) {
-                        result.add(new DrugListAndOrganDrugList(drug, null));
+                        DrugListAndOrganDrugList drugListAndOrganDrugList = new DrugListAndOrganDrugList(drug, null);
+                        if (!ObjectUtils.isEmpty(drug)){
+                            List<OrganDrugList> byDrugIdAndOrganId = findByDrugIdAndOrganId(drug.getDrugId(), organId);
+                            if (ObjectUtils.isEmpty(byDrugIdAndOrganId)){
+                                drugListAndOrganDrugList.setCanAssociated(false);
+                            }else {
+                                drugListAndOrganDrugList.setCanAssociated(true);
+                            }
+                        }
+                        result.add(drugListAndOrganDrugList);
                     }
+
                     setResult(new QueryResult<DrugListAndOrganDrugList>(total, query.getFirstResult(), query.getMaxResults(), result));
                 } else {
                     StringBuilder hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId ");
