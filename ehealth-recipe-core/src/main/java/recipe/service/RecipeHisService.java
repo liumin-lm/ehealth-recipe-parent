@@ -19,13 +19,13 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
-import com.ngari.patient.dto.AppointDepartDTO;
-import com.ngari.patient.dto.DepartmentDTO;
-import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.dto.PatientDTO;
+import com.ngari.opbase.log.mode.DataSyncDTO;
+import com.ngari.opbase.log.service.IDataSyncLogService;
+import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.model.*;
@@ -50,6 +50,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.aop.LogInfo;
 import recipe.bean.CheckYsInfoBean;
@@ -797,6 +798,31 @@ public class RecipeHisService extends RecipeBaseService {
                     if (CollectionUtils.isEmpty(drugInfoTOs)) {
                         LOGGER.warn("queryDrugInfo 药品code集合{}未查询到医院药品数据", drugCodes);
                         backList = new ArrayList<>();
+                        com.ngari.patient.service.OrganConfigService organConfigService = AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
+                        OrganConfigDTO byOrganId1 = organConfigService.getByOrganId(organId);
+                        Boolean delete = byOrganId1.getEnableDrugDelete();
+                        if (!ObjectUtils.isEmpty(delete)){
+                            if (delete){
+                                OrganDrugListService organDrugListService = AppContextHolder.getBean("organDrugListService", OrganDrugListService.class);
+                                IDataSyncLogService dataSyncLogService = AppDomainContext.getBean("opbase.dataSyncLogService", IDataSyncLogService.class);
+                                OrganDrugListBean byOrganIdAndOrganDrugCode = organDrugListService.getByOrganIdAndOrganDrugCode(organId, requestList.get(0).getDrcode());
+                                if (!ObjectUtils.isEmpty(byOrganIdAndOrganDrugCode)){
+                                    try {
+                                        organDrugListService.updateOrganDrugListStatusByIdSyncT(organId,requestList.get(0).getDrcode());
+                                        DataSyncDTO dataSyncDTO = convertDataSyn( organId, "4", null, "3",byOrganIdAndOrganDrugCode);
+                                        List<DataSyncDTO> syncDTOList =Lists.newArrayList();
+                                        syncDTOList.add(dataSyncDTO);
+                                        dataSyncLogService.addDataSyncLog("1",syncDTOList);
+                                    } catch (Exception e) {
+                                        DataSyncDTO dataSyncDTO = convertDataSyn( organId, "3", e, "3",byOrganIdAndOrganDrugCode);
+                                        List<DataSyncDTO> syncDTOList =Lists.newArrayList();
+                                        syncDTOList.add(dataSyncDTO);
+                                        dataSyncLogService.addDataSyncLog("1",syncDTOList);
+                                        LOGGER.info("drugInfoSynMovement机构药品数据同步 删除失败,{}", JSONUtils.toString(byOrganIdAndOrganDrugCode) + "Exception:{}" + e);
+                                    }
+                                }
+                            }
+                        }
                     } else {
                         backList = drugInfoTOs;
                     }
@@ -811,6 +837,23 @@ public class RecipeHisService extends RecipeBaseService {
         return null;
     }
 
+    public DataSyncDTO convertDataSyn( Integer organId, String status,Exception e,String operType,OrganDrugListBean organDrugList) {
+
+        DataSyncDTO dataSyncDTO =new DataSyncDTO();
+        dataSyncDTO.setType("1");
+        dataSyncDTO.setOrganId(organId.toString());
+        dataSyncDTO.setReqMsg(JSONUtils.toString(organDrugList));
+        dataSyncDTO.setStatus(status);
+        if (e != null){
+            dataSyncDTO.setRespMsg(e.getMessage());
+        }else {
+            dataSyncDTO.setRespMsg("成功");
+        }
+        dataSyncDTO.setOperType(operType);
+        dataSyncDTO.setSyncTime(new Date());
+
+        return  dataSyncDTO;
+    }
 
     /**
      * 处方省医保预结算接口+杭州市互联网预结算接口---废弃

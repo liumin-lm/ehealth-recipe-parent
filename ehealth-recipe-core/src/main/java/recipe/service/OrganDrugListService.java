@@ -338,7 +338,7 @@ public class OrganDrugListService implements IOrganDrugListService {
 
 
     /**
-     * 药品目录-机构药品目录增加一个权限策略，一键禁用（只在监管平台增加此权限），支持将当前有效状态的药品全部更改为无效状态；
+     * 药品目录-机构药品禁用手动同步调用
      *
      * @param organId 机构Id
      */
@@ -349,12 +349,27 @@ public class OrganDrugListService implements IOrganDrugListService {
         try {
             organDrugList.setStatus(0);
             OrganDrugList update = organDrugListDAO.update(organDrugList);
-            OrganService organService = BasicAPI.getService(OrganService.class);
-            OrganDTO organDTO = organService.getByOrganId(organId);
-            IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
-            busActionLogService.recordBusinessLogRpcNew("机构药品管理", "", "OrganDrugList", "【" + organDTO.getName() + "】" + "药品同步 药品禁用!"+update.getDrugName() , organDTO.getName());
+            logger.info("手动同步药品禁用药品 :" + update.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(update));
         } catch (Exception e) {
-            logger.info("同步药品禁用药品[updateOrganDrugListStatusById]:" + e);
+            logger.info("手动同步药品禁用药品[updateOrganDrugListStatusById]:" + e);
+        }
+    }
+
+    /**
+     * 药品目录-机构药品禁用定时同步调用
+     *
+     * @param organId 机构Id
+     */
+    @RpcService
+    public void updateOrganDrugListStatusByIdSyncT(Integer organId,String organDrugCode) {
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId,organDrugCode);
+        try {
+            organDrugList.setStatus(0);
+            OrganDrugList update = organDrugListDAO.update(organDrugList);
+            logger.info("定时同步药品禁用药品 :" + update.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(update));
+        } catch (Exception e) {
+            logger.info("定时药品禁用药品[updateOrganDrugListStatusById]:" + e);
         }
     }
 
