@@ -208,7 +208,7 @@ public class MapValueUtil {
             }
             return value.toString();
         } catch (Exception e) {
-            logger.warn("getFieldValueByName error fieldName ={}，o ={}", fieldName, o.getClass().toString(), e);
+            logger.warn("getFieldValueByName error fieldName ={}，o ={} e:{}", fieldName, o.getClass().toString(), e.getMessage());
             return "";
         }
     }
