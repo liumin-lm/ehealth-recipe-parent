@@ -115,7 +115,10 @@ public class RevisitClient extends BaseClient {
      * @return
      */
     public List<RevisitBean> findByConsultIds(List<Integer> consultIds){
-        return revisitService.findByConsultIds(consultIds);
+        logger.info("RevisitClient findByConsultIds consultIds:{}.", JSONUtils.toString(consultIds));
+        List<RevisitBean> revisitBeans = revisitService.findByConsultIds(consultIds);
+        logger.info("RevisitClient findByConsultIds revisitBeans:{}.", JSONUtils.toString(revisitBeans));
+        return revisitBeans;
     }
 
 }
