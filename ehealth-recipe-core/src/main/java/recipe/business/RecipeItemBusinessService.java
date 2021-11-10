@@ -47,4 +47,13 @@ public class RecipeItemBusinessService extends BaseService implements ITherapyIt
         return itemListManager.getItemListById(itemList);
     }
 
+    @Override
+    public void batchUpdateItemList(List<ItemList> itemLists) {
+        itemLists.forEach(itemList -> {
+            if (itemList != null && itemList.getId() != null) {
+                itemListManager.updateItemList(itemList);
+            }
+        });
+    }
+
 }

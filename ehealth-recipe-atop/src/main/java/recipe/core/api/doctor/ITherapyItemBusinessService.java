@@ -45,4 +45,6 @@ public interface ITherapyItemBusinessService {
      * @return
      */
     ItemList getItemListById(ItemList itemList);
+
+    void batchUpdateItemList(List<ItemList> itemLists);
 }

@@ -14,6 +14,8 @@ import recipe.constant.PageInfoConstant;
 import recipe.core.api.doctor.ITherapyItemBusinessService;
 import recipe.util.ValidateUtil;
 
+import java.util.List;
+
 /**
  * 诊疗项目
  *
@@ -103,6 +105,25 @@ public class TherapyItemOpenAtop extends BaseAtop {
         boolean result = false;
         try {
             therapyItemBusinessService.updateItemList(itemList);
+            result = true;
+        } catch (DAOException e1) {
+            logger.error("TherapyItemOpenAtop updateItemList  error", e1);
+        }
+        return result;
+    }
+
+    /**
+     * 运营平台批量修改数据（启用禁用、删除）
+     *
+     * @param itemLists
+     * @return
+     */
+    @RpcService
+    public boolean batchUpdateItemList(List<ItemList> itemLists) {
+        validateAtop(itemLists);
+        boolean result = false;
+        try {
+            therapyItemBusinessService.batchUpdateItemList(itemLists);
             result = true;
         } catch (DAOException e1) {
             logger.error("TherapyItemOpenAtop updateItemList  error", e1);
