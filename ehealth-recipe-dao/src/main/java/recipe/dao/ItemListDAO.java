@@ -89,8 +89,9 @@ public abstract class ItemListDAO extends HibernateSupportDelegateDAO<ItemList> 
     }
 
     public QueryResult<ItemList> pageItemList(final Integer organId, final Integer status, final String itemName, final int start, final int limit, Integer id, String itemCode) {
-        StringBuilder hql = new StringBuilder(" from ItemList where organ_id =:organId and is_deleted = 0 and status = 1  ");
+        StringBuilder hql = new StringBuilder(" from ItemList where organ_id =:organId and is_deleted = 0   ");
         Map<String, Object> paramMap = new HashMap<>();
+        paramMap.put("organId", organId);
         if (null != status) {
             hql.append(" and status = :status ");
             paramMap.put("status", status);
