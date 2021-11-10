@@ -35,7 +35,6 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
-import com.ngari.opbase.base.service.IPropertyOrganService;
 import com.ngari.opbase.log.mode.DataSyncDTO;
 import com.ngari.opbase.log.service.IDataSyncLogService;
 import com.ngari.patient.ds.PatientDS;
@@ -139,6 +138,7 @@ import video.ainemo.server.IVideoInfoService;
 import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
+import java.sql.Time;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
@@ -546,19 +546,6 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Integer saveRecipeData(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
-        //获取运营平台是否复诊开处方单有效判断配置
-        try {
-            LOGGER.info(" saveRecipeData start ");
-            if (new Integer("0").equals(recipeBean.getBussSource()) || recipeBean.getBussSource() == null) {
-                IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-                Boolean openRecipe = (Boolean) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "isOpenRecipeByRegisterId");
-                LOGGER.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}", openRecipe);
-                openRecipOptimize(recipeBean, openRecipe);
-            }
-        } catch (Exception e) {
-            LOGGER.info(" saveRecipeData error ", e);
-            e.printStackTrace();
-        }
         Integer recipeId = recipeServiceSub.saveRecipeDataImpl(recipeBean, detailBeanList, 1);
         if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipeBean.getFromflag())) {
             //生成订单数据，与 HosPrescriptionService 中 createPrescription 方法一致
@@ -3367,7 +3354,7 @@ public class RecipeService extends RecipeBaseService {
                     map.put("hisException", "his查询药品数据为空!");
                     redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
                     redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
-                    return;
+                    return ;
                 }
                 //查询起始下标
                 Long updateNum = 0L;
@@ -3503,6 +3490,290 @@ public class RecipeService extends RecipeBaseService {
         });
         return map;
     }
+
+
+
+
+    /**
+     * 定时任务:每五分钟调用一次 查询时间间隔内 机构同步配置
+     */
+    @RpcService(timeout = 6000000)
+    public void drugInfoSynMovementDTask() throws ParseException {
+        com.ngari.patient.service.OrganConfigService organConfigService =
+            AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
+        LocalTime localTime =LocalTime.now();
+        LocalTime localTime1 = localTime.minusMinutes(5);
+        DateTimeFormatter dateTimeFormatter= DateTimeFormatter.ofPattern("HH:mm:ss");
+        String format = localTime.format(dateTimeFormatter);
+        String format1 = localTime1.format(dateTimeFormatter);
+        Time etime =Time.valueOf(format);
+        Time stime =Time.valueOf(format1);
+        List<Integer> organIds =organConfigService.findOrganIdByEnableDrugSyncAndTime(stime,etime);
+        if (!ObjectUtils.isEmpty(organIds)){
+            for (Integer organId : organIds) {
+                drugInfoSynMovementD(organId,null);
+            }
+        }
+    }
+
+
+
+    /**
+     * 平台手动同步 (定时方法调用)
+     *
+     * @param organId
+     * @param drugForms
+     * @return
+     */
+    @RpcService(timeout = 6000000)
+    public Map<String, Object> drugInfoSynMovementD(Integer organId, List<String> drugForms) throws ParseException {
+        Map<String, Object> hget = (Map<String, Object>) redisClient.get(KEY_THE_DRUG_SYNC + organId.toString());
+        if (hget != null) {
+            Integer status = (Integer) hget.get("Status");
+            String date = (String) hget.get("Date");
+            long minutes = timeDifference(date);
+            if (minutes < 10L) {
+                throw new DAOException(DAOException.VALUE_NEEDED, "距离上次手动同步未超过10分钟，请稍后再尝试数据同步!");
+            }
+            if (status == 0) {
+                throw new DAOException(DAOException.VALUE_NEEDED, "药品数据正在同步中，请耐心等待...");
+            }
+        }
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        com.ngari.patient.service.OrganConfigService organConfigService =
+                AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
+        OrganConfigDTO byOrganId1 = organConfigService.getByOrganId(organId);
+        if (ObjectUtils.isEmpty(byOrganId1)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "未找到机构配置!");
+        }
+        Boolean sync = byOrganId1.getEnableDrugSync();
+        Boolean delete = byOrganId1.getEnableDrugDelete();
+        Integer dockingMode = byOrganId1.getDockingMode();
+        Integer dataRange = byOrganId1.getDrugDataRange();
+        if (ObjectUtils.isEmpty(dockingMode)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "未找到同步模式配置!");
+        }
+        if (ObjectUtils.isEmpty(dataRange)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "未找到药品同步 数据范围 配置!");
+        }
+        if (dockingMode == 2){
+            throw new DAOException(DAOException.VALUE_NEEDED, "同步模式 为【主动推送】 调用无效!");
+        }
+        if (!sync) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "请先确认接口对接已完成，且配置管理-机构配置-机构设置-业务设置-【药品目录是否支持接口同步】已开启，再尝试进行同步!");
+        }
+        Boolean add = byOrganId1.getEnableDrugAdd();
+        Boolean commit = byOrganId1.getEnableDrugSyncArtificial();
+        //获取纳里机构药品目录
+        List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(organId);
+
+        Map<String, OrganDrugList> drugMap = Maps.newHashMap();
+        if (!CollectionUtils.isEmpty(details)) {
+            drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+        }
+        drugForms=Lists.newArrayList();
+        if (dataRange!=1){
+            OrganConfigDTO byOrganId = organConfigService.getByOrganId(organId);
+            String drugFromList = byOrganId.getDrugFromList();
+            if (!ObjectUtils.isEmpty(drugFromList)) {
+                String[] split = drugFromList.split(",");
+                for (String s : split) {
+                    drugForms.add(s);
+                }
+            }
+        }
+
+
+        LOGGER.info("drugInfoSynMovement剂型list organId=[{}] drugFromList=[{}]", organId, JSONUtils.toString(drugForms));
+        //LOGGER.info("drugInfoSynMovement map organId=[{}] map=[{}]", organId, JSONUtils.toString(drugMap));
+        return drugInfoSynMovementExtD(organId, drugForms, drugMap, urt.getUserName(), sync, add, commit,delete);
+    }
+
+    /**
+     * 平台手动同步
+     *
+     * @param organId
+     * @param drugForms
+     * @return
+     */
+    public Map<String, Object> drugInfoSynMovementExtD(Integer organId, List<String> drugForms, Map<String, OrganDrugList> drugMap, String operator, Boolean sync, Boolean add, Boolean commit, Boolean delete) throws ParseException {
+        SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+        Map<String, Object> map = Maps.newHashMap();
+        //List<OrganDrugInfoTO> finalData = data;
+        long start = System.currentTimeMillis();
+        IRecipeHisService recipeHisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        OrganDrugInfoResponseTO responseTO = new OrganDrugInfoResponseTO();
+        OrganDrugInfoRequestTO request = new OrganDrugInfoRequestTO();
+        request.setOrganId(organId);
+        //查询全部药品信息，返回的是医院所有有效的药品信息
+        request.setData(Lists.newArrayList());
+        request.setDrcode(Lists.newArrayList());
+        try {
+            responseTO = recipeHisService.queryOrganDrugInfo(request);
+            //LOGGER.info("drugInfoSynMovement response={}", JSONUtils.toString(responseTO));
+        } catch (Exception e) {
+            LOGGER.error("drugInfoSynMovement error{} ", e);
+        }
+        List<OrganDrugInfoTO> data = Lists.newArrayList();
+        if (responseTO != null) {
+            data = responseTO.getData();
+            try {
+                if (data != null && data.size() > 0) {
+                    List<List<OrganDrugInfoTO>> partition = Lists.partition(data, 4000);
+                    for (int i = 0; i < partition.size(); i++) {
+                        LOGGER.info("drugInfoSynMovement" + organId + "data-" + i + "={}", JSONUtils.toString(partition.get(i)));
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("drugInfoSynMovement dataerror{} ", e);
+            }
+
+        }
+        if (ObjectUtils.isEmpty(data)) {
+            LOGGER.info("his查询药品数据为空 organId=[{}]", organId);
+            map.put("Date", myFmt2.format(new Date()));
+            map.put("Status", 2);
+            map.put("Exception", 0);
+            map.put("hisException", "his查询药品数据为空!");
+            redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
+            redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
+            return map;
+        }
+        //查询起始下标
+        Long updateNum = 0L;
+        Long addNum = 0L;
+        Long deleteNum = 0L;
+        int startIndex = 0;
+        List<OrganDrugInfoTO> addList = Lists.newArrayList();
+        List<OrganDrugInfoTO> updateList = Lists.newArrayList();
+        boolean finishFlag = true;
+        long total = data.size();
+        if (sync || add) {
+            while (finishFlag) {
+                if (!CollectionUtils.isEmpty(data)) {
+                    //循环机构药品 与平台机构药品对照 有则更新 无则新增到临时表
+                    for (OrganDrugInfoTO drug : data) {
+                        Integer status = drug.getStatus();
+                        LOGGER.info("drugInfoSynMovementaddHisDrug前期" + drug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
+                        OrganDrugList organDrug = drugMap.get(drug.getOrganDrugCode());
+                        if (null == organDrug && add) {
+                            String drugform = drug.getDrugform();
+                            if (drugForms != null && drugForms.size() > 0) {
+                                int i = drugForms.indexOf(drugform);
+                                if (-1 != i) {
+                                    if (status != null) {
+                                        if (status == 0) {
+                                            startIndex++;
+                                            continue;
+                                        }
+                                    }
+                                    List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drug.getOrganDrugCode(), organId);
+                                    if (dataByOrganDrugCode != null && dataByOrganDrugCode.size() > 0) {
+                                        for (DrugListMatch drugListMatch : dataByOrganDrugCode) {
+                                            drugListMatchDAO.remove(drugListMatch.getDrugId());
+                                        }
+                                    }
+                                    addList.add(drug);
+                                    //addHisDrug(drug,organId,operator);
+                                } else {
+                                    startIndex++;
+                                    continue;
+                                }
+                            } else {
+                                if (status != null) {
+                                    if (status == 0) {
+                                        startIndex++;
+                                        continue;
+                                    }
+                                }
+                                List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drug.getOrganDrugCode(), organId);
+                                if (dataByOrganDrugCode != null && dataByOrganDrugCode.size() > 0) {
+                                    for (DrugListMatch drugListMatch : dataByOrganDrugCode) {
+                                        drugListMatchDAO.remove(drugListMatch.getDrugId());
+                                    }
+                                }
+                                addList.add(drug);
+                                //addHisDrug(drug,organId,operator);
+                            }
+                            addNum++;
+                            startIndex++;
+                            continue;
+                        } else if (null != organDrug && sync) {
+                            updateList.add(drug);
+                            //updateHisOrganDrug(drug, organDrug,organId);
+                            LOGGER.info("drugInfoSynMovementupdateNum" + drug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
+                            updateNum++;
+                            startIndex++;
+                            continue;
+                        }
+                        startIndex++;
+                    }
+                } else {
+                    break;
+                }
+                if (startIndex >= total) {
+                    LOGGER.info("drugInfoSynMovement organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，新增量：update=[{}]，药品信息更新结束.", organId, startIndex, updateNum, addNum);
+                    finishFlag = false;
+                }
+            }
+        }
+        try {
+            syncDrugExcDAO.deleteByOrganId(organId, 1);
+            //根据机构id删除 临时表 已提交数据
+            drugListMatchDAO.deleteByOrganIdAndStatus(organId);
+            addOrUpdateDrugInfoSynMovement(organId, addList, 1, operator, commit);
+            addOrUpdateDrugInfoSynMovement(organId, updateList, 2, operator, commit);
+            if (!ObjectUtils.isEmpty(delete)){
+                if (delete){
+                    if (!CollectionUtils.isEmpty(data)) {
+                        Map<String, OrganDrugInfoTO> collect = data.stream().collect(Collectors.toMap(OrganDrugInfoTO::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+                        List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(organId);
+                        for (OrganDrugList detail : details) {
+                            OrganDrugInfoTO organDrugInfoTO = collect.get(detail.getOrganDrugCode());
+                            if (ObjectUtils.isEmpty(organDrugInfoTO)) {
+                                try {
+                                    organDrugListService.updateOrganDrugListStatusByIdSync(organId,detail.getOrganDrugId());
+                                    DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, "4", null, "3",detail);
+                                    List<DataSyncDTO> syncDTOList =Lists.newArrayList();
+                                    syncDTOList.add(dataSyncDTO);
+                                    dataSyncLogService.addDataSyncLog("1",syncDTOList);
+                                    deleteNum++;
+                                } catch (Exception e) {
+                                    DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, "3", e, "3",detail);
+                                    List<DataSyncDTO> syncDTOList =Lists.newArrayList();
+                                    syncDTOList.add(dataSyncDTO);
+                                    dataSyncLogService.addDataSyncLog("1",syncDTOList);
+                                    LOGGER.info("drugInfoSynMovement机构药品数据同步 删除失败,{}", JSONUtils.toString(detail) + "Exception:{}" + e);
+                                    continue;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        } catch (InterruptedException e) {
+            LOGGER.info("drugInfoSynMovement list新增修改,", e);
+        }
+        map.put("addNum", addNum);
+        map.put("updateNum", updateNum);
+        map.put("deleteNum", deleteNum);
+        map.put("Date", myFmt2.format(new Date()));
+        map.put("Status", 1);
+        List<SyncDrugExc> byOrganId = syncDrugExcDAO.findByOrganIdAndSyncType(organId, 1);
+        if (!ObjectUtils.isEmpty(byOrganId)) {
+            map.put("Exception", 1);
+        }
+        redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
+        redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
+        drugInfoSynTaskExt(organId);
+        long elapsedTime = System.currentTimeMillis() - start;
+        LOGGER.info("RecipeBusiThreadPool drugInfoSynMovementExt ES-推送药品 执行时间:{}.", elapsedTime);
+
+        return map;
+    }
+
+
 
 
     /**
