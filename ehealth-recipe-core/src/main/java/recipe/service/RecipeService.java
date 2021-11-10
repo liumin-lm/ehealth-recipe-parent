@@ -3317,7 +3317,7 @@ public class RecipeService extends RecipeBaseService {
         if (ObjectUtils.isEmpty(dataRange)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "未找到药品同步 数据范围 配置!");
         }
-        if (!"1".equals(dockingMode)){
+        if (dockingMode != 1){
             throw new DAOException(DAOException.VALUE_NEEDED, "同步模式 为【主动推送】 调用无效!");
         }
         if (!sync) {

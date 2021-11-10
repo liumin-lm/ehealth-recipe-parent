@@ -303,9 +303,7 @@ public class OrganDrugListService implements IOrganDrugListService {
         logger.info("禁用机构药品:" + JSONUtils.toString(organDrugList));
         organDrugList.setLastModify(new Date());
         organDrugSyncDelete(organDrugList,2);
-        logger.info("禁用机构药品01:" + JSONUtils.toString(organDrugList));
         OrganDrugList update = organDrugListDAO.update(organDrugList);
-        logger.info("禁用机构药品02:" + JSONUtils.toString(update));
         busActionLogService.recordBusinessLogRpcNew("机构药品管理", "", "OrganDrugList", "【" + organDTO.getName() + "】" + msg + "【" + organDrugList.getOrganDrugId() + "-" + organDrugList.getDrugName() + "】", organDTO.getName());
         IRegulationService iRegulationService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
         RegulationNotifyDataReq req = new RegulationNotifyDataReq();
