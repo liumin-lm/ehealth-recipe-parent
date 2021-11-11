@@ -136,6 +136,25 @@ public class TherapyItemOpenAtop extends BaseAtop implements ITherapyItemOpenAto
         return result;
     }
 
+    /**
+     * 修改保存前数据校验
+     *
+     * @param itemList
+     * @return true表示存在，false表示不存在
+     */
+    @RpcService
+    public boolean checkItemList(ItemList itemList) {
+        validateAtop(itemList, itemList.getId());
+        boolean result = false;
+        try {
+            result = therapyItemBusinessService.checkItemList(itemList);
+        } catch (DAOException e1) {
+            result = true;
+            logger.error("TherapyItemOpenAtop updateItemList  error", e1);
+        }
+        return result;
+    }
+
     @Override
     @RpcService
     public Boolean checkExistByOrganIdAndItemNameOrCode(Integer organId, String itemName, String itemCode) {

@@ -68,6 +68,7 @@ import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -3209,7 +3210,14 @@ public class RecipeService extends RecipeBaseService {
         dataSyncDTO.setType("1");
         dataSyncDTO.setOrganId(organId.toString());
         if (ObjectUtils.isEmpty(drug)) {
-            dataSyncDTO.setReqMsg(JSONUtils.toString(organDrugList));
+            Map<String, Object> param = new HashedMap();
+            BeanUtils.map(organDrugList, param);
+            DrugListDAO dao = getDAO(DrugListDAO.class);
+            if (!ObjectUtils.isEmpty(organDrugList.getDrugId())){
+                DrugList drugList = dao.get(organDrugList.getDrugId());
+                param.put("drugType",drugList.getDrugType());
+            }
+            dataSyncDTO.setReqMsg(JSONUtils.toString(param));
         } else {
             dataSyncDTO.setReqMsg(JSONUtils.toString(drug));
         }
@@ -6732,19 +6740,25 @@ public class RecipeService extends RecipeBaseService {
         try {
             List<Recipe> recipes = recipeDAO.queryRecipeByTimeAndRecipeIdsAndOrganId(startTime, endTime, recipeIds, organId);
             recipes.forEach(recipe -> {
-                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                PatientDTO patient = patientService.get(recipe.getMpiid());
-                if (patient != null) {
-                    if (new Integer(1).equals(patient.getPatientUserType()) || new Integer(2).equals(patient.getPatientUserType())) {
-                        recipeExtend.setRecipeFlag(1);
-                    } else if (new Integer(0).equals(patient.getPatientUserType())) {
-                        recipeExtend.setRecipeFlag(0);
+                try{
+                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                    if(recipeExtend != null){
+                        PatientDTO patient = patientService.get(recipe.getMpiid());
+                        if (patient != null) {
+                            if (new Integer(1).equals(patient.getPatientUserType()) || new Integer(2).equals(patient.getPatientUserType())) {
+                                recipeExtend.setRecipeFlag(1);
+                            } else if (new Integer(0).equals(patient.getPatientUserType())) {
+                                recipeExtend.setRecipeFlag(0);
+                            }
+                        }
+                        recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
                     }
+                }catch (Exception e){
+                    LOGGER.error("RecipeOpenAtop updateNonNullFieldByPrimaryKey error e", e);
                 }
-                recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
             });
         } catch (Exception e) {
-            LOGGER.error("RecipeOpenAtop handDealRevisitTraceRecipe error e", e);
+            LOGGER.error("RecipeService handDealRecipeFlag error e", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }

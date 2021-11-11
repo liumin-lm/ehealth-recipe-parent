@@ -240,16 +240,18 @@ public class DrugManager extends BaseManager {
         }
         // 拼接 药品图片
         Set<Integer> drugIds = drugWithEsByPatient.stream().map(PatientDrugWithEsDTO::getDrugId).collect(Collectors.toSet());
-        if (CollectionUtils.isNotEmpty(drugIds)) {
-            List<DrugList> byDrugIds = drugListDAO.findByDrugIds(drugIds);
-            if (CollectionUtils.isNotEmpty(byDrugIds)) {
-                Map<Integer, List<DrugList>> collect = byDrugIds.stream().collect(Collectors.groupingBy(DrugList::getDrugId));
-                drugWithEsByPatient.forEach(patientDrugWithEsDTO -> {
-                    patientDrugWithEsDTO.setDrugPic(collect.get(patientDrugWithEsDTO.getDrugId()).get(0).getDrugPic());
-                });
-            }
-
+        List<DrugList> byDrugIds = drugListDAO.findByDrugIds(drugIds);
+        logger.info("DrugManager findDrugWithEsByPatient  byDrugIds:{}", JSON.toJSONString(byDrugIds));
+        if (CollectionUtils.isEmpty(byDrugIds)) {
+            return drugWithEsByPatient;
         }
+        Map<Integer, List<DrugList>> collect = byDrugIds.stream().collect(Collectors.groupingBy(DrugList::getDrugId));
+        drugWithEsByPatient.forEach(patientDrugWithEsDTO -> {
+            List<DrugList> drugLists = collect.get(patientDrugWithEsDTO.getDrugId());
+            if (CollectionUtils.isNotEmpty(drugLists)) {
+                patientDrugWithEsDTO.setDrugPic(drugLists.get(0).getDrugPic());
+            }
+        });
         logger.info("DrugManager findDrugWithEsByPatient res drugWithEsByPatient:{}", JSON.toJSONString(drugWithEsByPatient));
         return drugWithEsByPatient;
     }

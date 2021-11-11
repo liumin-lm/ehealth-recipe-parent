@@ -220,31 +220,37 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         try {
             RecipeDAO recipeDao = DAOFactory.getDAO(RecipeDAO.class);
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-            if(StringUtils.isNotEmpty(mpiId) && clinicOrgan != null && StringUtils.isNotEmpty(recipeCode)){
+            if (StringUtils.isNotEmpty(mpiId) && clinicOrgan != null && StringUtils.isNotEmpty(recipeCode)) {
                 Recipe recipe = recipeDao.getByHisRecipeCodeAndClinicOrganAndMpiid(mpiId, recipeCode, clinicOrgan);
-                if(recipe != null){
+                if (recipe != null) {
                     RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                     if (recipeExtend != null && Integer.valueOf(1).equals(recipeExtend.getRecipeFlag())) {
                         //兼容老版本（此版本暂时不做删除）
-                        offLineRecipeDetailDTO.setChildRecipeFlag(true);
+                        offLineRecipeDetailDTO.setChildRecipeFlag(new Integer(0).equals(recipeExtend.getRecipeFlag()));
                         //新版本使用
                         offLineRecipeDetailDTO.setRecipeFlag(recipeExtend.getRecipeFlag());
-                        //设置监护人字段
-                        if (!ObjectUtils.isEmpty(patient)) {
-                            offLineRecipeDetailDTO.setGuardianName(patient.getGuardianName());
-                            offLineRecipeDetailDTO.setGuardianAge(patient.getGuardianAge());
-                            offLineRecipeDetailDTO.setGuardianSex(patient.getGuardianSex());
-                        }
                     }
+                } else {
+                    //兼容老版本（此版本暂时不做删除）
+                    offLineRecipeDetailDTO.setChildRecipeFlag(false);
+                    //新版本使用
+                    offLineRecipeDetailDTO.setRecipeFlag(0);
                 }
             }
-        }catch (Exception e){
+            //设置监护人字段
+            if (!ObjectUtils.isEmpty(patient)) {
+                offLineRecipeDetailDTO.setGuardianName(patient.getGuardianName());
+                offLineRecipeDetailDTO.setGuardianAge(patient.getGuardianAge());
+                offLineRecipeDetailDTO.setGuardianSex(patient.getGuardianSex());
+            }
+
+        } catch (Exception e) {
             logger.error("RecipeBusinessService getOffLineRecipeDetails", e);
         }
         //优先使用HIS返回的departName如果为空则查表
-        if (!org.springframework.util.StringUtils.isEmpty(queryHisRecipResTO.getDepartName())){
+        if (!org.springframework.util.StringUtils.isEmpty(queryHisRecipResTO.getDepartName())) {
             offLineRecipeDetailDTO.setDepartName(queryHisRecipResTO.getDepartName());
-        }else if (!org.springframework.util.StringUtils.isEmpty(departmentDTO.getName())){
+        } else if (!org.springframework.util.StringUtils.isEmpty(departmentDTO.getName())) {
             offLineRecipeDetailDTO.setDepartName(departmentDTO.getName());
         }
         //处方药品信息
@@ -262,9 +268,9 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
                     totalPrice = totalPrice.add(drugList.getTotalPrice());
                 } else if (!ObjectUtils.isEmpty(drugList.getPrice()) && !ObjectUtils.isEmpty(drugList.getUseTotalDose())) {
                     totalPrice = totalPrice.add(drugList.getPrice().multiply(drugList.getUseTotalDose()));
-                }else {
+                } else {
                     //如果二者都没有则不返回
-                    priceNotExits=true;
+                    priceNotExits = true;
                 }
                 RecipeDetailDTO recipeDetailDTO = new RecipeDetailDTO();
                 BeanUtils.copy(drugList, recipeDetailDTO);
@@ -275,9 +281,9 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
                 detailDTOS.add(recipeDetailDTO);
             }
             offLineRecipeDetailDTO.setRecipeDetails(detailDTOS);
-            if (priceNotExits){
+            if (priceNotExits) {
                 offLineRecipeDetailDTO.setTotalPrice(null);
-            }else {
+            } else {
                 offLineRecipeDetailDTO.setTotalPrice(totalPrice);
             }
         }
