@@ -6740,19 +6740,25 @@ public class RecipeService extends RecipeBaseService {
         try {
             List<Recipe> recipes = recipeDAO.queryRecipeByTimeAndRecipeIdsAndOrganId(startTime, endTime, recipeIds, organId);
             recipes.forEach(recipe -> {
-                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                PatientDTO patient = patientService.get(recipe.getMpiid());
-                if (patient != null) {
-                    if (new Integer(1).equals(patient.getPatientUserType()) || new Integer(2).equals(patient.getPatientUserType())) {
-                        recipeExtend.setRecipeFlag(1);
-                    } else if (new Integer(0).equals(patient.getPatientUserType())) {
-                        recipeExtend.setRecipeFlag(0);
+                try{
+                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                    if(recipeExtend != null){
+                        PatientDTO patient = patientService.get(recipe.getMpiid());
+                        if (patient != null) {
+                            if (new Integer(1).equals(patient.getPatientUserType()) || new Integer(2).equals(patient.getPatientUserType())) {
+                                recipeExtend.setRecipeFlag(1);
+                            } else if (new Integer(0).equals(patient.getPatientUserType())) {
+                                recipeExtend.setRecipeFlag(0);
+                            }
+                        }
+                        recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
                     }
+                }catch (Exception e){
+                    LOGGER.error("RecipeOpenAtop updateNonNullFieldByPrimaryKey error e", e);
                 }
-                recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
             });
         } catch (Exception e) {
-            LOGGER.error("RecipeOpenAtop handDealRevisitTraceRecipe error e", e);
+            LOGGER.error("RecipeService handDealRecipeFlag error e", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }

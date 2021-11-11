@@ -1949,8 +1949,10 @@ public class DrugToolService implements IDrugToolService {
                 drugList.setDrugType(drugListMatch.getDrugType());
                 //剂型
                 drugList.setDrugForm(drugListMatch.getDrugForm());
-                drugList.setPrice1(drugListMatch.getPrice().doubleValue());
-                drugList.setPrice2(drugListMatch.getPrice().doubleValue());
+                if (!ObjectUtils.isEmpty(drugListMatch.getPrice())){
+                    drugList.setPrice1(drugListMatch.getPrice().doubleValue());
+                    drugList.setPrice2(drugListMatch.getPrice().doubleValue());
+                }
                 //厂家
                 drugList.setProducer(drugListMatch.getProducer());
                 //药品编码
