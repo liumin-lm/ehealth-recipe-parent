@@ -52,6 +52,7 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.GroupRecipeManager;
+import recipe.manager.HisRecipeManager;
 import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
@@ -93,6 +94,8 @@ public class HisRecipeService {
     private ButtonManager buttonManager;
     @Autowired
     private GroupRecipeManager groupRecipeManager;
+    @Autowired
+    HisRecipeManager hisRecipeManager;
 
     private static final ThreadLocal<String> recipeCodeThreadLocal = new ThreadLocal<>();
 
@@ -1826,4 +1829,9 @@ public class HisRecipeService {
         //2 删除数据
         deleteSetRecipeCode(Integer.parseInt(organId), new HashSet<>(recipeCodes));
     }
+    @RpcService
+    public void TestDeleteRecipe(String organId, List<String> recipeCodes){
+        hisRecipeManager.deleteRecipeByRecipeCodes(organId,recipeCodes);
+    }
+
 }
