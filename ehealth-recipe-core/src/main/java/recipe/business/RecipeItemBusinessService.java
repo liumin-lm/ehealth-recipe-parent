@@ -90,12 +90,15 @@ public class RecipeItemBusinessService extends BaseService implements ITherapyIt
 
     @Override
     public boolean checkItemList(ItemList itemList) {
-        AtomicBoolean res = new AtomicBoolean(true);
+        //true表示存在，false表示不存在除当前项目外其他项目（为了跟另一个先写的校验方法保持一致）
+        AtomicBoolean res = new AtomicBoolean(false);
         List<ItemList> itemListDbs = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), itemList.getItemCode());
         itemListDbs.forEach(itemListDb -> {
-            if (itemListDb != null && !itemListDb.getId().equals(itemListDb.getId())) {
+            //存在一样的id false表示不存在
+            if (itemListDb != null && !itemListDb.getId().equals(itemList.getId())) {
                 logger.info("findItemListByOrganIdAndItemNameOrCode itemListDb:{}", JSONUtils.toString(itemListDb));
-                res.set(false);
+                res.set(true);
+                return;
             }
         });
         return res.get();
