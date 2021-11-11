@@ -510,65 +510,6 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         return drugListBeans;
     }
 
-    /**
-     * 该方法已经挪到queryDrugInventoriesByRealTime方法了--这里只做兼容使用
-     * @param organId
-     * @param drugListBeans
-     * @param pharmacyId
-     */
-    @Deprecated
-    private void setInventoriesIfRealTime(Integer organId, List<? extends IDrugInventory> drugListBeans,
-                                          @Nullable Integer pharmacyId) {
-        try {
-            if (CollectionUtils.isEmpty(drugListBeans) || !isViewInventoryRealtime(organId)) {
-                return;
-            }
-
-            // 如果实时查询库存
-            // 1. 调用his前置接口查询医院库存并赋值
-            OrganDrugListDAO drugDao = DAOFactory.getDAO(OrganDrugListDAO.class);
-            List<Integer> drugIds = drugListBeans.stream().map(IHisDrugInventoryCondition::getDrugId)
-                    .collect(Collectors.toList());
-            List<OrganDrugList> organDrugLists = drugDao.findByOrganIdAndDrugIds(organId, drugIds);
-            DrugInfoResponseTO hisResp = this.getHisDrugStock(organId, organDrugLists, pharmacyId);
-            if (hisResp == null || CollectionUtils.isEmpty(hisResp.getData())) {
-//                || hisResp.getMsgCode() != null && !hisResp.getMsgCode().equals(200)
-                List<DrugInventoryInfo> drugInventoryInfos = new ArrayList<>();
-                if (hisResp == null){
-                    // 说明查询错误, 或者
-                    drugInventoryInfos.add(new DrugInventoryInfo("his", null, "1"));
-                    for (IDrugInventory drugListBean : drugListBeans) {
-                        drugListBean.setInventories(drugInventoryInfos);
-                    }
-                }else {
-                    String amount;
-                    if (Integer.valueOf(0).equals(hisResp.getMsgCode()) || Integer.valueOf(200).equals(hisResp.getMsgCode())){
-                        amount = "有库存";
-                    }else {
-                        amount = "无库存";
-                    }
-                    drugInventoryInfos.add(new DrugInventoryInfo("his", Lists.newArrayList(new DrugPharmacyInventoryInfo(amount)), "0"));
-                    for (IDrugInventory drugListBean : drugListBeans) {
-                        drugListBean.setInventories(drugInventoryInfos);
-                    }
-                }
-            } else {
-                for (IDrugInventory drugListBean : drugListBeans) {
-                    List<DrugInfoTO> drugInfoTOListMatched = findDrugInfoTOList(drugListBean, hisResp.getData());
-                    List<DrugInventoryInfo> drugInventoryInfos = new ArrayList<>();
-                    DrugInventoryInfo drugInventory = new DrugInventoryInfo("his", null, "0");
-                    drugInventory.setPharmacyInventories(convertFrom(drugInfoTOListMatched));
-                    drugInventoryInfos.add(drugInventory);
-                    drugListBean.setInventories(drugInventoryInfos);
-                }
-            }
-
-            // 2. 调用药企接口查询药企库存并赋值
-        } catch (Exception e) {
-            LOGGER.error("药品实时查询库存错误setInventoriesIfRealTime ", e);
-        }
-    }
-
     private List<DrugPharmacyInventoryInfo> convertFrom(List<DrugInfoTO> drugInfoTOList) {
         if (CollectionUtils.isEmpty(drugInfoTOList)) {
             return new ArrayList<>();

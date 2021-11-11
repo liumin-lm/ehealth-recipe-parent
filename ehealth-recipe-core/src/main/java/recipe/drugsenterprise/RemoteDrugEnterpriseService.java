@@ -228,7 +228,6 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
      * @param drugsEnterprise 药企
      * @return
      */
-    @RpcService
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         LOGGER.info("scanStock recipeId:{}, drugsEnterprise:{}", recipeId, JSONUtils.toString(drugsEnterprise));
