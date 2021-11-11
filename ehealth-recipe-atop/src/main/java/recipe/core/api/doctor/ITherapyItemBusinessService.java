@@ -36,7 +36,7 @@ public interface ITherapyItemBusinessService {
      *
      * @param itemList
      */
-    void updateItemList(ItemList itemList);
+    boolean updateItemList(ItemList itemList);
 
     /**
      * 获取单个诊疗项目
@@ -57,4 +57,6 @@ public interface ITherapyItemBusinessService {
      * @return
      */
     List<ItemList> findItemListByOrganIdAndItemNameOrCode(Integer organId, String itemName, String itemCode);
+
+    boolean checkItemList(ItemList itemList);
 }

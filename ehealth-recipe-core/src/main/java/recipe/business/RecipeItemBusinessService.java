@@ -3,6 +3,7 @@ package recipe.business;
 import com.ngari.recipe.entity.ItemList;
 import com.ngari.recipe.vo.ItemListVO;
 import ctd.persistence.bean.QueryResult;
+import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -11,6 +12,7 @@ import recipe.manager.ItemListManager;
 
 import java.util.Date;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 诊疗项目服务实现类
@@ -44,11 +46,23 @@ public class RecipeItemBusinessService extends BaseService implements ITherapyIt
     }
 
     @Override
-    public void updateItemList(ItemList itemList) {
+    public boolean updateItemList(ItemList itemList) {
+        AtomicBoolean res = new AtomicBoolean(true);
+        List<ItemList> itemListDbs = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), itemList.getItemCode());
+        itemListDbs.forEach(itemListDb -> {
+            if (itemListDb != null && !itemListDb.getId().equals(itemListDb.getId())) {
+                logger.info("updateItemList itemListDb:{}", JSONUtils.toString(itemListDb));
+                res.set(false);
+            }
+        });
+        if (!res.get()) {
+            return false;
+        }
         if (null == itemList.getGmtModified()) {
             itemList.setGmtModified(new Date());
         }
         itemListManager.updateItemList(itemList);
+        return true;
     }
 
     @Override
@@ -68,6 +82,19 @@ public class RecipeItemBusinessService extends BaseService implements ITherapyIt
     @Override
     public List<ItemList> findItemListByOrganIdAndItemNameOrCode(Integer organId, String itemName, String itemCode) {
         return itemListManager.findItemListByOrganIdAndItemNameOrCode(organId, itemName, itemCode);
+    }
+
+    @Override
+    public boolean checkItemList(ItemList itemList) {
+        AtomicBoolean res = new AtomicBoolean(true);
+        List<ItemList> itemListDbs = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), itemList.getItemCode());
+        itemListDbs.forEach(itemListDb -> {
+            if (itemListDb != null && !itemListDb.getId().equals(itemListDb.getId())) {
+                logger.info("findItemListByOrganIdAndItemNameOrCode itemListDb:{}", JSONUtils.toString(itemListDb));
+                res.set(false);
+            }
+        });
+        return res.get();
     }
 
 

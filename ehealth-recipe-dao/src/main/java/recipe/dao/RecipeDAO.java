@@ -2270,6 +2270,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     /**
      * maoze
      * 杨柳郡专用
+     *
      * @param mpiId
      * @param organId
      * @param start
@@ -3625,9 +3626,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     hql.append(" AND ((r.recipeMode != 'zjjgpt' && r.STATUS IN ( :recipeStatus ) OR ( r.reviewType != 0 AND r.checkStatus = 1 AND r.STATUS = 15 ) " +
                             ") OR ( r.recipeMode = 'zjjgpt' AND r.STATUS IN ( 2, 22 ) ) ) ");
                     hql.append(" AND r.orderCode IS NULL ");
-                }else if ("ongoing".equals(tabStatus)){
+                } else if ("ongoing".equals(tabStatus)) {
                     hql.append(" AND (( r.STATUS IN ( :recipeStatus ) ) or (r.reviewType = 2 AND r.checkStatus = 1 AND r.STATUS = 15)) ");
-                }else if ("isover".equals(tabStatus)){
+                } else if ("isover".equals(tabStatus)) {
                     hql.append(" AND r.STATUS IN ( :recipeStatus ) AND r.RecipeID not in (select RecipeID from cdr_recipe where  reviewType != 0 AND checkStatus = 1 AND STATUS = 15)   ");
                 }
                 if ("ongoing".equals(tabStatus)) {
@@ -3750,12 +3751,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
-    @DAOMethod(sql = "from Recipe where ClinicOrgan =:ClinicOrgan and orderCode is null and status = 2 and invalidTime >:currentTime", limit=0)
+    @DAOMethod(sql = "from Recipe where ClinicOrgan =:ClinicOrgan and orderCode is null and status = 2 and invalidTime >:currentTime", limit = 0)
     public abstract List<Recipe> findInvalidRecipeByOrganId(@DAOParam("ClinicOrgan") Integer ClinicOrgan, @DAOParam("currentTime") Date currentTime);
 
-    @DAOMethod(sql = "from Recipe where ClinicOrgan =:ClinicOrgan and orderCode is not null and PayFlag = 0 and invalidTime >:currentTime ", limit=0)
+    @DAOMethod(sql = "from Recipe where ClinicOrgan =:ClinicOrgan and orderCode is not null and PayFlag = 0 and invalidTime >:currentTime ", limit = 0)
     public abstract List<Recipe> findInvalidOrderByOrganId(@DAOParam("ClinicOrgan") Integer ClinicOrgan, @DAOParam("currentTime") Date currentTime);
-
 
 
     /**
@@ -3863,6 +3863,48 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
                 setResult(backList);
 
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * @param startTime
+     * @param endTime
+     * @param recipeIds
+     * @param organId
+     * @return
+     */
+    public List<Recipe> queryRecipeByTimeAndRecipeIdsAndOrganId(String startTime, String endTime, List<Integer> recipeIds, Integer organId) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("select r from Recipe r where 1=1  ");
+                if (StringUtils.isNotEmpty(startTime)) {
+                    hql.append(" and r.createDate >= :startTime");
+                }
+                if (StringUtils.isNotEmpty(endTime)) {
+                    hql.append(" and r.createDate <= :endTime");
+                }
+                if (organId != null) {
+                    hql.append(" and organId =:organId ");
+                }
+                if (CollectionUtils.isNotEmpty(recipeIds)) {
+                    hql.append(" and recipeId in(:recipeIds) ");
+                }
+                Query query = ss.createQuery(hql.toString());
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                query.setTimestamp("startTime", sdf.parse(startTime));
+                query.setTimestamp("endTime", sdf.parse(endTime));
+                if (organId != null) {
+                    query.setParameter("organId", organId);
+                }
+                if (CollectionUtils.isNotEmpty(recipeIds)) {
+                    query.setParameterList("recipeIds", recipeIds);
+                }
+                setResult(query.list());
             }
         };
         HibernateSessionTemplate.instance().execute(action);

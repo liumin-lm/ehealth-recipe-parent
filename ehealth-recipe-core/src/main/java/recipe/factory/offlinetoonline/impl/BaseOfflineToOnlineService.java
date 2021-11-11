@@ -133,8 +133,12 @@ public class BaseOfflineToOnlineService {
     private static final Integer HISRECIPESTATUS_NOIDEAL = 1;
 
     private static final Integer HISRECIPESTATUS_ALREADYIDEAL = 2;
+
     @Autowired
     private ButtonManager buttonManager;
+
+    @Autowired
+    private PatientService patientService;
 
     /**
      * 获取购药按钮
@@ -853,6 +857,14 @@ public class BaseOfflineToOnlineService {
             }
         }
         recipeExtend.setRecipeCostNumber(hisRecipe.getRecipeCostNumber());
+        PatientDTO patient = patientService.get(recipe.getMpiid());
+        if (patient != null) {
+            if (new Integer(1).equals(patient.getPatientUserType()) || new Integer(2).equals(patient.getPatientUserType())) {
+                recipeExtend.setRecipeFlag(1);
+            } else if (new Integer(0).equals(patient.getPatientUserType())) {
+                recipeExtend.setRecipeFlag(0);
+            }
+        }
         emrRecipeManager.saveMedicalInfo(recipe, recipeExtend);
         recipeExtendDAO.save(recipeExtend);
         LOGGER.info("BaseOfflineToOnlineService saveRecipeExt 拓展表数据已保存");

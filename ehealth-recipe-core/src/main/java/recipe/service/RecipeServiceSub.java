@@ -1606,7 +1606,7 @@ public class RecipeServiceSub {
 
             //增加医生返回智能审方结果药品问题列表 2018.11.26 shiyp
             //判断开关是否开启
-            //去掉智能预审结果展示问题在生成的时候控制
+            //去掉智能预审结果展示问题在生成的时候控制 原来的 BUG # 33761 需要注意是不是复现了
             if (recipe.getStatus() != 0) {
                     List<AuditMedicinesBean> auditMedicines = getAuditMedicineIssuesByRecipeId(recipeId);
                     map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId)); //返回药品分析数据
