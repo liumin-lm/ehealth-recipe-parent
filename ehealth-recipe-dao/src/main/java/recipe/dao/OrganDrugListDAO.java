@@ -816,7 +816,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
         return action.getResult();
     }
 
-    public QueryResult queryOrganDrugAndSaleForOp(final Date startTime, final Date endTime, Integer organId, String drugClass, String keyword, Integer status, final Integer isregulationDrug, final Integer type, int start, int limit, Boolean canDrugSend,final String producer) {
+    public QueryResult queryOrganDrugAndSaleForOp( Date startTime,  Date endTime, Integer organId, String drugClass, String keyword, Integer status,  Integer isregulationDrug,  Integer type, Integer start, Integer limit, Boolean canDrugSend, String producer) {
         HibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>>() {
             @SuppressWarnings("unchecked")
             @Override
@@ -961,14 +961,6 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                         drug = drugListDAO.getById(organDrugList.getDrugId());
                         drugListAndOrganDrugList = new DrugListAndOrganDrugList();
                         drugListAndOrganDrugList.setDrugList(drug);
-                        if (!ObjectUtils.isEmpty(drug)){
-                            List<OrganDrugList> byDrugIdAndOrganId = findByDrugIdAndOrganId(drug.getDrugId(), organId);
-                            if (ObjectUtils.isEmpty(byDrugIdAndOrganId)){
-                                drugListAndOrganDrugList.setCanAssociated(false);
-                            }else {
-                                drugListAndOrganDrugList.setCanAssociated(true);
-                            }
-                        }
                         drugListAndOrganDrugList.setOrganDrugList(organDrugList);
                         //查找配送目录---运营平台显示机构药品目录是否可配送
                         if (CollectionUtils.isEmpty(depIds)) {
