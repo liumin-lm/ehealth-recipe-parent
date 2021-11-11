@@ -3881,7 +3881,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("select r from Recipe r where 1==1  ");
+                hql.append("select r from Recipe r where 1=1  ");
                 if (StringUtils.isNotEmpty(startTime)) {
                     hql.append(" and r.createDate >= :startTime");
                 }
