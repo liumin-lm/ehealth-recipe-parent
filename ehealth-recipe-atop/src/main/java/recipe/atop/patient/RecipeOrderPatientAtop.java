@@ -11,7 +11,10 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
+import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
+import recipe.core.api.IOrganBusinessService;
+import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
@@ -30,14 +33,20 @@ public class RecipeOrderPatientAtop extends BaseAtop {
 
     @Autowired
     private IRecipeOrderBusinessService recipeOrderService;
+    @Autowired
+    private IOfflineRecipeBusinessService offlineToOnlineService;
+    @Autowired
+    private IOrganBusinessService iOrganBusinessService;
 
     /**
      * 查询订单 详细费用 (邵逸夫模式专用)
+     *
      * @param orderCode
      * @return
      */
     @RpcService
-    public Map<String, List<RecipeFeeDTO>> findRecipeOrderDetailFee(String orderCode){
+
+    public Map<String, List<RecipeFeeDTO>> findRecipeOrderDetailFee(String orderCode) {
         logger.info("RecipeOrderAtop findRecipeOrderDetailFee orderCode = {}", orderCode);
         if (StringUtils.isEmpty(orderCode)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
@@ -131,5 +140,44 @@ public class RecipeOrderPatientAtop extends BaseAtop {
             logger.error("RecipeOrderPatientAtop skipThirdPage error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
+    }
+
+
+    /**
+     * 患者创建订单 根据配送方式上传处方给his
+     *
+     * @param recipeIds
+     * @return
+     */
+    @RpcService
+    public boolean submitRecipeHis(List<Integer> recipeIds, Integer orderId) {
+        validateAtop(recipeIds, orderId);
+        //过滤按钮
+        boolean validate = iOrganBusinessService.giveModeValidate(null, orderId);
+        if (!validate) {
+            return false;
+        }
+        //推送his
+        recipeIds.forEach(a -> offlineToOnlineService.pushRecipe(a, CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE));
+        return true;
+    }
+
+    /**
+     * 患者取消订单 根据配送方式上传处方给his 撤销处方
+     *
+     * @param recipeIds
+     * @return
+     */
+    @RpcService
+    public boolean cancelRecipeHis(List<Integer> recipeIds, Integer orderId) {
+        validateAtop(recipeIds, orderId);
+        //过滤按钮 拿订单的购药方式 过滤
+        boolean validate = iOrganBusinessService.giveModeValidate(null, orderId);
+        if (!validate) {
+            return false;
+        }
+        //推送his
+        recipeIds.forEach(a -> offlineToOnlineService.pushRecipe(a, CommonConstant.RECIPE_CANCEL_TYPE, CommonConstant.RECIPE_PATIENT_TYPE));
+        return true;
     }
 }

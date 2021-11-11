@@ -54,19 +54,25 @@ public abstract class ProvinceDrugListDAO extends HibernateSupportDelegateDAO<Pr
      * @param name
      * @return
      */
-    public List<ProvinceDrugList> findByProvinceSaleNameLike(final String name, final String address, final int start, final int limit, final String seacrhString) {
+    public List<ProvinceDrugList> findByProvinceSaleNameLike(final String name, final String address, final int start, final int limit, final String seacrhString,String drugType) {
         HibernateStatelessResultAction<List<ProvinceDrugList>> action = new AbstractHibernateStatelessResultAction<List<ProvinceDrugList>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("from ProvinceDrugList where provinceId = :address and status = 1 and saleName like :name");
-                if(null != seacrhString){
+                if(!ObjectUtils.isEmpty(seacrhString)){
                     hql.append(" and (saleName like :seacrhString OR drugName like :seacrhString or producer like :seacrhString )");
+                }
+                if(!ObjectUtils.isEmpty(drugType)){
+                    hql.append(" and drugType =:drugType ");
                 }
                 Query q = ss.createQuery(hql.toString());
                 q.setParameter("name", "%" + name + "%");
                 q.setParameter("address", address);
-                if(null != seacrhString){
+                if(!ObjectUtils.isEmpty(seacrhString)){
                     q.setParameter("seacrhString", "%" + seacrhString + "%");
+                }
+                if(!ObjectUtils.isEmpty(drugType)){
+                    q.setParameter("drugType",drugType);
                 }
                 q.setMaxResults(limit);
                 q.setFirstResult(start);
@@ -81,25 +87,31 @@ public abstract class ProvinceDrugListDAO extends HibernateSupportDelegateDAO<Pr
      * 商品名匹配省平台药品 搜索专用
      * @return
      */
-    public List<ProvinceDrugList> findByProvinceSaleNameLikeSearch( final String address, final int start, final int limit,  String input, String producer) {
+    public List<ProvinceDrugList> findByProvinceSaleNameLikeSearch( final String address, final int start, final int limit,  String input, String producer,String drugType) {
         HibernateStatelessResultAction<List<ProvinceDrugList>> action = new AbstractHibernateStatelessResultAction<List<ProvinceDrugList>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("from ProvinceDrugList where provinceId = :address and status = 1 ");
-                if(null != input){
+                if(!ObjectUtils.isEmpty(input)){
                     hql.append(" and (saleName like :input OR drugName like :input or provinceDrugId like :input ) ");
                 }
-                if(null != producer){
+                if(!ObjectUtils.isEmpty(producer)){
                     hql.append(" and producer like :producer ");
+                }
+                if(!ObjectUtils.isEmpty(drugType)){
+                    hql.append(" and drugType =:drugType ");
                 }
                 Query q = ss.createQuery(hql.toString());
 
                 q.setParameter("address", address);
-                if(null != input){
+                if(!ObjectUtils.isEmpty(input)){
                     q.setParameter("input", "%" + input + "%");
                 }
-                if(null != producer){
+                if(!ObjectUtils.isEmpty(producer)){
                     q.setParameter("producer", "%" + producer + "%");
+                }
+                if(!ObjectUtils.isEmpty(drugType)){
+                    q.setParameter("drugType",drugType);
                 }
                 q.setMaxResults(limit);
                 q.setFirstResult(start);

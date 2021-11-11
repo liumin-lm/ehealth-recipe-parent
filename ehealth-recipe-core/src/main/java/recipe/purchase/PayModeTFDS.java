@@ -120,7 +120,21 @@ public class PayModeTFDS implements IPurchaseService{
         }
 
         List<DepDetailBean> depDetailList = new ArrayList<>();
-
+        //针对浙江省互联网药店取药走的是配送模式的处理
+        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
+            DrugsEnterprise drugsEnterprise = drugsEnterprises.get(0);
+            if (new Integer(0).equals(drugsEnterprise.getOrderType())){
+                //表示跳转第三方订单,给前端返回具体的药企
+                DepDetailBean depDetailBean = new DepDetailBean();
+                depDetailBean.setDepName(drugsEnterprise.getName());
+                depDetailBean.setOrderType(drugsEnterprise.getOrderType());
+                depDetailList.add(depDetailBean);
+                depListBean.setList(depDetailList);
+                depListBean.setSigle(true);
+                resultBean.setObject(depListBean);
+                return resultBean;
+            }
+        }
         for (DrugsEnterprise dep : drugsEnterprises) {
             List<DepDetailBean> depList = new ArrayList<>();
             //通过查询该药企对应药店库存

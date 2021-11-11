@@ -1,8 +1,6 @@
 package com.ngari.recipe.drug.service;
 
-import com.ngari.recipe.drug.model.DrugListAndOrganDrugListDTO;
-import com.ngari.recipe.drug.model.OrganDrugListBean;
-import com.ngari.recipe.drug.model.RegulationDrugCategoryBean;
+import com.ngari.recipe.drug.model.*;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
 
@@ -24,7 +22,7 @@ public interface IOrganDrugListService {
     List<OrganDrugListBean> findByOrganIdAndDrugIdAndOrganDrugCode(int organId,
                                                                   int drugId, String organDrugCode);
     @RpcService(timeout = 600)
-    QueryResult<DrugListAndOrganDrugListDTO> queryOrganDrugAndSaleForOp(Date startTime, Date endTime, Integer organId, String drugClass, String keyword, Integer status, Integer isregulationDrug,  final Integer type, int start, int limit, Boolean canDrugSend);
+    QueryResult<DrugListAndOrganDrugListDTO> queryOrganDrugAndSaleForOp(OrganDrugQueryInfo info);
 
     @RpcService
     List<OrganDrugListBean> findByOrganId(int organId);
@@ -57,4 +55,6 @@ public interface IOrganDrugListService {
 
     @RpcService
     Long getCountByDrugId(int drugId);
+    @RpcService
+    List<DepSaleDrugInfo> queryDepSaleDrugInfosByDrugId(final Integer organId,final Integer drugId);
 }

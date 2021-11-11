@@ -80,6 +80,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
@@ -896,6 +897,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
     @Override
+    @LogRecord
     public RecipeExtendBean findRecipeExtendByRecipeId(Integer recipeId) {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
@@ -1619,6 +1621,24 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return ObjectCopyUtils.convert(resultVo, CaSignResultBean.class);
     }
 
+    /**
+     * 只要可能存在的机构盖章
+     * @param requestSealTO
+     * @param recipe
+     * @param organId
+     * @param userAccount
+     * @param caPassword
+     * @return
+     */
+    @Override
+    public CaSignResultBean commonSealOrganId(CaSealRequestTO requestSealTO, RecipeBean recipe, Integer organId, String userAccount, String caPassword) {
+        CommonCAFactory commonCAFactory = ApplicationUtils.getRecipeService(CommonCAFactory.class);
+        CAInterface caInterface = commonCAFactory.useCAFunction(organId);
+        Recipe recipe1 = ObjectCopyUtils.convert(recipe, Recipe.class);
+        CaSignResultVo resultVo = caInterface.commonSeal(requestSealTO, recipe1, organId, userAccount, caPassword);
+        return ObjectCopyUtils.convert(resultVo, CaSignResultBean.class);
+    }
+
     @Override
     public void generateSignetRecipePdf(Integer recipeId, Integer organId) {
         createPdfFactory.updatesealPdfExecute(recipeId);
@@ -2042,12 +2062,17 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public void pharmacyToRecipePDF(Integer recipeId) {
-        createPdfFactory.updateCheckNamePdf(recipeId);
+        createPdfFactory.updateCheckNamePdf(recipeId,true);
     }
 
     @Override
     public void pharmacyToRecipePDF(Integer recipeId, Integer checker) {
-        createPdfFactory.updateCheckNamePdfESign(recipeId);
+            createPdfFactory.updateCheckNamePdfESign(recipeId);
+    }
+
+    @Override
+    public void pharmacyToRecipePDFNoCA(Integer recipeId) {
+        createPdfFactory.updateCheckNamePdf(recipeId,false);
     }
 
     @Override

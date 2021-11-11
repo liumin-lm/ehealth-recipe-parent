@@ -1630,7 +1630,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     private StringBuilder generateRecipeMsgHQLforStatistics(RecipesQueryVO recipesQueryVO) {
 //        StringBuilder hql = new StringBuilder("select r.recipeId,r.patientName,r.Mpiid,r.organName,r.depart,r.doctor,r.organDiseaseName,r.totalMoney,r.checker,r.checkDateYs,r.fromflag,r.status,o.payTime, r.doctorName, sum(cr.useTotalDose) sumDose ,o.send_type sendType ,o.outTradeNo  from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId left join cdr_recipedetail cr on cr.recipeId = r.recipeId and cr.status =1  where 1=1 ");
-        StringBuilder hql = new StringBuilder("select r.recipeId,r.patientName,r.Mpiid mpiId,r.organName,r.depart,r.doctor,r.organDiseaseName,r.totalMoney,r.checker,r.checkDateYs,r.fromflag,r.status,o.payTime, r.doctorName, sum(cr.useTotalDose) sumDose ,o.send_type sendType ,o.outTradeNo ,o.cashAmount,o.fundAmount,o.orderType,r.recipeType from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode left join cdr_recipedetail cr on cr.recipeId = r.recipeId and cr.status =1  where 1=1 ");
+        StringBuilder hql = new StringBuilder("select r.recipeId,r.patientName,r.Mpiid mpiId,r.organName,r.depart,r.doctor,r.organDiseaseName,r.totalMoney,r.checker,r.checkDateYs,r.fromflag,r.status,o.payTime, r.doctorName, r.giveUser, o.dispensingTime, sum(cr.useTotalDose) sumDose ,o.send_type sendType ,o.outTradeNo ,o.cashAmount,o.fundAmount,o.orderType,r.recipeType from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode left join cdr_recipedetail cr on cr.recipeId = r.recipeId and cr.status =1  where 1=1 ");
         //默认查询所有
         if (CollectionUtils.isNotEmpty(recipesQueryVO.getOrganIds())) {
             // 添加申请机构条件
@@ -1741,8 +1741,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     private StringBuilder generateRecipeOderHQLforStatisticsN(RecipesQueryVO recipesQueryVO) {
         StringBuilder hql = new StringBuilder("select ");
-        hql.append("o.orderId,o.address1,o.address2,o.address3,o.address4,o.streetAddress,o.receiver,o.send_type,o.RecMobile,o.CreateTime,o.ExpressFee,o.OrderCode,o.Status,o.ActualPrice,o.TotalFee,o.EnterpriseId,o.ExpectSendDate,o.ExpectSendTime,o.PayFlag,o.PayTime,o.TradeNo,o.RecipeIdList,");
-        hql.append("r.recipeId,r.mpiid,r.patientID,r.doctor,r.organName,r.organDiseaseName,r.doctorName,r.patientName,r.status,r.depart,r.fromflag,r.giveMode,r.recipeType,");
+        hql.append("o.orderId,o.address1,o.address2,o.address3,o.address4,o.streetAddress,o.receiver,o.send_type,o.RecMobile,o.CreateTime,o.ExpressFee,o.OrderCode,o.Status,o.ActualPrice,o.TotalFee,o.EnterpriseId,o.ExpectSendDate,o.ExpectSendTime,o.PayFlag,o.PayTime,o.TradeNo,o.RecipeIdList,o.dispensingTime,");
+        hql.append("r.recipeId,r.mpiid,r.patientID,r.doctor,r.organName,r.organDiseaseName,r.doctorName,r.patientName,r.status,r.depart,r.fromflag,r.giveMode,r.recipeType,r.giveUser,");
         hql.append("d.recipeDetailId,d.drugName,d.drugSpec,d.drugUnit,d.salePrice,d.actualSalePrice,d.saleDrugCode,d.producer,d.licenseNumber,d.useDose,d.useDoseUnit,d.usePathways,d.usingRate,d.useTotalDose");
         hql.append(" from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode ");
         hql.append("LEFT JOIN cdr_recipedetail d ON r.RecipeID = d.RecipeID and d.Status= 1 ");
@@ -2270,6 +2270,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     /**
      * maoze
      * 杨柳郡专用
+     *
      * @param mpiId
      * @param organId
      * @param start
@@ -3625,9 +3626,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     hql.append(" AND ((r.recipeMode != 'zjjgpt' && r.STATUS IN ( :recipeStatus ) OR ( r.reviewType != 0 AND r.checkStatus = 1 AND r.STATUS = 15 ) " +
                             ") OR ( r.recipeMode = 'zjjgpt' AND r.STATUS IN ( 2, 22 ) ) ) ");
                     hql.append(" AND r.orderCode IS NULL ");
-                }else if ("ongoing".equals(tabStatus)){
+                } else if ("ongoing".equals(tabStatus)) {
                     hql.append(" AND (( r.STATUS IN ( :recipeStatus ) ) or (r.reviewType = 2 AND r.checkStatus = 1 AND r.STATUS = 15)) ");
-                }else if ("isover".equals(tabStatus)){
+                } else if ("isover".equals(tabStatus)) {
                     hql.append(" AND r.STATUS IN ( :recipeStatus ) AND r.RecipeID not in (select RecipeID from cdr_recipe where  reviewType != 0 AND checkStatus = 1 AND STATUS = 15)   ");
                 }
                 if ("ongoing".equals(tabStatus)) {
@@ -3750,12 +3751,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
-    @DAOMethod(sql = "from Recipe where ClinicOrgan =:ClinicOrgan and orderCode is null and status = 2 and invalidTime >:currentTime", limit=0)
+    @DAOMethod(sql = "from Recipe where ClinicOrgan =:ClinicOrgan and orderCode is null and status = 2 and invalidTime >:currentTime", limit = 0)
     public abstract List<Recipe> findInvalidRecipeByOrganId(@DAOParam("ClinicOrgan") Integer ClinicOrgan, @DAOParam("currentTime") Date currentTime);
 
-    @DAOMethod(sql = "from Recipe where ClinicOrgan =:ClinicOrgan and orderCode is not null and PayFlag = 0 and invalidTime >:currentTime ", limit=0)
+    @DAOMethod(sql = "from Recipe where ClinicOrgan =:ClinicOrgan and orderCode is not null and PayFlag = 0 and invalidTime >:currentTime ", limit = 0)
     public abstract List<Recipe> findInvalidOrderByOrganId(@DAOParam("ClinicOrgan") Integer ClinicOrgan, @DAOParam("currentTime") Date currentTime);
-
 
 
     /**
@@ -3863,6 +3863,48 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
                 setResult(backList);
 
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * @param startTime
+     * @param endTime
+     * @param recipeIds
+     * @param organId
+     * @return
+     */
+    public List<Recipe> queryRecipeByTimeAndRecipeIdsAndOrganId(String startTime, String endTime, List<Integer> recipeIds, Integer organId) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("select r from Recipe r where 1==1  ");
+                if (StringUtils.isNotEmpty(startTime)) {
+                    hql.append(" and r.createDate >= :startTime");
+                }
+                if (StringUtils.isNotEmpty(endTime)) {
+                    hql.append(" and r.createDate <= :endTime");
+                }
+                if (organId != null) {
+                    hql.append(" and organId =:organId ");
+                }
+                if (CollectionUtils.isNotEmpty(recipeIds)) {
+                    hql.append(" and recipeId in(:recipeIds) ");
+                }
+                Query query = ss.createQuery(hql.toString());
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                query.setTimestamp("startTime", sdf.parse(startTime));
+                query.setTimestamp("endTime", sdf.parse(endTime));
+                if (organId != null) {
+                    query.setParameter("organId", organId);
+                }
+                if (CollectionUtils.isNotEmpty(recipeIds)) {
+                    query.setParameterList("recipeIds", recipeIds);
+                }
+                setResult(query.list());
             }
         };
         HibernateSessionTemplate.instance().execute(action);

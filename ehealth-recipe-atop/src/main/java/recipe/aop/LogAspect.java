@@ -23,7 +23,7 @@ import recipe.constant.ErrorCode;
 //Order值越小，优先级越高！
 @Order(10)
 public class LogAspect {
-    private static final Logger logger = LoggerFactory.getLogger(LogAspect.class);
+    private static final Logger logger = LoggerFactory.getLogger(LogRecordAspect.class);
 
     //切点问题
     @Pointcut("execution(* recipe.atop..*.*(..))")
@@ -35,17 +35,17 @@ public class LogAspect {
         Object result = null;
         String className = joinPoint.getTarget().getClass().getSimpleName();
         String methodName = joinPoint.getSignature().getName();
-        Long startTime = System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
         try {
             Object[] objects = joinPoint.getArgs();
-            logger.info("LogAspect-{} {} ,入参={}",className, methodName, JSON.toJSONString(objects));
-            result =  joinPoint.proceed();
+            logger.info("LogAspect-{}-{} ,入参={}", className, methodName, JSON.toJSONString(objects));
+            result = joinPoint.proceed();
         } catch (Throwable throwable) {
-            logger.error("LogAspect-{} {},Exception",className,methodName ,throwable);
+            logger.error("LogAspect-{}-{},Exception", className, methodName, throwable);
             throw new DAOException(ErrorCode.SERVICE_ERROR, throwable.getMessage());
         } finally {
             long elapsedTime = System.currentTimeMillis() - startTime;
-            logger.info("LogAspect-{} {} ,耗时:{}ms ,出参={}",className, methodName,elapsedTime, result == null?result:JSON.toJSONString(result));
+            logger.info("LogAspect-{}-{} ,耗时:{}ms ,出参={}", className, methodName, elapsedTime, JSON.toJSONString(result));
         }
         return result;
     }

@@ -3,6 +3,7 @@ package com.ngari.recipe.entity;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
+import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -15,6 +16,7 @@ import java.util.Date;
 @Schema
 @Table(name = "cdr_recipe_ext")
 @Access(AccessType.PROPERTY)
+@DynamicInsert
 public class RecipeExtend implements Serializable {
 
     private static final long serialVersionUID = -7396436464542532302L;
@@ -154,6 +156,9 @@ public class RecipeExtend implements Serializable {
 
     @ItemProperty(alias = "处方指定药企类型 1医院 2药企 默认 0")
     private Integer appointEnterpriseType;
+
+    @ItemProperty(alias = "处方标识 0:普通处方 1:儿童处方")
+    private Integer recipeFlag;
 
     @Column(name = "appoint_enterprise_type")
     public Integer getAppointEnterpriseType() {
@@ -762,5 +767,14 @@ public class RecipeExtend implements Serializable {
 
     public void setCanUrgentAuditRecipe(Integer canUrgentAuditRecipe) {
         this.canUrgentAuditRecipe = canUrgentAuditRecipe;
+    }
+
+    @Column(name = "recipe_flag")
+    public Integer getRecipeFlag() {
+        return recipeFlag;
+    }
+
+    public void setRecipeFlag(Integer recipeFlag) {
+        this.recipeFlag = recipeFlag;
     }
 }

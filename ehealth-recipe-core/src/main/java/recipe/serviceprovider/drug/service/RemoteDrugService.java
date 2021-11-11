@@ -362,10 +362,10 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
 
     @Override
     public QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(String drugClass, String keyword,
-                                                                              Integer status,final Integer drugSourcesId,Integer type, Integer isStandardDrug, int start, int limit) {
+                                                                              Integer status,final Integer drugSourcesId,Integer type, Integer isStandardDrug,final String producer ,int start, int limit) {
         DrugListService drugListService = ApplicationUtils.getRecipeService(DrugListService.class);
         QueryResult<DrugListBean> result = drugListService.queryDrugListsByDrugNameAndStartAndLimit(drugClass, keyword,
-                status,drugSourcesId,type,isStandardDrug, start, limit);
+                status,drugSourcesId,type,isStandardDrug,producer, start, limit);
         return result;
     }
 
@@ -380,7 +380,7 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
     public List<HisDrugListBean> findDrugList(Integer start, Integer limit) {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         List<HisDrugListBean> hisDrugListBeen = Lists.newArrayList();
-        QueryResult<DrugList> queryResult = drugListDAO.queryDrugListsByDrugNameAndStartAndLimit("","",1,null,null,null,start,limit);
+        QueryResult<DrugList> queryResult = drugListDAO.queryDrugListsByDrugNameAndStartAndLimit("","",1,null,null,null,null,start,limit);
         List<DrugList> lists = queryResult.getItems();
         if (CollectionUtils.isEmpty(lists)){
             return hisDrugListBeen;

@@ -35,12 +35,14 @@ import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 电子处方工具类
+ *
  * @author jiangtingfeng
  * @date 2017/6/14.
  */
 public class RecipeUtil {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeUtil.class);
+
     /**
      * 获取处方单上药品总价
      *
@@ -48,7 +50,7 @@ public class RecipeUtil {
      * @param recipedetails
      */
     public static void getRecipeTotalPriceRange(Recipe recipe, List<Recipedetail> recipedetails) {
-        if(CollectionUtils.isEmpty(recipedetails)){
+        if (CollectionUtils.isEmpty(recipedetails)) {
             return;
         }
         List<Integer> drugIds = new ArrayList<>();
@@ -64,7 +66,7 @@ public class RecipeUtil {
 
         for (DrugList drugList : drugLists) {
             for (Recipedetail recipedetail : recipedetails) {
-                if (null != drugList && drugList.getDrugId().equals(recipedetail.getDrugId()) ) {
+                if (null != drugList && drugList.getDrugId().equals(recipedetail.getDrugId())) {
                     price1 = price1.add(getTatolPrice(BigDecimal.valueOf(drugList.getPrice1()), recipedetail));
                     price2 = price2.add(getTatolPrice(BigDecimal.valueOf(drugList.getPrice2()), recipedetail));
                     break;
@@ -116,19 +118,19 @@ public class RecipeUtil {
                     drugList.setHospitalPrice(odlist.getSalePrice());
                     drugList.setOrganDrugCode(odlist.getOrganDrugCode());
                     //药品用法用量默认使用机构的，无机构数据则使用平台的，两者都无数据则为空
-                    if (StringUtils.isNotEmpty(odlist.getUsePathways())){
+                    if (StringUtils.isNotEmpty(odlist.getUsePathways())) {
                         drugList.setUsePathways(odlist.getUsePathways());
                     }
-                    if (StringUtils.isNotEmpty(odlist.getUsingRate())){
+                    if (StringUtils.isNotEmpty(odlist.getUsingRate())) {
                         drugList.setUsingRate(odlist.getUsingRate());
                     }
-                    if (StringUtils.isNotEmpty(odlist.getUsePathwaysId())){
+                    if (StringUtils.isNotEmpty(odlist.getUsePathwaysId())) {
                         drugList.setUsePathwaysId(odlist.getUsePathwaysId());
                     }
-                    if (StringUtils.isNotEmpty(odlist.getUsingRateId())){
+                    if (StringUtils.isNotEmpty(odlist.getUsingRateId())) {
                         drugList.setUsingRateId(odlist.getUsingRateId());
                     }
-                    if (StringUtils.isNotEmpty(odlist.getDrugEntrust())){
+                    if (StringUtils.isNotEmpty(odlist.getDrugEntrust())) {
                         drugList.setDrugEntrust(odlist.getDrugEntrust());
                     }
                     //历史用药入口--默认填充机构的，平台的不填充
@@ -144,11 +146,11 @@ public class RecipeUtil {
                     //设置医生端每次剂量和剂量单位联动关系
                     useDoseAndUnitRelationList = Lists.newArrayList();
                     //用药单位不为空时才返回给前端
-                    if (StringUtils.isNotEmpty(drugList.getUseDoseUnit())){
-                        useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(drugList.getRecommendedUseDose(),drugList.getUseDoseUnit(),drugList.getUseDose()));
+                    if (StringUtils.isNotEmpty(drugList.getUseDoseUnit())) {
+                        useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(drugList.getRecommendedUseDose(), drugList.getUseDoseUnit(), drugList.getUseDose()));
                     }
-                    if (StringUtils.isNotEmpty(drugList.getUseDoseSmallestUnit())){
-                        useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(drugList.getDefaultSmallestUnitUseDose(),drugList.getUseDoseSmallestUnit(),drugList.getSmallestUnitUseDose()));
+                    if (StringUtils.isNotEmpty(drugList.getUseDoseSmallestUnit())) {
+                        useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(drugList.getDefaultSmallestUnitUseDose(), drugList.getUseDoseSmallestUnit(), drugList.getSmallestUnitUseDose()));
                     }
                     drugList.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
                     //前端展示的药品拼接名处理
@@ -179,17 +181,17 @@ public class RecipeUtil {
                 map.put("serviceChargeRemark", organConfig.getServiceChargeRemark());
             }
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            BigDecimal otherFee = (BigDecimal)configurationService.getConfiguration(organId, "otherFee");
+            BigDecimal otherFee = (BigDecimal) configurationService.getConfiguration(organId, "otherFee");
             if (null != otherFee && otherFee.compareTo(BigDecimal.ZERO) == 1 && null != configurationService.getConfiguration(organId, "otherServiceChargeDesc") && null != configurationService.getConfiguration(organId, "otherServiceChargeRemark")) {
                 map.put("otherServiceChargeDesc", configurationService.getConfiguration(organId, "otherServiceChargeDesc").toString());
                 map.put("otherServiceChargeRemark", configurationService.getConfiguration(organId, "otherServiceChargeRemark").toString());
             }
             if (order.getLogisticsCompany() != null) {
-                try{
+                try {
                     String logComStr = DictionaryController.instance().get("eh.cdr.dictionary.KuaiDiNiaoCode")
                             .getText(order.getLogisticsCompany());
                     map.put("logisticsCompanyPY", logComStr);
-                }catch (Exception e){
+                } catch (Exception e) {
                     LOGGER.info("getParamFromOgainConfig error msg:{}.", e.getMessage());
                 }
 
@@ -198,9 +200,9 @@ public class RecipeUtil {
         if (order.getEnterpriseId() != null) {
             DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-            if (RecipeBussConstant.GIVEMODE_TFDS.equals(recipeList.get(0).getGiveMode())){
+            if (RecipeBussConstant.GIVEMODE_TFDS.equals(recipeList.get(0).getGiveMode())) {
                 //@ItemProperty(alias = "0:不支付药品费用，1:全部支付 【 1线上支付  非1就是线下支付】")
-                map.put("storePayFlag",drugsEnterprise.getStorePayFlag());
+                map.put("storePayFlag", drugsEnterprise.getStorePayFlag());
             }
         }
         return map;
@@ -244,24 +246,24 @@ public class RecipeUtil {
         }
 
         //互联网模式默认为审方前置
-        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())){
+        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
             recipe.setReviewType(ReviewTypeConstant.Preposition_Check);
-        }else {
+        } else {
             //设置运营平台设置的审方模式
             //互联网设置了默认值，平台没有设置默认值从运营平台取
-            if (recipe.getReviewType() == null){
+            if (recipe.getReviewType() == null) {
                 try {
                     IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-                    Integer reviewType = (Integer)configurationService.getConfiguration(recipe.getClinicOrgan(), "reviewType");
-                    LOGGER.info("运营平台获取审方方式配置 reviewType[{}]",reviewType);
-                    if (reviewType == null){
+                    Integer reviewType = (Integer) configurationService.getConfiguration(recipe.getClinicOrgan(), "reviewType");
+                    LOGGER.info("运营平台获取审方方式配置 reviewType[{}]", reviewType);
+                    if (reviewType == null) {
                         //默认审方后置
                         recipe.setReviewType(ReviewTypeConstant.Postposition_Check);
-                    }else {
+                    } else {
                         recipe.setReviewType(reviewType);
                     }
-                }catch (Exception e){
-                    LOGGER.error("获取运营平台审方方式配置异常",e);
+                } catch (Exception e) {
+                    LOGGER.error("获取运营平台审方方式配置异常", e);
                     //默认审方后置
                     recipe.setReviewType(ReviewTypeConstant.Postposition_Check);
                 }
@@ -269,23 +271,23 @@ public class RecipeUtil {
         }
 
         //设置运营平台设置的审方途径
-        if (recipe.getCheckMode() == null){
+        if (recipe.getCheckMode() == null) {
             try {
                 IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-                Integer checkMode = (Integer)configurationService.getConfiguration(recipe.getClinicOrgan(), "isOpenHisCheckRecipeFlag");
-                if (checkMode == null){
+                Integer checkMode = (Integer) configurationService.getConfiguration(recipe.getClinicOrgan(), "isOpenHisCheckRecipeFlag");
+                if (checkMode == null) {
                     //默认平台审方
                     recipe.setCheckMode(1);
-                }else {
+                } else {
                     recipe.setCheckMode(checkMode);
                 }
-            }catch (Exception e){
-                LOGGER.error("获取运营平台审方途径配置异常",e);
+            } catch (Exception e) {
+                LOGGER.error("获取运营平台审方途径配置异常", e);
                 //默认平台审方
                 recipe.setCheckMode(1);
             }
         }
-        
+
         //默认剂数为1
         if (recipe.getRecipeType() == 1 || recipe.getRecipeType() == 2) {
             recipe.setCopyNum(0);
@@ -319,11 +321,6 @@ public class RecipeUtil {
         //默认来源为纳里APP处方
         if (null == recipe.getFromflag()) {
             recipe.setFromflag(1);
-        }
-
-        //默认到院取药
-        if (null == recipe.getGiveMode()) {
-            recipe.setGiveMode(RecipeBussConstant.GIVEMODE_TO_HOS);
         }
 
         //默认未签名
