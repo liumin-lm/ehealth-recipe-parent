@@ -3,11 +3,13 @@ package recipe.business;
 import com.ngari.recipe.entity.ItemList;
 import com.ngari.recipe.vo.ItemListVO;
 import ctd.persistence.bean.QueryResult;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.core.api.doctor.ITherapyItemBusinessService;
 import recipe.manager.ItemListManager;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -33,12 +35,19 @@ public class RecipeItemBusinessService extends BaseService implements ITherapyIt
     }
 
     @Override
-    public ItemList saveItemList(ItemList itemList) {
-        return itemListManager.saveItemList(itemList);
+    public boolean saveItemList(ItemList itemList) {
+        if (CollectionUtils.isNotEmpty(itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), itemList.getItemCode()))) {
+            return false;
+        }
+        itemListManager.saveItemList(itemList);
+        return true;
     }
 
     @Override
     public void updateItemList(ItemList itemList) {
+        if (null == itemList.getGmtModified()) {
+            itemList.setGmtModified(new Date());
+        }
         itemListManager.updateItemList(itemList);
     }
 
