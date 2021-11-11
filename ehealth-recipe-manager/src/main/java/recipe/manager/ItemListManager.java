@@ -44,7 +44,7 @@ public class ItemListManager extends BaseManager {
 
     public ItemList saveItemList(ItemList itemList) {
         ItemList itemList1 = itemListDAO.save(itemList);
-        logger.info("saveItemList result:{}", JSONUtils.toString(itemList));
+        logger.info("saveItemList result:{}", JSONUtils.toString(itemList1));
         return itemList1;
     }
 
@@ -56,7 +56,7 @@ public class ItemListManager extends BaseManager {
         return itemListDAO.get(itemList.getId());
     }
 
-    public List<ItemList> findItemListByOrganIdAndItemNameOrCode(Integer organId, String itemName, String itemCode){
+    public List<ItemList> findItemListByOrganIdAndItemNameOrCode(Integer organId, String itemName, String itemCode) {
         return itemListDAO.findItemListByOrganIdAndItemNameOrCode(organId, itemName, itemCode);
     }
 }

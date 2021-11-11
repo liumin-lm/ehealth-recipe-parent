@@ -29,7 +29,7 @@ public interface ITherapyItemBusinessService {
      * @param itemListVO
      * @return
      */
-    ItemList saveItemList(ItemList itemListVO);
+    boolean saveItemList(ItemList itemListVO);
 
     /**
      * 更新诊疗项目
@@ -50,6 +50,7 @@ public interface ITherapyItemBusinessService {
 
     /**
      * 判断机构下是否已存在项目名称、项目编码
+     *
      * @param organId
      * @param itemName
      * @param itemCode

@@ -674,7 +674,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
      * @author houxr
      */
     public QueryResult<DrugList> queryDrugListsByDrugNameAndStartAndLimit(final String drugClass, final String keyword,
-                                                                              final Integer status, final Integer sourceOrgan, Integer type,final Integer isStandardDrug,
+                                                                              final Integer status, final Integer sourceOrgan, Integer type,final Integer isStandardDrug,final String producer,
                                                                               final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<DrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugList>>() {
             @SuppressWarnings("unchecked")
@@ -684,6 +684,10 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 if (!StringUtils.isEmpty(drugClass)) {
                     hql.append(" and drugClass like :drugClass");
                 }
+
+                if (!StringUtils.isEmpty(producer)) {
+                    hql.append(" and producer like :producer");
+                }
                 Integer drugId = null;
                 if (!StringUtils.isEmpty(keyword)) {
                     try {
@@ -692,7 +696,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                         drugId = null;
                     }
                     hql.append(" and (");
-                    hql.append(" drugName like :keyword or producer like :keyword or saleName like :keyword or approvalNumber like :keyword or drugCode like :keyword ");
+                    hql.append(" drugName like :keyword or saleName like :keyword or approvalNumber like :keyword or drugCode like :keyword ");
                     if (drugId != null) {
                         hql.append(" or drugId =:drugId");
                     }
@@ -740,6 +744,9 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 if (!StringUtils.isEmpty(drugClass)) {
                     countQuery.setParameter("drugClass", drugClass + "%");
                 }
+                if (!StringUtils.isEmpty(producer)) {
+                    countQuery.setParameter("producer", "%" +producer + "%");
+                }
                 Long total = (Long) countQuery.uniqueResult();
 
                 Query query = ss.createQuery(hql.toString());
@@ -765,6 +772,9 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
                 }
                 if (!StringUtils.isEmpty(drugClass)) {
                     query.setParameter("drugClass", drugClass + "%");
+                }
+                if (!StringUtils.isEmpty(producer)) {
+                    query.setParameter("producer", "%" +producer + "%");
                 }
                 query.setFirstResult(start);
                 query.setMaxResults(limit);
