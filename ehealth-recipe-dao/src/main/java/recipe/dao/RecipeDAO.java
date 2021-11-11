@@ -3881,7 +3881,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
-                hql.append("select r from Recipe r where 1==1  ");
+                hql.append("select r from Recipe r where 1=1  ");
                 if (StringUtils.isNotEmpty(startTime)) {
                     hql.append(" and r.createDate >= :startTime");
                 }
@@ -3896,8 +3896,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }
                 Query query = ss.createQuery(hql.toString());
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                query.setTimestamp("startTime", sdf.parse(startTime));
-                query.setTimestamp("endTime", sdf.parse(endTime));
+                if (StringUtils.isNotEmpty(startTime)) {
+                    query.setTimestamp("startTime", sdf.parse(startTime));
+                }
+                if (StringUtils.isNotEmpty(endTime)) {
+                    query.setTimestamp("endTime", sdf.parse(endTime));
+                }
                 if (organId != null) {
                     query.setParameter("organId", organId);
                 }
