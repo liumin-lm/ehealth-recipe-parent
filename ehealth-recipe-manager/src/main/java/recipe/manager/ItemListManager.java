@@ -44,7 +44,7 @@ public class ItemListManager extends BaseManager {
 
     public ItemList saveItemList(ItemList itemList) {
         ItemList itemList1 = itemListDAO.save(itemList);
-        logger.info("saveItemList result:{}", JSONUtils.toString(itemList));
+        logger.info("saveItemList result:{}", JSONUtils.toString(itemList1));
         return itemList1;
     }
 
