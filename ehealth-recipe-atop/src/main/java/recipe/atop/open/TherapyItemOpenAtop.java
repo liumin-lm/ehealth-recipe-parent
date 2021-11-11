@@ -140,7 +140,7 @@ public class TherapyItemOpenAtop extends BaseAtop implements ITherapyItemOpenAto
      * 修改保存前数据校验
      *
      * @param itemList
-     * @return
+     * @return true表示存在，false表示不存在
      */
     @RpcService
     public boolean checkItemList(ItemList itemList) {
@@ -149,6 +149,7 @@ public class TherapyItemOpenAtop extends BaseAtop implements ITherapyItemOpenAto
         try {
             result = therapyItemBusinessService.checkItemList(itemList);
         } catch (DAOException e1) {
+            result = true;
             logger.error("TherapyItemOpenAtop updateItemList  error", e1);
         }
         return result;

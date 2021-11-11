@@ -5,6 +5,7 @@ import com.ngari.recipe.vo.ItemListVO;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.core.api.doctor.ITherapyItemBusinessService;
@@ -48,13 +49,16 @@ public class RecipeItemBusinessService extends BaseService implements ITherapyIt
     @Override
     public boolean updateItemList(ItemList itemList) {
         AtomicBoolean res = new AtomicBoolean(true);
-        List<ItemList> itemListDbs = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), itemList.getItemCode());
-        itemListDbs.forEach(itemListDb -> {
-            if (itemListDb != null && !itemListDb.getId().equals(itemListDb.getId())) {
-                logger.info("updateItemList itemListDb:{}", JSONUtils.toString(itemListDb));
-                res.set(false);
-            }
-        });
+        //只有修改项目编码和名称才需要校验
+        if (itemList.getOrganID() != null && (StringUtils.isNotEmpty(itemList.getItemName()) || StringUtils.isNotEmpty(itemList.getItemName()))) {
+            List<ItemList> itemListDbs = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), itemList.getItemCode());
+            itemListDbs.forEach(itemListDb -> {
+                if (itemListDb != null && !itemListDb.getId().equals(itemListDb.getId())) {
+                    logger.info("updateItemList itemListDb:{}", JSONUtils.toString(itemListDb));
+                    res.set(false);
+                }
+            });
+        }
         if (!res.get()) {
             return false;
         }
