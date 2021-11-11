@@ -225,4 +225,67 @@ public class ShanghaiCAImpl implements CAInterface {
             }
         }
     }
+
+    @Override
+    public CaSignResultVo commonSeal(CaSealRequestTO requestSealTO, Recipe recipe, Integer organId, String userAccount, String caPassword) {
+        LOGGER.info("shanghaiCA commonCASignAndSeal start requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
+                JSONUtils.toString(requestSealTO), recipe.getRecipeId(),organId, userAccount, caPassword);
+        CaSignResultVo signResultVo = new CaSignResultVo();
+        signResultVo.setRecipeId(recipe.getRecipeId());
+        Integer signDoc = recipe.getChecker() == null?recipe.getDoctor():recipe.getChecker();
+        signResultVo.setSignDoctor(signDoc);
+        try {
+            EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
+            List<String> jobNumbers = employmentService.findJobNumberByDoctorIdAndOrganId(recipe.getDoctor(), recipe.getClinicOrgan());
+
+            signResultVo.setCode(200);
+            // 电子签章
+            requestSealTO.setOrganId(organId);
+            requestSealTO.setUserPin(caPassword);
+            requestSealTO.setUserAccount(userAccount);
+            requestSealTO.setDoctorType(null == recipe.getChecker() ? "0" : "1");
+            requestSealTO.setSignMsg(JSONUtils.toString(recipe));
+            if (!CollectionUtils.isEmpty(jobNumbers)) {
+                requestSealTO.setJobnumber(jobNumbers.get(0));
+            }
+            CaSealResponseTO responseSealTO = iCommonCAServcie.caSealBusiness(requestSealTO);
+            if (responseSealTO == null){
+                signResultVo.setCode(RecipeResultBean.FAIL);
+                signResultVo.setResultCode(0);
+                signResultVo.setMsg("caSealBusiness res is null");
+                return signResultVo;
+            }
+            if (responseSealTO.getCode() != 200
+                    && requestSealTO.getCode() != 404 && requestSealTO.getCode() != 405){
+                signResultVo.setCode(responseSealTO.getCode());
+                signResultVo.setResultCode(0);
+                signResultVo.setMsg(responseSealTO.getMsg());
+                return signResultVo;
+            }
+            signResultVo.setPdfBase64(responseSealTO.getPdfBase64File());
+            if (StringUtils.isEmpty(signResultVo.getSignRecipeCode()) && StringUtils.isEmpty(signResultVo.getPdfBase64())) {
+                // 上海胸科异步推送返回的签名签章都为空
+                signResultVo.setResultCode(-1);
+            }else {
+                signResultVo.setResultCode(1);
+            }
+            // 启动异步线程对证书号进行获取保存（上海六院）
+            GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
+                @Override
+                public void run() {
+                    getAndSaveCertificate(recipe.getDoctor(), recipe.getClinicOrgan(),userAccount);
+                }
+            });
+        } catch (Exception e){
+            signResultVo.setResultCode(0);
+            LOGGER.error("ShanghaiCAImpl commonCASignAndSeal 调用前置机失败 requestSealTO={},recipeId={},organId={},userAccount={},caPassword={}",
+                    JSONUtils.toString(requestSealTO), recipe.getRecipeId(),organId, userAccount, caPassword,e);
+            LOGGER.error("commonCASignAndSeal Exception", e);
+        }finally {
+            LOGGER.error("ShanxiCAImpl finally callback signResultVo={}", JSONUtils.toString(signResultVo));
+            this.callbackRecipe(signResultVo, null == recipe.getChecker());
+        }
+        LOGGER.info("shanghaiCA commonCASignAndSeal end recipeId={},params: {}", recipe.getRecipeId(),JSONUtils.toString(signResultVo));
+        return signResultVo;
+    }
 }

@@ -463,8 +463,19 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     query.setMaxResults(limit);
                     List<DrugList> list = query.list();
                     List<DrugListAndOrganDrugList> result = new ArrayList<DrugListAndOrganDrugList>();
-                    for (DrugList drug : list) {
-                        result.add(new DrugListAndOrganDrugList(drug, null));
+                    if (!ObjectUtils.isEmpty(list)){
+                        for (DrugList drug : list) {
+                            DrugListAndOrganDrugList drugListAndOrganDrugList = new DrugListAndOrganDrugList(drug, null);
+                            if (!ObjectUtils.isEmpty(drug)){
+                                List<OrganDrugList> byDrugIdAndOrganId = findByDrugIdAndOrganId(drug.getDrugId(), organId);
+                                if (ObjectUtils.isEmpty(byDrugIdAndOrganId)){
+                                    drugListAndOrganDrugList.setCanAssociated(false);
+                                }else {
+                                    drugListAndOrganDrugList.setCanAssociated(true);
+                                }
+                            }
+                            result.add(drugListAndOrganDrugList);
+                        }
                     }
                     setResult(new QueryResult<DrugListAndOrganDrugList>(total, query.getFirstResult(), query.getMaxResults(), result));
                 } else {
@@ -541,11 +552,13 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                         drug = drugListDAO.getById(organDrugList.getDrugId());
                         drugListAndOrganDrugList = new DrugListAndOrganDrugList();
                         drugListAndOrganDrugList.setDrugList(drug);
-                        List<OrganDrugList> byDrugIdAndOrganId = findByDrugIdAndOrganId(drug.getDrugId(), organId);
-                        if (ObjectUtils.isEmpty(byDrugIdAndOrganId)){
-                            drugListAndOrganDrugList.setCanAssociated(false);
-                        }else {
-                            drugListAndOrganDrugList.setCanAssociated(true);
+                        if (!ObjectUtils.isEmpty(drug)){
+                            List<OrganDrugList> byDrugIdAndOrganId = findByDrugIdAndOrganId(drug.getDrugId(), organId);
+                            if (ObjectUtils.isEmpty(byDrugIdAndOrganId)){
+                                drugListAndOrganDrugList.setCanAssociated(false);
+                            }else {
+                                drugListAndOrganDrugList.setCanAssociated(true);
+                            }
                         }
                         drugListAndOrganDrugList.setOrganDrugList(organDrugList);
                         //查找配送目录---运营平台显示机构药品目录是否可配送
@@ -668,9 +681,21 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     query.setMaxResults(limit);
                     List<DrugList> list = query.list();
                     List<DrugListAndOrganDrugList> result = new ArrayList<DrugListAndOrganDrugList>();
-                    for (DrugList drug : list) {
-                        result.add(new DrugListAndOrganDrugList(drug, null));
+                    if (!ObjectUtils.isEmpty(list)){
+                        for (DrugList drug : list) {
+                            DrugListAndOrganDrugList drugListAndOrganDrugList = new DrugListAndOrganDrugList(drug, null);
+                            if (!ObjectUtils.isEmpty(drug)){
+                                List<OrganDrugList> byDrugIdAndOrganId = findByDrugIdAndOrganId(drug.getDrugId(), organId);
+                                if (ObjectUtils.isEmpty(byDrugIdAndOrganId)){
+                                    drugListAndOrganDrugList.setCanAssociated(false);
+                                }else {
+                                    drugListAndOrganDrugList.setCanAssociated(true);
+                                }
+                            }
+                            result.add(drugListAndOrganDrugList);
+                        }
                     }
+
                     setResult(new QueryResult<DrugListAndOrganDrugList>(total, query.getFirstResult(), query.getMaxResults(), result));
                 } else {
                     StringBuilder hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId ");
@@ -746,11 +771,13 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                         drug = drugListDAO.getById(organDrugList.getDrugId());
                         drugListAndOrganDrugList = new DrugListAndOrganDrugList();
                         drugListAndOrganDrugList.setDrugList(drug);
-                        List<OrganDrugList> byDrugIdAndOrganId = findByDrugIdAndOrganId(drug.getDrugId(), organId);
-                        if (ObjectUtils.isEmpty(byDrugIdAndOrganId)){
-                            drugListAndOrganDrugList.setCanAssociated(false);
-                        }else {
-                            drugListAndOrganDrugList.setCanAssociated(true);
+                        if (!ObjectUtils.isEmpty(drug)){
+                            List<OrganDrugList> byDrugIdAndOrganId = findByDrugIdAndOrganId(drug.getDrugId(), organId);
+                            if (ObjectUtils.isEmpty(byDrugIdAndOrganId)){
+                                drugListAndOrganDrugList.setCanAssociated(false);
+                            }else {
+                                drugListAndOrganDrugList.setCanAssociated(true);
+                            }
                         }
                         drugListAndOrganDrugList.setOrganDrugList(organDrugList);
                         //查找配送目录---运营平台显示机构药品目录是否可配送
@@ -789,7 +816,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
         return action.getResult();
     }
 
-    public QueryResult queryOrganDrugAndSaleForOp(final Date startTime, final Date endTime, Integer organId, String drugClass, String keyword, Integer status, final Integer isregulationDrug, final Integer type, int start, int limit, Boolean canDrugSend) {
+    public QueryResult queryOrganDrugAndSaleForOp( Date startTime,  Date endTime, Integer organId, String drugClass, String keyword, Integer status,  Integer isregulationDrug,  Integer type, Integer start, Integer limit, Boolean canDrugSend, String producer) {
         HibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>>() {
             @SuppressWarnings("unchecked")
             @Override
@@ -826,11 +853,15 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                         drugId = null;
                     }
                     hql.append(" and (");
-                    hql.append(" a.drugName like :keyword or a.producer like :keyword or a.saleName like :keyword or b.approvalNumber like :keyword  or a.organDrugCode like :keyword ");
+                    hql.append(" a.drugName like :keyword  or a.saleName like :keyword or b.approvalNumber like :keyword  or a.organDrugCode like :keyword ");
                     if (drugId != null) {
                         hql.append(" or a.drugId =:drugId");
                     }
                     hql.append(")");
+                }
+
+                if (!ObjectUtils.isEmpty(producer)) {
+                    hql.append(" and a.producer like :producer  ");
                 }
                 if (!ObjectUtils.isEmpty(startTime) && !ObjectUtils.isEmpty(endTime)) {
                     hql.append(" and a.createDt>=:startTime and a.createDt<=:endTime ");
@@ -878,6 +909,9 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 if (!StringUtils.isEmpty(keyword)) {
                     countQuery.setParameter("keyword", "%" + keyword + "%");
                 }
+                if (!ObjectUtils.isEmpty(producer)) {
+                    countQuery.setParameter("producer", "%" + producer + "%");
+                }
                 Long total = (Long) countQuery.uniqueResult();
 
                 Query query = ss.createQuery("select a " + hql.toString());
@@ -898,6 +932,9 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 }
                 if (!StringUtils.isEmpty(keyword)) {
                     query.setParameter("keyword", "%" + keyword + "%");
+                }
+                if (!ObjectUtils.isEmpty(producer)) {
+                    query.setParameter("producer", "%" + producer + "%");
                 }
                 if (!ObjectUtils.isEmpty(type)) {
                     query.setParameter("drugType", type);
@@ -924,12 +961,6 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                         drug = drugListDAO.getById(organDrugList.getDrugId());
                         drugListAndOrganDrugList = new DrugListAndOrganDrugList();
                         drugListAndOrganDrugList.setDrugList(drug);
-                        List<OrganDrugList> byDrugIdAndOrganId = findByDrugIdAndOrganId(drug.getDrugId(), organId);
-                        if (ObjectUtils.isEmpty(byDrugIdAndOrganId)){
-                            drugListAndOrganDrugList.setCanAssociated(false);
-                        }else {
-                            drugListAndOrganDrugList.setCanAssociated(true);
-                        }
                         drugListAndOrganDrugList.setOrganDrugList(organDrugList);
                         //查找配送目录---运营平台显示机构药品目录是否可配送
                         if (CollectionUtils.isEmpty(depIds)) {

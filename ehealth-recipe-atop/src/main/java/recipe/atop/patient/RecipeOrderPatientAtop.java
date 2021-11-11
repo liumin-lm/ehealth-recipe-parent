@@ -146,38 +146,38 @@ public class RecipeOrderPatientAtop extends BaseAtop {
     /**
      * 患者创建订单 根据配送方式上传处方给his
      *
-     * @param recipeId
+     * @param recipeIds
      * @return
      */
     @RpcService
-    public boolean submitRecipeHis(Integer recipeId, Integer orderId) {
-        validateAtop(recipeId);
+    public boolean submitRecipeHis(List<Integer> recipeIds, Integer orderId) {
+        validateAtop(recipeIds, orderId);
         //过滤按钮
-        boolean validate = iOrganBusinessService.giveModeValidate(recipeId, orderId);
+        boolean validate = iOrganBusinessService.giveModeValidate(null, orderId);
         if (!validate) {
             return false;
         }
         //推送his
-        offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE);
+        recipeIds.forEach(a -> offlineToOnlineService.pushRecipe(a, CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE));
         return true;
     }
 
     /**
      * 患者取消订单 根据配送方式上传处方给his 撤销处方
      *
-     * @param recipeId
+     * @param recipeIds
      * @return
      */
     @RpcService
-    public boolean cancelRecipeHis(Integer recipeId, Integer orderId) {
-        validateAtop(recipeId, orderId);
+    public boolean cancelRecipeHis(List<Integer> recipeIds, Integer orderId) {
+        validateAtop(recipeIds, orderId);
         //过滤按钮 拿订单的购药方式 过滤
-        boolean validate = iOrganBusinessService.giveModeValidate(recipeId, orderId);
+        boolean validate = iOrganBusinessService.giveModeValidate(null, orderId);
         if (!validate) {
             return false;
         }
         //推送his
-        offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_CANCEL_TYPE, CommonConstant.RECIPE_PATIENT_TYPE);
+        recipeIds.forEach(a -> offlineToOnlineService.pushRecipe(a, CommonConstant.RECIPE_CANCEL_TYPE, CommonConstant.RECIPE_PATIENT_TYPE));
         return true;
     }
 }

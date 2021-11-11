@@ -19,9 +19,6 @@ import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.platform.recipe.mode.RecipeOrderBean;
 import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.entity.*;
-import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.type.PayFlagEnum;
-import recipe.enumerate.type.RecipeSendTypeEnum;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
@@ -48,7 +45,10 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
+import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
+import recipe.enumerate.type.RecipeSendTypeEnum;
 import recipe.manager.EmrRecipeManager;
 import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
@@ -337,6 +337,7 @@ public class HisRequestInit {
             requestTO.setHandleMethod(recipeExtend.getHandleMethod());
             requestTO.setCardNo(recipeExtend.getCardNo());
             requestTO.setCardType(recipeExtend.getCardType());
+            requestTO.setPatientId(recipe.getPatientID());
             //处方扩展信息
             requestTO.setRecipeExtend(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
             try {

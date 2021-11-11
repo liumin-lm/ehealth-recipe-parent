@@ -232,10 +232,12 @@ public class RecipeServiceSub {
             Integer consultId = recipeBean.getClinicId();
             if (consultId != null) {
                 IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
-                RevisitExDTO consultExDTO = exService.getByConsultId(consultId);
-                if (consultExDTO != null) {
-                    recipeExtend.setCardNo(consultExDTO.getCardId());
-                    recipeExtend.setCardType(consultExDTO.getCardType());
+                RevisitExDTO revisitExDTO = exService.getByConsultId(consultId);
+                if (revisitExDTO != null) {
+                    recipeExtend.setCardNo(revisitExDTO.getCardId());
+                    recipeExtend.setCardType(revisitExDTO.getCardType());
+                    recipeExtend.setRegisterID(revisitExDTO.getRegisterNo());
+                    revisitExDTO.getPatId();
                 }
             }
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
@@ -268,6 +270,11 @@ public class RecipeServiceSub {
         // 根据咨询单特殊来源标识设置处方单特殊来源标识
         if (null != recipe.getClinicId()) {
             if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
+                IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+                RevisitExDTO revisitExDTO = exService.getByConsultId(recipe.getClinicId());
+                if (null != revisitExDTO) {
+                    recipe.setPatientID(revisitExDTO.getPatId());
+                }
                 IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
                 RevisitBean consultBean = iRevisitService.getById(recipe.getClinicId());
                 if ((null != consultBean) && (Integer.valueOf(1).equals(consultBean.getConsultSource()))) {
@@ -292,7 +299,7 @@ public class RecipeServiceSub {
     private static void validateRecipeExtData(RecipeBean recipeBean) {
         //校验中草药当配置为医生端选择煎法时，煎法为必填项
         if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipeBean.getRecipeType())) {
-            IConfigurationClient configurationClient = AppContextHolder.getBean("iConfigurationClient", IConfigurationClient.class);
+            IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
             String decoctionDeploy = configurationClient.getValueEnumCatch(recipeBean.getClinicOrgan(), "decoctionDeploy", null);
             if (DecoctionDeployTypeEnum.DECOCTION_DEPLOY_DOCTOR.getType().equals(decoctionDeploy) && null == recipeBean.getRecipeExtend().getDecoctionId()) {
                 //表示配置为医生选择，则必须要传煎法
@@ -1599,7 +1606,7 @@ public class RecipeServiceSub {
 
             //增加医生返回智能审方结果药品问题列表 2018.11.26 shiyp
             //判断开关是否开启
-            //去掉智能预审结果展示问题在生成的时候控制
+            //去掉智能预审结果展示问题在生成的时候控制 原来的 BUG # 33761 需要注意是不是复现了
             if (recipe.getStatus() != 0) {
                     List<AuditMedicinesBean> auditMedicines = getAuditMedicineIssuesByRecipeId(recipeId);
                     map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId)); //返回药品分析数据
@@ -1808,7 +1815,6 @@ public class RecipeServiceSub {
                 childRecipeFlag = true;
             }
             map.put("childRecipeFlag", childRecipeFlag);
-            //EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
             map.put("recipeExtend", recipeExtend);
         }
         RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);

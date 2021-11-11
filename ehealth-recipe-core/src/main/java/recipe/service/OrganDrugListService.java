@@ -748,25 +748,16 @@ public class OrganDrugListService implements IOrganDrugListService {
     /**
      * * 运营平台（查询机构药品目录（可根据是否能配送查询））
      *
-     * @param organId
-     * @param drugClass
-     * @param keyword
-     * @param status
-     * @param start
-     * @param limit
      * @return
      */
     @Override
-    public QueryResult<DrugListAndOrganDrugListDTO> queryOrganDrugAndSaleForOp(final Date startTime, final Date endTime, final Integer organId,
-                                                                               final String drugClass,
-                                                                               final String keyword, final Integer status,
-                                                                               final Integer isregulationDrug,
-             final Integer type,final int start, final int limit, Boolean canDrugSend) {
+    public QueryResult<DrugListAndOrganDrugListDTO> queryOrganDrugAndSaleForOp(OrganDrugQueryInfo info) {
         QueryResult result = null;
-        OpSecurityUtil.isAuthorisedOrgan(organId);
+        OpSecurityUtil.isAuthorisedOrgan(info.getOrganId());
         try {
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-            result = organDrugListDAO.queryOrganDrugAndSaleForOp(startTime, endTime, organId, drugClass, keyword, status,isregulationDrug,type, start, limit, canDrugSend);
+            result = organDrugListDAO.queryOrganDrugAndSaleForOp(info.getStartTime(), info.getEndTime(), info.getOrganId(), info.getDrugClass(), info.getKeyword(), info.getStatus(),
+                    info.getIsregulationDrug(),info.getType(), info.getStart(), info.getLimit(), info.getCanDrugSend(),info.getProduce());
             result.setItems(covertData(result.getItems()));
         } catch (Exception e) {
             logger.error("queryOrganDrugAndSaleForOp error", e);

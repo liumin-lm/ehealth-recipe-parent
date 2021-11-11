@@ -33,4 +33,19 @@ public interface CAInterface {
      */
     @RpcService
     CaSignResultVo commonCASignAndSeal(CaSealRequestTO requestSealTO, Recipe recipe, Integer organId, String userAccount, String caPassword);
+
+
+    /**
+     * 只有盖章接口
+     * @param requestSealTO
+     * @param recipe
+     * @param organId
+     * @param userAccount
+     * @param caPassword
+     * @return
+     */
+    @RpcService
+    CaSignResultVo commonSeal(CaSealRequestTO requestSealTO, Recipe recipe, Integer organId, String userAccount, String caPassword);
+
+
 }

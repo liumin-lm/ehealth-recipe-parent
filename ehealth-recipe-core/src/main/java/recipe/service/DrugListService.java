@@ -380,10 +380,10 @@ public class DrugListService extends BaseService<DrugListBean> {
      */
     @RpcService
     public QueryResult<DrugListBean> queryDrugListsByDrugNameAndStartAndLimit(final String drugClass, final String keyword,
-                                                                              final Integer status,final Integer drugSourcesId,Integer type,final Integer isStandardDrug,
+                                                                              final Integer status,final Integer drugSourcesId,Integer type,final Integer isStandardDrug,final String producer,
                                                                               final int start, final int limit) {
         DrugListDAO dao = getDAO(DrugListDAO.class);
-        QueryResult<DrugList> result = dao.queryDrugListsByDrugNameAndStartAndLimit(drugClass, keyword, status, drugSourcesId, type,isStandardDrug, start, limit);
+        QueryResult<DrugList> result = dao.queryDrugListsByDrugNameAndStartAndLimit(drugClass, keyword, status, drugSourcesId, type,isStandardDrug,producer, start, limit);
         QueryResult<DrugListBean> result2=new QueryResult<>();
         List items = result.getItems();
         if (items != null && items.size() > 0 ){

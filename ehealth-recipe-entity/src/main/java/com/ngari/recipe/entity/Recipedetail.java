@@ -3,6 +3,7 @@ package com.ngari.recipe.entity;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
+import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
 import java.math.BigDecimal;
@@ -17,6 +18,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Entity
 @Table(name = "cdr_recipedetail")
 @Access(AccessType.PROPERTY)
+@DynamicInsert
 public class Recipedetail implements java.io.Serializable {
 
 	private static final long serialVersionUID = -5228478904040591198L;
