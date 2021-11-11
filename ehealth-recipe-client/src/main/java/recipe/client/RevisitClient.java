@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.util.ValidateUtil;
 
+import java.util.List;
+
 /**
  * 复诊相关服务
  *
@@ -105,6 +107,18 @@ public class RevisitClient extends BaseClient {
         Integer revisitId = revisitService.findValidRevisitByMpiIdAndDoctorId(revisitRequest);
         logger.info("RevisitClient getRevisitId revisitRequest = {},revisitId={}", JSON.toJSONString(revisitRequest), revisitId);
         return revisitId;
+    }
+
+    /**
+     * 获取复诊列表
+     * @param consultIds
+     * @return
+     */
+    public List<RevisitBean> findByConsultIds(List<Integer> consultIds){
+        logger.info("RevisitClient findByConsultIds consultIds:{}.", JSONUtils.toString(consultIds));
+        List<RevisitBean> revisitBeans = revisitService.findByConsultIds(consultIds);
+        logger.info("RevisitClient findByConsultIds revisitBeans:{}.", JSONUtils.toString(revisitBeans));
+        return revisitBeans;
     }
 
 }

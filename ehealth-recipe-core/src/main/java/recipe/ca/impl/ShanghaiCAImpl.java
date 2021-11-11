@@ -238,6 +238,7 @@ public class ShanghaiCAImpl implements CAInterface {
             EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
             List<String> jobNumbers = employmentService.findJobNumberByDoctorIdAndOrganId(recipe.getDoctor(), recipe.getClinicOrgan());
 
+            signResultVo.setCode(200);
             // 电子签章
             requestSealTO.setOrganId(organId);
             requestSealTO.setUserPin(caPassword);

@@ -189,6 +189,7 @@ public class ShanxiCAImpl implements CAInterface {
         signResultVo.setSignDoctor(signDoc);
         try {
             //电子签名（暂不实现）
+            signResultVo.setCode(200);
             //电子签章业务
             requestSealTO.setOrganId(organId);
             requestSealTO.setUserAccount(userAccount);

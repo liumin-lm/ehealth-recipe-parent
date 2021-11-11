@@ -816,7 +816,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
         return action.getResult();
     }
 
-    public QueryResult queryOrganDrugAndSaleForOp(final Date startTime, final Date endTime, Integer organId, String drugClass, String keyword, Integer status, final Integer isregulationDrug, final Integer type, int start, int limit, Boolean canDrugSend) {
+    public QueryResult queryOrganDrugAndSaleForOp(final Date startTime, final Date endTime, Integer organId, String drugClass, String keyword, Integer status, final Integer isregulationDrug, final Integer type, int start, int limit, Boolean canDrugSend,final String producer) {
         HibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>>() {
             @SuppressWarnings("unchecked")
             @Override
@@ -845,6 +845,10 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 if (!ObjectUtils.isEmpty(type)) {
                     hql.append(" and b.drugType =:drugType ");
                 }
+                if (!ObjectUtils.isEmpty(producer)) {
+                    hql.append(" a.producer like :producer  ");
+                }
+
                 Integer drugId = null;
                 if (!StringUtils.isEmpty(keyword)) {
                     try {
@@ -853,7 +857,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                         drugId = null;
                     }
                     hql.append(" and (");
-                    hql.append(" a.drugName like :keyword or a.producer like :keyword or a.saleName like :keyword or b.approvalNumber like :keyword  or a.organDrugCode like :keyword ");
+                    hql.append(" a.drugName like :keyword  or a.saleName like :keyword or b.approvalNumber like :keyword  or a.organDrugCode like :keyword ");
                     if (drugId != null) {
                         hql.append(" or a.drugId =:drugId");
                     }
@@ -902,6 +906,9 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 if (canDrugSend != null && CollectionUtils.isNotEmpty(depIds)) {
                     countQuery.setParameterList("depIds", depIds);
                 }
+                if (!ObjectUtils.isEmpty(producer)) {
+                    countQuery.setParameter("producer", "%" + producer + "%");
+                }
                 if (!StringUtils.isEmpty(keyword)) {
                     countQuery.setParameter("keyword", "%" + keyword + "%");
                 }
@@ -922,6 +929,9 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 }
                 if (!ObjectUtils.isEmpty(endTime)) {
                     query.setParameter("endTime", dt.plusDays(1).toDate());
+                }
+                if (!ObjectUtils.isEmpty(producer)) {
+                    query.setParameter("producer", "%" + producer + "%");
                 }
                 if (!StringUtils.isEmpty(keyword)) {
                     query.setParameter("keyword", "%" + keyword + "%");

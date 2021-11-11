@@ -209,7 +209,7 @@ public class TianjinCAImpl implements CAInterface {
         try {
             //电子签名
             CaSignRequestTO caSignRequestTO = new CaSignRequestTO();
-
+            signResultVo.setCode(200);
             // 电子签章
             requestSealTO.setOrganId(organId);
             requestSealTO.setUserPin(caPassword);
