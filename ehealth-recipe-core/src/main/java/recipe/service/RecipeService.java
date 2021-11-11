@@ -5447,7 +5447,7 @@ public class RecipeService extends RecipeBaseService {
         List<DataSyncDTO> syncDTOList =Lists.newArrayList();
         syncDTOList.add(dataSyncDTO);
         dataSyncLogService.addDataSyncLog("1",syncDTOList);
-        LOGGER.error("addHisDrug 成功{}", JSONUtils.toString(drugListMatch));
+        LOGGER.info("addHisDrug 成功{}", JSONUtils.toString(drugListMatch));
     }
 
     /**
