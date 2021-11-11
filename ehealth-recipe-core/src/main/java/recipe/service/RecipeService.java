@@ -6734,10 +6734,12 @@ public class RecipeService extends RecipeBaseService {
             recipes.forEach(recipe -> {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 PatientDTO patient = patientService.get(recipe.getMpiid());
-                if (patient.getPatientUserType() == 1 || patient.getPatientUserType() == 2) {
-                    recipeExtend.setRecipeFlag(1);
-                } else if (patient.getPatientUserType() == 0) {
-                    recipeExtend.setRecipeFlag(0);
+                if (patient != null) {
+                    if (new Integer(1).equals(patient.getPatientUserType()) || new Integer(2).equals(patient.getPatientUserType())) {
+                        recipeExtend.setRecipeFlag(1);
+                    } else if (new Integer(0).equals(patient.getPatientUserType())) {
+                        recipeExtend.setRecipeFlag(0);
+                    }
                 }
                 recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
             });
