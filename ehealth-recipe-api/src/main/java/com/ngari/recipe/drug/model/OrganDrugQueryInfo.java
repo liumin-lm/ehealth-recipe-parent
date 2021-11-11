@@ -1,5 +1,6 @@
 package com.ngari.recipe.drug.model;
 
+import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
@@ -7,19 +8,32 @@ import java.util.Date;
 
 @Schema
 public class OrganDrugQueryInfo implements Serializable {
+
     private static final long serialVersionUID = -2926228283625505958L;
 
+    @ItemProperty(alias = "开始时间")
     private Date startTime;
+    @ItemProperty(alias = "截止时间")
     private Date endTime;
+    @ItemProperty(alias = "机构ID")
     private Integer organId;
+    @ItemProperty(alias = "药品分类")
     private String drugClass;
+    @ItemProperty(alias = "输入")
     private String keyword;
+    @ItemProperty(alias = "药品状态")
     private Integer status;
+    @ItemProperty(alias = "是否关联监管平台药品")
     private Integer isregulationDrug;
+    @ItemProperty(alias = "药品类型")
     private Integer type;
+    @ItemProperty(alias = "开始")
     private Integer start;
+    @ItemProperty(alias = "条数")
     private Integer limit;
+    @ItemProperty(alias = "是否支持配送")
     private Boolean canDrugSend;
+    @ItemProperty(alias = "厂家")
     private String produce;
 
     public Date getStartTime() {

@@ -845,10 +845,6 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 if (!ObjectUtils.isEmpty(type)) {
                     hql.append(" and b.drugType =:drugType ");
                 }
-                if (!ObjectUtils.isEmpty(producer)) {
-                    hql.append(" a.producer like :producer  ");
-                }
-
                 Integer drugId = null;
                 if (!StringUtils.isEmpty(keyword)) {
                     try {
@@ -862,6 +858,10 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                         hql.append(" or a.drugId =:drugId");
                     }
                     hql.append(")");
+                }
+
+                if (!ObjectUtils.isEmpty(producer)) {
+                    hql.append(" and a.producer like :producer  ");
                 }
                 if (!ObjectUtils.isEmpty(startTime) && !ObjectUtils.isEmpty(endTime)) {
                     hql.append(" and a.createDt>=:startTime and a.createDt<=:endTime ");
@@ -906,11 +906,11 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 if (canDrugSend != null && CollectionUtils.isNotEmpty(depIds)) {
                     countQuery.setParameterList("depIds", depIds);
                 }
-                if (!ObjectUtils.isEmpty(producer)) {
-                    countQuery.setParameter("producer", "%" + producer + "%");
-                }
                 if (!StringUtils.isEmpty(keyword)) {
                     countQuery.setParameter("keyword", "%" + keyword + "%");
+                }
+                if (!ObjectUtils.isEmpty(producer)) {
+                    countQuery.setParameter("producer", "%" + producer + "%");
                 }
                 Long total = (Long) countQuery.uniqueResult();
 
@@ -930,11 +930,11 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 if (!ObjectUtils.isEmpty(endTime)) {
                     query.setParameter("endTime", dt.plusDays(1).toDate());
                 }
-                if (!ObjectUtils.isEmpty(producer)) {
-                    query.setParameter("producer", "%" + producer + "%");
-                }
                 if (!StringUtils.isEmpty(keyword)) {
                     query.setParameter("keyword", "%" + keyword + "%");
+                }
+                if (!ObjectUtils.isEmpty(producer)) {
+                    query.setParameter("producer", "%" + producer + "%");
                 }
                 if (!ObjectUtils.isEmpty(type)) {
                     query.setParameter("drugType", type);
