@@ -104,7 +104,11 @@ public class ItemList implements Serializable {
 
     @Column(name = "item_price")
     public BigDecimal getItemPrice() {
-        return itemPrice.stripTrailingZeros();
+        if (this.itemPrice == null) {
+            return itemPrice;
+        } else {
+            return itemPrice.stripTrailingZeros();
+        }
     }
 
     public void setItemPrice(BigDecimal itemPrice) {
