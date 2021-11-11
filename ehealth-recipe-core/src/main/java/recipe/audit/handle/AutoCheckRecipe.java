@@ -1,5 +1,6 @@
 package recipe.audit.handle;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.Recipe;
@@ -75,10 +76,11 @@ public class AutoCheckRecipe {
     public static void doAutoRecipe(Integer recipeId){
         LOGGER.info("doAutoRecipe:start:param={}",recipeId);
         PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
-        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-        RecipeBean recipeBean = recipeService.getByRecipeId(recipeId);
+        Recipe recipe = recipeManager.getRecipeById(recipeId);
+        RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<RecipeDetailBean> list = ObjectCopyUtils.convert(recipeDetailDAO.findByRecipeId(recipeId),RecipeDetailBean.class);
+        LOGGER.info("doAutoRecipe:start:recipeBean={},list={}", JSON.toJSONString(recipeBean), JSON.toJSONString(list));
         prescriptionService.analysis(recipeBean, list);
         LOGGER.info("doAutoRecipe:end");
     }
