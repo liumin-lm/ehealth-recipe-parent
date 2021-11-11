@@ -112,9 +112,43 @@ public abstract class ItemListDAO extends HibernateSupportDelegateDAO<ItemList> 
         return (QueryResult<ItemList>) HqlUtils.execHqlFindQueryResult(hql.toString(), paramMap, start, limit);
     }
 
+    public List<ItemList> findItemListByOrganIdAndItemNameOrCode(final Integer organId, final String itemName, String itemCode) {
+        HibernateStatelessResultAction<List<ItemList>> action =
+                new AbstractHibernateStatelessResultAction<List<ItemList>>() {
+                    @SuppressWarnings("unchecked")
+                    @Override
+                    public void execute(StatelessSession ss) throws DAOException {
+                        StringBuilder hql = new StringBuilder(" from ItemList where organ_id =:organId and is_deleted = 0   ");
+                        if (!StringUtils.isEmpty(itemCode)) {
+                            hql.append(" and itemCode = :itemCode ");
+                        }
+                        if (!StringUtils.isEmpty(itemName)) {
+                            hql.append(" and item_name = :itemName ");
+                        }
+
+                        Query query = ss.createQuery(hql.toString());
+                        if (!StringUtils.isEmpty(itemName)) {
+                            query.setParameter("itemName", itemName);
+                        }
+                        if (null != organId) {
+                            query.setParameter("organId", organId);
+                        }
+
+                        if (!StringUtils.isEmpty(itemCode)) {
+                            query.setParameter("itemCode", itemCode);
+                        }
+                        List<ItemList> list = query.list();
+                        setResult(list);
+                    }
+                };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
     @DAOMethod(sql = " from ItemList where organ_id =:organId and is_deleted = 0 and (item_name=:itemName or item_code=:itemCode)")
-    public abstract List<ItemList> findItemListByOrganIdAndItemNameOrCode(@DAOParam("organId") Integer organId, @DAOParam("itemName") String itemName,
-                                                                          @DAOParam("itemCode") String itemCode);
+    public abstract List<ItemList> findItemListByOrganIdAndItemNameOrCode2(@DAOParam("organId") Integer organId, @DAOParam("itemName") String itemName,
+                                                                           @DAOParam("itemCode") String itemCode);
+
     @DAOMethod(sql = "update ItemList set is_deleted = 1 where id =:id ")
     public abstract void delete(@DAOParam("id") Integer id);
 
