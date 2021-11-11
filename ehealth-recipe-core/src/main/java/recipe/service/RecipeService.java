@@ -3494,14 +3494,14 @@ public class RecipeService extends RecipeBaseService {
 
 
     /**
-     * 定时任务:每五分钟调用一次 查询时间间隔内 机构同步配置
+     * 定时任务:每分钟调用一次 查询时间间隔内 机构同步配置
      */
     @RpcService(timeout = 6000000)
     public void drugInfoSynMovementDTask() throws ParseException {
         com.ngari.patient.service.OrganConfigService organConfigService =
                 AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
         LocalTime localTime = LocalTime.now();
-        LocalTime localTime1 = localTime.minusMinutes(5);
+        LocalTime localTime1 = localTime.minusMinutes(1);
         DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("HH:mm:ss");
         String format = localTime.format(dateTimeFormatter);
         String format1 = localTime1.format(dateTimeFormatter);
