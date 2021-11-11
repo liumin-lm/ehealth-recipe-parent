@@ -68,6 +68,7 @@ import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -3209,7 +3210,14 @@ public class RecipeService extends RecipeBaseService {
         dataSyncDTO.setType("1");
         dataSyncDTO.setOrganId(organId.toString());
         if (ObjectUtils.isEmpty(drug)) {
-            dataSyncDTO.setReqMsg(JSONUtils.toString(organDrugList));
+            Map<String, Object> param = new HashedMap();
+            BeanUtils.map(organDrugList, param);
+            DrugListDAO dao = getDAO(DrugListDAO.class);
+            if (!ObjectUtils.isEmpty(organDrugList.getDrugId())){
+                DrugList drugList = dao.get(organDrugList.getDrugId());
+                param.put("drugType",drugList.getDrugType());
+            }
+            dataSyncDTO.setReqMsg(JSONUtils.toString(param));
         } else {
             dataSyncDTO.setReqMsg(JSONUtils.toString(drug));
         }
