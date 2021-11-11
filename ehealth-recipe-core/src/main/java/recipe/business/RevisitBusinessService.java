@@ -193,7 +193,6 @@ public class RevisitBusinessService extends BaseService implements IRevisitBusin
     @Override
     public void handDealRevisitTraceRecipe(String startTime, String endTime, List<Integer> recipeIds, Integer organId) {
         logger.info("handDealRevisitTraceRecipe start");
-        //时间预留 传null
         List<Recipe> recipes = recipeDAO.queryRevisitTrace(startTime, endTime, recipeIds, organId);
         recipes.forEach(recipe -> revisitManager.saveRevisitTracesList(recipe));
         logger.info("handDealRevisitTraceRecipe end");
