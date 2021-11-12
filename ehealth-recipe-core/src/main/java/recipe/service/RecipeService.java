@@ -3173,9 +3173,9 @@ public class RecipeService extends RecipeBaseService {
             Map<String, Object> param = new HashedMap();
             BeanUtils.map(organDrugList, param);
             DrugListDAO dao = getDAO(DrugListDAO.class);
-            if (!ObjectUtils.isEmpty(organDrugList.getDrugId())){
+            if (!ObjectUtils.isEmpty(organDrugList.getDrugId())) {
                 DrugList drugList = dao.get(organDrugList.getDrugId());
-                param.put("drugType",drugList.getDrugType());
+                param.put("drugType", drugList.getDrugType());
             }
             dataSyncDTO.setReqMsg(JSONUtils.toString(param));
         } else {
@@ -6683,6 +6683,16 @@ public class RecipeService extends RecipeBaseService {
         } else if ("5".equals(type)) {
             auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(8, recipe, "ood");
 
+        } else {
+            Object isDefaultGiveModeToHos = configService.getConfiguration(recipe.getClinicOrgan(), "isDefaultGiveModeToHos");
+            LOGGER.info("setGiveMode isDefaultGiveModeToHos：{} ", isDefaultGiveModeToHos);
+            if ((boolean) isDefaultGiveModeToHos == true) {
+                //默认到院取药
+                if (null == recipe.getGiveMode()) {
+                    recipe.setGiveMode(RecipeBussConstant.GIVEMODE_TO_HOS);
+                }
+            }
+            LOGGER.info("setGiveMode result recipe:{}", JSONUtils.toString(recipe));
         }
         return true;
     }
@@ -6701,9 +6711,9 @@ public class RecipeService extends RecipeBaseService {
         try {
             List<Recipe> recipes = recipeDAO.queryRecipeByTimeAndRecipeIdsAndOrganId(startTime, endTime, recipeIds, organId);
             recipes.forEach(recipe -> {
-                try{
+                try {
                     RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                    if(recipeExtend != null){
+                    if (recipeExtend != null) {
                         PatientDTO patient = patientService.get(recipe.getMpiid());
                         if (patient != null) {
                             if (new Integer(1).equals(patient.getPatientUserType()) || new Integer(2).equals(patient.getPatientUserType())) {
@@ -6714,7 +6724,7 @@ public class RecipeService extends RecipeBaseService {
                         }
                         recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
                     }
-                }catch (Exception e){
+                } catch (Exception e) {
                     LOGGER.error("RecipeOpenAtop updateNonNullFieldByPrimaryKey error e", e);
                 }
             });
