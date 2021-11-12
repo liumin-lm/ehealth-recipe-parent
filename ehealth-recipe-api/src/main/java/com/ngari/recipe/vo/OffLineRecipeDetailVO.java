@@ -1,7 +1,6 @@
 package com.ngari.recipe.vo;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.ngari.his.recipe.mode.RecipeDetailTO;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
@@ -130,4 +129,7 @@ public class OffLineRecipeDetailVO implements Serializable {
     //预留字段
     @ItemProperty(alias = "关联病例ID")
     private Integer docIndexId;
+
+    @ItemProperty(alias = "处方标识 0:普通处方 1:儿童处方")
+    private Integer recipeFlag;
 }
