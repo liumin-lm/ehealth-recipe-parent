@@ -24,7 +24,8 @@ public enum RecipeOrderStatusEnum {
     ORDER_STATUS_HAS_DRUG(12, "有库存", "药店取药（有库存可取药）"),
     ORDER_STATUS_DONE_DISPENSING(13, "已发药", ""),
     ORDER_STATUS_DECLINE(14, "已拒发", ""),
-    ORDER_STATUS_DRUG_WITHDRAWAL(15, "已退药", "");
+    ORDER_STATUS_DRUG_WITHDRAWAL(15, "已退药", ""),
+    ORDER_STATUS_DRUG_FAIL(17, "已取消", "药店取药失败");
     private Integer type;
     private String name;
     private String desc;
