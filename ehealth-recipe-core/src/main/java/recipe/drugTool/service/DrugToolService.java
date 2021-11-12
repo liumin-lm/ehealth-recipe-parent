@@ -417,11 +417,6 @@ public class DrugToolService implements IDrugToolService {
                 errMsg.append("药品规格/单位有误").append(";");
             }
             try {
-                if (StringUtils.isEmpty(getStrFromCell(row.getCell(11)))) {
-                    if (!("中药").equals(getStrFromCell(row.getCell(8)))) {
-                        errMsg.append("非【中药】最小单位不能为空").append(";");
-                    }
-                }
                 if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(11)))) {
                     drug.setUseDoseSmallestUnit(getStrFromCell(row.getCell(11)));
                 }
