@@ -222,6 +222,7 @@ public class RecipeServiceSub {
                 recipeExtend.setGuardianName(patient.getGuardianName());
                 recipeExtend.setGuardianCertificate(patient.getGuardianCertificate());
                 recipeExtend.setGuardianMobile(patient.getMobile());
+                LOGGER.info("doWithRecipeExtend patient={}",JSONUtils.toString(patient));
                 if(patient.getPatientUserType() == 1 || patient.getPatientUserType() == 2){
                     recipeExtend.setRecipeFlag(1);
                 }else if (patient.getPatientUserType() == 0){
