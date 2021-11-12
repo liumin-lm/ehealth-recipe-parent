@@ -106,7 +106,7 @@ public class RecipeItemBusinessService extends BaseService implements ITherapyIt
                 List<ItemList> itemListsByItemName = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), null);
                 itemListsByItemName.forEach(itemListByItemName -> {
                     //存在一条id与当前传入itemList.getId不相同的就为false
-                    if (itemListByItemName != null && !itemList.getItemName().equals(itemListByItemName)) {
+                    if (itemListByItemName != null && !itemList.getId().equals(itemListByItemName.getId())) {
                         result.set(false);
                         cause.set(0, ITEM_NAME);
                     }
@@ -116,7 +116,7 @@ public class RecipeItemBusinessService extends BaseService implements ITherapyIt
                 List<ItemList> itemListsByItemCode = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), null, itemList.getItemCode());
                 itemListsByItemCode.forEach(itemListByItemCode -> {
                     //存在一条id与当前传入itemList.getId不相同的就为false
-                    if (itemListByItemCode != null && !itemList.getItemCode().equals(itemListByItemCode)) {
+                    if (itemListByItemCode != null && !itemList.getId().equals(itemListByItemCode.getId())) {
                         result.set(false);
                         cause.set(1, ITEM_CODE);
                     }
