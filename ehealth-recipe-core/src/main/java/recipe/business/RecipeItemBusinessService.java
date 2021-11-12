@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service;
 import recipe.core.api.doctor.ITherapyItemBusinessService;
 import recipe.manager.ItemListManager;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -96,7 +96,7 @@ public class RecipeItemBusinessService extends BaseService implements ITherapyIt
     @Override
     public CheckItemListVo checkItemList(ItemList itemList) {
         CheckItemListVo checkItemListVo = new CheckItemListVo();
-        List<String> cause = new ArrayList<>();
+        List<String> cause = Arrays.asList("", "");
         AtomicBoolean result = new AtomicBoolean(true);
         //true表示可向下执行流程 false抛出错误
         AtomicBoolean res = new AtomicBoolean(true);
@@ -108,7 +108,7 @@ public class RecipeItemBusinessService extends BaseService implements ITherapyIt
                     //存在一条id与当前传入itemList.getId不相同的就为false
                     if (itemListByItemName != null && !itemList.getItemName().equals(itemListByItemName)) {
                         result.set(false);
-                        cause.add(ITEM_NAME);
+                        cause.set(0, ITEM_NAME);
                     }
                 });
             }
@@ -118,7 +118,7 @@ public class RecipeItemBusinessService extends BaseService implements ITherapyIt
                     //存在一条id与当前传入itemList.getId不相同的就为false
                     if (itemListByItemCode != null && !itemList.getItemCode().equals(itemListByItemCode)) {
                         result.set(false);
-                        cause.add(ITEM_CODE);
+                        cause.set(1, ITEM_CODE);
                     }
                 });
             }
@@ -128,14 +128,14 @@ public class RecipeItemBusinessService extends BaseService implements ITherapyIt
                 List<ItemList> resByItemName = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), null);
                 if (CollectionUtils.isNotEmpty(resByItemName)) {
                     result.set(false);
-                    cause.add(ITEM_NAME);
+                    cause.set(0, ITEM_NAME);
                 }
             }
             if (StringUtils.isNotEmpty(itemList.getItemCode())) {
                 List<ItemList> resByItemName = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), null, itemList.getItemCode());
                 if (CollectionUtils.isNotEmpty(resByItemName)) {
                     result.set(false);
-                    cause.add(ITEM_CODE);
+                    cause.set(1, ITEM_CODE);
                 }
             }
         }
