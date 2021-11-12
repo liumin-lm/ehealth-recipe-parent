@@ -106,6 +106,14 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @Dictionary(id = "eh.cdr.dictionary.UsePathways")
     private String usePathways;
 
+    @ItemProperty(alias = "使用频率id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
+    private String usingRateId;
+
+    @ItemProperty(alias = "用药途径id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
+    private String usePathwaysId;
+
     @ItemProperty(alias = "单次剂量单位")
     private String useDoseUnit;
 
@@ -461,5 +469,22 @@ public class OrganDrugListDTO implements java.io.Serializable {
 
     public void setUseDoseSmallestUnit(String useDoseSmallestUnit) {
         this.useDoseSmallestUnit = useDoseSmallestUnit;
+    }
+
+
+    public String getUsingRateId() {
+        return usingRateId;
+    }
+
+    public void setUsingRateId(String usingRateId) {
+        this.usingRateId = usingRateId;
+    }
+
+    public String getUsePathwaysId() {
+        return usePathwaysId;
+    }
+
+    public void setUsePathwaysId(String usePathwaysId) {
+        this.usePathwaysId = usePathwaysId;
     }
 }
