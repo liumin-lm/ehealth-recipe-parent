@@ -1500,12 +1500,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     }
 
     private StringBuilder generateRecipeOderHQLforStatistics(Integer organId, Integer status, Integer doctor, String mpiId, Integer dateType, Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType) {
-//        StringBuilder hql = new StringBuilder("select r.* from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId where 1=1");
         StringBuilder hql = new StringBuilder("select r.*  from cdr_recipe r ");
         hql.append(" LEFT JOIN cdr_recipeorder o on r.orderCode = o.orderCode ");
         hql.append(" LEFT JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId ");
         hql.append(" where 1=1 and r.recipeSourceType!=3 ");
-        //new StringBuilder("select r.recipeId,o.orderCode from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId where 1=1 ");
 
         //默认查询所有
         if (CollectionUtils.isNotEmpty(requestOrgans)) {
@@ -1528,16 +1526,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             hql.append(" and r.clinicOrgan =" + organId);
         }
         switch (dateType) {
-//            case 0:
-//                //开方时间
-//                hql.append(" and DATE_FORMAT(r.createDate,'yyyy-MM-dd HH:mm:ss') >= DATE_FORMAT(:startTime,'yyyy-MM-dd HH:mm:ss')"
-//                        + " and DATE_FORMAT(r.createDate,'yyyy-MM-dd HH:mm:ss') <= DATE_FORMAT(:endTime,'yyyy-MM-dd HH:mm:ss') ");
-//                break;
-//            case 1:
-//                //审核时间
-//                hql.append(" and DATE_FORMAT(r.checkDate,'yyyy-MM-dd HH:mm:ss') >= DATE_FORMAT(:startTime,'yyyy-MM-dd HH:mm:ss')"
-//                        + " and DATE_FORMAT(r.checkDate,'yyyy-MM-dd HH:mm:ss') <= DATE_FORMAT(:endTime,'yyyy-MM-dd HH:mm:ss') ");
-//                break;
             case 0:
                 //开方时间
                 hql.append(" and r.createDate BETWEEN :startTime" + " and :endTime ");
@@ -1559,10 +1547,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         if (doctor != null) {
             hql.append(" and r.doctor=").append(doctor);
         }
-        //根据患者姓名  精确查询
-//        if (patientName != null && !StringUtils.isEmpty(patientName.trim())) {
-//            hql.append(" and r.patientName='").append(patientName).append("'");
-//        }
         if (depart != null) {
             hql.append(" and r.depart=").append(depart);
         }
@@ -1588,7 +1572,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         }
 
         if (checkStatus != null) {
-//            checkResult 0:未审核 1:通过 2:不通过 3:全部
             switch (checkStatus) {
                 case 0:
                     hql.append(" and r.checkFlag=0 ");
@@ -1629,7 +1612,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     }
 
     private StringBuilder generateRecipeMsgHQLforStatistics(RecipesQueryVO recipesQueryVO) {
-//        StringBuilder hql = new StringBuilder("select r.recipeId,r.patientName,r.Mpiid,r.organName,r.depart,r.doctor,r.organDiseaseName,r.totalMoney,r.checker,r.checkDateYs,r.fromflag,r.status,o.payTime, r.doctorName, sum(cr.useTotalDose) sumDose ,o.send_type sendType ,o.outTradeNo  from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode LEFT JOIN cdr_recipecheck c ON r.recipeID=c.recipeId left join cdr_recipedetail cr on cr.recipeId = r.recipeId and cr.status =1  where 1=1 ");
         StringBuilder hql = new StringBuilder("select r.recipeId,r.patientName,r.Mpiid mpiId,r.organName,r.depart,r.doctor,r.organDiseaseName,r.totalMoney,r.checker,r.checkDateYs,r.fromflag,r.status,o.payTime, r.doctorName, r.giveUser, o.dispensingTime, sum(cr.useTotalDose) sumDose ,o.send_type sendType ,o.outTradeNo ,o.cashAmount,o.fundAmount,o.orderType,r.recipeType from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode left join cdr_recipedetail cr on cr.recipeId = r.recipeId and cr.status =1  where 1=1 ");
         //默认查询所有
         if (CollectionUtils.isNotEmpty(recipesQueryVO.getOrganIds())) {
