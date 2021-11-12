@@ -1711,7 +1711,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (endDate != null) {
                     hql.append(" AND createTime <= :endTime ");
                 }
-                hql.append(" AND status != 17 ");
                 Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                 countQuery.setParameter("endTime", endDate);
                 countQuery.setParameter("startTime", startDate);
