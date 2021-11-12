@@ -123,7 +123,6 @@ import recipe.drugTool.service.DrugToolService;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
 import recipe.enumerate.type.*;
-import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.*;
@@ -148,7 +147,6 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -2312,8 +2310,6 @@ public class RecipeService extends RecipeBaseService {
                     List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
                     RecipeServiceSub.sendRecipeTagToPatient(recipe, details, rMap, false);
                 }
-                //个性化医院特殊处理，开完处方模拟his成功返回数据（假如前置机不提供默认返回数据）
-                doHisReturnSuccessForOrgan(recipeBean, rMap);
             }
             PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
             if (prescriptionService.getIntellectJudicialFlag(recipeBean.getClinicOrgan()) == 1) {
@@ -2353,42 +2349,6 @@ public class RecipeService extends RecipeBaseService {
         }
     }
 
-    public void doHisReturnSuccessForOrgan(RecipeBean recipeBean, Map<String, Object> rMap) {
-        Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_SKIP_HISRECIPE_LIST);
-        if (organIdList != null && organIdList.contains(recipeBean.getClinicOrgan().toString())) {
-            RecipeBusiThreadPool.submit(new Callable() {
-                @Override
-                public Object call() throws Exception {
-                    LOGGER.info("doHisReturnSuccessForOrgan start");
-                    long start = System.currentTimeMillis();
-                    PatientService patientService = BasicAPI.getService(PatientService.class);
-                    PatientDTO patientDTO = patientService.getPatientByMpiId(recipeBean.getMpiid());
-                    Date now = DateTime.now().toDate();
-                    String str = "";
-                    if (patientDTO != null && StringUtils.isNotEmpty(patientDTO.getCertificate())) {
-                        str = patientDTO.getCertificate().substring(patientDTO.getCertificate().length() - 5);
-                    }
-                    RecipeToHisCallbackService service = ApplicationUtils.getRecipeService(RecipeToHisCallbackService.class);
-                    HisSendResTO response = new HisSendResTO();
-                    response.setRecipeId(((Integer) rMap.get("recipeId")).toString());
-                    List<OrderRepTO> repList = Lists.newArrayList();
-                    OrderRepTO orderRepTO = new OrderRepTO();
-                    //门诊号处理 年月日+患者身份证后5位 例：2019060407915
-                    orderRepTO.setPatientID(DateConversion.getDateFormatter(now, "yyMMdd") + str);
-                    orderRepTO.setRegisterID(orderRepTO.getPatientID());
-                    //生成处方编号，不需要通过HIS去产生
-                    String recipeCodeStr = DigestUtil.md5For16(recipeBean.getClinicOrgan() + recipeBean.getMpiid() + Calendar.getInstance().getTimeInMillis());
-                    orderRepTO.setRecipeNo(recipeCodeStr);
-                    repList.add(orderRepTO);
-                    response.setData(repList);
-                    service.sendSuccess(response);
-                    long elapsedTime = System.currentTimeMillis() - start;
-                    LOGGER.info("RecipeBusiThreadPool doHisReturnSuccessForOrgan 个性化医院特殊处理，开完处方模拟his成功返回数据 执行时间:{}.", elapsedTime);
-                    return null;
-                }
-            });
-        }
-    }
 
     /**
      * 处方二次签名

@@ -35,7 +35,6 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.service.DrugDistributionService;
 import recipe.service.RecipeHisService;
-import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
 import recipe.thread.PushRecipeToHisCallable;
 import recipe.thread.PushRecipeToRegulationCallable;
@@ -105,8 +104,6 @@ public abstract class AbstractCaProcessType {
         //先将处方状态设置成【医院确认中】
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.CHECKING_HOS, null);
-
-        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         //前置签名，CA后操作，通过CA的结果做判断，通过则将处方推his
         //HIS消息发送--异步处理
         RecipeBusiThreadPool.execute(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
@@ -118,10 +115,6 @@ public abstract class AbstractCaProcessType {
             List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
             RecipeServiceSub.sendRecipeTagToPatient(recipe, details, rMap, false);
         }
-        //个性化医院特殊处理，开完处方模拟his成功返回数据（假如前置机不提供默认返回数据）
-        recipeService.doHisReturnSuccessForOrgan(recipeBean, rMap);
-
-
         LOGGER.info("AbstractCaProcessType recipeHisResultBeforeCAFunction end recipeBean={}", JSON.toJSONString(recipeBean));
      }
     
