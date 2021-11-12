@@ -31,6 +31,7 @@ import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * 处方相关对接HIS服务
@@ -244,6 +245,11 @@ public class RemoteRecipeToHisService implements IRecipeToHisService {
             QueryVisitsRequestTO hisRequest = new QueryVisitsRequestTO();
             hisRequest.setRegisterId(hosrelationBean.getRegisterId());
             hisRequest.setOrganId(hosrelationBean.getOrganId());
+            IRevisitExService iRevisitExService = AppDomainContext.getBean("revisit.revisitExService", IRevisitExService.class);
+            RevisitExDTO revisitExDTO = iRevisitExService.getByConsultId(consultId);
+            if (Objects.nonNull(revisitExDTO)) {
+                hisRequest.setPatId(revisitExDTO.getPatId());
+            }
             LOGGER.info("queryVisitStatus request={}", JSONUtils.toString(hisRequest));
             HisResponseTO<QueryVisitsResponseTO> hisResponse = null;
             try {

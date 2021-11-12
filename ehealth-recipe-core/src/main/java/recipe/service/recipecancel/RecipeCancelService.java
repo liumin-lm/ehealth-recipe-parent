@@ -37,6 +37,7 @@ public class RecipeCancelService {
      */
     @RpcService
     public Map<String, Object> cancelRecipe(Integer recipeId, String message) {
+        LOGGER.info("recipeCancelService cancelRecipe recipeId:{}", recipeId);
         return RecipeServiceSub.cancelRecipeImpl(recipeId, 0, "", message);
     }
 

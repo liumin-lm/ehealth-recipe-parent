@@ -26,6 +26,13 @@ public interface ITherapyRecipeBusinessService {
     Integer therapyRecipeTotal(RecipeTherapy recipeTherapy);
 
     /**
+     * 根据mpiId查诊疗处方总数
+     * @param mpiId
+     * @return
+     */
+    Integer therapyRecipeByMpiIdTotal(String mpiId);
+
+    /**
      * 获取诊疗处方列表
      *
      * @param recipeTherapy 诊疗处方对象
@@ -45,6 +52,7 @@ public interface ITherapyRecipeBusinessService {
 
     /**
      * 作废诊疗处方
+     *
      * @param recipeId 处方ID
      * @return 作废结果
      */
@@ -54,7 +62,7 @@ public interface ITherapyRecipeBusinessService {
      * 复诊关闭作废诊疗处方
      *
      * @param bussSource 业务类型
-     * @param clinicId 复诊ID
+     * @param clinicId   复诊ID
      * @return 作废结果
      */
     boolean abolishTherapyRecipeForRevisitClose(Integer bussSource, Integer clinicId);
@@ -65,10 +73,11 @@ public interface ITherapyRecipeBusinessService {
      * @param recipeTherapy 诊疗处方
      * @param pushType      推送类型: 1：提交处方，2:撤销处方
      */
-    void updatePushTherapyRecipe(RecipeTherapy recipeTherapy, Integer pushType);
+    void updatePushTherapyRecipe(Integer recipeId, RecipeTherapy recipeTherapy, Integer pushType);
 
     /**
      * 搜索诊疗项目
+     *
      * @param itemListVO 诊疗项目
      * @return 诊疗项目列表
      */
@@ -76,12 +85,21 @@ public interface ITherapyRecipeBusinessService {
 
     /**
      * 更新诊疗处方信息
-     * @param organId 机构ID
-     * @param recipeCode 处方单号
+     *
+     * @param organId          机构ID
+     * @param recipeCode       处方单号
      * @param recipeTherapyDTO 诊疗信息
      * @return 是否成功
      */
     boolean updateTherapyRecipe(Integer organId, String recipeCode, RecipeTherapyDTO recipeTherapyDTO);
 
-
+    /**
+     * 获取就诊人诊疗处方列表
+     *
+     * @param mpiId         患者信息
+     * @param start         页数
+     * @param limit         每页条数
+     * @return
+     */
+    List<RecipeInfoDTO> therapyRecipeListForPatient(String mpiId, int start, int limit);
 }

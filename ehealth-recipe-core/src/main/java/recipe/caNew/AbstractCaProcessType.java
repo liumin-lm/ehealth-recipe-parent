@@ -12,7 +12,6 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.revisit.RevisitAPI;
@@ -33,6 +32,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.service.DrugDistributionService;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeService;
@@ -41,6 +41,7 @@ import recipe.thread.PushRecipeToHisCallable;
 import recipe.thread.PushRecipeToRegulationCallable;
 import recipe.thread.RecipeBusiThreadPool;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -108,7 +109,7 @@ public abstract class AbstractCaProcessType {
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         //前置签名，CA后操作，通过CA的结果做判断，通过则将处方推his
         //HIS消息发送--异步处理
-        RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
+        RecipeBusiThreadPool.execute(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
 
         //非可使用省医保的处方立即发送处方卡片，使用省医保的处方需要在药师审核通过后显示
         if (!recipeBean.canMedicalPay()) {
@@ -200,7 +201,7 @@ public abstract class AbstractCaProcessType {
             }
         }
         //推送处方到监管平台
-        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(recipe.getRecipeId(), 1));
+        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipeId), 1));
 
         //将原先互联网回调修改处方的推送的逻辑移到这里
         //判断是否是阿里药企，是阿里大药房就推送处方给药企

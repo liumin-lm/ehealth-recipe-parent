@@ -46,7 +46,6 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "体格检查")
     private String physicalCheck;
     /**为互联网医院字段*/
-
     @ItemProperty(alias = "HIS处方关联的卡类型")
     private String  cardTypeName;
 
@@ -54,16 +53,18 @@ public class RecipeExtendBean implements Serializable {
     private String  cardNo;
 
     @ItemProperty(alias = "HIS处方关联的卡类型")
-    private String  cardType;
+    private String cardType;
 
     @ItemProperty(alias = "患者类型 自费 0 商保 1 普通医保 2 慢病医保 3 省医保33 杭州市医保3301 衢州市医保3308 巨化医保3308A")
     private String patientType;
 
-    @ItemProperty(alias = "his返回的配送药企代码")
+    @ItemProperty(alias = "配送药企代码")
     private String deliveryCode;
 
-    @ItemProperty(alias = "his返回的配送药企名称")
+    @ItemProperty(alias = "配送药企名称")
     private String deliveryName;
+    @ItemProperty(alias = "处方指定药企类型 1医院 2药企 默认 0")
+    private Integer appointEnterpriseType;
 
     @ItemProperty(alias = "医保返回的医院机构编码")
     private String hospOrgCodeFromMedical;
@@ -183,6 +184,17 @@ public class RecipeExtendBean implements Serializable {
 
     @ItemProperty(alias = "电子处方监管平台流水号")
     private String superviseRecipecode;
+
+    @ItemProperty(alias = "处方标识 0:普通处方 1:儿童处方")
+    private Integer recipeFlag;
+
+    public Integer getAppointEnterpriseType() {
+        return appointEnterpriseType;
+    }
+
+    public void setAppointEnterpriseType(Integer appointEnterpriseType) {
+        this.appointEnterpriseType = appointEnterpriseType;
+    }
 
     public String getPharmNo() {
         return pharmNo;
@@ -674,5 +686,13 @@ public class RecipeExtendBean implements Serializable {
 
     public void setSuperviseRecipecode(String superviseRecipecode) {
         this.superviseRecipecode = superviseRecipecode;
+    }
+
+    public Integer getRecipeFlag() {
+        return recipeFlag;
+    }
+
+    public void setRecipeFlag(Integer recipeFlag) {
+        this.recipeFlag = recipeFlag;
     }
 }

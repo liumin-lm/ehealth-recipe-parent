@@ -10,8 +10,6 @@ import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
-import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.mode.OrganDrugInfoTO;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
@@ -53,10 +51,8 @@ import recipe.bussutil.UsingRateFilter;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DocIndexClient;
 import recipe.dao.*;
-import recipe.drugTool.service.DrugToolService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.OrganDrugListService;
-import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ByteUtils;
@@ -189,7 +185,7 @@ public class QueryRecipeService implements IQueryRecipeService {
         }
         HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
         List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
-        LOGGER.info("queryRegulationRecipeData start");
+        LOGGER.info("queryRegulationRecipeData start:recipeList={},request={}",JSONUtils.toString(recipeList),JSONUtils.toString(request));
         service.splicingBackRecipeData(recipeList, request);
         List<RegulationRecipeIndicatorsDTO> result = ObjectCopyUtils.convert(request, RegulationRecipeIndicatorsDTO.class);
         LOGGER.info("queryRegulationRecipeData data={}", JSONUtils.toString(result));
@@ -251,8 +247,10 @@ public class QueryRecipeService implements IQueryRecipeService {
                     //处理方法
                     recipeDTO.setCLFF(emrDetail.getHandleMethod());
                 }
-                recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
-                recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
+                if (StringUtils.isNotEmpty(emrDetail.getOrganDiseaseId())) {
+                    recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
+                    recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
+                }
                 recipeDTO.setSymptomValue(ObjectCopyUtils.convert(emrDetail.getSymptomValue(), EmrDetailValueVO.class));
                 recipeDTO.setDiseaseValue(ObjectCopyUtils.convert(emrDetail.getDiseaseValue(), EmrDetailValueVO.class));
                 Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
@@ -350,6 +348,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                     }
                 }
                 recipeDTO.setCertID(idCard);
+                recipeDTO.setCertificateType(patient.getCertificateType());
                 recipeDTO.setPatientName(patient.getPatientName());
                 recipeDTO.setMobile(patient.getMobile());
                 recipeDTO.setPatientSex(patient.getPatientSex());
@@ -793,6 +792,8 @@ public class QueryRecipeService implements IQueryRecipeService {
                     nowSaleDrugList.setOrganDrugCode(organDrugChangeBean.getCloudPharmDrugCode());
                     nowSaleDrugList.setOrganId(drugsEnterpriseId);
                     nowSaleDrugList.setPrice(organDrugChangeBean.getSalePrice());
+                    nowSaleDrugList.setSaleName(organDrugChangeBean.getSaleName());
+                    nowSaleDrugList.setDrugName(organDrugChangeBean.getDrugName());
                     nowSaleDrugList.setLastModify(now);
                     LOGGER.info("updateOrSaveOrganDrug 更新配送药品信息{}", JSONUtils.toString(nowSaleDrugList));
                     saleDrugListDAO.update(nowSaleDrugList);
@@ -817,6 +818,8 @@ public class QueryRecipeService implements IQueryRecipeService {
                     newSaleDrugList.setPrice(organDrugChangeBean.getSalePrice());
                     newSaleDrugList.setStatus(1);
                     newSaleDrugList.setCreateDt(now);
+                    newSaleDrugList.setSaleName(organDrugChangeBean.getSaleName());
+                    newSaleDrugList.setDrugName(organDrugChangeBean.getDrugName());
                     LOGGER.info("updateOrSaveOrganDrug 添加配送药品信息{}", JSONUtils.toString(newSaleDrugList));
                     saleDrugListDAO.save(newSaleDrugList);
 
@@ -853,6 +856,8 @@ public class QueryRecipeService implements IQueryRecipeService {
                 nowSaleDrugList.setOrganDrugCode(organDrugChangeBean.getCloudPharmDrugCode());
                 nowSaleDrugList.setOrganId(drugsEnterpriseId);
                 nowSaleDrugList.setPrice(organDrugChangeBean.getSalePrice());
+                nowSaleDrugList.setSaleName(organDrugChangeBean.getSaleName());
+                nowSaleDrugList.setDrugName(organDrugChangeBean.getDrugName());
                 nowSaleDrugList.setLastModify(now);
                 LOGGER.info("updateOrSaveOrganDrug 更新配送药品信息{}", JSONUtils.toString(nowSaleDrugList));
                 saleDrugListDAO.update(nowSaleDrugList);

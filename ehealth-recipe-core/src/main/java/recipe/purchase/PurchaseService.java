@@ -1,5 +1,6 @@
 package recipe.purchase;
 
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import com.ngari.base.BaseAPI;
 import com.ngari.base.hisconfig.service.IHisConfigService;
@@ -22,7 +23,6 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
@@ -43,13 +43,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import recipe.ApplicationUtils;
 import recipe.bean.PltPurchaseResponse;
-import recipe.client.IConfigurationClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.givemode.business.GiveModeTextEnum;
+import recipe.enumerate.type.GiveModeTextEnum;
+import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.manager.EmrRecipeManager;
+import recipe.manager.EnterpriseManager;
 import recipe.manager.HisRecipeManager;
 import recipe.service.*;
 import recipe.util.MapValueUtil;
@@ -88,10 +89,8 @@ public class PurchaseService {
 
     @Autowired
     private RecipeOrderService recipeOrderService;
-
     @Autowired
-    private IConfigurationClient configurationClient;
-
+    private EnterpriseManager enterpriseManager;
     @Autowired
     HisRecipeManager hisRecipeManager;
 
@@ -156,6 +155,7 @@ public class PurchaseService {
      */
     @RpcService
     public RecipeResultBean filterSupportDepList(List<Integer> recipeIds, List<Integer> payModes, Map<String, String> extInfo) {
+        LOG.info("PurchaseService filterSupportDepList recipeIds:{}, payModes:{}, extInfo:{}.", JSONUtils.toString(recipeIds), JSONUtils.toString(payModes), JSONUtils.toString(extInfo));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
@@ -168,6 +168,7 @@ public class PurchaseService {
         //为了计算合并处方药品费
         extInfo.put("recipeIds", String.join(",", recipeIds.stream().map(String::valueOf).collect(Collectors.toList())));
         List<DepDetailBean> depListBeanList = Lists.newArrayList();
+        List<DepListBean> depListBeans = Lists.newArrayList();
         DepListBean depListBean = new DepListBean();
         for (Recipe dbRecipe : recipeList) {
             if (null == dbRecipe) {
@@ -188,56 +189,52 @@ public class PurchaseService {
             }
 
             try {
-                /*for (Integer i : payModes) {
-                    IPurchaseService purchaseService = getService(i);
-                    //如果涉及到多种购药方式合并成一个列表，此处需要进行合并
-                    resultBean = purchaseService.findSupportDepList(dbRecipe, extInfo);
-                }*/
                 // 根据paymode 替换givemode
                 Integer giveMode = PayModeGiveModeUtil.getGiveMode(payModes.get(0));
 
                 IPurchaseService purchaseService = getService(giveMode);
                 resultBean = purchaseService.findSupportDepList(dbRecipe, extInfo);
-                //有一个不成功就返回
-                if (!RecipeResultBean.SUCCESS.equals(resultBean.getCode())) {
-                    return resultBean;
-                }
-                depListBean = (DepListBean) resultBean.getObject();
-                if (depListBean != null) {
-                    //多个合并处方支持的药企列表取交集
-                    //第二个之后的如果没有的就没有
-                    if (CollectionUtils.isEmpty(depListBean.getList())) {
-                        return resultBean;
-                    } else {
-                        //当取第一个药企列表时先放入list再与后面的取交集
-                        if (CollectionUtils.isEmpty(depListBeanList)) {
-                            depListBeanList.addAll(depListBean.getList());
-                        } else {
-                            //交集需要处理
-                            depListBeanList.retainAll(depListBean.getList());
-                            //his管理的药企费用这里处理
-                            //如果存在交集则取一次交集加一次费用
-                            if (CollectionUtils.isNotEmpty(depListBeanList) && StringUtils.isNotEmpty(depListBeanList.get(0).getHisDepCode())) {
-                                Map<String, BigDecimal> stringObjectMap = depListBean.getList().stream().collect(Collectors.toMap(DepDetailBean::getHisDepCode, DepDetailBean::getHisDepFee));
-                                for (DepDetailBean depDetailBean : depListBeanList) {
-                                    if (depDetailBean.getHisDepFee() != null && StringUtils.isNotEmpty(depDetailBean.getHisDepCode()) && stringObjectMap.get(depDetailBean.getHisDepCode()) != null) {
-                                        depDetailBean.setHisDepFee(depDetailBean.getHisDepFee().add(stringObjectMap.get(depDetailBean.getHisDepCode())));
-                                    }
-                                }
-                            }
-                            //有可能前两个没取到交集直接结束
-                            if (CollectionUtils.isEmpty(depListBeanList)) {
-                                break;
-                            }
-                        }
-                    }
+                LOG.info("purchaseService.findSupportDepList 返回信息 recipeId={} resultBean={}", dbRecipe.getRecipeId(), JSONArray.toJSONString(resultBean));
+                // 药企查询成功的都放入集合
+                if (RecipeResultBean.SUCCESS.equals(resultBean.getCode()) && Objects.nonNull(resultBean.getObject())) {
+                    depListBeans.add((DepListBean) resultBean.getObject());
                 }
 
             } catch (Exception e) {
                 LOG.error("filterSupportDepList error", e);
                 throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
             }
+        }
+        if (CollectionUtils.isNotEmpty(depListBeans) && depListBeans.size() < recipeIds.size() && depListBeans.size() > 0) {
+            resultBean.setCode(RecipeResultBean.FAIL);
+            resultBean.setMsg("您选择的" + recipeIds.size() + "张处方，由于供药方不同，现不支持一起支付，请重新选择单张支付！如带来不便请谅解！");
+            return resultBean;
+        }
 
+        //当取第一个药企列表时先放入list再与后面的取交集
+        for (DepListBean depListBean1 : depListBeans) {
+            if (CollectionUtils.isEmpty(depListBeanList)) {
+                depListBeanList.addAll(depListBean1.getList());
+            } else {
+                //交集需要处理
+                depListBeanList.retainAll(depListBean1.getList());
+                //his管理的药企费用这里处理
+                //如果存在交集则取一次交集加一次费用
+                if (CollectionUtils.isNotEmpty(depListBeanList) && StringUtils.isNotEmpty(depListBeanList.get(0).getHisDepCode())) {
+                    Map<String, BigDecimal> stringObjectMap = depListBean1.getList().stream().collect(Collectors.toMap(DepDetailBean::getHisDepCode, DepDetailBean::getHisDepFee));
+                    for (DepDetailBean depDetailBean : depListBeanList) {
+                        if (depDetailBean.getHisDepFee() != null && StringUtils.isNotEmpty(depDetailBean.getHisDepCode()) && stringObjectMap.get(depDetailBean.getHisDepCode()) != null) {
+                            depDetailBean.setHisDepFee(depDetailBean.getHisDepFee().add(stringObjectMap.get(depDetailBean.getHisDepCode())));
+                        }
+                    }
+                }
+                //有可能前两个没取到交集直接结束
+                if (CollectionUtils.isEmpty(depListBeanList)) {
+                    resultBean.setCode(RecipeResultBean.FAIL);
+                    resultBean.setMsg("您选择的" + recipeIds.size() + "张处方，由于供药方不同，现不支持一起支付，请重新选择单张支付！如带来不便请谅解！");
+                    return resultBean;
+                }
+            }
         }
         //重新组装
         if (depListBean != null) {
@@ -261,7 +258,7 @@ public class PurchaseService {
             } catch (Exception e) {
                 LOG.error("filterSupportDepList error msg ", e);
             }
-            recipeOrderService.uploadRecipeInfoToThird(skipThirdReqVO);
+            enterpriseManager.uploadRecipeInfoToThird(skipThirdReqVO.getOrganId(), skipThirdReqVO.getGiveMode(), skipThirdReqVO.getRecipeIds());
         }
         return resultBean;
     }
@@ -276,7 +273,7 @@ public class PurchaseService {
     @RpcService
     public OrderCreateResult orderForRecipe(Integer recipeId, Map<String, String> extInfo) {
         OrderCreateResult orderCreateResult = checkOrderInfo(Arrays.asList(recipeId), extInfo);
-        if (RecipeResultBean.FAIL == orderCreateResult.getCode()) {
+        if (RecipeResultBean.CHECKFAIL == orderCreateResult.getCode()) {
             return orderCreateResult;
         }
         return order(Arrays.asList(recipeId), extInfo);
@@ -292,7 +289,7 @@ public class PurchaseService {
     @RpcService
     public OrderCreateResult orderForRecipeNew(List<Integer> recipeIds, Map<String, String> extInfo) {
         OrderCreateResult orderCreateResult = checkOrderInfo(recipeIds, extInfo);
-        if (RecipeResultBean.FAIL == orderCreateResult.getCode()) {
+        if (RecipeResultBean.CHECKFAIL == orderCreateResult.getCode()) {
             return orderCreateResult;
         }
         return order(recipeIds, extInfo);
@@ -323,6 +320,9 @@ public class PurchaseService {
                 result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
                 LOG.info("checkOrderInfo recipeId:{} 处方不存在", recipeId);
                 return result;
+            }
+            if (!new Integer(2).equals(dbRecipe.getRecipeSourceType())) {
+                continue;
             }
             if (null == hisRecipe) {
                 result.setCode(RecipeResultBean.CHECKFAIL);
@@ -366,7 +366,7 @@ public class PurchaseService {
             if (!covertData(queryHisRecipResTO.getDisease()).equals(covertData(hisRecipe.getDisease())) || !covertData(queryHisRecipResTO.getDiseaseName()).equals(covertData(hisRecipe.getDiseaseName()))) {
                 result.setCode(RecipeResultBean.CHECKFAIL);
                 result.setMsg("该处方单信息已变更，请退出重新获取处方信息。");
-                LOG.info("checkOrderInfo recipeId:{} hisRecipe已被删除", recipeId);
+                LOG.info("checkOrderInfo recipeId:{} 诊断信息不一致");
             }
             //药品详情变更或数据是否由他人生成
             List<Integer> hisRecipeIds = new ArrayList<>();
@@ -823,7 +823,7 @@ public class PurchaseService {
         if (dbRecipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS) {
             throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方审核结果已被撤销");
         }
-        if(RecipeStatusEnum.getCheckShowFlag(dbRecipe.getStatus())){
+        if (RecipeStatusEnum.getCheckShowFlag(dbRecipe.getStatus())) {
             throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "处方正在审核中");
         }
         if (RecipeStatusConstant.CHECK_PASS != dbRecipe.getStatus()
@@ -940,8 +940,11 @@ public class PurchaseService {
             MedicInsurSettleApplyReqTO reqTO = new MedicInsurSettleApplyReqTO();
             reqTO.setOrganId(organId);
             reqTO.setOrganName(Optional.ofNullable(organ.getShortName()).orElse(""));
+            reqTO.setPatientId(patient.getPatId());
             reqTO.setPatientName(patient.getPatientName());
             reqTO.setCertId(patient.getIdcard());
+            reqTO.setCertificate(patient.getCertificate());
+            reqTO.setCertificateType(patient.getCertificateType());
             reqTO.setRecipeId(recipeId.toString());
             reqTO.setRecipeCode(dbRecipe.getRecipeCode());
             reqTO.setClinicId(Optional.ofNullable(dbRecipe.getClinicId().toString()).orElse(""));

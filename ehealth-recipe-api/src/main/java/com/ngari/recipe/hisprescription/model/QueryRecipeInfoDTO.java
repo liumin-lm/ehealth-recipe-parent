@@ -163,6 +163,11 @@ public class QueryRecipeInfoDTO implements Serializable {
     )
     private List<EmrDetailValueVO> symptomValue;
 
+    @ItemProperty(
+            alias = "证件类型"
+    )
+    private Integer certificateType;
+
     public Map<String, Object> getMedicalInfoBean() {
         return medicalInfoBean;
     }
@@ -628,5 +633,13 @@ public class QueryRecipeInfoDTO implements Serializable {
 
     public void setSymptomValue(List<EmrDetailValueVO> symptomValue) {
         this.symptomValue = symptomValue;
+    }
+
+    public Integer getCertificateType() {
+        return certificateType;
+    }
+
+    public void setCertificateType(Integer certificateType) {
+        this.certificateType = certificateType;
     }
 }

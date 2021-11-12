@@ -163,8 +163,21 @@ public class DrugsEnterpriseDTO implements Serializable {
     @ItemProperty(alias = "寄件人街道编码")
     private String consignorStreet;
 
+    @ItemProperty(alias = "集揽模式")
+    private Integer collectMode;
+
+    @ItemProperty(alias = "到院取药日期是否展示今天 0 否 1 是")
+    private Integer isShowToday;
 
     private List<DrugEnterpriseLogistics> drugEnterpriseLogisticsList;
+
+    public Integer getIsShowToday() {
+        return isShowToday;
+    }
+
+    public void setIsShowToday(Integer isShowToday) {
+        this.isShowToday = isShowToday;
+    }
 
     public Integer getId() {
         return id;
@@ -548,5 +561,13 @@ public class DrugsEnterpriseDTO implements Serializable {
 
     public void setDrugEnterpriseLogisticsList(List<DrugEnterpriseLogistics> drugEnterpriseLogisticsList) {
         this.drugEnterpriseLogisticsList = drugEnterpriseLogisticsList;
+    }
+
+    public Integer getCollectMode() {
+        return collectMode;
+    }
+
+    public void setCollectMode(Integer collectMode) {
+        this.collectMode = collectMode;
     }
 }

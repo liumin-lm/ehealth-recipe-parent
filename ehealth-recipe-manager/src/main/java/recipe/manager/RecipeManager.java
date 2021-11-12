@@ -7,7 +7,9 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeLog;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
+import eh.base.constant.ErrorCode;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -17,7 +19,7 @@ import recipe.client.*;
 import recipe.common.CommonConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeLogDAO;
-import recipe.dao.RecipeRefundDAO;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.DictionaryUtil;
 import recipe.util.ValidateUtil;
@@ -25,6 +27,7 @@ import recipe.util.ValidateUtil;
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 处方
@@ -44,8 +47,6 @@ public class RecipeManager extends BaseManager {
     private OfflineRecipeClient offlineRecipeClient;
     @Autowired
     private RevisitClient revisitClient;
-    @Autowired
-    private RecipeRefundDAO recipeRefundDAO;
 
     /**
      * 保存处方信息
@@ -97,22 +98,23 @@ public class RecipeManager extends BaseManager {
         return recipe;
     }
 
-    public Recipe getRecipeById(Integer recipeId) {
-        return recipeDAO.getByRecipeId(recipeId);
-    }
 
     /**
-     * 通过recipeCode批量获取处方信息
+     * 查询处方信息
      *
-     * @param recipeCodeList
-     * @param clinicOrgan
+     * @param recipeId
      * @return
      */
-    public List<Recipe> findByRecipeCodeAndClinicOrgan(List<String> recipeCodeList, Integer clinicOrgan) {
-        logger.info("RecipeManager findByRecipeCodeAndClinicOrgan param recipeCodeList:{},clinicOrgan:{}", JSONUtils.toString(recipeCodeList), clinicOrgan);
-        List<Recipe> recipes = recipeDAO.findByRecipeCodeAndClinicOrgan(recipeCodeList, clinicOrgan);
-        logger.info("RecipeManager findByRecipeCodeAndClinicOrgan res recipes:{}", JSONUtils.toString(recipes));
-        return recipes;
+    public Recipe getRecipeById(Integer recipeId) {
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (StringUtils.isEmpty(recipe.getOrganDiseaseId())) {
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
+            recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
+            recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
+            recipe.setMemo(emrDetail.getMemo());
+        }
+        return recipe;
     }
 
     public List<Recipe> findByRecipeIds(List<Integer> recipeIds) {
@@ -213,7 +215,7 @@ public class RecipeManager extends BaseManager {
         recipeExtend.setCardTypeName(DictionaryUtil.getDictionary("eh.mpi.dictionary.CardType", recipeExtend.getCardType()));
         Integer docIndexId = recipeExtend.getDocIndexId();
         EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(docIndexId);
-        if (null == emrDetail) {
+        if (StringUtils.isEmpty(emrDetail.getOrganDiseaseId())) {
             return recipeDTO;
         }
         Recipe recipe = recipeDTO.getRecipe();
@@ -228,6 +230,13 @@ public class RecipeManager extends BaseManager {
             if (null != consultExDTO) {
                 recipeExtend.setCardNo(consultExDTO.getCardId());
                 recipeExtend.setCardType(consultExDTO.getCardType());
+            }
+        }
+        //当卡类型是医保卡的时候，调用端的配置判断是否开启，如果开启，则调用端提供的工具进行卡号的展示
+        if ("2".equals(recipeExtend.getCardType())) {
+            boolean hospitalCardLengthControl = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "hospitalCardLengthControl", false);
+            if (hospitalCardLengthControl && StringUtils.isNotBlank(recipeExtend.getCardNo()) && recipeExtend.getCardNo().length() == 28) {
+                recipeExtend.setCardNo(recipeExtend.getCardNo().substring(0, 10));
             }
         }
         return recipeDTO;
@@ -247,8 +256,6 @@ public class RecipeManager extends BaseManager {
             Integer qrTypeForRecipe = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "getQrTypeForRecipe", 1);
             RecipeShowQrConfigEnum qrConfigEnum = RecipeShowQrConfigEnum.getEnumByType(qrTypeForRecipe);
             switch (qrConfigEnum) {
-                case NO_HAVE:
-                    break;
                 case CARD_NO:
                     //就诊卡号
                     if (StringUtils.isNotEmpty(recipeExtend.getCardNo())) {
@@ -270,6 +277,9 @@ public class RecipeManager extends BaseManager {
                         qrName = recipe.getRecipeCode();
                     }
                     break;
+                case TAKE_DRUG_CODE:
+                    qrName = offlineRecipeClient.queryMedicineCode(recipe.getClinicOrgan(), recipe.getRecipeId(), recipe.getRecipeCode());
+                    break;
                 case SERIALNUMBER:
                     qrName = offlineRecipeClient.queryRecipeSerialNumber(recipe.getClinicOrgan(), recipe.getPatientName(), recipe.getPatientID(), recipeExtend.getRegisterID());
                 default:
@@ -287,8 +297,8 @@ public class RecipeManager extends BaseManager {
      * @param recipeId
      * @return
      */
-    public RecipeCancel getCancelReasonForPatient(int recipeId) {
-        RecipeCancel recipeCancel = new RecipeCancel();
+    public RecipeCancelDTO getCancelReasonForPatient(int recipeId) {
+        RecipeCancelDTO recipeCancel = new RecipeCancelDTO();
         String cancelReason = "";
         Date cancelDate = null;
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
@@ -304,6 +314,16 @@ public class RecipeManager extends BaseManager {
     }
 
     /**
+     * 根据订单号查询处方列表
+     *
+     * @param orderCode orderCode
+     * @return List<Recipe>
+     */
+    public List<Recipe> findRecipeByOrderCode(String orderCode) {
+        return recipeDAO.findRecipeListByOrderCode(orderCode);
+    }
+
+    /**
      * 更新推送his返回信息处方数据
      *
      * @param recipeResult 处方结果
@@ -314,7 +334,7 @@ public class RecipeManager extends BaseManager {
         if (null == recipeResult) {
             return;
         }
-        if (!CommonConstant.THERAPY_RECIPE_PUSH_TYPE.equals(pushType)) {
+        if (!CommonConstant.RECIPE_PUSH_TYPE.equals(pushType)) {
             return;
         }
         Recipe updateRecipe = new Recipe();
@@ -336,7 +356,7 @@ public class RecipeManager extends BaseManager {
         if (null == recipeExtendResult) {
             return;
         }
-        if (!CommonConstant.THERAPY_RECIPE_PUSH_TYPE.equals(pushType)) {
+        if (!CommonConstant.RECIPE_PUSH_TYPE.equals(pushType)) {
             return;
         }
         RecipeExtend updateRecipeExt = new RecipeExtend();
@@ -349,4 +369,70 @@ public class RecipeManager extends BaseManager {
         recipeExtendDAO.updateNonNullFieldByPrimaryKey(updateRecipeExt);
         logger.info("RecipeManager updatePushHisRecipeExt updateRecipeExt:{}.", JSON.toJSONString(updateRecipeExt));
     }
+
+    /**
+     * 校验开处方单数限制
+     * todo 废弃 其他接口中的引用 ，目前提供前端调用接口，暂时保留老代码支持兼容老app使用
+     *
+     * @param clinicId 复诊id
+     * @param organId  机构id
+     * @return true 可开方
+     */
+    @Deprecated
+    public Boolean isOpenRecipeNumber(Integer clinicId, Integer organId, Integer recipeId) {
+        logger.info("RecipeManager isOpenRecipeNumber clinicId: {},organId: {}", clinicId, organId);
+        if (ValidateUtil.integerIsEmpty(clinicId)) {
+            return true;
+        }
+        //运营平台没有处方单数限制，默认可以无限进行开处方
+        Integer openRecipeNumber = configurationClient.getValueCatch(organId, "openRecipeNumber", 99);
+        logger.info("RecipeManager isOpenRecipeNumber openRecipeNumber={}", openRecipeNumber);
+        if (ValidateUtil.integerIsEmpty(openRecipeNumber)) {
+            saveRecipeLog(recipeId, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS, "开方张数已超出医院限定范围，不能继续开方。");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "开方张数0已超出医院限定范围，不能继续开方。");
+        }
+        //查询当前复诊存在的有效处方单
+        List<Recipe> recipeCount = recipeDAO.findRecipeClinicIdAndStatus(clinicId, RecipeStatusEnum.RECIPE_REPEAT_COUNT);
+        if (CollectionUtils.isEmpty(recipeCount)) {
+            return true;
+        }
+        List<Integer> recipeIds;
+        if (ValidateUtil.integerIsEmpty(recipeId)) {
+            recipeIds = recipeCount.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        } else {
+            recipeIds = recipeCount.stream().filter(a -> !a.getRecipeId().equals(recipeId)).map(Recipe::getRecipeId).collect(Collectors.toList());
+        }
+        if (CollectionUtils.isEmpty(recipeIds)) {
+            return true;
+        }
+        logger.info("RecipeManager isOpenRecipeNumber recipeCount={}", recipeIds.size());
+        if (recipeIds.size() >= openRecipeNumber) {
+            saveRecipeLog(recipeId, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS, "开方张数已超出医院限定范围，不能继续开方。");
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "开方张数已超出医院限定范围，不能继续开方。");
+        }
+        return true;
+    }
+
+    /**
+     * 根据复诊id获取处方明细，并排除 特定处方id
+     *
+     * @param clinicId 复诊id
+     * @param recipeId 特定处方id
+     * @return 处方明细
+     */
+    public List<Integer> findRecipeByClinicId(Integer clinicId, Integer recipeId, List<Integer> status) {
+        List<Recipe> recipeList = recipeDAO.findRecipeClinicIdAndStatus(clinicId, status);
+        logger.info("RecipeManager findRecipeByClinicId recipeList:{}", JSON.toJSONString(recipeList));
+        if (CollectionUtils.isEmpty(recipeList)) {
+            return null;
+        }
+        List<Integer> recipeIds;
+        if (ValidateUtil.integerIsEmpty(recipeId)) {
+            recipeIds = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        } else {
+            recipeIds = recipeList.stream().filter(a -> !a.getRecipeId().equals(recipeId)).map(Recipe::getRecipeId).collect(Collectors.toList());
+        }
+        return recipeIds;
+    }
+
 }

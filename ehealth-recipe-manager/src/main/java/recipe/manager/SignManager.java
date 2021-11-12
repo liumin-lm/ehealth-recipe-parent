@@ -8,8 +8,6 @@ import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import ctd.util.FileAuth;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DoctorClient;
@@ -28,7 +26,6 @@ import java.util.List;
  */
 @Service
 public class SignManager extends BaseManager {
-    private final Logger logger = LoggerFactory.getLogger(this.getClass());
     /**
      * 第三方手签
      */
@@ -163,6 +160,15 @@ public class SignManager extends BaseManager {
         logger.info("SignManager signImg param organId:{},doctorId:{},recipeId:{},type:{}", organId, doctorId, recipeId, type);
         if (ValidateUtil.integerIsEmpty(organId)) {
             return null;
+        }
+        if (new Integer(CARecipeTypeConstant.CA_RECIPE_PHA).equals(type)) {
+            Recipe recipe = recipeDAO.get(recipeId);
+            if (recipe == null) {
+                return null;
+            }
+            if (new Integer(5).equals(recipe.getCheckMode())) {
+                return thirdSeal(recipeId, type);
+            }
         }
         //根据ca配置：判断签章显示是显示第三方的签章还是平台签章还是线下手签，默认使用平台签章
         String sealDataFrom = configurationClient.getValueCatch(organId, "sealDataFrom", CA_SEAL_PLAT_FORM);

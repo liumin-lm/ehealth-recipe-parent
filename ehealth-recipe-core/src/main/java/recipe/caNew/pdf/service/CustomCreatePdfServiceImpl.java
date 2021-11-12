@@ -61,7 +61,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
     private final String EXTEND = OP_RECIPE_EXTEND + DOT_EN;
     private final List<String> ADDITIONAL_FIELDS = Arrays.asList(RECIPE + OP_RECIPE_DOCTOR, RECIPE + OP_RECIPE_CHECKER,
             RECIPE + OP_RECIPE_GIVE_USER, RECIPE + OP_RECIPE_ACTUAL_PRICE, OP_BARCODE_ALL, EXTEND + OP_RECIPE_EXTEND_SUPERVISE
-            , "recipe.patientID", "recipe.recipeCode", "address", "recipeExtend.decoctionText", "recipe.organName");
+            , "recipe.patientID", "recipe.recipeCode", "address", "recipeExtend.decoctionText", "recipe.organName", "recipeOrder.dispensingTime");
     @Autowired
     private RedisManager redisManager;
     @Autowired
@@ -174,6 +174,21 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         }
         CoOrdinateVO coords = new CoOrdinateVO();
         coords.setValue(recipeFee.toString());
+        coords.setX(ordinateVO.getX());
+        coords.setY(ordinateVO.getY());
+        coords.setRepeatWrite(true);
+        return coords;
+    }
+
+    @Override
+    public CoOrdinateVO updateDispensingTimePdf(Recipe recipe, String dispensingTime) {
+        logger.info("CustomCreatePdfServiceImpl updateDispensingTimePdf  recipeId={},dispensingTime={}", recipe.getRecipeId(), dispensingTime);
+        CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), "recipeOrder.dispensingTime");
+        if (null == ordinateVO) {
+            return null;
+        }
+        CoOrdinateVO coords = new CoOrdinateVO();
+        coords.setValue(dispensingTime);
         coords.setX(ordinateVO.getX());
         coords.setY(ordinateVO.getY());
         coords.setRepeatWrite(true);
@@ -498,7 +513,8 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             list.add(new RecipeLabelDTO("药品名称", "recipeDetail.drugName_" + i, detail.getDrugName()));
             list.add(new RecipeLabelDTO("包装规格", "recipeDetail.drugSpec_" + i, ByteUtils.objValueOfString(detail.getDrugSpec()) + "/" + ByteUtils.objValueOfString(detail.getDrugUnit())));
             list.add(new RecipeLabelDTO("发药数量", "recipeDetail.useTotalDose_" + i, ByteUtils.objValueOfString(detail.getUseTotalDose()) + ByteUtils.objValueOfString(detail.getDrugUnit())));
-            list.add(new RecipeLabelDTO("每次用量", "recipeDetail.useDose_" + i, "Sig: 每次 " + ByteUtils.objValueOfString(detail.getUseDose()) + ByteUtils.objValueOfString(detail.getUseDoseUnit())));
+            String useDose = StringUtils.isNotEmpty(detail.getUseDoseStr()) ? detail.getUseDoseStr() : detail.getUseDose() + detail.getUseDoseUnit();
+            list.add(new RecipeLabelDTO("每次用量", "recipeDetail.useDose_" + i, "Sig: 每次 " + useDose));
             list.add(new RecipeLabelDTO("用药频次", "recipeDetail.usingRate_" + i, DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", detail.getUsingRate())));
             list.add(new RecipeLabelDTO("用药途径", "recipeDetail.usePathways_" + i, DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", detail.getUsePathways())));
             list.add(new RecipeLabelDTO("用药天数", "recipeDetail.useDays_" + i, getUseDays(detail.getUseDaysB(), detail.getUseDays())));

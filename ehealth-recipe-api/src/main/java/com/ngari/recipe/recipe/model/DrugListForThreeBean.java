@@ -25,6 +25,7 @@ public class DrugListForThreeBean implements Serializable{
     private String usePathwaysText;
     private String drugTotalFee;
     private String memo;
+    private String drugForm;
 
     public String getDrugCode() {
         return drugCode;
@@ -186,5 +187,11 @@ public class DrugListForThreeBean implements Serializable{
         this.memo = memo;
     }
 
+    public String getDrugForm() {
+        return drugForm;
+    }
 
+    public void setDrugForm(String drugForm) {
+        this.drugForm = drugForm;
+    }
 }

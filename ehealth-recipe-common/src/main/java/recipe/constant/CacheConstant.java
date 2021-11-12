@@ -134,4 +134,14 @@ public class CacheConstant {
     public static final String KEY_MEDIC_INSURSETTLE_APPlY = "MEDIC_INSURSETTLE_APPlY_";
 
     public static final String KEY_RECIPE_LABEL = "KEY_RECIPE_LABEL_";
+
+    /**
+     * 支付退款回调分布式锁
+     */
+    public static final String KEY_PAY_REFUND_LOCK = "KEY_PAY_REFUND_";
+
+    /**
+     * 慢病病种的查询
+     */
+    public static final String KEY_CHRONIC_DISEASE_FLAG = "KEY_CHRONIC_DISEASE_FLAG_";
 }

@@ -380,6 +380,35 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "签名的处方img")
     private String signImg;
 
+    @ItemProperty(alias = "处方审核状态")
+    private Integer checkFlag;
+
+    @ItemProperty(alias = "挂号科室名称")
+    private String appointDepartName;
+
+    @ItemProperty(alias = "机构一级科室编码")
+    @Dictionary(id = "eh.base.dictionary.OrganProfession")
+    private Integer organProfession;
+
+    @ItemProperty(alias = "处方支持的购药方式,逗号分隔")
+    private String recipeSupportGiveMode;
+
+    public String getRecipeSupportGiveMode() {
+        return recipeSupportGiveMode;
+    }
+
+    public void setRecipeSupportGiveMode(String recipeSupportGiveMode) {
+        this.recipeSupportGiveMode = recipeSupportGiveMode;
+    }
+
+    public Integer getCheckFlag() {
+        return checkFlag;
+    }
+
+    public void setCheckFlag(Integer checkFlag) {
+        this.checkFlag = checkFlag;
+    }
+
     public String getSignImg() {
         return signImg;
     }
@@ -1311,6 +1340,22 @@ public class RecipeBean implements Serializable {
 
     public void setWxDisplayTime(String wxDisplayTime) {
         this.wxDisplayTime = wxDisplayTime;
+    }
+
+    public String getAppointDepartName() {
+        return appointDepartName;
+    }
+
+    public void setAppointDepartName(String appointDepartName) {
+        this.appointDepartName = appointDepartName;
+    }
+
+    public Integer getOrganProfession() {
+        return organProfession;
+    }
+
+    public void setOrganProfession(Integer organProfession) {
+        this.organProfession = organProfession;
     }
 
     /**

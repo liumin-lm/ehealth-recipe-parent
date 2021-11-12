@@ -27,6 +27,11 @@ public class OutPatientRecipeReqVO extends OutPatientReqVO implements Serializab
     private String patientName;
 
     /**
+     * 患者病历号
+     */
+    private String patientId;
+
+    /**
      * 查询开始时间
      */
     private String beginTime;

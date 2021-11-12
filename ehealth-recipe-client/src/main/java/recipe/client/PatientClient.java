@@ -1,6 +1,7 @@
 package recipe.client;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.jgpt.zjs.service.IMinkeOrganService;
@@ -8,6 +9,7 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.PatientDTO;
+import ctd.persistence.exception.DAOException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
@@ -116,15 +118,16 @@ public class PatientClient extends BaseClient {
 
     /**
      * 查询线下患者信息
+     *
      * @param patientQueryRequestTO
      * @return
      */
-    public PatientQueryRequestTO queryPatient(PatientQueryRequestTO patientQueryRequestTO){
-        logger.info("PatientClient queryPatient patientQueryRequestTO:{}." , JSON.toJSONString(patientQueryRequestTO));
+    public PatientQueryRequestTO queryPatient(PatientQueryRequestTO patientQueryRequestTO) {
+        logger.info("PatientClient queryPatient patientQueryRequestTO:{}.", JSON.toJSONString(patientQueryRequestTO));
         try {
             HisResponseTO<PatientQueryRequestTO> response = patientHisService.queryPatient(patientQueryRequestTO);
             PatientQueryRequestTO result = getResponse(response);
-            if (result == null){
+            if (result == null) {
                 return null;
             }
             result.setCardID(null);
@@ -137,6 +140,51 @@ public class PatientClient extends BaseClient {
             return null;
         }
     }
+
+
+    /**
+     * todo  与 queryPatient 合成一个接口
+     * 判断是否是医保患者
+     *
+     * @return
+     */
+    public Boolean isMedicarePatient(Integer organId, String mpiId) {
+        //获取his患者信息判断是否医保患者
+        PatientQueryRequestTO req = new PatientQueryRequestTO();
+        req.setOrgan(organId);
+        PatientDTO patient = getPatientDTO(mpiId);
+        req.setPatientName(patient.getPatientName());
+        req.setCertificateType(patient.getCertificateType());
+        req.setCertificate(patient.getCertificate());
+        try {
+            HisResponseTO<PatientQueryRequestTO> response = patientHisService.queryPatient(req);
+            PatientQueryRequestTO result = getResponse(response);
+            if (result != null && "2".equals(result.getPatientType())) {
+                return true;
+            }
+        } catch (Exception e) {
+            logger.error("PatientClient isMedicarePatient error ", e);
+            throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "查询患者信息异常，请稍后重试");
+        }
+        return false;
+    }
+
+    /**
+     * 获取当前患者所有家庭成员(包括自己)
+     * @param mpiId 当前就诊人
+     * @return 所有就诊人
+     */
+    public List<String> getAllMemberPatientsByCurrentPatient(String mpiId) {
+        logger.info("getAllMemberPatientsByCurrentPatient mpiId:{}.", mpiId);
+        List<String> allMpiIds = Lists.newArrayList();
+        String loginId = patientService.getLoginIdByMpiId(mpiId);
+        if (StringUtils.isNotEmpty(loginId)) {
+            allMpiIds = patientService.findMpiIdsByLoginId(loginId);
+        }
+        logger.info("getAllMemberPatientsByCurrentPatient allMpiIds:{}.", JSON.toJSONString(allMpiIds));
+        return allMpiIds;
+    }
+
 
     /**
      * 患者信息脱敏
@@ -153,9 +201,12 @@ public class PatientClient extends BaseClient {
         if (StringUtils.isNotEmpty(p.getIdcard())) {
             p.setIdcard(ChinaIDNumberUtil.hideIdCard(p.getIdcard()));
         }
+        if (null != p.getCertificateType() && 1 == p.getCertificateType() && StringUtils.isNotEmpty(p.getCertificate())) {
+            p.setCertificate(ChinaIDNumberUtil.hideIdCard(p.getCertificate()));
+        }
         p.setAge(null == p.getBirthday() ? 0 : DateConversion.getAge(p.getBirthday()));
         p.setIdcard2(null);
-        p.setCertificate(null);
+        p.setPhoto(null == p.getPhoto() ? "" : p.getPhoto());
         return p;
     }
 

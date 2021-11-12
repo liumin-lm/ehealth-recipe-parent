@@ -1,5 +1,6 @@
 package recipe.vo.doctor;
 
+import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import lombok.AllArgsConstructor;
@@ -35,7 +36,10 @@ public class ValidateDetailVO {
      * 处方扩展字段
      */
     private RecipeExtendBean recipeExtendBean;
-
+    /**
+     * 处方信息
+     */
+    private RecipeBean recipeBean;
     /**
      * 是否长处方 是： true  否：false
      */

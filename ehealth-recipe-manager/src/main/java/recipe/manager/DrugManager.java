@@ -44,6 +44,8 @@ public class DrugManager extends BaseManager {
     private OrganDrugListDAO organDrugListDAO;
     @Autowired
     private DispensatoryDAO dispensatoryDAO;
+    @Autowired
+    private RecipeRulesDrugcorrelationDao recipeRulesDrugcorrelationDao;
 
     /**
      * todo 分层不合理 静态不合理 方法使用不合理 需要修改 （尹盛）
@@ -238,16 +240,18 @@ public class DrugManager extends BaseManager {
         }
         // 拼接 药品图片
         Set<Integer> drugIds = drugWithEsByPatient.stream().map(PatientDrugWithEsDTO::getDrugId).collect(Collectors.toSet());
-        if (CollectionUtils.isNotEmpty(drugIds)) {
-            List<DrugList> byDrugIds = drugListDAO.findByDrugIds(drugIds);
-            if (CollectionUtils.isNotEmpty(byDrugIds)) {
-                Map<Integer, List<DrugList>> collect = byDrugIds.stream().collect(Collectors.groupingBy(DrugList::getDrugId));
-                drugWithEsByPatient.forEach(patientDrugWithEsDTO -> {
-                    patientDrugWithEsDTO.setDrugPic(collect.get(patientDrugWithEsDTO.getDrugId()).get(0).getDrugPic());
-                });
-            }
-
+        List<DrugList> byDrugIds = drugListDAO.findByDrugIds(drugIds);
+        logger.info("DrugManager findDrugWithEsByPatient  byDrugIds:{}", JSON.toJSONString(byDrugIds));
+        if (CollectionUtils.isEmpty(byDrugIds)) {
+            return drugWithEsByPatient;
         }
+        Map<Integer, List<DrugList>> collect = byDrugIds.stream().collect(Collectors.groupingBy(DrugList::getDrugId));
+        drugWithEsByPatient.forEach(patientDrugWithEsDTO -> {
+            List<DrugList> drugLists = collect.get(patientDrugWithEsDTO.getDrugId());
+            if (CollectionUtils.isNotEmpty(drugLists)) {
+                patientDrugWithEsDTO.setDrugPic(drugLists.get(0).getDrugPic());
+            }
+        });
         logger.info("DrugManager findDrugWithEsByPatient res drugWithEsByPatient:{}", JSON.toJSONString(drugWithEsByPatient));
         return drugWithEsByPatient;
     }
@@ -271,4 +275,19 @@ public class DrugManager extends BaseManager {
         logger.info("DrugManager.getDrugBook res dispensatory={} drugId={}", dispensatory, drugId);
         return dispensatory;
     }
+
+    public List<RecipeRulesDrugcorrelation> getListDrugRules(List<Integer> list, Integer ruleId){
+        logger.info("DrugManager.getListDrugRules req list={} ruleId={}", JSON.toJSONString(list), ruleId);
+        List<RecipeRulesDrugcorrelation> result = new ArrayList<>();
+        if(CollectionUtils.isEmpty(list)){
+            return result;
+        }
+        if(ruleId == null){
+            return result;
+        }
+        result = recipeRulesDrugcorrelationDao.findListRules(list,ruleId);
+        logger.info("DrugManager.getDrugBook res result={} drugId={}", JSON.toJSONString(result));
+        return result;
+    }
+
 }

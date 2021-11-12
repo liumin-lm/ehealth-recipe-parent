@@ -27,6 +27,7 @@ import recipe.dao.RecipeOrderDAO;
 import recipe.manager.SignManager;
 import recipe.service.RecipeLogService;
 import recipe.thread.RecipeBusiThreadPool;
+import recipe.util.ByteUtils;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
@@ -169,7 +170,7 @@ public class CreatePdfFactory {
      *
      * @param recipeId
      */
-    public void updateCheckNamePdf(Integer recipeId) {
+    public void updateCheckNamePdf(Integer recipeId,Boolean caFlag) {
         Recipe recipe = validate(recipeId);
         logger.info("CreatePdfFactory updateCheckNamePdf recipeId:{}", recipeId);
         boolean usePlatform = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", true);
@@ -177,8 +178,11 @@ public class CreatePdfFactory {
             return;
         }
         //获取签名图片
-        AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
-        String signImageId = sttachSealPicDTO.getCheckerSignImg();
+        String signImageId = null;
+        if(caFlag){
+            AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
+            signImageId = sttachSealPicDTO.getCheckerSignImg();
+        }
         try {
             CreatePdfService createPdfService = createPdfService(recipe);
             String fileId = createPdfService.updateCheckNamePdf(recipe, signImageId);
@@ -210,15 +214,18 @@ public class CreatePdfFactory {
         if (!usePlatform) {
             return;
         }
+        // todo 下载签名文件
         byte[] chemistSignFileByte = CreateRecipePdfUtil.signFileByte(recipe.getSignFile());
 
         SignRecipePdfVO pdfEsign = new SignRecipePdfVO();
         pdfEsign.setData(chemistSignFileByte);
         pdfEsign.setWidth(100f);
         pdfEsign.setFileName("recipecheck" + recipe.getRecipeId() + ".pdf");
+        // todo 这个是默认的值吗
         pdfEsign.setDoctorId(recipe.getChecker());
         pdfEsign.setQrCodeSign(false);
         try {
+            // todo 这个是签名对象
             byte[] data = createPdfService.updateCheckNamePdfEsign(recipeId, pdfEsign);
             if (null == data) {
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "药师E签宝签名部分生成null");
@@ -227,6 +234,7 @@ public class CreatePdfFactory {
             String fileId = CreateRecipePdfUtil.signFileByte(data, "recipecheck" + recipe.getRecipeId() + ".pdf");
             Recipe recipeUpdate = new Recipe();
             recipeUpdate.setRecipeId(recipe.getRecipeId());
+            // todo 处方签名图片
             recipeUpdate.setChemistSignFile(fileId);
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
             logger.info("CreatePdfFactory updateCheckNamePdfEsign  recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
@@ -251,6 +259,7 @@ public class CreatePdfFactory {
             return;
         }
         RecipeBusiThreadPool.execute(() -> {
+            long start = System.currentTimeMillis();
             Recipe recipe = validate(recipeId);
             CreatePdfService createPdfService = createPdfService(recipe);
             CoOrdinateVO coords = createPdfService.updateTotalPdf(recipe, recipeFee);
@@ -270,10 +279,13 @@ public class CreatePdfFactory {
             } catch (Exception e) {
                 logger.error("CreatePdfFactory updateTotalPdfExecute  error recipeId={}", recipeId, e);
                 return;
+            }finally {
+                recipeUpdate.setRecipeId(recipeId);
+                recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+                logger.info("CreatePdfFactory updateTotalPdfExecute recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
+                long elapsedTime = System.currentTimeMillis() - start;
+                logger.info("RecipeBusiThreadPool updateTotalPdfExecute pdf-处方金额追加 执行时间:{}.", elapsedTime);
             }
-            recipeUpdate.setRecipeId(recipeId);
-            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-            logger.info("CreatePdfFactory updateTotalPdfExecute recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
         });
     }
 
@@ -285,6 +297,7 @@ public class CreatePdfFactory {
     public void updateCodePdfExecute(Integer recipeId) {
         logger.info("CreatePdfFactory updateCodePdfExecute recipeId:{}", recipeId);
         RecipeBusiThreadPool.execute(() -> {
+            long start = System.currentTimeMillis();
             Recipe recipe = validate(recipeId);
             CreatePdfService createPdfService = createPdfService(recipe);
             try {
@@ -300,6 +313,9 @@ public class CreatePdfFactory {
                 logger.info("CreatePdfFactory updateCodePdfExecute recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
             } catch (Exception e) {
                 logger.error("CreatePdfFactory updateCodePdfExecute error！recipeId:{}", recipeId, e);
+            }finally {
+                long elapsedTime = System.currentTimeMillis() - start;
+                logger.info("RecipeBusiThreadPool updateCodePdfExecute pdf-处方号和患者病历号追加 执行时间:{}.", elapsedTime);
             }
         });
     }
@@ -317,6 +333,7 @@ public class CreatePdfFactory {
             return;
         }
         RecipeBusiThreadPool.execute(() -> {
+            long start = System.currentTimeMillis();
             Recipe recipe = validate(recipeId);
             CreatePdfService createPdfService = createPdfService(recipe);
             try {
@@ -341,6 +358,9 @@ public class CreatePdfFactory {
                 }
             } catch (Exception e) {
                 logger.error("CreatePdfFactory updateAddressPdfExecute  recipe: {}", recipe.getRecipeId(), e);
+            }finally {
+                long elapsedTime = System.currentTimeMillis() - start;
+                logger.info("RecipeBusiThreadPool updateAddressPdfExecute pdf-添加收货人信息/煎法追加 执行时间:{}.", elapsedTime);
             }
         });
     }
@@ -352,12 +372,8 @@ public class CreatePdfFactory {
      * @return
      */
     public void updateGiveUser(Recipe recipe) {
+        long start = System.currentTimeMillis();
         logger.info("CreatePdfFactory updateGiveUser recipe={}", JSON.toJSONString(recipe));
-        //获取 核对发药药师签名id
-        ApothecaryDTO apothecaryDTO = signManager.giveUser(recipe.getClinicOrgan(), recipe.getGiveUser(), recipe.getRecipeId());
-        if (StringUtils.isEmpty(apothecaryDTO.getGiveUserSignImg())) {
-            return;
-        }
         //判断发药状态
         if (StringUtils.isEmpty(recipe.getOrderCode())) {
             return;
@@ -366,14 +382,37 @@ public class CreatePdfFactory {
         if (null == recipeOrder || null == recipeOrder.getDispensingTime()) {
             return;
         }
-        //获取pdf坐标
+        Recipe recipeUpdate = new Recipe();
+        recipeUpdate.setRecipeId(recipe.getRecipeId());
         CreatePdfService createPdfService = createPdfService(recipe);
+        //写入发药时间
+        CoOrdinateVO coords = createPdfService.updateDispensingTimePdf(recipe, ByteUtils.dateToSting(recipeOrder.getDispensingTime()));
+        try {
+            if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+                String fileId = CreateRecipePdfUtil.generateCoOrdinatePdf(recipe.getChemistSignFile(), coords);
+                recipeUpdate.setChemistSignFile(fileId);
+                recipe.setChemistSignFile(fileId);
+            } else if (StringUtils.isNotEmpty(recipe.getSignFile())) {
+                String fileId = CreateRecipePdfUtil.generateCoOrdinatePdf(recipe.getSignFile(), coords);
+                recipeUpdate.setSignFile(fileId);
+                recipe.setSignFile(fileId);
+            }
+        } catch (Exception e) {
+            logger.error("CreatePdfFactory updateGiveUser updateDispensingTimePdf  recipe: {}", recipe.getRecipeId(), e);
+            return;
+        }
+        recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+        //获取 核对发药药师签名id
+        ApothecaryDTO apothecaryDTO = signManager.giveUser(recipe.getClinicOrgan(), recipe.getGiveUser(), recipe.getRecipeId());
+        if (StringUtils.isEmpty(apothecaryDTO.getGiveUserSignImg())) {
+            return;
+        }
+        //获取pdf坐标
         SignImgNode signImgNode = createPdfService.updateGiveUser(recipe);
         if (null == signImgNode) {
             return;
         }
         signImgNode.setSignImgFileId(apothecaryDTO.getGiveUserSignImg());
-        Recipe recipeUpdate = new Recipe();
         try {
             if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
                 signImgNode.setSignFileId(recipe.getChemistSignFile());
@@ -388,9 +427,8 @@ public class CreatePdfFactory {
             logger.error("CreatePdfFactory updateGiveUser  recipe: {}", recipe.getRecipeId(), e);
             return;
         }
-        recipeUpdate.setRecipeId(recipe.getRecipeId());
         recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-        logger.info("CreatePdfFactory updateGiveUser recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
+        logger.info("CreatePdfFactory updateGiveUser recipeUpdate ={},执行时间:{}", JSON.toJSONString(recipeUpdate), System.currentTimeMillis() - start);
     }
 
 
@@ -403,6 +441,7 @@ public class CreatePdfFactory {
     public void updatePdfToImg(Integer recipeId) {
         logger.info("CreatePdfFactory updatePdfToImg recipeId:{}", recipeId);
         RecipeBusiThreadPool.execute(() -> {
+            long start = System.currentTimeMillis();
             Recipe recipe = validate(recipeId);
             if (RecipeUtil.isTcmType(recipe.getRecipeType())) {
                 return;
@@ -418,6 +457,9 @@ public class CreatePdfFactory {
             } catch (Exception e) {
                 logger.error("CreatePdfFactory updatePdfToImg error", e);
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "pdf转图片生成失败");
+            }finally {
+                long elapsedTime = System.currentTimeMillis() - start;
+                logger.info("RecipeBusiThreadPool updatePdfToImg pdf-转图片 执行时间:{}.", elapsedTime);
             }
         });
     }
@@ -429,6 +471,7 @@ public class CreatePdfFactory {
      */
     public void updatesealPdfExecute(Integer recipeId) {
         RecipeBusiThreadPool.execute(() -> {
+            long start = System.currentTimeMillis();
             logger.info("GenerateSignetRecipePdfRunable start recipeId={}", recipeId);
             Recipe recipe = recipeDAO.get(recipeId);
             if (null == recipe || StringUtils.isEmpty(recipe.getChemistSignFile())) {
@@ -455,6 +498,9 @@ public class CreatePdfFactory {
                 logger.info("GenerateSignetRecipePdfRunable end recipeUpdate={}", JSON.toJSONString(recipeUpdate));
             } catch (Exception e) {
                 logger.error("GenerateSignetRecipePdfRunable error recipeId={}, e={}", recipeId, e);
+            }finally {
+                long elapsedTime = System.currentTimeMillis() - start;
+                logger.info("RecipeBusiThreadPool updatesealPdfExecute pdf-机构印章 执行时间:{}.", elapsedTime);
             }
         });
     }
@@ -469,6 +515,7 @@ public class CreatePdfFactory {
     public void updateSuperviseRecipeCodeExecute(Integer recipeId, String superviseRecipeCode) {
         logger.info("CreatePdfFactory updateSuperviseRecipeCodeExecute recipeId:{},superviseRecipeCode:{}", recipeId, superviseRecipeCode);
         RecipeBusiThreadPool.execute(() -> {
+            long start = System.currentTimeMillis();
             Recipe recipe = validate(recipeId);
             CreatePdfService createPdfService = createPdfService(recipe);
             Recipe recipeUpdate = new Recipe();
@@ -483,10 +530,13 @@ public class CreatePdfFactory {
             } catch (Exception e) {
                 logger.error("CreatePdfFactory updateSuperviseRecipeCodeExecute  recipeId: {}", recipeId, e);
                 return;
+            }finally {
+                recipeUpdate.setRecipeId(recipeId);
+                recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+                logger.info("CreatePdfFactory updateSuperviseRecipeCodeExecute recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
+                long elapsedTime = System.currentTimeMillis() - start;
+                logger.info("RecipeBusiThreadPool updateSuperviseRecipeCodeExecute pdf-监管流水号追加 执行时间:{}.", elapsedTime);
             }
-            recipeUpdate.setRecipeId(recipeId);
-            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-            logger.info("CreatePdfFactory updateSuperviseRecipeCodeExecute recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
         });
     }
 

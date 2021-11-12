@@ -1,7 +1,10 @@
 package recipe.client;
 
-import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
+import com.ngari.patient.dto.AppointDepartDTO;
+import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.AppointDepartService;
+import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.OrganService;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -19,20 +22,20 @@ import java.util.stream.Collectors;
  * @author fuzi
  */
 @Service
-public class OrganClient extends BaseClient{
-
+public class OrganClient extends BaseClient {
     @Autowired
-    private ICurrentUserInfoService currentUserInfoService;
-
+    private AppointDepartService appointDepartService;
     @Autowired
     private OrganService organService;
+    @Autowired
+    private DepartmentService departmentService;
 
     /**
-     * 获取当前区域公众号下机构
+     * 查询当前区域公众号下所有归属机构
+     *
      * @return 机构列表
      */
-    public List<Integer> findOrganIdsByCurrentClient(){
-        //查询当前区域公众号下所有归属机构
+    public List<Integer> findOrganIdsByCurrentClient() {
         List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
         logger.info("OrganClient getOrganForWeb getCurrentOrganIds organIds:{}", JSONUtils.toString(organIds));
         return organIds;
@@ -64,5 +67,26 @@ public class OrganClient extends BaseClient{
         OrganDTO organDTO = organService.getByOrganId(organId);
         logger.info("OrganClient organDTO organDTO {}", JSONUtils.toString(organDTO));
         return ObjectCopyUtils.convert(organDTO, com.ngari.recipe.dto.OrganDTO.class);
+    }
+
+    /**
+     * 获取可是科室信息
+     *
+     * @param organId  机构id
+     * @param departId 开方可是id
+     * @return
+     */
+    public AppointDepartDTO departDTO(Integer organId, Integer departId) {
+        return appointDepartService.findByOrganIDAndDepartID(organId, departId);
+    }
+
+    /**
+     * 获取可是信息
+     *
+     * @param departId 开方可是id
+     * @return
+     */
+    public DepartmentDTO departmentDTO(Integer departId) {
+        return departmentService.get(departId);
     }
 }

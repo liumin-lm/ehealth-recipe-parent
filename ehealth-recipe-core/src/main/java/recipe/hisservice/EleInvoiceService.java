@@ -110,6 +110,7 @@ public class EleInvoiceService {
         }
         if (StringUtils.isNotBlank(patientDTO.getGuardianCertificate())) {
             eleInvoiceReqTo.setLxrzjh(patientDTO.getGuardianCertificate());
+            eleInvoiceReqTo.setGuardianCertificateType(patientDTO.getGuardianCertificateType());
         }
         if (StringUtils.isNotBlank(patientDTO.getMobile())) {
             eleInvoiceReqTo.setLxrdh(patientDTO.getMobile());
@@ -117,6 +118,7 @@ public class EleInvoiceService {
         }
         if (StringUtils.isNotBlank(patientDTO.getCertificate())) {
             eleInvoiceReqTo.setSfzh(patientDTO.getCertificate());
+            eleInvoiceReqTo.setCertificateType(patientDTO.getCertificateType());
         }
         if (StringUtils.isNotBlank(eleInvoiceDTO.getCardId())) {
             eleInvoiceReqTo.setCardno(eleInvoiceDTO.getCardId());
@@ -242,7 +244,7 @@ public class EleInvoiceService {
         } catch (Exception e) {
             LOGGER.error("EleInvoiceService ", e);
         }
-        
+
     }
 
 

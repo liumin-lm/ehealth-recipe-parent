@@ -56,7 +56,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
     public abstract List<DrugsEnterprise> findByIdIn(List<Integer> ids);
 
     /**
-     * 根据organId查找
+     * 根据organId查找  机构配置 配送药企
      *
      * @param organId
      * @return
@@ -66,11 +66,11 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
     public abstract List<DrugsEnterprise> findByOrganId(@DAOParam("organId") Integer organId);
 
     /**
-     * 根据organID获取自建药企
+     * 根据organID获取 机构 关联药企
      * @param organId
      * @return
      */
-    @DAOMethod(sql = "from DrugsEnterprise where status=1 and organId=:organId")
+    @DAOMethod(sql = "from DrugsEnterprise where status=1 and organId=:organId  ")
     public abstract List<DrugsEnterprise> findByOrganIdZj(@DAOParam("organId") Integer organId);
 
     /**
@@ -80,6 +80,15 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      */
     @DAOMethod(sql = "from DrugsEnterprise where  name=:name")
     public abstract DrugsEnterprise getByName(@DAOParam("name") String name);
+
+
+    /**
+     * 根据name获取自建药企
+     * @param enterpriseCode
+     * @return
+     */
+    @DAOMethod(sql = "from DrugsEnterprise where  enterpriseCode=:enterpriseCode")
+    public abstract DrugsEnterprise getByEnterpriseCode(@DAOParam("enterpriseCode") String enterpriseCode);
 
     /**
     /**
@@ -179,7 +188,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      *
      * @return
      */
-    @DAOMethod(sql = "select id from DrugsEnterprise where status=1 and createType = 1 ", limit = 0)
+    @DAOMethod(sql = "select id from DrugsEnterprise where status=1 and updateTokenFlag = 1 ", limit = 0)
     public abstract List<Integer> findNeedUpdateIds();
 
     /**
@@ -374,4 +383,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
 
     @DAOMethod(sql = "from DrugsEnterprise where manageUnit=:manageUnit", limit = 1)
     public abstract DrugsEnterprise getByManageUnit(@DAOParam("manageUnit") String manageUnit);
+
+    @DAOMethod(sql = "from DrugsEnterprise where status=1 and id in(:ids)")
+    public abstract List<DrugsEnterprise> findByIds(@DAOParam("ids") List<Integer> ids);
 }

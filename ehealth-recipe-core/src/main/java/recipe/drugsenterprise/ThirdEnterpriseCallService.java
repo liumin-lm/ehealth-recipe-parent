@@ -411,16 +411,22 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             //将快递公司快递单号信息用更新配送方式接口更新至his
             if (StringUtils.isNotEmpty(logisticsCompany) && StringUtils.isNotEmpty(trackingNumber)) {
                 RecipeBusiThreadPool.submit(() -> {
+                    LOGGER.info("sendImpl start");
+                    long start = System.currentTimeMillis();
                     RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
                     RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
                     List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
                     PatientBean patientBean = iPatientService.get(recipe.getMpiid());
                     DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, null);
                     service.drugTakeChange(request);
+                    long elapsedTime = System.currentTimeMillis() - start;
+                    LOGGER.info("RecipeBusiThreadPool sendImpl 将配送信息同步到HIS 执行时间:{}.", elapsedTime);
                     return null;
                 });
                 //监管平台上传配送信息(派药)
                 RecipeBusiThreadPool.submit(() -> {
+                    LOGGER.info("sendImpl start");
+                    long start = System.currentTimeMillis();
                     HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
                     CommonResponse response = hisSyncService.uploadSendMedicine(recipeId);
                     if (CommonConstant.SUCCESS.equals(response.getCode())) {
@@ -432,6 +438,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.IN_SEND,
                                 "监管平台配送信息[派药]上传失败：" + response.getMsg());
                     }
+                    long elapsedTime = System.currentTimeMillis() - start;
+                    LOGGER.info("RecipeBusiThreadPool sendImpl 监管平台上传配送信息(派药) 执行时间:{}.", elapsedTime);
                     return null;
                 });
             }
@@ -592,6 +600,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             CommonOrder.finishGetDrugUpdatePdf(recipeId);
             //监管平台上传配送信息(配送到家-处方完成)
             RecipeBusiThreadPool.submit(() -> {
+                LOGGER.info("finishRecipe start");
+                long start = System.currentTimeMillis();
                 HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
                 CommonResponse response = hisSyncService.uploadFinishMedicine(recipeId);
                 if (CommonConstant.SUCCESS.equals(response.getCode())) {
@@ -603,6 +613,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                     RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.FINISH,
                             "监管平台配送信息[配送到家-处方完成]上传失败：" + response.getMsg());
                 }
+                long elapsedTime = System.currentTimeMillis() - start;
+                LOGGER.info("RecipeBusiThreadPool finishRecipe 监管平台上传配送信息(配送到家-处方完成) 执行时间:{}.", elapsedTime);
                 return null;
             });
 
@@ -1794,7 +1806,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipes:{} .", JSONUtils.toString(recipes));
             Recipe recipe = recipes.get(0);
 
-            if (recipeOrder.getOrderType() != 1 && BigDecimal.ZERO.compareTo(recipeOrder.getCouponFee()) == 0
+            if (!new Integer(1).equals(recipeOrder.getOrderType()) && BigDecimal.ZERO.compareTo(recipeOrder.getCouponFee()) == 0
                     && new Integer(1).equals(recipeOrder.getPayMode())) {
                 //表示不是医保患者并且没有优惠券并且是线上支付的,那他一定要支付钱
                 if (StringUtils.isEmpty(recipeOrder.getOutTradeNo())) {
@@ -1851,6 +1863,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setPharmacyName(convertParame(recipeOrder.getDrugStoreName()));
             if (recipe.getRecipeType() == 3 && recipe.getCopyNum() != null) {
                 orderDetailBean.setTcmNum(convertParame(recipe.getCopyNum()));
+                orderDetailBean.setDecoctionId(convertParame(recipeExtend.getDecoctionId()));
+                orderDetailBean.setDecoctionText(convertParame(recipeExtend.getDecoctionText()));
             } else {
                 orderDetailBean.setTcmNum("");
             }
@@ -1966,6 +1980,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 drugList.setUesDays(convertParame(recipedetail.getUseDays()));
                 drugList.setUsingRate(convertParame(recipedetail.getUsingRate()));
                 drugList.setUsePathways(convertParame(recipedetail.getUsePathways()));
+                drugList.setDrugForm(convertParame(recipedetail.getDrugForm()));
                 if (recipe.getRecipeType() == 3 || recipe.getRecipeType() == 4) {
                     orderDetailBean.setTcmUsePathways(convertParame(recipedetail.getUsePathwaysTextFromHis()));
                     orderDetailBean.setTcmUsingRate(convertParame(recipedetail.getUsingRateTextFromHis()));

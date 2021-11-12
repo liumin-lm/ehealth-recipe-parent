@@ -2,6 +2,9 @@ package recipe.dao;
 
 import com.alibaba.druid.util.StringUtils;
 import com.google.common.collect.Lists;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drug.model.DepSaleDrugInfo;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugsEnterprise;
@@ -274,6 +277,15 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
     @DAOMethod(sql = "from OrganDrugList where drugId=:drugId and organId=:organId ")
     public abstract List<OrganDrugList> findByDrugIdAndOrganId(@DAOParam("drugId") int drugId, @DAOParam("organId") int organId);
 
+    /**
+     * 通过药品id获取
+     *
+     * @param drugId
+     * @return
+     */
+    @DAOMethod(sql = "from OrganDrugList where drugId=:drugId  ")
+    public abstract List<OrganDrugList> findByDrugId(@DAOParam("drugId") int drugId);
+
     public List<OrganDrugList> findByDrugIdAndOrganId(final List<Integer> recipeIds) {
         HibernateStatelessResultAction<List<OrganDrugList>> action = new AbstractHibernateStatelessResultAction<List<OrganDrugList>>() {
             @Override
@@ -397,6 +409,13 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     if (!StringUtils.isEmpty(drugClass)) {
                         hql.append(" and d.drugClass like :drugClass");
                     }
+                    List<Integer> listOrgan = new ArrayList<>();
+                    if (!ObjectUtils.isEmpty(organId)){
+                        OrganDTO byOrganId = BasicAPI.getService(OrganService.class).getByOrganId(organId);
+                        listOrgan = BasicAPI.getService(OrganService.class).queryOrganByManageUnitList(byOrganId.getManageUnit(), listOrgan);
+//                        hql.append(" and ( d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
+                        hql.append(" and ( d.sourceOrgan=0 or d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
+                    }
                     Integer drugId = null;
                     if (!StringUtils.isEmpty(keyword)) {
                         try {
@@ -416,7 +435,9 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     if (!StringUtils.isEmpty(drugClass)) {
                         countQuery.setParameter("drugClass", drugClass + "%");
                     }
-
+                    if (!ObjectUtils.isEmpty(organId)){
+                        countQuery.setParameterList("organIds",listOrgan);
+                    }
                     if (drugId != null) {
                         countQuery.setParameter("drugId", drugId);
                     }
@@ -429,6 +450,9 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     if (!StringUtils.isEmpty(drugClass)) {
                         query.setParameter("drugClass", drugClass + "%");
                     }
+                    if (!ObjectUtils.isEmpty(organId)){
+                        query.setParameterList("organIds",listOrgan);
+                    }
                     if (drugId != null) {
                         query.setParameter("drugId", drugId);
                     }
@@ -439,8 +463,19 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     query.setMaxResults(limit);
                     List<DrugList> list = query.list();
                     List<DrugListAndOrganDrugList> result = new ArrayList<DrugListAndOrganDrugList>();
-                    for (DrugList drug : list) {
-                        result.add(new DrugListAndOrganDrugList(drug, null));
+                    if (!ObjectUtils.isEmpty(list)){
+                        for (DrugList drug : list) {
+                            DrugListAndOrganDrugList drugListAndOrganDrugList = new DrugListAndOrganDrugList(drug, null);
+                            if (!ObjectUtils.isEmpty(drug)){
+                                List<OrganDrugList> byDrugIdAndOrganId = findByDrugIdAndOrganId(drug.getDrugId(), organId);
+                                if (ObjectUtils.isEmpty(byDrugIdAndOrganId)){
+                                    drugListAndOrganDrugList.setCanAssociated(false);
+                                }else {
+                                    drugListAndOrganDrugList.setCanAssociated(true);
+                                }
+                            }
+                            result.add(drugListAndOrganDrugList);
+                        }
                     }
                     setResult(new QueryResult<DrugListAndOrganDrugList>(total, query.getFirstResult(), query.getMaxResults(), result));
                 } else {
@@ -517,6 +552,14 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                         drug = drugListDAO.getById(organDrugList.getDrugId());
                         drugListAndOrganDrugList = new DrugListAndOrganDrugList();
                         drugListAndOrganDrugList.setDrugList(drug);
+                        if (!ObjectUtils.isEmpty(drug)){
+                            List<OrganDrugList> byDrugIdAndOrganId = findByDrugIdAndOrganId(drug.getDrugId(), organId);
+                            if (ObjectUtils.isEmpty(byDrugIdAndOrganId)){
+                                drugListAndOrganDrugList.setCanAssociated(false);
+                            }else {
+                                drugListAndOrganDrugList.setCanAssociated(true);
+                            }
+                        }
                         drugListAndOrganDrugList.setOrganDrugList(organDrugList);
                         //查找配送目录---运营平台显示机构药品目录是否可配送
                         if (CollectionUtils.isEmpty(depIds)) {
@@ -554,7 +597,226 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
         return action.getResult();
     }
 
-    public QueryResult queryOrganDrugAndSaleForOp(final Date startTime, final Date endTime, Integer organId, String drugClass, String keyword, Integer status, final Integer isregulationDrug, final Integer type, int start, int limit, Boolean canDrugSend) {
+    /**
+     * 机构药品查询
+     *
+     * @param organId   机构
+     * @param drugClass 药品分类
+     * @param keyword   查询关键字:药品序号 or 药品名称 or 生产厂家 or 商品名称 or 批准文号
+     * @param start
+     * @param limit
+     * @return
+     * @author houxr
+     */
+    public QueryResult<DrugListAndOrganDrugList> queryOrganDrugListByOrganIdAndKeywordAndProducer(final Integer organId, final String drugClass,final String keyword,final String producer,  final Integer status, final int start, final int limit) {
+        HibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>>() {
+            @SuppressWarnings("unchecked")
+            @Override
+            public void execute(StatelessSession ss) throws DAOException {
+                if (status == 2) {
+                    StringBuilder hql = new StringBuilder(" from DrugList d where 1=1 ");
+                    if (!StringUtils.isEmpty(drugClass)) {
+                        hql.append(" and d.drugClass like :drugClass");
+                    }
+                    if (!StringUtils.isEmpty(producer)) {
+                        hql.append(" and d.producer like :producer");
+                    }
+                    List<Integer> listOrgan = new ArrayList<>();
+                    if (!ObjectUtils.isEmpty(organId)){
+                        OrganDTO byOrganId = BasicAPI.getService(OrganService.class).getByOrganId(organId);
+                        listOrgan = BasicAPI.getService(OrganService.class).queryOrganByManageUnitList(byOrganId.getManageUnit(), listOrgan);
+//                        hql.append(" and ( d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
+                        hql.append(" and ( d.sourceOrgan=0 or d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
+                    }
+                    Integer drugId = null;
+                    if (!StringUtils.isEmpty(keyword)) {
+                        try {
+                            drugId = Integer.valueOf(keyword);
+                        } catch (Throwable throwable) {
+                            drugId = null;
+                        }
+                        hql.append(" and (");
+                        hql.append(" d.drugName like :keyword  or d.saleName like :keyword or d.approvalNumber like :keyword ");
+                        if (drugId != null) {
+                            hql.append(" or d.drugId =:drugId");
+                        }
+                        hql.append(")");
+                    }
+                    hql.append(" and d.status=1 order by d.drugId desc");
+                    Query countQuery = ss.createQuery("select count(*) " + hql.toString());
+                    if (!StringUtils.isEmpty(drugClass)) {
+                        countQuery.setParameter("drugClass", drugClass + "%");
+                    }
+                    if (!StringUtils.isEmpty(producer)) {
+                        countQuery.setParameter("producer", "%" + producer + "%");
+                    }
+                    if (!ObjectUtils.isEmpty(organId)){
+                        countQuery.setParameterList("organIds",listOrgan);
+                    }
+                    if (drugId != null) {
+                        countQuery.setParameter("drugId", drugId);
+                    }
+                    if (!StringUtils.isEmpty(keyword)) {
+                        countQuery.setParameter("keyword", "%" + keyword + "%");
+                    }
+                    Long total = (Long) countQuery.uniqueResult();
+
+                    Query query = ss.createQuery("select d " + hql.toString());
+                    if (!StringUtils.isEmpty(drugClass)) {
+                        query.setParameter("drugClass", drugClass + "%");
+                    }
+                    if (!StringUtils.isEmpty(producer)) {
+                        query.setParameter("producer", "%" + producer + "%");
+                    }
+                    if (!ObjectUtils.isEmpty(organId)){
+                        query.setParameterList("organIds",listOrgan);
+                    }
+                    if (drugId != null) {
+                        query.setParameter("drugId", drugId);
+                    }
+                    if (!StringUtils.isEmpty(keyword)) {
+                        query.setParameter("keyword", "%" + keyword + "%");
+                    }
+                    query.setFirstResult(start);
+                    query.setMaxResults(limit);
+                    List<DrugList> list = query.list();
+                    List<DrugListAndOrganDrugList> result = new ArrayList<DrugListAndOrganDrugList>();
+                    if (!ObjectUtils.isEmpty(list)){
+                        for (DrugList drug : list) {
+                            DrugListAndOrganDrugList drugListAndOrganDrugList = new DrugListAndOrganDrugList(drug, null);
+                            if (!ObjectUtils.isEmpty(drug)){
+                                List<OrganDrugList> byDrugIdAndOrganId = findByDrugIdAndOrganId(drug.getDrugId(), organId);
+                                if (ObjectUtils.isEmpty(byDrugIdAndOrganId)){
+                                    drugListAndOrganDrugList.setCanAssociated(false);
+                                }else {
+                                    drugListAndOrganDrugList.setCanAssociated(true);
+                                }
+                            }
+                            result.add(drugListAndOrganDrugList);
+                        }
+                    }
+
+                    setResult(new QueryResult<DrugListAndOrganDrugList>(total, query.getFirstResult(), query.getMaxResults(), result));
+                } else {
+                    StringBuilder hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId ");
+                    if (!StringUtils.isEmpty(drugClass)) {
+                        hql.append(" and b.drugClass like :drugClass");
+                    }
+                    Integer drugId = null;
+                    if (!StringUtils.isEmpty(keyword)) {
+                        try {
+                            drugId = Integer.valueOf(keyword);
+                        } catch (Throwable throwable) {
+                            drugId = null;
+                        }
+                        hql.append(" and (");
+                        hql.append(" a.drugName like :keyword or a.producer like :keyword or a.saleName like :keyword or b.approvalNumber like :keyword ");
+                        if (drugId != null) {
+                            hql.append(" or a.drugId =:drugId");
+                        }
+                        hql.append(")");
+                    }
+                    if (ObjectUtils.nullSafeEquals(status, 0)) {
+                        hql.append(" and a.status = 0 and a.organId =:organId ");
+                    } else if (ObjectUtils.nullSafeEquals(status, 1)) {
+                        hql.append(" and a.status = 1 and a.organId =:organId ");
+                    } else if (ObjectUtils.nullSafeEquals(status, -1)) {
+                        hql.append(" and a.organId =:organId ");
+                    } else if (ObjectUtils.nullSafeEquals(status, ALL_DRUG_FLAG)) {
+                        hql.append(" and a.status in (0, 1) and a.organId =:organId ");
+                    }
+                    hql.append(" and b.status = 1 order by a.organDrugId desc");
+                    Query countQuery = ss.createQuery("select count(*) " + hql.toString());
+                    if (!StringUtils.isEmpty(drugClass)) {
+                        countQuery.setParameter("drugClass", drugClass + "%");
+                    }
+                    if (ObjectUtils.nullSafeEquals(status, 0) || ObjectUtils.nullSafeEquals(status, 1) || ObjectUtils.nullSafeEquals(status, -1) || ObjectUtils.nullSafeEquals(status, 9)) {
+                        countQuery.setParameter("organId", organId);
+                    }
+                    if (drugId != null) {
+                        countQuery.setParameter("drugId", drugId);
+                    }
+                    if (!StringUtils.isEmpty(keyword)) {
+                        countQuery.setParameter("keyword", "%" + keyword + "%");
+                    }
+                    Long total = (Long) countQuery.uniqueResult();
+
+                    Query query = ss.createQuery("select a " + hql.toString());
+                    if (!StringUtils.isEmpty(drugClass)) {
+                        query.setParameter("drugClass", drugClass + "%");
+                    }
+                    if (ObjectUtils.nullSafeEquals(status, 0) || ObjectUtils.nullSafeEquals(status, 1) || ObjectUtils.nullSafeEquals(status, -1) || ObjectUtils.nullSafeEquals(status, 9)) {
+                        query.setParameter("organId", organId);
+                    }
+                    if (drugId != null) {
+                        query.setParameter("drugId", drugId);
+                    }
+                    if (!StringUtils.isEmpty(keyword)) {
+                        query.setParameter("keyword", "%" + keyword + "%");
+                    }
+                    query.setFirstResult(start);
+                    query.setMaxResults(limit);
+                    List<OrganDrugList> list = query.list();
+                    List<DrugListAndOrganDrugList> result = new ArrayList<>();
+                    DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+                    SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+                    DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                    OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+                    List<Integer> depIds = organAndDrugsepRelationDAO.findDrugsEnterpriseIdByOrganIdAndStatus(organId, 1);
+                    DrugList drug;
+                    DrugListAndOrganDrugList drugListAndOrganDrugList;
+                    List<SaleDrugList> saleDrugLists;
+                    for (OrganDrugList organDrugList : list) {
+                        //查找drug
+                        drug = drugListDAO.getById(organDrugList.getDrugId());
+                        drugListAndOrganDrugList = new DrugListAndOrganDrugList();
+                        drugListAndOrganDrugList.setDrugList(drug);
+                        if (!ObjectUtils.isEmpty(drug)){
+                            List<OrganDrugList> byDrugIdAndOrganId = findByDrugIdAndOrganId(drug.getDrugId(), organId);
+                            if (ObjectUtils.isEmpty(byDrugIdAndOrganId)){
+                                drugListAndOrganDrugList.setCanAssociated(false);
+                            }else {
+                                drugListAndOrganDrugList.setCanAssociated(true);
+                            }
+                        }
+                        drugListAndOrganDrugList.setOrganDrugList(organDrugList);
+                        //查找配送目录---运营平台显示机构药品目录是否可配送
+                        if (CollectionUtils.isEmpty(depIds)) {
+                            drugListAndOrganDrugList.setCanDrugSend(false);
+                        } else {
+                            saleDrugLists = saleDrugListDAO.findByDrugIdAndOrganIds(organDrugList.getDrugId(), depIds);
+                            if (CollectionUtils.isEmpty(saleDrugLists)) {
+                                drugListAndOrganDrugList.setCanDrugSend(false);
+                            } else {
+                                drugListAndOrganDrugList.setCanDrugSend(true);
+                                List<DepSaleDrugInfo> depSaleDrugInfos = Lists.newArrayList();
+                                for (SaleDrugList saleDrugList : saleDrugLists) {
+                                    DepSaleDrugInfo info = new DepSaleDrugInfo();
+                                    info.setDrugEnterpriseId(saleDrugList.getOrganId());
+                                    info.setSaleDrugCode(saleDrugList.getOrganDrugCode());
+                                    info.setDrugId(saleDrugList.getDrugId());
+                                    DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(saleDrugList.getOrganId());
+                                    if (enterprise != null) {
+                                        info.setDrugEnterpriseName(enterprise.getName());
+                                    } else {
+                                        info.setDrugEnterpriseName("无");
+                                    }
+                                    depSaleDrugInfos.add(info);
+                                }
+                                drugListAndOrganDrugList.setDepSaleDrugInfos(depSaleDrugInfos);
+                            }
+                        }
+                        result.add(drugListAndOrganDrugList);
+                    }
+                    setResult(new QueryResult<>(total, query.getFirstResult(), query.getMaxResults(), result));
+                }
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    public QueryResult queryOrganDrugAndSaleForOp( Date startTime,  Date endTime, Integer organId, String drugClass, String keyword, Integer status,  Integer isregulationDrug,  Integer type, Integer start, Integer limit, Boolean canDrugSend, String producer) {
         HibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>>() {
             @SuppressWarnings("unchecked")
             @Override
@@ -591,11 +853,15 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                         drugId = null;
                     }
                     hql.append(" and (");
-                    hql.append(" a.drugName like :keyword or a.producer like :keyword or a.saleName like :keyword or b.approvalNumber like :keyword  or a.organDrugCode like :keyword ");
+                    hql.append(" a.drugName like :keyword  or a.saleName like :keyword or b.approvalNumber like :keyword  or a.organDrugCode like :keyword ");
                     if (drugId != null) {
                         hql.append(" or a.drugId =:drugId");
                     }
                     hql.append(")");
+                }
+
+                if (!ObjectUtils.isEmpty(producer)) {
+                    hql.append(" and a.producer like :producer  ");
                 }
                 if (!ObjectUtils.isEmpty(startTime) && !ObjectUtils.isEmpty(endTime)) {
                     hql.append(" and a.createDt>=:startTime and a.createDt<=:endTime ");
@@ -643,6 +909,9 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 if (!StringUtils.isEmpty(keyword)) {
                     countQuery.setParameter("keyword", "%" + keyword + "%");
                 }
+                if (!ObjectUtils.isEmpty(producer)) {
+                    countQuery.setParameter("producer", "%" + producer + "%");
+                }
                 Long total = (Long) countQuery.uniqueResult();
 
                 Query query = ss.createQuery("select a " + hql.toString());
@@ -663,6 +932,9 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                 }
                 if (!StringUtils.isEmpty(keyword)) {
                     query.setParameter("keyword", "%" + keyword + "%");
+                }
+                if (!ObjectUtils.isEmpty(producer)) {
+                    query.setParameter("producer", "%" + producer + "%");
                 }
                 if (!ObjectUtils.isEmpty(type)) {
                     query.setParameter("drugType", type);
@@ -728,6 +1000,32 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
         };
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
+    }
+
+    public List<DepSaleDrugInfo> queryDepSaleDrugInfosByDrugId(final Integer organId,final Integer drugId) {
+        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+        List<Integer> depIds = organAndDrugsepRelationDAO.findDrugsEnterpriseIdByOrganIdAndStatus(organId, 1);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        List<SaleDrugList> saleDrugLists;
+        List<DepSaleDrugInfo> depSaleDrugInfos = Lists.newArrayList();
+        if (!CollectionUtils.isEmpty(depIds)) {
+            saleDrugLists = saleDrugListDAO.findByDrugIdAndOrganIds(drugId, depIds);
+            for (SaleDrugList saleDrugList : saleDrugLists) {
+                DepSaleDrugInfo info = new DepSaleDrugInfo();
+                info.setDrugEnterpriseId(saleDrugList.getOrganId());
+                info.setSaleDrugCode(saleDrugList.getOrganDrugCode());
+                info.setDrugId(saleDrugList.getDrugId());
+                DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(saleDrugList.getOrganId());
+                if (enterprise != null) {
+                    info.setDrugEnterpriseName(enterprise.getName());
+                } else {
+                    info.setDrugEnterpriseName("无");
+                }
+                depSaleDrugInfos.add(info);
+            }
+        }
+        return depSaleDrugInfos;
     }
 
     /**
@@ -883,6 +1181,15 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
     @DAOMethod(sql = "from OrganDrugList where organId=:organId", limit = 0)
     public abstract List<OrganDrugList> findOrganDrugByOrganId(@DAOParam("organId") int organId);
 
+    /**
+     * 根据机构id 和配送药企ID 获取机构药品
+     *
+     * @param organId
+     * @return
+     */
+    @DAOMethod(sql = "from OrganDrugList where organId=:organId and drugsEnterpriseIds like:drugsEnterpriseIds    ", limit = 0)
+    public abstract List<OrganDrugList> findOrganDrugByOrganIdAndDrugsEnterpriseId(@DAOParam("organId") int organId,@DAOParam("drugsEnterpriseIds") String drugsEnterpriseIds);
+
     public boolean updateData(final OrganDrugList drug) {
         final HashMap<String, Object> map = BeanUtils.map(drug, HashMap.class);
         HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
@@ -957,6 +1264,16 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      */
     @DAOMethod(sql = "from OrganDrugList where organId=:organId and drugId =:drugId and organDrugCode =:organDrugCode and status = 1", limit = 0)
     public abstract List<OrganDrugList> findByOrganIdAndDrugIdAndOrganDrugCode(@DAOParam("organId") int organId, @DAOParam("drugId") int drugId, @DAOParam("organDrugCode") String organDrugCode);
+
+    /**
+     * 通过organId获取本机构 未关联监管平台数据
+     *
+     * @param organId       机构Id
+     * @return
+     */
+    @DAOMethod(sql = "from OrganDrugList where organId=:organId   and regulationDrugCode is null ", limit = 0)
+    public abstract List<OrganDrugList> findByOrganIdAndRegulationDrugCode(@DAOParam("organId") int organId);
+
 
     /**
      * 通过organId和创建时间获取

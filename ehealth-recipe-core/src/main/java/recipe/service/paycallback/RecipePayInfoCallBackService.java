@@ -1,9 +1,13 @@
 package recipe.service.paycallback;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeOrderBillReqTO;
+import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.RecipeOrderPayFlow;
 import com.ngari.recipe.pay.model.PayResultDTO;
 import com.ngari.recipe.pay.service.IRecipePayCallBackService;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -27,10 +31,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.client.IConfigurationClient;
+import recipe.constant.CacheConstant;
+import recipe.enumerate.type.PayFlagEnum;
+import recipe.enumerate.type.PayFlowTypeEnum;
+import recipe.manager.OrderManager;
+import recipe.manager.RecipeOrderPayFlowManager;
 import recipe.service.PayModeGiveModeUtil;
 import recipe.serviceprovider.recipelog.service.RemoteRecipeLogService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
+import recipe.util.RedisClient;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -46,6 +58,14 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
     private RemoteRecipeOrderService recipeOrderService;
     @Autowired
     private RemoteRecipeLogService recipeLogService;
+    @Autowired
+    private RedisClient redisClient;
+    @Autowired
+    private OrderManager orderManager;
+    @Autowired
+    private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
+    @Autowired
+    private IConfigurationClient configurationClient;
 
     @Override
     @RpcService
@@ -99,7 +119,53 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             ICouponBaseService couponService = AppContextHolder.getBean("voucher.couponBaseService", ICouponBaseService.class);
             couponService.useCouponById(order.getCouponId());
         }
+        //为邵逸夫添加药品费用的支付流水
+        Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode",false);
+        if (syfPayMode) {
+            try {
+                RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(busId, PayFlowTypeEnum.RECIPE_FLOW.getType());
+                logger.info("recipeOrderPayFlow :{}.", JSONUtils.toString(recipeOrderPayFlow));
+                if (null == recipeOrderPayFlow) {
+                    recipeOrderPayFlow = new RecipeOrderPayFlow();
+                    recipeOrderPayFlow.setOrderId(order.getOrderId());
+                    if (null != notifyMap && notifyMap.get("total_amount") != null) {
+                        recipeOrderPayFlow.setTotalFee(Double.parseDouble(payResult.getNotifyMap().get("total_amount")));
+                    }
+                    recipeOrderPayFlow.setPayFlowType(PayFlowTypeEnum.RECIPE_FLOW.getType());
+                    recipeOrderPayFlow.setPayFlag(PayFlagEnum.PAYED.getType());
+                    recipeOrderPayFlow.setOutTradeNo(payResult.getOutTradeNo());
+                    recipeOrderPayFlow.setPayOrganId(payResult.getPayOrganId());
+                    recipeOrderPayFlow.setTradeNo(payResult.getTradeNo());
+                    recipeOrderPayFlow.setWnPayWay("");
+                    recipeOrderPayFlow.setWxPayWay(payResult.getPayWay());
+                    recipeOrderPayFlowManager.save(recipeOrderPayFlow);
+                } else {
+                    recipeOrderPayFlow.setPayFlag(PayFlagEnum.PAYED.getType());
+                    recipeOrderPayFlow.setOutTradeNo(outTradeNo);
+                    recipeOrderPayFlow.setTradeNo(tradeNo);
+                    recipeOrderPayFlow.setPayOrganId(payResult.getPayOrganId());
+                    if (notifyMap != null && notifyMap.get("total_amount") != null) {
+                        Double payBackPrice = ConversionUtils.convert(notifyMap.get("total_amount"), Double.class);
+                        recipeOrderPayFlow.setTotalFee(payBackPrice);
+                    }
+                    recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
+                }
+            } catch (Exception e) {
+                logger.error("error :" ,e);
+            }
+        }
         return true;
+    }
+
+    @Override
+    public boolean doHandleAfterPayFail(PayResultDTO payResult) {
+        logger.info("RecipePayInfoCallBackService doHandleAfterPayFail payResult:{}.", JSON.toJSONString(payResult));
+        RecipeOrder recipeOrder = orderManager.getByOutTradeNo(payResult.getOutTradeNo());
+        if (null != recipeOrder && StringUtils.isNotEmpty(payResult.getFailMessage())) {
+            recipeOrder.setCancelReason(payResult.getFailMessage());
+            return orderManager.updateNonNullFieldByPrimaryKey(recipeOrder);
+        }
+        return false;
     }
 
     /**
@@ -208,7 +274,10 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
 
             attr.put("PayBackPrice", payBackPrice);
             try {
-                attr.put("medicalSettleInfo", new String(Base64.decode(medicalSettleInfo, 1)));
+                medicalSettleInfo = new String(Base64.decode(medicalSettleInfo, 1));
+                if (StringUtils.isNotEmpty(medicalSettleInfo) && medicalSettleInfo.length() < 1500) {
+                    attr.put("medicalSettleInfo", medicalSettleInfo);
+                }
             } catch (Exception e) {
                 logger.error("doBusinessAfterOrderSuccess error busId={}", busId);
             }
@@ -222,6 +291,20 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                     //存储到处方是4-普通医保
                     attr.put("orderType", 4);
                 }
+            }
+            try {
+                //更新订单表实际支付金额(订单表的实际支付金额可能与患者实际支付不一致，对于不一致的进行更新，处方金额没有返回不做处理)
+                if (order.getActualPrice() != payBackPrice) {
+                    attr.put("actualPrice", payBackPrice);
+                }
+                if (null != order.getCouponFee() && order.getCouponFee().compareTo(BigDecimal.ZERO) > 0) {
+                    BigDecimal total_fee = new BigDecimal(payBackPrice + order.getCouponFee().doubleValue());
+                    attr.put("totalFee", total_fee);
+                } else {
+                    attr.put("totalFee", payBackPrice);
+                }
+            } catch (Exception e) {
+                logger.error("设置实际支付金额失败 ", e);
             }
         }
         //更新订单信息
@@ -265,10 +348,29 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
     @Override
     @RpcService
     public boolean doHandleAfterRefund(Order order, int targetPayflag, Map<String, String> refundResult) {
-        logger.info("doHandleAfterRefund outTradeNo={},targetPayflag={},refundResult={}",order.getOutTradeNo(),targetPayflag, JSONArray.toJSONString(refundResult));
+        logger.info("doHandleAfterRefund order={},targetPayflag={},refundResult={}",JSONArray.toJSONString(order),targetPayflag, JSONArray.toJSONString(refundResult));
         // 处方
         RecipeOrderBean recipeOrderBean = recipeOrderService.getByOutTradeNo(order.getOutTradeNo());
-        recipeOrderService.finishOrderPay(recipeOrderBean.getOrderCode(), targetPayflag, RecipeConstant.PAYMODE_ONLINE);
+
+        //接口组存在同步和异步两种方式调用该接口，导致上传监管平台信息重复，故做幂等性判断
+        //判断是否存在分布式锁
+        String outTradeNo = recipeOrderBean.getOutTradeNo();
+        Integer payFlag = recipeOrderBean.getPayFlag();
+        if(StringUtils.isNotEmpty(outTradeNo)){
+            String lockKey = CacheConstant.KEY_PAY_REFUND_LOCK + outTradeNo;
+            boolean unlock = lock(lockKey);
+            if (unlock) {
+                //加锁成功：根据数据库查询到的信息做幂等
+                if(new Integer(3).equals(payFlag) || new Integer(4).equals(payFlag)){
+                    return true;
+                }
+            } else {
+                //加锁失败：说明该退费申请已调用过
+                return true;
+            }
+        }
+
+        recipeOrderService.finishOrderPayByRefund(recipeOrderBean.getOrderCode(), targetPayflag, RecipeConstant.PAYMODE_ONLINE,order.getRefundNo());
         StringBuilder memo = new StringBuilder("订单=" + recipeOrderBean.getOrderCode() + " ");
         switch (targetPayflag) {
             case 3:
@@ -292,5 +394,9 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
         //更新处方日志
         updateRecipePayLog(recipeOrderBean, memo.toString());
         return true;
+    }
+
+    private boolean lock(String lockKey) {
+        return redisClient.setNX(lockKey, "true") && redisClient.setex(lockKey, 30L);
     }
 }

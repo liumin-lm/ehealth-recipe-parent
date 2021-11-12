@@ -19,6 +19,10 @@ public class DrugListAndOrganDrugList {
     /**是否可配送*/
     private Boolean canDrugSend;
 
+    /**机构是否已有药品关联该平台药品*/
+    private Boolean canAssociated ;
+
+
     public DrugListAndOrganDrugList() {
     }
 
@@ -57,5 +61,13 @@ public class DrugListAndOrganDrugList {
 
     public void setCanDrugSend(Boolean canDrugSend) {
         this.canDrugSend = canDrugSend;
+    }
+
+    public Boolean getCanAssociated() {
+        return canAssociated;
+    }
+
+    public void setCanAssociated(Boolean canAssociated) {
+        this.canAssociated = canAssociated;
     }
 }

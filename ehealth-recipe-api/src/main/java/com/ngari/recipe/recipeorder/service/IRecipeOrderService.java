@@ -93,13 +93,14 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
      *
      * @param request 查询条件
      *                payFlag: 参考PayConstant的支付值
-     * @return RecipeListResTO<List<RecipeOrderBean>>
+     * @return RecipeListResTO<List < RecipeOrderBean>>
      */
     @RpcService
     RecipeListResTO<RecipeOrderBean> findByPayFlag(RecipeListReqTO request);
 
     /**
      * 药企是需要自己结算费用的，需要重新设置
+     *
      * @param enterpriseId
      * @param recipeIds
      * @return
@@ -130,9 +131,9 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
      * 根据日期获取电子处方药企配送订单明细
      *
      * @param startTime 开始时间
-     * @param endTime 截止时间
-     * @param organId 机构ID
-     * @param depId 药企ID
+     * @param endTime   截止时间
+     * @param organId   机构ID
+     * @param depId     药企ID
      * @return RecipeOrderBean
      */
     @RpcService
@@ -142,9 +143,9 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
      * 电子处方药企配送药品统计
      *
      * @param startTime 开始时间
-     * @param endTime 截止时间
-     * @param organId 机构ID
-     * @param depId 药企ID
+     * @param endTime   截止时间
+     * @param organId   机构ID
+     * @param depId     药企ID
      * @return RecipeOrderBean
      */
     @RpcService
@@ -202,13 +203,35 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
     Boolean saveRecipeOrderBill(RecipeOrderBillReqTO orderBillReqTO);
 
 
-
     /**
      * 更新取药窗口(多个处方同时更新) ext表
-     *  @param recipeId 处方订单ID
-     * @param pharmNo 取药窗口
+     *
+     * @param recipeId 处方订单ID
+     * @param pharmNo  取药窗口
      */
     @RpcService
     Boolean updateExtPharmNoS(List<Integer> recipeId, String pharmNo);
+
+
+    /**
+     * 退款时使用
+     *
+     * @param orderCode 订单编号
+     * @param payFlag   支付状态
+     * @param payMode   购药方式
+     * @param refundNo  退款流水号
+     */
+    @RpcService
+    void finishOrderPayByRefund(String orderCode, int payFlag, Integer payMode, String refundNo);
+
+    /**
+     * 老版paymode使用
+     *
+     * @param payMode
+     * @param giveMode
+     * @return
+     */
+    @RpcService
+    Integer obtainPayMode(Integer payMode, Integer giveMode);
 
 }

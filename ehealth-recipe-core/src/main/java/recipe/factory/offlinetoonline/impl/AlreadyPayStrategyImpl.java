@@ -3,11 +3,11 @@ package recipe.factory.offlinetoonline.impl;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
 import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
-import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -57,7 +57,7 @@ public class AlreadyPayStrategyImpl extends BaseOfflineToOnlineService implement
             }
         }
         // 4.查询并转换成前端所需对象
-        GiveModeButtonBean giveModeButtonBean = getGiveModeButtonBean(request.getOrganId());
+        GiveModeButtonDTO giveModeButtonBean = getGiveModeButtonBean(request.getOrganId());
         List<MergeRecipeVO> res = findFinishHisRecipeList(request.getOrganId(), request.getMpiId(), giveModeButtonBean, request.getStart(), request.getLimit());
         LOGGER.info("AlreadyPayStrategyServiceImpl findHisRecipeList res:{}", JSONUtils.toString(res), JSONUtils.toString(patientDTO), JSONUtils.toString(request));
         return res;

@@ -13,7 +13,6 @@ import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.persistence.DAOFactory;
-import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import eh.cdr.constant.OrderStatusConstant;
 import eh.cdr.constant.RecipeStatusConstant;
@@ -26,8 +25,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipeCheckPassResult;
-import recipe.business.RevisitTraceBusinessService;
-import recipe.client.RevisitClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -55,11 +52,6 @@ import java.util.Objects;
 public class HisCallBackService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HisCallBackService.class);
-
-    private static RevisitClient revisitClient = AppContextHolder.getBean("revisitClient", RevisitClient.class);
-
-    private static RevisitTraceBusinessService revisitTraceBusinessService = AppContextHolder.getBean("revisitTraceBusinessService", RevisitTraceBusinessService.class);
-
 
     /**
      * 处方HIS审核通过成功
@@ -493,7 +485,6 @@ public class HisCallBackService {
                 attrMap.put("payDate", DateTime.now().toDate());
             }
             attrMap.put("giveMode", RecipeBussConstant.GIVEMODE_TO_HOS);
-            attrMap.put("payMode", RecipeBussConstant.PAYMODE_TO_HOS);
             attrMap.put("enterpriseId", null);
 
             Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.FINISH, attrMap);

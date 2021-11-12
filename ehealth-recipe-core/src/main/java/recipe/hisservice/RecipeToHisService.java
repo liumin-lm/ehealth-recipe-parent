@@ -136,10 +136,8 @@ public class RecipeToHisService {
                                     if (null != recipeOrder && !"111".equals(recipeOrder.getWxPayWay())) {
                                         Map<String, Object> map = new HashMap<>();
                                         map.put("recipeFee", recipeFee);
-                                        totalMoney = totalMoney.add(recipeOrder.getAuditFee())
-                                                .add(recipeOrder.getRegisterFee())
-                                                .add(recipeOrder.getTcmFee())
-                                                .add(recipeOrder.getOtherFee())
+                                        totalMoney = totalMoney
+                                                .add(null==recipeOrder.getAuditFee()?BigDecimal.ZERO:recipeOrder.getAuditFee())
                                                 .add(recipeFee);
                                         map.put("totalFee", totalMoney);
                                         map.put("actualPrice", totalMoney.doubleValue());
@@ -302,125 +300,14 @@ public class RecipeToHisService {
             LOGGER.info("queryDrugInfo response={}", JSONUtils.toString(response));
             if (null != response && Integer.valueOf(200).equals(response.getMsgCode())) {
                 return (null != response.getData()) ? response.getData() : new ArrayList<>();
-            }/*else if (ObjectUtils.isEmpty(response)){
-                if (drugInfoList.size()>0 && drugInfoList!=null){
-                    syncDrugExcDAO.save(convertSyncExc(drugInfoList.get(0),organId));
-                }
-            }*/
+            }
         } catch (Exception e) {
-            /*if (drugInfoList.size()>0 && drugInfoList!=null){
-                syncDrugExcDAO.save(convertSyncExc(drugInfoList.get(0),organId));
-            }*/
             LOGGER.error("queryDrugInfo error ", e);
         }
         return null;
     }
 
-    public SyncDrugExc convertSyncExc(DrugInfoTO drug , Integer organId ){
-        if (null == drug) {
-            throw new DAOException(DAOException.VALUE_NEEDED, "定时异常数据转换对象为空!");
-        }
-        SyncDrugExc syncDrugExc=new SyncDrugExc();
-        List<OrganDrugList> byOrganIdAndOrganDrugCode = organDrugListDAO.findByOrganDrugCodeAndOrganId( drug.getDrcode(),organId);
-        if (byOrganIdAndOrganDrugCode != null){
-            syncDrugExc.setOrganDrugId(byOrganIdAndOrganDrugCode.get(0).getOrganDrugId());
-        }
-        //获取金额
-        if (StringUtils.isNotEmpty(drug.getDrugPrice())) {
-            BigDecimal drugPrice = new BigDecimal(drug.getDrugPrice());
-            syncDrugExc.setSalePrice(drugPrice);
-        }
-        //药品规格
-        if (StringUtils.isNotEmpty(drug.getDrmodel())) {
-            syncDrugExc.setDrugSpec(drug.getDrmodel());
-        }
-        //转换系数
-        if (StringUtils.isNotEmpty(drug.getPack())) {
-            syncDrugExc.setPack(Integer.valueOf(drug.getPack()));
-        }
-        //生产厂家
-        if (StringUtils.isNotEmpty(drug.getProducer())) {
-            syncDrugExc.setProducer(drug.getProducer());
-        }
-        //商品名称
-        if (StringUtils.isNotEmpty(drug.getTradename())) {
-            syncDrugExc.setSaleName(drug.getTradename());
-        }
-        //通用名
-        if (StringUtils.isNotEmpty(drug.getDrname())) {
-            syncDrugExc.setDrugName(drug.getDrname());
-        }
-        //药品包装单位
-        if (StringUtils.isNotEmpty(drug.getPackUnit())) {
-            syncDrugExc.setUnit(drug.getPackUnit());
-        }
-        //实际单次剂量（规格单位）
-        if (!ObjectUtils.isEmpty(drug.getUseDose())) {
-            syncDrugExc.setUseDose(drug.getUseDose());
-        }
 
-        //单次剂量单位（规格单位）
-        if (!ObjectUtils.isEmpty(drug.getUseDoseUnit())) {
-            syncDrugExc.setUseDoseUnit(drug.getUseDoseUnit());
-        }
-
-        //使用状态 0 无效 1 有效
-        if (!ObjectUtils.isEmpty(drug.getStatus())) {
-            syncDrugExc.setStatus(drug.getStatus());
-        }
-        //生产厂家代码
-        if (!ObjectUtils.isEmpty(drug.getProducerCode())) {
-            syncDrugExc.setProducerCode(drug.getProducerCode());
-        }
-        //外带药标志 1:外带药
-        if (!ObjectUtils.isEmpty(drug.getTakeMedicine())) {
-            syncDrugExc.setTakeMedicine(drug.getTakeMedicine());
-        }
-        //药房
-        if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
-            String pharmacyCode = drug.getPharmacyCode();
-            PharmacyTcm byPharmacyAndOrganId = pharmacyTcmDAO.getByPharmacyAndOrganId(pharmacyCode, organId);
-            if (byPharmacyAndOrganId != null) {
-                syncDrugExc.setPharmacy(byPharmacyAndOrganId.getPharmacyId().toString());
-            }
-        }
-        //医院药房名字
-        if (!ObjectUtils.isEmpty(drug.getPharmacy())) {
-            syncDrugExc.setPharmacyName(drug.getPharmacy());
-        }
-        //剂型
-        if (!ObjectUtils.isEmpty(drug.getDrugForm())) {
-            syncDrugExc.setDrugForm(drug.getDrugForm());
-        }
-        //是否基药
-        if (!ObjectUtils.isEmpty(drug.getBaseDrug())) {
-            syncDrugExc.setBaseDrug(drug.getBaseDrug());
-        }
-        //批准文号
-        if (!ObjectUtils.isEmpty(drug.getLicenseNumber())) {
-            syncDrugExc.setLicenseNumber(drug.getLicenseNumber());
-        }
-
-        syncDrugExc.setExcType("未同步更新");
-        syncDrugExc.setSyncType(2);
-        OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
-        List<Integer> depIds = organAndDrugsepRelationDAO.findDrugsEnterpriseIdByOrganIdAndStatus(organId, 1);
-        if (CollectionUtils.isEmpty(depIds)) {
-            syncDrugExc.setCanDrugSend(false);
-        } else {
-            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-            OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCode(organId,drug.getDrcode());
-            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-            List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByDrugIdAndOrganIds(organDrug.getDrugId(), depIds);
-            if (CollectionUtils.isEmpty(saleDrugLists)) {
-                syncDrugExc.setCanDrugSend(false);
-            } else {
-                syncDrugExc.setCanDrugSend(true);
-            }
-        }
-
-        return syncDrugExc;
-    }
 
     public Boolean drugTakeChange(DrugTakeChangeReqTO request) {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
@@ -444,6 +331,24 @@ public class RecipeToHisService {
             LOGGER.info("recipeUpdate response={}", JSONUtils.toString(response));
         } catch (Exception e) {
             LOGGER.error("recipeUpdate error ", e);
+        }
+        return response;
+    }
+
+
+    public Boolean cancelRecipeImpl(RecipeStatusUpdateReqTO request) {
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        LOGGER.info("cancelRecipeImpl request={}", JSONUtils.toString(request));
+        Boolean response;
+        try {
+            response = hisService.recipeUpdate(request);
+            LOGGER.info("cancelRecipeImpl response={}", JSONUtils.toString(response));
+            if (null == response) {
+                response = true;
+            }
+        } catch (Exception e) {
+            LOGGER.error("cancelRecipeImpl error ", e);
+            response = true;
         }
         return response;
     }
@@ -560,6 +465,7 @@ public class RecipeToHisService {
      * （HIS系统对互联网医院待新增处方进行医保校验）
      */
     public HisResponseTO hisCheckRecipe(HisCheckRecipeReqTO request){
+        LOGGER.info("RecipeToHisService hisCheckRecipe request={}",JSONUtils.toString(request));
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.hisCheckRecipe(request);
 
@@ -627,6 +533,7 @@ public class RecipeToHisService {
      * 处方预结算(新)
      */
     public HisResponseTO<RecipeMedicalPreSettleInfo> recipeMedicalPreSettleN(MedicalPreSettleReqNTO request) {
+        LOGGER.info("RecipeToHisService recipeMedicalPreSettleN request={}", JSONUtils.toString(request));
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.recipeMedicalPreSettleN(request);
     }
@@ -635,6 +542,7 @@ public class RecipeToHisService {
      * 处方自费预结算
      */
     public HisResponseTO<RecipeCashPreSettleInfo> recipeCashPreSettleHis(RecipeCashPreSettleReqTO request) {
+        LOGGER.info("RecipeToHisService recipeCashPreSettleHis request={}", JSONUtils.toString(request));
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.recipeCashPreSettle(request);
     }
@@ -651,6 +559,7 @@ public class RecipeToHisService {
     }
 
     public HisResponseTO<MedicInsurSettleApplyResTO> recipeMedicInsurPreSettle(MedicInsurSettleApplyReqTO reqTO){
+        LOGGER.info("RecipeToHisService recipeMedicInsurPreSettle request={}",JSONUtils.toString(reqTO));
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.recipeMedicInsurPreSettle(reqTO);
     }

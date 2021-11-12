@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
 import org.springframework.stereotype.Service;
 import recipe.util.ValidateUtil;
@@ -56,11 +57,19 @@ public class RecipeDetailManager extends BaseManager {
      * @param recipeIds 处方id
      * @return 处方明细
      */
-    public Map<Integer, List<Recipedetail>> findRecipeDetails(List<Integer> recipeIds) {
-        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIds);
-        logger.info("RecipeDetailManager findRecipeDetails recipeDetails:{}", JSON.toJSONString(recipeDetails));
+    public Map<Integer, List<Recipedetail>> findRecipeDetailMap(List<Integer> recipeIds) {
+        List<Recipedetail> recipeDetails = findRecipeDetails(recipeIds);
         return Optional.ofNullable(recipeDetails).orElseGet(Collections::emptyList)
                 .stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
+    }
+
+    public List<Recipedetail> findRecipeDetails(List<Integer> recipeIds) {
+        if (CollectionUtils.isEmpty(recipeIds)) {
+            return null;
+        }
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIds);
+        logger.info("RecipeDetailManager findRecipeDetails recipeDetails:{}", JSON.toJSONString(recipeDetails));
+        return recipeDetails;
     }
 
     /**
@@ -110,5 +119,14 @@ public class RecipeDetailManager extends BaseManager {
      */
     public Long getCountByRecipeId(Integer recipeId){
         return recipeDetailDAO.getCountByRecipeId(recipeId);
+    }
+
+    /**
+     * 获取处方详情列表
+     * @param recipeId 处方ID
+     * @return 处方详情列表
+     */
+    public List<Recipedetail> findByRecipeId(Integer recipeId){
+        return recipeDetailDAO.findByRecipeId(recipeId);
     }
 }

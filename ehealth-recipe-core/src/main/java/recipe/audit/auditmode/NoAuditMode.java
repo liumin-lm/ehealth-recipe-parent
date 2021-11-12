@@ -1,5 +1,6 @@
 package recipe.audit.auditmode;
 
+import com.ngari.recipe.entity.Recipe;
 import recipe.constant.ReviewTypeConstant;
 
 /**
@@ -9,4 +10,8 @@ import recipe.constant.ReviewTypeConstant;
 @AuditMode(ReviewTypeConstant.Not_AuditMode)
 public class NoAuditMode extends AbstractAuidtMode {
 
+    @Override
+    public Boolean notifyPharAudit(Recipe recipe) {
+        return null;
+    }
 }

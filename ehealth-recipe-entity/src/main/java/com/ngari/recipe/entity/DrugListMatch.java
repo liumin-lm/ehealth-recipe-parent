@@ -132,11 +132,21 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "对照人")
     private String operator;
 
-    @ItemProperty(alias = "用药频率")
+    @ItemProperty(alias = "用药频率 平台")
+    @Dictionary(id = "eh.cdr.dictionary.UsingRate")
     private String usingRate;
 
-    @ItemProperty(alias = "用药途径")
+    @ItemProperty(alias = "用药途径 平台")
+    @Dictionary(id = "eh.cdr.dictionary.UsePathways")
     private String usePathways;
+
+    @ItemProperty(alias = "使用频率id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
+    private String usingRateId;
+
+    @ItemProperty(alias = "用药途径id")
+    @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
+    private String usePathwaysId;
 
     @ItemProperty(alias = "默认一次剂量")
     private Double defaultUseDose;
@@ -173,6 +183,24 @@ public class DrugListMatch implements java.io.Serializable {
 
     @ItemProperty(alias = "适应症 说明")
     private String IndicationsDeclare;
+
+    @ItemProperty(alias = "实际单位剂量（最小单位）")
+    private Double smallestUnitUseDose;
+
+    @ItemProperty(alias = "推荐单次剂量（规格单位）")
+    private Double recommendedUseDose;
+
+    @ItemProperty(alias = "配送药企ids")
+    private String drugsEnterpriseIds;
+
+
+    @ItemProperty(alias = "单位剂量单位（最小单位）")
+    private String useDoseSmallestUnit;
+
+
+    @ItemProperty(alias = "药品来源  0 批量导入 1 手动同步")
+    @Dictionary(id = "eh.cdr.dictionary.DrugListMatchSource")
+    private Integer drugSource;
 
     @Column(name = "retrievalCode ")
     public String getRetrievalCode() {
@@ -528,5 +556,70 @@ public class DrugListMatch implements java.io.Serializable {
 
     public void setIndicationsDeclare(String indicationsDeclare) {
         IndicationsDeclare = indicationsDeclare;
+    }
+
+    @Column(name = "smallestUnitUseDose")
+    public Double getSmallestUnitUseDose() {
+        return smallestUnitUseDose;
+    }
+
+    public void setSmallestUnitUseDose(Double smallestUnitUseDose) {
+        this.smallestUnitUseDose = smallestUnitUseDose;
+    }
+
+    @Column(name = "recommendedUseDose")
+    public Double getRecommendedUseDose() {
+        return recommendedUseDose;
+    }
+
+    public void setRecommendedUseDose(Double recommendedUseDose) {
+        this.recommendedUseDose = recommendedUseDose;
+    }
+
+    @Column(name = "drugsEnterpriseIds")
+    public String getDrugsEnterpriseIds() {
+        return drugsEnterpriseIds;
+    }
+
+    public void setDrugsEnterpriseIds(String drugsEnterpriseIds) {
+        this.drugsEnterpriseIds = drugsEnterpriseIds;
+    }
+
+
+
+    @Column(name = "usingRateId")
+    public String getUsingRateId() {
+        return usingRateId;
+    }
+
+    public void setUsingRateId(String usingRateId) {
+        this.usingRateId = usingRateId;
+    }
+
+    @Column(name = "usePathwaysId")
+    public String getUsePathwaysId() {
+        return usePathwaysId;
+    }
+
+    public void setUsePathwaysId(String usePathwaysId) {
+        this.usePathwaysId = usePathwaysId;
+    }
+
+    @Column(name = "useDoseSmallestUnit")
+    public String getUseDoseSmallestUnit() {
+        return useDoseSmallestUnit;
+    }
+
+    public void setUseDoseSmallestUnit(String useDoseSmallestUnit) {
+        this.useDoseSmallestUnit = useDoseSmallestUnit;
+    }
+
+    @Column(name = "drug_source")
+    public Integer getDrugSource() {
+        return drugSource;
+    }
+
+    public void setDrugSource(Integer drugSource) {
+        this.drugSource = drugSource;
     }
 }

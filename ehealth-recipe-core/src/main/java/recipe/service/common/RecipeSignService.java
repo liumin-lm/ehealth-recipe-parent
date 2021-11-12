@@ -9,7 +9,10 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.common.*;
+import com.ngari.recipe.common.RecipeCommonBaseTO;
+import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.common.RecipeStandardReqTO;
+import com.ngari.recipe.common.RecipeStandardResTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -30,24 +33,25 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.CheckYsInfoBean;
 import recipe.business.DrugStockBusinessService;
-import recipe.business.RevisitTraceBusinessService;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.EmrRecipeManager;
+import recipe.manager.RecipeManager;
+import recipe.manager.RevisitManager;
 import recipe.service.*;
 import recipe.thread.CardDataUploadRunable;
 import recipe.thread.PushRecipeToHisCallable;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.thread.SaveAutoReviewRunable;
+import recipe.thread.SaveAutoReviewRunnable;
 import recipe.util.DigestUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
+import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
@@ -66,7 +70,8 @@ public class RecipeSignService {
      * logger
      */
     private static final Logger LOG = LoggerFactory.getLogger(RecipeSignService.class);
-
+    @Autowired
+    private RecipeManager recipeManager;
     @Autowired
     private RecipeDAO recipeDAO;
 
@@ -82,7 +87,7 @@ public class RecipeSignService {
     private DrugStockBusinessService drugStockBusinessService;
 
     @Autowired
-    private RevisitTraceBusinessService revisitTraceBusinessService;
+    private RevisitManager revisitManager;
 
     /**
      * 武昌模式签名方法
@@ -189,9 +194,7 @@ public class RecipeSignService {
         }
 
         //签名
-        RecipeBusiThreadPool.submit(new Callable() {
-            @Override
-            public Object call() throws Exception {
+        RecipeBusiThreadPool.execute(() ->{
                 RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
                 try {
                     //生成pdf并签名
@@ -199,9 +202,7 @@ public class RecipeSignService {
                 } catch (Exception e) {
                     LOG.error("sign 签名服务异常，recipeId={}", recipeId, e);
                 }
-                return null;
-            }
-        });
+            });
 
 
         //修改订单
@@ -400,7 +401,8 @@ public class RecipeSignService {
                 }
             }
             //第三步校验库存
-            if (continueFlag == 0 || continueFlag == 4) {
+            Integer appointEnterpriseType = recipeBean.getRecipeExtend().getAppointEnterpriseType();
+            if ((continueFlag == 0 || continueFlag == 4) && ValidateUtil.integerIsEmpty(appointEnterpriseType)) {
                 rMap = drugStockBusinessService.doSignRecipeCheckAndGetGiveMode(recipeBean);
                 boolean signResult = Boolean.parseBoolean(rMap.get("signResult").toString());
                 if (!signResult) {
@@ -408,7 +410,7 @@ public class RecipeSignService {
                 }
             }
             //更新审方信息
-            RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, detailBeanList));
+            RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(recipeBean, detailBeanList));
 
             recipeDAO.updateRecipeInfoByRecipeId(recipeBean.getRecipeId(), RecipeStatusConstant.CHECKING_HOS, null);
 
@@ -431,7 +433,7 @@ public class RecipeSignService {
             }
             //健康卡数据上传
             RecipeBusiThreadPool.execute(new CardDataUploadRunable(recipeBean.getClinicOrgan(), recipeBean.getMpiid(), "010106"));
-            revisitTraceBusinessService.saveRevisitTracesList(recipeDAO.get(recipeBean.getRecipeId()));
+            revisitManager.saveRevisitTracesList(recipeDAO.get(recipeBean.getRecipeId()));
         } catch (Exception e) {
             LOG.error("doSignRecipeNew error", e);
             throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, e.getMessage());
@@ -491,12 +493,6 @@ public class RecipeSignService {
         Boolean openRecipe = (Boolean) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "isOpenRecipeByRegisterId");
         LOG.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}", openRecipe);
 
-      /*  //如果前端没有传入咨询id则从进行中的复诊或者咨询里取
-        //获取咨询单id,有进行中的复诊则优先取复诊，若没有则取进行中的图文咨询
-        if (recipeBean.getClinicId()==null){
-            recipeService.getConsultIdForRecipeSource(recipeBean,openRecipe);
-        }*/
-
         boolean optimize = recipeService.openRecipOptimize(recipeBean, openRecipe);
         //配置开启，根据有效的挂号序号进行判断
         if (!optimize) {
@@ -504,14 +500,7 @@ public class RecipeSignService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
         }
 
-        RequestVisitVO requestVisitVO = new RequestVisitVO();
-        requestVisitVO.setDoctor(recipeBean.getDoctor());
-        requestVisitVO.setMpiid(recipeBean.getRequestMpiId());
-        requestVisitVO.setOrganId(recipeBean.getClinicOrgan());
-        requestVisitVO.setClinicId(recipeBean.getClinicId());
-        LOG.info("当前前端入参：requestVisitVO={}", JSONUtils.toString(requestVisitVO));
-        recipeService.isOpenRecipeNumber(requestVisitVO);
-
+        recipeManager.isOpenRecipeNumber(recipeBean.getClinicId(), recipeBean.getClinicOrgan(), recipeBean.getRecipeId());
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
         details.stream().filter(a -> "无特殊煎法".equals(a.getMemo())).forEach(a -> a.setMemo(""));
         if (null != recipeId && recipeId > 0) {
@@ -598,7 +587,7 @@ public class RecipeSignService {
         }
 
         //更新审方信息
-        RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBean, details));
+        RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(recipeBean, details));
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, null);
         rMap.put("signResult", true);
         rMap.put("errorFlag", false);
@@ -681,7 +670,7 @@ public class RecipeSignService {
         Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_NGARI_SENDRECIPETOHIS_LIST);
         if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(recipeBean.getClinicOrgan().toString())) {
             //推送处方给his---recipesend
-            RecipeBusiThreadPool.submit(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
+            RecipeBusiThreadPool.execute(new PushRecipeToHisCallable(recipeBean.getRecipeId()));
         } else {
             //MQ推送处方开成功消息
             RecipeToHisMqService hisMqService = ApplicationUtils.getRecipeService(RecipeToHisMqService.class);
@@ -715,7 +704,7 @@ public class RecipeSignService {
         RecipeBean recipeBeanDb = ObjectCopyUtils.convert(recipe, RecipeBean.class);
 
         //更新审方信息
-        RecipeBusiThreadPool.execute(new SaveAutoReviewRunable(recipeBeanDb, details));
+        RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(recipeBeanDb, details));
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.CHECKING_HOS, ImmutableMap.of("distributionFlag", 1));
 
         //发送HIS处方开具消息
@@ -746,7 +735,7 @@ public class RecipeSignService {
         if (null == dbRecipe || canNoRetryStatus(dbRecipe.getStatus())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方不能重试");
         }
-
+        recipeManager.isOpenRecipeNumber(dbRecipe.getClinicId(), dbRecipe.getClinicOrgan(), recipeId);
         //获取处方回写单号  提示推送成功，否则继续推送
         String recipeCode = dbRecipe.getRecipeCode();
         if (StringUtils.isNotEmpty(recipeCode)) {

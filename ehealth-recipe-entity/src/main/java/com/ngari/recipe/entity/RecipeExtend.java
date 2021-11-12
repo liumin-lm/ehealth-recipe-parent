@@ -3,6 +3,7 @@ package com.ngari.recipe.entity;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
+import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -15,6 +16,7 @@ import java.util.Date;
 @Schema
 @Table(name = "cdr_recipe_ext")
 @Access(AccessType.PROPERTY)
+@DynamicInsert
 public class RecipeExtend implements Serializable {
 
     private static final long serialVersionUID = -7396436464542532302L;
@@ -76,10 +78,10 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "his返回的取药方式1配送到家 2医院取药 3两者都支持")
     private String giveModeFormHis;
 
-    @ItemProperty(alias = "his返回的配送药企代码")
+    @ItemProperty(alias = "配送药企代码")
     private String deliveryCode;
 
-    @ItemProperty(alias = "his返回的配送药企名称")
+    @ItemProperty(alias = "配送药企名称")
     private String deliveryName;
 
     @ItemProperty(alias = "医保返回的医院机构编码")
@@ -105,19 +107,16 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "可开长处方按钮状态、长处方开药天数、非长处方开药天数")
     private String recipeJsonConfig;
 
-    /**
-     * 患者医保类型（编码）
-     */
+
+    @ItemProperty(alias = "患者医保类型（编码）")
     private String medicalType;
 
-    /**
-     * 患者医保类型（名称）
-     */
+
+    @ItemProperty(alias = "患者医保类型（名称）")
     private String medicalTypeText;
 
-    /**
-     * 第三方处方ID
-     */
+
+    @ItemProperty(alias = "第三方处方ID")
     private String rxid;
 
     @ItemProperty(alias = "制法")
@@ -154,6 +153,21 @@ public class RecipeExtend implements Serializable {
 
     @ItemProperty(alias = "诊断序号")
     private String hisDiseaseSerial;
+
+    @ItemProperty(alias = "处方指定药企类型 1医院 2药企 默认 0")
+    private Integer appointEnterpriseType;
+
+    @ItemProperty(alias = "处方标识 0:普通处方 1:儿童处方")
+    private Integer recipeFlag;
+
+    @Column(name = "appoint_enterprise_type")
+    public Integer getAppointEnterpriseType() {
+        return appointEnterpriseType;
+    }
+
+    public void setAppointEnterpriseType(Integer appointEnterpriseType) {
+        this.appointEnterpriseType = appointEnterpriseType;
+    }
 
     @Column(name = "hisDiseaseSerial")
     public String getHisDiseaseSerial() {
@@ -753,5 +767,14 @@ public class RecipeExtend implements Serializable {
 
     public void setCanUrgentAuditRecipe(Integer canUrgentAuditRecipe) {
         this.canUrgentAuditRecipe = canUrgentAuditRecipe;
+    }
+
+    @Column(name = "recipe_flag")
+    public Integer getRecipeFlag() {
+        return recipeFlag;
+    }
+
+    public void setRecipeFlag(Integer recipeFlag) {
+        this.recipeFlag = recipeFlag;
     }
 }

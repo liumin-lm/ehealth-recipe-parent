@@ -1,5 +1,6 @@
 package recipe.manager;
 
+import com.alibaba.druid.sql.visitor.functions.Now;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
@@ -9,6 +10,7 @@ import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -19,7 +21,9 @@ import recipe.client.DocIndexClient;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
+import recipe.common.CommonConstant;
 import recipe.dao.HisRecipeDAO;
+import recipe.dao.HisRecipeDataDelDAO;
 import recipe.dao.HisRecipeDetailDAO;
 import recipe.dao.HisRecipeExtDAO;
 import recipe.enumerate.status.OfflineToOnlineEnum;
@@ -56,6 +60,8 @@ public class HisRecipeManager extends BaseManager {
     private EmrRecipeManager emrRecipeManager;
     @Autowired
     private RevisitClient revisitClient;
+    @Autowired
+    private HisRecipeDataDelDAO hisRecipeDataDelDAO;
 
 
     /**
@@ -208,6 +214,101 @@ public class HisRecipeManager extends BaseManager {
     }
 
     /**
+     * 保存删除线下处方相关的数据
+     */
+    public void saveHisRecipeDataDel(List<Integer> hisRecipeIds,List<Recipe> recipeList){
+        try{
+            HisRecipeDataDel hisRecipeDataDel = new HisRecipeDataDel();
+            List<HisRecipe> hisRecipes = hisRecipeDao.findHisRecipeByhisRecipeIds(hisRecipeIds);
+            List<HisRecipeExt> hisRecipeExts = hisRecipeExtDAO.findHisRecipeByhisRecipeIds(hisRecipeIds);
+            List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeIds(hisRecipeIds);
+            Map<Integer, List<HisRecipeExt>> hisRecipeExtsMap = hisRecipeExts.stream().collect(Collectors.groupingBy(HisRecipeExt::getHisRecipeId));
+            Map<Integer, List<HisRecipeDetail>> hisRecipeDetailsMap = hisRecipeDetails.stream().collect(Collectors.groupingBy(HisRecipeDetail::getHisRecipeId));
+            Map<String, Recipe> recipeListMap = recipeList.stream().collect(Collectors.toMap(k -> k.getRecipeCode() + k.getClinicOrgan(), a -> a, (k1, k2) -> k1));
+
+            for(HisRecipe hisRecipe : hisRecipes){
+                hisRecipeDataDel.setRecipeId(recipeListMap.get(hisRecipe.getRecipeCode() + hisRecipe.getClinicOrgan()).getRecipeId());
+                hisRecipeDataDel.setHisRecipeId(hisRecipe.getHisRecipeID());
+                hisRecipeDataDel.setRecipeCode(hisRecipe.getRecipeCode());
+                hisRecipeDataDel.setData(JSONUtils.toString(hisRecipe));
+                hisRecipeDataDel.setTableName("cdr_his_recipe");
+                hisRecipeDataDel.setCreateTime(new Date());
+                hisRecipeDataDelDAO.save(hisRecipeDataDel);
+
+                hisRecipeDataDel.setRecipeId(recipeListMap.get(hisRecipe.getRecipeCode() + hisRecipe.getClinicOrgan()).getRecipeId());
+                hisRecipeDataDel.setHisRecipeId(hisRecipe.getHisRecipeID());
+                hisRecipeDataDel.setData(JSONUtils.toString(hisRecipeExtsMap.get(hisRecipe.getHisRecipeID())));
+                hisRecipeDataDel.setTableName("cdr_his_recipe_ext");
+                hisRecipeDataDel.setRecipeCode(hisRecipe.getRecipeCode());
+                hisRecipeDataDel.setCreateTime(new Date());
+                hisRecipeDataDelDAO.save(hisRecipeDataDel);
+
+                hisRecipeDataDel.setRecipeId(recipeListMap.get(hisRecipe.getRecipeCode() + hisRecipe.getClinicOrgan()).getRecipeId());
+                hisRecipeDataDel.setHisRecipeId(hisRecipe.getHisRecipeID());
+                hisRecipeDataDel.setData(JSONUtils.toString(hisRecipeDetailsMap.get(hisRecipe.getHisRecipeID())));
+                hisRecipeDataDel.setTableName("cdr_his_recipedetail");
+                hisRecipeDataDel.setRecipeCode(hisRecipe.getRecipeCode());
+                hisRecipeDataDel.setCreateTime(new Date());
+                hisRecipeDataDelDAO.save(hisRecipeDataDel);
+            }
+        }catch (Exception e){
+            LOGGER.error("saveHisRecipeDataDel e={}",JSONUtils.toString(e));
+        }
+    }
+
+    /**
+     * 保存删除线上处方相关的数据
+     */
+    public void saveRecipeDataDel(List<Integer> recipeIds, List<String> orderCodeList ){
+        try{
+            HisRecipeDataDel hisRecipeDataDel = new HisRecipeDataDel();
+            List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
+            Map<String, List<RecipeOrder>> orderCodeMap = new HashMap<>();
+            if (CollectionUtils.isNotEmpty(orderCodeList)) {
+                List<RecipeOrder> orderCodes = recipeOrderDAO.findByOrderCode(orderCodeList);
+                orderCodeMap = orderCodes.stream().collect(Collectors.groupingBy(RecipeOrder::getOrderCode));
+            }
+            List<RecipeExtend> recipeExtends = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
+            Map<Integer, List<RecipeExtend>> recipeExtendsMap = recipeExtends.stream().collect(Collectors.groupingBy(RecipeExtend::getRecipeId));
+            List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIds(recipeIds);
+            Map<Integer, List<Recipedetail>> recipeDetailsMap = recipeDetails.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
+
+            for(Recipe recipe : recipes){
+                hisRecipeDataDel.setRecipeId(recipe.getRecipeId());
+                hisRecipeDataDel.setData(JSONUtils.toString(recipe));
+                hisRecipeDataDel.setTableName("cdr_recipe");
+                hisRecipeDataDel.setRecipeCode(recipe.getRecipeCode());
+                hisRecipeDataDel.setCreateTime(new Date());
+                hisRecipeDataDelDAO.save(hisRecipeDataDel);
+
+                hisRecipeDataDel.setRecipeId(recipe.getRecipeId());
+                hisRecipeDataDel.setData(JSONUtils.toString(orderCodeMap.get(recipe.getOrderCode())));
+                hisRecipeDataDel.setTableName("cdr_recipeorder");
+                hisRecipeDataDel.setRecipeCode(recipe.getRecipeCode());
+                hisRecipeDataDel.setCreateTime(new Date());
+                hisRecipeDataDelDAO.save(hisRecipeDataDel);
+
+                hisRecipeDataDel.setRecipeId(recipe.getRecipeId());
+                hisRecipeDataDel.setData(JSONUtils.toString(recipeExtendsMap.get(recipe.getRecipeId())));
+                hisRecipeDataDel.setTableName("cdr_recipe_ext");
+                hisRecipeDataDel.setRecipeCode(recipe.getRecipeCode());
+                hisRecipeDataDel.setCreateTime(new Date());
+                hisRecipeDataDelDAO.save(hisRecipeDataDel);
+
+                hisRecipeDataDel.setRecipeId(recipe.getRecipeId());
+                hisRecipeDataDel.setData(JSONUtils.toString(recipeDetailsMap.get(recipe.getRecipeId())));
+                hisRecipeDataDel.setTableName("cdr_recipedetail");
+                hisRecipeDataDel.setRecipeCode(recipe.getRecipeCode());
+                hisRecipeDataDel.setCreateTime(new Date());
+                hisRecipeDataDelDAO.save(hisRecipeDataDel);
+            }
+        }catch (Exception e){
+            LOGGER.error("saveRecipeDataDel e={}",JSONUtils.toString(e));
+        }
+    }
+
+
+    /**
      * 删除线下处方相关数据
      *
      * @param clinicOrgan         机构id
@@ -225,16 +326,18 @@ public class HisRecipeManager extends BaseManager {
             LOGGER.info("deleteSetRecipeCode 查找无处方");
             return;
         }
+        List<Recipe> recipeList = recipeDAO.findByRecipeCodeAndClinicOrgan(recipeCodeList, clinicOrgan);
+        saveHisRecipeDataDel(hisRecipeIds,recipeList);
         hisRecipeExtDAO.deleteByHisRecipeIds(hisRecipeIds);
         hisRecipeDetailDAO.deleteByHisRecipeIds(hisRecipeIds);
         hisRecipeDao.deleteByHisRecipeIds(hisRecipeIds);
-        List<Recipe> recipeList = recipeDAO.findByRecipeCodeAndClinicOrgan(recipeCodeList, clinicOrgan);
         if (CollectionUtils.isEmpty(recipeList)) {
             return;
         }
         List<Integer> recipeIds = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
         LOGGER.info("deleteSetRecipeCode recipeIds:{}", JSONUtils.toString(recipeIds));
         List<String> orderCodeList = recipeList.stream().filter(a -> StringUtils.isNotEmpty(a.getOrderCode())).map(Recipe::getOrderCode).collect(Collectors.toList());
+        saveRecipeDataDel(recipeIds,orderCodeList);
         if (CollectionUtils.isNotEmpty(orderCodeList)) {
             recipeOrderDAO.deleteByRecipeIds(orderCodeList);
         }
@@ -251,7 +354,6 @@ public class HisRecipeManager extends BaseManager {
             recipeLog.setMemo("线下转线上：修改处方状态为已删除,数据是：" + JSONUtils.toString(recipeMap.get(a)));
             recipeLogDao.saveRecipeLog(recipeLog);
             revisitClient.deleteByBusIdAndBusNumOrder(a);
-//            RecipeBusiThreadPool.execute(() -> revisitClient.deleteByBusIdAndBusNumOrder(a));
         });
         LOGGER.info("HisRecipeManager deleteSetRecipeCode is delete end ");
     }
@@ -463,13 +565,27 @@ public class HisRecipeManager extends BaseManager {
      * @return
      * @throws Exception
      */
-    public RecipeInfoDTO pushTherapyRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
-        RecipeExtend recipeExtend = recipePdfDTO.getRecipeExtend();
-        Integer docIndexId = null;
-        if (null != recipeExtend) {
-            docIndexId = recipeExtend.getDocIndexId();
+    public RecipeInfoDTO pushRecipe(RecipeInfoDTO recipePdfDTO, Integer pushType, Map<Integer, PharmacyTcm> pharmacyIdMap, Integer sysType) throws Exception {
+        EmrDetailDTO emrDetail = emrDetail(recipePdfDTO);
+        if (CommonConstant.RECIPE_DOCTOR_TYPE.equals(sysType)) {
+            return offlineRecipeClient.pushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
+        } else {
+            return offlineRecipeClient.patientPushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
         }
-        EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(docIndexId);
-        return offlineRecipeClient.pushTherapyRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
+    }
+
+
+    /**
+     * 获取 电子病历信息诊断等
+     *
+     * @param recipePdfDTO 处方信息
+     * @return 电子病历信息
+     */
+    private EmrDetailDTO emrDetail(RecipeInfoDTO recipePdfDTO) {
+        RecipeExtend recipeExtend = recipePdfDTO.getRecipeExtend();
+        if (null == recipeExtend) {
+            return null;
+        }
+        return docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
     }
 }

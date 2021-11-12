@@ -19,6 +19,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 public class ShoppingDrug implements java.io.Serializable{
     private static final long serialVersionUID = -5172680534324191606L;
 
+    @ItemProperty(alias = "主键")
     private Integer id;
     @ItemProperty(alias = "订单编号")
     private String orderCode;

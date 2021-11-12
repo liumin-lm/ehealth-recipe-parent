@@ -14,6 +14,7 @@ import recipe.enumerate.type.TherapyCancellationTypeEnum;
 
 /**
  * 提供复诊关闭调用
+ *
  * @author yinsheng
  * @date 2021\8\30 0030 10:09
  */
@@ -78,6 +79,5 @@ public class TherapyRecipeOpenAtop extends BaseAtop implements ITherapyRecipeOpe
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
-
 
 }

@@ -156,7 +156,7 @@ public class RecipeTherapyManager extends BaseManager {
         }
         RecipeTherapy updateRecipeTherapy = new RecipeTherapy();
         updateRecipeTherapy.setId(recipeTherapy.getId());
-        if (CommonConstant.THERAPY_RECIPE_PUSH_TYPE.equals(pushType)) {
+        if (CommonConstant.RECIPE_PUSH_TYPE.equals(pushType)) {
             updateRecipeTherapy.setTherapyTime(recipeTherapy.getTherapyTime());
             updateRecipeTherapy.setTherapyExecuteDepart(recipeTherapy.getTherapyExecuteDepart());
             updateRecipeTherapy.setTherapyNotice(recipeTherapy.getTherapyNotice());

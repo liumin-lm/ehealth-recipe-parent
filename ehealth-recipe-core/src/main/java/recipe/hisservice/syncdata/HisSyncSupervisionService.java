@@ -49,9 +49,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.aop.LogInfo;
 import recipe.bean.EleInvoiceDTO;
 import recipe.bussutil.RecipeUtil;
-import recipe.client.DocIndexClient;
 import recipe.client.DoctorClient;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
@@ -86,8 +86,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     @Autowired
     private DoctorClient doctorClient;
     @Autowired
-    private DocIndexClient docIndexClient;
-    @Autowired
     private ISignRecipeInfoService signRecipeInfoService;
     @Resource
     private IRegulationService regulationService;
@@ -110,6 +108,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
     private static String HIS_SUCCESS = "200";
 
+    @LogInfo
     public void uploadRecipePrepareCheck(Integer recipeId) {
         LOGGER.info("HisSyncSupervisionService uploadRecipePrepareCheck recipeId={}", recipeId);
         if (null == recipeId) {
@@ -218,7 +217,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RecipeOrder recipeOrder;
         DoctorExtendDTO doctorExtendDTO;
         RevisitExDTO consultExDTO;
-        SignDoctorRecipeInfoDTO caInfo;
+        SignDoctorRecipeInfoDTO docCaInfo;
+        SignDoctorRecipeInfoDTO phaCaInfo;
         RedisClient redisClient = RedisClient.instance();
         String caSignature = null;
         for (Recipe recipe : recipeList) {
@@ -247,6 +247,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setOrganizeCode(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
             req.setOrganName(organDTO.getName());
 
+            if (null != recipe.getOldRecipeId() && 0 != recipe.getOldRecipeId()) {
+                req.setOldRecipeId(recipe.getOldRecipeId());
+                Recipe oldRecipe = recipeDAO.getByRecipeId(recipe.getOldRecipeId());
+                req.setOldRecipeUniqueId(oldRecipe.getRecipeCode());
+            }
             //科室处理
             departmentDTO = departMap.get(recipe.getDepart());
             if (null == departmentDTO) {
@@ -294,13 +299,17 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setDoctorNo(iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
             req.setDoctorProTitle(doctorDTO.getProTitle());
             //江苏ca用到
-            caInfo=signRecipeInfoService.getSignRecipeInfoByRecipeIdAndServerType(recipe.getRecipeId(),1);
-            if (caInfo != null) {
+            docCaInfo = signRecipeInfoService.getSignRecipeInfoByRecipeIdAndServerType(recipe.getRecipeId(), 1);
+            if (docCaInfo != null) {
                 //医生签名值
-                req.setDoctorSign(caInfo.getSignCodeDoc());
-                //药师签名值
-                req.setAuditDoctorSign(caInfo.getSignCodePha());
+                req.setDoctorSign(docCaInfo.getSignCodeDoc());
             }
+            phaCaInfo = signRecipeInfoService.getSignRecipeInfoByRecipeIdAndServerType(recipe.getRecipeId(), 3);
+            if (phaCaInfo != null) {
+                //药师签名值
+                req.setAuditDoctorSign(phaCaInfo.getSignCodeDoc());
+            }
+
             //如果其他ca里取不到默认用e签宝的
             if (StringUtils.isEmpty(req.getDoctorSign()) && doctorDTO.getESignId() != null) {
                 //设置医生电子签名
@@ -382,6 +391,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //陪诊人信息
             req.setGuardianName(patientDTO.getGuardianName());
             req.setGuardianCertID(patientDTO.getGuardianCertificate());
+            req.setGuardianCertificateType(patientDTO.getGuardianCertificateType());
             //儿童的手机号就是陪诊人的手机号
             if (StringUtils.isNotEmpty(patientDTO.getGuardianCertificate())) {
                 req.setGuardianMobile(patientDTO.getMobile());
@@ -484,6 +494,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setIcdName(organDiseaseName);
             //门诊号处理
             if (recipeExtend != null) {
+                //咨询宋国超 目前是拿ghxh当的门诊号 这个广东在用最好不要动
                 req.setPatientNumber(recipeExtend.getRegisterID());
                 req.setCardNo(recipeExtend.getCardNo());
                 req.setCardType(recipeExtend.getCardType());
@@ -534,6 +545,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     if (null != consultExDTO) {
                         req.setCardNo(consultExDTO.getCardId());
                         req.setCardType(consultExDTO.getCardType());
+                        req.setRegisterId(consultExDTO.getRegisterNo());
                     }
                 }
             }
@@ -787,6 +799,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             //陪诊人信息
             req.setGuardianName(patientDTO.getGuardianName());
             req.setGuardianCertID(patientDTO.getGuardianCertificate());
+            req.setGuardianCertificateType(patientDTO.getGuardianCertificateType());
             //支付时间
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             req.setPayTime(recipeOrder.getPayTime());
@@ -1111,8 +1124,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         return "0";
     }
 
-    public void uploadRecipePayToRegulation(String orderCode, int payFlag) {
-        LOGGER.info("uploadRecipePayToRegulation param orderCode:{} ,payFlag:{}",orderCode,payFlag);
+    public void uploadRecipePayToRegulation(String orderCode, int payFlag, String refundNo) {
+        LOGGER.info("uploadRecipePayToRegulation param orderCode:{} ,payFlag:{}", orderCode, payFlag);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
         RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
@@ -1145,6 +1158,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     if (patientDTO != null) {
                         req.setIdcardTypeCode("01");
                         req.setIdcardNo(patientDTO.getIdcard());
+                        req.setCertificate(patientDTO.getCertificate());
+                        req.setCertificateType(patientDTO.getCertificateType());
                         req.setName(patientDTO.getPatientName());
                         req.setGenderCode(patientDTO.getPatientSex());
                         req.setBirthdate(patientDTO.getBirthday());
@@ -1185,10 +1200,22 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                         req.setDeptCode(departmentDTO.getCode());
                         req.setDeptName(departmentDTO.getName());
                     }
-                    req.setDeptClassCode("A99");
-                    req.setDeptClassName("其他业务科室");
-                    /*req.setOriginalAccountNo(outPatient.getRefundNo());*/
+                    SubCodeService subCodeService = BasicAPI.getService(SubCodeService.class);
+                    //设置专科编码等
+                    SubCodeDTO subCodeDTO = subCodeService.getByNgariProfessionCode(departmentDTO.getProfessionCode());
+                    if (null == subCodeDTO) {
+                        //专科编码没设置不应该导致推送不了处方到监管平台
+                        LOGGER.warn("uploadRecipePayToRegulation subCode is null. recipe.professionCode={}", departmentDTO.getProfessionCode());
+                    } else {
+                        req.setDeptClassCode(subCodeDTO.getSubCode());
+                        req.setDeptClassName(subCodeDTO.getSubName());
+                    }
+                    // 原交易流水号 缴费流水号
+                    req.setOriginalAccountNo(order.getTradeNo());
                     req.setOrderNo(order.getOutTradeNo());
+                    // 退费流水号
+                    req.setRefundNo(refundNo);
+
 
                     //从his返回的挂号序号
                     RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
@@ -1557,6 +1584,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 if (patientDTO != null) {
                     req.setIdcardTypeCode("01");
                     req.setIdcardNo(patientDTO.getIdcard());
+                    req.setCertificate(patientDTO.getCertificate());
+                    req.setCertificateType(patientDTO.getCertificateType());
                     req.setName(patientDTO.getPatientName());
                     req.setGenderCode(patientDTO.getPatientSex());
                     req.setBirthdate(patientDTO.getBirthday());
@@ -1583,8 +1612,16 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     req.setDeptCode(departmentDTO.getCode());
                     req.setDeptName(departmentDTO.getName());
                 }
-                req.setDeptClassCode("A99");
-                req.setDeptClassName("其他业务科室");
+                SubCodeService subCodeService = BasicAPI.getService(SubCodeService.class);
+                //设置专科编码等
+                SubCodeDTO subCodeDTO = subCodeService.getByNgariProfessionCode(departmentDTO.getProfessionCode());
+                if (null == subCodeDTO) {
+                    //专科编码没设置不应该导致推送不了处方到监管平台
+                    LOGGER.warn("pakRegulationSendMedicineReq subCode is null. recipe.professionCode={}", departmentDTO.getProfessionCode());
+                } else {
+                    req.setDeptClassCode(subCodeDTO.getSubCode());
+                    req.setDeptClassName(subCodeDTO.getSubName());
+                }
                 /*req.setOriginalAccountNo(outPatient.getRefundNo());*/
                 req.setOrderNo(order.getOutTradeNo());
 

@@ -1,13 +1,24 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.google.common.base.Joiner;
+import com.ngari.his.recipe.mode.DrugInfoResponseTO;
+import com.ngari.platform.recipe.mode.RecipeResultBean;
 import com.ngari.recipe.dto.ValidateOrganDrugDTO;
 import com.ngari.recipe.entity.OrganDrugList;
+import com.ngari.recipe.entity.PharmacyTcm;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.Recipedetail;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.client.DrugStockClient;
+import recipe.dao.PharmacyTcmDAO;
 import recipe.util.ValidateUtil;
 
 import java.util.*;
@@ -21,6 +32,68 @@ import java.util.stream.Collectors;
 @Service
 public class OrganDrugListManager extends BaseManager {
     private static final Logger logger = LoggerFactory.getLogger(OrganDrugListManager.class);
+    @Autowired
+    private DrugStockClient drugStockClient;
+    @Autowired
+    private PharmacyTcmDAO pharmacyTcmDAO;
+
+    /**
+     * 校验机构药品库存
+     *
+     * @param recipe
+     * @param detailList
+     * @return
+     */
+    public RecipeResultBean scanDrugStockByRecipeId(Recipe recipe, List<Recipedetail> detailList) {
+        logger.info("OrganDrugListManager scanDrugStockByRecipeId recipe={}  recipeDetails = {}", JSONArray.toJSONString(recipe), JSONArray.toJSONString(detailList));
+        RecipeResultBean result = RecipeResultBean.getSuccess();
+        if (null != recipe.getTakeMedicine() && 1 == recipe.getTakeMedicine()) {
+            //外带药处方则不进行校验
+            return RecipeResultBean.getSuccess();
+        }
+        if (CollectionUtils.isEmpty(detailList)) {
+            result.setCode(RecipeResultBean.FAIL);
+            result.setError("处方没有详情");
+            return result;
+        }
+        // 判断his 是否启用
+        if (!configurationClient.isHisEnable(recipe.getClinicOrgan())) {
+            result.setCode(RecipeResultBean.FAIL);
+            result.setError("医院HIS未启用。");
+            logger.info("OrganDrugListManager scanDrugStockByRecipeId 医院HIS未启用 organId: {}", recipe.getClinicOrgan());
+            return result;
+        }
+        Set<Integer> pharmaIds = new HashSet<>();
+        List<Integer> drugIdList = detailList.stream().map(a -> {
+            pharmaIds.add(a.getPharmacyId());
+            return a.getDrugId();
+        }).collect(Collectors.toList());
+
+        // 判断是否需要对接HIS
+        List<String> recipeTypes = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "getRecipeTypeToHis", null);
+        if (!recipeTypes.contains(Integer.toString(recipe.getRecipeType()))) {
+            return result;
+        }
+        // 请求his
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(recipe.getClinicOrgan(), drugIdList);
+        List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(pharmaIds);
+        DrugInfoResponseTO response = drugStockClient.scanDrugStock(detailList, recipe.getClinicOrgan(), organDrugList, pharmacyTcmByIds);
+        if (0 != response.getMsgCode()) {
+            String organCodeStr = response.getMsg();
+            List<String> nameList = new ArrayList<>();
+            if (StringUtils.isNotEmpty(organCodeStr)) {
+                List<String> organCodes = Arrays.asList(organCodeStr.split(","));
+                nameList = organDrugListDAO.findNameByOrganIdAndDrugCodes(recipe.getClinicOrgan(), organCodes);
+            }
+            String showMsg = "由于" + Joiner.on(",").join(nameList) + "门诊药房库存不足，该处方仅支持配送，无法到院取药，是否继续？";
+            result.setError(showMsg);
+            result.setObject(nameList);
+            result.setExtendValue("1");
+            result.setCode(RecipeResultBean.FAIL);
+        }
+        logger.info("OrganDrugListManager scanDrugStockByRecipeId 结果={}", JSONObject.toJSONString(result));
+        return result;
+    }
 
     /**
      * 根据code获取机构药品 分组

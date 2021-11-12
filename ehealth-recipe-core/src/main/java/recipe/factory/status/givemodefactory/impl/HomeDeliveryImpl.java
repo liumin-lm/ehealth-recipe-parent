@@ -92,16 +92,23 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
             RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.PATIENT_REACHPAY_FINISH);
             //监管平台上传配送信息(配送到家-处方完成)
             RecipeBusiThreadPool.execute(() -> {
+                long start = System.currentTimeMillis();
                 HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
                 CommonResponse response = hisSyncService.uploadFinishMedicine(recipeId);
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusEnum.RECIPE_STATUS_FINISH.getType(),
                         "监管平台配送信息[完成]上传code" + response.getCode() + ",msg:" + response.getMsg());
+                long elapsedTime = System.currentTimeMillis() - start;
+                logger.info("RecipeBusiThreadPool updateStatusAfter 将配送完成信息推送到监管平台 执行时间:{}.", elapsedTime);
             });
         }
 
         if (null != orderStatus.getLogisticsCompany() || StringUtils.isNotBlank(orderStatus.getTrackingNumber())) {
-            //同步运单信息至基础服务
-            ThirdEnterpriseCallService.sendLogisticsInfoToBase(orderStatus.getRecipeId(), orderStatus.getLogisticsCompany() + "", orderStatus.getTrackingNumber());
+            try {
+                //同步运单信息至基础服务
+                ThirdEnterpriseCallService.sendLogisticsInfoToBase(orderStatus.getRecipeId(), orderStatus.getLogisticsCompany() + "", orderStatus.getTrackingNumber());
+            } catch (Exception e) {
+                logger.error("HomeDeliveryImpl updateStatusAfter error ", e);
+            }
             //更新快递信息后，发送消息
             RecipeMsgService.batchSendMsg(orderStatus.getRecipeId(), RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
             //将快递公司快递单号信息用更新配送方式接口更新至his
@@ -109,11 +116,15 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
                 return;
             }
             RecipeBusiThreadPool.execute(() -> {
+                long start = System.currentTimeMillis();
                 RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
                 List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
                 PatientBean patientBean = patientService.get(recipe.getMpiid());
                 DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, null);
                 service.drugTakeChange(request);
+                long elapsedTime = System.currentTimeMillis() - start;
+                logger.info("RecipeBusiThreadPool updateStatusAfter 将配送完成信息同步HIS 执行时间:{}.", elapsedTime);
+
             });
 
             //记录日志

@@ -258,6 +258,9 @@ public class RevisitRecipeTraceVo implements Serializable {
         @ItemProperty(alias = "处方预结算返回自费金额")
         private String cashAmount;
 
+        @ItemProperty(alias = "配送主体类型 1医院配送 2药企配送")
+        private Integer sendType;
+
 
     }
 

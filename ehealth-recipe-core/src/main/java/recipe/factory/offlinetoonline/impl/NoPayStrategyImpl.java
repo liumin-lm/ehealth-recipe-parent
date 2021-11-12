@@ -3,6 +3,7 @@ package recipe.factory.offlinetoonline.impl;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GroupRecipeConfDTO;
 import com.ngari.recipe.entity.HisRecipe;
 import com.ngari.recipe.entity.Recipe;
@@ -10,7 +11,6 @@ import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
 import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
-import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.HisRecipeVO;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import ctd.persistence.exception.DAOException;
@@ -59,7 +59,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
         // 2、将his数据转换成recipe对象
         List<HisRecipeVO> noPayFeeHisRecipeVO = covertToHisRecipeVoObject(hisRecipeInfos, patientDTO);
         // 3、包装成前端所需线下处方列表对象
-        GiveModeButtonBean giveModeButtonBean = getGiveModeButtonBean(request.getOrganId());
+        GiveModeButtonDTO giveModeButtonBean = getGiveModeButtonBean(request.getOrganId());
         List<MergeRecipeVO> res = findOnReadyHisRecipeList(noPayFeeHisRecipeVO, giveModeButtonBean);
         LOGGER.info("NoPayStrategyImpl findHisRecipeList res:{}", JSONUtils.toString(res));
         return res;
@@ -183,7 +183,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
      * @param request his的处方单集合
      * @return 前端需要的处方单集合
      */
-    public List<MergeRecipeVO> findOnReadyHisRecipeList(List<HisRecipeVO> request, GiveModeButtonBean giveModeButtonBean) {
+    public List<MergeRecipeVO> findOnReadyHisRecipeList(List<HisRecipeVO> request, GiveModeButtonDTO giveModeButtonBean) {
         LOGGER.info("NoPayServiceImpl findOnReadyHisRecipe request:{}", JSONUtils.toString(request));
         //查询线下待缴费处方
         List<MergeRecipeVO> result = new ArrayList<>();

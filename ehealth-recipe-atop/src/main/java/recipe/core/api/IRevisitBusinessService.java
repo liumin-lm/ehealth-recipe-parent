@@ -1,0 +1,47 @@
+package recipe.core.api;
+
+import com.ngari.recipe.entity.Recipe;
+import recipe.vo.second.RevisitRecipeTraceVo;
+
+import java.util.List;
+
+/**
+ * 处方复诊处理接口
+ *
+ * @author liumin
+ * @date 2021\7\16 0016 17:16
+ */
+public interface IRevisitBusinessService {
+
+    /**
+     * 复诊处方追溯详情
+     *
+     * @param recipeId 处方ID
+     * @param clinicId 复诊ID
+     * @return
+     */
+    List<RevisitRecipeTraceVo> revisitRecipeTrace(Integer recipeId, Integer clinicId);
+
+    /**
+     * 复诊处方追溯列表数据处理
+     *
+     * @param startTime
+     * @param endTime
+     * @param recipeIds
+     * @param organId
+     */
+    void handDealRevisitTraceRecipe(String startTime, String endTime, List<Integer> recipeIds, Integer organId);
+
+    /**
+     * 校验有效复诊单
+     * <p>
+     * isUnderwayRevisit配置：
+     * 1、不判断任何状态；
+     * 2、只有存在进行中复诊（复诊单号）才可以开方；
+     * 3、只有存在进行中复诊（挂号序号）才可以开方；
+     *
+     * @param recipe 处方信息
+     * @return 能否开方 true： 能
+     */
+    Boolean revisitValidate(Recipe recipe);
+}

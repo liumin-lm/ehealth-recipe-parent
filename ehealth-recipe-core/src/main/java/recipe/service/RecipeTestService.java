@@ -10,6 +10,7 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
+import com.ngari.platform.recipe.mode.PushRecipeAndOrder;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.*;
@@ -22,15 +23,15 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.msg.constant.MqConstant;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import recipe.ApplicationUtils;
+import recipe.common.OnsConfig;
 import recipe.dao.*;
-import recipe.mq.OnsConfig;
+import recipe.manager.EnterpriseManager;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
 import recipe.service.recipecancel.RecipeCancelService;
 import recipe.util.DateConversion;
@@ -54,6 +55,17 @@ public class RecipeTestService {
     private LogisticsOnlineOrderService logisticsOnlineOrderService;
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
+    @Autowired
+    private EnterpriseManager enterpriseManager;
+    @Autowired
+    private DrugsEnterpriseDAO drugsEnterpriseDAO;
+
+    @RpcService
+    public PushRecipeAndOrder getPushRecipeAndOrder(Integer recipeId){
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
+        return enterpriseManager.getPushRecipeAndOrder(recipe, drugsEnterprise);
+    }
 
     /**
      * logger
@@ -160,13 +172,13 @@ public class RecipeTestService {
 
     @RpcService
     public void insertDrugCategoryByOrganId(Integer organId, String createDate) {
-        List<RegulationDrugCategoryReq> drugCategoryReqs = new ArrayList<>();
         IRegulationService hisService =
                 AppDomainContext.getBean("his.regulationService", IRegulationService.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndCreateDt(organId, DateConversion.parseDate(createDate, "yyyy-MM-dd HH:mm:ss"));
         LOGGER.info("RecipeTestService-insertDrugCategoryByOrganId organDrugLists count:{}.", organDrugLists.size());
         for (OrganDrugList organDrugList : organDrugLists) {
+            List<RegulationDrugCategoryReq> drugCategoryReqs = new ArrayList<>();
             RegulationDrugCategoryReq drugCategoryReq = packingDrugCategoryReq(organDrugList);
             drugCategoryReqs.add(drugCategoryReq);
 
@@ -212,11 +224,7 @@ public class RecipeTestService {
         drugCategoryReq.setHospDrugManuf(organDrugList.getProducer());
 
         drugCategoryReq.setUseFlag(organDrugList.getStatus() + "");
-        if (drugList == null) {
-            drugCategoryReq.setDrugClass("1901");
-        } else {
-            drugCategoryReq.setDrugClass(drugList.getDrugClass());
-        }
+        drugCategoryReq.setDrugClass("1901");
         drugCategoryReq.setUpdateTime(new Date());
         drugCategoryReq.setCreateTime(new Date());
         LOGGER.info("RecipeTestService-packingDrugCategoryReq drugCategoryReq:" + JSONUtils.toString(drugCategoryReq));

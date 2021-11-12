@@ -36,6 +36,9 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "机构药品编码")
     private String organDrugCode;
 
+    @ItemProperty(alias = "药品规格")
+    private String drugSpec;
+
     @ItemProperty(alias = "销售价格")
     private BigDecimal salePrice;
 
@@ -123,6 +126,19 @@ public class OrganDrugListDTO implements java.io.Serializable {
 
     @ItemProperty(alias = "是否支持下载处方笺 0   否，1  是   默认1")
     private Boolean supportDownloadPrescriptionPad;
+
+    @ItemProperty(alias = "化学名")
+    private String chemicalName;
+
+    @ItemProperty(alias = "配送药企ids")
+    private String drugsEnterpriseIds;
+
+    @ItemProperty(alias = "实际单位剂量（最小单位）")
+    private Double smallestUnitUseDose;
+
+    @ItemProperty(alias = "单位剂量单位（最小单位）")
+    private String useDoseSmallestUnit;
+
 
     public OrganDrugListDTO() {
     }
@@ -319,6 +335,14 @@ public class OrganDrugListDTO implements java.io.Serializable {
         this.recommendedUseDose = recommendedUseDose;
     }
 
+    public String getDrugSpec() {
+        return drugSpec;
+    }
+
+    public void setDrugSpec(String drugSpec) {
+        this.drugSpec = drugSpec;
+    }
+
     public Integer getPack() {
         return pack;
     }
@@ -405,5 +429,37 @@ public class OrganDrugListDTO implements java.io.Serializable {
 
     public void setSupportDownloadPrescriptionPad(Boolean supportDownloadPrescriptionPad) {
         this.supportDownloadPrescriptionPad = supportDownloadPrescriptionPad;
+    }
+
+    public String getChemicalName() {
+        return chemicalName;
+    }
+
+    public void setChemicalName(String chemicalName) {
+        this.chemicalName = chemicalName;
+    }
+
+    public String getDrugsEnterpriseIds() {
+        return drugsEnterpriseIds;
+    }
+
+    public void setDrugsEnterpriseIds(String drugsEnterpriseIds) {
+        this.drugsEnterpriseIds = drugsEnterpriseIds;
+    }
+
+    public Double getSmallestUnitUseDose() {
+        return smallestUnitUseDose;
+    }
+
+    public void setSmallestUnitUseDose(Double smallestUnitUseDose) {
+        this.smallestUnitUseDose = smallestUnitUseDose;
+    }
+
+    public String getUseDoseSmallestUnit() {
+        return useDoseSmallestUnit;
+    }
+
+    public void setUseDoseSmallestUnit(String useDoseSmallestUnit) {
+        this.useDoseSmallestUnit = useDoseSmallestUnit;
     }
 }

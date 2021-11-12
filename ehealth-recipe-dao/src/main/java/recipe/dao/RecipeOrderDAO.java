@@ -13,6 +13,8 @@ import com.ngari.recipe.recipereportform.model.*;
 import ctd.account.UserRoleToken;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
+import ctd.persistence.bean.QueryResult;
+import ctd.persistence.exception.DAOException;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
@@ -26,6 +28,8 @@ import eh.billcheck.vo.BillRecipeDetailVo;
 import eh.billcheck.vo.RecipeBillRequest;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
@@ -33,6 +37,7 @@ import org.slf4j.LoggerFactory;
 import recipe.dao.comment.ExtendDao;
 
 import java.math.BigDecimal;
+import java.text.DateFormat;
 import java.util.*;
 
 /**
@@ -1692,4 +1697,39 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                                                                               @DAOParam("logisticsCompany") Integer logisticsCompany,
                                                                               @DAOParam("trackingNumber") String trackingNumber);
 
+    public QueryResult<RecipeOrder> queryPageForCommonOrder(Date startDate, Date endDate, Integer start, Integer limit){
+        HibernateStatelessResultAction<QueryResult<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeOrder>>() {
+            @Override
+            @SuppressWarnings("unchecked")
+            public void execute(StatelessSession ss) throws DAOException {
+                int total = 0;
+                StringBuilder hql = new StringBuilder(" from RecipeOrder");
+                if (startDate != null) {
+
+                    hql.append(" where createTime >= :startTime ");
+                }
+                if (endDate != null) {
+                    hql.append(" AND createTime <= :endTime ");
+                }
+                hql.append(" AND status != 17 ");
+                Query countQuery = ss.createQuery("select count(*) " + hql.toString());
+                countQuery.setParameter("endTime", endDate);
+                countQuery.setParameter("startTime", startDate);
+                total = ((Long) countQuery.uniqueResult()).intValue();// 获取总条数
+
+                hql.append(" order by orderId desc");
+                Query query = ss.createQuery(hql.toString());
+                query.setParameter("endTime", endDate);
+                query.setParameter("startTime", startDate);
+                query.setFirstResult(start);
+                query.setMaxResults(limit);
+                List<RecipeOrder> resList = query.list();
+                QueryResult<RecipeOrder> qResult = new QueryResult<RecipeOrder>(total, query.getFirstResult(),
+                        query.getMaxResults(), resList);
+                setResult(qResult);
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        return (QueryResult<RecipeOrder>) action.getResult();
+    }
 }

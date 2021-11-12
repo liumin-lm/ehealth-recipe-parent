@@ -2,6 +2,7 @@ package recipe.core.api;
 
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.vo.*;
 
 import java.util.List;
@@ -53,5 +54,21 @@ public interface IRecipeBusinessService {
      */
     Boolean existUncheckRecipe(Integer bussSource, Integer clinicId);
 
+    /**
+     * 获取处方信息
+     *
+     * @param recipeId 处方id
+     * @return
+     */
+    Recipe getByRecipeId(Integer recipeId);
 
+    /**
+     * 校验开处方单数限制
+     *
+     * @param clinicId 复诊id
+     * @param organId  机构id
+     * @param recipeId 排除的处方id
+     * @return true 可开方
+     */
+    Boolean validateOpenRecipeNumber(Integer clinicId, Integer organId, Integer recipeId);
 }

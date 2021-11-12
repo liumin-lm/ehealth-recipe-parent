@@ -15,6 +15,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.DigestUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
@@ -25,6 +26,8 @@ import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.manager.EnterpriseManager;
+import recipe.manager.OrderManager;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeServiceSub;
 import recipe.service.common.RecipeCacheService;
@@ -48,6 +51,11 @@ public class PayModeTFDS implements IPurchaseService{
     private RedisClient redisClient = RedisClient.instance();
     private static String EXPIRE_SECOND;
 
+    @Autowired
+    private OrderManager orderManager;
+    @Autowired
+    private EnterpriseManager enterpriseManager;
+
     public PayModeTFDS(){
         RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
         EXPIRE_SECOND = cacheService.getRecipeParam("EXPIRE_SECOND", "600");
@@ -55,7 +63,7 @@ public class PayModeTFDS implements IPurchaseService{
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe recipe, Map<String, String> extInfo) {
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        LOGGER.info("PayModeTFDS findSupportDepList recipe:{}, extInfo:{}.", JSONUtils.toString(recipe), JSONUtils.toString(extInfo));
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         DepListBean depListBean = new DepListBean();
         Integer recipeId = recipe.getRecipeId();
@@ -87,7 +95,8 @@ public class PayModeTFDS implements IPurchaseService{
             return resultBean;
         }
         RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findByOrganIdAndPayModeSupport(recipe.getClinicOrgan(), payModeSupport);
+        // 获取药企
+        List<DrugsEnterprise> drugsEnterprises = enterpriseManager.findEnterpriseByTFDS(recipe,payModeSupport);
         if (CollectionUtils.isEmpty(drugsEnterprises)) {
             //该机构没有对应可药店取药的药企
             resultBean.setCode(RecipeResultBean.FAIL);
@@ -111,7 +120,21 @@ public class PayModeTFDS implements IPurchaseService{
         }
 
         List<DepDetailBean> depDetailList = new ArrayList<>();
-
+        //针对浙江省互联网药店取药走的是配送模式的处理
+        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
+            DrugsEnterprise drugsEnterprise = drugsEnterprises.get(0);
+            if (new Integer(0).equals(drugsEnterprise.getOrderType())){
+                //表示跳转第三方订单,给前端返回具体的药企
+                DepDetailBean depDetailBean = new DepDetailBean();
+                depDetailBean.setDepName(drugsEnterprise.getName());
+                depDetailBean.setOrderType(drugsEnterprise.getOrderType());
+                depDetailList.add(depDetailBean);
+                depListBean.setList(depDetailList);
+                depListBean.setSigle(true);
+                resultBean.setObject(depListBean);
+                return resultBean;
+            }
+        }
         for (DrugsEnterprise dep : drugsEnterprises) {
             List<DepDetailBean> depList = new ArrayList<>();
             //通过查询该药企对应药店库存
@@ -262,6 +285,9 @@ public class PayModeTFDS implements IPurchaseService{
             //如果不需要支付则不走支付,直接掉支付后的逻辑
             orderService.finishOrderPay(order.getOrderCode(), 1, MapValueUtil.getInteger(extInfo, "payMode"));
         }else{
+            // 邵逸夫模式下 不需要审方物流费需要生成一条流水记录
+            orderManager.saveFlowByOrder(order);
+
             //需要支付则走支付前的逻辑
             orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
         }
@@ -272,6 +298,16 @@ public class PayModeTFDS implements IPurchaseService{
                 PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
                 purchaseService.updateRecipeDetail(reicpeId);
             }
+        }
+        for (Integer recipeId2 : recipeIdLists){
+            PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
+            purchaseService.updateRecipeDetail(recipeId2);
+            //date 20200318
+            //确认订单后同步配送信息接口
+            extInfo.put("payMode", "4");
+            extInfo.put("drugStoreCode", order.getDrugStoreCode());
+            extInfo.put("drugStoreName", order.getDrugStoreName());
+            CommonOrder.updateGoodsReceivingInfoToCreateOrder(recipeId2,extInfo);
         }
         return result;
     }
@@ -399,7 +435,7 @@ public class PayModeTFDS implements IPurchaseService{
 
     private List<DepDetailBean> findAllSupportDeps(DrugEnterpriseResult drugEnterpriseResult, DrugsEnterprise dep, Map<String, String> extInfo){
         List<DepDetailBean> depDetailList = new ArrayList<>();
-        if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
+        if (null != drugEnterpriseResult && DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
             Object result = drugEnterpriseResult.getObject();
             if (result != null && result instanceof List) {
                 List<DepDetailBean> ysqList = (List) result;

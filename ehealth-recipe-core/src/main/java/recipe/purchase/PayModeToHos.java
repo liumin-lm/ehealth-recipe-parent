@@ -11,12 +11,14 @@ import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.manager.OrderManager;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
@@ -36,6 +38,9 @@ import static ctd.persistence.DAOFactory.getDAO;
  * @version： 1.0
  */
 public class PayModeToHos implements IPurchaseService{
+
+    @Autowired
+    private OrderManager orderManager;
     /**
      * logger
      */
@@ -161,6 +166,9 @@ public class PayModeToHos implements IPurchaseService{
             //如果不需要支付则不走支付,直接掉支付后的逻辑
             orderService.finishOrderPay(order.getOrderCode(), 1, MapValueUtil.getInteger(extInfo, "payMode"));
         }else{
+            // 邵逸夫模式下 不需要审方物流费需要生成一条流水记录
+            orderManager.saveFlowByOrder(order);
+
             //需要支付则走支付前的逻辑
             orderService.finishOrderPayWithoutPay(order.getOrderCode(), payMode);
         }

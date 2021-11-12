@@ -2,6 +2,7 @@ package com.ngari.recipe.entity;
 
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
+import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -10,19 +11,23 @@ import java.util.Date;
 
 /**
  * 项目目录
+ *
  * @author yinsheng
  * @date 2021\8\20 0020 16:28
  */
 @Entity
 @Schema
+@DynamicInsert
 @Table(name = "base_item_list")
 @Access(AccessType.PROPERTY)
-public class ItemList implements Serializable{
+public class ItemList implements Serializable {
     private static final long serialVersionUID = 7143045971223592496L;
     @ItemProperty(alias = "项目id")
     private Integer id;
     @ItemProperty(alias = "机构id")
     private Integer organID;
+    @ItemProperty(alias = "机构id")
+    private String organName;
     @ItemProperty(alias = "项目名称")
     private String itemName;
     @ItemProperty(alias = "项目编码")
@@ -70,6 +75,15 @@ public class ItemList implements Serializable{
         this.organID = organID;
     }
 
+    @Column(name = "organ_name")
+    public String getOrganName() {
+        return organName;
+    }
+
+    public void setOrganName(String organName) {
+        this.organName = organName;
+    }
+
     @Column(name = "item_code")
     public String getItemCode() {
         return itemCode;
@@ -90,7 +104,11 @@ public class ItemList implements Serializable{
 
     @Column(name = "item_price")
     public BigDecimal getItemPrice() {
-        return itemPrice;
+        if (this.itemPrice == null) {
+            return itemPrice;
+        } else {
+            return itemPrice.stripTrailingZeros();
+        }
     }
 
     public void setItemPrice(BigDecimal itemPrice) {

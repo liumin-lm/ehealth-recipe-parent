@@ -41,6 +41,8 @@ public class RecipeInfoExportDTO implements Serializable{
     private Integer sumDose;
     private  Integer sendType;
     private String outTradeNo;
+    @Dictionary(id = "eh.cdr.dictionary.RecipeType")
+    private Integer recipeType;
 
     @ItemProperty(alias = "结算方式（医保 自费）")
     private Integer orderType;
@@ -49,6 +51,13 @@ public class RecipeInfoExportDTO implements Serializable{
     private Double fundAmount;
     @ItemProperty(alias = "自费金额")
     private Double cashAmount;
+
+    @ItemProperty(alias = "发药药师")
+    private String giveUser;
+
+    @ItemProperty(alias = "发药时间")
+    private Date dispensingTime;
+
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -210,5 +219,29 @@ public class RecipeInfoExportDTO implements Serializable{
 
     public void setCashAmount(Double cashAmount) {
         this.cashAmount = cashAmount;
+    }
+
+    public Integer getRecipeType() {
+        return recipeType;
+    }
+
+    public void setRecipeType(Integer recipeType) {
+        this.recipeType = recipeType;
+    }
+
+    public String getGiveUser() {
+        return giveUser;
+    }
+
+    public void setGiveUser(String giveUser) {
+        this.giveUser = giveUser;
+    }
+
+    public Date getDispensingTime() {
+        return dispensingTime;
+    }
+
+    public void setDispensingTime(Date dispensingTime) {
+        this.dispensingTime = dispensingTime;
     }
 }

@@ -1,38 +1,45 @@
 package recipe.business;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.common.dto.CheckRequestCommonOrderItemDTO;
+import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
+import com.ngari.common.dto.SyncOrderVO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.ApothecaryDTO;
+import com.ngari.recipe.dto.RecipeFeeDTO;
+import com.ngari.recipe.dto.RecipeOrderDto;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.ConfigStatusCheck;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
-import com.ngari.recipe.vo.ResultBean;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
-import ctd.persistence.exception.DAOException;
-import ctd.util.AppContextHolder;
+import ctd.persistence.bean.QueryResult;
 import ctd.util.JSONUtils;
+import eh.entity.bus.pay.BusTypeEnum;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
-import recipe.bean.DrugEnterpriseResult;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DoctorClient;
-import recipe.client.IConfigurationClient;
-import recipe.constant.ErrorCode;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.ConfigStatusCheckDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
-import recipe.givemode.business.GiveModeTextEnum;
+import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.service.RecipeOrderService;
-import recipe.service.RecipeServiceSub;
+import recipe.vo.ResultBean;
+import recipe.vo.second.RecipeOrderVO;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,9 +65,9 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     @Autowired
     private CreatePdfFactory createPdfFactory;
     @Autowired
-    private IConfigurationClient configurationClient;
-    @Autowired
     private OrderManager orderManager;
+    @Autowired
+    private EnterpriseManager enterpriseManager;
 
     @Override
     public ResultBean updateRecipeGiveUser(Integer recipeId, Integer giveUser) {
@@ -118,30 +125,15 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         return result;
     }
 
+
     /**
      * todo 方法需要优化 原方法需要删除
      *
      * @param skipThirdReqVO
      */
     @Override
-    public void uploadRecipeInfoToThird(SkipThirdReqVO skipThirdReqVO) {
-        logger.info("RecipeOrderService uploadRecipeInfoToThird skipThirdReqVO:{}.", JSONUtils.toString(skipThirdReqVO));
-        Boolean pushToHisAfterChoose = configurationClient.getValueBooleanCatch(skipThirdReqVO.getOrganId(), "pushToHisAfterChoose", false);
-        if (!pushToHisAfterChoose) {
-            return;
-        }
-        List<Recipe> recipes = recipeDAO.findByRecipeIds(skipThirdReqVO.getRecipeIds());
-        RecipeServiceSub recipeServiceSub = AppContextHolder.getBean("recipeServiceSub", RecipeServiceSub.class);
-        //将处方上传到第三方
-        recipes.forEach(recipe -> {
-            recipe.setGiveMode(GiveModeTextEnum.getGiveMode(skipThirdReqVO.getGiveMode()));
-            DrugEnterpriseResult result = recipeServiceSub.pushRecipeForThird(recipe, 1);
-            logger.info("RecipeOrderService uploadRecipeInfoToThird result:{}.", JSONUtils.toString(result));
-            if (new Integer(0).equals(result.getCode())) {
-                //表示上传失败
-                throw new DAOException(ErrorCode.SERVICE_ERROR, result.getMsg());
-            }
-        });
+    public SkipThirdDTO uploadRecipeInfoToThird(SkipThirdReqVO skipThirdReqVO) {
+        return enterpriseManager.uploadRecipeInfoToThird(skipThirdReqVO.getOrganId(), skipThirdReqVO.getGiveMode(), skipThirdReqVO.getRecipeIds());
     }
 
 
@@ -155,6 +147,56 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     @Override
     public SkipThirdDTO getSkipUrl(SkipThirdReqVO skipThirdReqVO) {
         return orderManager.getThirdUrl(skipThirdReqVO.getRecipeIds().get(0), GiveModeTextEnum.getGiveMode(skipThirdReqVO.getGiveMode()));
+    }
+
+    @Override
+    public List<RecipeFeeDTO> findRecipeOrderDetailFee(String orderCode) {
+        return orderManager.findRecipeOrderDetailFee(orderCode);
+    }
+
+    @Override
+    public RecipeOrderDto getRecipeOrderByBusId(Integer orderId) {
+        return orderManager.getRecipeOrderByBusId(orderId);
+    }
+
+    @Override
+    public CheckRequestCommonOrderPageDTO getRecipePageForCommonOrder(SyncOrderVO request) {
+        logger.info("getRecipePageForCommonOrder param ={}", JSON.toJSONString(request));
+        CheckRequestCommonOrderPageDTO pageDTO = new CheckRequestCommonOrderPageDTO();
+        if (request.getPage() == null || request.getSize() == null) {
+            return pageDTO;
+        }
+        Integer start = (request.getPage() - 1) * request.getSize();
+        Integer limit = request.getSize();
+        QueryResult<RecipeOrder> queryResult = recipeOrderDAO.queryPageForCommonOrder(request.getStartDate(),
+                request.getEndDate(), start, limit);
+        if (queryResult == null) {
+            return pageDTO;
+        }
+        if (CollectionUtils.isEmpty(queryResult.getItems())) {
+            return pageDTO;
+        }
+        pageDTO.setTotal(Integer.parseInt(String.valueOf(queryResult.getTotal())));
+        pageDTO.setPage(request.getPage());
+        pageDTO.setSize(request.getSize());
+        List<CheckRequestCommonOrderItemDTO> order = new ArrayList<>();
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        for (RecipeOrder recipeOrder : queryResult.getItems()) {
+            CheckRequestCommonOrderItemDTO orderItem = new CheckRequestCommonOrderItemDTO();
+            String userId = patientService.getLoginIdByMpiId(recipeOrder.getMpiId());
+            orderItem.setUserId(userId);
+            orderItem.setMpiId(recipeOrder.getMpiId());
+            orderItem.setBusType(BusTypeEnum.RECIPE.getCode());
+            orderItem.setBusId(recipeOrder.getOrderId());
+            orderItem.setBusStatus(recipeOrder.getStatus());
+            orderItem.setBusDate(recipeOrder.getCreateTime());
+            orderItem.setCreateDate(recipeOrder.getCreateTime());
+            orderItem.setLastModify(recipeOrder.getLastModifyTime());
+            order.add(orderItem);
+        }
+        pageDTO.setOrder(order);
+        logger.info("getRecipePageForCommonOrder result ={}", JSON.toJSONString(pageDTO));
+        return pageDTO;
     }
 
 

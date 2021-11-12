@@ -8,6 +8,7 @@ import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.constant.RecipeHisStatusEnum;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
@@ -18,8 +19,6 @@ import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.platform.recipe.mode.RecipeOrderBean;
 import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.constant.RecipeDistributionFlagEnum;
-import com.ngari.recipe.recipe.constant.RecipeSendTypeEnum;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
@@ -46,6 +45,10 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
+import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.PayFlagEnum;
+import recipe.enumerate.type.RecipeDistributionFlagEnum;
+import recipe.enumerate.type.RecipeSendTypeEnum;
 import recipe.manager.EmrRecipeManager;
 import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
@@ -169,7 +172,7 @@ public class HisRequestInit {
                 requestTO.setCertID(idCard);
                 requestTO.setPatientName(patient.getPatientName());
                 requestTO.setMobile(patient.getMobile());
-
+                requestTO.setCertificateType(patient.getCertificateType());
             }
             /*if (null != card) {
                 requestTO.setCardType(card.getCardType());//2-医保卡
@@ -304,24 +307,26 @@ public class HisRequestInit {
         //处方附带信息
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        try {
-            EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
-            requestTO.setIcdCode(emrDetail.getOrganDiseaseId());
-            requestTO.setIcdName(emrDetail.getOrganDiseaseName());
-            requestTO.setSymptomValue(ObjectCopyUtils.convert(emrDetail.getSymptomValue(), EmrDetailValueDTO.class));
-            requestTO.setDiseaseValue(ObjectCopyUtils.convert(emrDetail.getDiseaseValue(), EmrDetailValueDTO.class));
-            recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
-            recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
-            Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
-            requestTO.setMedicalInfoBean(medicalInfoBean);
-        } catch (Exception e) {
-            requestTO.setIcdCode(recipe.getOrganDiseaseId());
-            requestTO.setIcdName(recipe.getOrganDiseaseName());
-            LOGGER.error("RecipeHisService initRecipeSendRequestTO  IDocIndexService error", e);
-        }
         // 简要病史
-        requestTO.setDiseasesHistory(recipe.getOrganDiseaseName());
-        if (recipeExtend != null) {
+        if (null != recipeExtend) {
+            EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
+            if (StringUtils.isNotEmpty(emrDetail.getOrganDiseaseId())) {
+                recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
+                recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
+                recipeExtend.setMainDieaseDescribe(emrDetail.getMainDieaseDescribe());
+                recipeExtend.setHistoryOfPresentIllness(emrDetail.getHistoryOfPresentIllness());
+                recipeExtend.setSymptomId(emrDetail.getSymptomId());
+                recipeExtend.setSymptomName(emrDetail.getSymptomName());
+                recipeExtend.setCurrentMedical(emrDetail.getCurrentMedical());
+                recipeExtend.setHistroyMedical(emrDetail.getHistroyMedical());
+                recipeExtend.setAllergyMedical(emrDetail.getAllergyMedical());
+                recipeExtend.setPhysicalCheck(emrDetail.getPhysicalCheck());
+                recipeExtend.setHandleMethod(emrDetail.getHandleMethod());
+                requestTO.setSymptomValue(ObjectCopyUtils.convert(emrDetail.getSymptomValue(), EmrDetailValueDTO.class));
+                requestTO.setDiseaseValue(ObjectCopyUtils.convert(emrDetail.getDiseaseValue(), EmrDetailValueDTO.class));
+                Map<String, Object> medicalInfoBean = docIndexService.getMedicalInfoByDocIndexId(recipeExtend.getDocIndexId());
+                requestTO.setMedicalInfoBean(medicalInfoBean);
+            }
             //挂号序号
             requestTO.setRegisteredId(recipeExtend.getRegisterID());
             //主诉
@@ -332,6 +337,7 @@ public class HisRequestInit {
             requestTO.setHandleMethod(recipeExtend.getHandleMethod());
             requestTO.setCardNo(recipeExtend.getCardNo());
             requestTO.setCardType(recipeExtend.getCardType());
+            requestTO.setPatientId(recipe.getPatientID());
             //处方扩展信息
             requestTO.setRecipeExtend(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
             try {
@@ -346,7 +352,6 @@ public class HisRequestInit {
                 if (StringUtils.isNotBlank(recipeExtend.getMakeMethodId())) {
                     DrugMakingMethod drugMakingMethod = drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
                     requestTO.getRecipeExtend().setMakeMethod(drugMakingMethod.getMethodCode());
-
                 }
                 if (StringUtils.isNotBlank(recipeExtend.getSymptomId())) {
                     Symptom symptom = symptomDAO.get(Integer.parseInt(recipeExtend.getSymptomId()));
@@ -356,6 +361,9 @@ public class HisRequestInit {
                 LOGGER.error("initRecipeSendRequestTO recipeid:{} error ", recipe.getRecipeId(), e);
             }
         }
+        requestTO.setIcdCode(recipe.getOrganDiseaseId());
+        requestTO.setIcdName(recipe.getOrganDiseaseName());
+        requestTO.setDiseasesHistory(recipe.getOrganDiseaseName());
         try {
             if (recipe.getClinicId() != null) {
                 IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
@@ -372,7 +380,7 @@ public class HisRequestInit {
         }
         //科室代码
         AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
-        AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
+        AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartIDAndCancleFlag(recipe.getClinicOrgan(), recipe.getDepart());
         requestTO.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
         //科室名称
         requestTO.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
@@ -406,6 +414,7 @@ public class HisRequestInit {
             requestTO.setCertID(idCard);
             requestTO.setPatientName(patient.getPatientName());
             requestTO.setMobile(patient.getMobile());
+            requestTO.setCertificateType(patient.getCertificateType());
         }
 
         //根据处方单设置配送方式
@@ -528,6 +537,7 @@ public class HisRequestInit {
         RecipeRefundReqTO requestTO = new RecipeRefundReqTO();
         if (null != recipe) {
             requestTO.setOrganID(String.valueOf(recipe.getClinicOrgan()));
+            requestTO.setPatId(recipe.getPatientID());
         }
 
         if (null != details && !details.isEmpty()) {
@@ -536,6 +546,7 @@ public class HisRequestInit {
 
         if (null != patient) {
             requestTO.setCertID(patient.getCertificate());
+            requestTO.setCertificateType(patient.getCertificateType());
             requestTO.setPatientName(patient.getPatientName());
             requestTO.setPatientSex(patient.getPatientSex());
             requestTO.setMobile(patient.getMobile());
@@ -563,6 +574,7 @@ public class HisRequestInit {
             if (null != patient) {
                 // 患者信息
                 requestTO.setCertID(patient.getCertificate());
+                requestTO.setCertificateType(patient.getCertificateType());
                 requestTO.setPatientName(patient.getPatientName());
             }
             requestTO.setPatId(recipe.getPatientID());
@@ -574,7 +586,7 @@ public class HisRequestInit {
             }
 
             requestTO.setAmount(recipe.getTotalMoney().toString());
-
+            requestTO.setMobile(patient.getMobile());
             requestTO.setIsMedicalSettle("0");
             if (recipe.getOrderCode() != null) {
                 RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
@@ -679,6 +691,7 @@ public class HisRequestInit {
             if (null != patient) {
                 requestTO.setPatientName(patient.getPatientName());
                 requestTO.setCertID(patient.getCertificate());
+                requestTO.setCertificateType(patient.getCertificateType());
                 requestTO.setMobile(patient.getMobile());
             }
             RecipeOrder order = null;
@@ -754,7 +767,18 @@ public class HisRequestInit {
 
             requestTO.setRecipeNo(recipe.getRecipeCode());
             requestTO.setRecipeType((null != recipe.getRecipeType()) ? Integer.toString(recipe.getRecipeType()) : null);
-
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe nowRecipe = recipeDAO.getByRecipeId(recipe.getRecipeId());
+            LOGGER.info("HisRequestInit initDrugTakeChangeReqTO recipe:{},order:{}.", JSONUtils.toString(nowRecipe), JSONUtils.toString(order));
+            RecipeHisStatusEnum recipeHisStatusEnum = RecipeHisStatusEnum.getRecipeHisStatusEnum(nowRecipe.getStatus());
+            if(Objects.nonNull(recipeHisStatusEnum)) {
+                requestTO.setRecipeStatus(recipeHisStatusEnum.getValue());
+            }
+            if (null == requestTO.getRecipeStatus() && null != order && PayFlagEnum.PAYED.getType().equals(order.getPayFlag())
+                    && (RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType().equals(nowRecipe.getStatus()) ||
+                    RecipeStatusEnum.RECIPE_STATUS_WAIT_SEND.getType().equals(nowRecipe.getStatus()))) {
+                requestTO.setRecipeStatus(0);
+            }
             // 医院系统医嘱号（一张处方多条记录用|分隔）
             StringBuilder str = new StringBuilder("");
             if (null != list && list.size() != 0) {
@@ -770,7 +794,7 @@ public class HisRequestInit {
         } catch (Exception e) {
             LOGGER.error("initDrugTakeChangeReqTO error", e);
         }
-
+        LOGGER.info("HisRequestInit initDrugTakeChangeReqTO requestTO:{}.", JSONUtils.toString(requestTO));
         return requestTO;
     }
 
@@ -782,10 +806,11 @@ public class HisRequestInit {
         OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
         //组织机构编码
         requestTO.setOrganizeCode(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
-
+        requestTO.setPatientID(recipe.getPatientID());
         if (null != patient) {
             // 患者信息
             requestTO.setCertID(patient.getCertificate());
+            requestTO.setCertificateType(patient.getCertificateType());
             requestTO.setPatientName(patient.getPatientName());
         }
 
@@ -822,6 +847,7 @@ public class HisRequestInit {
         if (null != patient) {
             // 患者信息
             requestTO.setCertID(patient.getCertificate());
+            requestTO.setCertificateType(patient.getCertificateType());
             requestTO.setPatientName(patient.getPatientName());
         }
 
@@ -999,6 +1025,7 @@ public class HisRequestInit {
             requestTO.setPatientIdCard(patientBean.getIdcard());
             requestTO.setPatientName(patientBean.getPatientName());
             requestTO.setPatientSex(patientBean.getPatientSex());
+            requestTO.setPatientId(recipe.getPatientID());
             //出生日期
             requestTO.setBirthDay(DateConversion.formatDate(patientBean.getBirthday()));
             //复诊标记（0：初诊 1：复诊）

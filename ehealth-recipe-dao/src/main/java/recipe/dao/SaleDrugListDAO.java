@@ -77,6 +77,9 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
         return action.getResult();
     };
 
+
+
+
     /**
      * 设置某些药品为无效
      *
@@ -93,6 +96,14 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
      */
     @DAOMethod(sql = "update SaleDrugList set status=0 where organId=:organId ")
     public abstract void updateInvalidByOrganId(@DAOParam("organId") int organId);
+
+    /**
+     * 一键删除
+     *
+     * @param organId
+     */
+    @DAOMethod(sql = "delete from SaleDrugList  where organId=:organId ")
+    public abstract void deleteByOrganId(@DAOParam("organId") int organId);
 
 
     /**
@@ -158,6 +169,11 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
      */
     @DAOMethod(sql = "select drugId from SaleDrugList where organId=:organId and status=1", limit = 0)
     public abstract List<Integer> findDrugIdByOrganId(@DAOParam("organId") int organId);
+
+
+
+    @DAOMethod(sql = " from SaleDrugList where drugId=:drugId and status=1", limit = 0)
+    public abstract List<SaleDrugList> findByDrugId(@DAOParam("drugId") int drugId);
 
     /**
      * 获取药品与配送药企关系 （药品1:药企A,药企B）
@@ -443,6 +459,15 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
     public abstract List<SaleDrugList> findByOrganId(@DAOParam("organId") int organId,
                                                      @DAOParam(pageStart = true) int start,
                                                      @DAOParam(pageLimit = true) int limit);
+
+
+    /**
+     * 根据organId查询所有配送药品
+     * @param organId  配送机构
+     * @return         药品列表
+     */
+    @DAOMethod(sql = "from SaleDrugList where organId=:organId order by organDrugId" ,limit = 0)
+    public abstract List<SaleDrugList> findSaleDrugListsByOrganId(@DAOParam("organId") int organId);
 
     /**
      * 根据机构id获取药品id集合

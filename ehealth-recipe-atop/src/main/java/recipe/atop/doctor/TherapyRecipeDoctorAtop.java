@@ -18,6 +18,7 @@ import org.springframework.util.CollectionUtils;
 import recipe.atop.BaseAtop;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
+import recipe.constant.PageInfoConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
@@ -98,9 +99,9 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         logger.info("TherapyRecipeDoctorAtop submitTherapyRecipe recipeInfoVO = {}", JSON.toJSONString(recipeInfoVO));
         validateAtop(recipeInfoVO, recipeInfoVO.getRecipeDetails());
         Integer recipeId = saveTherapyRecipe(recipeInfoVO);
-        //异步推送his
-        RecipeInfoDTO recipeInfoDTO = offlineToOnlineService.pushRecipe(recipeId, CommonConstant.THERAPY_RECIPE_PUSH_TYPE);
-        therapyRecipeBusinessService.updatePushTherapyRecipe(recipeInfoDTO.getRecipeTherapy(), CommonConstant.THERAPY_RECIPE_PUSH_TYPE);
+        //推送his
+        RecipeInfoDTO recipeInfoDTO = offlineToOnlineService.pushRecipe(recipeId, CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_DOCTOR_TYPE);
+        therapyRecipeBusinessService.updatePushTherapyRecipe(recipeId, recipeInfoDTO.getRecipeTherapy(), CommonConstant.RECIPE_PUSH_TYPE);
         return recipeId;
     }
 
@@ -224,9 +225,9 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
         validateAtop(recipeTherapyVO, recipeTherapyVO.getTherapyCancellationType(), recipeTherapyVO.getRecipeId());
         try {
             //异步推送his
-            offlineToOnlineService.pushRecipe(recipeTherapyVO.getRecipeId(), CommonConstant.THERAPY_RECIPE_CANCEL_TYPE);
+            offlineToOnlineService.pushRecipe(recipeTherapyVO.getRecipeId(), CommonConstant.RECIPE_CANCEL_TYPE, CommonConstant.RECIPE_DOCTOR_TYPE);
             RecipeTherapy recipeTherapy = ObjectCopyUtils.convert(recipeTherapyVO, RecipeTherapy.class);
-            therapyRecipeBusinessService.updatePushTherapyRecipe(recipeTherapy, CommonConstant.THERAPY_RECIPE_CANCEL_TYPE);
+            therapyRecipeBusinessService.updatePushTherapyRecipe(recipeTherapyVO.getRecipeId(), recipeTherapy, CommonConstant.RECIPE_CANCEL_TYPE);
             return true;
         } catch (DAOException e1) {
             logger.warn("TherapyRecipeDoctorAtop cancelRecipe  error", e1);
@@ -287,8 +288,15 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
     @RpcService
     public List<ItemListVO> searchItemListByKeyWord(ItemListVO itemListVO){
         logger.info("TherapyRecipeDoctorAtop searchItemListByKeyWord itemListVO:{}.", JSON.toJSONString(itemListVO));
-        validateAtop(itemListVO, itemListVO.getOrganId(),itemListVO.getItemName(), itemListVO.getLimit());
+        validateAtop(itemListVO, itemListVO.getOrganId());
         try {
+            //drugName 为空时可以查询默认的  默认第一个分页数据
+            if(ValidateUtil.integerIsEmpty(itemListVO.getStart())){
+                itemListVO.setStart(PageInfoConstant.PAGE_NO);
+            }
+            if(ValidateUtil.integerIsEmpty(itemListVO.getLimit())){
+                itemListVO.setLimit(PageInfoConstant.PAGE_SIZE);
+            }
             List<ItemListVO> result = therapyRecipeBusinessService.searchItemListByKeyWord(itemListVO);
             logger.info("TherapyRecipeDoctorAtop searchItemListByKeyWord result:{}.", JSON.toJSONString(result));
             return result;

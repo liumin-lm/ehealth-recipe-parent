@@ -33,7 +33,7 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "药企名称")
     private String name;
 
-    @ItemProperty(alias = "药企固定编码")
+    @ItemProperty(alias = "平台自定义药企编码")
     private String enterpriseCode;
 
     @ItemProperty(alias = "药企关键机构")
@@ -117,7 +117,7 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "配送主体类型 1医院配送 2 药企配送")
     private Integer sendType;
 
-    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付 3-第三方支付")
+    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付 3-第三方支付 4-上传运费细则标准")
     private Integer expressFeePayWay;
 
     @ItemProperty(alias = "管理单元")
@@ -174,6 +174,27 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     @ItemProperty(alias = "订单备注")
     private String orderMemo;
+
+    @ItemProperty(alias = "药企更新token的标识")
+    private Integer updateTokenFlag;
+
+    @ItemProperty(alias = "集揽模式")
+    private Integer collectMode;
+
+    @ItemProperty(alias = "到院取药日期是否展示今天 0 否 1 是")
+    private Integer isShowToday;
+
+    @ItemProperty(alias = "第三方药企编码")
+    private String thirdEnterpriseCode;
+
+    @Column(name = "is_show_today")
+    public Integer getIsShowToday() {
+        return isShowToday;
+    }
+
+    public void setIsShowToday(Integer isShowToday) {
+        this.isShowToday = isShowToday;
+    }
 
     @Column(name = "consignorStreet")
     public String getConsignorStreet() {
@@ -620,5 +641,32 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setOrderMemo(String orderMemo) {
         this.orderMemo = orderMemo;
+    }
+
+    @Column(name = "collect_mode")
+    public Integer getCollectMode() {
+        return collectMode;
+    }
+
+    public void setCollectMode(Integer collectMode) {
+        this.collectMode = collectMode;
+    }
+
+    @Column(name = "update_token_flag")
+    public Integer getUpdateTokenFlag() {
+        return updateTokenFlag;
+    }
+
+    public void setUpdateTokenFlag(Integer updateTokenFlag) {
+        this.updateTokenFlag = updateTokenFlag;
+    }
+
+    @Column(name = "third_enterprise_code")
+    public String getThirdEnterpriseCode() {
+        return thirdEnterpriseCode;
+    }
+
+    public void setThirdEnterpriseCode(String thirdEnterpriseCode) {
+        this.thirdEnterpriseCode = thirdEnterpriseCode;
     }
 }

@@ -157,6 +157,10 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "是否支持下载处方笺 0   否，1  是   默认1")
     private Boolean supportDownloadPrescriptionPad;
 
+    @ItemProperty(alias = "配送药企ids")
+    private String drugsEnterpriseIds;
+
+
     public OrganDrugList() {
     }
 
@@ -569,5 +573,14 @@ public class OrganDrugList implements java.io.Serializable {
 
     public void setSupportDownloadPrescriptionPad(Boolean supportDownloadPrescriptionPad) {
         this.supportDownloadPrescriptionPad = supportDownloadPrescriptionPad;
+    }
+
+    @Column(name = "drugsEnterpriseIds")
+    public String getDrugsEnterpriseIds() {
+        return drugsEnterpriseIds;
+    }
+
+    public void setDrugsEnterpriseIds(String drugsEnterpriseIds) {
+        this.drugsEnterpriseIds = drugsEnterpriseIds;
     }
 }

@@ -17,9 +17,9 @@ import recipe.constant.ErrorCode;
 import recipe.constant.HisErrorCodeEnum;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
+import recipe.enumerate.status.OutRecipeStatusEnum;
 import recipe.enumerate.type.OutRecipeGiveModeEnum;
 import recipe.enumerate.type.OutRecipeRecipeTypeEnum;
-import recipe.enumerate.status.OutRecipeStatusEnum;
 import recipe.util.DateConversion;
 import recipe.util.ValidateUtil;
 
@@ -46,18 +46,20 @@ public class RecipePatientAtop extends BaseAtop {
 
     /**
      * 查询门诊处方信息
+     *
      * @param outPatientRecipeReqVO 患者信息
-     * @return  门诊处方列表
+     * @return 门诊处方列表
      */
     @RpcService
-    public List<OutPatientRecipeVO> queryOutPatientRecipe(OutPatientRecipeReqVO outPatientRecipeReqVO){
+    public List<OutPatientRecipeVO> queryOutPatientRecipe(OutPatientRecipeReqVO outPatientRecipeReqVO) {
         validateAtop(outPatientRecipeReqVO, outPatientRecipeReqVO.getOrganId(), outPatientRecipeReqVO.getMpiId());
         try {
             //设置默认查询时间3个月
             outPatientRecipeReqVO.setBeginTime(DateConversion.getDateFormatter(DateConversion.getMonthsAgo(3), DateConversion.DEFAULT_DATE_TIME));
             outPatientRecipeReqVO.setEndTime(DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
             PatientDTO patientDTO = recipePatientService.getPatientDTOByMpiID(outPatientRecipeReqVO.getMpiId());
-            outPatientRecipeReqVO.setIdCard(StringUtils.isNotEmpty(outPatientRecipeReqVO.getIdCard())?outPatientRecipeReqVO.getIdCard():patientDTO.getIdcard());
+            outPatientRecipeReqVO.setIdCard(StringUtils.isNotEmpty(outPatientRecipeReqVO.getIdCard()) ? outPatientRecipeReqVO.getIdCard() : patientDTO.getCertificate());
+            outPatientRecipeReqVO.setPatientId(patientDTO.getPatId());
             logger.info("OutPatientRecipeAtop queryOutPatientRecipe outPatientRecipeReq:{}.", JSON.toJSONString(outPatientRecipeReqVO));
             //获取线下门诊处方
             List<OutPatientRecipeDTO> outPatientRecipeDTOS = recipeBusinessService.queryOutPatientRecipe(outPatientRecipeReqVO);
@@ -72,6 +74,7 @@ public class RecipePatientAtop extends BaseAtop {
                 outPatientRecipeVO.setGiveModeText(OutRecipeGiveModeEnum.getName(outPatientRecipeVO.getGiveMode()));
                 outPatientRecipeVO.setRecipeTypeText(OutRecipeRecipeTypeEnum.getName(outPatientRecipeVO.getRecipeType()));
                 outPatientRecipeVO.setOrganId(outPatientRecipeReqVO.getOrganId());
+                outPatientRecipeVO.setMpiId(outPatientRecipeReqVO.getMpiId());
                 if (StringUtils.isEmpty(outPatientRecipeVO.getOrganName())) {
                     outPatientRecipeVO.setOrganName(outPatientRecipeReqVO.getOrganName());
                 }
@@ -90,11 +93,12 @@ public class RecipePatientAtop extends BaseAtop {
 
     /**
      * 获取线下门诊处方诊断信息
+     *
      * @param patientInfoVO 患者信息
-     * @return  诊断列表
+     * @return 诊断列表
      */
     @RpcService
-    public String getOutRecipeDisease(PatientInfoVO patientInfoVO){
+    public String getOutRecipeDisease(PatientInfoVO patientInfoVO) {
         logger.info("OutPatientRecipeAtop getOutRecipeDisease patientInfoVO:{}.", JSON.toJSONString(patientInfoVO));
         validateAtop(patientInfoVO, patientInfoVO.getOrganId(), patientInfoVO.getPatientName(), patientInfoVO.getPatientId(), patientInfoVO.getRegisterID());
         try {
@@ -121,11 +125,12 @@ public class RecipePatientAtop extends BaseAtop {
 
     /**
      * 获取门诊处方详情信息
+     *
      * @param outRecipeDetailReqVO 门诊处方信息
      * @return 图片或者PDF链接等
      */
     @RpcService
-    public OutRecipeDetailVO queryOutRecipeDetail(OutRecipeDetailReqVO outRecipeDetailReqVO){
+    public OutRecipeDetailVO queryOutRecipeDetail(OutRecipeDetailReqVO outRecipeDetailReqVO) {
         logger.info("OutPatientRecipeAtop getOutRecipeDisease queryOutRecipeDetail:{}.", JSON.toJSONString(outRecipeDetailReqVO));
         try {
             OutRecipeDetailVO result = recipeBusinessService.queryOutRecipeDetail(outRecipeDetailReqVO);
@@ -142,11 +147,12 @@ public class RecipePatientAtop extends BaseAtop {
 
     /**
      * 前端获取用药指导
+     *
      * @param medicationGuidanceReqVO 用药指导入参
      * @return 用药指导出参
      */
     @RpcService
-    public MedicationGuideResVO getMedicationGuide(MedicationGuidanceReqVO medicationGuidanceReqVO){
+    public MedicationGuideResVO getMedicationGuide(MedicationGuidanceReqVO medicationGuidanceReqVO) {
         logger.info("OutPatientRecipeAtop getMedicationGuide medicationGuidanceReqVO:{}.", JSON.toJSONString(medicationGuidanceReqVO));
         try {
             MedicationGuideResVO result = recipeBusinessService.getMedicationGuide(medicationGuidanceReqVO);
@@ -163,14 +169,15 @@ public class RecipePatientAtop extends BaseAtop {
 
     /**
      * 获取患者医保信息
+     *
      * @param patientInfoVO 患者信息
      * @return 医保类型相关
      */
     @RpcService
-    public PatientMedicalTypeVO queryPatientMedicalType(PatientInfoVO patientInfoVO){
+    public PatientMedicalTypeVO queryPatientMedicalType(PatientInfoVO patientInfoVO) {
         logger.info("OutPatientRecipeAtop queryPatientMedicalType patientInfoVO:{}.", JSON.toJSONString(patientInfoVO));
         validateAtop(patientInfoVO, patientInfoVO.getOrganId(), patientInfoVO.getMpiId());
-        if (ValidateUtil.integerIsEmpty(patientInfoVO.getClinicId())){
+        if (ValidateUtil.integerIsEmpty(patientInfoVO.getClinicId())) {
             return new PatientMedicalTypeVO("1", "自费");
         }
         try {

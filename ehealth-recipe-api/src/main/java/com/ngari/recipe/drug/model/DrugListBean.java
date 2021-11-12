@@ -196,6 +196,9 @@ public class DrugListBean implements IDrugInventory, Serializable {
     @ItemProperty(alias = "药品嘱托Id")
     private String drugEntrustId;
 
+    @ItemProperty(alias = "是否标准药品，1-是，0-否")
+    private Integer isStandardDrug;
+
     public String getDrugEntrustCode() {
         return drugEntrustCode;
     }
@@ -666,5 +669,13 @@ public class DrugListBean implements IDrugInventory, Serializable {
 
     public void setInventoriesFlag(boolean inventoriesFlag) {
         this.inventoriesFlag = inventoriesFlag;
+    }
+
+    public Integer getIsStandardDrug() {
+        return isStandardDrug;
+    }
+
+    public void setIsStandardDrug(Integer isStandardDrug) {
+        this.isStandardDrug = isStandardDrug;
     }
 }

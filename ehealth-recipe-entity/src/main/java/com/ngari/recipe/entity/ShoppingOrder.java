@@ -20,7 +20,9 @@ import static javax.persistence.GenerationType.IDENTITY;
 public class ShoppingOrder implements java.io.Serializable {
     private static final long serialVersionUID = -1808484555931495762L;
 
+    @ItemProperty(alias = "主键")
     private Integer orderId;
+    @ItemProperty(alias = "患者MpiId")
     private String mpiId;
     @ItemProperty(alias = "患者姓名")
     private String patientName;
