@@ -105,6 +105,15 @@ public class OperationClient extends BaseClient {
         if (OperationConstant.OP_PATIENT.equals(objectName)) {
             return MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getPatientBean());
         }
+        if (OperationConstant.OP_RECIPE_ORDER.equals(objectName)) {
+            if (null == recipePdfDTO.getRecipeOrder()) {
+                return "";
+            }
+            if ("dispensingTime".equals(fieldName)) {
+                return ByteUtils.dateToSting(recipePdfDTO.getRecipeOrder().getDispensingTime());
+            }
+            return MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipeOrder());
+        }
         if (OperationConstant.OP_RECIPE_EXTEND.equals(objectName)) {
             return MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipeExtend());
         }
@@ -156,6 +165,7 @@ public class OperationClient extends BaseClient {
             }
             return MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipe());
         }
+
         return "";
     }
 
