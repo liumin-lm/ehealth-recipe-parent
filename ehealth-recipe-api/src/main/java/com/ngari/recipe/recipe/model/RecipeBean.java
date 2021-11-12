@@ -393,6 +393,9 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "处方支持的购药方式,逗号分隔")
     private String recipeSupportGiveMode;
 
+    @ItemProperty(alias = "处方标识 0:普通处方 1:儿童处方")
+    private Integer recipeFlag;
+
     public String getRecipeSupportGiveMode() {
         return recipeSupportGiveMode;
     }
@@ -1438,4 +1441,11 @@ public class RecipeBean implements Serializable {
 
     }
 
+    public Integer getRecipeFlag() {
+        return recipeFlag;
+    }
+
+    public void setRecipeFlag(Integer recipeFlag) {
+        this.recipeFlag = recipeFlag;
+    }
 }
