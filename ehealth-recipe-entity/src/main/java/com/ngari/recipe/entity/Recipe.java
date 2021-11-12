@@ -6,7 +6,6 @@ import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -23,7 +22,6 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Table(name = "cdr_recipe")
 @Access(AccessType.PROPERTY)
 @NoArgsConstructor
-@DynamicInsert
 public class Recipe implements Serializable {
 
     private static final long serialVersionUID = -6170665419368031590L;

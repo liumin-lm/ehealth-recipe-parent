@@ -4,7 +4,6 @@ import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
-import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -24,7 +23,6 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Schema
 @Table(name = "cdr_recipeorder")
 @Access(AccessType.PROPERTY)
-@DynamicInsert
 public class RecipeOrder implements Serializable {
     private static final long serialVersionUID = -1L;
 
