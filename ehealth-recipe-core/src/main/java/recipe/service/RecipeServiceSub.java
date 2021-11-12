@@ -1457,6 +1457,7 @@ public class RecipeServiceSub {
         if (appointDepartDTO != null) {
             r.setDepart(appointDepartDTO.getDepartId());
         }
+        r.setRecipeFlag(0);
         return r;
     }
 
