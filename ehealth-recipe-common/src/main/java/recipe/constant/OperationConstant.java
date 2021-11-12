@@ -30,6 +30,10 @@ public class OperationConstant {
      */
     public static final String OP_PATIENT = "patient";
     /**
+     * 订单
+     */
+    public static final String OP_RECIPE_ORDER = "recipeOrder";
+    /**
      * 处方扩展
      */
     public static final String OP_RECIPE_EXTEND = "recipeExtend";

@@ -325,6 +325,11 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             // 到院取药是否支持线上支付
             Boolean supportToHosPayFlag = configurationClient.getValueBooleanCatch(nowRecipeBean.getClinicOrgan(), "supportToHosPayFlag", false);
             map.put("supportToHosPayFlag",supportToHosPayFlag.toString());
+            if(supportToHosPayFlag){
+                map.put("supportToHosPayFlag","1");
+            }else {
+                map.put("supportToHosPayFlag","0");
+            }
             if (supportToHosPayFlag){
                 map.put("payTip", "");
             }

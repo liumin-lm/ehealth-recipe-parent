@@ -33,11 +33,11 @@ public class DrugPatientAtop extends BaseAtop {
      */
     @RpcService
     public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVo searchDrugReqVo) {
-        logger.info("DrugPatientAtop findDrugWithEsByPatient outPatientReqVO:{}.", JSON.toJSONString(searchDrugReqVo));
+        logger.info("DrugPatientAtop findDrugWithEsByPatient outPatientReqVO:{}", JSON.toJSONString(searchDrugReqVo));
         validateAtop(searchDrugReqVo, searchDrugReqVo.getOrganId());
         try {
             List<PatientDrugWithEsDTO> drugWithEsDTOS = drugBusinessService.findDrugWithEsByPatient(searchDrugReqVo);
-            logger.info("DrugPatientAtop findDrugWithEsByPatient result:{}.", JSONArray.toJSONString(drugWithEsDTOS));
+            logger.info("DrugPatientAtop findDrugWithEsByPatient result:{}", JSONArray.toJSONString(drugWithEsDTOS));
             return drugWithEsDTOS;
         } catch (DAOException e1) {
             logger.error("DrugPatientAtop findDrugWithEsByPatient error", e1);

@@ -1813,12 +1813,12 @@ public class RecipeOrderService extends RecipeBaseService {
             getShowAuditFeeAndTips(result, order, recipeList);
             /*//在扩展内容中添加医保结算金额明细数据----已经要求卫宁互联网在支付回调memo字段里拼接好格式返回了所以此处不要了
             getShowMedicalRespData(result,recipeList);*/
-            // 到院取药是否支持线上支付 标志
-            putSupportToHosPayFlag(result,order);
         } else {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("不存在ID为" + orderId + "的订单");
         }
+        // 到院取药是否支持线上支付 标志
+        putSupportToHosPayFlag(result,order);
         LOGGER.info("getOrderDetailById.result={}", JSONUtils.toString(result));
         return result;
     }
