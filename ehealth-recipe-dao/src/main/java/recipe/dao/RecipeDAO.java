@@ -3077,7 +3077,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (doctorId != null) {
                     hql += " and doctor=:doctor";
                 }
-                hql += " and status IN (:statusList) order by createDate desc ";
+                hql += " and status IN (:statusList) and recipeSourceType != 3 order by createDate desc ";
                 Query query = ss.createQuery(hql);
                 if (doctorId != null) {
                     query.setParameter("doctor", doctorId);
