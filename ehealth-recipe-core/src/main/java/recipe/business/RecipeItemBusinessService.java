@@ -1,6 +1,7 @@
 package recipe.business;
 
 import com.ngari.recipe.entity.ItemList;
+import com.ngari.recipe.vo.CheckItemListVo;
 import com.ngari.recipe.vo.ItemListVO;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.JSONUtils;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import recipe.core.api.doctor.ITherapyItemBusinessService;
 import recipe.manager.ItemListManager;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -22,6 +24,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 @Service
 public class RecipeItemBusinessService extends BaseService implements ITherapyItemBusinessService {
+
+    public final String ITEM_NAME = "itemName";
+    public final String ITEM_CODE = "itemCode";
 
     @Autowired
     private ItemListManager itemListManager;
@@ -89,19 +94,54 @@ public class RecipeItemBusinessService extends BaseService implements ITherapyIt
     }
 
     @Override
-    public boolean checkItemList(ItemList itemList) {
-        //true表示存在，false表示不存在除当前项目外其他项目（为了跟另一个先写的校验方法保持一致）
-        AtomicBoolean res = new AtomicBoolean(false);
-        List<ItemList> itemListDbs = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), itemList.getItemCode());
-        itemListDbs.forEach(itemListDb -> {
-            //存在一样的id false表示不存在
-            if (itemListDb != null && !itemListDb.getId().equals(itemList.getId())) {
-                logger.info("findItemListByOrganIdAndItemNameOrCode itemListDb:{}", JSONUtils.toString(itemListDb));
-                res.set(true);
-                return;
+    public CheckItemListVo checkItemList(ItemList itemList) {
+        CheckItemListVo checkItemListVo = new CheckItemListVo();
+        List<String> cause = new ArrayList<>();
+        AtomicBoolean result = new AtomicBoolean(true);
+        //true表示可向下执行流程 false抛出错误
+        AtomicBoolean res = new AtomicBoolean(true);
+        if (itemList.getId() != null) {
+            //修改
+            if (StringUtils.isNotEmpty(itemList.getItemName())) {
+                List<ItemList> itemListsByItemName = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), null);
+                itemListsByItemName.forEach(itemListByItemName -> {
+                    //存在一条id与当前传入itemList.getId不相同的就为false
+                    if (itemListByItemName != null && !itemList.getItemName().equals(itemListByItemName)) {
+                        result.set(false);
+                        cause.add(ITEM_NAME);
+                    }
+                });
             }
-        });
-        return res.get();
+            if (StringUtils.isNotEmpty(itemList.getItemCode())) {
+                List<ItemList> itemListsByItemCode = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), null, itemList.getItemCode());
+                itemListsByItemCode.forEach(itemListByItemCode -> {
+                    //存在一条id与当前传入itemList.getId不相同的就为false
+                    if (itemListByItemCode != null && !itemList.getItemCode().equals(itemListByItemCode)) {
+                        result.set(false);
+                        cause.add(ITEM_CODE);
+                    }
+                });
+            }
+        } else {
+            //新增
+            if (StringUtils.isNotEmpty(itemList.getItemName())) {
+                List<ItemList> resByItemName = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), null);
+                if (CollectionUtils.isNotEmpty(resByItemName)) {
+                    result.set(false);
+                    cause.add(ITEM_NAME);
+                }
+            }
+            if (StringUtils.isNotEmpty(itemList.getItemCode())) {
+                List<ItemList> resByItemName = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), null, itemList.getItemCode());
+                if (CollectionUtils.isNotEmpty(resByItemName)) {
+                    result.set(false);
+                    cause.add(ITEM_CODE);
+                }
+            }
+        }
+        checkItemListVo.setCause(cause);
+        checkItemListVo.setResult(result.get());
+        return checkItemListVo;
     }
 
 

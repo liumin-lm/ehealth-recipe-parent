@@ -1,6 +1,7 @@
 package recipe.core.api.doctor;
 
 import com.ngari.recipe.entity.ItemList;
+import com.ngari.recipe.vo.CheckItemListVo;
 import com.ngari.recipe.vo.ItemListVO;
 import ctd.persistence.bean.QueryResult;
 
@@ -58,5 +59,5 @@ public interface ITherapyItemBusinessService {
      */
     List<ItemList> findItemListByOrganIdAndItemNameOrCode(Integer organId, String itemName, String itemCode);
 
-    boolean checkItemList(ItemList itemList);
+    CheckItemListVo checkItemList(ItemList itemList);
 }
