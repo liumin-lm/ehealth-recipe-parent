@@ -91,8 +91,7 @@ public class TherapyItemOpenAtop extends BaseAtop implements ITherapyItemOpenAto
         validateAtop(itemList, itemList.getOrganID());
         boolean result = false;
         try {
-            therapyItemBusinessService.saveItemList(itemList);
-            result = true;
+            result = therapyItemBusinessService.saveItemList(itemList);
         } catch (DAOException e1) {
             logger.error("TherapyItemOpenAtop saveItemList  error", e1);
         }
@@ -110,8 +109,7 @@ public class TherapyItemOpenAtop extends BaseAtop implements ITherapyItemOpenAto
         validateAtop(itemList, itemList.getId());
         boolean result = false;
         try {
-            therapyItemBusinessService.updateItemList(itemList);
-            result = true;
+            result = therapyItemBusinessService.updateItemList(itemList);
         } catch (DAOException e1) {
             logger.error("TherapyItemOpenAtop updateItemList  error", e1);
         }

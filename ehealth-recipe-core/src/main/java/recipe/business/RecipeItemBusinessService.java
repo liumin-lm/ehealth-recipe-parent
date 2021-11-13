@@ -4,7 +4,6 @@ import com.ngari.recipe.entity.ItemList;
 import com.ngari.recipe.vo.CheckItemListVo;
 import com.ngari.recipe.vo.ItemListVO;
 import ctd.persistence.bean.QueryResult;
-import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,8 +43,17 @@ public class RecipeItemBusinessService extends BaseService implements ITherapyIt
 
     @Override
     public boolean saveItemList(ItemList itemList) {
-        if (CollectionUtils.isNotEmpty(itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), itemList.getItemCode()))) {
-            return false;
+        if (StringUtils.isNotEmpty(itemList.getItemName())) {
+            List<ItemList> resByItemName = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), null);
+            if (CollectionUtils.isNotEmpty(resByItemName)) {
+                return false;
+            }
+        }
+        if (StringUtils.isNotEmpty(itemList.getItemCode())) {
+            List<ItemList> resByItemName = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), null, itemList.getItemCode());
+            if (CollectionUtils.isNotEmpty(resByItemName)) {
+                return false;
+            }
         }
         itemListManager.saveItemList(itemList);
         return true;
@@ -54,12 +62,20 @@ public class RecipeItemBusinessService extends BaseService implements ITherapyIt
     @Override
     public boolean updateItemList(ItemList itemList) {
         AtomicBoolean res = new AtomicBoolean(true);
-        //只有修改项目编码和名称才需要校验
-        if (itemList.getOrganID() != null && (StringUtils.isNotEmpty(itemList.getItemName()) || StringUtils.isNotEmpty(itemList.getItemName()))) {
-            List<ItemList> itemListDbs = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), itemList.getItemCode());
-            itemListDbs.forEach(itemListDb -> {
-                if (itemListDb != null && !itemListDb.getId().equals(itemListDb.getId())) {
-                    logger.info("updateItemList itemListDb:{}", JSONUtils.toString(itemListDb));
+        if (StringUtils.isNotEmpty(itemList.getItemName())) {
+            List<ItemList> itemListsByItemName = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), itemList.getItemName(), null);
+            itemListsByItemName.forEach(itemListByItemName -> {
+                //存在一条id与当前传入itemList.getId不相同的就为false
+                if (itemListByItemName != null && !itemList.getId().equals(itemListByItemName.getId())) {
+                    res.set(false);
+                }
+            });
+        }
+        if (StringUtils.isNotEmpty(itemList.getItemCode())) {
+            List<ItemList> itemListsByItemCode = itemListManager.findItemListByOrganIdAndItemNameOrCode(itemList.getOrganID(), null, itemList.getItemCode());
+            itemListsByItemCode.forEach(itemListByItemCode -> {
+                //存在一条id与当前传入itemList.getId不相同的就为false
+                if (itemListByItemCode != null && !itemList.getId().equals(itemListByItemCode.getId())) {
                     res.set(false);
                 }
             });
@@ -67,9 +83,7 @@ public class RecipeItemBusinessService extends BaseService implements ITherapyIt
         if (!res.get()) {
             return false;
         }
-        if (null == itemList.getGmtModified()) {
-            itemList.setGmtModified(new Date());
-        }
+        itemList.setGmtModified(new Date());
         itemListManager.updateItemList(itemList);
         return true;
     }
