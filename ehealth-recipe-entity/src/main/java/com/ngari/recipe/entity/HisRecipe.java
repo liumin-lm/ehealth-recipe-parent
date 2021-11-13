@@ -44,7 +44,7 @@ public class HisRecipe implements Serializable {
     @ItemProperty(alias = "处方金额")
     private BigDecimal recipeFee; // decimal(10,2) DEFAULT NULL COMMENT '处方金额',
     @ItemProperty(alias = "开方机构序号")
-    private  Integer clinicOrgan; // int(11) DEFAULT NULL COMMENT '开方机构序号',
+    private Integer clinicOrgan; // int(11) DEFAULT NULL COMMENT '开方机构序号',
     @ItemProperty(alias = "机构名称")
     private String organName; // varchar(50) DEFAULT NULL COMMENT '机构名称',
     @ItemProperty(alias = "1西药  2中成药 3 草药")
@@ -157,6 +157,8 @@ public class HisRecipe implements Serializable {
     private String cardTypeCode;
     @ItemProperty(alias = "卡名称")
     private String cardTypeName;
+    @ItemProperty(alias = "处方标识 0:普通处方 1:儿童处方")
+    private Integer recipeFlag;
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -633,6 +635,7 @@ public class HisRecipe implements Serializable {
     public void setChronicDiseaseCode(String chronicDiseaseCode) {
         this.chronicDiseaseCode = chronicDiseaseCode;
     }
+
     @Column(name = "chronicDiseaseName")
     public String getChronicDiseaseName() {
         return chronicDiseaseName;
@@ -712,6 +715,7 @@ public class HisRecipe implements Serializable {
     public void setSymptomCode(String symptomCode) {
         this.symptomCode = symptomCode;
     }
+
     @Column(name = "symptomName")
     public String getSymptomName() {
         return symptomName;
@@ -747,5 +751,14 @@ public class HisRecipe implements Serializable {
 
     public void setCardTypeName(String cardTypeName) {
         this.cardTypeName = cardTypeName;
+    }
+
+    @Column(name = "recipe_flag")
+    public Integer getRecipeFlag() {
+        return recipeFlag;
+    }
+
+    public void setRecipeFlag(Integer recipeFlag) {
+        this.recipeFlag = recipeFlag;
     }
 }
