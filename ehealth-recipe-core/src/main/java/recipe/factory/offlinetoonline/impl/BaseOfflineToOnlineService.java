@@ -857,14 +857,25 @@ public class BaseOfflineToOnlineService {
             }
         }
         recipeExtend.setRecipeCostNumber(hisRecipe.getRecipeCostNumber());
-        PatientDTO patient = patientService.get(recipe.getMpiid());
-        if (patient != null) {
-            if (new Integer(1).equals(patient.getPatientUserType()) || new Integer(2).equals(patient.getPatientUserType())) {
-                recipeExtend.setRecipeFlag(1);
-            } else if (new Integer(0).equals(patient.getPatientUserType())) {
+        try {
+            //线下处方是否为儿童处方，则由his自己决定，数据同步的时候传入，如果未传入儿童处方标识，则按普通处方处理
+            Integer recipeFlag = hisRecipe.getRecipeFlag();
+            if (recipeFlag == null) {
                 recipeExtend.setRecipeFlag(0);
+            } else {
+                recipeExtend.setRecipeFlag(recipeFlag);
             }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+//        PatientDTO patient = patientService.get(recipe.getMpiid());
+//        if (patient != null) {
+//            if (new Integer(1).equals(patient.getPatientUserType()) || new Integer(2).equals(patient.getPatientUserType())) {
+//                recipeExtend.setRecipeFlag(1);
+//            } else if (new Integer(0).equals(patient.getPatientUserType())) {
+//                recipeExtend.setRecipeFlag(0);
+//            }
+//        }
         emrRecipeManager.saveMedicalInfo(recipe, recipeExtend);
         recipeExtendDAO.save(recipeExtend);
         LOGGER.info("BaseOfflineToOnlineService saveRecipeExt 拓展表数据已保存");
@@ -1071,6 +1082,7 @@ public class BaseOfflineToOnlineService {
         //审核药师
         hisRecipe.setCheckerCode(queryHisRecipResTo.getCheckerCode());
         hisRecipe.setCheckerName(queryHisRecipResTo.getCheckerName());
+        hisRecipe.setRecipeFlag(queryHisRecipResTo.getRecipeFlag());
         LOGGER.info("BaseOfflineToOnlineService covertHisRecipeObject res hisRecipe:{}", JSONUtils.toString(hisRecipe));
         return hisRecipe;
     }

@@ -2,6 +2,7 @@ package recipe.atop.open;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.ItemList;
+import com.ngari.recipe.vo.CheckItemListVo;
 import com.ngari.recipe.vo.ItemListVO;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
@@ -90,8 +91,7 @@ public class TherapyItemOpenAtop extends BaseAtop implements ITherapyItemOpenAto
         validateAtop(itemList, itemList.getOrganID());
         boolean result = false;
         try {
-            therapyItemBusinessService.saveItemList(itemList);
-            result = true;
+            result = therapyItemBusinessService.saveItemList(itemList);
         } catch (DAOException e1) {
             logger.error("TherapyItemOpenAtop saveItemList  error", e1);
         }
@@ -109,8 +109,7 @@ public class TherapyItemOpenAtop extends BaseAtop implements ITherapyItemOpenAto
         validateAtop(itemList, itemList.getId());
         boolean result = false;
         try {
-            therapyItemBusinessService.updateItemList(itemList);
-            result = true;
+            result = therapyItemBusinessService.updateItemList(itemList);
         } catch (DAOException e1) {
             logger.error("TherapyItemOpenAtop updateItemList  error", e1);
         }
@@ -140,19 +139,18 @@ public class TherapyItemOpenAtop extends BaseAtop implements ITherapyItemOpenAto
      * 修改保存前数据校验
      *
      * @param itemList
-     * @return true表示存在，false表示不存在
+     * @return true表示可向下执行流程 false抛出错误
      */
     @RpcService
-    public boolean checkItemList(ItemList itemList) {
-        validateAtop(itemList, itemList.getId());
-        boolean result = false;
+    public CheckItemListVo checkItemList(ItemList itemList) {
+        CheckItemListVo checkItemListVo = new CheckItemListVo();
+        validateAtop(itemList);
         try {
-            result = therapyItemBusinessService.checkItemList(itemList);
+            checkItemListVo = therapyItemBusinessService.checkItemList(itemList);
         } catch (DAOException e1) {
-            result = true;
             logger.error("TherapyItemOpenAtop updateItemList  error", e1);
         }
-        return result;
+        return checkItemListVo;
     }
 
     @Override
