@@ -72,6 +72,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
@@ -1757,27 +1758,32 @@ public class RecipeServiceSub {
             map.put("doctorSignImg", signInfo.get("doctorSignImg"));
             map.put("doctorSignImgToken", FileAuth.instance().createToken(signInfo.get("doctorSignImg"), 3600L));
         }
-        //设置药师手签图片id-----药师撤销审核结果/CA签名中/签名失败/未签名 不应该显示药师手签
-        if (StringUtils.isNotEmpty(signInfo.get("checkerSignImg"))) {
-            if (recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
-                if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
-                        recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
-                        recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
-                    map.put("checkerSignImg", signInfo.get("checkerSignImg"));
-                    map.put("checkerSignImgToken", FileAuth.instance().createToken(signInfo.get("checkerSignImg"), 3600L));
+        // checkca的判断
+        if (isShowCheckCA(recipe.getRecipeId())) {
+            //设置药师手签图片id-----药师撤销审核结果/CA签名中/签名失败/未签名 不应该显示药师手签
+            if (StringUtils.isNotEmpty(signInfo.get("checkerSignImg"))) {
+                if (recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
+                    if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
+                            recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
+                            recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
+                        map.put("checkerSignImg", signInfo.get("checkerSignImg"));
+                        map.put("checkerSignImgToken", FileAuth.instance().createToken(signInfo.get("checkerSignImg"), 3600L));
+                    }
                 }
-            }
-        } else {
-            if (recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS && recipe.getRecipeSourceType().equals(2) && !ValidateUtil.integerIsEmpty(recipe.getChecker())) {
-                if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
-                        recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
-                        recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
-                    DoctorDTO defaultDoctor = doctorService.get(recipe.getChecker());
-                    map.put("checkerSignImg", defaultDoctor.getSignImage());
-                    map.put("checkerSignImgToken", FileAuth.instance().createToken(defaultDoctor.getSignImage(), 3600L));
+            } else {
+                if (recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS && recipe.getRecipeSourceType().equals(2) && !ValidateUtil.integerIsEmpty(recipe.getChecker())) {
+                    if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
+                            recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
+                            recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
+                        DoctorDTO defaultDoctor = doctorService.get(recipe.getChecker());
+                        map.put("checkerSignImg", defaultDoctor.getSignImage());
+                        map.put("checkerSignImgToken", FileAuth.instance().createToken(defaultDoctor.getSignImage(), 3600L));
+                    }
                 }
             }
         }
+
+
         //获取药师撤销原因  在未审核和审核不通过需要查询药师撤销原因
         if ((recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS || recipe.getStatus() == RecipeStatusConstant.CHECK_NOT_PASS_YS )
                 && ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType())) {
@@ -2176,6 +2182,16 @@ public class RecipeServiceSub {
             }
         }
         return showChecker;
+    }
+
+    private static Boolean isShowCheckCA(Integer recipeId){
+        IRecipeCheckService recipeCheckService = RecipeAuditAPI.getService(IRecipeCheckService.class, "recipeCheckServiceImpl");
+        RecipeCheckBean recipeCheckBean = recipeCheckService.getNowCheckResultByRecipeId(recipeId);
+        Integer fail = 0;
+        if(recipeCheckBean != null && fail.equals(recipeCheckBean.getIsCheckCA())){
+            return false;
+        }
+        return true;
     }
 
     private static Object getBottomTextForPatient(Integer clinicOrgan) {
