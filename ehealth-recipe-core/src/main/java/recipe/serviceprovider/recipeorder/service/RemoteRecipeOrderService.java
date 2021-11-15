@@ -30,6 +30,7 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.constant.RefundNodeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
+import recipe.enumerate.type.PayBusTypeEnum;
 import recipe.service.*;
 import recipe.serviceprovider.BaseService;
 import recipe.util.MapValueUtil;
@@ -253,7 +254,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     }
 
     @Override
-    public void refundCallback(Integer busId, Integer refundStatus, String msg) {
+    public void refundCallback(Integer busId, Integer refundStatus, String msg, Integer busType) {
         LOGGER.info("RemoteRecipeOrderService.refundCallback busId:{},refundStatus:{},msg:{}.", busId, refundStatus, msg);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(busId);
@@ -306,14 +307,18 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 LOGGER.info("退款完成修改订单状态：{}", recipe.getRecipeId());
                 RecipeLogService.saveRecipeLog(busId, recipe.getStatus(), RecipeStatusConstant.REVOKE, msg);
                 LOGGER.info("存储退款完成记录-remoteRecipeOrderService：{}", recipe.getRecipeId());
-                recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
+                if (PayBusTypeEnum.RECIPE_BUS_TYPE.getType().equals(busType)) {
+                    recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
+                }
                 break;
             case 4:
                 nowRecipeRefund.setReason("退费失败");
                 RecipeMsgService.batchSendMsg(busId, RecipeStatusConstant.RECIPE_REFUND_FAIL);
                 RecipeLogService.saveRecipeLog(busId, recipe.getStatus(), recipe.getStatus(), msg);
-                recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
-                recipeRefundService.updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_FAIL_AUDIT_STATUS);
+                if (PayBusTypeEnum.RECIPE_BUS_TYPE.getType().equals(busType)) {
+                    recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
+                    recipeRefundService.updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_FAIL_AUDIT_STATUS);
+                }
                 break;
             default:
                 LOGGER.warn("当前处方{}退费状态{}无法解析！", busId, refundStatus);
