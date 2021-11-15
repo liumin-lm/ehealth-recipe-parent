@@ -176,8 +176,13 @@ public class RecipeOrderPatientAtop extends BaseAtop {
         if (!validate) {
             return false;
         }
+
         //推送his
-        recipeIds.forEach(a -> offlineToOnlineService.pushRecipe(a, CommonConstant.RECIPE_CANCEL_TYPE, CommonConstant.RECIPE_PATIENT_TYPE));
+        try {
+            recipeIds.forEach(a -> offlineToOnlineService.pushRecipe(a, CommonConstant.RECIPE_CANCEL_TYPE, CommonConstant.RECIPE_PATIENT_TYPE));
+        } catch (Exception e) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方撤销失败");
+        }
         return true;
     }
 }
