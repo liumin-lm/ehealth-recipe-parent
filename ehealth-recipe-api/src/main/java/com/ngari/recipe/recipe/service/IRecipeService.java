@@ -823,14 +823,6 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     void pharmacyToRecipePDF(Integer recipeId, Integer checker);
 
-    /**
-     * 药师签名接口不调用ca参数
-     * @param recipeId
-     */
-    @RpcService
-    public void pharmacyToRecipePDFNoCA(Integer recipeId);
-
-
 
     /**
      * 退款申请结果回调
