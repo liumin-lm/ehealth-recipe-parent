@@ -175,8 +175,8 @@ public class PayModeTFDS implements IPurchaseService{
             redisClient.setEX(key, Long.parseLong(EXPIRE_SECOND), depDetailList);
         }
         LOGGER.info("findSupportDepList recipeId={}, 获取到药店数量[{}]", recipeId, depDetailList.size());
-        List<DepDetailBean> result = getDepDetailBeansByPage(extInfo, depDetailList);
-        depListBean.setList(result);
+        //List<DepDetailBean> result = getDepDetailBeansByPage(extInfo, depDetailList);
+        depListBean.setList(depDetailList);
         resultBean.setObject(depListBean);
         LOGGER.info("findSupportDepList recipeId:{},resultBean:{}.", recipeId, JSONUtils.toString(resultBean));
         return resultBean;
