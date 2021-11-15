@@ -190,5 +190,10 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return true;
     }
 
+    @Override
+    public List<Recipe> findRecipesByStatusAndInvalidTime(Integer status, String invalidTime) {
+        return recipeDAO.findRecipesByStatusAndInvalidTime(status, invalidTime);
+    }
+
 }
 
