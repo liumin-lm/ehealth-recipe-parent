@@ -220,23 +220,32 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         try {
             RecipeDAO recipeDao = DAOFactory.getDAO(RecipeDAO.class);
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-            if (StringUtils.isNotEmpty(mpiId) && clinicOrgan != null && StringUtils.isNotEmpty(recipeCode)) {
-                Recipe recipe = recipeDao.getByHisRecipeCodeAndClinicOrganAndMpiid(mpiId, recipeCode, clinicOrgan);
-                if (recipe != null) {
-                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                    if (recipeExtend != null && Integer.valueOf(1).equals(recipeExtend.getRecipeFlag())) {
+            try {
+                if (StringUtils.isNotEmpty(mpiId) && clinicOrgan != null && StringUtils.isNotEmpty(recipeCode)) {
+                    Recipe recipe = recipeDao.getByHisRecipeCodeAndClinicOrganAndMpiid(mpiId, recipeCode, clinicOrgan);
+                    if (recipe != null) {
+                        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                        if (recipeExtend != null && Integer.valueOf(1).equals(recipeExtend.getRecipeFlag())) {
+                            //兼容老版本（此版本暂时不做删除）
+                            offLineRecipeDetailDTO.setChildRecipeFlag(new Integer(0).equals(recipeExtend.getRecipeFlag()));
+                            //新版本使用
+                            offLineRecipeDetailDTO.setRecipeFlag(recipeExtend.getRecipeFlag());
+                        }
+                    } else {
                         //兼容老版本（此版本暂时不做删除）
-                        offLineRecipeDetailDTO.setChildRecipeFlag(new Integer(0).equals(recipeExtend.getRecipeFlag()));
+                        offLineRecipeDetailDTO.setChildRecipeFlag(false);
                         //新版本使用
-                        offLineRecipeDetailDTO.setRecipeFlag(recipeExtend.getRecipeFlag());
+                        if (queryHisRecipResTO.getRecipeFlag() == null) {
+                            offLineRecipeDetailDTO.setRecipeFlag(0);
+                        } else {
+                            offLineRecipeDetailDTO.setRecipeFlag(queryHisRecipResTO.getRecipeFlag());
+                        }
                     }
-                } else {
-                    //兼容老版本（此版本暂时不做删除）
-                    offLineRecipeDetailDTO.setChildRecipeFlag(false);
-                    //新版本使用
-                    offLineRecipeDetailDTO.setRecipeFlag(0);
                 }
+            } catch (Exception e) {
+                logger.info("getOffLineRecipeDetails recipeFlag 设置错误");
             }
+               
             //设置监护人字段
             if (!ObjectUtils.isEmpty(patient)) {
                 offLineRecipeDetailDTO.setGuardianName(patient.getGuardianName());

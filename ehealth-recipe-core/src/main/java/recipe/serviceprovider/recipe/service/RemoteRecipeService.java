@@ -2062,7 +2062,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public void pharmacyToRecipePDF(Integer recipeId) {
-        createPdfFactory.updateCheckNamePdf(recipeId,true);
+        createPdfFactory.updateCheckNamePdf(recipeId);
     }
 
     @Override
@@ -2070,10 +2070,6 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             createPdfFactory.updateCheckNamePdfESign(recipeId);
     }
 
-    @Override
-    public void pharmacyToRecipePDFNoCA(Integer recipeId) {
-        createPdfFactory.updateCheckNamePdf(recipeId,false);
-    }
 
     @Override
     public ThirdResultBean refundResultCallBack(RefundRequestBean refundRequestBean) {

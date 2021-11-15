@@ -6,6 +6,9 @@ import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import ctd.util.FileAuth;
+import eh.recipeaudit.api.IRecipeCheckService;
+import eh.recipeaudit.model.RecipeCheckBean;
+import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,6 +49,9 @@ public class SignManager extends BaseManager {
     @Autowired
     private SignDoctorRecipeInfoDAO signDoctorRecipeInfoDAO;
 
+    @Autowired
+    private IRecipeCheckService recipeCheckService;
+
     /**
      * 获取全部药师签名信息
      *
@@ -84,10 +90,12 @@ public class SignManager extends BaseManager {
             attachSealPicDTO.setDoctorId(doctorId);
             attachSealPicDTO.setDoctorSignImgToken(FileAuth.instance().createToken(attachSealPicDTO.getDoctorSignImg(), 3600L));
         }
-        attachSealPicDTO.setCheckerSignImg(signImg(organId, checker, recipeId, CARecipeTypeConstant.CA_RECIPE_PHA));
-        if (StringUtils.isNotEmpty(attachSealPicDTO.getCheckerSignImg())) {
-            attachSealPicDTO.setCheckerId(checker);
-            attachSealPicDTO.setCheckerSignImgToken(FileAuth.instance().createToken(attachSealPicDTO.getCheckerSignImg(), 3600L));
+        if(isShowCheckCA(recipeId)){
+            attachSealPicDTO.setCheckerSignImg(signImg(organId, checker, recipeId, CARecipeTypeConstant.CA_RECIPE_PHA));
+            if (StringUtils.isNotEmpty(attachSealPicDTO.getCheckerSignImg())) {
+                attachSealPicDTO.setCheckerId(checker);
+                attachSealPicDTO.setCheckerSignImgToken(FileAuth.instance().createToken(attachSealPicDTO.getCheckerSignImg(), 3600L));
+            }
         }
         logger.info("SignManager attachSealPic attachSealPicDTO:{}", JSON.toJSONString(attachSealPicDTO));
         return attachSealPicDTO;
@@ -292,6 +300,15 @@ public class SignManager extends BaseManager {
         } else {
             return null;
         }
+    }
+
+    private Boolean isShowCheckCA(Integer recipeId){
+        RecipeCheckBean recipeCheckBean = recipeCheckService.getNowCheckResultByRecipeId(recipeId);
+        Integer fail = 0;
+        if(recipeCheckBean != null && fail.equals(recipeCheckBean.getIsCheckCA())){
+            return false;
+        }
+        return true;
     }
 
 }
