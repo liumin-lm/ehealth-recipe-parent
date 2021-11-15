@@ -144,11 +144,15 @@ public class OperationClient extends BaseClient {
                 return JSON.toJSONString(doctor);
             }
             //审方药师签名图片
-            if (OperationConstant.OP_RECIPE_CHECKER.equals(fieldName) && StringUtils.isNotEmpty(apothecaryDTO.getCheckerSignImg())) {
+            if (OperationConstant.OP_RECIPE_CHECKER.equals(fieldName)) {
                 ApothecaryDTO checker = new ApothecaryDTO();
-                checker.setCheckerSignImg(apothecaryDTO.getCheckerSignImg());
-                checker.setCheckerSignImgToken(apothecaryDTO.getCheckerSignImgToken());
-                checker.setCheckApothecaryName(apothecaryDTO.getCheckApothecaryName());
+                if (StringUtils.isNotEmpty(apothecaryDTO.getCheckerSignImg())) {
+                    checker.setCheckerSignImg(apothecaryDTO.getCheckerSignImg());
+                    checker.setCheckerSignImgToken(apothecaryDTO.getCheckerSignImgToken());
+                    checker.setCheckApothecaryName(apothecaryDTO.getCheckApothecaryName());
+                } else {
+                    checker.setCheckApothecaryName(recipePdfDTO.getRecipe().getCheckerText());
+                }
                 return JSON.toJSONString(checker);
             }
             //核发药师签名图片
