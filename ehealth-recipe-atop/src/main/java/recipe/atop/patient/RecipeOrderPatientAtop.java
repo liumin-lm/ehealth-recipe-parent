@@ -184,6 +184,5 @@ public class RecipeOrderPatientAtop extends BaseAtop {
         } catch (Exception e) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方撤销失败");
         }
-        return;
     }
 }
