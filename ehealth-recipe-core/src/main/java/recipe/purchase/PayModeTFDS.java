@@ -183,6 +183,7 @@ public class PayModeTFDS implements IPurchaseService{
     }
 
     private List<DepDetailBean> getDepDetailBeansByPage(Map<String, String> extInfo, List<DepDetailBean> depDetailList) {
+        LOGGER.info("getDepDetailBeansByPage extInfo:{},depDetailList:{}.", JSONUtils.toString(extInfo), JSONUtils.toString(depDetailList));
         Integer start = MapValueUtil.getInteger(extInfo, "start");
         Integer limit = MapValueUtil.getInteger(extInfo, "limit");
         //进行简单分页的操作
