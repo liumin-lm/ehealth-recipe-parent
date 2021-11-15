@@ -170,7 +170,7 @@ public class CreatePdfFactory {
      *
      * @param recipeId
      */
-    public void updateCheckNamePdf(Integer recipeId,Boolean caFlag) {
+    public void updateCheckNamePdf(Integer recipeId) {
         Recipe recipe = validate(recipeId);
         logger.info("CreatePdfFactory updateCheckNamePdf recipeId:{}", recipeId);
         boolean usePlatform = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", true);
@@ -178,11 +178,8 @@ public class CreatePdfFactory {
             return;
         }
         //获取签名图片
-        String signImageId = null;
-        if(caFlag){
-            AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
-            signImageId = sttachSealPicDTO.getCheckerSignImg();
-        }
+        AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
+        String signImageId = sttachSealPicDTO.getCheckerSignImg();
         try {
             CreatePdfService createPdfService = createPdfService(recipe);
             String fileId = createPdfService.updateCheckNamePdf(recipe, signImageId);
