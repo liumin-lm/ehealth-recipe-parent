@@ -3478,7 +3478,11 @@ public class RecipeService extends RecipeBaseService {
         List<Integer> organIds = organConfigService.findOrganIdByEnableDrugSyncAndTime(stime, etime);
         if (!ObjectUtils.isEmpty(organIds)) {
             for (Integer organId : organIds) {
-                drugInfoSynMovementD(organId, null);
+                try {
+                    drugInfoSynMovementD(organId, null);
+                } catch (Exception e) {
+                    LOGGER.info("drugInfoSynMovementDTask定时同步 organId=[{}] 本次查询量：total=[{}] ,机构定时更新异常：exception=[{}].", organId, e);
+                }
             }
         }
     }

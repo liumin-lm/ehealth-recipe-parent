@@ -32,7 +32,7 @@ public interface IDrugBusinessService {
 
 
     /**
-     * 测试
+     * 十八反十九畏的规则
      * @param list
      * @param ruleId
      * @return

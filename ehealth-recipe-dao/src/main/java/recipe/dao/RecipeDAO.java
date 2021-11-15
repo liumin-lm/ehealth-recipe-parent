@@ -29,7 +29,6 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
-import org.hibernate.type.LongType;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1123,7 +1122,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public QueryResult<Map> findRecipesByInfo(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType, final Integer depart, final int start, final int limit, List<Integer> organIds, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType) {
         this.validateOptionForStatistics(status, doctor, patientName, bDate, eDate, dateType, start, limit);
         final StringBuilder sbHql = this.generateRecipeOderHQLforStatistics(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType);
-        logger.info("findRecipesByInfo sbHql:{}", sbHql.toString());
+        final StringBuilder sbHqlCount = this.generateRecipeOderHQLforStatisticsCount(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType);
+        logger.info("RecipeDAO findRecipesByInfo sbHql:{}", sbHql.toString());
         final PatientService patientService = BasicAPI.getService(PatientService.class);
         HibernateStatelessResultAction<QueryResult<Map>> action = new AbstractHibernateStatelessResultAction<QueryResult<Map>>() {
             @Override
@@ -1131,11 +1131,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
                 // 查询总记录数
-                SQLQuery sqlQuery = ss.createSQLQuery("SELECT count(*) AS count FROM (" + sbHql + ") k").addScalar("count", LongType.INSTANCE);
+                SQLQuery sqlQuery = ss.createSQLQuery(sbHqlCount.toString());
                 sqlQuery.setParameter("startTime", sdf.format(bDate));
                 sqlQuery.setParameter("endTime", sdf.format(eDate));
-                Long total = (Long) sqlQuery.uniqueResult();
-
+                Long total = Long.valueOf(String.valueOf((sqlQuery.uniqueResult())));
                 // 查询结果
                 Query query = ss.createSQLQuery(sbHql.append(" order by recipeId DESC").toString()).addEntity(Recipe.class);
                 query.setParameter("startTime", sdf.format(bDate));
@@ -1503,8 +1502,20 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         StringBuilder hql = new StringBuilder("select r.*  from cdr_recipe r ");
         hql.append(" LEFT JOIN cdr_recipeorder o on r.orderCode = o.orderCode ");
         hql.append(" LEFT JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId ");
-        hql.append(" where 1=1 and r.recipeSourceType!=3 ");
+        hql.append(" where  r.recipeSourceType!=3 ");
+        return generateRecipeOderHQLforStatisticsV1(hql, organId, status, doctor, mpiId, dateType, depart, requestOrgans, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType);
+    }
 
+    private StringBuilder generateRecipeOderHQLforStatisticsCount(Integer organId, Integer status, Integer doctor, String mpiId, Integer dateType, Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType) {
+        StringBuilder hql = new StringBuilder("select count(1)  from cdr_recipe r ");
+        hql.append(" LEFT JOIN cdr_recipeorder o on r.orderCode = o.orderCode ");
+        hql.append(" LEFT JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId ");
+        hql.append(" where  r.recipeSourceType!=3 ");
+        return generateRecipeOderHQLforStatisticsV1(hql, organId, status, doctor, mpiId, dateType, depart, requestOrgans, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType);
+    }
+
+
+    private StringBuilder generateRecipeOderHQLforStatisticsV1(StringBuilder hql, Integer organId, Integer status, Integer doctor, String mpiId, Integer dateType, Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType) {
         //默认查询所有
         if (CollectionUtils.isNotEmpty(requestOrgans)) {
             // 添加申请机构条件
@@ -1610,6 +1621,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         }
         return hql;
     }
+
 
     private StringBuilder generateRecipeMsgHQLforStatistics(RecipesQueryVO recipesQueryVO) {
         StringBuilder hql = new StringBuilder("select r.recipeId,r.patientName,r.Mpiid mpiId,r.organName,r.depart,r.doctor,r.organDiseaseName,r.totalMoney,r.checker,r.checkDateYs,r.fromflag,r.status,o.payTime, r.doctorName, r.giveUser, o.dispensingTime, sum(cr.useTotalDose) sumDose ,o.send_type sendType ,o.outTradeNo ,o.cashAmount,o.fundAmount,o.orderType,r.recipeType from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode left join cdr_recipedetail cr on cr.recipeId = r.recipeId and cr.status =1  where 1=1 ");
