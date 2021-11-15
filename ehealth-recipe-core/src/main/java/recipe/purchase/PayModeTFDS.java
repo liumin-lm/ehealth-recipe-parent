@@ -175,14 +175,15 @@ public class PayModeTFDS implements IPurchaseService{
             redisClient.setEX(key, Long.parseLong(EXPIRE_SECOND), depDetailList);
         }
         LOGGER.info("findSupportDepList recipeId={}, 获取到药店数量[{}]", recipeId, depDetailList.size());
-        List<DepDetailBean> result = getDepDetailBeansByPage(extInfo, depDetailList);
-        depListBean.setList(result);
+        //List<DepDetailBean> result = getDepDetailBeansByPage(extInfo, depDetailList);
+        depListBean.setList(depDetailList);
         resultBean.setObject(depListBean);
         LOGGER.info("findSupportDepList recipeId:{},resultBean:{}.", recipeId, JSONUtils.toString(resultBean));
         return resultBean;
     }
 
     private List<DepDetailBean> getDepDetailBeansByPage(Map<String, String> extInfo, List<DepDetailBean> depDetailList) {
+        LOGGER.info("getDepDetailBeansByPage extInfo:{},depDetailList:{}.", JSONUtils.toString(extInfo), JSONUtils.toString(depDetailList));
         Integer start = MapValueUtil.getInteger(extInfo, "start");
         Integer limit = MapValueUtil.getInteger(extInfo, "limit");
         //进行简单分页的操作

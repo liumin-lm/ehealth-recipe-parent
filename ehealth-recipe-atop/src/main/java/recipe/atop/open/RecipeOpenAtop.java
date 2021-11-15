@@ -116,4 +116,10 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         }
     }
 
+    @Override
+    public List<RecipeBean> findRecipesByStatusAndInvalidTime(Integer status, String invalidTime) {
+        List<Recipe> recipes = recipeBusinessService.findRecipesByStatusAndInvalidTime(status, invalidTime);
+        return ObjectCopyUtils.convert(recipes, RecipeBean.class);
+    }
+
 }
