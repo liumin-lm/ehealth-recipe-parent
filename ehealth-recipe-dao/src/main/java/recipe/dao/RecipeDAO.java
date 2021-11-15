@@ -29,7 +29,6 @@ import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
-import org.hibernate.type.LongType;
 import org.joda.time.LocalDate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -1132,11 +1131,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
                 // 查询总记录数
-                SQLQuery sqlQuery = ss.createSQLQuery(sbHqlCount.toString()).addScalar("count", LongType.INSTANCE);
+                SQLQuery sqlQuery = ss.createSQLQuery(sbHqlCount.toString());
                 sqlQuery.setParameter("startTime", sdf.format(bDate));
                 sqlQuery.setParameter("endTime", sdf.format(eDate));
-                Long total = (Long) sqlQuery.uniqueResult();
-
+                Long total = Long.valueOf(String.valueOf((sqlQuery.uniqueResult())));
                 // 查询结果
                 Query query = ss.createSQLQuery(sbHql.append(" order by recipeId DESC").toString()).addEntity(Recipe.class);
                 query.setParameter("startTime", sdf.format(bDate));
