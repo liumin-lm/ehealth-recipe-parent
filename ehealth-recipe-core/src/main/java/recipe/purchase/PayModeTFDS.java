@@ -178,6 +178,7 @@ public class PayModeTFDS implements IPurchaseService{
         List<DepDetailBean> result = getDepDetailBeansByPage(extInfo, depDetailList);
         depListBean.setList(result);
         resultBean.setObject(depListBean);
+        LOGGER.info("findSupportDepList recipeId:{},resultBean:{}.", recipeId, JSONUtils.toString(resultBean));
         return resultBean;
     }
 
