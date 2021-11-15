@@ -6475,7 +6475,7 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public void pharmacyToRecipePDF(Integer recipeId) {
         LOGGER.info("recipe pharmacyToRecipePDF,recipeId={}", recipeId);
-        createPdfFactory.updateCheckNamePdf(recipeId, true);
+        createPdfFactory.updateCheckNamePdf(recipeId);
     }
 
     /**
