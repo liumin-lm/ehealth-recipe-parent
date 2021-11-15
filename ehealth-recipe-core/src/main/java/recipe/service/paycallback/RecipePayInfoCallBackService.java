@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.client.IConfigurationClient;
 import recipe.constant.CacheConstant;
+import recipe.enumerate.type.PayBusTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.PayFlowTypeEnum;
 import recipe.manager.OrderManager;
@@ -388,7 +389,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             if (CollectionUtils.isNotEmpty(recipeIdList)) {
                 Integer bussId = recipeIdList.get(0);
                 //调用回调处方退费
-                recipeOrderService.refundCallback(bussId, targetPayflag, null);
+                recipeOrderService.refundCallback(bussId, targetPayflag, null, PayBusTypeEnum.RECIPE_BUS_TYPE.getType());
             }
         }
         //更新处方日志

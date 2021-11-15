@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.enumerate.type.PayBusTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.PayFlowTypeEnum;
 import recipe.manager.OrderManager;
@@ -149,7 +150,7 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
             if (CollectionUtils.isNotEmpty(recipeIdList)) {
                 Integer bussId = recipeIdList.get(0);
                 //调用回调处方退费
-                recipeOrderService.refundCallback(bussId, targetPayFlag, null);
+                recipeOrderService.refundCallback(bussId, targetPayFlag, null, PayBusTypeEnum.OTHER_BUS_TYPE.getType());
             }
         }
         logger.info("RecipeOtherFeePayCallBackService doHandleAfterRefund memo:{}.", memo.toString());

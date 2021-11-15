@@ -1962,6 +1962,7 @@ public class DrugToolService implements IDrugToolService {
                 }
                 drugList.setAllPyCode("");
                 drugList.setStatus(1);
+                drugList.setIsStandardDrug(0);
                 drugList.setCreateDt(new Date());
                 drugList.setLastModify(new Date());
                 //来源机构
