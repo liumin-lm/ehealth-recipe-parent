@@ -3414,23 +3414,25 @@ public class RecipeService extends RecipeBaseService {
                             if (!CollectionUtils.isEmpty(data)) {
                                 Map<String, OrganDrugInfoTO> collect = data.stream().collect(Collectors.toMap(OrganDrugInfoTO::getOrganDrugCode, a -> a, (k1, k2) -> k1));
                                 List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(organId);
-                                for (OrganDrugList detail : details) {
-                                    OrganDrugInfoTO organDrugInfoTO = collect.get(detail.getOrganDrugCode());
-                                    if (ObjectUtils.isEmpty(organDrugInfoTO)) {
-                                        try {
-                                            organDrugListService.updateOrganDrugListStatusByIdSync(organId, detail.getOrganDrugId());
-                                            DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, "4", null, "3", detail);
-                                            List<DataSyncDTO> syncDTOList = Lists.newArrayList();
-                                            syncDTOList.add(dataSyncDTO);
-                                            dataSyncLogService.addDataSyncLog("1", syncDTOList);
-                                            deleteNum++;
-                                        } catch (Exception e) {
-                                            DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, "3", e, "3", detail);
-                                            List<DataSyncDTO> syncDTOList = Lists.newArrayList();
-                                            syncDTOList.add(dataSyncDTO);
-                                            dataSyncLogService.addDataSyncLog("1", syncDTOList);
-                                            LOGGER.info("drugInfoSynMovement机构药品数据同步 删除失败,{}", JSONUtils.toString(detail) + "Exception:{}" + e);
-                                            continue;
+                                if (!ObjectUtils.isEmpty(details)){
+                                    for (OrganDrugList detail : details) {
+                                        OrganDrugInfoTO organDrugInfoTO = collect.get(detail.getOrganDrugCode());
+                                        if (ObjectUtils.isEmpty(organDrugInfoTO)) {
+                                            try {
+                                                organDrugListService.updateOrganDrugListStatusByIdSync(organId, detail.getOrganDrugId());
+                                                DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, "4", null, "3", detail);
+                                                List<DataSyncDTO> syncDTOList = Lists.newArrayList();
+                                                syncDTOList.add(dataSyncDTO);
+                                                dataSyncLogService.addDataSyncLog("1", syncDTOList);
+                                                deleteNum++;
+                                            } catch (Exception e) {
+                                                DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, "3", e, "3", detail);
+                                                List<DataSyncDTO> syncDTOList = Lists.newArrayList();
+                                                syncDTOList.add(dataSyncDTO);
+                                                dataSyncLogService.addDataSyncLog("1", syncDTOList);
+                                                LOGGER.info("drugInfoSynMovement机构药品数据同步 删除失败,{}", JSONUtils.toString(detail) + "Exception:{}" + e);
+                                                continue;
+                                            }
                                         }
                                     }
                                 }
@@ -3438,7 +3440,7 @@ public class RecipeService extends RecipeBaseService {
                         }
                     }
 
-                } catch (InterruptedException e) {
+                } catch (Exception e) {
                     LOGGER.info("drugInfoSynMovement list新增修改,", e);
                 }
                 map.put("addNum", addNum);
@@ -3698,23 +3700,25 @@ public class RecipeService extends RecipeBaseService {
                     if (!CollectionUtils.isEmpty(data)) {
                         Map<String, OrganDrugInfoTO> collect = data.stream().collect(Collectors.toMap(OrganDrugInfoTO::getOrganDrugCode, a -> a, (k1, k2) -> k1));
                         List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(organId);
-                        for (OrganDrugList detail : details) {
-                            OrganDrugInfoTO organDrugInfoTO = collect.get(detail.getOrganDrugCode());
-                            if (ObjectUtils.isEmpty(organDrugInfoTO)) {
-                                try {
-                                    organDrugListService.updateOrganDrugListStatusByIdSync(organId, detail.getOrganDrugId());
-                                    DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, "4", null, "3", detail);
-                                    List<DataSyncDTO> syncDTOList = Lists.newArrayList();
-                                    syncDTOList.add(dataSyncDTO);
-                                    dataSyncLogService.addDataSyncLog("1", syncDTOList);
-                                    deleteNum++;
-                                } catch (Exception e) {
-                                    DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, "3", e, "3", detail);
-                                    List<DataSyncDTO> syncDTOList = Lists.newArrayList();
-                                    syncDTOList.add(dataSyncDTO);
-                                    dataSyncLogService.addDataSyncLog("1", syncDTOList);
-                                    LOGGER.info("drugInfoSynMovement机构药品数据同步 删除失败,{}", JSONUtils.toString(detail) + "Exception:{}" + e);
-                                    continue;
+                        if (!ObjectUtils.isEmpty(details)){
+                            for (OrganDrugList detail : details) {
+                                OrganDrugInfoTO organDrugInfoTO = collect.get(detail.getOrganDrugCode());
+                                if (ObjectUtils.isEmpty(organDrugInfoTO)) {
+                                    try {
+                                        organDrugListService.updateOrganDrugListStatusByIdSync(organId, detail.getOrganDrugId());
+                                        DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, "4", null, "3", detail);
+                                        List<DataSyncDTO> syncDTOList = Lists.newArrayList();
+                                        syncDTOList.add(dataSyncDTO);
+                                        dataSyncLogService.addDataSyncLog("1", syncDTOList);
+                                        deleteNum++;
+                                    } catch (Exception e) {
+                                        DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, "3", e, "3", detail);
+                                        List<DataSyncDTO> syncDTOList = Lists.newArrayList();
+                                        syncDTOList.add(dataSyncDTO);
+                                        dataSyncLogService.addDataSyncLog("1", syncDTOList);
+                                        LOGGER.info("drugInfoSynMovement机构药品数据同步 删除失败,{}", JSONUtils.toString(detail) + "Exception:{}" + e);
+                                        continue;
+                                    }
                                 }
                             }
                         }
@@ -3722,7 +3726,7 @@ public class RecipeService extends RecipeBaseService {
                 }
             }
 
-        } catch (InterruptedException e) {
+        } catch (Exception e) {
             LOGGER.info("drugInfoSynMovement list新增修改,", e);
         }
         map.put("addNum", addNum);
