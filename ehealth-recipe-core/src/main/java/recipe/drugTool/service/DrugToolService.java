@@ -1953,7 +1953,13 @@ public class DrugToolService implements IDrugToolService {
                 //药品编码
                 drugList.setDrugCode(drugListMatch.getOrganDrugCode());
                 //其他
-                drugList.setDrugClass("1901");
+                if (drugList.getDrugType()==1){
+                    drugList.setDrugClass("1901");
+                }else if (drugList.getDrugType()==2){
+                    drugList.setDrugClass("1801");
+                }else if (drugList.getDrugType()==3){
+                    drugList.setDrugClass("2001");
+                }
                 drugList.setAllPyCode("");
                 drugList.setStatus(1);
                 drugList.setCreateDt(new Date());
