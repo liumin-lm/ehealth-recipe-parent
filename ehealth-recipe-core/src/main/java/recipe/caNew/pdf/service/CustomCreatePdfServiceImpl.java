@@ -191,7 +191,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         coords.setValue(dispensingTime);
         coords.setX(ordinateVO.getX());
         coords.setY(ordinateVO.getY());
-        coords.setRepeatWrite(true);
+        coords.setRepeatWrite(false);
         return coords;
     }
 
