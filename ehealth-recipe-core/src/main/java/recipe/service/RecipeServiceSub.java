@@ -2198,6 +2198,11 @@ public class RecipeServiceSub {
         return showChecker;
     }
 
+    /**
+     * 判断药师的ca流程是否开启
+     * @param recipeId
+     * @return
+     */
     private static Boolean isShowCheckCA(Integer recipeId){
         IRecipeCheckService recipeCheckService = RecipeAuditAPI.getService(IRecipeCheckService.class, "recipeCheckServiceImpl");
         RecipeCheckBean recipeCheckBean = recipeCheckService.getNowCheckResultByRecipeId(recipeId);

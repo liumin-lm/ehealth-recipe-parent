@@ -97,6 +97,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.aop.LogInfo;
@@ -1293,6 +1294,8 @@ public class RecipeService extends RecipeBaseService {
         Map<String, Object> esignResponseMap = resultVo.getEsignResponseMap();
         Integer CANewOldWay = CA_OLD_TYPE;
         Object caProcessType = configService.getConfiguration(organId, "CAProcessType");
+
+
         if (null != caProcessType) {
             CANewOldWay = Integer.parseInt(caProcessType.toString());
         }
@@ -1323,17 +1326,22 @@ public class RecipeService extends RecipeBaseService {
                     //使用平台CA模式，手动生成pdf
                     //生成pdf分解成，先生成无医生药师签名的pdf，再将医生药师的签名放置在pdf上
                     String pdfString = null;
-                    if (!usePlatform) {
-                        if (null == resultVo.getPdfBase64()) {
-                            LOGGER.warn("当前处方[}返回CA图片为空！", recipeId);
-                        }
-                        //只有当使用CApdf的时候才去赋值
-                        pdfString = resultVo.getPdfBase64();
-                    } else {
-                        //需要调整逻辑：
-                        //老流程上一层已经统一走了pdf优化生成，新流程统一在当前回调函数里进行
-                        if (CA_NEW_TYPE.equals(CANewOldWay)) {
-                            pharmacyToRecipePDF(recipeId);
+                    // 是否需要跳过pdf渲染
+                    if(isShowCheckCA(recipeId)) {
+                        pharmacyToRecipePDFDefault(recipeId);
+                    }else{
+                        if (!usePlatform) {
+                            if (null == resultVo.getPdfBase64()) {
+                                LOGGER.warn("当前处方[}返回CA图片为空！", recipeId);
+                            }
+                            //只有当使用CApdf的时候才去赋值
+                            pdfString = resultVo.getPdfBase64();
+                        } else {
+                            //需要调整逻辑：
+                            //老流程上一层已经统一走了pdf优化生成，新流程统一在当前回调函数里进行
+                            if (CA_NEW_TYPE.equals(CANewOldWay)) {
+                                pharmacyToRecipePDF(recipeId);
+                            }
                         }
                     }
                     //保存签名值、时间戳、电子签章文件
@@ -1445,6 +1453,22 @@ public class RecipeService extends RecipeBaseService {
         RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 2));
         //审核通过盖章
         RecipeBusiThreadPool.execute(() -> remoteRecipeService.generateSignetRecipePdf(recipe.getRecipeId(), recipe.getClinicOrgan()));
+    }
+
+
+    /**
+     * 判断药师的ca流程是否开启
+     * @param recipeId
+     * @return
+     */
+    private Boolean isShowCheckCA(Integer recipeId){
+        IRecipeCheckService recipeCheckService = RecipeAuditAPI.getService(IRecipeCheckService.class, "recipeCheckServiceImpl");
+        RecipeCheckBean recipeCheckBean = recipeCheckService.getNowCheckResultByRecipeId(recipeId);
+        Integer fail = 0;
+        if(recipeCheckBean != null && fail.equals(recipeCheckBean.getIsCheckCA())){
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -6476,6 +6500,12 @@ public class RecipeService extends RecipeBaseService {
     public void pharmacyToRecipePDF(Integer recipeId) {
         LOGGER.info("recipe pharmacyToRecipePDF,recipeId={}", recipeId);
         createPdfFactory.updateCheckNamePdf(recipeId);
+    }
+
+    @RpcService
+    public void pharmacyToRecipePDFDefault(Integer recipeId) {
+        LOGGER.info("recipe pharmacyToRecipePDFDefault,recipeId={}", recipeId);
+        createPdfFactory.updateCheckNamePdfDefault(recipeId,null);
     }
 
     /**
