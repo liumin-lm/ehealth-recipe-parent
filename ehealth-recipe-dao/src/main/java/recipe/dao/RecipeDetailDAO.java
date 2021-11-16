@@ -277,7 +277,6 @@ public abstract class RecipeDetailDAO extends
     @DAOMethod(sql = "from Recipedetail where recipeId in (:recipeIds) and status=1",limit = 0)
     public abstract List<Recipedetail> findByRecipeIdList(@DAOParam("recipeIds") List<Integer> recipeIds);
 
-
     /**
      * 根据订单查询处方 详情
      * @param orderCode
@@ -286,11 +285,4 @@ public abstract class RecipeDetailDAO extends
     @DAOMethod(sql = "from Recipedetail WHERE RecipeID IN ( SELECT recipeId FROM Recipe WHERE OrderCode = :orderCode ) and status=1 ")
     public abstract List<Recipedetail> findDetailByOrderCode(@DAOParam("orderCode")String orderCode);
 
-    /**
-     * 根据订单查询处方 详情
-     * @param orderId
-     * @return
-     */
-    @DAOMethod(sql = "from Recipedetail WHERE RecipeID IN ( SELECT recipeId FROM Recipe WHERE orderId = :orderId ) and status=1 ")
-    public abstract List<Recipedetail> findDetailByOrderId(@DAOParam("orderId")Integer orderId);
 }
