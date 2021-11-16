@@ -144,15 +144,6 @@ public class RecipeOtherFeePayCallBackService implements IRecipeOtherFeePayCallB
                 break;
         }
         recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
-        RecipeOrder recipeOrder = orderManager.getRecipeOrderById(order.getBusId());
-        if (StringUtils.isNotEmpty(recipeOrder.getRecipeIdList())) {
-            List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
-            if (CollectionUtils.isNotEmpty(recipeIdList)) {
-                Integer bussId = recipeIdList.get(0);
-                //调用回调处方退费
-                recipeOrderService.refundCallback(bussId, targetPayFlag, null, PayBusTypeEnum.OTHER_BUS_TYPE.getType());
-            }
-        }
         logger.info("RecipeOtherFeePayCallBackService doHandleAfterRefund memo:{}.", memo.toString());
         return true;
     }
