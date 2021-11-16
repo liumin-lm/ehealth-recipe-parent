@@ -56,5 +56,5 @@ public interface IRecipeAtopService {
     RecipeBean getByRecipeId(Integer recipeId);
 
     @RpcService
-    List<RecipeBean> findRecipesByStatusAndInvalidTime(Integer status, Date invalidTime);
+    List<RecipeBean> findRecipesByStatusAndInvalidTime(List<Integer> status, Date invalidTime);
 }
