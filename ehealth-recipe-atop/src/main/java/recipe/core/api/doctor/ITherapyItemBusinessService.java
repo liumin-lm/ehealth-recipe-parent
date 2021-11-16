@@ -59,5 +59,15 @@ public interface ITherapyItemBusinessService {
      */
     List<ItemList> findItemListByOrganIdAndItemNameOrCode(Integer organId, String itemName, String itemCode);
 
+    /**
+     * 判断机构下是否已存在项目名称(or)项目编码
+     *
+     * @param organId
+     * @param itemName
+     * @param itemCode
+     * @return
+     */
+    List<ItemList> findItemListByOrganIdAndItemNameOrCode2(Integer organId, String itemName, String itemCode);
+
     CheckItemListVo checkItemList(ItemList itemList);
 }
