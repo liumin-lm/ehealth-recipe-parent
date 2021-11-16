@@ -295,6 +295,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             }
             try {
                 if (ysbody != null) {
+                    logger.info("assembleWeiningPayCallBackParamAndUpdate payBackPrice:{}.", payBackPrice);
                     //更新订单表实际支付金额(订单表的实际支付金额可能与患者实际支付不一致，对于不一致的进行更新，处方金额没有返回不做处理)
                     if (order.getActualPrice() != payBackPrice) {
                         attr.put("actualPrice", payBackPrice);
