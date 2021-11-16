@@ -33,6 +33,7 @@ import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -191,7 +192,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     @Override
-    public List<Recipe> findRecipesByStatusAndInvalidTime(Integer status, String invalidTime) {
+    public List<Recipe> findRecipesByStatusAndInvalidTime(Integer status, Date invalidTime) {
         return recipeDAO.findRecipesByStatusAndInvalidTime(status, invalidTime);
     }
 

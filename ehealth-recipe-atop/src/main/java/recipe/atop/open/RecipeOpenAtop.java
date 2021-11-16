@@ -14,6 +14,7 @@ import recipe.core.api.IRevisitBusinessService;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -117,7 +118,7 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     }
 
     @Override
-    public List<RecipeBean> findRecipesByStatusAndInvalidTime(Integer status, String invalidTime) {
+    public List<RecipeBean> findRecipesByStatusAndInvalidTime(Integer status, Date invalidTime) {
         List<Recipe> recipes = recipeBusinessService.findRecipesByStatusAndInvalidTime(status, invalidTime);
         return ObjectCopyUtils.convert(recipes, RecipeBean.class);
     }
