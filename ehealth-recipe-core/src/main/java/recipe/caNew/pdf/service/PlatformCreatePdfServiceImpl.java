@@ -13,6 +13,7 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.dictionary.DictionaryController;
+import ctd.persistence.exception.DAOException;
 import eh.entity.base.Scratchable;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Base64;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.SignImgNode;
+import recipe.constant.ErrorCode;
 import recipe.dao.RecipeExtendDAO;
 import recipe.manager.RedisManager;
 import recipe.manager.SignManager;
@@ -67,7 +69,12 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
                 return fileByte;
             }
         }
-        return signRecipePdfVO(recipe).getData();
+        try {
+            return signRecipePdfVO(recipe).getData();
+        } catch (Exception e) {
+            logger.error("PlatformCreatePdfServiceImpl queryPdfByte e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
     }
 
 

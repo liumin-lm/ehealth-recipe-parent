@@ -953,11 +953,7 @@ public class RecipeService extends RecipeBaseService {
         String recipeMode = recipe.getRecipeMode();
         //重试签名，首先设置处方的状态为签名中，根据签名的结果
         // 设置处方的状态，如果失败不走下面逻辑
-
         Integer status = RecipeStatusConstant.CHECK_PASS;
-
-        String memo = "HIS审核返回：写入his成功，审核通过";
-
 
         //其他平台处方状态不变
         if (0 == recipe.getFromflag()) {
@@ -991,6 +987,7 @@ public class RecipeService extends RecipeBaseService {
             if (RecipeResultBean.NO_ADDRESS.equals(recipeSignResult.getCode())) {
                 return;
             }
+            String memo;
             if (RecipeResultBean.FAIL.equals(recipeSignResult.getCode())) {
                 //说明处方签名失败
                 LOGGER.info("当前签名处方{}签名失败！", recipeId);
@@ -1017,7 +1014,6 @@ public class RecipeService extends RecipeBaseService {
             //TODO 根据审方模式改变状态
             //设置处方签名成功后的处方的状态
             auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status, recipe, memo);
-
         } catch (Exception e) {
             LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. recipe={} ", recipeId, e);
         }
@@ -1210,15 +1206,6 @@ public class RecipeService extends RecipeBaseService {
         // 设置处方的状态，如果失败不走下面逻辑
         Integer code = result.getCode();
         String msg = result.getMsg();
-        Integer status = RecipeStatusConstant.CHECK_PASS;
-
-        String memo = "HIS审核返回：写入his成功，审核通过";
-
-        //其他平台处方状态不变
-        if (0 == recipe.getFromflag()) {
-            status = recipe.getStatus();
-            memo = "HIS审核返回：写入his成功(其他平台处方)";
-        }
         try {
             if (RecipeResultBean.FAIL == code) {
                 //说明处方签名失败

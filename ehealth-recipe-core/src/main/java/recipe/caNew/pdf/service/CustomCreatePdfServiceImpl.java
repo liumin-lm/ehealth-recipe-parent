@@ -79,7 +79,13 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
                 return fileByte;
             }
         }
-        return generateTemplatePdf(recipe);
+        try {
+            return generateTemplatePdf(recipe);
+        } catch (Exception e) {
+            logger.error("CustomCreatePdfServiceImpl queryPdfByte e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+
     }
 
     @Override
