@@ -3909,7 +3909,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
-    @DAOMethod(sql = " FROM Recipe WHERE status=:status AND invalidTime >= :invalidTime", limit = 0)
-    public abstract List<Recipe> findRecipesByStatusAndInvalidTime(@DAOParam("status") Integer status, @DAOParam("invalidTime") Date invalidTime);
+    @DAOMethod(sql = " FROM Recipe WHERE status in (:status) AND invalidTime >= :invalidTime", limit = 0)
+    public abstract List<Recipe> findRecipesByStatusAndInvalidTime(@DAOParam("status") List<Integer> status, @DAOParam("invalidTime") Date invalidTime);
 
 }
