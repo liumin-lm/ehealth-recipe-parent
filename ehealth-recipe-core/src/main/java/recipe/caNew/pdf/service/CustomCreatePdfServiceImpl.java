@@ -72,12 +72,19 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
 
     @Override
     public byte[] queryPdfByte(Recipe recipe) throws Exception {
+        //判空 防重复生产
+        if (StringUtils.isNotEmpty(recipe.getSignFile())) {
+            byte[] fileByte = CreateRecipePdfUtil.signFileByte(recipe.getSignFile());
+            if (null != fileByte) {
+                return fileByte;
+            }
+        }
         return generateTemplatePdf(recipe);
     }
 
     @Override
     public byte[] queryPdfOssId(Recipe recipe) throws Exception {
-        byte[] data = generateTemplatePdf(recipe);
+        byte[] data = queryPdfByte(recipe);
         CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), RECIPE + OP_RECIPE_DOCTOR);
         if (null == ordinateVO) {
             return null;

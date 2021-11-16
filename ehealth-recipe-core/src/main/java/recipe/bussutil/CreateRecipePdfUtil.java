@@ -277,7 +277,12 @@ public class CreateRecipePdfUtil {
      * @return
      */
     public static byte[] signFileByte(String signFile) {
-        return fileDownloadService.downloadAsByte(signFile);
+        try {
+            return fileDownloadService.downloadAsByte(signFile);
+        } catch (Exception e) {
+            logger.info("CreateRecipePdfUtil signFileByte e ", e);
+            return null;
+        }
     }
 
     /**
