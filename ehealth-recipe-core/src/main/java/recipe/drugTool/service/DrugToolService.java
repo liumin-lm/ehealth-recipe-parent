@@ -2142,6 +2142,9 @@ public class DrugToolService implements IDrugToolService {
      */
     @RpcService
     public List<ProvinceDrugListBean> provinceDrugMatchNew(String name, int organId, int start, int limit, String seacrhString, String producer,String drugType) {
+        if (ObjectUtils.isEmpty(name)){
+            throw new DAOException(DAOException.VALUE_NEEDED, "名称为空!");
+        }
         List<ProvinceDrugList> provinceDrugLists = getProvinceDrugListsNew(organId,  start, limit, seacrhString,producer,drugType,name);
         if (null == provinceDrugLists) {
             //如果没有省平台药品数据则为null
