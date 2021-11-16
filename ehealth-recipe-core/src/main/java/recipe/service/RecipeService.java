@@ -4870,19 +4870,6 @@ public class RecipeService extends RecipeBaseService {
             //通过运营平台控制开关决定是否走此种模式
             Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
             if (syfPayMode) {
-                //邵逸夫支付
-                RecipeOrderPayFlow recipeOrderPay = recipeOrderPayFlowManager.getByOrderIdAndType(order.getOrderId(), PayFlowTypeEnum.RECIPE_FLOW.getType());
-                LOGGER.info("wxPayRefundForRecipe recipeId:{}, recipeOrderPay:{}.", recipeId, JSONUtils.toString(recipeOrderPay));
-                if (null != recipeOrderPay) {
-                    if (StringUtils.isEmpty(recipeOrderPay.getOutTradeNo())) {
-                        //表示没有实际支付审方或者快递费,只需要更新状态
-                        recipeOrderPay.setPayFlag(PayFlagEnum.REFUND_SUCCESS.getType());
-                        recipeOrderPayFlowManager.updateNonNullFieldByPrimaryKey(recipeOrderPay);
-                    } else {
-                        //说明需要正常退药品费用费
-                        refundClient.refund(order.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
-                    }
-                }
                 RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(order.getOrderId(), PayFlowTypeEnum.RECIPE_AUDIT.getType());
                 if (null != recipeOrderPayFlow) {
                     if (StringUtils.isEmpty(recipeOrderPayFlow.getOutTradeNo())) {
@@ -4894,13 +4881,13 @@ public class RecipeService extends RecipeBaseService {
                         refundClient.refund(order.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
                     }
                 }
+                refundClient.refund(order.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
             } else {
                 refundClient.refund(order.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
             }
         } catch (Exception e) {
             LOGGER.error("wxPayRefundForRecipe " + errorInfo + "*****微信退款异常！recipeId[" + recipeId + "],err[" + e.getMessage() + "]", e);
         }
-
         try {
             if (CHECK_NOT_PASS == flag || PUSH_FAIL == flag || REFUND_MANUALLY == flag) {
                 //HIS消息发送
