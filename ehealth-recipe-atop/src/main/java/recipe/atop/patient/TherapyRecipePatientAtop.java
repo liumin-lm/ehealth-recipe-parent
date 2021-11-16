@@ -75,6 +75,7 @@ public class TherapyRecipePatientAtop extends BaseAtop {
             recipeBean.setDoctorName(a.getRecipe().getDoctorName());
             recipeBean.setDepart(a.getRecipe().getDepart());
             recipeBean.setOrganName(a.getRecipe().getOrganName());
+            recipeBean.setClinicOrgan(a.getRecipe().getClinicOrgan());
             recipeInfoVO.setRecipeBean(recipeBean);
 
             List<RecipeDetailBean> recipeDetails = new LinkedList<>();

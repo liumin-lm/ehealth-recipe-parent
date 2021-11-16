@@ -97,8 +97,7 @@ public abstract class ItemListDAO extends HibernateSupportDelegateDAO<ItemList> 
             paramMap.put("status", status);
         }
         if (null != id) {
-            hql.append(" and id like :id ");
-            paramMap.put("id", "%" + id + "%");
+            hql.append(" and id like '%" + id + "%' ");
         }
         if (!StringUtils.isEmpty(itemCode)) {
             hql.append(" and itemCode like :itemCode ");

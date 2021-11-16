@@ -62,11 +62,12 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
 
     /**
      * 保存OR更新
+     *
      * @param recipeExtend
      */
     public void saveOrUpdateRecipeExtend(RecipeExtend recipeExtend) {
         LOGGER.info("RecipeExtendDAO saveOrUpdateRecipeExtend recipeExtend：" + JSON.toJSONString(recipeExtend));
-        if(null == recipeExtend.getRecipeId()){
+        if (null == recipeExtend.getRecipeId()) {
             return;
         }
         if (recipeExtend.getCanUrgentAuditRecipe() == null) {
@@ -78,7 +79,7 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
         if (ObjectUtils.isEmpty(getByRecipeId(recipeExtend.getRecipeId()))) {
             save(recipeExtend);
         } else {
-            update(recipeExtend);
+            updateNonNullFieldByPrimaryKey(recipeExtend);
         }
     }
 
@@ -151,7 +152,7 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
      *
      * @param recipeIds
      */
-    @DAOMethod(sql = "from RecipeExtend where recipeId in (:recipeIds)",limit = 0)
+    @DAOMethod(sql = "from RecipeExtend where recipeId in (:recipeIds)", limit = 0)
     public abstract List<RecipeExtend> queryRecipeExtendByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds);
 
 
@@ -182,9 +183,9 @@ public abstract class RecipeExtendDAO extends HibernateSupportDelegateDAO<Recipe
                 hql.append(keyHql.toString().substring(1)).append(" where " + keyName + " in (:" + keyName + ")");
                 Query q = ss.createQuery(hql.toString());
 
-                q.setParameterList(keyName, (List<Object>)keyValue);
+                q.setParameterList(keyName, (List<Object>) keyValue);
                 Iterator<Map.Entry<String, Object>> it = changeAttr.entrySet().iterator();
-                while (it.hasNext()){
+                while (it.hasNext()) {
                     Map.Entry<String, Object> m = it.next();
                     q.setParameter(m.getKey(), m.getValue());
                 }

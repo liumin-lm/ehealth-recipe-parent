@@ -139,6 +139,7 @@ public class DrugListService extends BaseService<DrugListBean> {
         d.setLastModify(new Date());
         d.setAllPyCode(PyConverter.getPinYinWithoutTone(d.getSaleName()));
         d.setPyCode(PyConverter.getFirstLetter(d.getSaleName()));
+        d.setIsStandardDrug(0);
         d = dao.save(d);
 
         if(null != drugListBean.getDispensatory()) {

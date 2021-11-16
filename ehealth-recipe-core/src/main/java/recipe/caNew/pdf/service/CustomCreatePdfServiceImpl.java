@@ -72,12 +72,25 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
 
     @Override
     public byte[] queryPdfByte(Recipe recipe) throws Exception {
-        return generateTemplatePdf(recipe);
+        //判空 防重复生产
+        if (StringUtils.isNotEmpty(recipe.getSignFile())) {
+            byte[] fileByte = CreateRecipePdfUtil.signFileByte(recipe.getSignFile());
+            if (null != fileByte) {
+                return fileByte;
+            }
+        }
+        try {
+            return generateTemplatePdf(recipe);
+        } catch (Exception e) {
+            logger.error("CustomCreatePdfServiceImpl queryPdfByte e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+
     }
 
     @Override
     public byte[] queryPdfOssId(Recipe recipe) throws Exception {
-        byte[] data = generateTemplatePdf(recipe);
+        byte[] data = queryPdfByte(recipe);
         CoOrdinateVO ordinateVO = redisManager.getPdfCoords(recipe.getRecipeId(), RECIPE + OP_RECIPE_DOCTOR);
         if (null == ordinateVO) {
             return null;
@@ -191,7 +204,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         coords.setValue(dispensingTime);
         coords.setX(ordinateVO.getX());
         coords.setY(ordinateVO.getY());
-        coords.setRepeatWrite(true);
+        coords.setRepeatWrite(false);
         return coords;
     }
 

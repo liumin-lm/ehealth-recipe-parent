@@ -5,6 +5,8 @@ import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.vo.*;
 
+import javax.xml.crypto.Data;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -71,4 +73,12 @@ public interface IRecipeBusinessService {
      * @return true 可开方
      */
     Boolean validateOpenRecipeNumber(Integer clinicId, Integer organId, Integer recipeId);
+
+    /**
+     * 根据状态和失效时间获取处方列表
+     * @param status       状态
+     * @param invalidTime  时间
+     * @return 处方列表
+     */
+    List<Recipe> findRecipesByStatusAndInvalidTime(Integer status, Date invalidTime);
 }

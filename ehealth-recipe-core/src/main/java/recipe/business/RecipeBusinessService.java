@@ -33,6 +33,7 @@ import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -188,6 +189,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "开方张数已超出医院限定范围，不能继续开方。");
         }
         return true;
+    }
+
+    @Override
+    public List<Recipe> findRecipesByStatusAndInvalidTime(Integer status, Date invalidTime) {
+        return recipeDAO.findRecipesByStatusAndInvalidTime(status, invalidTime);
     }
 
 }

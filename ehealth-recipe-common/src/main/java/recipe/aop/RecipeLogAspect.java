@@ -1,5 +1,6 @@
 package recipe.aop;
 
+import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -8,6 +9,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.constant.ErrorCode;
 
 /**
  * 处方日志AOP切面 目前用于线程池任务计时
@@ -37,6 +39,7 @@ public class RecipeLogAspect {
             result = joinPoint.proceed();
         } catch (Throwable throwable) {
             logger.error("RecipeLogAspect doAround error", throwable);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, throwable.getMessage());
         } finally {
             long elapsedTime = System.currentTimeMillis() - start;
             logger.info("RecipeLogAspect doAround {} {} 执行时间:{}ms", className, methodName, elapsedTime);

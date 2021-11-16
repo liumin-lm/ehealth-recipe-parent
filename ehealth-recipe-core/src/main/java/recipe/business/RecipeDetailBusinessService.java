@@ -6,6 +6,7 @@ import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ import recipe.util.MapValueUtil;
 import recipe.vo.ResultBean;
 import recipe.vo.doctor.ValidateDetailVO;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -59,6 +61,8 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
     private RecipeDetailManager recipeDetailManager;
     @Autowired
     private RecipeManager recipeManager;
+    @Autowired
+    private OrderManager orderManager;
 
     @Override
     public ValidateDetailVO continueRecipeValidateDrug(ValidateDetailVO validateDetailVO) {
@@ -127,9 +131,15 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
 
 
     @Override
-    public String getDrugName(String orderCode) {
+    public String getDrugName(String orderCode, Integer orderId) {
         StringBuilder stringBuilder = new StringBuilder();
-        List<Recipedetail> recipeDetails = recipeDetailDAO.findDetailByOrderCode(orderCode);
+        List<Recipedetail> recipeDetails;
+        if (StringUtils.isNotEmpty(orderCode)) {
+            recipeDetails = recipeDetailDAO.findDetailByOrderCode(orderCode);
+        } else {
+            List<Integer> recipeIds = orderManager.getRecipeIdsByOrderId(orderId);
+            recipeDetails = recipeDetailDAO.findByRecipeIds(recipeIds);
+        }
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return stringBuilder.toString();
         }

@@ -1,6 +1,5 @@
 package recipe.service;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
@@ -139,7 +138,7 @@ public class RecipeHisService extends RecipeBaseService {
                 sendRecipe(recipeId, sendOrganId);
             } catch (Exception e) {
                 LOGGER.error("recipeSendHis error, recipeId={}", recipeId, e);
-                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "sendRecipe error" + e.getMessage());
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "sendRecipe error " + e.getMessage());
             }
         } else {
             result = false;
@@ -373,6 +372,7 @@ public class RecipeHisService extends RecipeBaseService {
                 if (recipeExtend != null) {
                     request.setHisDiseaseSerial(recipeExtend.getHisDiseaseSerial());
                 }
+                request.setTakeMedicine(recipe.getTakeMedicine());
                 LOGGER.info("recipeStatusUpdateWithOrganIdV1  request:{}", JSONUtils.toString(request));
                 flag = service.cancelRecipeImpl(request);
             } catch (Exception e) {
@@ -578,7 +578,7 @@ public class RecipeHisService extends RecipeBaseService {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                 RecipeListQueryReqTO recipeListQueryReqTO = new RecipeListQueryReqTO();
                 PatientDTO patientDTO = patientService.getPatientBeanByMpiId(recipe.getMpiid());
-                if(patientDTO != null){
+                if (patientDTO != null) {
                     recipeListQueryReqTO.setCertID(patientDTO.getCardId());
                     recipeListQueryReqTO.setCertificate(patientDTO.getCertificate());
                     recipeListQueryReqTO.setCertificateType(patientDTO.getCertificateType());
@@ -801,23 +801,23 @@ public class RecipeHisService extends RecipeBaseService {
                         com.ngari.patient.service.OrganConfigService organConfigService = AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
                         OrganConfigDTO byOrganId1 = organConfigService.getByOrganId(organId);
                         Boolean delete = byOrganId1.getEnableDrugDelete();
-                        if (!ObjectUtils.isEmpty(delete)){
-                            if (delete){
+                        if (!ObjectUtils.isEmpty(delete)) {
+                            if (delete) {
                                 OrganDrugListService organDrugListService = AppContextHolder.getBean("organDrugListService", OrganDrugListService.class);
                                 IDataSyncLogService dataSyncLogService = AppDomainContext.getBean("opbase.dataSyncLogService", IDataSyncLogService.class);
                                 OrganDrugListBean byOrganIdAndOrganDrugCode = organDrugListService.getByOrganIdAndOrganDrugCode(organId, requestList.get(0).getDrcode());
-                                if (!ObjectUtils.isEmpty(byOrganIdAndOrganDrugCode)){
+                                if (!ObjectUtils.isEmpty(byOrganIdAndOrganDrugCode)) {
                                     try {
-                                        organDrugListService.updateOrganDrugListStatusByIdSyncT(organId,requestList.get(0).getDrcode());
-                                        DataSyncDTO dataSyncDTO = convertDataSyn( organId, "4", null, "3",byOrganIdAndOrganDrugCode);
-                                        List<DataSyncDTO> syncDTOList =Lists.newArrayList();
+                                        organDrugListService.updateOrganDrugListStatusByIdSyncT(organId, requestList.get(0).getDrcode());
+                                        DataSyncDTO dataSyncDTO = convertDataSyn(organId, "4", null, "3", byOrganIdAndOrganDrugCode);
+                                        List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                                         syncDTOList.add(dataSyncDTO);
-                                        dataSyncLogService.addDataSyncLog("1",syncDTOList);
+                                        dataSyncLogService.addDataSyncLog("1", syncDTOList);
                                     } catch (Exception e) {
-                                        DataSyncDTO dataSyncDTO = convertDataSyn( organId, "3", e, "3",byOrganIdAndOrganDrugCode);
-                                        List<DataSyncDTO> syncDTOList =Lists.newArrayList();
+                                        DataSyncDTO dataSyncDTO = convertDataSyn(organId, "3", e, "3", byOrganIdAndOrganDrugCode);
+                                        List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                                         syncDTOList.add(dataSyncDTO);
-                                        dataSyncLogService.addDataSyncLog("1",syncDTOList);
+                                        dataSyncLogService.addDataSyncLog("1", syncDTOList);
                                         LOGGER.info("drugInfoSynMovement机构药品数据同步 删除失败,{}", JSONUtils.toString(byOrganIdAndOrganDrugCode) + "Exception:{}" + e);
                                     }
                                 }
@@ -837,22 +837,22 @@ public class RecipeHisService extends RecipeBaseService {
         return null;
     }
 
-    public DataSyncDTO convertDataSyn( Integer organId, String status,Exception e,String operType,OrganDrugListBean organDrugList) {
+    public DataSyncDTO convertDataSyn(Integer organId, String status, Exception e, String operType, OrganDrugListBean organDrugList) {
 
-        DataSyncDTO dataSyncDTO =new DataSyncDTO();
+        DataSyncDTO dataSyncDTO = new DataSyncDTO();
         dataSyncDTO.setType("1");
         dataSyncDTO.setOrganId(organId.toString());
         dataSyncDTO.setReqMsg(JSONUtils.toString(organDrugList));
         dataSyncDTO.setStatus(status);
-        if (e != null){
+        if (e != null) {
             dataSyncDTO.setRespMsg(e.getMessage());
-        }else {
+        } else {
             dataSyncDTO.setRespMsg("成功");
         }
         dataSyncDTO.setOperType(operType);
         dataSyncDTO.setSyncTime(new Date());
 
-        return  dataSyncDTO;
+        return dataSyncDTO;
     }
 
     /**

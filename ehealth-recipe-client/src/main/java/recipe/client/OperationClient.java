@@ -105,6 +105,15 @@ public class OperationClient extends BaseClient {
         if (OperationConstant.OP_PATIENT.equals(objectName)) {
             return MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getPatientBean());
         }
+        if (OperationConstant.OP_RECIPE_ORDER.equals(objectName)) {
+            if (null == recipePdfDTO.getRecipeOrder()) {
+                return "";
+            }
+            if ("dispensingTime".equals(fieldName)) {
+                return ByteUtils.dateToSting(recipePdfDTO.getRecipeOrder().getDispensingTime());
+            }
+            return MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipeOrder());
+        }
         if (OperationConstant.OP_RECIPE_EXTEND.equals(objectName)) {
             return MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipeExtend());
         }
@@ -135,11 +144,15 @@ public class OperationClient extends BaseClient {
                 return JSON.toJSONString(doctor);
             }
             //审方药师签名图片
-            if (OperationConstant.OP_RECIPE_CHECKER.equals(fieldName) && StringUtils.isNotEmpty(apothecaryDTO.getCheckerSignImg())) {
+            if (OperationConstant.OP_RECIPE_CHECKER.equals(fieldName)) {
                 ApothecaryDTO checker = new ApothecaryDTO();
-                checker.setCheckerSignImg(apothecaryDTO.getCheckerSignImg());
-                checker.setCheckerSignImgToken(apothecaryDTO.getCheckerSignImgToken());
-                checker.setCheckApothecaryName(apothecaryDTO.getCheckApothecaryName());
+                if (StringUtils.isNotEmpty(apothecaryDTO.getCheckerSignImg())) {
+                    checker.setCheckerSignImg(apothecaryDTO.getCheckerSignImg());
+                    checker.setCheckerSignImgToken(apothecaryDTO.getCheckerSignImgToken());
+                    checker.setCheckApothecaryName(apothecaryDTO.getCheckApothecaryName());
+                } else {
+                    checker.setCheckApothecaryName(recipePdfDTO.getRecipe().getCheckerText());
+                }
                 return JSON.toJSONString(checker);
             }
             //核发药师签名图片
@@ -156,6 +169,7 @@ public class OperationClient extends BaseClient {
             }
             return MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getRecipe());
         }
+
         return "";
     }
 

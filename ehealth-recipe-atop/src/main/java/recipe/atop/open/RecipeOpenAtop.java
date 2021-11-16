@@ -14,6 +14,7 @@ import recipe.core.api.IRevisitBusinessService;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -114,6 +115,12 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
             logger.error("RecipeOpenAtop getByRecipeId error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
+    }
+
+    @Override
+    public List<RecipeBean> findRecipesByStatusAndInvalidTime(Integer status, Date invalidTime) {
+        List<Recipe> recipes = recipeBusinessService.findRecipesByStatusAndInvalidTime(status, invalidTime);
+        return ObjectCopyUtils.convert(recipes, RecipeBean.class);
     }
 
 }

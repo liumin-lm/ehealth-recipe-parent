@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.client.IConfigurationClient;
 import recipe.constant.CacheConstant;
+import recipe.enumerate.type.PayBusTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.PayFlowTypeEnum;
 import recipe.manager.OrderManager;
@@ -293,15 +294,17 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                 }
             }
             try {
-                //更新订单表实际支付金额(订单表的实际支付金额可能与患者实际支付不一致，对于不一致的进行更新，处方金额没有返回不做处理)
-                if (order.getActualPrice() != payBackPrice) {
-                    attr.put("actualPrice", payBackPrice);
-                }
-                if (null != order.getCouponFee() && order.getCouponFee().compareTo(BigDecimal.ZERO) > 0) {
-                    BigDecimal total_fee = new BigDecimal(payBackPrice + order.getCouponFee().doubleValue());
-                    attr.put("totalFee", total_fee);
-                } else {
-                    attr.put("totalFee", payBackPrice);
+                if (ysbody != null) {
+                    //更新订单表实际支付金额(订单表的实际支付金额可能与患者实际支付不一致，对于不一致的进行更新，处方金额没有返回不做处理)
+                    if (order.getActualPrice() != payBackPrice) {
+                        attr.put("actualPrice", payBackPrice);
+                    }
+                    if (null != order.getCouponFee() && order.getCouponFee().compareTo(BigDecimal.ZERO) > 0) {
+                        BigDecimal total_fee = new BigDecimal(payBackPrice + order.getCouponFee().doubleValue());
+                        attr.put("totalFee", total_fee);
+                    } else {
+                        attr.put("totalFee", payBackPrice);
+                    }
                 }
             } catch (Exception e) {
                 logger.error("设置实际支付金额失败 ", e);
@@ -388,7 +391,7 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
             if (CollectionUtils.isNotEmpty(recipeIdList)) {
                 Integer bussId = recipeIdList.get(0);
                 //调用回调处方退费
-                recipeOrderService.refundCallback(bussId, targetPayflag, null);
+                recipeOrderService.refundCallback(bussId, targetPayflag, null, PayBusTypeEnum.RECIPE_BUS_TYPE.getType());
             }
         }
         //更新处方日志

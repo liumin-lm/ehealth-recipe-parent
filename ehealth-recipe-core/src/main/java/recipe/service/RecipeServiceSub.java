@@ -72,6 +72,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
@@ -222,9 +223,10 @@ public class RecipeServiceSub {
                 recipeExtend.setGuardianName(patient.getGuardianName());
                 recipeExtend.setGuardianCertificate(patient.getGuardianCertificate());
                 recipeExtend.setGuardianMobile(patient.getMobile());
-                if(patient.getPatientUserType() == 1 || patient.getPatientUserType() == 2){
+                LOGGER.info("doWithRecipeExtend patient={}", JSONUtils.toString(patient));
+                if (patient.getPatientUserType() == 1 || patient.getPatientUserType() == 2) {
                     recipeExtend.setRecipeFlag(1);
-                }else if (patient.getPatientUserType() == 0){
+                } else if (patient.getPatientUserType() == 0) {
                     recipeExtend.setRecipeFlag(0);
                 }
             }
@@ -256,7 +258,7 @@ public class RecipeServiceSub {
         if (details != null && details.size() > 0) {
             setReciepeDetailsInfo(flag, recipeBean, recipe, details);
         }
-
+        setGiveMode(recipe);
         //患者数据前面已校验--设置患者姓名医生姓名机构名
         PatientDTO patient = patientService.get(recipe.getMpiid());
         recipe.setPatientName(patient.getPatientName());
@@ -292,8 +294,21 @@ public class RecipeServiceSub {
         recipeService.setMergeDrugType(details, recipe);
     }
 
+    public static void setGiveMode(Recipe recipe) {
+        Object isDefaultGiveModeToHos = configService.getConfiguration(recipe.getClinicOrgan(), "isDefaultGiveModeToHos");
+        LOGGER.info("setGiveMode isDefaultGiveModeToHos：{} ", isDefaultGiveModeToHos);
+        if ((boolean) isDefaultGiveModeToHos == true) {
+            //默认到院取药
+            if (null == recipe.getGiveMode()) {
+                recipe.setGiveMode(RecipeBussConstant.GIVEMODE_TO_HOS);
+            }
+        }
+        LOGGER.info("setGiveMode result recipe:{}", JSONUtils.toString(recipe));
+    }
+
     /**
      * 校验处方扩展信息
+     *
      * @param recipeBean 处方扩展信息
      */
     private static void validateRecipeExtData(RecipeBean recipeBean) {
@@ -1457,6 +1472,7 @@ public class RecipeServiceSub {
         if (appointDepartDTO != null) {
             r.setDepart(appointDepartDTO.getDepartId());
         }
+        r.setRecipeFlag(0);
         return r;
     }
 
@@ -1608,30 +1624,30 @@ public class RecipeServiceSub {
             //判断开关是否开启
             //去掉智能预审结果展示问题在生成的时候控制 原来的 BUG # 33761 需要注意是不是复现了
             if (recipe.getStatus() != 0) {
-                    List<AuditMedicinesBean> auditMedicines = getAuditMedicineIssuesByRecipeId(recipeId);
-                    map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId)); //返回药品分析数据
+                List<AuditMedicinesBean> auditMedicines = getAuditMedicineIssuesByRecipeId(recipeId);
+                map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId)); //返回药品分析数据
 //                AuditMedicineIssueDAO auditMedicineIssueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
-                    List<eh.recipeaudit.model.AuditMedicineIssueBean> auditMedicineIssues = iAuditMedicinesService.findIssueByRecipeId(recipeId);
-                    if (CollectionUtils.isNotEmpty(auditMedicineIssues)) {
-                        List<AuditMedicineIssueBean> resultMedicineIssues = new ArrayList<>();
-                        auditMedicineIssues.forEach(item -> {
-                            if (null == item.getMedicineId()) {
-                                resultMedicineIssues.add(item);
-                            }
-                        });
+                List<eh.recipeaudit.model.AuditMedicineIssueBean> auditMedicineIssues = iAuditMedicinesService.findIssueByRecipeId(recipeId);
+                if (CollectionUtils.isNotEmpty(auditMedicineIssues)) {
+                    List<AuditMedicineIssueBean> resultMedicineIssues = new ArrayList<>();
+                    auditMedicineIssues.forEach(item -> {
+                        if (null == item.getMedicineId()) {
+                            resultMedicineIssues.add(item);
+                        }
+                    });
 
-                        List<PAWebRecipeDanger> recipeDangers = new ArrayList<>();
-                        resultMedicineIssues.forEach(item -> {
-                            PAWebRecipeDanger recipeDanger = new PAWebRecipeDanger();
-                            recipeDanger.setDangerDesc(item.getDetail());
-                            recipeDanger.setDangerDrug(item.getTitle());
-                            recipeDanger.setDangerLevel(item.getLvlCode());
-                            recipeDanger.setDangerType(item.getLvl());
-                            recipeDanger.setDetailUrl(item.getDetailUrl());
-                            recipeDangers.add(recipeDanger);
-                        });
-                        map.put("recipeDangers", recipeDangers); //返回处方分析数据
-                    }
+                    List<PAWebRecipeDanger> recipeDangers = new ArrayList<>();
+                    resultMedicineIssues.forEach(item -> {
+                        PAWebRecipeDanger recipeDanger = new PAWebRecipeDanger();
+                        recipeDanger.setDangerDesc(item.getDetail());
+                        recipeDanger.setDangerDrug(item.getTitle());
+                        recipeDanger.setDangerLevel(item.getLvlCode());
+                        recipeDanger.setDangerType(item.getLvl());
+                        recipeDanger.setDetailUrl(item.getDetailUrl());
+                        recipeDangers.add(recipeDanger);
+                    });
+                    map.put("recipeDangers", recipeDangers); //返回处方分析数据
+                }
             }
             //医生处方单详情页按钮显示
             doctorRecipeInfoBottonShow(map, recipe);
@@ -1756,31 +1772,36 @@ public class RecipeServiceSub {
             map.put("doctorSignImg", signInfo.get("doctorSignImg"));
             map.put("doctorSignImgToken", FileAuth.instance().createToken(signInfo.get("doctorSignImg"), 3600L));
         }
-        //设置药师手签图片id-----药师撤销审核结果/CA签名中/签名失败/未签名 不应该显示药师手签
-        if (StringUtils.isNotEmpty(signInfo.get("checkerSignImg"))) {
-            if (recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
-                if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
-                        recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
-                        recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
-                    map.put("checkerSignImg", signInfo.get("checkerSignImg"));
-                    map.put("checkerSignImgToken", FileAuth.instance().createToken(signInfo.get("checkerSignImg"), 3600L));
+        // checkca的判断
+        if (isShowCheckCA(recipe.getRecipeId())) {
+            //设置药师手签图片id-----药师撤销审核结果/CA签名中/签名失败/未签名 不应该显示药师手签
+            if (StringUtils.isNotEmpty(signInfo.get("checkerSignImg"))) {
+                if (recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS) {
+                    if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
+                            recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
+                            recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
+                        map.put("checkerSignImg", signInfo.get("checkerSignImg"));
+                        map.put("checkerSignImgToken", FileAuth.instance().createToken(signInfo.get("checkerSignImg"), 3600L));
+                    }
                 }
-            }
-        } else {
-            if (recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS && recipe.getRecipeSourceType().equals(2) && !ValidateUtil.integerIsEmpty(recipe.getChecker())) {
-                if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
-                        recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
-                        recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
-                    DoctorDTO defaultDoctor = doctorService.get(recipe.getChecker());
-                    map.put("checkerSignImg", defaultDoctor.getSignImage());
-                    map.put("checkerSignImgToken", FileAuth.instance().createToken(defaultDoctor.getSignImage(), 3600L));
+            } else {
+                if (recipe.getStatus() != RecipeStatusConstant.READY_CHECK_YS && recipe.getRecipeSourceType().equals(2) && !ValidateUtil.integerIsEmpty(recipe.getChecker())) {
+                    if (!(recipe.getStatus() == RecipeStatusConstant.SIGN_ERROR_CODE_PHA ||
+                            recipe.getStatus() == RecipeStatusConstant.SIGN_ING_CODE_PHA ||
+                            recipe.getStatus() == RecipeStatusConstant.SIGN_NO_CODE_PHA)) {
+                        DoctorDTO defaultDoctor = doctorService.get(recipe.getChecker());
+                        map.put("checkerSignImg", defaultDoctor.getSignImage());
+                        map.put("checkerSignImgToken", FileAuth.instance().createToken(defaultDoctor.getSignImage(), 3600L));
+                    }
                 }
             }
         }
+
+
         //获取药师撤销原因  在未审核和审核不通过需要查询药师撤销原因
-        if ((recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS || recipe.getStatus() == RecipeStatusConstant.CHECK_NOT_PASS_YS )
+        if ((recipe.getStatus() == RecipeStatusConstant.READY_CHECK_YS || recipe.getStatus() == RecipeStatusConstant.CHECK_NOT_PASS_YS)
                 && ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType())) {
-              map.put("cancelReason", getCancelReasonForChecker(recipeId));
+            map.put("cancelReason", getCancelReasonForChecker(recipeId));
         }
         //Date:2019/12/16
         //Explain:添加判断展示处方参考价格
@@ -2175,6 +2196,21 @@ public class RecipeServiceSub {
             }
         }
         return showChecker;
+    }
+
+    /**
+     * 判断药师的ca流程是否开启
+     * @param recipeId
+     * @return
+     */
+    private static Boolean isShowCheckCA(Integer recipeId){
+        IRecipeCheckService recipeCheckService = RecipeAuditAPI.getService(IRecipeCheckService.class, "recipeCheckServiceImpl");
+        RecipeCheckBean recipeCheckBean = recipeCheckService.getNowCheckResultByRecipeId(recipeId);
+        Integer fail = 0;
+        if(recipeCheckBean != null && fail.equals(recipeCheckBean.getIsCheckCA())){
+            return false;
+        }
+        return true;
     }
 
     private static Object getBottomTextForPatient(Integer clinicOrgan) {

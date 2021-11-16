@@ -635,7 +635,7 @@ public class RemoteDrugService extends BaseService<DrugListBean> implements IDru
         Long organNum = AppContextHolder.getBean("eh.organDrugListService",IOrganDrugListService.class).getCountByDrugId(drugId);
         Long saleNum = AppContextHolder.getBean("eh.saleDrugListService",ISaleDrugListService.class).getCountByDrugId(drugId);
         if(organNum>0 || saleNum>0){
-            throw new DAOException(DAOException.VALIDATE_FALIED, "该通用药品存在关联的机构药品或者药企药品，不支持删除。");
+            throw new DAOException(DAOException.VALIDATE_FALIED, "该通用药品存在关联的机构药品或者药企药品，不支持删除!");
         }
 
         DrugListDAO dao = DAOFactory.getDAO(DrugListDAO.class);

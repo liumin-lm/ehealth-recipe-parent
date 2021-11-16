@@ -170,7 +170,7 @@ public class CreatePdfFactory {
      *
      * @param recipeId
      */
-    public void updateCheckNamePdf(Integer recipeId,Boolean caFlag) {
+    public void updateCheckNamePdf(Integer recipeId) {
         Recipe recipe = validate(recipeId);
         logger.info("CreatePdfFactory updateCheckNamePdf recipeId:{}", recipeId);
         boolean usePlatform = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "recipeUsePlatformCAPDF", true);
@@ -178,11 +178,19 @@ public class CreatePdfFactory {
             return;
         }
         //获取签名图片
-        String signImageId = null;
-        if(caFlag){
-            AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
-            signImageId = sttachSealPicDTO.getCheckerSignImg();
-        }
+        AttachSealPicDTO sttachSealPicDTO = signManager.attachSealPic(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getChecker(), recipeId);
+        String signImageId = sttachSealPicDTO.getCheckerSignImg();
+        updateCheckNamePdfDefault(recipeId,signImageId);
+    }
+
+
+    /**
+     * 默认签名
+     * @param recipeId
+     */
+    public void updateCheckNamePdfDefault(Integer recipeId,String signImageId) {
+        Recipe recipe = validate(recipeId);
+        logger.info("CreatePdfFactory updateCheckNamePdfDefault recipeId:{}", recipeId);
         try {
             CreatePdfService createPdfService = createPdfService(recipe);
             String fileId = createPdfService.updateCheckNamePdf(recipe, signImageId);
@@ -194,9 +202,9 @@ public class CreatePdfFactory {
             recipeUpdate.setRecipeId(recipeId);
             recipeUpdate.setChemistSignFile(fileId);
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
-            logger.info("CreatePdfFactory updateCheckNamePdf  recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
+            logger.info("CreatePdfFactory updateCheckNamePdfDefault  recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
         } catch (Exception e) {
-            logger.error("CreatePdfFactory updateCheckNamePdf  recipe: {}", recipe.getRecipeId(), e);
+            logger.error("CreatePdfFactory updateCheckNamePdfDefault  recipe: {}", recipe.getRecipeId(), e);
             RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), "平台药师部分pdf的生成失败");
         }
     }

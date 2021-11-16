@@ -13,6 +13,7 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.dictionary.DictionaryController;
+import ctd.persistence.exception.DAOException;
 import eh.entity.base.Scratchable;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Base64;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.SignImgNode;
+import recipe.constant.ErrorCode;
 import recipe.dao.RecipeExtendDAO;
 import recipe.manager.RedisManager;
 import recipe.manager.SignManager;
@@ -60,13 +62,25 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
 
     @Override
     public byte[] queryPdfByte(Recipe recipe) throws Exception {
-        return signRecipePdfVO(recipe).getData();
+        //判空 防重复生产
+        if (StringUtils.isNotEmpty(recipe.getSignFile())) {
+            byte[] fileByte = CreateRecipePdfUtil.signFileByte(recipe.getSignFile());
+            if (null != fileByte) {
+                return fileByte;
+            }
+        }
+        try {
+            return signRecipePdfVO(recipe).getData();
+        } catch (Exception e) {
+            logger.error("PlatformCreatePdfServiceImpl queryPdfByte e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
     }
 
 
     @Override
     public byte[] queryPdfOssId(Recipe recipe) throws Exception {
-        byte[] pdfByte = signRecipePdfVO(recipe).getData();
+        byte[] pdfByte = queryPdfByte(recipe);
         SignRecipePdfVO pdfEsign = new SignRecipePdfVO();
         pdfEsign.setData(pdfByte);
         pdfEsign.setFileName("recipe_" + recipe.getRecipeId() + ".pdf");
@@ -162,7 +176,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         coords.setValue(dispensingTime);
         coords.setX(ordinateVO.getX());
         coords.setY(ordinateVO.getY());
-        coords.setRepeatWrite(true);
+        coords.setRepeatWrite(false);
         return coords;
     }
 

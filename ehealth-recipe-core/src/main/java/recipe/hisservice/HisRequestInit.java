@@ -421,21 +421,25 @@ public class HisRequestInit {
         if (RecipeDistributionFlagEnum.DRUGS_HAVE.getType().equals(recipe.getDistributionFlag())) {
             requestTO.setDeliveryType("1");
         } else {
-            switch (recipe.getGiveMode()) {
-                //配送到家
-                case 1:
-                    requestTO.setDeliveryType("1");
-                    break;
-                //到院取药
-                case 2:
-                    requestTO.setDeliveryType("0");
-                    break;
-                //药店取药
-                case 3:
-                    requestTO.setDeliveryType("2");
-                    break;
-                default:
-                    requestTO.setDeliveryType("0");
+            if (recipe.getGiveMode() == null) {
+                requestTO.setDeliveryType("0");
+            } else {
+                switch (recipe.getGiveMode()) {
+                    //配送到家
+                    case 1:
+                        requestTO.setDeliveryType("1");
+                        break;
+                    //到院取药
+                    case 2:
+                        requestTO.setDeliveryType("0");
+                        break;
+                    //药店取药
+                    case 3:
+                        requestTO.setDeliveryType("2");
+                        break;
+                    default:
+                        requestTO.setDeliveryType("0");
+                }
             }
         }
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
@@ -771,7 +775,7 @@ public class HisRequestInit {
             Recipe nowRecipe = recipeDAO.getByRecipeId(recipe.getRecipeId());
             LOGGER.info("HisRequestInit initDrugTakeChangeReqTO recipe:{},order:{}.", JSONUtils.toString(nowRecipe), JSONUtils.toString(order));
             RecipeHisStatusEnum recipeHisStatusEnum = RecipeHisStatusEnum.getRecipeHisStatusEnum(nowRecipe.getStatus());
-            if(Objects.nonNull(recipeHisStatusEnum)) {
+            if (Objects.nonNull(recipeHisStatusEnum)) {
                 requestTO.setRecipeStatus(recipeHisStatusEnum.getValue());
             }
             if (null == requestTO.getRecipeStatus() && null != order && PayFlagEnum.PAYED.getType().equals(order.getPayFlag())
