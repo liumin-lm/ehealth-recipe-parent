@@ -182,6 +182,12 @@ public class OrderManager extends BaseManager {
 
     private SkipThirdDTO getUrl(Recipe recipe, Integer giveMode) {
         RecipeThirdUrlReqTO req = new RecipeThirdUrlReqTO();
+        if (null != recipe.getEnterpriseId()) {
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
+            if (null != drugsEnterprise && StringUtils.isNotEmpty(drugsEnterprise.getThirdEnterpriseCode())) {
+                req.setPatientChannelId(drugsEnterprise.getThirdEnterpriseCode());
+            }
+        }
         req.setOrganId(recipe.getClinicOrgan());
         req.setRecipeCode(String.valueOf(recipe.getRecipeId()));
         req.setSkipMode(giveMode);
@@ -194,7 +200,7 @@ public class OrderManager extends BaseManager {
         req.setPatient(patientBaseInfo);
         try {
             RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
-            if (revisitExDTO != null) {
+            if (revisitExDTO != null && StringUtils.isNotEmpty(revisitExDTO.getProjectChannel())) {
                 req.setPatientChannelId(revisitExDTO.getProjectChannel());
             }
         } catch (Exception e) {
