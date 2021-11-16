@@ -1327,7 +1327,7 @@ public class RecipeService extends RecipeBaseService {
                     //生成pdf分解成，先生成无医生药师签名的pdf，再将医生药师的签名放置在pdf上
                     String pdfString = null;
                     // 不做ca签名
-                    if(isShowCheckCA(recipeId)) {
+                    if(!isShowCheckCA(recipeId)) {
                         pharmacyToRecipePDFDefault(recipeId);
                         checkResult.setCode(RecipeResultBean.SUCCESS);
                     }else{
