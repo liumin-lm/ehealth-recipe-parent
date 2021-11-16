@@ -61,6 +61,8 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
     private RecipeDetailManager recipeDetailManager;
     @Autowired
     private RecipeManager recipeManager;
+    @Autowired
+    private OrderManager orderManager;
 
     @Override
     public ValidateDetailVO continueRecipeValidateDrug(ValidateDetailVO validateDetailVO) {
@@ -135,7 +137,8 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
         if (StringUtils.isNotEmpty(orderCode)) {
             recipeDetails = recipeDetailDAO.findDetailByOrderCode(orderCode);
         } else {
-            recipeDetails = recipeDetailDAO.findDetailByOrderId(orderId);
+            List<Integer> recipeIds = orderManager.getRecipeIdsByOrderId(orderId);
+            recipeDetails = recipeDetailDAO.findByRecipeIds(recipeIds);
         }
         if (CollectionUtils.isEmpty(recipeDetails)) {
             return stringBuilder.toString();
