@@ -81,8 +81,8 @@ public class PayModeTFDS implements IPurchaseService{
         String key = recipeId + "-" + DigestUtils.md5DigestAsHex(md5Key.getBytes());
         List<DepDetailBean> depDetailBeans = redisClient.get(key);
         if (CollectionUtils.isNotEmpty(depDetailBeans)) {
-            List<DepDetailBean> result = getDepDetailBeansByPage(extInfo, depDetailBeans);
-            depListBean.setList(result);
+            //List<DepDetailBean> result = getDepDetailBeansByPage(extInfo, depDetailBeans);
+            depListBean.setList(depDetailBeans);
             resultBean.setObject(depListBean);
             return resultBean;
         }
