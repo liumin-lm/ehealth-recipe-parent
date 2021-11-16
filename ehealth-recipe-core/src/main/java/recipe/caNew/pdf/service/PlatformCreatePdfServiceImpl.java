@@ -162,7 +162,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         coords.setValue(dispensingTime);
         coords.setX(ordinateVO.getX());
         coords.setY(ordinateVO.getY());
-        coords.setRepeatWrite(true);
+        coords.setRepeatWrite(false);
         return coords;
     }
 
