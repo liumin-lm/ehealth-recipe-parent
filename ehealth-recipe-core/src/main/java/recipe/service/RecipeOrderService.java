@@ -2193,6 +2193,7 @@ public class RecipeOrderService extends RecipeBaseService {
         LOGGER.info("finishOrderPayImpl is get! orderCode={} ,payFlag = {}, payMode:{}.", orderCode, payFlag, payMode);
         RecipeResultBean result = RecipeResultBean.getSuccess();
         RecipeOrder order = recipeOrderDAO.getByOrderCode(orderCode);
+        LOGGER.info("finishOrderPayImpl order:{}.", JSONUtils.toString(order));
         Map<String, Object> attrMap = Maps.newHashMap();
         attrMap.put("payFlag", payFlag);
         //date 20190919
