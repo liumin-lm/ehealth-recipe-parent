@@ -169,15 +169,20 @@ public class RecipeOrderPatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public boolean cancelRecipeHis(List<Integer> recipeIds, Integer orderId) {
+    public void cancelRecipeHis(List<Integer> recipeIds, Integer orderId) {
         validateAtop(recipeIds, orderId);
         //过滤按钮 拿订单的购药方式 过滤
         boolean validate = iOrganBusinessService.giveModeValidate(null, orderId);
         if (!validate) {
-            return false;
+            logger.info("RecipeOrderPatientAtop cancelRecipeHis orderId = {}", orderId);
+            return;
         }
+
         //推送his
-        recipeIds.forEach(a -> offlineToOnlineService.pushRecipe(a, CommonConstant.RECIPE_CANCEL_TYPE, CommonConstant.RECIPE_PATIENT_TYPE));
-        return true;
+        try {
+            recipeIds.forEach(a -> offlineToOnlineService.pushRecipe(a, CommonConstant.RECIPE_CANCEL_TYPE, CommonConstant.RECIPE_PATIENT_TYPE));
+        } catch (Exception e) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方撤销失败");
+        }
     }
 }

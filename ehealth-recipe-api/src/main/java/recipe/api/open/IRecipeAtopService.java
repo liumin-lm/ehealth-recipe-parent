@@ -4,6 +4,7 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.util.annotation.RpcService;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -55,5 +56,5 @@ public interface IRecipeAtopService {
     RecipeBean getByRecipeId(Integer recipeId);
 
     @RpcService
-    List<RecipeBean> findRecipesByStatusAndInvalidTime(Integer status, String invalidTime);
+    List<RecipeBean> findRecipesByStatusAndInvalidTime(Integer status, Date invalidTime);
 }

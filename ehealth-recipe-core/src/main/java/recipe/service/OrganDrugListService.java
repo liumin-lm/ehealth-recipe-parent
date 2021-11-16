@@ -336,6 +336,26 @@ public class OrganDrugListService implements IOrganDrugListService {
         }
     }
 
+    /**
+     * 药品一键激活方法  线上问题紧急处理备用方法
+     *
+     * @param organId 机构Id
+     */
+    @RpcService
+    public void activateOrganDrugListByOrganId(Integer organId) {
+        if (organId == null) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "organId is required");
+        }
+        logger.info("一键激活机构药品 organId=[{}] ", organId);
+        Integer status = 1;
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        try {
+            organDrugListDAO.updateDrugStatus(organId, status);
+        } catch (Exception e) {
+            logger.info("一键激活机构药品[updateOrganDrugListStatusByOrganId]:" + e);
+        }
+    }
+
 
     /**
      * 药品目录-机构药品禁用手动同步调用
@@ -736,11 +756,11 @@ public class OrganDrugListService implements IOrganDrugListService {
      */
     @RpcService
     public QueryResult<DrugListAndOrganDrugListDTO> queryOrganDrugListByOrganIdAndKeywordAndProducer(final Integer organId,
-                                                                                               final String drugClass,
+                                                                                               final String drugType,
                                                                                                final String keyword,final String producer, final Integer status,
                                                                                                final int start, final int limit) {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        QueryResult result = organDrugListDAO.queryOrganDrugListByOrganIdAndKeywordAndProducer(organId, drugClass, keyword,producer, status, start, limit);
+        QueryResult result = organDrugListDAO.queryOrganDrugListByOrganIdAndKeywordAndProducer(organId, drugType, keyword,producer, status, start, limit);
         result.setItems(covertData(result.getItems()));
         return result;
     }

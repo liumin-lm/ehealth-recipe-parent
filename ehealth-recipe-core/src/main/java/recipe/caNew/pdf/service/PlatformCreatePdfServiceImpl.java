@@ -60,13 +60,20 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
 
     @Override
     public byte[] queryPdfByte(Recipe recipe) throws Exception {
+        //判空 防重复生产
+        if (StringUtils.isNotEmpty(recipe.getSignFile())) {
+            byte[] fileByte = CreateRecipePdfUtil.signFileByte(recipe.getSignFile());
+            if (null != fileByte) {
+                return fileByte;
+            }
+        }
         return signRecipePdfVO(recipe).getData();
     }
 
 
     @Override
     public byte[] queryPdfOssId(Recipe recipe) throws Exception {
-        byte[] pdfByte = signRecipePdfVO(recipe).getData();
+        byte[] pdfByte = queryPdfByte(recipe);
         SignRecipePdfVO pdfEsign = new SignRecipePdfVO();
         pdfEsign.setData(pdfByte);
         pdfEsign.setFileName("recipe_" + recipe.getRecipeId() + ".pdf");
@@ -162,7 +169,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         coords.setValue(dispensingTime);
         coords.setX(ordinateVO.getX());
         coords.setY(ordinateVO.getY());
-        coords.setRepeatWrite(true);
+        coords.setRepeatWrite(false);
         return coords;
     }
 

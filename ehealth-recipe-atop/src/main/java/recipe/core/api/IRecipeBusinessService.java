@@ -5,6 +5,8 @@ import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.vo.*;
 
+import javax.xml.crypto.Data;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -78,5 +80,5 @@ public interface IRecipeBusinessService {
      * @param invalidTime  时间
      * @return 处方列表
      */
-    List<Recipe> findRecipesByStatusAndInvalidTime(Integer status, String invalidTime);
+    List<Recipe> findRecipesByStatusAndInvalidTime(Integer status, Date invalidTime);
 }
