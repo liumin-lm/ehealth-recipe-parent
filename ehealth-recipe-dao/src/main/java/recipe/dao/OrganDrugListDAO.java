@@ -601,22 +601,22 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      * 机构药品查询
      *
      * @param organId   机构
-     * @param drugClass 药品分类
+     * @param drugType 药品类型
      * @param keyword   查询关键字:药品序号 or 药品名称 or 生产厂家 or 商品名称 or 批准文号
      * @param start
      * @param limit
      * @return
      * @author houxr
      */
-    public QueryResult<DrugListAndOrganDrugList> queryOrganDrugListByOrganIdAndKeywordAndProducer(final Integer organId, final String drugClass,final String keyword,final String producer,  final Integer status, final int start, final int limit) {
+    public QueryResult<DrugListAndOrganDrugList> queryOrganDrugListByOrganIdAndKeywordAndProducer(final Integer organId, final String drugType,final String keyword,final String producer,  final Integer status, final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>>() {
             @SuppressWarnings("unchecked")
             @Override
             public void execute(StatelessSession ss) throws DAOException {
                 if (status == 2) {
                     StringBuilder hql = new StringBuilder(" from DrugList d where 1=1 ");
-                    if (!StringUtils.isEmpty(drugClass)) {
-                        hql.append(" and d.drugClass like :drugClass");
+                    if (!StringUtils.isEmpty(drugType)) {
+                        hql.append(" and d.drugType =:drugType");
                     }
                     if (!StringUtils.isEmpty(producer)) {
                         hql.append(" and d.producer like :producer");
@@ -644,8 +644,8 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     }
                     hql.append(" and d.status=1 order by d.drugId desc");
                     Query countQuery = ss.createQuery("select count(*) " + hql.toString());
-                    if (!StringUtils.isEmpty(drugClass)) {
-                        countQuery.setParameter("drugClass", drugClass + "%");
+                    if (!StringUtils.isEmpty(drugType)) {
+                        countQuery.setParameter("drugType", Integer.valueOf(drugType) );
                     }
                     if (!StringUtils.isEmpty(producer)) {
                         countQuery.setParameter("producer", "%" + producer + "%");
@@ -662,8 +662,8 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     Long total = (Long) countQuery.uniqueResult();
 
                     Query query = ss.createQuery("select d " + hql.toString());
-                    if (!StringUtils.isEmpty(drugClass)) {
-                        query.setParameter("drugClass", drugClass + "%");
+                    if (!StringUtils.isEmpty(drugType)) {
+                        query.setParameter("drugType", Integer.valueOf(drugType));
                     }
                     if (!StringUtils.isEmpty(producer)) {
                         query.setParameter("producer", "%" + producer + "%");
@@ -699,8 +699,8 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     setResult(new QueryResult<DrugListAndOrganDrugList>(total, query.getFirstResult(), query.getMaxResults(), result));
                 } else {
                     StringBuilder hql = new StringBuilder(" from OrganDrugList a, DrugList b where a.drugId = b.drugId ");
-                    if (!StringUtils.isEmpty(drugClass)) {
-                        hql.append(" and b.drugClass like :drugClass");
+                    if (!StringUtils.isEmpty(drugType)) {
+                        hql.append(" and b.drugType =:drugType");
                     }
                     Integer drugId = null;
                     if (!StringUtils.isEmpty(keyword)) {
@@ -727,8 +727,8 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     }
                     hql.append(" and b.status = 1 order by a.organDrugId desc");
                     Query countQuery = ss.createQuery("select count(*) " + hql.toString());
-                    if (!StringUtils.isEmpty(drugClass)) {
-                        countQuery.setParameter("drugClass", drugClass + "%");
+                    if (!StringUtils.isEmpty(drugType)) {
+                        countQuery.setParameter("drugType", Integer.valueOf(drugType) );
                     }
                     if (ObjectUtils.nullSafeEquals(status, 0) || ObjectUtils.nullSafeEquals(status, 1) || ObjectUtils.nullSafeEquals(status, -1) || ObjectUtils.nullSafeEquals(status, 9)) {
                         countQuery.setParameter("organId", organId);
@@ -742,8 +742,8 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     Long total = (Long) countQuery.uniqueResult();
 
                     Query query = ss.createQuery("select a " + hql.toString());
-                    if (!StringUtils.isEmpty(drugClass)) {
-                        query.setParameter("drugClass", drugClass + "%");
+                    if (!StringUtils.isEmpty(drugType)) {
+                        query.setParameter("drugType", Integer.valueOf(drugType) );
                     }
                     if (ObjectUtils.nullSafeEquals(status, 0) || ObjectUtils.nullSafeEquals(status, 1) || ObjectUtils.nullSafeEquals(status, -1) || ObjectUtils.nullSafeEquals(status, 9)) {
                         query.setParameter("organId", organId);

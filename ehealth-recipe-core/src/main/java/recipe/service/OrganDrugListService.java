@@ -736,11 +736,11 @@ public class OrganDrugListService implements IOrganDrugListService {
      */
     @RpcService
     public QueryResult<DrugListAndOrganDrugListDTO> queryOrganDrugListByOrganIdAndKeywordAndProducer(final Integer organId,
-                                                                                               final String drugClass,
+                                                                                               final String drugType,
                                                                                                final String keyword,final String producer, final Integer status,
                                                                                                final int start, final int limit) {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        QueryResult result = organDrugListDAO.queryOrganDrugListByOrganIdAndKeywordAndProducer(organId, drugClass, keyword,producer, status, start, limit);
+        QueryResult result = organDrugListDAO.queryOrganDrugListByOrganIdAndKeywordAndProducer(organId, drugType, keyword,producer, status, start, limit);
         result.setItems(covertData(result.getItems()));
         return result;
     }
