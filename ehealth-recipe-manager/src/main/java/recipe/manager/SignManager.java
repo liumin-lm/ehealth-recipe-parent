@@ -302,6 +302,11 @@ public class SignManager extends BaseManager {
         }
     }
 
+    /**
+     * 判断药师的ca流程是否开启
+     * @param recipeId
+     * @return
+     */
     private Boolean isShowCheckCA(Integer recipeId){
         RecipeCheckBean recipeCheckBean = recipeCheckService.getNowCheckResultByRecipeId(recipeId);
         Integer fail = 0;

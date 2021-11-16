@@ -142,6 +142,14 @@ public class OrderManager extends BaseManager {
         return recipes;
     }
 
+    public List<Integer> getRecipeIdsByOrderId(Integer orderId){
+        logger.info("RecipeOrderManager getRecipeIdsByOrderId orderId:{}", orderId);
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderId(orderId);
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        logger.info("RecipeOrderManager getRecipeIdsByOrderId recipeIdList:{}", JSON.toJSONString(recipeIdList));
+        return recipeIdList;
+    }
+
     /**
      * todo 迁移代码 需要优化 （尹盛）
      * 从微信模板消息跳转时 先获取一下是否需要跳转第三方地址
