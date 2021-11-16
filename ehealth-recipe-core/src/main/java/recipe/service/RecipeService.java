@@ -1326,10 +1326,12 @@ public class RecipeService extends RecipeBaseService {
                     //使用平台CA模式，手动生成pdf
                     //生成pdf分解成，先生成无医生药师签名的pdf，再将医生药师的签名放置在pdf上
                     String pdfString = null;
-                    // 是否需要跳过pdf渲染
+                    // 不做ca签名
                     if(isShowCheckCA(recipeId)) {
                         pharmacyToRecipePDFDefault(recipeId);
+                        checkResult.setCode(RecipeResultBean.SUCCESS);
                     }else{
+                        // 是否需要跳过pdf渲染
                         if (!usePlatform) {
                             if (null == resultVo.getPdfBase64()) {
                                 LOGGER.warn("当前处方[}返回CA图片为空！", recipeId);
@@ -1343,15 +1345,15 @@ public class RecipeService extends RecipeBaseService {
                                 pharmacyToRecipePDF(recipeId);
                             }
                         }
-                    }
-                    //保存签名值、时间戳、电子签章文件
-                    checkResult.setCode(RecipeResultBean.SUCCESS);
-                    RecipeServiceEsignExt.saveSignRecipePDFCA(pdfString, recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
-                    resultVo.setFileId(fileId);
-                    //date 20200922
-                    //老流程保存sign，新流程已经移动至CA保存
-                    if (CA_OLD_TYPE.equals(CANewOldWay)) {
-                        signRecipeInfoSave(recipeId, false, resultVo, organId);
+                        //保存签名值、时间戳、电子签章文件
+                        checkResult.setCode(RecipeResultBean.SUCCESS);
+                        RecipeServiceEsignExt.saveSignRecipePDFCA(pdfString, recipeId, null, resultVo.getSignCADate(), resultVo.getSignRecipeCode(), false, fileId);
+                        resultVo.setFileId(fileId);
+                        //date 20200922
+                        //老流程保存sign，新流程已经移动至CA保存
+                        if (CA_OLD_TYPE.equals(CANewOldWay)) {
+                            signRecipeInfoSave(recipeId, false, resultVo, organId);
+                        }
                     }
                 } else {
                     ISmsPushService smsPushService = AppContextHolder.getBean("eh.smsPushService", ISmsPushService.class);
