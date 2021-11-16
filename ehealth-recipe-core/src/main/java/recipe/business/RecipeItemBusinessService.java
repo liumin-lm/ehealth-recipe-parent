@@ -108,6 +108,11 @@ public class RecipeItemBusinessService extends BaseService implements ITherapyIt
     }
 
     @Override
+    public List<ItemList> findItemListByOrganIdAndItemNameOrCode2(Integer organId, String itemName, String itemCode) {
+        return itemListManager.findItemListByOrganIdAndItemNameOrCode2(organId, itemName, itemCode);
+    }
+
+    @Override
     public CheckItemListVo checkItemList(ItemList itemList) {
         CheckItemListVo checkItemListVo = new CheckItemListVo();
         List<String> cause = Arrays.asList("", "");

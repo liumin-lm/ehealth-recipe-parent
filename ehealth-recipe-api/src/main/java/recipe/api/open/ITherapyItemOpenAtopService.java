@@ -21,6 +21,16 @@ public interface ITherapyItemOpenAtopService {
     Boolean checkExistByOrganIdAndItemNameOrCode(Integer organId, String itemName, String itemCode);
 
     /**
+     * 判断机构下是否存在itemName或者itemCode
+     * @param organId
+     * @param itemName
+     * @param itemCode
+     * @return true表示存在，false表示不存在
+     */
+    @RpcService
+    Boolean checkExistByOrganIdAndItemNameOrCode2(Integer organId, String itemName, String itemCode);
+
+    /**
      * 新增或更新诊疗项目
      * @param itemListBean
      */
