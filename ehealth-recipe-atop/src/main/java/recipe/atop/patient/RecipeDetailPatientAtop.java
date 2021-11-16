@@ -34,7 +34,7 @@ public class RecipeDetailPatientAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
         }
         try {
-            String drugNames = recipeDetailService.getDrugName(orderCode);
+            String drugNames = recipeDetailService.getDrugName(orderCode, null);
             logger.info("RecipeDetailPatientAtop getDrugName result = {}", orderCode);
             return drugNames;
         } catch (DAOException e1) {
@@ -44,5 +44,19 @@ public class RecipeDetailPatientAtop extends BaseAtop {
             logger.error("RecipeDetailPatientAtop getDrugName error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
+    }
+
+    /**
+     * 患者端处方进行中列表查询药品信息
+     *
+     * @param orderId 订单ID
+     * @return
+     */
+    @RpcService
+    public String getDrugNameByOrderId(Integer orderId) {
+        if (Objects.isNull(orderId)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
+        }
+        return recipeDetailService.getDrugName(null, orderId);
     }
 }
