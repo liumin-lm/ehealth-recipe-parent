@@ -43,7 +43,7 @@ public interface IRecipeDetailBusinessService {
      * @param orderCode 订单code
      * @return
      */
-    String getDrugName(String orderCode);
+    String getDrugName(String orderCode, Integer orderId);
 
     /**
      * 校验复诊下重复处方/药品
