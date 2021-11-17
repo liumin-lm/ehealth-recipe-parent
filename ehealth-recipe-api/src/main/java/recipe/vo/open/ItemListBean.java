@@ -21,6 +21,9 @@ public class ItemListBean {
     @ItemProperty(alias = "项目名称")
     private String itemName;
 
+    @ItemProperty(alias = "机构名称")
+    private String organName;
+
     @ItemProperty(alias = "项目编码")
     private String itemCode;
 
