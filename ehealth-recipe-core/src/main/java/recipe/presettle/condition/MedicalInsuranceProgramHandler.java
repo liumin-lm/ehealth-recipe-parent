@@ -28,8 +28,13 @@ public class MedicalInsuranceProgramHandler implements IOrderTypeConditionHandle
         if (request.getRecipe() == null || null == request.getRecipe().getClinicId()) {
             return null;
         }
-        IConsultService consultService = ConsultAPI.getService(IConsultService.class);
-        ConsultBean consultBean = consultService.getById(request.getRecipe().getClinicId());
+        ConsultBean consultBean = null;
+        try {
+            IConsultService consultService = ConsultAPI.getService(IConsultService.class);
+            consultBean = consultService.getById(request.getRecipe().getClinicId());
+        } catch (Exception e) {
+            LOGGER.error("MedicalInsuranceProgramHandler error ", e);
+        }
         LOGGER.info("MedicalInsuranceProgramHandler.getOrderType consultBean={}", JSONArray.toJSONString(consultBean));
         if (null != consultBean) {
             if (Integer.valueOf(1).equals(consultBean.getConsultSource()) && (Integer.valueOf(1).equals(request.getRecipe().getRecipeSource()))) {

@@ -59,4 +59,8 @@ public class ItemListManager extends BaseManager {
     public List<ItemList> findItemListByOrganIdAndItemNameOrCode(Integer organId, String itemName, String itemCode) {
         return itemListDAO.findItemListByOrganIdAndItemNameOrCode(organId, itemName, itemCode);
     }
+
+    public List<ItemList> findItemListByOrganIdAndItemNameOrCode2(Integer organId, String itemName, String itemCode) {
+        return itemListDAO.findItemListByOrganIdAndItemNameOrCode2(organId, itemName, itemCode);
+    }
 }

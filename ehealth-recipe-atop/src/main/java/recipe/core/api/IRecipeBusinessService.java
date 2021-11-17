@@ -80,5 +80,5 @@ public interface IRecipeBusinessService {
      * @param invalidTime  时间
      * @return 处方列表
      */
-    List<Recipe> findRecipesByStatusAndInvalidTime(Integer status, Date invalidTime);
+    List<Recipe> findRecipesByStatusAndInvalidTime(List<Integer> status, Date invalidTime);
 }
