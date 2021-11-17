@@ -31,7 +31,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
-import recipe.aop.LogInfo;
 import recipe.bean.CheckYsInfoBean;
 import recipe.business.DrugStockBusinessService;
 import recipe.constant.*;
@@ -98,7 +97,6 @@ public class RecipeSignService {
      * @return
      */
     @RpcService
-    @LogInfo
     public RecipeStandardResTO<Map> sign(Integer recipeId, RecipeStandardReqTO request) {
 
         RecipeStandardResTO<Map> response = RecipeStandardResTO.getRequest(Map.class);
@@ -259,6 +257,7 @@ public class RecipeSignService {
         //修改订单成功后再去更新处方状态及配送信息等，使接口可重复调用
         Map<String, Object> attrMap = Maps.newHashMap();
         attrMap.put("giveMode", giveMode);
+        attrMap.put("payMode", payMode);
         attrMap.put("enterpriseId", depId);
         attrMap.put("chooseFlag", 1);
         //不做失效前提醒
