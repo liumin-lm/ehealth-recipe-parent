@@ -234,7 +234,8 @@ public class PayModeTFDS implements IPurchaseService{
 
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
         RecipePayModeSupportBean payModeSupport = orderService.setPayModeSupport(order, payMode);
-
+        //订单类型-1省医保
+        Integer orderType = MapValueUtil.getInteger(extInfo, "orderType");
         order.setMpiId(dbRecipes.get(0).getMpiid());
         order.setOrganId(dbRecipes.get(0).getClinicOrgan());
         order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
@@ -265,6 +266,13 @@ public class PayModeTFDS implements IPurchaseService{
                     LOGGER.error("未获取到对应的代煎费，recipeId={},decoctionId={}", dbRecipe.getRecipeId(), decoctionId);
                 }
             }
+        }
+        //如果是医保支付前端目前传的orderType都是1,杭州市医保得特殊处理
+        if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(dbRecipes.get(0).getRecipeMode())
+                && RecipeBussConstant.ORDERTYPE_ZJS.equals(orderType)) {
+            orderType = RecipeBussConstant.ORDERTYPE_HZS;
+            LOGGER.info("getOrderCreateResult.orderType ={}", orderType);
+            order.setOrderType(orderType);
         }
         CommonOrder.createDefaultOrder(extInfo, result, order, payModeSupport, dbRecipes, calculateFee);
         //设置为有效订单
