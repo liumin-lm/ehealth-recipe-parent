@@ -2176,6 +2176,9 @@ public class DrugToolService implements IDrugToolService {
         if (!ObjectUtils.isEmpty(producer)){
             searchDrugs = provinceDrugListDAO.findByProvinceSaleNameLikeSearch( addrArea, start, limit, seacrhString,producer,drugType);
         }else {
+            if (!ObjectUtils.isEmpty(seacrhString)){
+                likeDrugName=seacrhString;
+            }
             searchDrugs = provinceDrugListDAO.findByProvinceSaleNameLike(likeDrugName, addrArea, start, limit, seacrhString,drugType);
         }
         if (CollectionUtils.isNotEmpty(searchDrugs)) {
