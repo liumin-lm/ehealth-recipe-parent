@@ -439,7 +439,9 @@ public class OrganDrugListService implements IOrganDrugListService {
             validate(organDrugList);
             DrugList drugList = drugListDAO.getById(organDrugList.getDrugId());
             organDrugList.setOrganDrugId(null);
-            organDrugList.setProducer(drugList.getProducer());
+            if (StringUtils.isEmpty(organDrugList.getProducer())){
+                organDrugList.setProducer(drugList.getProducer());
+            }
             if (StringUtils.isEmpty(organDrugList.getProducerCode())) {
                 organDrugList.setProducerCode("");
             }
