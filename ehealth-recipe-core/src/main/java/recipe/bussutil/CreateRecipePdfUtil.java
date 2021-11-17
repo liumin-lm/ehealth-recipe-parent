@@ -11,6 +11,7 @@ import com.ngari.upload.service.IFileUploadService;
 import ctd.mvc.upload.FileMetaRecord;
 import ctd.mvc.upload.FileService;
 import ctd.net.rpc.async.exception.AsyncTaskException;
+import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import lombok.Cleanup;
 import org.apache.commons.lang3.StringUtils;
@@ -21,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 import recipe.ApplicationUtils;
+import recipe.constant.ErrorCode;
 import recipe.third.IFileDownloadService;
 
 import javax.imageio.ImageIO;
@@ -450,9 +452,15 @@ public class CreateRecipePdfUtil {
             , Float newWidth, Float newHeight, float xPoint, float yPoint, Boolean repeatWrite) throws Exception {
         PdfReader reader = new PdfReader(input);
         PdfStamper stamper = new PdfStamper(reader, output);
-        addImgByRecipePdf(stamper, url, newWidth, newHeight, xPoint, yPoint, repeatWrite);
-        stamper.close();
-        reader.close();
+        try {
+            addImgByRecipePdf(stamper, url, newWidth, newHeight, xPoint, yPoint, repeatWrite);
+        } catch (Exception e) {
+            logger.error("CreateRecipePdfUtil addImgByRecipePdf error e", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "addImgByRecipePdf is error");
+        } finally {
+            stamper.close();
+            reader.close();
+        }
     }
 
     private static void addImgByRecipePdf(PdfStamper stamper, URL url, Float width, Float height, float x, float y, Boolean repeatWrite) throws Exception {
