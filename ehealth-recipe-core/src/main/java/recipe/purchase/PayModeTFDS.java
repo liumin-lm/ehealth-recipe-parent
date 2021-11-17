@@ -267,6 +267,11 @@ public class PayModeTFDS implements IPurchaseService{
                 }
             }
         }
+        // 目前paymode传入还是老版本 除线上支付外全都算线下支付,下个版本与前端配合修改
+        Integer payModeNew = payMode;
+        if(!payMode.equals(1)){
+            payModeNew = 2;
+        }
         //如果是医保支付前端目前传的orderType都是1,杭州市医保得特殊处理
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(dbRecipes.get(0).getRecipeMode())
                 && RecipeBussConstant.ORDERTYPE_ZJS.equals(orderType)) {
@@ -274,17 +279,13 @@ public class PayModeTFDS implements IPurchaseService{
             LOGGER.info("getOrderCreateResult.orderType ={}", orderType);
             order.setOrderType(orderType);
             if (dep.getStorePayFlag() == 1) {
-                order.setPayMode(RecipeBussConstant.PAYMODE_ONLINE);
+                payModeNew = RecipeBussConstant.PAYMODE_ONLINE;
             }
         }
         CommonOrder.createDefaultOrder(extInfo, result, order, payModeSupport, dbRecipes, calculateFee);
         //设置为有效订单
         order.setEffective(1);
-        // 目前paymode传入还是老版本 除线上支付外全都算线下支付,下个版本与前端配合修改
-        Integer payModeNew = payMode;
-        if(!payMode.equals(1)){
-            payModeNew = 2;
-        }
+
         order.setPayMode(payModeNew);
         boolean saveFlag = orderService.saveOrderToDB(order, dbRecipes, payMode, result, recipeDAO, orderDAO);
         if(!saveFlag){
