@@ -445,6 +445,7 @@ public class PayModeTFDS implements IPurchaseService{
                     depDetailBean.setDepId(dep.getId());
                     depDetailBean.setBelongDepName(dep.getName());
                     depDetailBean.setPayModeText("药店支付");
+                    depDetailBean.setOrderType(1);
                 }
                 depDetailList.addAll(ysqList);
                 LOGGER.info("获取到的药店列表:{}.", JSONUtils.toString(depDetailList));
