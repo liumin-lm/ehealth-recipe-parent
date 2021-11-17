@@ -1,5 +1,6 @@
 package recipe.drugsenterprise;
 
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.ngari.base.hisconfig.service.IHisConfigService;
@@ -158,7 +159,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                 }
             }
         }
-        LOGGER.info("pushSingleRecipeInfo recipeId:{}, result:{}", recipeId, JSONUtils.toString(result));
+        LOGGER.info("pushSingleRecipeInfo recipeId:{}, result:{}", recipeId, JSONObject.toJSONString(result));
         return result;
     }
 

@@ -40,9 +40,17 @@ public interface IOrganBusinessService {
     /**
      * 校验  推送的购药方式配置 是否满足机构配置项
      *
-     * @param recipeId
-     * @param orderId
+     * @param orderId 订单id
      * @return
      */
-    boolean giveModeValidate(Integer recipeId, Integer orderId);
+    boolean giveModeValidate(Integer orderId);
+
+    /**
+     * 校验  推送的购药方式配置 是否满足机构配置项
+     *
+     * @param organId     机构id
+     * @param giveModeKey 购药方式
+     * @return
+     */
+    boolean giveModeValidate(Integer organId, String giveModeKey);
 }

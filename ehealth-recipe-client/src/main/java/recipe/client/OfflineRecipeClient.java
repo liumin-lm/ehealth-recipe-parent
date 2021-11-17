@@ -89,6 +89,7 @@ public class OfflineRecipeClient extends BaseClient {
      */
     public RecipeInfoDTO pushRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
         com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = recipeDTO(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
+        logger.info("OfflineRecipeClient patientPushRecipe recipeDTO：{}", JSON.toJSONString(recipeDTO));
         try {
             HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse = recipeHisService.pushRecipe(recipeDTO);
             return recipeInfoDTO(hisResponse, recipePdfDTO.getRecipeTherapy());
@@ -110,6 +111,7 @@ public class OfflineRecipeClient extends BaseClient {
      */
     public RecipeInfoDTO patientPushRecipe(Integer pushType, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
         com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = recipeDTO(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
+        logger.info("OfflineRecipeClient patientPushRecipe recipeDTO：{}", JSON.toJSONString(recipeDTO));
         try {
             HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse = recipeHisService.patientPushRecipe(recipeDTO);
             return recipeInfoDTO(hisResponse, recipePdfDTO.getRecipeTherapy());
@@ -342,7 +344,6 @@ public class OfflineRecipeClient extends BaseClient {
             });
         }
         recipeDTO.setRecipeDetails(detailList);
-        logger.info("OfflineRecipeClient pushRecipe recipeDTO：{}", JSON.toJSONString(recipeDTO));
         return recipeDTO;
     }
 
