@@ -273,6 +273,9 @@ public class PayModeTFDS implements IPurchaseService{
             orderType = RecipeBussConstant.ORDERTYPE_HZS;
             LOGGER.info("getOrderCreateResult.orderType ={}", orderType);
             order.setOrderType(orderType);
+            if (dep.getStorePayFlag() == 1) {
+                order.setPayMode(RecipeBussConstant.PAYMODE_ONLINE);
+            }
         }
         CommonOrder.createDefaultOrder(extInfo, result, order, payModeSupport, dbRecipes, calculateFee);
         //设置为有效订单
