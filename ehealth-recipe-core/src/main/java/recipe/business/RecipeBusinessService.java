@@ -19,6 +19,7 @@ import ctd.util.BeanUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.aop.LogRecord;
 import recipe.client.IConfigurationClient;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
@@ -192,6 +193,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     @Override
+    @LogRecord
     public List<Recipe> findRecipesByStatusAndInvalidTime(List<Integer> status, Date invalidTime) {
         return recipeDAO.findRecipesByStatusAndInvalidTime(status, invalidTime);
     }
