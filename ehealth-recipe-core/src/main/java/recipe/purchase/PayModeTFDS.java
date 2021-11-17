@@ -441,11 +441,10 @@ public class PayModeTFDS implements IPurchaseService{
             Object result = drugEnterpriseResult.getObject();
             if (result != null && result instanceof List) {
                 List<DepDetailBean> ysqList = (List) result;
-                for (DepDetailBean depDetailBean : ysqList) {
-                    depDetailBean.setDepId(dep.getId());
-                    depDetailBean.setBelongDepName(dep.getName());
-                    depDetailBean.setPayModeText("药店支付");
-                    depDetailBean.setOrderType(1);
+                if (CollectionUtils.isNotEmpty(ysqList)) {
+                    for (int i = 0; i < ysqList.size(); i++) {
+                        ysqList.get(i).setOrderType(dep.getOrderType());
+                    }
                 }
                 depDetailList.addAll(ysqList);
                 LOGGER.info("获取到的药店列表:{}.", JSONUtils.toString(depDetailList));
