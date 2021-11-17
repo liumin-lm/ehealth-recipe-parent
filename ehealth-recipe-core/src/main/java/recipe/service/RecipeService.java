@@ -1544,6 +1544,8 @@ public class RecipeService extends RecipeBaseService {
             recipeBean.setDistributionFlag(continueFlag);
             //第一步暂存处方（处方状态未签名）
             doSignRecipeSave(recipeBean, detailBeanList);
+            //校验处方扩展信息
+            validateRecipeExtData(recipeBean);
 
             //第二步预校验
             if (continueFlag == 0) {
@@ -1614,6 +1616,23 @@ public class RecipeService extends RecipeBaseService {
         handleRecipeInvalidTime(recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), recipeBean.getSignDate());
         revisitManager.saveRevisitTracesList(recipeDAO.get(recipeBean.getRecipeId()));
         return rMap;
+    }
+
+    /**
+     * 校验处方扩展信息
+     *
+     * @param recipeBean 处方扩展信息
+     */
+    private static void validateRecipeExtData(RecipeBean recipeBean) {
+        //校验中草药当配置为医生端选择煎法时，煎法为必填项
+        if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipeBean.getRecipeType())) {
+            IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
+            String decoctionDeploy = configurationClient.getValueEnumCatch(recipeBean.getClinicOrgan(), "decoctionDeploy", null);
+            if (DecoctionDeployTypeEnum.DECOCTION_DEPLOY_DOCTOR.getType().equals(decoctionDeploy) && null == recipeBean.getRecipeExtend().getDecoctionId()) {
+                //表示配置为医生选择，则必须要传煎法
+                LOGGER.error("中草药医生选择煎法不能为空");
+            }
+        }
     }
 
     /**
