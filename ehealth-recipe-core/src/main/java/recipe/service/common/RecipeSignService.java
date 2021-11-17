@@ -31,7 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
-import recipe.aop.LogInfo;
+import recipe.aop.LogRecord;
 import recipe.bean.CheckYsInfoBean;
 import recipe.business.DrugStockBusinessService;
 import recipe.constant.*;
@@ -98,7 +98,7 @@ public class RecipeSignService {
      * @return
      */
     @RpcService
-    @LogInfo
+    @LogRecord
     public RecipeStandardResTO<Map> sign(Integer recipeId, RecipeStandardReqTO request) {
 
         RecipeStandardResTO<Map> response = RecipeStandardResTO.getRequest(Map.class);
