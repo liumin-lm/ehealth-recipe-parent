@@ -181,6 +181,7 @@ public class TherapyItemOpenAtop extends BaseAtop implements ITherapyItemOpenAto
                 item.setItemUnit(itemListInfo.getItemUnit());
                 item.setItemPrice(itemListInfo.getItemPrice());
                 item.setGmtModified(new Date());
+                item.setOrganName(itemListInfo.getOrganName());
                 updateItemList(item);
             }
         } else {
