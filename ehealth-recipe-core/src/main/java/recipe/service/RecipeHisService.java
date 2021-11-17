@@ -43,6 +43,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -82,6 +83,8 @@ import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * @author yu_yun
@@ -847,6 +850,16 @@ public class RecipeHisService extends RecipeBaseService {
         dataSyncDTO.setType("1");
         dataSyncDTO.setOrganId(organId.toString());
         dataSyncDTO.setReqMsg(JSONUtils.toString(organDrugList));
+        if (!ObjectUtils.isEmpty(organDrugList)) {
+            Map<String, Object> param = new HashedMap();
+            ctd.util.BeanUtils.map(organDrugList, param);
+            DrugListDAO dao = getDAO(DrugListDAO.class);
+            if (!ObjectUtils.isEmpty(organDrugList.getDrugId())) {
+                DrugList drugList = dao.get(organDrugList.getDrugId());
+                param.put("drugType", drugList.getDrugType());
+            }
+            dataSyncDTO.setReqMsg(JSONUtils.toString(param));
+        }
         dataSyncDTO.setStatus(status);
         if (e != null) {
             dataSyncDTO.setRespMsg(e.getMessage());
