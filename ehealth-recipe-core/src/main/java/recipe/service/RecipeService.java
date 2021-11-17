@@ -3634,7 +3634,7 @@ public class RecipeService extends RecipeBaseService {
                 try {
                     drugInfoSynMovementD(organId, null);
                 } catch (Exception e) {
-                    LOGGER.info("drugInfoSynMovementDTask定时同步 organId=[{}] 本次查询量：total=[{}] ,机构定时更新异常：exception=[{}].", organId, e);
+                    LOGGER.info("drugInfoSynMovementDTask定时同步 organId=[{}],机构定时更新异常：exception=[{}].", organId, e);
                 }
             }
         }
