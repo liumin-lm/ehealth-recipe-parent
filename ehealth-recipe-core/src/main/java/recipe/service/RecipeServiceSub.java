@@ -250,8 +250,6 @@ public class RecipeServiceSub {
     public static void setRecipeMoreInfo(Recipe recipe, List<Recipedetail> details, RecipeBean recipeBean, Integer flag) {
         //校验处方和明细保存数据
         validateRecipeAndDetailData(recipe, details);
-        //校验处方扩展信息
-        validateRecipeExtData(recipeBean);
         //设置处方默认数据
         RecipeUtil.setDefaultData(recipe);
         //设置处方明细数据
@@ -304,23 +302,6 @@ public class RecipeServiceSub {
             }
         }
         LOGGER.info("setGiveMode result recipe:{}", JSONUtils.toString(recipe));
-    }
-
-    /**
-     * 校验处方扩展信息
-     *
-     * @param recipeBean 处方扩展信息
-     */
-    private static void validateRecipeExtData(RecipeBean recipeBean) {
-        //校验中草药当配置为医生端选择煎法时，煎法为必填项
-        if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipeBean.getRecipeType())) {
-            IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
-            String decoctionDeploy = configurationClient.getValueEnumCatch(recipeBean.getClinicOrgan(), "decoctionDeploy", null);
-            if (DecoctionDeployTypeEnum.DECOCTION_DEPLOY_DOCTOR.getType().equals(decoctionDeploy) && null == recipeBean.getRecipeExtend().getDecoctionId()) {
-                //表示配置为医生选择，则必须要传煎法
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "中草药医生选择煎法不能为空");
-            }
-        }
     }
 
     private static void saveOperationRecordsForRecipe(PatientDTO patient, Recipe recipe) {
