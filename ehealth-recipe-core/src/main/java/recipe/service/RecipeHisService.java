@@ -56,6 +56,7 @@ import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
+import recipe.client.IConfigurationClient;
 import recipe.constant.CacheConstant;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
@@ -90,7 +91,8 @@ import java.util.stream.Collectors;
 public class RecipeHisService extends RecipeBaseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeHisService.class);
-
+    @Autowired
+    private IConfigurationClient configurationClient;
     private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
@@ -194,15 +196,17 @@ public class RecipeHisService extends RecipeBaseService {
         if (patientDTO != null && StringUtils.isNotEmpty(patientDTO.getCertificate())) {
             str = patientDTO.getCertificate().substring(patientDTO.getCertificate().length() - 5);
         }
-
         RecipeToHisCallbackService service = ApplicationUtils.getRecipeService(RecipeToHisCallbackService.class);
         HisSendResTO response = new HisSendResTO();
         response.setRecipeId(String.valueOf(recipe.getRecipeId()));
         List<OrderRepTO> repList = Lists.newArrayList();
         OrderRepTO orderRepTO = new OrderRepTO();
-        //门诊号处理 年月日+患者身份证后5位 例：2019060407915
-        orderRepTO.setPatientID(DateConversion.getDateFormatter(now, "yyMMdd") + str);
-        orderRepTO.setRegisterID(orderRepTO.getPatientID());
+        List<String> recipeTypes = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "patientRecipeUploadHis", null);
+        if (CollectionUtils.isEmpty(recipeTypes)) {
+            //门诊号处理 年月日+患者身份证后5位 例：2019060407915
+            orderRepTO.setPatientID(DateConversion.getDateFormatter(now, "yyMMdd") + str);
+            orderRepTO.setRegisterID(orderRepTO.getPatientID());
+        }
         //生成处方编号，不需要通过HIS去产生
         String recipeCodeStr = DigestUtil.md5For16(recipe.getClinicOrgan() + recipe.getMpiid() + Calendar.getInstance().getTimeInMillis());
         orderRepTO.setRecipeNo(recipeCodeStr);
