@@ -146,20 +146,21 @@ public class RecipeOrderPatientAtop extends BaseAtop {
     /**
      * 患者创建订单 根据配送方式上传处方给his
      *
-     * @param recipeIds
-     * @return
+     * @param recipeIds   处方id
+     * @param organId     机构id
+     * @param giveModeKey 购药方式key
      */
     @RpcService
-    public boolean submitRecipeHis(List<Integer> recipeIds, Integer orderId) {
-        validateAtop(recipeIds, orderId);
+    public void submitRecipeHis(List<Integer> recipeIds, Integer organId, String giveModeKey) {
+        validateAtop(recipeIds, organId, giveModeKey);
         //过滤按钮
-        boolean validate = iOrganBusinessService.giveModeValidate(null, orderId);
+        boolean validate = iOrganBusinessService.giveModeValidate(organId, giveModeKey);
         if (!validate) {
-            return false;
+            logger.info("RecipeOrderPatientAtop submitRecipeHis orderId = {} , giveModeKey = {}", organId, giveModeKey);
+            return;
         }
         //推送his
         recipeIds.forEach(a -> offlineToOnlineService.pushRecipe(a, CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE));
-        return true;
     }
 
     /**
@@ -172,7 +173,7 @@ public class RecipeOrderPatientAtop extends BaseAtop {
     public void cancelRecipeHis(List<Integer> recipeIds, Integer orderId) {
         validateAtop(recipeIds, orderId);
         //过滤按钮 拿订单的购药方式 过滤
-        boolean validate = iOrganBusinessService.giveModeValidate(null, orderId);
+        boolean validate = iOrganBusinessService.giveModeValidate(orderId);
         if (!validate) {
             logger.info("RecipeOrderPatientAtop cancelRecipeHis orderId = {}", orderId);
             return;
