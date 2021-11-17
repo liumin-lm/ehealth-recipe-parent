@@ -3632,9 +3632,9 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(organIds)) {
             for (Integer organId : organIds) {
                 try {
-                    drugInfoSynMovementD(organId, null);
+                    drugInfoSynMovementD(organId, Lists.newArrayList());
                 } catch (Exception e) {
-                    LOGGER.info("drugInfoSynMovementDTask定时同步 organId=[{}] 本次查询量：total=[{}] ,机构定时更新异常：exception=[{}].", organId, e);
+                    LOGGER.info("drugInfoSynMovementDTask定时同步 organId=[{}],机构定时更新异常：exception=[{}].", organId, e);
                 }
             }
         }

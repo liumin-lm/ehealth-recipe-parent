@@ -102,16 +102,21 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
 
 
     @Override
-    public boolean giveModeValidate(Integer recipeId, Integer orderId) {
-        RecipeOrder recipeOrder = orderManager.getRecipeOrder(recipeId, orderId);
+    public boolean giveModeValidate(Integer orderId) {
+        RecipeOrder recipeOrder = orderManager.getRecipeOrder(null, orderId);
         if (null == recipeOrder) {
             return false;
         }
-        List<String> recipeTypes = configurationClient.getValueListCatch(recipeOrder.getOrganId(), "patientRecipeUploadHis", null);
+        return giveModeValidate(recipeOrder.getOrganId(), recipeOrder.getGiveModeKey());
+    }
+
+    @Override
+    public boolean giveModeValidate(Integer organId, String giveModeKey) {
+        List<String> recipeTypes = configurationClient.getValueListCatch(organId, "patientRecipeUploadHis", null);
         if (CollectionUtils.isEmpty(recipeTypes)) {
             return false;
         }
-        return recipeTypes.contains(recipeOrder.getGiveModeKey());
+        return recipeTypes.contains(giveModeKey);
     }
 
 }
