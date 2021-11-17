@@ -1280,7 +1280,7 @@ public class HisRecipeService {
     }
 
     @RpcService
-    private void handleDealRecipeDetail(Integer recipeId) {
+    public void handleDealRecipeDetail(Integer recipeId) {
         Recipe recipe = recipeDAO.get(recipeId);
         if (recipe != null) {
             HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
@@ -1829,9 +1829,10 @@ public class HisRecipeService {
         //2 删除数据
         deleteSetRecipeCode(Integer.parseInt(organId), new HashSet<>(recipeCodes));
     }
+
     @RpcService
-    public void TestDeleteRecipe(String organId, List<String> recipeCodes){
-        hisRecipeManager.deleteRecipeByRecipeCodes(organId,recipeCodes);
+    public void TestDeleteRecipe(String organId, List<String> recipeCodes) {
+        hisRecipeManager.deleteRecipeByRecipeCodes(organId, recipeCodes);
     }
 
 }
