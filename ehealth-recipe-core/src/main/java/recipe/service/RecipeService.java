@@ -1630,7 +1630,7 @@ public class RecipeService extends RecipeBaseService {
             String decoctionDeploy = configurationClient.getValueEnumCatch(recipeBean.getClinicOrgan(), "decoctionDeploy", null);
             if (DecoctionDeployTypeEnum.DECOCTION_DEPLOY_DOCTOR.getType().equals(decoctionDeploy) && null == recipeBean.getRecipeExtend().getDecoctionId()) {
                 //表示配置为医生选择，则必须要传煎法
-                LOGGER.error("中草药医生选择煎法不能为空");
+                throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "中草药医生选择煎法不能为空");
             }
         }
     }
