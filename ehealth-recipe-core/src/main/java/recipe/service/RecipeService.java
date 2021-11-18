@@ -3681,7 +3681,6 @@ public class RecipeService extends RecipeBaseService {
                 throw new DAOException(DAOException.VALUE_NEEDED, "药品数据正在同步中，请耐心等待...");
             }
         }
-        UserRoleToken urt = UserRoleToken.getCurrent();
         com.ngari.patient.service.OrganConfigService organConfigService =
                 AppContextHolder.getBean("basic.organConfigService", com.ngari.patient.service.OrganConfigService.class);
         OrganConfigDTO byOrganId1 = organConfigService.getByOrganId(organId);
@@ -3734,7 +3733,7 @@ public class RecipeService extends RecipeBaseService {
 
         LOGGER.info("定时drugInfoSynMovement剂型list organId=[{}] drugFromList=[{}]", organId, JSONUtils.toString(drugForms));
         //LOGGER.info("drugInfoSynMovement map organId=[{}] map=[{}]", organId, JSONUtils.toString(drugMap));
-        return drugInfoSynMovementExtD(organId, drugForms, drugMap, urt.getUserName(), sync, add, commit, delete);
+        return drugInfoSynMovementExtD(organId, drugForms, drugMap, "定时任务", sync, add, commit, delete);
     }
 
     /**
