@@ -1214,7 +1214,11 @@ public class DrugToolService implements IDrugToolService {
 
                         organDrugList.setUsingRate(drugListMatch.getUsingRate());
                         organDrugList.setUsePathways(drugListMatch.getUsePathways());
-                        organDrugList.setProducer(drugListMatch.getProducer());
+                        if (ObjectUtils.isEmpty(drugListMatch.getProducer())){
+                            organDrugList.setProducer("");
+                        }else {
+                            organDrugList.setProducer(drugListMatch.getProducer());
+                        }
                         organDrugList.setUseDose(drugListMatch.getUseDose());
                         organDrugList.setRecommendedUseDose(drugListMatch.getDefaultUseDose());
                         organDrugList.setPack(drugListMatch.getPack());
@@ -1389,7 +1393,11 @@ public class DrugToolService implements IDrugToolService {
 
                         organDrugList.setUsingRate(drugListMatch.getUsingRate());
                         organDrugList.setUsePathways(drugListMatch.getUsePathways());
-                        organDrugList.setProducer(drugListMatch.getProducer());
+                        if (ObjectUtils.isEmpty(drugListMatch.getProducer())){
+                            organDrugList.setProducer("");
+                        }else {
+                            organDrugList.setProducer(drugListMatch.getProducer());
+                        }
                         organDrugList.setUseDose(drugListMatch.getUseDose());
                         organDrugList.setRecommendedUseDose(drugListMatch.getDefaultUseDose());
                         organDrugList.setPack(drugListMatch.getPack());
