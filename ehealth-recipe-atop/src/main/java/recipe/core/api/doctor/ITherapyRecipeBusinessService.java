@@ -96,10 +96,18 @@ public interface ITherapyRecipeBusinessService {
     /**
      * 获取就诊人诊疗处方列表
      *
-     * @param mpiId         患者信息
-     * @param start         页数
-     * @param limit         每页条数
+     * @param mpiId 患者信息
+     * @param start 页数
+     * @param limit 每页条数
      * @return
      */
     List<RecipeInfoDTO> therapyRecipeListForPatient(String mpiId, int start, int limit);
+
+    /**
+     * 根据复诊获取 诊疗处方
+     *
+     * @param clinicId
+     * @return
+     */
+    List<RecipeTherapy> findTherapyByClinicId(Integer clinicId);
 }

@@ -178,9 +178,16 @@ public class RecipeTherapyManager extends BaseManager {
      * @return 诊疗信息
      */
     public List<RecipeTherapy> findTherapyByRecipeIds(List<Integer> recipeIds) {
-        logger.info("RecipeTherapyManager findTherapyByRecipeIds recipeIds:{}.", JSON.toJSONString(recipeIds));
+        logger.info("RecipeTherapyManager findTherapyByRecipeIds recipeIds:{}", JSON.toJSONString(recipeIds));
         List<RecipeTherapy> result = recipeTherapyDAO.findTherapyByRecipeIds(recipeIds);
-        logger.info("RecipeTherapyManager findTherapyByRecipeIds result:{}.", JSON.toJSONString(result));
+        logger.info("RecipeTherapyManager findTherapyByRecipeIds result:{}", JSON.toJSONString(result));
+        return result;
+    }
+
+    public List<RecipeTherapy> findTherapyByClinicId(Integer clinicId) {
+        logger.info("RecipeTherapyManager findTherapyByClinicId recipeIds:{}", clinicId);
+        List<RecipeTherapy> result = recipeTherapyDAO.findTherapyByClinicId(clinicId);
+        logger.info("RecipeTherapyManager findTherapyByClinicId result:{}", JSON.toJSONString(result));
         return result;
     }
 }

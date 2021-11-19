@@ -1,6 +1,7 @@
 package recipe.atop.open;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.entity.RecipeTherapy;
 import com.ngari.recipe.recipe.model.RecipeTherapyDTO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
@@ -11,9 +12,13 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.enumerate.type.TherapyCancellationTypeEnum;
+import recipe.util.ObjectCopyUtils;
+import recipe.vo.doctor.RecipeTherapyVO;
+
+import java.util.List;
 
 /**
- * 提供复诊关闭调用
+ * 诊疗处方open接口类
  *
  * @author yinsheng
  * @date 2021\8\30 0030 10:09
@@ -80,4 +85,9 @@ public class TherapyRecipeOpenAtop extends BaseAtop implements ITherapyRecipeOpe
         }
     }
 
+    @Override
+    public List<RecipeTherapyVO> findTherapyByClinicId(Integer clinicId) {
+        List<RecipeTherapy> recipeTherapyList = therapyRecipeBusinessService.findTherapyByClinicId(clinicId);
+        return ObjectCopyUtils.convert(recipeTherapyList, RecipeTherapyVO.class);
+    }
 }
