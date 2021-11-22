@@ -281,9 +281,11 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                             if (null != order.getExpressFee() && order.getExpressFee().compareTo(BigDecimal.ZERO) > 0) {
                                 //说明快递费线上支付取费用大于0
                                 double recipeFee = zje - order.getExpressFee().doubleValue();
-                                attr.put("RecipeFee", new BigDecimal(recipeFee));
-                                attr.put("TotalFee", new BigDecimal(zje));
-                                attr.put("ActualPrice", new BigDecimal(zje));
+                                if (recipeFee >= 0) {
+                                    attr.put("RecipeFee", new BigDecimal(recipeFee));
+                                    attr.put("TotalFee", new BigDecimal(zje));
+                                    attr.put("ActualPrice", new BigDecimal(zje));
+                                }
                             } else {
                                 attr.put("RecipeFee", new BigDecimal(zje));
                                 attr.put("TotalFee", new BigDecimal(zje));
