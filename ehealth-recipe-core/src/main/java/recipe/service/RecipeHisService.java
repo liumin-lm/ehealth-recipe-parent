@@ -70,6 +70,7 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.RecipeToHisService;
+import recipe.manager.DepartManager;
 import recipe.presettle.factory.PreSettleFactory;
 import recipe.presettle.settle.IRecipeSettleService;
 import recipe.purchase.PayModeOnline;
@@ -113,6 +114,8 @@ public class RecipeHisService extends RecipeBaseService {
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
     private HisRequestInit hisRequestInit;
+    @Autowired
+    private DepartManager departManager;
 
     /**
      * 发送处方
@@ -274,15 +277,13 @@ public class RecipeHisService extends RecipeBaseService {
                 }
                 if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
                     //科室代码
-                    AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
-                    AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
+                    AppointDepartDTO appointDepart = departManager.getAppointDepartByOrganIdAndDepart(recipe);
                     request.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
                     //科室名称
                     request.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
                 } else {
                     //互联网环境下没有挂号科室 取department表
-                    DepartmentService departService = ApplicationUtils.getBasicService(DepartmentService.class);
-                    DepartmentDTO departmentDTO = departService.getById(recipe.getDepart());
+                    DepartmentDTO departmentDTO = departManager.getDepartmentByDepart(recipe.getDepart());
                     //科室编码
                     request.setDepartCode((null != departmentDTO) ? departmentDTO.getCode() : "");
                     //科室名称

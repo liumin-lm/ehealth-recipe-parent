@@ -48,7 +48,7 @@ public class DepartManager extends BaseManager {
     /**
      * 获取行政科室
      *
-     * @param depart
+     * @param depart 处方表存的depart字段
      * @return
      */
     public DepartmentDTO getDepartmentByDepart(Integer depart) {

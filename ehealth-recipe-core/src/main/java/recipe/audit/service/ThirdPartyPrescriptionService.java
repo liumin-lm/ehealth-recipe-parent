@@ -9,7 +9,6 @@ import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.common.RecipeCommonBaseTO;
@@ -41,6 +40,7 @@ import recipe.bussutil.UsingRateFilter;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeExtendDAO;
+import recipe.manager.DepartManager;
 import recipe.manager.EmrRecipeManager;
 import recipe.service.RecipeHisService;
 import recipe.util.ByteUtils;
@@ -65,7 +65,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
     @Autowired
     private IDoctorService doctorService;
     @Autowired
-    private DepartmentService departmentService;
+    private DepartManager departManager;
     @Autowired
     private RecipeHisService recipeHisService;
     @Autowired
@@ -94,7 +94,7 @@ public class ThirdPartyPrescriptionService implements IntellectJudicialService {
         try {
             PatientDTO patientDTO = Optional.ofNullable(patientService.getPatientByMpiId(recipeBean.getMpiid())).orElseThrow(() -> new DAOException("找不到患者信息"));
             DoctorBean doctorBean = Optional.ofNullable(doctorService.getBeanByDoctorId(recipeBean.getDoctor())).orElseThrow(() -> new DAOException("找不到医生信息"));
-            DepartmentDTO departmentDTO = Optional.ofNullable(departmentService.getById(recipeBean.getDepart())).orElseThrow(() -> new DAOException("找不到部门信息"));
+            DepartmentDTO departmentDTO = Optional.ofNullable(departManager.getDepartmentByDepart(recipeBean.getDepart())).orElseThrow(() -> new DAOException("找不到部门信息"));
             RecipeExtendBean recipeExtendBean = recipeBean.getRecipeExtend();
             if (Objects.isNull(recipeExtendBean) && Objects.nonNull(recipeBean.getRecipeId())) {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());

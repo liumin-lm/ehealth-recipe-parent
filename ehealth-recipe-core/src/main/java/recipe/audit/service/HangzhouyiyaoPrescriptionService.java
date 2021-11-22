@@ -7,7 +7,6 @@ import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.dto.ProTitleDTO;
-import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.service.ProTitleService;
 import com.ngari.recipe.common.RecipeCommonBaseTO;
@@ -32,6 +31,7 @@ import recipe.audit.bean.PAWebRecipeDanger;
 import recipe.dao.CompareDrugDAO;
 import recipe.dao.DrugListDAO;
 import recipe.dao.RecipeExtendDAO;
+import recipe.manager.DepartManager;
 import recipe.manager.EmrRecipeManager;
 import recipe.service.RecipeHisService;
 import recipe.util.ByteUtils;
@@ -73,7 +73,7 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
     private DrugListDAO drugListDAO;
 
     @Autowired
-    private DepartmentService departmentService;
+    private DepartManager departManager;
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
 
@@ -95,7 +95,7 @@ public class HangzhouyiyaoPrescriptionService implements IntellectJudicialServic
         PatientDTO patient = patientService.getPatientByMpiId(recipe.getMpiid());
         DoctorBean doctor = doctorService.getBeanByDoctorId(recipe.getDoctor());
         ProTitleDTO proTitle = proTitleService.getById(Integer.valueOf(doctor.getProTitle()));
-        DepartmentDTO depart = departmentService.getById(recipe.getDepart());
+        DepartmentDTO depart =departManager.getDepartmentByDepart(recipe.getDepart());
 
         try {
             HzyyRationalUseDrugReqTO reqTO = new HzyyRationalUseDrugReqTO();

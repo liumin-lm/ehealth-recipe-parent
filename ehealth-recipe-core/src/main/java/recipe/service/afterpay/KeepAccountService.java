@@ -5,7 +5,6 @@ import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.DrugsEnterprise;
@@ -18,6 +17,7 @@ import ctd.util.JSONUtils;
 import ctd.util.event.GlobalEventExecFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import recipe.ApplicationUtils;
 import recipe.constant.RecipeFeeEnum;
@@ -25,6 +25,7 @@ import recipe.constant.RecipeSystemConstant;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.easypay.IEasyPayService;
+import recipe.manager.DepartManager;
 import wnpay.api.model.WnAccountDetail;
 import wnpay.api.model.WnAccountSplitParam;
 
@@ -34,23 +35,28 @@ import java.util.List;
 
 /**
  * 记账业务
+ *
  * @author yinsheng
  * @date 2021\4\12 0012 18:36
  */
 @Component("keepAccountService")
-public class KeepAccountService implements IAfterPayBussService{
+public class KeepAccountService implements IAfterPayBussService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KeepAccountService.class);
 
+    @Autowired
+    private DepartManager departManager;
+
     /**
      * 上传记账信息
-     * @param order       订单信息
-     * @param recipes     处方信息
+     *
+     * @param order   订单信息
+     * @param recipes 处方信息
      */
     public void uploadKeepAccount(RecipeOrder order, List<Recipe> recipes) {
         LOGGER.info("KeepAccountService uploadKeepAccount recipes:{}", JSONUtils.toString(recipes));
         //(异步的过程，不影响主流程)
-        GlobalEventExecFactory.instance().getExecutor().submit(()-> {
+        GlobalEventExecFactory.instance().getExecutor().submit(() -> {
             try {
                 handleRecipeSplit(order, recipes);
             } catch (Exception e) {
@@ -62,8 +68,8 @@ public class KeepAccountService implements IAfterPayBussService{
     /**
      * 处方记账处理
      *
-     * @param order    订单信息
-     * @param recipes  处方信息
+     * @param order   订单信息
+     * @param recipes 处方信息
      */
     private void handleRecipeSplit(RecipeOrder order, List<Recipe> recipes) {
         WnAccountSplitParam wnSplitParam = new WnAccountSplitParam();
@@ -83,9 +89,9 @@ public class KeepAccountService implements IAfterPayBussService{
     /**
      * 处方分账基础信息
      *
-     * @param order         订单信息
-     * @param recipes       处方信息
-     * @param wnSplitParam  卫宁返回参数
+     * @param order        订单信息
+     * @param recipes      处方信息
+     * @param wnSplitParam 卫宁返回参数
      */
     private void getSplitBaseInfo(RecipeOrder order, List<Recipe> recipes, WnAccountSplitParam wnSplitParam) {
         // 商户订单号
@@ -109,8 +115,7 @@ public class KeepAccountService implements IAfterPayBussService{
             wnSplitParam.setCardNo(recipeExtend.getCardNo());
         }
         // 问诊科室
-        DepartmentService service = BasicAPI.getService(DepartmentService.class);
-        DepartmentDTO departmentDTO = service.getById(recipe.getDepart());
+        DepartmentDTO departmentDTO = departManager.getDepartmentByDepart(recipe.getDepart());
         if (departmentDTO != null) {
             wnSplitParam.setDepartId(departmentDTO.getCode());
         }
@@ -120,9 +125,9 @@ public class KeepAccountService implements IAfterPayBussService{
      * 获取处方记账账户信息
      * 账户类型 平台-1、医院-2、药店/药企-3、 医生-4、 药师-5
      *
-     * @param order         订单信息
-     * @param wnSplitParam  卫宁返回参数
-     * @param recipes       处方信息
+     * @param order        订单信息
+     * @param wnSplitParam 卫宁返回参数
+     * @param recipes      处方信息
      */
     private void getSplitAccountInfo(RecipeOrder order, WnAccountSplitParam wnSplitParam, List<Recipe> recipes) {
         Recipe recipe = recipes.get(0);
@@ -180,7 +185,7 @@ public class KeepAccountService implements IAfterPayBussService{
      * 获取处方记账业务详情
      * 业务详情 : type 1-药费；2-挂号费；3-审方费；4-配送 amount对应金额
      *
-     * @param order  订单信息
+     * @param order 订单信息
      */
     private List<JSONObject> getSplitFeeInfo(RecipeOrder order) {
         BigDecimal payAmount = new BigDecimal(order.getActualPrice().toString());
