@@ -187,6 +187,18 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "第三方药企编码")
     private String thirdEnterpriseCode;
 
+    @ItemProperty(alias = "药企联系电话")
+    private String enterprisePhone;
+
+    @Column(name = "enterprise_phone")
+    public String getEnterprisePhone() {
+        return enterprisePhone;
+    }
+
+    public void setEnterprisePhone(String enterprisePhone) {
+        this.enterprisePhone = enterprisePhone;
+    }
+
     @Column(name = "is_show_today")
     public Integer getIsShowToday() {
         return isShowToday;
