@@ -49,6 +49,7 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.enumerate.type.RecipeSendTypeEnum;
+import recipe.manager.DepartManager;
 import recipe.manager.EmrRecipeManager;
 import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
@@ -74,6 +75,9 @@ public class HisRequestInit {
 
     @Autowired
     private IDocIndexService docIndexService;
+
+    @Autowired
+    private DepartManager departManager;
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HisRequestInit.class);
 
@@ -379,8 +383,7 @@ public class HisRequestInit {
             LOGGER.error("initRecipeSendRequestTO recipeid:{}, clinicId:{} error", recipe.getRecipeId(), recipe.getClinicId(), e);
         }
         //科室代码
-        AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
-        AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartIDAndCancleFlag(recipe.getClinicOrgan(), recipe.getDepart());
+        AppointDepartDTO appointDepart = departManager.getAppointDepartByOrganIdAndDepart(recipe);
         requestTO.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
         //科室名称
         requestTO.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
