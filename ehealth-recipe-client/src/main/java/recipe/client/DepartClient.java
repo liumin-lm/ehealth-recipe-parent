@@ -5,6 +5,7 @@ import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.service.AppointDepartService;
 import com.ngari.patient.service.DepartmentService;
 import com.ngari.recipe.entity.Recipe;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -48,9 +49,9 @@ public class DepartClient extends BaseClient {
         if (recipe == null) {
             return appointDepartDTO;
         }
-        if (recipe.getDoctor() != null) {
-            appointDepartDTO.setAppointDepartCode(recipe.getDoctor() + "");
-            appointDepartDTO.setAppointDepartName(recipe.getDoctorName());
+        if (StringUtils.isNotEmpty(recipe.getAppointDepart())) {
+            appointDepartDTO.setAppointDepartCode(recipe.getAppointDepart());
+            appointDepartDTO.setAppointDepartName(recipe.getAppointDepartName());
         } else {
             appointDepartDTO = appointDepartService.findByOrganIDAndDepartIDAndCancleFlag(recipe.getClinicOrgan(), recipe.getDepart());
         }

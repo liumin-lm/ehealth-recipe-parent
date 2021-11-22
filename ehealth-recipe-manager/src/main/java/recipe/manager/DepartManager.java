@@ -3,7 +3,7 @@ package recipe.manager;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DepartClient;
@@ -35,11 +35,9 @@ public class DepartManager extends BaseManager {
         if (recipe == null) {
             return appointDepartDTO;
         }
-        //TODO 等尹盛提供字段
-        RecipeExtend recipeExtend = recipeExtendDao.getByRecipeId(recipe.getRecipeId());
-        if (recipeExtend != null && recipeExtend.getDocIndexId() != null) {
-            appointDepartDTO.setAppointDepartCode(recipeExtend.getCardNo());
-            appointDepartDTO.setAppointDepartName(recipeExtend.getCardTypeName());
+        if (StringUtils.isNotEmpty(recipe.getAppointDepart())) {
+            appointDepartDTO.setAppointDepartCode(recipe.getAppointDepart());
+            appointDepartDTO.setAppointDepartName(recipe.getAppointDepartName());
         } else {
             appointDepartDTO = departClient.getAppointDepartByOrganIdAndDepart(recipe.getClinicOrgan(), recipe.getDepart());
         }
