@@ -2,7 +2,7 @@ package recipe.api.open;
 
 import ctd.util.annotation.RpcService;
 import recipe.vo.doctor.DrugBookVo;
-import recipe.vo.drug.RecipeRulesDrugcorrelationVo;
+import recipe.vo.second.RecipeRulesDrugcorrelationVo;
 
 import java.util.List;
 

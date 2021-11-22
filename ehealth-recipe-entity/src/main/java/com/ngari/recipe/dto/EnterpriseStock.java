@@ -28,10 +28,20 @@ public class EnterpriseStock {
      *  0默认，1医院配送，2药企配送
      */
     private Integer appointEnterpriseType;
+
+    /**
+     *  0默认，1查询医院，2查询药企
+     */
+    private Integer checkStockFlag;
     /**
      * 是否有库存 true：有 ，F：无
      */
     private Boolean stock;
+
+    /**
+     * 是否校验 单条药品库存 T 校验 F无需校验
+     */
+    private Boolean checkDrugStock;
     /**
      * 提示药品名称
      */
@@ -44,4 +54,7 @@ public class EnterpriseStock {
      * 药企对象
      */
     private DrugsEnterprise drugsEnterprise;
+
+    private List<DrugInfoDTO> drugInfoList;
+
 }

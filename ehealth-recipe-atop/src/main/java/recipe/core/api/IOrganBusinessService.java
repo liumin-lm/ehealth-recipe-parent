@@ -38,6 +38,15 @@ public interface IOrganBusinessService {
     EnterpriseStock organStock(Recipe recipe, List<Recipedetail> detailList);
 
     /**
+     * 获取机构库存
+     *
+     * @param recipe     处方
+     * @param detailList 处方药品
+     * @return
+     */
+    EnterpriseStock organStock(Integer organId, List<Recipedetail> detailList);
+
+    /**
      * 校验  推送的购药方式配置 是否满足机构配置项
      *
      * @param orderId 订单id

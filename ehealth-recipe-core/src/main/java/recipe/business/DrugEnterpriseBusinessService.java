@@ -1,6 +1,7 @@
 package recipe.business;
 
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.entity.DrugsEnterprise;
@@ -10,15 +11,14 @@ import ctd.persistence.exception.DAOException;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.ErrorCode;
 import recipe.core.api.patient.IDrugEnterpriseBusinessService;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.EnterpriseManager;
-import recipe.manager.OrganDrugListManager;
 
 import java.util.List;
 import java.util.Map;
@@ -35,8 +35,6 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
     private ButtonManager buttonManager;
     @Autowired
     private EnterpriseManager enterpriseManager;
-    @Autowired
-    private OrganDrugListManager organDrugListManager;
 
     @Override
     public List<EnterpriseStock> enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails) {
@@ -70,6 +68,33 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         return enterpriseStockList;
     }
 
+
+    @Override
+    public List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<Recipedetail> recipeDetails) {
+        //获取机构配置按钮
+        List<GiveModeButtonDTO> giveModeButtonBeans = buttonManager.getOrganGiveModeMap(organId);
+        //获取需要查询库存的药企对象
+        List<EnterpriseStock> enterpriseStockList = buttonManager.enterpriseStockList(organId, giveModeButtonBeans);
+        if (CollectionUtils.isEmpty(enterpriseStockList)) {
+            return enterpriseStockList;
+        }
+        //校验药企库存
+        for (EnterpriseStock enterpriseStock : enterpriseStockList) {
+            enterpriseStock.setStock(false);
+            enterpriseStock.setCheckDrugStock(true);
+            //药企无对应的购药按钮则 无需查询库存-返回无库存
+            if (CollectionUtils.isEmpty(enterpriseStock.getGiveModeButton())) {
+                continue;
+            }
+            //根据药企配置查询 库存
+            Recipe recipe = new Recipe();
+            recipe.setClinicOrgan(organId);
+            enterpriseStock(enterpriseStock, recipe, recipeDetails);
+        }
+        return enterpriseStockList;
+    }
+
+
     /**
      * 根据药企配置查询 库存
      *
@@ -85,24 +110,19 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         }
         if (0 == drugsEnterprise.getCheckInventoryFlag()) {
             enterpriseStock.setStock(true);
+            enterpriseStock.setCheckDrugStock(false);
             return;
         }
         //医院自建药企-查询医院库存
         if (3 == drugsEnterprise.getCheckInventoryFlag()) {
-            com.ngari.platform.recipe.mode.RecipeResultBean scanResult = organDrugListManager.scanDrugStockByRecipeId(recipe, recipeDetails);
-            //无库存
-            if (RecipeResultBean.FAIL.equals(scanResult.getCode())) {
-                List<String> drugNames = ObjectUtils.isEmpty(scanResult.getObject()) ? null : (List<String>) scanResult.getObject();
-                enterpriseStock.setDrugName(drugNames);
-            } else {
-                enterpriseStock.setStock(true);
-            }
+            enterpriseStock.setCheckStockFlag(AppointEnterpriseTypeEnum.ORGAN_APPOINT.getType());
             return;
         }
         //通过前置机调用
         if (1 == drugsEnterprise.getOperationType()) {
-            Integer code = enterpriseManager.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
-            enterpriseStock.setStock(RecipeResultBean.SUCCESS.equals(code));
+            DrugStockAmountDTO code = enterpriseManager.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
+            enterpriseStock.setStock(code.isResult());
+            enterpriseStock.setDrugInfoList(code.getDrugInfoList());
             return;
         }
         //通过平台调用药企

@@ -1,4 +1,4 @@
-package recipe.vo.drug;
+package recipe.vo.second;
 
 import ctd.schema.annotation.ItemProperty;
 import lombok.Data;

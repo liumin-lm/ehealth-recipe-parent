@@ -2,7 +2,7 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.scratchable.model.ScratchableBean;
-import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.OrganDTO;
@@ -13,7 +13,6 @@ import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import recipe.client.IConfigurationClient;
 import recipe.client.OrganClient;
@@ -89,15 +88,22 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
         enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ORGAN_APPOINT.getType());
         enterpriseStock.setStock(true);
         //校验医院库存
-        com.ngari.platform.recipe.mode.RecipeResultBean scanResult = organDrugListManager.scanDrugStockByRecipeId(recipe, detailList);
+        DrugStockAmountDTO scanResult = organDrugListManager.scanDrugStockByRecipeId(recipe, detailList);
+        enterpriseStock.setDrugInfoList(scanResult.getDrugInfoList());
         //无库存
-        if (RecipeResultBean.FAIL.equals(scanResult.getCode())) {
-            List<String> drugName = ObjectUtils.isEmpty(scanResult.getObject()) ? null : (List<String>) scanResult.getObject();
-            enterpriseStock.setDrugName(drugName);
-            enterpriseStock.setStock(false);
+        if (!scanResult.isResult()) {
+            enterpriseStock.setDrugName(scanResult.getNotDrugNames());
+            enterpriseStock.setStock(scanResult.isResult());
             return enterpriseStock;
         }
         return enterpriseStock;
+    }
+
+    @Override
+    public EnterpriseStock organStock(Integer organId, List<Recipedetail> detailList) {
+        Recipe recipe = new Recipe();
+        recipe.setClinicOrgan(organId);
+        return organStock(recipe, detailList);
     }
 
 

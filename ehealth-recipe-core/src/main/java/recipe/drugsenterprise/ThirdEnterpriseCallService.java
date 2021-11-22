@@ -107,8 +107,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     private GroupRecipeManager groupRecipeManager;
     private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
 
-    static ThreadLocal<Map> drugInventoryRequestMap = new ThreadLocal<>();
-
 
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
@@ -1034,86 +1032,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                     orderAttrMap.put("recMobile", mobile);
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("address4", completeAddress));
                 }
-
-                //复杂版地址处理
-                /*if(StringUtils.isNotEmpty(address) && StringUtils.isNotEmpty(receiver) && StringUtils.isNotEmpty(mobile)){
-                    AddrAreaService addrAreaService = ApplicationUtils.getRecipeService(AddrAreaService.class);
-                    AddressDAO addressDAO = DAOFactory.getDAO(AddressDAO.class);
-
-                    //用于标记药企传入地址是否能完全匹配
-                    boolean addressIsOk = false;
-                    orderAttrMap.put("receiver",receiver);
-                    orderAttrMap.put("recMobile",mobile);
-                    //处理地址信息
-                    orderAttrMap.put("address4",address);
-                    String province = MapValueUtil.getString(paramMap,"province");
-                    String city = MapValueUtil.getString(paramMap,"city");
-                    String area = MapValueUtil.getString(paramMap,"area");
-                    List<AddrArea> areas = addrAreaService.getByName(area,null);
-                    if(CollectionUtils.isNotEmpty(areas)){
-                        if(areas.size() == 1){
-                            String areaCode = areas.get(0).getId();
-                            if(StringUtils.isNotEmpty(areaCode)) {
-                                orderAttrMap.put("address3", areaCode);
-                                orderAttrMap.put("address2", areaCode.substring(0,4));
-                                orderAttrMap.put("address1", areaCode.substring(0,2));
-                                addressIsOk = true;
-                            }
-                        }else{
-                            //获取到多个地址对象则需要从省份开始查询
-                            List<AddrArea> pareas = addrAreaService.getByName(province,null);
-                            if(CollectionUtils.isNotEmpty(pareas) && pareas.size() == 1){
-                                orderAttrMap.put("address1", pareas.get(0).getId());
-                                //省份一般就一个值
-                                //获取城市
-                                List<AddrArea> careas = addrAreaService.getByName(city,pareas.get(0).getId());
-                                if(CollectionUtils.isNotEmpty(careas)){
-                                    orderAttrMap.put("address2", careas.get(0).getId());
-                                    //某个省里面一般只有一个城市
-                                    for(AddrArea a : areas){
-                                        if(a.getId().startsWith(careas.get(0).getId())){
-                                            orderAttrMap.put("address3", a.getId());
-                                            addressIsOk = true;
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        if(addressIsOk) {
-                            //添加地址到用户地址进行保存
-                            Address newAddress = new Address();
-                            newAddress.setMpiId(recipe.getMpiid());
-                            newAddress.setAddress1(MapValueUtil.getString(orderAttrMap, "address1"));
-                            newAddress.setAddress2(MapValueUtil.getString(orderAttrMap, "address2"));
-                            newAddress.setAddress3(MapValueUtil.getString(orderAttrMap, "address3"));
-                            newAddress.setAddress4(MapValueUtil.getString(orderAttrMap, "address4"));
-                            newAddress.setReceiver(receiver);
-                            newAddress.setRecMobile(mobile);
-                            try {
-                                Integer addressId = addressDAO.addAddress(newAddress);
-                                if(null != addressId){
-                                    orderAttrMap.put("addressID", addressId);
-                                }
-                            } catch (Exception e) {
-                                logger.error("userConfirm addAddress error[{}].", e.getMessage());
-                            }
-                        }
-                    }
-
-                    if(!addressIsOk){
-                        //不对订单表的地址进行更新
-                        orderAttrMap.remove("address1");
-                        orderAttrMap.remove("address2");
-                        orderAttrMap.remove("address3");
-                        orderAttrMap.remove("address4");
-
-                        //将没能匹配的地址存入处方address4字段
-                        recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("address4",province+city+area+address));
-                    }
-                }*/
-
                 orderAttrMap.put("drugStoreName", MapValueUtil.getString(paramMap, "drugstore"));
                 orderAttrMap.put("drugStoreAddr", MapValueUtil.getString(paramMap, "drugstoreAddr"));
                 orderService.updateOrderInfo(order.getOrderCode(), orderAttrMap, null);
@@ -1674,47 +1592,10 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                     LOGGER.error("scanStockEnterpriseForHis 查询机构药品错误 drugCode:{}.", drugCode, e);
                     return 0;
                 }
-                //TODO 1约定的enterpriseCode=》appKey
-//                if("12345".equals(enterpriseCode)){//除马路以外的其他药企库存查询
-//                    map.put("organDurgList_drugCode",organDrugList.getOrganDrugCode());
-//                    drugInventoryRequestMap.set(map);
-//                    return execScanStockEnterpriseForOther(drugsEnterprise.getId(),organDrugList.getDrugId(),organId);
-//                }else{//马路
                 return execScanStockEnterpriseForMaLu(organDrugList, drugsEnterprise, total);
-//                }
-
             }
         }
         return 0;
-    }
-
-    /**
-     * 提供给his查询库存
-     *
-     * @return
-     */
-    private Integer execScanStockEnterpriseForOther(Integer depId, Integer drugId, Integer organId) {
-        RemoteDrugEnterpriseService service = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-        String getDrugInventoryResponse = "";
-        int result = 0;//默认无库存
-        //TODO 2 实现类返回多样化 处理问题
-        try {
-            getDrugInventoryResponse = service.getDrugInventory(depId, drugId, organId);
-            if ("有库存".equals(getDrugInventoryResponse)) {
-                result = 1;
-            } else if ("无库存".equals(getDrugInventoryResponse) || "暂无库存".equals(getDrugInventoryResponse)) {
-                result = 0;
-            } else if ("暂不支持库存查询".equals(getDrugInventoryResponse)) {
-                result = -1;
-            } else if (Integer.parseInt(getDrugInventoryResponse) > 0) {//返回库存数兼容
-                result = 1;
-            }
-        } catch (Exception e) {
-            LOGGER.error("execScanStockEnterpriseForOther error: {}", e);
-        } finally {
-            drugInventoryRequestMap.remove();
-        }
-        return result;
     }
 
     /**

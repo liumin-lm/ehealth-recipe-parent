@@ -16,6 +16,7 @@ import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IOrganBusinessService;
 import recipe.core.api.patient.IDrugEnterpriseBusinessService;
+import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.ValidateDetailVO;
 
@@ -54,14 +55,23 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
         Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
         List<Recipedetail> detailList = ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), Recipedetail.class);
         try {
-            //药企库存
-            List<EnterpriseStock> result = iDrugEnterpriseBusinessService.enterpriseStockCheck(recipe, detailList);
             //医院库存
             EnterpriseStock organStock = organBusinessService.organStock(recipe, detailList);
+            //药企库存
+            List<EnterpriseStock> result = iDrugEnterpriseBusinessService.enterpriseStockCheck(recipe, detailList);
+            result.forEach(a -> {
+                if (AppointEnterpriseTypeEnum.ORGAN_APPOINT.getType().equals(a.getCheckStockFlag()) && null != organStock) {
+                    a.setDrugName(organStock.getDrugName());
+                    a.setStock(organStock.getStock());
+                }
+            });
             if (null != organStock) {
                 result.add(organStock);
             }
-            result.forEach(a -> a.setDrugsEnterprise(null));
+            result.forEach(a -> {
+                a.setDrugsEnterprise(null);
+                a.setDrugInfoList(null);
+            });
             logger.info("DrugEnterprisePatientAtop enterpriseStockList result:{}", JSONArray.toJSONString(result));
             return result;
         } catch (DAOException e1) {

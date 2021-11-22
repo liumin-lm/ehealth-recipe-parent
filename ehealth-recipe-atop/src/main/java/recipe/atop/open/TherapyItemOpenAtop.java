@@ -17,7 +17,7 @@ import recipe.constant.PageInfoConstant;
 import recipe.core.api.doctor.ITherapyItemBusinessService;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
-import recipe.vo.open.ItemListBean;
+import recipe.vo.doctor.ItemListBean;
 
 import java.util.Date;
 import java.util.List;

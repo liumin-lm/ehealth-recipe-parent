@@ -1,7 +1,7 @@
 package recipe.api.open;
 
 import ctd.util.annotation.RpcService;
-import recipe.vo.open.ItemListBean;
+import recipe.vo.doctor.ItemListBean;
 
 /**
  * @Author liuzj

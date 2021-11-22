@@ -20,4 +20,13 @@ public interface IDrugEnterpriseBusinessService {
      * @return 返回药企库存信息
      */
     List<EnterpriseStock> enterpriseStockCheck(Recipe recipe, List<Recipedetail> detailList);
+
+    /**
+     * 校验药企库存
+     *
+     * @param organId       处方信息
+     * @param recipeDetails 处方明细信息
+     * @return 返回药企库存信息
+     */
+    List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<Recipedetail> recipeDetails);
 }

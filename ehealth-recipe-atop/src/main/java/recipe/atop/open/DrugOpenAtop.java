@@ -11,7 +11,7 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.IDrugBusinessService;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.DrugBookVo;
-import recipe.vo.drug.RecipeRulesDrugcorrelationVo;
+import recipe.vo.second.RecipeRulesDrugcorrelationVo;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;

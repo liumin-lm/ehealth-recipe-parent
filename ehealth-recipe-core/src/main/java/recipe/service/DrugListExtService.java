@@ -53,6 +53,7 @@ import recipe.serviceprovider.BaseService;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
+import recipe.vo.doctor.DrugQueryVO;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
@@ -1077,21 +1078,23 @@ public class DrugListExtService extends BaseService<DrugListBean> {
 
     /**
      * 医生端 搜索药品页和常用药品页----实时显示药品库存
+     *
      * @param req
      * @return
      */
     @RpcService
-    public List<DrugListBean> queryDrugInventoriesByRealTime(QueryDrugInventoriesDTO req){
+    @Deprecated
+    public List<DrugListBean> queryDrugInventoriesByRealTime(DrugQueryVO req) {
         LOGGER.info("queryDrugInventoriesByRealTime req:{}", JSONUtils.toString(req));
-        Assert.notNull(req,"req is required");
-        Assert.notNull(req.getOrganId(),"organId is required");
+        Assert.notNull(req, "req is required");
+        Assert.notNull(req.getOrganId(), "organId is required");
         Assert.notEmpty(req.getDrugIds(), "drugIds is required");
         List<DrugListBean> drugListBeans = new ArrayList<>(req.getDrugIds().size());
-        req.getDrugIds().forEach(a-> drugListBeans.add(new DrugListBean(a)));
+        req.getDrugIds().forEach(a -> drugListBeans.add(new DrugListBean(a)));
         //查询医院库存
-        setHosInventories(req.getOrganId(),req.getDrugIds(),drugListBeans,req.getPharmacyId());
+        setHosInventories(req.getOrganId(), req.getDrugIds(), drugListBeans, req.getPharmacyId());
         //查询药企库存----若超过5s还未返回库存, 则不展示对应药企库存字段;
-        setDrugsEnterpriseInventoriesByFiveSeconds(req.getOrganId(),drugListBeans);
+        setDrugsEnterpriseInventoriesByFiveSeconds(req.getOrganId(), drugListBeans);
         //按照机构配置的购药方式进行数据过滤
         return filterInventoriesData(req.getOrganId(), drugListBeans);
     }

@@ -403,12 +403,6 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                 }
                 return inventor;
             } else {
-                if (null != responseTO) {
-                    String inventor = (String) responseTO.getExtend().get("inventor");
-                    if (StringUtils.isNotEmpty(inventor)) {
-                        return inventor;
-                    }
-                }
                 return "无库存";
             }
         } else {
