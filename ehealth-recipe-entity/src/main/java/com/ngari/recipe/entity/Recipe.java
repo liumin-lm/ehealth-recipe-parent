@@ -75,6 +75,12 @@ public class Recipe implements Serializable {
     @Dictionary(id = "eh.base.dictionary.Depart")
     private Integer depart;
 
+    @ItemProperty(alias = "挂号科室")
+    private String appointDepart;
+
+    @ItemProperty(alias = "挂号科室名称")
+    private String appointDepartName;
+
     @ItemProperty(alias = "开方医生（医生Id）")
     @Dictionary(id = "eh.base.dictionary.Doctor")
     private Integer doctor;
@@ -478,6 +484,24 @@ public class Recipe implements Serializable {
 
     public void setDepart(Integer depart) {
         this.depart = depart;
+    }
+
+    @Column(name = "appoint_depart")
+    public String getAppointDepart() {
+        return appointDepart;
+    }
+
+    public void setAppointDepart(String appointDepart) {
+        this.appointDepart = appointDepart;
+    }
+
+    @Column(name = "appoint_depart_name")
+    public String getAppointDepartName() {
+        return appointDepartName;
+    }
+
+    public void setAppointDepartName(String appointDepartName) {
+        this.appointDepartName = appointDepartName;
     }
 
     @Column(name = "Doctor")
