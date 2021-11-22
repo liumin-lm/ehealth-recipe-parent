@@ -1,5 +1,6 @@
 package com.ngari.recipe.pay.service;
 
+import com.ngari.recipe.pay.model.BusBillDateAccountDTO;
 import com.ngari.recipe.pay.model.WnExtBusCdrRecipeDTO;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.util.annotation.RpcService;
@@ -8,6 +9,7 @@ import eh.entity.bus.pay.ConfirmOrder;
 import eh.entity.bus.pay.SimpleBusObject;
 import eh.entity.mpi.Patient;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -69,4 +71,16 @@ public interface IRecipeBusPayService {
      */
     @RpcService
     WnExtBusCdrRecipeDTO newWnExtBusCdrRecipe(RecipeOrderBean recipeOrder, Patient patient);
+
+    /**
+     * 平台业务账单获取接口
+     *
+     * @param billDate   账单日期
+     * @param organId    业务机构ID
+     * @param payOrganId 支付机构ID
+     * @return
+     */
+    @RpcService
+    List<BusBillDateAccountDTO> busBillDateAccount(String billDate, Integer organId, String payOrganId);
+
 }

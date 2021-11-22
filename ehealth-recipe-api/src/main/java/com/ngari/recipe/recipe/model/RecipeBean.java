@@ -70,6 +70,12 @@ public class RecipeBean implements Serializable {
     @Dictionary(id = "eh.base.dictionary.Depart")
     private Integer depart;
 
+    @ItemProperty(alias = "挂号科室")
+    private String appointDepart;
+
+    @ItemProperty(alias = "挂号科室名称")
+    private String appointDepartName;
+
     @ItemProperty(alias = "开方医生")
     @Dictionary(id = "eh.base.dictionary.Doctor")
     private Integer doctor;
@@ -382,9 +388,6 @@ public class RecipeBean implements Serializable {
 
     @ItemProperty(alias = "处方审核状态")
     private Integer checkFlag;
-
-    @ItemProperty(alias = "挂号科室名称")
-    private String appointDepartName;
 
     @ItemProperty(alias = "机构一级科室编码")
     @Dictionary(id = "eh.base.dictionary.OrganProfession")
@@ -1439,6 +1442,14 @@ public class RecipeBean implements Serializable {
             this.setTakeMedicine(0);
         }
 
+    }
+
+    public String getAppointDepart() {
+        return appointDepart;
+    }
+
+    public void setAppointDepart(String appointDepart) {
+        this.appointDepart = appointDepart;
     }
 
     public Integer getRecipeFlag() {

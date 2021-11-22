@@ -40,6 +40,7 @@ import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.client.DepartClient;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
@@ -96,6 +97,8 @@ public class HisRecipeService {
     private GroupRecipeManager groupRecipeManager;
     @Autowired
     HisRecipeManager hisRecipeManager;
+    @Autowired
+    DepartClient departClient;
 
     private static final ThreadLocal<String> recipeCodeThreadLocal = new ThreadLocal<>();
 
@@ -1187,8 +1190,7 @@ public class HisRecipeService {
         recipe.setRecipeCode(hisRecipe.getRecipeCode());
         recipe.setRecipeType(hisRecipe.getRecipeType());
         //BUG#50592 【实施】【上海市奉贤区中心医院】【A】查询线下处方缴费提示系统繁忙
-        AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
-        AppointDepartDTO appointDepartDTO = appointDepartService.getByOrganIDAndAppointDepartCode(hisRecipe.getClinicOrgan(), hisRecipe.getDepartCode());
+        AppointDepartDTO appointDepartDTO = departClient.getAppointDepartByOrganIdAndAppointDepartCode(hisRecipe.getClinicOrgan(), hisRecipe.getDepartCode());
         if (appointDepartDTO != null) {
             recipe.setDepart(appointDepartDTO.getDepartId());
         } else {
