@@ -23,6 +23,7 @@ import com.ngari.recipe.drugsenterprise.service.IDrugsEnterpriseService;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrderPayFlow;
+import com.ngari.recipe.pay.model.BusBillDateAccountDTO;
 import com.ngari.recipe.pay.model.WnExtBusCdrRecipeDTO;
 import com.ngari.recipe.pay.service.IRecipeBusPayService;
 import com.ngari.recipe.recipe.constant.RecipePayTipEnum;
@@ -57,6 +58,7 @@ import org.springframework.util.ObjectUtils;
 import recipe.client.IConfigurationClient;
 import recipe.client.RevisitClient;
 import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.DepartManager;
@@ -100,6 +102,9 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
     private DepartManager departManager;
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
+
 
     private IConfigurationCenterUtilsService utils = BaseAPI.getService(IConfigurationCenterUtilsService.class);
 
@@ -791,6 +796,13 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         }
         log.info("newWnExtBusCdrRecipe wnExtBusCdrRecipe={}", JSONUtils.toString(wnExtBusCdrRecipe));
         return wnExtBusCdrRecipe;
+    }
+
+    @Override
+    public List<BusBillDateAccountDTO> busBillDateAccount(String billDate, Integer organId, String payOrganId) {
+        //recipeOrderDAO.find
+
+        return null;
     }
 
     private void zhengzhouMedicalSet(RecipeOrderBean recipeOrder, Patient patient, WnExtBusCdrRecipeDTO wnExtBusCdrRecipe) {
