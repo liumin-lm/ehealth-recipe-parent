@@ -272,34 +272,39 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                 if (ysbody.get("yfje") != null) {
                     attr.put("cashAmount", ConversionUtils.convert(ysbody.get("yfje"), Double.class));
                 }
-                //计算预结算返回的总金额与平台的总金额是否一致，如果不一致，则更新
-                if (null != zje && null != order.getTotalFee() && order.getTotalFee().doubleValue() != zje) {
-                    if (null == order.getExpressFeePayWay() || ExpressFeePayWayEnum.ONLINE.getType().equals(order.getExpressFeePayWay())) {
-                        //表示快递费是线上支付
-                        if (null != order.getExpressFee() && order.getExpressFee().compareTo(BigDecimal.ZERO) > 0) {
-                            //说明快递费线上支付取费用大于0
-                            double recipeFee = zje - order.getExpressFee().doubleValue();
-                            attr.put("RecipeFee", new BigDecimal(recipeFee));
-                            attr.put("TotalFee", new BigDecimal(zje));
-                            attr.put("ActualPrice", new BigDecimal(zje));
+                try {
+                    //计算预结算返回的总金额与平台的总金额是否一致，如果不一致，则更新
+                    if (null != zje && null != order.getTotalFee() && order.getTotalFee().doubleValue() != zje) {
+                        logger.info("卫宁返回预结算金额与订单平台金额不一致,zje:{},totalFee:{},expressFeePayWay:{},expressFee：{}", zje, order.getTotalFee(), order.getExpressFeePayWay(), order.getExpressFee());
+                        if (null == order.getExpressFeePayWay() || ExpressFeePayWayEnum.ONLINE.getType().equals(order.getExpressFeePayWay())) {
+                            //表示快递费是线上支付
+                            if (null != order.getExpressFee() && order.getExpressFee().compareTo(BigDecimal.ZERO) > 0) {
+                                //说明快递费线上支付取费用大于0
+                                double recipeFee = zje - order.getExpressFee().doubleValue();
+                                attr.put("RecipeFee", new BigDecimal(recipeFee));
+                                attr.put("TotalFee", new BigDecimal(zje));
+                                attr.put("ActualPrice", new BigDecimal(zje));
+                            } else {
+                                attr.put("RecipeFee", new BigDecimal(zje));
+                                attr.put("TotalFee", new BigDecimal(zje));
+                                attr.put("ActualPrice", new BigDecimal(zje));
+                            }
                         } else {
-                            attr.put("RecipeFee", new BigDecimal(zje));
-                            attr.put("TotalFee", new BigDecimal(zje));
-                            attr.put("ActualPrice", new BigDecimal(zje));
-                        }
-                    } else {
-                        //表示快递费线下支付
-                        if (null != order.getExpressFee() && order.getExpressFee().compareTo(BigDecimal.ZERO) > 0) {
-                            double totalFee = zje + order.getExpressFee().doubleValue();
-                            attr.put("TotalFee", new BigDecimal(totalFee));
-                            attr.put("RecipeFee", new BigDecimal(zje));
-                            attr.put("ActualPrice", new BigDecimal(zje));
-                        } else {
-                            attr.put("RecipeFee", new BigDecimal(zje));
-                            attr.put("TotalFee", new BigDecimal(zje));
-                            attr.put("ActualPrice", new BigDecimal(zje));
+                            //表示快递费线下支付
+                            if (null != order.getExpressFee() && order.getExpressFee().compareTo(BigDecimal.ZERO) > 0) {
+                                double totalFee = zje + order.getExpressFee().doubleValue();
+                                attr.put("TotalFee", new BigDecimal(totalFee));
+                                attr.put("RecipeFee", new BigDecimal(zje));
+                                attr.put("ActualPrice", new BigDecimal(zje));
+                            } else {
+                                attr.put("RecipeFee", new BigDecimal(zje));
+                                attr.put("TotalFee", new BigDecimal(zje));
+                                attr.put("ActualPrice", new BigDecimal(zje));
+                            }
                         }
                     }
+                } catch (Exception e) {
+                    logger.error("设置订单金额失败", e);
                 }
             }
 
