@@ -4,6 +4,7 @@ import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.service.AppointDepartService;
 import com.ngari.patient.service.DepartmentService;
+import com.ngari.recipe.entity.Recipe;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +25,7 @@ public class DepartClient extends BaseClient {
     @Autowired
     private DepartmentService departmentService;
 
+
     /**
      * 通过机构和行政科室获取挂号科室
      *
@@ -36,7 +38,38 @@ public class DepartClient extends BaseClient {
     }
 
     /**
-     * 获取行政科室
+     * 通过机构和行政科室获取挂号科室
+     *
+     * @param recipe
+     * @return
+     */
+    public AppointDepartDTO getAppointDepartByOrganIdAndDepart(Recipe recipe) {
+        AppointDepartDTO appointDepartDTO = new AppointDepartDTO();
+        if (recipe == null) {
+            return appointDepartDTO;
+        }
+        if (recipe.getDoctor() != null) {
+            appointDepartDTO.setAppointDepartCode(recipe.getDoctor() + "");
+            appointDepartDTO.setAppointDepartName(recipe.getDoctorName());
+        } else {
+            appointDepartDTO = appointDepartService.findByOrganIDAndDepartIDAndCancleFlag(recipe.getClinicOrgan(), recipe.getDepart());
+        }
+        return appointDepartDTO;
+    }
+
+    /**
+     * 通过挂号科室编码、机构获取挂号科室
+     *
+     * @param organId
+     * @param appointDepartCode
+     * @return
+     */
+    public AppointDepartDTO getAppointDepartByOrganIdAndAppointDepartCode(Integer organId, String appointDepartCode) {
+        return appointDepartService.getByOrganIDAndAppointDepartCode(organId, appointDepartCode);
+    }
+
+    /**
+     * 通过行政科室id获取行政科室
      *
      * @param depart
      * @return

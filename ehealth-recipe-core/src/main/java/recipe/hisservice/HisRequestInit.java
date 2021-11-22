@@ -13,7 +13,10 @@ import com.ngari.his.recipe.mode.*;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.service.*;
+import com.ngari.patient.service.DepartmentService;
+import com.ngari.patient.service.DoctorService;
+import com.ngari.patient.service.EmploymentService;
+import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.platform.recipe.mode.RecipeOrderBean;
@@ -110,8 +113,7 @@ public class HisRequestInit {
             //出生日期
             requestTO.setBirthDay(DateConversion.formatDate(patient.getBirthday()));
             //科室代码
-            AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
-            AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
+            AppointDepartDTO appointDepart = departManager.getAppointDepartByOrganIdAndDepart(recipe);
             requestTO.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
             //科室名称
             requestTO.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
@@ -916,8 +918,7 @@ public class HisRequestInit {
         //添加科室代码、医生姓名、科室名称
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
             //科室代码
-            AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
-            AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
+            AppointDepartDTO appointDepart = departManager.getAppointDepartByOrganIdAndDepart(recipe);
             request.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
             //科室名称
             request.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");

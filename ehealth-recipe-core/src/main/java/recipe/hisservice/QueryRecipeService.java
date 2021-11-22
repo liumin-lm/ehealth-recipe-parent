@@ -52,6 +52,7 @@ import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DocIndexClient;
 import recipe.dao.*;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
+import recipe.manager.DepartManager;
 import recipe.service.OrganDrugListService;
 import recipe.service.RecipeServiceSub;
 import recipe.thread.RecipeBusiThreadPool;
@@ -86,6 +87,9 @@ public class QueryRecipeService implements IQueryRecipeService {
 
     @Autowired
     private DocIndexClient docIndexClient;
+
+    @Autowired
+    private DepartManager departManager;
 
     /**
      * 用于sendRecipeToHIS 推送处方mq后 查询接口
@@ -185,7 +189,7 @@ public class QueryRecipeService implements IQueryRecipeService {
         }
         HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
         List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
-        LOGGER.info("queryRegulationRecipeData start:recipeList={},request={}",JSONUtils.toString(recipeList),JSONUtils.toString(request));
+        LOGGER.info("queryRegulationRecipeData start:recipeList={},request={}", JSONUtils.toString(recipeList), JSONUtils.toString(request));
         service.splicingBackRecipeData(recipeList, request);
         List<RegulationRecipeIndicatorsDTO> result = ObjectCopyUtils.convert(request, RegulationRecipeIndicatorsDTO.class);
         LOGGER.info("queryRegulationRecipeData data={}", JSONUtils.toString(result));
@@ -293,8 +297,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                 recipeDTO.setDeptID(departmentDTO.getCode());
                 //科室名
                 recipeDTO.setDeptName(departmentDTO.getName());
-                AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
-                AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
+                AppointDepartDTO appointDepart = departManager.getAppointDepartByOrganIdAndDepart(recipe);
                 recipeDTO.setDeptCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
             }
             //处方类型
@@ -1098,8 +1101,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                 recipeDTO.setDeptID(departmentDTO.getCode());
                 //科室名
                 recipeDTO.setDeptName(departmentDTO.getName());
-                AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
-                AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
+                AppointDepartDTO appointDepart = departManager.getAppointDepartByOrganIdAndDepart(recipe);
                 //开单挂号科室代号
                 recipeDTO.setDeptCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
             }

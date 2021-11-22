@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.client.DepartClient;
 import recipe.client.RevisitClient;
 import recipe.dao.*;
 import recipe.dao.bean.HisRecipeListBean;
@@ -120,7 +121,7 @@ public class BaseOfflineToOnlineService {
     private OfflineToOnlineFactory offlineToOnlineFactory;
 
     @Autowired
-    private AppointDepartService appointDepartService;
+    private DepartClient departClient;
 
     @Autowired
     private EmploymentService employmentService;
@@ -574,7 +575,7 @@ public class BaseOfflineToOnlineService {
         recipe.setOrganName(hisRecipe.getOrganName());
         recipe.setRecipeCode(hisRecipe.getRecipeCode());
         recipe.setRecipeType(hisRecipe.getRecipeType());
-        AppointDepartDTO appointDepartDTO = appointDepartService.getByOrganIDAndAppointDepartCode(hisRecipe.getClinicOrgan(), hisRecipe.getDepartCode());
+        AppointDepartDTO appointDepartDTO = departClient.getAppointDepartByOrganIdAndAppointDepartCode(hisRecipe.getClinicOrgan(), hisRecipe.getDepartCode());
         if (appointDepartDTO != null) {
             recipe.setDepart(appointDepartDTO.getDepartId());
         } else {

@@ -21,6 +21,7 @@ import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.service.IDrugsEnterpriseService;
 import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrderPayFlow;
 import com.ngari.recipe.pay.model.WnExtBusCdrRecipeDTO;
 import com.ngari.recipe.pay.service.IRecipeBusPayService;
@@ -57,13 +58,13 @@ import recipe.client.IConfigurationClient;
 import recipe.client.RevisitClient;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.enumerate.type.MedicalTypeEnum;
-import recipe.enumerate.type.RecipePayTypeEnum;
 import recipe.manager.ButtonManager;
+import recipe.manager.DepartManager;
 import recipe.manager.RecipeOrderPayFlowManager;
-import recipe.purchase.PayModeTFDS;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.third.HztServiceInterface;
+import recipe.util.ObjectCopyUtils;
 
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
@@ -97,7 +98,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
-
+    @Autowired
+    private DepartManager departManager;
 
     private IConfigurationCenterUtilsService utils = BaseAPI.getService(IConfigurationCenterUtilsService.class);
 
@@ -324,13 +326,13 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
 
             // 到院取药是否支持线上支付
             Boolean supportToHosPayFlag = configurationClient.getValueBooleanCatch(nowRecipeBean.getClinicOrgan(), "supportToHosPayFlag", false);
-            map.put("supportToHosPayFlag",supportToHosPayFlag.toString());
-            if(supportToHosPayFlag){
-                map.put("supportToHosPayFlag","1");
-            }else {
-                map.put("supportToHosPayFlag","0");
+            map.put("supportToHosPayFlag", supportToHosPayFlag.toString());
+            if (supportToHosPayFlag) {
+                map.put("supportToHosPayFlag", "1");
+            } else {
+                map.put("supportToHosPayFlag", "0");
             }
-            if (supportToHosPayFlag){
+            if (supportToHosPayFlag) {
                 map.put("payTip", "");
             }
         }
@@ -525,6 +527,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
 
     /**
      * 是否需要计算运费
+     *
      * @param expressFeePayWay
      * @return
      */
@@ -624,8 +627,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         wnExtBusCdrRecipe.setZje(String.valueOf(recipeOrder.getActualPrice()));
         wnExtBusCdrRecipe.setYbdm("");
         // 科室代码
-        AppointDepartService appointDepartService = BasicAPI.getService(AppointDepartService.class);
-        AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipeBean.getClinicOrgan(), recipeBean.getDepart());
+        Recipe convertRecipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
+        AppointDepartDTO appointDepart = departManager.getAppointDepartByOrganIdAndDepart(convertRecipe);
         log.info("查询挂号科室代码入参={},{},结果={}", recipeBean.getClinicOrgan(), recipeBean.getDepart(), JSONObject.toJSONString(appointDepart));
         wnExtBusCdrRecipe.setKsdm(appointDepart != null ? appointDepart.getAppointDepartCode() : "");
         String registerId;

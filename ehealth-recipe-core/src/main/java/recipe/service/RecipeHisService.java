@@ -357,8 +357,7 @@ public class RecipeHisService extends RecipeBaseService {
                 }
                 if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
                     //科室代码
-                    AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
-                    AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
+                    AppointDepartDTO appointDepart = departManager.getAppointDepartByOrganIdAndDepart(recipe);
                     request.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
                     //科室名称
                     request.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");

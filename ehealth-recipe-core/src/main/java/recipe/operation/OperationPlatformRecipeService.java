@@ -8,8 +8,6 @@ import com.ngari.base.patient.model.PatientBean;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.AppointDepartService;
-import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -54,6 +52,7 @@ import recipe.client.DoctorClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.manager.ButtonManager;
+import recipe.manager.DepartManager;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
 import recipe.util.ByteUtils;
@@ -78,7 +77,6 @@ public class OperationPlatformRecipeService {
     private static final Integer GRABORDER_STATUS_YES = 1;
     private PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
     private DoctorService doctorService = ApplicationUtils.getBasicService(DoctorService.class);
-    private DepartmentService departmentService = ApplicationUtils.getBasicService(DepartmentService.class);
     @Autowired
     private IRecipeCheckService recipeCheckService;
     @Autowired
@@ -90,6 +88,8 @@ public class OperationPlatformRecipeService {
     private ButtonManager buttonManager;
     @Autowired
     private IAuditMedicinesService auditMedicinesService;
+    @Autowired
+    private DepartManager departManager;
 
     /**
      * 审核平台 获取处方单详情
@@ -124,7 +124,7 @@ public class OperationPlatformRecipeService {
     @RpcService
     public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId, Integer checkerId) {
 
-        LOGGER.info("findRecipeAndDetailsAndCheckById recipeId={}.checkerId={}", recipeId,checkerId);
+        LOGGER.info("findRecipeAndDetailsAndCheckById recipeId={}.checkerId={}", recipeId, checkerId);
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -204,14 +204,13 @@ public class OperationPlatformRecipeService {
             e.printStackTrace();
         }
         //挂号科室代码
-        AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
-        AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartIDAndCancleFlag(recipe.getClinicOrgan(), recipe.getDepart());
+        AppointDepartDTO appointDepart = departManager.getAppointDepartByOrganIdAndDepart(recipe);
         //挂号科室名称
-        LOGGER.info("findRecipeAndDetailsAndCheckById reicpeid={},appointDepart={}",recipeId,JSONUtils.toString(appointDepart));
+        LOGGER.info("findRecipeAndDetailsAndCheckById reicpeid={},appointDepart={}", recipeId, JSONUtils.toString(appointDepart));
         r.setAppointDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
         //机构所属一级科室
         r.setOrganProfession((null != appointDepart) ? appointDepart.getOrganProfession() : null);
-        LOGGER.info("findRecipeAndDetailsAndCheckById reicpeid={},r={}",recipeId,JSONUtils.toString(r));
+        LOGGER.info("findRecipeAndDetailsAndCheckById reicpeid={},r={}", recipeId, JSONUtils.toString(r));
         //取医生的手机号
         DoctorDTO doctor = new DoctorDTO();
         try {
@@ -270,7 +269,7 @@ public class OperationPlatformRecipeService {
         //兼容老版本（此版本暂时不做删除）
         Boolean childRecipeFlag = false;
         if (extend != null) {
-            if(Integer.valueOf(1).equals(extend.getRecipeFlag())){
+            if (Integer.valueOf(1).equals(extend.getRecipeFlag())) {
                 childRecipeFlag = true;
             }
             map.put("recipeExtend", extend);
@@ -362,19 +361,19 @@ public class OperationPlatformRecipeService {
         HashMap<String, String> cardMap = Maps.newHashMap();
         if (extend != null) {
             try {
-            //就诊卡卡号--只有复诊的患者才有就诊卡类型
-            String cardNo = extend.getCardNo();
-            //就诊卡类型
-            String cardType = extend.getCardType();
-            //如果cardName存在，则取cardName,否则从字典中取，如果两者都没有的话，那就是没有
-            //就诊卡名称
-            String  cardTypeName=extend.getCardTypeName()==null?DictionaryController.instance().get("eh.mpi.dictionary.CardType").getText(extend.getCardType()):extend.getCardTypeName();
-                cardMap.put("cardType",cardType);
+                //就诊卡卡号--只有复诊的患者才有就诊卡类型
+                String cardNo = extend.getCardNo();
+                //就诊卡类型
+                String cardType = extend.getCardType();
+                //如果cardName存在，则取cardName,否则从字典中取，如果两者都没有的话，那就是没有
+                //就诊卡名称
+                String cardTypeName = extend.getCardTypeName() == null ? DictionaryController.instance().get("eh.mpi.dictionary.CardType").getText(extend.getCardType()) : extend.getCardTypeName();
+                cardMap.put("cardType", cardType);
                 cardMap.put("cardNo", cardNo);
                 cardMap.put("cardTypeName", cardTypeName);
                 map.put("card", cardMap);
-            }catch (Exception e1){
-                LOGGER.error("findRecipeAndDetailsAndCheckById.error",e1);
+            } catch (Exception e1) {
+                LOGGER.error("findRecipeAndDetailsAndCheckById.error", e1);
             }
         }
         map.put("childRecipeFlag", childRecipeFlag);
