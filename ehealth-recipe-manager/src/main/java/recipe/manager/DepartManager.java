@@ -35,6 +35,7 @@ public class DepartManager extends BaseManager {
         if (recipe == null) {
             return appointDepartDTO;
         }
+        //TODO 等尹盛提供字段
         RecipeExtend recipeExtend = recipeExtendDao.getByRecipeId(recipe.getRecipeId());
         if (recipeExtend != null && recipeExtend.getDocIndexId() != null) {
             appointDepartDTO.setAppointDepartCode(recipeExtend.getCardNo());
