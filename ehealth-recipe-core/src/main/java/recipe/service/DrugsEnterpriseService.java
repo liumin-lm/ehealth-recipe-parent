@@ -115,6 +115,11 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         if (null == drugsEnterpriseBean.getCreateType()) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "createType is null!");
         }
+        if (drugsEnterpriseBean.getCreateType()==0){
+            if (null == drugsEnterpriseBean.getTel()) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "自建药企联系电话 必填!");
+            }
+        }
         // 药企物流信息校验：平台对接物流，物流公司、寄件人信息不能为空
         checkEnterpriseLogisticsInfo(drugsEnterpriseBean);
         drugsEnterpriseBean.setSort(100);
@@ -228,6 +233,11 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         DrugsEnterprise target = drugsEnterpriseDAO.get(drugsEnterpriseBean.getId());
         if (null == target) {
             throw new DAOException(DAOException.ENTITIY_NOT_FOUND, "DrugsEnterprise not exist!");
+        }
+        if (drugsEnterpriseBean.getCreateType()==0){
+            if (null == drugsEnterpriseBean.getTel()) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "自建药企联系电话 必填!");
+            }
         }
 
         //拆分药企信息
