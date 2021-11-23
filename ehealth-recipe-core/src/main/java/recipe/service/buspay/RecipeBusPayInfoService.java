@@ -801,8 +801,15 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     @Override
     @RpcService
     public List<BusBillDateAccountDTO> busBillDateAccount(String billDate, Integer organId, String payOrganId) {
-        List<BusBillDateAccountDTO> busBillDateAccountDTOS = recipeOrderDAO.findByPayTimeAndOrganIdAndPayOrganId(billDate, organId, payOrganId);
-
+        log.info("busBillDateAccount param:[{},{},{}]", billDate, organId, payOrganId);
+        List<BusBillDateAccountDTO> busBillDateAccountDTOS = null;
+        try {
+            busBillDateAccountDTOS = recipeOrderDAO.findByPayTimeAndOrganIdAndPayOrganId(billDate, organId, payOrganId);
+        } catch (Exception e) {
+            log.error("busBillDateAccount error", e);
+            e.printStackTrace();
+        }
+        log.info("busBillDateAccount res:{}", JSONUtils.toString(busBillDateAccountDTOS));
         return busBillDateAccountDTOS;
     }
 
