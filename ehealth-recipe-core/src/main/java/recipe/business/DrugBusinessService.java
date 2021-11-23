@@ -40,4 +40,5 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     public List<RecipeRulesDrugcorrelation> getListDrugRules(List<Integer> list, Integer ruleId) {
         return drugManager.getListDrugRules(list,ruleId);
     }
+
 }

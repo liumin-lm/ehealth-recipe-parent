@@ -3,22 +3,22 @@ package recipe.manager;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.google.common.collect.Lists;
-import com.ngari.recipe.dto.DrugInfoDTO;
-import com.ngari.recipe.dto.DrugStockAmountDTO;
-import com.ngari.recipe.dto.PatientOptionalDrugDTO;
-import com.ngari.recipe.dto.ValidateOrganDrugDTO;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.dto.*;
+import com.ngari.recipe.entity.OrganDrugList;
+import com.ngari.recipe.entity.PharmacyTcm;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.Recipedetail;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DrugStockClient;
-import recipe.dao.PatientOptionalDrugDAO;
+import recipe.client.OperationClient;
 import recipe.dao.PharmacyTcmDAO;
+import recipe.enumerate.type.AppointEnterpriseTypeEnum;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.util.ValidateUtil;
 
 import java.util.*;
@@ -37,7 +37,44 @@ public class OrganDrugListManager extends BaseManager {
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
-    private PatientOptionalDrugDAO patientOptionalDrugDAO;
+    private OperationClient operationClient;
+
+    public EnterpriseStock organStock(Integer organId, List<Recipedetail> detailList) {
+        Recipe recipe = new Recipe();
+        recipe.setClinicOrgan(organId);
+        return organStock(recipe, detailList);
+    }
+
+    public EnterpriseStock organStock(Recipe recipe, List<Recipedetail> detailList) {
+        List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(recipe.getClinicOrgan());
+        //无到院取药
+        String showButtonName = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
+        if (StringUtils.isEmpty(showButtonName)) {
+            return null;
+        }
+        //返回出参
+        List<GiveModeButtonDTO> giveModeButton = new LinkedList<>();
+        GiveModeButtonDTO giveModeButtonDTO = new GiveModeButtonDTO();
+        giveModeButtonDTO.setType(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
+        giveModeButtonDTO.setShowButtonKey(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
+        giveModeButtonDTO.setShowButtonName(showButtonName);
+        giveModeButton.add(giveModeButtonDTO);
+
+        OrganDTO organDTO = organClient.organDTO(recipe.getClinicOrgan());
+        EnterpriseStock enterpriseStock = new EnterpriseStock();
+        enterpriseStock.setGiveModeButton(giveModeButton);
+        enterpriseStock.setDeliveryName(organDTO.getName() + "门诊药房");
+        enterpriseStock.setDeliveryCode(recipe.getClinicOrgan().toString());
+        enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ORGAN_APPOINT.getType());
+        enterpriseStock.setStock(true);
+        //校验医院库存
+        DrugStockAmountDTO scanResult = scanDrugStockByRecipeId(recipe, detailList);
+        enterpriseStock.setDrugInfoList(scanResult.getDrugInfoList());
+        enterpriseStock.setDrugName(scanResult.getNotDrugNames());
+        enterpriseStock.setStock(scanResult.isResult());
+        return enterpriseStock;
+    }
+
 
     /**
      * 校验机构药品库存
@@ -178,47 +215,4 @@ public class OrganDrugListManager extends BaseManager {
         return null;
     }
 
-
-    /**
-     * 获取患者指定药品信息
-     *
-     * @param clinicId
-     * @return
-     */
-    public List<PatientOptionalDrugDTO> findPatientOptionalDrugDTO(Integer clinicId) {
-        logger.info("OrganDrugListManager findPatientOptionalDrugDTO req clinicId= {}", JSON.toJSONString(clinicId));
-        List<PatientOptionalDrug> patientOptionalDrugs = patientOptionalDrugDAO.findPatientOptionalDrugByClinicId(clinicId);
-        if (CollectionUtils.isEmpty(patientOptionalDrugs)) {
-            logger.info("OrganDrugListManager findPatientOptionalDrugDTO 返回值为空 patientOptionalDrugs= {}", JSON.toJSONString(patientOptionalDrugs));
-            return Lists.newArrayList();
-        }
-        Set<Integer> drugIds = patientOptionalDrugs.stream().collect(Collectors.groupingBy(PatientOptionalDrug::getDrugId)).keySet();
-        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(patientOptionalDrugs.get(0).getOrganId(), drugIds);
-        Map<Integer, List<OrganDrugList>> collect = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getDrugId));
-        List<PatientOptionalDrugDTO> patientOptionalDrugDTOS = patientOptionalDrugs.stream().map(patientOptionalDrug -> {
-            PatientOptionalDrugDTO patientOptionalDrugDTO = new PatientOptionalDrugDTO();
-            BeanUtils.copyProperties(patientOptionalDrug, patientOptionalDrugDTO);
-            List<OrganDrugList> organDrugLists = collect.get(patientOptionalDrug.getDrugId());
-            organDrugLists.forEach(organDrugList1 -> {
-                if (patientOptionalDrug.getOrganDrugCode().equals(organDrugList1.getOrganDrugCode())) {
-                    patientOptionalDrugDTO.setDrugName(organDrugList1.getDrugName());
-                    patientOptionalDrugDTO.setDrugSpec(organDrugList1.getDrugSpec());
-                    patientOptionalDrugDTO.setDrugUnit(organDrugList1.getUnit());
-                    String pharmacy = organDrugList1.getPharmacy();
-                    if (StringUtils.isNotEmpty(pharmacy)) {
-                        String[] pharmacyId = pharmacy.split(",");
-                        Set pharmaIds = new HashSet();
-                        for (String s : pharmacyId) {
-                            pharmaIds.add(Integer.valueOf(s));
-                        }
-                        List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(pharmaIds);
-                        patientOptionalDrugDTO.setPharmacyTcms(pharmacyTcmByIds);
-                    }
-                }
-            });
-            return patientOptionalDrugDTO;
-        }).collect(Collectors.toList());
-        logger.info("OrganDrugListManager findPatientOptionalDrugDTO res patientOptionalDrugDTOS= {}", JSON.toJSONString(patientOptionalDrugDTOS));
-        return patientOptionalDrugDTOS;
-    }
 }

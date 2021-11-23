@@ -174,6 +174,23 @@ public class OperationClient extends BaseClient {
     }
 
     /**
+     * 通过机构ID从运营平台获取购药方式的基本配置项
+     *
+     * @param organId 机构ID
+     * @return 运营平台的配置项
+     */
+    public List<GiveModeButtonDTO> getOrganGiveModeMap(Integer organId) {
+        logger.info("ButtonManager.getGiveModeMap organId={}", organId);
+        //添加按钮配置项key
+        GiveModeShowButtonDTO giveModeShowButtonVO = getGiveModeSettingFromYypt(organId);
+        List<GiveModeButtonDTO> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
+        if (null == giveModeButtonBeans) {
+            return null;
+        }
+        return giveModeButtonBeans;
+    }
+
+    /**
      * 从运营平台获取 购药按钮配置项
      *
      * @param organId

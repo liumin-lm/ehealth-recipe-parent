@@ -105,7 +105,6 @@ import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipeInvalidDTO;
-import recipe.business.DrugStockBusinessService;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.ca.vo.CaSignResultVo;
@@ -117,6 +116,7 @@ import recipe.common.CommonConstant;
 import recipe.common.OnsConfig;
 import recipe.common.response.CommonResponse;
 import recipe.constant.*;
+import recipe.core.api.patient.IDrugEnterpriseBusinessService;
 import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugTool.service.DrugToolService;
@@ -240,10 +240,8 @@ public class RecipeService extends RecipeBaseService {
     private SyncDrugExcDAO syncDrugExcDAO;
     @Autowired
     private IConfigurationClient configurationClient;
-
-    @Resource
-    private DrugStockBusinessService drugStockBusinessService;
-
+    @Autowired
+    private IDrugEnterpriseBusinessService drugEnterpriseBusinessService;
     @Autowired
     private RemoteRecipeService remoteRecipeService;
 
@@ -1520,7 +1518,7 @@ public class RecipeService extends RecipeBaseService {
             //第三步校验库存
             Integer appointEnterpriseType = recipeBean.getRecipeExtend().getAppointEnterpriseType();
             if ((continueFlag == 0 || continueFlag == 4) && ValidateUtil.integerIsEmpty(appointEnterpriseType)) {
-                rMap = drugStockBusinessService.enterpriseStock(recipeBean.getRecipeId());
+                rMap = drugEnterpriseBusinessService.enterpriseStock(recipeBean.getRecipeId());
                 boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
                 if (!signResult) {
                     return rMap;

@@ -1,10 +1,13 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
+import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.QueryHisRecipResTO;
+import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.recipe.dto.*;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.RecipeLog;
+import com.ngari.recipe.entity.*;
+import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
@@ -18,15 +21,16 @@ import org.springframework.stereotype.Service;
 import recipe.client.*;
 import recipe.common.CommonConstant;
 import recipe.constant.RecipeStatusConstant;
+import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeLogDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.DictionaryUtil;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -47,6 +51,10 @@ public class RecipeManager extends BaseManager {
     private OfflineRecipeClient offlineRecipeClient;
     @Autowired
     private RevisitClient revisitClient;
+    @Autowired
+    private RecipeDetailDAO recipeDetailDAO;
+    @Autowired
+    private HisRecipeManager hisRecipeManager;
 
     /**
      * 保存处方信息
@@ -435,4 +443,59 @@ public class RecipeManager extends BaseManager {
         return recipeIds;
     }
 
+    /**
+     * 根据复诊id获取有效的处方明细 药品数量
+     *
+     * @param clinicId
+     */
+    public List<Recipedetail> findEffectiveRecipeDetailByClinicId(Integer clinicId) {
+        //线上的有效处方
+        List<Recipe> effectiveRecipeByBussSourceAndClinicId = findEffectiveRecipeByBussSourceAndClinicId(BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType(), clinicId);
+        List<Integer> recipeIds = effectiveRecipeByBussSourceAndClinicId.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        List<Recipedetail> byRecipeIdList = Lists.newArrayList();
+        if(CollectionUtils.isNotEmpty(recipeIds)) {
+            byRecipeIdList = recipeDetailDAO.findByRecipeIdList(recipeIds);
+        }
+
+        // 线下有效处方
+        RevisitExDTO revisitExDTO = revisitClient.getByClinicId(clinicId);
+        if (null == revisitExDTO || StringUtils.isEmpty(revisitExDTO.getRegisterNo())) {
+            return byRecipeIdList;
+        }
+        RevisitBean revisitBean = revisitClient.getRevisitByClinicId(clinicId);
+        logger.info("getOfflineEffectiveRecipeFlag revisitBean:{}.", JSONUtils.toString(revisitBean));
+        com.ngari.patient.dto.PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(revisitBean.getMpiid());
+        List<QueryHisRecipResTO> totalHisRecipe = new ArrayList<>();
+        //查询待缴费处方
+        HisResponseTO<List<QueryHisRecipResTO>> noPayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, null, 1, "");
+        //查询已缴费处方
+        HisResponseTO<List<QueryHisRecipResTO>> havePayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, null, 2, "");
+        if (null != noPayRecipe && null != noPayRecipe.getData()) {
+            totalHisRecipe.addAll(noPayRecipe.getData());
+        }
+        if (null != havePayRecipe && null != havePayRecipe.getData()) {
+            totalHisRecipe.addAll(havePayRecipe.getData());
+        }
+        if (CollectionUtils.isEmpty(totalHisRecipe)) {
+            return byRecipeIdList;
+        }
+        List<Recipedetail> finalByRecipeIdList = byRecipeIdList;
+        totalHisRecipe.forEach(queryHisRecipResTO -> {
+            List<RecipeDetailTO> drugList = queryHisRecipResTO.getDrugList();
+            drugList.forEach(recipeDetailTO -> {
+                List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(queryHisRecipResTO.getClinicOrgan(), Arrays.asList(recipeDetailTO.getDrugCode()));
+                Recipedetail recipedetail = new Recipedetail();
+                if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                    recipedetail.setDrugId(organDrugLists.get(0).getDrugId());
+                    recipedetail.setOrganDrugCode(recipeDetailTO.getDrugCode());
+                }
+                if (recipeDetailTO.getUseTotalDose() != null) {
+                    recipedetail.setUseTotalDose(recipeDetailTO.getUseTotalDose().doubleValue());
+                }
+                finalByRecipeIdList.add(recipedetail);
+            });
+        });
+
+        return finalByRecipeIdList;
+    }
 }
