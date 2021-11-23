@@ -42,4 +42,7 @@ public class PatientDrugWithEsDTO implements Serializable {
     @ItemProperty(alias = "药品图片")
     private String drugPic;
 
+    @ItemProperty(alias = "1西药 2中成药 3中药 4膏方")
+    private Integer drugType;
+
 }

@@ -451,6 +451,7 @@ public class RecipeManager extends BaseManager {
     public List<Recipedetail> findEffectiveRecipeDetailByClinicId(Integer clinicId) {
         //线上的有效处方
         List<Recipe> effectiveRecipeByBussSourceAndClinicId = findEffectiveRecipeByBussSourceAndClinicId(BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType(), clinicId);
+        Map<String, List<Recipe>> collect = effectiveRecipeByBussSourceAndClinicId.stream().collect(Collectors.groupingBy(Recipe::getRecipeCode));
         List<Integer> recipeIds = effectiveRecipeByBussSourceAndClinicId.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
         List<Recipedetail> byRecipeIdList = Lists.newArrayList();
         if(CollectionUtils.isNotEmpty(recipeIds)) {
@@ -482,6 +483,10 @@ public class RecipeManager extends BaseManager {
         List<Recipedetail> finalByRecipeIdList = byRecipeIdList;
         totalHisRecipe.forEach(queryHisRecipResTO -> {
             List<RecipeDetailTO> drugList = queryHisRecipResTO.getDrugList();
+            List<Recipe> recipes = collect.get(queryHisRecipResTO.getRecipeCode());
+            if(CollectionUtils.isNotEmpty(recipes)){
+                return;
+            }
             drugList.forEach(recipeDetailTO -> {
                 List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(queryHisRecipResTO.getClinicOrgan(), Arrays.asList(recipeDetailTO.getDrugCode()));
                 Recipedetail recipedetail = new Recipedetail();

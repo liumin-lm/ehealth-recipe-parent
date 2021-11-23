@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
-import com.ngari.recipe.dto.PatientOpenDrugWithEsDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -232,10 +231,10 @@ public class DrugManager extends BaseManager {
      * @param limit    条数
      * @return
      */
-    public List<PatientOpenDrugWithEsDTO> findDrugWithEsByPatient(String saleName, String organId, List<String> drugType, int start, int limit) {
+    public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(String saleName, String organId, List<String> drugType, int start, int limit) {
         logger.info("DrugManager findDrugWithEsByPatient saleName : {} organId:{} drugType:{} start:{}  limit:{}", saleName, organId, JSON.toJSONString(drugType), start, limit);
         // 搜索药品信息
-        List<PatientOpenDrugWithEsDTO> drugWithEsByPatient = drugClient.findDrugWithEsByPatient(saleName, organId, drugType, start, limit);
+        List<PatientDrugWithEsDTO> drugWithEsByPatient = drugClient.findDrugWithEsByPatient(saleName, organId, drugType, start, limit);
         if (CollectionUtils.isEmpty(drugWithEsByPatient)) {
             return new ArrayList<>();
         }
