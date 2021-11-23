@@ -1,13 +1,16 @@
 package recipe.atop.doctor;
 
 import com.ngari.recipe.dto.EnterpriseStock;
+import com.ngari.recipe.dto.PatientOptionalDrugDTO;
 import com.ngari.recipe.entity.Recipedetail;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.core.api.IOrganBusinessService;
+import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.patient.IDrugEnterpriseBusinessService;
 import recipe.vo.doctor.DrugEnterpriseStockVO;
 import recipe.vo.doctor.DrugQueryVO;
@@ -30,6 +33,8 @@ public class DrugDoctorAtop extends BaseAtop {
     private IOrganBusinessService organBusinessService;
     @Autowired
     private IDrugEnterpriseBusinessService iDrugEnterpriseBusinessService;
+    @Autowired
+    private IRecipeBusinessService recipeBusinessService;
 
     @RpcService
     public List<DrugEnterpriseStockVO> drugEnterpriseStock(DrugQueryVO drugQueryVO) {
@@ -108,5 +113,21 @@ public class DrugDoctorAtop extends BaseAtop {
             enterpriseStockList.add(enterpriseStockVO);
         });
         return enterpriseStockList;
+    }
+
+    /**
+     * 医生端 获取患者指定处方药品
+     *
+     * @param clinicId
+     * @return
+     */
+    @RpcService
+    public List<PatientOptionalDrugDTO> findPatientOptionalDrugDTO(Integer clinicId) {
+        logger.info("OffLineRecipeAtop findPatientOptionalDrugDTO clinicId={}", clinicId);
+        validateAtop(clinicId);
+        List<PatientOptionalDrugDTO> result = recipeBusinessService.findPatientOptionalDrugDTO(clinicId);
+        logger.info("OffLineRecipeAtop findPatientOptionalDrugDTO result = {}", JSONUtils.toString(result));
+        return result;
+
     }
 }
