@@ -1,6 +1,5 @@
 package recipe.atop.doctor;
 
-import com.ngari.recipe.dto.PatientOptionalDrugDTO;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -11,6 +10,7 @@ import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.patient.IDrugEnterpriseBusinessService;
 import recipe.vo.doctor.DrugEnterpriseStockVO;
 import recipe.vo.doctor.DrugQueryVO;
+import recipe.vo.doctor.PatientOptionalDrugVO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,10 +50,10 @@ public class DrugDoctorAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public List<PatientOptionalDrugDTO> findPatientOptionalDrugDTO(Integer clinicId) {
+    public List<PatientOptionalDrugVO> findPatientOptionalDrugDTO(Integer clinicId) {
         logger.info("OffLineRecipeAtop findPatientOptionalDrugDTO clinicId={}", clinicId);
         validateAtop(clinicId);
-        List<PatientOptionalDrugDTO> result = recipeBusinessService.findPatientOptionalDrugDTO(clinicId);
+        List<PatientOptionalDrugVO> result = recipeBusinessService.findPatientOptionalDrugDTO(clinicId);
         logger.info("OffLineRecipeAtop findPatientOptionalDrugDTO result = {}", JSONUtils.toString(result));
         return result;
 

@@ -1757,7 +1757,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (StringUtils.isNotEmpty(payOrganId)) {
                     hql.append(" and  o.payOrganId =:payOrganId");
                 }
-                hql.append("UNION ALL ");
+                hql.append(" UNION ALL ");
                 hql.append(" select r.recipeId, o.OutTradeNo,o.tradeNo,o.totalfee,o.payTime");
                 hql.append(" ,r.patientID,r.patientName,r.mpiid,r.clinicorgan, o.payOrganId");
                 hql.append(" ,o.wxPayWay , 2 tradeStatus,o.actualPrice refundAmount,o.OutTradeNo refundBatchNo, o.refundTime refundDate ");

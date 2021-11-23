@@ -1,6 +1,6 @@
-package com.ngari.recipe.dto;
+package recipe.vo.doctor;
 
-import com.ngari.recipe.entity.PharmacyTcm;
+import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
@@ -8,6 +8,7 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -18,7 +19,7 @@ import java.util.List;
 @Setter
 @Getter
 @ToString
-public class PatientOptionalDrugDTO implements Serializable {
+public class PatientOptionalDrugVO implements Serializable {
 
     @ItemProperty(alias = "药品序号")
     private Integer drugId;
@@ -34,6 +35,9 @@ public class PatientOptionalDrugDTO implements Serializable {
 
     @ItemProperty(alias = "药物名称")
     private String drugName;
+
+    @ItemProperty(alias = "商品名")
+    private String saleName;
 
     @ItemProperty(alias = "药物规格")
     private String drugSpec;
@@ -88,6 +92,21 @@ public class PatientOptionalDrugDTO implements Serializable {
     @ItemProperty(alias = "前端展示的药品拼接名")
     private String drugDisplaySplicedName;
 
+    @ItemProperty(alias = "药物使用次剂量")
+    private Double useDose;
+
+    @ItemProperty(alias = "药物使用次剂量--中文标识-适量")
+    private String useDoseStr;
+
+    @ItemProperty(alias = "默认每次剂量")
+    private Double defaultUseDose;
+
+    @ItemProperty(alias = "销售价格")
+    private BigDecimal salePrice;
+
     @ItemProperty(alias = "药房列表")
-    private List<PharmacyTcm> pharmacyTcms;
+    private List<PharmacyTcmVO> pharmacyTcms;
+
+    @ItemProperty(alias = "医生端选择的每次剂量和单位绑定关系")
+    private List<UseDoseAndUnitRelationBean> useDoseAndUnitRelation;
 }

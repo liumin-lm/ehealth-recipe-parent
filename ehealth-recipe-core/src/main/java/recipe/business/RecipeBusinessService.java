@@ -9,7 +9,6 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutRecipeDetailDTO;
-import com.ngari.recipe.dto.PatientOptionalDrugDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.PatientInfoDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -23,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
+import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.IConfigurationClient;
@@ -38,6 +38,8 @@ import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
+import recipe.vo.doctor.PatientOptionalDrugVO;
+import recipe.vo.doctor.PharmacyTcmVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
 
 import javax.annotation.Resource;
@@ -214,7 +216,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     @Override
-    public List<PatientOptionalDrugDTO> findPatientOptionalDrugDTO(Integer clinicId) {
+    public List<PatientOptionalDrugVO> findPatientOptionalDrugDTO(Integer clinicId) {
         logger.info("RecipeBusinessService findPatientOptionalDrugDTO req clinicId= {}", JSON.toJSONString(clinicId));
         List<PatientOptionalDrug> patientOptionalDrugs = patientOptionalDrugDAO.findPatientOptionalDrugByClinicId(clinicId);
         if (CollectionUtils.isEmpty(patientOptionalDrugs)) {
@@ -234,15 +236,14 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         List<Recipedetail> detail = recipeManager.findEffectiveRecipeDetailByClinicId(clinicId);
         Map<String, List<Recipedetail>> collect = detail.stream().collect(Collectors.groupingBy(k -> k.getDrugId() + k.getOrganDrugCode()));
 
-        List<PatientOptionalDrugDTO> patientOptionalDrugDTOS = patientOptionalDrugs.stream().map(patientOptionalDrug -> {
-            PatientOptionalDrugDTO patientOptionalDrugDTO = new PatientOptionalDrugDTO();
+        List<PatientOptionalDrugVO> patientOptionalDrugDTOS = patientOptionalDrugs.stream().map(patientOptionalDrug -> {
+            PatientOptionalDrugVO patientOptionalDrugDTO = new PatientOptionalDrugVO();
             org.springframework.beans.BeanUtils.copyProperties(patientOptionalDrug, patientOptionalDrugDTO);
             List<DrugList> drugLists = drugListMap.get(patientOptionalDrug.getDrugId());
             if (CollectionUtils.isNotEmpty(drugLists) && Objects.nonNull(drugLists.get(0))) {
                 DrugList drugList = drugLists.get(0);
                 Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(patientOptionalDrug.getOrganId(), drugList.getDrugType()));
-                patientOptionalDrugDTO.setProducer(drugList.getProducer());
-                patientOptionalDrugDTO.setDrugType(drugList.getDrugType());
+                org.springframework.beans.BeanUtils.copyProperties(drugList, patientOptionalDrugDTO);
                 patientOptionalDrugDTO.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(drugList, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(drugList.getDrugType())));
             }
             OrganDrugList organDrugLists = organDrugListMap.get(patientOptionalDrug.getDrugId() + patientOptionalDrug.getOrganDrugCode());
@@ -253,6 +254,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             patientOptionalDrugDTO.setDrugSpec(organDrugLists.getDrugSpec());
             patientOptionalDrugDTO.setDrugUnit(organDrugLists.getUnit());
             org.springframework.beans.BeanUtils.copyProperties(organDrugLists, patientOptionalDrugDTO);
+            patientOptionalDrugDTO.setUseDoseAndUnitRelation(RecipeUtil.defaultUseDose(organDrugLists));
             String pharmacy = organDrugLists.getPharmacy();
             if (StringUtils.isNotEmpty(pharmacy)) {
                 String[] pharmacyId = pharmacy.split(",");
@@ -261,7 +263,14 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                     pharmaIds.add(Integer.valueOf(s));
                 }
                 List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(pharmaIds);
-                patientOptionalDrugDTO.setPharmacyTcms(pharmacyTcmByIds);
+                if(CollectionUtils.isNotEmpty(pharmacyTcmByIds)){
+                    List<PharmacyTcmVO> pharmacyTcmVOS = pharmacyTcmByIds.stream().map(pharmacyTcm -> {
+                        PharmacyTcmVO pharmacyTcmVO = new PharmacyTcmVO();
+                        BeanUtils.copy(pharmacyTcm, pharmacyTcmVO);
+                        return pharmacyTcmVO;
+                    }).collect(Collectors.toList());
+                    patientOptionalDrugDTO.setPharmacyTcms(pharmacyTcmVOS);
+                }
             }
 
             List<Recipedetail> recipedetails = collect.get(patientOptionalDrug.getDrugId() + patientOptionalDrug.getOrganDrugCode());

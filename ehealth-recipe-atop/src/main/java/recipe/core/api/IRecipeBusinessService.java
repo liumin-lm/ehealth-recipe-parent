@@ -2,12 +2,11 @@ package recipe.core.api;
 
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
-import com.ngari.recipe.dto.PatientOptionalDrugDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.vo.*;
+import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
 
-import javax.xml.crypto.Data;
 import java.util.Date;
 import java.util.List;
 
@@ -89,7 +88,7 @@ public interface IRecipeBusinessService {
      * @param clinicId 复诊id
      * @return
      */
-    List<PatientOptionalDrugDTO> findPatientOptionalDrugDTO(Integer clinicId);
+    List<PatientOptionalDrugVO> findPatientOptionalDrugDTO(Integer clinicId);
 
     /**
      * 保存患者自选药品

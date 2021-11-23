@@ -228,7 +228,7 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
     }
 
     @Override
-    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, List<SaleDrugList> saleDrugLists){
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
         List<OrganDrugList> organDrugLists = new ArrayList<>();
         recipeDetails.forEach(recipeDetail -> {
             OrganDrugList organDrugList = new OrganDrugList();
