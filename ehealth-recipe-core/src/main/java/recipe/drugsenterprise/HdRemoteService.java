@@ -9,6 +9,8 @@ import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
+import com.ngari.recipe.dto.DrugInfoDTO;
+import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -30,6 +32,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
@@ -48,6 +51,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
 * @Description: HdRemoteService 类（或接口）是 对接华东药企服务接口
@@ -1475,19 +1479,9 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         return DrugEnterpriseConstant.COMPANY_HDDYF;
     }
 
-    @Override
-    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
+    private List getInventoryResult(Map<String, Object> map, Integer organId, DrugsEnterprise drugsEnterprise){
         tokenUpdateImpl(drugsEnterprise);
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
         String methodName = "sendScanStock";
-        Map<String, Object> map = new HashMap<>();
-        List<Map<String, String>> hdDrugCodes = new ArrayList<>();
-        Map<String, String> drug = new HashMap<>();
-        drug.put("drugCode", saleDrugList.getOrganDrugCode());
-        hdDrugCodes.add(drug);
-        map.put("drugList", hdDrugCodes);
-
         //对浙四进行个性化处理,推送到指定药店配送
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         String hdStores = recipeParameterDao.getByName("hd_store_payonline");
@@ -1511,20 +1505,9 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             String responseStr = EntityUtils.toString(httpEntity);
             JSONObject jsonObject = JSONObject.parseObject(responseStr);
             List drugList = (List)jsonObject.get("drugList");
-
-            if (drugList != null && drugList.size() > 0) {
-                for (Object drugs : drugList) {
-                    Map<String, Object> drugMap = (Map<String, Object>) drugs;
-                    try{
-                        BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
-                        return availableSumQty.intValue() + "";
-                    }catch(Exception e){
-                        Integer availableSumQty = (Integer)drugMap.get("availableSumQty");
-                        return availableSumQty.toString();
-                    }
-                }
-            }
-        } catch (Exception e) {
+            LOGGER.info("getInventoryResult drugList:{}.", JSONUtils.toString(drugList));
+            return drugList;
+        } catch (IOException e) {
             e.printStackTrace();
         } finally {
             try {
@@ -1534,7 +1517,74 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
 
             }
         }
+        return new ArrayList();
+    }
+
+    @Override
+    public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
+        tokenUpdateImpl(drugsEnterprise);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
+        String methodName = "sendScanStock";
+        Map<String, Object> map = new HashMap<>();
+        List<Map<String, String>> hdDrugCodes = new ArrayList<>();
+        Map<String, String> drug = new HashMap<>();
+        drug.put("drugCode", saleDrugList.getOrganDrugCode());
+        hdDrugCodes.add(drug);
+        map.put("drugList", hdDrugCodes);
+        List drugList = getInventoryResult(map, organId, drugsEnterprise);
+        if (CollectionUtils.isNotEmpty(drugList)) {
+            for (Object drugs : drugList) {
+                Map<String, Object> drugMap = (Map<String, Object>) drugs;
+                try{
+                    BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
+                    return availableSumQty.intValue() + "";
+                }catch(Exception e){
+                    Integer availableSumQty = (Integer)drugMap.get("availableSumQty");
+                    return availableSumQty.toString();
+                }
+            }
+        }
         return "暂不支持库存查询";
+    }
+
+    @Override
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, List<SaleDrugList> saleDrugLists) {
+        Map<Integer, String> saleDrugListMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId, SaleDrugList::getOrganDrugCode));
+        Map<String, Object> map = new HashMap<>();
+        List<Map<String, String>> hdDrugCodes = new ArrayList<>();
+        recipeDetails.forEach(recipeDetail -> {
+            Map<String, String> drug = new HashMap<>();
+            drug.put("drugCode", saleDrugListMap.get(recipeDetail.getDrugId()));
+            hdDrugCodes.add(drug);
+        });
+        map.put("drugList", hdDrugCodes);
+        List drugList = getInventoryResult(map, recipe.getClinicOrgan(), drugsEnterprise);
+        Map<String, Integer> inventory = new HashMap<>();
+        if (CollectionUtils.isNotEmpty(drugList)) {
+            for (Object drugs : drugList) {
+                Map<String, Object> drugMap = (Map<String, Object>) drugs;
+                try{
+                    BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
+                    String drugCode = (String)drugMap.get("drugCode");
+                    inventory.put(drugCode, availableSumQty.intValue());
+                }catch(Exception e){
+                    String drugCode = (String)drugMap.get("drugCode");
+                    inventory.put(drugCode, 0);
+                }
+            }
+        }
+        DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+        List<DrugInfoDTO> drugInfoList = new ArrayList<>();
+        recipeDetails.forEach(recipeDetail -> {
+            DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+            BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
+            drugInfoDTO.setStock(inventory.get(saleDrugListMap.get(recipeDetail.getDrugId())) > 0);
+            drugInfoDTO.setStockAmount(inventory.get(saleDrugListMap.get(recipeDetail.getDrugId())));
+            drugInfoList.add(drugInfoDTO);
+        });
+        drugStockAmountDTO.setDrugInfoList(drugInfoList);
+        return drugStockAmountDTO;
     }
 
     @Override
