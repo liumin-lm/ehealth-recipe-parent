@@ -8,6 +8,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutRecipeDetailDTO;
+import com.ngari.recipe.dto.PatientOptionalDrugDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.PatientInfoDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -27,6 +28,7 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.RecipeDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.manager.OrganDrugListManager;
 import recipe.manager.RecipeManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
@@ -63,6 +65,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private PatientClient patientClient;
     @Resource
     private IConfigurationClient configurationClient;
+    @Resource
+    private OrganDrugListManager organDrugListManager;
 
     /**
      * 获取线下门诊处方诊断信息
@@ -196,6 +200,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @LogRecord
     public List<Recipe> findRecipesByStatusAndInvalidTime(List<Integer> status, Date invalidTime) {
         return recipeDAO.findRecipesByStatusAndInvalidTime(status, invalidTime);
+    }
+
+    @Override
+    public List<PatientOptionalDrugDTO> findPatientOptionalDrugDTO(Integer clinicId) {
+        return organDrugListManager.findPatientOptionalDrugDTO(clinicId);
     }
 
 }
