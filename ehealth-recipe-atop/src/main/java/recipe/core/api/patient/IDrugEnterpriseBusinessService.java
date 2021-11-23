@@ -22,7 +22,7 @@ public interface IDrugEnterpriseBusinessService {
     List<EnterpriseStock> enterpriseStockCheck(Recipe recipe, List<Recipedetail> detailList);
 
     /**
-     * 校验药企库存
+     * 校验药企库存 ：不判断 药品在同一个 药企下
      *
      * @param organId       处方信息
      * @param recipeDetails 处方明细信息

@@ -16,9 +16,9 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.patient.IDrugEnterpriseBusinessService;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.EnterpriseManager;
+import recipe.manager.OrganDrugListManager;
 
 import java.util.List;
 import java.util.Map;
@@ -35,6 +35,8 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
     private ButtonManager buttonManager;
     @Autowired
     private EnterpriseManager enterpriseManager;
+    @Autowired
+    private OrganDrugListManager organDrugListManager;
 
     @Override
     public List<EnterpriseStock> enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails) {
@@ -115,7 +117,13 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         }
         //医院自建药企-查询医院库存
         if (3 == drugsEnterprise.getCheckInventoryFlag()) {
-            enterpriseStock.setCheckStockFlag(AppointEnterpriseTypeEnum.ORGAN_APPOINT.getType());
+            DrugStockAmountDTO scanResult = organDrugListManager.scanDrugStockByRecipeId(recipe, recipeDetails);
+            //无库存
+            if (!scanResult.isResult()) {
+                enterpriseStock.setDrugName(scanResult.getNotDrugNames());
+            } else {
+                enterpriseStock.setStock(true);
+            }
             return;
         }
         //通过前置机调用

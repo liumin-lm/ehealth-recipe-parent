@@ -28,11 +28,6 @@ public class EnterpriseStock {
      *  0默认，1医院配送，2药企配送
      */
     private Integer appointEnterpriseType;
-
-    /**
-     *  0默认，1查询医院，2查询药企
-     */
-    private Integer checkStockFlag;
     /**
      * 是否有库存 true：有 ，F：无
      */

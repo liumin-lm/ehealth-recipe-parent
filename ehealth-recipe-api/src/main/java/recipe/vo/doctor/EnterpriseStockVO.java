@@ -22,7 +22,7 @@ public class EnterpriseStockVO implements Serializable {
     /**
      *  0默认，1查询医院，2查询药企
      */
-    private Integer checkStockFlag;
+    private Integer appointEnterpriseType;
     /**
      * 是否有库存 true：有 ，F：无
      */

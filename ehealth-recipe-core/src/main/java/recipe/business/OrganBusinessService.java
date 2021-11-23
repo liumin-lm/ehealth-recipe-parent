@@ -90,12 +90,8 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
         //校验医院库存
         DrugStockAmountDTO scanResult = organDrugListManager.scanDrugStockByRecipeId(recipe, detailList);
         enterpriseStock.setDrugInfoList(scanResult.getDrugInfoList());
-        //无库存
-        if (!scanResult.isResult()) {
-            enterpriseStock.setDrugName(scanResult.getNotDrugNames());
-            enterpriseStock.setStock(scanResult.isResult());
-            return enterpriseStock;
-        }
+        enterpriseStock.setDrugName(scanResult.getNotDrugNames());
+        enterpriseStock.setStock(scanResult.isResult());
         return enterpriseStock;
     }
 

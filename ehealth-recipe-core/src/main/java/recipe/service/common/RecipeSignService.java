@@ -404,7 +404,7 @@ public class RecipeSignService {
             //第三步校验库存
             Integer appointEnterpriseType = recipeBean.getRecipeExtend().getAppointEnterpriseType();
             if ((continueFlag == 0 || continueFlag == 4) && ValidateUtil.integerIsEmpty(appointEnterpriseType)) {
-                rMap = drugStockBusinessService.doSignRecipeCheckAndGetGiveMode(recipeBean);
+                rMap = drugStockBusinessService.enterpriseStock(recipeBean.getRecipeId());
                 boolean signResult = Boolean.parseBoolean(rMap.get("signResult").toString());
                 if (!signResult) {
                     return rMap;

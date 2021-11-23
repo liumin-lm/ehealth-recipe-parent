@@ -3,12 +3,12 @@ package recipe.atop.doctor;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.core.api.IOrganBusinessService;
 import recipe.core.api.patient.IDrugEnterpriseBusinessService;
-import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.vo.doctor.DrugEnterpriseStockVO;
 import recipe.vo.doctor.DrugQueryVO;
 import recipe.vo.doctor.EnterpriseStockVO;
@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 
 /**
  * 医生端药品查询
+ *
  * @author fuzi
  */
 @RpcBean(value = "drugDoctorAtop")
@@ -30,11 +31,11 @@ public class DrugDoctorAtop extends BaseAtop {
     @Autowired
     private IDrugEnterpriseBusinessService iDrugEnterpriseBusinessService;
 
-
-    public List<DrugEnterpriseStockVO> findDrugWithEsByPatient(DrugQueryVO drugQueryVO) {
-        validateAtop(drugQueryVO, drugQueryVO.getRecipeDetails(),drugQueryVO.getOrganId(),drugQueryVO.getPharmacyId());
+    @RpcService
+    public List<DrugEnterpriseStockVO> drugEnterpriseStock(DrugQueryVO drugQueryVO) {
+        validateAtop(drugQueryVO, drugQueryVO.getRecipeDetails(), drugQueryVO.getOrganId(), drugQueryVO.getPharmacyId());
         List<Recipedetail> detailList = new ArrayList<>();
-        drugQueryVO.getRecipeDetails().forEach(a->{
+        drugQueryVO.getRecipeDetails().forEach(a -> {
             Recipedetail recipedetail = new Recipedetail();
             recipedetail.setDrugId(a.getDrugId());
             recipedetail.setOrganDrugCode(a.getOrganDrugCode());
@@ -64,29 +65,24 @@ public class DrugDoctorAtop extends BaseAtop {
      * @param result 药企库存
      * @return
      */
-    private  List<EnterpriseStockVO>  getEnterpriseStockVO( EnterpriseStock organStock,  List<EnterpriseStock> result ){
+    private List<EnterpriseStockVO> getEnterpriseStockVO(EnterpriseStock organStock, List<EnterpriseStock> result) {
         List<EnterpriseStockVO> enterpriseStockList = new LinkedList<>();
         result.forEach(a -> {
-            if (AppointEnterpriseTypeEnum.ORGAN_APPOINT.getType().equals(a.getCheckStockFlag()) && null != organStock) {
-                a.setDrugName(organStock.getDrugName());
-                a.setStock(organStock.getStock());
-                a.setDrugInfoList(organStock.getDrugInfoList());
-            }
-            if(CollectionUtils.isEmpty( a.getDrugInfoList())){
+            if (CollectionUtils.isEmpty(a.getDrugInfoList())) {
                 return;
             }
-            a.getDrugInfoList().forEach(b->{
+            a.getDrugInfoList().forEach(b -> {
                 EnterpriseStockVO enterpriseStockVO = new EnterpriseStockVO();
                 enterpriseStockVO.setDrugId(b.getDrugId());
-                enterpriseStockVO.setCheckStockFlag(a.getCheckStockFlag());
+                enterpriseStockVO.setAppointEnterpriseType(a.getAppointEnterpriseType());
                 enterpriseStockVO.setDeliveryCode(a.getDeliveryCode());
                 enterpriseStockVO.setDeliveryName(a.getDeliveryName());
-                if(!a.getCheckDrugStock()){
+                if (!a.getCheckDrugStock()) {
                     enterpriseStockVO.setStock(true);
-                }else {
-                    if(!a.getStock()){
+                } else {
+                    if (!a.getStock()) {
                         enterpriseStockVO.setStock(false);
-                    }else {
+                    } else {
                         enterpriseStockVO.setStock(b.getStock());
                         enterpriseStockVO.setStockAmountChin(b.getStockAmountChin());
                     }
@@ -100,7 +96,7 @@ public class DrugDoctorAtop extends BaseAtop {
         organStock.getDrugInfoList().forEach(a->{
             EnterpriseStockVO enterpriseStockVO = new EnterpriseStockVO();
             enterpriseStockVO.setDrugId(a.getDrugId());
-            enterpriseStockVO.setCheckStockFlag(organStock.getCheckStockFlag());
+            enterpriseStockVO.setAppointEnterpriseType(organStock.getAppointEnterpriseType());
             enterpriseStockVO.setDeliveryCode(organStock.getDeliveryCode());
             enterpriseStockVO.setDeliveryName(organStock.getDeliveryName());
                 if(!a.getStock()){
