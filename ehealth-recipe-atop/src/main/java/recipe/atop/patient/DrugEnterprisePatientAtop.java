@@ -48,7 +48,12 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
         }
         Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
         List<Recipedetail> detailList = ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), Recipedetail.class);
-        return iDrugEnterpriseBusinessService.stockList(recipe, detailList);
+        List<EnterpriseStock> result = iDrugEnterpriseBusinessService.stockList(recipe, detailList);
+        result.forEach(a -> {
+            a.setDrugsEnterprise(null);
+            a.setDrugInfoList(null);
+        });
+        return result;
     }
 
 }

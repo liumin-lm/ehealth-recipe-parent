@@ -4,6 +4,8 @@ import com.google.common.collect.Maps;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
+import com.ngari.recipe.dto.DrugInfoDTO;
+import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -15,6 +17,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
@@ -29,10 +32,7 @@ import recipe.thread.RecipeBusiThreadPool;
 import recipe.thread.UpdateDrugsEpCallable;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -202,6 +202,27 @@ public abstract class AccessDrugEnterpriseService {
     public abstract DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise);
 
 
+    /**
+     * 查询药企库存
+     * @param recipe  处方
+     * @param drugsEnterprise 药企
+     * @param recipeDetails 处方详情
+     * @return 库存信息
+     */
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+        drugStockAmountDTO.setResult(true);
+        List<DrugInfoDTO> drugInfoList = new ArrayList<>();
+        recipeDetails.forEach(recipeDetail -> {
+            DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+            BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
+            drugInfoDTO.setStock(true);
+            drugInfoDTO.setStockAmountChin("有库存");
+            drugInfoList.add(drugInfoDTO);
+        });
+        drugStockAmountDTO.setDrugInfoList(drugInfoList);
+        return drugStockAmountDTO;
+    }
     /**
      * 库存检验
      *

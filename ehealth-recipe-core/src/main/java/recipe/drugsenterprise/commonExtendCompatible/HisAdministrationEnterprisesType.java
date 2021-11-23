@@ -6,10 +6,8 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DeliveryList;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.dto.DrugStockAmountDTO;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -211,6 +209,13 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
         boolean equals = result.getCode().equals(DrugEnterpriseResult.SUCCESS);
         LOGGER.info("scanStock-【his管理的药企】- 请求虚拟药企返回：{}", equals);
         return equals;
+    }
+
+    @Override
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, List<SaleDrugList> saleDrugLists) {
+        DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+        drugStockAmountDTO.setResult(true);
+        return drugStockAmountDTO;
     }
 
     @Override
