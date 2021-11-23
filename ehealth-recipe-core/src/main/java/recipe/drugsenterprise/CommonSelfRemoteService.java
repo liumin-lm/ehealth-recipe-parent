@@ -110,8 +110,8 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
     }
 
     @Override
-    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, List<SaleDrugList> saleDrugLists) {
-        return CommonExtendRemoteTypeEnum.getTypeFromOrganId(recipe.getClinicOrgan()).scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails, saleDrugLists);
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        return CommonExtendRemoteTypeEnum.getTypeFromOrganId(recipe.getClinicOrgan()).scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
     }
 
     @Override

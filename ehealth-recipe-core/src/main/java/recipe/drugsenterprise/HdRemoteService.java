@@ -1,5 +1,6 @@
 package recipe.drugsenterprise;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
@@ -1549,7 +1550,10 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, List<SaleDrugList> saleDrugLists) {
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getOrganId(), drugList);
         Map<Integer, String> saleDrugListMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId, SaleDrugList::getOrganDrugCode));
         Map<String, Object> map = new HashMap<>();
         List<Map<String, String>> hdDrugCodes = new ArrayList<>();
@@ -1559,10 +1563,10 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             hdDrugCodes.add(drug);
         });
         map.put("drugList", hdDrugCodes);
-        List drugList = getInventoryResult(map, recipe.getClinicOrgan(), drugsEnterprise);
+        List result = getInventoryResult(map, recipe.getClinicOrgan(), drugsEnterprise);
         Map<String, Integer> inventory = new HashMap<>();
-        if (CollectionUtils.isNotEmpty(drugList)) {
-            for (Object drugs : drugList) {
+        if (CollectionUtils.isNotEmpty(result)) {
+            for (Object drugs : result) {
                 Map<String, Object> drugMap = (Map<String, Object>) drugs;
                 try{
                     BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
@@ -1583,7 +1587,11 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             drugInfoDTO.setStockAmount(inventory.get(saleDrugListMap.get(recipeDetail.getDrugId())));
             drugInfoList.add(drugInfoDTO);
         });
+        LOGGER.info("scanEnterpriseDrugStock drugInfoList:{}.", JSONUtils.toString(drugInfoList));
+        List<String> noDrugNames = drugInfoList.stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+        drugStockAmountDTO.setNotDrugNames(noDrugNames);
         drugStockAmountDTO.setDrugInfoList(drugInfoList);
+        drugStockAmountDTO.setResult(drugInfoList.stream().anyMatch(DrugInfoDTO::getStock));
         return drugStockAmountDTO;
     }
 

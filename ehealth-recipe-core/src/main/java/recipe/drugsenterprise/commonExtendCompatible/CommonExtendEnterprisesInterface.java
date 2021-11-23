@@ -27,7 +27,7 @@ public interface CommonExtendEnterprisesInterface {
 
     public boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds);
 
-    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, List<SaleDrugList> saleDrugLists);
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails);
 
     public String appEnterprise(RecipeOrder order);
 

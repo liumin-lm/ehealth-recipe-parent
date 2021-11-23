@@ -357,7 +357,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, List<SaleDrugList> saleDrugLists) {
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
         List<DrugInfoDTO> drugInfoList = new ArrayList<>();
         recipeDetails.forEach(recipeDetail -> {
