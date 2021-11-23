@@ -1,6 +1,7 @@
 package recipe.core.api;
 
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
+import com.ngari.recipe.dto.PatientOpenDrugWithEsDTO;
 import com.ngari.recipe.entity.Dispensatory;
 import com.ngari.recipe.entity.RecipeRulesDrugcorrelation;
 import com.ngari.recipe.vo.SearchDrugReqVo;
@@ -19,7 +20,7 @@ public interface IDrugBusinessService {
      * @param searchDrugReqVo
      * @return
      */
-    List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVo searchDrugReqVo);
+    List<PatientOpenDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVo searchDrugReqVo);
 
     /**
      * 获取药品说明书

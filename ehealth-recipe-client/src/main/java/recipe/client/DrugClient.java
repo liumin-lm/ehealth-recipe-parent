@@ -7,6 +7,7 @@ import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
+import com.ngari.recipe.dto.PatientOpenDrugWithEsDTO;
 import com.ngari.recipe.entity.DecoctionWay;
 import com.ngari.recipe.entity.DrugMakingMethod;
 import eh.entity.base.UsePathways;
@@ -45,7 +46,7 @@ public class DrugClient extends BaseClient {
      * @param limit    条数
      * @return
      */
-    public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(String saleName, String organId, List<String> drugType, int start, int limit) {
+    public List<PatientOpenDrugWithEsDTO> findDrugWithEsByPatient(String saleName, String organId, List<String> drugType, int start, int limit) {
         logger.info("DrugClient findDrugWithEsByPatient saleName : {} organId:{} drugType:{} start:{}  limit:{}", saleName, organId, JSON.toJSONString(drugType), start, limit);
         if (Objects.isNull(organId)) {
             return null;
@@ -55,8 +56,8 @@ public class DrugClient extends BaseClient {
         if (CollectionUtils.isEmpty(drugStrings)) {
             return null;
         }
-        List<PatientDrugWithEsDTO> patientDrugWithEsDTOS = drugStrings.stream().map(drugString -> {
-            PatientDrugWithEsDTO patientDrugWithEsDTO = JSONArray.parseObject(drugString, PatientDrugWithEsDTO.class);
+        List<PatientOpenDrugWithEsDTO> patientDrugWithEsDTOS = drugStrings.stream().map(drugString -> {
+            PatientOpenDrugWithEsDTO patientDrugWithEsDTO = JSONArray.parseObject(drugString, PatientOpenDrugWithEsDTO.class);
             return patientDrugWithEsDTO;
         }).collect(Collectors.toList());
 

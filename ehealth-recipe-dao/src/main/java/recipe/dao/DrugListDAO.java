@@ -485,6 +485,15 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
     public abstract List<DrugList> findByDrugIds(@DAOParam("drugIds") Collection<Integer> drugIds);
 
     /**
+     * ps:调用该方法不会设置用药频次等默认值
+     *
+     * @param drugIds
+     * @return
+     */
+    @DAOMethod(sql = "from DrugList where drugId in (:drugIds)",limit=0)
+    public abstract List<DrugList> findByDrugIdsAndStatus(@DAOParam("drugIds") Collection<Integer> drugIds);
+
+    /**
      *
      * 查询平台基础库删除的药
      * @param drugIds

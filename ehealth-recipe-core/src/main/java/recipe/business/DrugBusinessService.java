@@ -1,6 +1,7 @@
 package recipe.business;
 
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
+import com.ngari.recipe.dto.PatientOpenDrugWithEsDTO;
 import com.ngari.recipe.entity.Dispensatory;
 import com.ngari.recipe.entity.RecipeRulesDrugcorrelation;
 import com.ngari.recipe.vo.SearchDrugReqVo;
@@ -25,8 +26,8 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     private DrugManager drugManager;
 
     @Override
-    public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVo searchDrugReqVo) {
-        List<PatientDrugWithEsDTO> patientDrugWithEsDTOS = drugManager.findDrugWithEsByPatient(searchDrugReqVo.getSaleName(), searchDrugReqVo.getOrganId(), Arrays.asList(RecipeTypeEnum.RECIPETYPE_WM.getType().toString(), RecipeTypeEnum.RECIPETYPE_CPM.getType().toString()), searchDrugReqVo.getStart(), searchDrugReqVo.getLimit());
+    public List<PatientOpenDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVo searchDrugReqVo) {
+        List<PatientOpenDrugWithEsDTO> patientDrugWithEsDTOS = drugManager.findDrugWithEsByPatient(searchDrugReqVo.getSaleName(), searchDrugReqVo.getOrganId(), Arrays.asList(RecipeTypeEnum.RECIPETYPE_WM.getType().toString(), RecipeTypeEnum.RECIPETYPE_CPM.getType().toString()), searchDrugReqVo.getStart(), searchDrugReqVo.getLimit());
         return patientDrugWithEsDTOS;
     }
 
@@ -40,4 +41,5 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     public List<RecipeRulesDrugcorrelation> getListDrugRules(List<Integer> list, Integer ruleId) {
         return drugManager.getListDrugRules(list,ruleId);
     }
+
 }
