@@ -1,7 +1,6 @@
 package recipe.business;
 
 import com.alibaba.fastjson.JSON;
-import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.DoSignRecipeDTO;
 import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.dto.EnterpriseStock;
@@ -14,7 +13,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.bean.DrugEnterpriseResult;
 import recipe.client.DrugStockClient;
 import recipe.client.OperationClient;
 import recipe.constant.ErrorCode;
@@ -273,8 +271,9 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         }
         //通过平台调用药企
         AccessDrugEnterpriseService drugEnterpriseService = RemoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
-        DrugEnterpriseResult result = drugEnterpriseService.enterpriseStock(recipe, drugsEnterprise, recipeDetails);
-        enterpriseStock.setStock(RecipeResultBean.SUCCESS.equals(result.getCode()));
+        DrugStockAmountDTO result = drugEnterpriseService.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
+        enterpriseStock.setStock(result.isResult());
+        enterpriseStock.setDrugInfoList(result.getDrugInfoList());
     }
 
 
@@ -299,7 +298,11 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
                     enterpriseStockVO.setStock(a.getStock());
                 } else {
                     enterpriseStockVO.setStock(b.getStock());
-                    enterpriseStockVO.setStockAmountChin(b.getStockAmountChin());
+                    if (StringUtils.isNotEmpty(b.getStockAmountChin())) {
+                        enterpriseStockVO.setStockAmountChin(b.getStockAmountChin());
+                    } else {
+                        enterpriseStockVO.setStockAmountChin(String.valueOf(b.getStockAmount()));
+                    }
                 }
                 enterpriseStockVO.setDrugId(b.getDrugId());
                 enterpriseStockList.add(enterpriseStockVO);
@@ -316,7 +319,11 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
                 organStockList.setStock(false);
             } else {
                 organStockList.setStock(a.getStock());
-                organStockList.setStockAmountChin(a.getStockAmountChin());
+                if (StringUtils.isNotEmpty(a.getStockAmountChin())) {
+                    organStockList.setStockAmountChin(a.getStockAmountChin());
+                } else {
+                    organStockList.setStockAmountChin(String.valueOf(a.getStockAmount()));
+                }
             }
             enterpriseStockList.add(organStockList);
         });

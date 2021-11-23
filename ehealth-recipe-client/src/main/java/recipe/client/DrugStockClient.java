@@ -14,7 +14,6 @@ import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.exception.DAOException;
-import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -110,7 +109,7 @@ public class DrugStockClient extends BaseClient {
      * @param pharmacyTcms
      * @return
      */
-    public List<DrugInfoDTO> scanDrugStock(List<Recipedetail> detailList, int organId, List<OrganDrugList> organDrugList, List<PharmacyTcm> pharmacyTcms) {
+    public DrugStockAmountDTO scanDrugStock(List<Recipedetail> detailList, int organId, List<OrganDrugList> organDrugList, List<PharmacyTcm> pharmacyTcms) {
         Map<Integer, PharmacyTcm> pharmacyTcmMap = pharmacyTcms.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
         Map<String, Recipedetail> detailMap = detailList.stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getOrganDrugCode(), a -> a, (k1, k2) -> k1));
         List<DrugInfoTO> data = new LinkedList<>();
@@ -138,14 +137,24 @@ public class DrugStockClient extends BaseClient {
         DrugInfoRequestTO request = new DrugInfoRequestTO();
         request.setOrganId(organId);
         request.setData(data);
-        logger.info("DrugStockClient scanDrugStock request={}", JSONUtils.toString(request));
+        logger.info("DrugStockClient scanDrugStock request={}", JSON.toJSONString(request));
         try {
             DrugInfoResponseTO response = recipeHisService.scanDrugStock(request);
-            logger.info("DrugStockClient scanDrugStock response={}", JSONUtils.toString(response));
+            logger.info("DrugStockClient scanDrugStock response={}", JSON.toJSONString(response));
             List<DrugInfoTO> drugInfoList = oldCodeCompatibility(response, data);
             List<DrugInfoDTO> list = getDrugInfoDTO(drugInfoList);
-            logger.info(" DrugStockClient scanDrugStock  list={}", JSONUtils.toString(list));
-            return list;
+
+            DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+            drugStockAmountDTO.setResult(true);
+            drugStockAmountDTO.setDrugInfoList(list);
+            List<String> organCodes = list.stream().filter(a -> 0 == a.getStockAmount()).map(DrugInfoDTO::getOrganDrugCode).distinct().collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(organCodes)) {
+                List<String> drugNames = organDrugList.stream().filter(a -> organCodes.contains(a.getOrganDrugCode())).map(OrganDrugList::getDrugName).collect(Collectors.toList());
+                drugStockAmountDTO.setResult(false);
+                drugStockAmountDTO.setNotDrugNames(drugNames);
+            }
+            logger.info("DrugStockClient scanDrugStock drugStockAmountDTO={}", JSON.toJSONString(drugStockAmountDTO));
+            return drugStockAmountDTO;
         } catch (Exception e) {
             logger.error(" DrugStockClient scanDrugStock error ", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, " recipeHisService.scanDrugStock error");
@@ -272,6 +281,7 @@ public class DrugStockClient extends BaseClient {
             }
             list.add(drugInfoDTO);
         });
+        logger.info(" DrugStockClient getDrugInfoDTO  list={}", JSON.toJSONString(list));
         return list;
     }
 
@@ -312,14 +322,26 @@ public class DrugStockClient extends BaseClient {
         if (null == response) {
             response = new DrugInfoResponseTO();
             response.setMsgCode(0);
-            data.forEach(a -> a.setStockAmount(a.getUseTotalDose()));
+            data.forEach(a -> {
+                a.setStockAmount(a.getUseTotalDose());
+                a.setNoInventoryTip("有库存");
+            });
             return data;
         }
         List<DrugInfoTO> drugInfoList;
         if (CollectionUtils.isEmpty(response.getData())) {
-            data.forEach(a -> a.setStockAmount(a.getUseTotalDose()));
+            data.forEach(a -> {
+                a.setStockAmount(a.getUseTotalDose());
+                a.setNoInventoryTip("有库存");
+            });
             drugInfoList = data;
         } else {
+            response.getData().forEach(a -> {
+                if (null == a.getStockAmount()) {
+                    a.setStockAmount(a.getUseTotalDose());
+                    a.setNoInventoryTip("有库存");
+                }
+            });
             drugInfoList = response.getData();
         }
         //老版本代码兼容
@@ -328,9 +350,11 @@ public class DrugStockClient extends BaseClient {
             drugInfoList.forEach(a -> {
                 if (noStock.contains(a.getDrcode())) {
                     a.setStockAmount(0d);
+                    a.setNoInventoryTip("无库存");
                 }
             });
         }
+        logger.info(" DrugStockClient oldCodeCompatibility  list={}", JSON.toJSONString(drugInfoList));
         return drugInfoList;
     }
 

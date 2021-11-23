@@ -6,7 +6,6 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
-import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -36,7 +35,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service("commonSelfEnterprisesType")
 public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterface{
@@ -231,7 +229,6 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
 
     @Override
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, List<SaleDrugList> saleDrugLists){
-        DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
         List<OrganDrugList> organDrugLists = new ArrayList<>();
         recipeDetails.forEach(recipeDetail -> {
             OrganDrugList organDrugList = new OrganDrugList();
@@ -242,11 +239,7 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
             organDrugList.setProducerCode(recipeDetail.getProducerCode());
             organDrugLists.add(organDrugList);
         });
-        List<DrugInfoDTO> drugInfos = drugStockClient.scanDrugStock(recipeDetails, recipe.getClinicOrgan(), organDrugLists, new ArrayList<>());
-        drugStockAmountDTO.setResult(drugInfos.stream().anyMatch(DrugInfoDTO::getStock));
-        drugStockAmountDTO.setDrugInfoList(drugInfos);
-        List<String> noDrugNames = drugInfos.stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
-        drugStockAmountDTO.setNotDrugNames(noDrugNames);
+        DrugStockAmountDTO drugStockAmountDTO = drugStockClient.scanDrugStock(recipeDetails, recipe.getClinicOrgan(), organDrugLists, new ArrayList<>());
         return drugStockAmountDTO;
     }
 

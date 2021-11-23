@@ -127,14 +127,7 @@ public class OrganDrugListManager extends BaseManager {
         // 请求his
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(recipe.getClinicOrgan(), drugIdList);
         List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(pharmaIds);
-        List<DrugInfoDTO> drugInfoList = drugStockClient.scanDrugStock(detailList, recipe.getClinicOrgan(), organDrugList, pharmacyTcmByIds);
-        drugStockAmountDTO.setDrugInfoList(drugInfoList);
-        List<String> organCodes = drugInfoList.stream().filter(a -> 0 == a.getStockAmount()).map(DrugInfoDTO::getOrganDrugCode).distinct().collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(organCodes)) {
-            List<String> drugNames = organDrugList.stream().filter(a -> organCodes.contains(a.getOrganDrugCode())).map(OrganDrugList::getDrugName).collect(Collectors.toList());
-            drugStockAmountDTO.setResult(false);
-            drugStockAmountDTO.setNotDrugNames(drugNames);
-        }
+        drugStockAmountDTO = drugStockClient.scanDrugStock(detailList, recipe.getClinicOrgan(), organDrugList, pharmacyTcmByIds);
         logger.info("OrganDrugListManager scanDrugStockByRecipeId 结果={}", JSONObject.toJSONString(drugStockAmountDTO));
         return drugStockAmountDTO;
     }
