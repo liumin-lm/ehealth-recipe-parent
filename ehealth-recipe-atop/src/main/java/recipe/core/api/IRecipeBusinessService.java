@@ -2,6 +2,7 @@ package recipe.core.api;
 
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
+import com.ngari.recipe.dto.PatientOptionalDrugDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.vo.*;
 
@@ -81,4 +82,11 @@ public interface IRecipeBusinessService {
      * @return 处方列表
      */
     List<Recipe> findRecipesByStatusAndInvalidTime(List<Integer> status, Date invalidTime);
+
+    /**
+     * 医生端获取处方指定药品
+     * @param clinicId 复诊id
+     * @return
+     */
+    List<PatientOptionalDrugDTO> findPatientOptionalDrugDTO(Integer clinicId);
 }

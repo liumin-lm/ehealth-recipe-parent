@@ -4,25 +4,27 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Lists;
 import com.ngari.his.recipe.mode.DrugInfoResponseTO;
 import com.ngari.platform.recipe.mode.RecipeResultBean;
+import com.ngari.recipe.dto.PatientOptionalDrugDTO;
 import com.ngari.recipe.dto.ValidateOrganDrugDTO;
-import com.ngari.recipe.entity.OrganDrugList;
-import com.ngari.recipe.entity.PharmacyTcm;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DrugStockClient;
+import recipe.dao.PatientOptionalDrugDAO;
 import recipe.dao.PharmacyTcmDAO;
 import recipe.util.ValidateUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * 机构药品处理
@@ -36,6 +38,8 @@ public class OrganDrugListManager extends BaseManager {
     private DrugStockClient drugStockClient;
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
+    @Autowired
+    private PatientOptionalDrugDAO patientOptionalDrugDAO;
 
     /**
      * 校验机构药品库存
@@ -189,4 +193,46 @@ public class OrganDrugListManager extends BaseManager {
     }
 
 
+    /**
+     * 获取患者指定药品信息
+     *
+     * @param clinicId
+     * @return
+     */
+    public List<PatientOptionalDrugDTO> findPatientOptionalDrugDTO(Integer clinicId) {
+        logger.info("OrganDrugListManager findPatientOptionalDrugDTO req clinicId= {}", JSON.toJSONString(clinicId));
+        List<PatientOptionalDrug> patientOptionalDrugs = patientOptionalDrugDAO.findPatientOptionalDrugByClinicId(clinicId);
+        if (CollectionUtils.isEmpty(patientOptionalDrugs)) {
+            logger.info("OrganDrugListManager findPatientOptionalDrugDTO 返回值为空 patientOptionalDrugs= {}", JSON.toJSONString(patientOptionalDrugs));
+            return Lists.newArrayList();
+        }
+        Set<Integer> drugIds = patientOptionalDrugs.stream().collect(Collectors.groupingBy(PatientOptionalDrug::getDrugId)).keySet();
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(patientOptionalDrugs.get(0).getOrganId(), drugIds);
+        Map<Integer, List<OrganDrugList>> collect = organDrugList.stream().collect(Collectors.groupingBy(OrganDrugList::getDrugId));
+        List<PatientOptionalDrugDTO> patientOptionalDrugDTOS = patientOptionalDrugs.stream().map(patientOptionalDrug -> {
+            PatientOptionalDrugDTO patientOptionalDrugDTO = new PatientOptionalDrugDTO();
+            BeanUtils.copyProperties(patientOptionalDrug,patientOptionalDrugDTO);
+            List<OrganDrugList> organDrugLists = collect.get(patientOptionalDrug.getDrugId());
+            organDrugLists.forEach(organDrugList1 -> {
+                if(patientOptionalDrug.getOrganDrugCode().equals(organDrugList1.getOrganDrugCode())){
+                    patientOptionalDrugDTO.setDrugName(organDrugList1.getDrugName());
+                    patientOptionalDrugDTO.setDrugSpec(organDrugList1.getDrugSpec());
+                    patientOptionalDrugDTO.setDrugUnit(organDrugList1.getUnit());
+                    String pharmacy = organDrugList1.getPharmacy();
+                    if(StringUtils.isNotEmpty(pharmacy)){
+                        String[] pharmacyId = pharmacy.split(",");
+                        Set pharmaIds = new HashSet();
+                        for (String s : pharmacyId) {
+                            pharmaIds.add(Integer.valueOf(s));
+                        }
+                        List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(pharmaIds);
+                        patientOptionalDrugDTO.setPharmacyTcms(pharmacyTcmByIds);
+                    }
+                }
+            });
+            return patientOptionalDrugDTO;
+        }).collect(Collectors.toList());
+        logger.info("OrganDrugListManager findPatientOptionalDrugDTO res patientOptionalDrugDTOS= {}", JSON.toJSONString(patientOptionalDrugDTOS));
+        return patientOptionalDrugDTOS;
+    }
 }
