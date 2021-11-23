@@ -88,6 +88,7 @@ public class BusBillDateAccountDTO implements Serializable {
      * 患者联系电话
      */
     private String phone;
+    private String mpiid;
 
     /**
      * 1、全自费；2、全医保；3、部分医保部分自费

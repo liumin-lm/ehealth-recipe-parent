@@ -1,5 +1,6 @@
 package recipe.atop.open;
 
+import com.alibaba.fastjson.JSONArray;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.exception.DAOException;
@@ -12,6 +13,7 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRevisitBusinessService;
 import recipe.util.ObjectCopyUtils;
+import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
 import java.util.Date;
@@ -121,6 +123,13 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     public List<RecipeBean> findRecipesByStatusAndInvalidTime(List<Integer> status, Date invalidTime) {
         List<Recipe> recipes = recipeBusinessService.findRecipesByStatusAndInvalidTime(status, invalidTime);
         return ObjectCopyUtils.convert(recipes, RecipeBean.class);
+    }
+
+    @Override
+    public void savePatientDrug(PatientOptionalDrugVo patientOptionalDrugVo) {
+        logger.info("RecipeOpenAtop savePatientDrug patientOptionalDrugVo={}", JSONArray.toJSONString(patientOptionalDrugVo));
+        validateAtop(patientOptionalDrugVo.getClinicId(),patientOptionalDrugVo.getDrugId(),patientOptionalDrugVo.getOrganDrugCode(),patientOptionalDrugVo.getOrganId(),patientOptionalDrugVo.getPatientDrugNum());
+        recipeBusinessService.savePatientDrug(patientOptionalDrugVo);
     }
 
 }

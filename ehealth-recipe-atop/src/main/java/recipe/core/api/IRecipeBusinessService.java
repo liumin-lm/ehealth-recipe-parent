@@ -5,6 +5,7 @@ import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.PatientOptionalDrugDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.vo.*;
+import recipe.vo.patient.PatientOptionalDrugVo;
 
 import javax.xml.crypto.Data;
 import java.util.Date;
@@ -89,4 +90,10 @@ public interface IRecipeBusinessService {
      * @return
      */
     List<PatientOptionalDrugDTO> findPatientOptionalDrugDTO(Integer clinicId);
+
+    /**
+     * 保存患者自选药品
+     * @param patientOptionalDrugVo
+     */
+    void savePatientDrug(PatientOptionalDrugVo patientOptionalDrugVo);
 }

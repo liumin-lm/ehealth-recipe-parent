@@ -35,11 +35,23 @@ public class PatientOptionalDrug implements Serializable {
     @ItemProperty(alias = "机构药品编号")
     private String organDrugCode;
 
+    @ItemProperty(alias = "患者指定的药品数量")
+    private Integer patientDrugNum;
+
     @ItemProperty(alias = "创建时间")
     private Date createTime;
 
     @ItemProperty(alias = "修改时间")
     private Date modifiedTime;
+
+    @Column(name = "patient_drug_num")
+    public Integer getPatientDrugNum() {
+        return patientDrugNum;
+    }
+
+    public void setPatientDrugNum(Integer patientDrugNum) {
+        this.patientDrugNum = patientDrugNum;
+    }
 
     @Id
     @GeneratedValue(strategy = IDENTITY)

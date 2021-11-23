@@ -7,7 +7,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DepartClient;
-import recipe.dao.RecipeExtendDAO;
 
 /**
  * 科室通用业务处理类
@@ -20,9 +19,6 @@ public class DepartManager extends BaseManager {
 
     @Autowired
     private DepartClient departClient;
-
-    @Autowired
-    private RecipeExtendDAO recipeExtendDao;
 
     /**
      * 获取挂号科室
