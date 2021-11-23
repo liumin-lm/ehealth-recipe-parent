@@ -33,8 +33,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.aop.LogRecord;
 import recipe.bean.CheckYsInfoBean;
-import recipe.business.DrugStockBusinessService;
 import recipe.constant.*;
+import recipe.core.api.patient.IDrugEnterpriseBusinessService;
 import recipe.dao.*;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
@@ -51,7 +51,6 @@ import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 import recipe.util.ValidateUtil;
 
-import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -83,10 +82,8 @@ public class RecipeSignService {
     private DrugsEnterpriseService drugsEnterpriseService;
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
-
-    @Resource
-    private DrugStockBusinessService drugStockBusinessService;
-
+    @Autowired
+    private IDrugEnterpriseBusinessService drugEnterpriseBusinessService;
     @Autowired
     private RevisitManager revisitManager;
 
@@ -404,7 +401,7 @@ public class RecipeSignService {
             //第三步校验库存
             Integer appointEnterpriseType = recipeBean.getRecipeExtend().getAppointEnterpriseType();
             if ((continueFlag == 0 || continueFlag == 4) && ValidateUtil.integerIsEmpty(appointEnterpriseType)) {
-                rMap = drugStockBusinessService.enterpriseStock(recipeBean.getRecipeId());
+                rMap = drugEnterpriseBusinessService.enterpriseStock(recipeBean.getRecipeId());
                 boolean signResult = Boolean.parseBoolean(rMap.get("signResult").toString());
                 if (!signResult) {
                     return rMap;

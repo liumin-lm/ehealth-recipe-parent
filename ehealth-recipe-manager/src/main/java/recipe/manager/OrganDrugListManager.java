@@ -4,10 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
-import com.ngari.recipe.dto.DrugInfoDTO;
-import com.ngari.recipe.dto.DrugStockAmountDTO;
-import com.ngari.recipe.dto.PatientOptionalDrugDTO;
-import com.ngari.recipe.dto.ValidateOrganDrugDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -17,8 +14,11 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DrugStockClient;
+import recipe.client.OperationClient;
 import recipe.dao.PatientOptionalDrugDAO;
 import recipe.dao.PharmacyTcmDAO;
+import recipe.enumerate.type.AppointEnterpriseTypeEnum;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.util.ValidateUtil;
 
 import java.util.*;
@@ -38,6 +38,45 @@ public class OrganDrugListManager extends BaseManager {
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
     private PatientOptionalDrugDAO patientOptionalDrugDAO;
+    @Autowired
+    private OperationClient operationClient;
+
+    public EnterpriseStock organStock(Integer organId, List<Recipedetail> detailList) {
+        Recipe recipe = new Recipe();
+        recipe.setClinicOrgan(organId);
+        return organStock(recipe, detailList);
+    }
+
+    public EnterpriseStock organStock(Recipe recipe, List<Recipedetail> detailList) {
+        List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(recipe.getClinicOrgan());
+        //无到院取药
+        String showButtonName = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
+        if (StringUtils.isEmpty(showButtonName)) {
+            return null;
+        }
+        //返回出参
+        List<GiveModeButtonDTO> giveModeButton = new LinkedList<>();
+        GiveModeButtonDTO giveModeButtonDTO = new GiveModeButtonDTO();
+        giveModeButtonDTO.setType(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
+        giveModeButtonDTO.setShowButtonKey(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
+        giveModeButtonDTO.setShowButtonName(showButtonName);
+        giveModeButton.add(giveModeButtonDTO);
+
+        OrganDTO organDTO = organClient.organDTO(recipe.getClinicOrgan());
+        EnterpriseStock enterpriseStock = new EnterpriseStock();
+        enterpriseStock.setGiveModeButton(giveModeButton);
+        enterpriseStock.setDeliveryName(organDTO.getName() + "门诊药房");
+        enterpriseStock.setDeliveryCode(recipe.getClinicOrgan().toString());
+        enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ORGAN_APPOINT.getType());
+        enterpriseStock.setStock(true);
+        //校验医院库存
+        DrugStockAmountDTO scanResult = scanDrugStockByRecipeId(recipe, detailList);
+        enterpriseStock.setDrugInfoList(scanResult.getDrugInfoList());
+        enterpriseStock.setDrugName(scanResult.getNotDrugNames());
+        enterpriseStock.setStock(scanResult.isResult());
+        return enterpriseStock;
+    }
+
 
     /**
      * 校验机构药品库存

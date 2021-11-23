@@ -1,6 +1,8 @@
 package recipe.business;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.dto.DoSignRecipeDTO;
 import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
@@ -9,19 +11,32 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.exception.DAOException;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.client.OperationClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.patient.IDrugEnterpriseBusinessService;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrganDrugListManager;
+import recipe.thread.RecipeBusiThreadPool;
+import recipe.util.ListValueUtil;
+import recipe.util.MapValueUtil;
+import recipe.vo.doctor.DrugEnterpriseStockVO;
+import recipe.vo.doctor.EnterpriseStockVO;
 
+import javax.annotation.Resource;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -37,9 +52,131 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
     private EnterpriseManager enterpriseManager;
     @Autowired
     private OrganDrugListManager organDrugListManager;
+    @Autowired
+    private OperationClient operationClient;
+    @Resource
+    private RecipeDAO recipeDAO;
+    @Resource
+    private RecipeDetailDAO recipeDetailDAO;
+
 
     @Override
-    public List<EnterpriseStock> enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails) {
+    public List<EnterpriseStock> stockList(Recipe recipe, List<Recipedetail> recipeDetails) {
+        //药企库存
+        List<EnterpriseStock> result = this.enterpriseStockCheck(recipe, recipeDetails);
+        //医院库存
+        EnterpriseStock organStock = organDrugListManager.organStock(recipe, recipeDetails);
+        if (null != organStock) {
+            result.add(organStock);
+        }
+        result.forEach(a -> {
+            a.setDrugsEnterprise(null);
+            a.setDrugInfoList(null);
+        });
+        return result;
+    }
+
+    @Override
+    public List<DrugEnterpriseStockVO> stockList(Integer organId, List<Recipedetail> recipeDetails) {
+        List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(organId);
+        //无到院取药
+        String supportDownloadButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
+        String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
+
+        EnterpriseStock organStock = organDrugListManager.organStock(organId, recipeDetails);
+        List<EnterpriseStock> result = this.enterpriseStockCheck(organId, recipeDetails);
+        List<EnterpriseStockVO> enterpriseStockList = getEnterpriseStockVO(organStock, result);
+        Map<Integer, List<EnterpriseStockVO>> enterpriseStockGroup = enterpriseStockList.stream().collect(Collectors.groupingBy(EnterpriseStockVO::getDrugId));
+        List<DrugEnterpriseStockVO> drugEnterpriseStockList = new LinkedList<>();
+        //组织 药品 对应的 药企列表库存
+        recipeDetails.forEach(a -> {
+            DrugEnterpriseStockVO drugEnterpriseStock = new DrugEnterpriseStockVO();
+            drugEnterpriseStock.setDrugId(a.getDrugId());
+            //默认无库存
+            boolean stock = false;
+            if (StringUtils.isNotEmpty(supportDownloadButton) || StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
+                stock = true;
+            }
+            List<EnterpriseStockVO> list = enterpriseStockGroup.get(a.getDrugId());
+            if (CollectionUtils.isNotEmpty(list)) {
+                drugEnterpriseStock.setEnterpriseStockList(list);
+                boolean stockEnterprise = list.stream().anyMatch(EnterpriseStockVO::getStock);
+                if (stock || stockEnterprise) {
+                    stock = true;
+                }
+            }
+            drugEnterpriseStock.setAllStock(stock);
+        });
+        return drugEnterpriseStockList;
+    }
+
+    @Override
+    public Map<String, Object> enterpriseStock(Integer recipeId) {
+        Recipe recipe = recipeDAO.get(recipeId);
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
+        //医院库存
+        EnterpriseStock organStock = organDrugListManager.organStock(recipe, recipeDetails);
+        //药企库存
+        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(recipe, recipeDetails);
+
+        DoSignRecipeDTO doSignRecipe = new DoSignRecipeDTO(true, false, null, "", recipeId, null);
+        //无到院取药
+
+        List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(recipe.getClinicOrgan());
+
+        //未配置药企 / 医院
+        if (CollectionUtils.isEmpty(giveModeButtonBeans)) {
+            enterpriseManager.doSignRecipe(doSignRecipe, null, "抱歉，机构未配置购药方式，无法开处方");
+            return MapValueUtil.beanToMap(doSignRecipe);
+        }
+        //未配置药企 医院无库存
+        if (CollectionUtils.isEmpty(enterpriseStock) && null != organStock && !organStock.getStock()) {
+            enterpriseManager.doSignRecipe(doSignRecipe, organStock.getDrugName(), "药品门诊药房库存不足，请更换其他药品后再试");
+        }
+        //未配置医院 药企无库存
+        if (CollectionUtils.isNotEmpty(enterpriseStock) && null == organStock) {
+            boolean stock = enterpriseStock.stream().anyMatch(EnterpriseStock::getStock);
+            if (!stock) {
+                List<List<String>> groupList = new LinkedList<>();
+                enterpriseStock.forEach(a -> groupList.add(a.getDrugName()));
+                List<String> enterpriseDrugName = ListValueUtil.minIntersection(groupList);
+                enterpriseManager.doSignRecipe(doSignRecipe, enterpriseDrugName, "药品库存不足，请更换其他药品后再试");
+            }
+        }
+        //校验医院和药企
+        if (CollectionUtils.isNotEmpty(enterpriseStock) && null != organStock) {
+            boolean stockEnterprise = enterpriseStock.stream().anyMatch(EnterpriseStock::getStock);
+            //医院有库存 药企无库存
+            if (!stockEnterprise && organStock.getStock()) {
+                List<List<String>> groupList = new LinkedList<>();
+                enterpriseStock.forEach(a -> groupList.add(a.getDrugName()));
+                List<String> enterpriseDrugName = ListValueUtil.minIntersection(groupList);
+                doSignRecipe.setCanContinueFlag("2");
+                enterpriseManager.doSignRecipe(doSignRecipe, enterpriseDrugName, "药品配送药企库存不足，该处方仅支持到院取药，无法药企配送，是否继续？");
+            }
+            //医院无库存 药企有库存
+            if (stockEnterprise && !organStock.getStock()) {
+                doSignRecipe.setCanContinueFlag("1");
+                enterpriseManager.doSignRecipe(doSignRecipe, organStock.getDrugName(), "药品医院库存不足，该处方仅支持药企配送，无法到院取药，是否继续？");
+            }
+            //医院无库存 药企无库存
+            if (!stockEnterprise && !organStock.getStock()) {
+                enterpriseManager.doSignRecipe(doSignRecipe, organStock.getDrugName(), "药品库存不足，请更换其他药品后再试");
+            }
+        }
+        //保存药品购药方式
+        saveGiveMode(recipe, organStock, enterpriseStock);
+        return MapValueUtil.beanToMap(doSignRecipe);
+    }
+
+    /**
+     * 校验 药品库存在 同一个药企下的库存数量
+     *
+     * @param recipe
+     * @param recipeDetails
+     * @return
+     */
+    private List<EnterpriseStock> enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails) {
         Integer organId = recipe.getClinicOrgan();
         //获取机构配置按钮
         List<GiveModeButtonDTO> giveModeButtonBeans = buttonManager.getOrganGiveModeMap(organId);
@@ -70,9 +207,14 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         return enterpriseStockList;
     }
 
-
-    @Override
-    public List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<Recipedetail> recipeDetails) {
+    /**
+     * 校验 药品库存 的库存数量
+     *
+     * @param organId
+     * @param recipeDetails
+     * @return
+     */
+    private List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<Recipedetail> recipeDetails) {
         //获取机构配置按钮
         List<GiveModeButtonDTO> giveModeButtonBeans = buttonManager.getOrganGiveModeMap(organId);
         //获取需要查询库存的药企对象
@@ -138,4 +280,101 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         DrugEnterpriseResult result = drugEnterpriseService.enterpriseStock(recipe, drugsEnterprise, recipeDetails);
         enterpriseStock.setStock(RecipeResultBean.SUCCESS.equals(result.getCode()));
     }
+
+
+    /***
+     * 组装药企药品一对一库存关系
+     * @param organStock 医院库存
+     * @param result 药企库存
+     * @return
+     */
+    private List<EnterpriseStockVO> getEnterpriseStockVO(EnterpriseStock organStock, List<EnterpriseStock> result) {
+        List<EnterpriseStockVO> enterpriseStockList = new LinkedList<>();
+        result.forEach(a -> {
+            if (CollectionUtils.isEmpty(a.getDrugInfoList())) {
+                return;
+            }
+            a.getDrugInfoList().forEach(b -> {
+                EnterpriseStockVO enterpriseStockVO = new EnterpriseStockVO();
+                enterpriseStockVO.setDrugId(b.getDrugId());
+                enterpriseStockVO.setAppointEnterpriseType(a.getAppointEnterpriseType());
+                enterpriseStockVO.setDeliveryCode(a.getDeliveryCode());
+                enterpriseStockVO.setDeliveryName(a.getDeliveryName());
+                if (!a.getCheckDrugStock()) {
+                    enterpriseStockVO.setStock(true);
+                } else {
+                    if (!a.getStock()) {
+                        enterpriseStockVO.setStock(false);
+                    } else {
+                        enterpriseStockVO.setStock(b.getStock());
+                        enterpriseStockVO.setStockAmountChin(b.getStockAmountChin());
+                    }
+                }
+                enterpriseStockList.add(enterpriseStockVO);
+            });
+        });
+        if (CollectionUtils.isEmpty(organStock.getDrugInfoList())) {
+            return enterpriseStockList;
+        }
+        organStock.getDrugInfoList().forEach(a -> {
+            EnterpriseStockVO enterpriseStockVO = new EnterpriseStockVO();
+            enterpriseStockVO.setDrugId(a.getDrugId());
+            enterpriseStockVO.setAppointEnterpriseType(organStock.getAppointEnterpriseType());
+            enterpriseStockVO.setDeliveryCode(organStock.getDeliveryCode());
+            enterpriseStockVO.setDeliveryName(organStock.getDeliveryName());
+            if (!a.getStock()) {
+                enterpriseStockVO.setStock(false);
+            } else {
+                enterpriseStockVO.setStock(a.getStock());
+                enterpriseStockVO.setStockAmountChin(a.getStockAmountChin());
+            }
+            enterpriseStockList.add(enterpriseStockVO);
+        });
+        return enterpriseStockList;
+    }
+
+
+    /**
+     * * 异步保存处方购药方式
+     *
+     * @param recipe          处方信息
+     * @param organStock      机构库存
+     * @param enterpriseStock 药企库存
+     */
+    private void saveGiveMode(Recipe recipe, EnterpriseStock organStock, List<EnterpriseStock> enterpriseStock) {
+        RecipeBusiThreadPool.execute(() -> {
+            logger.info("DrugStockBusinessService saveGiveMode start recipe={}", JSON.toJSONString(recipe));
+            List<GiveModeButtonDTO> giveModeButton = new LinkedList<>();
+            if (null != organStock && organStock.getStock()) {
+                giveModeButton.addAll(organStock.getGiveModeButton());
+            }
+            enterpriseStock.stream().filter(EnterpriseStock::getStock).forEach(a -> giveModeButton.addAll(a.getGiveModeButton()));
+            List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(recipe.getClinicOrgan());
+            String supportDownloadButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
+            if (StringUtils.isNotEmpty(supportDownloadButton)) {
+                GiveModeButtonDTO supportDownload = new GiveModeButtonDTO();
+                supportDownload.setType(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getType());
+                giveModeButton.add(supportDownload);
+            }
+            String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
+            if (StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
+                GiveModeButtonDTO supportMedicalPayment = new GiveModeButtonDTO();
+                supportMedicalPayment.setType(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getType());
+                giveModeButton.add(supportMedicalPayment);
+            }
+            if (CollectionUtils.isEmpty(giveModeButton)) {
+                return;
+            }
+            Set<Integer> recipeGiveMode = giveModeButton.stream().map(GiveModeButtonDTO::getType).collect(Collectors.toSet());
+            if (CollectionUtils.isNotEmpty(recipeGiveMode)) {
+                String join = StringUtils.join(recipeGiveMode, ",");
+                Recipe recipeUpdate = new Recipe();
+                recipeUpdate.setRecipeId(recipe.getRecipeId());
+                recipeUpdate.setRecipeSupportGiveMode(join);
+                recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
+            }
+            logger.info("DrugStockBusinessService saveGiveMode 异步保存处方购药方式 {},{}", recipe.getRecipeId(), JSON.toJSONString(recipeGiveMode));
+        });
+    }
+
 }

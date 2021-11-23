@@ -3,8 +3,10 @@ package recipe.core.api.patient;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import recipe.vo.doctor.DrugEnterpriseStockVO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 药企处理实现类
@@ -13,20 +15,29 @@ import java.util.List;
  */
 public interface IDrugEnterpriseBusinessService {
     /**
-     * 校验药企库存
+     * 医生指定药企列表-查库存
      *
-     * @param recipe     处方信息
-     * @param detailList 处方明细信息
-     * @return 返回药企库存信息
+     * @param recipe        处方数据
+     * @param recipeDetails 处方明细
+     * @return
      */
-    List<EnterpriseStock> enterpriseStockCheck(Recipe recipe, List<Recipedetail> detailList);
+    List<EnterpriseStock> stockList(Recipe recipe, List<Recipedetail> recipeDetails);
 
     /**
-     * 校验药企库存 ：不判断 药品在同一个 药企下
+     * 医生端查询药品列表-查库存
      *
-     * @param organId       处方信息
-     * @param recipeDetails 处方明细信息
-     * @return 返回药企库存信息
+     * @param organId       机构id
+     * @param recipeDetails 处方明细
+     * @return
      */
-    List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<Recipedetail> recipeDetails);
+    List<DrugEnterpriseStockVO> stockList(Integer organId, List<Recipedetail> recipeDetails);
+
+    /**
+     * 校验 药品库存 在同一个药企下的库存数量
+     * todo 兼容老代码 所以出参数用map 非特殊情况 不可使用
+     *
+     * @param recipeId 处方id
+     * @return 是否可以开方
+     */
+    Map<String, Object> enterpriseStock(Integer recipeId);
 }

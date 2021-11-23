@@ -190,14 +190,7 @@ public class ButtonManager extends BaseManager {
      * @return 运营平台的配置项
      */
     public List<GiveModeButtonDTO> getOrganGiveModeMap(Integer organId) {
-        logger.info("ButtonManager.getGiveModeMap organId={}", organId);
-        //添加按钮配置项key
-        GiveModeShowButtonDTO giveModeShowButtonVO = getGiveModeSettingFromYypt(organId);
-        List<GiveModeButtonDTO> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
-        if (null == giveModeButtonBeans) {
-            return null;
-        }
-        return giveModeButtonBeans;
+        return operationClient.getOrganGiveModeMap(organId);
     }
 
 

@@ -46,7 +46,6 @@ import recipe.ApplicationUtils;
 import recipe.bean.cqjgptbussdata.AdditionalDiagnosis;
 import recipe.bean.cqjgptbussdata.Drug;
 import recipe.bean.cqjgptbussdata.RecipeDocSignatureXML;
-import recipe.business.DrugStockBusinessService;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.XstreamUtil;
 import recipe.ca.vo.CaSignResultVo;
@@ -55,6 +54,7 @@ import recipe.caNew.CaAfterProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.constant.CARecipeTypeConstant;
 import recipe.constant.RecipeStatusConstant;
+import recipe.core.api.patient.IDrugEnterpriseBusinessService;
 import recipe.dao.*;
 import recipe.manager.EmrRecipeManager;
 import recipe.service.common.RecipeSignService;
@@ -105,7 +105,7 @@ public class RecipeCAService {
     private CreatePdfFactory createPdfFactory;
 
     @Resource
-    private DrugStockBusinessService drugStockBusinessService;
+    private IDrugEnterpriseBusinessService drugEnterpriseBusinessService;
 
     @RpcService
     public CommonSignRequest packageCAFromRecipe(Integer recipeId, Integer doctorId, Boolean isDoctor) {
@@ -625,7 +625,7 @@ public class RecipeCAService {
             }
             //第三步校验库存
             if (continueFlag == 0 || continueFlag == 4) {
-                rMap = drugStockBusinessService.enterpriseStock(recipeBean.getRecipeId());
+                rMap = drugEnterpriseBusinessService.enterpriseStock(recipeBean.getRecipeId());
                 Boolean signResult = Boolean.valueOf(rMap.get("signResult").toString());
                 if (signResult != null && false == signResult) {
                     return rMap;
