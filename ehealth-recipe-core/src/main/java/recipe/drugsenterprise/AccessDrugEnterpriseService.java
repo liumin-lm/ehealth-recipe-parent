@@ -207,10 +207,9 @@ public abstract class AccessDrugEnterpriseService {
      * @param recipe  处方
      * @param drugsEnterprise 药企
      * @param recipeDetails 处方详情
-     * @param saleDrugLists 配送药品
      * @return 库存信息
      */
-    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, List<SaleDrugList> saleDrugLists) {
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
         drugStockAmountDTO.setResult(true);
         List<DrugInfoDTO> drugInfoList = new ArrayList<>();
