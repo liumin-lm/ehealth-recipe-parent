@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.client.IConfigurationClient;
 import recipe.constant.CacheConstant;
+import recipe.enumerate.type.ExpressFeePayWayEnum;
 import recipe.enumerate.type.PayBusTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.PayFlowTypeEnum;
@@ -271,6 +272,42 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                 if (ysbody.get("yfje") != null) {
                     attr.put("cashAmount", ConversionUtils.convert(ysbody.get("yfje"), Double.class));
                 }
+                try {
+                    //计算预结算返回的总金额与平台的总金额是否一致，如果不一致，则更新
+                    if (null != zje && null != order.getTotalFee() && order.getTotalFee().doubleValue() != zje) {
+                        logger.info("卫宁返回预结算金额与订单平台金额不一致,zje:{},totalFee:{},expressFeePayWay:{},expressFee：{}", zje, order.getTotalFee(), order.getExpressFeePayWay(), order.getExpressFee());
+                        if (null == order.getExpressFeePayWay() || ExpressFeePayWayEnum.ONLINE.getType().equals(order.getExpressFeePayWay())) {
+                            //表示快递费是线上支付
+                            if (null != order.getExpressFee() && order.getExpressFee().compareTo(BigDecimal.ZERO) > 0) {
+                                //说明快递费线上支付取费用大于0
+                                double recipeFee = zje - order.getExpressFee().doubleValue();
+                                if (recipeFee >= 0) {
+                                    attr.put("RecipeFee", new BigDecimal(recipeFee));
+                                    attr.put("TotalFee", new BigDecimal(zje));
+                                    attr.put("ActualPrice", new BigDecimal(zje));
+                                }
+                            } else {
+                                attr.put("RecipeFee", new BigDecimal(zje));
+                                attr.put("TotalFee", new BigDecimal(zje));
+                                attr.put("ActualPrice", new BigDecimal(zje));
+                            }
+                        } else {
+                            //表示快递费线下支付
+                            if (null != order.getExpressFee() && order.getExpressFee().compareTo(BigDecimal.ZERO) > 0) {
+                                double totalFee = zje + order.getExpressFee().doubleValue();
+                                attr.put("TotalFee", new BigDecimal(totalFee));
+                                attr.put("RecipeFee", new BigDecimal(zje));
+                                attr.put("ActualPrice", new BigDecimal(zje));
+                            } else {
+                                attr.put("RecipeFee", new BigDecimal(zje));
+                                attr.put("TotalFee", new BigDecimal(zje));
+                                attr.put("ActualPrice", new BigDecimal(zje));
+                            }
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.error("设置订单金额失败", e);
+                }
             }
 
             attr.put("PayBackPrice", payBackPrice);
@@ -292,23 +329,6 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
                     //存储到处方是4-普通医保
                     attr.put("orderType", 4);
                 }
-            }
-            try {
-                if (ysbody != null) {
-                    logger.info("assembleWeiningPayCallBackParamAndUpdate payBackPrice:{}.", payBackPrice);
-                    //更新订单表实际支付金额(订单表的实际支付金额可能与患者实际支付不一致，对于不一致的进行更新，处方金额没有返回不做处理)
-                    if (order.getActualPrice() != payBackPrice) {
-                        attr.put("ActualPrice", new BigDecimal(payBackPrice));
-                    }
-                    /*if (null != order.getCouponFee() && order.getCouponFee().compareTo(BigDecimal.ZERO) > 0) {
-                        BigDecimal total_fee = new BigDecimal(payBackPrice + order.getCouponFee().doubleValue());
-                        attr.put("TotalFee", total_fee);
-                    } else {
-                        attr.put("TotalFee", new BigDecimal(payBackPrice));
-                    }*/
-                }
-            } catch (Exception e) {
-                logger.error("设置实际支付金额失败 ", e);
             }
         }
         //更新订单信息

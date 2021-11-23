@@ -1214,7 +1214,11 @@ public class DrugToolService implements IDrugToolService {
 
                         organDrugList.setUsingRate(drugListMatch.getUsingRate());
                         organDrugList.setUsePathways(drugListMatch.getUsePathways());
-                        organDrugList.setProducer(drugListMatch.getProducer());
+                        if (ObjectUtils.isEmpty(drugListMatch.getProducer())){
+                            organDrugList.setProducer("");
+                        }else {
+                            organDrugList.setProducer(drugListMatch.getProducer());
+                        }
                         organDrugList.setUseDose(drugListMatch.getUseDose());
                         organDrugList.setRecommendedUseDose(drugListMatch.getDefaultUseDose());
                         organDrugList.setPack(drugListMatch.getPack());
@@ -1389,7 +1393,11 @@ public class DrugToolService implements IDrugToolService {
 
                         organDrugList.setUsingRate(drugListMatch.getUsingRate());
                         organDrugList.setUsePathways(drugListMatch.getUsePathways());
-                        organDrugList.setProducer(drugListMatch.getProducer());
+                        if (ObjectUtils.isEmpty(drugListMatch.getProducer())){
+                            organDrugList.setProducer("");
+                        }else {
+                            organDrugList.setProducer(drugListMatch.getProducer());
+                        }
                         organDrugList.setUseDose(drugListMatch.getUseDose());
                         organDrugList.setRecommendedUseDose(drugListMatch.getDefaultUseDose());
                         organDrugList.setPack(drugListMatch.getPack());
@@ -1953,13 +1961,18 @@ public class DrugToolService implements IDrugToolService {
                 //药品编码
                 drugList.setDrugCode(drugListMatch.getOrganDrugCode());
                 //其他
-                if (drugList.getDrugType()==1){
+                if (!ObjectUtils.isEmpty(drugList.getDrugType())){
+                    if (drugList.getDrugType()==1){
+                        drugList.setDrugClass("1901");
+                    }else if (drugList.getDrugType()==2){
+                        drugList.setDrugClass("1801");
+                    }else if (drugList.getDrugType()==3){
+                        drugList.setDrugClass("2001");
+                    }
+                }else {
                     drugList.setDrugClass("1901");
-                }else if (drugList.getDrugType()==2){
-                    drugList.setDrugClass("1801");
-                }else if (drugList.getDrugType()==3){
-                    drugList.setDrugClass("2001");
                 }
+
                 drugList.setAllPyCode("");
                 drugList.setStatus(1);
                 drugList.setIsStandardDrug(0);

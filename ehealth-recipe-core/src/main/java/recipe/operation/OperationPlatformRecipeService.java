@@ -240,7 +240,7 @@ public class OperationPlatformRecipeService {
                 p.setMpiId(patient.getMpiId());
                 p.setCertificateType(patient.getCertificateType());
                 //判断该就诊人是否为儿童就诊人
-                if (patient.getPatientUserType() == 1 || patient.getPatientUserType() == 2) {
+                if (new Integer(1).equals(patient.getPatientUserType()) || new Integer(2).equals(patient.getPatientUserType())) {
                     if (null != extend && StringUtils.isNotEmpty(extend.getGuardianCertificate())) {
                         guardian.setName(extend.getGuardianName());
                         guardian.setGuardianCertificate(hideIdCard(extend.getGuardianCertificate()));

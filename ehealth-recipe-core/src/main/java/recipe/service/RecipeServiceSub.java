@@ -224,9 +224,9 @@ public class RecipeServiceSub {
                 recipeExtend.setGuardianCertificate(patient.getGuardianCertificate());
                 recipeExtend.setGuardianMobile(patient.getMobile());
                 LOGGER.info("doWithRecipeExtend patient={}", JSONUtils.toString(patient));
-                if (patient.getPatientUserType() == 1 || patient.getPatientUserType() == 2) {
+                if (new Integer(1).equals(patient.getPatientUserType()) || new Integer(2).equals(patient.getPatientUserType())) {
                     recipeExtend.setRecipeFlag(1);
-                } else if (patient.getPatientUserType() == 0) {
+                } else if (new Integer(0).equals(patient.getPatientUserType())) {
                     recipeExtend.setRecipeFlag(0);
                 }
             }
@@ -1489,7 +1489,7 @@ public class RecipeServiceSub {
             RecipeServiceSub.setPatientMoreInfo(patientBean, recipe.getDoctor());
             patient = RecipeServiceSub.patientDesensitization(patientBean);
             //判断该就诊人是否为儿童就诊人
-            if (patient.getPatientUserType() == 1 || patient.getPatientUserType() == 2) {
+            if (new Integer(1).equals(patient.getPatientUserType()) || new Integer(2).equals(patient.getPatientUserType())) {
                 GuardianBean guardian = new GuardianBean();
                 guardian.setName(patient.getGuardianName());
                 try {
