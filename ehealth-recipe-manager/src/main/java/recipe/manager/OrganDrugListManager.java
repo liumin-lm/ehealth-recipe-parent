@@ -39,12 +39,26 @@ public class OrganDrugListManager extends BaseManager {
     @Autowired
     private OperationClient operationClient;
 
+    /**
+     * 查询药品库存 用于药品展示
+     *
+     * @param organId
+     * @param detailList
+     * @return
+     */
     public EnterpriseStock organStock(Integer organId, List<Recipedetail> detailList) {
         Recipe recipe = new Recipe();
         recipe.setClinicOrgan(organId);
-        return organStock(recipe, detailList);
+        return this.organStock(recipe, detailList);
     }
 
+    /**
+     * 查询药品库存 用于机构展示
+     *
+     * @param recipe
+     * @param detailList
+     * @return
+     */
     public EnterpriseStock organStock(Recipe recipe, List<Recipedetail> detailList) {
         List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(recipe.getClinicOrgan());
         //无到院取药
@@ -68,7 +82,7 @@ public class OrganDrugListManager extends BaseManager {
         enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ORGAN_APPOINT.getType());
         enterpriseStock.setStock(true);
         //校验医院库存
-        DrugStockAmountDTO scanResult = scanDrugStockByRecipeId(recipe, detailList);
+        DrugStockAmountDTO scanResult = this.scanDrugStockByRecipeId(recipe, detailList);
         enterpriseStock.setDrugInfoList(scanResult.getDrugInfoList());
         enterpriseStock.setDrugName(scanResult.getNotDrugNames());
         enterpriseStock.setStock(scanResult.isResult());
@@ -89,15 +103,18 @@ public class OrganDrugListManager extends BaseManager {
         drugStockAmountDTO.setResult(true);
         if (null != recipe.getTakeMedicine() && 1 == recipe.getTakeMedicine()) {
             //外带药处方则不进行校验
+            drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(detailList, true));
             return drugStockAmountDTO;
         }
         if (CollectionUtils.isEmpty(detailList)) {
             drugStockAmountDTO.setResult(false);
+            drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(detailList, false));
             return drugStockAmountDTO;
         }
         // 判断his 是否启用
         if (!configurationClient.isHisEnable(recipe.getClinicOrgan())) {
             drugStockAmountDTO.setResult(false);
+            drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(detailList, false));
             logger.info("OrganDrugListManager scanDrugStockByRecipeId 医院HIS未启用 organId: {}", recipe.getClinicOrgan());
             return drugStockAmountDTO;
         }
@@ -214,5 +231,6 @@ public class OrganDrugListManager extends BaseManager {
         }
         return null;
     }
+
 
 }
