@@ -70,10 +70,6 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         if (null != organStock) {
             result.add(organStock);
         }
-        result.forEach(a -> {
-            a.setDrugsEnterprise(null);
-            a.setDrugInfoList(null);
-        });
         return result;
     }
 
@@ -173,9 +169,9 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
     /**
      * 校验 药品库存在 同一个药企下的库存数量
      *
-     * @param recipe
-     * @param recipeDetails
-     * @return
+     * @param recipe        处方机构id
+     * @param recipeDetails 药品信息 drugId，code
+     * @return 药品信息非必须
      */
     private List<EnterpriseStock> enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails) {
         Integer organId = recipe.getClinicOrgan();
@@ -211,9 +207,9 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
     /**
      * 校验 药品库存 的库存数量
      *
-     * @param organId
-     * @param recipeDetails
-     * @return
+     * @param organId       机构id
+     * @param recipeDetails 药品信息 drugId，code
+     * @return 药品信息 一定存在于出参
      */
     private List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<Recipedetail> recipeDetails) {
         //获取机构配置按钮
