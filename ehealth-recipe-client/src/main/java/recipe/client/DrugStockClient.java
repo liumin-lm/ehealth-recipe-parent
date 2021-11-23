@@ -142,24 +142,8 @@ public class DrugStockClient extends BaseClient {
         try {
             DrugInfoResponseTO response = recipeHisService.scanDrugStock(request);
             logger.info("DrugStockClient scanDrugStock response={}", JSONUtils.toString(response));
-            //老版本代码兼容 his未配置该服务则还是可以通过
-            if (null == response || CollectionUtils.isEmpty(response.getData())) {
-                response = new DrugInfoResponseTO();
-                response.setMsgCode(0);
-                data.forEach(a -> a.setStockAmount(a.getUseTotalDose()));
-                return getDrugInfoDTO(data);
-            }
-            //老版本代码兼容
-            if (StringUtils.isNotEmpty(response.getMsg())) {
-                List<String> noStock = Splitter.on(",").splitToList(response.getMsg());
-                Map<String, String> noStockMap = noStock.stream().collect(Collectors.toMap(a -> a, a -> a, (k1, k2) -> k1));
-                response.getData().forEach(a -> {
-                    if (StringUtils.isNotEmpty(noStockMap.get(a.getDrcode()))) {
-                        a.setStockAmount(0d);
-                    }
-                });
-            }
-            List<DrugInfoDTO> list = getDrugInfoDTO(response.getData());
+            List<DrugInfoTO> drugInfoList = oldCodeCompatibility(response, data);
+            List<DrugInfoDTO> list = getDrugInfoDTO(drugInfoList);
             logger.info(" DrugStockClient scanDrugStock  list={}", JSONUtils.toString(list));
             return list;
         } catch (Exception e) {
@@ -216,29 +200,63 @@ public class DrugStockClient extends BaseClient {
         scanRequestBean.setScanDrugListBeans(scanDrugListBeans);
         scanRequestBean.setOrganId(recipe.getClinicOrgan());
         logger.info("DrugStockClient scanEnterpriseDrugStock-scanStock scanRequestBean:{}.", JSON.toJSONString(scanRequestBean));
-        HisResponseTO<List<ScanDrugListBean>> responseTO = recipeEnterpriseService.scanStock(scanRequestBean);
-        logger.info("DrugStockClient scanEnterpriseDrugStock recipeId={},前置机调用查询结果={}", JSON.toJSONString(recipe), JSON.toJSONString(responseTO));
+        HisResponseTO<List<ScanDrugListBean>> response = recipeEnterpriseService.scanStock(scanRequestBean);
+        logger.info("DrugStockClient scanEnterpriseDrugStock recipeId={},前置机调用查询结果={}", JSON.toJSONString(recipe), JSON.toJSONString(response));
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
         drugStockAmountDTO.setResult(false);
-        if (null != responseTO && responseTO.isSuccess()) {
+        if (null != response && response.isSuccess()) {
             drugStockAmountDTO.setResult(true);
-            drugStockAmountDTO.setDrugInfoList(getScanDrugInfoDTO(responseTO.getData()));
+            drugStockAmountDTO.setDrugInfoList(getScanDrugInfoDTO(response.getData()));
         }
         return drugStockAmountDTO;
     }
 
-    private List<DrugInfoDTO> getDrugInfoDTO(List<DrugInfoTO> DrugInfoTOList) {
+    /**
+     * 组织默认数据
+     *
+     * @param detailList
+     * @param stock
+     * @return
+     */
+    public static List<DrugInfoDTO> getDrugInfoDTO(List<Recipedetail> detailList, boolean stock) {
+        List<DrugInfoDTO> drugInfoList = new ArrayList<>();
+        detailList.forEach(a -> {
+            DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+            drugInfoDTO.setDrugId(a.getDrugId());
+            drugInfoDTO.setOrganDrugCode(a.getOrganDrugCode());
+            drugInfoDTO.setStock(stock);
+            if (stock) {
+                drugInfoDTO.setStockAmount((int) Math.floor(a.getUseTotalDose()));
+            } else {
+                drugInfoDTO.setStockAmount(0);
+            }
+            drugInfoList.add(drugInfoDTO);
+        });
+        return drugInfoList;
+    }
+
+    /**
+     * 返回机构药品库存查询数据
+     *
+     * @param drugInfoTOList 机构药品查询对象
+     * @return 机构药品库存查询DTO
+     */
+    private List<DrugInfoDTO> getDrugInfoDTO(List<DrugInfoTO> drugInfoTOList) {
         List<DrugInfoDTO> list = new ArrayList<>();
-        if (CollectionUtils.isEmpty(DrugInfoTOList)) {
+        if (CollectionUtils.isEmpty(drugInfoTOList)) {
             return list;
         }
-        DrugInfoTOList.forEach(a -> {
+        drugInfoTOList.forEach(a -> {
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
             drugInfoDTO.setOrganId(a.getOrganId());
             drugInfoDTO.setOrganDrugCode(a.getDrcode());
             drugInfoDTO.setDrugId(a.getDrugId());
             drugInfoDTO.setDrugName(a.getDrname());
-            drugInfoDTO.setStockAmount((int) Math.ceil(a.getStockAmount()));
+            if (null == a.getStockAmount()) {
+                drugInfoDTO.setStockAmount(0);
+            } else {
+                drugInfoDTO.setStockAmount((int) Math.floor(a.getStockAmount()));
+            }
             if (StringUtils.isNotEmpty(a.getNoInventoryTip())) {
                 drugInfoDTO.setStockAmountChin(a.getNoInventoryTip());
             } else {
@@ -256,7 +274,6 @@ public class DrugStockClient extends BaseClient {
         });
         return list;
     }
-
 
     private List<DrugInfoDTO> getScanDrugInfoDTO(List<ScanDrugListBean> scanDrugList) {
         List<DrugInfoDTO> list = new ArrayList<>();
@@ -282,4 +299,39 @@ public class DrugStockClient extends BaseClient {
         });
         return list;
     }
+
+    /**
+     * 老代码 前置机 兼容 新对接医院 直接使用前置机 response。data
+     *
+     * @param response
+     * @param data
+     * @return
+     */
+    private List<DrugInfoTO> oldCodeCompatibility(DrugInfoResponseTO response, List<DrugInfoTO> data) {
+        //老版本代码兼容 his未配置该服务则还是可以通过
+        if (null == response) {
+            response = new DrugInfoResponseTO();
+            response.setMsgCode(0);
+            data.forEach(a -> a.setStockAmount(a.getUseTotalDose()));
+            return data;
+        }
+        List<DrugInfoTO> drugInfoList;
+        if (CollectionUtils.isEmpty(response.getData())) {
+            data.forEach(a -> a.setStockAmount(a.getUseTotalDose()));
+            drugInfoList = data;
+        } else {
+            drugInfoList = response.getData();
+        }
+        //老版本代码兼容
+        if (StringUtils.isNotEmpty(response.getMsg()) && Integer.valueOf(-1).equals(response.getMsgCode())) {
+            List<String> noStock = Splitter.on(",").splitToList(response.getMsg());
+            drugInfoList.forEach(a -> {
+                if (noStock.contains(a.getDrcode())) {
+                    a.setStockAmount(0d);
+                }
+            });
+        }
+        return drugInfoList;
+    }
+
 }

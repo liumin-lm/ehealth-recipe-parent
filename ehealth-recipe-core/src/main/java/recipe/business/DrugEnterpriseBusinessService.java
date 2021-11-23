@@ -15,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.client.DrugStockClient;
 import recipe.client.OperationClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.patient.IDrugEnterpriseBusinessService;
@@ -69,10 +70,6 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         if (null != organStock) {
             result.add(organStock);
         }
-        result.forEach(a -> {
-            a.setDrugsEnterprise(null);
-            a.setDrugInfoList(null);
-        });
         return result;
     }
 
@@ -84,8 +81,8 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
 
         EnterpriseStock organStock = organDrugListManager.organStock(organId, recipeDetails);
-        List<EnterpriseStock> result = this.enterpriseStockCheck(organId, recipeDetails);
-        List<EnterpriseStockVO> enterpriseStockList = getEnterpriseStockVO(organStock, result);
+        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(organId, recipeDetails);
+        List<EnterpriseStockVO> enterpriseStockList = getEnterpriseStockVO(organStock, enterpriseStock);
         Map<Integer, List<EnterpriseStockVO>> enterpriseStockGroup = enterpriseStockList.stream().collect(Collectors.groupingBy(EnterpriseStockVO::getDrugId));
         List<DrugEnterpriseStockVO> drugEnterpriseStockList = new LinkedList<>();
         //组织 药品 对应的 药企列表库存
@@ -172,9 +169,9 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
     /**
      * 校验 药品库存在 同一个药企下的库存数量
      *
-     * @param recipe
-     * @param recipeDetails
-     * @return
+     * @param recipe        处方机构id
+     * @param recipeDetails 药品信息 drugId，code
+     * @return 药品信息非必须
      */
     private List<EnterpriseStock> enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails) {
         Integer organId = recipe.getClinicOrgan();
@@ -210,9 +207,9 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
     /**
      * 校验 药品库存 的库存数量
      *
-     * @param organId
-     * @param recipeDetails
-     * @return
+     * @param organId       机构id
+     * @param recipeDetails 药品信息 drugId，code
+     * @return 药品信息 一定存在于出参
      */
     private List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<Recipedetail> recipeDetails) {
         //获取机构配置按钮
@@ -228,6 +225,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             enterpriseStock.setCheckDrugStock(true);
             //药企无对应的购药按钮则 无需查询库存-返回无库存
             if (CollectionUtils.isEmpty(enterpriseStock.getGiveModeButton())) {
+                enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
                 continue;
             }
             //根据药企配置查询 库存
@@ -255,17 +253,15 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         if (0 == drugsEnterprise.getCheckInventoryFlag()) {
             enterpriseStock.setStock(true);
             enterpriseStock.setCheckDrugStock(false);
+            enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, true));
             return;
         }
         //医院自建药企-查询医院库存
         if (3 == drugsEnterprise.getCheckInventoryFlag()) {
-            DrugStockAmountDTO scanResult = organDrugListManager.scanDrugStockByRecipeId(recipe, recipeDetails);
-            //无库存
-            if (!scanResult.isResult()) {
-                enterpriseStock.setDrugName(scanResult.getNotDrugNames());
-            } else {
-                enterpriseStock.setStock(true);
-            }
+            DrugStockAmountDTO organStock = organDrugListManager.scanDrugStockByRecipeId(recipe, recipeDetails);
+            enterpriseStock.setStock(organStock.isResult());
+            enterpriseStock.setDrugName(organStock.getNotDrugNames());
+            enterpriseStock.setDrugInfoList(organStock.getDrugInfoList());
             return;
         }
         //通过前置机调用
@@ -285,50 +281,44 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
     /***
      * 组装药企药品一对一库存关系
      * @param organStock 医院库存
-     * @param result 药企库存
+     * @param enterpriseStock 药企库存
      * @return
      */
-    private List<EnterpriseStockVO> getEnterpriseStockVO(EnterpriseStock organStock, List<EnterpriseStock> result) {
+    private List<EnterpriseStockVO> getEnterpriseStockVO(EnterpriseStock organStock, List<EnterpriseStock> enterpriseStock) {
         List<EnterpriseStockVO> enterpriseStockList = new LinkedList<>();
-        result.forEach(a -> {
+        enterpriseStock.forEach(a -> {
             if (CollectionUtils.isEmpty(a.getDrugInfoList())) {
                 return;
             }
             a.getDrugInfoList().forEach(b -> {
                 EnterpriseStockVO enterpriseStockVO = new EnterpriseStockVO();
-                enterpriseStockVO.setDrugId(b.getDrugId());
                 enterpriseStockVO.setAppointEnterpriseType(a.getAppointEnterpriseType());
                 enterpriseStockVO.setDeliveryCode(a.getDeliveryCode());
                 enterpriseStockVO.setDeliveryName(a.getDeliveryName());
                 if (!a.getCheckDrugStock()) {
-                    enterpriseStockVO.setStock(true);
+                    enterpriseStockVO.setStock(a.getStock());
                 } else {
-                    if (!a.getStock()) {
-                        enterpriseStockVO.setStock(false);
-                    } else {
-                        enterpriseStockVO.setStock(b.getStock());
-                        enterpriseStockVO.setStockAmountChin(b.getStockAmountChin());
-                    }
+                    enterpriseStockVO.setStock(b.getStock());
+                    enterpriseStockVO.setStockAmountChin(b.getStockAmountChin());
                 }
+                enterpriseStockVO.setDrugId(b.getDrugId());
                 enterpriseStockList.add(enterpriseStockVO);
             });
         });
-        if (CollectionUtils.isEmpty(organStock.getDrugInfoList())) {
-            return enterpriseStockList;
-        }
+
         organStock.getDrugInfoList().forEach(a -> {
-            EnterpriseStockVO enterpriseStockVO = new EnterpriseStockVO();
-            enterpriseStockVO.setDrugId(a.getDrugId());
-            enterpriseStockVO.setAppointEnterpriseType(organStock.getAppointEnterpriseType());
-            enterpriseStockVO.setDeliveryCode(organStock.getDeliveryCode());
-            enterpriseStockVO.setDeliveryName(organStock.getDeliveryName());
+            EnterpriseStockVO organStockList = new EnterpriseStockVO();
+            organStockList.setAppointEnterpriseType(organStock.getAppointEnterpriseType());
+            organStockList.setDeliveryCode(organStock.getDeliveryCode());
+            organStockList.setDeliveryName(organStock.getDeliveryName());
+            organStockList.setDrugId(a.getDrugId());
             if (!a.getStock()) {
-                enterpriseStockVO.setStock(false);
+                organStockList.setStock(false);
             } else {
-                enterpriseStockVO.setStock(a.getStock());
-                enterpriseStockVO.setStockAmountChin(a.getStockAmountChin());
+                organStockList.setStock(a.getStock());
+                organStockList.setStockAmountChin(a.getStockAmountChin());
             }
-            enterpriseStockList.add(enterpriseStockVO);
+            enterpriseStockList.add(organStockList);
         });
         return enterpriseStockList;
     }

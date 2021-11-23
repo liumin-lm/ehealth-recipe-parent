@@ -6,6 +6,8 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
+import com.ngari.recipe.dto.DrugInfoDTO;
+import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
+import recipe.client.DrugStockClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
@@ -27,11 +30,13 @@ import recipe.service.RecipeHisService;
 import recipe.util.DistanceUtil;
 import recipe.util.MapValueUtil;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service("commonSelfEnterprisesType")
 public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterface{
@@ -42,6 +47,9 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
     private static final String searchMapLongitude = "longitude";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonSelfEnterprisesType.class);
+
+    @Resource
+    private DrugStockClient drugStockClient;
 
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
@@ -219,6 +227,27 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
     private void getFailResult(DrugEnterpriseResult result, String msg) {
         result.setMsg(msg);
         result.setCode(DrugEnterpriseResult.FAIL);
+    }
+
+    @Override
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, List<SaleDrugList> saleDrugLists){
+        DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+        List<OrganDrugList> organDrugLists = new ArrayList<>();
+        recipeDetails.forEach(recipeDetail -> {
+            OrganDrugList organDrugList = new OrganDrugList();
+            organDrugList.setDrugId(recipeDetail.getDrugId());
+            organDrugList.setDrugName(recipeDetail.getDrugName());
+            organDrugList.setOrganDrugCode(recipeDetail.getOrganDrugCode());
+            organDrugList.setPack(recipeDetail.getPack());
+            organDrugList.setProducerCode(recipeDetail.getProducerCode());
+            organDrugLists.add(organDrugList);
+        });
+        List<DrugInfoDTO> drugInfos = drugStockClient.scanDrugStock(recipeDetails, recipe.getClinicOrgan(), organDrugLists, new ArrayList<>());
+        drugStockAmountDTO.setResult(drugInfos.stream().anyMatch(DrugInfoDTO::getStock));
+        drugStockAmountDTO.setDrugInfoList(drugInfos);
+        List<String> noDrugNames = drugInfos.stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+        drugStockAmountDTO.setNotDrugNames(noDrugNames);
+        return drugStockAmountDTO;
     }
 
     @Override
