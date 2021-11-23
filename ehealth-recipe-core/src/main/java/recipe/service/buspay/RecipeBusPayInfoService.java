@@ -799,10 +799,11 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     }
 
     @Override
+    @RpcService
     public List<BusBillDateAccountDTO> busBillDateAccount(String billDate, Integer organId, String payOrganId) {
-        //recipeOrderDAO.find
+        List<BusBillDateAccountDTO> busBillDateAccountDTOS = recipeOrderDAO.findByPayTimeAndOrganIdAndPayOrganId(billDate, organId, payOrganId);
 
-        return null;
+        return busBillDateAccountDTOS;
     }
 
     private void zhengzhouMedicalSet(RecipeOrderBean recipeOrder, Patient patient, WnExtBusCdrRecipeDTO wnExtBusCdrRecipe) {
