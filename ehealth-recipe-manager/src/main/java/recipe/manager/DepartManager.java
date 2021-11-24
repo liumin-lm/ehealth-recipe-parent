@@ -3,6 +3,7 @@ package recipe.manager;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.recipe.entity.Recipe;
+import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -21,12 +22,15 @@ public class DepartManager extends BaseManager {
     private DepartClient departClient;
 
     /**
-     * 获取挂号科室
+     * 通过处方获取挂号科室
+     * 如果recipe表存储了挂号科室则返回recipe表挂号科室信息
+     * 如果recipe表未存储挂号科室则各接口按原来逻辑查询未取消的挂号科室
      *
      * @param recipe
      * @return
      */
     public AppointDepartDTO getAppointDepartByOrganIdAndDepart(Recipe recipe) {
+        logger.info("getAppointDepartByOrganIdAndDepart param:{}", JSONUtils.toString(recipe));
         AppointDepartDTO appointDepartDTO = new AppointDepartDTO();
         if (recipe == null) {
             return appointDepartDTO;
@@ -37,6 +41,7 @@ public class DepartManager extends BaseManager {
         } else {
             appointDepartDTO = departClient.getAppointDepartByOrganIdAndDepart(recipe.getClinicOrgan(), recipe.getDepart());
         }
+        logger.info("getAppointDepartByOrganIdAndDepart res:{}", JSONUtils.toString(appointDepartDTO));
         return appointDepartDTO;
     }
 
