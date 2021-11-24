@@ -38,7 +38,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.FutureTask;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
@@ -188,6 +187,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         List<Integer> enterpriseIds = enterpriseStockList.stream().map(EnterpriseStock::getDrugsEnterpriseId).collect(Collectors.toList());
         Map<Integer, List<String>> enterpriseDrugNameGroup = enterpriseManager.checkEnterpriseDrugName(enterpriseIds, recipeDetails);
         //校验药企库存
+        List<FutureTask<EnterpriseStock>> futureTasks = new LinkedList<>();
         for (EnterpriseStock enterpriseStock : enterpriseStockList) {
             enterpriseStock.setStock(false);
             //药企无对应的购药按钮则 无需查询库存-返回无库存
@@ -201,9 +201,11 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
                 continue;
             }
             //根据药企配置查询 库存
-            enterpriseStock(enterpriseStock, recipe, recipeDetails);
+            FutureTask<EnterpriseStock> ft = new FutureTask<>(() -> enterpriseStock(enterpriseStock, recipe, recipeDetails));
+            futureTasks.add(ft);
+            GlobalEventExecFactory.instance().getExecutor().submit(ft);
         }
-        return enterpriseStockList;
+        return super.futureTaskCallbackBeanList(futureTasks);
     }
 
     /**
@@ -234,21 +236,11 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             //根据药企配置查询 库存
             Recipe recipe = new Recipe();
             recipe.setClinicOrgan(organId);
-            //enterpriseStock(enterpriseStock, recipe, recipeDetails);
             FutureTask<EnterpriseStock> ft = new FutureTask<>(() -> enterpriseStock(enterpriseStock, recipe, recipeDetails));
             futureTasks.add(ft);
             GlobalEventExecFactory.instance().getExecutor().submit(ft);
         }
-        List<EnterpriseStock> futureTaskEnterpriseStockList = new LinkedList<>();
-        for (FutureTask<EnterpriseStock> futureTask : futureTasks) {
-            try {
-                EnterpriseStock enterpriseStock = futureTask.get(8000, TimeUnit.MILLISECONDS);
-                futureTaskEnterpriseStockList.add(enterpriseStock);
-            } catch (Exception e) {
-                logger.error("DrugEnterpriseBusinessService enterpriseStockCheck futureTaskEnterpriseStockList error", e);
-            }
-        }
-        return futureTaskEnterpriseStockList;
+        return super.futureTaskCallbackBeanList(futureTasks);
     }
 
     /**
