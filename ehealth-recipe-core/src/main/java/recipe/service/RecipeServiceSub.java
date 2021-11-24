@@ -1452,6 +1452,7 @@ public class RecipeServiceSub {
             r.setDepart(appointDepartDTO.getDepartId());
         }
         r.setRecipeFlag(0);
+        LOGGER.info("convertHisRecipeForRAP res:{}", JSONUtils.toString(r));
         return r;
     }
 
