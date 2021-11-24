@@ -142,7 +142,7 @@ public class DrugStockClient extends BaseClient {
             DrugInfoResponseTO response = recipeHisService.scanDrugStock(request);
             logger.info("DrugStockClient scanDrugStock response={}", JSON.toJSONString(response));
             List<DrugInfoTO> drugInfoList = oldCodeCompatibility(response, data);
-            List<DrugInfoDTO> list = getDrugInfoDTO(drugInfoList);
+            List<DrugInfoDTO> list = getDrugInfoDTO(drugInfoList, detailList);
 
             DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
             drugStockAmountDTO.setResult(true);
@@ -250,16 +250,22 @@ public class DrugStockClient extends BaseClient {
      * @param drugInfoTOList 机构药品查询对象
      * @return 机构药品库存查询DTO
      */
-    private List<DrugInfoDTO> getDrugInfoDTO(List<DrugInfoTO> drugInfoTOList) {
+    private List<DrugInfoDTO> getDrugInfoDTO(List<DrugInfoTO> drugInfoList, List<Recipedetail> recipeDetails) {
         List<DrugInfoDTO> list = new ArrayList<>();
-        if (CollectionUtils.isEmpty(drugInfoTOList)) {
+        if (CollectionUtils.isEmpty(drugInfoList)) {
             return list;
         }
-        drugInfoTOList.forEach(a -> {
+        Map<String, Recipedetail> recipeDetailMap = recipeDetails.stream().collect(Collectors.toMap(Recipedetail::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+        drugInfoList.forEach(a -> {
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
             drugInfoDTO.setOrganId(a.getOrganId());
             drugInfoDTO.setOrganDrugCode(a.getDrcode());
-            drugInfoDTO.setDrugId(a.getDrugId());
+            if (null == a.getDrugId()) {
+                Recipedetail recipedetail = recipeDetailMap.get(a.getDrcode());
+                drugInfoDTO.setDrugId(recipedetail.getDrugId());
+            } else {
+                drugInfoDTO.setDrugId(a.getDrugId());
+            }
             drugInfoDTO.setDrugName(a.getDrname());
             if (null == a.getStockAmount()) {
                 drugInfoDTO.setStockAmount(0);
