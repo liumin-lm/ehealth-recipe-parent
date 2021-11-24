@@ -212,10 +212,11 @@ public class DrugStockClient extends BaseClient {
             drugStockAmountDTO.setResult(true);
             drugStockAmountDTO.setDrugInfoList(getScanDrugInfoDTO(list));
         } catch (Exception e) {
-            logger.info("DrugStockClient scanEnterpriseDrugStockV1 error ", e);
+            logger.error("DrugStockClient scanEnterpriseDrugStockV1 error ", e);
             drugStockAmountDTO.setResult(false);
             drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
         }
+        logger.info("DrugStockClient scanEnterpriseDrugStockV1 drugStockAmountDTO = {} ", JSON.toJSONString(drugStockAmountDTO));
         return drugStockAmountDTO;
     }
 
