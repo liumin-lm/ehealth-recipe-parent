@@ -82,7 +82,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
 
         EnterpriseStock organStock = organDrugListManager.organStock(organId, recipeDetails);
         List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(organId, recipeDetails);
-        List<EnterpriseStockVO> enterpriseStockList = getEnterpriseStockVO(organStock, enterpriseStock);
+        List<EnterpriseStockVO> enterpriseStockList = this.getEnterpriseStockVO(organStock, enterpriseStock);
         Map<Integer, List<EnterpriseStockVO>> enterpriseStockGroup = enterpriseStockList.stream().collect(Collectors.groupingBy(EnterpriseStockVO::getDrugId));
         List<DrugEnterpriseStockVO> drugEnterpriseStockList = new LinkedList<>();
         //组织 药品 对应的 药企列表库存
