@@ -60,4 +60,18 @@ public class DepartManager extends BaseManager {
         return departmentDTO;
     }
 
+    /**
+     * 通过挂号科室编码、机构获取挂号科室
+     *
+     * @param organId  机构ID
+     * @param appointDepartCode 挂号科室编码
+     * @return 挂号科室
+     */
+    public AppointDepartDTO getAppointDepartByOrganIdAndAppointDepartCode(Integer organId, String appointDepartCode) {
+        logger.info("getAppointDepartByOrganIdAndAppointDepartCode organId:{},appointDepartCode:{}.", organId, appointDepartCode);
+        AppointDepartDTO appointDepartDTO =  departClient.getAppointDepartByOrganIdAndAppointDepartCode(organId, appointDepartCode);
+        logger.info("getAppointDepartByOrganIdAndAppointDepartCode appointDepartDTO:{}.", JSONUtils.toString(appointDepartDTO));
+        return appointDepartDTO;
+    }
+
 }
