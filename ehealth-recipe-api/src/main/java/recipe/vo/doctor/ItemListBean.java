@@ -1,4 +1,4 @@
-package recipe.vo.open;
+package recipe.vo.doctor;
 
 import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;

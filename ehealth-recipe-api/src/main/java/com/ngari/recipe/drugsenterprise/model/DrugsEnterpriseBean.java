@@ -184,6 +184,17 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "第三方药企编码")
     private String thirdEnterpriseCode;
 
+    @ItemProperty(alias = "药企联系电话")
+    private String enterprisePhone;
+
+    public String getEnterprisePhone() {
+        return enterprisePhone;
+    }
+
+    public void setEnterprisePhone(String enterprisePhone) {
+        this.enterprisePhone = enterprisePhone;
+    }
+
     public List<DrugEnterpriseLogisticsBean> getDrugEnterpriseLogisticsBeans() {
         return drugEnterpriseLogisticsBeans;
     }

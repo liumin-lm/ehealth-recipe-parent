@@ -135,9 +135,7 @@ public class RecipeTherapyBusinessService extends BaseService implements ITherap
 
     @Override
     public boolean abolishTherapyRecipeForRevisitClose(Integer bussSource, Integer clinicId) {
-        List<Recipe> recipes = recipeManager.findTherapyRecipeByBussSourceAndClinicId(bussSource, clinicId);
-        List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
-        List<RecipeTherapy> recipeTherapies = recipeTherapyManager.findTherapyByRecipeIds(recipeIds);
+        List<RecipeTherapy> recipeTherapies = recipeTherapyManager.findTherapyByClinicId(clinicId);
         recipeTherapies.forEach(recipeTherapy -> {
             if (TherapyStatusEnum.READYSUBMIT.getType().equals(recipeTherapy.getStatus())) {
                 recipeTherapy.setStatus(TherapyStatusEnum.HADECANCEL.getType());
@@ -184,8 +182,15 @@ public class RecipeTherapyBusinessService extends BaseService implements ITherap
         return paddingRecipeInfoDTO(recipeTherapyList);
     }
 
+    @Override
+    public List<RecipeTherapy> findTherapyByClinicId(Integer clinicId) {
+        return recipeTherapyManager.findTherapyByClinicId(clinicId);
+    }
+
+
     /**
      * 包装数据 返回填充对象
+     *
      * @param recipeTherapyList 诊疗列表
      * @return 填充后的诊疗信息
      */

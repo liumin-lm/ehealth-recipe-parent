@@ -3,14 +3,11 @@ package recipe.manager;
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
-import com.ngari.common.mode.HisResponseTO;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
-import com.ngari.recipe.dto.DoSignRecipeDTO;
-import com.ngari.recipe.dto.PatientDTO;
-import com.ngari.recipe.dto.SkipThirdDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.DAOFactory;
@@ -102,44 +99,6 @@ public class EnterpriseManager extends BaseManager {
         return enterpriseDrugNameGroup;
     }
 
-    /**
-     * 是否有一个药企存在药品
-     * 验证能否药品配送以及能否开具到一张处方单上
-     *
-     * @param organId
-     * @param recipeDetails
-     * @return
-     */
-    public void checkDrugEnterprise(DoSignRecipeDTO doSignRecipe, Integer organId, List<Recipedetail> recipeDetails) {
-        //检查开处方是否需要进行药企库存校验
-        boolean checkEnterprise = checkEnterprise(organId);
-        if (!checkEnterprise) {
-            return;
-        }
-        Integer enterprisesDockType = configurationClient.getValueCatch(organId, "EnterprisesDockType", 0);
-        if (0 != enterprisesDockType) {
-            return;
-        }
-        //找到每一个药能支持的药企关系
-        List<DrugsEnterprise> enterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
-        List<Integer> enterpriseIds = enterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
-        Map<Integer, List<String>> enterpriseDrugNameGroup = checkEnterpriseDrugName(enterpriseIds, recipeDetails);
-
-        Set<String> drugNames = new HashSet<>();
-        boolean result = false;
-        for (List<String> drugNameList : enterpriseDrugNameGroup.values()) {
-            if (CollectionUtils.isEmpty(drugNameList)) {
-                result = true;
-                break;
-            }
-            drugNames.addAll(drugNameList);
-        }
-        if (result) {
-            return;
-        }
-        doSignRecipe(doSignRecipe, new ArrayList(drugNames), "不支持同一家药企配送或不在该机构药企可配送的药品目录里面");
-    }
-
 
     /**
      * 检查开处方是否需要进行药企库存校验
@@ -166,15 +125,30 @@ public class EnterpriseManager extends BaseManager {
      * @param recipeDetails
      * @return 1 有库存 0 无库存
      */
-    public Integer scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        logger.info("EnterpriseManager scanEnterpriseDrugStock recipeDetails:{}，drugsEnterprise={}", JSON.toJSONString(recipeDetails), JSON.toJSONString(drugsEnterprise));
         List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
         List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
-        HisResponseTO hisResponseTO = drugStockClient.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails, saleDrugLists);
-        if (null != hisResponseTO && hisResponseTO.isSuccess()) {
-            return 1;
-        } else {
-            return 0;
+        Map<Integer, List<SaleDrugList>> saleDrugListMap = saleDrugLists.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
+        //默认走批量新接口
+        DrugStockAmountDTO drugStockAmount = drugStockClient.scanEnterpriseDrugStockV1(recipe, drugsEnterprise, recipeDetails, saleDrugListMap);
+        if (null != drugStockAmount) {
+            return drugStockAmount;
         }
+        //前置机 没对接新接口 走老接口
+        DrugStockAmountDTO drugStockAmountOld = new DrugStockAmountDTO();
+        List<DrugInfoDTO> drugInfoList = new LinkedList<>();
+        boolean result = true;
+        for (Recipedetail recipeDetail : recipeDetails) {
+            DrugStockAmountDTO drugStockAmountDTO = drugStockClient.scanEnterpriseDrugStock(recipe, drugsEnterprise, Collections.singletonList(recipeDetail), saleDrugListMap);
+            drugInfoList.addAll(drugStockAmountDTO.getDrugInfoList());
+            if (!drugStockAmountDTO.isResult()) {
+                result = false;
+            }
+        }
+        drugStockAmountOld.setResult(result);
+        drugStockAmountOld.setDrugInfoList(drugInfoList);
+        return drugStockAmountOld;
     }
 
 

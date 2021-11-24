@@ -2,6 +2,7 @@ package recipe.api.open;
 
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.util.annotation.RpcService;
+import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
 import java.util.Date;
@@ -57,4 +58,11 @@ public interface IRecipeAtopService {
 
     @RpcService
     List<RecipeBean> findRecipesByStatusAndInvalidTime(List<Integer> status, Date invalidTime);
+
+    /**
+     * 患者自选药品信息保存
+     * @param patientOptionalDrugVo
+     */
+    @RpcService
+    void savePatientDrug(PatientOptionalDrugVo patientOptionalDrugVo);
 }

@@ -9,6 +9,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.pay.model.BusBillDateAccountDTO;
 import com.ngari.recipe.recipereportform.model.*;
 import ctd.account.UserRoleToken;
 import ctd.persistence.annotation.DAOMethod;
@@ -28,8 +29,6 @@ import eh.billcheck.vo.BillRecipeDetailVo;
 import eh.billcheck.vo.RecipeBillRequest;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateFormatUtils;
-import org.apache.commons.lang3.time.DateUtils;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
@@ -37,7 +36,6 @@ import org.slf4j.LoggerFactory;
 import recipe.dao.comment.ExtendDao;
 
 import java.math.BigDecimal;
-import java.text.DateFormat;
 import java.util.*;
 
 /**
@@ -1697,7 +1695,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                                                                               @DAOParam("logisticsCompany") Integer logisticsCompany,
                                                                               @DAOParam("trackingNumber") String trackingNumber);
 
-    public QueryResult<RecipeOrder> queryPageForCommonOrder(Date startDate, Date endDate, Integer start, Integer limit){
+    public QueryResult<RecipeOrder> queryPageForCommonOrder(Date startDate, Date endDate, Integer start, Integer limit) {
         HibernateStatelessResultAction<QueryResult<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeOrder>>() {
             @Override
             @SuppressWarnings("unchecked")
@@ -1731,4 +1729,125 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         HibernateSessionTemplate.instance().executeReadOnly(action);
         return (QueryResult<RecipeOrder>) action.getResult();
     }
+
+
+    /**
+     * 根据日期、机构查询订单支付和退款信息(只获取实际支付金额不为0的，调用支付平台的)
+     *
+     * @param billDate
+     * @param organId
+     * @param payOrganId
+     * @return
+     */
+    public List<BusBillDateAccountDTO> findByPayTimeAndOrganIdAndPayOrganId(String billDate, Integer organId, String payOrganId) {
+        HibernateStatelessResultAction<List<BusBillDateAccountDTO>> action = new AbstractHibernateStatelessResultAction<List<BusBillDateAccountDTO>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("select a.* from ( ");
+                hql.append(" select r.recipeId, o.OutTradeNo,o.tradeNo,o.totalfee,o.payTime");
+                hql.append(" ,r.patientID,r.patientName,r.mpiid,r.clinicorgan, o.payOrganId");
+                hql.append(" ,o.wxPayWay , 1 tradeStatus,0 refundAmount,'' refundBatchNo,'' refundDate ");
+                hql.append(" ,o.actualPrice,o.preSettleTotalAmount,o.fundAmount,o.cashAmount");
+                hql.append(" from cdr_recipe r INNER JOIN cdr_recipeorder o on r.OrderCode = o.OrderCode ");
+                hql.append(" where o.payFlag = 1 and  to_days(o.payTime) = to_days(:time) and o.Effective = 1 and o.actualPrice <> 0 ");
+                if (organId != null) {
+                    hql.append(" and  r.clinicOrgan =:organId");
+                }
+                if (StringUtils.isNotEmpty(payOrganId)) {
+                    hql.append(" and  o.payOrganId =:payOrganId");
+                }
+                hql.append(" UNION ALL ");
+                hql.append(" select r.recipeId, o.OutTradeNo,o.tradeNo,o.totalfee,o.payTime");
+                hql.append(" ,r.patientID,r.patientName,r.mpiid,r.clinicorgan, o.payOrganId");
+                hql.append(" ,o.wxPayWay , 2 tradeStatus,o.actualPrice refundAmount,o.OutTradeNo refundBatchNo, o.refundTime refundDate ");
+                hql.append(" ,o.actualPrice,o.preSettleTotalAmount,o.fundAmount,o.cashAmount");
+                hql.append(" from cdr_recipe r INNER JOIN cdr_recipeorder o on r.OrderCode = o.OrderCode ");
+                hql.append(" where o.refundFlag is Not Null and o.refundFlag <> 0 and  to_days(o.refundTime) = to_days(:time) and o.actualPrice <> 0 ");
+                if (organId != null) {
+                    hql.append(" and  r.clinicOrgan =:organId");
+                }
+                if (StringUtils.isNotEmpty(payOrganId)) {
+                    hql.append(" and  o.payOrganId =:payOrganId");
+                }
+                hql.append(" ) a order by  a.payTime");
+                Query q = ss.createSQLQuery(hql.toString());
+                q.setParameter("time", billDate);
+                if (organId != null) {
+                    q.setParameter("organId", organId);
+                }
+                if (StringUtils.isNotEmpty(payOrganId)) {
+                    q.setParameter("payOrganId", payOrganId);
+                }
+
+                List<Object[]> result = q.list();
+                List<BusBillDateAccountDTO> backList = new ArrayList<>();
+                if (CollectionUtils.isNotEmpty(result)) {
+                    BusBillDateAccountDTO vo;
+                    for (Object[] objs : result) {
+                        vo = new BusBillDateAccountDTO();
+                        //实际支付费用
+                        Double actualPrice = (objs[15] == null ? null : Double.valueOf(objs[15] + ""));
+                        //处方预结算返回支付总金额
+                        Double preSettleTotalAmount = (objs[16] == null ? null : Double.valueOf(objs[16] + ""));
+                        //处方预结算返回医保支付金额
+                        Double fundAmount = (objs[17] == null ? null : Double.valueOf(objs[17] + ""));
+                        //处方预结算返回自费金额
+                        Double cashAmount = (objs[18] == null ? null : Double.valueOf(objs[18] + ""));
+
+                        vo.setBusId(objs[0] == null ? null : (Integer) objs[0]);
+                        vo.setOutTradeNo(objs[1] == null ? null : objs[1] + "");
+                        vo.setTradeNo(objs[2] == null ? null : objs[2] + "");
+                        vo.setTotalAmount(objs[15] == null ? null : (BigDecimal) objs[15]);
+                        vo.setPaymentDate(objs[4] == null ? null : (Date) objs[4]);
+                        vo.setSettlementNo(null);
+                        vo.setTradeStatus(objs[11] == null ? null : objs[11] + "");
+                        vo.setRefundAmount(objs[12] == null ? null : objs[12] + "");
+                        //退费金额优先取preSettleTotalAmount 由于历史数据在走预结算的情况下actualprice和preSettleTotalAmount存在不一致【2021年11月大版本后会一致,preSettleTotalAmount金额回写到actualprice】
+                        if ("2".equals(vo.getTradeStatus())) {
+                            if (preSettleTotalAmount != null && preSettleTotalAmount != 0) {
+                                vo.setRefundAmount(String.valueOf(preSettleTotalAmount));
+                            }
+                        }
+                        vo.setRefundBatchNo(objs[13] == null ? null : objs[13] + "");
+                        vo.setRefundDate(objs[14] == null ? null : objs[14] + "");
+                        vo.setPayType(objs[10] == null ? null : objs[10] + "");
+                        vo.setBusType("recipe");
+                        vo.setPatientId(objs[5] == null ? null : objs[5] + "");
+                        vo.setPname(objs[6] == null ? null : objs[6] + "");
+                        vo.setPhone(null);
+                        vo.setMpiid(objs[7] == null ? null : objs[7] + "");
+
+                        //医保、自费金额
+                        if (preSettleTotalAmount == null || preSettleTotalAmount == 0) {
+                            vo.setSettlementType("1");
+                            vo.setPersonAmount(BigDecimal.valueOf(actualPrice));
+                        } else {
+                            vo.setMedAmount(BigDecimal.valueOf(fundAmount));
+                            vo.setPersonAmount(BigDecimal.valueOf(cashAmount));
+                            vo.setTotalAmount(BigDecimal.valueOf(preSettleTotalAmount));
+                            //如果医保金额为0或者null,则全自费  如果自费金额为0或者null,则全医保  否则部分医保部分自费
+                            if (fundAmount == null || fundAmount == 0) {
+                                vo.setSettlementType("1");
+                            } else if (cashAmount == null || cashAmount == 0) {
+                                vo.setSettlementType("2");
+                            } else {
+                                vo.setSettlementType("3");
+                            }
+                        }
+                        vo.setOtherAmount(null);
+                        vo.setRemark(null);
+                        vo.setOrganId(objs[8] == null ? null : objs[8] + "");
+                        vo.setPayOrganId(objs[9] == null ? null : objs[9] + "");
+                        backList.add(vo);
+                    }
+                }
+                setResult(backList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+
 }

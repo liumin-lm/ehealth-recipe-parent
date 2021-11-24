@@ -1,7 +1,7 @@
 package recipe.client;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.google.common.base.Splitter;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoResponseTO;
@@ -9,17 +9,21 @@ import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
+import com.ngari.recipe.dto.DrugInfoDTO;
+import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.exception.DAOException;
-import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import recipe.constant.ErrorCode;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 
@@ -105,95 +109,314 @@ public class DrugStockClient extends BaseClient {
      * @param pharmacyTcms
      * @return
      */
-    public DrugInfoResponseTO scanDrugStock(List<Recipedetail> detailList, int organId, List<OrganDrugList> organDrugList, List<PharmacyTcm> pharmacyTcms) {
-        Map<Integer, List<PharmacyTcm>> pharmacyTcmMap = Optional.ofNullable(pharmacyTcms).orElseGet(Collections::emptyList).stream().collect(Collectors.groupingBy(PharmacyTcm::getPharmacyId));
-        Map<String, OrganDrugList> organDrugListMap = organDrugList.stream().collect(Collectors.toMap(k -> k.getOrganDrugCode() + k.getDrugId(), a -> a, (k1, k2) -> k1));
+    public DrugStockAmountDTO scanDrugStock(List<Recipedetail> detailList, int organId, List<OrganDrugList> organDrugList, List<PharmacyTcm> pharmacyTcms) {
+        Map<Integer, PharmacyTcm> pharmacyTcmMap = pharmacyTcms.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
+        Map<String, Recipedetail> detailMap = detailList.stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getOrganDrugCode(), a -> a, (k1, k2) -> k1));
         List<DrugInfoTO> data = new LinkedList<>();
-        detailList.forEach(a -> {
+        organDrugList.forEach(a -> {
             DrugInfoTO drugInfo = new DrugInfoTO(a.getOrganDrugCode());
             drugInfo.setPack(String.valueOf(a.getPack()));
-            drugInfo.setPackUnit(a.getDrugUnit());
-            drugInfo.setUseTotalDose(a.getUseTotalDose());
-            OrganDrugList organDrugs = organDrugListMap.get(a.getOrganDrugCode() + a.getDrugId());
-            if (null != organDrugs && StringUtils.isNotEmpty(organDrugs.getProducerCode())) {
-                drugInfo.setManfcode(organDrugs.getProducerCode());
+            drugInfo.setManfcode(a.getProducerCode());
+            drugInfo.setDrname(a.getDrugName());
+            drugInfo.setDrugId(a.getDrugId());
+            Recipedetail recipedetail = detailMap.get(a.getDrugId() + a.getOrganDrugCode());
+            if (null == recipedetail) {
+                data.add(drugInfo);
+                return;
             }
-            //药房
-            List<PharmacyTcm> tcm = pharmacyTcmMap.get(a.getPharmacyId());
-            if (CollectionUtils.isNotEmpty(tcm)) {
-                drugInfo.setPharmacyCode(tcm.get(0).getPharmacyCode());
-                drugInfo.setPharmacy(tcm.get(0).getPharmacyName());
+            drugInfo.setPackUnit(recipedetail.getDrugUnit());
+            drugInfo.setUseTotalDose(recipedetail.getUseTotalDose());
+            PharmacyTcm tcm = pharmacyTcmMap.get(recipedetail.getPharmacyId());
+            if (null != tcm) {
+                drugInfo.setPharmacyCode(tcm.getPharmacyCode());
+                drugInfo.setPharmacy(tcm.getPharmacyName());
             }
             data.add(drugInfo);
         });
+
         DrugInfoRequestTO request = new DrugInfoRequestTO();
         request.setOrganId(organId);
         request.setData(data);
-        logger.info("scanDrugStock request={}", JSONUtils.toString(request));
-        DrugInfoResponseTO response;
+        logger.info("DrugStockClient scanDrugStock request={}", JSON.toJSONString(request));
         try {
-            response = recipeHisService.scanDrugStock(request);
-            logger.info("scanDrugStock response={}", JSONUtils.toString(response));
+            DrugInfoResponseTO response = recipeHisService.scanDrugStock(request);
+            logger.info("DrugStockClient scanDrugStock response={}", JSON.toJSONString(response));
+            List<DrugInfoTO> drugInfoList = oldCodeCompatibility(response, data);
+            List<DrugInfoDTO> list = getDrugInfoDTO(drugInfoList, detailList);
+
+            DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+            drugStockAmountDTO.setResult(true);
+            drugStockAmountDTO.setDrugInfoList(list);
+            List<String> organCodes = list.stream().filter(a -> 0 == a.getStockAmount()).map(DrugInfoDTO::getOrganDrugCode).distinct().collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(organCodes)) {
+                List<String> drugNames = organDrugList.stream().filter(a -> organCodes.contains(a.getOrganDrugCode())).map(OrganDrugList::getDrugName).collect(Collectors.toList());
+                drugStockAmountDTO.setResult(false);
+                drugStockAmountDTO.setNotDrugNames(drugNames);
+            }
+            logger.info("DrugStockClient scanDrugStock drugStockAmountDTO={}", JSON.toJSONString(drugStockAmountDTO));
+            return drugStockAmountDTO;
         } catch (Exception e) {
-            logger.error("scanDrugStock error ", e);
-            //抛异常流程不应该继续下去
-            response = new DrugInfoResponseTO();
-            response.setMsgCode(1);
+            logger.error(" DrugStockClient scanDrugStock error ", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, " recipeHisService.scanDrugStock error");
         }
-        //his未配置该服务则还是可以通过
-        if (null == response) {
-            response = new DrugInfoResponseTO();
-            response.setMsgCode(0);
-        }
-        return response;
     }
 
     /**
-     * 查询由前置机对接的药企库存信息
+     * 查询由前置机对接的药企库存信息 老接口 非批量返回
      *
      * @param recipe
      * @param drugsEnterprise
      * @param recipeDetails
-     * @param saleDrugLists
+     * @param saleDrugListMap
      * @return
      */
-    public HisResponseTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, List<SaleDrugList> saleDrugLists) {
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, Map<Integer, List<SaleDrugList>> saleDrugListMap) {
+        ScanRequestBean scanRequestBean = getScanRequestBean(recipe, saleDrugListMap, drugsEnterprise, recipeDetails);
+        DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+        try {
+            HisResponseTO response = recipeEnterpriseService.scanStock(scanRequestBean);
+            logger.info("DrugStockClient scanEnterpriseDrugStock recipeId={},response={}", JSON.toJSONString(recipe), JSON.toJSONString(response));
+            if (null != response && response.isSuccess()) {
+                drugStockAmountDTO.setResult(true);
+                drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, true));
+            } else {
+                drugStockAmountDTO.setResult(false);
+                drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
+            }
+        } catch (Exception e) {
+            drugStockAmountDTO.setResult(false);
+            drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
+            logger.info("DrugStockClient scanEnterpriseDrugStock error ", e);
+        }
+        return drugStockAmountDTO;
+    }
+
+    /**
+     * 查询由前置机对接的药企库存信息 新增批量调用
+     *
+     * @param recipe
+     * @param drugsEnterprise
+     * @param recipeDetails
+     * @param saleDrugListMap
+     * @return
+     */
+    public DrugStockAmountDTO scanEnterpriseDrugStockV1(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, Map<Integer, List<SaleDrugList>> saleDrugListMap) {
+        ScanRequestBean scanRequestBean = getScanRequestBean(recipe, saleDrugListMap, drugsEnterprise, recipeDetails);
+        DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+        try {
+            HisResponseTO<List<ScanDrugListBean>> response = recipeEnterpriseService.scanStockV1(scanRequestBean);
+            List<ScanDrugListBean> list = getResponseCatch(response);
+            if (CollectionUtils.isEmpty(list)) {
+                return null;
+            }
+            drugStockAmountDTO.setResult(true);
+            drugStockAmountDTO.setDrugInfoList(getScanDrugInfoDTO(list));
+        } catch (Exception e) {
+            logger.info("DrugStockClient scanEnterpriseDrugStockV1 error ", e);
+            drugStockAmountDTO.setResult(false);
+            drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
+        }
+        return drugStockAmountDTO;
+    }
+
+    /**
+     * 组织默认数据
+     *
+     * @param detailList
+     * @param stock
+     * @return
+     */
+    public static List<DrugInfoDTO> getDrugInfoDTO(List<Recipedetail> detailList, boolean stock) {
+        List<DrugInfoDTO> drugInfoList = new ArrayList<>();
+        detailList.forEach(a -> {
+            DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+            drugInfoDTO.setDrugId(a.getDrugId());
+            drugInfoDTO.setOrganDrugCode(a.getOrganDrugCode());
+            drugInfoDTO.setStock(stock);
+            if (stock) {
+                drugInfoDTO.setStockAmount((int) Math.floor(a.getUseTotalDose()));
+                drugInfoDTO.setStockAmountChin("有库存");
+            } else {
+                drugInfoDTO.setStockAmount(0);
+                drugInfoDTO.setStockAmountChin("无库存");
+            }
+            drugInfoList.add(drugInfoDTO);
+        });
+        return drugInfoList;
+    }
+
+    /**
+     * 返回机构药品库存查询数据
+     *
+     * @param drugInfoList his返回的机构药品查询对象
+     * @param drugInfoList 机构药品查询对象
+     * @return 机构药品库存查询DTO
+     */
+    private List<DrugInfoDTO> getDrugInfoDTO(List<DrugInfoTO> drugInfoList, List<Recipedetail> recipeDetails) {
+        List<DrugInfoDTO> list = new ArrayList<>();
+        if (CollectionUtils.isEmpty(drugInfoList)) {
+            return list;
+        }
+        Map<String, Recipedetail> recipeDetailMap = recipeDetails.stream().collect(Collectors.toMap(Recipedetail::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+        drugInfoList.forEach(a -> {
+            Recipedetail recipedetail = recipeDetailMap.get(a.getDrcode());
+            if (null == recipedetail) {
+                return;
+            }
+            DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+            drugInfoDTO.setOrganId(a.getOrganId());
+            drugInfoDTO.setOrganDrugCode(a.getDrcode());
+            if (null == a.getDrugId()) {
+                drugInfoDTO.setDrugId(recipedetail.getDrugId());
+            } else {
+                drugInfoDTO.setDrugId(a.getDrugId());
+            }
+            drugInfoDTO.setDrugName(a.getDrname());
+            if (null == a.getStockAmount()) {
+                drugInfoDTO.setStockAmount(0);
+            } else {
+                drugInfoDTO.setStockAmount((int) Math.floor(a.getStockAmount()));
+            }
+            if (StringUtils.isNotEmpty(a.getNoInventoryTip())) {
+                drugInfoDTO.setStockAmountChin(a.getNoInventoryTip());
+            } else {
+                drugInfoDTO.setStockAmountChin(String.valueOf(drugInfoDTO.getStockAmount()));
+            }
+            drugInfoDTO.setPharmacyCode(a.getPharmacyCode());
+            drugInfoDTO.setPharmacy(a.getPharmacy());
+            drugInfoDTO.setProducerCode(a.getProducerCode());
+            if (0 == drugInfoDTO.getStockAmount()) {
+                drugInfoDTO.setStock(false);
+            } else {
+                drugInfoDTO.setStock(true);
+            }
+            list.add(drugInfoDTO);
+        });
+        logger.info(" DrugStockClient getDrugInfoDTO  list={}", JSON.toJSONString(list));
+        return list;
+    }
+
+    private List<DrugInfoDTO> getScanDrugInfoDTO(List<ScanDrugListBean> scanDrugList) {
+        List<DrugInfoDTO> list = new ArrayList<>();
+        if (CollectionUtils.isEmpty(scanDrugList)) {
+            return list;
+        }
+        scanDrugList.forEach(a -> {
+            DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+            drugInfoDTO.setOrganDrugCode(a.getDrugCode());
+            drugInfoDTO.setDrugName(a.getGname());
+            drugInfoDTO.setDrugId(a.getDrugId());
+            drugInfoDTO.setStockAmount(a.getStockAmount());
+            drugInfoDTO.setPharmacyCode(a.getPharmacyCode());
+            drugInfoDTO.setPharmacy(a.getPharmacy());
+            drugInfoDTO.setProducerCode(a.getProducerCode());
+            drugInfoDTO.setStockAmountChin(String.valueOf(drugInfoDTO.getStockAmount()));
+            if (0 == drugInfoDTO.getStockAmount()) {
+                drugInfoDTO.setStock(false);
+            } else {
+                drugInfoDTO.setStock(true);
+            }
+            list.add(drugInfoDTO);
+        });
+        return list;
+    }
+
+    /**
+     * 老代码 前置机 兼容 新对接医院 直接使用前置机 response。data
+     *
+     * @param response
+     * @param data
+     * @return
+     */
+    private List<DrugInfoTO> oldCodeCompatibility(DrugInfoResponseTO response, List<DrugInfoTO> data) {
+        //老版本代码兼容 his未配置该服务则还是可以通过
+        if (null == response) {
+            response = new DrugInfoResponseTO();
+            response.setMsgCode(0);
+            data.forEach(a -> {
+                a.setStockAmount(a.getUseTotalDose());
+                a.setNoInventoryTip("有库存");
+            });
+            return data;
+        }
+        List<DrugInfoTO> drugInfoList;
+        if (CollectionUtils.isEmpty(response.getData())) {
+            data.forEach(a -> {
+                a.setStockAmount(a.getUseTotalDose());
+                a.setNoInventoryTip("有库存");
+            });
+            drugInfoList = data;
+        } else {
+            response.getData().forEach(a -> {
+                if (null == a.getStockAmount()) {
+                    a.setStockAmount(a.getUseTotalDose());
+                    a.setNoInventoryTip("有库存");
+                }
+            });
+            drugInfoList = response.getData();
+        }
+        //老版本代码兼容
+        if (StringUtils.isNotEmpty(response.getMsg()) && Integer.valueOf(-1).equals(response.getMsgCode())) {
+            List<String> noStock = Splitter.on(",").splitToList(response.getMsg());
+            drugInfoList.forEach(a -> {
+                if (noStock.contains(a.getDrcode())) {
+                    a.setStockAmount(0d);
+                    a.setNoInventoryTip("无库存");
+                }
+            });
+        }
+        logger.info(" DrugStockClient oldCodeCompatibility  list={}", JSON.toJSONString(drugInfoList));
+        return drugInfoList;
+    }
+
+    /***
+     * 调用 前置机 药企接口 组织参数
+     * @param recipe 处方信息
+     * @param saleDrugListMap 药企药品信息
+     * @param drugsEnterprise 药企信息
+     * @param recipeDetails 平台药品信息
+     * @return 前置机接口入参
+     */
+    private ScanRequestBean getScanRequestBean(Recipe recipe, Map<Integer, List<SaleDrugList>> saleDrugListMap, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
         String channelCode = null;
         try {
-            RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
-            if (revisitExDTO != null) {
-                channelCode = revisitExDTO.getProjectChannel();
+            if (null != recipe.getClinicId()) {
+                RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
+                if (revisitExDTO != null) {
+                    channelCode = revisitExDTO.getProjectChannel();
+                }
             }
         } catch (Exception e) {
             logger.error("queryPatientChannelId error:", e);
         }
         String finalChannelCode = channelCode;
-        Map<Integer, List<SaleDrugList>> saleDrugListMap = saleDrugLists.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
-        List<ScanDrugListBean> scanDrugListBeans = recipeDetails.stream().map(recipedetail -> {
+        List<ScanDrugListBean> scanDrugListBeans = new ArrayList<>();
+        recipeDetails.forEach(recipedetail -> {
             ScanDrugListBean scanDrugListBean = new ScanDrugListBean();
             List<SaleDrugList> saleDrugLists1 = saleDrugListMap.get(recipedetail.getDrugId());
             if (CollectionUtils.isNotEmpty(saleDrugLists1)) {
                 scanDrugListBean.setDrugCode(saleDrugLists1.get(0).getOrganDrugCode());
-                scanDrugListBean.setTotal(recipedetail.getUseTotalDose().toString());
-                scanDrugListBean.setUnit(recipedetail.getDrugUnit());
-                scanDrugListBean.setDrugSpec(recipedetail.getDrugSpec());
-                scanDrugListBean.setProducerCode(recipedetail.getProducerCode());
-                scanDrugListBean.setPharmacyCode(String.valueOf(recipedetail.getPharmacyId()));
-                scanDrugListBean.setPharmacy(recipedetail.getPharmacyName());
-                scanDrugListBean.setProducer(recipedetail.getProducer());
-                scanDrugListBean.setName(recipedetail.getSaleName());
-                scanDrugListBean.setGname(recipedetail.getDrugName());
-                scanDrugListBean.setChannelCode(finalChannelCode);
             }
-            return scanDrugListBean;
-        }).collect(Collectors.toList());
+            scanDrugListBean.setDrugId(recipedetail.getDrugId());
+            scanDrugListBean.setTotal(recipedetail.getUseTotalDose().toString());
+            scanDrugListBean.setUnit(recipedetail.getDrugUnit());
+            scanDrugListBean.setDrugSpec(recipedetail.getDrugSpec());
+            scanDrugListBean.setProducerCode(recipedetail.getProducerCode());
+            scanDrugListBean.setPharmacyCode(String.valueOf(recipedetail.getPharmacyId()));
+            scanDrugListBean.setPharmacy(recipedetail.getPharmacyName());
+            scanDrugListBean.setProducer(recipedetail.getProducer());
+            scanDrugListBean.setName(recipedetail.getSaleName());
+            scanDrugListBean.setGname(recipedetail.getDrugName());
+            scanDrugListBean.setChannelCode(finalChannelCode);
+            scanDrugListBeans.add(scanDrugListBean);
+        });
         ScanRequestBean scanRequestBean = new ScanRequestBean();
         scanRequestBean.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
         scanRequestBean.setScanDrugListBeans(scanDrugListBeans);
         scanRequestBean.setOrganId(recipe.getClinicOrgan());
-        logger.info("findUnSupportDrugEnterprise-scanStock scanRequestBean:{}.", JSONUtils.toString(scanRequestBean));
-        HisResponseTO responseTO = recipeEnterpriseService.scanStock(scanRequestBean);
-        logger.info("findUnSupportDrugEnterprise recipeId={},前置机调用查询结果={}", recipe.getRecipeId(), JSONObject.toJSONString(responseTO));
-        return responseTO;
+        logger.info("DrugStockClient scanEnterpriseDrugStock-scanStock scanRequestBean:{}.", JSON.toJSONString(scanRequestBean));
+        return scanRequestBean;
     }
+
+
 }

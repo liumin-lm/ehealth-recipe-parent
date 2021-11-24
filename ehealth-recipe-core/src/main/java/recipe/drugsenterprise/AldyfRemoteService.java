@@ -14,6 +14,8 @@ import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
+import com.ngari.recipe.dto.DrugInfoDTO;
+import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.taobao.api.FileItem;
@@ -45,6 +47,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
@@ -57,8 +60,10 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.SaleDrugListDAO;
+import recipe.manager.DepartManager;
 import recipe.third.IFileDownloadService;
 import recipe.util.Md5Utils;
+import recipe.util.ObjectCopyUtils;
 import sun.misc.BASE64Decoder;
 
 import javax.annotation.Resource;
@@ -70,11 +75,12 @@ import java.util.Map;
 
 /**
  * 阿里大药房对接服务
+ *
  * @author yinsheng
  * @date 2019\2\28 0028 14:09
  */
 @RpcBean("aldyfRemoteService")
-public class AldyfRemoteService extends AccessDrugEnterpriseService{
+public class AldyfRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(AldyfRemoteService.class);
 
@@ -98,6 +104,9 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
     @Resource
     private SaleDrugListDAO saleDrugListDAO;
 
+    @Resource
+    private DepartManager departManager;
+
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
         LOGGER.info("AldyfRemoteService tokenUpdateImpl not implement.");
@@ -109,7 +118,7 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
         DrugEnterpriseResult result = queryPrescription(recipe.getRecipeCode(), true);
 
         RemoteDrugEnterpriseService remoteDrugEnterpriseService =
-            ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+                ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         if (null == result.getObject()) {
             //没有处方进行处方推送
             pushRecipeInfo(Collections.singletonList(recipe.getRecipeId()), drugsEnterprise);
@@ -179,9 +188,8 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
             DoctorService doctorService = BasicAPI.getService(DoctorService.class);
             EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
             OrganService organService = BasicAPI.getService(OrganService.class);
-            DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
 
-            for (Recipe dbRecipe : recipeList ) {
+            for (Recipe dbRecipe : recipeList) {
                 String loginId = patientService.getLoginIdByMpiId(dbRecipe.getRequestMpiId());
                 String accessToken = aldyfRedisService.getTaobaoAccessToken(loginId);
                 if (ObjectUtils.isEmpty(accessToken)) {
@@ -200,8 +208,8 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                             .getAge(patient.getBirthday());
                     patientParam.setPatientId(dbRecipe.getMpiid());
                     patientParam.setPatientName(patient.getPatientName());
-                    patientParam.setSex("1".equals(patient.getPatientSex())?"M":"F");
-                    patientParam.setAge(Long.parseLong(patientAge+""));
+                    patientParam.setSex("1".equals(patient.getPatientSex()) ? "M" : "F");
+                    patientParam.setAge(Long.parseLong(patientAge + ""));
                     patientParam.setPhone(patient.getMobile());
                     patientParam.setAddress(patient.getAddress());
                     patientParam.setIdNumber(patient.getIdcard());
@@ -228,10 +236,10 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                     EmploymentDTO employment = employmentService.getPrimaryEmpByDoctorId(dbRecipe.getDoctor());
                     if (!ObjectUtils.isEmpty(employment)) {
                         Integer departmentId = employment.getDepartment();
-                        DepartmentDTO departmentDTO = departmentService.get(departmentId);
+                        DepartmentDTO departmentDTO = departManager.getDepartmentByDepart(departmentId);
                         doctorParam.setQualificationNumber(doctor.getDoctorCertCode());
                         if (!ObjectUtils.isEmpty(departmentDTO)) {
-                            doctorParam.setDeptName(StringUtils.isEmpty(departmentDTO.getName())?"全科":departmentDTO.getName());
+                            doctorParam.setDeptName(StringUtils.isEmpty(departmentDTO.getName()) ? "全科" : departmentDTO.getName());
                         } else {
                             return getDrugEnterpriseResult(result, "医生主执业点不存在");
                         }
@@ -245,11 +253,11 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                 prescriptionAddRequest.setDoctorParam(doctorParam);
                 // 签名图片
                 String ossId = dbRecipe.getSignImg();
-                String ossKey ;
-                try{
+                String ossKey;
+                try {
                     IFileDownloadService fileDownloadService = ApplicationUtils.getBaseService(IFileDownloadService.class);
                     String b = fileDownloadService.downloadImg(ossId);
-                    byte[] img ;
+                    byte[] img;
                     if (ObjectUtils.isEmpty(b)) {
                         return getDrugEnterpriseResult(result, "处方图片获取失败");
                     } else {
@@ -259,12 +267,12 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                         AlibabaAlihealthRxPrescriptionImageUploadRequest imageUploadRequest = new AlibabaAlihealthRxPrescriptionImageUploadRequest();
                         imageUploadRequest.setImage(new FileItem("处方图片", img));
                         BaseResult<AlibabaAlihealthRxPrescriptionImageUploadResponse> baseResult = alihealthHospitalService.uploadPrescriptionImg(imageUploadRequest);
-                        LOGGER.info("aldyremoteservice上传图片，recipeid={},结果={}",dbRecipe.getRecipeId(),JSONObject.toJSONString(baseResult));
+                        LOGGER.info("aldyremoteservice上传图片，recipeid={},结果={}", dbRecipe.getRecipeId(), JSONObject.toJSONString(baseResult));
                         if (StringUtils.isEmpty(baseResult.getErrCode())) {
                             //上传成功
                             ossKey = baseResult.getData().getOssKey();
                         } else {
-                            LOGGER.info("处方图片上传失败,{},{}.", dbRecipe.getRecipeId() ,baseResult.getData().getMsg());
+                            LOGGER.info("处方图片上传失败,{},{}.", dbRecipe.getRecipeId(), baseResult.getData().getMsg());
                             return getDrugEnterpriseResult(result, "处方图片上传失败");
                         }
                     } else {
@@ -283,7 +291,7 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                 prescriptionParam.setOssKey(ossKey);
                 prescriptionParam.setOutHospitalId(organizeCode);
                 prescriptionParam.setCreateTime(dbRecipe.getSignDate());
-                prescriptionParam.setAttribute("{\"hospitalId\":\""+organizeCode+"\"}");
+                prescriptionParam.setAttribute("{\"hospitalId\":\"" + organizeCode + "\"}");
                 LOGGER.info("prescriptionParam 处方信息:{}.", getJsonLog(prescriptionParam));
                 prescriptionAddRequest.setPrescriptionParam(prescriptionParam);
 
@@ -317,8 +325,8 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                         drugParam.setDoseUnit(detailList.get(i).getDrugUnit());      //开具单位(盒)
                         drugParam.setDrugName(saleDrugList.getSaleName());    //商品名称
                         try {
-                            drugParam.setDoseUsageAdvice(StringUtils.isNotEmpty(detailList.get(i).getUsingRateTextFromHis())?detailList.get(i).getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detailList.get(i).getUsingRate()));
-                            drugParam.setDoseUsage(StringUtils.isNotEmpty(detailList.get(i).getUsingRateTextFromHis())?detailList.get(i).getUsingRateTextFromHis():DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detailList.get(i).getUsePathways()));
+                            drugParam.setDoseUsageAdvice(StringUtils.isNotEmpty(detailList.get(i).getUsingRateTextFromHis()) ? detailList.get(i).getUsingRateTextFromHis() : DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detailList.get(i).getUsingRate()));
+                            drugParam.setDoseUsage(StringUtils.isNotEmpty(detailList.get(i).getUsingRateTextFromHis()) ? detailList.get(i).getUsingRateTextFromHis() : DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detailList.get(i).getUsePathways()));
                         } catch (ControllerException e) {
                             return getDrugEnterpriseResult(result, "药物使用频率使用途径获取失败");
                         }
@@ -328,8 +336,8 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                         prescriptionAddRequest.setDrugList(drugParams);
                     }
                 }
-                try{
-                    LOGGER.info("doctorParam:[{}],patientParam:[{}],diagnosticParam:[{}],drugParams:[{}],prescriptionParam:[{}]",getJsonLog(doctorParam),getJsonLog(patientParam),getJsonLog(diagnosticParam),getJsonLog(drugParams),getJsonLog(prescriptionParam));
+                try {
+                    LOGGER.info("doctorParam:[{}],patientParam:[{}],diagnosticParam:[{}],drugParams:[{}],prescriptionParam:[{}]", getJsonLog(doctorParam), getJsonLog(patientParam), getJsonLog(diagnosticParam), getJsonLog(drugParams), getJsonLog(prescriptionParam));
                     BaseResult<AlibabaAlihealthRxPrescriptionAddResponse> baseResult = alihealthHospitalService.uploadPrescription(doctorParam, patientParam, diagnosticParam, drugParams, prescriptionParam);
                     LOGGER.info("上传处方，{}", getJsonLog(baseResult));
                     if (StringUtils.isEmpty(baseResult.getData().getErrorCode())) {
@@ -338,7 +346,7 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
                     } else {
                         return getDrugEnterpriseResult(result, baseResult.getData().getMsg());
                     }
-                }catch (Exception e){
+                } catch (Exception e) {
                     LOGGER.info("推送处方失败{}", dbRecipe.getRecipeId(), e);
                 }
             }
@@ -389,8 +397,9 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
 
     /**
      * 推送药企处方状态，由于只是个别药企需要实现，故有默认实现
-     * @param rxId  recipeCode
-     * @return   DrugEnterpriseResult
+     *
+     * @param rxId recipeCode
+     * @return DrugEnterpriseResult
      */
     @RpcService
     @Override
@@ -418,7 +427,7 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
         AlibabaAlihealthRxPrescriptionStatusUpdateRequest prescriptionStatusUpdateRequest = new AlibabaAlihealthRxPrescriptionStatusUpdateRequest();
         prescriptionStatusUpdateRequest.setOutHospitalId(outHospitalId);
         prescriptionStatusUpdateRequest.setRxId(rxId);
-        prescriptionStatusUpdateRequest.setStatus(Long.parseLong(status+""));
+        prescriptionStatusUpdateRequest.setStatus(Long.parseLong(status + ""));
         BaseResult<AlibabaAlihealthRxPrescriptionStatusUpdateResponse> baseResult = alihealthHospitalService.queryPrescription(prescriptionStatusUpdateRequest);
         LOGGER.info("更新处方状态，{}", getJsonLog(baseResult));
         getAldyfResult(drugEnterpriseResult, baseResult);
@@ -426,9 +435,8 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
     }
 
     /**
-     *
-     * @param rxId  处⽅Id
-     * @param queryOrder  是否查询订单
+     * @param rxId       处⽅Id
+     * @param queryOrder 是否查询订单
      * @return 处方单
      */
     @Override
@@ -478,8 +486,9 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
 
     /**
      * 返回调用信息
+     *
      * @param result DrugEnterpriseResult
-     * @param msg     提示信息
+     * @param msg    提示信息
      * @return DrugEnterpriseResult
      */
     private DrugEnterpriseResult getDrugEnterpriseResult(DrugEnterpriseResult result, String msg) {
@@ -490,22 +499,22 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
     }
 
     //base64字符串转化成图片
-    private static byte[] GenerateImage(String imgStr){
+    private static byte[] GenerateImage(String imgStr) {
         //对字节数组字符串进行Base64解码并生成图片
         if (StringUtils.isEmpty(imgStr)) //图像数据为空
             return null;
         BASE64Decoder decoder = new BASE64Decoder();
-        try{
+        try {
             //Base64解码
             byte[] b = decoder.decodeBuffer(imgStr);
-            for(int i = 0; i < b.length; ++i){
-                if(b[i]<0){
+            for (int i = 0; i < b.length; ++i) {
+                if (b[i] < 0) {
                     //调整异常数据
-                    b[i]+=256;
+                    b[i] += 256;
                 }
             }
             return b;
-        }catch (Exception e){
+        } catch (Exception e) {
             return null;
         }
     }
@@ -519,19 +528,19 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
         // 校验参数组装
         List<Map<String, Object>> paramList = new ArrayList<>();
         Map<String, Object> drugMap = new HashedMap();
-        drugMap.put("drugCode","1519309");
-        drugMap.put("total","10");
-        drugMap.put("unit","片");
+        drugMap.put("drugCode", "1519309");
+        drugMap.put("total", "10");
+        drugMap.put("unit", "片");
         paramList.add(drugMap);
 
         String signKey = "hydee";
         String compid = "1402";
-        String signStr = "compid=" + compid + "&" + "drugList=" + JSONObject.toJSONString(paramList)+"&" + "key=" + signKey;
+        String signStr = "compid=" + compid + "&" + "drugList=" + JSONObject.toJSONString(paramList) + "&" + "key=" + signKey;
         String signResult = Md5Utils.crypt(signStr);
         Map<String, Object> paramMap = new HashedMap();
-        paramMap.put("compid",compid);
-        paramMap.put("drugList",paramList);
-        paramMap.put("sign",signResult);
+        paramMap.put("compid", compid);
+        paramMap.put("drugList", paramList);
+        paramMap.put("sign", signResult);
         // 校验请求
         CloseableHttpClient httpClient = HttpClients.createDefault();
         try {
@@ -539,25 +548,25 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService{
             HttpPost httpPost = new HttpPost(requestUrl);
             httpPost.setHeader("Content-Type", "application/json");
             httpPost.setEntity(new StringEntity(JSONObject.toJSONString(paramMap), ContentType.APPLICATION_JSON));
-            LOGGER.info("AldyfRemoteService.scanStock req={}",JSONObject.toJSONString(paramMap));
+            LOGGER.info("AldyfRemoteService.scanStock req={}", JSONObject.toJSONString(paramMap));
             HttpResponse httpResponse = httpClient.execute(httpPost);
-            LOGGER.info("AldyfRemoteService.scanStock res={}",JSONObject.toJSONString(httpResponse));
+            LOGGER.info("AldyfRemoteService.scanStock res={}", JSONObject.toJSONString(httpResponse));
             HttpEntity entity = httpResponse.getEntity();
             String response = EntityUtils.toString(entity);
             JSONObject responseObject = JSON.parseObject(response);
             String code = responseObject.getString("code");
-            if ("1".equals(code)){
+            if ("1".equals(code)) {
                 JSONArray drugArray = responseObject.getJSONArray("drugList");
-                if (null != drugArray && drugArray.size() > 0){
-                    for (int i = 0; i < drugArray.size(); i++){
+                if (null != drugArray && drugArray.size() > 0) {
+                    for (int i = 0; i < drugArray.size(); i++) {
                         JSONObject drug = drugArray.getJSONObject(i);
-                        if ("false".equals(drug.getString("inventory"))){
+                        if ("false".equals(drug.getString("inventory"))) {
                             result.setMsg("库存校验不通过");
                             result.setCode(DrugEnterpriseResult.FAIL);
                         }
                     }
                 }
-            }else {
+            } else {
                 result.setMsg("库存校验返回失败");
                 result.setCode(DrugEnterpriseResult.FAIL);
             }

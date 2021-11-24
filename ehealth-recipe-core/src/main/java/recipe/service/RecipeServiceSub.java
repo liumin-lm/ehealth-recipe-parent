@@ -72,7 +72,6 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
@@ -81,15 +80,13 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
-import recipe.client.IConfigurationClient;
+import recipe.client.DepartClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.AldyfRemoteService;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.type.DecoctionDeployTypeEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
-import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.*;
@@ -153,6 +150,8 @@ public class RecipeServiceSub {
     private static RecipeDetailManager recipeDetailManager = AppContextHolder.getBean("recipeDetailManager", RecipeDetailManager.class);
 
     private static List<String> specitalOrganList = Lists.newArrayList("1005790", "1005217", "1005789");
+
+    private static DepartClient departClient = AppContextHolder.getBean("departClient", DepartClient.class);
 
 
     /**
@@ -1448,8 +1447,7 @@ public class RecipeServiceSub {
         r.setClinicOrgan(recipe.getClinicOrgan());
         r.setDetailData(recipe.getDetailData());
         //科室
-        AppointDepartService appointDepartService = ApplicationUtils.getBasicService(AppointDepartService.class);
-        AppointDepartDTO appointDepartDTO = appointDepartService.getByOrganIDAndAppointDepartCode(recipe.getClinicOrgan(), recipe.getDepartCode());
+        AppointDepartDTO appointDepartDTO = departClient.getAppointDepartByOrganIdAndAppointDepartCode(recipe.getClinicOrgan(), recipe.getDepartCode());
         if (appointDepartDTO != null) {
             r.setDepart(appointDepartDTO.getDepartId());
         }
@@ -2181,14 +2179,15 @@ public class RecipeServiceSub {
 
     /**
      * 判断药师的ca流程是否开启
+     *
      * @param recipeId
      * @return
      */
-    private static Boolean isShowCheckCA(Integer recipeId){
+    private static Boolean isShowCheckCA(Integer recipeId) {
         IRecipeCheckService recipeCheckService = RecipeAuditAPI.getService(IRecipeCheckService.class, "recipeCheckServiceImpl");
         RecipeCheckBean recipeCheckBean = recipeCheckService.getNowCheckResultByRecipeId(recipeId);
         Integer fail = 0;
-        if(recipeCheckBean != null && fail.equals(recipeCheckBean.getIsCheckCA())){
+        if (recipeCheckBean != null && fail.equals(recipeCheckBean.getIsCheckCA())) {
             return false;
         }
         return true;

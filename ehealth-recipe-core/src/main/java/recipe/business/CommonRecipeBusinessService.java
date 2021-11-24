@@ -263,7 +263,7 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "用药频次和用药方式不能为空");
             }
             //校验比对药品
-            ValidateOrganDrugDTO validateOrganDrugDTO = new ValidateOrganDrugDTO(a.getOrganDrugCode(), null, null);
+            ValidateOrganDrugDTO validateOrganDrugDTO = new ValidateOrganDrugDTO(a.getOrganDrugCode(), null, a.getDrugId());
             OrganDrugList organDrug = OrganDrugListManager.validateOrganDrug(validateOrganDrugDTO, organDrugGroup);
             if (null == organDrug) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品错误");

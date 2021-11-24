@@ -10,6 +10,8 @@ import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
+import com.ngari.recipe.dto.DrugInfoDTO;
+import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -31,6 +33,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import recipe.bean.DrugEnterpriseResult;
@@ -39,12 +42,14 @@ import recipe.dao.*;
 import recipe.drugsenterprise.bean.EbsBean;
 import recipe.drugsenterprise.bean.EbsDetail;
 import recipe.drugsenterprise.bean.EsbWebService;
+import recipe.drugsenterprise.commonExtendCompatible.CommonExtendRemoteTypeEnum;
 import recipe.service.RecipeLogService;
 import recipe.util.AppSiganatureUtils;
 import recipe.util.DateConversion;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author yinsheng
@@ -281,6 +286,26 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
     public DrugEnterpriseResult pushRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
         return DrugEnterpriseResult.getSuccess();
     }
+
+    @Override
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+        List<DrugInfoDTO> drugInfoList = new ArrayList<>();
+        recipeDetails.forEach(recipeDetail -> {
+            DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+            BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
+            String result = getDrugInventory(recipeDetail.getDrugId(), drugsEnterprise, recipe.getClinicOrgan());
+            drugInfoDTO.setStock("有库存".equals(result));
+            drugInfoDTO.setStockAmountChin(result);
+            drugInfoList.add(drugInfoDTO);
+        });
+        List<String> noDrugNames = drugInfoList.stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+        drugStockAmountDTO.setNotDrugNames(noDrugNames);
+        drugStockAmountDTO.setDrugInfoList(drugInfoList);
+        drugStockAmountDTO.setResult(drugInfoList.stream().anyMatch(DrugInfoDTO::getStock));
+        return drugStockAmountDTO;
+    }
+
 
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {

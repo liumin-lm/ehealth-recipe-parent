@@ -1,6 +1,7 @@
 package recipe.business;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
@@ -8,7 +9,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutRecipeDetailDTO;
-import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.PatientInfoDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -17,26 +18,32 @@ import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
+import recipe.bussutil.RecipeUtil;
+import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
+import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.IConfigurationClient;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
-import recipe.dao.RecipeDAO;
+import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.manager.OrganDrugListManager;
 import recipe.manager.RecipeManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
+import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
+import recipe.vo.doctor.PatientOptionalDrugVO;
+import recipe.vo.doctor.PharmacyTcmVO;
+import recipe.vo.patient.PatientOptionalDrugVo;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -63,6 +70,16 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private PatientClient patientClient;
     @Resource
     private IConfigurationClient configurationClient;
+    @Resource
+    private OrganDrugListManager organDrugListManager;
+    @Autowired
+    private PharmacyTcmDAO pharmacyTcmDAO;
+    @Autowired
+    private PatientOptionalDrugDAO patientOptionalDrugDAO;
+    @Autowired
+    private DrugListDAO drugListDAO;
+    @Autowired
+    protected OrganDrugListDAO organDrugListDAO;
 
     /**
      * 获取线下门诊处方诊断信息
@@ -196,6 +213,86 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @LogRecord
     public List<Recipe> findRecipesByStatusAndInvalidTime(List<Integer> status, Date invalidTime) {
         return recipeDAO.findRecipesByStatusAndInvalidTime(status, invalidTime);
+    }
+
+    @Override
+    public List<PatientOptionalDrugVO> findPatientOptionalDrugDTO(Integer clinicId) {
+        logger.info("RecipeBusinessService findPatientOptionalDrugDTO req clinicId= {}", JSON.toJSONString(clinicId));
+        List<PatientOptionalDrug> patientOptionalDrugs = patientOptionalDrugDAO.findPatientOptionalDrugByClinicId(clinicId);
+        if (CollectionUtils.isEmpty(patientOptionalDrugs)) {
+            logger.info("RecipeBusinessService findPatientOptionalDrugDTO 返回值为空 patientOptionalDrugs= {}", JSON.toJSONString(patientOptionalDrugs));
+            return Lists.newArrayList();
+        }
+        Set<Integer> drugIds = patientOptionalDrugs.stream().collect(Collectors.groupingBy(PatientOptionalDrug::getDrugId)).keySet();
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIdsAndStatus(patientOptionalDrugs.get(0).getOrganId(), drugIds);
+        List<DrugList> byDrugIds = drugListDAO.findByDrugIdsAndStatus(drugIds);
+        if (CollectionUtils.isEmpty(organDrugList) || CollectionUtils.isEmpty(byDrugIds)) {
+            logger.info("药品信息不存在");
+            return Lists.newArrayList();
+        }
+        Map<String, OrganDrugList> organDrugListMap = organDrugList.stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getOrganDrugCode(), v -> v));
+        Map<Integer, List<DrugList>> drugListMap = byDrugIds.stream().collect(Collectors.groupingBy(DrugList::getDrugId));
+        // 获取当前复诊下 的有效处方
+        List<Recipedetail> detail = recipeManager.findEffectiveRecipeDetailByClinicId(clinicId);
+        Map<String, List<Recipedetail>> collect = detail.stream().collect(Collectors.groupingBy(k -> k.getDrugId() + k.getOrganDrugCode()));
+
+        List<PatientOptionalDrugVO> patientOptionalDrugDTOS = patientOptionalDrugs.stream().map(patientOptionalDrug -> {
+            PatientOptionalDrugVO patientOptionalDrugDTO = new PatientOptionalDrugVO();
+            org.springframework.beans.BeanUtils.copyProperties(patientOptionalDrug, patientOptionalDrugDTO);
+            List<DrugList> drugLists = drugListMap.get(patientOptionalDrug.getDrugId());
+            if (CollectionUtils.isNotEmpty(drugLists) && Objects.nonNull(drugLists.get(0))) {
+                DrugList drugList = drugLists.get(0);
+                Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(patientOptionalDrug.getOrganId(), drugList.getDrugType()));
+                org.springframework.beans.BeanUtils.copyProperties(drugList, patientOptionalDrugDTO);
+                patientOptionalDrugDTO.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(drugList, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(drugList.getDrugType())));
+            }
+            OrganDrugList organDrugLists = organDrugListMap.get(patientOptionalDrug.getDrugId() + patientOptionalDrug.getOrganDrugCode());
+            if (Objects.isNull(organDrugLists)) {
+                return null;
+            }
+            patientOptionalDrugDTO.setDrugName(organDrugLists.getDrugName());
+            patientOptionalDrugDTO.setDrugSpec(organDrugLists.getDrugSpec());
+            patientOptionalDrugDTO.setDrugUnit(organDrugLists.getUnit());
+            org.springframework.beans.BeanUtils.copyProperties(organDrugLists, patientOptionalDrugDTO);
+            patientOptionalDrugDTO.setUseDoseAndUnitRelation(RecipeUtil.defaultUseDose(organDrugLists));
+            String pharmacy = organDrugLists.getPharmacy();
+            if (StringUtils.isNotEmpty(pharmacy)) {
+                String[] pharmacyId = pharmacy.split(",");
+                Set pharmaIds = new HashSet();
+                for (String s : pharmacyId) {
+                    pharmaIds.add(Integer.valueOf(s));
+                }
+                List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(pharmaIds);
+                if(CollectionUtils.isNotEmpty(pharmacyTcmByIds)){
+                    List<PharmacyTcmVO> pharmacyTcmVOS = pharmacyTcmByIds.stream().map(pharmacyTcm -> {
+                        PharmacyTcmVO pharmacyTcmVO = new PharmacyTcmVO();
+                        BeanUtils.copy(pharmacyTcm, pharmacyTcmVO);
+                        return pharmacyTcmVO;
+                    }).collect(Collectors.toList());
+                    patientOptionalDrugDTO.setPharmacyTcms(pharmacyTcmVOS);
+                }
+            }
+
+            List<Recipedetail> recipedetails = collect.get(patientOptionalDrug.getDrugId() + patientOptionalDrug.getOrganDrugCode());
+
+            if(CollectionUtils.isNotEmpty(recipedetails)){
+                Double num = 0.00;
+                for (Recipedetail recipedetail : recipedetails) {
+                    num = num + recipedetail.getUseTotalDose();
+                }
+                patientOptionalDrugDTO.setOpenDrugNum(num.intValue());
+            }
+            return patientOptionalDrugDTO;
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+        logger.info("RecipeBusinessService findPatientOptionalDrugDTO res patientOptionalDrugDTOS= {}", JSON.toJSONString(patientOptionalDrugDTOS));
+        return patientOptionalDrugDTOS;
+    }
+
+    @Override
+    public void savePatientDrug(PatientOptionalDrugVo patientOptionalDrugVo) {
+        PatientOptionalDrug patientOptionalDrug  = new PatientOptionalDrug();
+        BeanUtils.copy(patientOptionalDrugVo,patientOptionalDrug);
+        patientOptionalDrugDAO.save(patientOptionalDrug);
     }
 
 }

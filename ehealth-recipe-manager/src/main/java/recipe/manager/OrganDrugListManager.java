@@ -2,11 +2,7 @@ package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.google.common.base.Joiner;
-import com.ngari.his.recipe.mode.DrugInfoResponseTO;
-import com.ngari.platform.recipe.mode.RecipeResultBean;
-import com.ngari.recipe.dto.ValidateOrganDrugDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipe;
@@ -18,7 +14,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DrugStockClient;
+import recipe.client.OperationClient;
 import recipe.dao.PharmacyTcmDAO;
+import recipe.enumerate.type.AppointEnterpriseTypeEnum;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.util.ValidateUtil;
 
 import java.util.*;
@@ -36,6 +35,59 @@ public class OrganDrugListManager extends BaseManager {
     private DrugStockClient drugStockClient;
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
+    @Autowired
+    private OperationClient operationClient;
+
+    /**
+     * 查询药品库存 用于药品展示
+     *
+     * @param organId
+     * @param detailList
+     * @return
+     */
+    public EnterpriseStock organStock(Integer organId, List<Recipedetail> detailList) {
+        Recipe recipe = new Recipe();
+        recipe.setClinicOrgan(organId);
+        return this.organStock(recipe, detailList);
+    }
+
+    /**
+     * 查询药品库存 用于机构展示
+     *
+     * @param recipe
+     * @param detailList
+     * @return
+     */
+    public EnterpriseStock organStock(Recipe recipe, List<Recipedetail> detailList) {
+        List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(recipe.getClinicOrgan());
+        //无到院取药
+        String showButtonName = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
+        if (StringUtils.isEmpty(showButtonName)) {
+            return null;
+        }
+        //返回出参
+        List<GiveModeButtonDTO> giveModeButton = new LinkedList<>();
+        GiveModeButtonDTO giveModeButtonDTO = new GiveModeButtonDTO();
+        giveModeButtonDTO.setType(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
+        giveModeButtonDTO.setShowButtonKey(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
+        giveModeButtonDTO.setShowButtonName(showButtonName);
+        giveModeButton.add(giveModeButtonDTO);
+
+        OrganDTO organDTO = organClient.organDTO(recipe.getClinicOrgan());
+        EnterpriseStock enterpriseStock = new EnterpriseStock();
+        enterpriseStock.setGiveModeButton(giveModeButton);
+        enterpriseStock.setDeliveryName(organDTO.getName() + "门诊药房");
+        enterpriseStock.setDeliveryCode(recipe.getClinicOrgan().toString());
+        enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ORGAN_APPOINT.getType());
+        enterpriseStock.setStock(true);
+        //校验医院库存
+        DrugStockAmountDTO scanResult = this.scanDrugStockByRecipeId(recipe, detailList);
+        enterpriseStock.setDrugInfoList(scanResult.getDrugInfoList());
+        enterpriseStock.setDrugName(scanResult.getNotDrugNames());
+        enterpriseStock.setStock(scanResult.isResult());
+        return enterpriseStock;
+    }
+
 
     /**
      * 校验机构药品库存
@@ -44,24 +96,26 @@ public class OrganDrugListManager extends BaseManager {
      * @param detailList
      * @return
      */
-    public RecipeResultBean scanDrugStockByRecipeId(Recipe recipe, List<Recipedetail> detailList) {
+    public DrugStockAmountDTO scanDrugStockByRecipeId(Recipe recipe, List<Recipedetail> detailList) {
         logger.info("OrganDrugListManager scanDrugStockByRecipeId recipe={}  recipeDetails = {}", JSONArray.toJSONString(recipe), JSONArray.toJSONString(detailList));
-        RecipeResultBean result = RecipeResultBean.getSuccess();
+        DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+        drugStockAmountDTO.setResult(true);
         if (null != recipe.getTakeMedicine() && 1 == recipe.getTakeMedicine()) {
             //外带药处方则不进行校验
-            return RecipeResultBean.getSuccess();
+            drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(detailList, true));
+            return drugStockAmountDTO;
         }
         if (CollectionUtils.isEmpty(detailList)) {
-            result.setCode(RecipeResultBean.FAIL);
-            result.setError("处方没有详情");
-            return result;
+            drugStockAmountDTO.setResult(false);
+            drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(detailList, false));
+            return drugStockAmountDTO;
         }
         // 判断his 是否启用
         if (!configurationClient.isHisEnable(recipe.getClinicOrgan())) {
-            result.setCode(RecipeResultBean.FAIL);
-            result.setError("医院HIS未启用。");
+            drugStockAmountDTO.setResult(false);
+            drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(detailList, false));
             logger.info("OrganDrugListManager scanDrugStockByRecipeId 医院HIS未启用 organId: {}", recipe.getClinicOrgan());
-            return result;
+            return drugStockAmountDTO;
         }
         Set<Integer> pharmaIds = new HashSet<>();
         List<Integer> drugIdList = detailList.stream().map(a -> {
@@ -69,30 +123,10 @@ public class OrganDrugListManager extends BaseManager {
             return a.getDrugId();
         }).collect(Collectors.toList());
 
-        // 判断是否需要对接HIS
-        List<String> recipeTypes = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "getRecipeTypeToHis", null);
-        if (!recipeTypes.contains(Integer.toString(recipe.getRecipeType()))) {
-            return result;
-        }
         // 请求his
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(recipe.getClinicOrgan(), drugIdList);
         List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(pharmaIds);
-        DrugInfoResponseTO response = drugStockClient.scanDrugStock(detailList, recipe.getClinicOrgan(), organDrugList, pharmacyTcmByIds);
-        if (0 != response.getMsgCode()) {
-            String organCodeStr = response.getMsg();
-            List<String> nameList = new ArrayList<>();
-            if (StringUtils.isNotEmpty(organCodeStr)) {
-                List<String> organCodes = Arrays.asList(organCodeStr.split(","));
-                nameList = organDrugListDAO.findNameByOrganIdAndDrugCodes(recipe.getClinicOrgan(), organCodes);
-            }
-            String showMsg = "由于" + Joiner.on(",").join(nameList) + "门诊药房库存不足，该处方仅支持配送，无法到院取药，是否继续？";
-            result.setError(showMsg);
-            result.setObject(nameList);
-            result.setExtendValue("1");
-            result.setCode(RecipeResultBean.FAIL);
-        }
-        logger.info("OrganDrugListManager scanDrugStockByRecipeId 结果={}", JSONObject.toJSONString(result));
-        return result;
+        return drugStockClient.scanDrugStock(detailList, recipe.getClinicOrgan(), organDrugList, pharmacyTcmByIds);
     }
 
     /**

@@ -4,8 +4,9 @@ import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.vo.*;
+import recipe.vo.doctor.PatientOptionalDrugVO;
+import recipe.vo.patient.PatientOptionalDrugVo;
 
-import javax.xml.crypto.Data;
 import java.util.Date;
 import java.util.List;
 
@@ -81,4 +82,17 @@ public interface IRecipeBusinessService {
      * @return 处方列表
      */
     List<Recipe> findRecipesByStatusAndInvalidTime(List<Integer> status, Date invalidTime);
+
+    /**
+     * 医生端获取处方指定药品
+     * @param clinicId 复诊id
+     * @return
+     */
+    List<PatientOptionalDrugVO> findPatientOptionalDrugDTO(Integer clinicId);
+
+    /**
+     * 保存患者自选药品
+     * @param patientOptionalDrugVo
+     */
+    void savePatientDrug(PatientOptionalDrugVo patientOptionalDrugVo);
 }

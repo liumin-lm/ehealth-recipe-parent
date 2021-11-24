@@ -2,6 +2,9 @@ package recipe.api.open;
 
 import com.ngari.recipe.recipe.model.RecipeTherapyDTO;
 import ctd.util.annotation.RpcService;
+import recipe.vo.doctor.RecipeTherapyVO;
+
+import java.util.List;
 
 /**
  * 诊疗处方
@@ -41,6 +44,15 @@ public interface ITherapyRecipeOpenService {
      */
     @RpcService
     boolean therapyPayNotice(Integer organId, String recipeCode, RecipeTherapyDTO recipeTherapyDTO);
+
+    /**
+     * 根据复诊获取 诊疗处方
+     *
+     * @param clinicId 复诊id
+     * @return
+     */
+    @RpcService
+    List<RecipeTherapyVO> findTherapyByClinicId(Integer clinicId);
 
 
 }

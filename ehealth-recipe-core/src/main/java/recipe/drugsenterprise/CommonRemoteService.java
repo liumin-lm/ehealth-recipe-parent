@@ -8,6 +8,8 @@ import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
+import com.ngari.recipe.dto.DrugInfoDTO;
+import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -21,6 +23,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
@@ -34,6 +37,7 @@ import recipe.util.MapValueUtil;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 通用药企对接服务实现(国药协议)
@@ -350,6 +354,25 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         String number = recipeParameterDao.getByName("gy_drug_inventory");
         return getInvertoryResult(drugId, drugsEnterprise, number);
+    }
+
+    @Override
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+        List<DrugInfoDTO> drugInfoList = new ArrayList<>();
+        recipeDetails.forEach(recipeDetail -> {
+            DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+            BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
+            String result = getInvertoryResult(recipeDetail.getDrugId(), drugsEnterprise, "1");
+            drugInfoDTO.setStock("有库存".equals(result));
+            drugInfoDTO.setStockAmountChin(result);
+            drugInfoList.add(drugInfoDTO);
+        });
+        List<String> noDrugNames = drugInfoList.stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+        drugStockAmountDTO.setNotDrugNames(noDrugNames);
+        drugStockAmountDTO.setDrugInfoList(drugInfoList);
+        drugStockAmountDTO.setResult(drugInfoList.stream().anyMatch(DrugInfoDTO::getStock));
+        return drugStockAmountDTO;
     }
 
     private String getInvertoryResult(Integer drugId, DrugsEnterprise drugsEnterprise, String number) {

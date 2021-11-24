@@ -5,10 +5,8 @@ import com.google.common.collect.Maps;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
-import com.ngari.his.regulation.service.IRegulationService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.recipe.mode.OrganDrugChangeBean;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
@@ -30,7 +28,6 @@ import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bussutil.RecipeUtil;
 import recipe.dao.*;
-import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.serviceprovider.BaseService;
 
 import java.util.*;
@@ -777,13 +774,5 @@ public class DrugListService extends BaseService<DrugListBean> {
         return drugListBeans;
     }
 
-    @RpcService
-    public Map<String, Object> getDrugInventory(Integer depId, Integer drugId){
-        Map<String, Object> map = new HashMap<>();
-        RemoteDrugEnterpriseService enterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-        String inventory = enterpriseService.getDrugInventory(depId, drugId, -1);
-        //根据药企ID查询该药企该药品的库存数量
-        map.put("inventory", inventory);
-        return map;
-    }
+
 }

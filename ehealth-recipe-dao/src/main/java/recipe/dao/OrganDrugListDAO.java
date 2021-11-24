@@ -148,7 +148,17 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      * @return
      */
     @DAOMethod(sql = "from OrganDrugList where organId=:organId and drugId in (:drugIds) and status=1")
-    public abstract List<OrganDrugList> findByOrganIdAndDrugIds(@DAOParam("organId") int organId, @DAOParam("drugIds") List<Integer> drugIds);
+    public abstract List<OrganDrugList> findByOrganIdAndDrugIds(@DAOParam("organId") int organId, @DAOParam("drugIds") Collection<Integer> drugIds);
+
+    /**
+     * 通过机构id及药品id列表获取
+     *
+     * @param organId
+     * @param drugIds
+     * @return
+     */
+    @DAOMethod(sql = "from OrganDrugList where organId=:organId and drugId in (:drugIds)")
+    public abstract List<OrganDrugList> findByOrganIdAndDrugIdsAndStatus(@DAOParam("organId") int organId, @DAOParam("drugIds") Collection<Integer> drugIds);
 
     /**
      * 通过机构id及机构药品编码获取

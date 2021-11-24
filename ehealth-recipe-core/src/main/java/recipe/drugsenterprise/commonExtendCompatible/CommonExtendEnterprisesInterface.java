@@ -1,9 +1,8 @@
 package recipe.drugsenterprise.commonExtendCompatible;
 
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.dto.DrugStockAmountDTO;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
@@ -28,6 +27,7 @@ public interface CommonExtendEnterprisesInterface {
 
     public boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds);
 
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails);
 
     public String appEnterprise(RecipeOrder order);
 

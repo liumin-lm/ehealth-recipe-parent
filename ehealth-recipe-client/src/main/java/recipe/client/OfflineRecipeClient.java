@@ -13,7 +13,6 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.AppointDepartService;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.RecipeBean;
@@ -54,7 +53,7 @@ public class OfflineRecipeClient extends BaseClient {
     @Autowired
     private EmploymentService employmentService;
     @Autowired
-    private AppointDepartService appointDepartService;
+    private DepartClient departClient;
 
     /**
      * @param organId   机构id
@@ -150,10 +149,11 @@ public class OfflineRecipeClient extends BaseClient {
 
     /**
      * 查询门诊处方
+     *
      * @param outPatientRecipeReq 患者信息
      * @return 门诊处方列表
      */
-    public List<OutPatientRecipeDTO> queryOutPatientRecipe(OutPatientRecipeReq outPatientRecipeReq){
+    public List<OutPatientRecipeDTO> queryOutPatientRecipe(OutPatientRecipeReq outPatientRecipeReq) {
         logger.info("OfflineRecipeClient queryOutPatientRecipe outPatientRecipeReq:{}.", JSON.toJSONString(outPatientRecipeReq));
         try {
             HisResponseTO<List<OutPatientRecipeTO>> hisResponse = recipeHisService.queryOutPatientRecipe(outPatientRecipeReq);
@@ -167,7 +167,6 @@ public class OfflineRecipeClient extends BaseClient {
     }
 
     /**
-     *
      * @param outRecipeDetailReq 门诊处方明细入参
      * @return 门诊处方明细信息
      */
@@ -193,7 +192,7 @@ public class OfflineRecipeClient extends BaseClient {
      * @Desciption 从 his查询待缴费已缴费的处方信息
      */
     public HisResponseTO<List<QueryHisRecipResTO>> queryData(Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
-        logger.info("OfflineRecipeClient queryData param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}",organId,JSONUtils.toString(patientDTO),timeQuantum,flag,recipeCode);
+        logger.info("OfflineRecipeClient queryData param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode);
         PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
         patientBaseInfo.setBirthday(patientDTO.getBirthday());
         patientBaseInfo.setPatientID(patientDTO.getPatId());
@@ -227,11 +226,12 @@ public class OfflineRecipeClient extends BaseClient {
 
     /**
      * 获取线下处方的发药流水号
-     * @param patientName  患者姓名
-     * @param patientId    患者病历号
+     *
+     * @param patientName 患者姓名
+     * @param patientId   患者病历号
      * @return 发药流水号
      */
-    public String queryRecipeSerialNumber(Integer organId, String patientName, String patientId, String registerID){
+    public String queryRecipeSerialNumber(Integer organId, String patientName, String patientId, String registerID) {
         try {
             PatientDiseaseInfoTO patientDiseaseInfoTO = new PatientDiseaseInfoTO();
             patientDiseaseInfoTO.setOrganId(organId);
@@ -258,7 +258,7 @@ public class OfflineRecipeClient extends BaseClient {
      * @param recipeCode
      * @return
      */
-    public QueryHisRecipResTO queryOffLineRecipeDetail(OffLineRecipeDetailDTO offLineRecipeDetailDTO,Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
+    public QueryHisRecipResTO queryOffLineRecipeDetail(OffLineRecipeDetailDTO offLineRecipeDetailDTO, Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
         logger.info("HisRecipeManager queryOffLineRecipeDetail param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode);
         List<QueryHisRecipResTO> response = null;
         HisResponseTO<List<QueryHisRecipResTO>> responseTo = null;
@@ -267,12 +267,12 @@ public class OfflineRecipeClient extends BaseClient {
             //过滤数据
             HisResponseTO<List<QueryHisRecipResTO>> res = filterData(responseTo, recipeCode, flag);
             response = getResponse(res);
-            if (ObjectUtils.isEmpty(response)){
-                throw new DAOException(ErrorCode.SERVICE_ERROR,"His查询结果为空");
+            if (ObjectUtils.isEmpty(response)) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "His查询结果为空");
             }
         } catch (Exception e) {
-            logger.error("HisRecipeManager queryOffLineRecipeDetail error",e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR,e.getMessage());
+            logger.error("HisRecipeManager queryOffLineRecipeDetail error", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
 
         List<QueryHisRecipResTO> data = responseTo.getData();
@@ -326,7 +326,7 @@ public class OfflineRecipeClient extends BaseClient {
         RecipeBean recipe = ObjectCopyUtils.convert(recipePdfDTO.getRecipe(), RecipeBean.class);
         //医生工号
         recipe.setDoctorCode(employmentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
-        AppointDepartDTO appointDepart = appointDepartService.findByOrganIDAndDepartID(recipe.getClinicOrgan(), recipe.getDepart());
+        AppointDepartDTO appointDepart = departClient.getAppointDepartByOrganIdAndDepart(recipePdfDTO.getRecipe());
         if (null != appointDepart) {
             //科室代码
             recipe.setDepartCode(appointDepart.getAppointDepartCode());
@@ -405,7 +405,6 @@ public class OfflineRecipeClient extends BaseClient {
 
 
     /**
-     *
      * @param clinicOrgan
      * @param recipeId
      * @param recipeCode
@@ -430,6 +429,7 @@ public class OfflineRecipeClient extends BaseClient {
 
     /**
      * his获取取药凭证重试
+     *
      * @param medicineCodeInfoTO
      * @return HisResponseTO<MedicineCodeResponseTO>
      */
@@ -439,12 +439,12 @@ public class OfflineRecipeClient extends BaseClient {
                 .retryIfExceptionOfType(Exception.class)
                 //取药凭证为空重试
                 .retryIfResult(medicineCodeResponseTO -> {
-                        try {
-                            return StringUtils.isEmpty(getResponse(medicineCodeResponseTO).getMedicineCode());
-                        } catch (Exception e) {
-                            logger.error("OfflineRecipeClient queryMedicineCode medicineCodeResponseTO", e);
-                            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-                        }
+                    try {
+                        return StringUtils.isEmpty(getResponse(medicineCodeResponseTO).getMedicineCode());
+                    } catch (Exception e) {
+                        logger.error("OfflineRecipeClient queryMedicineCode medicineCodeResponseTO", e);
+                        throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+                    }
                 })
                 //停止重试策略
                 .withStopStrategy(StopStrategies.stopAfterAttempt(3))
@@ -454,12 +454,12 @@ public class OfflineRecipeClient extends BaseClient {
         HisResponseTO<MedicineCodeResponseTO> medicineCodeResponseTO;
         try {
             medicineCodeResponseTO = retryer.call(() -> {
-                logger.info("OfflineRecipeClient queryMedicineCode retry medicineCodeInfoTO={}",JSONUtils.toString(medicineCodeInfoTO));
+                logger.info("OfflineRecipeClient queryMedicineCode retry medicineCodeInfoTO={}", JSONUtils.toString(medicineCodeInfoTO));
                 return recipeHisService.queryMedicineCode(medicineCodeInfoTO);
             });
         } catch (Exception e) {
-            logger.info("未获取到取药凭证,medicineCodeInfoTO={}",JSONUtils.toString(medicineCodeInfoTO));
-            throw new DAOException(609,"暂未获取到取药凭证，请刷新后重新进入");
+            logger.info("未获取到取药凭证,medicineCodeInfoTO={}", JSONUtils.toString(medicineCodeInfoTO));
+            throw new DAOException(609, "暂未获取到取药凭证，请刷新后重新进入");
         }
         return medicineCodeResponseTO;
     }
