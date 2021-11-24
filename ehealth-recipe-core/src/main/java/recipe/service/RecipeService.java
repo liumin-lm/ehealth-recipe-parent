@@ -1710,14 +1710,12 @@ public class RecipeService extends RecipeBaseService {
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         Boolean openRecipe = (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "isOpenRecipeByRegisterId");
         LOGGER.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}", openRecipe);
-
         boolean optimize = openRecipOptimize(recipe, openRecipe);
         //配置开启，根据有效的挂号序号进行判断
         if (!optimize) {
             LOGGER.error("ErrorCode.SERVICE_ERROR={}", ErrorCode.SERVICE_ERROR);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
         }
-
         //校验开处方单数限制
         recipeManager.isOpenRecipeNumber(recipe.getClinicId(), recipe.getClinicOrgan(), recipe.getRecipeId());
 
@@ -1731,7 +1729,6 @@ public class RecipeService extends RecipeBaseService {
             if (null == status || (status > RecipeStatusConstant.UNSIGN && status != RecipeStatusConstant.HIS_FAIL)) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "处方单已处理,不能重复签名");
             }
-
             updateRecipeAndDetail(recipe, details);
         } else {
             recipeId = saveRecipeData(recipe, details);
@@ -6179,7 +6176,9 @@ public class RecipeService extends RecipeBaseService {
         revisitRequest.setRegisterNo(registerNo);
 
         LOGGER.info(" validRevisit={}", JSONUtils.toString(revisitRequest));
-        getConsultIdForRecipeSource(recipe, registerNo);
+        if (ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
+            getConsultIdForRecipeSource(recipe, registerNo);
+        }
         if (!registerNo) {
             return true;
         }

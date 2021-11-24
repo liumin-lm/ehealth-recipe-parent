@@ -5,11 +5,17 @@ import com.google.common.collect.Maps;
 import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.patient.dto.AppointDepartDTO;
+import com.ngari.patient.service.BasicAPI;
 import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.*;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.service.IRevisitService;
+import com.ngari.revisit.dto.response.RevisitBeanVO;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -24,6 +30,7 @@ import recipe.constant.ReviewTypeConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganDrugListDAO;
+import recipe.manager.DepartManager;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
 
@@ -376,6 +383,22 @@ public class RecipeUtil {
 
         //设置抢单的默认状态
         recipe.setGrabOrderStatus(0);
+
+        //如果没有传入挂号科室，需要手动获取
+        if (StringUtils.isEmpty(recipe.getAppointDepart())) {
+            IRevisitService revisitService = RevisitAPI.getService(IRevisitService.class);
+            DepartManager departManager = AppContextHolder.getBean("departManager", DepartManager.class);
+            RevisitBeanVO revisitBeanVO = revisitService.getRevisitBeanVOByConsultId(recipe.getClinicId());
+            if (null != revisitBeanVO && null != revisitBeanVO.getAppointDepartId()) {
+                AppointDepartDTO appointDepartDTO = departManager.getAppointDepartByOrganIdAndAppointDepartCode(recipe.getClinicOrgan(), revisitBeanVO.getAppointDepartId().toString());
+                recipe.setAppointDepart(revisitBeanVO.getAppointDepartId().toString());
+                recipe.setAppointDepartName(null!=appointDepartDTO?appointDepartDTO.getAppointDepartName():"");
+            } else {
+                AppointDepartDTO appointDepartDTO = departManager.getAppointDepartByOrganIdAndDepart(recipe);
+                recipe.setAppointDepart(appointDepartDTO.getAppointDepartCode());
+                recipe.setAppointDepartName(appointDepartDTO.getAppointDepartName());
+            }
+        }
 
     }
 

@@ -7,6 +7,7 @@ package recipe.enumerate.type;
  */
 public enum BussSourceTypeEnum {
 
+    BUSSSOURCE_NO(0, "无"),
     BUSSSOURCE_CONSULT(1, "咨询"),
     BUSSSOURCE_REVISIT(2, "复诊");
 

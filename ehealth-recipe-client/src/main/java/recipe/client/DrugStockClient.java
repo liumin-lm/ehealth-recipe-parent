@@ -212,10 +212,11 @@ public class DrugStockClient extends BaseClient {
             drugStockAmountDTO.setResult(true);
             drugStockAmountDTO.setDrugInfoList(getScanDrugInfoDTO(list));
         } catch (Exception e) {
-            logger.info("DrugStockClient scanEnterpriseDrugStockV1 error ", e);
+            logger.error("DrugStockClient scanEnterpriseDrugStockV1 error ", e);
             drugStockAmountDTO.setResult(false);
             drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
         }
+        logger.info("DrugStockClient scanEnterpriseDrugStockV1 drugStockAmountDTO = {} ", JSON.toJSONString(drugStockAmountDTO));
         return drugStockAmountDTO;
     }
 
@@ -310,7 +311,11 @@ public class DrugStockClient extends BaseClient {
             drugInfoDTO.setPharmacyCode(a.getPharmacyCode());
             drugInfoDTO.setPharmacy(a.getPharmacy());
             drugInfoDTO.setProducerCode(a.getProducerCode());
-            drugInfoDTO.setStockAmountChin(String.valueOf(drugInfoDTO.getStockAmount()));
+            if (StringUtils.isNotEmpty(a.getStockAmountChin())) {
+                drugInfoDTO.setStockAmountChin(a.getStockAmountChin());
+            } else {
+                drugInfoDTO.setStockAmountChin(String.valueOf(drugInfoDTO.getStockAmount()));
+            }
             if (0 == drugInfoDTO.getStockAmount()) {
                 drugInfoDTO.setStock(false);
             } else {

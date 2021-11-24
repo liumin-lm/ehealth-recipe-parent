@@ -13,6 +13,7 @@ import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import eh.cdr.constant.OrderStatusConstant;
 import eh.cdr.constant.RecipeStatusConstant;
@@ -32,6 +33,7 @@ import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.hisservice.syncdata.SyncExecutorService;
+import recipe.manager.DepartManager;
 import recipe.purchase.CommonOrder;
 
 import java.math.BigDecimal;
@@ -52,6 +54,8 @@ import java.util.Objects;
 public class HisCallBackService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HisCallBackService.class);
+
+    private static DepartManager departManager = AppContextHolder.getBean("departManager", DepartManager.class);
 
     /**
      * 处方HIS审核通过成功
@@ -181,12 +185,12 @@ public class HisCallBackService {
 
     private static void updateRecipeRegisterID(Recipe recipe, RecipeCheckPassResult result) {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         Map<String, String> map = new HashMap<String, String>();
 
         //更新复诊挂号序号如果有
         if (null != recipe.getClinicId()) {
-
             //更新咨询扩展表recipeid字段
             if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
                 IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);

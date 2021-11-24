@@ -67,6 +67,7 @@ public class BaseClient {
             return getResponse(hisResponse);
         } catch (DAOException e) {
             if (HisErrorCodeEnum.HIS_NULL_ERROR.getCode() == e.getCode()) {
+                logger.warn("BaseClient getResponseCatch is null ");
                 return null;
             }
             throw new DAOException(e);

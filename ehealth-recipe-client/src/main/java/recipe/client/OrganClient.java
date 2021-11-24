@@ -74,8 +74,9 @@ public class OrganClient extends BaseClient {
      *
      * @param organId  机构id
      * @param departId 开方可是id
-     * @return
+     * @return 通用departClient类
      */
+    @Deprecated
     public AppointDepartDTO departDTO(Integer organId, Integer departId) {
         return appointDepartService.findByOrganIDAndDepartID(organId, departId);
     }
@@ -84,8 +85,9 @@ public class OrganClient extends BaseClient {
      * 获取可是信息
      *
      * @param departId 开方可是id
-     * @return
+     * @return 通用departClient类
      */
+    @Deprecated
     public DepartmentDTO departmentDTO(Integer departId) {
         return departmentService.get(departId);
     }

@@ -52,6 +52,8 @@ public class BaseManager {
     protected RevisitClient revisitClient;
     @Autowired
     protected OrganClient organClient;
+    @Autowired
+    protected DepartClient departClient;
 
     /**
      * 获取处方相关信息
