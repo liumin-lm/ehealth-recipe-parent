@@ -7,6 +7,8 @@ import com.ngari.auth.api.service.IAuthExtraService;
 import com.ngari.auth.api.vo.SignNoReq;
 import com.ngari.auth.api.vo.SignNoRes;
 import com.ngari.base.BaseAPI;
+import com.ngari.base.patient.model.PatientBean;
+import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.model.ConsultExDTO;
@@ -104,6 +106,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     private DepartManager departManager;
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
+    @Autowired
+    private IPatientService iPatientService;
 
 
     private IConfigurationCenterUtilsService utils = BaseAPI.getService(IConfigurationCenterUtilsService.class);
@@ -802,9 +806,21 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     @RpcService
     public List<BusBillDateAccountDTO> busBillDateAccount(String billDate, Integer organId, String payOrganId) {
         log.info("busBillDateAccount param:[{},{},{}]", billDate, organId, payOrganId);
-        List<BusBillDateAccountDTO> busBillDateAccountDTOS = null;
+        List<BusBillDateAccountDTO> busBillDateAccountDTOS = new ArrayList<>();
         try {
             busBillDateAccountDTOS = recipeOrderDAO.findByPayTimeAndOrganIdAndPayOrganId(billDate, organId, payOrganId);
+            if (CollectionUtils.isEmpty(busBillDateAccountDTOS)) {
+                return busBillDateAccountDTOS;
+            }
+            busBillDateAccountDTOS.stream().forEach(busBillDateAccountDTO -> {
+                if (StringUtils.isNotEmpty(busBillDateAccountDTO.getMpiid())) {
+                    PatientBean patientBean = iPatientService.get(busBillDateAccountDTO.getMpiid());
+                    if (patientBean != null) {
+                        busBillDateAccountDTO.setPhone(patientBean.getMobile());
+                    }
+                }
+            });
+
         } catch (Exception e) {
             log.error("busBillDateAccount error", e);
             e.printStackTrace();
