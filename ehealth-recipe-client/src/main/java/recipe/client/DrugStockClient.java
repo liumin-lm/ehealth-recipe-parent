@@ -216,6 +216,8 @@ public class DrugStockClient extends BaseClient {
         if (null != response && response.isSuccess()) {
             drugStockAmountDTO.setResult(true);
             drugStockAmountDTO.setDrugInfoList(getScanDrugInfoDTO(response.getData()));
+        } else {
+            drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
         }
         return drugStockAmountDTO;
     }

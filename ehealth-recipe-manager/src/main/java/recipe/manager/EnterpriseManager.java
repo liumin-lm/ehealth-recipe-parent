@@ -129,6 +129,7 @@ public class EnterpriseManager extends BaseManager {
      * @return 1 有库存 0 无库存
      */
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        logger.info("EnterpriseManager scanEnterpriseDrugStock recipeDetails:{}，drugsEnterprise={}", JSON.toJSONString(recipeDetails), JSON.toJSONString(drugsEnterprise));
         List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
         List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
         return drugStockClient.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails, saleDrugLists);
