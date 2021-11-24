@@ -30,7 +30,7 @@ public class DrugDoctorAtop extends BaseAtop {
 
     @RpcService
     public List<DrugEnterpriseStockVO> drugEnterpriseStock(DrugQueryVO drugQueryVO) {
-        validateAtop(drugQueryVO, drugQueryVO.getRecipeDetails(), drugQueryVO.getOrganId(), drugQueryVO.getPharmacyId());
+        validateAtop(drugQueryVO, drugQueryVO.getRecipeDetails(), drugQueryVO.getOrganId());
         List<Recipedetail> detailList = new ArrayList<>();
         drugQueryVO.getRecipeDetails().forEach(a -> {
             Recipedetail recipedetail = new Recipedetail();

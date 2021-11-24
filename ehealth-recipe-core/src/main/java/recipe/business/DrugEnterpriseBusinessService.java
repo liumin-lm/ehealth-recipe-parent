@@ -284,6 +284,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
      * @return
      */
     private List<EnterpriseStockVO> getEnterpriseStockVO(EnterpriseStock organStock, List<EnterpriseStock> enterpriseStock) {
+        logger.info("DrugEnterpriseBusinessService getEnterpriseStockVO organStock = {} enterpriseStock={}", JSON.toJSONString(organStock), JSON.toJSONString(enterpriseStock));
         List<EnterpriseStockVO> enterpriseStockList = new LinkedList<>();
         enterpriseStock.forEach(a -> {
             if (CollectionUtils.isEmpty(a.getDrugInfoList())) {
@@ -327,6 +328,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             }
             enterpriseStockList.add(organStockList);
         });
+        logger.info("DrugEnterpriseBusinessService getEnterpriseStockVO enterpriseStockList={}", JSON.toJSONString(enterpriseStockList));
         return enterpriseStockList;
     }
 
@@ -340,7 +342,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
      */
     private void saveGiveMode(Recipe recipe, EnterpriseStock organStock, List<EnterpriseStock> enterpriseStock) {
         RecipeBusiThreadPool.execute(() -> {
-            logger.info("DrugStockBusinessService saveGiveMode start recipe={}", JSON.toJSONString(recipe));
+            logger.info("DrugEnterpriseBusinessService saveGiveMode start recipe={}", JSON.toJSONString(recipe));
             List<GiveModeButtonDTO> giveModeButton = new LinkedList<>();
             if (null != organStock && organStock.getStock()) {
                 giveModeButton.addAll(organStock.getGiveModeButton());
@@ -370,7 +372,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
                 recipeUpdate.setRecipeSupportGiveMode(join);
                 recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
             }
-            logger.info("DrugStockBusinessService saveGiveMode 异步保存处方购药方式 {},{}", recipe.getRecipeId(), JSON.toJSONString(recipeGiveMode));
+            logger.info("DrugEnterpriseBusinessService saveGiveMode 异步保存处方购药方式 {},{}", recipe.getRecipeId(), JSON.toJSONString(recipeGiveMode));
         });
     }
 
