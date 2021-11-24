@@ -7,10 +7,7 @@ import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
-import com.ngari.recipe.dto.DoSignRecipeDTO;
-import com.ngari.recipe.dto.DrugStockAmountDTO;
-import com.ngari.recipe.dto.PatientDTO;
-import com.ngari.recipe.dto.SkipThirdDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.DAOFactory;
@@ -132,7 +129,26 @@ public class EnterpriseManager extends BaseManager {
         logger.info("EnterpriseManager scanEnterpriseDrugStock recipeDetails:{}，drugsEnterprise={}", JSON.toJSONString(recipeDetails), JSON.toJSONString(drugsEnterprise));
         List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
         List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
-        return drugStockClient.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails, saleDrugLists);
+        Map<Integer, List<SaleDrugList>> saleDrugListMap = saleDrugLists.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
+        //默认走批量新接口
+        DrugStockAmountDTO drugStockAmount = drugStockClient.scanEnterpriseDrugStockV1(recipe, drugsEnterprise, recipeDetails, saleDrugListMap);
+        if (null != drugStockAmount) {
+            return drugStockAmount;
+        }
+        //前置机 没对接新接口 走老接口
+        DrugStockAmountDTO drugStockAmountOld = new DrugStockAmountDTO();
+        List<DrugInfoDTO> drugInfoList = new LinkedList<>();
+        boolean result = true;
+        for (Recipedetail recipeDetail : recipeDetails) {
+            DrugStockAmountDTO drugStockAmountDTO = drugStockClient.scanEnterpriseDrugStock(recipe, drugsEnterprise, Collections.singletonList(recipeDetail), saleDrugListMap);
+            drugInfoList.addAll(drugStockAmountDTO.getDrugInfoList());
+            if (!drugStockAmountDTO.isResult()) {
+                result = false;
+            }
+        }
+        drugStockAmountOld.setResult(result);
+        drugStockAmountOld.setDrugInfoList(drugInfoList);
+        return drugStockAmountOld;
     }
 
 

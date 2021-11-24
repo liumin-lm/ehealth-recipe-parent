@@ -9,6 +9,7 @@ import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.exception.DAOException;
+import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,6 +37,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.FutureTask;
 import java.util.stream.Collectors;
 
 /**
@@ -219,6 +221,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             return enterpriseStockList;
         }
         //校验药企库存
+        List<FutureTask<EnterpriseStock>> futureTasks = new LinkedList<>();
         for (EnterpriseStock enterpriseStock : enterpriseStockList) {
             enterpriseStock.setStock(false);
             enterpriseStock.setCheckDrugStock(true);
@@ -230,11 +233,22 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             //根据药企配置查询 库存
             Recipe recipe = new Recipe();
             recipe.setClinicOrgan(organId);
-            enterpriseStock(enterpriseStock, recipe, recipeDetails);
+            //enterpriseStock(enterpriseStock, recipe, recipeDetails);
+            FutureTask<EnterpriseStock> ft = new FutureTask<>(() -> enterpriseStock(enterpriseStock, recipe, recipeDetails));
+            futureTasks.add(ft);
+            GlobalEventExecFactory.instance().getExecutor().submit(ft);
         }
-        return enterpriseStockList;
+        List<EnterpriseStock> futureTaskEnterpriseStockList = new LinkedList<>();
+        for (FutureTask<EnterpriseStock> futureTask : futureTasks) {
+            try {
+                EnterpriseStock enterpriseStock = futureTask.get();
+                futureTaskEnterpriseStockList.add(enterpriseStock);
+            } catch (Exception e) {
+                logger.error("DrugEnterpriseBusinessService enterpriseStockCheck futureTaskEnterpriseStockList error", e);
+            }
+        }
+        return futureTaskEnterpriseStockList;
     }
-
 
     /**
      * 根据药企配置查询 库存
@@ -243,7 +257,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
      * @param recipe          处方信息
      * @param recipeDetails   处方明细
      */
-    private void enterpriseStock(EnterpriseStock enterpriseStock, Recipe recipe, List<Recipedetail> recipeDetails) {
+    private EnterpriseStock enterpriseStock(EnterpriseStock enterpriseStock, Recipe recipe, List<Recipedetail> recipeDetails) {
         DrugsEnterprise drugsEnterprise = enterpriseStock.getDrugsEnterprise();
         Integer checkInventoryFlag = drugsEnterprise.getCheckInventoryFlag();
         if (null == checkInventoryFlag) {
@@ -253,7 +267,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             enterpriseStock.setStock(true);
             enterpriseStock.setCheckDrugStock(false);
             enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, true));
-            return;
+            return enterpriseStock;
         }
         //医院自建药企-查询医院库存
         if (3 == drugsEnterprise.getCheckInventoryFlag()) {
@@ -261,20 +275,21 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             enterpriseStock.setStock(organStock.isResult());
             enterpriseStock.setDrugName(organStock.getNotDrugNames());
             enterpriseStock.setDrugInfoList(organStock.getDrugInfoList());
-            return;
+            return enterpriseStock;
         }
         //通过前置机调用
         if (1 == drugsEnterprise.getOperationType()) {
             DrugStockAmountDTO code = enterpriseManager.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
             enterpriseStock.setStock(code.isResult());
             enterpriseStock.setDrugInfoList(code.getDrugInfoList());
-            return;
+            return enterpriseStock;
         }
         //通过平台调用药企
         AccessDrugEnterpriseService drugEnterpriseService = RemoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
         DrugStockAmountDTO result = drugEnterpriseService.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
         enterpriseStock.setStock(result.isResult());
         enterpriseStock.setDrugInfoList(result.getDrugInfoList());
+        return enterpriseStock;
     }
 
 
