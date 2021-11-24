@@ -1800,7 +1800,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         vo.setTradeNo(objs[2] == null ? null : objs[2] + "");
                         vo.setTotalAmount(objs[15] == null ? null : (BigDecimal) objs[15]);
                         vo.setPaymentDate(objs[4] == null ? null : (Date) objs[4]);
-
                         vo.setSettlementNo(null);
                         vo.setTradeStatus(objs[11] == null ? null : objs[11] + "");
                         vo.setRefundAmount(objs[12] == null ? null : objs[12] + "");
@@ -1812,7 +1811,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         }
                         vo.setRefundBatchNo(objs[13] == null ? null : objs[13] + "");
                         vo.setRefundDate(objs[14] == null ? null : objs[14] + "");
-
                         vo.setPayType(objs[10] == null ? null : objs[10] + "");
                         vo.setBusType("recipe");
                         vo.setPatientId(objs[5] == null ? null : objs[5] + "");
@@ -1844,7 +1842,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         backList.add(vo);
                     }
                 }
-
                 setResult(backList);
             }
         };
