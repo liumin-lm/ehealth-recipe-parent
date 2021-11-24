@@ -115,10 +115,10 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
     public Map<String, Object> enterpriseStock(Integer recipeId) {
         Recipe recipe = recipeDAO.get(recipeId);
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
-        //医院库存
-        EnterpriseStock organStock = organDrugListManager.organStock(recipe, recipeDetails);
         //药企库存
         List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(recipe, recipeDetails);
+        //医院库存
+        EnterpriseStock organStock = organDrugListManager.organStock(recipe, recipeDetails);
 
         DoSignRecipeDTO doSignRecipe = new DoSignRecipeDTO(true, false, null, "", recipeId, null);
         //机构配置购药方式
