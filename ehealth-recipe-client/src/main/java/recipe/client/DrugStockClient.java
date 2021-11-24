@@ -247,7 +247,8 @@ public class DrugStockClient extends BaseClient {
     /**
      * 返回机构药品库存查询数据
      *
-     * @param drugInfoTOList 机构药品查询对象
+     * @param drugInfoList his返回的机构药品查询对象
+     * @param drugInfoList 机构药品查询对象
      * @return 机构药品库存查询DTO
      */
     private List<DrugInfoDTO> getDrugInfoDTO(List<DrugInfoTO> drugInfoList, List<Recipedetail> recipeDetails) {
@@ -257,11 +258,14 @@ public class DrugStockClient extends BaseClient {
         }
         Map<String, Recipedetail> recipeDetailMap = recipeDetails.stream().collect(Collectors.toMap(Recipedetail::getOrganDrugCode, a -> a, (k1, k2) -> k1));
         drugInfoList.forEach(a -> {
+            Recipedetail recipedetail = recipeDetailMap.get(a.getDrcode());
+            if (null == recipedetail) {
+                return;
+            }
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
             drugInfoDTO.setOrganId(a.getOrganId());
             drugInfoDTO.setOrganDrugCode(a.getDrcode());
             if (null == a.getDrugId()) {
-                Recipedetail recipedetail = recipeDetailMap.get(a.getDrcode());
                 drugInfoDTO.setDrugId(recipedetail.getDrugId());
             } else {
                 drugInfoDTO.setDrugId(a.getDrugId());
