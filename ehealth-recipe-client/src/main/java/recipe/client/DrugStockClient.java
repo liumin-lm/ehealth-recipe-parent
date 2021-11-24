@@ -173,6 +173,12 @@ public class DrugStockClient extends BaseClient {
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, Map<Integer, List<SaleDrugList>> saleDrugListMap) {
         ScanRequestBean scanRequestBean = getScanRequestBean(recipe, saleDrugListMap, drugsEnterprise, recipeDetails);
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+        if (CollectionUtils.isEmpty(scanRequestBean.getScanDrugListBeans())) {
+            drugStockAmountDTO.setResult(false);
+            drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
+            logger.error("DrugStockClient scanEnterpriseDrugStock getScanDrugListBeans is null recipeDetails ={} ", JSON.toJSONString(recipeDetails));
+            return drugStockAmountDTO;
+        }
         try {
             HisResponseTO response = recipeEnterpriseService.scanStock(scanRequestBean);
             logger.info("DrugStockClient scanEnterpriseDrugStock recipeId={},response={}", JSON.toJSONString(recipe), JSON.toJSONString(response));
@@ -186,7 +192,7 @@ public class DrugStockClient extends BaseClient {
         } catch (Exception e) {
             drugStockAmountDTO.setResult(false);
             drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
-            logger.info("DrugStockClient scanEnterpriseDrugStock error ", e);
+            logger.error("DrugStockClient scanEnterpriseDrugStock error ", e);
         }
         return drugStockAmountDTO;
     }
@@ -399,9 +405,10 @@ public class DrugStockClient extends BaseClient {
         recipeDetails.forEach(recipedetail -> {
             ScanDrugListBean scanDrugListBean = new ScanDrugListBean();
             List<SaleDrugList> saleDrugLists1 = saleDrugListMap.get(recipedetail.getDrugId());
-            if (CollectionUtils.isNotEmpty(saleDrugLists1)) {
-                scanDrugListBean.setDrugCode(saleDrugLists1.get(0).getOrganDrugCode());
+            if (CollectionUtils.isEmpty(saleDrugLists1)) {
+                return;
             }
+            scanDrugListBean.setDrugCode(saleDrugLists1.get(0).getOrganDrugCode());
             scanDrugListBean.setDrugId(recipedetail.getDrugId());
             scanDrugListBean.setTotal(recipedetail.getUseTotalDose().toString());
             scanDrugListBean.setUnit(recipedetail.getDrugUnit());
