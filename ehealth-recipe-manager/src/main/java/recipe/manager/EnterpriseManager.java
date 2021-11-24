@@ -17,6 +17,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.client.DepartClient;
 import recipe.client.DrugStockClient;
 import recipe.client.EnterpriseClient;
 import recipe.dao.*;
@@ -67,6 +68,8 @@ public class EnterpriseManager extends BaseManager {
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private DrugStockClient drugStockClient;
+    @Autowired
+    private DepartClient departClient;
 
     /**
      * 检查 药企药品 是否满足开方药品
@@ -175,7 +178,7 @@ public class EnterpriseManager extends BaseManager {
                 break;
             case ENTERPRISE_APPOINT:
                 String deliveryCode = recipeExtend.getDeliveryCode();
-                drugsEnterpriseList = findEnterpriseListByAppoint(deliveryCode, recipe,RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
+                drugsEnterpriseList = findEnterpriseListByAppoint(deliveryCode, recipe, RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
                 break;
             case DEFAULT:
             default:
@@ -229,7 +232,7 @@ public class EnterpriseManager extends BaseManager {
                 break;
             case ENTERPRISE_APPOINT:
                 String deliveryCode = recipeExtend.getDeliveryCode();
-                drugsEnterpriseList = findEnterpriseListByAppoint(deliveryCode, recipe,RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
+                drugsEnterpriseList = findEnterpriseListByAppoint(deliveryCode, recipe, RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
                 break;
             case DEFAULT:
             default:
@@ -372,7 +375,7 @@ public class EnterpriseManager extends BaseManager {
         //设置医生信息
         pushRecipeAndOrder.setDoctorDTO(doctorClient.jobNumber(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getDepart()));
         //设置审方药师信息
-        pushRecipeAndOrder.setRecipeAuditReq(recipeAuditReq(recipe.getClinicOrgan(), recipe.getChecker(), recipe.getDepart()));
+        pushRecipeAndOrder.setRecipeAuditReq(recipeAuditReq(recipe));
         //设置药企信息
         pushRecipeAndOrder.setDrugsEnterpriseBean(ObjectCopyUtils.convert(enterprise, DrugsEnterpriseBean.class));
         //设置患者信息
@@ -384,7 +387,7 @@ public class EnterpriseManager extends BaseManager {
             pushRecipeAndOrder.setUserDTO(ObjectCopyUtils.convert(userDTO, com.ngari.patient.dto.PatientDTO.class));
         }
         //设置科室信息
-        pushRecipeAndOrder.setDepartmentDTO(organClient.departmentDTO(recipe.getDepart()));
+        pushRecipeAndOrder.setDepartmentDTO(departClient.getDepartmentByDepart(recipe.getDepart()));
 
         //多处方处理
         List<Recipe> recipes = Arrays.asList(recipe);
@@ -490,21 +493,22 @@ public class EnterpriseManager extends BaseManager {
     /**
      * 设置审方药师信息
      *
-     * @param organId  机构id
-     * @param doctorId 医生id
-     * @param departId 开方科室id
+     * @param recipe
      * @return 设置审方药师信息
      */
-    private RecipeAuditReq recipeAuditReq(Integer organId, Integer doctorId, Integer departId) {
+    private RecipeAuditReq recipeAuditReq(Recipe recipe) {
         RecipeAuditReq recipeAuditReq = new RecipeAuditReq();
+        if (recipe == null) {
+            return recipeAuditReq;
+        }
         //设置审方药师信息
-        AppointDepartDTO appointDepart = organClient.departDTO(organId, departId);
+        AppointDepartDTO appointDepart = departClient.getAppointDepartByOrganIdAndDepart(recipe);
         //科室代码
         recipeAuditReq.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
         //科室名称
         recipeAuditReq.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
-        if (!ValidateUtil.integerIsEmpty(doctorId)) {
-            DoctorDTO doctor = doctorClient.jobNumber(organId, doctorId, departId);
+        if (!ValidateUtil.integerIsEmpty(recipe.getDoctor())) {
+            DoctorDTO doctor = doctorClient.jobNumber(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getDepart());
             recipeAuditReq.setAuditDoctorNo(doctor.getJobNumber());
             recipeAuditReq.setAuditDoctorName(doctor.getName());
         }
