@@ -40,4 +40,14 @@ public interface IDrugEnterpriseBusinessService {
      * @return 是否可以开方
      */
     Map<String, Object> enterpriseStock(Integer recipeId);
+
+    /**
+     * 校验 药品库存 的库存数量
+     *
+     * @param organId       机构id
+     * @param recipeDetails 药品信息 drugId，code
+     * @param enterpriseId  指定某药企id 否则查询机构下全部
+     * @return 药品信息 一定存在于出参
+     */
+    List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<Recipedetail> recipeDetails, Integer enterpriseId);
 }
