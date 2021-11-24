@@ -101,6 +101,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
                 }
             }
             drugEnterpriseStock.setAllStock(stock);
+            drugEnterpriseStockList.add(drugEnterpriseStock);
         });
         return drugEnterpriseStockList;
     }
