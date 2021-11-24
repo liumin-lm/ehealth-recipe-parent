@@ -162,60 +162,59 @@ public class DrugStockClient extends BaseClient {
     }
 
     /**
-     * 查询由前置机对接的药企库存信息
+     * 查询由前置机对接的药企库存信息 老接口 非批量返回
      *
      * @param recipe
      * @param drugsEnterprise
      * @param recipeDetails
-     * @param saleDrugLists
+     * @param saleDrugListMap
      * @return
      */
-    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, List<SaleDrugList> saleDrugLists) {
-        String channelCode = null;
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, Map<Integer, List<SaleDrugList>> saleDrugListMap) {
+        ScanRequestBean scanRequestBean = getScanRequestBean(recipe, saleDrugListMap, drugsEnterprise, recipeDetails);
+        DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
         try {
-            if (null != recipe.getClinicId()) {
-                RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
-                if (revisitExDTO != null) {
-                    channelCode = revisitExDTO.getProjectChannel();
-                }
+            HisResponseTO response = recipeEnterpriseService.scanStock(scanRequestBean);
+            logger.info("DrugStockClient scanEnterpriseDrugStock recipeId={},response={}", JSON.toJSONString(recipe), JSON.toJSONString(response));
+            if (null != response && response.isSuccess()) {
+                drugStockAmountDTO.setResult(true);
+                drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, true));
+            } else {
+                drugStockAmountDTO.setResult(false);
+                drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
             }
         } catch (Exception e) {
-            logger.error("queryPatientChannelId error:", e);
+            drugStockAmountDTO.setResult(false);
+            drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
+            logger.info("DrugStockClient scanEnterpriseDrugStock error ", e);
         }
-        String finalChannelCode = channelCode;
-        Map<Integer, List<SaleDrugList>> saleDrugListMap = saleDrugLists.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
-        List<ScanDrugListBean> scanDrugListBeans = new ArrayList<>();
-        recipeDetails.forEach(recipedetail -> {
-            ScanDrugListBean scanDrugListBean = new ScanDrugListBean();
-            List<SaleDrugList> saleDrugLists1 = saleDrugListMap.get(recipedetail.getDrugId());
-            if (CollectionUtils.isNotEmpty(saleDrugLists1)) {
-                scanDrugListBean.setDrugCode(saleDrugLists1.get(0).getOrganDrugCode());
-            }
-            scanDrugListBean.setDrugId(recipedetail.getDrugId());
-            scanDrugListBean.setTotal(recipedetail.getUseTotalDose().toString());
-            scanDrugListBean.setUnit(recipedetail.getDrugUnit());
-            scanDrugListBean.setDrugSpec(recipedetail.getDrugSpec());
-            scanDrugListBean.setProducerCode(recipedetail.getProducerCode());
-            scanDrugListBean.setPharmacyCode(String.valueOf(recipedetail.getPharmacyId()));
-            scanDrugListBean.setPharmacy(recipedetail.getPharmacyName());
-            scanDrugListBean.setProducer(recipedetail.getProducer());
-            scanDrugListBean.setName(recipedetail.getSaleName());
-            scanDrugListBean.setGname(recipedetail.getDrugName());
-            scanDrugListBean.setChannelCode(finalChannelCode);
-            scanDrugListBeans.add(scanDrugListBean);
-        });
-        ScanRequestBean scanRequestBean = new ScanRequestBean();
-        scanRequestBean.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
-        scanRequestBean.setScanDrugListBeans(scanDrugListBeans);
-        scanRequestBean.setOrganId(recipe.getClinicOrgan());
-        logger.info("DrugStockClient scanEnterpriseDrugStock-scanStock scanRequestBean:{}.", JSON.toJSONString(scanRequestBean));
-        HisResponseTO<List<ScanDrugListBean>> response = recipeEnterpriseService.scanStock(scanRequestBean);
-        logger.info("DrugStockClient scanEnterpriseDrugStock recipeId={},前置机调用查询结果={}", JSON.toJSONString(recipe), JSON.toJSONString(response));
+        return drugStockAmountDTO;
+    }
+
+    /**
+     * 查询由前置机对接的药企库存信息 新增批量调用
+     *
+     * @param recipe
+     * @param drugsEnterprise
+     * @param recipeDetails
+     * @param saleDrugListMap
+     * @return
+     */
+    public DrugStockAmountDTO scanEnterpriseDrugStockV1(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, Map<Integer, List<SaleDrugList>> saleDrugListMap) {
+        ScanRequestBean scanRequestBean = getScanRequestBean(recipe, saleDrugListMap, drugsEnterprise, recipeDetails);
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
-        drugStockAmountDTO.setResult(false);
-        if (null != response && response.isSuccess()) {
+        try {
+            HisResponseTO<List<ScanDrugListBean>> response = recipeEnterpriseService.scanStockV1(scanRequestBean);
+            List<ScanDrugListBean> list = getResponseCatch(response);
+            if (CollectionUtils.isEmpty(list)) {
+                return null;
+            }
             drugStockAmountDTO.setResult(true);
-            drugStockAmountDTO.setDrugInfoList(getScanDrugInfoDTO(response.getData()));
+            drugStockAmountDTO.setDrugInfoList(getScanDrugInfoDTO(list));
+        } catch (Exception e) {
+            logger.info("DrugStockClient scanEnterpriseDrugStockV1 error ", e);
+            drugStockAmountDTO.setResult(false);
+            drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
         }
         return drugStockAmountDTO;
     }
@@ -236,8 +235,10 @@ public class DrugStockClient extends BaseClient {
             drugInfoDTO.setStock(stock);
             if (stock) {
                 drugInfoDTO.setStockAmount((int) Math.floor(a.getUseTotalDose()));
+                drugInfoDTO.setStockAmountChin("有库存");
             } else {
                 drugInfoDTO.setStockAmount(0);
+                drugInfoDTO.setStockAmountChin("无库存");
             }
             drugInfoList.add(drugInfoDTO);
         });
@@ -367,5 +368,55 @@ public class DrugStockClient extends BaseClient {
         logger.info(" DrugStockClient oldCodeCompatibility  list={}", JSON.toJSONString(drugInfoList));
         return drugInfoList;
     }
+
+    /***
+     * 调用 前置机 药企接口 组织参数
+     * @param recipe 处方信息
+     * @param saleDrugListMap 药企药品信息
+     * @param drugsEnterprise 药企信息
+     * @param recipeDetails 平台药品信息
+     * @return 前置机接口入参
+     */
+    private ScanRequestBean getScanRequestBean(Recipe recipe, Map<Integer, List<SaleDrugList>> saleDrugListMap, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        String channelCode = null;
+        try {
+            if (null != recipe.getClinicId()) {
+                RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
+                if (revisitExDTO != null) {
+                    channelCode = revisitExDTO.getProjectChannel();
+                }
+            }
+        } catch (Exception e) {
+            logger.error("queryPatientChannelId error:", e);
+        }
+        String finalChannelCode = channelCode;
+        List<ScanDrugListBean> scanDrugListBeans = new ArrayList<>();
+        recipeDetails.forEach(recipedetail -> {
+            ScanDrugListBean scanDrugListBean = new ScanDrugListBean();
+            List<SaleDrugList> saleDrugLists1 = saleDrugListMap.get(recipedetail.getDrugId());
+            if (CollectionUtils.isNotEmpty(saleDrugLists1)) {
+                scanDrugListBean.setDrugCode(saleDrugLists1.get(0).getOrganDrugCode());
+            }
+            scanDrugListBean.setDrugId(recipedetail.getDrugId());
+            scanDrugListBean.setTotal(recipedetail.getUseTotalDose().toString());
+            scanDrugListBean.setUnit(recipedetail.getDrugUnit());
+            scanDrugListBean.setDrugSpec(recipedetail.getDrugSpec());
+            scanDrugListBean.setProducerCode(recipedetail.getProducerCode());
+            scanDrugListBean.setPharmacyCode(String.valueOf(recipedetail.getPharmacyId()));
+            scanDrugListBean.setPharmacy(recipedetail.getPharmacyName());
+            scanDrugListBean.setProducer(recipedetail.getProducer());
+            scanDrugListBean.setName(recipedetail.getSaleName());
+            scanDrugListBean.setGname(recipedetail.getDrugName());
+            scanDrugListBean.setChannelCode(finalChannelCode);
+            scanDrugListBeans.add(scanDrugListBean);
+        });
+        ScanRequestBean scanRequestBean = new ScanRequestBean();
+        scanRequestBean.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
+        scanRequestBean.setScanDrugListBeans(scanDrugListBeans);
+        scanRequestBean.setOrganId(recipe.getClinicOrgan());
+        logger.info("DrugStockClient scanEnterpriseDrugStock-scanStock scanRequestBean:{}.", JSON.toJSONString(scanRequestBean));
+        return scanRequestBean;
+    }
+
 
 }

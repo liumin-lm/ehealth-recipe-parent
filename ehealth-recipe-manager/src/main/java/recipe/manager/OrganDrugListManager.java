@@ -85,6 +85,7 @@ public class OrganDrugListManager extends BaseManager {
         enterpriseStock.setDrugInfoList(scanResult.getDrugInfoList());
         enterpriseStock.setDrugName(scanResult.getNotDrugNames());
         enterpriseStock.setStock(scanResult.isResult());
+        logger.info("OrganDrugListManager.organStock enterpriseStock={}", JSON.toJSONString(enterpriseStock));
         return enterpriseStock;
     }
 
