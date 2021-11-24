@@ -2,6 +2,7 @@ package com.ngari.recipe.entity;
 
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
+import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -18,6 +19,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Schema
 @Table(name = "patient_optional_drug")
 @Access(AccessType.PROPERTY)
+@DynamicInsert
 public class PatientOptionalDrug implements Serializable {
 
     @ItemProperty(alias = "自增id")
