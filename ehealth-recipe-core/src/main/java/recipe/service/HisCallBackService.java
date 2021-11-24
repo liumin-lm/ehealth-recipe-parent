@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
+import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -11,8 +12,11 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
+import com.ngari.revisit.common.service.IRevisitService;
+import com.ngari.revisit.dto.response.RevisitBeanVO;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import eh.cdr.constant.OrderStatusConstant;
 import eh.cdr.constant.RecipeStatusConstant;
@@ -32,8 +36,11 @@ import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.hisservice.syncdata.SyncExecutorService;
+import recipe.manager.DepartManager;
+import recipe.manager.SignManager;
 import recipe.purchase.CommonOrder;
 
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
@@ -52,6 +59,8 @@ import java.util.Objects;
 public class HisCallBackService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HisCallBackService.class);
+
+    private static DepartManager departManager = AppContextHolder.getBean("departManager", DepartManager.class);
 
     /**
      * 处方HIS审核通过成功
@@ -181,17 +190,19 @@ public class HisCallBackService {
 
     private static void updateRecipeRegisterID(Recipe recipe, RecipeCheckPassResult result) {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         Map<String, String> map = new HashMap<String, String>();
 
         //更新复诊挂号序号如果有
         if (null != recipe.getClinicId()) {
-
             //更新咨询扩展表recipeid字段
             if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
                 IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
+                IRevisitService revisitService = RevisitAPI.getService(IRevisitService.class);
+                RevisitBeanVO revisitBeanVO = revisitService.getRevisitBeanVOByConsultId(recipe.getClinicId());
                 RevisitExDTO revisitExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
-                LOGGER.info("updateRecipeRegisterID revisitExDTO:{}", JSONUtils.toString(revisitExDTO));
+                LOGGER.info("updateRecipeRegisterID revisitBeanVO:{}", JSONUtils.toString(revisitBeanVO));
                 iRevisitExService.updateRecipeIdByConsultId(recipe.getClinicId(), recipe.getRecipeId());
                 if (null != revisitExDTO) {
                     if (StringUtils.isNotEmpty(revisitExDTO.getRegisterNo())) {
@@ -200,6 +211,16 @@ public class HisCallBackService {
                     if (StringUtils.isNotEmpty(revisitExDTO.getCardId()) && StringUtils.isNotEmpty(revisitExDTO.getCardType())) {
                         map.put("cardNo", revisitExDTO.getCardId());
                         map.put("cardType", revisitExDTO.getCardType());
+                    }
+                }
+                if (null != revisitBeanVO && StringUtils.isEmpty(recipe.getAppointDepart())) {
+                    if (null != revisitBeanVO.getAppointDepartId()) {
+                        recipe.setAppointDepart(revisitBeanVO.getAppointDepartId().toString());
+                        recipe.setDepart(revisitBeanVO.getDepartId());
+                    } else {
+                        AppointDepartDTO appointDepart = departManager.getAppointDepartByOrganIdAndDepart(recipe);
+                        recipe.setAppointDepart(appointDepart.getAppointDepartCode());
+                        recipe.setAppointDepartName(appointDepart.getAppointDepartName());
                     }
                 }
             } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipe.getBussSource())) {

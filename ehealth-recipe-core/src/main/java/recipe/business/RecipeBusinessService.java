@@ -263,7 +263,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                     pharmaIds.add(Integer.valueOf(s));
                 }
                 List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(pharmaIds);
-                if(CollectionUtils.isNotEmpty(pharmacyTcmByIds)){
+                if (CollectionUtils.isNotEmpty(pharmacyTcmByIds)) {
                     List<PharmacyTcmVO> pharmacyTcmVOS = pharmacyTcmByIds.stream().map(pharmacyTcm -> {
                         PharmacyTcmVO pharmacyTcmVO = new PharmacyTcmVO();
                         BeanUtils.copy(pharmacyTcm, pharmacyTcmVO);
@@ -275,13 +275,13 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
             List<Recipedetail> recipedetails = collect.get(patientOptionalDrug.getDrugId() + patientOptionalDrug.getOrganDrugCode());
 
-            if(CollectionUtils.isNotEmpty(recipedetails)){
-                Double num = 0.00;
+            Double num = 0.00;
+            if (CollectionUtils.isNotEmpty(recipedetails)) {
                 for (Recipedetail recipedetail : recipedetails) {
                     num = num + recipedetail.getUseTotalDose();
                 }
-                patientOptionalDrugDTO.setOpenDrugNum(num.intValue());
             }
+            patientOptionalDrugDTO.setOpenDrugNum(num.intValue());
             return patientOptionalDrugDTO;
         }).filter(Objects::nonNull).collect(Collectors.toList());
         logger.info("RecipeBusinessService findPatientOptionalDrugDTO res patientOptionalDrugDTOS= {}", JSON.toJSONString(patientOptionalDrugDTOS));
@@ -290,8 +290,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public void savePatientDrug(PatientOptionalDrugVo patientOptionalDrugVo) {
-        PatientOptionalDrug patientOptionalDrug  = new PatientOptionalDrug();
-        BeanUtils.copy(patientOptionalDrugVo,patientOptionalDrug);
+        PatientOptionalDrug patientOptionalDrug = new PatientOptionalDrug();
+        BeanUtils.copy(patientOptionalDrugVo, patientOptionalDrug);
         patientOptionalDrugDAO.save(patientOptionalDrug);
     }
 
