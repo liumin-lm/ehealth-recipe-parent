@@ -14,6 +14,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
+import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
@@ -363,7 +364,14 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             return "无库存";
         }
         EnterpriseStock enterpriseStock = list.get(0);
-        return enterpriseStock.getStock() ? "有库存" : "无库存";
+        if (!enterpriseStock.getStock()) {
+            return "无库存";
+        }
+        List<DrugInfoDTO> drugInfoList = enterpriseStock.getDrugInfoList();
+        if (CollectionUtils.isEmpty(drugInfoList)) {
+            return "无库存";
+        }
+        return drugInfoList.get(0).getStockAmountChin();
     }
 
     /**

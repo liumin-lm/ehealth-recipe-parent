@@ -311,7 +311,11 @@ public class DrugStockClient extends BaseClient {
             drugInfoDTO.setPharmacyCode(a.getPharmacyCode());
             drugInfoDTO.setPharmacy(a.getPharmacy());
             drugInfoDTO.setProducerCode(a.getProducerCode());
-            drugInfoDTO.setStockAmountChin(String.valueOf(drugInfoDTO.getStockAmount()));
+            if (StringUtils.isNotEmpty(a.getStockAmountChin())) {
+                drugInfoDTO.setStockAmountChin(a.getStockAmountChin());
+            } else {
+                drugInfoDTO.setStockAmountChin(String.valueOf(drugInfoDTO.getStockAmount()));
+            }
             if (0 == drugInfoDTO.getStockAmount()) {
                 drugInfoDTO.setStock(false);
             } else {
