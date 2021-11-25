@@ -191,7 +191,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     if (StringUtils.isEmpty(getStrFromCell(row.getCell(1)))) {
                         errMsg.append("【机构药品编码】未填写").append(";");
                     }
-                    drug.setOrganDrugCode(getStrFromCell(row.getCell(1)));
+                    drug.setSaleDrugCode(getStrFromCell(row.getCell(1)));
                 } catch (Exception e) {
                     LOGGER.error("机构药品编码有误 ," + e.getMessage(), e);
                     errMsg.append("机构药品编码有误").append(";");
@@ -219,7 +219,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     if (StringUtils.isEmpty(getStrFromCell(row.getCell(4)))) {
                         errMsg.append("【药企药品编码】未填写").append(";");
                     }
-                    drug.setSaleDrugCode(getStrFromCell(row.getCell(4)));
+                    drug.setOrganDrugCode(getStrFromCell(row.getCell(4)));
                 } catch (Exception e) {
                     LOGGER.error("药企药品编码有误 ," + e.getMessage(), e);
                     errMsg.append("药企药品编码有误").append(";");
@@ -434,19 +434,19 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     saleDrugList1.setDrugSpec(detail.getDrugSpec());
                     saleDrugList1.setStatus(detail.getStatus());
                     saleDrugList1.setLastModify(new Date());
-                    saleDrugList1.setOrganDrugCode(String.valueOf(detail.getOrganDrugCode()));
+                    saleDrugList1.setSaleDrugCode(String.valueOf(detail.getOrganDrugCode()));
                     switch (config.getSyncSaleDrugCodeType()) {
                         case 1:
-                            saleDrugList1.setSaleDrugCode(detail.getOrganDrugCode());
+                            saleDrugList1.setOrganDrugCode(detail.getOrganDrugCode());
                             break;
                         case 2:
-                            saleDrugList1.setSaleDrugCode(detail.getDrugId().toString());
+                            saleDrugList1.setOrganDrugCode(detail.getDrugId().toString());
                             break;
                         case 3:
-                            saleDrugList1.setSaleDrugCode(detail.getMedicalDrugCode());
+                            saleDrugList1.setOrganDrugCode(detail.getMedicalDrugCode());
                             break;
                         case 4:
-                            saleDrugList1.setSaleDrugCode(detail.getProducerCode());
+                            saleDrugList1.setOrganDrugCode(detail.getProducerCode());
                             break;
                         default:
                             break;
@@ -470,14 +470,14 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     saleDrugList.setPrice(detail.getSalePrice());
                     switch (config.getSyncSaleDrugCodeType()) {
                         case 1:
-                            saleDrugList.setSaleDrugCode(detail.getOrganDrugCode());
+                            saleDrugList.setOrganDrugCode(detail.getOrganDrugCode());
                             break;
                         case 2:
-                            saleDrugList.setSaleDrugCode(detail.getDrugId().toString());
+                            saleDrugList.setOrganDrugCode(detail.getDrugId().toString());
                             break;
                         case 3:
                             if (!ObjectUtils.isEmpty(detail.getMedicalDrugCode())){
-                                saleDrugList.setSaleDrugCode(detail.getMedicalDrugCode());
+                                saleDrugList.setOrganDrugCode(detail.getMedicalDrugCode());
                             }else {
                                 map.put("addNum",0);
                                 map.put("updateNum",0);
@@ -487,7 +487,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                             break;
                         case 4:
                             if (!ObjectUtils.isEmpty(detail.getProducerCode())){
-                                saleDrugList.setSaleDrugCode(detail.getProducerCode());
+                                saleDrugList.setOrganDrugCode(detail.getProducerCode());
                             }else {
                                 map.put("addNum",0);
                                 map.put("updateNum",0);
@@ -498,7 +498,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                         default:
                             break;
                     }
-                    saleDrugList.setOrganDrugCode(String.valueOf(detail.getOrganDrugCode()));
+                    saleDrugList.setSaleDrugCode(String.valueOf(detail.getOrganDrugCode()));
                     saleDrugList.setInventory(new BigDecimal(100));
                     saleDrugList.setCreateDt(new Date());
                     saleDrugList.setLastModify(new Date());
@@ -528,26 +528,6 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         return minutes;
     }
 
-  public void dataSyncLog(Integer drugsEnterpriseId,SaleDrugList update,Integer status,OrganDrugList detail) {
-      IDataSyncLogService dataSyncLogService = AppContextHolder.getBean("opbase.dataSyncLogService", IDataSyncLogService.class);
-      DataSyncDTO dataSyncDTO=new DataSyncDTO();
-      ArrayList<DataSyncDTO> list = Lists.newArrayList();
-      dataSyncDTO.setOrganId(drugsEnterpriseId.toString());
-      if (status==1){
-          dataSyncDTO.setReqMsg(JSONUtils.toString(update));
-          dataSyncDTO.setRespMsg("更新成功");
-      }
-      if (status==2){
-          dataSyncDTO.setReqMsg(JSONUtils.toString(update));
-          dataSyncDTO.setRespMsg("新增成功");
-      }
-      dataSyncDTO.setType("7");
-      dataSyncDTO.setStatus("1");
-      dataSyncDTO.setStatus("1");
-      dataSyncDTO.setSyncTime(new Date());
-      list.add(dataSyncDTO);
-      dataSyncLogService.addDataSyncLog("7",list);
-    }
 
     /**
      * 从缓存中实时获取同步情况
