@@ -1380,7 +1380,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                             } else if (new Integer(3).equals(drugsEnterprise.getCheckInventoryFlag()) && CollectionUtils.isNotEmpty(drugInventoryInfos)) {
                                 inventory = drugInventoryInfos.get(0).getPharmacyInventories().get(0).getAmount();
                             }else {
-                                inventory = enterpriseService.getDrugInventory(drugsEnterprise.getId(), drugListBean.getDrugId(), organId);
+                                inventory = enterpriseService.getDrugInventoryOld(drugsEnterprise.getId(), drugListBean.getDrugId(), organId);
                             }
                             //过滤掉暂不支持库存查询的药企
                             if ("暂不支持库存查询".equals(inventory)){

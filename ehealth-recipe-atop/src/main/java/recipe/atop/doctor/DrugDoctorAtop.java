@@ -28,6 +28,12 @@ public class DrugDoctorAtop extends BaseAtop {
     @Autowired
     private IRecipeBusinessService recipeBusinessService;
 
+    /**
+     * 医生端查询药品列表-实时查单个药品 所有药企的库存
+     *
+     * @param drugQueryVO
+     * @return
+     */
     @RpcService
     public List<DrugEnterpriseStockVO> drugEnterpriseStock(DrugQueryVO drugQueryVO) {
         validateAtop(drugQueryVO, drugQueryVO.getRecipeDetails(), drugQueryVO.getOrganId());
@@ -37,7 +43,7 @@ public class DrugDoctorAtop extends BaseAtop {
             recipedetail.setDrugId(a.getDrugId());
             recipedetail.setOrganDrugCode(a.getOrganDrugCode());
             recipedetail.setPharmacyId(drugQueryVO.getPharmacyId());
-            recipedetail.setUseTotalDose(10D);
+            recipedetail.setUseTotalDose(1D);
             detailList.add(recipedetail);
         });
         return iDrugEnterpriseBusinessService.stockList(drugQueryVO.getOrganId(), detailList);

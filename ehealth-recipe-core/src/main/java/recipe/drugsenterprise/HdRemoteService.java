@@ -80,10 +80,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
 
     private static final String requestAuthorizationValueHead = "Bearer ";
 
-
     private static final Integer requestSuccessCode = 200;
-
-
 
     private static final String requestHeadJsonKey = "Content-Type";
 
@@ -1515,7 +1512,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 httpClient.close();
             } catch (Exception e) {
                 e.printStackTrace();
-
             }
         }
         return new ArrayList();
@@ -1589,9 +1585,12 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         });
         LOGGER.info("scanEnterpriseDrugStock drugInfoList:{}.", JSONUtils.toString(drugInfoList));
         List<String> noDrugNames = drugInfoList.stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
-        drugStockAmountDTO.setNotDrugNames(noDrugNames);
+        drugStockAmountDTO.setResult(true);
+        if (CollectionUtils.isNotEmpty(noDrugNames)) {
+            drugStockAmountDTO.setNotDrugNames(noDrugNames);
+            drugStockAmountDTO.setResult(false);
+        }
         drugStockAmountDTO.setDrugInfoList(drugInfoList);
-        drugStockAmountDTO.setResult(drugInfoList.stream().anyMatch(DrugInfoDTO::getStock));
         return drugStockAmountDTO;
     }
 

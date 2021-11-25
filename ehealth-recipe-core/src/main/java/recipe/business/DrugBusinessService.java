@@ -14,7 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * @description： 药品 业务类
+ * @description： 平台药品 业务类
  * @author： whf
  * @date： 2021-08-23 18:58
  */

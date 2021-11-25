@@ -51,7 +51,7 @@ public interface ITherapyRecipeOpenService {
      * @param clinicId 复诊id
      * @return
      */
-    @RpcService
+    @RpcService(mvcDisabled = true)
     List<RecipeTherapyVO> findTherapyByClinicId(Integer clinicId);
 
 

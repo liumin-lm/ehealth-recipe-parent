@@ -4,7 +4,6 @@ import com.google.common.collect.Maps;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
-import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -12,8 +11,6 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
-import com.ngari.revisit.common.service.IRevisitService;
-import com.ngari.revisit.dto.response.RevisitBeanVO;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
@@ -37,10 +34,8 @@ import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.DepartManager;
-import recipe.manager.SignManager;
 import recipe.purchase.CommonOrder;
 
-import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.HashMap;
@@ -199,10 +194,8 @@ public class HisCallBackService {
             //更新咨询扩展表recipeid字段
             if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
                 IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
-                IRevisitService revisitService = RevisitAPI.getService(IRevisitService.class);
-                RevisitBeanVO revisitBeanVO = revisitService.getRevisitBeanVOByConsultId(recipe.getClinicId());
                 RevisitExDTO revisitExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
-                LOGGER.info("updateRecipeRegisterID revisitBeanVO:{}", JSONUtils.toString(revisitBeanVO));
+                LOGGER.info("updateRecipeRegisterID revisitExDTO:{}", JSONUtils.toString(revisitExDTO));
                 iRevisitExService.updateRecipeIdByConsultId(recipe.getClinicId(), recipe.getRecipeId());
                 if (null != revisitExDTO) {
                     if (StringUtils.isNotEmpty(revisitExDTO.getRegisterNo())) {
@@ -211,16 +204,6 @@ public class HisCallBackService {
                     if (StringUtils.isNotEmpty(revisitExDTO.getCardId()) && StringUtils.isNotEmpty(revisitExDTO.getCardType())) {
                         map.put("cardNo", revisitExDTO.getCardId());
                         map.put("cardType", revisitExDTO.getCardType());
-                    }
-                }
-                if (null != revisitBeanVO && StringUtils.isEmpty(recipe.getAppointDepart())) {
-                    if (null != revisitBeanVO.getAppointDepartId()) {
-                        recipe.setAppointDepart(revisitBeanVO.getAppointDepartId().toString());
-                        recipe.setDepart(revisitBeanVO.getDepartId());
-                    } else {
-                        AppointDepartDTO appointDepart = departManager.getAppointDepartByOrganIdAndDepart(recipe);
-                        recipe.setAppointDepart(appointDepart.getAppointDepartCode());
-                        recipe.setAppointDepartName(appointDepart.getAppointDepartName());
                     }
                 }
             } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipe.getBussSource())) {
