@@ -67,7 +67,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         //机构库存
         EnterpriseStock organStock = organDrugListManager.organStock(organId, recipeDetails);
         //药企库存
-        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(organId, recipeDetails, null);
+        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheckAll(organId, recipeDetails);
         //处理库存数据结构 逆转为 药品-药企
         List<EnterpriseStockVO> enterpriseStockList = this.getEnterpriseStockVO(organStock, enterpriseStock);
         Map<Integer, List<EnterpriseStockVO>> enterpriseStockGroup = enterpriseStockList.stream().collect(Collectors.groupingBy(EnterpriseStockVO::getDrugId));
@@ -102,7 +102,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
     @Override
     public List<EnterpriseStock> stockList(Recipe recipe, List<Recipedetail> recipeDetails) {
         //药企库存
-        List<EnterpriseStock> result = this.enterpriseStockCheck(recipe, recipeDetails);
+        List<EnterpriseStock> result = this.enterpriseStockCheckAll(recipe, recipeDetails);
         //医院库存
         EnterpriseStock organStock = organDrugListManager.organStock(recipe, recipeDetails);
         if (null != organStock) {
@@ -116,7 +116,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         Recipe recipe = recipeDAO.get(recipeId);
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
         //药企库存
-        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(recipe, recipeDetails);
+        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheckAll(recipe, recipeDetails);
         //医院库存
         EnterpriseStock organStock = organDrugListManager.organStock(recipe, recipeDetails);
 
@@ -167,7 +167,6 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         return MapValueUtil.beanToMap(doSignRecipe);
     }
 
-
     @Override
     public List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<Recipedetail> recipeDetails, Integer enterpriseId) {
         //获取机构配置按钮
@@ -179,10 +178,41 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         }
         if (!ValidateUtil.integerIsEmpty(enterpriseId)) {
             enterpriseStockList = enterpriseStockList.stream().filter(a -> a.getDrugsEnterpriseId().equals(enterpriseId)).collect(Collectors.toList());
-            if (CollectionUtils.isEmpty(enterpriseStockList)) {
-                return enterpriseStockList;
-            }
         }
+        if (CollectionUtils.isEmpty(enterpriseStockList)) {
+            return enterpriseStockList;
+        }
+        return this.enterpriseStockCheck(organId, recipeDetails, enterpriseStockList);
+    }
+
+    /**
+     * 校验 药品库存 全部药企的库存数量
+     *
+     * @param organId       机构id
+     * @param recipeDetails 药品信息 drugId，code
+     * @return 药品信息 一定存在于出参
+     */
+    private List<EnterpriseStock> enterpriseStockCheckAll(Integer organId, List<Recipedetail> recipeDetails) {
+        //获取机构配置按钮
+        List<GiveModeButtonDTO> giveModeButtonBeans = buttonManager.getOrganGiveModeMap(organId);
+        //获取需要查询库存的药企对象
+        List<EnterpriseStock> enterpriseStockList = buttonManager.enterpriseStockList(organId, giveModeButtonBeans);
+        if (CollectionUtils.isEmpty(enterpriseStockList)) {
+            return enterpriseStockList;
+        }
+        return this.enterpriseStockCheck(organId, recipeDetails, enterpriseStockList);
+    }
+
+
+    /**
+     * 校验 药品库存 指定药企的库存数量
+     *
+     * @param organId             机构id
+     * @param recipeDetails       药品信息 drugId，code
+     * @param enterpriseStockList 指定某药企List
+     * @return 药品信息 一定存在于出参
+     */
+    private List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<Recipedetail> recipeDetails, List<EnterpriseStock> enterpriseStockList) {
         //校验药企库存
         List<FutureTask<EnterpriseStock>> futureTasks = new LinkedList<>();
         for (EnterpriseStock enterpriseStock : enterpriseStockList) {
@@ -203,13 +233,13 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
     }
 
     /**
-     * 校验 药品库存在 同一个药企下的库存数量
+     * 校验 药品库存在 遍历药企 同一个药企下的库存数量
      *
      * @param recipe        处方机构id
      * @param recipeDetails 药品信息 drugId，code
      * @return 药品信息非必须
      */
-    private List<EnterpriseStock> enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails) {
+    private List<EnterpriseStock> enterpriseStockCheckAll(Recipe recipe, List<Recipedetail> recipeDetails) {
         Integer organId = recipe.getClinicOrgan();
         //获取机构配置按钮
         List<GiveModeButtonDTO> giveModeButtonBeans = buttonManager.getOrganGiveModeMap(organId);
