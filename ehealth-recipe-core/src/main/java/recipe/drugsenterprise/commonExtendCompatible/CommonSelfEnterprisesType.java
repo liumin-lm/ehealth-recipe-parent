@@ -6,6 +6,7 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
+import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -16,6 +17,7 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
@@ -230,16 +232,28 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
     @Override
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
         List<OrganDrugList> organDrugLists = new ArrayList<>();
+        DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+        List<DrugInfoDTO> drugInfoList = new ArrayList<>();
         recipeDetails.forEach(recipeDetail -> {
             OrganDrugList organDrugList = new OrganDrugList();
+            DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+            drugInfoDTO.setStock(true);
+            drugInfoDTO.setStockAmountChin("有库存");
+            BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
             organDrugList.setDrugId(recipeDetail.getDrugId());
             organDrugList.setDrugName(recipeDetail.getDrugName());
             organDrugList.setOrganDrugCode(recipeDetail.getOrganDrugCode());
             organDrugList.setPack(recipeDetail.getPack());
             organDrugList.setProducerCode(recipeDetail.getProducerCode());
             organDrugLists.add(organDrugList);
+            drugInfoList.add(drugInfoDTO);
         });
-        DrugStockAmountDTO drugStockAmountDTO = drugStockClient.scanDrugStock(recipeDetails, recipe.getClinicOrgan(), organDrugLists, new ArrayList<>());
+        if (new Integer(1).equals(drugsEnterprise.getSendType()) && drugsEnterprise.getCheckInventoryFlag()==3) {
+            drugStockAmountDTO = drugStockClient.scanDrugStock(recipeDetails, recipe.getClinicOrgan(), organDrugLists, new ArrayList<>());
+        } else {
+            drugStockAmountDTO.setResult(true);
+            drugStockAmountDTO.setDrugInfoList(drugInfoList);
+        }
         return drugStockAmountDTO;
     }
 
