@@ -14,7 +14,6 @@ import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.his.recipe.mode.ChronicDiseaseListReqTO;
 import com.ngari.his.recipe.mode.ChronicDiseaseListResTO;
 import com.ngari.his.recipe.mode.PatientChronicDiseaseRes;
-import com.ngari.his.recipe.mode.PatientDiagnoseTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -40,7 +39,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
@@ -58,8 +56,8 @@ import recipe.enumerate.type.CheckPatientEnum;
 import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.service.common.RecipeCacheService;
-import recipe.util.ValidateUtil;
 import recipe.util.RedisClient;
+import recipe.util.ValidateUtil;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
@@ -92,8 +90,6 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
 
     @Autowired
     private RevisitClient revisitClient;
-
-    private String msg;
 
     /**
      * 根据取药方式过滤药企
@@ -648,30 +644,6 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         }
         result.put("chronicDiseaseList",list);
         return result;
-    }
-
-    /**
-     * 获取患者诊断比较结果
-     * 过期 已经迁移到医疗协同项目
-     *
-     * @return
-     */
-    @RpcService
-    @Deprecated
-    public void findPatientDiagnose(PatientDiagnoseTO request) {
-        LOGGER.info("findPatientDiagnose request={}", JSONUtils.toString(request));
-        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
-        PatientDTO patientDTO = patientService.get(request.getMpi());
-        if (null == patientDTO) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "找不到该患者");
-        }
-        PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
-        BeanUtils.copyProperties(patientDTO, patientBaseInfo);
-        patientBaseInfo.setMpi(patientDTO.getMpiId());
-        patientBaseInfo.setPatientID(patientDTO.getPatId());
-        request.setPatient(patientBaseInfo);
-        RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-        service.findPatientDiagnose(request);
     }
 
     /**

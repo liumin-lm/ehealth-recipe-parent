@@ -25,10 +25,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeStatusConstant;
-import recipe.dao.*;
+import recipe.dao.OrganDrugListDAO;
+import recipe.dao.PharmacyTcmDAO;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.service.HisCallBackService;
 import recipe.service.RecipeLogService;
@@ -47,11 +49,6 @@ import java.util.stream.Collectors;
  */
 public class RecipeToHisService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeToHisService.class);
-
-    @Autowired
-    private PharmacyTcmDAO pharmacyTcmDAO;
-    @Autowired
-    private OrganDrugListDAO organDrugListDAO;
     @Autowired
     private RecipeDAO recipeDAO;
     @Autowired
@@ -73,8 +70,11 @@ public class RecipeToHisService {
                 return;
             }
             if (RecipeStatusEnum.RECIPE_STATUS_CHECKING_HOS.getType().equals(recipe.getStatus())) {
-                //失败发送系统消息
-                recipeDAO.updateStatusByRecipeIdAndStatus(recipeId, RecipeStatusEnum.RECIPE_STATUS_HIS_FAIL.getType(), recipe.getStatus());
+                //失败修改状态
+                Recipe recipeUpdate = new Recipe();
+                recipeUpdate.setRecipeId(recipeId);
+                recipeUpdate.setStatus(RecipeStatusEnum.RECIPE_STATUS_HIS_FAIL.getType());
+                recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
                 //日志记录
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusEnum.RECIPE_STATUS_HIS_FAIL.getType(), "his写入失败，调用前置机处方写入服务失败");
             } else {
@@ -254,25 +254,6 @@ public class RecipeToHisService {
         return response;
     }
 
-    @Deprecated
-    public PayNotifyResTO payNotify(PayNotifyReqTO request) {
-        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
-        LOGGER.info("payNotify request={}", JSONUtils.toString(request));
-        try {
-            PayNotifyResTO response = null;
-            if("1".equals(request.getIsMedicalSettle())){
-                response = hisService.recipeMedicalSettle(request);
-            } else{
-                response = hisService.payNotify(request);
-            }
-            LOGGER.info("payNotify response={}", JSONUtils.toString(response));
-            return response;
-        } catch (Exception e) {
-            LOGGER.error("payNotify error ", e);
-        }
-        return null;
-    }
-
     /**
      * 查询药品在医院里的信息
      *
@@ -410,32 +391,6 @@ public class RecipeToHisService {
         return response;
     }
 
-    public RecipeQueryResTO recipeQuery(RecipeQueryReqTO request) {
-        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
-        LOGGER.info("recipeQuery request={}", JSONUtils.toString(request));
-        RecipeQueryResTO response = null;
-        try {
-            response = hisService.recipeQuery(request);
-            LOGGER.info("recipeQuery response={}", JSONUtils.toString(response));
-        } catch (Exception e) {
-            LOGGER.error("recipeQuery error ", e);
-        }
-        return response;
-    }
-
-    public DetailQueryResTO detailQuery(DetailQueryReqTO request) {
-        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
-        LOGGER.info("detailQuery request={}", JSONUtils.toString(request));
-        DetailQueryResTO response = null;
-        try {
-            response = hisService.detailQuery(request);
-            LOGGER.info("detailQuery response={}", JSONUtils.toString(response));
-        } catch (Exception e) {
-            LOGGER.error("detailQuery error ", e);
-        }
-        return response;
-    }
-
     public HisResponseTO recipeAudit(RecipeAuditReqTO request){
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.recipeAudit(request);
@@ -520,15 +475,6 @@ public class RecipeToHisService {
         return hosPatientRecipeDTO;
     }
 
-
-    /**
-     * 处方预结算
-     */
-    public HisResponseTO recipeMedicalPreSettle(MedicalPreSettleReqTO request) {
-        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
-        return hisService.recipeMedicalPreSettle(request);
-    }
-
     /**
      * 处方预结算(新)
      */
@@ -545,17 +491,6 @@ public class RecipeToHisService {
         LOGGER.info("RecipeToHisService recipeCashPreSettleHis request={}", JSONUtils.toString(request));
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.recipeCashPreSettle(request);
-    }
-
-    /**
-     * 处方药品配送信息查询接口
-     *
-     * @param recipeSendMsgRequestTO p配送信息请求获取
-     * @return
-     */
-    private RecipeSendMsgResTO recipeSendMsg(RecipeSendMsgRequestTO recipeSendMsgRequestTO) {
-        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
-        return hisService.recipeSendMsg(recipeSendMsgRequestTO);
     }
 
     public HisResponseTO<MedicInsurSettleApplyResTO> recipeMedicInsurPreSettle(MedicInsurSettleApplyReqTO reqTO){
@@ -580,25 +515,5 @@ public class RecipeToHisService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "接口返回异常");
         }
         return response;
-    }
-    @Deprecated
-    public void findPatientDiagnose(PatientDiagnoseTO request) {
-        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
-        LOGGER.info("findPatientDiagnose request={}", JSONUtils.toString(request));
-        HisResponseTO<String> response;
-        try {
-            response = hisService.findPatientDiagnose(request);
-            LOGGER.info("findPatientDiagnose response={}", JSONUtils.toString(response));
-        } catch (Exception e) {
-            LOGGER.error("findPatientDiagnose error ", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
-        if (null == response) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "接口返回异常");
-        } else {
-            if (!"200".equals(response.getMsgCode())) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, response.getMsg());
-            }
-        }
     }
 }
