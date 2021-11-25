@@ -185,7 +185,12 @@ public class DrugStockClient extends BaseClient {
             logger.info("DrugStockClient scanEnterpriseDrugStock recipeId={},response={}", JSON.toJSONString(recipe), JSON.toJSONString(response));
             if (null != response && response.isSuccess()) {
                 drugStockAmountDTO.setResult(true);
-                drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, true));
+                List<DrugInfoDTO> drugInfo = DrugStockClient.getDrugInfoDTO(recipeDetails, true);
+                String inventor = (String) response.getExtend().get("inventor");
+                if (StringUtils.isNotEmpty(inventor)) {
+                    drugInfo.forEach(a -> a.setStockAmountChin(inventor));
+                }
+                drugStockAmountDTO.setDrugInfoList(drugInfo);
             } else {
                 drugStockAmountDTO.setResult(false);
                 drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
