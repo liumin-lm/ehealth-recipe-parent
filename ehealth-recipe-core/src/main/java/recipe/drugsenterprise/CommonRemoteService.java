@@ -368,10 +368,13 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
             drugInfoDTO.setStockAmountChin(result);
             drugInfoList.add(drugInfoDTO);
         });
+        drugStockAmountDTO.setResult(true);
         List<String> noDrugNames = drugInfoList.stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
-        drugStockAmountDTO.setNotDrugNames(noDrugNames);
+        if (CollectionUtils.isNotEmpty(noDrugNames)) {
+            drugStockAmountDTO.setNotDrugNames(noDrugNames);
+            drugStockAmountDTO.setResult(false);
+        }
         drugStockAmountDTO.setDrugInfoList(drugInfoList);
-        drugStockAmountDTO.setResult(drugInfoList.stream().anyMatch(DrugInfoDTO::getStock));
         return drugStockAmountDTO;
     }
 

@@ -23,6 +23,7 @@ import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
@@ -34,7 +35,6 @@ import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
@@ -42,7 +42,6 @@ import recipe.dao.*;
 import recipe.drugsenterprise.bean.EbsBean;
 import recipe.drugsenterprise.bean.EbsDetail;
 import recipe.drugsenterprise.bean.EsbWebService;
-import recipe.drugsenterprise.commonExtendCompatible.CommonExtendRemoteTypeEnum;
 import recipe.service.RecipeLogService;
 import recipe.util.AppSiganatureUtils;
 import recipe.util.DateConversion;
@@ -82,7 +81,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
             getDrugEnterpriseResult(result, "处方ID参数为空");
         }
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
-        if (!CollectionUtils.isEmpty(recipeList)) {
+        if (CollectionUtils.isNotEmpty(recipeList)) {
             Recipe recipe = recipeList.get(0);
             //flag 1 正常  0 退货
             pushRecipeInfoForSy(enterprise, result, recipe, 1);
@@ -299,10 +298,13 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
             drugInfoDTO.setStockAmountChin(result);
             drugInfoList.add(drugInfoDTO);
         });
+        drugStockAmountDTO.setResult(true);
         List<String> noDrugNames = drugInfoList.stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
-        drugStockAmountDTO.setNotDrugNames(noDrugNames);
+        if (CollectionUtils.isNotEmpty(noDrugNames)) {
+            drugStockAmountDTO.setNotDrugNames(noDrugNames);
+            drugStockAmountDTO.setResult(false);
+        }
         drugStockAmountDTO.setDrugInfoList(drugInfoList);
-        drugStockAmountDTO.setResult(drugInfoList.stream().anyMatch(DrugInfoDTO::getStock));
         return drugStockAmountDTO;
     }
 
@@ -333,7 +335,7 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
                     if (success && "0".equals(code)) {
                         List<Map<String, Object>> list = (List)maps.get("result");
                         LOGGER.info("scanStock list:{}", JSONUtils.toString(list));
-                        if (!CollectionUtils.isEmpty(list)) {
+                        if (CollectionUtils.isNotEmpty(list)) {
                             Map<String, Object> map = list.get(0);
                             String stockIsEnough = (String)map.get("stockIsEnough");
                             if ("1".equals(stockIsEnough)) {

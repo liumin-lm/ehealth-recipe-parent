@@ -39,7 +39,7 @@ public class OrganDrugListManager extends BaseManager {
     private OperationClient operationClient;
 
     /**
-     * 查询药品库存 用于药品展示
+     * 校验机构药品库存 用于 药品展示
      *
      * @param organId
      * @param detailList
@@ -52,7 +52,7 @@ public class OrganDrugListManager extends BaseManager {
     }
 
     /**
-     * 查询药品库存 用于机构展示
+     * 校验机构药品库存
      *
      * @param recipe
      * @param detailList
@@ -91,11 +91,11 @@ public class OrganDrugListManager extends BaseManager {
 
 
     /**
-     * 校验机构药品库存
+     * 查询机构药品库存 用于机构展示
      *
      * @param recipe
      * @param detailList
-     * @return
+     * @return 机构药品库存结果
      */
     public DrugStockAmountDTO scanDrugStockByRecipeId(Recipe recipe, List<Recipedetail> detailList) {
         logger.info("OrganDrugListManager scanDrugStockByRecipeId recipe={}  recipeDetails = {}", JSONArray.toJSONString(recipe), JSONArray.toJSONString(detailList));

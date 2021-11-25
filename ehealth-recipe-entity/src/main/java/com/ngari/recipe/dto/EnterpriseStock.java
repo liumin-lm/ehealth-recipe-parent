@@ -32,11 +32,6 @@ public class EnterpriseStock {
      * 是否有库存 true：有 ，F：无
      */
     private Boolean stock;
-
-    /**
-     * 是否校验 单条药品库存 T 校验 F无需校验
-     */
-    private Boolean checkDrugStock;
     /**
      * 提示药品名称
      */

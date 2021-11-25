@@ -63,30 +63,20 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
 
 
     @Override
-    public List<EnterpriseStock> stockList(Recipe recipe, List<Recipedetail> recipeDetails) {
-        //药企库存
-        List<EnterpriseStock> result = this.enterpriseStockCheck(recipe, recipeDetails);
-        //医院库存
-        EnterpriseStock organStock = organDrugListManager.organStock(recipe, recipeDetails);
-        if (null != organStock) {
-            result.add(organStock);
-        }
-        return result;
-    }
-
-    @Override
     public List<DrugEnterpriseStockVO> stockList(Integer organId, List<Recipedetail> recipeDetails) {
-        List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(organId);
-        //无到院取药
-        String supportDownloadButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
-        String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
-
+        //机构库存
         EnterpriseStock organStock = organDrugListManager.organStock(organId, recipeDetails);
+        //药企库存
         List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(organId, recipeDetails, null);
+        //处理库存数据结构 逆转为 药品-药企
         List<EnterpriseStockVO> enterpriseStockList = this.getEnterpriseStockVO(organStock, enterpriseStock);
         Map<Integer, List<EnterpriseStockVO>> enterpriseStockGroup = enterpriseStockList.stream().collect(Collectors.groupingBy(EnterpriseStockVO::getDrugId));
-        List<DrugEnterpriseStockVO> drugEnterpriseStockList = new LinkedList<>();
+        //处方签于例外支付
+        List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(organId);
+        String supportDownloadButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
+        String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
         //组织 药品 对应的 药企列表库存
+        List<DrugEnterpriseStockVO> drugEnterpriseStockList = new LinkedList<>();
         recipeDetails.forEach(a -> {
             DrugEnterpriseStockVO drugEnterpriseStock = new DrugEnterpriseStockVO();
             drugEnterpriseStock.setDrugId(a.getDrugId());
@@ -110,20 +100,29 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
     }
 
     @Override
+    public List<EnterpriseStock> stockList(Recipe recipe, List<Recipedetail> recipeDetails) {
+        //药企库存
+        List<EnterpriseStock> result = this.enterpriseStockCheck(recipe, recipeDetails);
+        //医院库存
+        EnterpriseStock organStock = organDrugListManager.organStock(recipe, recipeDetails);
+        if (null != organStock) {
+            result.add(organStock);
+        }
+        return result;
+    }
+
+    @Override
     public Map<String, Object> enterpriseStock(Integer recipeId) {
         Recipe recipe = recipeDAO.get(recipeId);
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
-        //医院库存
-        EnterpriseStock organStock = organDrugListManager.organStock(recipe, recipeDetails);
         //药企库存
         List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(recipe, recipeDetails);
+        //医院库存
+        EnterpriseStock organStock = organDrugListManager.organStock(recipe, recipeDetails);
 
         DoSignRecipeDTO doSignRecipe = new DoSignRecipeDTO(true, false, null, "", recipeId, null);
-        //无到院取药
-
+        //机构配置购药方式
         List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(recipe.getClinicOrgan());
-
-        //未配置药企 / 医院
         if (CollectionUtils.isEmpty(giveModeButtonBeans)) {
             enterpriseManager.doSignRecipe(doSignRecipe, null, "抱歉，机构未配置购药方式，无法开处方");
             return MapValueUtil.beanToMap(doSignRecipe);
@@ -188,7 +187,6 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         List<FutureTask<EnterpriseStock>> futureTasks = new LinkedList<>();
         for (EnterpriseStock enterpriseStock : enterpriseStockList) {
             enterpriseStock.setStock(false);
-            enterpriseStock.setCheckDrugStock(true);
             //药企无对应的购药按钮则 无需查询库存-返回无库存
             if (CollectionUtils.isEmpty(enterpriseStock.getGiveModeButton())) {
                 enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
@@ -260,8 +258,8 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         }
         if (0 == drugsEnterprise.getCheckInventoryFlag()) {
             enterpriseStock.setStock(true);
-            enterpriseStock.setCheckDrugStock(false);
             enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, true));
+            logger.info("DrugEnterpriseBusinessService enterpriseStock 0 enterpriseStock= {}", JSON.toJSONString(enterpriseStock));
             return enterpriseStock;
         }
         //医院自建药企-查询医院库存
@@ -270,6 +268,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             enterpriseStock.setStock(organStock.isResult());
             enterpriseStock.setDrugName(organStock.getNotDrugNames());
             enterpriseStock.setDrugInfoList(organStock.getDrugInfoList());
+            logger.info("DrugEnterpriseBusinessService enterpriseStock 3 enterpriseStock= {}", JSON.toJSONString(enterpriseStock));
             return enterpriseStock;
         }
         //通过前置机调用
@@ -277,6 +276,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             DrugStockAmountDTO code = enterpriseManager.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
             enterpriseStock.setStock(code.isResult());
             enterpriseStock.setDrugInfoList(code.getDrugInfoList());
+            logger.info("DrugEnterpriseBusinessService enterpriseStock 1 enterpriseStock= {}", JSON.toJSONString(enterpriseStock));
             return enterpriseStock;
         }
         //通过平台调用药企
@@ -284,6 +284,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         DrugStockAmountDTO result = drugEnterpriseService.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
         enterpriseStock.setStock(result.isResult());
         enterpriseStock.setDrugInfoList(result.getDrugInfoList());
+        logger.info("DrugEnterpriseBusinessService enterpriseStock else enterpriseStock= {}", JSON.toJSONString(enterpriseStock));
         return enterpriseStock;
     }
 
@@ -306,15 +307,11 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
                 enterpriseStockVO.setAppointEnterpriseType(a.getAppointEnterpriseType());
                 enterpriseStockVO.setDeliveryCode(a.getDeliveryCode());
                 enterpriseStockVO.setDeliveryName(a.getDeliveryName());
-                if (!a.getCheckDrugStock()) {
-                    enterpriseStockVO.setStock(a.getStock());
+                enterpriseStockVO.setStock(b.getStock());
+                if (StringUtils.isNotEmpty(b.getStockAmountChin())) {
+                    enterpriseStockVO.setStockAmountChin(b.getStockAmountChin());
                 } else {
-                    enterpriseStockVO.setStock(b.getStock());
-                    if (StringUtils.isNotEmpty(b.getStockAmountChin())) {
-                        enterpriseStockVO.setStockAmountChin(b.getStockAmountChin());
-                    } else {
-                        enterpriseStockVO.setStockAmountChin(String.valueOf(b.getStockAmount()));
-                    }
+                    enterpriseStockVO.setStockAmountChin(String.valueOf(b.getStockAmount()));
                 }
                 enterpriseStockVO.setDrugId(b.getDrugId());
                 enterpriseStockList.add(enterpriseStockVO);

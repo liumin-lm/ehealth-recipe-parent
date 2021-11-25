@@ -9,6 +9,7 @@ import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoResponseTO;
+import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
@@ -17,6 +18,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
+import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
@@ -59,6 +61,7 @@ import recipe.service.RecipeOrderService;
 import recipe.service.common.RecipeCacheService;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -393,78 +396,86 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             return "无库存";
         }
         EnterpriseStock enterpriseStock = list.get(0);
-        return enterpriseStock.getStock() ? "有库存" : "无库存";
+        if (!enterpriseStock.getStock()) {
+            return "无库存";
+        }
+        List<DrugInfoDTO> drugInfoList = enterpriseStock.getDrugInfoList();
+        if (CollectionUtils.isEmpty(drugInfoList)) {
+            return "无库存";
+        }
+        return drugInfoList.get(0).getStockAmountChin();
     }
-//
-//    @RpcService
-//    public String getDrugInventory(Integer depId, Integer drugId, Integer organId) {
-//        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-//        LOGGER.info("getDrugInventory depId:{}, drugId:{}", depId, drugId);
-//        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-//        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
-//        result.setAccessDrugEnterpriseService(getServiceByDep(drugsEnterprise));
-//
-//        //查询医院库存  药企配置：校验药品库存标志 0 不需要校验 1 校验药企库存 2 药店没库存时可以备货 3 校验医院库存
-//        //根据药品id查询
-//        if (drugsEnterprise != null && drugsEnterprise.getCheckInventoryFlag() != null && drugsEnterprise.getCheckInventoryFlag() == 3) {
-//            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-//            //通过机构Id查找对应药品库存列表
-//            List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
-//            DrugInfoResponseTO response = drugListExtService.getHisDrugStock(organId, organDrugLists, null);
-//            if (null == response) {
-//                return "无库存";
-//            } else {
-//                //前置机返回0或者200
-//                if (Integer.valueOf(0).equals(response.getMsgCode()) || Integer.valueOf(200).equals(response.getMsgCode())) {
-//                    if (CollectionUtils.isEmpty(response.getData())) {
-//                        return "有库存";
-//                    } else {
-//                        List<DrugInfoTO> data = response.getData();
-//                        Double stockAmount = data.get(0).getStockAmount();
-//                        if (stockAmount != null) {
-//                            return BigDecimal.valueOf(stockAmount).toPlainString();
-//                        } else {
-//                            return "有库存";
-//                        }
-//                    }
-//                } else {
-//                    if (StringUtils.isNotEmpty(response.getNoInventoryTip())) {
-//                        return response.getNoInventoryTip();
-//                    }
-//                    return "无库存";
-//                }
-//            }
-//        }
-//
-//        if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getOperationType())) {
-//            //通过前置机调用
-//            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService", IRecipeEnterpriseService.class);
-//            List<com.ngari.recipe.recipe.model.RecipeDetailBean> recipeDetailBeans = new ArrayList<>();
-//            com.ngari.recipe.recipe.model.RecipeDetailBean recipeDetailBean = new com.ngari.recipe.recipe.model.RecipeDetailBean();
-//            recipeDetailBean.setDrugId(drugId);
-//            recipeDetailBeans.add(recipeDetailBean);
-//            ScanRequestBean scanRequestBean = getDrugInventoryRequestBean(drugsEnterprise.getOrganId(), drugsEnterprise, recipeDetailBeans);
-//            LOGGER.info("getDrugInventory requestBean:{}.", JSONUtils.toString(scanRequestBean));
-//            HisResponseTO responseTO = recipeEnterpriseService.scanStock(scanRequestBean);
-//            LOGGER.info("getDrugInventory responseTO:{}.", JSONUtils.toString(responseTO));
-//            if (null != responseTO && responseTO.isSuccess()) {
-//                String inventor = (String) responseTO.getExtend().get("inventor");
-//                if (StringUtils.isEmpty(inventor)) {
-//                    return "有库存";
-//                }
-//                return inventor;
-//            } else {
-//                return "无库存";
-//            }
-//        } else {
-//            if (DrugEnterpriseResult.SUCCESS.equals(result.getCode()) && null != result.getAccessDrugEnterpriseService()) {
-//                return result.getAccessDrugEnterpriseService().getDrugInventory(drugId, drugsEnterprise, organId);
-//            } else {
-//                return "无库存";
-//            }
-//        }
-//
-//    }
+
+    @Deprecated
+    public String getDrugInventoryOld(Integer depId, Integer drugId, Integer organId) {
+        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
+        LOGGER.info("getDrugInventory depId:{}, drugId:{}", depId, drugId);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+        result.setAccessDrugEnterpriseService(getServiceByDep(drugsEnterprise));
+
+        //查询医院库存  药企配置：校验药品库存标志 0 不需要校验 1 校验药企库存 2 药店没库存时可以备货 3 校验医院库存
+        //根据药品id查询
+        if (drugsEnterprise != null && drugsEnterprise.getCheckInventoryFlag() != null && drugsEnterprise.getCheckInventoryFlag() == 3) {
+            OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+            //通过机构Id查找对应药品库存列表
+            List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
+            DrugInfoResponseTO response = drugListExtService.getHisDrugStock(organId, organDrugLists, null);
+            if (null == response) {
+                return "无库存";
+            } else {
+                //前置机返回0或者200
+                if (Integer.valueOf(0).equals(response.getMsgCode()) || Integer.valueOf(200).equals(response.getMsgCode())) {
+                    if (CollectionUtils.isEmpty(response.getData())) {
+                        return "有库存";
+                    } else {
+                        List<DrugInfoTO> data = response.getData();
+                        Double stockAmount = data.get(0).getStockAmount();
+                        if (stockAmount != null) {
+                            return BigDecimal.valueOf(stockAmount).toPlainString();
+                        } else {
+                            return "有库存";
+                        }
+                    }
+                } else {
+                    if (StringUtils.isNotEmpty(response.getNoInventoryTip())) {
+                        return response.getNoInventoryTip();
+                    }
+                    return "无库存";
+                }
+            }
+        }
+
+        if (drugsEnterprise != null && new Integer(1).equals(drugsEnterprise.getOperationType())) {
+            //通过前置机调用
+            IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService", IRecipeEnterpriseService.class);
+            List<com.ngari.recipe.recipe.model.RecipeDetailBean> recipeDetailBeans = new ArrayList<>();
+            com.ngari.recipe.recipe.model.RecipeDetailBean recipeDetailBean = new com.ngari.recipe.recipe.model.RecipeDetailBean();
+            recipeDetailBean.setDrugId(drugId);
+            recipeDetailBeans.add(recipeDetailBean);
+            ScanRequestBean scanRequestBean = getDrugInventoryRequestBean(drugsEnterprise.getOrganId(), drugsEnterprise, recipeDetailBeans);
+            LOGGER.info("getDrugInventory requestBean:{}.", JSONUtils.toString(scanRequestBean));
+            HisResponseTO responseTO = recipeEnterpriseService.scanStock(scanRequestBean);
+            LOGGER.info("getDrugInventory responseTO:{}.", JSONUtils.toString(responseTO));
+            if (null != responseTO && responseTO.isSuccess()) {
+                String inventor = (String) responseTO.getExtend().get("inventor");
+                if (StringUtils.isEmpty(inventor)) {
+                    return "有库存";
+                }
+                return inventor;
+            } else {
+                return "无库存";
+            }
+        } else {
+            if (DrugEnterpriseResult.SUCCESS.equals(result.getCode()) && null != result.getAccessDrugEnterpriseService()) {
+                return result.getAccessDrugEnterpriseService().getDrugInventory(drugId, drugsEnterprise, organId);
+            } else {
+                return "无库存";
+            }
+        }
+
+    }
+
 
     /**
      * ;

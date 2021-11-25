@@ -15,15 +15,6 @@ import java.util.Map;
  */
 public interface IDrugEnterpriseBusinessService {
     /**
-     * 医生指定药企列表-查库存
-     *
-     * @param recipe        处方数据
-     * @param recipeDetails 处方明细
-     * @return
-     */
-    List<EnterpriseStock> stockList(Recipe recipe, List<Recipedetail> recipeDetails);
-
-    /**
      * 医生端查询药品列表-查库存
      *
      * @param organId       机构id
@@ -31,6 +22,15 @@ public interface IDrugEnterpriseBusinessService {
      * @return
      */
     List<DrugEnterpriseStockVO> stockList(Integer organId, List<Recipedetail> recipeDetails);
+
+    /**
+     * 医生指定药企列表-查库存
+     *
+     * @param recipe        处方数据
+     * @param recipeDetails 处方明细
+     * @return
+     */
+    List<EnterpriseStock> stockList(Recipe recipe, List<Recipedetail> recipeDetails);
 
     /**
      * 校验 药品库存 在同一个药企下的库存数量
