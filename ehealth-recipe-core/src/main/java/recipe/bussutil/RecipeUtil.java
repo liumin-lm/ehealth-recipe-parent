@@ -16,6 +16,7 @@ import com.ngari.revisit.dto.response.RevisitBeanVO;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
+import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -389,6 +390,7 @@ public class RecipeUtil {
             IRevisitService revisitService = RevisitAPI.getService(IRevisitService.class);
             DepartManager departManager = AppContextHolder.getBean("departManager", DepartManager.class);
             RevisitBeanVO revisitBeanVO = revisitService.getRevisitBeanVOByConsultId(recipe.getClinicId());
+            LOGGER.info("RecipeUtil setDefaultData revisitBeanVO:{}.", JSONUtils.toString(revisitBeanVO));
             if (null != revisitBeanVO && null != revisitBeanVO.getAppointDepartId()) {
                 AppointDepartDTO appointDepartDTO = departManager.getAppointDepartByOrganIdAndAppointDepartCode(recipe.getClinicOrgan(), revisitBeanVO.getAppointDepartId().toString());
                 recipe.setAppointDepart(revisitBeanVO.getAppointDepartId().toString());

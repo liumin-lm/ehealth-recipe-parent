@@ -154,7 +154,6 @@ public class TherapyItemOpenAtop extends BaseAtop implements ITherapyItemOpenAto
     }
 
     @Override
-    @RpcService
     public Boolean checkExistByOrganIdAndItemNameOrCode(Integer organId, String itemName, String itemCode) {
         List<ItemList> list = therapyItemBusinessService.findItemListByOrganIdAndItemNameOrCode(organId, itemName, itemCode);
         return CollectionUtils.isNotEmpty(list);
