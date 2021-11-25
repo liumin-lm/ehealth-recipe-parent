@@ -302,7 +302,7 @@ public class DrugStockClient extends BaseClient {
             if (0 == drugInfoDTO.getStockAmount()) {
                 drugInfoDTO.setStock(false);
             } else {
-                boolean stock = drugInfoDTO.getStockAmount() - recipedetail.getUseTotalDose() > 0;
+                boolean stock = drugInfoDTO.getStockAmount() - recipedetail.getUseTotalDose() >= 0;
                 drugInfoDTO.setStock(stock);
             }
             list.add(drugInfoDTO);
@@ -310,6 +310,7 @@ public class DrugStockClient extends BaseClient {
         logger.info(" DrugStockClient getDrugInfoDTO  list={}", JSON.toJSONString(list));
         return list;
     }
+
 
     private List<DrugInfoDTO> getScanDrugInfoDTO(List<ScanDrugListBean> scanDrugList) {
         List<DrugInfoDTO> list = new ArrayList<>();
@@ -333,7 +334,7 @@ public class DrugStockClient extends BaseClient {
             if (0 == a.getStockAmount()) {
                 drugInfoDTO.setStock(false);
             } else {
-                boolean stock = a.getStockAmount() - Integer.parseInt(a.getTotal()) > 0;
+                boolean stock = a.getStockAmount() - Integer.parseInt(a.getTotal()) >= 0;
                 drugInfoDTO.setStock(stock);
             }
 
