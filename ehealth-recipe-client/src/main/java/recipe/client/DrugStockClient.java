@@ -170,8 +170,9 @@ public class DrugStockClient extends BaseClient {
      * @param saleDrugListMap
      * @return
      */
-    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, Map<Integer, List<SaleDrugList>> saleDrugListMap) {
-        ScanRequestBean scanRequestBean = getScanRequestBean(recipe, saleDrugListMap, drugsEnterprise, recipeDetails);
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails,
+                                                      Map<Integer, List<SaleDrugList>> saleDrugListMap, Map<Integer, OrganDrugList> organDrugMap) {
+        ScanRequestBean scanRequestBean = getScanRequestBean(recipe, saleDrugListMap, drugsEnterprise, recipeDetails, organDrugMap);
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
         if (CollectionUtils.isEmpty(scanRequestBean.getScanDrugListBeans())) {
             drugStockAmountDTO.setResult(false);
@@ -206,8 +207,9 @@ public class DrugStockClient extends BaseClient {
      * @param saleDrugListMap
      * @return
      */
-    public DrugStockAmountDTO scanEnterpriseDrugStockV1(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, Map<Integer, List<SaleDrugList>> saleDrugListMap) {
-        ScanRequestBean scanRequestBean = getScanRequestBean(recipe, saleDrugListMap, drugsEnterprise, recipeDetails);
+    public DrugStockAmountDTO scanEnterpriseDrugStockV1(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails,
+                                                        Map<Integer, List<SaleDrugList>> saleDrugListMap, Map<Integer, OrganDrugList> organDrugMap) {
+        ScanRequestBean scanRequestBean = getScanRequestBean(recipe, saleDrugListMap, drugsEnterprise, recipeDetails, organDrugMap);
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
         try {
             HisResponseTO<List<ScanDrugListBean>> response = recipeEnterpriseService.scanStockV1(scanRequestBean);
@@ -388,7 +390,8 @@ public class DrugStockClient extends BaseClient {
      * @param recipeDetails 平台药品信息
      * @return 前置机接口入参
      */
-    private ScanRequestBean getScanRequestBean(Recipe recipe, Map<Integer, List<SaleDrugList>> saleDrugListMap, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+    private ScanRequestBean getScanRequestBean(Recipe recipe, Map<Integer, List<SaleDrugList>> saleDrugListMap, DrugsEnterprise drugsEnterprise,
+                                               List<Recipedetail> recipeDetails, Map<Integer, OrganDrugList> organDrugMap) {
         String channelCode = null;
         try {
             if (null != recipe.getClinicId()) {
@@ -408,18 +411,21 @@ public class DrugStockClient extends BaseClient {
             if (CollectionUtils.isEmpty(saleDrugLists1)) {
                 return;
             }
+            scanDrugListBean.setChannelCode(finalChannelCode);
             scanDrugListBean.setDrugCode(saleDrugLists1.get(0).getOrganDrugCode());
             scanDrugListBean.setDrugId(recipedetail.getDrugId());
             scanDrugListBean.setTotal(recipedetail.getUseTotalDose().toString());
-            scanDrugListBean.setUnit(recipedetail.getDrugUnit());
-            scanDrugListBean.setDrugSpec(recipedetail.getDrugSpec());
-            scanDrugListBean.setProducerCode(recipedetail.getProducerCode());
+
+            OrganDrugList organDrug = organDrugMap.get(recipedetail.getDrugId());
+            scanDrugListBean.setUnit(organDrug.getUnit());
+            scanDrugListBean.setDrugSpec(organDrug.getDrugSpec());
+            scanDrugListBean.setProducerCode(organDrug.getProducerCode());
+            scanDrugListBean.setPharmacy(organDrug.getPharmacy());
+            scanDrugListBean.setName(organDrug.getSaleName());
+            scanDrugListBean.setGname(organDrug.getDrugName());
+
             scanDrugListBean.setPharmacyCode(String.valueOf(recipedetail.getPharmacyId()));
-            scanDrugListBean.setPharmacy(recipedetail.getPharmacyName());
             scanDrugListBean.setProducer(recipedetail.getProducer());
-            scanDrugListBean.setName(recipedetail.getSaleName());
-            scanDrugListBean.setGname(recipedetail.getDrugName());
-            scanDrugListBean.setChannelCode(finalChannelCode);
             scanDrugListBeans.add(scanDrugListBean);
         });
         ScanRequestBean scanRequestBean = new ScanRequestBean();

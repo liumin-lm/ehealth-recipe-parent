@@ -139,9 +139,14 @@ public class EnterpriseManager extends BaseManager {
             logger.warn("EnterpriseManager scanEnterpriseDrugStock saleDrugLists is null");
             return drugStockAmount;
         }
+        logger.info("EnterpriseManager scanEnterpriseDrugStock scanEnterpriseDrugStockV1 start");
+        drugIds = saleDrugLists.stream().map(SaleDrugList::getDrugId).distinct().collect(Collectors.toList());
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(recipe.getClinicOrgan(), drugIds);
+        Map<Integer, OrganDrugList> organDrugMap = organDrugList.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, a -> a, (k1, k2) -> k1));
         //默认走批量新接口
         Map<Integer, List<SaleDrugList>> saleDrugListMap = saleDrugLists.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
-        DrugStockAmountDTO drugStockAmountV1 = drugStockClient.scanEnterpriseDrugStockV1(recipe, drugsEnterprise, recipeDetails, saleDrugListMap);
+        DrugStockAmountDTO drugStockAmountV1 = drugStockClient.scanEnterpriseDrugStockV1(recipe, drugsEnterprise, recipeDetails, saleDrugListMap, organDrugMap);
+        logger.info("EnterpriseManager scanEnterpriseDrugStock scanEnterpriseDrugStockV1 end drugStockAmountV1 = {}", JSON.toJSONString(drugStockAmountV1));
         if (null != drugStockAmountV1) {
             return drugStockAmountV1;
         }
@@ -149,7 +154,7 @@ public class EnterpriseManager extends BaseManager {
         List<DrugInfoDTO> drugInfoList = new LinkedList<>();
         boolean result = true;
         for (Recipedetail recipeDetail : recipeDetails) {
-            DrugStockAmountDTO drugStockAmountDTO = drugStockClient.scanEnterpriseDrugStock(recipe, drugsEnterprise, Collections.singletonList(recipeDetail), saleDrugListMap);
+            DrugStockAmountDTO drugStockAmountDTO = drugStockClient.scanEnterpriseDrugStock(recipe, drugsEnterprise, Collections.singletonList(recipeDetail), saleDrugListMap, organDrugMap);
             drugInfoList.addAll(drugStockAmountDTO.getDrugInfoList());
             if (!drugStockAmountDTO.isResult()) {
                 result = false;
@@ -157,6 +162,7 @@ public class EnterpriseManager extends BaseManager {
         }
         drugStockAmount.setResult(result);
         drugStockAmount.setDrugInfoList(drugInfoList);
+        logger.info("EnterpriseManager scanEnterpriseDrugStock scanEnterpriseDrugStock end drugStockAmount = {}", JSON.toJSONString(drugStockAmount));
         return drugStockAmount;
     }
 
