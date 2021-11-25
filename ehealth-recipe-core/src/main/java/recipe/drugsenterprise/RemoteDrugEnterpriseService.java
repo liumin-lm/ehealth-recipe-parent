@@ -3,7 +3,10 @@ package recipe.drugsenterprise;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.ngari.base.hisconfig.service.IHisConfigService;
+import com.ngari.base.push.model.SmsInfoBean;
+import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
@@ -46,6 +49,8 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.core.api.patient.IDrugEnterpriseBusinessService;
 import recipe.dao.*;
+import recipe.enumerate.type.EnterpriseCreateTypeEnum;
+import recipe.enumerate.type.PayFlagEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.ButtonManager;
 import recipe.manager.EnterpriseManager;
@@ -163,6 +168,31 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                     }
                 }
             }
+        }
+
+        // 非自建药企 推送短信 支付成功且非自建
+        if (null != recipe && enterprise != null && PayFlagEnum.PAYED.getType().equals(recipe.getPayFlag()) && EnterpriseCreateTypeEnum.OTHER_SELF.getType().equals(enterprise.getCreateType())) {
+            // 2021/11 新需求,非自建药企也要发送短信
+                LOGGER.info("pushMessageToEnterprise 当前处方[{}]需要推送订单消息给药企", recipeId);
+                //设置药企的电话号码
+                String mobile = enterprise.getEnterprisePhone();
+
+                if(StringUtils.isNotEmpty(mobile)) {
+                    SmsInfoBean smsInfo = new SmsInfoBean();
+                    smsInfo.setBusType("RecipeOrderCreate");
+                    smsInfo.setSmsType("RecipeOrderCreate");
+                    smsInfo.setBusId(recipeId);
+                    smsInfo.setOrganId(0);
+
+                    Map<String, Object> smsMap = Maps.newHashMap();
+
+                    smsMap.put("mobile", mobile);
+
+                    smsInfo.setExtendValue(JSONUtils.toString(smsMap));
+                    ISmsPushService smsPushService = ApplicationUtils.getBaseService(ISmsPushService.class);
+                    smsPushService.pushMsgData2OnsExtendValue(smsInfo);
+                    LOGGER.info("pushMessageToEnterprise 当前处方[{}]已推送药企[{}],订单消息", recipeId, recipe.getEnterpriseId());
+                }
         }
         LOGGER.info("pushSingleRecipeInfo recipeId:{}, result:{}", recipeId, JSONObject.toJSONString(result));
         return result;
