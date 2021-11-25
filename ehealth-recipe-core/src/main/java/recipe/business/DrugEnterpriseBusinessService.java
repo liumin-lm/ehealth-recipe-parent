@@ -378,15 +378,11 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             organStockList.setDeliveryCode(organStock.getDeliveryCode());
             organStockList.setDeliveryName(organStock.getDeliveryName());
             organStockList.setDrugId(a.getDrugId());
-            if (!a.getStock()) {
-                organStockList.setStock(false);
+            organStockList.setStock(a.getStock());
+            if (StringUtils.isNotEmpty(a.getStockAmountChin())) {
+                organStockList.setStockAmountChin(a.getStockAmountChin());
             } else {
-                organStockList.setStock(a.getStock());
-                if (StringUtils.isNotEmpty(a.getStockAmountChin())) {
-                    organStockList.setStockAmountChin(a.getStockAmountChin());
-                } else {
-                    organStockList.setStockAmountChin(String.valueOf(a.getStockAmount()));
-                }
+                organStockList.setStockAmountChin(String.valueOf(a.getStockAmount()));
             }
             enterpriseStockList.add(organStockList);
         });
