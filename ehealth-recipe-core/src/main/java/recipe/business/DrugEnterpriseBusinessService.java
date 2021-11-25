@@ -348,6 +348,10 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             });
         });
 
+        if (null == organStock) {
+            logger.info("DrugEnterpriseBusinessService getEnterpriseStockVO enterpriseStockList={}", JSON.toJSONString(enterpriseStockList));
+            return enterpriseStockList;
+        }
         organStock.getDrugInfoList().forEach(a -> {
             EnterpriseStockVO organStockList = new EnterpriseStockVO();
             organStockList.setAppointEnterpriseType(organStock.getAppointEnterpriseType());
@@ -366,7 +370,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             }
             enterpriseStockList.add(organStockList);
         });
-        logger.info("DrugEnterpriseBusinessService getEnterpriseStockVO enterpriseStockList={}", JSON.toJSONString(enterpriseStockList));
+        logger.info("DrugEnterpriseBusinessService getEnterpriseStockVO organStock={}", JSON.toJSONString(enterpriseStockList));
         return enterpriseStockList;
     }
 
