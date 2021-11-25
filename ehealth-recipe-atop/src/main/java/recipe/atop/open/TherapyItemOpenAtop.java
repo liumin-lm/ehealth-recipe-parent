@@ -161,14 +161,12 @@ public class TherapyItemOpenAtop extends BaseAtop implements ITherapyItemOpenAto
     }
 
     @Override
-    @RpcService
     public Boolean checkExistByOrganIdAndItemNameOrCode2(Integer organId, String itemName, String itemCode) {
         List<ItemList> list = therapyItemBusinessService.findItemListByOrganIdAndItemNameOrCode2(organId, itemName, itemCode);
         return CollectionUtils.isNotEmpty(list);
     }
 
     @Override
-    @RpcService
     public void saveOrUpdateBean(ItemListBean itemListBean) {
         ItemList itemListInfo = ObjectCopyUtils.convert(itemListBean, ItemList.class);
         List<ItemList> existList = therapyItemBusinessService.findItemListByOrganIdAndItemNameOrCode2(itemListInfo.getOrganID(), itemListInfo.getItemName(), itemListInfo.getItemCode());
