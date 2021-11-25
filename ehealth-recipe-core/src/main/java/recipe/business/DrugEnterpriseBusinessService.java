@@ -348,6 +348,9 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
     private List<EnterpriseStockVO> getEnterpriseStockVO(EnterpriseStock organStock, List<EnterpriseStock> enterpriseStock) {
         logger.info("DrugEnterpriseBusinessService getEnterpriseStockVO organStock = {} enterpriseStock={}", JSON.toJSONString(organStock), JSON.toJSONString(enterpriseStock));
         List<EnterpriseStockVO> enterpriseStockList = new LinkedList<>();
+        if (null != organStock) {
+            enterpriseStock.add(organStock);
+        }
         enterpriseStock.forEach(a -> {
             if (CollectionUtils.isEmpty(a.getDrugInfoList())) {
                 return;
@@ -357,34 +360,15 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
                 enterpriseStockVO.setAppointEnterpriseType(a.getAppointEnterpriseType());
                 enterpriseStockVO.setDeliveryCode(a.getDeliveryCode());
                 enterpriseStockVO.setDeliveryName(a.getDeliveryName());
+                enterpriseStockVO.setDrugId(b.getDrugId());
                 enterpriseStockVO.setStock(b.getStock());
                 if (StringUtils.isNotEmpty(b.getStockAmountChin())) {
                     enterpriseStockVO.setStockAmountChin(b.getStockAmountChin());
                 } else {
                     enterpriseStockVO.setStockAmountChin(String.valueOf(b.getStockAmount()));
                 }
-                enterpriseStockVO.setDrugId(b.getDrugId());
                 enterpriseStockList.add(enterpriseStockVO);
             });
-        });
-
-        if (null == organStock) {
-            logger.info("DrugEnterpriseBusinessService getEnterpriseStockVO enterpriseStockList={}", JSON.toJSONString(enterpriseStockList));
-            return enterpriseStockList;
-        }
-        organStock.getDrugInfoList().forEach(a -> {
-            EnterpriseStockVO organStockList = new EnterpriseStockVO();
-            organStockList.setAppointEnterpriseType(organStock.getAppointEnterpriseType());
-            organStockList.setDeliveryCode(organStock.getDeliveryCode());
-            organStockList.setDeliveryName(organStock.getDeliveryName());
-            organStockList.setDrugId(a.getDrugId());
-            organStockList.setStock(a.getStock());
-            if (StringUtils.isNotEmpty(a.getStockAmountChin())) {
-                organStockList.setStockAmountChin(a.getStockAmountChin());
-            } else {
-                organStockList.setStockAmountChin(String.valueOf(a.getStockAmount()));
-            }
-            enterpriseStockList.add(organStockList);
         });
         logger.info("DrugEnterpriseBusinessService getEnterpriseStockVO organStock={}", JSON.toJSONString(enterpriseStockList));
         return enterpriseStockList;
