@@ -358,7 +358,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             Recipedetail recipedetail = new Recipedetail();
             recipedetail.setOrganDrugCode(a.getOrganDrugCode());
             recipedetail.setDrugId(a.getDrugId());
-            recipedetail.setUseTotalDose(10D);
+            recipedetail.setUseTotalDose(1D);
             recipeDetails.add(recipedetail);
         });
         List<EnterpriseStock> list = drugEnterpriseBusinessService.enterpriseStockCheck(organId, recipeDetails, depId);
