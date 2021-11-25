@@ -721,13 +721,15 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             //该机构配制配送并且药企支持配送或者药店取药,校验该药企是否支持药品
             //该药企配置了这个药品,可以查询该药品在药企是否有库存了
             if (new Integer(1).equals(drugsEnterprise.getOperationType())) {
-                ScanRequestBean scanRequestBean = getDrugInventoryRequestBean(drugsDataBean.getOrganId(), drugsEnterprise, drugsDataBean.getRecipeDetailBeans());
-                LOGGER.info("getDrugsEnterpriseInventory requestBean:{}.", JSONUtils.toString(scanRequestBean));
-                HisResponseTO responseTO = recipeEnterpriseService.scanStock(scanRequestBean);
-                LOGGER.info("getDrugsEnterpriseInventory responseTO:{}.", JSONUtils.toString(responseTO));
-                if (responseTO != null && responseTO.isSuccess() && responseTO.getData() != null) {
-                    result.add(responseTO.getData());
-                }
+                for (com.ngari.recipe.recipe.model.RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
+                    ScanRequestBean scanRequestBean = getDrugInventoryRequestBean(drugsDataBean.getOrganId(), drugsEnterprise, Arrays.asList(recipeDetailBean));
+                    LOGGER.info("getDrugsEnterpriseInventory requestBean:{}.", JSONUtils.toString(scanRequestBean));
+                    HisResponseTO responseTO = recipeEnterpriseService.scanStock(scanRequestBean);
+                    LOGGER.info("getDrugsEnterpriseInventory responseTO:{}.", JSONUtils.toString(responseTO));
+                    if (responseTO != null && responseTO.isSuccess() && responseTO.getData() != null) {
+                        haveInventoryList.add(recipeDetailBean.getDrugName());
+                    }
+                };
             } else {//通过平台调用
                 if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode()) && null != drugEnterpriseResult.getAccessDrugEnterpriseService()) {
                     haveInventoryList = drugEnterpriseResult.getAccessDrugEnterpriseService().getDrugInventoryForApp(drugsDataBean, drugsEnterprise, flag);
