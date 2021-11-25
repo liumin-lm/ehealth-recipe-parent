@@ -352,6 +352,9 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             enterpriseStock.add(organStock);
         }
         enterpriseStock.forEach(a -> {
+            if (CollectionUtils.isEmpty(a.getGiveModeButton())) {
+                return;
+            }
             if (CollectionUtils.isEmpty(a.getDrugInfoList())) {
                 return;
             }
