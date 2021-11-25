@@ -113,6 +113,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
 
     @Override
     public Map<String, Object> enterpriseStock(Integer recipeId) {
+        logger.info("DrugEnterpriseBusinessService enterpriseStock recipeId={}", recipeId);
         Recipe recipe = recipeDAO.get(recipeId);
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
         //药企库存
@@ -215,21 +216,26 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
     private List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<Recipedetail> recipeDetails, List<EnterpriseStock> enterpriseStockList) {
         //校验药企库存
         List<FutureTask<EnterpriseStock>> futureTasks = new LinkedList<>();
+        //根据药企配置查询 库存
         for (EnterpriseStock enterpriseStock : enterpriseStockList) {
-            enterpriseStock.setStock(false);
-            //药企无对应的购药按钮则 无需查询库存-返回无库存
-            if (CollectionUtils.isEmpty(enterpriseStock.getGiveModeButton())) {
-                enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
-                continue;
-            }
-            //根据药企配置查询 库存
-            Recipe recipe = new Recipe();
-            recipe.setClinicOrgan(organId);
-            FutureTask<EnterpriseStock> ft = new FutureTask<>(() -> enterpriseStock(enterpriseStock, recipe, recipeDetails));
+            FutureTask<EnterpriseStock> ft = new FutureTask<>(() -> enterpriseStockFutureTask(enterpriseStock, organId, recipeDetails));
             futureTasks.add(ft);
             GlobalEventExecFactory.instance().getExecutor().submit(ft);
         }
         return super.futureTaskCallbackBeanList(futureTasks);
+    }
+
+    private EnterpriseStock enterpriseStockFutureTask(EnterpriseStock enterpriseStock, Integer organId, List<Recipedetail> recipeDetails) {
+        enterpriseStock.setStock(false);
+        //药企无对应的购药按钮则 无需查询库存-返回无库存
+        if (CollectionUtils.isEmpty(enterpriseStock.getGiveModeButton())) {
+            enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
+            return enterpriseStock;
+        }
+        Recipe recipe = new Recipe();
+        recipe.setClinicOrgan(organId);
+        enterpriseStock(enterpriseStock, recipe, recipeDetails);
+        return enterpriseStock;
     }
 
     /**
@@ -253,25 +259,40 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         Map<Integer, List<String>> enterpriseDrugNameGroup = enterpriseManager.checkEnterpriseDrugName(enterpriseIds, recipeDetails);
         //校验药企库存
         List<FutureTask<EnterpriseStock>> futureTasks = new LinkedList<>();
+        //根据药企配置查询 库存
         for (EnterpriseStock enterpriseStock : enterpriseStockList) {
-            enterpriseStock.setStock(false);
-            //药企无对应的购药按钮则 无需查询库存-返回无库存
-            if (CollectionUtils.isEmpty(enterpriseStock.getGiveModeButton())) {
-                continue;
-            }
-            //验证能否药品配送以及能否开具到一张处方单上
-            List<String> drugNames = enterpriseDrugNameGroup.get(enterpriseStock.getDrugsEnterpriseId());
-            if (CollectionUtils.isNotEmpty(drugNames)) {
-                enterpriseStock.setDrugName(drugNames);
-                continue;
-            }
-            //根据药企配置查询 库存
-            FutureTask<EnterpriseStock> ft = new FutureTask<>(() -> enterpriseStock(enterpriseStock, recipe, recipeDetails));
+            FutureTask<EnterpriseStock> ft = new FutureTask<>(() -> enterpriseStockFutureTask(enterpriseStock, recipe, recipeDetails, enterpriseDrugNameGroup));
             futureTasks.add(ft);
             GlobalEventExecFactory.instance().getExecutor().submit(ft);
         }
         return super.futureTaskCallbackBeanList(futureTasks);
     }
+
+    /**
+     * 验证能否药品配送以及能否开具到一张处方单上
+     *
+     * @param enterpriseStock
+     * @param recipe
+     * @param recipeDetails
+     * @param enterpriseDrugNameGroup
+     * @return
+     */
+    private EnterpriseStock enterpriseStockFutureTask(EnterpriseStock enterpriseStock, Recipe recipe, List<Recipedetail> recipeDetails, Map<Integer, List<String>> enterpriseDrugNameGroup) {
+        enterpriseStock.setStock(false);
+        //药企无对应的购药按钮则 无需查询库存-返回无库存
+        if (CollectionUtils.isEmpty(enterpriseStock.getGiveModeButton())) {
+            return enterpriseStock;
+        }
+        //验证能否药品配送以及能否开具到一张处方单上
+        List<String> drugNames = enterpriseDrugNameGroup.get(enterpriseStock.getDrugsEnterpriseId());
+        if (CollectionUtils.isNotEmpty(drugNames)) {
+            enterpriseStock.setDrugName(drugNames);
+            return enterpriseStock;
+        }
+        enterpriseStock(enterpriseStock, recipe, recipeDetails);
+        return enterpriseStock;
+    }
+
 
     /**
      * 根据药企配置查询 库存
@@ -280,7 +301,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
      * @param recipe          处方信息
      * @param recipeDetails   处方明细
      */
-    private EnterpriseStock enterpriseStock(EnterpriseStock enterpriseStock, Recipe recipe, List<Recipedetail> recipeDetails) {
+    private void enterpriseStock(EnterpriseStock enterpriseStock, Recipe recipe, List<Recipedetail> recipeDetails) {
         DrugsEnterprise drugsEnterprise = enterpriseStock.getDrugsEnterprise();
         Integer checkInventoryFlag = drugsEnterprise.getCheckInventoryFlag();
         if (null == checkInventoryFlag) {
@@ -290,7 +311,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             enterpriseStock.setStock(true);
             enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, true));
             logger.info("DrugEnterpriseBusinessService enterpriseStock 0 enterpriseStock= {}", JSON.toJSONString(enterpriseStock));
-            return enterpriseStock;
+            return;
         }
         //医院自建药企-查询医院库存
         if (3 == drugsEnterprise.getCheckInventoryFlag()) {
@@ -299,7 +320,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             enterpriseStock.setDrugName(organStock.getNotDrugNames());
             enterpriseStock.setDrugInfoList(organStock.getDrugInfoList());
             logger.info("DrugEnterpriseBusinessService enterpriseStock 3 enterpriseStock= {}", JSON.toJSONString(enterpriseStock));
-            return enterpriseStock;
+            return;
         }
         //通过前置机调用
         if (1 == drugsEnterprise.getOperationType()) {
@@ -307,7 +328,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             enterpriseStock.setStock(code.isResult());
             enterpriseStock.setDrugInfoList(code.getDrugInfoList());
             logger.info("DrugEnterpriseBusinessService enterpriseStock 1 enterpriseStock= {}", JSON.toJSONString(enterpriseStock));
-            return enterpriseStock;
+            return;
         }
         //通过平台调用药企
         AccessDrugEnterpriseService drugEnterpriseService = RemoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
@@ -315,7 +336,6 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         enterpriseStock.setStock(result.isResult());
         enterpriseStock.setDrugInfoList(result.getDrugInfoList());
         logger.info("DrugEnterpriseBusinessService enterpriseStock else enterpriseStock= {}", JSON.toJSONString(enterpriseStock));
-        return enterpriseStock;
     }
 
 
@@ -328,6 +348,9 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
     private List<EnterpriseStockVO> getEnterpriseStockVO(EnterpriseStock organStock, List<EnterpriseStock> enterpriseStock) {
         logger.info("DrugEnterpriseBusinessService getEnterpriseStockVO organStock = {} enterpriseStock={}", JSON.toJSONString(organStock), JSON.toJSONString(enterpriseStock));
         List<EnterpriseStockVO> enterpriseStockList = new LinkedList<>();
+        if (null != organStock) {
+            enterpriseStock.add(organStock);
+        }
         enterpriseStock.forEach(a -> {
             if (CollectionUtils.isEmpty(a.getDrugInfoList())) {
                 return;
@@ -337,36 +360,17 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
                 enterpriseStockVO.setAppointEnterpriseType(a.getAppointEnterpriseType());
                 enterpriseStockVO.setDeliveryCode(a.getDeliveryCode());
                 enterpriseStockVO.setDeliveryName(a.getDeliveryName());
+                enterpriseStockVO.setDrugId(b.getDrugId());
                 enterpriseStockVO.setStock(b.getStock());
                 if (StringUtils.isNotEmpty(b.getStockAmountChin())) {
                     enterpriseStockVO.setStockAmountChin(b.getStockAmountChin());
                 } else {
                     enterpriseStockVO.setStockAmountChin(String.valueOf(b.getStockAmount()));
                 }
-                enterpriseStockVO.setDrugId(b.getDrugId());
                 enterpriseStockList.add(enterpriseStockVO);
             });
         });
-
-        organStock.getDrugInfoList().forEach(a -> {
-            EnterpriseStockVO organStockList = new EnterpriseStockVO();
-            organStockList.setAppointEnterpriseType(organStock.getAppointEnterpriseType());
-            organStockList.setDeliveryCode(organStock.getDeliveryCode());
-            organStockList.setDeliveryName(organStock.getDeliveryName());
-            organStockList.setDrugId(a.getDrugId());
-            if (!a.getStock()) {
-                organStockList.setStock(false);
-            } else {
-                organStockList.setStock(a.getStock());
-                if (StringUtils.isNotEmpty(a.getStockAmountChin())) {
-                    organStockList.setStockAmountChin(a.getStockAmountChin());
-                } else {
-                    organStockList.setStockAmountChin(String.valueOf(a.getStockAmount()));
-                }
-            }
-            enterpriseStockList.add(organStockList);
-        });
-        logger.info("DrugEnterpriseBusinessService getEnterpriseStockVO enterpriseStockList={}", JSON.toJSONString(enterpriseStockList));
+        logger.info("DrugEnterpriseBusinessService getEnterpriseStockVO organStock={}", JSON.toJSONString(enterpriseStockList));
         return enterpriseStockList;
     }
 
@@ -379,8 +383,8 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
      * @param enterpriseStock 药企库存
      */
     private void saveGiveMode(Recipe recipe, EnterpriseStock organStock, List<EnterpriseStock> enterpriseStock) {
+        logger.info("DrugEnterpriseBusinessService saveGiveMode start recipe={}", JSON.toJSONString(recipe));
         RecipeBusiThreadPool.execute(() -> {
-            logger.info("DrugEnterpriseBusinessService saveGiveMode start recipe={}", JSON.toJSONString(recipe));
             List<GiveModeButtonDTO> giveModeButton = new LinkedList<>();
             if (null != organStock && organStock.getStock()) {
                 giveModeButton.addAll(organStock.getGiveModeButton());

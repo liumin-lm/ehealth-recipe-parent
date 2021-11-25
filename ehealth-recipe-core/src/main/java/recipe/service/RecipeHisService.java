@@ -816,12 +816,12 @@ public class RecipeHisService extends RecipeBaseService {
                                 if (!ObjectUtils.isEmpty(byOrganIdAndOrganDrugCode)) {
                                     try {
                                         organDrugListService.updateOrganDrugListStatusByIdSyncT(organId, requestList.get(0).getDrcode());
-                                        DataSyncDTO dataSyncDTO = convertDataSyn(organId, "4", null, "3", byOrganIdAndOrganDrugCode);
+                                        DataSyncDTO dataSyncDTO = convertDataSyn(organId, 4, null, 3, byOrganIdAndOrganDrugCode);
                                         List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                                         syncDTOList.add(dataSyncDTO);
                                         dataSyncLogService.addDataSyncLog("1", syncDTOList);
                                     } catch (Exception e) {
-                                        DataSyncDTO dataSyncDTO = convertDataSyn(organId, "3", e, "3", byOrganIdAndOrganDrugCode);
+                                        DataSyncDTO dataSyncDTO = convertDataSyn(organId, 3, e, 3, byOrganIdAndOrganDrugCode);
                                         List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                                         syncDTOList.add(dataSyncDTO);
                                         dataSyncLogService.addDataSyncLog("1", syncDTOList);
@@ -844,11 +844,11 @@ public class RecipeHisService extends RecipeBaseService {
         return null;
     }
 
-    public DataSyncDTO convertDataSyn(Integer organId, String status, Exception e, String operType, OrganDrugListBean organDrugList) {
+    public DataSyncDTO convertDataSyn(Integer organId, Integer status, Exception e, Integer operType, OrganDrugListBean organDrugList) {
 
         DataSyncDTO dataSyncDTO = new DataSyncDTO();
-        dataSyncDTO.setType("1");
-        dataSyncDTO.setOrganId(organId.toString());
+        dataSyncDTO.setType(1);
+        dataSyncDTO.setOrganId(organId);
         dataSyncDTO.setReqMsg(JSONUtils.toString(organDrugList));
         if (!ObjectUtils.isEmpty(organDrugList)) {
             Map<String, Object> param = new HashedMap();

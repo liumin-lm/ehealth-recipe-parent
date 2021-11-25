@@ -147,7 +147,7 @@ public class DrugStockClient extends BaseClient {
             DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
             drugStockAmountDTO.setResult(true);
             drugStockAmountDTO.setDrugInfoList(list);
-            List<String> organCodes = list.stream().filter(a -> 0 == a.getStockAmount()).map(DrugInfoDTO::getOrganDrugCode).distinct().collect(Collectors.toList());
+            List<String> organCodes = list.stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getOrganDrugCode).distinct().collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(organCodes)) {
                 List<String> drugNames = organDrugList.stream().filter(a -> organCodes.contains(a.getOrganDrugCode())).map(OrganDrugList::getDrugName).collect(Collectors.toList());
                 drugStockAmountDTO.setResult(false);
@@ -185,7 +185,12 @@ public class DrugStockClient extends BaseClient {
             logger.info("DrugStockClient scanEnterpriseDrugStock recipeId={},response={}", JSON.toJSONString(recipe), JSON.toJSONString(response));
             if (null != response && response.isSuccess()) {
                 drugStockAmountDTO.setResult(true);
-                drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, true));
+                List<DrugInfoDTO> drugInfo = DrugStockClient.getDrugInfoDTO(recipeDetails, true);
+                String inventor = (String) response.getExtend().get("inventor");
+                if (StringUtils.isNotEmpty(inventor)) {
+                    drugInfo.forEach(a -> a.setStockAmountChin(inventor));
+                }
+                drugStockAmountDTO.setDrugInfoList(drugInfo);
             } else {
                 drugStockAmountDTO.setResult(false);
                 drugStockAmountDTO.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
@@ -297,13 +302,15 @@ public class DrugStockClient extends BaseClient {
             if (0 == drugInfoDTO.getStockAmount()) {
                 drugInfoDTO.setStock(false);
             } else {
-                drugInfoDTO.setStock(true);
+                boolean stock = drugInfoDTO.getStockAmount() - recipedetail.getUseTotalDose() >= 0;
+                drugInfoDTO.setStock(stock);
             }
             list.add(drugInfoDTO);
         });
         logger.info(" DrugStockClient getDrugInfoDTO  list={}", JSON.toJSONString(list));
         return list;
     }
+
 
     private List<DrugInfoDTO> getScanDrugInfoDTO(List<ScanDrugListBean> scanDrugList) {
         List<DrugInfoDTO> list = new ArrayList<>();
@@ -324,11 +331,13 @@ public class DrugStockClient extends BaseClient {
             } else {
                 drugInfoDTO.setStockAmountChin(String.valueOf(drugInfoDTO.getStockAmount()));
             }
-            if (0 == drugInfoDTO.getStockAmount()) {
+            if (0 == a.getStockAmount()) {
                 drugInfoDTO.setStock(false);
             } else {
-                drugInfoDTO.setStock(true);
+                boolean stock = a.getStockAmount() - Integer.parseInt(a.getTotal()) >= 0;
+                drugInfoDTO.setStock(stock);
             }
+
             list.add(drugInfoDTO);
         });
         return list;

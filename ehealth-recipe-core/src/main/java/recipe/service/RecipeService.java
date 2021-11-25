@@ -260,6 +260,8 @@ public class RecipeService extends RecipeBaseService {
     private ButtonManager buttonManager;
     @Resource
     private PatientClient patientClient;
+    @Autowired
+    private DepartManager departManager;
     /**
      * 药师审核不通过
      */
@@ -1285,10 +1287,10 @@ public class RecipeService extends RecipeBaseService {
                     //生成pdf分解成，先生成无医生药师签名的pdf，再将医生药师的签名放置在pdf上
                     String pdfString = null;
                     // 不做ca签名
-                    if(!isShowCheckCA(recipeId)) {
+                    if (!isShowCheckCA(recipeId)) {
                         pharmacyToRecipePDFDefault(recipeId);
                         checkResult.setCode(RecipeResultBean.SUCCESS);
-                    }else{
+                    } else {
                         // 是否需要跳过pdf渲染
                         if (!usePlatform) {
                             if (null == resultVo.getPdfBase64()) {
@@ -1418,14 +1420,15 @@ public class RecipeService extends RecipeBaseService {
 
     /**
      * 判断药师的ca流程是否开启
+     *
      * @param recipeId
      * @return
      */
-    private Boolean isShowCheckCA(Integer recipeId){
+    private Boolean isShowCheckCA(Integer recipeId) {
         IRecipeCheckService recipeCheckService = RecipeAuditAPI.getService(IRecipeCheckService.class, "recipeCheckServiceImpl");
         RecipeCheckBean recipeCheckBean = recipeCheckService.getNowCheckResultByRecipeId(recipeId);
         Integer fail = 0;
-        if(recipeCheckBean != null && fail.equals(recipeCheckBean.getIsCheckCA())){
+        if (recipeCheckBean != null && fail.equals(recipeCheckBean.getIsCheckCA())) {
             return false;
         }
         return true;
@@ -2585,7 +2588,7 @@ public class RecipeService extends RecipeBaseService {
         }
         List<String> msg = Lists.newArrayList();
         for (OrganDrugInfoTO organDrug : organDrugs) {
-            if (dataRange == 2 && drugForms != null && drugForms.size() > 0 ){
+            if (dataRange == 2 && drugForms != null && drugForms.size() > 0) {
                 LOGGER.info("syncOrganDrug推送药品信息" + organId + "{}", JSONUtils.toString(organDrug));
                 List<String> check = checkOrganDrugInfoTO(organDrug);
                 if (!ObjectUtils.isEmpty(check)) {
@@ -2605,15 +2608,15 @@ public class RecipeService extends RecipeBaseService {
                                 continue;
                             }
                             try {
-                                if (deletes){
+                                if (deletes) {
                                     organDrugListService.updateOrganDrugListStatusByIdSync(organId, delete.getOrganDrugId());
-                                    DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, "4", null, "3", null);
+                                    DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 4, null, 3, null);
                                     List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                                     syncDTOList.add(dataSyncDTO);
                                     dataSyncLogService.addDataSyncLog("1", syncDTOList);
                                 }
                             } catch (Exception e) {
-                                DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, "3", e, "3", null);
+                                DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 3, e, 3, null);
                                 List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                                 syncDTOList.add(dataSyncDTO);
                                 dataSyncLogService.addDataSyncLog("1", syncDTOList);
@@ -2627,20 +2630,20 @@ public class RecipeService extends RecipeBaseService {
                             if (ObjectUtils.isEmpty(organDrugList)) {
                                 LOGGER.info("syncOrganDrug机构药品数据推送 新增" + organDrug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(organDrug));
                                 try {
-                                    if (add){
+                                    if (add) {
                                         addHisDrug(organDrug, organId, "推送");
                                         if (commit != null) {
                                             if (!commit) {
                                                 drugToolService.drugCommitT(null, organId);
                                             }
                                         }
-                                        DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, "1", null, "1", null);
+                                        DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 1, null, 1, null);
                                         List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                                         syncDTOList.add(dataSyncDTO);
                                         dataSyncLogService.addDataSyncLog("1", syncDTOList);
                                     }
                                 } catch (Exception e) {
-                                    DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, "3", e, "1", null);
+                                    DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 3, e, 1, null);
                                     List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                                     syncDTOList.add(dataSyncDTO);
                                     dataSyncLogService.addDataSyncLog("1", syncDTOList);
@@ -2652,12 +2655,12 @@ public class RecipeService extends RecipeBaseService {
                                 LOGGER.info("syncOrganDrug机构药品数据推送 更新" + organDrug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(organDrug));
                                 try {
                                     updateHisOrganDrug(organDrug, organDrugList, organId);
-                                    DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, "2", null, "2", null);
+                                    DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 2, null, 2, null);
                                     List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                                     syncDTOList.add(dataSyncDTO);
                                     dataSyncLogService.addDataSyncLog("1", syncDTOList);
                                 } catch (Exception e) {
-                                    DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, "3", e, "2", null);
+                                    DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 3, e, 2, null);
                                     List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                                     syncDTOList.add(dataSyncDTO);
                                     dataSyncLogService.addDataSyncLog("1", syncDTOList);
@@ -2671,7 +2674,7 @@ public class RecipeService extends RecipeBaseService {
                             break;
                     }
                 }
-            }else {
+            } else {
                 LOGGER.info("syncOrganDrug推送药品信息" + organId + "{}", JSONUtils.toString(organDrug));
                 List<String> check = checkOrganDrugInfoTO(organDrug);
                 if (!ObjectUtils.isEmpty(check)) {
@@ -2688,15 +2691,15 @@ public class RecipeService extends RecipeBaseService {
                             continue;
                         }
                         try {
-                            if (deletes){
+                            if (deletes) {
                                 organDrugListService.updateOrganDrugListStatusByIdSync(organId, delete.getOrganDrugId());
-                                DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, "4", null, "3", null);
+                                DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 4, null, 3, null);
                                 List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                                 syncDTOList.add(dataSyncDTO);
                                 dataSyncLogService.addDataSyncLog("1", syncDTOList);
                             }
                         } catch (Exception e) {
-                            DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, "3", e, "3", null);
+                            DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 3, e, 3, null);
                             List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                             syncDTOList.add(dataSyncDTO);
                             dataSyncLogService.addDataSyncLog("1", syncDTOList);
@@ -2710,20 +2713,20 @@ public class RecipeService extends RecipeBaseService {
                         if (ObjectUtils.isEmpty(organDrugList)) {
                             LOGGER.info("syncOrganDrug机构药品数据推送 新增" + organDrug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(organDrug));
                             try {
-                                if (add){
+                                if (add) {
                                     addHisDrug(organDrug, organId, "推送");
                                     if (commit != null) {
                                         if (!commit) {
                                             drugToolService.drugCommitT(null, organId);
                                         }
                                     }
-                                    DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, "1", null, "1", null);
+                                    DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 1, null, 1, null);
                                     List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                                     syncDTOList.add(dataSyncDTO);
                                     dataSyncLogService.addDataSyncLog("1", syncDTOList);
                                 }
                             } catch (Exception e) {
-                                DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, "3", e, "1", null);
+                                DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 3, e, 1, null);
                                 List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                                 syncDTOList.add(dataSyncDTO);
                                 dataSyncLogService.addDataSyncLog("1", syncDTOList);
@@ -2735,12 +2738,12 @@ public class RecipeService extends RecipeBaseService {
                             LOGGER.info("syncOrganDrug机构药品数据推送 更新" + organDrug.getDrugName() + " organId=[{}] drug=[{}]", organId, JSONUtils.toString(organDrug));
                             try {
                                 updateHisOrganDrug(organDrug, organDrugList, organId);
-                                DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, "2", null, "2", null);
+                                DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 2, null, 2, null);
                                 List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                                 syncDTOList.add(dataSyncDTO);
                                 dataSyncLogService.addDataSyncLog("1", syncDTOList);
                             } catch (Exception e) {
-                                DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, "3", e, "2", null);
+                                DataSyncDTO dataSyncDTO = convertDataSyn(organDrug, organId, 3, e, 2, null);
                                 List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                                 syncDTOList.add(dataSyncDTO);
                                 dataSyncLogService.addDataSyncLog("1", syncDTOList);
@@ -2811,7 +2814,6 @@ public class RecipeService extends RecipeBaseService {
     }
 
 
-
     public void addOrUpdateDrugInfoSynMovement(Integer organId, List<OrganDrugInfoTO> list, Integer way, String operator, Boolean commit) throws InterruptedException {
         if (list != null && list.size() > 0) {
             if (way == 1) {
@@ -2819,7 +2821,7 @@ public class RecipeService extends RecipeBaseService {
                     try {
                         addHisDrug(organDrugInfoTO, organId, operator);
                     } catch (Exception e) {
-                        DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, "3", e, "1", null);
+                        DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, 3, e, 1, null);
                         List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                         syncDTOList.add(dataSyncDTO);
                         dataSyncLogService.addDataSyncLog("1", syncDTOList);
@@ -2838,7 +2840,7 @@ public class RecipeService extends RecipeBaseService {
                     try {
                         updateHisOrganDrug(organDrugInfoTO, byOrganIdAndOrganDrugCode, organId);
                     } catch (Exception e) {
-                        DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, "3", e, "2", null);
+                        DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, 3, e, 2, null);
                         List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                         syncDTOList.add(dataSyncDTO);
                         dataSyncLogService.addDataSyncLog("1", syncDTOList);
@@ -2850,11 +2852,11 @@ public class RecipeService extends RecipeBaseService {
     }
 
 
-    public DataSyncDTO convertDataSyn(OrganDrugInfoTO drug, Integer organId, String status, Exception e, String operType, OrganDrugList organDrugList) {
+    public DataSyncDTO convertDataSyn(OrganDrugInfoTO drug, Integer organId, Integer status, Exception e,  Integer operType , OrganDrugList organDrugList) {
 
         DataSyncDTO dataSyncDTO = new DataSyncDTO();
-        dataSyncDTO.setType("1");
-        dataSyncDTO.setOrganId(organId.toString());
+        dataSyncDTO.setType(1);
+        dataSyncDTO.setOrganId(organId);
         if (ObjectUtils.isEmpty(drug)) {
             Map<String, Object> param = new HashedMap();
             BeanUtils.map(organDrugList, param);
@@ -3109,19 +3111,19 @@ public class RecipeService extends RecipeBaseService {
                             if (!CollectionUtils.isEmpty(data)) {
                                 Map<String, OrganDrugInfoTO> collect = data.stream().collect(Collectors.toMap(OrganDrugInfoTO::getOrganDrugCode, a -> a, (k1, k2) -> k1));
                                 List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(organId);
-                                if (!ObjectUtils.isEmpty(details)){
+                                if (!ObjectUtils.isEmpty(details)) {
                                     for (OrganDrugList detail : details) {
                                         OrganDrugInfoTO organDrugInfoTO = collect.get(detail.getOrganDrugCode());
                                         if (ObjectUtils.isEmpty(organDrugInfoTO)) {
                                             try {
                                                 organDrugListService.updateOrganDrugListStatusByIdSync(organId, detail.getOrganDrugId());
-                                                DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, "4", null, "3", detail);
+                                                DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, 4, null, 3, detail);
                                                 List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                                                 syncDTOList.add(dataSyncDTO);
                                                 dataSyncLogService.addDataSyncLog("1", syncDTOList);
                                                 deleteNum++;
                                             } catch (Exception e) {
-                                                DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, "3", e, "3", detail);
+                                                DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, 3, e, 3, detail);
                                                 List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                                                 syncDTOList.add(dataSyncDTO);
                                                 dataSyncLogService.addDataSyncLog("1", syncDTOList);
@@ -3388,19 +3390,19 @@ public class RecipeService extends RecipeBaseService {
                     if (!CollectionUtils.isEmpty(data)) {
                         Map<String, OrganDrugInfoTO> collect = data.stream().collect(Collectors.toMap(OrganDrugInfoTO::getOrganDrugCode, a -> a, (k1, k2) -> k1));
                         List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(organId);
-                        if (!ObjectUtils.isEmpty(details)){
+                        if (!ObjectUtils.isEmpty(details)) {
                             for (OrganDrugList detail : details) {
                                 OrganDrugInfoTO organDrugInfoTO = collect.get(detail.getOrganDrugCode());
                                 if (ObjectUtils.isEmpty(organDrugInfoTO)) {
                                     try {
                                         organDrugListService.updateOrganDrugListStatusByIdSync(organId, detail.getOrganDrugId());
-                                        DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, "4", null, "3", detail);
+                                        DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, 4, null, 3, detail);
                                         List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                                         syncDTOList.add(dataSyncDTO);
                                         dataSyncLogService.addDataSyncLog("1", syncDTOList);
                                         deleteNum++;
                                     } catch (Exception e) {
-                                        DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, "3", e, "3", detail);
+                                        DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, 3, e, 3, detail);
                                         List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                                         syncDTOList.add(dataSyncDTO);
                                         dataSyncLogService.addDataSyncLog("1", syncDTOList);
@@ -4958,7 +4960,7 @@ public class RecipeService extends RecipeBaseService {
         }
         if (ObjectUtils.isEmpty(drug.getDrugType())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugType 机构 药品类型必填!");
-        }else {
+        } else {
             drugListMatch.setDrugType(drug.getDrugType());
         }
         if (!ObjectUtils.isEmpty(drug.getDrugType())) {
@@ -5088,7 +5090,7 @@ public class RecipeService extends RecipeBaseService {
                 LOGGER.error("addHisDrug.updateMatchAutomatic fail,", e);
             }
         }
-        DataSyncDTO dataSyncDTO = convertDataSyn(drug, organId, "1", null, "1", null);
+        DataSyncDTO dataSyncDTO = convertDataSyn(drug, organId, 1, null, 1, null);
         List<DataSyncDTO> syncDTOList = Lists.newArrayList();
         syncDTOList.add(dataSyncDTO);
         dataSyncLogService.addDataSyncLog("1", syncDTOList);
@@ -5244,7 +5246,7 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.info("机构药品手动同步修改同步对应药企" + e);
 
         }
-        DataSyncDTO dataSyncDTO = convertDataSyn(drug, organId, "2", null, "2", null);
+        DataSyncDTO dataSyncDTO = convertDataSyn(drug, organId, 2, null, 2, null);
         List<DataSyncDTO> syncDTOList = Lists.newArrayList();
         syncDTOList.add(dataSyncDTO);
         dataSyncLogService.addDataSyncLog("1", syncDTOList);
@@ -6154,7 +6156,7 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public void pharmacyToRecipePDFDefault(Integer recipeId) {
         LOGGER.info("recipe pharmacyToRecipePDFDefault,recipeId={}", recipeId);
-        createPdfFactory.updateCheckNamePdfDefault(recipeId,null);
+        createPdfFactory.updateCheckNamePdfDefault(recipeId, null);
     }
 
     /**
@@ -6370,8 +6372,11 @@ public class RecipeService extends RecipeBaseService {
             //发送消息--待审核消息
             RecipeMsgService.batchSendMsg(recipe.getRecipeId(), 8);
         } else if ("5".equals(type)) {
-            auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(8, recipe, "ood");
-
+            departManager.getAppointDepartByOrganIdAndDepart(recipe);
+        } else if ("6".equals(type)) {
+            //根据处方获取挂号科室
+            recipe.setAppointDepart(null);
+            departManager.getAppointDepartByOrganIdAndDepart(recipe);
         } else {
             Object isDefaultGiveModeToHos = configService.getConfiguration(recipe.getClinicOrgan(), "isDefaultGiveModeToHos");
             LOGGER.info("setGiveMode isDefaultGiveModeToHos：{} ", isDefaultGiveModeToHos);
