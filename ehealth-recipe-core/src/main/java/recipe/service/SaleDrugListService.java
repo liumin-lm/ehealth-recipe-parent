@@ -103,12 +103,7 @@ public class SaleDrugListService implements ISaleDrugListService {
         if (drugList == null){
             drugList = new DrugList();
         }
-        if (ObjectUtils.isEmpty(saleDrugList.getSaleDrugCode())&&!ObjectUtils.isEmpty(saleDrugList.getOrganDrugCode())){
-            saleDrugList.setSaleDrugCode(saleDrugList.getOrganDrugCode());
-        }
-        if (!ObjectUtils.isEmpty(saleDrugList.getSaleDrugCode())&&ObjectUtils.isEmpty(saleDrugList.getOrganDrugCode())){
-            saleDrugList.setOrganDrugCode(saleDrugList.getSaleDrugCode());
-        }
+        saleDrugList.setOrganDrugCode(saleDrugList.getSaleDrugCode());
 
         //验证药品必要信息
         validateSaleDrugList(saleDrugList);
@@ -147,12 +142,7 @@ public class SaleDrugListService implements ISaleDrugListService {
             Integer newStatus = saleDrugList.getStatus();
             BeanUtils.map(saleDrugList, target);
             validateSaleDrugList(target);
-            if (ObjectUtils.isEmpty(saleDrugList.getSaleDrugCode())&&!ObjectUtils.isEmpty(saleDrugList.getOrganDrugCode())){
-                saleDrugList.setSaleDrugCode(saleDrugList.getOrganDrugCode());
-            }
-            if (!ObjectUtils.isEmpty(saleDrugList.getSaleDrugCode())&&ObjectUtils.isEmpty(saleDrugList.getOrganDrugCode())){
-                saleDrugList.setOrganDrugCode(saleDrugList.getSaleDrugCode());
-            }
+            target.setOrganDrugCode(target.getSaleDrugCode());
             target.setLastModify(new Date());
             target = saleDrugListDAO.update(target);
             DrugList drugList = drugListDAO.get(saleDrugList.getDrugId());
