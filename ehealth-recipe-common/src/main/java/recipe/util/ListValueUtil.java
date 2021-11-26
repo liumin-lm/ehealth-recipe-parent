@@ -21,11 +21,12 @@ public class ListValueUtil {
      * "2"，"1"
      * 返回 ："1", "2"
      *
-     * @param group 需要获取数据
-     * @param <T>   任意想通类型
+     * @param groupList 需要获取数据
+     * @param <T>       任意想通类型
      * @return 最小交集 list
      */
-    public static <T> List<T> minIntersection(List<List<T>> group) {
+    public static <T> List<T> minIntersection(List<List<T>> groupList) {
+        List<List<T>> group = groupList.stream().filter(CollectionUtils::isNotEmpty).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(group)) {
             return null;
         }
