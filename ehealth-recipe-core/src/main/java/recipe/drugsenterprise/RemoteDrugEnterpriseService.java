@@ -723,11 +723,13 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             if (new Integer(1).equals(drugsEnterprise.getOperationType())) {
                 for (com.ngari.recipe.recipe.model.RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
                     ScanRequestBean scanRequestBean = getDrugInventoryRequestBean(drugsDataBean.getOrganId(), drugsEnterprise, Arrays.asList(recipeDetailBean));
-                    LOGGER.info("getDrugsEnterpriseInventory requestBean:{}.", JSONUtils.toString(scanRequestBean));
-                    HisResponseTO responseTO = recipeEnterpriseService.scanStock(scanRequestBean);
-                    LOGGER.info("getDrugsEnterpriseInventory responseTO:{}.", JSONUtils.toString(responseTO));
-                    if (responseTO != null && responseTO.isSuccess()) {
-                        haveInventoryList.add(recipeDetailBean.getDrugName());
+                    if (CollectionUtils.isNotEmpty(scanRequestBean.getScanDrugListBeans())) {
+                        LOGGER.info("getDrugsEnterpriseInventory requestBean:{}.", JSONUtils.toString(scanRequestBean));
+                        HisResponseTO responseTO = recipeEnterpriseService.scanStock(scanRequestBean);
+                        LOGGER.info("getDrugsEnterpriseInventory responseTO:{}.", JSONUtils.toString(responseTO));
+                        if (responseTO != null && responseTO.isSuccess()) {
+                            haveInventoryList.add(recipeDetailBean.getDrugName());
+                        }
                     }
                 };
             } else {//通过平台调用
