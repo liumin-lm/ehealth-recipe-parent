@@ -257,11 +257,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             List<DrugList> drugLists = drugListMap.get(patientOptionalDrug.getDrugId());
             if (CollectionUtils.isNotEmpty(drugLists) && Objects.nonNull(drugLists.get(0))) {
                 DrugList drugList = drugLists.get(0);
-                Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(patientOptionalDrug.getOrganId(), drugList.getDrugType()));
                 org.springframework.beans.BeanUtils.copyProperties(drugList, patientOptionalDrugDTO);
-                patientOptionalDrugDTO.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(drugList, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(drugList.getDrugType())));
             }
+            Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(patientOptionalDrug.getOrganId(), patientOptionalDrugDTO.getDrugType()));
             OrganDrugList organDrugLists = organDrugListMap.get(patientOptionalDrug.getDrugId() + patientOptionalDrug.getOrganDrugCode());
+            patientOptionalDrugDTO.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(organDrugLists, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(patientOptionalDrugDTO.getDrugType())));
             if (Objects.isNull(organDrugLists)) {
                 return null;
             }
@@ -312,15 +312,16 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     /**
      * 根据复诊id 获取线上线下处方详情
+     *
      * @param clinicId
      * @return
      */
-    private List<Recipedetail> findEffectiveRecipeDetailByClinicId(Integer clinicId){
+    private List<Recipedetail> findEffectiveRecipeDetailByClinicId(Integer clinicId) {
         //线上的有效处方
         List<Recipe> effectiveRecipeByBussSourceAndClinicId = recipeManager.findEffectiveRecipeByBussSourceAndClinicId(BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType(), clinicId);
         List<Integer> recipeIds = effectiveRecipeByBussSourceAndClinicId.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
         List<Recipedetail> byRecipeIdList = Lists.newArrayList();
-        if(CollectionUtils.isNotEmpty(recipeIds)) {
+        if (CollectionUtils.isNotEmpty(recipeIds)) {
             byRecipeIdList = recipeDetailDAO.findByRecipeIdList(recipeIds);
         }
 
