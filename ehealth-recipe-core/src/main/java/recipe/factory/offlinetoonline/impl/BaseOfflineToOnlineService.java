@@ -575,6 +575,8 @@ public class BaseOfflineToOnlineService {
         recipe.setOrganName(hisRecipe.getOrganName());
         recipe.setRecipeCode(hisRecipe.getRecipeCode());
         recipe.setRecipeType(hisRecipe.getRecipeType());
+        recipe.setAppointDepart(hisRecipe.getDepartCode());
+        recipe.setAppointDepartName(hisRecipe.getDepartName());
         AppointDepartDTO appointDepartDTO = departClient.getAppointDepartByOrganIdAndAppointDepartCode(hisRecipe.getClinicOrgan(), hisRecipe.getDepartCode());
         if (appointDepartDTO != null) {
             recipe.setDepart(appointDepartDTO.getDepartId());
