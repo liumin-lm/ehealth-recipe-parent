@@ -34,10 +34,7 @@ import recipe.vo.doctor.DrugEnterpriseStockVO;
 import recipe.vo.doctor.EnterpriseStockVO;
 
 import javax.annotation.Resource;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.FutureTask;
 import java.util.stream.Collectors;
 
@@ -129,6 +126,14 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(recipe.getClinicOrgan());
         if (CollectionUtils.isEmpty(giveModeButtonBeans)) {
             enterpriseManager.doSignRecipe(doSignRecipe, null, "抱歉，机构未配置购药方式，无法开处方");
+            return MapValueUtil.beanToMap(doSignRecipe);
+        }
+        //配置下载处方签 或者 例外支付
+        String supportDownloadButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
+        String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
+        if (StringUtils.isNotEmpty(supportDownloadButton) || StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
+            //保存药品购药方式
+            saveGiveMode(recipe, organStock, enterpriseStock);
             return MapValueUtil.beanToMap(doSignRecipe);
         }
         //未配置药企 医院无库存
@@ -397,7 +402,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             if (CollectionUtils.isEmpty(giveModeButton)) {
                 return;
             }
-            Set<Integer> recipeGiveMode = giveModeButton.stream().map(GiveModeButtonDTO::getType).collect(Collectors.toSet());
+            Set<Integer> recipeGiveMode = giveModeButton.stream().filter(Objects::nonNull).map(GiveModeButtonDTO::getType).collect(Collectors.toSet());
             if (CollectionUtils.isNotEmpty(recipeGiveMode)) {
                 String join = StringUtils.join(recipeGiveMode, ",");
                 Recipe recipeUpdate = new Recipe();
