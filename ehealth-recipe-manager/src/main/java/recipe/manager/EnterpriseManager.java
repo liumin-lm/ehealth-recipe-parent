@@ -453,20 +453,17 @@ public class EnterpriseManager extends BaseManager {
      * 组织返回结果msg
      *
      * @param doSignRecipe
-     * @param object
+     * @param nameList
      * @param msg
      * @return
      */
-    public void doSignRecipe(DoSignRecipeDTO doSignRecipe, Object object, String msg) {
+    public void doSignRecipe(DoSignRecipeDTO doSignRecipe, List<String> nameList, String msg) {
         doSignRecipe.setSignResult(false);
         doSignRecipe.setErrorFlag(true);
         doSignRecipe.setCanContinueFlag("-1");
-        if (null != object) {
-            List<String> nameList = (List<String>) object;
-            if (CollectionUtils.isNotEmpty(nameList)) {
-                String nameStr = "【" + Joiner.on("、").join(nameList) + "】";
-                msg = "由于该处方单上的" + nameStr + msg;
-            }
+        if (CollectionUtils.isNotEmpty(nameList)) {
+            String nameStr = "【" + Joiner.on("、").join(nameList) + "】";
+            msg = "由于该处方单上的" + nameStr + msg;
         }
         doSignRecipe.setMsg(msg);
     }
