@@ -15,7 +15,7 @@ import java.util.Map;
  */
 public interface IDrugEnterpriseBusinessService {
     /**
-     * 医生端查询药品列表-查库存
+     * 医生端查询 药品列表-查库存
      *
      * @param organId       机构id
      * @param recipeDetails 处方明细
@@ -42,7 +42,7 @@ public interface IDrugEnterpriseBusinessService {
     Map<String, Object> enterpriseStock(Integer recipeId);
 
     /**
-     * 校验 药品库存 的库存数量
+     * 校验 某个药企下 药品库存 的库存数量
      *
      * @param organId       机构id
      * @param recipeDetails 药品信息 drugId，code
