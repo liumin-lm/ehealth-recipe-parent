@@ -100,6 +100,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.aop.LogInfo;
+import recipe.aop.LogRecord;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
@@ -2002,6 +2003,7 @@ public class RecipeService extends RecipeBaseService {
      * @param detailBeanList 处方详情
      */
     @RpcService
+    @LogRecord
     public Integer updateRecipeAndDetail(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
         if (recipeBean == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "recipe is required!");
