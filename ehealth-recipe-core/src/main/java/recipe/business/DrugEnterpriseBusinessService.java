@@ -227,6 +227,14 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         return super.futureTaskCallbackBeanList(futureTasks);
     }
 
+    /**
+     * 验 药品库存 指定药企的库存数量
+     *
+     * @param enterpriseStock 药企
+     * @param organId         机构id
+     * @param recipeDetails   药品数据
+     * @return
+     */
     private EnterpriseStock enterpriseStockFutureTask(EnterpriseStock enterpriseStock, Integer organId, List<Recipedetail> recipeDetails) {
         enterpriseStock.setStock(false);
         //药企无对应的购药按钮则 无需查询库存-返回无库存
@@ -242,6 +250,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
 
     /**
      * 校验 药品库存在 遍历药企 同一个药企下的库存数量
+     * 验证能否药品配送以及能否开具到一张处方单上
      *
      * @param recipe        处方机构id
      * @param recipeDetails 药品信息 drugId，code
