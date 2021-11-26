@@ -147,7 +147,7 @@ public class DrugStockClient extends BaseClient {
             DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
             drugStockAmountDTO.setResult(true);
             drugStockAmountDTO.setDrugInfoList(list);
-            List<String> organCodes = list.stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getOrganDrugCode).distinct().collect(Collectors.toList());
+            List<String> organCodes = list.stream().filter(a -> !a.getStock()).map(DrugInfoDTO::getOrganDrugCode).distinct().collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(organCodes)) {
                 List<String> drugNames = organDrugList.stream().filter(a -> organCodes.contains(a.getOrganDrugCode())).map(OrganDrugList::getDrugName).collect(Collectors.toList());
                 drugStockAmountDTO.setResult(false);
