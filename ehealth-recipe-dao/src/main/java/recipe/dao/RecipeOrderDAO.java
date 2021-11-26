@@ -1743,34 +1743,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         HibernateStatelessResultAction<List<BusBillDateAccountDTO>> action = new AbstractHibernateStatelessResultAction<List<BusBillDateAccountDTO>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder();
-                hql.append("select a.* from ( ");
-                hql.append(" select r.recipeId, o.OutTradeNo,o.tradeNo,o.totalfee,o.payTime");
-                hql.append(" ,r.patientID,r.patientName,r.mpiid,r.clinicorgan, o.payOrganId");
-                hql.append(" ,o.wxPayWay , 1 tradeStatus,0 refundAmount,'' refundBatchNo,'' refundDate ");
-                hql.append(" ,o.actualPrice,o.preSettleTotalAmount,o.fundAmount,o.cashAmount");
-                hql.append(" from cdr_recipe r INNER JOIN cdr_recipeorder o on r.OrderCode = o.OrderCode ");
-                hql.append(" where o.payFlag = 1 and  to_days(o.payTime) = to_days(:time) and o.Effective = 1 and o.actualPrice <> 0 ");
-                if (organId != null) {
-                    hql.append(" and  r.clinicOrgan =:organId");
-                }
-                if (StringUtils.isNotEmpty(payOrganId)) {
-                    hql.append(" and  o.payOrganId =:payOrganId");
-                }
-                hql.append(" UNION ALL ");
-                hql.append(" select r.recipeId, o.OutTradeNo,o.tradeNo,o.totalfee,o.payTime");
-                hql.append(" ,r.patientID,r.patientName,r.mpiid,r.clinicorgan, o.payOrganId");
-                hql.append(" ,o.wxPayWay , 2 tradeStatus,o.actualPrice refundAmount,o.OutTradeNo refundBatchNo, o.refundTime refundDate ");
-                hql.append(" ,o.actualPrice,o.preSettleTotalAmount,o.fundAmount,o.cashAmount");
-                hql.append(" from cdr_recipe r INNER JOIN cdr_recipeorder o on r.OrderCode = o.OrderCode ");
-                hql.append(" where o.refundFlag is Not Null and o.refundFlag <> 0 and  to_days(o.refundTime) = to_days(:time) and o.actualPrice <> 0 ");
-                if (organId != null) {
-                    hql.append(" and  r.clinicOrgan =:organId");
-                }
-                if (StringUtils.isNotEmpty(payOrganId)) {
-                    hql.append(" and  o.payOrganId =:payOrganId");
-                }
-                hql.append(" ) a order by  a.payTime");
+                StringBuilder hql = findSqlForfindByPayTimeAndOrganIdAndPayOrganId(billDate, organId, payOrganId);
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameter("time", billDate);
                 if (organId != null) {
@@ -1810,7 +1783,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                             }
                         }
                         vo.setRefundBatchNo(objs[13] == null ? null : objs[13] + "");
-                        vo.setRefundDate(objs[14] == null ? null : objs[14] + "");
+                        vo.setRefundDate(objs[14] == null ? null : (Date) objs[14]);
                         vo.setPayType(objs[10] == null ? null : objs[10] + "");
                         vo.setBusType("recipe");
                         vo.setPatientId(objs[5] == null ? null : objs[5] + "");
@@ -1849,5 +1822,36 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return action.getResult();
     }
 
+    private StringBuilder findSqlForfindByPayTimeAndOrganIdAndPayOrganId(String billDate, Integer organId, String payOrganId) {
+        StringBuilder hql = new StringBuilder();
+        hql.append("select a.* from ( ");
+        hql.append(" select r.recipeId, o.OutTradeNo,o.tradeNo,o.totalfee,o.payTime");
+        hql.append(" ,r.patientID,r.patientName,r.mpiid,r.clinicorgan, o.payOrganId");
+        hql.append(" ,o.wxPayWay , 1 tradeStatus,0 refundAmount,'' refundBatchNo,'' refundDate ");
+        hql.append(" ,o.actualPrice,o.preSettleTotalAmount,o.fundAmount,o.cashAmount");
+        hql.append(" from cdr_recipe r INNER JOIN cdr_recipeorder o on r.OrderCode = o.OrderCode ");
+        hql.append(" where o.payFlag = 1 and  to_days(o.payTime) = to_days(:time) and o.Effective = 1 and o.actualPrice <> 0 ");
+        if (organId != null) {
+            hql.append(" and  r.clinicOrgan =:organId");
+        }
+        if (StringUtils.isNotEmpty(payOrganId)) {
+            hql.append(" and  o.payOrganId =:payOrganId");
+        }
+        hql.append(" UNION ALL ");
+        hql.append(" select r.recipeId, o.OutTradeNo,o.tradeNo,o.totalfee,o.payTime");
+        hql.append(" ,r.patientID,r.patientName,r.mpiid,r.clinicorgan, o.payOrganId");
+        hql.append(" ,o.wxPayWay , 2 tradeStatus,o.actualPrice refundAmount,o.OutTradeNo refundBatchNo, o.refundTime refundDate ");
+        hql.append(" ,o.actualPrice,o.preSettleTotalAmount,o.fundAmount,o.cashAmount");
+        hql.append(" from cdr_recipe r INNER JOIN cdr_recipeorder o on r.OrderCode = o.OrderCode ");
+        hql.append(" where o.refundFlag is Not Null and o.refundFlag <> 0 and  to_days(o.refundTime) = to_days(:time) and o.actualPrice <> 0 ");
+        if (organId != null) {
+            hql.append(" and  r.clinicOrgan =:organId");
+        }
+        if (StringUtils.isNotEmpty(payOrganId)) {
+            hql.append(" and  o.payOrganId =:payOrganId");
+        }
+        hql.append(" ) a order by  a.payTime");
+        return hql;
+    }
 
 }
