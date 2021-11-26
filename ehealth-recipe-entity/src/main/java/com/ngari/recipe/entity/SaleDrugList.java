@@ -31,10 +31,10 @@ public class SaleDrugList implements java.io.Serializable {
     @ItemProperty(alias = "药品序号")
     private Integer drugId;
 
-    @ItemProperty(alias = "机构药品编码")
+    @ItemProperty(alias = "药企药品编码")
     private String organDrugCode;
 
-    @ItemProperty(alias = "药企药品编码")
+    @ItemProperty(alias = "因字段名称理解问题 多加的字段 现放弃使用")
     private String saleDrugCode;
 
     @ItemProperty(alias = "机构药品名称")

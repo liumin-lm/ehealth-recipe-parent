@@ -188,15 +188,6 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 }
 
                 try {
-                    if (StringUtils.isEmpty(getStrFromCell(row.getCell(1)))) {
-                        errMsg.append("【机构药品编码】未填写").append(";");
-                    }
-                    drug.setSaleDrugCode(getStrFromCell(row.getCell(1)));
-                } catch (Exception e) {
-                    LOGGER.error("机构药品编码有误 ," + e.getMessage(), e);
-                    errMsg.append("机构药品编码有误").append(";");
-                }
-                try {
                     if (StringUtils.isEmpty(getStrFromCell(row.getCell(2)))) {
                         errMsg.append("【药品名】未填写").append(";");
                     }
@@ -220,6 +211,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                         errMsg.append("【药企药品编码】未填写").append(";");
                     }
                     drug.setOrganDrugCode(getStrFromCell(row.getCell(4)));
+                    drug.setSaleDrugCode(getStrFromCell(row.getCell(4)));
                 } catch (Exception e) {
                     LOGGER.error("药企药品编码有误 ," + e.getMessage(), e);
                     errMsg.append("药企药品编码有误").append(";");
@@ -434,19 +426,22 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     saleDrugList1.setDrugSpec(detail.getDrugSpec());
                     saleDrugList1.setStatus(detail.getStatus());
                     saleDrugList1.setLastModify(new Date());
-                    saleDrugList1.setSaleDrugCode(String.valueOf(detail.getOrganDrugCode()));
                     switch (config.getSyncSaleDrugCodeType()) {
                         case 1:
                             saleDrugList1.setOrganDrugCode(detail.getOrganDrugCode());
+                            saleDrugList1.setSaleDrugCode(detail.getOrganDrugCode());
                             break;
                         case 2:
                             saleDrugList1.setOrganDrugCode(detail.getDrugId().toString());
+                            saleDrugList1.setSaleDrugCode(detail.getDrugId().toString());
                             break;
                         case 3:
                             saleDrugList1.setOrganDrugCode(detail.getMedicalDrugCode());
+                            saleDrugList1.setSaleDrugCode(detail.getMedicalDrugCode());
                             break;
                         case 4:
                             saleDrugList1.setOrganDrugCode(detail.getProducerCode());
+                            saleDrugList1.setSaleDrugCode(detail.getProducerCode());
                             break;
                         default:
                             break;
@@ -498,7 +493,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                         default:
                             break;
                     }
-                    saleDrugList.setSaleDrugCode(String.valueOf(detail.getOrganDrugCode()));
+                    saleDrugList.setSaleDrugCode(saleDrugList.getOrganDrugCode());
                     saleDrugList.setInventory(new BigDecimal(100));
                     saleDrugList.setCreateDt(new Date());
                     saleDrugList.setLastModify(new Date());
