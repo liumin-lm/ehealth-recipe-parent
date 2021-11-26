@@ -37,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service("commonSelfEnterprisesType")
 public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterface{
@@ -50,6 +51,8 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
 
     @Resource
     private DrugStockClient drugStockClient;
+    @Resource
+    private SaleDrugListDAO saleDrugListDAO;
 
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
@@ -128,7 +131,6 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
         }
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Integer> drugs = recipeDetailDAO.findDrugIdByRecipeId(recipeId);
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(enterprise.getId(), drugs);
         if (CollectionUtils.isEmpty(saleDrugLists) || saleDrugLists.size() < drugs.size()) {
             return DrugEnterpriseResult.getFail();
@@ -233,12 +235,19 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
         List<OrganDrugList> organDrugLists = new ArrayList<>();
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+        List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugList);
+        Map<Integer, Integer> saleMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId,SaleDrugList::getStatus));
         List<DrugInfoDTO> drugInfoList = new ArrayList<>();
         recipeDetails.forEach(recipeDetail -> {
             OrganDrugList organDrugList = new OrganDrugList();
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
-            drugInfoDTO.setStock(true);
-            drugInfoDTO.setStockAmountChin("有库存");
+            drugInfoDTO.setStock(false);
+            drugInfoDTO.setStockAmountChin("无库存");
+            if (new Integer(1).equals(saleMap.get(recipeDetail.getDrugId()))) {
+                drugInfoDTO.setStock(true);
+                drugInfoDTO.setStockAmountChin("有库存");
+            }
             BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
             organDrugList.setDrugId(recipeDetail.getDrugId());
             organDrugList.setDrugName(recipeDetail.getDrugName());
@@ -252,6 +261,11 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
             drugStockAmountDTO = drugStockClient.scanDrugStock(recipeDetails, recipe.getClinicOrgan(), organDrugLists, new ArrayList<>());
         } else {
             drugStockAmountDTO.setResult(true);
+            List<String> noDrugList = drugInfoList.stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).distinct().map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(noDrugList)) {
+                drugStockAmountDTO.setResult(false);
+                drugStockAmountDTO.setNotDrugNames(noDrugList);
+            }
             drugStockAmountDTO.setDrugInfoList(drugInfoList);
         }
         return drugStockAmountDTO;

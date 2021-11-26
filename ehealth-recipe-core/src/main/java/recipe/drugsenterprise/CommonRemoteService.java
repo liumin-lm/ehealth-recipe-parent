@@ -363,7 +363,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
         recipeDetails.forEach(recipeDetail -> {
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
             BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
-            String result = getInvertoryResult(recipeDetail.getDrugId(), drugsEnterprise, "1");
+            String result = getInvertoryResult(recipeDetail.getDrugId(), drugsEnterprise, recipeDetail.getUseTotalDose().toString());
             drugInfoDTO.setStock("有库存".equals(result));
             drugInfoDTO.setStockAmountChin(result);
             drugInfoList.add(drugInfoDTO);
