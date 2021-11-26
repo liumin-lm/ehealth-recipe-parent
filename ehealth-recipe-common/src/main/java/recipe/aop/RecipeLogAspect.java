@@ -16,6 +16,7 @@ import recipe.constant.ErrorCode;
  * 给需要切点加上LogInfo注解即可
  */
 @Aspect
+@Deprecated
 public class RecipeLogAspect {
 
     private final Logger logger = LoggerFactory.getLogger(RecipeLogAspect.class);
