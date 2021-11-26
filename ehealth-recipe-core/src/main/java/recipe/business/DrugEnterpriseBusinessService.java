@@ -67,7 +67,8 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         //机构库存
         EnterpriseStock organStock = organDrugListManager.organStock(organId, recipeDetails);
         //药企库存
-        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheckAll(organId, recipeDetails);
+        List<EnterpriseStock> enterpriseStockButton = buttonManager.enterpriseStockCheck(organId);
+        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(organId, recipeDetails, enterpriseStockButton);
         //处理库存数据结构 逆转为 药品-药企
         List<EnterpriseStockVO> enterpriseStockList = this.getEnterpriseStockVO(organStock, enterpriseStock);
         Map<Integer, List<EnterpriseStockVO>> enterpriseStockGroup = enterpriseStockList.stream().collect(Collectors.groupingBy(EnterpriseStockVO::getDrugId));
@@ -172,10 +173,8 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
 
     @Override
     public List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<Recipedetail> recipeDetails, Integer enterpriseId) {
-        //获取机构配置按钮
-        List<GiveModeButtonDTO> giveModeButtonBeans = buttonManager.getOrganGiveModeMap(organId);
         //获取需要查询库存的药企对象
-        List<EnterpriseStock> enterpriseStockList = buttonManager.enterpriseStockList(organId, giveModeButtonBeans);
+        List<EnterpriseStock> enterpriseStockList = buttonManager.enterpriseStockCheck(organId);
         if (CollectionUtils.isEmpty(enterpriseStockList)) {
             return enterpriseStockList;
         }
@@ -187,25 +186,6 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         }
         return this.enterpriseStockCheck(organId, recipeDetails, enterpriseStockList);
     }
-
-    /**
-     * 校验 药品库存 全部药企的库存数量
-     *
-     * @param organId       机构id
-     * @param recipeDetails 药品信息 drugId，code
-     * @return 药品信息 一定存在于出参
-     */
-    private List<EnterpriseStock> enterpriseStockCheckAll(Integer organId, List<Recipedetail> recipeDetails) {
-        //获取机构配置按钮
-        List<GiveModeButtonDTO> giveModeButtonBeans = buttonManager.getOrganGiveModeMap(organId);
-        //获取需要查询库存的药企对象
-        List<EnterpriseStock> enterpriseStockList = buttonManager.enterpriseStockList(organId, giveModeButtonBeans);
-        if (CollectionUtils.isEmpty(enterpriseStockList)) {
-            return enterpriseStockList;
-        }
-        return this.enterpriseStockCheck(organId, recipeDetails, enterpriseStockList);
-    }
-
 
     /**
      * 校验 药品库存 指定药企的库存数量
@@ -257,11 +237,8 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
      * @return 药品信息非必须
      */
     private List<EnterpriseStock> enterpriseStockCheckAll(Recipe recipe, List<Recipedetail> recipeDetails) {
-        Integer organId = recipe.getClinicOrgan();
-        //获取机构配置按钮
-        List<GiveModeButtonDTO> giveModeButtonBeans = buttonManager.getOrganGiveModeMap(organId);
         //获取需要查询库存的药企对象
-        List<EnterpriseStock> enterpriseStockList = buttonManager.enterpriseStockList(organId, giveModeButtonBeans);
+        List<EnterpriseStock> enterpriseStockList = buttonManager.enterpriseStockCheck(recipe.getClinicOrgan());
         if (CollectionUtils.isEmpty(enterpriseStockList)) {
             return enterpriseStockList;
         }
