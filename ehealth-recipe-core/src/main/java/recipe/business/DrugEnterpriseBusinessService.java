@@ -152,13 +152,13 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
                 List<List<String>> groupList = new LinkedList<>();
                 enterpriseStock.forEach(a -> groupList.add(a.getDrugName()));
                 List<String> enterpriseDrugName = ListValueUtil.minIntersection(groupList);
-                doSignRecipe.setCanContinueFlag("2");
                 enterpriseManager.doSignRecipe(doSignRecipe, enterpriseDrugName, "药品配送药企库存不足，该处方仅支持到院取药，无法药企配送，是否继续？");
+                doSignRecipe.setCanContinueFlag("2");
             }
             //医院无库存 药企有库存
             if (stockEnterprise && !organStock.getStock()) {
-                doSignRecipe.setCanContinueFlag("1");
                 enterpriseManager.doSignRecipe(doSignRecipe, organStock.getDrugName(), "药品医院库存不足，该处方仅支持药企配送，无法到院取药，是否继续？");
+                doSignRecipe.setCanContinueFlag("1");
             }
             //医院无库存 药企无库存
             if (!stockEnterprise && !organStock.getStock()) {
