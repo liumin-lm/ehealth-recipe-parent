@@ -117,7 +117,9 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         Recipe recipe = recipeDAO.get(recipeId);
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
         //药企库存
-        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheckAll(recipe, recipeDetails);
+        List<EnterpriseStock> enterpriseStockList = this.enterpriseStockCheckAll(recipe, recipeDetails);
+        List<EnterpriseStock> enterpriseStock = enterpriseStockList.stream().filter(a -> CollectionUtils.isNotEmpty(a.getGiveModeButton())).collect(Collectors.toList());
+        logger.info("DrugEnterpriseBusinessService enterpriseStock enterpriseStock={}", JSON.toJSONString(enterpriseStock));
         //医院库存
         EnterpriseStock organStock = organDrugListManager.organStock(recipe, recipeDetails);
 
