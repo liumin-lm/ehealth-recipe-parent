@@ -3233,7 +3233,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param clinicId
      * @return
      */
-    @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId and recipeCode != null ")
+    @DAOMethod(sql = "from Recipe where bussSource=:bussSource and recipeSourceType != 3 and clinicId=:clinicId and recipeCode != null ")
     public abstract List<Recipe> findWriteHisRecipeByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId);
 
     /**
@@ -3251,7 +3251,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param clinicId
      * @return
      */
-    @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId and status in(2,3,4,5,6,7,8)")
+    @DAOMethod(sql = "from Recipe where bussSource=:bussSource and recipeSourceType != 3 and clinicId=:clinicId and status in(2,3,4,5,6,7,8)")
     public abstract List<Recipe> findEffectiveRecipeByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId);
 
     @DAOMethod(sql = "from Recipe where recipeId=:recipeId  and bussSource =2")
