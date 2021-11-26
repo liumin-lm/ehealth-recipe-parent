@@ -62,7 +62,7 @@ public class BusBillDateAccountDTO implements Serializable {
      * <p>
      * 格式：yyyy-MM-dd HH:mm:ss
      */
-    private String refundDate;
+    private Date refundDate;
 
     /**
      * 交易支付渠道：1支付宝，2微信，可根据PayWayEnum获取
