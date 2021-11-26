@@ -34,10 +34,7 @@ import recipe.vo.doctor.DrugEnterpriseStockVO;
 import recipe.vo.doctor.EnterpriseStockVO;
 
 import javax.annotation.Resource;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.FutureTask;
 import java.util.stream.Collectors;
 
@@ -67,7 +64,8 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         //机构库存
         EnterpriseStock organStock = organDrugListManager.organStock(organId, recipeDetails);
         //药企库存
-        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheckAll(organId, recipeDetails);
+        List<EnterpriseStock> enterpriseStockButton = buttonManager.enterpriseStockCheck(organId);
+        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(organId, recipeDetails, enterpriseStockButton);
         //处理库存数据结构 逆转为 药品-药企
         List<EnterpriseStockVO> enterpriseStockList = this.getEnterpriseStockVO(organStock, enterpriseStock);
         Map<Integer, List<EnterpriseStockVO>> enterpriseStockGroup = enterpriseStockList.stream().collect(Collectors.groupingBy(EnterpriseStockVO::getDrugId));
@@ -130,6 +128,14 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             enterpriseManager.doSignRecipe(doSignRecipe, null, "抱歉，机构未配置购药方式，无法开处方");
             return MapValueUtil.beanToMap(doSignRecipe);
         }
+        //配置下载处方签 或者 例外支付
+        String supportDownloadButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
+        String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
+        if (StringUtils.isNotEmpty(supportDownloadButton) || StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
+            //保存药品购药方式
+            saveGiveMode(recipe, organStock, enterpriseStock);
+            return MapValueUtil.beanToMap(doSignRecipe);
+        }
         //未配置药企 医院无库存
         if (CollectionUtils.isEmpty(enterpriseStock) && null != organStock && !organStock.getStock()) {
             enterpriseManager.doSignRecipe(doSignRecipe, organStock.getDrugName(), "药品门诊药房库存不足，请更换其他药品后再试");
@@ -152,13 +158,13 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
                 List<List<String>> groupList = new LinkedList<>();
                 enterpriseStock.forEach(a -> groupList.add(a.getDrugName()));
                 List<String> enterpriseDrugName = ListValueUtil.minIntersection(groupList);
-                doSignRecipe.setCanContinueFlag("2");
                 enterpriseManager.doSignRecipe(doSignRecipe, enterpriseDrugName, "药品配送药企库存不足，该处方仅支持到院取药，无法药企配送，是否继续？");
+                doSignRecipe.setCanContinueFlag("2");
             }
             //医院无库存 药企有库存
             if (stockEnterprise && !organStock.getStock()) {
-                doSignRecipe.setCanContinueFlag("1");
                 enterpriseManager.doSignRecipe(doSignRecipe, organStock.getDrugName(), "药品医院库存不足，该处方仅支持药企配送，无法到院取药，是否继续？");
+                doSignRecipe.setCanContinueFlag("1");
             }
             //医院无库存 药企无库存
             if (!stockEnterprise && !organStock.getStock()) {
@@ -172,10 +178,8 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
 
     @Override
     public List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<Recipedetail> recipeDetails, Integer enterpriseId) {
-        //获取机构配置按钮
-        List<GiveModeButtonDTO> giveModeButtonBeans = buttonManager.getOrganGiveModeMap(organId);
         //获取需要查询库存的药企对象
-        List<EnterpriseStock> enterpriseStockList = buttonManager.enterpriseStockList(organId, giveModeButtonBeans);
+        List<EnterpriseStock> enterpriseStockList = buttonManager.enterpriseStockCheck(organId);
         if (CollectionUtils.isEmpty(enterpriseStockList)) {
             return enterpriseStockList;
         }
@@ -187,25 +191,6 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         }
         return this.enterpriseStockCheck(organId, recipeDetails, enterpriseStockList);
     }
-
-    /**
-     * 校验 药品库存 全部药企的库存数量
-     *
-     * @param organId       机构id
-     * @param recipeDetails 药品信息 drugId，code
-     * @return 药品信息 一定存在于出参
-     */
-    private List<EnterpriseStock> enterpriseStockCheckAll(Integer organId, List<Recipedetail> recipeDetails) {
-        //获取机构配置按钮
-        List<GiveModeButtonDTO> giveModeButtonBeans = buttonManager.getOrganGiveModeMap(organId);
-        //获取需要查询库存的药企对象
-        List<EnterpriseStock> enterpriseStockList = buttonManager.enterpriseStockList(organId, giveModeButtonBeans);
-        if (CollectionUtils.isEmpty(enterpriseStockList)) {
-            return enterpriseStockList;
-        }
-        return this.enterpriseStockCheck(organId, recipeDetails, enterpriseStockList);
-    }
-
 
     /**
      * 校验 药品库存 指定药企的库存数量
@@ -257,11 +242,8 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
      * @return 药品信息非必须
      */
     private List<EnterpriseStock> enterpriseStockCheckAll(Recipe recipe, List<Recipedetail> recipeDetails) {
-        Integer organId = recipe.getClinicOrgan();
-        //获取机构配置按钮
-        List<GiveModeButtonDTO> giveModeButtonBeans = buttonManager.getOrganGiveModeMap(organId);
         //获取需要查询库存的药企对象
-        List<EnterpriseStock> enterpriseStockList = buttonManager.enterpriseStockList(organId, giveModeButtonBeans);
+        List<EnterpriseStock> enterpriseStockList = buttonManager.enterpriseStockCheck(recipe.getClinicOrgan());
         if (CollectionUtils.isEmpty(enterpriseStockList)) {
             return enterpriseStockList;
         }
@@ -420,7 +402,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             if (CollectionUtils.isEmpty(giveModeButton)) {
                 return;
             }
-            Set<Integer> recipeGiveMode = giveModeButton.stream().map(GiveModeButtonDTO::getType).collect(Collectors.toSet());
+            Set<Integer> recipeGiveMode = giveModeButton.stream().filter(Objects::nonNull).map(GiveModeButtonDTO::getType).collect(Collectors.toSet());
             if (CollectionUtils.isNotEmpty(recipeGiveMode)) {
                 String join = StringUtils.join(recipeGiveMode, ",");
                 Recipe recipeUpdate = new Recipe();

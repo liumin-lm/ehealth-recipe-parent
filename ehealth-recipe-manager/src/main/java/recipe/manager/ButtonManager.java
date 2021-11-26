@@ -171,28 +171,41 @@ public class ButtonManager extends BaseManager {
 
 
     /**
-     * 获取机构配置的 购药按钮
+     * 校验 药品库存 全部药企的库存数量
+     * 根据 按钮配置 获取 药企购药配置-库存对象
      *
-     * @return
+     * @param organId 机构id
+     * @return 药品信息 一定存在于出参
      */
-    public List<String> getGiveModeButtonKey(Integer organId) {
-        List<GiveModeButtonDTO> giveModeButtonBeans = getOrganGiveModeMap(organId);
-        List<String> configurations = giveModeButtonBeans.stream().map(GiveModeButtonDTO::getShowButtonKey).collect(Collectors.toList());
-        //收集按钮信息用于判断校验哪边库存 0是什么都没有，1是指配置了到院取药，2是配置到药企相关，3是医院药企都配置了
-        logger.info("ButtonManager.getGiveMode res={}", JSONArray.toJSONString(configurations));
-        return configurations;
+    public List<EnterpriseStock> enterpriseStockCheck(Integer organId) {
+        //获取机构配置按钮
+        List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(organId);
+        //获取需要查询库存的药企对象
+        List<DrugsEnterprise> enterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
+        logger.info("ButtonManager enterpriseStockCheck organId:{},enterprises:{}", organId, JSON.toJSONString(enterprises));
+        List<EnterpriseStock> list = new LinkedList<>();
+        if (CollectionUtils.isEmpty(enterprises)) {
+            return list;
+        }
+        Map<String, String> configGiveModeMap = new HashMap<>();
+        if (null != giveModeButtonBeans) {
+            configGiveModeMap = giveModeButtonBeans.stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
+        }
+        List<String> configGiveMode = RecipeSupportGiveModeEnum.checkEnterprise(giveModeButtonBeans);
+        for (DrugsEnterprise drugsEnterprise : enterprises) {
+            EnterpriseStock enterpriseStock = new EnterpriseStock();
+            enterpriseStock.setDrugsEnterprise(drugsEnterprise);
+            enterpriseStock.setDrugsEnterpriseId(drugsEnterprise.getId());
+            enterpriseStock.setDeliveryName(drugsEnterprise.getName());
+            enterpriseStock.setDeliveryCode(drugsEnterprise.getId().toString());
+            enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ENTERPRISE_APPOINT.getType());
+            List<GiveModeButtonDTO> giveModeButton = RecipeSupportGiveModeEnum.giveModeButtonList(drugsEnterprise, configGiveMode, configGiveModeMap);
+            enterpriseStock.setGiveModeButton(giveModeButton);
+            list.add(enterpriseStock);
+        }
+        logger.info("ButtonManager enterpriseStockCheck list:{}", JSON.toJSONString(list));
+        return list;
     }
-
-    /**
-     * 通过机构ID从运营平台获取购药方式的基本配置项
-     *
-     * @param organId 机构ID
-     * @return 运营平台的配置项
-     */
-    public List<GiveModeButtonDTO> getOrganGiveModeMap(Integer organId) {
-        return operationClient.getOrganGiveModeMap(organId);
-    }
-
 
     public GiveModeShowButtonDTO getShowButton(Recipe recipe) {
         IGiveModeBase giveModeBase = getGiveModeBaseByRecipe(recipe);
@@ -251,44 +264,6 @@ public class ButtonManager extends BaseManager {
         Map<String, String> result = giveModeButtonBeans.stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
         return result.get(giveModeKey);
     }
-
-    /**
-     * 根据 按钮配置 获取 药企购药配置-库存对象
-     *
-     * @param organId             机构id
-     * @param giveModeButtonBeans 机构按钮配置
-     * @return 药企购药配置
-     */
-    public List<EnterpriseStock> enterpriseStockList(Integer organId, List<GiveModeButtonDTO> giveModeButtonBeans) {
-        List<DrugsEnterprise> enterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
-        logger.info("ButtonManager enterpriseStockList organId:{},enterprises:{}", organId, JSON.toJSONString(enterprises));
-
-        List<EnterpriseStock> list = new LinkedList<>();
-        if (CollectionUtils.isEmpty(enterprises)) {
-            return list;
-        }
-        Map<String, String> configGiveModeMap;
-        if (null != giveModeButtonBeans) {
-            configGiveModeMap = giveModeButtonBeans.stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
-        } else {
-            configGiveModeMap = new HashMap<>();
-        }
-        List<String> configGiveMode = RecipeSupportGiveModeEnum.checkEnterprise(giveModeButtonBeans);
-        for (DrugsEnterprise drugsEnterprise : enterprises) {
-            EnterpriseStock enterpriseStock = new EnterpriseStock();
-            enterpriseStock.setDrugsEnterprise(drugsEnterprise);
-            enterpriseStock.setDrugsEnterpriseId(drugsEnterprise.getId());
-            enterpriseStock.setDeliveryName(drugsEnterprise.getName());
-            enterpriseStock.setDeliveryCode(drugsEnterprise.getId().toString());
-            enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ENTERPRISE_APPOINT.getType());
-            List<GiveModeButtonDTO> giveModeButton = RecipeSupportGiveModeEnum.giveModeButtonList(drugsEnterprise, configGiveMode, configGiveModeMap);
-            enterpriseStock.setGiveModeButton(giveModeButton);
-            list.add(enterpriseStock);
-        }
-        logger.info("ButtonManager enterpriseStockList list:{}", JSON.toJSONString(list));
-        return list;
-    }
-
 
     /**
      * 根据配送主体获取购药方式
