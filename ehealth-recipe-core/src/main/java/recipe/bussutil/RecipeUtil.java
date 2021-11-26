@@ -397,8 +397,10 @@ public class RecipeUtil {
                 recipe.setAppointDepartName(null!=appointDepartDTO?appointDepartDTO.getAppointDepartName():"");
             } else {
                 AppointDepartDTO appointDepartDTO = departManager.getAppointDepartByOrganIdAndDepart(recipe);
-                recipe.setAppointDepart(appointDepartDTO.getAppointDepartCode());
-                recipe.setAppointDepartName(appointDepartDTO.getAppointDepartName());
+                if (null != appointDepartDTO) {
+                    recipe.setAppointDepart(appointDepartDTO.getAppointDepartCode());
+                    recipe.setAppointDepartName(appointDepartDTO.getAppointDepartName());
+                }
             }
         }
 
