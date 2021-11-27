@@ -18,10 +18,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
-import com.ngari.recipe.dto.DrugInfoDTO;
-import com.ngari.recipe.dto.EnterpriseStock;
-import com.ngari.recipe.dto.GiveModeButtonDTO;
-import com.ngari.recipe.dto.GiveModeShowButtonDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
@@ -42,6 +39,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.aop.LogInfo;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.client.DrugStockClient;
 import recipe.client.RevisitClient;
 import recipe.constant.ErrorCode;
 import recipe.constant.ParameterConstant;
@@ -101,6 +99,8 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
     private RecipeParameterDao recipeParameterDao;
     @Resource
     private IDrugEnterpriseBusinessService drugEnterpriseBusinessService;
+    @Resource
+    private DrugStockClient drugStockClient;
 
     //手动推送给第三方
     @RpcService
@@ -638,7 +638,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         return result;
     }
 
-    private static boolean isBloneHos(OrganDrugList organDrugList) {
+    private static boolean isBelongHos(OrganDrugList organDrugList) {
         if (organDrugList != null && StringUtils.isNotEmpty(organDrugList.getPharmacy())) {
             PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
             if (StringUtils.isNotEmpty(organDrugList.getPharmacy())) {
@@ -661,24 +661,22 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
      * @param list
      */
     private void getHosDrugInventory(DrugsDataBean drugsDataBean, List<String> list) {
-        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-        for (com.ngari.recipe.recipe.model.RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
-            List<Recipedetail> recipedetails = new ArrayList<>();
-            Recipedetail recipedetail = ObjectCopyUtils.convert(recipeDetailBean, Recipedetail.class);
+        List<Recipedetail> detailList = new LinkedList<>();
+        List<OrganDrugList> organDrugLists = new LinkedList<>();
+        drugsDataBean.getRecipeDetailBeans().forEach(recipeDetailBean -> {
+            Recipedetail recipeDetail = ObjectCopyUtils.convert(recipeDetailBean, Recipedetail.class);
             OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(drugsDataBean.getOrganId(), recipeDetailBean.getOrganDrugCode(), recipeDetailBean.getDrugId());
-            if (organDrugList != null && !isBloneHos(organDrugList)) {
-                recipedetail.setPack(organDrugList.getPack());
-                recipedetail.setDrugUnit(organDrugList.getUnit());
-                recipedetail.setProducerCode(organDrugList.getProducerCode());
-                recipedetails.add(recipedetail);
-                DrugInfoResponseTO response = service.scanDrugStock(recipedetails, drugsDataBean.getOrganId());
-                if (response != null && Integer.valueOf(0).equals(response.getMsgCode())) {
-                    //表示有库存
-                    list.add(recipeDetailBean.getDrugName());
-                }
+            if (organDrugList != null && !isBelongHos(organDrugList)) {
+                recipeDetail.setPack(organDrugList.getPack());
+                recipeDetail.setDrugUnit(organDrugList.getUnit());
+                recipeDetail.setProducerCode(organDrugList.getProducerCode());
+                detailList.add(recipeDetail);
+                organDrugLists.add(organDrugList);
             }
-        }
+        });
+        DrugStockAmountDTO drugStockAmountDTO = drugStockClient.scanDrugStock(detailList, drugsDataBean.getOrganId(), organDrugLists, new LinkedList<>());
+        List<String> haveInventory = drugStockAmountDTO.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+        list.addAll(haveInventory);
     }
 
     /**
