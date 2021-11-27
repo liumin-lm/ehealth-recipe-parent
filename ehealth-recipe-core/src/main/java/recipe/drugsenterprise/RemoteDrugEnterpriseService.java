@@ -677,7 +677,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             });
             DrugStockAmountDTO drugStockAmountDTO = drugStockClient.scanDrugStock(detailList, drugsDataBean.getOrganId(), organDrugLists, new LinkedList<>());
             LOGGER.info("getHosDrugInventory drugStockAmountDTO:{}.", JSONUtils.toString(drugStockAmountDTO));
-            List<String> haveInventoryNames = drugStockAmountDTO.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+            List<String> haveInventoryNames = drugStockAmountDTO.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).filter(a->StringUtils.isNotEmpty(a.getDrugName())).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
             LOGGER.info("getHosDrugInventory haveInventoryNames:{}.", JSONUtils.toString(haveInventoryNames));
             if (CollectionUtils.isEmpty(haveInventoryNames)) {
                 List<String> haveInventoryCodes = drugStockAmountDTO.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getOrganDrugCode).distinct().collect(Collectors.toList());
