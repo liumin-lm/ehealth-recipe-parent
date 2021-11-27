@@ -661,22 +661,28 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
      * @param list
      */
     private void getHosDrugInventory(DrugsDataBean drugsDataBean, List<String> list) {
-        List<Recipedetail> detailList = new LinkedList<>();
-        List<OrganDrugList> organDrugLists = new LinkedList<>();
-        drugsDataBean.getRecipeDetailBeans().forEach(recipeDetailBean -> {
-            Recipedetail recipeDetail = ObjectCopyUtils.convert(recipeDetailBean, Recipedetail.class);
-            OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(drugsDataBean.getOrganId(), recipeDetailBean.getOrganDrugCode(), recipeDetailBean.getDrugId());
-            if (organDrugList != null && !isBelongHos(organDrugList)) {
-                recipeDetail.setPack(organDrugList.getPack());
-                recipeDetail.setDrugUnit(organDrugList.getUnit());
-                recipeDetail.setProducerCode(organDrugList.getProducerCode());
-                detailList.add(recipeDetail);
-                organDrugLists.add(organDrugList);
-            }
-        });
-        DrugStockAmountDTO drugStockAmountDTO = drugStockClient.scanDrugStock(detailList, drugsDataBean.getOrganId(), organDrugLists, new LinkedList<>());
-        List<String> haveInventory = drugStockAmountDTO.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
-        list.addAll(haveInventory);
+        try{
+            List<Recipedetail> detailList = new LinkedList<>();
+            List<OrganDrugList> organDrugLists = new LinkedList<>();
+            drugsDataBean.getRecipeDetailBeans().forEach(recipeDetailBean -> {
+                Recipedetail recipeDetail = ObjectCopyUtils.convert(recipeDetailBean, Recipedetail.class);
+                OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(drugsDataBean.getOrganId(), recipeDetailBean.getOrganDrugCode(), recipeDetailBean.getDrugId());
+                if (organDrugList != null && !isBelongHos(organDrugList)) {
+                    recipeDetail.setPack(organDrugList.getPack());
+                    recipeDetail.setDrugUnit(organDrugList.getUnit());
+                    recipeDetail.setProducerCode(organDrugList.getProducerCode());
+                    detailList.add(recipeDetail);
+                    organDrugLists.add(organDrugList);
+                }
+            });
+            DrugStockAmountDTO drugStockAmountDTO = drugStockClient.scanDrugStock(detailList, drugsDataBean.getOrganId(), organDrugLists, new LinkedList<>());
+            LOGGER.info("getHosDrugInventory drugStockAmountDTO:{}.", JSONUtils.toString(drugStockAmountDTO));
+            List<String> haveInventory = drugStockAmountDTO.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+            list.addAll(haveInventory);
+        }catch (Exception e){
+            LOGGER.error("getHosDrugInventory error", e);
+        }
+
     }
 
     /**
