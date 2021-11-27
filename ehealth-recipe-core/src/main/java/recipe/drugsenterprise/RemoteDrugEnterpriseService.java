@@ -677,8 +677,14 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             });
             DrugStockAmountDTO drugStockAmountDTO = drugStockClient.scanDrugStock(detailList, drugsDataBean.getOrganId(), organDrugLists, new LinkedList<>());
             LOGGER.info("getHosDrugInventory drugStockAmountDTO:{}.", JSONUtils.toString(drugStockAmountDTO));
-            List<String> haveInventory = drugStockAmountDTO.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
-            list.addAll(haveInventory);
+            List<String> haveInventoryNames = drugStockAmountDTO.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+            LOGGER.info("getHosDrugInventory haveInventoryNames:{}.", JSONUtils.toString(haveInventoryNames));
+            if (CollectionUtils.isEmpty(haveInventoryNames)) {
+                List<String> haveInventoryCodes = drugStockAmountDTO.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getOrganDrugCode).distinct().collect(Collectors.toList());
+                LOGGER.info("getHosDrugInventory haveInventoryCodes:{}.", JSONUtils.toString(haveInventoryCodes));
+                haveInventoryNames = organDrugLists.stream().filter(organDrugList -> haveInventoryCodes.contains(organDrugList.getOrganDrugCode())).map(OrganDrugList::getDrugName).collect(Collectors.toList());
+            }
+            list.addAll(haveInventoryNames);
         }catch (Exception e){
             LOGGER.error("getHosDrugInventory error", e);
         }
