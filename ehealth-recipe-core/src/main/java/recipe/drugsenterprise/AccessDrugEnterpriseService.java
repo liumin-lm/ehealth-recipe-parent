@@ -48,6 +48,8 @@ public abstract class AccessDrugEnterpriseService {
 
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
+    @Autowired
+    private SaleDrugListDAO saleDrugListDAO;
 
     /**
      * 单个线程处理药企药品数量
@@ -211,15 +213,27 @@ public abstract class AccessDrugEnterpriseService {
      */
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+        List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugList);
+        Map<Integer, Integer> saleMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId,SaleDrugList::getStatus));
         drugStockAmountDTO.setResult(true);
         List<DrugInfoDTO> drugInfoList = new ArrayList<>();
         recipeDetails.forEach(recipeDetail -> {
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
             BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
-            drugInfoDTO.setStock(true);
-            drugInfoDTO.setStockAmountChin("有库存");
+            drugInfoDTO.setStock(false);
+            drugInfoDTO.setStockAmountChin("无库存");
+            if (new Integer(1).equals(saleMap.get(recipeDetail.getDrugId()))) {
+                drugInfoDTO.setStock(true);
+                drugInfoDTO.setStockAmountChin("有库存");
+            }
             drugInfoList.add(drugInfoDTO);
         });
+        List<String> noDrugList = drugInfoList.stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).distinct().map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(noDrugList)) {
+            drugStockAmountDTO.setResult(false);
+            drugStockAmountDTO.setNotDrugNames(noDrugList);
+        }
         drugStockAmountDTO.setDrugInfoList(drugInfoList);
         return drugStockAmountDTO;
     }

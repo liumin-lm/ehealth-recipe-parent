@@ -6186,7 +6186,10 @@ public class RecipeService extends RecipeBaseService {
         if (!registerNo) {
             return true;
         }
-
+        Integer revisitConfig = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "writeDrugRecipeByRevisitStatus",1);
+        if (WriteRecipeConditionTypeEnum.EFFECTIVE_REGISTER.getType().equals(revisitConfig)) {
+            return true;
+        }
         Integer revisitId = iRevisitService.findValidRevisitByMpiIdAndDoctorId(revisitRequest);
         LOGGER.info(" 复诊查询当前就诊单 revisitId={}", revisitId);
         return revisitId == null ? false : true;
