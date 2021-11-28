@@ -20,10 +20,7 @@ import org.springframework.stereotype.Service;
 import recipe.constant.ErrorCode;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -142,7 +139,7 @@ public class DrugStockClient extends BaseClient {
             DrugInfoResponseTO response = recipeHisService.scanDrugStock(request);
             logger.info("DrugStockClient scanDrugStock response={}", JSON.toJSONString(response));
             List<DrugInfoTO> drugInfoList = oldCodeCompatibility(response, data);
-            List<DrugInfoDTO> list = getDrugInfoDTO(drugInfoList, detailList);
+            List<DrugInfoDTO> list = getDrugInfoDTO(drugInfoList);
 
             DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
             drugStockAmountDTO.setResult(true);
@@ -266,25 +263,12 @@ public class DrugStockClient extends BaseClient {
      * @param drugInfoList 机构药品查询对象
      * @return 机构药品库存查询DTO
      */
-    private List<DrugInfoDTO> getDrugInfoDTO(List<DrugInfoTO> drugInfoList, List<Recipedetail> recipeDetails) {
+    private List<DrugInfoDTO> getDrugInfoDTO(List<DrugInfoTO> drugInfoList) {
         List<DrugInfoDTO> list = new ArrayList<>();
-        if (CollectionUtils.isEmpty(drugInfoList)) {
-            return list;
-        }
-        Map<String, Recipedetail> recipeDetailMap = recipeDetails.stream().collect(Collectors.toMap(Recipedetail::getOrganDrugCode, a -> a, (k1, k2) -> k1));
         drugInfoList.forEach(a -> {
-            Recipedetail recipedetail = recipeDetailMap.get(a.getDrcode());
-            if (null == recipedetail) {
-                return;
-            }
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
             drugInfoDTO.setOrganId(a.getOrganId());
             drugInfoDTO.setOrganDrugCode(a.getDrcode());
-            if (null == a.getDrugId()) {
-                drugInfoDTO.setDrugId(recipedetail.getDrugId());
-            } else {
-                drugInfoDTO.setDrugId(a.getDrugId());
-            }
             drugInfoDTO.setDrugName(a.getDrname());
             if (null == a.getStockAmount()) {
                 drugInfoDTO.setStockAmount(0);
@@ -302,7 +286,7 @@ public class DrugStockClient extends BaseClient {
             if (0 == drugInfoDTO.getStockAmount()) {
                 drugInfoDTO.setStock(false);
             } else {
-                boolean stock = drugInfoDTO.getStockAmount() - recipedetail.getUseTotalDose() >= 0;
+                boolean stock = drugInfoDTO.getStockAmount() - a.getUseTotalDose() >= 0;
                 drugInfoDTO.setStock(stock);
             }
             list.add(drugInfoDTO);
@@ -361,34 +345,38 @@ public class DrugStockClient extends BaseClient {
             });
             return data;
         }
-        List<DrugInfoTO> drugInfoList;
-        if (CollectionUtils.isEmpty(response.getData())) {
-            data.forEach(a -> {
+
+        Map<String, DrugInfoTO> dataMap = new HashMap<>();
+        if (CollectionUtils.isNotEmpty(response.getData())) {
+            dataMap = response.getData().stream().collect(Collectors.toMap(DrugInfoTO::getDrcode, a -> a, (k1, k2) -> k1));
+        }
+        for (DrugInfoTO a : data) {
+            a.setStockAmount(a.getUseTotalDose());
+            a.setNoInventoryTip("有库存");
+            DrugInfoTO res = dataMap.get(a.getDrcode());
+            if (null == res) {
+                continue;
+            }
+            if (null == res.getStockAmount()) {
                 a.setStockAmount(a.getUseTotalDose());
                 a.setNoInventoryTip("有库存");
-            });
-            drugInfoList = data;
-        } else {
-            response.getData().forEach(a -> {
-                if (null == a.getStockAmount()) {
-                    a.setStockAmount(a.getUseTotalDose());
-                    a.setNoInventoryTip("有库存");
-                }
-            });
-            drugInfoList = response.getData();
+            } else {
+                a.setStockAmount(res.getStockAmount());
+                a.setNoInventoryTip(res.getNoInventoryTip());
+            }
         }
         //老版本代码兼容
         if (StringUtils.isNotEmpty(response.getMsg()) && Integer.valueOf(-1).equals(response.getMsgCode())) {
             List<String> noStock = Splitter.on(",").splitToList(response.getMsg());
-            drugInfoList.forEach(a -> {
+            data.forEach(a -> {
                 if (noStock.contains(a.getDrcode())) {
                     a.setStockAmount(0d);
                     a.setNoInventoryTip("无库存");
                 }
             });
         }
-        logger.info(" DrugStockClient oldCodeCompatibility  list={}", JSON.toJSONString(drugInfoList));
-        return drugInfoList;
+        logger.info(" DrugStockClient oldCodeCompatibility  list={}", JSON.toJSONString(data));
+        return data;
     }
 
     /***
