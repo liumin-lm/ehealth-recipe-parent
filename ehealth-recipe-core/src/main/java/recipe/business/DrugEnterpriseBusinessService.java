@@ -8,6 +8,7 @@ import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.SaleDrugList;
 import ctd.persistence.exception.DAOException;
 import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
@@ -301,8 +302,13 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             throw new DAOException(ErrorCode.SERVICE_ERROR, drugsEnterprise.getName() + "checkInventoryFlag is null");
         }
         if (0 == drugsEnterprise.getCheckInventoryFlag()) {
+            //机构药企 药品列表对不上
+            List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
+            List<SaleDrugList> saleDrugList = enterpriseManager.saleDrugList(drugsEnterprise.getId(), drugIds);
+            Map<Integer, SaleDrugList> saleDrugMap = saleDrugList.stream().collect(Collectors.toMap(SaleDrugList::getDrugId, a -> a, (k1, k2) -> k1));
+            List<Recipedetail> response = recipeDetails.stream().filter(a -> null != saleDrugMap.get(a.getDrugId())).collect(Collectors.toList());
             enterpriseStock.setStock(true);
-            enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, true));
+            enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(response, true));
             logger.info("DrugEnterpriseBusinessService enterpriseStock 0 enterpriseStock= {}", JSON.toJSONString(enterpriseStock));
             return;
         }

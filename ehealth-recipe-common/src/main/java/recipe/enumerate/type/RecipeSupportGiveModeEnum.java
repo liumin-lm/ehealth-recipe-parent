@@ -153,25 +153,32 @@ public enum RecipeSupportGiveModeEnum {
      * @param sendType       配送主体类型 1医院配送 2 药企配送
      * @return 购药方式枚举
      */
-    public static List<String> enterpriseEnum(Integer payModeSupport, Integer sendType) {
+    public static List<GiveModeButtonDTO> enterpriseEnum(Integer payModeSupport, Integer sendType) {
         if (ValidateUtil.integerIsEmpty(payModeSupport)) {
             return null;
         }
-        List<String> textList = new LinkedList<>();
+        List<GiveModeButtonDTO> giveModeButtonList = new LinkedList<>();
         if (RecipeBussConstant.DEP_SUPPORT_TFDS.equals(payModeSupport)) {
-            textList.add(SUPPORT_TFDS.text);
-            return textList;
+            giveModeButtonList.add(giveModeButtonDTO(SUPPORT_TFDS));
+            return giveModeButtonList;
         }
         if (RecipeDistributionFlagEnum.drugsEnterpriseAll.contains(payModeSupport)) {
-            textList.add(SUPPORT_TFDS.text);
+            giveModeButtonList.add(giveModeButtonDTO(SUPPORT_TFDS));
         }
         //配送判断
         if (ValidateUtil.integerIsEmpty(sendType) || RecipeSendTypeEnum.NO_PAY.getSendType().equals(sendType)) {
-            textList.add(SHOW_SEND_TO_ENTERPRISES.text);
+            giveModeButtonList.add(giveModeButtonDTO(SHOW_SEND_TO_ENTERPRISES));
         } else {
-            textList.add(SHOW_SEND_TO_HOS.text);
+            giveModeButtonList.add(giveModeButtonDTO(SHOW_SEND_TO_HOS));
         }
-        return textList;
+        return giveModeButtonList;
+    }
+
+    public static GiveModeButtonDTO giveModeButtonDTO(RecipeSupportGiveModeEnum recipeSupportGiveModeEnum) {
+        GiveModeButtonDTO giveModeButtonDTO = new GiveModeButtonDTO();
+        giveModeButtonDTO.setShowButtonKey(recipeSupportGiveModeEnum.getText());
+        giveModeButtonDTO.setType(recipeSupportGiveModeEnum.getType());
+        return giveModeButtonDTO;
     }
 
     /**
@@ -183,23 +190,16 @@ public enum RecipeSupportGiveModeEnum {
      * @return 药企展示的购药按钮
      */
     public static List<GiveModeButtonDTO> giveModeButtonList(DrugsEnterprise drugsEnterprise, List<String> configGiveMode, Map<String, String> configGiveModeMap) {
-        List<String> enterpriseGiveMode = enterpriseEnum(drugsEnterprise.getPayModeSupport(), drugsEnterprise.getSendType());
+        List<GiveModeButtonDTO> enterpriseGiveMode = enterpriseEnum(drugsEnterprise.getPayModeSupport(), drugsEnterprise.getSendType());
         if (null == enterpriseGiveMode || null == configGiveMode) {
             return null;
         }
-        List<String> giveModeKey = enterpriseGiveMode.stream().filter(configGiveMode::contains).collect(toList());
+        List<GiveModeButtonDTO> giveModeKey = enterpriseGiveMode.stream().filter(a -> configGiveMode.contains(a.getShowButtonKey())).collect(toList());
         if (CollectionUtils.isEmpty(giveModeKey)) {
             return null;
         }
-        List<GiveModeButtonDTO> giveModeButton = new LinkedList<>();
-        giveModeKey.forEach(a -> {
-            GiveModeButtonDTO giveModeButtonDTO = new GiveModeButtonDTO();
-            giveModeButtonDTO.setShowButtonKey(a);
-            giveModeButtonDTO.setShowButtonName(configGiveModeMap.get(a));
-            giveModeButtonDTO.setType(getGiveModeType(a));
-            giveModeButton.add(giveModeButtonDTO);
-        });
-        return giveModeButton;
+        giveModeKey.forEach(a -> a.setShowButtonName(configGiveModeMap.get(a.getShowButtonKey())));
+        return giveModeKey;
     }
 
     /**
@@ -215,11 +215,24 @@ public enum RecipeSupportGiveModeEnum {
         }
         Map<String, String> configurations = giveModeButtonBeans.stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
         String showButtonName = configurations.get(key);
-        //无到院取药
+        //无机构配置按钮key
         if (StringUtils.isEmpty(showButtonName)) {
             return null;
         }
         return showButtonName;
+    }
+
+    public static GiveModeButtonDTO getGiveMode(List<GiveModeButtonDTO> giveModeButtonBeans, String key) {
+        if (CollectionUtils.isEmpty(giveModeButtonBeans)) {
+            return null;
+        }
+        Map<String, GiveModeButtonDTO> configurations = giveModeButtonBeans.stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, a -> a, (k1, k2) -> k1));
+        GiveModeButtonDTO showButton = configurations.get(key);
+        //无机构配置按钮key
+        if (null == showButton) {
+            return null;
+        }
+        return showButton;
     }
 
 }

@@ -178,8 +178,6 @@ public class ButtonManager extends BaseManager {
      * @return 药品信息 一定存在于出参
      */
     public List<EnterpriseStock> enterpriseStockCheck(Integer organId) {
-        //获取机构配置按钮
-        List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(organId);
         //获取需要查询库存的药企对象
         List<DrugsEnterprise> enterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
         logger.info("ButtonManager enterpriseStockCheck organId:{},enterprises:{}", organId, JSON.toJSONString(enterprises));
@@ -187,6 +185,8 @@ public class ButtonManager extends BaseManager {
         if (CollectionUtils.isEmpty(enterprises)) {
             return list;
         }
+        //获取机构配置按钮
+        List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(organId);
         Map<String, String> configGiveModeMap = new HashMap<>();
         if (null != giveModeButtonBeans) {
             configGiveModeMap = giveModeButtonBeans.stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
