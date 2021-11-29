@@ -487,17 +487,6 @@ public class RecipeSignService {
                 recipeBean.getMpiid() + Calendar.getInstance().getTimeInMillis());
         recipeBean.setRecipeCode(recipeCodeStr);
 
-        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        Boolean openRecipe = (Boolean) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "isOpenRecipeByRegisterId");
-        LOG.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}", openRecipe);
-
-        boolean optimize = recipeService.openRecipeOptimize(recipeBean, openRecipe);
-        //配置开启，根据有效的挂号序号进行判断
-        if (!optimize) {
-            LOG.error("ErrorCode.SERVICE_ERROR:erroCode={}", ErrorCode.SERVICE_ERROR);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
-        }
-
         recipeManager.isOpenRecipeNumber(recipeBean.getClinicId(), recipeBean.getClinicOrgan(), recipeBean.getRecipeId());
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
         details.stream().filter(a -> "无特殊煎法".equals(a.getMemo())).forEach(a -> a.setMemo(""));
