@@ -1716,16 +1716,6 @@ public class RecipeService extends RecipeBaseService {
                 recipe.setRequestUrt(requestPatient.getUrt());
             }
         }
-        //获取运营平台是否复诊开处方单有效判断配置
-        IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        Boolean openRecipe = (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "isOpenRecipeByRegisterId");
-        LOGGER.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}", openRecipe);
-        boolean optimize = openRecipeOptimize(recipe, openRecipe);
-        //配置开启，根据有效的挂号序号进行判断
-        if (!optimize) {
-            LOGGER.error("ErrorCode.SERVICE_ERROR={}", ErrorCode.SERVICE_ERROR);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
-        }
         //校验开处方单数限制
         recipeManager.isOpenRecipeNumber(recipe.getClinicId(), recipe.getClinicOrgan(), recipe.getRecipeId());
 
