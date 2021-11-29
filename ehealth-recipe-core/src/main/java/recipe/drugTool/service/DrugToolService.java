@@ -317,9 +317,6 @@ public class DrugToolService implements IDrugToolService {
             try {
                 if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(1)))) {
                     OrganDrugList byDrugIdAndOrganId = organDrugListDAO.getByDrugIdAndOrganId(Integer.parseInt(getStrFromCell(row.getCell(1)).trim()), organId);
-                    if (!ObjectUtils.isEmpty(byDrugIdAndOrganId)){
-                        errMsg.append("机构已存在药品关联该平台药品").append(";");
-                    }
                     drug.setPlatformDrugId(Integer.parseInt(getStrFromCell(row.getCell(1)).trim()));
                 }
             } catch (Exception e) {
