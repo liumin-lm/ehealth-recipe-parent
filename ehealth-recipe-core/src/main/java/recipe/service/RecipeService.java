@@ -1716,6 +1716,12 @@ public class RecipeService extends RecipeBaseService {
                 recipe.setRequestUrt(requestPatient.getUrt());
             }
         }
+        boolean optimize = openRecipeOptimize(recipe);
+        //配置开启，根据有效的挂号序号进行判断
+        if (!optimize) {
+            LOGGER.error("ErrorCode.SERVICE_ERROR={}", ErrorCode.SERVICE_ERROR);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
+        }
         //校验开处方单数限制
         recipeManager.isOpenRecipeNumber(recipe.getClinicId(), recipe.getClinicOrgan(), recipe.getRecipeId());
 
@@ -6161,34 +6167,19 @@ public class RecipeService extends RecipeBaseService {
      * 复诊结束后医生不能开出处方规则优化
      *
      * @param recipe
-     * @param registerNo
      * @return
      */
-    public boolean openRecipeOptimize(RecipeBean recipe, Boolean registerNo) {
-        //配置默认关闭，签名时不影响开方 false  配置打开，按照挂号序号是否有效进行开方 true
-        //进行新老逻辑的整合，如果开关开了，直接走新逻辑，如果开关没开的话，还是直接走老的逻辑
-        IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
-
-        ValidRevisitRequest revisitRequest = new ValidRevisitRequest();
-        revisitRequest.setMpiId(recipe.getMpiid());
-        revisitRequest.setDoctorID(recipe.getDoctor());
-        revisitRequest.setRequestMode(RecipeSystemConstant.CONSULT_TYPE_RECIPE);
-        revisitRequest.setRegisterNo(registerNo);
-
-        LOGGER.info(" validRevisit={}", JSONUtils.toString(revisitRequest));
-        if (ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
-            getConsultIdForRecipeSource(recipe, registerNo);
-        }
-        if (!registerNo) {
+    public boolean openRecipeOptimize(RecipeBean recipe) {
+        //开具处方时复诊状态判断配置
+        String isUnderwayRevisit = configurationClient.getValueEnumCatch(recipe.getClinicOrgan(), "isUnderwayRevisit", WriteRecipeConditionTypeEnum.NO_CONDITION.getType());
+        if (WriteRecipeConditionTypeEnum.NO_CONDITION.getType().equals(isUnderwayRevisit)) {
             return true;
         }
-        Integer revisitConfig = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "writeDrugRecipeByRevisitStatus",1);
-        if (WriteRecipeConditionTypeEnum.EFFECTIVE_REGISTER.getType().equals(revisitConfig)) {
-            return true;
+        if (BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType().equals(recipe.getBussSource()) && null != recipe.getClinicId()) {
+            IRevisitService revisitService = RevisitAPI.getService(IRevisitService.class);
+            return revisitService.findValidRevisitByMpiIdAndDoctorIdEffectiveExtension(recipe.getClinicOrgan(), recipe.getClinicId());
         }
-        Integer revisitId = iRevisitService.findValidRevisitByMpiIdAndDoctorId(revisitRequest);
-        LOGGER.info(" 复诊查询当前就诊单 revisitId={}", revisitId);
-        return revisitId == null ? false : true;
+        return true;
     }
 
     /**
