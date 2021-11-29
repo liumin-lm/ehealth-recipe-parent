@@ -68,6 +68,7 @@ public class OrganDrugListManager extends BaseManager {
         //返回出参
         OrganDTO organDTO = organClient.organDTO(recipe.getClinicOrgan());
         EnterpriseStock enterpriseStock = new EnterpriseStock();
+        showButton.setType(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
         enterpriseStock.setGiveModeButton(Collections.singletonList(showButton));
         enterpriseStock.setDeliveryName(organDTO.getName() + "门诊药房");
         enterpriseStock.setDeliveryCode(recipe.getClinicOrgan().toString());
