@@ -526,7 +526,8 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                     drugEnterpriseResult.setAccessDrugEnterpriseService(this.getServiceByDep(drugsEnterprise));
                     if (payModeSupport(drugsEnterprise, 1) && configurations.containsKey("showSendToEnterprises")) {
                         //获取医院或者药企库存（看配置）
-                        haveInventoryForOnlineList = compareGetHaveDrugInventoryForApp(drugsEnterprise, result, drugEnterpriseResult, drugsDataBean, recipeEnterpriseService, 1);
+                        DrugsDataBean drugsData = getDrugsDataBean(drugsDataBean, drugsEnterprise);
+                        haveInventoryForOnlineList = compareGetHaveDrugInventoryForApp(drugsEnterprise, result, drugEnterpriseResult, drugsData, recipeEnterpriseService, 1);
                         LOGGER.info("getDrugsEnterpriseInventory haveInventoryForOnlineList:{}.", JSONUtils.toString(haveInventoryForOnlineList));
                         if (CollectionUtils.isNotEmpty(haveInventoryForOnlineList)) {
                             supportOnlineMap.put(drugsEnterprise.getName(), haveInventoryForOnlineList);
@@ -551,16 +552,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                 if (payModeSupport(drugsEnterprise, 3) && configurations.containsKey("supportTFDS")) {
                     //该药企配置了这个药品,可以查询该药品在药企是否有库存了
                     //获取医院或者药企库存（看配置）
-                    DrugsDataBean drugsData = new DrugsDataBean();
-                    List<Integer> drugList = drugsDataBean.getRecipeDetailBeans().stream().map(RecipeDetailBean::getDrugId).collect(Collectors.toList());
-                    drugsData.setOrganId(drugsDataBean.getOrganId());
-                    drugsData.setNewVersionFlag(drugsDataBean.getNewVersionFlag());
-                    if (null != drugsEnterprise) {
-                        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIdsEffectivity(drugsEnterprise.getId(), drugList);
-                        List<Integer> drugLists = saleDrugLists.stream().map(SaleDrugList::getDrugId).collect(Collectors.toList());
-                        List<RecipeDetailBean> recipeDetails = drugsDataBean.getRecipeDetailBeans().stream().filter(recipeDetail -> drugLists.contains(recipeDetail.getDrugId())).collect(Collectors.toList());
-                        drugsData.setRecipeDetailBeans(recipeDetails);
-                    }
+                    DrugsDataBean drugsData = getDrugsDataBean(drugsDataBean, drugsEnterprise);
                     haveInventoryForStoreList = compareGetHaveDrugInventoryForApp(drugsEnterprise, result, drugEnterpriseResult, drugsData, recipeEnterpriseService, 2);
                     if (CollectionUtils.isNotEmpty(haveInventoryForStoreList)) {
                         toStoreMap.put(drugsEnterprise.getName(), haveInventoryForStoreList);
@@ -646,6 +638,20 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             }
         }
         return result;
+    }
+
+    private DrugsDataBean getDrugsDataBean(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise) {
+        DrugsDataBean drugsData = new DrugsDataBean();
+        List<Integer> drugList = drugsDataBean.getRecipeDetailBeans().stream().map(RecipeDetailBean::getDrugId).collect(Collectors.toList());
+        drugsData.setOrganId(drugsDataBean.getOrganId());
+        drugsData.setNewVersionFlag(drugsDataBean.getNewVersionFlag());
+        if (null != drugsEnterprise) {
+            List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIdsEffectivity(drugsEnterprise.getId(), drugList);
+            List<Integer> drugLists = saleDrugLists.stream().map(SaleDrugList::getDrugId).collect(Collectors.toList());
+            List<RecipeDetailBean> recipeDetails = drugsDataBean.getRecipeDetailBeans().stream().filter(recipeDetail -> drugLists.contains(recipeDetail.getDrugId())).collect(Collectors.toList());
+            drugsData.setRecipeDetailBeans(recipeDetails);
+        }
+        return drugsData;
     }
 
     private static boolean isBelongHos(OrganDrugList organDrugList) {
