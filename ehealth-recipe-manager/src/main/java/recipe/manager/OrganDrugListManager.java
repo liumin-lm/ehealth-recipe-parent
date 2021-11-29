@@ -61,21 +61,14 @@ public class OrganDrugListManager extends BaseManager {
     public EnterpriseStock organStock(Recipe recipe, List<Recipedetail> detailList) {
         List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(recipe.getClinicOrgan());
         //无到院取药
-        String showButtonName = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
-        if (StringUtils.isEmpty(showButtonName)) {
+        GiveModeButtonDTO showButton = RecipeSupportGiveModeEnum.getGiveMode(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
+        if (null == showButton) {
             return null;
         }
         //返回出参
-        List<GiveModeButtonDTO> giveModeButton = new LinkedList<>();
-        GiveModeButtonDTO giveModeButtonDTO = new GiveModeButtonDTO();
-        giveModeButtonDTO.setType(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
-        giveModeButtonDTO.setShowButtonKey(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());
-        giveModeButtonDTO.setShowButtonName(showButtonName);
-        giveModeButton.add(giveModeButtonDTO);
-
         OrganDTO organDTO = organClient.organDTO(recipe.getClinicOrgan());
         EnterpriseStock enterpriseStock = new EnterpriseStock();
-        enterpriseStock.setGiveModeButton(giveModeButton);
+        enterpriseStock.setGiveModeButton(Collections.singletonList(showButton));
         enterpriseStock.setDeliveryName(organDTO.getName() + "门诊药房");
         enterpriseStock.setDeliveryCode(recipe.getClinicOrgan().toString());
         enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ORGAN_APPOINT.getType());

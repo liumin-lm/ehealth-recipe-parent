@@ -14,8 +14,10 @@ import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.patient.IDrugEnterpriseBusinessService;
 import recipe.util.ObjectCopyUtils;
+import recipe.util.RecipeUtil;
 import recipe.vo.doctor.ValidateDetailVO;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -46,8 +48,16 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
         if (organDrugCode) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "医院配置药品存在编号为空的数据");
         }
-        Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
         List<Recipedetail> detailList = ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), Recipedetail.class);
+        if (RecipeUtil.isTcmType(validateDetailVO.getRecipeType())) {
+            validateAtop(recipeBean.getCopyNum());
+            detailList.forEach(a -> {
+                if (a.getUseDose() != null) {
+                    a.setUseTotalDose(BigDecimal.valueOf(recipeBean.getCopyNum()).multiply(BigDecimal.valueOf(a.getUseDose())).doubleValue());
+                }
+            });
+        }
+        Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
         List<EnterpriseStock> result = iDrugEnterpriseBusinessService.stockList(recipe, detailList);
         result.forEach(a -> {
             a.setDrugsEnterprise(null);
