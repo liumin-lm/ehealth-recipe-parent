@@ -267,9 +267,13 @@ public class DrugStockClient extends BaseClient {
         List<DrugInfoDTO> list = new ArrayList<>();
         drugInfoList.forEach(a -> {
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+            drugInfoDTO.setDrugId(a.getDrugId());
             drugInfoDTO.setOrganId(a.getOrganId());
             drugInfoDTO.setOrganDrugCode(a.getDrcode());
             drugInfoDTO.setDrugName(a.getDrname());
+            drugInfoDTO.setPharmacyCode(a.getPharmacyCode());
+            drugInfoDTO.setPharmacy(a.getPharmacy());
+            drugInfoDTO.setProducerCode(a.getProducerCode());
             if (null == a.getStockAmount()) {
                 drugInfoDTO.setStockAmount(0);
             } else {
@@ -280,9 +284,6 @@ public class DrugStockClient extends BaseClient {
             } else {
                 drugInfoDTO.setStockAmountChin(String.valueOf(drugInfoDTO.getStockAmount()));
             }
-            drugInfoDTO.setPharmacyCode(a.getPharmacyCode());
-            drugInfoDTO.setPharmacy(a.getPharmacy());
-            drugInfoDTO.setProducerCode(a.getProducerCode());
             if (0 == drugInfoDTO.getStockAmount()) {
                 drugInfoDTO.setStock(false);
             } else {
