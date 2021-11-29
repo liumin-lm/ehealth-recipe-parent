@@ -49,7 +49,7 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "医院配置药品存在编号为空的数据");
         }
         List<Recipedetail> detailList = ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), Recipedetail.class);
-        if (RecipeUtil.isTcmType(validateDetailVO.getRecipeType())) {
+        if (RecipeUtil.isTcmType(recipeBean.getRecipeType())) {
             validateAtop(recipeBean.getCopyNum());
             detailList.forEach(a -> {
                 if (a.getUseDose() != null) {
