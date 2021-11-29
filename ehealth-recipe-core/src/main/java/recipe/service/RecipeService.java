@@ -263,6 +263,8 @@ public class RecipeService extends RecipeBaseService {
     private PatientClient patientClient;
     @Autowired
     private DepartManager departManager;
+    @Autowired
+    private DrugDecoctionWayDao drugDecoctionWayDao;
     /**
      * 药师审核不通过
      */
@@ -1581,9 +1583,13 @@ public class RecipeService extends RecipeBaseService {
      *
      * @param recipeBean 处方扩展信息
      */
-    private static void validateRecipeExtData(RecipeBean recipeBean) {
+    private void validateRecipeExtData(RecipeBean recipeBean) {
         //校验中草药当配置为医生端选择煎法时，煎法为必填项
         if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipeBean.getRecipeType())) {
+            List<DecoctionWay> decoctionWays = drugDecoctionWayDao.findByOrganId(recipeBean.getClinicOrgan());
+            if (CollectionUtils.isEmpty(decoctionWays)) {
+                return;
+            }
             IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
             String decoctionDeploy = configurationClient.getValueEnumCatch(recipeBean.getClinicOrgan(), "decoctionDeploy", null);
             if (DecoctionDeployTypeEnum.DECOCTION_DEPLOY_DOCTOR.getType().equals(decoctionDeploy) && null == recipeBean.getRecipeExtend().getDecoctionId()) {
