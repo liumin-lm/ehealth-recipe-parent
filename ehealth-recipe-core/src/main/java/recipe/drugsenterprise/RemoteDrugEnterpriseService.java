@@ -540,7 +540,8 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                     drugEnterpriseResult.setAccessDrugEnterpriseService(this.getServiceByDep(drugsEnterprise));
                     if (payModeSupport(drugsEnterprise, 1) && configurations.containsKey("showSendToHos")) {
                         //获取医院或者药企库存（看配置）
-                        haveInventoryForOnlineList = compareGetHaveDrugInventoryForApp(drugsEnterprise, result, drugEnterpriseResult, drugsDataBean, recipeEnterpriseService, 1);
+                        DrugsDataBean drugsData = getDrugsDataBean(drugsDataBean, drugsEnterprise);
+                        haveInventoryForOnlineList = compareGetHaveDrugInventoryForApp(drugsEnterprise, result, drugEnterpriseResult, drugsData, recipeEnterpriseService, 1);
                         if (CollectionUtils.isNotEmpty(haveInventoryForOnlineList)) {
                             supportSendToHosMap.put(drugsEnterprise.getName(), haveInventoryForOnlineList);
                             supportSendToHosList.add(supportSendToHosMap);
