@@ -304,7 +304,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         if (0 == drugsEnterprise.getCheckInventoryFlag()) {
             //机构药企 药品列表对不上
             List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
-            List<SaleDrugList> saleDrugList = enterpriseManager.saleDrugList(drugsEnterprise.getId(), drugIds);
+            List<SaleDrugList> saleDrugList = enterpriseManager.saleDrugListEffectivity(drugsEnterprise.getId(), drugIds);
             Map<Integer, SaleDrugList> saleDrugMap = saleDrugList.stream().collect(Collectors.toMap(SaleDrugList::getDrugId, a -> a, (k1, k2) -> k1));
             List<Recipedetail> response = recipeDetails.stream().filter(a -> null != saleDrugMap.get(a.getDrugId())).collect(Collectors.toList());
             enterpriseStock.setStock(true);
