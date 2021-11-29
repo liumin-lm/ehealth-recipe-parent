@@ -17,12 +17,10 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
-import recipe.client.DrugStockClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
@@ -31,9 +29,11 @@ import recipe.service.RecipeHisService;
 import recipe.util.DistanceUtil;
 import recipe.util.MapValueUtil;
 
-import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service("commonSelfEnterprisesType")
@@ -236,6 +236,9 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
             drugInfoDTO.setStock(false);
             drugInfoDTO.setStockAmountChin("无库存");
+            drugInfoDTO.setOrganDrugCode(recipeDetail.getOrganDrugCode());
+            drugInfoDTO.setDrugId(recipeDetail.getDrugId());
+            drugInfoDTO.setDrugName(recipeDetail.getDrugName());
             if (new Integer(1).equals(saleMap.get(recipeDetail.getDrugId()))) {
                 drugInfoDTO.setStock(true);
                 drugInfoDTO.setStockAmountChin("有库存");
