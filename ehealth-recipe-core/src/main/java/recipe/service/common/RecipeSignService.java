@@ -491,7 +491,7 @@ public class RecipeSignService {
         Boolean openRecipe = (Boolean) configurationService.getConfiguration(recipeBean.getClinicOrgan(), "isOpenRecipeByRegisterId");
         LOG.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}", openRecipe);
 
-        boolean optimize = recipeService.openRecipOptimize(recipeBean, openRecipe);
+        boolean optimize = recipeService.openRecipeOptimize(recipeBean, openRecipe);
         //配置开启，根据有效的挂号序号进行判断
         if (!optimize) {
             LOG.error("ErrorCode.SERVICE_ERROR:erroCode={}", ErrorCode.SERVICE_ERROR);

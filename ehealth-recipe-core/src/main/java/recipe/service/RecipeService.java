@@ -1714,7 +1714,7 @@ public class RecipeService extends RecipeBaseService {
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
         Boolean openRecipe = (Boolean) configurationService.getConfiguration(recipe.getClinicOrgan(), "isOpenRecipeByRegisterId");
         LOGGER.info(" 运营平台配置开方是否判断有效复诊单：openRecipe={}", openRecipe);
-        boolean optimize = openRecipOptimize(recipe, openRecipe);
+        boolean optimize = openRecipeOptimize(recipe, openRecipe);
         //配置开启，根据有效的挂号序号进行判断
         if (!optimize) {
             LOGGER.error("ErrorCode.SERVICE_ERROR={}", ErrorCode.SERVICE_ERROR);
@@ -6168,7 +6168,7 @@ public class RecipeService extends RecipeBaseService {
      * @param registerNo
      * @return
      */
-    public boolean openRecipOptimize(RecipeBean recipe, Boolean registerNo) {
+    public boolean openRecipeOptimize(RecipeBean recipe, Boolean registerNo) {
         //配置默认关闭，签名时不影响开方 false  配置打开，按照挂号序号是否有效进行开方 true
         //进行新老逻辑的整合，如果开关开了，直接走新逻辑，如果开关没开的话，还是直接走老的逻辑
         IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);

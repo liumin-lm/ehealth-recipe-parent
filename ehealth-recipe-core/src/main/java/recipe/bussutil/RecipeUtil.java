@@ -386,24 +386,21 @@ public class RecipeUtil {
         recipe.setGrabOrderStatus(0);
 
         //如果没有传入挂号科室，需要手动获取
-        if (StringUtils.isEmpty(recipe.getAppointDepart())) {
-            IRevisitService revisitService = RevisitAPI.getService(IRevisitService.class);
-            DepartManager departManager = AppContextHolder.getBean("departManager", DepartManager.class);
-            RevisitBeanVO revisitBeanVO = revisitService.getRevisitBeanVOByConsultId(recipe.getClinicId());
-            LOGGER.info("RecipeUtil setDefaultData revisitBeanVO:{}.", JSONUtils.toString(revisitBeanVO));
-            if (null != revisitBeanVO && null != revisitBeanVO.getAppointDepartId()) {
-                AppointDepartDTO appointDepartDTO = departManager.getAppointDepartByOrganIdAndAppointDepartCode(recipe.getClinicOrgan(), revisitBeanVO.getAppointDepartId().toString());
-                recipe.setAppointDepart(revisitBeanVO.getAppointDepartId().toString());
-                recipe.setAppointDepartName(null!=appointDepartDTO?appointDepartDTO.getAppointDepartName():"");
-            } else {
-                AppointDepartDTO appointDepartDTO = departManager.getAppointDepartByOrganIdAndDepart(recipe);
-                if (null != appointDepartDTO) {
-                    recipe.setAppointDepart(appointDepartDTO.getAppointDepartCode());
-                    recipe.setAppointDepartName(appointDepartDTO.getAppointDepartName());
-                }
+        IRevisitService revisitService = RevisitAPI.getService(IRevisitService.class);
+        DepartManager departManager = AppContextHolder.getBean("departManager", DepartManager.class);
+        RevisitBeanVO revisitBeanVO = revisitService.getRevisitBeanVOByConsultId(recipe.getClinicId());
+        LOGGER.info("RecipeUtil setDefaultData revisitBeanVO:{}.", JSONUtils.toString(revisitBeanVO));
+        if (null != revisitBeanVO && null != revisitBeanVO.getAppointDepartId()) {
+            AppointDepartDTO appointDepartDTO = departManager.getAppointDepartById(revisitBeanVO.getAppointDepartId());
+            recipe.setAppointDepart(appointDepartDTO.getAppointDepartCode());
+            recipe.setAppointDepartName(null!=appointDepartDTO?appointDepartDTO.getAppointDepartName():"");
+        } else {
+            AppointDepartDTO appointDepartDTO = departManager.getAppointByOrganIdAndDepart(recipe.getClinicOrgan(), recipe.getDepart());
+            if (null != appointDepartDTO) {
+                recipe.setAppointDepart(appointDepartDTO.getAppointDepartCode());
+                recipe.setAppointDepartName(appointDepartDTO.getAppointDepartName());
             }
         }
-
     }
 
     //将；用|代替
