@@ -46,11 +46,6 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
 
     private static final Logger LOGGER = LoggerFactory.getLogger(CommonSelfEnterprisesType.class);
 
-    @Resource
-    private DrugStockClient drugStockClient;
-    @Resource
-    private SaleDrugListDAO saleDrugListDAO;
-
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         LOGGER.info("PublicSelfRemoteService pushRecipeInfo not implement.");
@@ -128,6 +123,7 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
         }
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Integer> drugs = recipeDetailDAO.findDrugIdByRecipeId(recipeId);
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(enterprise.getId(), drugs);
         if (CollectionUtils.isEmpty(saleDrugLists) || saleDrugLists.size() < drugs.size()) {
             return DrugEnterpriseResult.getFail();
@@ -232,6 +228,7 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
         List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugList);
         Map<Integer, Integer> saleMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId,SaleDrugList::getStatus));
         List<DrugInfoDTO> drugInfoList = new ArrayList<>();
