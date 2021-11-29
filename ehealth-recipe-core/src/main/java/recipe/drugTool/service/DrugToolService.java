@@ -314,15 +314,7 @@ public class DrugToolService implements IDrugToolService {
                 errMsg.append("监管药品编码有误").append(";");
             }
 
-            try {
-                if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(1)))) {
-                    OrganDrugList byDrugIdAndOrganId = organDrugListDAO.getByDrugIdAndOrganId(Integer.parseInt(getStrFromCell(row.getCell(1)).trim()), organId);
-                    drug.setPlatformDrugId(Integer.parseInt(getStrFromCell(row.getCell(1)).trim()));
-                }
-            } catch (Exception e) {
-                LOGGER.error("平台药品编码有误 ," + e.getMessage(), e);
-                errMsg.append("平台药品编码有误").append(";");
-            }
+
 
             try {
                 if (StringUtils.isEmpty(getStrFromCell(row.getCell(2)))) {
@@ -332,6 +324,23 @@ public class DrugToolService implements IDrugToolService {
             } catch (Exception e) {
                 LOGGER.error("药品编码有误 ," + e.getMessage(), e);
                 errMsg.append("药品编码有误").append(";");
+            }
+
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(1)))) {
+                    OrganDrugList byDrugIdAndOrganId = organDrugListDAO.getByDrugIdAndOrganId(Integer.parseInt(getStrFromCell(row.getCell(1)).trim()), organId);
+                    if (!StringUtils.isEmpty(getStrFromCell(row.getCell(2)))) {
+                        if (!ObjectUtils.isEmpty(byDrugIdAndOrganId) ){
+                            if (!byDrugIdAndOrganId.getOrganDrugCode().equals(getStrFromCell(row.getCell(2)))){
+                                errMsg.append("机构已存在药品关联该平台药品").append(";");
+                            }
+                        }
+                    }
+                    drug.setPlatformDrugId(Integer.parseInt(getStrFromCell(row.getCell(1)).trim()));
+                }
+            } catch (Exception e) {
+                LOGGER.error("平台药品编码有误 ," + e.getMessage(), e);
+                errMsg.append("平台药品编码有误").append(";");
             }
 
             try {
