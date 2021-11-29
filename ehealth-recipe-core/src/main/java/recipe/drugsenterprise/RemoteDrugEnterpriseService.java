@@ -23,6 +23,7 @@ import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -550,6 +551,13 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                 if (payModeSupport(drugsEnterprise, 3) && configurations.containsKey("supportTFDS")) {
                     //该药企配置了这个药品,可以查询该药品在药企是否有库存了
                     //获取医院或者药企库存（看配置）
+                    List<Integer> drugList = drugsDataBean.getRecipeDetailBeans().stream().map(RecipeDetailBean::getDrugId).collect(Collectors.toList());
+                    if (null != drugsEnterprise) {
+                        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIdsEffectivity(drugsEnterprise.getId(), drugList);
+                        List<Integer> drugLists = saleDrugLists.stream().map(SaleDrugList::getDrugId).collect(Collectors.toList());
+                        List<RecipeDetailBean> recipeDetails = drugsDataBean.getRecipeDetailBeans().stream().filter(recipeDetail -> drugLists.contains(recipeDetail.getDrugId())).collect(Collectors.toList());
+                        drugsDataBean.setRecipeDetailBeans(recipeDetails);
+                    }
                     haveInventoryForStoreList = compareGetHaveDrugInventoryForApp(drugsEnterprise, result, drugEnterpriseResult, drugsDataBean, recipeEnterpriseService, 2);
                     if (CollectionUtils.isNotEmpty(haveInventoryForStoreList)) {
                         toStoreMap.put(drugsEnterprise.getName(), haveInventoryForStoreList);
@@ -593,8 +601,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                 //到院取药,需要验证HIS
                 List<String> list = new ArrayList<>();
                 //获取医院库存，把有库存的药放到list中
-                getHosDrugInventory(drugsDataBean, list, null);
-
+                getHosDrugInventory(drugsDataBean, list);
                 Map<String, List> map = new HashMap<>();
                 map.put("", list);
                 List toHosList = new ArrayList();
@@ -660,12 +667,10 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
      * @param drugsDataBean
      * @param list
      */
-    private void getHosDrugInventory(DrugsDataBean drugsDataBean, List<String> list, DrugsEnterprise drugsEnterprise) {
+    private void getHosDrugInventory(DrugsDataBean drugsDataBean, List<String> list) {
         try{
             List<Recipedetail> detailList = new LinkedList<>();
             List<OrganDrugList> organDrugLists = new LinkedList<>();
-            List<Integer> drugList = new LinkedList<>();
-            List<Recipedetail> request = new LinkedList<>();
             drugsDataBean.getRecipeDetailBeans().forEach(recipeDetailBean -> {
                 Recipedetail recipeDetail = ObjectCopyUtils.convert(recipeDetailBean, Recipedetail.class);
                 OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(drugsDataBean.getOrganId(), recipeDetailBean.getOrganDrugCode(), recipeDetailBean.getDrugId());
@@ -676,14 +681,8 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                     detailList.add(recipeDetail);
                     organDrugLists.add(organDrugList);
                 }
-                drugList.add(recipeDetailBean.getDrugId());
             });
-            if (null != drugsEnterprise) {
-                List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIdsEffectivity(drugsEnterprise.getId(), drugList);
-                List<Integer> drugLists = saleDrugLists.stream().map(SaleDrugList::getDrugId).collect(Collectors.toList());
-                request = detailList.stream().filter(recipeDetail -> drugLists.contains(recipeDetail.getDrugId())).collect(Collectors.toList());
-            }
-            DrugStockAmountDTO drugStockAmountDTO = drugStockClient.scanDrugStock(request, drugsDataBean.getOrganId(), organDrugLists, new LinkedList<>());
+            DrugStockAmountDTO drugStockAmountDTO = drugStockClient.scanDrugStock(detailList, drugsDataBean.getOrganId(), organDrugLists, new LinkedList<>());
             LOGGER.info("getHosDrugInventory drugStockAmountDTO:{}.", JSONUtils.toString(drugStockAmountDTO));
             List<String> haveInventoryNames = drugStockAmountDTO.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).filter(a->StringUtils.isNotEmpty(a.getDrugName())).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
             LOGGER.info("getHosDrugInventory haveInventoryNames:{}.", JSONUtils.toString(haveInventoryNames));
@@ -712,7 +711,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         //校验药品库存标志 0 不需要校验  1 校验药企库存 2 药店没库存时可以备货 3 校验医院库存
         //校验医院库存
         if (new Integer(3).equals(drugsEnterprise.getCheckInventoryFlag())) {
-            getHosDrugInventory(drugsDataBean, haveInventoryList, drugsEnterprise);
+            getHosDrugInventory(drugsDataBean, haveInventoryList);
         }
         //不需要校验库存
         else if (new Integer(0).equals(drugsEnterprise.getCheckInventoryFlag())) {
