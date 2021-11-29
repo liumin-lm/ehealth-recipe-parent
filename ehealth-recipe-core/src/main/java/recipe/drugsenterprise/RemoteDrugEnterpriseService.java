@@ -688,7 +688,6 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         }catch (Exception e){
             LOGGER.error("getHosDrugInventory error", e);
         }
-
     }
 
     /**
