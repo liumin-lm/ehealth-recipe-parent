@@ -61,16 +61,24 @@ public class DepartManager extends BaseManager {
     }
 
     /**
-     * 通过挂号科室编码、机构获取挂号科室
-     *
-     * @param organId  机构ID
-     * @param appointDepartCode 挂号科室编码
-     * @return 挂号科室
+     * 根据执行科室和机构获取挂号科室
+     * @param organId
+     * @param departId
+     * @return
      */
-    public AppointDepartDTO getAppointDepartByOrganIdAndAppointDepartCode(Integer organId, String appointDepartCode) {
-        logger.info("getAppointDepartByOrganIdAndAppointDepartCode organId:{},appointDepartCode:{}.", organId, appointDepartCode);
-        AppointDepartDTO appointDepartDTO =  departClient.getAppointDepartByOrganIdAndAppointDepartCode(organId, appointDepartCode);
-        logger.info("getAppointDepartByOrganIdAndAppointDepartCode appointDepartDTO:{}.", JSONUtils.toString(appointDepartDTO));
+    public AppointDepartDTO getAppointByOrganIdAndDepart(Integer organId, Integer departId){
+        AppointDepartDTO appointDepartDTO = departClient.getAppointDepartByOrganIdAndDepart(organId, departId);
+        return appointDepartDTO;
+    }
+
+    /**
+     * 获取挂号科室
+     * @param appointId
+     * @return
+     */
+    public AppointDepartDTO getAppointDepartById(Integer appointId){
+        AppointDepartDTO appointDepartDTO = departClient.getAppointDepartById(appointId);
+        logger.info("getAppointDepartById AppointDepartDTO:{}", JSONUtils.toString(appointDepartDTO));
         return appointDepartDTO;
     }
 

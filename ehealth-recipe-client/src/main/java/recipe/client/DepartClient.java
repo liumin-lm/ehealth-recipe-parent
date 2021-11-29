@@ -85,5 +85,13 @@ public class DepartClient extends BaseClient {
         return departmentDTO;
     }
 
+    /**
+     * 获取挂号科室
+     * @param appointId
+     * @return
+     */
+    public AppointDepartDTO getAppointDepartById(Integer appointId){
+        return appointDepartService.getById(appointId);
+    }
 
 }
