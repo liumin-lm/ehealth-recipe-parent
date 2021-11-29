@@ -131,7 +131,7 @@ public class EnterpriseManager extends BaseManager {
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
         logger.info("EnterpriseManager scanEnterpriseDrugStock recipeDetails:{}，drugsEnterprise={}", JSON.toJSONString(recipeDetails), JSON.toJSONString(drugsEnterprise));
         List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
-        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
+        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIdsEffectivity(drugsEnterprise.getId(), drugIds);
         DrugStockAmountDTO drugStockAmount = new DrugStockAmountDTO();
         if (CollectionUtils.isEmpty(saleDrugLists)) {
             drugStockAmount.setResult(false);
@@ -175,6 +175,10 @@ public class EnterpriseManager extends BaseManager {
      */
     public List<SaleDrugList> saleDrugList(Integer enterpriseId, List<Integer> drugIds) {
         return saleDrugListDAO.findByOrganIdAndDrugIds(enterpriseId, drugIds);
+    }
+
+    public List<SaleDrugList> saleDrugListEffectivity(Integer enterpriseId, List<Integer> drugIds) {
+        return saleDrugListDAO.findByOrganIdAndDrugIdsEffectivity(enterpriseId, drugIds);
     }
 
 
