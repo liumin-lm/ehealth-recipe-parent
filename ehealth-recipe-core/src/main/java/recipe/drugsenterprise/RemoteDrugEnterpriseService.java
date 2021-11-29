@@ -1,5 +1,6 @@
 package recipe.drugsenterprise;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -49,7 +50,6 @@ import recipe.core.api.patient.IDrugEnterpriseBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.type.EnterpriseCreateTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
-import recipe.hisservice.RecipeToHisService;
 import recipe.manager.ButtonManager;
 import recipe.manager.EnterpriseManager;
 import recipe.service.DrugListExtService;
@@ -830,6 +830,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                         DrugList drugList = drugListDAO.getById(recipeDetailBean.getDrugId());
                         scanDrugListBean.setUnit(drugList.getUnit());
                     } else {
+                        LOGGER.info("getDrugInventoryRequestBean recipeDetailBean{},organId= {}", JSON.toJSONString(recipeDetailBean), organId);
                         List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(recipeDetailBean.getDrugId(), organId);
                         if (CollectionUtils.isNotEmpty(organDrugLists)) {
                             scanDrugListBean.setUnit(organDrugLists.get(0).getUnit());
