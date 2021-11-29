@@ -18,6 +18,8 @@ import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepStyleBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
+import com.ngari.recipe.dto.DrugInfoDTO;
+import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -38,6 +40,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
@@ -56,12 +59,14 @@ import recipe.service.common.RecipeCacheService;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.MapValueUtil;
+import recipe.util.ObjectCopyUtils;
 
 import javax.xml.namespace.QName;
 import javax.xml.rpc.ParameterMode;
 import java.math.BigDecimal;
 import java.net.URL;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 钥世圈对接服务
@@ -108,7 +113,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             recipeDetailBean.setOrganDrugCode(organDrugList.getOrganDrugCode());
             recipeDetailBean.setDrugId(drugId);
             recipeDetailBean.setDrugName(organDrugList.getDrugName());
-            recipeDetailBean.setUseTotalDose(5.0);
+            recipeDetailBean.setUseTotalDose(1.0);
             recipeDetailBeans.add(recipeDetailBean);
             drugsDataBean.setRecipeDetailBeans(recipeDetailBeans);
             List<String> result = getDrugInventoryForApp(drugsDataBean, drugsEnterprise, 1);
@@ -121,10 +126,57 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
+        List<DrugInfoDTO> drugInfoDTOS = findAllDrugInventory(drugsDataBean, drugsEnterprise, flag);
+        List<String> resultDrugList = drugInfoDTOS.stream().map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+        LOGGER.info("getDrugInventoryForApp resultDrugList:{}", JSONUtils.toString(resultDrugList));
+        return resultDrugList;
+    }
+
+    @Override
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
+        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugList);
+        Map<Integer,SaleDrugList> saleDrugListMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId,a->a,(k1,k2)->k1));
+        DrugsDataBean drugsDataBean = new DrugsDataBean();
+        drugsDataBean.setOrganId(recipe.getClinicOrgan());
+        List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(recipeDetails, RecipeDetailBean.class);
+        drugsDataBean.setRecipeDetailBeans(recipeDetailBeans);
+        List<DrugInfoDTO> result = findAllDrugInventory(drugsDataBean, drugsEnterprise, 1);
+        Map<Integer, DrugInfoDTO> drugInfoDTOMap = result.stream().collect(Collectors.toMap(DrugInfoDTO::getDrugId,a->a,(k1,k2)->k1));
+        drugStockAmountDTO.setResult(true);
+        List<DrugInfoDTO> drugInfoList = new LinkedList<>();
+        recipeDetails.forEach(recipeDetail -> {
+            DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+            BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
+            SaleDrugList saleDrugList = saleDrugListMap.get(recipeDetail.getDrugId());
+            DrugInfoDTO haveDrug = drugInfoDTOMap.get(recipeDetail.getDrugId());
+            if (null != saleDrugList && saleDrugList.getStatus() == 1 && null != haveDrug) {
+                drugInfoDTO.setStock(haveDrug.getStock());
+                drugInfoDTO.setStockAmountChin(drugInfoDTO.getStock()?"有库存":"无库存");
+            } else {
+                drugInfoDTO.setStock(false);
+                drugInfoDTO.setStockAmountChin("无库存");
+            }
+            drugInfoList.add(drugInfoDTO);
+        });
+        List<String> noDrugNames = drugInfoList.stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+        drugStockAmountDTO.setResult(true);
+        if (CollectionUtils.isNotEmpty(noDrugNames)) {
+            drugStockAmountDTO.setNotDrugNames(noDrugNames);
+            drugStockAmountDTO.setResult(false);
+        }
+        drugStockAmountDTO.setDrugInfoList(drugInfoList);
+        return drugStockAmountDTO;
+    }
+
+    private List<DrugInfoDTO> findAllDrugInventory(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag){
         OrganService organService = BasicAPI.getService(OrganService.class);
         OrganDTO organDTO = organService.getByOrganId(drugsDataBean.getOrganId());
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        List<Integer> drugList = drugsDataBean.getRecipeDetailBeans().stream().map(RecipeDetailBean::getDrugId).collect(Collectors.toList());
         //最终发给药企的json数据
         Map<String, Object> sendInfo = new HashMap<>(1);
         //同时生成订单 0不生成 1生成
@@ -141,8 +193,10 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         position.put("LATITUDE", "30.255732");
         map.put("POSITION", position);
         List list = new ArrayList();
-        List<String> resultDrugList = new ArrayList<>();
+        List<DrugInfoDTO> drugInfoDTOS = new LinkedList<>();
         Map<String, String> drugData = new HashMap<>();
+        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugList);
+        Map<String, SaleDrugList> saleDrugListMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getOrganDrugCode,a->a,(k1,k2)->k1));
         for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
             SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(recipeDetailBean.getDrugId(), drugsEnterprise.getId());
             OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(drugsDataBean.getOrganId(), recipeDetailBean.getOrganDrugCode(), recipeDetailBean.getDrugId());
@@ -203,17 +257,22 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             List resultList = (List)result.getObject();
             if (CollectionUtils.isNotEmpty(resultList)) {
                 for (Object drugs : resultList) {
+                    DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
                     Map<String, Object> drugMap = (Map<String, Object>) drugs;
                     String drugCode = (String)drugMap.get("DRUGCODE");
                     Integer drugStatus = (Integer)drugMap.get("DRUGSTATUS");
                     String drugValue = drugData.get(drugCode);
                     if (new Integer(1).equals(drugStatus)) {
-                        resultDrugList.add(drugValue);
+                        drugInfoDTO.setStock(true);
+                        drugInfoDTO.setDrugId(saleDrugListMap.get(drugCode).getDrugId());
+                        drugInfoDTO.setDrugName(drugValue);
+                        drugInfoDTOS.add(drugInfoDTO);
                     }
                 }
             }
         }
-        return resultDrugList;
+        LOGGER.info("findAllDrugInventory drugInfoDTOS:{}", JSONUtils.toString(drugInfoDTOS));
+        return drugInfoDTOS;
     }
 
     @Override

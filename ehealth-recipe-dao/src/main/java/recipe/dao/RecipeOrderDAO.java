@@ -1785,7 +1785,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         vo.setRefundBatchNo(objs[13] == null ? null : objs[13] + "");
                         vo.setRefundDate(objs[14] == null ? null : (Date) objs[14]);
                         vo.setPayType(objs[10] == null ? null : objs[10] + "");
-                        vo.setBusType("recipe");
+                        vo.setBusType("6");
                         vo.setPatientId(objs[5] == null ? null : objs[5] + "");
                         vo.setPname(objs[6] == null ? null : objs[6] + "");
                         vo.setPhone(null);

@@ -33,10 +33,7 @@ import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service("commonSelfEnterprisesType")
@@ -233,14 +230,12 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
 
     @Override
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
-        List<OrganDrugList> organDrugLists = new ArrayList<>();
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
         List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
         List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugList);
         Map<Integer, Integer> saleMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId,SaleDrugList::getStatus));
         List<DrugInfoDTO> drugInfoList = new ArrayList<>();
         recipeDetails.forEach(recipeDetail -> {
-            OrganDrugList organDrugList = new OrganDrugList();
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
             drugInfoDTO.setStock(false);
             drugInfoDTO.setStockAmountChin("无库存");
@@ -248,26 +243,15 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
                 drugInfoDTO.setStock(true);
                 drugInfoDTO.setStockAmountChin("有库存");
             }
-            BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
-            organDrugList.setDrugId(recipeDetail.getDrugId());
-            organDrugList.setDrugName(recipeDetail.getDrugName());
-            organDrugList.setOrganDrugCode(recipeDetail.getOrganDrugCode());
-            organDrugList.setPack(recipeDetail.getPack());
-            organDrugList.setProducerCode(recipeDetail.getProducerCode());
-            organDrugLists.add(organDrugList);
             drugInfoList.add(drugInfoDTO);
         });
-        if (new Integer(1).equals(drugsEnterprise.getSendType()) && drugsEnterprise.getCheckInventoryFlag()==3) {
-            drugStockAmountDTO = drugStockClient.scanDrugStock(recipeDetails, recipe.getClinicOrgan(), organDrugLists, new ArrayList<>());
-        } else {
-            drugStockAmountDTO.setResult(true);
-            List<String> noDrugList = drugInfoList.stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).distinct().map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
-            if (CollectionUtils.isNotEmpty(noDrugList)) {
-                drugStockAmountDTO.setResult(false);
-                drugStockAmountDTO.setNotDrugNames(noDrugList);
-            }
-            drugStockAmountDTO.setDrugInfoList(drugInfoList);
+        drugStockAmountDTO.setResult(true);
+        List<String> noDrugList = drugInfoList.stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).distinct().map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(noDrugList)) {
+            drugStockAmountDTO.setResult(false);
+            drugStockAmountDTO.setNotDrugNames(noDrugList);
         }
+        drugStockAmountDTO.setDrugInfoList(drugInfoList);
         return drugStockAmountDTO;
     }
 
