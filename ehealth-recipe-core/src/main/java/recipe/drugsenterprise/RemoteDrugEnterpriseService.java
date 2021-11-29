@@ -681,6 +681,9 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                     recipeDetail.setPack(organDrugList.getPack());
                     recipeDetail.setDrugUnit(organDrugList.getUnit());
                     recipeDetail.setProducerCode(organDrugList.getProducerCode());
+                    if (recipeDetailBean.getUseTotalDose() <= 0D) {
+                        recipeDetail.setUseTotalDose(1D);
+                    }
                     detailList.add(recipeDetail);
                     organDrugLists.add(organDrugList);
                 }
