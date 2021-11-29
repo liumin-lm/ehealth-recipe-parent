@@ -166,6 +166,17 @@ public class EnterpriseManager extends BaseManager {
         return drugStockAmount;
     }
 
+    /**
+     * 根据药企id 于 药品ids 获取药企药品列表
+     *
+     * @param enterpriseId 药企id
+     * @param drugIds      药品ids
+     * @return 药企药品列表
+     */
+    public List<SaleDrugList> saleDrugList(Integer enterpriseId, List<Integer> drugIds) {
+        return saleDrugListDAO.findByOrganIdAndDrugIds(enterpriseId, drugIds);
+    }
+
 
     /**
      * 到店取药 药企获取
