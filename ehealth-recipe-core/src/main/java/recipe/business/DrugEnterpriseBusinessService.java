@@ -5,10 +5,7 @@ import com.ngari.recipe.dto.DoSignRecipeDTO;
 import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.entity.SaleDrugList;
+import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
@@ -70,10 +67,13 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         //处理库存数据结构 逆转为 药品-药企
         List<EnterpriseStockVO> enterpriseStockList = this.getEnterpriseStockVO(organStock, enterpriseStock);
         Map<Integer, List<EnterpriseStockVO>> enterpriseStockGroup = enterpriseStockList.stream().collect(Collectors.groupingBy(EnterpriseStockVO::getDrugId));
-        //下载处方签
-        String supportDownloadButton = organDrugListManager.organStockDownload(organId, recipeDetails);
-        //例外支付
+
         List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(organId);
+        //下载处方签
+        String supportDownloadButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
+        List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
+        Map<String, OrganDrugList> organDrugMap = organDrugListManager.getOrganDrugByIdAndCode(organId, drugIds);
+        //例外支付
         String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
         //组织 药品 对应的 药企列表库存
         List<DrugEnterpriseStockVO> drugEnterpriseStockList = new LinkedList<>();
@@ -82,7 +82,13 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             drugEnterpriseStock.setDrugId(a.getDrugId());
             //默认无库存
             boolean stock = false;
-            if (StringUtils.isNotEmpty(supportDownloadButton) || StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
+            if (StringUtils.isNotEmpty(supportDownloadButton)) {
+                OrganDrugList organDrug = organDrugMap.get(a.getDrugId() + a.getOrganDrugCode());
+                if (null != organDrug && (null == organDrug.getSupportDownloadPrescriptionPad() || organDrug.getSupportDownloadPrescriptionPad())) {
+                    stock = true;
+                }
+            }
+            if (StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
                 stock = true;
             }
             List<EnterpriseStockVO> list = enterpriseStockGroup.get(a.getDrugId());
