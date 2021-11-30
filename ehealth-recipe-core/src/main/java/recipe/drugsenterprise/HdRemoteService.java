@@ -1536,11 +1536,9 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 Map<String, Object> drugMap = (Map<String, Object>) drugs;
                 try{
                     BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
-                    return availableSumQty.intValue() + "";
+                    return availableSumQty.toString();
                 }catch(Exception e){
                     LOGGER.error("getDrugInventory error ",e);
-                    Integer availableSumQty = (Integer)drugMap.get("availableSumQty");
-                    return availableSumQty.toString();
                 }
             }
         }
