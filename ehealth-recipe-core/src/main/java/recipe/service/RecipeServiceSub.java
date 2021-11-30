@@ -589,13 +589,13 @@ public class RecipeServiceSub {
                             delOrganDrugName.add(detail.getDrugName());
                         }
                     }
-
+                    if (null == detail.getUseDays()) {
+                        detail.setUseDays(0);
+                    }
                     //date 202000601
                     //设置处方用药天数字符类型
                     if (StringUtils.isEmpty(detail.getUseDaysB())) {
-
-                        detail.setUseDaysB(null != detail.getUseDays() ? detail.getUseDays().toString() : "0");
-
+                        detail.setUseDaysB(detail.getUseDays().toString());
                     }
                 }
                 if (CollectionUtils.isNotEmpty(delOrganDrugName)) {
