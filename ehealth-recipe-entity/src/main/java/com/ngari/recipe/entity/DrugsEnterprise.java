@@ -4,6 +4,7 @@ import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.FileToken;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
+import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -23,6 +24,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Schema
 @Table(name = "cdr_drugsenterprise")
 @Access(AccessType.PROPERTY)
+@DynamicInsert
 public class DrugsEnterprise implements java.io.Serializable {
 
     private static final long serialVersionUID = 7806649469165719455L;
