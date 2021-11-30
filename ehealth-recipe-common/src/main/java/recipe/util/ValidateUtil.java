@@ -44,6 +44,13 @@ public class ValidateUtil {
         return false;
     }
 
+    public static boolean longIsEmpty(Long l) {
+        if (null == l || 0 == l) {
+            return true;
+        }
+        return false;
+    }
+
 
     /**
      * 判断字符串并返回
