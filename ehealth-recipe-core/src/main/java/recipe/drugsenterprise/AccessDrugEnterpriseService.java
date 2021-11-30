@@ -212,6 +212,7 @@ public abstract class AccessDrugEnterpriseService {
      * @return 库存信息
      */
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        LOGGER.info("scanEnterpriseDrugStock recipeDetails:{}", JSONUtils.toString(recipeDetails));
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
         List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
         List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugList);
@@ -229,12 +230,8 @@ public abstract class AccessDrugEnterpriseService {
             }
             drugInfoList.add(drugInfoDTO);
         });
-        List<String> noDrugList = drugInfoList.stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).distinct().map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(noDrugList)) {
-            drugStockAmountDTO.setResult(false);
-            drugStockAmountDTO.setNotDrugNames(noDrugList);
-        }
-        drugStockAmountDTO.setDrugInfoList(drugInfoList);
+        this.setDrugStockAmountDTO(drugStockAmountDTO, drugInfoList);
+        LOGGER.info("scanEnterpriseDrugStock drugStockAmountDTO:{}", JSONUtils.toString(drugStockAmountDTO));
         return drugStockAmountDTO;
     }
     /**
