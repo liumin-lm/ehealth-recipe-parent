@@ -512,6 +512,7 @@ public abstract class AccessDrugEnterpriseService {
     protected void setDrugStockAmountDTO(DrugStockAmountDTO drugStockAmountDTO, List<DrugInfoDTO> drugInfoList) {
         LOGGER.info("setDrugStockAmountDTO drugInfoList:{}.", JSONUtils.toString(drugInfoList));
         List<String> noDrugNames = drugInfoList.stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+        LOGGER.info("setDrugStockAmountDTO noDrugNames:{}", JSONUtils.toString(noDrugNames));
         drugStockAmountDTO.setResult(true);
         if (CollectionUtils.isNotEmpty(noDrugNames)) {
             drugStockAmountDTO.setNotDrugNames(noDrugNames);

@@ -1593,8 +1593,8 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 if (StringUtils.isNotEmpty(saleDrugCode) && inventory.size() > 0) {
                     Integer num = inventory.get(saleDrugCode);
                     if (null != num) {
-                        drugInfoDTO.setStock(inventory.get(saleDrugCode) > 0);
-                        drugInfoDTO.setStockAmount(inventory.get(saleDrugCode));
+                        drugInfoDTO.setStock(num > 0);
+                        drugInfoDTO.setStockAmountChin(num + "");
                     }
                 }
                 drugInfoList.add(drugInfoDTO);
