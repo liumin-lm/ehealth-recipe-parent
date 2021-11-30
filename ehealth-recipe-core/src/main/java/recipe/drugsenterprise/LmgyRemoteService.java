@@ -3,6 +3,7 @@ package recipe.drugsenterprise;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
+import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
@@ -81,6 +82,21 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
     @Override
     public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
         return null;
+    }
+
+    @Override
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+        if (null != recipe && null != recipe.getRecipeId()) {
+            DrugEnterpriseResult drugEnterpriseResult = scanStock(recipe.getRecipeId(), drugsEnterprise);
+            if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
+                drugStockAmountDTO.setResult(true);
+            } else {
+                drugStockAmountDTO.setResult(false);
+            }
+            return drugStockAmountDTO;
+        }
+        return super.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
     }
 
     @RpcService

@@ -6,6 +6,8 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
+import com.ngari.recipe.dto.DrugInfoDTO;
+import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -19,6 +21,7 @@ import ngari.openapi.Response;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
@@ -26,6 +29,7 @@ import recipe.drugsenterprise.bean.HdDrugRequestData;
 import recipe.drugsenterprise.bean.HdPosition;
 import recipe.drugsenterprise.bean.YnsPharmacyAndStockRequest;
 import recipe.util.MapValueUtil;
+import recipe.util.ObjectCopyUtils;
 
 import java.util.*;
 
@@ -62,6 +66,34 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+        if (null != recipe && null != recipe.getRecipeId()) {
+            DrugEnterpriseResult drugEnterpriseResult = scanStock(recipe.getRecipeId(), drugsEnterprise);
+            if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
+                drugStockAmountDTO.setResult(true);
+            } else {
+                drugStockAmountDTO.setResult(false);
+            }
+            return drugStockAmountDTO;
+        } else {
+            List<DrugInfoDTO> drugInfoList = new ArrayList<>();
+            recipeDetails.forEach(recipeDetail -> {
+                DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+                BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
+                drugInfoDTO.setStock(false);
+                String inventory = getDrugInventory(recipeDetail.getDrugId(), drugsEnterprise, recipe.getClinicOrgan());
+                if ("有库存".equals(inventory)) {
+                    drugInfoDTO.setStock(true);
+                }
+                drugInfoList.add(drugInfoDTO);
+            });
+            super.setDrugStockAmountDTO(drugStockAmountDTO, drugInfoList);
+            return drugStockAmountDTO;
+        }
+    }
+
+    @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
         String appKey=recipeParameterDao.getByName("ynsyy-key");
@@ -83,7 +115,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
             if (saleDrugList != null) {
                 HdDrugRequestData drugBean = new HdDrugRequestData();
                 drugBean.setDrugCode(saleDrugList.getOrganDrugCode());
-                drugBean.setTotal("5");
+                drugBean.setTotal("1");
 
                 DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
                 DrugList drugList = drugListDAO.getById(drugId);
