@@ -528,7 +528,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                         //获取医院或者药企库存（看配置）
                         DrugsDataBean drugsData = getDrugsDataBean(drugsDataBean, drugsEnterprise);
                         if (CollectionUtils.isEmpty(drugsData.getRecipeDetailBeans())) {
-                            break;
+                            continue;
                         }
                         haveInventoryForOnlineList = compareGetHaveDrugInventoryForApp(drugsEnterprise, result, drugEnterpriseResult, drugsData, recipeEnterpriseService, 1);
                         LOGGER.info("getDrugsEnterpriseInventory haveInventoryForOnlineList:{}.", JSONUtils.toString(haveInventoryForOnlineList));
@@ -545,7 +545,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                         //获取医院或者药企库存（看配置）
                         DrugsDataBean drugsData = getDrugsDataBean(drugsDataBean, drugsEnterprise);
                         if (CollectionUtils.isEmpty(drugsData.getRecipeDetailBeans())) {
-                            break;
+                            continue;
                         }
                         haveInventoryForOnlineList = compareGetHaveDrugInventoryForApp(drugsEnterprise, result, drugEnterpriseResult, drugsData, recipeEnterpriseService, 1);
                         if (CollectionUtils.isNotEmpty(haveInventoryForOnlineList)) {
@@ -561,7 +561,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                     //获取医院或者药企库存（看配置）
                     DrugsDataBean drugsData = getDrugsDataBean(drugsDataBean, drugsEnterprise);
                     if (CollectionUtils.isEmpty(drugsData.getRecipeDetailBeans())) {
-                        break;
+                        continue;
                     }
                     haveInventoryForStoreList = compareGetHaveDrugInventoryForApp(drugsEnterprise, result, drugEnterpriseResult, drugsData, recipeEnterpriseService, 2);
                     if (CollectionUtils.isNotEmpty(haveInventoryForStoreList)) {
