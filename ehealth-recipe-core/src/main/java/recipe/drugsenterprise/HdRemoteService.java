@@ -1523,7 +1523,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         tokenUpdateImpl(drugsEnterprise);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
-        String methodName = "sendScanStock";
         Map<String, Object> map = new HashMap<>();
         List<Map<String, String>> hdDrugCodes = new ArrayList<>();
         Map<String, String> drug = new HashMap<>();
@@ -1531,9 +1530,11 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         hdDrugCodes.add(drug);
         map.put("drugList", hdDrugCodes);
         List drugList = getInventoryResult(map, organId, drugsEnterprise);
+        LOGGER.info("getDrugInventory drugList:{}",JSONUtils.toString(drugList));
         if (CollectionUtils.isNotEmpty(drugList)) {
             for (Object drugs : drugList) {
                 Map<String, Object> drugMap = (Map<String, Object>) drugs;
+                LOGGER.info("getDrugInventory drugMap:{}",JSONUtils.toString(drugMap));
                 try{
                     BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
                     return availableSumQty.toString();
