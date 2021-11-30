@@ -59,9 +59,9 @@ public class OrganDrugListManager extends BaseManager {
             return null;
         }
         List<Integer> drugIds = detailList.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
-        Integer notCountDownloadRecipe = organDrugListDAO.countDownloadRecipe(organId, drugIds);
+        Long notCountDownloadRecipe = organDrugListDAO.getCountDownloadRecipe(organId, drugIds);
         logger.info("OrganDrugListManager.organStockDownload notCountDownloadRecipe={}", notCountDownloadRecipe);
-        if (ValidateUtil.integerIsEmpty(notCountDownloadRecipe)) {
+        if (ValidateUtil.longIsEmpty(notCountDownloadRecipe)) {
             return supportDownloadButton;
         }
         return null;

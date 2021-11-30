@@ -1431,7 +1431,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
     public abstract String getDrugEntrustById(@DAOParam("OrganDrugCode") String organDrugCode, @DAOParam("OrganID") int OrganID);
 
     @DAOMethod(sql = "select count(1) from OrganDrugList where supportDownloadPrescriptionPad = 0 and status = 1 and OrganID=:organId and drugId in (:drugIds) ", limit = 0)
-    public abstract Integer countDownloadRecipe(@DAOParam("organId") Integer organId, @DAOParam("drugIds") List<Integer> drugIds);
+    public abstract Long getCountDownloadRecipe(@DAOParam("organId") Integer organId, @DAOParam("drugIds") List<Integer> drugIds);
 
     /**
      * 通过处方id及机构id获取药品是否支持处方下载
