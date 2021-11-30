@@ -4,9 +4,11 @@ import com.google.common.collect.ImmutableMap;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
+import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -30,6 +32,7 @@ import recipe.constant.RecipeMsgEnum;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
@@ -50,6 +53,12 @@ public class YsqnRemoteService extends AccessDrugEnterpriseService {
 
     @Autowired
     private YsqRemoteService ysqRemoteService;
+    @Autowired
+    private RecipeDAO recipeDAO;
+    @Autowired
+    private RecipeDetailDAO recipeDetailDAO;
+    @Autowired
+    private DrugsEnterpriseDAO drugsEnterpriseDAO;
 
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
@@ -167,6 +176,19 @@ public class YsqnRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
         return ysqRemoteService.syncEnterpriseDrug(drugsEnterprise, drugIdList);
+    }
+
+    @RpcService
+    public DrugStockAmountDTO test(Integer recipeId){
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
+        return scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
+    }
+
+    @Override
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        return ysqRemoteService.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
     }
 
     @Override

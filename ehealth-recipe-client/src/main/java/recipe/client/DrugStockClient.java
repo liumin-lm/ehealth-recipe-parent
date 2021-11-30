@@ -146,8 +146,8 @@ public class DrugStockClient extends BaseClient {
             drugStockAmountDTO.setDrugInfoList(list);
             List<String> organCodes = list.stream().filter(a -> !a.getStock()).map(DrugInfoDTO::getOrganDrugCode).distinct().collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(organCodes)) {
-                List<String> drugNames = organDrugList.stream().filter(a -> organCodes.contains(a.getOrganDrugCode())).map(OrganDrugList::getDrugName).collect(Collectors.toList());
                 drugStockAmountDTO.setResult(false);
+                List<String> drugNames = organDrugList.stream().filter(a -> organCodes.contains(a.getOrganDrugCode())).map(OrganDrugList::getDrugName).collect(Collectors.toList());
                 drugStockAmountDTO.setNotDrugNames(drugNames);
             }
             logger.info("DrugStockClient scanDrugStock drugStockAmountDTO={}", JSON.toJSONString(drugStockAmountDTO));
@@ -219,8 +219,10 @@ public class DrugStockClient extends BaseClient {
             if (CollectionUtils.isEmpty(list)) {
                 return null;
             }
-            drugStockAmountDTO.setResult(true);
-            drugStockAmountDTO.setDrugInfoList(getScanDrugInfoDTO(list));
+            List<DrugInfoDTO> drugInfoList = getScanDrugInfoDTO(list);
+            drugStockAmountDTO.setDrugInfoList(drugInfoList);
+            boolean stock = drugInfoList.stream().allMatch(DrugInfoDTO::getStock);
+            drugStockAmountDTO.setResult(stock);
         } catch (Exception e) {
             logger.error("DrugStockClient scanEnterpriseDrugStockV1 error ", e);
             drugStockAmountDTO.setResult(false);
@@ -302,9 +304,6 @@ public class DrugStockClient extends BaseClient {
 
     private List<DrugInfoDTO> getScanDrugInfoDTO(List<ScanDrugListBean> scanDrugList) {
         List<DrugInfoDTO> list = new ArrayList<>();
-        if (CollectionUtils.isEmpty(scanDrugList)) {
-            return list;
-        }
         scanDrugList.forEach(a -> {
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
             drugInfoDTO.setOrganDrugCode(a.getDrugCode());
@@ -325,7 +324,6 @@ public class DrugStockClient extends BaseClient {
                 boolean stock = a.getStockAmount() - Integer.parseInt(a.getTotal()) >= 0;
                 drugInfoDTO.setStock(stock);
             }
-
             list.add(drugInfoDTO);
         });
         return list;

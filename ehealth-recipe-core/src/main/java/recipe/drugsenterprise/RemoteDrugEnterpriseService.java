@@ -527,6 +527,9 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                     if (payModeSupport(drugsEnterprise, 1) && configurations.containsKey("showSendToEnterprises")) {
                         //获取医院或者药企库存（看配置）
                         DrugsDataBean drugsData = getDrugsDataBean(drugsDataBean, drugsEnterprise);
+                        if (CollectionUtils.isEmpty(drugsData.getRecipeDetailBeans())) {
+                            break;
+                        }
                         haveInventoryForOnlineList = compareGetHaveDrugInventoryForApp(drugsEnterprise, result, drugEnterpriseResult, drugsData, recipeEnterpriseService, 1);
                         LOGGER.info("getDrugsEnterpriseInventory haveInventoryForOnlineList:{}.", JSONUtils.toString(haveInventoryForOnlineList));
                         if (CollectionUtils.isNotEmpty(haveInventoryForOnlineList)) {
@@ -541,6 +544,9 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                     if (payModeSupport(drugsEnterprise, 1) && configurations.containsKey("showSendToHos")) {
                         //获取医院或者药企库存（看配置）
                         DrugsDataBean drugsData = getDrugsDataBean(drugsDataBean, drugsEnterprise);
+                        if (CollectionUtils.isEmpty(drugsData.getRecipeDetailBeans())) {
+                            break;
+                        }
                         haveInventoryForOnlineList = compareGetHaveDrugInventoryForApp(drugsEnterprise, result, drugEnterpriseResult, drugsData, recipeEnterpriseService, 1);
                         if (CollectionUtils.isNotEmpty(haveInventoryForOnlineList)) {
                             supportSendToHosMap.put(drugsEnterprise.getName(), haveInventoryForOnlineList);
@@ -554,6 +560,9 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                     //该药企配置了这个药品,可以查询该药品在药企是否有库存了
                     //获取医院或者药企库存（看配置）
                     DrugsDataBean drugsData = getDrugsDataBean(drugsDataBean, drugsEnterprise);
+                    if (CollectionUtils.isEmpty(drugsData.getRecipeDetailBeans())) {
+                        break;
+                    }
                     haveInventoryForStoreList = compareGetHaveDrugInventoryForApp(drugsEnterprise, result, drugEnterpriseResult, drugsData, recipeEnterpriseService, 2);
                     if (CollectionUtils.isNotEmpty(haveInventoryForStoreList)) {
                         toStoreMap.put(drugsEnterprise.getName(), haveInventoryForStoreList);
@@ -652,6 +661,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             List<RecipeDetailBean> recipeDetails = drugsDataBean.getRecipeDetailBeans().stream().filter(recipeDetail -> drugLists.contains(recipeDetail.getDrugId())).collect(Collectors.toList());
             drugsData.setRecipeDetailBeans(recipeDetails);
         }
+        LOGGER.info("getDrugsDataBean drugsData:{}", JSONUtils.toString(drugsData));
         return drugsData;
     }
 
