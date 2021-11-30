@@ -215,6 +215,9 @@ public abstract class AccessDrugEnterpriseService {
         LOGGER.info("scanEnterpriseDrugStock recipeDetails:{}", JSONUtils.toString(recipeDetails));
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
         List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(drugList)) {
+            return new DrugStockAmountDTO();
+        }
         List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugList);
         Map<Integer, Integer> saleMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId,SaleDrugList::getStatus));
         drugStockAmountDTO.setResult(true);
