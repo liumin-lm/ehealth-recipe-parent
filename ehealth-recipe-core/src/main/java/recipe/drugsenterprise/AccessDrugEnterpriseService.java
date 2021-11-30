@@ -509,4 +509,16 @@ public abstract class AccessDrugEnterpriseService {
         EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
     }
 
+    protected void setDrugStockAmountDTO(DrugStockAmountDTO drugStockAmountDTO, List<DrugInfoDTO> drugInfoList) {
+        LOGGER.info("setDrugStockAmountDTO drugInfoList:{}.", JSONUtils.toString(drugInfoList));
+        List<String> noDrugNames = drugInfoList.stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+        drugStockAmountDTO.setResult(true);
+        if (CollectionUtils.isNotEmpty(noDrugNames)) {
+            drugStockAmountDTO.setNotDrugNames(noDrugNames);
+            drugStockAmountDTO.setResult(false);
+        }
+        drugStockAmountDTO.setDrugInfoList(drugInfoList);
+        LOGGER.info("setDrugStockAmountDTO drugStockAmountDTO:{}", JSONUtils.toString(drugStockAmountDTO));
+    }
+
 }

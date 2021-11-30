@@ -8,6 +8,8 @@ import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
+import com.ngari.recipe.dto.DrugInfoDTO;
+import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -30,6 +32,7 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
@@ -47,6 +50,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
 * @Description: YtRemoteService 类（或接口）是 对接英特药企服务接口
@@ -94,6 +98,9 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
 
     private static final String imgHead = "data:image/jpeg;base64,";
 
+    @Autowired
+    private SaleDrugListDAO saleDrugListDAO;
+
     public YtRemoteService() {
         RecipeCacheService recipeService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
         ORGANIZATION = recipeService.getRecipeParam("organization", "");
@@ -136,6 +143,36 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        LOGGER.info("scanEnterpriseDrugStock recipeDetails:{}.", JSONUtils.toString(recipeDetails));
+        DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+        List<DrugInfoDTO> drugInfoList = new ArrayList<>();
+        List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIdsEffectivity(drugsEnterprise.getId(), drugList);
+        Map<Integer, SaleDrugList> saleDrugListMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId,a->a,(k1,k2)->k1));
+        recipeDetails.forEach(recipeDetail -> {
+            DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+            SaleDrugList saleDrugList = saleDrugListMap.get(recipeDetail.getDrugId());
+            drugInfoDTO.setStock(false);
+            drugInfoDTO.setDrugId(recipeDetail.getDrugId());
+            drugInfoDTO.setDrugName(recipeDetail.getDrugName());
+            drugInfoDTO.setOrganDrugCode(recipeDetail.getOrganDrugCode());
+            if (null != saleDrugList) {
+                String inventory = getDrugInventory(recipeDetail.getDrugId(), drugsEnterprise, recipe.getClinicOrgan());
+                if (!"0".equals(inventory)) {
+                    drugInfoDTO.setStock(true);
+                    drugInfoDTO.setStockAmountChin(inventory);
+                } else {
+                    drugInfoDTO.setStockAmountChin("0");
+                }
+            }
+            drugInfoList.add(drugInfoDTO);
+        });
+        super.setDrugStockAmountDTO(drugStockAmountDTO, drugInfoList);
+        return drugStockAmountDTO;
+    }
+
+    @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         SaleDrugList saleDrug = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
@@ -151,7 +188,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         }
         String stockResponse = getInventoryResult(drugsEnterprise, saleDrug, pharmacy);
         if (stockResponse != null) return stockResponse;
-        return "暂不支持库存查询";
+        return "0";
     }
 
     private String getInventoryResult(DrugsEnterprise drugsEnterprise, SaleDrugList saleDrug, Pharmacy pharmacy) {
@@ -171,7 +208,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         }catch (Exception e){
             LOGGER.info("YtRemoteService.getDrugInventory:运营平台查询药品库存失败, {},{},{}", saleDrug.getDrugId(), drugsEnterprise.getName(), e.getMessage(),e);
         }
-        return null;
+        return "0";
     }
 
     @Override
