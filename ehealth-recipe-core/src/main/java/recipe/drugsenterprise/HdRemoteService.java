@@ -1505,8 +1505,8 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             List drugList = (List)jsonObject.get("drugList");
             LOGGER.info("getInventoryResult drugList:{}.", JSONUtils.toString(drugList));
             return drugList;
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            LOGGER.error("getInventoryResult error", e);
         } finally {
             try {
                 httpClient.close();
@@ -1547,9 +1547,11 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        LOGGER.info("scanEnterpriseDrugStock recipeDetails:{}", JSONUtils.toString(recipeDetails));
         List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugList);
+        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIdsEffectivity(drugsEnterprise.getId(), drugList);
+        LOGGER.info("scanEnterpriseDrugStock saleDrugLists:{}.", JSONUtils.toString(saleDrugLists));
         Map<Integer, String> saleDrugListMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId, SaleDrugList::getOrganDrugCode));
         Map<String, Object> map = new HashMap<>();
         List<Map<String, String>> hdDrugCodes = new ArrayList<>();
@@ -1579,18 +1581,16 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         recipeDetails.forEach(recipeDetail -> {
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
             BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
-            drugInfoDTO.setStock(inventory.get(saleDrugListMap.get(recipeDetail.getDrugId())) > 0);
-            drugInfoDTO.setStockAmount(inventory.get(saleDrugListMap.get(recipeDetail.getDrugId())));
+            String saleDrugCode = saleDrugListMap.get(recipeDetail.getDrugId());
+            drugInfoDTO.setStock(false);
+            drugInfoDTO.setStockAmount(0);
+            if (StringUtils.isNotEmpty(saleDrugCode)) {
+                drugInfoDTO.setStock(inventory.get(saleDrugCode) > 0);
+                drugInfoDTO.setStockAmount(inventory.get(saleDrugCode));
+            }
             drugInfoList.add(drugInfoDTO);
         });
-        LOGGER.info("scanEnterpriseDrugStock drugInfoList:{}.", JSONUtils.toString(drugInfoList));
-        List<String> noDrugNames = drugInfoList.stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
-        drugStockAmountDTO.setResult(true);
-        if (CollectionUtils.isNotEmpty(noDrugNames)) {
-            drugStockAmountDTO.setNotDrugNames(noDrugNames);
-            drugStockAmountDTO.setResult(false);
-        }
-        drugStockAmountDTO.setDrugInfoList(drugInfoList);
+        super.setDrugStockAmountDTO(drugStockAmountDTO, drugInfoList);
         return drugStockAmountDTO;
     }
 
