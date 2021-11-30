@@ -134,6 +134,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        LOGGER.info("scanEnterpriseDrugStock recipeDetails:{}", JSONUtils.toString(recipeDetails));
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
@@ -162,6 +163,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             drugInfoList.add(drugInfoDTO);
         });
         super.setDrugStockAmountDTO(drugStockAmountDTO, drugInfoList);
+        LOGGER.info("scanEnterpriseDrugStock drugStockAmountDTO:{}", JSONUtils.toString(drugStockAmountDTO));
         return drugStockAmountDTO;
     }
 
