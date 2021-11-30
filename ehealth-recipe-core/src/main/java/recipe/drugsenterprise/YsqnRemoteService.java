@@ -179,7 +179,7 @@ public class YsqnRemoteService extends AccessDrugEnterpriseService {
     }
 
     @RpcService
-    public DrugStockAmountDTO test(Integer recipeId){
+    public DrugStockAmountDTO test1(Integer recipeId){
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
