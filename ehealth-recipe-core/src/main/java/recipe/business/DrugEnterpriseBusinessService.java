@@ -86,8 +86,6 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
                 OrganDrugList organDrug = organDrugMap.get(a.getDrugId() + a.getOrganDrugCode());
                 if (null != organDrug && (null == organDrug.getSupportDownloadPrescriptionPad() || organDrug.getSupportDownloadPrescriptionPad())) {
                     stock = true;
-                } else {
-                    logger.info("DrugEnterpriseBusinessService stockList organDrug={}", a.getDrugId() + a.getOrganDrugCode());
                 }
             }
             if (StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
