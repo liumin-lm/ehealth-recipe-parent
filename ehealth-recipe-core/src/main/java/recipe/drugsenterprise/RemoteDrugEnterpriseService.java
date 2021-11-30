@@ -731,6 +731,9 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             List<com.ngari.recipe.recipe.model.RecipeDetailBean> recipeDetailBeans = drugsDataBean.getRecipeDetailBeans();
             // 药企如果没有其中一个药品,就不展示
             List<Integer> drugIds = recipeDetailBeans.stream().map(com.ngari.recipe.recipe.model.RecipeDetailBean::getDrugId).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(drugIds) || null == drugsEnterprise.getId()) {
+                return haveInventoryList;
+            }
             List<SaleDrugList> list = saleDrugListDAO.getByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIds);
             if (Objects.isNull(list)) {
                 return haveInventoryList;
