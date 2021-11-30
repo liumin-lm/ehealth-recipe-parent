@@ -164,6 +164,7 @@ public class RecipeRefundService extends RecipeBaseService{
 
             // 交易流水号
             visitRequest.setTradeNo(recipeOrder.getTradeNo());
+            LOGGER.info("applyForRecipeRefund-checkForRefundVisit req visitRequest={}", JSONUtils.toString(visitRequest));
             HisResponseTO<String> result = service.checkForRefundVisit(visitRequest);
             if (result != null && "200".equals(result.getMsgCode())) {
                 LOGGER.info("applyForRecipeRefund-checkForRefundVisit 处方退费申请成功-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(result));
