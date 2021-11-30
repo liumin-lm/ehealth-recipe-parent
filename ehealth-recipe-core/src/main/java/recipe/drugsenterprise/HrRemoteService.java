@@ -7,6 +7,7 @@ import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
+import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.controller.exception.ControllerException;
@@ -344,6 +345,21 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
             result.setCode(DrugEnterpriseResult.FAIL);
         }
         return result;
+    }
+
+    @Override
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+        if (null != recipe && null != recipe.getRecipeId()) {
+            DrugEnterpriseResult drugEnterpriseResult = scanStock(recipe.getRecipeId(), drugsEnterprise);
+            if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
+                drugStockAmountDTO.setResult(true);
+            } else {
+                drugStockAmountDTO.setResult(false);
+            }
+            return drugStockAmountDTO;
+        }
+        return super.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
     }
 
     @Override
