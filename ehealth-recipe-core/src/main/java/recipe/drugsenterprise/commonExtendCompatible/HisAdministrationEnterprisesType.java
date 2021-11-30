@@ -6,6 +6,7 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DeliveryList;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
+import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -15,6 +16,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
@@ -29,9 +31,8 @@ import recipe.purchase.PurchaseService;
 import recipe.service.RecipeLogService;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service("hisAdministrationEnterprisesType")
 public class HisAdministrationEnterprisesType implements CommonExtendEnterprisesInterface{
@@ -214,8 +215,43 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
     @Override
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
-        drugStockAmountDTO.setResult(true);
-        return drugStockAmountDTO;
+        if (null != recipe && null != recipe.getRecipeId()) {
+            DrugEnterpriseResult drugEnterpriseResult = scanStock(recipe.getRecipeId(), drugsEnterprise);
+            if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
+                drugStockAmountDTO.setResult(true);
+            } else {
+                drugStockAmountDTO.setResult(false);
+            }
+            return drugStockAmountDTO;
+        } else {
+            List<DrugInfoDTO> drugInfoList = new ArrayList<>();
+            recipeDetails.forEach(recipeDetail -> {
+                DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+                BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
+                drugInfoDTO.setStock(true);
+                String inventory = getDrugInventory(recipeDetail.getDrugId(), drugsEnterprise, recipe.getClinicOrgan());
+                if ("暂不支持库存查询".equals(inventory)) {
+                    drugInfoDTO.setStock(false);
+                }
+                drugInfoList.add(drugInfoDTO);
+            });
+            setDrugStockAmountDTO(drugStockAmountDTO, drugInfoList);
+            return drugStockAmountDTO;
+        }
+    }
+
+    private void setDrugStockAmountDTO(DrugStockAmountDTO drugStockAmountDTO, List<DrugInfoDTO> drugInfoList) {
+        LOGGER.info("setDrugStockAmountDTO drugInfoList:{}.", JSONUtils.toString(drugInfoList));
+        List<String> noDrugNames = Optional.ofNullable(drugInfoList).orElseGet(Collections::emptyList)
+                .stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+        LOGGER.info("setDrugStockAmountDTO noDrugNames:{}", JSONUtils.toString(noDrugNames));
+        if (CollectionUtils.isNotEmpty(noDrugNames)) {
+            drugStockAmountDTO.setNotDrugNames(noDrugNames);
+        }
+        boolean stock = drugInfoList.stream().anyMatch(DrugInfoDTO::getStock);
+        drugStockAmountDTO.setResult(stock);
+        drugStockAmountDTO.setDrugInfoList(drugInfoList);
+        LOGGER.info("setDrugStockAmountDTO drugStockAmountDTO:{}", JSONUtils.toString(drugStockAmountDTO));
     }
 
     @Override

@@ -1531,17 +1531,21 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         map.put("drugList", hdDrugCodes);
         List drugList = getInventoryResult(map, organId, drugsEnterprise);
         LOGGER.info("getDrugInventory drugList:{}",JSONUtils.toString(drugList));
-        if (CollectionUtils.isNotEmpty(drugList)) {
-            for (Object drugs : drugList) {
-                Map<String, Object> drugMap = (Map<String, Object>) drugs;
-                LOGGER.info("getDrugInventory drugMap:{}",JSONUtils.toString(drugMap));
-                try{
-                    BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
-                    return availableSumQty.toString();
-                }catch(Exception e){
-                    LOGGER.error("getDrugInventory error ",e);
+        try {
+            if (CollectionUtils.isNotEmpty(drugList)) {
+                for (Object drugs : drugList) {
+                    Map<String, Object> drugMap = (Map<String, Object>) drugs;
+                    LOGGER.info("getDrugInventory drugMap:{}",JSONUtils.toString(drugMap));
+                    try{
+                        BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
+                        return availableSumQty.toString();
+                    }catch(Exception e){
+                        LOGGER.error("getDrugInventory error ",e);
+                    }
                 }
             }
+        } catch (Exception e) {
+            LOGGER.error("getDrugInventory error ", e);
         }
         return "暂不支持库存查询";
     }
@@ -1589,8 +1593,8 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 if (StringUtils.isNotEmpty(saleDrugCode) && inventory.size() > 0) {
                     Integer num = inventory.get(saleDrugCode);
                     if (null != num) {
-                        drugInfoDTO.setStock(inventory.get(saleDrugCode) > 0);
-                        drugInfoDTO.setStockAmount(inventory.get(saleDrugCode));
+                        drugInfoDTO.setStock(num > 0);
+                        drugInfoDTO.setStockAmountChin(num + "");
                     }
                 }
                 drugInfoList.add(drugInfoDTO);
