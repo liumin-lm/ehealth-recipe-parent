@@ -1586,9 +1586,12 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 String saleDrugCode = saleDrugListMap.get(recipeDetail.getDrugId());
                 drugInfoDTO.setStock(false);
                 drugInfoDTO.setStockAmount(0);
-                if (StringUtils.isNotEmpty(saleDrugCode)) {
-                    drugInfoDTO.setStock(inventory.get(saleDrugCode) > 0);
-                    drugInfoDTO.setStockAmount(inventory.get(saleDrugCode));
+                if (StringUtils.isNotEmpty(saleDrugCode) && inventory.size() > 0) {
+                    Integer num = inventory.get(saleDrugCode);
+                    if (null != num) {
+                        drugInfoDTO.setStock(inventory.get(saleDrugCode) > 0);
+                        drugInfoDTO.setStockAmount(inventory.get(saleDrugCode));
+                    }
                 }
                 drugInfoList.add(drugInfoDTO);
             });
