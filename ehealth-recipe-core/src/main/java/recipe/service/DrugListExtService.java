@@ -1243,6 +1243,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 if (CollectionUtils.isEmpty(hisResp.getData())){
                     amount = "有库存";
                 }else {
+                    LOGGER.info("setHosInventoriesRealTime IDrugInventory = {}, drugIdAndOrganDrugCode = {}", JSON.toJSONString(drugListBeans), JSON.toJSONString(drugIdAndOrganDrugCode));
                     //当返回库存数量的时候
                     //循环查询的药品
                     for (IDrugInventory drugListBean : drugListBeans) {
@@ -1250,6 +1251,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                         List<DrugInfoTO> drugInfoTOListMatched = hisResp.getData().stream().filter(item ->
                                 drugIdAndOrganDrugCode.get(drugListBean.getDrugId()).equalsIgnoreCase(item.getDrcode()))
                                 .collect(Collectors.toList());
+                        LOGGER.info("setHosInventoriesRealTime drugInfoTOListMatched = {}", JSON.toJSONString(drugInfoTOListMatched));
                         drugInventoryInfos = Lists.newArrayList();
                         //一个药品下his有可能返回多个药房
                         drugInventory = DrugInventoryInfo.builder()
@@ -1260,6 +1262,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                         drugInventoryInfos.add(drugInventory);
                         drugListBean.setInventories(drugInventoryInfos);
                     }
+                    LOGGER.info("setHosInventoriesRealTime drugListBeans = {}", JSON.toJSONString(drugListBeans));
                     return;
                 }
             }else {

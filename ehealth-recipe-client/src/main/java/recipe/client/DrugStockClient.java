@@ -239,6 +239,9 @@ public class DrugStockClient extends BaseClient {
      */
     public static List<DrugInfoDTO> getDrugInfoDTO(List<Recipedetail> detailList, boolean stock) {
         List<DrugInfoDTO> drugInfoList = new ArrayList<>();
+        if (CollectionUtils.isEmpty(detailList)) {
+            return drugInfoList;
+        }
         detailList.forEach(a -> {
             DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
             drugInfoDTO.setDrugId(a.getDrugId());

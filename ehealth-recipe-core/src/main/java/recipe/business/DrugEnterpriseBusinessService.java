@@ -301,20 +301,26 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         if (null == checkInventoryFlag) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, drugsEnterprise.getName() + "checkInventoryFlag is null");
         }
+        List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
+        List<SaleDrugList> saleDrugList = enterpriseManager.saleDrugListEffectivity(drugsEnterprise.getId(), drugIds);
+        Map<Integer, SaleDrugList> saleDrugMap = saleDrugList.stream().collect(Collectors.toMap(SaleDrugList::getDrugId, a -> a, (k1, k2) -> k1));
+        List<Recipedetail> recipeDetailList = recipeDetails.stream().filter(a -> null != saleDrugMap.get(a.getDrugId())).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(recipeDetailList)) {
+            enterpriseStock.setStock(false);
+            enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
+            logger.warn("DrugEnterpriseBusinessService enterpriseStock recipeDetailList is null");
+            return;
+        }
         if (0 == drugsEnterprise.getCheckInventoryFlag()) {
             //机构药企 药品列表对不上
-            List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
-            List<SaleDrugList> saleDrugList = enterpriseManager.saleDrugList(drugsEnterprise.getId(), drugIds);
-            Map<Integer, SaleDrugList> saleDrugMap = saleDrugList.stream().collect(Collectors.toMap(SaleDrugList::getDrugId, a -> a, (k1, k2) -> k1));
-            List<Recipedetail> response = recipeDetails.stream().filter(a -> null != saleDrugMap.get(a.getDrugId())).collect(Collectors.toList());
             enterpriseStock.setStock(true);
-            enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(response, true));
+            enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetailList, true));
             logger.info("DrugEnterpriseBusinessService enterpriseStock 0 enterpriseStock= {}", JSON.toJSONString(enterpriseStock));
             return;
         }
         //医院自建药企-查询医院库存
         if (3 == drugsEnterprise.getCheckInventoryFlag()) {
-            DrugStockAmountDTO organStock = organDrugListManager.scanDrugStockByRecipeId(recipe, recipeDetails);
+            DrugStockAmountDTO organStock = organDrugListManager.scanDrugStockByRecipeId(recipe, recipeDetailList);
             enterpriseStock.setStock(organStock.isResult());
             enterpriseStock.setDrugName(organStock.getNotDrugNames());
             enterpriseStock.setDrugInfoList(organStock.getDrugInfoList());
@@ -323,7 +329,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         }
         //通过前置机调用
         if (1 == drugsEnterprise.getOperationType()) {
-            DrugStockAmountDTO code = enterpriseManager.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
+            DrugStockAmountDTO code = enterpriseManager.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetailList);
             enterpriseStock.setStock(code.isResult());
             enterpriseStock.setDrugInfoList(code.getDrugInfoList());
             logger.info("DrugEnterpriseBusinessService enterpriseStock 1 enterpriseStock= {}", JSON.toJSONString(enterpriseStock));
@@ -331,7 +337,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         }
         //通过平台调用药企
         AccessDrugEnterpriseService drugEnterpriseService = RemoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
-        DrugStockAmountDTO result = drugEnterpriseService.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
+        DrugStockAmountDTO result = drugEnterpriseService.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetailList);
         enterpriseStock.setStock(result.isResult());
         enterpriseStock.setDrugInfoList(result.getDrugInfoList());
         logger.info("DrugEnterpriseBusinessService enterpriseStock else enterpriseStock= {}", JSON.toJSONString(enterpriseStock));
