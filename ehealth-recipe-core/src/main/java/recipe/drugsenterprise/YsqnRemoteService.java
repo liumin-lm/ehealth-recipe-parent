@@ -4,9 +4,11 @@ import com.google.common.collect.ImmutableMap;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
+import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -167,6 +169,11 @@ public class YsqnRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
         return ysqRemoteService.syncEnterpriseDrug(drugsEnterprise, drugIdList);
+    }
+
+    @Override
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        return ysqRemoteService.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
     }
 
     @Override
