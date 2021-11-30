@@ -86,48 +86,53 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
-        DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
-        List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
-        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugList);
-        Map<Integer,SaleDrugList> saleDrugListMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId,a->a,(k1,k2)->k1));
-        List<Map<String, String>> result = findAllDrugInventory(drugsEnterprise, recipeDetails, drugList, saleDrugListMap);
-        Map<String,String> inventoryMap = new HashMap<>();
         try {
-            if (CollectionUtils.isNotEmpty(result)) {
-                for (Map<String, String> drugBean : result) {
-                    String inventory = MapValueUtil.getString(drugBean, "inventory");
-                    String drugCode = MapValueUtil.getString(drugBean, "drugCode");
-                    if ("true".equals(inventory)) {
-                        inventoryMap.put(drugCode, "有库存");
+            DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+            List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
+            List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugList);
+            Map<Integer,SaleDrugList> saleDrugListMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId,a->a,(k1,k2)->k1));
+            List<Map<String, String>> result = findAllDrugInventory(drugsEnterprise, recipeDetails, drugList, saleDrugListMap);
+            Map<String,String> inventoryMap = new HashMap<>();
+            try {
+                if (CollectionUtils.isNotEmpty(result)) {
+                    for (Map<String, String> drugBean : result) {
+                        String inventory = MapValueUtil.getString(drugBean, "inventory");
+                        String drugCode = MapValueUtil.getString(drugBean, "drugCode");
+                        if ("true".equals(inventory)) {
+                            inventoryMap.put(drugCode, "有库存");
+                        }
                     }
                 }
+            } catch (Exception e) {
+                LOGGER.error("scanEnterpriseDrugStock error", e);
             }
+            drugStockAmountDTO.setResult(true);
+            List<DrugInfoDTO> drugInfoList = new LinkedList<>();
+            recipeDetails.forEach(recipeDetail -> {
+                DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+                BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
+                SaleDrugList saleDrugList = saleDrugListMap.get(recipeDetail.getDrugId());
+                if (null != saleDrugList && saleDrugList.getStatus() == 1) {
+                    drugInfoDTO.setStock("有库存".equals(inventoryMap.get(saleDrugList.getOrganDrugCode())));
+                    drugInfoDTO.setStockAmountChin(drugInfoDTO.getStock()?"有库存":"无库存");
+                } else {
+                    drugInfoDTO.setStock(false);
+                    drugInfoDTO.setStockAmountChin("无库存");
+                }
+                drugInfoList.add(drugInfoDTO);
+            });
+            List<String> noDrugNames = drugInfoList.stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+            drugStockAmountDTO.setResult(true);
+            if (CollectionUtils.isNotEmpty(noDrugNames)) {
+                drugStockAmountDTO.setNotDrugNames(noDrugNames);
+                drugStockAmountDTO.setResult(false);
+            }
+            drugStockAmountDTO.setDrugInfoList(drugInfoList);
+            return drugStockAmountDTO;
         } catch (Exception e) {
             LOGGER.error("scanEnterpriseDrugStock error", e);
         }
-        drugStockAmountDTO.setResult(true);
-        List<DrugInfoDTO> drugInfoList = new LinkedList<>();
-        recipeDetails.forEach(recipeDetail -> {
-            DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
-            BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
-            SaleDrugList saleDrugList = saleDrugListMap.get(recipeDetail.getDrugId());
-            if (null != saleDrugList && saleDrugList.getStatus() == 1) {
-                drugInfoDTO.setStock("有库存".equals(inventoryMap.get(saleDrugList.getOrganDrugCode())));
-                drugInfoDTO.setStockAmountChin(drugInfoDTO.getStock()?"有库存":"无库存");
-            } else {
-                drugInfoDTO.setStock(false);
-                drugInfoDTO.setStockAmountChin("无库存");
-            }
-            drugInfoList.add(drugInfoDTO);
-        });
-        List<String> noDrugNames = drugInfoList.stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
-        drugStockAmountDTO.setResult(true);
-        if (CollectionUtils.isNotEmpty(noDrugNames)) {
-            drugStockAmountDTO.setNotDrugNames(noDrugNames);
-            drugStockAmountDTO.setResult(false);
-        }
-        drugStockAmountDTO.setDrugInfoList(drugInfoList);
-        return drugStockAmountDTO;
+        return super.scanEnterpriseDrugStock(recipe, drugsEnterprise,recipeDetails);
     }
 
     private List<Map<String, String>> findAllDrugInventory(DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails, List<Integer> drugList, Map<Integer, SaleDrugList> saleDrugListMap){
