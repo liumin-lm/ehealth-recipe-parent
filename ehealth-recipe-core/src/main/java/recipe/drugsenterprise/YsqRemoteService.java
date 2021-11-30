@@ -161,13 +161,7 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
             }
             drugInfoList.add(drugInfoDTO);
         });
-        List<String> noDrugNames = drugInfoList.stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
-        drugStockAmountDTO.setResult(true);
-        if (CollectionUtils.isNotEmpty(noDrugNames)) {
-            drugStockAmountDTO.setNotDrugNames(noDrugNames);
-            drugStockAmountDTO.setResult(false);
-        }
-        drugStockAmountDTO.setDrugInfoList(drugInfoList);
+        super.setDrugStockAmountDTO(drugStockAmountDTO, drugInfoList);
         return drugStockAmountDTO;
     }
 
