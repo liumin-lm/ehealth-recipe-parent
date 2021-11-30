@@ -1547,51 +1547,57 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
-        LOGGER.info("scanEnterpriseDrugStock recipeDetails:{}", JSONUtils.toString(recipeDetails));
-        List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIdsEffectivity(drugsEnterprise.getId(), drugList);
-        LOGGER.info("scanEnterpriseDrugStock saleDrugLists:{}.", JSONUtils.toString(saleDrugLists));
-        Map<Integer, String> saleDrugListMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId, SaleDrugList::getOrganDrugCode));
-        Map<String, Object> map = new HashMap<>();
-        List<Map<String, String>> hdDrugCodes = new ArrayList<>();
-        recipeDetails.forEach(recipeDetail -> {
-            Map<String, String> drug = new HashMap<>();
-            drug.put("drugCode", saleDrugListMap.get(recipeDetail.getDrugId()));
-            hdDrugCodes.add(drug);
-        });
-        map.put("drugList", hdDrugCodes);
-        List result = getInventoryResult(map, recipe.getClinicOrgan(), drugsEnterprise);
-        Map<String, Integer> inventory = new HashMap<>();
-        if (CollectionUtils.isNotEmpty(result)) {
-            for (Object drugs : result) {
-                Map<String, Object> drugMap = (Map<String, Object>) drugs;
-                try{
-                    BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
-                    String drugCode = (String)drugMap.get("drugCode");
-                    inventory.put(drugCode, availableSumQty.intValue());
-                }catch(Exception e){
-                    String drugCode = (String)drugMap.get("drugCode");
-                    inventory.put(drugCode, 0);
+        try {
+            LOGGER.info("scanEnterpriseDrugStock recipeDetails:{}", JSONUtils.toString(recipeDetails));
+            List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+            List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIdsEffectivity(drugsEnterprise.getId(), drugList);
+            LOGGER.info("scanEnterpriseDrugStock saleDrugLists:{}.", JSONUtils.toString(saleDrugLists));
+            Map<Integer, String> saleDrugListMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId, SaleDrugList::getOrganDrugCode));
+            Map<String, Object> map = new HashMap<>();
+            List<Map<String, String>> hdDrugCodes = new ArrayList<>();
+            recipeDetails.forEach(recipeDetail -> {
+                Map<String, String> drug = new HashMap<>();
+                drug.put("drugCode", saleDrugListMap.get(recipeDetail.getDrugId()));
+                hdDrugCodes.add(drug);
+            });
+            map.put("drugList", hdDrugCodes);
+            List result = getInventoryResult(map, recipe.getClinicOrgan(), drugsEnterprise);
+            Map<String, Integer> inventory = new HashMap<>();
+            if (CollectionUtils.isNotEmpty(result)) {
+                for (Object drugs : result) {
+                    Map<String, Object> drugMap = (Map<String, Object>) drugs;
+                    try{
+                        BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
+                        String drugCode = (String)drugMap.get("drugCode");
+                        inventory.put(drugCode, availableSumQty.intValue());
+                    }catch(Exception e){
+                        String drugCode = (String)drugMap.get("drugCode");
+                        inventory.put(drugCode, 0);
+                    }
                 }
             }
+            DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+            List<DrugInfoDTO> drugInfoList = new ArrayList<>();
+            recipeDetails.forEach(recipeDetail -> {
+                DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+                BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
+                String saleDrugCode = saleDrugListMap.get(recipeDetail.getDrugId());
+                drugInfoDTO.setStock(false);
+                drugInfoDTO.setStockAmount(0);
+                if (StringUtils.isNotEmpty(saleDrugCode)) {
+                    drugInfoDTO.setStock(inventory.get(saleDrugCode) > 0);
+                    drugInfoDTO.setStockAmount(inventory.get(saleDrugCode));
+                }
+                drugInfoList.add(drugInfoDTO);
+            });
+            super.setDrugStockAmountDTO(drugStockAmountDTO, drugInfoList);
+            LOGGER.info("scanEnterpriseDrugStock drugStockAmountDTO:{}", JSONUtils.toString(drugStockAmountDTO));
+            return drugStockAmountDTO;
+        } catch (Exception e) {
+            LOGGER.error("scanEnterpriseDrugStock error", e);
         }
-        DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
-        List<DrugInfoDTO> drugInfoList = new ArrayList<>();
-        recipeDetails.forEach(recipeDetail -> {
-            DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
-            BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
-            String saleDrugCode = saleDrugListMap.get(recipeDetail.getDrugId());
-            drugInfoDTO.setStock(false);
-            drugInfoDTO.setStockAmount(0);
-            if (StringUtils.isNotEmpty(saleDrugCode)) {
-                drugInfoDTO.setStock(inventory.get(saleDrugCode) > 0);
-                drugInfoDTO.setStockAmount(inventory.get(saleDrugCode));
-            }
-            drugInfoList.add(drugInfoDTO);
-        });
-        super.setDrugStockAmountDTO(drugStockAmountDTO, drugInfoList);
-        return drugStockAmountDTO;
+        return super.scanEnterpriseDrugStock(recipe,drugsEnterprise,recipeDetails);
     }
 
     @Override
