@@ -1501,6 +1501,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             //当相应状态为200时返回json
             HttpEntity httpEntity = response.getEntity();
             String responseStr = EntityUtils.toString(httpEntity);
+            LOGGER.info("getInventoryResult responseStr:{}", responseStr);
             JSONObject jsonObject = JSONObject.parseObject(responseStr);
             List drugList = (List)jsonObject.get("drugList");
             LOGGER.info("getInventoryResult drugList:{}.", JSONUtils.toString(drugList));
