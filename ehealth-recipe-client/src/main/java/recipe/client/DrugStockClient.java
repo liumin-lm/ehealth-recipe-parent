@@ -413,7 +413,7 @@ public class DrugStockClient extends BaseClient {
             scanDrugListBean.setChannelCode(finalChannelCode);
             scanDrugListBean.setDrugCode(saleDrugLists1.get(0).getOrganDrugCode());
             scanDrugListBean.setDrugId(recipedetail.getDrugId());
-            scanDrugListBean.setTotal(recipedetail.getUseTotalDose().toString());
+            scanDrugListBean.setTotal(String.valueOf((int) Math.floor(recipedetail.getUseTotalDose())));
 
             OrganDrugList organDrug = organDrugMap.get(recipedetail.getDrugId());
             scanDrugListBean.setUnit(organDrug.getUnit());
