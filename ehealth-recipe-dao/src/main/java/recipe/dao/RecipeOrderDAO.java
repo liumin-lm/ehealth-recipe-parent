@@ -34,6 +34,7 @@ import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.dao.comment.ExtendDao;
+import recipe.enumerate.status.PayWayEnum;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -1784,7 +1785,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         }
                         vo.setRefundBatchNo(objs[13] == null ? null : objs[13] + "");
                         vo.setRefundDate(objs[14] == null ? null : (Date) objs[14]);
-                        vo.setPayType(objs[10] == null ? null : objs[10] + "");
+                        String wxPayWay = objs[10] == null ? null : objs[10] + "";
+                        if (StringUtils.isNotEmpty(wxPayWay)) {
+                            vo.setPayType(PayWayEnum.fromCode(wxPayWay).getPayType() + "");
+                        }
                         vo.setBusType("6");
                         vo.setPatientId(objs[5] == null ? null : objs[5] + "");
                         vo.setPname(objs[6] == null ? null : objs[6] + "");
