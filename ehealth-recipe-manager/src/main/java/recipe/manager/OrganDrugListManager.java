@@ -51,6 +51,21 @@ public class OrganDrugListManager extends BaseManager {
         return this.organStock(recipe, detailList);
     }
 
+    public String organStockDownload(Integer organId, List<Recipedetail> detailList) {
+        //下载处方签
+        List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(organId);
+        String supportDownloadButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
+        if (StringUtils.isEmpty(supportDownloadButton) || CollectionUtils.isEmpty(detailList)) {
+            return null;
+        }
+        List<Integer> drugIds = detailList.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
+        Integer notCountDownloadRecipe = organDrugListDAO.countDownloadRecipe(organId, drugIds);
+        if (ValidateUtil.integerIsEmpty(notCountDownloadRecipe)) {
+            return supportDownloadButton;
+        }
+        return null;
+    }
+
     /**
      * 校验机构药品库存
      *
