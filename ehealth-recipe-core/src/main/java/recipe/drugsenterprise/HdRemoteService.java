@@ -1531,17 +1531,21 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         map.put("drugList", hdDrugCodes);
         List drugList = getInventoryResult(map, organId, drugsEnterprise);
         LOGGER.info("getDrugInventory drugList:{}",JSONUtils.toString(drugList));
-        if (CollectionUtils.isNotEmpty(drugList)) {
-            for (Object drugs : drugList) {
-                Map<String, Object> drugMap = (Map<String, Object>) drugs;
-                LOGGER.info("getDrugInventory drugMap:{}",JSONUtils.toString(drugMap));
-                try{
-                    BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
-                    return availableSumQty.toString();
-                }catch(Exception e){
-                    LOGGER.error("getDrugInventory error ",e);
+        try {
+            if (CollectionUtils.isNotEmpty(drugList)) {
+                for (Object drugs : drugList) {
+                    Map<String, Object> drugMap = (Map<String, Object>) drugs;
+                    LOGGER.info("getDrugInventory drugMap:{}",JSONUtils.toString(drugMap));
+                    try{
+                        BigDecimal availableSumQty = (BigDecimal)drugMap.get("availableSumQty");
+                        return availableSumQty.toString();
+                    }catch(Exception e){
+                        LOGGER.error("getDrugInventory error ",e);
+                    }
                 }
             }
+        } catch (Exception e) {
+            LOGGER.error("getDrugInventory error ", e);
         }
         return "暂不支持库存查询";
     }
