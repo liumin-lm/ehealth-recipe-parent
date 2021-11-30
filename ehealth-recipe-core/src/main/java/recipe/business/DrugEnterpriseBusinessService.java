@@ -84,8 +84,10 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             boolean stock = false;
             if (StringUtils.isNotEmpty(supportDownloadButton)) {
                 OrganDrugList organDrug = organDrugMap.get(a.getDrugId() + a.getOrganDrugCode());
-                if (organDrug.getSupportDownloadPrescriptionPad()) {
+                if (null != organDrug && (null == organDrug.getSupportDownloadPrescriptionPad() || organDrug.getSupportDownloadPrescriptionPad())) {
                     stock = true;
+                } else {
+                    logger.info("DrugEnterpriseBusinessService stockList organDrug={}", a.getDrugId() + a.getOrganDrugCode());
                 }
             }
             if (StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
