@@ -336,6 +336,11 @@ public class RecipeRefundService extends RecipeBaseService{
             throw new DAOException("未获取到处方退费信息！");
         }
         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+
+        if(recipeOrder == null){
+            LOGGER.error("checkForRecipeRefund-未获取到处方单信息. recipeId={}", recipeId.toString());
+            throw new DAOException("未获取到处方订单信息！");
+        }
         //解决老版本的支付流水号错误回传
         String hisSettlementNo =StringUtils.isEmpty(recipeOrder.getHisSettlementNo())?recipeOrder.getTradeNo():recipeOrder.getHisSettlementNo();
         CheckForRefundVisitReqTO request = new CheckForRefundVisitReqTO();
@@ -361,6 +366,11 @@ public class RecipeRefundService extends RecipeBaseService{
         if (null != recipeOrder.getEnterpriseId()) {
             request.setEnterpriseCode(recipeOrder.getEnterpriseId().toString());
         }
+
+
+        // 交易流水号
+        request.setTradeNo(recipeOrder.getTradeNo());
+        LOGGER.info("checkForRecipeRefund-checkForRefundVisit req = {}", JSONUtils.toString(request));
 
         IVisitService service = AppContextHolder.getBean("his.visitService", IVisitService.class);
         HisResponseTO<String> hisResult = service.checkForRefundVisit(request);
