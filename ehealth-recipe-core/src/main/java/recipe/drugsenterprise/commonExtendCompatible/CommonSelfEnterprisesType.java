@@ -13,10 +13,12 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
@@ -30,10 +32,7 @@ import recipe.util.DistanceUtil;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service("commonSelfEnterprisesType")
@@ -227,32 +226,43 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
     @Override
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
-        List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugList);
-        Map<Integer, Integer> saleMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId,SaleDrugList::getStatus));
-        List<DrugInfoDTO> drugInfoList = new ArrayList<>();
-        recipeDetails.forEach(recipeDetail -> {
-            DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
-            drugInfoDTO.setStock(false);
-            drugInfoDTO.setStockAmountChin("无库存");
-            drugInfoDTO.setOrganDrugCode(recipeDetail.getOrganDrugCode());
-            drugInfoDTO.setDrugId(recipeDetail.getDrugId());
-            drugInfoDTO.setDrugName(recipeDetail.getDrugName());
-            if (new Integer(1).equals(saleMap.get(recipeDetail.getDrugId()))) {
-                drugInfoDTO.setStock(true);
-                drugInfoDTO.setStockAmountChin("有库存");
+        if (null != recipe && null != recipe.getRecipeId()) {
+            DrugEnterpriseResult drugEnterpriseResult = scanStock(recipe.getRecipeId(), drugsEnterprise);
+            if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
+                drugStockAmountDTO.setResult(true);
+            } else {
+                drugStockAmountDTO.setResult(false);
             }
-            drugInfoList.add(drugInfoDTO);
-        });
-        drugStockAmountDTO.setResult(true);
-        List<String> noDrugList = drugInfoList.stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).distinct().map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
-        if (CollectionUtils.isNotEmpty(noDrugList)) {
-            drugStockAmountDTO.setResult(false);
-            drugStockAmountDTO.setNotDrugNames(noDrugList);
+            return drugStockAmountDTO;
+        } else {
+            List<DrugInfoDTO> drugInfoList = new ArrayList<>();
+            recipeDetails.forEach(recipeDetail -> {
+                DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+                BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
+                drugInfoDTO.setStock(false);
+                String inventory = getDrugInventory(recipeDetail.getDrugId(), drugsEnterprise, recipe.getClinicOrgan());
+                if ("有库存".equals(inventory)) {
+                    drugInfoDTO.setStock(true);
+                }
+                drugInfoList.add(drugInfoDTO);
+            });
+            setDrugStockAmountDTO(drugStockAmountDTO, drugInfoList);
+            return drugStockAmountDTO;
         }
+    }
+
+    private void setDrugStockAmountDTO(DrugStockAmountDTO drugStockAmountDTO, List<DrugInfoDTO> drugInfoList) {
+        LOGGER.info("setDrugStockAmountDTO drugInfoList:{}.", JSONUtils.toString(drugInfoList));
+        List<String> noDrugNames = Optional.ofNullable(drugInfoList).orElseGet(Collections::emptyList)
+                .stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+        LOGGER.info("setDrugStockAmountDTO noDrugNames:{}", JSONUtils.toString(noDrugNames));
+        if (CollectionUtils.isNotEmpty(noDrugNames)) {
+            drugStockAmountDTO.setNotDrugNames(noDrugNames);
+        }
+        boolean stock = drugInfoList.stream().anyMatch(DrugInfoDTO::getStock);
+        drugStockAmountDTO.setResult(stock);
         drugStockAmountDTO.setDrugInfoList(drugInfoList);
-        return drugStockAmountDTO;
+        LOGGER.info("setDrugStockAmountDTO drugStockAmountDTO:{}", JSONUtils.toString(drugStockAmountDTO));
     }
 
     @Override
