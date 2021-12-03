@@ -1101,9 +1101,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         if (RecipeStatusConstant.REVOKE == recipe.getStatus() || RecipeStatusConstant.HIS_FAIL == recipe.getStatus() || RecipeStatusConstant.NO_DRUG == recipe.getStatus() || RecipeStatusConstant.NO_PAY == recipe.getStatus() || RecipeStatusConstant.NO_OPERATOR == recipe.getStatus()) {
             return "2";
         }
-        if (RecipeStatusConstant.CHECK_PASS == recipe.getStatus()) {
-            return "1";//仅处方开立上传
-        }
         if (RecipeStatusConstant.CHECK_PASS_YS == recipe.getStatus() || RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
             return "3";//处方审核后上传（包含通过和不通过）
         }

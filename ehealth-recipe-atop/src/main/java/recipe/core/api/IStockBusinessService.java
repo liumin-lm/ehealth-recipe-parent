@@ -50,6 +50,4 @@ public interface IStockBusinessService {
      * @return 药品信息 一定存在于出参
      */
     List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<Recipedetail> recipeDetails, Integer enterpriseId);
-
-    List<EnterpriseStock> enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails);
 }

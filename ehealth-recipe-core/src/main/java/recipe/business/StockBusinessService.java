@@ -200,10 +200,6 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         return this.enterpriseStockCheck(organId, recipeDetails, enterpriseStockList);
     }
 
-    @Override
-    public List<EnterpriseStock> enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails) {
-        return this.enterpriseStockCheckAll(recipe, recipeDetails);
-    }
 
     /**
      * 校验 药品库存 指定药企的库存数量
