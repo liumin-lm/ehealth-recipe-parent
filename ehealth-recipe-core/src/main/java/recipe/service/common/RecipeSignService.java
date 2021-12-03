@@ -34,7 +34,7 @@ import recipe.ApplicationUtils;
 import recipe.aop.LogRecord;
 import recipe.bean.CheckYsInfoBean;
 import recipe.constant.*;
-import recipe.core.api.patient.IDrugEnterpriseBusinessService;
+import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
@@ -83,7 +83,7 @@ public class RecipeSignService {
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
-    private IDrugEnterpriseBusinessService drugEnterpriseBusinessService;
+    private IStockBusinessService drugEnterpriseBusinessService;
     @Autowired
     private RevisitManager revisitManager;
 

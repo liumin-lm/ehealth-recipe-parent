@@ -12,7 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
-import recipe.core.api.patient.IDrugEnterpriseBusinessService;
+import recipe.core.api.IStockBusinessService;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
 import recipe.vo.doctor.ValidateDetailVO;
@@ -29,7 +29,7 @@ import java.util.List;
 public class DrugEnterprisePatientAtop extends BaseAtop {
 
     @Autowired
-    private IDrugEnterpriseBusinessService iDrugEnterpriseBusinessService;
+    private IStockBusinessService iDrugEnterpriseBusinessService;
 
 
     /**

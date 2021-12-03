@@ -7,7 +7,7 @@ import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.core.api.IRecipeBusinessService;
-import recipe.core.api.patient.IDrugEnterpriseBusinessService;
+import recipe.core.api.IStockBusinessService;
 import recipe.vo.doctor.DrugEnterpriseStockVO;
 import recipe.vo.doctor.DrugQueryVO;
 import recipe.vo.doctor.PatientOptionalDrugVO;
@@ -24,7 +24,7 @@ import java.util.List;
 public class DrugDoctorAtop extends BaseAtop {
 
     @Autowired
-    private IDrugEnterpriseBusinessService iDrugEnterpriseBusinessService;
+    private IStockBusinessService iDrugEnterpriseBusinessService;
     @Autowired
     private IRecipeBusinessService recipeBusinessService;
 

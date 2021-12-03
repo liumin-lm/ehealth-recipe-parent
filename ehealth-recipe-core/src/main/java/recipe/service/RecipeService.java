@@ -117,7 +117,7 @@ import recipe.common.CommonConstant;
 import recipe.common.OnsConfig;
 import recipe.common.response.CommonResponse;
 import recipe.constant.*;
-import recipe.core.api.patient.IDrugEnterpriseBusinessService;
+import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugTool.service.DrugToolService;
@@ -242,7 +242,7 @@ public class RecipeService extends RecipeBaseService {
     @Autowired
     private IConfigurationClient configurationClient;
     @Autowired
-    private IDrugEnterpriseBusinessService drugEnterpriseBusinessService;
+    private IStockBusinessService drugEnterpriseBusinessService;
     @Autowired
     private RemoteRecipeService remoteRecipeService;
 

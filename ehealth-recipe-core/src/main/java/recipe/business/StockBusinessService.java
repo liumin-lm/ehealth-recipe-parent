@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import recipe.client.DrugStockClient;
 import recipe.client.OperationClient;
 import recipe.constant.ErrorCode;
-import recipe.core.api.patient.IDrugEnterpriseBusinessService;
+import recipe.core.api.IStockBusinessService;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
  * @author fuzi
  */
 @Service
-public class DrugEnterpriseBusinessService extends BaseService implements IDrugEnterpriseBusinessService {
+public class StockBusinessService extends BaseService implements IStockBusinessService {
     @Autowired
     private ButtonManager buttonManager;
     @Autowired
@@ -198,6 +198,11 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
             return enterpriseStockList;
         }
         return this.enterpriseStockCheck(organId, recipeDetails, enterpriseStockList);
+    }
+
+    @Override
+    public List<EnterpriseStock> enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails) {
+        return this.enterpriseStockCheckAll(recipe, recipeDetails);
     }
 
     /**

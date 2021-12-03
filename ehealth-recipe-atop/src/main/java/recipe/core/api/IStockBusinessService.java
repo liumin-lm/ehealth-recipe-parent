@@ -1,4 +1,4 @@
-package recipe.core.api.patient;
+package recipe.core.api;
 
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.entity.Recipe;
@@ -13,7 +13,7 @@ import java.util.Map;
  *
  * @author fuzi
  */
-public interface IDrugEnterpriseBusinessService {
+public interface IStockBusinessService {
     /**
      * 医生端查询 药品列表-查库存
      *
@@ -50,4 +50,6 @@ public interface IDrugEnterpriseBusinessService {
      * @return 药品信息 一定存在于出参
      */
     List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<Recipedetail> recipeDetails, Integer enterpriseId);
+
+    List<EnterpriseStock> enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails);
 }
