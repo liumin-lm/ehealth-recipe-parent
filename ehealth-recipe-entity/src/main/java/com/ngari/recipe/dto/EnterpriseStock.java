@@ -45,6 +45,9 @@ public class EnterpriseStock {
      */
     private DrugsEnterprise drugsEnterprise;
 
+    /**
+     * 库存药品信息
+     */
     private List<DrugInfoDTO> drugInfoList;
 
 }
