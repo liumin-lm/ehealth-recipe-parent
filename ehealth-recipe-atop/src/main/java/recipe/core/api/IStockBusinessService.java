@@ -44,12 +44,10 @@ public interface IStockBusinessService {
     /**
      * 校验 某个药企下 药品库存 的库存数量
      *
-     * @param organId       机构id
+     * @param recipe        机构id
      * @param recipeDetails 药品信息 drugId，code
      * @param enterpriseId  指定某药企id
      * @return 药品信息 一定存在于出参
      */
-    List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<Recipedetail> recipeDetails, Integer enterpriseId);
-
-    List<EnterpriseStock> enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails);
+    EnterpriseStock enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails, Integer enterpriseId);
 }

@@ -108,7 +108,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     @Override
     public List<EnterpriseStock> stockList(Recipe recipe, List<Recipedetail> recipeDetails) {
         //药企库存
-        List<EnterpriseStock> result = this.enterpriseStockCheckAll(recipe, recipeDetails);
+        List<EnterpriseStock> result = this.enterpriseStockCheckAll(recipe, recipeDetails, null);
         //医院库存
         EnterpriseStock organStock = organDrugListManager.organStock(recipe, recipeDetails);
         if (null != organStock) {
@@ -123,7 +123,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         Recipe recipe = recipeDAO.get(recipeId);
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
         //药企库存
-        List<EnterpriseStock> enterpriseStockList = this.enterpriseStockCheckAll(recipe, recipeDetails);
+        List<EnterpriseStock> enterpriseStockList = this.enterpriseStockCheckAll(recipe, recipeDetails, null);
         List<EnterpriseStock> enterpriseStock = enterpriseStockList.stream().filter(a -> CollectionUtils.isNotEmpty(a.getGiveModeButton())).collect(Collectors.toList());
         logger.info("DrugEnterpriseBusinessService enterpriseStock enterpriseStock={}", JSON.toJSONString(enterpriseStock));
         //医院库存
@@ -185,24 +185,16 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     }
 
     @Override
-    public List<EnterpriseStock> enterpriseStockCheck(Integer organId, List<Recipedetail> recipeDetails, Integer enterpriseId) {
-        //获取需要查询库存的药企对象
-        List<EnterpriseStock> enterpriseStockList = buttonManager.enterpriseStockCheck(organId);
+    public EnterpriseStock enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails, Integer enterpriseId) {
+        List<EnterpriseStock> enterpriseStockList = this.enterpriseStockCheckAll(recipe, recipeDetails, enterpriseId);
         if (CollectionUtils.isEmpty(enterpriseStockList)) {
-            return enterpriseStockList;
+            return null;
         }
-        if (!ValidateUtil.integerIsEmpty(enterpriseId)) {
-            enterpriseStockList = enterpriseStockList.stream().filter(a -> a.getDrugsEnterpriseId().equals(enterpriseId)).collect(Collectors.toList());
+        List<EnterpriseStock> list = enterpriseStockList.stream().filter(EnterpriseStock::getStock).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(list)) {
+            return null;
         }
-        if (CollectionUtils.isEmpty(enterpriseStockList)) {
-            return enterpriseStockList;
-        }
-        return this.enterpriseStockCheck(organId, recipeDetails, enterpriseStockList);
-    }
-
-    @Override
-    public List<EnterpriseStock> enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails) {
-        return this.enterpriseStockCheckAll(recipe, recipeDetails);
+        return list.get(0);
     }
 
     /**
@@ -254,11 +246,17 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
      * @param recipeDetails 药品信息 drugId，code
      * @return 药品信息非必须
      */
-    private List<EnterpriseStock> enterpriseStockCheckAll(Recipe recipe, List<Recipedetail> recipeDetails) {
+    private List<EnterpriseStock> enterpriseStockCheckAll(Recipe recipe, List<Recipedetail> recipeDetails, Integer enterpriseId) {
         //获取需要查询库存的药企对象
         List<EnterpriseStock> enterpriseStockList = buttonManager.enterpriseStockCheck(recipe.getClinicOrgan());
         if (CollectionUtils.isEmpty(enterpriseStockList)) {
             return enterpriseStockList;
+        }
+        if (!ValidateUtil.integerIsEmpty(enterpriseId)) {
+            enterpriseStockList = enterpriseStockList.stream().filter(a -> a.getDrugsEnterpriseId().equals(enterpriseId)).collect(Collectors.toList());
+            if (CollectionUtils.isEmpty(enterpriseStockList)) {
+                return enterpriseStockList;
+            }
         }
         //每个药企对应的 不满足的药品列表
         List<Integer> enterpriseIds = enterpriseStockList.stream().map(EnterpriseStock::getDrugsEnterpriseId).collect(Collectors.toList());
@@ -287,12 +285,14 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         enterpriseStock.setStock(false);
         //药企无对应的购药按钮则 无需查询库存-返回无库存
         if (CollectionUtils.isEmpty(enterpriseStock.getGiveModeButton())) {
+            enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
             return enterpriseStock;
         }
         //验证能否药品配送以及能否开具到一张处方单上
         List<String> drugNames = enterpriseDrugNameGroup.get(enterpriseStock.getDrugsEnterpriseId());
         if (CollectionUtils.isNotEmpty(drugNames)) {
             enterpriseStock.setDrugName(drugNames);
+            enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
             return enterpriseStock;
         }
         enterpriseStock(enterpriseStock, recipe, recipeDetails);

@@ -157,7 +157,6 @@ public class PurchaseService {
     public RecipeResultBean filterSupportDepList(List<Integer> recipeIds, List<Integer> payModes, Map<String, String> extInfo) {
         LOG.info("PurchaseService filterSupportDepList recipeIds:{}, payModes:{}, extInfo:{}.", JSONUtils.toString(recipeIds), JSONUtils.toString(payModes), JSONUtils.toString(extInfo));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         if (CollectionUtils.isEmpty(recipeIds)) {
             resultBean.setCode(RecipeResultBean.FAIL);
@@ -191,7 +190,6 @@ public class PurchaseService {
             try {
                 // 根据paymode 替换givemode
                 Integer giveMode = PayModeGiveModeUtil.getGiveMode(payModes.get(0));
-
                 IPurchaseService purchaseService = getService(giveMode);
                 resultBean = purchaseService.findSupportDepList(dbRecipe, extInfo);
                 LOG.info("purchaseService.findSupportDepList 返回信息 recipeId={} resultBean={}", dbRecipe.getRecipeId(), JSONArray.toJSONString(resultBean));

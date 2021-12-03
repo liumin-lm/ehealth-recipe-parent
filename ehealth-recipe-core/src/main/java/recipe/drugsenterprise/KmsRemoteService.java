@@ -14,7 +14,6 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
-import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -218,18 +217,6 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
         return result;
     }
 
-    @RpcService
-    public void test(Integer recipeId) {
-        List<Integer> recipeIds = Arrays.asList(recipeId);
-        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(240);
-        Map ext = new HashMap();
-        ext.put("longitude", "102.6");
-        ext.put("latitude", "25.1");
-        ext.put("range", "100");
-        findSupportDep(recipeIds, ext, drugsEnterprise);
-//        scanStock(recipeId, drugsEnterprise);
-    }
 
     @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
