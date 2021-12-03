@@ -2995,7 +2995,7 @@ public class RecipeService extends RecipeBaseService {
                 request.setDrcode(Lists.newArrayList());
                 try {
                     responseTO = recipeHisService.queryOrganDrugInfo(request);
-                    //LOGGER.info("drugInfoSynMovement response={}", JSONUtils.toString(responseTO));
+                    LOGGER.info("drugInfoSynMovement request={}", JSONUtils.toString(request));
                 } catch (Exception e) {
                     LOGGER.error("drugInfoSynMovement error{} ", e);
                 }
@@ -3287,7 +3287,7 @@ public class RecipeService extends RecipeBaseService {
         request.setDrcode(Lists.newArrayList());
         try {
             responseTO = recipeHisService.queryOrganDrugInfo(request);
-            //LOGGER.info("drugInfoSynMovement response={}", JSONUtils.toString(responseTO));
+            LOGGER.info("drugInfoSynMovement request={}", JSONUtils.toString(request));
         } catch (Exception e) {
             LOGGER.error("drugInfoSynMovement error{} ", e);
         }

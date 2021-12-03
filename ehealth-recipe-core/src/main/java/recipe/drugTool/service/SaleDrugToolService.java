@@ -23,11 +23,13 @@ import ctd.account.UserRoleToken;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import ctd.util.exp.standard.IN;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.io.output.StringBuilderWriter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
@@ -55,6 +57,8 @@ import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * created by renfuhao on 2020/6/11
@@ -88,6 +92,9 @@ public class SaleDrugToolService implements ISaleDrugToolService {
 
     @Resource
     private ImportDrugRecordDAO importDrugRecordDAO;
+
+    private IDataSyncLogService dataSyncLogService = AppDomainContext.getBean("opbase.dataSyncLogService", IDataSyncLogService.class);
+
 
 
     @Override
@@ -411,6 +418,10 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 if (detail.getStatus().equals(0)){
                     for (SaleDrugList saleDrugList : byOrganIdAndDrugCode) {
                         saleDrugListDAO.remove(saleDrugList);
+                        DataSyncDTO dataSyncDTO = convertDataSyn(saleDrugList, drugsEnterpriseId, 4, null, 3);
+                        List<DataSyncDTO> syncDTOList = Lists.newArrayList();
+                        syncDTOList.add(dataSyncDTO);
+                        dataSyncLogService.addDataSyncLog("2", syncDTOList);
                         LOGGER.info("syncOrganDrugDataToSaleDrugList 删除" + detail.getDrugName() + " 药企Id=[{}] 药企药品=[{}]  机构药品=[{}]", drugsEnterpriseId, JSONUtils.toString(saleDrugList),JSONUtils.toString(detail));
                     }
                     //deleteNum++;
@@ -447,6 +458,10 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                             break;
                     }
                     SaleDrugList update = saleDrugListDAO.update(saleDrugList1);
+                    DataSyncDTO dataSyncDTO = convertDataSyn(update, drugsEnterpriseId, 2, null, 2);
+                    List<DataSyncDTO> syncDTOList = Lists.newArrayList();
+                    syncDTOList.add(dataSyncDTO);
+                    dataSyncLogService.addDataSyncLog("2", syncDTOList);
                     //dataSyncLog(drugsEnterpriseId,update,1,detail);
                     LOGGER.info("syncOrganDrugDataToSaleDrugList 更新 " + update.getDrugName() + " 药企Id=[{}] 药企药品=[{}]  机构药品=[{}]", drugsEnterpriseId, JSONUtils.toString(update),JSONUtils.toString(detail));
                     updateNum++;
@@ -498,6 +513,10 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     saleDrugList.setCreateDt(new Date());
                     saleDrugList.setLastModify(new Date());
                     SaleDrugList save = saleDrugListDAO.save(saleDrugList);
+                    DataSyncDTO dataSyncDTO = convertDataSyn(save, drugsEnterpriseId, 1, null, 1);
+                    List<DataSyncDTO> syncDTOList = Lists.newArrayList();
+                    syncDTOList.add(dataSyncDTO);
+                    dataSyncLogService.addDataSyncLog("2", syncDTOList);
                     //dataSyncLog(drugsEnterpriseId,save,2,detail);
                     LOGGER.info("syncOrganDrugDataToSaleDrugList 新增 " + save.getDrugName() + " 药企Id=[{}] 药企药品=[{}]  机构药品=[{}]", drugsEnterpriseId, JSONUtils.toString(save),JSONUtils.toString(detail));
                     addNum++;
@@ -510,7 +529,37 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         return map;
     }
 
+    public DataSyncDTO convertDataSyn(SaleDrugList drug, Integer organId, Integer status, Exception e,  Integer operType ) {
 
+        DataSyncDTO dataSyncDTO = new DataSyncDTO();
+        dataSyncDTO.setType(2);
+        dataSyncDTO.setOrganId(organId);
+        if (!ObjectUtils.isEmpty(drug)) {
+            Map<String, Object> param = new HashedMap();
+            BeanUtils.map(drug, param);
+            DrugListDAO dao = getDAO(DrugListDAO.class);
+            if (!ObjectUtils.isEmpty(drug.getDrugId())) {
+                DrugList drugList = dao.get(drug.getDrugId());
+                if (!ObjectUtils.isEmpty(drugList)){
+                    param.put("drugType", drugList.getDrugType());
+                    param.put("drugClass", drugList.getDrugClass());
+                    param.put("drugForm", drugList.getDrugForm());
+                    param.put("producer", drugList.getProducer());
+                }
+            }
+            dataSyncDTO.setReqMsg(JSONUtils.toString(param));
+        }
+        dataSyncDTO.setStatus(status);
+        if (e != null) {
+            dataSyncDTO.setRespMsg(e.getMessage());
+        } else {
+            dataSyncDTO.setRespMsg("成功");
+        }
+        dataSyncDTO.setOperType(operType);
+        dataSyncDTO.setSyncTime(new Date());
+
+        return dataSyncDTO;
+    }
 
 
     public long timeDifference(String date) throws ParseException {
@@ -731,6 +780,10 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                             OrganDrugList organDrug = drugMap.get(saleDrugList.getOrganDrugCode());
                             if (ObjectUtils.isEmpty(organDrug)) {
                                 saleDrugListDAO.remove(saleDrugList.getOrganDrugId());
+                                DataSyncDTO dataSyncDTO = convertDataSyn(saleDrugList, drugsEnterpriseId, 4, null, 3);
+                                List<DataSyncDTO> syncDTOList = Lists.newArrayList();
+                                syncDTOList.add(dataSyncDTO);
+                                dataSyncLogService.addDataSyncLog("2", syncDTOList);
                                 deleteNum++;
                             }
                         }
@@ -897,6 +950,10 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     OrganDrugList organDrug = drugMap.get(saleDrugList.getOrganDrugCode());
                     if (ObjectUtils.isEmpty(organDrug)) {
                         saleDrugListDAO.remove(saleDrugList.getOrganDrugId());
+                        DataSyncDTO dataSyncDTO = convertDataSyn(saleDrugList, drugsEnterpriseId, 4, null, 3);
+                        List<DataSyncDTO> syncDTOList = Lists.newArrayList();
+                        syncDTOList.add(dataSyncDTO);
+                        dataSyncLogService.addDataSyncLog("2", syncDTOList);
                         deleteNum++;
                     }
                 }
