@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.patient.mode.PatientQueryRequestTO;
+import com.ngari.intface.WeixinMpService;
 import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.dto.OrganDTO;
@@ -11,6 +12,7 @@ import com.ngari.patient.service.HealthCardService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.PatientDTO;
+import ctd.mvc.weixin.entity.OAuthWeixinMP;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +46,8 @@ public class PatientClient extends BaseClient {
     private IMinkeOrganService minkeOrganService;
     @Autowired
     private HealthCardService healthCardService;
+    @Autowired
+    private WeixinMpService weixinMpService;
 
     /**
      * 获取 脱敏后的 患者对象
@@ -223,11 +227,22 @@ public class PatientClient extends BaseClient {
      * @return 健康卡列表
      */
     public Set<String> findHealthCard(String mpiId){
-        logger.info("HealthCardClient findHealthCard mpiId:{}.", mpiId);
+        logger.info("PatientClient findHealthCard mpiId:{}.", mpiId);
         List<HealthCardDTO> healthCards = healthCardService.findByMpiId(mpiId);
         Set<String> result = healthCards.stream().map(HealthCardDTO::getCardId).collect(Collectors.toSet());
-        logger.info("HealthCardClient findHealthCard result:{}.", JSONUtils.toString(result));
+        logger.info("PatientClient findHealthCard result:{}.", JSONUtils.toString(result));
         return result;
+    }
+
+    /**
+     * 根据用户信息获取所属公众号相关信息
+     * @param urt
+     * @return
+     */
+    public OAuthWeixinMP getOAuthWxByUrt(Integer urt){
+        OAuthWeixinMP oAuthWeixinMP = weixinMpService.getByUrt(urt);
+        logger.info("PatientClient getOpenIdByUrt:{}", JSONUtils.toString(oAuthWeixinMP));
+        return oAuthWeixinMP;
     }
 
 }
