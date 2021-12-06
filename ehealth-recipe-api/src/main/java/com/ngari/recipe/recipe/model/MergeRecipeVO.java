@@ -10,7 +10,7 @@ import java.util.List;
  * @date 2021\5\17 0017 20:20
  */
 @Data
-public class MergeRecipeVO implements Serializable{
+public class MergeRecipeVO implements Serializable {
     private static final long serialVersionUID = 4183151633663146015L;
 
     /**
@@ -18,7 +18,7 @@ public class MergeRecipeVO implements Serializable{
      */
     private String groupField;
 
-    private List<HisRecipeVO> recipe;
+    private List<HisRecipeVONoDS> recipe;
 
     /**
      * 是否合并处方标识

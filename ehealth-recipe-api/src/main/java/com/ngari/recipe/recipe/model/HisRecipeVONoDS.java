@@ -15,7 +15,7 @@ import java.util.List;
  */
 @Schema
 @Data
-public class HisRecipeVO implements Serializable{
+public class HisRecipeVONoDS implements Serializable {
     private static final long serialVersionUID = 1496069628741110154L;
     @ItemProperty(alias = "处方序号")
     private Integer hisRecipeID; // int(11) NOT NULL AUTO_INCREMENT,
@@ -40,7 +40,7 @@ public class HisRecipeVO implements Serializable{
     @ItemProperty(alias = "处方金额")
     private BigDecimal recipeFee; // decimal(10,2) DEFAULT NULL COMMENT '处方金额',
     @ItemProperty(alias = "开方机构序号")
-    private  Integer clinicOrgan; // int(11) DEFAULT NULL COMMENT '开方机构序号',
+    private Integer clinicOrgan; // int(11) DEFAULT NULL COMMENT '开方机构序号',
     @ItemProperty(alias = "机构名称")
     private String organName; // varchar(50) DEFAULT NULL COMMENT '机构名称',
     @ItemProperty(alias = "1西药  2中成药 3 草药")
