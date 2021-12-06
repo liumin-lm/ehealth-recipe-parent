@@ -60,6 +60,9 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.hisservice.EleInvoiceService;
 import recipe.manager.EmrRecipeManager;
 import recipe.service.RecipeExtendService;
@@ -505,7 +508,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setRecipeStatus(recipe.getStatus());
 
             //撤销标记
-            req.setCancelFlag(getVerificationRevokeStatus(recipe));
+            req.setCancelFlag(getVerificationRevokeStatus(recipe, null));
             //核销标记
             req.setVerificationStatus(getVerificationStatus(recipe));
             req.setPayFlag(null == recipe.getPayFlag() ? "" : String.valueOf(recipe.getPayFlag()));
@@ -521,6 +524,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setSignPharmacistCode(recipe.getSignPharmacistCode());
             recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             if (null != recipeOrder) {
+                req.setCancelFlag(getVerificationRevokeStatus(recipe, recipeOrder));
                 //配送方式
                 req.setDeliveryType(null == recipe.getGiveMode() ? "" : recipe.getGiveMode().toString());
                 //配送开始时间
@@ -1097,11 +1101,14 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
      * @param recipe 1正常 2撤销
      * @return
      */
-    private String getVerificationRevokeStatus(Recipe recipe) {
-        if (RecipeStatusConstant.REVOKE == recipe.getStatus() || RecipeStatusConstant.HIS_FAIL == recipe.getStatus() || RecipeStatusConstant.NO_DRUG == recipe.getStatus() || RecipeStatusConstant.NO_PAY == recipe.getStatus() || RecipeStatusConstant.NO_OPERATOR == recipe.getStatus()) {
+    private String getVerificationRevokeStatus(Recipe recipe, RecipeOrder order) {
+        if (null != order && RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType().equals(order.getStatus()) && RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(order.getGiveModeKey())) {
             return "2";
         }
-        if (RecipeStatusConstant.CHECK_PASS_YS == recipe.getStatus() || RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
+        if (RecipeStatusEnum.RECIPE_REVOKE.contains(recipe.getStatus())) {
+            return "2";
+        }
+        if (RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS_YS.getType().equals(recipe.getStatus()) || RecipeStatusEnum.RECIPE_STATUS_CHECK_NOT_PASS_YS.getType().equals(recipe.getStatus())) {
             return "3";//处方审核后上传（包含通过和不通过）
         }
         return "1";

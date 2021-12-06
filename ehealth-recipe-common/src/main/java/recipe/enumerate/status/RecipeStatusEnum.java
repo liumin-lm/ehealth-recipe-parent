@@ -76,6 +76,10 @@ public enum RecipeStatusEnum {
             RECIPE_STATUS_REVOKE.type, RECIPE_STATUS_DELETE.type, RECIPE_STATUS_NO_PAY.type,
             RECIPE_STATUS_NO_OPERATOR.type, RECIPE_STATUS_NO_DRUG.type, RECIPE_STATUS_HIS_FAIL.type, RECIPE_STATUS_SIGN_ERROR_CODE_DOC.type);
 
+    /**
+     * 处方撤销状态判断 9 11  12 13 14
+     */
+    public static final List<Integer> RECIPE_REVOKE = Arrays.asList(RECIPE_STATUS_REVOKE.type, RECIPE_STATUS_HIS_FAIL.type, RECIPE_STATUS_NO_DRUG.type, RECIPE_STATUS_NO_PAY.type, RECIPE_STATUS_NO_OPERATOR.type);
 
     RecipeStatusEnum(Integer type, String name, String desc) {
         this.type = type;
