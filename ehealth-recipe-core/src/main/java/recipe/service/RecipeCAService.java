@@ -54,7 +54,7 @@ import recipe.caNew.CaAfterProcessType;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.constant.CARecipeTypeConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.core.api.patient.IDrugEnterpriseBusinessService;
+import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.manager.EmrRecipeManager;
 import recipe.service.common.RecipeSignService;
@@ -105,7 +105,7 @@ public class RecipeCAService {
     private CreatePdfFactory createPdfFactory;
 
     @Resource
-    private IDrugEnterpriseBusinessService drugEnterpriseBusinessService;
+    private IStockBusinessService drugEnterpriseBusinessService;
 
     @RpcService
     public CommonSignRequest packageCAFromRecipe(Integer recipeId, Integer doctorId, Boolean isDoctor) {

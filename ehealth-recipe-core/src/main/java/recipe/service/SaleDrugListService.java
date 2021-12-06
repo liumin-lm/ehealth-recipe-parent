@@ -103,7 +103,7 @@ public class SaleDrugListService implements ISaleDrugListService {
         if (drugList == null){
             drugList = new DrugList();
         }
-        saleDrugList.setOrganDrugCode(saleDrugList.getSaleDrugCode());
+        saleDrugList.setSaleDrugCode(saleDrugList.getOrganDrugCode());
 
         //验证药品必要信息
         validateSaleDrugList(saleDrugList);
@@ -142,7 +142,7 @@ public class SaleDrugListService implements ISaleDrugListService {
             Integer newStatus = saleDrugList.getStatus();
             BeanUtils.map(saleDrugList, target);
             validateSaleDrugList(target);
-            target.setOrganDrugCode(target.getSaleDrugCode());
+            target.setSaleDrugCode(saleDrugList.getOrganDrugCode());
             target.setLastModify(new Date());
             target = saleDrugListDAO.update(target);
             DrugList drugList = drugListDAO.get(saleDrugList.getDrugId());

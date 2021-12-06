@@ -117,7 +117,7 @@ import recipe.common.CommonConstant;
 import recipe.common.OnsConfig;
 import recipe.common.response.CommonResponse;
 import recipe.constant.*;
-import recipe.core.api.patient.IDrugEnterpriseBusinessService;
+import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugTool.service.DrugToolService;
@@ -242,7 +242,7 @@ public class RecipeService extends RecipeBaseService {
     @Autowired
     private IConfigurationClient configurationClient;
     @Autowired
-    private IDrugEnterpriseBusinessService drugEnterpriseBusinessService;
+    private IStockBusinessService drugEnterpriseBusinessService;
     @Autowired
     private RemoteRecipeService remoteRecipeService;
 
@@ -2995,7 +2995,7 @@ public class RecipeService extends RecipeBaseService {
                 request.setDrcode(Lists.newArrayList());
                 try {
                     responseTO = recipeHisService.queryOrganDrugInfo(request);
-                    //LOGGER.info("drugInfoSynMovement response={}", JSONUtils.toString(responseTO));
+                    LOGGER.info("drugInfoSynMovement request={}", JSONUtils.toString(request));
                 } catch (Exception e) {
                     LOGGER.error("drugInfoSynMovement error{} ", e);
                 }
@@ -3155,7 +3155,7 @@ public class RecipeService extends RecipeBaseService {
                 }
                 redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
                 redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
-                drugInfoSynTaskExt(organId);
+                //drugInfoSynTaskExt(organId);
                 long elapsedTime = System.currentTimeMillis() - start;
                 LOGGER.info("RecipeBusiThreadPool drugInfoSynMovementExt ES-推送药品 执行时间:{}.", elapsedTime);
             }
@@ -3287,7 +3287,7 @@ public class RecipeService extends RecipeBaseService {
         request.setDrcode(Lists.newArrayList());
         try {
             responseTO = recipeHisService.queryOrganDrugInfo(request);
-            //LOGGER.info("drugInfoSynMovement response={}", JSONUtils.toString(responseTO));
+            LOGGER.info("drugInfoSynMovement request={}", JSONUtils.toString(request));
         } catch (Exception e) {
             LOGGER.error("drugInfoSynMovement error{} ", e);
         }
@@ -3434,7 +3434,7 @@ public class RecipeService extends RecipeBaseService {
         }
         redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
         redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
-        drugInfoSynTaskExt(organId);
+        //drugInfoSynTaskExt(organId);
         return map;
     }
 

@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author liumin
  */
 @Service
-public class RecipeItemBusinessService extends BaseService implements ITherapyItemBusinessService {
+public class TherapyItemBusinessService extends BaseService implements ITherapyItemBusinessService {
 
     public final String ITEM_NAME = "itemName";
     public final String ITEM_CODE = "itemCode";
