@@ -1798,11 +1798,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         //医保、自费金额
                         if (preSettleTotalAmount == null || preSettleTotalAmount == 0) {
                             vo.setSettlementType("1");
-                            vo.setPersonAmount(BigDecimal.valueOf(actualPrice));
+                            vo.setPersonAmount(actualPrice == null ? null : BigDecimal.valueOf(actualPrice));
                         } else {
-                            vo.setMedAmount(BigDecimal.valueOf(fundAmount));
-                            vo.setPersonAmount(BigDecimal.valueOf(cashAmount));
-                            vo.setTotalAmount(BigDecimal.valueOf(preSettleTotalAmount));
+                            vo.setPersonAmount(cashAmount == null ? null : BigDecimal.valueOf(cashAmount));
+                            vo.setTotalAmount(preSettleTotalAmount == null ? null : BigDecimal.valueOf(preSettleTotalAmount));
                             //如果医保金额为0或者null,则全自费  如果自费金额为0或者null,则全医保  否则部分医保部分自费
                             if (fundAmount == null || fundAmount == 0) {
                                 vo.setSettlementType("1");
@@ -1828,8 +1827,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     private StringBuilder findSqlForfindByPayTimeAndOrganIdAndPayOrganId(String billDate, Integer organId, String payOrganId) {
         StringBuilder hql = new StringBuilder();
-        hql.append("select a.* from ( ");
-        hql.append(" select r.recipeId, o.OutTradeNo,o.tradeNo,o.totalfee,o.payTime");
+        hql.append("select distinct a.* from ( ");
+        hql.append(" select o.orderId, o.OutTradeNo,o.tradeNo,o.totalfee,o.payTime");
         hql.append(" ,r.patientID,r.patientName,r.mpiid,r.clinicorgan, o.payOrganId");
         hql.append(" ,o.wxPayWay , 1 tradeStatus,0 refundAmount,'' refundBatchNo,null refundDate ");
         hql.append(" ,o.actualPrice,o.preSettleTotalAmount,o.fundAmount,o.cashAmount");
@@ -1842,7 +1841,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             hql.append(" and  o.payOrganId =:payOrganId");
         }
         hql.append(" UNION ALL ");
-        hql.append(" select r.recipeId, o.OutTradeNo,o.tradeNo,o.totalfee,o.payTime");
+        hql.append(" select o.orderId, o.OutTradeNo,o.tradeNo,o.totalfee,o.payTime");
         hql.append(" ,r.patientID,r.patientName,r.mpiid,r.clinicorgan, o.payOrganId");
         hql.append(" ,o.wxPayWay , 2 tradeStatus,o.actualPrice refundAmount,o.OutTradeNo refundBatchNo, o.refundTime refundDate ");
         hql.append(" ,o.actualPrice,o.preSettleTotalAmount,o.fundAmount,o.cashAmount");

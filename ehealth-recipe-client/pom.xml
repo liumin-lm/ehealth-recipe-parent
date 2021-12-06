@@ -27,6 +27,10 @@
         </dependency>
         <dependency>
             <groupId>ngari</groupId>
+            <artifactId>ehealth-weixin-service-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
             <artifactId>ehealth-jgpt-api</artifactId>
         </dependency>
         <dependency>

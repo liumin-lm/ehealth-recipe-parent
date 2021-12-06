@@ -81,12 +81,15 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.DepartClient;
+import recipe.client.RefundClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.AldyfRemoteService;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.PayBusTypeEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.*;
@@ -111,7 +114,7 @@ import java.util.stream.Collectors;
  */
 @Service
 public class RecipeServiceSub {
-
+    private static final RefundClient refundClient = AppContextHolder.getBean("refundClient", RefundClient.class);
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeServiceSub.class);
 
     private static final String UNSIGN = "unsign";
@@ -2785,7 +2788,11 @@ public class RecipeServiceSub {
         if (recipe.getStatus() == RecipeStatusConstant.HIS_FAIL || recipe.getStatus() == RecipeStatusConstant.NO_DRUG || recipe.getStatus() == RecipeStatusConstant.NO_PAY || recipe.getStatus() == RecipeStatusConstant.NO_OPERATOR) {
             msg = "该处方单已取消，不能进行撤销操作";
         }
-        if (Integer.valueOf(1).equals(recipe.getChooseFlag())) {
+        boolean cancelFlag = false;
+        if (null != order && RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType().equals(order.getStatus()) && RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(order.getGiveModeKey())) {
+            cancelFlag = true;
+        }
+        if (!cancelFlag && Integer.valueOf(1).equals(recipe.getChooseFlag())) {
             msg = "患者已选择购药方式，不能进行撤销操作";
         }
         if (1 == flag) {
@@ -2888,11 +2895,14 @@ public class RecipeServiceSub {
                 memo = new StringBuilder("无");
             }
         }
+        if (null != order && order.getActualPrice() > 0) {
+            refundClient.refund(order.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
+        }
         //记录日志
         RecipeLogService.saveRecipeLog(recipeId, beforeStatus, RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), memo.toString());
         rMap.put("result", true);
         rMap.put("msg", msg);
-        LOGGER.info("cancelRecipe execute ok rMap:{}， result:{}", JSONUtils.toString(rMap), memo.toString());
+        LOGGER.info("cancelRecipe execute ok rMap:{}， result:{}", JSONUtils.toString(rMap), memo);
         return rMap;
     }
 

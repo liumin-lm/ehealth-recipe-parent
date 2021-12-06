@@ -15,7 +15,7 @@ import org.springframework.stereotype.Service;
 import recipe.client.DrugStockClient;
 import recipe.client.OperationClient;
 import recipe.constant.ErrorCode;
-import recipe.core.api.patient.IDrugEnterpriseBusinessService;
+import recipe.core.api.IStockBusinessService;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
@@ -42,7 +42,7 @@ import java.util.stream.Collectors;
  * @author fuzi
  */
 @Service
-public class DrugEnterpriseBusinessService extends BaseService implements IDrugEnterpriseBusinessService {
+public class StockBusinessService extends BaseService implements IStockBusinessService {
     @Autowired
     private ButtonManager buttonManager;
     @Autowired
@@ -199,6 +199,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         }
         return this.enterpriseStockCheck(organId, recipeDetails, enterpriseStockList);
     }
+
 
     /**
      * 校验 药品库存 指定药企的库存数量
@@ -361,6 +362,7 @@ public class DrugEnterpriseBusinessService extends BaseService implements IDrugE
         logger.info("DrugEnterpriseBusinessService getEnterpriseStockVO organStock = {} enterpriseStock={}", JSON.toJSONString(organStock), JSON.toJSONString(enterpriseStock));
         List<EnterpriseStockVO> enterpriseStockList = new LinkedList<>();
         if (null != organStock) {
+            organStock.setDeliveryName("医院库存");
             enterpriseStock.add(organStock);
         }
         enterpriseStock.forEach(a -> {

@@ -47,7 +47,7 @@ import recipe.constant.ErrorCode;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.core.api.patient.IDrugEnterpriseBusinessService;
+import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.type.EnterpriseCreateTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
@@ -99,7 +99,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
     @Autowired
     private RecipeParameterDao recipeParameterDao;
     @Resource
-    private IDrugEnterpriseBusinessService drugEnterpriseBusinessService;
+    private IStockBusinessService drugEnterpriseBusinessService;
     @Resource
     private DrugStockClient drugStockClient;
 

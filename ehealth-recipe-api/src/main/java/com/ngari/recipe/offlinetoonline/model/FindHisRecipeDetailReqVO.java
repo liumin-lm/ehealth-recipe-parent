@@ -45,6 +45,12 @@ public class FindHisRecipeDetailReqVO implements Serializable {
      */
     private String status;
 
+    /**
+     * timeQuantum 时间段  1 代表一个月  3 代表三个月 6 代表6个月
+     * 23 代表3天
+     */
+    private Integer timeQuantum;
+
     public FindHisRecipeDetailReqVO(Integer organId, String mpiId, Integer hisRecipeId, String recipeCode, String cardId, String status) {
         this.organId = organId;
         this.mpiId = mpiId;
@@ -52,6 +58,16 @@ public class FindHisRecipeDetailReqVO implements Serializable {
         this.recipeCode = recipeCode;
         this.cardId = cardId;
         this.status = status;
+    }
+
+    public FindHisRecipeDetailReqVO(Integer organId, String mpiId, Integer hisRecipeId, String recipeCode, String cardId, String status, Integer timeQuantum) {
+        this.organId = organId;
+        this.mpiId = mpiId;
+        this.hisRecipeId = hisRecipeId;
+        this.recipeCode = recipeCode;
+        this.cardId = cardId;
+        this.status = status;
+        this.timeQuantum = timeQuantum;
     }
 
     public FindHisRecipeDetailReqVO() {
