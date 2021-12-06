@@ -42,7 +42,10 @@ import recipe.dao.RecipeExtendDAO;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.factory.offlinetoonline.IOfflineToOnlineStrategy;
 import recipe.factory.offlinetoonline.OfflineToOnlineFactory;
-import recipe.manager.*;
+import recipe.manager.HisRecipeManager;
+import recipe.manager.PharmacyManager;
+import recipe.manager.RecipeManager;
+import recipe.manager.RecipeTherapyManager;
 import recipe.service.RecipeLogService;
 import recipe.util.MapValueUtil;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
@@ -80,8 +83,6 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     protected RecipeManager recipeManager;
     @Autowired
     private RecipeTherapyManager recipeTherapyManager;
-    @Autowired
-    private EmrRecipeManager emrRecipeManager;
     @Autowired
     private PharmacyManager pharmacyManager;
 
@@ -192,6 +193,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
                 }
             }
         }
+        request.setTimeQuantum(6);
         logger.info("OfflineToOnlineService obtainFindHisRecipeDetailParam req:{}", JSONUtils.toString(request));
         return request;
     }
@@ -245,7 +247,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             } catch (Exception e) {
                 logger.info("getOffLineRecipeDetails recipeFlag 设置错误");
             }
-               
+
             //设置监护人字段
             if (!ObjectUtils.isEmpty(patient)) {
                 offLineRecipeDetailDTO.setGuardianName(patient.getGuardianName());

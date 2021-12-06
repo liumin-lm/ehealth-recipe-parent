@@ -29,6 +29,7 @@ public class FindHisRecipeListVO implements Serializable {
 
     /**
      * timeQuantum 时间段  1 代表一个月  3 代表三个月 6 代表6个月
+     * 23 代表3天
      */
     private Integer timeQuantum;
 

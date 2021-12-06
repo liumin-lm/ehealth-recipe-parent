@@ -3155,7 +3155,7 @@ public class RecipeService extends RecipeBaseService {
                 }
                 redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
                 redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
-                drugInfoSynTaskExt(organId);
+                //drugInfoSynTaskExt(organId);
                 long elapsedTime = System.currentTimeMillis() - start;
                 LOGGER.info("RecipeBusiThreadPool drugInfoSynMovementExt ES-推送药品 执行时间:{}.", elapsedTime);
             }
@@ -3434,7 +3434,7 @@ public class RecipeService extends RecipeBaseService {
         }
         redisClient.del(KEY_THE_DRUG_SYNC + organId.toString());
         redisClient.set(KEY_THE_DRUG_SYNC + organId.toString(), map);
-        drugInfoSynTaskExt(organId);
+        //drugInfoSynTaskExt(organId);
         return map;
     }
 
