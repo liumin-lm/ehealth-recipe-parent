@@ -1,8 +1,13 @@
 package recipe.dao;
 
 import com.google.common.collect.Maps;
+import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.SaleDrugList;
+import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.bean.QueryResult;
@@ -285,6 +290,15 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         if (!StringUtils.isEmpty(drugClass)) {
                             hql.append(" and d.drugClass like :drugClass");
                         }
+                        List<Integer> listOrgan = new ArrayList<>();
+                        DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                        DrugsEnterprise drugsEnterprise = dao.get(organId);
+                        if (!ObjectUtils.isEmpty(drugsEnterprise.getOrganId())){
+                            OrganDTO byOrganId = BasicAPI.getService(OrganService.class).getByOrganId(drugsEnterprise.getOrganId());
+                            listOrgan = BasicAPI.getService(OrganService.class).queryOrganByManageUnitList(byOrganId.getManageUnit(), listOrgan);
+//                        hql.append(" and ( d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
+                            hql.append(" and ( d.sourceOrgan=0 or d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
+                        }
 
                         if (!ObjectUtils.isEmpty(type)) {
                             hql.append(" and d.drugType =:drugType");
@@ -321,6 +335,9 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         if (!StringUtils.isEmpty(drugClass)) {
                             countQuery.setParameter("drugClass", drugClass + "%");
                         }
+                        if (!ObjectUtils.isEmpty(drugsEnterprise.getOrganId())){
+                            countQuery.setParameterList("organIds",listOrgan);
+                        }
                         if (!ObjectUtils.isEmpty(type)) {
                             countQuery.setParameter("drugType", type);
                         }
@@ -343,6 +360,9 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         Query query = ss.createQuery("select d " + hql.toString());
                         if (!StringUtils.isEmpty(drugClass)) {
                             query.setParameter("drugClass", drugClass + "%");
+                        }
+                        if (!ObjectUtils.isEmpty(drugsEnterprise.getOrganId())){
+                            query.setParameterList("organIds",listOrgan);
                         }
                         if (ObjectUtils.nullSafeEquals(status, 0)
                                 || ObjectUtils.nullSafeEquals(status, 1)
