@@ -5,13 +5,17 @@ import com.google.common.collect.Lists;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.jgpt.zjs.service.IMinkeOrganService;
+import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.service.HealthCardService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.PatientDTO;
 import ctd.persistence.exception.DAOException;
+import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import recipe.util.ChinaIDNumberUtil;
@@ -22,6 +26,7 @@ import javax.annotation.Resource;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -37,6 +42,8 @@ public class PatientClient extends BaseClient {
     private OrganService organService;
     @Resource
     private IMinkeOrganService minkeOrganService;
+    @Autowired
+    private HealthCardService healthCardService;
 
     /**
      * 获取 脱敏后的 患者对象
@@ -208,6 +215,19 @@ public class PatientClient extends BaseClient {
         p.setIdcard2(null);
         p.setPhoto(null == p.getPhoto() ? "" : p.getPhoto());
         return p;
+    }
+
+    /**
+     * 获取健康卡
+     * @param mpiId 患者唯一号
+     * @return 健康卡列表
+     */
+    public Set<String> findHealthCard(String mpiId){
+        logger.info("HealthCardClient findHealthCard mpiId:{}.", mpiId);
+        List<HealthCardDTO> healthCards = healthCardService.findByMpiId(mpiId);
+        Set<String> result = healthCards.stream().map(HealthCardDTO::getCardId).collect(Collectors.toSet());
+        logger.info("HealthCardClient findHealthCard result:{}.", JSONUtils.toString(result));
+        return result;
     }
 
 }
