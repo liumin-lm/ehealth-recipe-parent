@@ -19,6 +19,7 @@ import com.ngari.recipe.drug.model.UpDownDrugBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.DrugListForThreeBean;
+import com.ngari.recipe.recipe.model.RecipeAndOrderDetailBeanNoDs;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
