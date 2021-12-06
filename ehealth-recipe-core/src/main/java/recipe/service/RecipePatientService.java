@@ -42,7 +42,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
-import recipe.client.HealthCardClient;
 import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
 import recipe.constant.*;
@@ -84,9 +83,6 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
 
     @Autowired
     private PatientClient patientClient;
-
-    @Autowired
-    private HealthCardClient healthCardClient;
 
     @Autowired
     private RevisitClient revisitClient;
@@ -720,7 +716,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         if (!new Integer(1).equals(patientDTO.getAuthStatus())) {
             return CheckPatientEnum.CHECK_PATIENT_NOAUTH.getType();
         }
-        Collection result = healthCardClient.findHealthCard(outPatientReqVO.getMpiId());
+        Collection result = patientClient.findHealthCard(outPatientReqVO.getMpiId());
         if (null == result || (StringUtils.isNotEmpty(outPatientReqVO.getCardID()) && !result.contains(outPatientReqVO.getCardID()))) {
             return CheckPatientEnum.CHECK_PATIENT_CARDDEL.getType();
         }
