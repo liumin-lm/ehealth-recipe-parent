@@ -170,7 +170,7 @@ public class BaseOfflineToOnlineService {
         hisRecipeManager.deleteRecipeByRecipeCodes(request.getOrganId(), request.getRecipeCode());
         request.getRecipeCode().forEach(recipeCode -> {
             // 2、线下转线上
-            FindHisRecipeDetailReqVO findHisRecipeDetailReqVO = getFindHisRecipeDetailParam(request.getMpiId(), recipeCode, request.getOrganId(), request.getCardId());
+            FindHisRecipeDetailReqVO findHisRecipeDetailReqVO = getFindHisRecipeDetailParam(request.getMpiId(), recipeCode, request.getOrganId(), request.getCardId(), 23);
             IOfflineToOnlineStrategy iOfflineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getName());
             FindHisRecipeDetailResVO findHisRecipeDetailResVO = iOfflineToOnlineStrategy.findHisRecipeDetail(findHisRecipeDetailReqVO);
             if (findHisRecipeDetailResVO != null) {
@@ -206,7 +206,7 @@ public class BaseOfflineToOnlineService {
      * @param cardId     卡号
      * @return
      */
-    private FindHisRecipeDetailReqVO getFindHisRecipeDetailParam(String mpiId, String recipeCode, String organId, String cardId) {
+    private FindHisRecipeDetailReqVO getFindHisRecipeDetailParam(String mpiId, String recipeCode, String organId, String cardId, Integer timeQuantum) {
         LOGGER.info("BaseOfflineToOnlineService getFindHisRecipeDetailParam mpiId:{},recipeCode:{},organId:{},cardId:{}", mpiId, recipeCode, organId, cardId);
         FindHisRecipeDetailReqVO findHisRecipeDetailReqVO;
         findHisRecipeDetailReqVO = FindHisRecipeDetailReqVO.builder()
@@ -214,6 +214,7 @@ public class BaseOfflineToOnlineService {
                 .recipeCode(recipeCode)
                 .organId(Integer.parseInt(organId))
                 .cardId(cardId)
+                .timeQuantum(timeQuantum)
                 .build();
         LOGGER.info("BaseOfflineToOnlineService getFindHisRecipeDetailParam res:{}", findHisRecipeDetailReqVO);
         return findHisRecipeDetailReqVO;
