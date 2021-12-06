@@ -19,6 +19,7 @@ import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.RecipeOrderPayFlow;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.dictionary.DictionaryController;
+import ctd.mvc.weixin.entity.OAuthWeixinMP;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import eh.utils.BeanCopyUtils;
@@ -198,6 +199,10 @@ public class OrderManager extends BaseManager {
         patientBaseInfo.setMpi(recipe.getRequestMpiId());
         patientBaseInfo.setTid(enterpriseClient.getSimpleWxAccount().getTid());
         req.setPatient(patientBaseInfo);
+        OAuthWeixinMP oAuthWeixinMP = patientClient.getOAuthWxByUrt(recipe.getRequestUrt());
+        if (null != oAuthWeixinMP) {
+            req.setOpenId(oAuthWeixinMP.getOpenId());
+        }
         try {
             RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
             if (revisitExDTO != null && StringUtils.isNotEmpty(revisitExDTO.getProjectChannel())) {

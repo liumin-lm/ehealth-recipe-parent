@@ -258,6 +258,11 @@
             </dependency>
             <dependency>
                 <groupId>ngari</groupId>
+                <artifactId>ehealth-weixin-service-api</artifactId>
+                <version>${ngari.weixin.service.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>ngari</groupId>
                 <artifactId>ehealth-infra-api</artifactId>
                 <version>${ngari.infra.version}</version>
             </dependency>
