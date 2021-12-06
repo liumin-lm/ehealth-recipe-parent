@@ -362,6 +362,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         logger.info("DrugEnterpriseBusinessService getEnterpriseStockVO organStock = {} enterpriseStock={}", JSON.toJSONString(organStock), JSON.toJSONString(enterpriseStock));
         List<EnterpriseStockVO> enterpriseStockList = new LinkedList<>();
         if (null != organStock) {
+            organStock.setDeliveryName("医院库存");
             enterpriseStock.add(organStock);
         }
         enterpriseStock.forEach(a -> {
