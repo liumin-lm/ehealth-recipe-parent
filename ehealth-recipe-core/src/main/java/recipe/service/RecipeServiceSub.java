@@ -2895,7 +2895,7 @@ public class RecipeServiceSub {
                 memo = new StringBuilder("无");
             }
         }
-        if (null != order) {
+        if (null != order && order.getActualPrice() > 0) {
             refundClient.refund(order.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
         }
         //记录日志
