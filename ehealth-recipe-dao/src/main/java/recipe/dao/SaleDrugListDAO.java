@@ -298,6 +298,8 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                             listOrgan = BasicAPI.getService(OrganService.class).queryOrganByManageUnitList(byOrganId.getManageUnit(), listOrgan);
 //                        hql.append(" and ( d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
                             hql.append(" and ( d.sourceOrgan=0 or d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
+                        }else {
+                            hql.append(" and ( d.sourceOrgan=0 or d.sourceOrgan is null  ) ");
                         }
 
                         if (!ObjectUtils.isEmpty(type)) {
