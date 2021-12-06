@@ -25,7 +25,7 @@ public class RecipeCheckPassResult {
     private String recipeCode;
 
     /**
-     * 病人医院病历号
+     * 患者ID
      */
     private String patientID;
 
@@ -68,6 +68,11 @@ public class RecipeCheckPassResult {
      * 诊断序号
      */
     private String hisDiseaseSerial;
+
+    /**
+     * 病历号
+     * */
+    private String medicalRecordNumber;
 
     public String getHisDiseaseSerial() {
         return hisDiseaseSerial;
@@ -156,5 +161,13 @@ public class RecipeCheckPassResult {
 
     public void setMedicalTypeText(String medicalTypeText) {
         this.medicalTypeText = medicalTypeText;
+    }
+
+    public String getMedicalRecordNumber() {
+        return medicalRecordNumber;
+    }
+
+    public void setMedicalRecordNumber(String medicalRecordNumber) {
+        this.medicalRecordNumber = medicalRecordNumber;
     }
 }

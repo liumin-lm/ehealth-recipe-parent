@@ -106,6 +106,9 @@ public class HisCallBackService {
         if (StringUtils.isNotEmpty(result.getHisDiseaseSerial())) {
             recipeExtUpdateDataMap.put("hisDiseaseSerial", result.getHisDiseaseSerial());
         }
+        if (StringUtils.isNotEmpty(result.getMedicalRecordNumber())) {
+            recipeExtUpdateDataMap.put("medicalRecordNumber", result.getMedicalRecordNumber());
+        }
         //处方总金额， 外带药处方不做处理
         if (!Integer.valueOf(1).equals(recipe.getTakeMedicine()) && null != result.getTotalMoney()) {
             List<Recipedetail> recipedetailList = detailDAO.findByRecipeId(result.getRecipeId());

@@ -109,6 +109,11 @@ public class OrderRepTO implements Serializable {
      */
     private String hisDiseaseSerial;
 
+    /**
+     * 病历号
+     */
+    private String medicalRecordNumber;
+
     public String getHisDiseaseSerial() {
         return hisDiseaseSerial;
     }
@@ -275,5 +280,13 @@ public class OrderRepTO implements Serializable {
 
     public void setPack(Integer pack) {
         this.pack = pack;
+    }
+
+    public String getMedicalRecordNumber() {
+        return medicalRecordNumber;
+    }
+
+    public void setMedicalRecordNumber(String medicalRecordNumber) {
+        this.medicalRecordNumber = medicalRecordNumber;
     }
 }

@@ -280,6 +280,11 @@ public class RecipeManager extends BaseManager {
                         qrName = recipe.getPatientID();
                     }
                     break;
+                case MEDICAL_RECORD_NUMBER:
+                    //病历号
+                    if (StringUtils.isNotEmpty(recipeExtend.getMedicalRecordNumber())) {
+                        qrName = recipeExtend.getMedicalRecordNumber();
+                    }
                 case RECIPE_CODE:
                     if (StringUtils.isNotEmpty(recipe.getRecipeCode())) {
                         qrName = recipe.getRecipeCode();
