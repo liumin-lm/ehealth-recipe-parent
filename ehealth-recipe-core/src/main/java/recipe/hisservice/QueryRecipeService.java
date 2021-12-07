@@ -196,27 +196,6 @@ public class QueryRecipeService implements IQueryRecipeService {
         return result;
     }
 
-    @Override
-    @RpcService
-    public List<RegulationRecipeIndicatorsDTO> queryRegulationRecipeDataForSH(Integer organId, Date startDate, Date endDate, Boolean updateFlag) {
-        updateFlag = updateFlag == null ? Boolean.TRUE : updateFlag;
-
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        String start = DateConversion.formatDateTimeWithSec(startDate);
-        String end = DateConversion.formatDateTimeWithSec(endDate);
-        List<Recipe> recipeList = recipeDAO.findSyncRecipeListByOrganIdForSH(organId, start, end, updateFlag);
-        if (CollectionUtils.isEmpty(recipeList)) {
-            return new ArrayList<>();
-        }
-        HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
-        List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
-        LOGGER.info("queryRegulationRecipeDataForSH start:organId={},startDate={},endDate={},updateFlag={}", organId, startDate, endDate, updateFlag);
-        service.splicingBackRecipeData(recipeList, request);
-        List<RegulationRecipeIndicatorsDTO> result = ObjectCopyUtils.convert(request, RegulationRecipeIndicatorsDTO.class);
-        LOGGER.info("queryRegulationRecipeDataForSH data={}", JSONUtils.toString(result));
-        return result;
-    }
-
     /**
      * 拼接处方返回信息数据
      *
