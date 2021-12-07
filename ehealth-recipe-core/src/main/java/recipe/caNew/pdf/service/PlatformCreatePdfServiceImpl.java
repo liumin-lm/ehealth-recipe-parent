@@ -198,13 +198,17 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
             recipeCode.setValue(recipe.getRecipeCode());
             coOrdinateList.add(recipeCode);
         }
-        //病历号
-        CoOrdinateVO medicalRecordNumber = redisManager.getPdfCoordsHeight(recipeId, "recipeExtend.medicalRecordNumber");
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        if (null != medicalRecordNumber) {
-            medicalRecordNumber.setValue(recipeExtend.getMedicalRecordNumber());
-            coOrdinateList.add(medicalRecordNumber);
+        try{
+            //病历号
+            CoOrdinateVO medicalRecordNumber = redisManager.getPdfCoordsHeight(recipeId, "recipeExtend.medicalRecordNumber");
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            if (null != medicalRecordNumber) {
+                medicalRecordNumber.setValue(recipeExtend.getMedicalRecordNumber());
+                coOrdinateList.add(medicalRecordNumber);
+            }
+        }catch (Exception e){
+            logger.error("medicalRecordNumber error", e);
         }
         //条形码
         CoOrdinateVO ordinate = barcodeVO(recipe);
