@@ -160,6 +160,9 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "处方标识 0:普通处方 1:儿童处方")
     private Integer recipeFlag;
 
+    @ItemProperty(alias = "病历号")
+    private String medicalRecordNumber;
+
     @Column(name = "appoint_enterprise_type")
     public Integer getAppointEnterpriseType() {
         return appointEnterpriseType;
@@ -776,5 +779,14 @@ public class RecipeExtend implements Serializable {
 
     public void setRecipeFlag(Integer recipeFlag) {
         this.recipeFlag = recipeFlag;
+    }
+
+    @Column(name = "medical_record_number")
+    public String getMedicalRecordNumber() {
+        return medicalRecordNumber;
+    }
+
+    public void setMedicalRecordNumber(String medicalRecordNumber) {
+        this.medicalRecordNumber = medicalRecordNumber;
     }
 }

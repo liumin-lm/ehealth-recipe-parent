@@ -19,7 +19,7 @@ import com.ngari.recipe.drug.model.UpDownDrugBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.DrugListForThreeBean;
-import com.ngari.recipe.recipe.model.RecipeAndOrderDetailBean;
+import com.ngari.recipe.recipe.model.RecipeAndOrderDetailBeanNoDs;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
@@ -1634,6 +1634,13 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         return result;
     }
 
+    /**
+     * 下载处方
+     * 返回了收货人手机号，收货人地址，第三方要用到，不需要做脱敏处理
+     *
+     * @param parames
+     * @return
+     */
     @RpcService
     public StandardResultDTO downLoadRecipes(Map<String, Object> parames) {
         StandardResultDTO standardResult = new StandardResultDTO();
@@ -1679,9 +1686,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             LOGGER.error("ThirdEnterpriseCallService.downLoadRecipes recipeOrders:{} error : {}.", JSONUtils.toString(recipeOrders), e.getMessage(), e);
         }
 
-        List<RecipeAndOrderDetailBean> result = new ArrayList<>();
+        List<RecipeAndOrderDetailBeanNoDs> result = new ArrayList<>();
         for (RecipeOrder recipeOrder : recipeOrders) {
-            RecipeAndOrderDetailBean orderDetailBean = new RecipeAndOrderDetailBean();
+            RecipeAndOrderDetailBeanNoDs orderDetailBean = new RecipeAndOrderDetailBeanNoDs();
             String orderCode = recipeOrder.getOrderCode();
             List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(orderCode);
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipes:{} .", JSONUtils.toString(recipes));

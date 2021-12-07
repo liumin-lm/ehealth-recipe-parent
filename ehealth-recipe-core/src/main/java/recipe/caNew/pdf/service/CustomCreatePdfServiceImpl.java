@@ -14,6 +14,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
+import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import lombok.Cleanup;
 import org.apache.commons.lang3.StringUtils;
@@ -224,6 +225,19 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             recipeCode.setValue(recipe.getRecipeCode());
             coOrdinateList.add(recipeCode);
         }
+        try{
+            //病历号
+            CoOrdinateVO medicalRecordNumber = redisManager.getPdfCoords(recipeId, "recipeExtend.medicalRecordNumber");
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            if (null != medicalRecordNumber) {
+                medicalRecordNumber.setValue(recipeExtend.getMedicalRecordNumber());
+                coOrdinateList.add(medicalRecordNumber);
+            }
+        }catch (Exception e){
+            logger.error("medicalRecordNumber error", e);
+        }
+
         CoOrdinateVO barcode = redisManager.getPdfCoords(recipe.getRecipeId(), OP_BARCODE_ALL);
         if (null != barcode) {
             barcode.setValue(barcode(recipe));

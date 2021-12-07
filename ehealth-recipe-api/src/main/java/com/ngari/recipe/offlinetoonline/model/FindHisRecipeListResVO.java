@@ -1,6 +1,6 @@
 package com.ngari.recipe.offlinetoonline.model;
 
-import com.ngari.recipe.recipe.model.HisRecipeVO;
+import com.ngari.recipe.recipe.model.HisRecipeVONoDS;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -11,7 +11,7 @@ import java.util.List;
  * @date 2021\6\30
  */
 @Data
-public class FindHisRecipeListResVO  implements Serializable{
+public class FindHisRecipeListResVO implements Serializable {
     private static final long serialVersionUID = 4183151633663146015L;
 
     /**
@@ -19,7 +19,7 @@ public class FindHisRecipeListResVO  implements Serializable{
      */
     private String groupField;
 
-    private List<HisRecipeVO> recipe;
+    private List<HisRecipeVONoDS> recipe;
 
     /**
      * 是否合并处方标识

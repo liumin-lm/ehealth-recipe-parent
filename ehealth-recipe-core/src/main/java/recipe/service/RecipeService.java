@@ -3470,36 +3470,40 @@ public class RecipeService extends RecipeBaseService {
         Long updateNum = 0L;
 
         for (int oid : organIds) {
-            //获取纳里机构药品目录
-            List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(oid);
-            if (CollectionUtils.isEmpty(details)) {
-                LOGGER.info("drugInfoSynTask 当前医院organId=[{}]，平台没有匹配到机构药品.", oid);
-                continue;
-            }
-            Map<String, OrganDrugList> drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
-            //查询起始下标
-            int startIndex = 0;
-            boolean finishFlag = true;
-            long total = organDrugListDAO.getTotal(oid);
-            while (finishFlag) {
-                List<DrugInfoTO> drugInfoList = hisService.getDrugInfoFromHis(oid, false, startIndex);
-                if (!CollectionUtils.isEmpty(drugInfoList)) {
-                    //是否有效标志 1-有效 0-无效
-                    for (DrugInfoTO drug : drugInfoList) {
-                        OrganDrugList organDrug = drugMap.get(drug.getDrcode());
-                        if (null == organDrug) {
-                            continue;
+            try {
+                //获取纳里机构药品目录
+                List<OrganDrugList> details = organDrugListDAO.findOrganDrugByOrganId(oid);
+                if (CollectionUtils.isEmpty(details)) {
+                    LOGGER.info("drugInfoSynTask 当前医院organId=[{}]，平台没有匹配到机构药品.", oid);
+                    continue;
+                }
+                Map<String, OrganDrugList> drugMap = details.stream().collect(Collectors.toMap(OrganDrugList::getOrganDrugCode, a -> a, (k1, k2) -> k1));
+                //查询起始下标
+                int startIndex = 0;
+                boolean finishFlag = true;
+                long total = organDrugListDAO.getTotal(oid);
+                while (finishFlag) {
+                    List<DrugInfoTO> drugInfoList = hisService.getDrugInfoFromHis(oid, false, startIndex);
+                    if (!CollectionUtils.isEmpty(drugInfoList)) {
+                        //是否有效标志 1-有效 0-无效
+                        for (DrugInfoTO drug : drugInfoList) {
+                            OrganDrugList organDrug = drugMap.get(drug.getDrcode());
+                            if (null == organDrug) {
+                                continue;
+                            }
+                            updateHisDrug(drug, organDrug, oid);
+                            updateNum++;
+                            LOGGER.info("drugInfoSynTask organId=[{}] drug=[{}]", oid, JSONUtils.toString(drug));
                         }
-                        updateHisDrug(drug, organDrug, oid);
-                        updateNum++;
-                        LOGGER.info("drugInfoSynTask organId=[{}] drug=[{}]", oid, JSONUtils.toString(drug));
+                    }
+                    startIndex++;
+                    if (startIndex >= total) {
+                        LOGGER.info("drugInfoSynTask organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，药品信息更新结束.", oid, startIndex, updateNum);
+                        finishFlag = false;
                     }
                 }
-                startIndex++;
-                if (startIndex >= total) {
-                    LOGGER.info("drugInfoSynTask organId=[{}] 本次查询量：total=[{}] ,总更新量：update=[{}]，药品信息更新结束.", oid, startIndex, updateNum);
-                    finishFlag = false;
-                }
+            } catch (Exception e) {
+                LOGGER.info("定时drugInfoSynTaskExt机构药品数据同步失败,{}", oid + "Exception:{}" + e);
             }
         }
     }
