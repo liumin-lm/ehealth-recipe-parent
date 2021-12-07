@@ -63,8 +63,7 @@ public class DrugPatientAtop extends BaseAtop {
     public DrugSpecificationInfoDTO hisDrugBook(Integer organId, RecipeDetailBean recipeDetailBean) {
         validateAtop(organId, recipeDetailBean, recipeDetailBean.getDrugId(), recipeDetailBean.getOrganDrugCode());
         Recipedetail recipedetail = ObjectCopyUtils.convert(recipeDetailBean, Recipedetail.class);
-        DrugSpecificationInfoDTO drugSpecificationInfo = drugBusinessService.hisDrugBook(organId, recipedetail);
-        return drugSpecificationInfo;
+        return drugBusinessService.hisDrugBook(organId, recipedetail);
     }
 
 }
