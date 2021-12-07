@@ -1,13 +1,10 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
-import com.google.common.collect.Lists;
-import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.mode.QueryHisRecipResTO;
-import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.recipe.dto.*;
-import com.ngari.recipe.entity.*;
-import com.ngari.revisit.RevisitBean;
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.RecipeLog;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
@@ -21,16 +18,15 @@ import org.springframework.stereotype.Service;
 import recipe.client.*;
 import recipe.common.CommonConstant;
 import recipe.constant.RecipeStatusConstant;
-import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeLogDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.DictionaryUtil;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
 import java.util.stream.Collectors;
 
 /**
@@ -51,10 +47,6 @@ public class RecipeManager extends BaseManager {
     private OfflineRecipeClient offlineRecipeClient;
     @Autowired
     private RevisitClient revisitClient;
-    @Autowired
-    private RecipeDetailDAO recipeDetailDAO;
-    @Autowired
-    private HisRecipeManager hisRecipeManager;
 
     /**
      * 保存处方信息
@@ -157,20 +149,6 @@ public class RecipeManager extends BaseManager {
         logger.info("RecipeManager findRecipeByBussSourceAndClinicId param bussSource:{},clinicId:{}", bussSource, clinicId);
         List<Recipe> recipes = recipeDAO.findEffectiveRecipeByBussSourceAndClinicId(bussSource, clinicId);
         logger.info("RecipeManager findEffectiveRecipeByBussSourceAndClinicId recipes:{}.", JSON.toJSONString(recipes));
-        return recipes;
-    }
-
-    /**
-     * 获取诊疗处方
-     *
-     * @param bussSource 业务类型
-     * @param clinicId   业务单号
-     * @return 处方列表
-     */
-    public List<Recipe> findTherapyRecipeByBussSourceAndClinicId(Integer bussSource, Integer clinicId) {
-        logger.info("RecipeManager findTherapyRecipeByBussSourceAndClinicId param bussSource:{},clinicId:{}", bussSource, clinicId);
-        List<Recipe> recipes = recipeDAO.findTherapyRecipeByBussSourceAndClinicId(bussSource, clinicId);
-        logger.info("RecipeManager findTherapyRecipeByBussSourceAndClinicId recipes:{}.", JSON.toJSONString(recipes));
         return recipes;
     }
 

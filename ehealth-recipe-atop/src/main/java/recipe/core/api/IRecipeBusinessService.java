@@ -3,6 +3,7 @@ package recipe.core.api;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.vo.*;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
@@ -92,7 +93,16 @@ public interface IRecipeBusinessService {
 
     /**
      * 保存患者自选药品
+     *
      * @param patientOptionalDrugVo
      */
     void savePatientDrug(PatientOptionalDrugVo patientOptionalDrugVo);
+
+    /**
+     * 监管平台数据反查接口
+     *
+     * @param recipeId
+     * @return
+     */
+    RegulationRecipeIndicatorsDTO regulationRecipe(Integer recipeId);
 }
