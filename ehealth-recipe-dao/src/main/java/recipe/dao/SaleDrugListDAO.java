@@ -414,7 +414,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                                     drugListAndSaleDrugList.setCanAssociated(true);
                                 }
                             }
-                            result.add(new DrugListAndSaleDrugList(drug, saleDrugList));
+                            result.add(drugListAndSaleDrugList);
                         }
                         setResult(new QueryResult<DrugListAndSaleDrugList>(total, query.getFirstResult(), query.getMaxResults(), result));
                     }
