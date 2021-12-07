@@ -576,8 +576,14 @@ public class RecipeServiceSub {
                             throw new DAOException(ErrorCode.SERVICE_ERROR, "药品数据异常！");
                         }
                         detail.setSalePrice(price);
-                        //保留3位小数
-                        BigDecimal drugCost = price.multiply(new BigDecimal(detail.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP);
+                        BigDecimal drugCost ;
+                        if(new Integer(3).equals(recipe.getRecipeType())){
+                            //保留3位小数
+                            drugCost = price.multiply(new BigDecimal(detail.getUseTotalDose())).multiply(new BigDecimal(organDrug.getPack())).divide(BigDecimal.ONE, 3, RoundingMode.UP);
+                        }else{
+                            //保留3位小数
+                            drugCost = price.multiply(new BigDecimal(detail.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP);
+                        }
                         detail.setDrugCost(drugCost);
                         totalMoney = totalMoney.add(drugCost);
                         //药房处理
