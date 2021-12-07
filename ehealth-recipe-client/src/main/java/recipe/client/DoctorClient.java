@@ -88,6 +88,7 @@ public class DoctorClient extends BaseClient {
             DoctorDTO doctorDTO = getDoctor(giveUserId);
             apothecaryDTO.setGiveUserIdCardCleartext(doctorDTO.getIdNumber());
             apothecaryDTO.setGiveUserIdCard(ByteUtils.hideIdCard(doctorDTO.getIdNumber()));
+            apothecaryDTO.setGiveUserId(doctorDTO.getDoctorId());
             apothecaryDTO.setGiveUserName(doctorDTO.getName());
             apothecaryDTO.setGiveUserSignImg(doctorDTO.getSignImage());
         }

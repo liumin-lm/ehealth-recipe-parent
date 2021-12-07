@@ -43,11 +43,11 @@ public class DrugManager extends BaseManager {
     @Autowired
     private DrugListDAO drugListDAO;
     @Autowired
-    private OrganDrugListDAO organDrugListDAO;
-    @Autowired
     private DispensatoryDAO dispensatoryDAO;
     @Autowired
     private RecipeRulesDrugcorrelationDao recipeRulesDrugcorrelationDao;
+    @Autowired
+    private OfflineRecipeClient offlineRecipeClient;
 
     /**
      * todo 分层不合理 静态不合理 方法使用不合理 需要修改 （尹盛）
@@ -292,8 +292,6 @@ public class DrugManager extends BaseManager {
         return result;
     }
 
-    @Autowired
-    private OfflineRecipeClient offlineRecipeClient;
 
     public DrugSpecificationInfoDTO hisDrugBook(Integer organId, Recipedetail recipedetail) {
         OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, recipedetail.getOrganDrugCode(), recipedetail.getDrugId());

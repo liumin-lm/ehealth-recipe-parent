@@ -1,5 +1,6 @@
 package recipe.api.open;
 
+import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.util.annotation.RpcService;
 import recipe.vo.patient.PatientOptionalDrugVo;
@@ -56,13 +57,30 @@ public interface IRecipeAtopService {
     @RpcService
     RecipeBean getByRecipeId(Integer recipeId);
 
+    /**
+     * 根据状态和失效时间获取处方列表
+     *
+     * @param status      状态
+     * @param invalidTime 时间
+     * @return 处方列表
+     */
     @RpcService
     List<RecipeBean> findRecipesByStatusAndInvalidTime(List<Integer> status, Date invalidTime);
 
     /**
      * 患者自选药品信息保存
+     *
      * @param patientOptionalDrugVo
      */
     @RpcService
     void savePatientDrug(PatientOptionalDrugVo patientOptionalDrugVo);
+
+    /**
+     * 监管平台数据反查接口
+     *
+     * @param recipeId
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    RegulationRecipeIndicatorsDTO regulationRecipe(Integer recipeId);
 }

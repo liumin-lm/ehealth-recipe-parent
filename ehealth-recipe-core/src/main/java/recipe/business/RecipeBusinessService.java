@@ -8,11 +8,13 @@ import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
+import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutRecipeDetailDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.recipe.model.PatientInfoDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -40,12 +42,14 @@ import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.BussSourceTypeEnum;
+import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.HisRecipeManager;
 import recipe.manager.OrganDrugListManager;
 import recipe.manager.RecipeManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.MapValueUtil;
+import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.doctor.PharmacyTcmVO;
@@ -95,6 +99,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private RevisitClient revisitClient;
     @Autowired
     private HisRecipeManager hisRecipeManager;
+    @Autowired
+    private HisSyncSupervisionService hisSyncSupervisionService;
 
     /**
      * 获取线下门诊处方诊断信息
@@ -309,6 +315,18 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         BeanUtils.copy(patientOptionalDrugVo, patientOptionalDrug);
         patientOptionalDrugDAO.save(patientOptionalDrug);
     }
+
+    @Override
+    public RegulationRecipeIndicatorsDTO regulationRecipe(Integer recipeId) {
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (null == recipe) {
+            return null;
+        }
+        List<RegulationRecipeIndicatorsReq> request = new ArrayList<>();
+        hisSyncSupervisionService.splicingBackRecipeData(Collections.singletonList(recipe), request);
+        return ObjectCopyUtils.convert(request.get(0), RegulationRecipeIndicatorsDTO.class);
+    }
+
 
     /**
      * 根据复诊id 获取线上线下处方详情

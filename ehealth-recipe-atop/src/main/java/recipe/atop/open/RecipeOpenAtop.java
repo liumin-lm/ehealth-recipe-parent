@@ -2,6 +2,7 @@ package recipe.atop.open;
 
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -128,8 +129,15 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     @Override
     public void savePatientDrug(PatientOptionalDrugVo patientOptionalDrugVo) {
         logger.info("RecipeOpenAtop savePatientDrug patientOptionalDrugVo={}", JSONArray.toJSONString(patientOptionalDrugVo));
-        validateAtop(patientOptionalDrugVo.getClinicId(),patientOptionalDrugVo.getDrugId(),patientOptionalDrugVo.getOrganDrugCode(),patientOptionalDrugVo.getOrganId(),patientOptionalDrugVo.getPatientDrugNum());
+        validateAtop(patientOptionalDrugVo.getClinicId(), patientOptionalDrugVo.getDrugId(), patientOptionalDrugVo.getOrganDrugCode(), patientOptionalDrugVo.getOrganId(), patientOptionalDrugVo.getPatientDrugNum());
         recipeBusinessService.savePatientDrug(patientOptionalDrugVo);
     }
+
+    @Override
+    public RegulationRecipeIndicatorsDTO regulationRecipe(Integer recipeId) {
+        validateAtop(recipeId);
+        return recipeBusinessService.regulationRecipe(recipeId);
+    }
+
 
 }

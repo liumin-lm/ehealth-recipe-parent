@@ -17,7 +17,7 @@ public interface IRecipeOrderAtopService {
      * @param orderId
      * @return
      */
-    @RpcService
+    @RpcService(mvcDisabled = true)
     RecipeOrderVO getRecipeOrderByBusId(Integer orderId);
 
     /**
@@ -25,6 +25,6 @@ public interface IRecipeOrderAtopService {
      * @param request
      * @return
      */
-    @RpcService
+    @RpcService(mvcDisabled = true)
     CheckRequestCommonOrderPageDTO getRecipePageForCommonOrder(SyncOrderVO request);
 }

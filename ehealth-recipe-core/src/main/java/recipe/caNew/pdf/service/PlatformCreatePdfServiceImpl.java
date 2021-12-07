@@ -200,7 +200,6 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         }
         //病历号
         CoOrdinateVO medicalRecordNumber = redisManager.getPdfCoordsHeight(recipeId, "recipeExtend.medicalRecordNumber");
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (null != medicalRecordNumber) {
             medicalRecordNumber.setValue(recipeExtend.getMedicalRecordNumber());

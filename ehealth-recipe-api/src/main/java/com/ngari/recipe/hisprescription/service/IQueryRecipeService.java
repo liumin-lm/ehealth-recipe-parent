@@ -1,7 +1,5 @@
 package com.ngari.recipe.hisprescription.service;
 
-import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.mode.OrganDrugInfoTO;
 import com.ngari.platform.recipe.mode.OrganDrugChangeBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.DrugListBean;
@@ -37,20 +35,6 @@ public interface IQueryRecipeService {
      */
     @RpcService
     List<RegulationRecipeIndicatorsDTO> queryRegulationRecipeData(Integer organId, Date startDate, Date endDate, Boolean checkFlag);
-
-    /**
-     * todo 新接口 queryRegulationRecipeData
-     * 上海监管平台处方反查接口
-     *
-     * @param organId
-     * @param startDate
-     * @param endDate
-     * @param updateFlag
-     * @return
-     */
-    @RpcService
-    @Deprecated
-    List<RegulationRecipeIndicatorsDTO> queryRegulationRecipeDataForSH(Integer organId, Date startDate, Date endDate, Boolean updateFlag);
 
 
     @RpcService
