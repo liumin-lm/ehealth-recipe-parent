@@ -225,19 +225,14 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             recipeCode.setValue(recipe.getRecipeCode());
             coOrdinateList.add(recipeCode);
         }
-        try{
-            //病历号
-            CoOrdinateVO medicalRecordNumber = redisManager.getPdfCoords(recipeId, "recipeExtend.medicalRecordNumber");
-            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-            if (null != medicalRecordNumber) {
-                medicalRecordNumber.setValue(recipeExtend.getMedicalRecordNumber());
-                coOrdinateList.add(medicalRecordNumber);
-            }
-        }catch (Exception e){
-            logger.error("medicalRecordNumber error", e);
+        //病历号
+        CoOrdinateVO medicalRecordNumber = redisManager.getPdfCoords(recipeId, "recipeExtend.medicalRecordNumber");
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (null != medicalRecordNumber) {
+            medicalRecordNumber.setValue(recipeExtend.getMedicalRecordNumber());
+            coOrdinateList.add(medicalRecordNumber);
         }
-
         CoOrdinateVO barcode = redisManager.getPdfCoords(recipe.getRecipeId(), OP_BARCODE_ALL);
         if (null != barcode) {
             barcode.setValue(barcode(recipe));
