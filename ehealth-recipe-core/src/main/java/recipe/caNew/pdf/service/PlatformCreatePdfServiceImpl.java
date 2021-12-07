@@ -13,10 +13,12 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.dictionary.DictionaryController;
+import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import eh.entity.base.Scratchable;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Base64;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -195,6 +197,14 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         if (null != recipeCode) {
             recipeCode.setValue(recipe.getRecipeCode());
             coOrdinateList.add(recipeCode);
+        }
+        //病历号
+        CoOrdinateVO medicalRecordNumber = redisManager.getPdfCoordsHeight(recipeId, "recipeExtend.medicalRecordNumber");
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (null != medicalRecordNumber) {
+            medicalRecordNumber.setValue(recipeExtend.getMedicalRecordNumber());
+            coOrdinateList.add(medicalRecordNumber);
         }
         //条形码
         CoOrdinateVO ordinate = barcodeVO(recipe);
