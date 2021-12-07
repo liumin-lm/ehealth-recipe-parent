@@ -17,6 +17,8 @@ public class DrugListAndSaleDrugListDTO implements Serializable {
 
     private DrugListBean drugList;
     private SaleDrugListDTO saleDrugList;
+    /**机构是否已有药品关联该平台药品*/
+    private Boolean canAssociated ;
 
     public DrugListAndSaleDrugListDTO() {
     }
@@ -35,6 +37,14 @@ public class DrugListAndSaleDrugListDTO implements Serializable {
 
     public void setSaleDrugList(SaleDrugListDTO saleDrugList) {
         this.saleDrugList = saleDrugList;
+    }
+
+    public Boolean getCanAssociated() {
+        return canAssociated;
+    }
+
+    public void setCanAssociated(Boolean canAssociated) {
+        this.canAssociated = canAssociated;
     }
 }
 
