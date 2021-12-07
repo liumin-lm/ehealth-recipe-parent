@@ -1,8 +1,10 @@
 package recipe.core.api;
 
+import com.ngari.his.recipe.mode.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.entity.Dispensatory;
 import com.ngari.recipe.entity.RecipeRulesDrugcorrelation;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.vo.SearchDrugReqVo;
 
 import java.util.List;
@@ -33,9 +35,19 @@ public interface IDrugBusinessService {
 
     /**
      * 十八反十九畏的规则
+     *
      * @param list
      * @param ruleId
      * @return
      */
     List<RecipeRulesDrugcorrelation> getListDrugRules(List<Integer> list, Integer ruleId);
+
+    /**
+     * 查询his 药品说明书
+     *
+     * @param organId      机构id
+     * @param recipeDetail 药品数据
+     * @return
+     */
+    DrugSpecificationInfoDTO hisDrugBook(Integer organId, Recipedetail recipeDetail);
 }

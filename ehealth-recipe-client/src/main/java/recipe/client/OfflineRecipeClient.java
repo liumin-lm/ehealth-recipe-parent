@@ -9,7 +9,6 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.EmrDetailValueDTO;
 import com.ngari.his.recipe.mode.*;
-import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -19,12 +18,8 @@ import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.platform.recipe.mode.RecipeDetailBean;
 import com.ngari.platform.recipe.mode.RecipeExtendBean;
 import com.ngari.recipe.dto.*;
-import com.ngari.recipe.entity.PharmacyTcm;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.RecipeTherapy;
+import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
-import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -216,7 +211,6 @@ public class OfflineRecipeClient extends BaseClient {
         if (StringUtils.isNotEmpty(recipeCode)) {
             queryRecipeRequestTo.setRecipeCode(recipeCode);
         }
-        IRecipeHisService recipeHisService = AppContextHolder.getBean("his.iRecipeHisService", IRecipeHisService.class);
         logger.info("queryHisRecipeInfo input:" + JSONUtils.toString(queryRecipeRequestTo, QueryRecipeRequestTO.class));
         HisResponseTO<List<QueryHisRecipResTO>> responseTo = recipeHisService.queryHisRecipeInfo(queryRecipeRequestTo);
         logger.info("queryHisRecipeInfo output:" + JSONUtils.toString(responseTo, HisResponseTO.class));
@@ -299,6 +293,18 @@ public class OfflineRecipeClient extends BaseClient {
         }
 
         return data.get(0);
+    }
+
+
+    public DrugSpecificationInfoDTO drugSpecification(Integer organId, OrganDrugList organDrugList) {
+        DrugSpecificationReq drugSpecificationReq = new DrugSpecificationReq();
+        drugSpecificationReq.setOrganId(organId);
+        drugSpecificationReq.setOrganDrugCode(organDrugList.getOrganDrugCode());
+        drugSpecificationReq.setRegulationDrugCode(organDrugList.getRegulationDrugCode());
+        drugSpecificationReq.setDrugId(organDrugList.getDrugId());
+        HisResponseTO<DrugSpecificationInfoDTO> hisResponse = recipeHisService.getDrugSpecification(drugSpecificationReq);
+        return getResponseCatch(hisResponse);
+
     }
 
 
