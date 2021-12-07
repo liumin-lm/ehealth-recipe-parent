@@ -45,6 +45,8 @@ public class PayModeToHos implements IPurchaseService{
     private OrderManager orderManager;
     @Autowired
     private OrganDrugListManager organDrugListManager;
+    @Autowired
+    private RecipeDetailDAO recipeDetailDAO;
     /**
      * logger
      */
@@ -106,8 +108,6 @@ public class PayModeToHos implements IPurchaseService{
 
     @Override
     public OrderCreateResult order(List<Recipe> dbRecipes, Map<String, String> extInfo) {
-        // 到院取药校验机构库存
-//        EnterpriseStock organStock = organDrugListManager.organStock(organId, recipeDetails);
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
         //定义处方订单
         RecipeOrder order = new RecipeOrder();
@@ -118,7 +118,14 @@ public class PayModeToHos implements IPurchaseService{
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
         RecipePayModeSupportBean payModeSupport = orderService.setPayModeSupport(order, payMode);
         List<Integer> recipeIdLists = dbRecipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
-
+        // 到院取药校验机构库存
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIdLists);
+        EnterpriseStock organStock = organDrugListManager.organStock(dbRecipes.get(0).getClinicOrgan(), recipeDetails);
+        if (!organStock.getStock()) {
+            result.setCode(RecipeResultBean.FAIL);
+            result.setMsg("抱歉，医院没有库存，无法到医院取药，请选择其他购药方式。");
+            return result;
+        }
         order.setMpiId(dbRecipes.get(0).getMpiid());
         order.setOrganId(dbRecipes.get(0).getClinicOrgan());
         order.setOrderCode(orderService.getOrderCode(order.getMpiId()));
