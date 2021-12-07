@@ -19,6 +19,7 @@ import com.ngari.recipe.common.RecipeStandardResTO;
 import com.ngari.recipe.common.utils.VerifyUtils;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.vo.PatientBeanNoDS;
 import ctd.account.UserRoleToken;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
@@ -111,7 +112,7 @@ public class HosRecipeListService {
             PatientBean patient = null;
             try {
                 Map<String, Object> map = setPatientInfo(request);
-                patient = (PatientBean)map.get("patient");
+                patient = (PatientBean) map.get("patient");
                 patientExist = (Boolean) map.get("patientExist");
             } catch (Exception e) {
                 LOG.warn("findHistroyRecipeList 处理就诊人异常，doctorId={}, clinicOrgan={}",
@@ -171,8 +172,18 @@ public class HosRecipeListService {
         return response;
     }
 
+    @RpcService
+    public PatientBeanNoDS addPatientForDoctorNoDS(HosRecipeListRequest request) {
+        PatientBean patientBean = addPatientForDoctor(request);
+        LOG.info("addPatientForDoctorNoDS patientBean:{}", JSONUtils.toString(patientBean));
+        PatientBeanNoDS patientBeanNoDS = ObjectCopyUtils.convert(patientBean, PatientBeanNoDS.class);
+        LOG.info("addPatientForDoctorNoDS patientBeanNoDS:{}", JSONUtils.toString(patientBeanNoDS));
+        return patientBeanNoDS;
+    }
+
     /**
      * 为医生添加患者信息
+     *
      * @param request 医院传来的医生患者信息
      * @return 结果
      */
@@ -193,7 +204,7 @@ public class HosRecipeListService {
         request.setDoctorId(doctorId);
         try {
             Map<String, Object> map = setPatientInfo(request);
-            patient = (PatientBean)map.get("patient");
+            patient = (PatientBean) map.get("patient");
             saveHealthCardForOrgan(request, patient, doctorId);
         } catch (Exception e) {
             LOG.warn("addPatientForDoctor 处理就诊人异常，doctorId={}",
@@ -210,9 +221,10 @@ public class HosRecipeListService {
 
     /**
      * 保存健康卡信息
-     * @param request   链接请求参数
-     * @param patient   患者信息
-     * @param doctorId  医生ID
+     *
+     * @param request  链接请求参数
+     * @param patient  患者信息
+     * @param doctorId 医生ID
      */
     private void saveHealthCardForOrgan(HosRecipeListRequest request, PatientBean patient, Integer doctorId) {
         HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
@@ -229,13 +241,13 @@ public class HosRecipeListService {
             healthCardDTO.setInitialCardID(request.getCardNo());
             healthCardDTO.setCardSource("remote");
             healthCardDTO.setCreateDate(new Date());
-            if (!healthCardService.saveHealthCardForRecipe(healthCardDTO)){
+            if (!healthCardService.saveHealthCardForRecipe(healthCardDTO)) {
                 LOG.warn("addPatientForDoctor 就诊卡保存失败,healthCardDTO:{}.", JSONUtils.toString(healthCardDTO));
             }
         }
     }
 
-    private void validate(HosRecipeListRequest request){
+    private void validate(HosRecipeListRequest request) {
         LOG.info("HosRecipeListRequest,岳阳绑定患者信息:{}.", JSONUtils.toString(request));
         if (request.getDoctorId() == null) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "医生id不能为空");
@@ -257,7 +269,7 @@ public class HosRecipeListService {
         }
     }
 
-    private Map<String, Object> setPatientInfo (HosRecipeListRequest request) {
+    private Map<String, Object> setPatientInfo(HosRecipeListRequest request) {
         boolean patientExist = false;
         PatientBean patient;
         IPatientExtendService patientExtendService = BaseAPI.getService(IPatientExtendService.class);
