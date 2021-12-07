@@ -2,21 +2,21 @@ package recipe.atop.patient;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.google.common.collect.Lists;
+import com.ngari.his.recipe.mode.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
+import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.SearchDrugReqVo;
 import ctd.persistence.exception.DAOException;
-import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import org.springframework.util.CollectionUtils;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IDrugBusinessService;
+import recipe.util.ObjectCopyUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * @description： 患者药品查询入口
@@ -50,6 +50,21 @@ public class DrugPatientAtop extends BaseAtop {
             logger.error("DrugPatientAtop findDrugWithEsByPatient error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
+    }
+
+    /**
+     * 查询药品说明书
+     *
+     * @param organId          机构id
+     * @param recipeDetailBean 药品数据
+     * @return
+     */
+    @RpcService
+    public DrugSpecificationInfoDTO hisDrugBook(Integer organId, RecipeDetailBean recipeDetailBean) {
+        validateAtop(organId, recipeDetailBean, recipeDetailBean.getDrugId(), recipeDetailBean.getOrganDrugCode());
+        Recipedetail recipedetail = ObjectCopyUtils.convert(recipeDetailBean, Recipedetail.class);
+        DrugSpecificationInfoDTO drugSpecificationInfo = drugBusinessService.hisDrugBook(organId, recipedetail);
+        return drugSpecificationInfo;
     }
 
 }

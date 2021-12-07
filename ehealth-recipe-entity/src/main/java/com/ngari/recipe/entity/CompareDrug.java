@@ -14,13 +14,17 @@ import java.io.Serializable;
 @Schema
 @Table(name = "cdr_comparedrug")
 @Access(AccessType.PROPERTY)
-public class CompareDrug implements Serializable{
+@Deprecated
+public class CompareDrug implements Serializable {
 
     private static final long serialVersionUID = 6383675726039631997L;
 
     @ItemProperty(alias = "原药品编号")
     private Integer originalDrugId;
 
+    /**
+     * 新字段 使用 OrganDrugList。regulationDrugCode
+     */
     @ItemProperty(alias = "对照药品编号")
     private Integer targetDrugId;
 

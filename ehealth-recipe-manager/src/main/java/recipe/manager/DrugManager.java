@@ -3,6 +3,7 @@ package recipe.manager;
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
+import com.ngari.his.recipe.mode.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
@@ -16,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DrugClient;
+import recipe.client.OfflineRecipeClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 
@@ -279,15 +281,25 @@ public class DrugManager extends BaseManager {
     public List<RecipeRulesDrugcorrelation> getListDrugRules(List<Integer> list, Integer ruleId){
         logger.info("DrugManager.getListDrugRules req list={} ruleId={}", JSON.toJSONString(list), ruleId);
         List<RecipeRulesDrugcorrelation> result = new ArrayList<>();
-        if(CollectionUtils.isEmpty(list)){
+        if (CollectionUtils.isEmpty(list)) {
             return result;
         }
-        if(ruleId == null){
+        if (ruleId == null) {
             return result;
         }
-        result = recipeRulesDrugcorrelationDao.findListRules(list,ruleId);
+        result = recipeRulesDrugcorrelationDao.findListRules(list, ruleId);
         logger.info("DrugManager.getDrugBook res result={} drugId={}", JSON.toJSONString(result));
         return result;
     }
 
+    @Autowired
+    private OfflineRecipeClient offlineRecipeClient;
+
+    public DrugSpecificationInfoDTO hisDrugBook(Integer organId, Recipedetail recipedetail) {
+        OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
+        if (null == organDrug) {
+            return null;
+        }
+        return offlineRecipeClient.drugSpecification(organId, organDrug);
+    }
 }
