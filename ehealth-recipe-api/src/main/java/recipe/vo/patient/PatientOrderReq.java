@@ -1,7 +1,6 @@
 package recipe.vo.patient;
 
-import com.ngari.recipe.common.anno.Verify;
-import ctd.schema.annotation.Dictionary;
+
 import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;

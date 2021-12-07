@@ -189,11 +189,10 @@ public class PayModeTFDS implements IPurchaseService {
         for (Recipe dbRecipe : dbRecipes) {
             //处理详情
             List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());
-            List<Integer> drugIds = detailList.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
             //患者提交订单前,先进行库存校验
-
-            boolean succFlag = scanStock(dbRecipe, dep, drugIds);
-            if (!succFlag && dep.getCheckInventoryFlag() != 2) {
+            // 根据药企查询库存
+            EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, depId);
+            if (!enterpriseStock.getStock() && dep.getCheckInventoryFlag() != 2) {
                 result.setCode(RecipeResultBean.FAIL);
                 result.setMsg("抱歉，配送商库存不足无法配送。请稍后尝试提交，或更换配送商。");
                 return result;

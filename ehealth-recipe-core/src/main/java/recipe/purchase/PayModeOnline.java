@@ -215,15 +215,16 @@ public class PayModeOnline implements IPurchaseService {
         //处理详情
         for (Recipe dbRecipe : recipeList) {
             List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());
-            List<Integer> drugIds = detailList.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
 
             order.setRecipeIdList(JSONUtils.toString(recipeIdLists));
             RemoteDrugEnterpriseService remoteDrugEnterpriseService =
                     ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
 
             AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(dep);
-            boolean stockFlag = remoteService.scanStock(dbRecipe, dep, drugIds);
-            if (!stockFlag) {
+
+            // 根据药企查询库存
+            EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, depId);
+            if (!enterpriseStock.getStock()) {
                 //无法配送
                 result.setCode(RecipeResultBean.FAIL);
                 result.setMsg("药企无法配送");

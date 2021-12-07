@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
@@ -19,6 +20,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.manager.OrderManager;
+import recipe.manager.OrganDrugListManager;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
@@ -41,6 +43,8 @@ public class PayModeToHos implements IPurchaseService{
 
     @Autowired
     private OrderManager orderManager;
+    @Autowired
+    private OrganDrugListManager organDrugListManager;
     /**
      * logger
      */
@@ -102,6 +106,8 @@ public class PayModeToHos implements IPurchaseService{
 
     @Override
     public OrderCreateResult order(List<Recipe> dbRecipes, Map<String, String> extInfo) {
+        // 到院取药校验机构库存
+//        EnterpriseStock organStock = organDrugListManager.organStock(organId, recipeDetails);
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
         //定义处方订单
         RecipeOrder order = new RecipeOrder();
