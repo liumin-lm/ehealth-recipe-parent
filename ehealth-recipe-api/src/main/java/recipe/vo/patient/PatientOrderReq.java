@@ -32,11 +32,14 @@ public class PatientOrderReq implements Serializable {
     @ItemProperty(alias = "购药方式")
     private Integer giveMode;
 
+    @ItemProperty(alias = "支付方式")
+    private Integer payMode;
+
     @ItemProperty(alias = "地址编号")
     private Integer addressID;
 
     @ItemProperty(alias = "煎法")
-    private String decoctionId;
+    private Integer decoctionId;
 
     @ItemProperty(alias = "1：表示需要制作费，0：不需要")
     private Integer gfFeeFlag;
@@ -118,5 +121,10 @@ public class PatientOrderReq implements Serializable {
 
     @ItemProperty(alias = "参保地统筹区")
     private String insuredArea;
+
+    @ItemProperty(alias = "参保地统筹区")
+    private Integer calculateFee;
+
+
 
 }
