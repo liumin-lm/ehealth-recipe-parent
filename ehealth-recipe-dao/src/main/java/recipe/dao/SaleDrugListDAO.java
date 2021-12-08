@@ -282,7 +282,10 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                     @SuppressWarnings("unchecked")
                     @Override
                     public void execute(StatelessSession ss) throws DAOException {
-                        DateTime dt = new DateTime(endTime);
+                        DateTime dt =new DateTime();
+                        if (status!= -1){
+                            dt = new DateTime(endTime);
+                        }
                         StringBuilder hql = new StringBuilder(" from DrugList d ");
                         if (!ObjectUtils.nullSafeEquals(status, -1)){
                             hql.append(",SaleDrugList o where 1=1 ");
@@ -405,18 +408,19 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         query.setMaxResults(limit);
                         List<DrugList> list = query.list();
                         List<DrugListAndSaleDrugList> result = new ArrayList<DrugListAndSaleDrugList>();
-                        for (DrugList drug : list) {
-                            SaleDrugList saleDrugList = getByDrugIdAndOrganId(drug.getDrugId(), organId);
-                            DrugListAndSaleDrugList drugListAndSaleDrugList = new DrugListAndSaleDrugList(drug, saleDrugList);
-                            if (!ObjectUtils.isEmpty(drug)){
-                                SaleDrugList byDrugIdAndOrganId = getByDrugIdAndOrganId(drug.getDrugId(), organId);
-                                if (ObjectUtils.isEmpty(byDrugIdAndOrganId)){
-                                    drugListAndSaleDrugList.setCanAssociated(false);
-                                }else {
-                                    drugListAndSaleDrugList.setCanAssociated(true);
+                        if (!ObjectUtils.isEmpty(list)){
+                            for (DrugList drug : list) {
+                                SaleDrugList saleDrugList = getByDrugIdAndOrganId(drug.getDrugId(), organId);
+                                DrugListAndSaleDrugList drugListAndSaleDrugList = new DrugListAndSaleDrugList(drug, saleDrugList);
+                                if (!ObjectUtils.isEmpty(drug)){
+                                    if (ObjectUtils.isEmpty(saleDrugList)){
+                                        drugListAndSaleDrugList.setCanAssociated(false);
+                                    }else {
+                                        drugListAndSaleDrugList.setCanAssociated(true);
+                                    }
                                 }
+                                result.add(drugListAndSaleDrugList);
                             }
-                            result.add(drugListAndSaleDrugList);
                         }
                         setResult(new QueryResult<DrugListAndSaleDrugList>(total, query.getFirstResult(), query.getMaxResults(), result));
                     }
