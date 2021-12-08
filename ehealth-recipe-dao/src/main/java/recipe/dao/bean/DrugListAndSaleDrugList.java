@@ -12,6 +12,9 @@ public class DrugListAndSaleDrugList {
     private DrugList drugList;
     private SaleDrugList saleDrugList;
 
+    /**机构是否已有药品关联该平台药品*/
+    private Boolean canAssociated ;
+
     public DrugListAndSaleDrugList() {
     }
 
@@ -34,6 +37,14 @@ public class DrugListAndSaleDrugList {
 
     public void setSaleDrugList(SaleDrugList saleDrugList) {
         this.saleDrugList = saleDrugList;
+    }
+
+    public Boolean getCanAssociated() {
+        return canAssociated;
+    }
+
+    public void setCanAssociated(Boolean canAssociated) {
+        this.canAssociated = canAssociated;
     }
 }
 
