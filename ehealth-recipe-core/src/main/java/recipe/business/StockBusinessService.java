@@ -1,12 +1,12 @@
 package recipe.business;
 
 import com.alibaba.fastjson.JSON;
-import com.ngari.recipe.dto.DoSignRecipeDTO;
-import com.ngari.recipe.dto.DrugStockAmountDTO;
-import com.ngari.recipe.dto.EnterpriseStock;
-import com.ngari.recipe.dto.GiveModeButtonDTO;
+import com.alibaba.fastjson.JSONArray;
+import com.google.common.collect.Lists;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
+import ctd.util.BeanUtils;
 import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -28,8 +28,7 @@ import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ListValueUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
-import recipe.vo.doctor.DrugEnterpriseStockVO;
-import recipe.vo.doctor.EnterpriseStockVO;
+import recipe.vo.doctor.*;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -195,6 +194,44 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             return null;
         }
         return list.get(0);
+    }
+
+    @Override
+    public Map<String, List<DrugForGiveModeVO>> drugForGiveMode(DrugQueryVO drugQueryVO) {
+        logger.info("drugForGiveMode DrugQueryVO={}", JSONArray.toJSONString(drugQueryVO));
+        List<Recipedetail> recipeDetails = drugQueryVO.getRecipeDetails().stream().map(recipeDetailBean -> {
+            Recipedetail recipedetail = new Recipedetail();
+            BeanUtils.copy(recipeDetailBean,recipedetail);
+            return recipedetail;
+        }).collect(Collectors.toList());
+        //机构库存
+        EnterpriseStock organStock = organDrugListManager.organStock(drugQueryVO.getOrganId(), recipeDetails);
+        //药企库存
+        List<EnterpriseStock> enterpriseStockButton = buttonManager.enterpriseStockCheck(drugQueryVO.getOrganId());
+        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(drugQueryVO.getOrganId(), recipeDetails, enterpriseStockButton);
+        enterpriseStock.add(organStock);
+        List<DrugForGiveModeVO> list = Lists.newArrayList();
+        for (EnterpriseStock stock : enterpriseStock) {
+            if(!stock.getStock()){
+                continue;
+            }
+            List<GiveModeButtonDTO> giveModeButton = stock.getGiveModeButton();
+            if(CollectionUtils.isEmpty(giveModeButton)){
+                continue;
+            }
+            List<String> drugName = stock.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+            giveModeButton.forEach(giveModeButtonDTO -> {
+                DrugForGiveModeVO  drugForGiveModeVO = new DrugForGiveModeVO();
+                drugForGiveModeVO.setGiveModeKey(giveModeButtonDTO.getShowButtonKey());
+                drugForGiveModeVO.setGiveModeKeyText(giveModeButtonDTO.getShowButtonName());
+                drugForGiveModeVO.setEnterpriseName(stock.getDrugsEnterprise().getName());
+                drugForGiveModeVO.setDrugsName(drugName);
+                list.add(drugForGiveModeVO);
+            });
+        }
+        Map<String, List<DrugForGiveModeVO>> returnMap = list.stream().collect(Collectors.groupingBy(DrugForGiveModeVO::getGiveModeKeyText));
+        logger.info("drugForGiveMode returnMap={}", JSONArray.toJSONString(returnMap));
+        return returnMap;
     }
 
     /**

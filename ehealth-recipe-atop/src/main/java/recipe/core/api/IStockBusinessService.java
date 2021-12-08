@@ -4,6 +4,8 @@ import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import recipe.vo.doctor.DrugEnterpriseStockVO;
+import recipe.vo.doctor.DrugForGiveModeVO;
+import recipe.vo.doctor.DrugQueryVO;
 
 import java.util.List;
 import java.util.Map;
@@ -50,4 +52,11 @@ public interface IStockBusinessService {
      * @return 药品信息 一定存在于出参
      */
     EnterpriseStock enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails, Integer enterpriseId);
+
+    /**
+     * 医生端 查询购药方式下有库存的药品
+     * @param drugQueryVO
+     * @return
+     */
+    Map<String, List<DrugForGiveModeVO>>  drugForGiveMode(DrugQueryVO drugQueryVO);
 }
