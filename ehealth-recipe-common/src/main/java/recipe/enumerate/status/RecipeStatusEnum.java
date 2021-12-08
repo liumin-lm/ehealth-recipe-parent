@@ -1,5 +1,9 @@
 package recipe.enumerate.status;
 
+import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -81,6 +85,14 @@ public enum RecipeStatusEnum {
      */
     public static final List<Integer> RECIPE_REVOKE = Arrays.asList(RECIPE_STATUS_REVOKE.type, RECIPE_STATUS_HIS_FAIL.type, RECIPE_STATUS_NO_DRUG.type, RECIPE_STATUS_NO_PAY.type, RECIPE_STATUS_NO_OPERATOR.type);
 
+    /**
+     * 处方撤销状态判断 0  11  12 13 14 16 19 25 26 27 31 32
+     */
+    public static final List<Integer> RECIPE_REVOKE_NOT = Arrays.asList(RECIPE_STATUS_UNSIGNED.type, RECIPE_STATUS_HIS_FAIL.type, RECIPE_STATUS_NO_DRUG.type,
+            RECIPE_STATUS_NO_PAY.type, RECIPE_STATUS_NO_OPERATOR.type, RECIPE_STATUS_RECIPE_MEDICAL_FAIL.type, RECIPE_STATUS_CHECKING_HOS.type, RECIPE_STATUS_NO_MEDICAL_INSURANCE_RETURN.type
+            , RECIPE_STATUS_SIGN_ERROR_CODE_PHA.type, RECIPE_STATUS_SIGN_ERROR_CODE_DOC.type, RECIPE_STATUS_SIGN_ING_CODE_PHA.type, RECIPE_STATUS_SIGN_NO_CODE_PHA.type);
+
+
     RecipeStatusEnum(Integer type, String name, String desc) {
         this.type = type;
         this.name = name;
@@ -130,26 +142,71 @@ public enum RecipeStatusEnum {
 
     /**
      * 查询处方是否在校验中
+     *
      * @param type
      * @return
      */
-   public static Boolean getCheckStatusFlag(Integer type){
-        if(recipeStatusCheckList.contains(type)){
+    public static Boolean getCheckStatusFlag(Integer type) {
+        if (recipeStatusCheckList.contains(type)) {
             return true;
-        }else {
+        } else {
             return false;
         }
-   }
+    }
+
     /**
      * 查询处方状态是否需要展示按钮
+     *
      * @param type
      * @return
      */
-   public static Boolean getCheckShowFlag(Integer type){
-        if(recipeStatusShowList.contains(type)){
+    public static Boolean getCheckShowFlag(Integer type) {
+        if (recipeStatusShowList.contains(type)) {
             return true;
-        }else {
+        } else {
             return false;
         }
-   }
+    }
+
+    /**
+     * 处方撤销状态判断
+     *
+     * @param recipe 1正常 2撤销
+     * @return
+     */
+    public static String getVerificationRevokeStatus(Recipe recipe, RecipeOrder order) {
+        if (null != order && RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType().equals(order.getStatus()) && RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(order.getGiveModeKey())) {
+            return "2";
+        }
+        if (RECIPE_REVOKE.contains(recipe.getStatus())) {
+            return "2";
+        }
+        if (RECIPE_STATUS_CHECK_PASS_YS.type.equals(recipe.getStatus()) || RECIPE_STATUS_CHECK_NOT_PASS_YS.type.equals(recipe.getStatus())) {
+            //处方审核后上传（包含通过和不通过）
+            return "3";
+        }
+        return "1";
+    }
+
+    /**
+     * 设置处方撤销标识 true:可以撤销, false:不可撤销
+     *
+     * @param recipe
+     * @param order
+     * @return
+     */
+    public static boolean checkRecipeRevokeStatus(Recipe recipe, RecipeOrder order) {
+        if (RECIPE_STATUS_REVOKE.type.equals(recipe.getStatus())) {
+            return false;
+        }
+        if (null != order && RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType().equals(order.getStatus()) && RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(order.getGiveModeKey())) {
+            return true;
+        }
+        Integer one = Integer.valueOf(1);
+        if (!one.equals(recipe.getPayFlag()) && !one.equals(recipe.getChooseFlag()) && !RECIPE_REVOKE_NOT.contains(recipe.getStatus())) {
+            return true;
+        }
+        return false;
+    }
+
 }

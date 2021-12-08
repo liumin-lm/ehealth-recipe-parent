@@ -1546,16 +1546,17 @@ public class RecipeServiceSub {
             // 获取处方单药品总价
             RecipeUtil.getRecipeTotalPriceRange(recipe, recipedetails);
 
-            //date 20200506
+            boolean cancelFlag = RecipeStatusEnum.checkRecipeRevokeStatus(recipe, null);
             //通过订单的状态判断
-            Map<String, Integer> orderStatus = new HashMap<>();
             if (null != recipe.getRecipeCode()) {
-                List<RecipeOrder> recipeOrders = orderDAO.findValidListbyCodes(Arrays.asList(recipe.getOrderCode()));
-                orderStatus = recipeOrders.stream().collect(Collectors.toMap(RecipeOrder::getOrderCode, RecipeOrder::getStatus));
+                RecipeOrder recipeOrders = orderDAO.getByOrderCode(recipe.getOrderCode());
+                cancelFlag = RecipeStatusEnum.checkRecipeRevokeStatus(recipe, recipeOrders);
+                Integer status = null != recipeOrders && Integer.valueOf(1).equals(recipeOrders.getEffective()) ? recipeOrders.getStatus() : null;
+                Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, null, status);
+                map.put("cancelReason", MapValueUtil.getString(tipMap, "cancelReason"));
+                map.put("tips", MapValueUtil.getString(tipMap, "tips"));
             }
-            Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, null, (orderStatus == null || 0 >= orderStatus.size()) ? null : orderStatus.get(recipe.getOrderCode()));
-            map.put("cancelReason", MapValueUtil.getString(tipMap, "cancelReason"));
-            map.put("tips", MapValueUtil.getString(tipMap, "tips"));
+            map.put("cancelFlag", cancelFlag);
             IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
             //获取审核不通过详情
             List<Map<String, Object>> mapList = recipeAuditService.getCheckNotPassDetail(recipeId);
@@ -1574,19 +1575,6 @@ public class RecipeServiceSub {
                 }
             }
             map.put("reasonAndDetails", mapList);
-
-            //设置处方撤销标识 true:可以撤销, false:不可撤销
-            Boolean cancelFlag = false;
-            if (RecipeStatusConstant.REVOKE != recipe.getStatus()) {
-                if (!Integer.valueOf(1).equals(recipe.getPayFlag()) && recipe.getStatus() != RecipeStatusConstant.UNSIGN && recipe.getStatus() != RecipeStatusConstant.HIS_FAIL && recipe.getStatus() != RecipeStatusConstant.NO_DRUG && recipe.getStatus() != RecipeStatusConstant.NO_PAY && recipe.getStatus() != RecipeStatusConstant.NO_OPERATOR && recipe.getStatus() != RecipeStatusConstant.RECIPE_MEDICAL_FAIL && recipe.getStatus() != RecipeStatusConstant.CHECKING_HOS && recipe.getStatus() != RecipeStatusConstant.NO_MEDICAL_INSURANCE_RETURN
-                        //date 2020/05/14
-                        //将签名失败和审核失败的
-                        && recipe.getStatus() != RecipeStatusConstant.SIGN_ERROR_CODE_PHA && recipe.getStatus() != RecipeStatusConstant.SIGN_ERROR_CODE_DOC && recipe.getStatus() != RecipeStatusConstant.SIGN_ING_CODE_PHA && !Integer.valueOf(1).equals(recipe.getChooseFlag())
-                        && recipe.getStatus() != RecipeStatusConstant.SIGN_NO_CODE_PHA) {
-                    cancelFlag = true;
-                }
-            }
-            map.put("cancelFlag", cancelFlag);
             //能否开医保处方
             boolean medicalFlag = false;
             ConsultSetDTO set = consultSetService.getBeanByDoctorId(recipe.getDoctor());
@@ -1613,9 +1601,7 @@ public class RecipeServiceSub {
             //判断开关是否开启
             //去掉智能预审结果展示问题在生成的时候控制 原来的 BUG # 33761 需要注意是不是复现了
             if (recipe.getStatus() != 0) {
-                List<AuditMedicinesBean> auditMedicines = getAuditMedicineIssuesByRecipeId(recipeId);
                 map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId)); //返回药品分析数据
-//                AuditMedicineIssueDAO auditMedicineIssueDAO = DAOFactory.getDAO(AuditMedicineIssueDAO.class);
                 List<eh.recipeaudit.model.AuditMedicineIssueBean> auditMedicineIssues = iAuditMedicinesService.findIssueByRecipeId(recipeId);
                 if (CollectionUtils.isNotEmpty(auditMedicineIssues)) {
                     List<AuditMedicineIssueBean> resultMedicineIssues = new ArrayList<>();
@@ -1867,12 +1853,6 @@ public class RecipeServiceSub {
                 //表示为线下的处方
                 HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
                 HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
-                //设置代煎费
-//                if (hisRecipe != null && hisRecipe.getDecoctionFee() != null) {
-//                    //说明线下处方有代煎费
-//                    recipeBean.setDecoctionFee(hisRecipe.getDecoctionFee());
-//                }
-
                 String decoctionDeploy = ((String[]) configService.getConfiguration(recipe.getClinicOrgan(), "decoctionDeploy"))[0];
                 //用于确认订单页显示线下处方代煎费 兼容老版本（修复老版本的bug）
                 //如果为医生选择且recipeExt存在decoctionText

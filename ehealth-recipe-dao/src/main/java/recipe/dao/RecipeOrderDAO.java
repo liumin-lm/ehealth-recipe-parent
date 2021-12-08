@@ -11,7 +11,6 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.pay.model.BusBillDateAccountDTO;
 import com.ngari.recipe.recipereportform.model.*;
-import ctd.account.UserRoleToken;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.bean.QueryResult;
@@ -79,15 +78,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      */
     @DAOMethod(sql = "from RecipeOrder where orderCode in (:orderCodeList)")
     public abstract List<RecipeOrder> findByOrderCode(@DAOParam("orderCodeList") Collection<String> orderCodeList);
-
-    /**
-     * 批量查询 根据编号获取已支付订单
-     *
-     * @param orderCodeList
-     * @return
-     */
-    @DAOMethod(sql = "from RecipeOrder where orderCode in (:orderCodeList) and payFlag!=0")
-    public abstract List<RecipeOrder> findPayOrderByOrderCode(@DAOParam("orderCodeList") Collection<String> orderCodeList);
 
     /**
      * 根据流水号获取订单
@@ -184,10 +174,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("select count(1) from RecipeOrder where orderCode=:orderCode ");
-                //医保支付会生成一个无效的临时订单，但是医快付不允许重复发送同一个处方的信息
-//                if (null == payMode || !RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(payMode)) {
-//                    hql.append(" and effective=1 ");
-//                }
                 hql.append(" and effective=1 ");
                 Query q = ss.createQuery(hql.toString());
                 q.setParameter("orderCode", orderCode);
@@ -266,15 +252,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      */
     @DAOMethod(sql = "select order from RecipeOrder order, Recipe recipe where order.orderCode=recipe.orderCode and recipe.recipeId=:recipeId")
     public abstract RecipeOrder getRelationOrderByRecipeId(@DAOParam("recipeId") Integer recipeId);
-
-    /**
-     * 根据日期查询已支付或退款订单信息
-     *
-     * @param time
-     * @return
-     */
-    @DAOMethod(sql = "from RecipeOrder where (refundFlag isNotNull or refundFlag <> 0) and to_days(refundTime) = to_days(:time)")
-    public abstract RecipeOrder getPayInfoByTime(@DAOParam("time") Date time);
 
     /**
      * 根据物流单号查询手机号
@@ -864,192 +841,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return action.getResult();
     }
 
-    /**
-     * 根据日期获取电子处方药企配送药品
-     *
-     * @param startTime 开始时间
-     * @param endTime   截止时间
-     * @param organId   机构ID
-     * @param depId     药企ID
-     * @return
-     */
-    public List<Map<String, Object>> queryrecipeDrugO(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer recipeId, String orderColumn, String orderType, int start, int limit) {
-        HibernateStatelessResultAction<List<Map<String, Object>>> action = new AbstractHibernateStatelessResultAction<List<Map<String, Object>>>() {
-            @Override
-            public void execute(StatelessSession ss) throws Exception {
-
-                StringBuilder sql = new StringBuilder();
-                StringBuilder sqlPay = new StringBuilder();
-                StringBuilder sqlRefund = new StringBuilder();
-                sqlPay.append("SELECT d.saleDrugCode, d.drugName, d.producer, s.drugSpec, d.DrugUnit, IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) as price, sum(d.useTotalDose) as dose, IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) * sum(d.useTotalDose) as totalPrice, s.organId, s.DrugId ");
-                sqlPay.append(" FROM cdr_recipe r INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId INNER JOIN cdr_recipeorder o ON o.OrderCode = r.OrderCode ");
-                sqlPay.append("  LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID ");
-                sqlPay.append(" WHERE r.GiveMode = 1 and d.status = 1 and ((o.payflag = 1 OR o.refundflag = 1) and o.paytime BETWEEN :startTime  AND :endTime ) ");
-                sqlRefund.append("SELECT d.saleDrugCode, d.drugName, d.producer, s.drugSpec, d.DrugUnit, IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) as price, sum(d.useTotalDose) as dose, IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) * sum(0-d.useTotalDose) as totalPrice, s.organId, s.DrugId ");
-                sqlRefund.append(" FROM cdr_recipe r INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId INNER JOIN cdr_recipeorder o ON o.OrderCode = r.OrderCode ");
-                sqlRefund.append("  LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID ");
-                sqlRefund.append(" WHERE r.GiveMode = 1 and d.status = 1 and (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime) ");
-                if (organId != null) {
-                    sqlPay.append(" and r.clinicOrgan = :organId");
-                    sqlRefund.append(" and r.clinicOrgan = :organId");
-                } else if (organIds != null && organIds.size() > 0) {
-                    sqlPay.append(" and r.clinicOrgan in (:organIds)");
-                    sqlRefund.append(" and r.clinicOrgan in (:organIds)");
-                }
-                if (depId != null) {
-                    sqlPay.append(" and o.EnterpriseId = :depId");
-                    sqlRefund.append(" and o.EnterpriseId = :depId");
-                }
-                if (recipeId != null) {
-                    sqlPay.append(" and r.recipeId = :recipeId");
-                    sqlRefund.append(" and r.recipeId = :recipeId");
-                }
-                sqlPay.append(" GROUP BY s.drugId, s.OrganID");
-                sqlRefund.append(" GROUP BY s.drugId, s.OrganID");
-                //退款的处方单需要展示两条记录，所以要在取一次
-                sql.append("SELECT * from ( ").append(sqlPay).append(" UNION ALL ").append(sqlRefund).append(" ) a");
-                if (orderColumn != null) {
-                    sql.append(" order by " + orderColumn + " ");
-                }
-                if (orderType != null) {
-                    sql.append(orderType);
-                }
-                Query q = ss.createSQLQuery(sql.toString());
-                q.setParameter("startTime", startTime);
-                q.setParameter("endTime", endTime);
-                if (organId != null) {
-                    q.setParameter("organId", organId);
-                } else if (organIds != null && organIds.size() > 0) {
-                    q.setParameterList("organIds", organIds);
-                }
-                if (depId != null) {
-                    q.setParameter("depId", depId);
-                }
-                if (recipeId != null) {
-                    q.setParameter("recipeId", recipeId);
-                }
-
-                q.setFirstResult(start);
-                q.setMaxResults(limit);
-                List<Object[]> result = q.list();
-                List<Map<String, Object>> backList = new ArrayList<>();
-
-                Set<String> mpiIds = Sets.newHashSet();
-                if (CollectionUtils.isNotEmpty(result)) {
-
-                    //获取全部身份证信息
-                    PatientService patientService = BasicAPI.getService(PatientService.class);
-                    Map<String, String> patientBeanMap = Maps.newHashMap();
-                    for (Object[] obj : result) {
-                        if (obj[2] != null) {
-                            mpiIds.add((String) obj[2]);
-                        }
-                    }
-
-                    if (0 < mpiIds.size()) {
-                        List<PatientDTO> patientBeanList = patientService.findByMpiIdIn(new ArrayList<String>(mpiIds));
-                        for (PatientDTO p : patientBeanList) {
-                            patientBeanMap.put(p.getMpiId(), p.getCardId());
-                        }
-                    }
-
-                    Map<String, Object> vo;
-                    for (Object[] objs : result) {
-                        vo = new HashMap<String, Object>();
-                        vo.put("drugCode", objs[0] == null ? null : (String) objs[0]);
-                        vo.put("drugName", objs[1] == null ? null : (String) objs[1]);
-                        vo.put("producer", objs[2] == null ? null : (String) objs[2]);
-                        vo.put("drugSpec", objs[3] == null ? null : (String) objs[3]);
-                        vo.put("drugUnit", objs[4] == null ? null : (String) objs[4]);
-                        vo.put("price", objs[5] == null ? null : Double.valueOf(objs[5] + ""));
-                        vo.put("dose", objs[6] == null ? null : objs[6].toString());
-                        vo.put("totalPrice", objs[7] == null ? null : Double.valueOf(objs[7] + ""));
-                        vo.put("enterpriseId", objs[8] == null ? null : objs[8].toString());
-                        vo.put("DrugId", objs[9] == null ? null : objs[9].toString());
-                        backList.add(vo);
-                    }
-                }
-                setResult(backList);
-            }
-        };
-        HibernateSessionTemplate.instance().execute(action);
-        return action.getResult();
-    }
-
-    /**
-     * 根据日期获取电子处方药企配送药品
-     *
-     * @param startTime 开始时间
-     * @param endTime   截止时间
-     * @param organId   机构ID
-     * @param depId     药企ID
-     * @return
-     */
-    public Map<String, Object> queryrecipeDrugtotalO(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer recipeId) {
-        HibernateStatelessResultAction<Map<String, Object>> action = new AbstractHibernateStatelessResultAction<Map<String, Object>>() {
-            @Override
-            public void execute(StatelessSession ss) throws Exception {
-
-
-                StringBuilder sql = new StringBuilder();
-                StringBuilder sqlPay = new StringBuilder();
-                StringBuilder sqlRefund = new StringBuilder();
-                sqlPay.append("SELECT count(1) as count, sum(totalPrice) as totalPrice from (SELECT IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) * sum(d.useTotalDose) as totalPrice ");
-                sqlPay.append(" FROM cdr_recipe r INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId INNER JOIN cdr_recipeorder o ON o.OrderCode = r.OrderCode ");
-                sqlPay.append("  LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID ");
-                sqlPay.append(" WHERE r.GiveMode = 1 and d.status = 1 and ((o.payflag = 1 OR o.refundflag = 1) and o.paytime BETWEEN :startTime  AND :endTime ) ");
-                sqlRefund.append("SELECT count(1) as count, sum(totalPrice) as totalPrice from (SELECT IF(d.settlementMode = 1,d.salePrice,ifnull(d.actualSalePrice, s.price)) * sum(0-d.useTotalDose) as totalPrice ");
-                sqlRefund.append(" FROM cdr_recipe r INNER JOIN cdr_recipedetail d ON r.recipeId = d.recipeId INNER JOIN cdr_recipeorder o ON o.OrderCode = r.OrderCode ");
-                sqlRefund.append("  LEFT JOIN base_saledruglist s ON d.drugId = s.drugId and o.EnterpriseId = s.OrganID ");
-                sqlRefund.append(" WHERE r.GiveMode = 1 and d.status = 1 and (o.refundflag = 1 and o.refundTime BETWEEN :startTime  AND :endTime) ");
-                if (organId != null) {
-                    sqlPay.append(" and r.clinicOrgan = :organId");
-                    sqlRefund.append(" and r.clinicOrgan = :organId");
-                } else if (organIds != null && organIds.size() > 0) {
-                    sqlPay.append(" and r.clinicOrgan in (:organIds)");
-                    sqlRefund.append(" and r.clinicOrgan in (:organIds)");
-                }
-                if (depId != null) {
-                    sqlPay.append(" and o.EnterpriseId = :depId");
-                    sqlRefund.append(" and o.EnterpriseId = :depId");
-                }
-                if (recipeId != null) {
-                    sqlPay.append(" and r.recipeId = :recipeId");
-                    sqlRefund.append(" and r.recipeId = :recipeId");
-                }
-                sqlPay.append(" GROUP BY s.drugId, s.OrganID) a");
-                sqlRefund.append(" GROUP BY s.drugId, s.OrganID) a");
-                //退款的处方单需要展示两条记录，所以要在取一次
-                sql.append("SELECT sum(count), sum(totalPrice) as totalPrice  from ( ").append(sqlPay).append(" UNION ALL ").append(sqlRefund).append(" ) b");
-
-                Query q = ss.createSQLQuery(sql.toString());
-                q.setParameter("startTime", startTime);
-                q.setParameter("endTime", endTime);
-                if (organId != null) {
-                    q.setParameter("organId", organId);
-                } else if (organIds != null && organIds.size() > 0) {
-                    q.setParameterList("organIds", organIds);
-                }
-                if (depId != null) {
-                    q.setParameter("depId", depId);
-                }
-                if (recipeId != null) {
-                    q.setParameter("recipeId", recipeId);
-                }
-                List<Object[]> result = q.list();
-
-                Map<String, Object> vo = new HashMap();
-                if (CollectionUtils.isNotEmpty(result)) {
-                    vo.put("totalNum", result.get(0)[0]);
-                    vo.put("totalPrice", result.get(0)[1]);
-                }
-                setResult(vo);
-            }
-        };
-        HibernateSessionTemplate.instance().execute(action);
-        return action.getResult();
-    }
-
     public List<BillBusFeeVo> findRecipeFeeList(final RecipeBillRequest recipeBillRequest) {
         HibernateStatelessResultAction<List<BillBusFeeVo>> action = new AbstractHibernateStatelessResultAction<List<BillBusFeeVo>>() {
             @Override
@@ -1199,16 +990,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                                                    @DAOParam("dispensingApothecaryName") String dispensingApothecaryName,
                                                    @DAOParam("dispensingApothecaryIdCard") String dispensingApothecaryIdCard);
 
-    @DAOMethod(sql = "from RecipeOrder where status =:status and effective = 1 and payFlag = 1 and enterpriseId =:enterpriseId ")
-    public abstract List<RecipeOrder> findRecipeOrderByStatusAndEnterpriseId(@DAOParam("status") Integer status, @DAOParam("enterpriseId") Integer enterpriseId);
 
-    private String getManageUnit(String manageUnit) {
-        if (StringUtils.isNotEmpty(manageUnit)) {
-            return manageUnit;
-        }
-        UserRoleToken urt = UserRoleToken.getCurrent();
-        return urt.getManageUnit();
-    }
 
     public List<RecivedDispatchedBalanceResponse> findDrugReceivedDispatchedBalanceList(final String manageUnit, final List<Integer> organIdList, final Date startTime, final Date endTime,
                                                                                         final Integer start, final Integer limit) {
@@ -1604,7 +1386,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (null != request.getBuyMedicWay()) {
                     sql.append(" and cr.GiveMode =:giveMode");
                 }
-//                sql.append(" GROUP BY c.OrganId,c.EnterpriseId");
                 StringBuilder querySql = queryhql.append(sql);
                 Query query = ss.createSQLQuery(querySql.toString());
                 if (CollectionUtils.isNotEmpty(request.getOrganIdList())) {
@@ -1615,16 +1396,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 if (StringUtils.isNotEmpty(request.getBuyMedicWay())) {
                     query.setParameter("giveMode", request.getBuyMedicWay());
                 }
-
-                //count
-//                Query countQuery = ss.createSQLQuery(countSql.append(sql).toString());
-//                countQuery.setParameterList("organIdList", request.getOrganIdList());
-//                countQuery.setParameter("startTime", request.getStartTime());
-//                countQuery.setParameter("endTime", request.getEndTime());
-//                if(null != request.getBuyMedicWay()){
-//                    countQuery.setParameter("giveMode", request.getBuyMedicWay());
-//                }
-//                Long count = ConversionUtils.convert(countQuery.uniqueResult(),Long.class);
 
                 List<Object[]> queryList = query.list();
                 List<RecipeHisAccountCheckResponse> resultList = new ArrayList<>();
