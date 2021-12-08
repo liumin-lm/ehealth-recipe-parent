@@ -2761,22 +2761,19 @@ public class RecipeServiceSub {
         String recipeMode = recipe.getRecipeMode();
         //获取撤销前处方单状态
         Integer beforeStatus = recipe.getStatus();
-        //不能撤销的情况:1 患者已支付 2 药师已审核(不管是否通过)
-        if (Integer.valueOf(RecipeStatusConstant.REVOKE).equals(recipe.getStatus())) {
-            msg = "该处方单已撤销，不能进行撤销操作";
-        }
         if (recipe.getStatus() == RecipeStatusConstant.UNSIGN) {
             msg = "暂存的处方单不能进行撤销";
         }
-        if (Integer.valueOf(1).equals(recipe.getPayFlag())) {
-            msg = "该处方单用户已支付，不能进行撤销操作";
-        }
-        if (recipe.getStatus() == RecipeStatusConstant.HIS_FAIL || recipe.getStatus() == RecipeStatusConstant.NO_DRUG || recipe.getStatus() == RecipeStatusConstant.NO_PAY || recipe.getStatus() == RecipeStatusConstant.NO_OPERATOR) {
+        if (RecipeStatusEnum.RECIPE_REVOKE.contains(recipe.getStatus())) {
             msg = "该处方单已取消，不能进行撤销操作";
         }
         boolean cancelFlag = false;
         if (null != order && RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType().equals(order.getStatus()) && RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(order.getGiveModeKey())) {
             cancelFlag = true;
+        }
+        //不能撤销的情况:1 患者已支付 2 药师已审核(不管是否通过)
+        if (!cancelFlag && Integer.valueOf(1).equals(recipe.getPayFlag())) {
+            msg = "该处方单用户已支付，不能进行撤销操作";
         }
         if (!cancelFlag && Integer.valueOf(1).equals(recipe.getChooseFlag())) {
             msg = "患者已选择购药方式，不能进行撤销操作";
