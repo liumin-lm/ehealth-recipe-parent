@@ -16,6 +16,7 @@ import recipe.client.DrugStockClient;
 import recipe.client.OperationClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IStockBusinessService;
+import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
@@ -54,6 +55,8 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     private RecipeDAO recipeDAO;
     @Resource
     private RecipeDetailDAO recipeDetailDAO;
+    @Resource
+    private OrganDrugListDAO organDrugListDAO;
 
 
     @Override
@@ -199,9 +202,13 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     @Override
     public Map<String, List<DrugForGiveModeVO>> drugForGiveMode(DrugQueryVO drugQueryVO) {
         logger.info("drugForGiveMode DrugQueryVO={}", JSONArray.toJSONString(drugQueryVO));
+        List<String> drugNames = new ArrayList<>();
+        List<Integer> drugIds = new ArrayList<>();
         List<Recipedetail> recipeDetails = drugQueryVO.getRecipeDetails().stream().map(recipeDetailBean -> {
+            drugNames.add(recipeDetailBean.getDrugName());
+            drugIds.add(recipeDetailBean.getDrugId());
             Recipedetail recipedetail = new Recipedetail();
-            BeanUtils.copy(recipeDetailBean,recipedetail);
+            BeanUtils.copy(recipeDetailBean, recipedetail);
             return recipedetail;
         }).collect(Collectors.toList());
         //机构库存
@@ -212,24 +219,47 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         enterpriseStock.add(organStock);
         List<DrugForGiveModeVO> list = Lists.newArrayList();
         for (EnterpriseStock stock : enterpriseStock) {
-            if(!stock.getStock()){
+            if (!stock.getStock()) {
                 continue;
             }
             List<GiveModeButtonDTO> giveModeButton = stock.getGiveModeButton();
-            if(CollectionUtils.isEmpty(giveModeButton)){
+            if (CollectionUtils.isEmpty(giveModeButton)) {
                 continue;
             }
             List<String> drugName = stock.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
             giveModeButton.forEach(giveModeButtonDTO -> {
-                DrugForGiveModeVO  drugForGiveModeVO = new DrugForGiveModeVO();
+                DrugForGiveModeVO drugForGiveModeVO = new DrugForGiveModeVO();
                 drugForGiveModeVO.setGiveModeKey(giveModeButtonDTO.getShowButtonKey());
                 drugForGiveModeVO.setGiveModeKeyText(giveModeButtonDTO.getShowButtonName());
-                drugForGiveModeVO.setEnterpriseName(stock.getDrugsEnterprise().getName());
+                if (!RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(giveModeButtonDTO.getShowButtonKey())) {
+                    drugForGiveModeVO.setEnterpriseName(stock.getDrugsEnterprise().getName());
+                }
                 drugForGiveModeVO.setDrugsName(drugName);
                 list.add(drugForGiveModeVO);
             });
         }
-        Map<String, List<DrugForGiveModeVO>> returnMap = list.stream().collect(Collectors.groupingBy(DrugForGiveModeVO::getGiveModeKeyText));
+        List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(drugQueryVO.getOrganId());
+        //下载处方签
+        String supportDownloadButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
+        if (StringUtils.isNotEmpty(supportDownloadButton)) {
+            List<OrganDrugList> organDrugList = organDrugListDAO.findOrganDrugListBySupportDownloadPrescriptionPad(drugQueryVO.getOrganId(), drugIds);
+            List<String> drug = organDrugList.stream().map(OrganDrugList::getDrugName).collect(Collectors.toList());
+            DrugForGiveModeVO drugForGiveModeVO = new DrugForGiveModeVO();
+            drugForGiveModeVO.setGiveModeKey(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
+            drugForGiveModeVO.setGiveModeKeyText(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getName());
+            drugForGiveModeVO.setDrugsName(drug);
+            list.add(drugForGiveModeVO);
+        }
+        //例外支付
+        String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
+        if (StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
+            DrugForGiveModeVO drugForGiveModeVO = new DrugForGiveModeVO();
+            drugForGiveModeVO.setGiveModeKey(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
+            drugForGiveModeVO.setGiveModeKeyText(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getName());
+            drugForGiveModeVO.setDrugsName(drugNames);
+            list.add(drugForGiveModeVO);
+        }
+        Map<String, List<DrugForGiveModeVO>> returnMap = list.stream().collect(Collectors.groupingBy(DrugForGiveModeVO::getGiveModeKey));
         logger.info("drugForGiveMode returnMap={}", JSONArray.toJSONString(returnMap));
         return returnMap;
     }

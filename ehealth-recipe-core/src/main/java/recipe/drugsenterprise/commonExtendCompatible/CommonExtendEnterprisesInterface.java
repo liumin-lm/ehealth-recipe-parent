@@ -25,6 +25,7 @@ public interface CommonExtendEnterprisesInterface {
 
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise);
 
+    @Deprecated
     public boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds);
 
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails);
