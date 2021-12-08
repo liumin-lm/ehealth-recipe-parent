@@ -577,7 +577,7 @@ public class RecipeServiceSub {
                         }
                         detail.setSalePrice(price);
                         BigDecimal drugCost ;
-                        if(new Integer(3).equals(recipe.getRecipeType())){
+                        if(RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())){
                             //保留3位小数
                             drugCost = price.multiply(new BigDecimal(detail.getUseTotalDose())).divide(BigDecimal.valueOf(organDrug.getPack()), 3, RoundingMode.UP);
                         }else{
