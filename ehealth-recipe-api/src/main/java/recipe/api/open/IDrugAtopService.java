@@ -29,7 +29,7 @@ public interface IDrugAtopService {
      * @param ruleId
      * @return
      */
-    @RpcService
+    @RpcService(mvcDisabled = true)
     List<RecipeRulesDrugcorrelationVo> getListDrugRules(List<Integer> list, Integer ruleId);
 
 }

@@ -2997,7 +2997,7 @@ public class RecipeService extends RecipeBaseService {
                     responseTO = recipeHisService.queryOrganDrugInfo(request);
                     LOGGER.info("drugInfoSynMovement request={}", JSONUtils.toString(request));
                 } catch (Exception e) {
-                    LOGGER.error("drugInfoSynMovement error{} ", e);
+                    LOGGER.info("drugInfoSynMovement error{} ", e);
                 }
                 List<OrganDrugInfoTO> data = Lists.newArrayList();
                 if (responseTO != null) {

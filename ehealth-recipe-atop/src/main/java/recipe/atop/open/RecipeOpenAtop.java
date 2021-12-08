@@ -135,6 +135,7 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
 
     @Override
     public RegulationRecipeIndicatorsDTO regulationRecipe(Integer recipeId) {
+        validateAtop(recipeId);
         return recipeBusinessService.regulationRecipe(recipeId);
     }
 
