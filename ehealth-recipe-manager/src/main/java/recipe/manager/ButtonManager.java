@@ -1,8 +1,6 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.ngari.platform.recipe.mode.RecipeResultBean;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
@@ -71,42 +69,6 @@ public class ButtonManager extends BaseManager {
         return PayButtonEnum.MY_PAY.getType();
     }
 
-
-    /**
-     * 传入库存信息,获取处方的购药方式
-     *
-     * @param scanResult
-     * @param supportDepList
-     * @param checkFlag
-     * @param recipeId
-     * @param organId
-     * @return
-     */
-    public List<Integer> getRecipeGiveMode(com.ngari.platform.recipe.mode.RecipeResultBean scanResult, List<DrugsEnterprise> supportDepList, int checkFlag, Integer recipeId, int organId, List<String> configurations) {
-        logger.info("getRecipeGiveMode scanResult = {} supportDepList= {} checkFlag={} recipeId={} organId={} configurations = {}", JSONArray.toJSONString(scanResult), JSONArray.toJSONString(supportDepList), checkFlag, recipeId, organId, JSONArray.toJSONString(configurations));
-        List<Integer> recipeSupportGiveModeList = new ArrayList<>();
-        switch (checkFlag) {
-            case 1:
-                if (RecipeResultBean.SUCCESS.equals(scanResult.getCode())) {
-                    recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
-                }
-                break;
-            case 2:
-                recipeSupportGiveModeList = getGiveModeBuEnterprise(supportDepList, recipeSupportGiveModeList, recipeId, organId);
-                break;
-            case 3:
-                recipeSupportGiveModeList = getGiveModeBuEnterprise(supportDepList, recipeSupportGiveModeList, recipeId, organId);
-                if (RecipeResultBean.SUCCESS.equals(scanResult.getCode())) {
-                    recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
-                }
-                break;
-            default:
-                break;
-        }
-        setOtherGiveMode(configurations, recipeId, organId, recipeSupportGiveModeList);
-        logger.info("getRecipeGiveMode  recipeId= {} recipeSupportGiveModeList= {}", recipeId, JSONUtils.toString(recipeSupportGiveModeList));
-        return recipeSupportGiveModeList;
-    }
 
     /**
      * 传入药企信息
@@ -290,30 +252,6 @@ public class ButtonManager extends BaseManager {
         }
     }
 
-
-    /**
-     * 例外支付下载处方
-     *
-     * @param configurations
-     * @param recipeId
-     * @param organId
-     * @param recipeSupportGiveModeList
-     * @return
-     */
-    private List<Integer> setOtherGiveMode(List<String> configurations, Integer recipeId, int organId, List<Integer> recipeSupportGiveModeList) {
-        // 查询药品是否不支持下载处方
-        if (configurations.contains(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText())) {
-            Integer integer = organDrugListDAO.countIsSupperDownloadRecipe(organId, recipeId);
-            if (integer == 0) {
-                recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getType());
-            }
-        }
-        // 例外支付 只要机构配置了就支持
-        if (configurations.contains(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText())) {
-            recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getType());
-        }
-        return recipeSupportGiveModeList;
-    }
 
     private IGiveModeBase getGiveModeBaseByRecipe(Recipe recipe) {
         if (new Integer(2).equals(recipe.getRecipeSource())) {
