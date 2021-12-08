@@ -11,7 +11,7 @@ import recipe.core.api.greenroom.IDrugsEnterpriseBusinessService;
  * @author： yinsheng
  * @date： 2021-12-08 9:45
  */
-@RpcBean("drugsEnterpriseGmAtop")
+@RpcBean(value = "drugsEnterpriseGmAtop")
 public class DrugsEnterpriseGmAtop extends BaseAtop {
 
     @Autowired
