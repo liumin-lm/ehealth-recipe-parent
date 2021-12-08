@@ -1,4 +1,4 @@
-package recipe.greenroom;
+package recipe.atop.greenroom;
 
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
