@@ -330,7 +330,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         } else if (ObjectUtils.nullSafeEquals(status, 1)) {
                             hql.append(" and d.drugId  = o.drugId and o.status = 1 and o.organId =:organId and o.createDt>=:startTime and o.createDt<=:endTime ");
                         } else if (ObjectUtils.nullSafeEquals(status, -1)) {
-                            hql.append(" and d.drugId not in (select o.drugId from SaleDrugList o where o.organId =:organId and o.createDt>=:startTime and o.createDt<=:endTime) ");
+                            hql.append(" and d.drugId not in (select o.drugId from SaleDrugList o where o.organId =:organId ) ");
                         } else if (ObjectUtils.nullSafeEquals(status, ALL_DRUG_FLAG)) {
                             hql.append(" and d.drugId = o.drugId and o.status in (0, 1) and o.organId =:organId and o.createDt>=:startTime and o.createDt<=:endTime ");
                         }
@@ -361,8 +361,10 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         if (drugId != null) {
                             countQuery.setParameter("drugId", drugId);
                         }
-                        countQuery.setParameter("startTime", startTime);
-                        countQuery.setParameter("endTime", dt.plusDays(1).toDate());
+                        if (status!= -1){
+                            countQuery.setParameter("startTime", startTime);
+                            countQuery.setParameter("endTime", dt.plusDays(1).toDate());
+                        }
                         if (!StringUtils.isEmpty(keyword)) {
                             countQuery.setParameter("keyword", "%" + keyword + "%");
                         }
@@ -393,10 +395,10 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         if (!ObjectUtils.isEmpty(type)) {
                             query.setParameter("drugType", type);
                         }
-                        if (!ObjectUtils.isEmpty(startTime)){
+                        if (!ObjectUtils.isEmpty(startTime) && status!= -1){
                             query.setParameter("startTime", startTime);
                         }
-                        if (!ObjectUtils.isEmpty(endTime)){
+                        if (!ObjectUtils.isEmpty(endTime) && status!= -1){
                             query.setParameter("endTime", dt.plusDays(1).toDate());
                         }
                         query.setFirstResult(start);
