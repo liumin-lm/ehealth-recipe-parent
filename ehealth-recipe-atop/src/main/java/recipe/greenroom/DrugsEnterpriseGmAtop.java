@@ -24,6 +24,7 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
      */
     @RpcService
     public Boolean existEnterpriseByName(String name){
+        validateAtop(name);
         return enterpriseBusinessService.existEnterpriseByName(name);
     }
 }
