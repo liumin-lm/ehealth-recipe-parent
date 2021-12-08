@@ -8,7 +8,6 @@ import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.entity.*;
-import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import eh.base.constant.CardTypeEnum;
 import org.apache.commons.collections.CollectionUtils;
@@ -18,7 +17,6 @@ import org.springframework.stereotype.Service;
 import recipe.client.OperationClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.OrganAndDrugsepRelationDAO;
-import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.type.*;
 import recipe.factoryManager.button.IGiveModeBase;
 import recipe.factoryManager.button.impl.BjGiveModeServiceImpl;
@@ -237,7 +235,6 @@ public class ButtonManager extends BaseManager {
         }
         String giveModeKey;
         if (new Integer(1).equals(recipe.getGiveMode()) && StringUtils.isNotEmpty(recipe.getOrderCode())) {
-            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             if (null == recipeOrder) {
                 return "";
