@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ngari.base.BaseAPI;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.searchcontent.model.SearchContentBean;
 import com.ngari.base.searchcontent.service.ISearchContentService;
@@ -537,32 +536,6 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             pharmacyInventories.add(pharmacyInventory);
         }
         return pharmacyInventories;
-    }
-
-    /***
-     *  <p>注意：目前通过前置机开发人员确认：只需上送机构（医院）药品编码OrganDrugCode，
-     *  * 针对一个药品编码OrganDrugCode返回>1条不同规格的药品时，参照前置机校验库存的做法：
-     *  * 匹配时也只需按机构（医院）药品编码去匹配，不考虑同种药品的不同规格
-     *  * （前置机做药品库存是否充足时也是不考虑规格的）</>
-     * @param drugListBean
-     * @param drugInfoTOList
-     * @return
-     */
-    private List<DrugInfoTO> findDrugInfoTOList(IDrugInventory drugListBean, List<DrugInfoTO> drugInfoTOList) {
-        return drugInfoTOList.stream().filter(item ->
-                drugListBean.getOrganDrugCode().equalsIgnoreCase(item.getDrcode()))
-                .collect(Collectors.toList());
-    }
-
-    private boolean isViewInventoryRealtime(Integer organId) {
-        IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
-        try {
-            Integer cfgValue = (Integer) configService.getConfiguration(organId, "viewDrugInventoryRealTime");
-            return cfgValue.equals(1);
-        } catch (Exception e) {
-            LOGGER.error("获取参数viewDrugInventoryRealTime 错误 ", e);
-            return false;
-        }
     }
 
     /***
