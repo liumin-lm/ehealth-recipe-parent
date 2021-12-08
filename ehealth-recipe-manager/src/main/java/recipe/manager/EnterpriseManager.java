@@ -661,6 +661,16 @@ public class EnterpriseManager extends BaseManager {
         return drugsEnterpriseList;
     }
 
+    /**
+     * 根据药企名称查询药企列表
+     * @param name
+     * @return
+     */
+    public List<DrugsEnterprise> findAllDrugsEnterpriseByName(String name){
+        List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName(name);
+        logger.info("EnterpriseManager findAllDrugsEnterpriseByName drugsEnterprises:{}", JSONUtils.toString(drugsEnterprises));
+        return drugsEnterprises;
+    }
 
 }
 
