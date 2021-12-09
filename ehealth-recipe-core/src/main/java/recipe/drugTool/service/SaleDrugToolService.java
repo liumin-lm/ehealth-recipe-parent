@@ -556,6 +556,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     }
                     if (!ObjectUtils.isEmpty(detail)){
                         param.put("organId", detail.getOrganId());
+                        param.put("organDrugId", detail.getOrganDrugId());
                     }
                     param.put("drugForm", drugList.getDrugForm());
                     param.put("producer", drugList.getProducer());
