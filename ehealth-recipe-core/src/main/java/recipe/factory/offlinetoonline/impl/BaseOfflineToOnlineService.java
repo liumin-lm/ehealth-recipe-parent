@@ -170,7 +170,7 @@ public class BaseOfflineToOnlineService {
         hisRecipeManager.deleteRecipeByRecipeCodes(request.getOrganId(), request.getRecipeCode());
         request.getRecipeCode().forEach(recipeCode -> {
             // 2、线下转线上
-            FindHisRecipeDetailReqVO findHisRecipeDetailReqVO = getFindHisRecipeDetailParam(request.getMpiId(), recipeCode, request.getOrganId(), request.getCardId(), 23);
+            FindHisRecipeDetailReqVO findHisRecipeDetailReqVO = getFindHisRecipeDetailParam(request.getMpiId(), recipeCode, request.getOrganId(), request.getCardId(), request.getTimeQuantum());
             IOfflineToOnlineStrategy iOfflineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getName());
             FindHisRecipeDetailResVO findHisRecipeDetailResVO = iOfflineToOnlineStrategy.findHisRecipeDetail(findHisRecipeDetailReqVO);
             if (findHisRecipeDetailResVO != null) {
