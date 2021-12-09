@@ -313,7 +313,13 @@ public class OfflineRecipeClient extends BaseClient {
         return data.get(0);
     }
 
-
+    /**
+     * 查询his 药品说明书
+     *
+     * @param organId       机构id
+     * @param organDrugList 药品数据
+     * @return
+     */
     public DrugSpecificationInfoDTO drugSpecification(Integer organId, OrganDrugList organDrugList) {
         DrugSpecificationReq drugSpecificationReq = new DrugSpecificationReq();
         drugSpecificationReq.setOrganId(organId);
