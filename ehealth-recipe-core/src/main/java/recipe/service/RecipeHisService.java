@@ -333,7 +333,6 @@ public class RecipeHisService extends RecipeBaseService {
      * @param otherOrganId
      * @return
      */
-    @RpcService
     public boolean cancelRecipeImpl(Integer recipeId, Integer otherOrganId, String hisRecipeStatus) {
         LOGGER.info("RecipeHisService cancelRecipeImpl  recipeId = {},otherOrganId={},hisRecipeStatus:{}", recipeId, otherOrganId, hisRecipeStatus);
         RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);

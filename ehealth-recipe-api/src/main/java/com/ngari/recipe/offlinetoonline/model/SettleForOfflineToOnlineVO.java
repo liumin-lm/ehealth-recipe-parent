@@ -44,6 +44,22 @@ public class SettleForOfflineToOnlineVO implements Serializable {
     @NotNull
     private String busType;
 
+    /**
+     * timeQuantum 时间段  1 代表一个月  3 代表三个月 6 代表6个月
+     * 23 代表3天
+     */
+    private Integer timeQuantum;
+
+    public Integer getTimeQuantum() {
+        if ("2".equals(this.busType)) {
+            timeQuantum = 23;
+        } else {
+            timeQuantum = 6;
+        }
+        return timeQuantum;
+    }
+
+
 }
 
 

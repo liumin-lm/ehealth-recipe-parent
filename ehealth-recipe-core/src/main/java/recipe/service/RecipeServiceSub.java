@@ -2823,7 +2823,7 @@ public class RecipeServiceSub {
             if (succFlag) {
                 memo.append("HIS推送成功");
             } else {
-                memo.append("HIS推送失败");
+                memo.append("HIS不允许撤销");
                 result = false;
             }
         } else if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
