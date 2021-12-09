@@ -546,15 +546,6 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 if (!ObjectUtils.isEmpty(drugList)){
                     param.put("drugType", drugList.getDrugType());
                     param.put("drugClass", drugList.getDrugClass());
-                    if (!ObjectUtils.isEmpty(drugList.getDrugClass())){
-                        DictionaryItem item = null;
-                        try {
-                             item = DictionaryController.instance().get("eh.base.dictionary.ScratchableTempApplyPage").getItem(drugList.getDrugClass());
-                            param.put("drugClassText", item.getText());
-                        } catch (ControllerException controllerException) {
-                            controllerException.printStackTrace();
-                        }
-                    }
                     if (!ObjectUtils.isEmpty(detail)){
                         param.put("organId", detail.getOrganId());
                         param.put("organDrugId", detail.getOrganDrugId());
