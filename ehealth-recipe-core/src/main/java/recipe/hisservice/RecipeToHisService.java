@@ -317,24 +317,6 @@ public class RecipeToHisService {
     }
 
 
-    public Boolean cancelRecipeImpl(RecipeStatusUpdateReqTO request) {
-        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
-        LOGGER.info("cancelRecipeImpl request={}", JSONUtils.toString(request));
-        Boolean response;
-        try {
-            response = hisService.recipeUpdate(request);
-            LOGGER.info("cancelRecipeImpl response={}", JSONUtils.toString(response));
-            if (null == response) {
-                response = true;
-            }
-        } catch (Exception e) {
-            LOGGER.error("cancelRecipeImpl error ", e);
-            response = true;
-        }
-        return response;
-    }
-
-
     public DrugInfoResponseTO scanDrugStock(List<Recipedetail> detailList, int organId) {
         if (CollectionUtils.isEmpty(detailList)) {
             return null;

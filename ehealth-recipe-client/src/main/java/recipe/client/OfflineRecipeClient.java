@@ -71,6 +71,24 @@ public class OfflineRecipeClient extends BaseClient {
         }
     }
 
+
+    public Boolean cancelRecipeImpl(RecipeStatusUpdateReqTO request, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
+        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = recipeDTO(2, recipePdfDTO, emrDetail, pharmacyIdMap);
+        request.setRecipeDTO(recipeDTO);
+        logger.info("cancelRecipeImpl request={}", JSONUtils.toString(request));
+        try {
+            Boolean response = recipeHisService.recipeUpdate(request);
+            logger.info("cancelRecipeImpl response={}", JSONUtils.toString(response));
+            if (null == response) {
+                return true;
+            }
+            return response;
+        } catch (Exception e) {
+            logger.error("cancelRecipeImpl error ", e);
+            return false;
+        }
+    }
+
     /**
      * 推送处方
      *
