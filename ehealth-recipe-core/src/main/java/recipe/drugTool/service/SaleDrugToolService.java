@@ -22,6 +22,7 @@ import com.ngari.recipe.entity.*;
 import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
+import ctd.dictionary.DictionaryItem;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
@@ -546,10 +547,10 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     param.put("drugType", drugList.getDrugType());
                     param.put("drugClass", drugList.getDrugClass());
                     if (!ObjectUtils.isEmpty(drugList.getDrugClass())){
-                        String text = null;
+                        DictionaryItem item = null;
                         try {
-                            text = DictionaryController.instance().get("eh.base.dictionary.ScratchableTempApplyPage").getText(drugList.getDrugClass());
-                            param.put("drugClassText", text);
+                             item = DictionaryController.instance().get("eh.base.dictionary.ScratchableTempApplyPage").getItem(drugList.getDrugClass());
+                            param.put("drugClassText", item.getText());
                         } catch (ControllerException controllerException) {
                             controllerException.printStackTrace();
                         }
@@ -560,7 +561,6 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     }
                     param.put("drugForm", drugList.getDrugForm());
                     param.put("producer", drugList.getProducer());
-                    param.put("organId", drugList.getProducer());
                 }
             }
             dataSyncDTO.setReqMsg(JSONUtils.toString(param));
