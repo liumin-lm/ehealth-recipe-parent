@@ -1548,14 +1548,15 @@ public class RecipeServiceSub {
 
             boolean cancelFlag = RecipeStatusEnum.checkRecipeRevokeStatus(recipe, null);
             //通过订单的状态判断
+            Integer status = null;
             if (null != recipe.getRecipeCode()) {
                 RecipeOrder recipeOrders = orderDAO.getByOrderCode(recipe.getOrderCode());
                 cancelFlag = RecipeStatusEnum.checkRecipeRevokeStatus(recipe, recipeOrders);
-                Integer status = null != recipeOrders && Integer.valueOf(1).equals(recipeOrders.getEffective()) ? recipeOrders.getStatus() : null;
-                Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, null, status);
-                map.put("cancelReason", MapValueUtil.getString(tipMap, "cancelReason"));
-                map.put("tips", MapValueUtil.getString(tipMap, "tips"));
+                status = null != recipeOrders && Integer.valueOf(1).equals(recipeOrders.getEffective()) ? recipeOrders.getStatus() : null;
             }
+            Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, null, status);
+            map.put("cancelReason", MapValueUtil.getString(tipMap, "cancelReason"));
+            map.put("tips", MapValueUtil.getString(tipMap, "tips"));
             map.put("cancelFlag", cancelFlag);
             IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
             //获取审核不通过详情
