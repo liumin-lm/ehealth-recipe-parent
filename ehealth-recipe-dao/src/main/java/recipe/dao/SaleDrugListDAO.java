@@ -283,7 +283,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                     @Override
                     public void execute(StatelessSession ss) throws DAOException {
                         DateTime dt =new DateTime();
-                        if (status!= -1){
+                        if (!ObjectUtils.nullSafeEquals(status, -1)){
                             dt = new DateTime(endTime);
                         }
                         StringBuilder hql = new StringBuilder(" from DrugList d ");
@@ -367,7 +367,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         if (drugId != null) {
                             countQuery.setParameter("drugId", drugId);
                         }
-                        if (status!= -1){
+                        if (!ObjectUtils.nullSafeEquals(status, -1)){
                             countQuery.setParameter("startTime", startTime);
                             countQuery.setParameter("endTime", dt.plusDays(1).toDate());
                         }
@@ -401,10 +401,10 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         if (!ObjectUtils.isEmpty(type)) {
                             query.setParameter("drugType", type);
                         }
-                        if (!ObjectUtils.isEmpty(startTime) && status!= -1){
+                        if (!ObjectUtils.isEmpty(startTime) && !ObjectUtils.nullSafeEquals(status, -1)){
                             query.setParameter("startTime", startTime);
                         }
-                        if (!ObjectUtils.isEmpty(endTime) && status!= -1){
+                        if (!ObjectUtils.isEmpty(endTime) && !ObjectUtils.nullSafeEquals(status, -1)){
                             query.setParameter("endTime", dt.plusDays(1).toDate());
                         }
                         query.setFirstResult(start);
