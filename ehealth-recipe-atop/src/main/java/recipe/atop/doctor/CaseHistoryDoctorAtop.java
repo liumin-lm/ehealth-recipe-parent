@@ -62,6 +62,7 @@ public class CaseHistoryDoctorAtop extends BaseAtop {
      * @return
      */
     @RpcService
+    @Deprecated
     public Integer getRevisitId(String mpiId, Integer doctorId) {
         logger.info("CaseHistoryAtop getRevisitId mpiId: {},doctorId :{}", mpiId, doctorId);
         validateAtop(mpiId, doctorId);
