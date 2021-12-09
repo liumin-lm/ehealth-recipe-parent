@@ -126,6 +126,10 @@ public class RecipeHisService extends RecipeBaseService {
     private DocIndexClient docIndexClient;
     @Autowired
     private OfflineRecipeClient offlineRecipeClient;
+    @Autowired
+    private RecipeTherapyManager recipeTherapyManager;
+    @Autowired
+    private PharmacyManager pharmacyManager;
 
     /**
      * 发送处方
@@ -321,10 +325,6 @@ public class RecipeHisService extends RecipeBaseService {
         return flag;
     }
 
-    @Autowired
-    private RecipeTherapyManager recipeTherapyManager;
-    @Autowired
-    private PharmacyManager pharmacyManager;
 
     /**
      * 发送指定HIS修改处方状态
