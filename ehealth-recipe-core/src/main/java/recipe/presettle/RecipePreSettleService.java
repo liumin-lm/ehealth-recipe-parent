@@ -8,15 +8,18 @@ import com.ngari.recipe.entity.RecipeOrder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import jdk.nashorn.internal.ir.annotations.Reference;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.business.StockBusinessService;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.presettle.factory.PreSettleFactory;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +39,8 @@ public class RecipePreSettleService {
     private RecipeDAO recipeDAO;
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
+    @Resource
+    private StockBusinessService stockBusinessService;
 
     /**
      * 统一处方预结算接口
@@ -81,6 +86,13 @@ public class RecipePreSettleService {
             result.put("code", "200");
             return result;
         }
+        // 库存查询
+        Boolean stockFlag = stockBusinessService.getStockFlag(recipeId,recipe,recipeOrder.getEnterpriseId());
+        if(!stockFlag){
+            result.put("msg", "库存不足");
+            return result;
+        }
+
         Integer depId = recipeOrder.getEnterpriseId();
         Integer orderType = recipeOrder.getOrderType() == null ? 0 : recipeOrder.getOrderType();
         String insuredArea = extend.getInsuredArea();

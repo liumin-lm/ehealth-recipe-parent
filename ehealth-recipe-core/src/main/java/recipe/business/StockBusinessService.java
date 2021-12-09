@@ -3,6 +3,7 @@ package recipe.business;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
@@ -19,8 +20,10 @@ import recipe.core.api.IStockBusinessService;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.EnterpriseManager;
@@ -58,6 +61,48 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     @Resource
     private OrganDrugListDAO organDrugListDAO;
 
+    public Boolean getStockFlag(List<Integer> recipeIds,Recipe recipe,Integer enterpriseId) {
+        logger.info("StockBusinessService getStockFlag recipeIds={}", JSONArray.toJSONString(recipeIds));
+        if (CollectionUtils.isEmpty(recipeIds)) {
+            return false;
+        }
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIds);
+
+        Boolean stockFlag = false;
+        switch (GiveModeEnum.getGiveModeEnum(recipe.getGiveMode())) {
+            case GIVE_MODE_HOME_DELIVERY:
+                // 配送到家
+            case GIVE_MODE_PHARMACY_DRUG:
+                // 药店取药
+                // 根据药企查询库存
+                EnterpriseStock enterpriseStock = this.enterpriseStockCheck(recipe, recipeDetails, enterpriseId);
+                stockFlag = enterpriseStock.getStock();
+                break;
+
+            case GIVE_MODE_HOSPITAL_DRUG:
+                // 到院取药
+                // 医院库存
+                EnterpriseStock organStock = organDrugListManager.organStock(recipe.getClinicOrgan(), recipeDetails);
+                stockFlag = organStock.getStock();
+                break;
+
+            case GIVE_MODE_DOWNLOAD_RECIPE:
+                // 下载处方签
+                List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+                Long notCountDownloadRecipe = organDrugListDAO.getCountDownloadRecipe(recipe.getClinicOrgan(), drugIds);
+                if (notCountDownloadRecipe == 0) {
+                    stockFlag = true;
+                }
+                break;
+            case GIVE_MODE_PATIENTS_OPTIONAL:
+                // 患者自选
+                break;
+            default:
+                break;
+        }
+
+        return stockFlag;
+    }
 
     @Override
     public List<DrugEnterpriseStockVO> stockList(Integer organId, List<Recipedetail> recipeDetails) {

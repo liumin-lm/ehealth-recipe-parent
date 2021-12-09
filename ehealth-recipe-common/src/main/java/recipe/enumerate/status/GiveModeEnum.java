@@ -40,4 +40,12 @@ public enum GiveModeEnum {
         }
         return "未知";
     }
+    public static GiveModeEnum getGiveModeEnum(Integer type) {
+        for (GiveModeEnum e : GiveModeEnum.values()) {
+            if (e.type.equals(type)) {
+                return e;
+            }
+        }
+        return null;
+    }
 }
