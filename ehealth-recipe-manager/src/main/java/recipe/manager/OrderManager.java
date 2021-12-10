@@ -15,7 +15,6 @@ import com.ngari.recipe.dto.RecipeOrderDto;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
-import ctd.dictionary.DictionaryController;
 import ctd.mvc.weixin.entity.OAuthWeixinMP;
 import ctd.util.JSONUtils;
 import eh.utils.BeanCopyUtils;
@@ -31,6 +30,7 @@ import recipe.dao.RecipeOrderPayFlowDao;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeOrderDetailFeeEnum;
+import recipe.util.DictionaryUtil;
 import recipe.util.RecipeUtil;
 import recipe.util.ValidateUtil;
 
@@ -246,13 +246,7 @@ public class OrderManager extends BaseManager {
             recipeBeanDTO.setOrganDiseaseName(recipe.getOrganDiseaseName());
             recipeBeanDTO.setOrganName(recipe.getOrganName());
             recipeBeanDTO.setRecipeId(recipe.getRecipeId());
-            if (recipe.getDepart() != null) {
-                try {
-                    recipeBeanDTO.setDepart(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
-                } catch (Exception e) {
-                    logger.error("获取医生科室出错 recipeId={}", recipe.getRecipeId());
-                }
-            }
+            recipeBeanDTO.setDepart(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", recipe.getDepart()));
             if (null != recipe.getDoctor()) {
                 DoctorDTO doctorDTO = doctorService.get(recipe.getDoctor());
                 recipeBeanDTO.setDoctor(doctorDTO.getName());
