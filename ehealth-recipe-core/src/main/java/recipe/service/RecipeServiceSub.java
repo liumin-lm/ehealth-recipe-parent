@@ -2807,12 +2807,6 @@ public class RecipeServiceSub {
         }
 
         Map<String, Integer> changeAttr = Maps.newHashMap();
-        if (order != null) {
-            if (!recipe.canMedicalPay()) {
-                changeAttr.put("chooseFlag", 1);
-            }
-            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
-        }
         //撤销处方
         changeAttr.put("checkFlag", null);
         Boolean result = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), changeAttr);
@@ -2857,6 +2851,13 @@ public class RecipeServiceSub {
             rMap.put("result", false);
             rMap.put("msg", memo.toString());
             return rMap;
+        }
+
+        if (order != null) {
+            if (!recipe.canMedicalPay()) {
+                changeAttr.put("chooseFlag", 1);
+            }
+            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
         }
 
         memo.append("，处方撤销成功。");
