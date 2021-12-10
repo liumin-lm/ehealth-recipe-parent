@@ -324,7 +324,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                             hql.append(" and (");
                             hql.append(" d.drugName like :keyword or d.producer like :keyword or d.saleName like :keyword or d.approvalNumber like :keyword ");
                             if (!ObjectUtils.nullSafeEquals(status, -1)){
-                                hql.append("  or o.organDrugCode like :keyword  ");
+                                hql.append("  or o.organDrugCode like :keyword or o.drugName like :keyword or o.saleName like :keyword ");
                             }
                             if (drugId != null) {
                                 hql.append(" or d.drugId =:drugId");
