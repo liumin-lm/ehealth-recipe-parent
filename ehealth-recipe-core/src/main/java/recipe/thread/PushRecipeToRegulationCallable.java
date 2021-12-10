@@ -134,7 +134,7 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
                         //记录日志-暂时只处理浙江省的
                         //由于有些监管平台不是这里主动推送的，也会导致上传失败，不需要在运营平台展示
                         if (flag){
-                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "监管平台上传失败," + response.getMsg());
+                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), null, "监管平台上传失败," + response.getMsg());
                         }
                     }
                 }
