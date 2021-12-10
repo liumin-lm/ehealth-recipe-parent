@@ -20,6 +20,9 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugTool.service.ISaleDrugToolService;
 import com.ngari.recipe.entity.*;
 import ctd.account.UserRoleToken;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
+import ctd.dictionary.DictionaryItem;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
@@ -418,7 +421,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 if (detail.getStatus().equals(0)){
                     for (SaleDrugList saleDrugList : byOrganIdAndDrugCode) {
                         saleDrugListDAO.remove(saleDrugList);
-                        DataSyncDTO dataSyncDTO = convertDataSyn(saleDrugList, drugsEnterpriseId, 4, null, 3);
+                        DataSyncDTO dataSyncDTO = convertDataSyn(saleDrugList, drugsEnterpriseId, 4, null, 3,detail);
                         List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                         syncDTOList.add(dataSyncDTO);
                         dataSyncLogService.addDataSyncLog("2", syncDTOList);
@@ -458,7 +461,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                             break;
                     }
                     SaleDrugList update = saleDrugListDAO.update(saleDrugList1);
-                    DataSyncDTO dataSyncDTO = convertDataSyn(update, drugsEnterpriseId, 2, null, 2);
+                    DataSyncDTO dataSyncDTO = convertDataSyn(update, drugsEnterpriseId, 2, null, 2,detail);
                     List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                     syncDTOList.add(dataSyncDTO);
                     dataSyncLogService.addDataSyncLog("2", syncDTOList);
@@ -513,7 +516,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     saleDrugList.setCreateDt(new Date());
                     saleDrugList.setLastModify(new Date());
                     SaleDrugList save = saleDrugListDAO.save(saleDrugList);
-                    DataSyncDTO dataSyncDTO = convertDataSyn(save, drugsEnterpriseId, 1, null, 1);
+                    DataSyncDTO dataSyncDTO = convertDataSyn(save, drugsEnterpriseId, 1, null, 1,detail);
                     List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                     syncDTOList.add(dataSyncDTO);
                     dataSyncLogService.addDataSyncLog("2", syncDTOList);
@@ -529,7 +532,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         return map;
     }
 
-    public DataSyncDTO convertDataSyn(SaleDrugList drug, Integer organId, Integer status, Exception e,  Integer operType ) {
+    public DataSyncDTO convertDataSyn(SaleDrugList drug, Integer organId, Integer status, Exception e,  Integer operType,OrganDrugList detail ) {
 
         DataSyncDTO dataSyncDTO = new DataSyncDTO();
         dataSyncDTO.setType(2);
@@ -543,6 +546,10 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 if (!ObjectUtils.isEmpty(drugList)){
                     param.put("drugType", drugList.getDrugType());
                     param.put("drugClass", drugList.getDrugClass());
+                    if (!ObjectUtils.isEmpty(detail)){
+                        param.put("organId", detail.getOrganId());
+                        param.put("organDrugId", detail.getOrganDrugId());
+                    }
                     param.put("drugForm", drugList.getDrugForm());
                     param.put("producer", drugList.getProducer());
                 }
@@ -780,7 +787,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                             OrganDrugList organDrug = drugMap.get(saleDrugList.getOrganDrugCode());
                             if (ObjectUtils.isEmpty(organDrug)) {
                                 saleDrugListDAO.remove(saleDrugList.getOrganDrugId());
-                                DataSyncDTO dataSyncDTO = convertDataSyn(saleDrugList, drugsEnterpriseId, 4, null, 3);
+                                DataSyncDTO dataSyncDTO = convertDataSyn(saleDrugList, drugsEnterpriseId, 4, null, 3,null);
                                 List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                                 syncDTOList.add(dataSyncDTO);
                                 dataSyncLogService.addDataSyncLog("2", syncDTOList);
@@ -950,7 +957,7 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                     OrganDrugList organDrug = drugMap.get(saleDrugList.getOrganDrugCode());
                     if (ObjectUtils.isEmpty(organDrug)) {
                         saleDrugListDAO.remove(saleDrugList.getOrganDrugId());
-                        DataSyncDTO dataSyncDTO = convertDataSyn(saleDrugList, drugsEnterpriseId, 4, null, 3);
+                        DataSyncDTO dataSyncDTO = convertDataSyn(saleDrugList, drugsEnterpriseId, 4, null, 3,null);
                         List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                         syncDTOList.add(dataSyncDTO);
                         dataSyncLogService.addDataSyncLog("2", syncDTOList);
