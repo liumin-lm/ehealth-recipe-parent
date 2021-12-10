@@ -3,24 +3,19 @@ package recipe.manager;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
+import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
 import com.ngari.patient.dto.DoctorDTO;
-import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.dto.RecipeBeanDTO;
 import com.ngari.recipe.dto.RecipeFeeDTO;
 import com.ngari.recipe.dto.RecipeOrderDto;
 import com.ngari.recipe.dto.SkipThirdDTO;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.RecipeOrderPayFlow;
+import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
-import ctd.dictionary.DictionaryController;
 import ctd.mvc.weixin.entity.OAuthWeixinMP;
-import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -29,15 +24,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.client.EnterpriseClient;
-import recipe.client.IConfigurationClient;
-import recipe.client.PatientClient;
-import recipe.client.RevisitClient;
+import recipe.client.*;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeOrderPayFlowDao;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeOrderDetailFeeEnum;
+import recipe.util.DictionaryUtil;
+import recipe.util.RecipeUtil;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
@@ -69,6 +64,8 @@ public class OrderManager extends BaseManager {
     private IConfigurationClient configurationClient;
     @Autowired
     private DoctorService doctorService;
+    @Autowired
+    private RefundClient refundClient;
 
     /**
      * 邵逸夫模式下 订单没有运费与审方费用的情况下生成一条支付流水
@@ -181,39 +178,6 @@ public class OrderManager extends BaseManager {
         return skipThirdDTO;
     }
 
-    private SkipThirdDTO getUrl(Recipe recipe, Integer giveMode) {
-        RecipeThirdUrlReqTO req = new RecipeThirdUrlReqTO();
-        if (null != recipe.getEnterpriseId()) {
-            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
-            if (null != drugsEnterprise && StringUtils.isNotEmpty(drugsEnterprise.getThirdEnterpriseCode())) {
-                req.setPatientChannelId(drugsEnterprise.getThirdEnterpriseCode());
-            }
-        }
-        req.setOrganId(recipe.getClinicOrgan());
-        req.setRecipeCode(String.valueOf(recipe.getRecipeId()));
-        req.setSkipMode(giveMode);
-        req.setOrgCode(patientClient.getMinkeOrganCodeByOrganId(recipe.getClinicOrgan()));
-        req.setUser(patientBaseInfo(recipe.getRequestMpiId()));
-        PatientBaseInfo patientBaseInfo = patientBaseInfo(recipe.getMpiid());
-        patientBaseInfo.setPatientID(recipe.getPatientID());
-        patientBaseInfo.setMpi(recipe.getRequestMpiId());
-        patientBaseInfo.setTid(enterpriseClient.getSimpleWxAccount().getTid());
-        req.setPatient(patientBaseInfo);
-        OAuthWeixinMP oAuthWeixinMP = patientClient.getOAuthWxByUrt(recipe.getRequestUrt());
-        if (null != oAuthWeixinMP) {
-            req.setOpenId(oAuthWeixinMP.getOpenId());
-        }
-        try {
-            RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
-            if (revisitExDTO != null && StringUtils.isNotEmpty(revisitExDTO.getProjectChannel())) {
-                req.setPatientChannelId(revisitExDTO.getProjectChannel());
-            }
-        } catch (Exception e) {
-            logger.error("queryPatientChannelId error:", e);
-        }
-        return enterpriseClient.skipThird(req);
-    }
-
 
     /**
      * 通过订单 生成完整地址
@@ -261,8 +225,70 @@ public class OrderManager extends BaseManager {
         return recipeOrderDAO.getByOutTradeNo(outTradeNo);
     }
 
+    /**
+     * 端 用查询订单信息
+     *
+     * @param orderId
+     * @return
+     */
+    public RecipeOrderDto getRecipeOrderByBusId(Integer orderId) {
+        logger.info("RecipeOrderManager getRecipeOrderByBusId orderId:{}", orderId);
+        RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
+        String recipeIdList = recipeOrder.getRecipeIdList();
+
+        List<Integer> recipeIds = JSONArray.parseArray(recipeIdList, Integer.class);
+
+        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
+        RecipeOrderDto recipeOrderDto = new RecipeOrderDto();
+        BeanCopyUtils.copy(recipeOrder, recipeOrderDto);
+        recipeOrderDto.setStatusText(getStatusText(recipeOrderDto.getStatus()));
+        List<RecipeBeanDTO> recipeBeanDTOS = recipeList.stream().map(recipe -> {
+            RecipeBeanDTO recipeBeanDTO = new RecipeBeanDTO();
+            recipeBeanDTO.setOrganDiseaseName(recipe.getOrganDiseaseName());
+            recipeBeanDTO.setOrganName(recipe.getOrganName());
+            recipeBeanDTO.setRecipeId(recipe.getRecipeId());
+            recipeBeanDTO.setDepart(DictionaryUtil.getDictionary("eh.base.dictionary.Depart", recipe.getDepart()));
+            if (null != recipe.getDoctor()) {
+                DoctorDTO doctorDTO = doctorService.get(recipe.getDoctor());
+                recipeBeanDTO.setDoctor(doctorDTO.getName());
+            }
+            return recipeBeanDTO;
+        }).collect(Collectors.toList());
+        recipeOrderDto.setRecipeList(recipeBeanDTOS);
+        logger.info("RecipeOrderManager getRecipeOrderByBusId res recipeOrderDto :{}", JSONArray.toJSONString(recipeOrderDto));
+        return recipeOrderDto;
+    }
+
     public boolean updateNonNullFieldByPrimaryKey(RecipeOrder recipeOrder) {
         return recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+    }
+
+    /**
+     * 处方退款推送his服务
+     *
+     * @param recipeId
+     */
+    public String recipeRefundMsg(Integer recipeId) {
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        if (null == recipe) {
+            return "处方不存在";
+        }
+
+        List<String> recipeTypes = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "getRecipeTypeToHis", null);
+        if (!recipeTypes.contains(Integer.toString(recipe.getRecipeType())) && RecipeUtil.isTcmType(recipe.getRecipeType())) {
+            return "成功";
+        }
+        if (!configurationClient.isHisEnable(recipe.getClinicOrgan())) {
+            recipeLogDao.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "recipeRefund[RecipeRefundService] HIS未启用");
+            logger.warn("recipeRefund 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
+            return "成功";
+        }
+        List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
+        com.ngari.recipe.dto.PatientDTO patientBean = patientClient.getPatientDTO(recipe.getMpiid());
+        HealthCardBean cardBean = patientClient.getCardBean(recipe.getMpiid(), recipe.getClinicOrgan());
+        String backInfo = refundClient.recipeRefund(recipe, details, patientBean, cardBean);
+        recipeLogDao.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeStatusEnum.NONE.getType(), "同步HIS退款返回：" + backInfo);
+        return backInfo;
     }
 
     /**
@@ -354,48 +380,42 @@ public class OrderManager extends BaseManager {
         return true;
     }
 
-    /**
-     * 端 用查询订单信息
-     *
-     * @param orderId
-     * @return
-     */
-    public RecipeOrderDto getRecipeOrderByBusId(Integer orderId) {
-        logger.info("RecipeOrderManager getRecipeOrderByBusId orderId:{}", orderId);
-        RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
-        String recipeIdList = recipeOrder.getRecipeIdList();
-
-        List<Integer> recipeIds = JSONArray.parseArray(recipeIdList, Integer.class);
-
-        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
-        RecipeOrderDto recipeOrderDto = new RecipeOrderDto();
-        BeanCopyUtils.copy(recipeOrder, recipeOrderDto);
-        recipeOrderDto.setStatusText(getStatusText(recipeOrderDto.getStatus()));
-        List<RecipeBeanDTO> recipeBeanDTOS = recipeList.stream().map(recipe -> {
-            RecipeBeanDTO recipeBeanDTO = new RecipeBeanDTO();
-            recipeBeanDTO.setOrganDiseaseName(recipe.getOrganDiseaseName());
-            recipeBeanDTO.setOrganName(recipe.getOrganName());
-            recipeBeanDTO.setRecipeId(recipe.getRecipeId());
-            if (recipe.getDepart() != null) {
-                try {
-                    recipeBeanDTO.setDepart(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
-                } catch (Exception e) {
-                    logger.error("获取医生科室出错 recipeId={}", recipe.getRecipeId());
-                }
+    private SkipThirdDTO getUrl(Recipe recipe, Integer giveMode) {
+        RecipeThirdUrlReqTO req = new RecipeThirdUrlReqTO();
+        if (null != recipe.getEnterpriseId()) {
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
+            if (null != drugsEnterprise && StringUtils.isNotEmpty(drugsEnterprise.getThirdEnterpriseCode())) {
+                req.setPatientChannelId(drugsEnterprise.getThirdEnterpriseCode());
             }
-            if (null != recipe.getDoctor()) {
-                DoctorDTO doctorDTO = doctorService.get(recipe.getDoctor());
-                recipeBeanDTO.setDoctor(doctorDTO.getName());
+        }
+        req.setOrganId(recipe.getClinicOrgan());
+        req.setRecipeCode(String.valueOf(recipe.getRecipeId()));
+        req.setSkipMode(giveMode);
+        req.setOrgCode(patientClient.getMinkeOrganCodeByOrganId(recipe.getClinicOrgan()));
+        req.setUser(patientBaseInfo(recipe.getRequestMpiId()));
+        PatientBaseInfo patientBaseInfo = patientBaseInfo(recipe.getMpiid());
+        patientBaseInfo.setPatientID(recipe.getPatientID());
+        patientBaseInfo.setMpi(recipe.getRequestMpiId());
+        patientBaseInfo.setTid(enterpriseClient.getSimpleWxAccount().getTid());
+        req.setPatient(patientBaseInfo);
+        OAuthWeixinMP oAuthWeixinMP = patientClient.getOAuthWxByUrt(recipe.getRequestUrt());
+        if (null != oAuthWeixinMP) {
+            req.setOpenId(oAuthWeixinMP.getOpenId());
+        }
+        try {
+            RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
+            if (revisitExDTO != null && StringUtils.isNotEmpty(revisitExDTO.getProjectChannel())) {
+                req.setPatientChannelId(revisitExDTO.getProjectChannel());
             }
-            return recipeBeanDTO;
-        }).collect(Collectors.toList());
-        recipeOrderDto.setRecipeList(recipeBeanDTOS);
-        logger.info("RecipeOrderManager getRecipeOrderByBusId res recipeOrderDto :{}", JSONArray.toJSONString(recipeOrderDto));
-        return recipeOrderDto;
+        } catch (Exception e) {
+            logger.error("queryPatientChannelId error:", e);
+        }
+        return enterpriseClient.skipThird(req);
     }
 
     /**
      * 获取订单状态
+     *
      * @param status
      * @return
      */

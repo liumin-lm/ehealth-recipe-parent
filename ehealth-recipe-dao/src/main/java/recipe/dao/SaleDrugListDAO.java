@@ -283,7 +283,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                     @Override
                     public void execute(StatelessSession ss) throws DAOException {
                         DateTime dt =new DateTime();
-                        if (status!= -1){
+                        if (!ObjectUtils.nullSafeEquals(status, -1)){
                             dt = new DateTime(endTime);
                         }
                         StringBuilder hql = new StringBuilder(" from DrugList d ");
@@ -303,8 +303,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                         DrugsEnterprise drugsEnterprise = dao.get(organId);
                         if (!ObjectUtils.isEmpty(drugsEnterprise.getOrganId())){
-                            OrganDTO byOrganId = BasicAPI.getService(OrganService.class).getByOrganId(drugsEnterprise.getOrganId());
-                            listOrgan = BasicAPI.getService(OrganService.class).queryOrganByManageUnitList(byOrganId.getManageUnit(), listOrgan);
+                            listOrgan.add(drugsEnterprise.getOrganId());
 //                        hql.append(" and ( d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
                             hql.append(" and ( d.sourceOrgan=0 or d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
                         }else {
@@ -324,7 +323,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                             hql.append(" and (");
                             hql.append(" d.drugName like :keyword or d.producer like :keyword or d.saleName like :keyword or d.approvalNumber like :keyword ");
                             if (!ObjectUtils.nullSafeEquals(status, -1)){
-                                hql.append("  or o.organDrugCode like :keyword  ");
+                                hql.append("  or o.organDrugCode like :keyword or o.drugName like :keyword or o.saleName like :keyword ");
                             }
                             if (drugId != null) {
                                 hql.append(" or d.drugId =:drugId");
@@ -335,9 +334,9 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                             hql.append(" and d.drugId = o.drugId and o.status = 0 and o.organId =:organId and o.createDt>=:startTime and o.createDt<=:endTime ");
                         } else if (ObjectUtils.nullSafeEquals(status, 1)) {
                             hql.append(" and d.drugId  = o.drugId and o.status = 1 and o.organId =:organId and o.createDt>=:startTime and o.createDt<=:endTime ");
-                        } else if (ObjectUtils.nullSafeEquals(status, -1)) {
+                        } /*else if (ObjectUtils.nullSafeEquals(status, -1)) {
                             hql.append(" and d.drugId not in (select o.drugId from SaleDrugList o where o.organId =:organId ) ");
-                        } else if (ObjectUtils.nullSafeEquals(status, ALL_DRUG_FLAG)) {
+                        }*/ else if (ObjectUtils.nullSafeEquals(status, ALL_DRUG_FLAG)) {
                             hql.append(" and d.drugId = o.drugId and o.status in (0, 1) and o.organId =:organId and o.createDt>=:startTime and o.createDt<=:endTime ");
                         }
                         if(ObjectUtils.nullSafeEquals(status, ALL_DRUG_FLAG)){
@@ -360,14 +359,13 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         }
                         if (ObjectUtils.nullSafeEquals(status, 0)
                                 || ObjectUtils.nullSafeEquals(status, 1)
-                                || ObjectUtils.nullSafeEquals(status, -1)
                                 || ObjectUtils.nullSafeEquals(status, 9)) {
                             countQuery.setParameter("organId", organId);
                         }
                         if (drugId != null) {
                             countQuery.setParameter("drugId", drugId);
                         }
-                        if (status!= -1){
+                        if (!ObjectUtils.nullSafeEquals(status, -1)){
                             countQuery.setParameter("startTime", startTime);
                             countQuery.setParameter("endTime", dt.plusDays(1).toDate());
                         }
@@ -388,7 +386,6 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         }
                         if (ObjectUtils.nullSafeEquals(status, 0)
                                 || ObjectUtils.nullSafeEquals(status, 1)
-                                || ObjectUtils.nullSafeEquals(status, -1)
                                 || ObjectUtils.nullSafeEquals(status, 9)) {
                             query.setParameter("organId", organId);
                         }
@@ -401,10 +398,10 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         if (!ObjectUtils.isEmpty(type)) {
                             query.setParameter("drugType", type);
                         }
-                        if (!ObjectUtils.isEmpty(startTime) && status!= -1){
+                        if (!ObjectUtils.isEmpty(startTime) && !ObjectUtils.nullSafeEquals(status, -1)){
                             query.setParameter("startTime", startTime);
                         }
-                        if (!ObjectUtils.isEmpty(endTime) && status!= -1){
+                        if (!ObjectUtils.isEmpty(endTime) && !ObjectUtils.nullSafeEquals(status, -1)){
                             query.setParameter("endTime", dt.plusDays(1).toDate());
                         }
                         query.setFirstResult(start);
@@ -415,6 +412,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                             for (DrugList drug : list) {
                                 SaleDrugList saleDrugList = getByDrugIdAndOrganId(drug.getDrugId(), organId);
                                 DrugListAndSaleDrugList drugListAndSaleDrugList = new DrugListAndSaleDrugList(drug, saleDrugList);
+                                drugListAndSaleDrugList.setOrganId(drugsEnterprise.getOrganId());
                                 if (!ObjectUtils.isEmpty(drug)){
                                     if (ObjectUtils.isEmpty(saleDrugList)){
                                         drugListAndSaleDrugList.setCanAssociated(false);

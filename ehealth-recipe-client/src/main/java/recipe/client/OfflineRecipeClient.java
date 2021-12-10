@@ -71,6 +71,24 @@ public class OfflineRecipeClient extends BaseClient {
         }
     }
 
+
+    public Boolean cancelRecipeImpl(RecipeStatusUpdateReqTO request, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
+        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = recipeDTO(2, recipePdfDTO, emrDetail, pharmacyIdMap);
+        request.setRecipeDTO(recipeDTO);
+        logger.info("cancelRecipeImpl request={}", JSONUtils.toString(request));
+        try {
+            Boolean response = recipeHisService.recipeUpdate(request);
+            logger.info("cancelRecipeImpl response={}", JSONUtils.toString(response));
+            if (null == response) {
+                return true;
+            }
+            return response;
+        } catch (Exception e) {
+            logger.error("cancelRecipeImpl error ", e);
+            return false;
+        }
+    }
+
     /**
      * 推送处方
      *
@@ -201,9 +219,13 @@ public class OfflineRecipeClient extends BaseClient {
 
         QueryRecipeRequestTO queryRecipeRequestTo = new QueryRecipeRequestTO();
         queryRecipeRequestTo.setPatientInfo(patientBaseInfo);
+        //根据flag转化日期 1 代表一个月  3 代表三个月 6 代表6个月 23:代表3天
         if (timeQuantum != null) {
-            //根据flag转化日期 1 代表一个月  3 代表三个月 6 代表6个月
-            queryRecipeRequestTo.setStartDate(DateConversion.getMonthsAgo(timeQuantum));
+            if (new Integer(23).equals(timeQuantum)) {
+                queryRecipeRequestTo.setStartDate(DateConversion.firstSecondsOfDay(DateConversion.getDateTimeDaysAgo(3)));
+            } else {
+                queryRecipeRequestTo.setStartDate(DateConversion.getMonthsAgo(timeQuantum));
+            }
         }
         queryRecipeRequestTo.setEndDate(new Date());
         queryRecipeRequestTo.setOrgan(organId);
@@ -295,7 +317,13 @@ public class OfflineRecipeClient extends BaseClient {
         return data.get(0);
     }
 
-
+    /**
+     * 查询his 药品说明书
+     *
+     * @param organId       机构id
+     * @param organDrugList 药品数据
+     * @return
+     */
     public DrugSpecificationInfoDTO drugSpecification(Integer organId, OrganDrugList organDrugList) {
         DrugSpecificationReq drugSpecificationReq = new DrugSpecificationReq();
         drugSpecificationReq.setOrganId(organId);

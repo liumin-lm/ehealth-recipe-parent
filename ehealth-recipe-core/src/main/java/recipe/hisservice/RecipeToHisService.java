@@ -240,20 +240,6 @@ public class RecipeToHisService {
         }
     }
 
-
-    public RecipeRefundResTO recipeRefund(RecipeRefundReqTO request) {
-        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
-        LOGGER.info("recipeRefund request={}", JSONUtils.toString(request));
-        RecipeRefundResTO response = null;
-        try {
-            response = hisService.recipeRefund(request);
-            LOGGER.info("recipeRefund response={}", JSONUtils.toString(response));
-        } catch (Exception e) {
-            LOGGER.error("recipeRefund error ", e);
-        }
-        return response;
-    }
-
     /**
      * 查询药品在医院里的信息
      *
@@ -312,24 +298,6 @@ public class RecipeToHisService {
             LOGGER.info("recipeUpdate response={}", JSONUtils.toString(response));
         } catch (Exception e) {
             LOGGER.error("recipeUpdate error ", e);
-        }
-        return response;
-    }
-
-
-    public Boolean cancelRecipeImpl(RecipeStatusUpdateReqTO request) {
-        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
-        LOGGER.info("cancelRecipeImpl request={}", JSONUtils.toString(request));
-        Boolean response;
-        try {
-            response = hisService.recipeUpdate(request);
-            LOGGER.info("cancelRecipeImpl response={}", JSONUtils.toString(response));
-            if (null == response) {
-                response = true;
-            }
-        } catch (Exception e) {
-            LOGGER.error("cancelRecipeImpl error ", e);
-            response = true;
         }
         return response;
     }

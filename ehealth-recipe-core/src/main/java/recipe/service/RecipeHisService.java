@@ -25,6 +25,8 @@ import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.OrganDrugListBean;
+import com.ngari.recipe.dto.EmrDetailDTO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.SyncEinvoiceNumberDTO;
 import com.ngari.recipe.recipe.model.*;
@@ -57,7 +59,9 @@ import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.UsePathwaysFilter;
 import recipe.bussutil.UsingRateFilter;
+import recipe.client.DocIndexClient;
 import recipe.client.IConfigurationClient;
+import recipe.client.OfflineRecipeClient;
 import recipe.constant.CacheConstant;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeBussConstant;
@@ -71,10 +75,11 @@ import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisCallbackService;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.DepartManager;
+import recipe.manager.OrderManager;
+import recipe.manager.PharmacyManager;
+import recipe.manager.RecipeTherapyManager;
 import recipe.presettle.factory.PreSettleFactory;
 import recipe.presettle.settle.IRecipeSettleService;
-import recipe.purchase.PayModeOnline;
-import recipe.purchase.PurchaseService;
 import recipe.retry.RecipeRetryService;
 import recipe.thread.CardDataUploadRunable;
 import recipe.thread.RecipeBusiThreadPool;
@@ -116,6 +121,16 @@ public class RecipeHisService extends RecipeBaseService {
     private HisRequestInit hisRequestInit;
     @Autowired
     private DepartManager departManager;
+    @Autowired
+    private DocIndexClient docIndexClient;
+    @Autowired
+    private OfflineRecipeClient offlineRecipeClient;
+    @Autowired
+    private RecipeTherapyManager recipeTherapyManager;
+    @Autowired
+    private PharmacyManager pharmacyManager;
+    @Autowired
+    private OrderManager orderManager;
 
     /**
      * 发送处方
@@ -319,79 +334,71 @@ public class RecipeHisService extends RecipeBaseService {
      * @param otherOrganId
      * @return
      */
-    @RpcService
     public boolean cancelRecipeImpl(Integer recipeId, Integer otherOrganId, String hisRecipeStatus) {
-        LOGGER.info("recipeStatusUpdateWithOrganIdV1  recipeId = {},otherOrganId={},hisRecipeStatus:{}", recipeId, otherOrganId, hisRecipeStatus);
-        boolean flag = true;
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        LOGGER.info("RecipeHisService cancelRecipeImpl  recipeId = {},otherOrganId={},hisRecipeStatus:{}", recipeId, otherOrganId, hisRecipeStatus);
+        RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);
+        Recipe recipe = recipePdfDTO.getRecipe();
         if (null == recipe) {
             return false;
         }
         if (skipHis(recipe)) {
-            return flag;
+            return true;
         }
 
         Integer sendOrganId = (null == otherOrganId) ? recipe.getClinicOrgan() : otherOrganId;
-        if (isHisEnable(sendOrganId)) {
-            LOGGER.info("recipeStatusUpdateWithOrganIdV1  sendOrganId:{}", sendOrganId);
-            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-            RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-
-            List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
-
-            try {
-                PatientBean patientBean = iPatientService.get(recipe.getMpiid());
-                HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
-                RecipeStatusUpdateReqTO request = hisRequestInit.initRecipeStatusUpdateReqTO(recipe, details, patientBean, cardBean);
-                //是否是武昌机构，替换请求体
-                Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_WUCHANG_ORGAN_LIST);
-                if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(sendOrganId.toString())) {
-                    request = hisRequestInit.initRecipeStatusUpdateReqForWuChang(recipe, details, patientBean, cardBean);
-                }
-                request.setOrganID(sendOrganId.toString());
-                if (StringUtils.isNotEmpty(hisRecipeStatus)) {
-                    request.setRecipeStatus(hisRecipeStatus);
-                }
-                if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
-                    //科室代码
-                    AppointDepartDTO appointDepart = departManager.getAppointDepartByOrganIdAndDepart(recipe);
-                    request.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
-                    //科室名称
-                    request.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
-                } else {
-                    //互联网环境下没有挂号科室 取department表
-                    DepartmentService departService = ApplicationUtils.getBasicService(DepartmentService.class);
-                    DepartmentDTO departmentDTO = departService.getById(recipe.getDepart());
-                    //科室编码
-                    request.setDepartCode((null != departmentDTO) ? departmentDTO.getCode() : "");
-                    //科室名称
-                    request.setDepartName((null != departmentDTO) ? departmentDTO.getName() : "");
-                }
-
-                EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
-                String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart());
-                request.setRecipeID(recipeId);
-                request.setDoctorNumber(jobNumber);
-                request.setDoctorName(recipe.getDoctorName());
-                if (recipeExtend != null) {
-                    request.setHisDiseaseSerial(recipeExtend.getHisDiseaseSerial());
-                }
-                request.setTakeMedicine(recipe.getTakeMedicine());
-                LOGGER.info("recipeStatusUpdateWithOrganIdV1  request:{}", JSONUtils.toString(request));
-                flag = service.cancelRecipeImpl(request);
-            } catch (Exception e) {
-                LOGGER.error("recipeStatusUpdateWithOrganIdV1 error ", e);
-            }
-        } else {
-            flag = false;
-            LOGGER.error(" recipeStatusUpdateWithOrganIdV1 recipeStatusUpdate 医院HIS未启用[organId:" + sendOrganId + ",recipeId:" + recipeId + "]");
+        if (!isHisEnable(sendOrganId)) {
+            LOGGER.error("RecipeHisService cancelRecipeImpl 医院HIS未启用 organId: {} , recipeId:{}", sendOrganId, recipeId);
+            return false;
         }
+        List<Recipedetail> details = recipePdfDTO.getRecipeDetails();
+        try {
+            PatientBean patientBean = iPatientService.get(recipe.getMpiid());
+            HealthCardBean cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
+            RecipeStatusUpdateReqTO request = hisRequestInit.initRecipeStatusUpdateReqTO(recipe, details, patientBean, cardBean);
+            //是否是武昌机构，替换请求体
+            Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_WUCHANG_ORGAN_LIST);
+            if (CollectionUtils.isNotEmpty(organIdList) && organIdList.contains(sendOrganId.toString())) {
+                request = hisRequestInit.initRecipeStatusUpdateReqForWuChang(recipe, details, patientBean, cardBean);
+            }
+            request.setOrganID(sendOrganId.toString());
+            if (StringUtils.isNotEmpty(hisRecipeStatus)) {
+                request.setRecipeStatus(hisRecipeStatus);
+            }
+            if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+                //科室代码
+                AppointDepartDTO appointDepart = departManager.getAppointDepartByOrganIdAndDepart(recipe);
+                request.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
+                //科室名称
+                request.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
+            } else {
+                //互联网环境下没有挂号科室 取department表
+                DepartmentService departService = ApplicationUtils.getBasicService(DepartmentService.class);
+                DepartmentDTO departmentDTO = departService.getById(recipe.getDepart());
+                //科室编码
+                request.setDepartCode((null != departmentDTO) ? departmentDTO.getCode() : "");
+                //科室名称
+                request.setDepartName((null != departmentDTO) ? departmentDTO.getName() : "");
+            }
 
-        return flag;
+            EmploymentService iEmploymentService = ApplicationUtils.getBasicService(EmploymentService.class);
+            String jobNumber = iEmploymentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart());
+            request.setRecipeID(recipeId);
+            request.setDoctorNumber(jobNumber);
+            request.setDoctorName(recipe.getDoctorName());
+            RecipeExtend recipeExtend = recipePdfDTO.getRecipeExtend();
+            if (recipeExtend != null) {
+                request.setHisDiseaseSerial(recipeExtend.getHisDiseaseSerial());
+            }
+            request.setTakeMedicine(recipe.getTakeMedicine());
+            Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
+            EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
+            return offlineRecipeClient.cancelRecipeImpl(request, recipePdfDTO, emrDetail, pharmacyIdMap);
+        } catch (Exception e) {
+            LOGGER.error("RecipeHisService cancelRecipeImpl error ", e);
+            return false;
+        }
     }
+
 
     /**
      * 处方退款推送his服务
@@ -401,45 +408,7 @@ public class RecipeHisService extends RecipeBaseService {
     @RpcService
     public String recipeRefund(Integer recipeId) {
         LOGGER.info("RecipeHisService recipeRefund recipeId:{}.", recipeId);
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        if (null == recipe) {
-            return "处方不存在";
-        }
-        String backInfo = "成功";
-        if (skipHis(recipe)) {
-            return backInfo;
-        }
-        if (isHisEnable(recipe.getClinicOrgan())) {
-            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-            RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-
-            List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipeId);
-            PatientBean patientBean = iPatientService.get(recipe.getMpiid());
-            HealthCardBean cardBean = null;
-            try {
-                cardBean = iPatientService.getHealthCard(recipe.getMpiid(), recipe.getClinicOrgan(), "2");
-            } catch (Exception e) {
-                LOGGER.error("RecipeHisService recipeRefund 健康卡获取失败 error", e);
-            }
-            RecipeRefundReqTO request = hisRequestInit.initRecipeRefundReqTO(recipe, details, patientBean, cardBean);
-            LOGGER.info("RecipeHisService recipeRefund request:{}.", JSONUtils.toString(request));
-            RecipeRefundResTO response = service.recipeRefund(request);
-            if (null == response || null == response.getMsgCode()) {
-                backInfo = "response is null";
-            } else {
-                if (0 != response.getMsgCode()) {
-                    backInfo = response.getMsg();
-                }
-            }
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "同步HIS退款返回：" + backInfo);
-        } else {
-            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "recipeRefund[RecipeRefundService] HIS未启用");
-            LOGGER.error("recipeRefund 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
-        }
-
-        return backInfo;
+        return orderManager.recipeRefundMsg(recipeId);
     }
 
     /**
@@ -1036,41 +1005,6 @@ public class RecipeHisService extends RecipeBaseService {
         return result;
     }
 
-
-    private Map<String, Object> sendMsgResultMap(Recipe dbRecipe, Map<String, String> extInfo, Map<String, Object> payResult) {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
-        PayModeOnline service = (PayModeOnline) purchaseService.getService(1);
-        HisResponseTO resultSave = service.updateGoodsReceivingInfoToCreateOrder(dbRecipe.getRecipeId(), extInfo);
-
-        if (null != resultSave) {
-            if (resultSave.isSuccess() && null != resultSave.getData()) {
-
-                Map<String, Object> data = (Map<String, Object>) resultSave.getData();
-
-                if (null != data.get("recipeCode")) {
-                    //新增成功更新his处方code
-                    recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("recipeCode", data.get("recipeCode").toString()));
-                    LOGGER.info("order 当前处方{}确认订单流程：his新增成功", dbRecipe.getRecipeId());
-                    return payResult;
-                } else {
-                    payResult.put("code", "-1");
-                    payResult.put("msg", "订单信息校验失败");
-                    LOGGER.info("order 当前处方确认订单的his同步配送信息，没有返回his处方code：{}", JSONUtils.toString(resultSave));
-                    return payResult;
-                }
-            } else {
-                payResult.put("code", "-1");
-                payResult.put("msg", "订单信息校验失败");
-                LOGGER.info("order 当前处方确认订单的his同步配送信息失败，返回：{}", JSONUtils.toString(resultSave));
-                return payResult;
-            }
-        } else {
-            LOGGER.info("order 当前处方{}没有对接同步配送信息，默认成功！", dbRecipe.getRecipeId());
-            return payResult;
-        }
-    }
-
     /**
      * 处方自费预结算接口
      *
@@ -1280,35 +1214,6 @@ public class RecipeHisService extends RecipeBaseService {
             result.setCode(RecipeResultBean.FAIL);
             result.setError("医院HIS未启用。");
             LOGGER.error("recipeAudit 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
-        }
-
-        return result;
-    }
-
-    /**
-     * 发送处方电子病历
-     *
-     * @param recipeId
-     * @return
-     */
-    public RecipeResultBean docIndexToHis(Integer recipeId) {
-        RecipeResultBean result = RecipeResultBean.getSuccess();
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        if (null == recipe) {
-            result.setCode(RecipeResultBean.FAIL);
-            result.setError("找不到处方");
-            return result;
-        }
-        if (isHisEnable(recipe.getClinicOrgan())) {
-            RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-            DocIndexToHisReqTO request = hisRequestInit.initDocIndexToHisReqTO(recipe);
-            service.docIndexToHis(request);
-            return result;
-        } else {
-            result.setCode(RecipeResultBean.FAIL);
-            result.setError("医院HIS未启用。");
-            LOGGER.error("docIndexToHis 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
         }
 
         return result;

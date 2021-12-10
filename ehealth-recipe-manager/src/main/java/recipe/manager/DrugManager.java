@@ -292,7 +292,13 @@ public class DrugManager extends BaseManager {
         return result;
     }
 
-
+    /**
+     * 查询his 药品说明书
+     *
+     * @param organId      机构id
+     * @param recipedetail 药品数据
+     * @return
+     */
     public DrugSpecificationInfoDTO hisDrugBook(Integer organId, Recipedetail recipedetail) {
         OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
         if (null == organDrug) {

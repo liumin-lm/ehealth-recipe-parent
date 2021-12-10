@@ -115,6 +115,8 @@ import java.util.stream.Collectors;
 @Service
 public class RecipeServiceSub {
     private static final RefundClient refundClient = AppContextHolder.getBean("refundClient", RefundClient.class);
+    private static final OrderManager orderManager = AppContextHolder.getBean("orderManager", OrderManager.class);
+
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeServiceSub.class);
 
     private static final String UNSIGN = "unsign";
@@ -1548,14 +1550,15 @@ public class RecipeServiceSub {
 
             boolean cancelFlag = RecipeStatusEnum.checkRecipeRevokeStatus(recipe, null);
             //通过订单的状态判断
+            Integer status = null;
             if (null != recipe.getRecipeCode()) {
                 RecipeOrder recipeOrders = orderDAO.getByOrderCode(recipe.getOrderCode());
                 cancelFlag = RecipeStatusEnum.checkRecipeRevokeStatus(recipe, recipeOrders);
-                Integer status = null != recipeOrders && Integer.valueOf(1).equals(recipeOrders.getEffective()) ? recipeOrders.getStatus() : null;
-                Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, null, status);
-                map.put("cancelReason", MapValueUtil.getString(tipMap, "cancelReason"));
-                map.put("tips", MapValueUtil.getString(tipMap, "tips"));
+                status = null != recipeOrders && Integer.valueOf(1).equals(recipeOrders.getEffective()) ? recipeOrders.getStatus() : null;
             }
+            Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, null, status);
+            map.put("cancelReason", MapValueUtil.getString(tipMap, "cancelReason"));
+            map.put("tips", MapValueUtil.getString(tipMap, "tips"));
             map.put("cancelFlag", cancelFlag);
             IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
             //获取审核不通过详情
@@ -2768,7 +2771,9 @@ public class RecipeServiceSub {
             msg = "该处方单已取消，不能进行撤销操作";
         }
         boolean cancelFlag = false;
-        if (null != order && RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType().equals(order.getStatus()) && RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(order.getGiveModeKey())) {
+        if (null != order && RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(order.getGiveModeKey())
+                && (RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType().equals(order.getStatus())
+                || RecipeOrderStatusEnum.ORDER_STATUS_READY_PAY.getType().equals(order.getStatus()))) {
             cancelFlag = true;
         }
         //不能撤销的情况:1 患者已支付 2 药师已审核(不管是否通过)
@@ -2802,12 +2807,6 @@ public class RecipeServiceSub {
         }
 
         Map<String, Integer> changeAttr = Maps.newHashMap();
-        if (order != null) {
-            if (!recipe.canMedicalPay()) {
-                changeAttr.put("chooseFlag", 1);
-            }
-            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
-        }
         //撤销处方
         changeAttr.put("checkFlag", null);
         Boolean result = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), changeAttr);
@@ -2823,7 +2822,7 @@ public class RecipeServiceSub {
             if (succFlag) {
                 memo.append("HIS推送成功");
             } else {
-                memo.append("HIS推送失败");
+                memo.append("HIS不允许撤销");
                 result = false;
             }
         } else if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeMode)) {
@@ -2854,6 +2853,13 @@ public class RecipeServiceSub {
             return rMap;
         }
 
+        if (order != null) {
+            if (!recipe.canMedicalPay()) {
+                changeAttr.put("chooseFlag", 1);
+            }
+            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
+        }
+
         memo.append("，处方撤销成功。");
         EmrRecipeManager emrRecipeManager = AppContextHolder.getBean("emrRecipeManager", EmrRecipeManager.class);
         emrRecipeManager.deleteRecipeDetailsFromDoc(recipeId);
@@ -2878,8 +2884,9 @@ public class RecipeServiceSub {
                 memo = new StringBuilder("无");
             }
         }
-        if (null != order && order.getActualPrice() > 0) {
+        if (null != order && order.getActualPrice() > 0 && RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType().equals(order.getStatus())) {
             refundClient.refund(order.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
+            orderManager.recipeRefundMsg(recipeId);
         }
         //记录日志
         RecipeLogService.saveRecipeLog(recipeId, beforeStatus, RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), memo.toString());
