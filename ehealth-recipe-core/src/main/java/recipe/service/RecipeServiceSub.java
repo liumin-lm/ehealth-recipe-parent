@@ -115,6 +115,8 @@ import java.util.stream.Collectors;
 @Service
 public class RecipeServiceSub {
     private static final RefundClient refundClient = AppContextHolder.getBean("refundClient", RefundClient.class);
+    private static final OrderManager orderManager = AppContextHolder.getBean("orderManager", OrderManager.class);
+
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeServiceSub.class);
 
     private static final String UNSIGN = "unsign";
@@ -2883,6 +2885,7 @@ public class RecipeServiceSub {
         }
         if (null != order && order.getActualPrice() > 0 && RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType().equals(order.getStatus())) {
             refundClient.refund(order.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
+            orderManager.recipeRefundMsg(recipeId);
         }
         //记录日志
         RecipeLogService.saveRecipeLog(recipeId, beforeStatus, RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), memo.toString());

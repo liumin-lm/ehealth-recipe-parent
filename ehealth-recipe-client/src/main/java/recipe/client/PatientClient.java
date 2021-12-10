@@ -2,6 +2,8 @@ package recipe.client;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
+import com.ngari.base.patient.model.HealthCardBean;
+import com.ngari.base.patient.service.IPatientService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.intface.WeixinMpService;
@@ -41,6 +43,8 @@ public class PatientClient extends BaseClient {
     @Resource
     private PatientService patientService;
     @Resource
+    private IPatientService iPatientService;
+    @Resource
     private OrganService organService;
     @Resource
     private IMinkeOrganService minkeOrganService;
@@ -73,6 +77,23 @@ public class PatientClient extends BaseClient {
         BeanUtils.copyProperties(patient, p);
         return p;
     }
+
+    /**
+     * 健康卡获取
+     *
+     * @param mpiId
+     * @param organId
+     * @return
+     */
+    public HealthCardBean getCardBean(String mpiId, Integer organId) {
+        try {
+            return iPatientService.getHealthCard(mpiId, organId, "2");
+        } catch (Exception e) {
+            logger.error("RecipeHisService recipeRefund 健康卡获取失败 error", e);
+            return null;
+        }
+    }
+
 
     /**
      * 获取脱敏患者对象
