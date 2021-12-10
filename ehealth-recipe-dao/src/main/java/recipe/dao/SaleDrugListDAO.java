@@ -415,6 +415,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                             for (DrugList drug : list) {
                                 SaleDrugList saleDrugList = getByDrugIdAndOrganId(drug.getDrugId(), organId);
                                 DrugListAndSaleDrugList drugListAndSaleDrugList = new DrugListAndSaleDrugList(drug, saleDrugList);
+                                drugListAndSaleDrugList.setOrganId(drugsEnterprise.getOrganId());
                                 if (!ObjectUtils.isEmpty(drug)){
                                     if (ObjectUtils.isEmpty(saleDrugList)){
                                         drugListAndSaleDrugList.setCanAssociated(false);
