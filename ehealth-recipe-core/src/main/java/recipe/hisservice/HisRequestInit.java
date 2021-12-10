@@ -542,36 +542,6 @@ public class HisRequestInit {
         return requestTO;
     }
 
-    public RecipeRefundReqTO initRecipeRefundReqTO(Recipe recipe, List<Recipedetail> details, PatientBean patient, HealthCardBean card) {
-        RecipeRefundReqTO requestTO = new RecipeRefundReqTO();
-        if (null != recipe) {
-            requestTO.setOrganID(String.valueOf(recipe.getClinicOrgan()));
-            requestTO.setPatId(recipe.getPatientID());
-        }
-
-        if (null != details && !details.isEmpty()) {
-            requestTO.setInvoiceNo(details.get(0).getPatientInvoiceNo());
-        }
-
-        if (null != patient) {
-            requestTO.setCertID(patient.getCertificate());
-            requestTO.setCertificateType(patient.getCertificateType());
-            requestTO.setPatientName(patient.getPatientName());
-            requestTO.setPatientSex(patient.getPatientSex());
-            requestTO.setMobile(patient.getMobile());
-        }
-
-        if (null != card) {
-            requestTO.setCardType(card.getCardType());
-            requestTO.setCardNo(card.getCardId());
-        }
-
-        requestTO.setHoscode("");
-        requestTO.setEmpId("");
-
-        return requestTO;
-    }
-
     public PayNotifyReqTO initPayNotifyReqTO(List<String> recipeIdList, Recipe recipe, PatientBean patient, HealthCardBean card) {
         PayNotifyReqTO requestTO = new PayNotifyReqTO();
         try {
