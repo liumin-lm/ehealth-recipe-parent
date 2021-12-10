@@ -10,6 +10,7 @@ import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import ctd.mvc.weixin.entity.OAuthWeixinMP;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -412,6 +413,10 @@ public class EnterpriseManager extends BaseManager {
         if (StringUtils.isNotEmpty(recipe.getRequestMpiId())) {
             PatientDTO userDTO = patientClient.getPatientDTO(recipe.getRequestMpiId());
             pushRecipeAndOrder.setUserDTO(ObjectCopyUtils.convert(userDTO, com.ngari.patient.dto.PatientDTO.class));
+        }
+        OAuthWeixinMP oAuthWeixinMP = patientClient.getOAuthWxByUrt(recipe.getRequestUrt());
+        if (null != oAuthWeixinMP) {
+            pushRecipeAndOrder.setOpenId(oAuthWeixinMP.getOpenId());
         }
         //设置科室信息
         pushRecipeAndOrder.setDepartmentDTO(departClient.getDepartmentByDepart(recipe.getDepart()));
