@@ -359,7 +359,6 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         }
                         if (ObjectUtils.nullSafeEquals(status, 0)
                                 || ObjectUtils.nullSafeEquals(status, 1)
-                                || ObjectUtils.nullSafeEquals(status, -1)
                                 || ObjectUtils.nullSafeEquals(status, 9)) {
                             countQuery.setParameter("organId", organId);
                         }
@@ -387,7 +386,6 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         }
                         if (ObjectUtils.nullSafeEquals(status, 0)
                                 || ObjectUtils.nullSafeEquals(status, 1)
-                                || ObjectUtils.nullSafeEquals(status, -1)
                                 || ObjectUtils.nullSafeEquals(status, 9)) {
                             query.setParameter("organId", organId);
                         }
