@@ -199,7 +199,8 @@ public enum RecipeStatusEnum {
         if (RECIPE_STATUS_REVOKE.type.equals(recipe.getStatus())) {
             return false;
         }
-        if (null != order && RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType().equals(order.getStatus()) && RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(order.getGiveModeKey())) {
+        if (null != order && RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(order.getGiveModeKey())
+                && (RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType().equals(order.getStatus()) || RecipeOrderStatusEnum.ORDER_STATUS_READY_PAY.getType().equals(order.getStatus()))) {
             return true;
         }
         Integer one = Integer.valueOf(1);

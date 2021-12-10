@@ -2769,7 +2769,9 @@ public class RecipeServiceSub {
             msg = "该处方单已取消，不能进行撤销操作";
         }
         boolean cancelFlag = false;
-        if (null != order && RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType().equals(order.getStatus()) && RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(order.getGiveModeKey())) {
+        if (null != order && RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(order.getGiveModeKey())
+                && (RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType().equals(order.getStatus())
+                || RecipeOrderStatusEnum.ORDER_STATUS_READY_PAY.getType().equals(order.getStatus()))) {
             cancelFlag = true;
         }
         //不能撤销的情况:1 患者已支付 2 药师已审核(不管是否通过)
@@ -2879,7 +2881,7 @@ public class RecipeServiceSub {
                 memo = new StringBuilder("无");
             }
         }
-        if (null != order && order.getActualPrice() > 0) {
+        if (null != order && order.getActualPrice() > 0 && RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType().equals(order.getStatus())) {
             refundClient.refund(order.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
         }
         //记录日志
