@@ -28,6 +28,7 @@ import recipe.client.*;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeOrderPayFlowDao;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeOrderDetailFeeEnum;
 import recipe.util.DictionaryUtil;
@@ -286,7 +287,7 @@ public class OrderManager extends BaseManager {
         com.ngari.recipe.dto.PatientDTO patientBean = patientClient.getPatientDTO(recipe.getMpiid());
         HealthCardBean cardBean = patientClient.getCardBean(recipe.getMpiid(), recipe.getClinicOrgan());
         String backInfo = refundClient.recipeRefund(recipe, details, patientBean, cardBean);
-        recipeLogDao.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), null, "同步HIS退款返回：" + backInfo);
+        recipeLogDao.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeStatusEnum.NONE.getType(), "同步HIS退款返回：" + backInfo);
         return backInfo;
     }
 
