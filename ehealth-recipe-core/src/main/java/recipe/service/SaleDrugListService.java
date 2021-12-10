@@ -245,6 +245,8 @@ public class SaleDrugListService implements ISaleDrugListService {
             backDTO = new DrugListAndSaleDrugListDTO();
             backDTO.setDrugList(ObjectCopyUtils.convert(daod.getDrugList(), DrugListBean.class));
             backDTO.setSaleDrugList(ObjectCopyUtils.convert(daod.getSaleDrugList(), SaleDrugListDTO.class));
+            backDTO.setCanAssociated(daod.getCanAssociated());
+            backDTO.setOrganId(daod.getOrganId());
             newList.add(backDTO);
         }
 
