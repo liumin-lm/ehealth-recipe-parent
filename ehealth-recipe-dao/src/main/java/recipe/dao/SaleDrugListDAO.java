@@ -303,8 +303,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                         DrugsEnterprise drugsEnterprise = dao.get(organId);
                         if (!ObjectUtils.isEmpty(drugsEnterprise.getOrganId())){
-                            OrganDTO byOrganId = BasicAPI.getService(OrganService.class).getByOrganId(drugsEnterprise.getOrganId());
-                            listOrgan = BasicAPI.getService(OrganService.class).queryOrganByManageUnitList(byOrganId.getManageUnit(), listOrgan);
+                            listOrgan.add(drugsEnterprise.getOrganId());
 //                        hql.append(" and ( d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
                             hql.append(" and ( d.sourceOrgan=0 or d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
                         }else {
@@ -415,6 +414,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                             for (DrugList drug : list) {
                                 SaleDrugList saleDrugList = getByDrugIdAndOrganId(drug.getDrugId(), organId);
                                 DrugListAndSaleDrugList drugListAndSaleDrugList = new DrugListAndSaleDrugList(drug, saleDrugList);
+                                drugListAndSaleDrugList.setOrganId(drugsEnterprise.getOrganId());
                                 if (!ObjectUtils.isEmpty(drug)){
                                     if (ObjectUtils.isEmpty(saleDrugList)){
                                         drugListAndSaleDrugList.setCanAssociated(false);
