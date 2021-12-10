@@ -334,9 +334,9 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                             hql.append(" and d.drugId = o.drugId and o.status = 0 and o.organId =:organId and o.createDt>=:startTime and o.createDt<=:endTime ");
                         } else if (ObjectUtils.nullSafeEquals(status, 1)) {
                             hql.append(" and d.drugId  = o.drugId and o.status = 1 and o.organId =:organId and o.createDt>=:startTime and o.createDt<=:endTime ");
-                        } else if (ObjectUtils.nullSafeEquals(status, -1)) {
+                        } /*else if (ObjectUtils.nullSafeEquals(status, -1)) {
                             hql.append(" and d.drugId not in (select o.drugId from SaleDrugList o where o.organId =:organId ) ");
-                        } else if (ObjectUtils.nullSafeEquals(status, ALL_DRUG_FLAG)) {
+                        }*/ else if (ObjectUtils.nullSafeEquals(status, ALL_DRUG_FLAG)) {
                             hql.append(" and d.drugId = o.drugId and o.status in (0, 1) and o.organId =:organId and o.createDt>=:startTime and o.createDt<=:endTime ");
                         }
                         if(ObjectUtils.nullSafeEquals(status, ALL_DRUG_FLAG)){
