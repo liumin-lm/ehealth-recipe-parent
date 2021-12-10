@@ -19,6 +19,7 @@ import recipe.common.response.CommonResponse;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeLogService;
 
@@ -129,12 +130,12 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
                         //更新字段
                         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("syncFlag", 1));
                         //记录日志
-                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), null, "监管平台上传成功");
+                        RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeStatusEnum.NONE.getType(), "监管平台上传成功");
                     }else{
                         //记录日志-暂时只处理浙江省的
                         //由于有些监管平台不是这里主动推送的，也会导致上传失败，不需要在运营平台展示
                         if (flag){
-                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), null, "监管平台上传失败," + response.getMsg());
+                            RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeStatusEnum.NONE.getType(), "监管平台上传失败," + response.getMsg());
                         }
                     }
                 }
