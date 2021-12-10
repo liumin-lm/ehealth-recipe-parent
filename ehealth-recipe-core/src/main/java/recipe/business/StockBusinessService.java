@@ -363,7 +363,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         List<EnterpriseStockVO> enterpriseStockList = new LinkedList<>();
         if (null != organStock) {
             organStock.setDeliveryName("医院库存");
-            enterpriseStock.add(organStock);
+            enterpriseStock.add(0, organStock);
         }
         enterpriseStock.forEach(a -> {
             if (CollectionUtils.isEmpty(a.getGiveModeButton())) {
