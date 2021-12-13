@@ -2741,7 +2741,6 @@ public class RecipeServiceSub {
         LOGGER.info("cancelRecipe [recipeId：" + recipeId + "]");
         //获取订单
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        RecipeOrder order = orderDAO.getOrderByRecipeId(recipeId);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
@@ -2770,6 +2769,7 @@ public class RecipeServiceSub {
         if (RecipeStatusEnum.RECIPE_REVOKE.contains(recipe.getStatus())) {
             msg = "该处方单已取消，不能进行撤销操作";
         }
+        RecipeOrder order = orderDAO.getOrderByRecipeId(recipeId);
         boolean cancelFlag = false;
         if (null != order && RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(order.getGiveModeKey())
                 && (RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType().equals(order.getStatus())
@@ -2805,16 +2805,7 @@ public class RecipeServiceSub {
             rMap.put("msg", msg);
             return rMap;
         }
-
-        Map<String, Integer> changeAttr = Maps.newHashMap();
-        //撤销处方
-        changeAttr.put("checkFlag", null);
-        Boolean result = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), changeAttr);
-        if (!result) {
-            rMap.put("result", false);
-            rMap.put("msg", "未知原因，处方撤销失败");
-            return rMap;
-        }
+        boolean result = true;
         //HIS消息发送
         StringBuilder memo = new StringBuilder();
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
@@ -2847,20 +2838,24 @@ public class RecipeServiceSub {
         //通知his失败
         if (!result) {
             //回滚数据
-            recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
+            //recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
             rMap.put("result", false);
             rMap.put("msg", memo.toString());
             return rMap;
         }
 
+        Map<String, Integer> change = Maps.newHashMap();
         if (order != null) {
             if (!recipe.canMedicalPay()) {
-                changeAttr.put("chooseFlag", 1);
+                change.put("chooseFlag", 1);
             }
             orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
         }
-
+        //撤销处方
+        change.put("checkFlag", null);
+        recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), change);
         memo.append("，处方撤销成功。");
+
         EmrRecipeManager emrRecipeManager = AppContextHolder.getBean("emrRecipeManager", EmrRecipeManager.class);
         emrRecipeManager.deleteRecipeDetailsFromDoc(recipeId);
         //向患者推送处方撤销消息
