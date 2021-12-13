@@ -136,7 +136,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     @RpcService
     @Override
     public CommonResponse uploadRecipeIndicators(List<Recipe> recipeList) {
-        LOGGER.info("uploadRecipeIndicators recipeList length={} recipeId={}", recipeList.size(), recipeList.get (0).getRecipeId());
+        LOGGER.info("uploadRecipeIndicators recipeList length={} recipeId={}", recipeList.size(), recipeList.get(0).getRecipeId());
         CommonResponse commonResponse = ResponseUtils.getFailResponse(CommonResponse.class, "");
         if (CollectionUtils.isEmpty(recipeList)) {
             commonResponse.setMsg("处方列表为空");
@@ -623,7 +623,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 req.getRecipeExtend().setSymptomCode(symptom.getSymptomCode());
             }
         } catch (Exception e) {
-            LOGGER.error("setRecipeExtend recipeid:{} error :{}", recipeExtend.getRecipeId(), e);
+            LOGGER.error("setRecipeExtend recipeid:{} error", recipeExtend.getRecipeId(), e);
         }
 
     }
@@ -776,7 +776,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             req.setHistoryOfPresentIllness(StringUtils.isNotEmpty(recipeExtend.getCurrentMedical()) ? recipeExtend.getCurrentMedical() : "无");
             //时间
             IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
-            if(null!=recipe.getClinicId()){
+            if (null != recipe.getClinicId()) {
                 RevisitBean revisitBean = iRevisitService.getById(recipe.getClinicId());
                 if (revisitBean != null) {
                     //咨询开始时间
@@ -1210,7 +1210,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     //开方医生信息
                     req.setDoctor(getRegulationBusDocReq(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
                     //复诊id
-                    req.setBussID(recipe.getClinicId()!=null?recipe.getClinicId().toString():null);
+                    req.setBussID(recipe.getClinicId() != null ? recipe.getClinicId().toString() : null);
                     //医保金额
                     req.setFundAmount(order.getFundAmount());
                     //自费金额
@@ -1486,7 +1486,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         RegulationSendMedicineReq req = null;
         DoctorService doctorService = BasicAPI.getService(DoctorService.class);
 
-        EmploymentService employmentService = AppContextHolder.getBean("basic.employmentService",EmploymentService.class);
+        EmploymentService employmentService = AppContextHolder.getBean("basic.employmentService", EmploymentService.class);
         //EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
 
 
@@ -1555,9 +1555,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 if (recipe.getChecker() != null) {
                     EmploymentDTO employment = employmentService.getPrimaryEmpByDoctorId(recipe.getChecker());
                     if (employment != null) {
-                       req.setDispensingCheckerId(employment.getJobNumber());
-                   }
-               }
+                        req.setDispensingCheckerId(employment.getJobNumber());
+                    }
+                }
 
                 //获取发药时间  订单表中进行获取
                 req.setDispensingTime(order.getDispensingTime());
@@ -1645,12 +1645,12 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 req.setLogisticsInfo(LogisticsInfo);
 
                 //复诊id
-                req.setBussID(recipe.getClinicId()!=null?recipe.getClinicId().toString():null);
+                req.setBussID(recipe.getClinicId() != null ? recipe.getClinicId().toString() : null);
 
             }
 
         }
-        LOGGER.warn("pakRegulationSendMedicineReq  req={}",JSONUtils.toString(req));
+        LOGGER.warn("pakRegulationSendMedicineReq  req={}", JSONUtils.toString(req));
         return req;
     }
 }
