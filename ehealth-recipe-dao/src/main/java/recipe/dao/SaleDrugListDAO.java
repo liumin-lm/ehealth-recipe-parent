@@ -4,10 +4,7 @@ import com.google.common.collect.Maps;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
-import com.ngari.recipe.entity.DrugList;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.OrganDrugList;
-import com.ngari.recipe.entity.SaleDrugList;
+import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -412,7 +409,15 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                             for (DrugList drug : list) {
                                 SaleDrugList saleDrugList = getByDrugIdAndOrganId(drug.getDrugId(), organId);
                                 DrugListAndSaleDrugList drugListAndSaleDrugList = new DrugListAndSaleDrugList(drug, saleDrugList);
-                                drugListAndSaleDrugList.setOrganId(drugsEnterprise.getOrganId());
+                                if (drugsEnterprise.getCreateType()==0){
+                                    drugListAndSaleDrugList.setOrganId(drugsEnterprise.getOrganId());
+                                }else {
+                                    OrganAndDrugsepRelationDAO relationDAO = DAOFactory.getDAO(OrganAndDrugsepRelationDAO.class);
+                                    List<OrganAndDrugsepRelation> byEntId = relationDAO.findByEntId(drugsEnterprise.getId());
+                                    if (!ObjectUtils.isEmpty(byEntId)){
+                                        drugListAndSaleDrugList.setOrganId(byEntId.get(0).getOrganId());
+                                    }
+                                }
                                 if (!ObjectUtils.isEmpty(drug)){
                                     if (ObjectUtils.isEmpty(saleDrugList)){
                                         drugListAndSaleDrugList.setCanAssociated(false);
