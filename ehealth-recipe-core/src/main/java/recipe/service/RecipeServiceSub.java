@@ -2739,7 +2739,6 @@ public class RecipeServiceSub {
      */
     public static Map<String, Object> cancelRecipeImpl(Integer recipeId, Integer flag, String name, String message) {
         LOGGER.info("cancelRecipe [recipeId：" + recipeId + "]");
-        //获取订单
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
@@ -2761,8 +2760,6 @@ public class RecipeServiceSub {
         }
 
         String recipeMode = recipe.getRecipeMode();
-        //获取撤销前处方单状态
-        Integer beforeStatus = recipe.getStatus();
         if (recipe.getStatus() == RecipeStatusConstant.UNSIGN) {
             msg = "暂存的处方单不能进行撤销";
         }
@@ -2864,7 +2861,7 @@ public class RecipeServiceSub {
             RecipeMsgService.batchSendMsg(recipe, RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType());
         }
         //如果是待审核要取消未结束任务
-        if (RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType().equals(beforeStatus)) {
+        if (RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType().equals(recipe.getStatus())) {
             ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCancelEvent(recipeId, BussTypeConstant.RECIPE));
         }
         //推送处方到监管平台
@@ -2884,7 +2881,7 @@ public class RecipeServiceSub {
             orderManager.recipeRefundMsg(recipeId);
         }
         //记录日志
-        RecipeLogService.saveRecipeLog(recipeId, beforeStatus, RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), memo.toString());
+        RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), memo.toString());
         rMap.put("result", true);
         rMap.put("msg", msg);
         LOGGER.info("cancelRecipe execute ok rMap:{}， result:{}", JSONUtils.toString(rMap), memo);
