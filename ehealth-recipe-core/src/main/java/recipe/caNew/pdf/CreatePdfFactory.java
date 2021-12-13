@@ -405,11 +405,10 @@ public class CreatePdfFactory {
                 recipeUpdate.setSignFile(fileId);
                 recipe.setSignFile(fileId);
             }
+            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         } catch (Exception e) {
             logger.error("CreatePdfFactory updateGiveUser updateDispensingTimePdf  recipe: {}", recipe.getRecipeId(), e);
-            return;
         }
-        recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         //获取 核对发药药师签名id
         ApothecaryDTO apothecaryDTO = signManager.giveUser(recipe.getClinicOrgan(), recipe.getGiveUser(), recipe.getRecipeId());
         if (StringUtils.isEmpty(apothecaryDTO.getGiveUserSignImg())) {
@@ -431,11 +430,10 @@ public class CreatePdfFactory {
                 String fileId = CreateRecipePdfUtil.generateSignImgNode(signImgNode);
                 recipeUpdate.setSignFile(fileId);
             }
+            recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         } catch (Exception e) {
             logger.error("CreatePdfFactory updateGiveUser  recipe: {}", recipe.getRecipeId(), e);
-            return;
         }
-        recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         logger.info("CreatePdfFactory updateGiveUser recipeUpdate ={},执行时间:{}", JSON.toJSONString(recipeUpdate), System.currentTimeMillis() - start);
     }
 
