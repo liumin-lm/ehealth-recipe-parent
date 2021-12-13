@@ -94,13 +94,10 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                     stockFlag = true;
                 }
                 break;
-            case GIVE_MODE_PATIENTS_OPTIONAL:
-                // 患者自选
-                break;
             default:
                 break;
         }
-
+        logger.info("StockBusinessService getStockFlag stockFlag={}", stockFlag);
         return stockFlag;
     }
 
