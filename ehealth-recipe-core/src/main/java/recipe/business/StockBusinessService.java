@@ -68,7 +68,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         }
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIds);
 
-        Boolean stockFlag = false;
+        Boolean stockFlag = true;
         switch (GiveModeEnum.getGiveModeEnum(recipe.getGiveMode())) {
             case GIVE_MODE_HOME_DELIVERY:
                 // 配送到家
@@ -90,8 +90,8 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 // 下载处方签
                 List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
                 Long notCountDownloadRecipe = organDrugListDAO.getCountDownloadRecipe(recipe.getClinicOrgan(), drugIds);
-                if (notCountDownloadRecipe == 0) {
-                    stockFlag = true;
+                if (notCountDownloadRecipe > 0) {
+                    stockFlag = false;
                 }
                 break;
             default:
