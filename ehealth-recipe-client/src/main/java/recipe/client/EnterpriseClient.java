@@ -146,6 +146,7 @@ public class EnterpriseClient extends BaseClient {
         addressBean.setCity(getAddress(recipeOrder.getAddress2()));
         addressBean.setDistrict(getAddress(recipeOrder.getAddress3()));
         addressBean.setStreetAddress(getAddress(recipeOrder.getStreetAddress()));
+        addressBean.setAddress(getAddress(recipeOrder.getAddress4()));
         pushRecipeAndOrder.setAddressBean(addressBean);
     }
 
