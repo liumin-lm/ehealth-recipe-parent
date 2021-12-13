@@ -263,6 +263,7 @@ public class RecipeManager extends BaseManager {
                     if (StringUtils.isNotEmpty(recipeExtend.getMedicalRecordNumber())) {
                         qrName = recipeExtend.getMedicalRecordNumber();
                     }
+                    break;
                 case RECIPE_CODE:
                     if (StringUtils.isNotEmpty(recipe.getRecipeCode())) {
                         qrName = recipe.getRecipeCode();
