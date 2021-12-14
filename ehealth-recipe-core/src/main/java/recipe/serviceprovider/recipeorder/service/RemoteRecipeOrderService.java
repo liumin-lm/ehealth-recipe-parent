@@ -253,21 +253,21 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         return getBean(refunds.get(0), RecipeRefundBean.class);
     }
 
-    @Override
-    public void refundCallback(Integer busId, Integer refundStatus, String msg, Integer busType) {
-        LOGGER.info("RemoteRecipeOrderService.refundCallback busId:{},refundStatus:{},msg:{}.", busId, refundStatus, msg);
+
+    public void refundCallback(Integer recipeId, Integer refundStatus, Integer orderId, Integer busType) {
+        LOGGER.info("RemoteRecipeOrderService.refundCallback recipeId:{},refundStatus:{},orderId:{}.", recipeId, refundStatus, orderId);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe recipe = recipeDAO.getByRecipeId(busId);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (null == recipe) {
-            LOGGER.warn("当前处方{}不存在无法退费！", busId);
+            LOGGER.warn("当前处方{}不存在无法退费！", recipeId);
             return;
         }
         //判断当前处方是不是有审核通过的患者手动弄退费信息，有的话设置处方和订单的状态
         RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        RecipeOrder recipeOrder = recipeOrderDAO.getRecipeOrderByRecipeId(busId);
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderId(orderId);
         if (null == recipeOrder) {
-            LOGGER.warn("当前处方订单{}不存在无法退费！", busId);
+            LOGGER.warn("当前处方订单{}不存在无法退费！", recipeId);
             return;
         }
         RecipeRefundService recipeRefundService = ApplicationUtils.getRecipeService(RecipeRefundService.class);
@@ -277,17 +277,17 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         nowRecipeRefund.setPrice(recipeOrder.getActualPrice());
         nowRecipeRefund.setNode(9);
         nowRecipeRefund.setStatus(refundStatus);
-        nowRecipeRefund.setReason(msg);
+        nowRecipeRefund.setReason(null);
         //根据业务id，根据退费推送消息
         //当退费成功后修改处方和订单的状态
         switch (refundStatus) {
             case 3:
-                List<RecipeRefund> recipeRefunds = recipeRefundDAO.findRefundListByRecipeIdAndNodes(busId, Arrays.asList(9));
+                List<RecipeRefund> recipeRefunds = recipeRefundDAO.findRefundListByRecipeIdAndNodes(recipeId, Arrays.asList(9));
                 LOGGER.info("退款完成开始处理：{}", recipe.getRecipeId());
                 if (CollectionUtils.isNotEmpty(recipeRefunds)) {
                     return;
                 }
-                RecipeMsgService.batchSendMsg(busId, RecipeStatusConstant.RECIPE_REFUND_SUCC);
+                RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_SUCC);
                 //修改处方单状态 处理合并支付
                 List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
                 List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
@@ -305,7 +305,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 orderAttrMap.put("refundTime", new Date());
                 recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
                 LOGGER.info("退款完成修改订单状态：{}", recipe.getRecipeId());
-                RecipeLogService.saveRecipeLog(busId, recipe.getStatus(), RecipeStatusConstant.REVOKE, msg);
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.REVOKE, null);
                 LOGGER.info("存储退款完成记录-remoteRecipeOrderService：{}", recipe.getRecipeId());
                 if (PayBusTypeEnum.RECIPE_BUS_TYPE.getType().equals(busType)) {
                     recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
@@ -313,15 +313,15 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 break;
             case 4:
                 nowRecipeRefund.setReason("退费失败");
-                RecipeMsgService.batchSendMsg(busId, RecipeStatusConstant.RECIPE_REFUND_FAIL);
-                RecipeLogService.saveRecipeLog(busId, recipe.getStatus(), recipe.getStatus(), msg);
+                RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_FAIL);
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), null);
                 if (PayBusTypeEnum.RECIPE_BUS_TYPE.getType().equals(busType)) {
                     recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
                     recipeRefundService.updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_FAIL_AUDIT_STATUS);
                 }
                 break;
             default:
-                LOGGER.warn("当前处方{}退费状态{}无法解析！", busId, refundStatus);
+                LOGGER.warn("当前处方{}退费状态{}无法解析！", recipeId, refundStatus);
                 break;
         }
 
