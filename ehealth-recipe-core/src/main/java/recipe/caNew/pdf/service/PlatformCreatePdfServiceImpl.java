@@ -189,6 +189,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         List<CoOrdinateVO> coOrdinateList = new LinkedList<>();
         CoOrdinateVO patientId = redisManager.getPdfCoordsHeight(recipeId, "recipe.patientID");
         if (null != patientId) {
+            patientId.setRepeatWrite(true);
             patientId.setValue(recipe.getPatientID());
             coOrdinateList.add(patientId);
         }
