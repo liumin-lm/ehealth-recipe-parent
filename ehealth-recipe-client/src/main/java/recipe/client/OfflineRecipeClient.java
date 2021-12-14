@@ -222,7 +222,7 @@ public class OfflineRecipeClient extends BaseClient {
         //根据flag转化日期 1 代表一个月  3 代表三个月 6 代表6个月 23:代表3天
         if (timeQuantum != null) {
             if (new Integer(23).equals(timeQuantum)) {
-                queryRecipeRequestTo.setStartDate(DateConversion.firstSecondsOfDay(DateConversion.getDateTimeDaysAgo(3)));
+                queryRecipeRequestTo.setStartDate(DateConversion.getDateTimeDaysAgo(3));
             } else {
                 queryRecipeRequestTo.setStartDate(DateConversion.getMonthsAgo(timeQuantum));
             }
