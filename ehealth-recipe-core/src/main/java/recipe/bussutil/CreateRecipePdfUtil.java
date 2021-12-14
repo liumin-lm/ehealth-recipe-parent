@@ -500,7 +500,7 @@ public class CreateRecipePdfUtil {
             //添加空白覆盖
             page.saveState();
             page.setColorFill(BaseColor.WHITE);
-            page.rectangle(decoction.getX(), decoction.getY(), 120, 14);
+            page.rectangle(decoction.getX(), decoction.getY(), 115, 14);
             page.fill();
             page.restoreState();
         }
