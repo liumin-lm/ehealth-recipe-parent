@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeOrderBillReqTO;
-import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.RecipeOrderPayFlow;
 import com.ngari.recipe.pay.model.PayResultDTO;
@@ -410,9 +409,9 @@ public class RecipePayInfoCallBackService implements IRecipePayCallBackService {
         if (StringUtils.isNotEmpty(recipeOrderBean.getRecipeIdList())) {
             List<Integer> recipeIdList = JSONUtils.parse(recipeOrderBean.getRecipeIdList(), List.class);
             if (CollectionUtils.isNotEmpty(recipeIdList)) {
-                Integer bussId = recipeIdList.get(0);
+                Integer recipeId = recipeIdList.get(0);
                 //调用回调处方退费
-                recipeOrderService.refundCallback(bussId, targetPayflag, null, PayBusTypeEnum.RECIPE_BUS_TYPE.getType());
+                recipeOrderService.refundCallback(recipeId, targetPayflag, order.getBusId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getType());
             }
         }
         //更新处方日志
