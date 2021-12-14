@@ -2856,7 +2856,7 @@ public class RecipeService extends RecipeBaseService {
     }
 
 
-    public DataSyncDTO convertDataSyn(OrganDrugInfoTO drug, Integer organId, Integer status, Exception e,  Integer operType , OrganDrugList organDrugList) {
+    public DataSyncDTO convertDataSyn(OrganDrugInfoTO drug, Integer organId, Integer status, Exception e, Integer operType, OrganDrugList organDrugList) {
 
         DataSyncDTO dataSyncDTO = new DataSyncDTO();
         dataSyncDTO.setType(1);
@@ -6373,6 +6373,9 @@ public class RecipeService extends RecipeBaseService {
             //根据处方获取挂号科室
             recipe.setAppointDepart(null);
             departManager.getAppointDepartByOrganIdAndDepart(recipe);
+        } else if ("7".equals(type)) {
+            //前置pdf测试
+            AbstractCaProcessType.getCaProcessFactory(recipe.getClinicOrgan()).hisCallBackCARecipeFunction(recipeId);
         } else {
             Object isDefaultGiveModeToHos = configService.getConfiguration(recipe.getClinicOrgan(), "isDefaultGiveModeToHos");
             LOGGER.info("setGiveMode isDefaultGiveModeToHos：{} ", isDefaultGiveModeToHos);
