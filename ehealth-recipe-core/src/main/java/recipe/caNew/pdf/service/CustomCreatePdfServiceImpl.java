@@ -62,7 +62,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
     private final String EXTEND = OP_RECIPE_EXTEND + DOT_EN;
     private final List<String> ADDITIONAL_FIELDS = Arrays.asList(RECIPE + OP_RECIPE_DOCTOR, RECIPE + OP_RECIPE_CHECKER,
             RECIPE + OP_RECIPE_GIVE_USER, RECIPE + OP_RECIPE_ACTUAL_PRICE, OP_BARCODE_ALL, EXTEND + OP_RECIPE_EXTEND_SUPERVISE
-            , "recipe.patientID", "recipe.recipeCode", "address", "recipeExtend.decoctionText", "recipe.organName", "recipeOrder.dispensingTime");
+            , "recipe.patientID", "recipe.recipeCode", "address", "recipeExtend.decoctionText", "recipe.organName", "recipeOrder.dispensingTime", "recipeExtend.medicalRecordNumber");
     @Autowired
     private RedisManager redisManager;
     @Autowired
@@ -217,6 +217,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         List<CoOrdinateVO> coOrdinateList = new LinkedList<>();
         CoOrdinateVO patientId = redisManager.getPdfCoords(recipe.getRecipeId(), "recipe.patientID");
         if (null != patientId) {
+            patientId.setRepeatWrite(true);
             patientId.setValue(recipe.getPatientID());
             coOrdinateList.add(patientId);
         }

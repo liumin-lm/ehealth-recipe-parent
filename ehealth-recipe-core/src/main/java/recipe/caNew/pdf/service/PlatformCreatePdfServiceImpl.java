@@ -13,12 +13,11 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.dictionary.DictionaryController;
-import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.util.JSONUtils;
 import eh.entity.base.Scratchable;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Base64;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -185,8 +184,8 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
 
     @Override
     public String updateCodePdf(Recipe recipe) throws Exception {
+        logger.info("PlatformCreatePdfServiceImpl updateCodePdf  recipe={}", JSONUtils.toString(recipe));
         Integer recipeId = recipe.getRecipeId();
-        logger.info("PlatformCreatePdfServiceImpl updateCodePdf  recipeId={}", recipeId);
         List<CoOrdinateVO> coOrdinateList = new LinkedList<>();
         CoOrdinateVO patientId = redisManager.getPdfCoordsHeight(recipeId, "recipe.patientID");
         if (null != patientId) {
@@ -201,6 +200,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         //病历号
         CoOrdinateVO medicalRecordNumber = redisManager.getPdfCoordsHeight(recipeId, "recipeExtend.medicalRecordNumber");
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        logger.info("PlatformCreatePdfServiceImpl updateCodePdf  recipeExtend={}", JSONUtils.toString(recipeExtend));
         if (null != medicalRecordNumber) {
             medicalRecordNumber.setValue(recipeExtend.getMedicalRecordNumber());
             coOrdinateList.add(medicalRecordNumber);
