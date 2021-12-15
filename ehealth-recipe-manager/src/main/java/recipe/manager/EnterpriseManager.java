@@ -414,9 +414,9 @@ public class EnterpriseManager extends BaseManager {
             PatientDTO userDTO = patientClient.getPatientDTO(recipe.getRequestMpiId());
             pushRecipeAndOrder.setUserDTO(ObjectCopyUtils.convert(userDTO, com.ngari.patient.dto.PatientDTO.class));
         }
-        OAuthWeixinMP oAuthWeixinMP = patientClient.getOAuthWxByUrt(recipe.getRequestUrt());
-        if (null != oAuthWeixinMP) {
-            pushRecipeAndOrder.setOpenId(oAuthWeixinMP.getOpenId());
+        String openId = patientClient.getOpenId();
+        if (StringUtils.isNotEmpty(openId)) {
+            pushRecipeAndOrder.setOpenId(openId);
         }
         //设置科室信息
         pushRecipeAndOrder.setDepartmentDTO(departClient.getDepartmentByDepart(recipe.getDepart()));

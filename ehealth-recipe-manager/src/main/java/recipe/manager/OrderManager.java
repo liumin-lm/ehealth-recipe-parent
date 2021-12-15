@@ -398,9 +398,9 @@ public class OrderManager extends BaseManager {
         patientBaseInfo.setMpi(recipe.getRequestMpiId());
         patientBaseInfo.setTid(enterpriseClient.getSimpleWxAccount().getTid());
         req.setPatient(patientBaseInfo);
-        OAuthWeixinMP oAuthWeixinMP = patientClient.getOAuthWxByUrt(recipe.getRequestUrt());
-        if (null != oAuthWeixinMP) {
-            req.setOpenId(oAuthWeixinMP.getOpenId());
+        String openId = patientClient.getOpenId();
+        if (StringUtils.isNotEmpty(openId)) {
+            req.setOpenId(openId);
         }
         try {
             RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());

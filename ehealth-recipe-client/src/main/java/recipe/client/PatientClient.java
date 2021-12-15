@@ -2,11 +2,12 @@ package recipe.client;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
+import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
+import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.patient.mode.PatientQueryRequestTO;
-import com.ngari.intface.WeixinMpService;
 import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.dto.OrganDTO;
@@ -14,7 +15,6 @@ import com.ngari.patient.service.HealthCardService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.PatientDTO;
-import ctd.mvc.weixin.entity.OAuthWeixinMP;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -51,7 +51,7 @@ public class PatientClient extends BaseClient {
     @Autowired
     private HealthCardService healthCardService;
     @Autowired
-    private WeixinMpService weixinMpService;
+    private ICurrentUserInfoService currentUserInfoService;
 
     /**
      * 获取 脱敏后的 患者对象
@@ -257,13 +257,18 @@ public class PatientClient extends BaseClient {
 
     /**
      * 根据用户信息获取所属公众号相关信息
-     * @param urt
      * @return
      */
-    public OAuthWeixinMP getOAuthWxByUrt(Integer urt){
-        OAuthWeixinMP oAuthWeixinMP = weixinMpService.getByUrt(urt);
-        logger.info("PatientClient getOpenIdByUrt:{}", JSONUtils.toString(oAuthWeixinMP));
-        return oAuthWeixinMP;
+    public String getOpenId(){
+        try {
+            SimpleWxAccountBean simpleWxAccountBean = currentUserInfoService.getSimpleWxAccount();
+            String openId = simpleWxAccountBean.getOpenId();
+            logger.info("PatientClient getOpenId:{}", openId);
+            return openId;
+        } catch (Exception e) {
+            logger.error("getOpenId error", e);
+        }
+        return null;
     }
 
 }
