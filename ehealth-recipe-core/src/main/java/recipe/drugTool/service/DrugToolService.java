@@ -405,10 +405,9 @@ public class DrugToolService implements IDrugToolService {
                 errMsg.append("药品类型有误").append(";");
             }
             try {
-                if (StringUtils.isEmpty(getStrFromCell(row.getCell(9)))) {
-                    errMsg.append("【药品剂型】未填写").append(";");
+                if (!StringUtils.isEmpty(getStrFromCell(row.getCell(9)))) {
+                    drug.setDrugForm(getStrFromCell(row.getCell(9)));
                 }
-                drug.setDrugForm(getStrFromCell(row.getCell(9)));
             } catch (Exception e) {
                 LOGGER.error("药品剂型有误 ," + e.getMessage(), e);
                 errMsg.append("药品剂型有误").append(";");
