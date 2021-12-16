@@ -199,6 +199,16 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         return pageDTO;
     }
 
+    /**
+     * 患者提交订单时更新pdf
+     *
+     * @param recipeId
+     */
+    @Override
+    public void updatePdfForSubmitOrderAfter(Integer recipeId) {
+        createPdfFactory.updateCodePdfExecute(recipeId);
+    }
+
 
     /**
      * todo 需要修改成 新模式

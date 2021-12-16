@@ -6,6 +6,7 @@ import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
@@ -160,7 +161,11 @@ public class RecipeOrderPatientAtop extends BaseAtop {
             return;
         }
         //推送his
-        recipeIds.forEach(a -> offlineToOnlineService.pushRecipe(a, CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE));
+        recipeIds.forEach(a -> {
+            offlineToOnlineService.pushRecipe(a, CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE);
+            recipeOrderService.updatePdfForSubmitOrderAfter(a);
+        });
+
     }
 
     /**

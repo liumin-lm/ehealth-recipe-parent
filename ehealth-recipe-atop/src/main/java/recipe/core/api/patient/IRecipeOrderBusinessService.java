@@ -61,4 +61,11 @@ public interface IRecipeOrderBusinessService {
      * @return
      */
     CheckRequestCommonOrderPageDTO getRecipePageForCommonOrder(SyncOrderVO request);
+
+    /**
+     * 患者提交订单时更新pdf
+     *
+     * @param recipeId
+     */
+    void updatePdfForSubmitOrderAfter(Integer recipeId);
 }
