@@ -305,7 +305,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 orderAttrMap.put("refundTime", new Date());
                 recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
                 LOGGER.info("退款完成修改订单状态：{}", recipe.getRecipeId());
-                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.REVOKE, null);
+//                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.REVOKE, null);
                 LOGGER.info("存储退款完成记录-remoteRecipeOrderService：{}", recipe.getRecipeId());
                 if (PayBusTypeEnum.RECIPE_BUS_TYPE.getType().equals(busType)) {
                     recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
@@ -314,7 +314,8 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
             case 4:
                 nowRecipeRefund.setReason("退费失败");
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_FAIL);
-                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), null);
+//                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), null);
+                LOGGER.info("remoteRecipeOrderService-refundCallback-退费失败的记录：{}", recipe.getRecipeId());
                 if (PayBusTypeEnum.RECIPE_BUS_TYPE.getType().equals(busType)) {
                     recipeRefundService.recipeReFundSave(recipe, nowRecipeRefund);
                     recipeRefundService.updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_FAIL_AUDIT_STATUS);
