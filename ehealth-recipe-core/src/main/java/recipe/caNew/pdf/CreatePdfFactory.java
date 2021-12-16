@@ -316,7 +316,11 @@ public class CreatePdfFactory {
                 }
                 Recipe recipeUpdate = new Recipe();
                 recipeUpdate.setRecipeId(recipeId);
-                recipeUpdate.setSignFile(fileId);
+                if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+                    recipeUpdate.setChemistSignFile(fileId);
+                } else {
+                    recipeUpdate.setSignFile(fileId);
+                }
                 recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
                 logger.info("CreatePdfFactory updateCodePdfExecute recipeUpdate ={}", JSON.toJSONString(recipeUpdate));
             } catch (Exception e) {

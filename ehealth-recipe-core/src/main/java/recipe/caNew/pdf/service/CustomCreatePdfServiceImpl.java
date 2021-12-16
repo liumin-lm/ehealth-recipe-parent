@@ -14,7 +14,6 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
-import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import lombok.Cleanup;
 import org.apache.commons.lang3.StringUtils;
@@ -237,7 +236,11 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         if (null != barcode) {
             barcode.setValue(barcode(recipe));
         }
-        return CreateRecipePdfUtil.generateOrdinateListAndBarcode(recipe.getSignFile(), coOrdinateList, barcode);
+        if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+            return CreateRecipePdfUtil.generateOrdinateListAndBarcode(recipe.getChemistSignFile(), coOrdinateList, barcode);
+        } else {
+            return CreateRecipePdfUtil.generateOrdinateListAndBarcode(recipe.getSignFile(), coOrdinateList, barcode);
+        }
     }
 
 
