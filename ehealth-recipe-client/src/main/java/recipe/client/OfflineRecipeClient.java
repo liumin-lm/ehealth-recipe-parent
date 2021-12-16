@@ -27,6 +27,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.DateConversion;
@@ -71,9 +72,18 @@ public class OfflineRecipeClient extends BaseClient {
         }
     }
 
-
+    /**
+     * 撤销处方
+     *
+     * @param request
+     * @param recipePdfDTO
+     * @param emrDetail
+     * @param pharmacyIdMap
+     * @return
+     * @throws Exception
+     */
     public Boolean cancelRecipeImpl(RecipeStatusUpdateReqTO request, RecipeInfoDTO recipePdfDTO, EmrDetailDTO emrDetail, Map<Integer, PharmacyTcm> pharmacyIdMap) throws Exception {
-        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = recipeDTO(2, recipePdfDTO, emrDetail, pharmacyIdMap);
+        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = recipeDTO(CommonConstant.RECIPE_CANCEL_TYPE, recipePdfDTO, emrDetail, pharmacyIdMap);
         request.setRecipeDTO(recipeDTO);
         logger.info("cancelRecipeImpl request={}", JSONUtils.toString(request));
         try {

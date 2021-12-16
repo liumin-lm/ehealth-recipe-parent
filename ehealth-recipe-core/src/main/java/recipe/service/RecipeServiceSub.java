@@ -82,6 +82,7 @@ import recipe.bussutil.RecipeValidateUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.DepartClient;
 import recipe.client.RefundClient;
+import recipe.common.CommonConstant;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.AldyfRemoteService;
@@ -2806,7 +2807,7 @@ public class RecipeServiceSub {
         //HIS消息发送
         StringBuilder memo = new StringBuilder();
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
-            boolean succFlag = hisService.cancelRecipeImpl(recipeId, null, null);
+            boolean succFlag = hisService.cancelRecipeImpl(recipeId, null, CommonConstant.RECIPE_CANCEL_TYPE.toString());
             if (succFlag) {
                 memo.append("HIS推送成功");
             } else {
