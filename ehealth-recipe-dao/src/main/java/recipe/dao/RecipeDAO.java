@@ -1105,7 +1105,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param patientName 患者姓名（原为患者主键 mpiid）
      * @param bDate       开始时间
      * @param eDate       结束时间
-     * @param dateType    时间类型（0：开方时间，1：审核时间）
+     * @param dateType    时间类型（0：开方时间，1：审核时间，2：支付时间，3：发药时间）
      * @param start       分页开始index
      * @param limit       分页长度
      * @return QueryResult<Map>
@@ -1331,7 +1331,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param patientName 患者姓名（原为患者主键 mpiid）
      * @param bDate       开始时间
      * @param eDate       结束时间
-     * @param dateType    时间类型（0：开方时间，1：审核时间）
+     * @param dateType    时间类型（0：开方时间，1：审核时间，2：支付时间，3：发药时间）
      * @return QueryResult<Map>
      */
     public List<Object[]> findRecipesByInfoForExcelN(RecipesQueryVO recipesQueryVO) {
@@ -1363,7 +1363,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param patientName 患者姓名（原为患者主键 mpiid）
      * @param bDate       开始时间
      * @param eDate       结束时间
-     * @param dateType    时间类型（0：开方时间，1：审核时间）
+     * @param dateType    时间类型（0：开方时间，1：审核时间，2：支付时间，3：发药时间）
      * @return QueryResult<Map>
      */
     public List<Object[]> findRecipesByInfoForExcel(RecipesQueryVO recipesQueryVO) {
@@ -1537,8 +1537,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append(" and r.CheckDateYs BETWEEN :startTime" + " and :endTime ");
                 break;
             case 2:
-                //审核时间
+                //支付时间
                 hql.append(" and o.payTime BETWEEN :startTime" + " and :endTime ");
+                break;
+            case 3:
+                //发药时间
+                hql.append(" and o.dispensingTime BETWEEN :startTime" + " and :endTime ");
                 break;
             default:
                 break;
@@ -1646,8 +1650,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append(" and r.CheckDateYs BETWEEN :startTime" + " and :endTime ");
                 break;
             case 2:
-                //审核时间
+                //支付时间
                 hql.append(" and o.payTime BETWEEN :startTime" + " and :endTime ");
+                break;
+            case 3:
+                //发药时间
+                hql.append(" and o.dispensingTime BETWEEN :startTime" + " and :endTime ");
                 break;
             default:
                 break;
@@ -1761,8 +1769,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append(" and r.checkDate >= :startTime" + " and r.checkDate <= :endTime ");
                 break;
             case 2:
-                //审核时间
+                //支付时间
                 hql.append(" and o.payTime >= :startTime" + " and o.payTime <= :endTime ");
+                break;
+            case 3:
+                //发药时间
+                hql.append(" and o.dispensingTime BETWEEN :startTime" + " and :endTime ");
                 break;
             default:
                 break;
