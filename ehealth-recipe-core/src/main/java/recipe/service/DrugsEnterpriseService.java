@@ -9,6 +9,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DrugEnterpriseLogisticsBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
+import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseRes;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.entity.*;
@@ -69,7 +70,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
     private EnterpriseManager enterpriseManager;
     @Autowired
     private ButtonManager buttonManager;
-  @Autowired
+    @Autowired
     private DrugsEnterpriseConfigService drugsEnterpriseConfigService;
 
 
@@ -80,17 +81,19 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
      * @return
      */
     @RpcService
-    public List<DrugsEnterpriseBean> findDrugsEnterpriseByStatus(final Integer status) {
+    public List<DrugsEnterpriseRes> findDrugsEnterpriseByStatus(final Integer status) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         List<DrugsEnterprise> list = drugsEnterpriseDAO.findAllDrugsEnterpriseByStatus(status);
-        return getList(list, DrugsEnterpriseBean.class);
+        List<DrugsEnterpriseRes> drugsEnterpriseBeans = ObjectCopyUtils.convert(list, DrugsEnterpriseRes.class);
+        return drugsEnterpriseBeans;
     }
 
     @RpcService
-    public List<DrugsEnterpriseBean> getDrugsEnterpriseByName(String name) {
+    public List<DrugsEnterpriseRes> getDrugsEnterpriseByName(String name) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findAllDrugsEnterpriseByName(name);
-        return getList(drugsEnterpriseList, DrugsEnterpriseBean.class);
+        List<DrugsEnterpriseRes> drugsEnterpriseBeans = ObjectCopyUtils.convert(drugsEnterpriseList, DrugsEnterpriseRes.class);
+        return drugsEnterpriseBeans;
     }
 
     /**
@@ -160,12 +163,12 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         //存储药企信息
         DrugsEnterprise newDrugsEnterprise = drugsEnterpriseDAO.save(drugsEnterprise);
         //新增药企配置
-        DrugsEnterpriseConfig config=new DrugsEnterpriseConfig();
+        DrugsEnterpriseConfig config = new DrugsEnterpriseConfig();
         config.setDrugsenterpriseId(newDrugsEnterprise.getId());
-        if (newDrugsEnterprise.getCreateType()==0){
+        if (newDrugsEnterprise.getCreateType() == 0) {
             config.setEnable_drug_sync(1);
             drugsEnterpriseConfigService.addOrUpdateDrugsEnterpriseConfig(config);
-        }else {
+        } else {
             DrugsEnterpriseConfigDAO dao = DAOFactory.getDAO(DrugsEnterpriseConfigDAO.class);
             config.setEnable_drug_sync(0);
             config.setSyncDataSource(1);
@@ -385,12 +388,12 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
     }
 
     @RpcService
-    public DrugsEnterpriseBean getDrugsEnterpriseByIdForOp(Integer drugsEnterpriseId){
+    public DrugsEnterpriseBean getDrugsEnterpriseByIdForOp(Integer drugsEnterpriseId) {
         DrugsEnterpriseBean bean = getDrugsEnterpriseById(drugsEnterpriseId);
         UserRoleToken urt = UserRoleToken.getCurrent();
         String mu = urt.getManageUnit();
-        if (bean != null){
-            if (!"eh".equals(mu) && null != bean.getOrganId()){
+        if (bean != null) {
+            if (!"eh".equals(mu) && null != bean.getOrganId()) {
                 OpSecurityUtil.isAuthorisedOrgan(bean.getOrganId());
             }
         }
@@ -669,20 +672,21 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
                 break;
         }
 
-        setOtherGiveMode(configurations,recipeId,organId,recipeSupportGiveModeList);
+        setOtherGiveMode(configurations, recipeId, organId, recipeSupportGiveModeList);
         LOGGER.info("getDrugsEnterpriseContinue  recipeId= {} recipeSupportGiveModeList= {}", recipeId, JSONUtils.toString(recipeSupportGiveModeList));
         return recipeSupportGiveModeList;
     }
 
     /**
-     *  例外支付下载处方
+     * 例外支付下载处方
+     *
      * @param configurations
      * @param recipeId
      * @param organId
      * @param recipeSupportGiveModeList
      * @return
      */
-    private List<Integer> setOtherGiveMode(List<String> configurations,Integer recipeId, int organId,List<Integer> recipeSupportGiveModeList){
+    private List<Integer> setOtherGiveMode(List<String> configurations, Integer recipeId, int organId, List<Integer> recipeSupportGiveModeList) {
         // 查询药品是否不支持下载处方
         if (configurations.contains(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText())) {
             Integer integer = organDrugListDAO.countIsSupperDownloadRecipe(organId, recipeId);
