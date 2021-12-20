@@ -328,7 +328,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         List<EnterpriseStock> enterpriseStockButton = buttonManager.enterpriseStockCheck(organId);
         List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(organId, recipeDetails, enterpriseStockButton);
         if (null != organStock) {
-            enterpriseStock.add(0, organStock);
+            enterpriseStock.add(organStock);
         }
         return enterpriseStock;
     }
