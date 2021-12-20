@@ -197,6 +197,9 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "单位剂量单位（最小单位）")
     private String useDoseSmallestUnit;
 
+    @ItemProperty(alias="药品适用业务  eh.base.dictionary.ApplyBusiness ")
+    private String applyBusiness;
+
 
     @ItemProperty(alias = "药品来源  0 批量导入 1 手动同步")
     @Dictionary(id = "eh.cdr.dictionary.DrugListMatchSource")
@@ -621,5 +624,14 @@ public class DrugListMatch implements java.io.Serializable {
 
     public void setDrugSource(Integer drugSource) {
         this.drugSource = drugSource;
+    }
+
+    @Column(name = "apply_Business")
+    public String getApplyBusiness() {
+        return applyBusiness;
+    }
+
+    public void setApplyBusiness(String applyBusiness) {
+        this.applyBusiness = applyBusiness;
     }
 }

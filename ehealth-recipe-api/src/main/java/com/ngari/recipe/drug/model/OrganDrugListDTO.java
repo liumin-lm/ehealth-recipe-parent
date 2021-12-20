@@ -147,6 +147,8 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "单位剂量单位（最小单位）")
     private String useDoseSmallestUnit;
 
+    @ItemProperty(alias="药品适用业务  eh.base.dictionary.ApplyBusiness ")
+    private String applyBusiness;
 
     public OrganDrugListDTO() {
     }
@@ -486,5 +488,13 @@ public class OrganDrugListDTO implements java.io.Serializable {
 
     public void setUsePathwaysId(String usePathwaysId) {
         this.usePathwaysId = usePathwaysId;
+    }
+
+    public String getApplyBusiness() {
+        return applyBusiness;
+    }
+
+    public void setApplyBusiness(String applyBusiness) {
+        this.applyBusiness = applyBusiness;
     }
 }

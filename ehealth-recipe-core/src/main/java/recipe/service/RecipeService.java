@@ -5088,6 +5088,7 @@ public class RecipeService extends RecipeBaseService {
         }
         drugListMatch.setStatus(0);
         drugListMatch.setDrugSource(1);
+        drugListMatch.setApplyBusiness("1");
         LOGGER.info("drugInfoSynMovementaddHisDrug" + drug.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
         List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drugListMatch.getOrganDrugCode(), drugListMatch.getSourceOrgan());
         if (ObjectUtils.isEmpty(dataByOrganDrugCode)) {

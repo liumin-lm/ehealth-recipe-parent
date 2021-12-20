@@ -161,6 +161,9 @@ public class OrganDrugList implements java.io.Serializable {
     private String drugsEnterpriseIds;
 
 
+    @ItemProperty(alias="药品适用业务 历史数据默认处理  1-药品处方  eh.base.dictionary.ApplyBusiness ")
+    private String applyBusiness;
+
     public OrganDrugList() {
     }
 
@@ -582,5 +585,14 @@ public class OrganDrugList implements java.io.Serializable {
 
     public void setDrugsEnterpriseIds(String drugsEnterpriseIds) {
         this.drugsEnterpriseIds = drugsEnterpriseIds;
+    }
+
+    @Column(name = "apply_Business")
+    public String getApplyBusiness() {
+        return applyBusiness;
+    }
+
+    public void setApplyBusiness(String applyBusiness) {
+        this.applyBusiness = applyBusiness;
     }
 }

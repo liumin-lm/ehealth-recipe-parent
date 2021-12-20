@@ -1443,6 +1443,12 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setSmallestUnitUseDose(drugListMatch.getSmallestUnitUseDose());
                         organDrugList.setRecommendedUseDose(drugListMatch.getRecommendedUseDose());
                         organDrugList.setDrugsEnterpriseIds(drugListMatch.getDrugsEnterpriseIds());
+                        if (!ObjectUtils.isEmpty(drugListMatch.getApplyBusiness())) {
+                            organDrugList.setApplyBusiness(drugListMatch.getApplyBusiness());
+                        }else {
+                            organDrugList.setApplyBusiness("1");
+                        }
+
 
                         Boolean isSuccess = organDrugListDAO.updateData(organDrugList);
                         if (!isSuccess) {
