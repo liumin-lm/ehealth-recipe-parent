@@ -51,7 +51,7 @@ public interface IStockBusinessService {
      * @param enterpriseId  指定某药企id
      * @return 药品信息 一定存在于出参
      */
-    EnterpriseStock enterpriseStockCheck(Integer organId,Recipe recipe, List<Recipedetail> recipeDetails, Integer enterpriseId);
+    EnterpriseStock enterpriseStockCheck(Recipe recipe, List<Recipedetail> recipeDetails, Integer enterpriseId);
 
     /**
      * 医生端 查询购药方式下有库存的药品
