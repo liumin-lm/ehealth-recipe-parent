@@ -157,6 +157,7 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
     }
 
     @Override
+    @Deprecated
     public boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds) {
         return false;
     }

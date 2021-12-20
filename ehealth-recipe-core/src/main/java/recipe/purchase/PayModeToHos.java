@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableMap;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
@@ -19,6 +20,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.manager.OrderManager;
+import recipe.manager.OrganDrugListManager;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
@@ -41,6 +43,10 @@ public class PayModeToHos implements IPurchaseService{
 
     @Autowired
     private OrderManager orderManager;
+    @Autowired
+    private OrganDrugListManager organDrugListManager;
+    @Autowired
+    private RecipeDetailDAO recipeDetailDAO;
     /**
      * logger
      */
@@ -112,7 +118,14 @@ public class PayModeToHos implements IPurchaseService{
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
         RecipePayModeSupportBean payModeSupport = orderService.setPayModeSupport(order, payMode);
         List<Integer> recipeIdLists = dbRecipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
-
+        // 到院取药校验机构库存
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIdLists);
+        EnterpriseStock organStock = organDrugListManager.organStock(dbRecipes.get(0).getClinicOrgan(), recipeDetails);
+        if (!organStock.getStock()) {
+            result.setCode(RecipeResultBean.FAIL);
+            result.setMsg("抱歉，医院没有库存，无法到医院取药，请选择其他购药方式。");
+            return result;
+        }
         order.setMpiId(dbRecipes.get(0).getMpiid());
         order.setOrganId(dbRecipes.get(0).getClinicOrgan());
         order.setOrderCode(orderService.getOrderCode(order.getMpiId()));

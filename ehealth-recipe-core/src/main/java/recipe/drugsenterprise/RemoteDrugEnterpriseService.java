@@ -392,12 +392,10 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             recipedetail.setUseTotalDose(1D);
             recipeDetails.add(recipedetail);
         });
-        List<EnterpriseStock> list = drugEnterpriseBusinessService.enterpriseStockCheck(organId, recipeDetails, depId);
-        if (CollectionUtils.isEmpty(list)) {
-            return "无库存";
-        }
-        EnterpriseStock enterpriseStock = list.get(0);
-        if (!enterpriseStock.getStock()) {
+        Recipe recipe = new Recipe();
+        recipe.setClinicOrgan(organId);
+        EnterpriseStock enterpriseStock = drugEnterpriseBusinessService.enterpriseStockCheck(recipe, recipeDetails, depId);
+        if (null == enterpriseStock) {
             return "无库存";
         }
         List<DrugInfoDTO> drugInfoList = enterpriseStock.getDrugInfoList();

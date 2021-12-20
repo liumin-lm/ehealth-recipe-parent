@@ -203,6 +203,7 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
 
     @Override
     //his管理的药企：药品，库存，价格全都由；医院返回的信息提供，判断库存现阶段由预校验的结果判断(Y/+1)
+    @Deprecated
     public boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds) {
         LOGGER.info("scanStock-【his管理的药企】- recipeId:{},dep:{},drugIds:{}", dbRecipe.getRecipeId(), JSONUtils.toString(dep), JSONUtils.toString(drugIds));
         DrugEnterpriseResult result = scanStock(dbRecipe.getRecipeId(), dep);

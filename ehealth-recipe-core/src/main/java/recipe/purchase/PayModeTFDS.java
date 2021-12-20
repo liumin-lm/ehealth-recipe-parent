@@ -1,15 +1,13 @@
 package recipe.purchase;
 
-import com.google.common.base.Function;
 import com.google.common.base.Splitter;
-import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableMap;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
+import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
-import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,6 +20,7 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
+import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
@@ -46,17 +45,18 @@ import static ctd.persistence.DAOFactory.getDAO;
  * @description： 药店取药购药方式
  * @version： 1.0
  */
-public class PayModeTFDS implements IPurchaseService{
+public class PayModeTFDS implements IPurchaseService {
     private static final Logger LOGGER = LoggerFactory.getLogger(PayModeTFDS.class);
     private RedisClient redisClient = RedisClient.instance();
     private static String EXPIRE_SECOND;
-
+    @Autowired
+    private IStockBusinessService stockBusinessService;
     @Autowired
     private OrderManager orderManager;
     @Autowired
     private EnterpriseManager enterpriseManager;
 
-    public PayModeTFDS(){
+    public PayModeTFDS() {
         RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
         EXPIRE_SECOND = cacheService.getRecipeParam("EXPIRE_SECOND", "600");
     }
@@ -67,7 +67,7 @@ public class PayModeTFDS implements IPurchaseService{
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         DepListBean depListBean = new DepListBean();
         Integer recipeId = recipe.getRecipeId();
-        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
 
         //获取患者位置信息进行缓存处理
         String range = MapValueUtil.getString(extInfo, "range");
@@ -81,20 +81,12 @@ public class PayModeTFDS implements IPurchaseService{
         String key = recipeId + "-" + DigestUtils.md5DigestAsHex(md5Key.getBytes());
         List<DepDetailBean> depDetailBeans = redisClient.get(key);
         if (CollectionUtils.isNotEmpty(depDetailBeans)) {
-            //List<DepDetailBean> result = getDepDetailBeansByPage(extInfo, depDetailBeans);
             depListBean.setList(depDetailBeans);
             resultBean.setObject(depListBean);
             return resultBean;
         }
         //获取购药方式查询列表
         List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(getPayMode());
-        if (CollectionUtils.isEmpty(payModeSupport)) {
-            LOGGER.warn("findSupportDepList 处方[{}]无法匹配配送方式. payMode=[{}]", recipeId, getPayMode());
-            resultBean.setCode(RecipeResultBean.FAIL);
-            resultBean.setMsg("配送模式配置有误");
-            return resultBean;
-        }
-        RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         // 获取药企
         List<DrugsEnterprise> drugsEnterprises = enterpriseManager.findEnterpriseByTFDS(recipe,payModeSupport);
         if (CollectionUtils.isEmpty(drugsEnterprises)) {
@@ -135,18 +127,16 @@ public class PayModeTFDS implements IPurchaseService{
                 return resultBean;
             }
         }
+        RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         for (DrugsEnterprise dep : drugsEnterprises) {
-            List<DepDetailBean> depList = new ArrayList<>();
             //通过查询该药企对应药店库存
-            boolean succFlag = scanStock(recipe, dep, drugIds);
-            if (!succFlag && dep.getCheckInventoryFlag() != 2) {
-                LOGGER.warn("findSupportDepList 当前药企无库存. 药企=[{}], recipeId=[{}]", dep.getName() ,recipeId);
-                continue;
+            EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(recipe, detailList, dep.getId());
+            if ((null != enterpriseStock && enterpriseStock.getStock()) || dep.getCheckInventoryFlag().equals(2)) {
+                //需要从接口获取药店列表
+                DrugEnterpriseResult drugEnterpriseResult = remoteDrugService.findSupportDep(recipeIds, extInfo, dep);
+                List<DepDetailBean> depList = findAllSupportDeps(drugEnterpriseResult, dep, extInfo);
+                depDetailList.addAll(depList);
             }
-            //需要从接口获取药店列表
-            DrugEnterpriseResult drugEnterpriseResult = remoteDrugService.findSupportDep(recipeIds, extInfo, dep);
-            depList = findAllSupportDeps(drugEnterpriseResult, dep, extInfo);
-            depDetailList.addAll(depList);
         }
         if (CollectionUtils.isNotEmpty(depDetailList)) {
             Iterator iterator = depDetailList.iterator();
@@ -175,27 +165,10 @@ public class PayModeTFDS implements IPurchaseService{
             redisClient.setEX(key, Long.parseLong(EXPIRE_SECOND), depDetailList);
         }
         LOGGER.info("findSupportDepList recipeId={}, 获取到药店数量[{}]", recipeId, depDetailList.size());
-        //List<DepDetailBean> result = getDepDetailBeansByPage(extInfo, depDetailList);
         depListBean.setList(depDetailList);
         resultBean.setObject(depListBean);
         LOGGER.info("findSupportDepList recipeId:{},resultBean:{}.", recipeId, JSONUtils.toString(resultBean));
         return resultBean;
-    }
-
-    private List<DepDetailBean> getDepDetailBeansByPage(Map<String, String> extInfo, List<DepDetailBean> depDetailList) {
-        LOGGER.info("getDepDetailBeansByPage extInfo:{},depDetailList:{}.", JSONUtils.toString(extInfo), JSONUtils.toString(depDetailList));
-        Integer start = MapValueUtil.getInteger(extInfo, "start");
-        Integer limit = MapValueUtil.getInteger(extInfo, "limit");
-        //进行简单分页的操作
-        List<DepDetailBean> result = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(depDetailList) && start != null && depDetailList.size() > start) {
-            if (depDetailList.size() < start + limit) {
-                result = depDetailList.subList(start, depDetailList.size());
-            } else {
-                result = depDetailList.subList(start, start + limit);
-            }
-        }
-        return result;
     }
 
     @Override
@@ -207,25 +180,19 @@ public class PayModeTFDS implements IPurchaseService{
         List<Integer> recipeIdLists = dbRecipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
         //获取当前支持药店的药企
         Integer depId = MapValueUtil.getInteger(extInfo, "depId");
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
+        RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         DrugsEnterprise dep = drugsEnterpriseDAO.getById(depId);
         for (Recipe dbRecipe : dbRecipes) {
             //处理详情
             List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());
-            List<Integer> drugIds = FluentIterable.from(detailList).transform(new Function<Recipedetail, Integer>() {
-                @Override
-                public Integer apply(Recipedetail input) {
-                    return input.getDrugId();
-                }
-            }).toList();
             //患者提交订单前,先进行库存校验
-
-            boolean succFlag = scanStock(dbRecipe, dep, drugIds);
-            if (!succFlag && dep.getCheckInventoryFlag() != 2) {
+            // 根据药企查询库存
+            EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, depId);
+            if (!enterpriseStock.getStock() && dep.getCheckInventoryFlag() != 2) {
                 result.setCode(RecipeResultBean.FAIL);
                 result.setMsg("抱歉，配送商库存不足无法配送。请稍后尝试提交，或更换配送商。");
                 return result;
@@ -251,7 +218,7 @@ public class PayModeTFDS implements IPurchaseService{
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
         //设置中药代建费
         Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
         if(decoctionId != null){
             DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
             DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
@@ -334,7 +301,7 @@ public class PayModeTFDS implements IPurchaseService{
      * @return          是否存在库存
      */
     private boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds) {
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        SaleDrugListDAO saleDrugListDAO = getDAO(SaleDrugListDAO.class);
         RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         Integer recipeId = dbRecipe.getRecipeId();
         boolean succFlag = false;
@@ -416,8 +383,8 @@ public class PayModeTFDS implements IPurchaseService{
 
     @Override
     public Integer getOrderStatus(Recipe recipe) {
-        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
+        DrugsEnterpriseDAO enterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise dep = enterpriseDAO.getById(recipe.getEnterpriseId());
         //处理详情
         List<Recipedetail> detailList = detailDAO.findByRecipeId(recipe.getRecipeId());
@@ -435,8 +402,8 @@ public class PayModeTFDS implements IPurchaseService{
 
     @Override
     public void setRecipePayWay(RecipeOrder recipeOrder) {
-        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+        RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
+        DrugsEnterpriseDAO enterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(recipeOrder.getEnterpriseId());
         if (new Integer(1).equals(drugsEnterprise.getStorePayFlag())) {
             //药品费用线上支付

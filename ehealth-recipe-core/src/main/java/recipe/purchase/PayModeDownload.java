@@ -3,6 +3,7 @@ package recipe.purchase;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -15,7 +16,9 @@ import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
+import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.manager.OrderManager;
 import recipe.service.RecipeOrderService;
@@ -24,6 +27,7 @@ import recipe.util.MapValueUtil;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
 * @Description: PayModeDownloadService 类（或接口）是 承接购药方式中下载处方方式
@@ -34,6 +38,10 @@ public class PayModeDownload implements IPurchaseService{
 
     @Autowired
     private OrderManager orderManager;
+    @Autowired
+    private RecipeDetailDAO recipeDetailDAO;
+    @Autowired
+    private OrganDrugListDAO organDrugListDAO;
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
@@ -59,7 +67,15 @@ public class PayModeDownload implements IPurchaseService{
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-
+        List<Integer> recipeIdLists = reicpes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIdLists);
+        List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+        Long notCountDownloadRecipe = organDrugListDAO.getCountDownloadRecipe(reicpes.get(0).getClinicOrgan(), drugIds);
+        if (notCountDownloadRecipe > 0) {
+            result.setCode(RecipeResultBean.FAIL);
+            result.setMsg("抱歉，不支持下载处方。");
+            return result;
+        }
         Recipe dbRecipe = reicpes.get(0);
         Integer recipeId = dbRecipe.getRecipeId();
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");

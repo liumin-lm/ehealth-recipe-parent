@@ -9,11 +9,13 @@ import recipe.atop.BaseAtop;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IStockBusinessService;
 import recipe.vo.doctor.DrugEnterpriseStockVO;
+import recipe.vo.doctor.DrugForGiveModeVO;
 import recipe.vo.doctor.DrugQueryVO;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 医生端药品查询
@@ -27,6 +29,18 @@ public class DrugDoctorAtop extends BaseAtop {
     private IStockBusinessService iDrugEnterpriseBusinessService;
     @Autowired
     private IRecipeBusinessService recipeBusinessService;
+
+    /**
+     * 医生端 查询购药方式下有库存的药品
+     *
+     * @param drugQueryVO
+     * @return
+     */
+    @RpcService
+    public Map<String, List<DrugForGiveModeVO>> drugForGiveMode(DrugQueryVO drugQueryVO) {
+        validateAtop(drugQueryVO, drugQueryVO.getRecipeDetails(), drugQueryVO.getOrganId());
+        return iDrugEnterpriseBusinessService.drugForGiveMode(drugQueryVO);
+    }
 
     /**
      * 医生端查询药品列表-实时查单个药品 所有药企的库存

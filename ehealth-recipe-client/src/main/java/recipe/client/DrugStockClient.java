@@ -378,7 +378,7 @@ public class DrugStockClient extends BaseClient {
                 }
             });
         }
-            logger.info(" DrugStockClient oldCodeCompatibility  list={}", JSON.toJSONString(data));
+        logger.info(" DrugStockClient oldCodeCompatibility  list={}", JSON.toJSONString(data));
         return data;
     }
 
