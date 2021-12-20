@@ -155,6 +155,9 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "配送药企ids")
     private String drugsEnterpriseIds;
 
+    @ItemProperty(alias="药品适用业务  eh.base.dictionary.ApplyBusiness ")
+    private String applyBusiness;
+
     public OrganDrugListBean() {
     }
 
@@ -529,5 +532,13 @@ public class OrganDrugListBean implements java.io.Serializable {
 
     public void setDrugsEnterpriseIds(String drugsEnterpriseIds) {
         this.drugsEnterpriseIds = drugsEnterpriseIds;
+    }
+
+    public String getApplyBusiness() {
+        return applyBusiness;
+    }
+
+    public void setApplyBusiness(String applyBusiness) {
+        this.applyBusiness = applyBusiness;
     }
 }
