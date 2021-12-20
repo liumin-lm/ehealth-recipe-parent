@@ -3,7 +3,6 @@ package recipe.business;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
-import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
@@ -20,7 +19,6 @@ import recipe.core.api.IStockBusinessService;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.GiveModeEnum;
@@ -32,7 +30,10 @@ import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ListValueUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
-import recipe.vo.doctor.*;
+import recipe.vo.doctor.DrugEnterpriseStockVO;
+import recipe.vo.doctor.DrugForGiveModeVO;
+import recipe.vo.doctor.DrugQueryVO;
+import recipe.vo.doctor.EnterpriseStockVO;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -304,6 +305,32 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         Map<String, List<DrugForGiveModeVO>> returnMap = list.stream().collect(Collectors.groupingBy(DrugForGiveModeVO::getGiveModeKey));
         logger.info("drugForGiveMode returnMap={}", JSONArray.toJSONString(returnMap));
         return returnMap;
+    }
+
+    @Override
+    public List<EnterpriseStock> drugRecipeStock(Integer organId, List<Recipedetail> recipeDetails) {
+        EnterpriseStock result = new EnterpriseStock();
+        result.setStock(true);
+        //下载处方签
+        String supportDownloadButton = organDrugListManager.organStockDownload(organId, recipeDetails);
+        if (StringUtils.isNotEmpty(supportDownloadButton)) {
+            return Collections.singletonList(result);
+        }
+        //例外支付
+        List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(organId);
+        String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
+        if (StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
+            return Collections.singletonList(result);
+        }
+        //机构库存
+        EnterpriseStock organStock = organDrugListManager.organStock(organId, recipeDetails);
+        //药企库存
+        List<EnterpriseStock> enterpriseStockButton = buttonManager.enterpriseStockCheck(organId);
+        List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(organId, recipeDetails, enterpriseStockButton);
+        if (null != organStock) {
+            enterpriseStock.add(0, organStock);
+        }
+        return enterpriseStock;
     }
 
     /**

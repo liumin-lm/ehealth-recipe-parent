@@ -1,9 +1,11 @@
 package recipe.atop.doctor;
 
+import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.core.api.IRecipeBusinessService;
@@ -77,5 +79,25 @@ public class DrugDoctorAtop extends BaseAtop {
         logger.info("OffLineRecipeAtop findPatientOptionalDrugDTO result = {}", JSONUtils.toString(result));
         return result;
 
+    }
+
+    @RpcService
+    public boolean drugRecipeStock(DrugQueryVO drugQueryVO) {
+        validateAtop(drugQueryVO, drugQueryVO.getRecipeDetails(), drugQueryVO.getOrganId());
+        List<Recipedetail> detailList = new ArrayList<>();
+        drugQueryVO.getRecipeDetails().forEach(a -> {
+            validateAtop(a.getDrugId(), a.getOrganDrugCode(), a.getUseTotalDose());
+            Recipedetail recipedetail = new Recipedetail();
+            recipedetail.setDrugId(a.getDrugId());
+            recipedetail.setOrganDrugCode(a.getOrganDrugCode());
+            recipedetail.setPharmacyId(drugQueryVO.getPharmacyId());
+            recipedetail.setUseTotalDose(a.getUseTotalDose());
+            detailList.add(recipedetail);
+        });
+        List<EnterpriseStock> result = iDrugEnterpriseBusinessService.drugRecipeStock(drugQueryVO.getOrganId(), detailList);
+        if (CollectionUtils.isEmpty(result)) {
+            return false;
+        }
+        return result.stream().anyMatch(EnterpriseStock::getStock);
     }
 }
