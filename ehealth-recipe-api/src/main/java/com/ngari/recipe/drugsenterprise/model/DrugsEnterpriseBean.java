@@ -13,6 +13,7 @@ import java.util.Map;
 
 /**
  * 药企
+ *
  * @company: ngarihealth
  * @author: 0184/yu_yun
  * @date:2016/6/6.
@@ -403,6 +404,7 @@ public class DrugsEnterpriseBean implements Serializable {
     public void setEnterpriseCode(String enterpriseCode) {
         this.enterpriseCode = enterpriseCode;
     }
+
     public Integer getMedicalInsuranceSupport() {
         return medicalInsuranceSupport;
     }
