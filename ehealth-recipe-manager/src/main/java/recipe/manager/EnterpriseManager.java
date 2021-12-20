@@ -10,7 +10,6 @@ import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
-import ctd.mvc.weixin.entity.OAuthWeixinMP;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -140,7 +139,6 @@ public class EnterpriseManager extends BaseManager {
             logger.warn("EnterpriseManager scanEnterpriseDrugStock saleDrugLists is null");
             return drugStockAmount;
         }
-        logger.info("EnterpriseManager scanEnterpriseDrugStock scanEnterpriseDrugStockV1 start");
         drugIds = saleDrugLists.stream().map(SaleDrugList::getDrugId).distinct().collect(Collectors.toList());
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(recipe.getClinicOrgan(), drugIds);
         Map<Integer, OrganDrugList> organDrugMap = organDrugList.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, a -> a, (k1, k2) -> k1));
