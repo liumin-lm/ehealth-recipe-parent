@@ -440,6 +440,7 @@ public class EnterpriseManager extends BaseManager {
                 RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
                 if (revisitExDTO != null && StringUtils.isNotEmpty(revisitExDTO.getProjectChannel())) {
                     pushRecipeAndOrder.getDrugsEnterpriseBean().setThirdEnterpriseCode(revisitExDTO.getProjectChannel());
+                    recipeBean.setPatientChannelId(revisitExDTO.getProjectChannel());
                 }
             } catch (Exception e) {
                 logger.error("getPushRecipeAndOrder queryPatientChannelId error", e);
