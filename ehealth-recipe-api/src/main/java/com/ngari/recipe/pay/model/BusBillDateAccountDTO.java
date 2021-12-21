@@ -1,5 +1,7 @@
 package com.ngari.recipe.pay.model;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -87,6 +89,7 @@ public class BusBillDateAccountDTO implements Serializable {
     /**
      * 患者联系电话
      */
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String phone;
     private String mpiid;
 
