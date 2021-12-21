@@ -1,5 +1,7 @@
 package com.ngari.recipe.dto;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,6 +31,7 @@ public class ApothecaryDTO extends AttachSealPicDTO implements Serializable {
     private String checkApothecaryName;
 
     @ItemProperty(alias = "审核药师身份证")
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String checkApothecaryIdCard;
 
     @ItemProperty(alias = "发药药师Id")
@@ -37,6 +40,7 @@ public class ApothecaryDTO extends AttachSealPicDTO implements Serializable {
     private String giveUserName;
 
     @ItemProperty(alias = "发药药师身份证")
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String giveUserIdCard;
     /**
      * 发药药师身份证 明文 运营平台使用
