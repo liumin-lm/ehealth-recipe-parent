@@ -28,6 +28,7 @@ public class DrugInfoDTO {
     /**
      * 药房
      */
+    private Integer pharmacyId;
     private String pharmacy;
     private String pharmacyCode;
     /**
@@ -44,10 +45,6 @@ public class DrugInfoDTO {
      */
     private Boolean stock;
 
-    /**
-     * 药房
-     */
-    private Integer pharmacyId;
     /**
      * 药品类型
      */

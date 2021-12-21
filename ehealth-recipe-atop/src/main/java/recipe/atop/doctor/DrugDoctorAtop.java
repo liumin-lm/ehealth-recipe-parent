@@ -18,7 +18,10 @@ import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IStockBusinessService;
 import recipe.util.ByteUtils;
-import recipe.vo.doctor.*;
+import recipe.vo.doctor.DrugEnterpriseStockVO;
+import recipe.vo.doctor.DrugForGiveModeListVO;
+import recipe.vo.doctor.DrugQueryVO;
+import recipe.vo.doctor.PatientOptionalDrugVO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -116,9 +119,9 @@ public class DrugDoctorAtop extends BaseAtop {
     }
 
     /**
-     * 查询药品
+     * 通过es检索药品
      *
-     * @param searchDrugReq
+     * @param searchDrugReq 药品检索条件
      * @return
      */
     @RpcService
