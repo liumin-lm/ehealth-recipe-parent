@@ -1,9 +1,6 @@
 package com.ngari.recipe.entity;
 
-import ctd.schema.annotation.Dictionary;
-import ctd.schema.annotation.FileToken;
-import ctd.schema.annotation.ItemProperty;
-import ctd.schema.annotation.Schema;
+import ctd.schema.annotation.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -117,9 +114,11 @@ public class RecipeOrder implements Serializable {
     private String receiver;
 
     @ItemProperty(alias = "收货人手机号")
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String recMobile;
 
     @ItemProperty(alias = "收货人电话")
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String recTel;
 
     @ItemProperty(alias = "地址（省）")
@@ -139,6 +138,7 @@ public class RecipeOrder implements Serializable {
     private String streetAddress;
 
     @ItemProperty(alias = "详细地址")
+    @Desensitizations(type = DesensitizationsType.ADDRESS)
     private String address4;
 
     @ItemProperty(alias = "邮政编码")
@@ -193,6 +193,7 @@ public class RecipeOrder implements Serializable {
     private Integer copyNum;
 
     @ItemProperty(alias = "完整地址")
+    @Desensitizations(type = DesensitizationsType.ADDRESS)
     private String completeAddress;
 
     @ItemProperty(alias = "取消原因")
