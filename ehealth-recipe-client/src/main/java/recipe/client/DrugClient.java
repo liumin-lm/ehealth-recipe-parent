@@ -6,16 +6,20 @@ import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.bus.op.service.IUsingRateService;
+import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.entity.DecoctionWay;
 import com.ngari.recipe.entity.DrugMakingMethod;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
 import es.api.DrugSearchService;
+import es.vo.DrugVO;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import recipe.enumerate.type.RecipeTypeEnum;
+import recipe.util.RecipeUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -61,6 +65,36 @@ public class DrugClient extends BaseClient {
         }).collect(Collectors.toList());
 
         return patientDrugWithEsDTOS;
+    }
+
+    /**
+     * 查询es 药品数据
+     *
+     * @param drugInfo          查询信息
+     * @param isMergeRecipeType 是否中西药合开
+     * @param start             页数
+     * @param limit             条数
+     * @return
+     */
+    public List<String> searchOrganDrugEs(DrugInfoDTO drugInfo, boolean isMergeRecipeType, int start, int limit) {
+        List<String> drugTypes;
+        if (isMergeRecipeType && !RecipeUtil.isTcmType(drugInfo.getDrugType())) {
+            drugTypes = Arrays.asList(RecipeTypeEnum.RECIPETYPE_WM.getType().toString(), RecipeTypeEnum.RECIPETYPE_CPM.getType().toString());
+        } else {
+            drugTypes = Collections.singletonList(drugInfo.getDrugType().toString());
+        }
+        DrugVO drugVO = new DrugVO();
+        drugVO.setDrugType(drugTypes);
+        drugVO.setOrganId(drugInfo.getOrganId());
+        drugVO.setSaleName(drugInfo.getDrugName());
+        drugVO.setPharmacyId(drugInfo.getPharmacyId());
+        drugVO.setApplyBusiness(drugInfo.getApplyBusiness());
+        drugVO.setStart(start);
+        drugVO.setLimit(limit);
+        logger.info("DrugClient searchOrganDrugEs drugVO={}", JSON.toJSONString(drugVO));
+        List<String> drugStrings = drugSearchService.searchOrganDrugEs(drugVO);
+        logger.info("DrugClient searchOrganDrugEs drugStrings={}", JSON.toJSONString(drugStrings));
+        return drugStrings;
     }
 
     /**
@@ -220,6 +254,5 @@ public class DrugClient extends BaseClient {
         }
         return code;
     }
-
 
 }

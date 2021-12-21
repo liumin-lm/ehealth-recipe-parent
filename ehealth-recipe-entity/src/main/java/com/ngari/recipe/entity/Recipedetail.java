@@ -210,9 +210,16 @@ public class Recipedetail implements java.io.Serializable {
 
 	@ItemProperty(alias = "药物使用天数(小数类型)")
 	private String useDaysB;
+
 	@ItemProperty(alias = "处方药品详情类型")
 	@Dictionary(id = "eh.base.dictionary.DrugType")
 	private Integer drugType;
+
+	@ItemProperty(alias = "药品超量编码")
+	private String superscalarCode;
+
+	@ItemProperty(alias = "药品超量名称")
+	private String superscalarName;
 
 	/**
 	 * 医保药品编码
@@ -858,5 +865,23 @@ public class Recipedetail implements java.io.Serializable {
 
 	public void setType(Integer type) {
 		this.type = type;
+	}
+
+	@Column(name = "superscalar_code")
+	public String getSuperscalarCode() {
+		return superscalarCode;
+	}
+
+	public void setSuperscalarCode(String superscalarCode) {
+		this.superscalarCode = superscalarCode;
+	}
+
+	@Column(name = "superscalar_name")
+	public String getSuperscalarName() {
+		return superscalarName;
+	}
+
+	public void setSuperscalarName(String superscalarName) {
+		this.superscalarName = superscalarName;
 	}
 }

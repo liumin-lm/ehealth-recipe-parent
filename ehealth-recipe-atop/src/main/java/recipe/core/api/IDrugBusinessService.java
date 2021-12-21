@@ -1,13 +1,17 @@
 package recipe.core.api;
 
 import com.ngari.his.recipe.mode.DrugSpecificationInfoDTO;
+import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
+import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.entity.Dispensatory;
+import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.RecipeRulesDrugcorrelation;
 import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.vo.SearchDrugReqVo;
+import com.ngari.recipe.vo.SearchDrugReqVO;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @description： 药品service 接口
@@ -21,7 +25,17 @@ public interface IDrugBusinessService {
      * @param searchDrugReqVo
      * @return
      */
-    List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVo searchDrugReqVo);
+    List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVO searchDrugReqVo);
+
+    /**
+     * 通过es检索药品
+     *
+     * @param drugInfo 药品检索条件
+     * @param start    开始条数
+     * @param limit    每夜条数
+     * @return
+     */
+    List<SearchDrugDetailDTO> searchOrganDrugEs(DrugInfoDTO drugInfo, int start, int limit);
 
     /**
      * 获取药品说明书
@@ -50,4 +64,12 @@ public interface IDrugBusinessService {
      * @return
      */
     DrugSpecificationInfoDTO hisDrugBook(Integer organId, Recipedetail recipeDetail);
+
+    /**
+     * 根据ID获取平台药品列表
+     *
+     * @param drugIds 平台药品ids
+     * @return
+     */
+    Map<Integer, DrugList> drugList(List<Integer> drugIds);
 }
