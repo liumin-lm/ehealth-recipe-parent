@@ -9,6 +9,8 @@ import java.io.Serializable;
  * @author: 0184/yu_yun
  * date:2017/5/5.
  */
+//liumin delete 调用处方法已做法，就不脱敏了
+@Deprecated
 public class HospitalSearchQO implements Serializable {
     private static final long serialVersionUID = -1890327956837342263L;
 
