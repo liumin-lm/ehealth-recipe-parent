@@ -1,5 +1,7 @@
 package com.ngari.recipe.offlinetoonline.model;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 
@@ -36,6 +38,7 @@ public class FindHisRecipeListVO implements Serializable {
     /**
      * 卡号
      */
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String cardId;
 
     /**
