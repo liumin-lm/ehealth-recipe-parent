@@ -8,8 +8,9 @@ import java.io.Serializable;
  * company: ngarihealth
  * author: 0184/yu_yun
  * date:2018/10/16
+ * 入参 无需脱敏
  */
-public class HosRecipeListRequest implements Serializable{
+public class HosRecipeListRequest implements Serializable {
 
     private static final long serialVersionUID = -8250786987260451176L;
 
