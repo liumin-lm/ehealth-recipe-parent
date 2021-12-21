@@ -126,10 +126,10 @@ public class DrugDoctorAtop extends BaseAtop {
      */
     @RpcService
     public List<SearchDrugDetailDTO> searchOrganDrugEs(SearchDrugReqVO searchDrugReq) {
-        validateAtop(searchDrugReq, searchDrugReq.getOrganId(), searchDrugReq.getSaleName(), searchDrugReq.getDrugType(), searchDrugReq.getApplyBusiness());
+        validateAtop(searchDrugReq, searchDrugReq.getOrganId(), searchDrugReq.getDrugName(), searchDrugReq.getDrugType(), searchDrugReq.getApplyBusiness());
         DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
         drugInfoDTO.setOrganId(Integer.valueOf(searchDrugReq.getOrganId()));
-        drugInfoDTO.setDrugName(searchDrugReq.getSaleName());
+        drugInfoDTO.setDrugName(searchDrugReq.getDrugName());
         drugInfoDTO.setDrugType(searchDrugReq.getDrugType());
         drugInfoDTO.setApplyBusiness(searchDrugReq.getApplyBusiness());
         drugInfoDTO.setPharmacyId(searchDrugReq.getPharmacyId());
