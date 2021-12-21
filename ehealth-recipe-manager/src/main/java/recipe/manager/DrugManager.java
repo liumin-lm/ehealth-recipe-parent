@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.his.recipe.mode.DrugSpecificationInfoDTO;
+import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
@@ -259,6 +260,19 @@ public class DrugManager extends BaseManager {
     }
 
     /**
+     * 查询es 药品数据
+     *
+     * @param drugInfoDTO 查询信息
+     * @param start       页数
+     * @param limit       条数
+     * @return
+     */
+    public List<String> searchOrganDrugEs(DrugInfoDTO drugInfoDTO, int start, int limit) {
+        boolean isMergeRecipeType = configurationClient.getValueBooleanCatch(drugInfoDTO.getOrganId(), "isMergeRecipeType", false);
+        return drugClient.searchOrganDrugEs(drugInfoDTO, isMergeRecipeType, start, limit);
+    }
+
+    /**
      * 获取药品说明书
      *
      * @param organId       机构id
@@ -278,7 +292,14 @@ public class DrugManager extends BaseManager {
         return dispensatory;
     }
 
-    public List<RecipeRulesDrugcorrelation> getListDrugRules(List<Integer> list, Integer ruleId){
+    /**
+     * 十八反十九畏的规则
+     *
+     * @param list
+     * @param ruleId
+     * @return
+     */
+    public List<RecipeRulesDrugcorrelation> getListDrugRules(List<Integer> list, Integer ruleId) {
         logger.info("DrugManager.getListDrugRules req list={} ruleId={}", JSON.toJSONString(list), ruleId);
         List<RecipeRulesDrugcorrelation> result = new ArrayList<>();
         if (CollectionUtils.isEmpty(list)) {
@@ -305,5 +326,22 @@ public class DrugManager extends BaseManager {
             return null;
         }
         return offlineRecipeClient.drugSpecification(organId, organDrug);
+    }
+
+    /**
+     * 根据ID获取平台药品列表
+     *
+     * @param drugIds 平台药品id
+     * @return
+     */
+    public Map<Integer, DrugList> drugList(List<Integer> drugIds) {
+        if (CollectionUtils.isEmpty(drugIds)) {
+            return new HashMap<>();
+        }
+        List<DrugList> drugs = drugListDAO.findByDrugIds(drugIds);
+        if (CollectionUtils.isEmpty(drugs)) {
+            return new HashMap<>();
+        }
+        return drugs.stream().collect(Collectors.toMap(DrugList::getDrugId, a -> a, (k1, k2) -> k1));
     }
 }

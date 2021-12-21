@@ -59,7 +59,6 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -794,10 +793,10 @@ public class DrugListExtService extends BaseService<DrugListBean> {
             //该高亮字段给微信端使用:highlightedField
             //该高亮字段给ios前端使用:highlightedFieldForIos
             if (StringUtils.isNotEmpty(drugList.getHighlightedField())) {
-                drugList.setHighlightedFieldForIos(getListByHighlightedField(drugList.getHighlightedField()));
+                drugList.setHighlightedFieldForIos(ByteUtils.getListByHighlightedField(drugList.getHighlightedField()));
             }
             if (StringUtils.isNotEmpty(drugList.getHighlightedField2())) {
-                drugList.setHighlightedFieldForIos2(getListByHighlightedField(drugList.getHighlightedField2()));
+                drugList.setHighlightedFieldForIos2(ByteUtils.getListByHighlightedField(drugList.getHighlightedField2()));
             }
             if (StringUtils.isEmpty(drugList.getUsingRate())) {
                 drugList.setUsingRate("");
@@ -897,21 +896,6 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         return dList;
     }
 
-    /**
-     * 用正则截取指定标记间的字符串
-     *
-     * @param highlightedField
-     * @return
-     */
-    public List<String> getListByHighlightedField(String highlightedField) {
-        List list = new ArrayList();
-        Matcher m = p.matcher(highlightedField);
-        while (m.find()) {
-            list.add(m.group().trim());
-        }
-//        LOGGER.info("highlightedField is " + list.toString());
-        return list;
-    }
 
     /**
      * 获取药品类别
