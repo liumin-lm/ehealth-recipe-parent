@@ -6,12 +6,13 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
-* @Description: 对接华东处方推送的中间对象
-* @Author: JRK
-* @Date: 2019/7/23
-*/
+ * @Description: 对接华东处方推送的中间对象
+ * 不用脱敏 对接第三方
+ * @Author: JRK
+ * @Date: 2019/7/23
+ */
 @Schema
-public class HdRecipeDTO implements Serializable{
+public class HdRecipeDTO implements Serializable {
     private static final long serialVersionUID = 1090635451107957887L;
     /**
      * 标识来源平台[纳里：10固定]
@@ -19,7 +20,7 @@ public class HdRecipeDTO implements Serializable{
     private String sourceId;
     /**
      * 门店机构编码
-     *  药店下的code
+     * 药店下的code
      */
     private String pharmacyCode;
     /**
@@ -81,18 +82,18 @@ public class HdRecipeDTO implements Serializable{
     private String patientNumber;
     /**
      * 电子处方单号
-     *  处方标识recipecode
+     * 处方标识recipecode
      */
     private String recipeCode;
     /**
      * 电子处方id
-     *  处方标识recipeId
+     * 处方标识recipeId
      */
     private String recipeId;
     /**
      * 处方类型
-     *  recipe的RecipeType
-     *  对接系统的字典
+     * recipe的RecipeType
+     * 对接系统的字典
      */
     private String recipeType;
     /**
@@ -167,7 +168,7 @@ public class HdRecipeDTO implements Serializable{
     private String orderTotalFee;
     /**
      * 诊断疾病名称
-     *recipe的organDiseaseName
+     * recipe的organDiseaseName
      */
     private String organDiseaseName;
     /**
@@ -183,14 +184,14 @@ public class HdRecipeDTO implements Serializable{
 
     /**
      * 医院编码
-     *recipe下clinicOrgan对应的OrganCode
+     * recipe下clinicOrgan对应的OrganCode
      * 非必填
      */
     private String organCode;
 
     /**
      * 医院编码
-     *recipe下clinicOrgan对应的OrganName
+     * recipe下clinicOrgan对应的OrganName
      * 非必填
      */
     private String organName;
