@@ -1,6 +1,8 @@
 package com.ngari.recipe.common.thirdpart;
 
 import com.ngari.recipe.common.anno.Verify;
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 
 import java.io.Serializable;
 
@@ -15,12 +17,14 @@ public class RecipePushReqTO implements Serializable {
     @Verify(desc = "患者证件类型", isInt = true)
     private String certificateType;
 
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     @Verify(desc = "患者证件号")
     private String certificate;
 
     @Verify(desc = "患者姓名")
     private String patientName;
 
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String patientTel;
 
     private String patientNumber;
@@ -30,7 +34,6 @@ public class RecipePushReqTO implements Serializable {
     private String clinicOrgan;
 
     private String recipeType;
-
 
 
 }
