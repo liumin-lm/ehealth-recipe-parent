@@ -1,8 +1,6 @@
 package com.ngari.recipe.recipe.model;
 
-import ctd.schema.annotation.Dictionary;
-import ctd.schema.annotation.ItemProperty;
-import ctd.schema.annotation.Schema;
+import ctd.schema.annotation.*;
 
 import javax.persistence.*;
 import java.io.Serializable;
@@ -43,6 +41,7 @@ public class RecipeOrderExportDTO implements Serializable {
     @ItemProperty(alias = "收货人")
     private String receiver;
     @ItemProperty(alias = "收货人手机号")
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String recMobile;
     @ItemProperty(alias = "地址（省）")
     @Dictionary(id = "eh.base.dictionary.AddrArea")
@@ -57,6 +56,7 @@ public class RecipeOrderExportDTO implements Serializable {
     @Dictionary(id = "eh.base.dictionary.AddrArea")
     private String streetAddress;
     @ItemProperty(alias = "详细地址")
+    @Desensitizations(type = DesensitizationsType.ADDRESS)
     private String address4;
     @ItemProperty(alias = "创建时间")
     private Date createTime;
