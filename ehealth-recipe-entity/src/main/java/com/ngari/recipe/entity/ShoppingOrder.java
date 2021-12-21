@@ -12,11 +12,13 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 /**
  * @author liuyuang
+ * 删除 线上也就几条数据，还是2018年的
  */
 @Schema
 @Entity
 @Table(name = "cdr_shopping_order")
 @Access(AccessType.PROPERTY)
+@Deprecated
 public class ShoppingOrder implements java.io.Serializable {
     private static final long serialVersionUID = -1808484555931495762L;
 
