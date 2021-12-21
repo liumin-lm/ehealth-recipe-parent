@@ -1,8 +1,6 @@
 package com.ngari.recipe.recipeorder.model;
 
-import ctd.schema.annotation.Dictionary;
-import ctd.schema.annotation.ItemProperty;
-import ctd.schema.annotation.Schema;
+import ctd.schema.annotation.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -13,8 +11,7 @@ import java.util.Map;
 
 /**
  * @author: JRK
- * @date:209/10/18.
- * 处方以及订单信息
+ * @date:209/10/18. 处方以及订单信息
  */
 @Schema
 public class RecipeOrderInfoBean implements Serializable {
@@ -109,9 +106,11 @@ public class RecipeOrderInfoBean implements Serializable {
     @ItemProperty(alias = "收货人")
     private String receiver;
 
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     @ItemProperty(alias = "收货人手机号")
     private String recMobile;
 
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     @ItemProperty(alias = "收货人电话")
     private String recTel;
 
@@ -128,6 +127,7 @@ public class RecipeOrderInfoBean implements Serializable {
     private String address3;
 
     @ItemProperty(alias = "详细地址")
+    @Desensitizations(type = DesensitizationsType.ADDRESS)
     private String address4;
 
     @ItemProperty(alias = "邮政编码")
@@ -179,6 +179,7 @@ public class RecipeOrderInfoBean implements Serializable {
     private Integer copyNum;
 
     @ItemProperty(alias = "完整地址")
+    @Desensitizations(type = DesensitizationsType.ADDRESS)
     private String completeAddress;
 
     @ItemProperty(alias = "处方流转模式")
