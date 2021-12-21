@@ -57,6 +57,7 @@ public class PatientDTO implements Serializable {
     @ItemProperty(alias = "手机号")
     private String mobile;
 
+    @Desensitizations(type = DesensitizationsType.ADDRESS)
     @ItemProperty(alias = "家庭地址")
     private String address;
 
@@ -202,7 +203,7 @@ public class PatientDTO implements Serializable {
     private String weight;
 
     public String getCertificateTypeText() {
-        if(this.certificateType != null){
+        if (this.certificateType != null) {
             try {
                 return DictionaryController.instance().get("eh.mpi.dictionary.CertificateType").getText(this.certificateType);
             } catch (ControllerException e) {

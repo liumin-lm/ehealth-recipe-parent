@@ -1,5 +1,7 @@
 package com.ngari.recipe.entity.sign;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import ctd.schema.annotation.Schema;
 
 import javax.persistence.*;
@@ -14,10 +16,14 @@ public class SignDoctorCaInfo {
 
     private Integer id;
 
-    /**医生ID*/
+    /**
+     * 医生ID
+     */
     private Integer doctorId;
 
-    /**签名序列号*/
+    /**
+     * 签名序列号
+     */
     private String caSerCode;
 
     /**
@@ -25,21 +31,28 @@ public class SignDoctorCaInfo {
      */
     private String cert_voucher;
 
-    /**证书序列号*/
+    /**
+     * 证书序列号
+     */
     private String certSerial;
 
-    /**ca类型*/
+    /**
+     * ca类型
+     */
     private String caType;
 
     private Date createDate;
 
     private Date lastmodify;
 
-    /**证书到期时间*/
+    /**
+     * 证书到期时间
+     */
     private Date caEndTime;
 
     private String name;
 
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String idcard;
 
     @Id

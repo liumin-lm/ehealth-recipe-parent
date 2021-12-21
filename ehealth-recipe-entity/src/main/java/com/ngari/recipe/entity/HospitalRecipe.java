@@ -1,5 +1,7 @@
 package com.ngari.recipe.entity;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
@@ -17,40 +19,42 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Entity
 @Table(name = "cdr_hospitalRecipe")
 @Access(AccessType.PROPERTY)
-public class HospitalRecipe implements Serializable{
+public class HospitalRecipe implements Serializable {
     private static final long serialVersionUID = -3232349061510103903L;
 
-    @ItemProperty(alias="自增ID")
+    @ItemProperty(alias = "自增ID")
     private Integer hospitalRecipeID;
-    @ItemProperty(alias="处方号")
+    @ItemProperty(alias = "处方号")
     private String recipeCode;
-    @ItemProperty(alias="就诊序号")
+    @ItemProperty(alias = "就诊序号")
     private String clinicId;
-    @ItemProperty(alias="患者id")
+    @ItemProperty(alias = "患者id")
     private String patientId;
-    @ItemProperty(alias="证件号")
+    @Desensitizations(type = DesensitizationsType.IDCARD)
+    @ItemProperty(alias = "证件号")
     private String certificate;
-    @ItemProperty(alias="患者姓名")
+    @ItemProperty(alias = "患者姓名")
     private String patientName;
-    @ItemProperty(alias="患者电话")
+    @ItemProperty(alias = "患者电话")
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String patientTel;
-    @ItemProperty(alias="患者医院病历号")
+    @ItemProperty(alias = "患者医院病历号")
     private String patientNumber;
-    @ItemProperty(alias="门诊号/挂号序号")
+    @ItemProperty(alias = "门诊号/挂号序号")
     private String registerId;
-    @ItemProperty(alias="患者性别")
+    @ItemProperty(alias = "患者性别")
     private String patientSex;
-    @ItemProperty(alias="开方机构编号")
+    @ItemProperty(alias = "开方机构编号")
     private String clinicOrgan;
-    @ItemProperty(alias="组织机构编码")
+    @ItemProperty(alias = "组织机构编码")
     private String organId;
-    @ItemProperty(alias="开方医生工号")
+    @ItemProperty(alias = "开方医生工号")
     private String doctorNumber;
-    @ItemProperty(alias="开方医生姓名")
+    @ItemProperty(alias = "开方医生姓名")
     private String doctorName;
-    @ItemProperty(alias="开方时间")
+    @ItemProperty(alias = "开方时间")
     private String createDate;
-    @ItemProperty(alias="创建时间")
+    @ItemProperty(alias = "创建时间")
     private Date createTime;
 
     @Id

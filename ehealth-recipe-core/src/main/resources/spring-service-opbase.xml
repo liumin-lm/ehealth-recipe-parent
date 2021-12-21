@@ -13,5 +13,5 @@
     <reference interface="com.ngari.opbase.auth.service.ISecurityService" id="opbase.securityService" />
     <reference interface="com.ngari.opbase.log.service.IDataSyncLogService" id="opbase.dataSyncLogService" />
     <reference interface="com.ngari.opbase.base.service.IOpOrganAccountAndPermissionService" id="opbase.organOpService" />
-
+    <reference interface="com.ngari.opbase.base.service.IOrganDictionaryItemService" id="opbase.organDictionaryItemService" />
 </s:beans>
