@@ -119,6 +119,12 @@ public class CommonRecipeDrug implements java.io.Serializable{
     @ItemProperty(alias = "前端展示的商品拼接名")
     private String drugDisplaySplicedSaleName;
 
+    @ItemProperty(alias = "药品超量编码")
+    private String superscalarCode;
+
+    @ItemProperty(alias = "药品超量名称")
+    private String superscalarName;
+
     @Column(name = "pack")
     public Integer getPack() {
         return pack;
@@ -435,5 +441,21 @@ public class CommonRecipeDrug implements java.io.Serializable{
 
     public void setDrugEntrustId(String drugEntrustId) {
         this.drugEntrustId = drugEntrustId;
+    }
+
+    public String getSuperscalarCode() {
+        return superscalarCode;
+    }
+
+    public void setSuperscalarCode(String superscalarCode) {
+        this.superscalarCode = superscalarCode;
+    }
+
+    public String getSuperscalarName() {
+        return superscalarName;
+    }
+
+    public void setSuperscalarName(String superscalarName) {
+        this.superscalarName = superscalarName;
     }
 }
