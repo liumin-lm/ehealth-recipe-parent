@@ -295,14 +295,14 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             list.add(drugForGiveModeVO);
         }
         //例外支付
-        String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
-        if (StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
-            DrugForGiveModeVO drugForGiveModeVO = new DrugForGiveModeVO();
-            drugForGiveModeVO.setGiveModeKey(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
-            drugForGiveModeVO.setGiveModeKeyText(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getName());
-            drugForGiveModeVO.setDrugsName(drugNames);
-            list.add(drugForGiveModeVO);
-        }
+//        String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
+//        if (StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
+//            DrugForGiveModeVO drugForGiveModeVO = new DrugForGiveModeVO();
+//            drugForGiveModeVO.setGiveModeKey(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
+//            drugForGiveModeVO.setGiveModeKeyText(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getName());
+//            drugForGiveModeVO.setDrugsName(drugNames);
+//            list.add(drugForGiveModeVO);
+//        }
         Map<String, List<DrugForGiveModeVO>> returnMap = list.stream().collect(Collectors.groupingBy(DrugForGiveModeVO::getGiveModeKey));
         Set<String> strings = returnMap.keySet();
         List<DrugForGiveModeListVO> result = Lists.newArrayList();
