@@ -2,6 +2,8 @@ package com.ngari.recipe.hisprescription.model;
 
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.recipe.common.anno.Verify;
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
@@ -34,18 +36,21 @@ public class HospitalRecipeDTO implements Serializable {
     @Verify(isNotNull = false, desc = "医院患者编号")
     private String patientId;
 
-    @Verify(isNotNull = false,desc = "患者证件类型")
+    @Verify(isNotNull = false, desc = "患者证件类型")
     private String certificateType;
 
-    @Verify(isNotNull = false,desc = "患者证件号")
+    @Desensitizations(type = DesensitizationsType.IDCARD)
+    @Verify(isNotNull = false, desc = "患者证件号")
     private String certificate;
 
-    @Verify(isNotNull = false,desc = "患者姓名")
+    @Verify(isNotNull = false, desc = "患者姓名")
     private String patientName;
 
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     @Verify(desc = "患者电话")
     private String patientTel;
 
+    @Desensitizations(type = DesensitizationsType.ADDRESS)
     @Verify(isNotNull = false, desc = "患者地址", maxLength = 100)
     private String patientAddress;
 
@@ -55,7 +60,7 @@ public class HospitalRecipeDTO implements Serializable {
     @Verify(isNotNull = false, desc = "门诊号/挂号序号")
     private String registerId;
 
-    @Verify(isNotNull = false,desc = "性别", isInt = true)
+    @Verify(isNotNull = false, desc = "性别", isInt = true)
     private String patientSex;
 
     @Verify(desc = "处方号")
@@ -70,7 +75,7 @@ public class HospitalRecipeDTO implements Serializable {
     @Verify(desc = "处方类型", isInt = true)
     private String recipeType;
 
-    @Verify(isNotNull = false,desc = "科室名称")
+    @Verify(isNotNull = false, desc = "科室名称")
     private String departName;
 
     @Verify(desc = "开方科室")
@@ -127,6 +132,7 @@ public class HospitalRecipeDTO implements Serializable {
     @Verify(isNotNull = false, desc = "审核医生工号")
     private String checkerNumber;
 
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     @Verify(isNotNull = false, desc = "审核医生电话")
     private String checkerTel;
 
