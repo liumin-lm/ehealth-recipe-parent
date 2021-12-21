@@ -44,5 +44,9 @@ public class ValidateDetailVO {
      * 是否长处方 是： true  否：false
      */
     private Boolean longRecipe;
+    /**
+     * 当前版本
+     */
+    private Integer version;
 
 }
