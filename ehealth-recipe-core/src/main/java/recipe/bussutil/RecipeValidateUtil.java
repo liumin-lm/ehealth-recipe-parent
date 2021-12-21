@@ -13,6 +13,7 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
+import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
@@ -29,6 +30,7 @@ import recipe.ApplicationUtils;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.constant.ErrorCode;
+import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -40,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 处方校验类
@@ -197,6 +200,7 @@ public class RecipeValidateUtil {
     public static List<RecipeDetailBean> validateDrugsImplForDetail(Recipe recipe) {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
+        DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
 
         Integer recipeId = recipe.getRecipeId();
         List<RecipeDetailBean> backDetailList = new ArrayList<>();
@@ -214,6 +218,10 @@ public class RecipeValidateUtil {
             //药品名拼接配置
             configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(recipe.getClinicOrgan(), recipe.getRecipeType()));
         }
+        List<Integer> drugId = detailBeans.stream().map(RecipeDetailBean::getDrugId).collect(Collectors.toList());
+        List<DrugList> drugLists = drugListDAO.findByDrugIds(drugId);
+        Map<Integer, List<DrugList>> drugListMap = drugLists.stream().collect(Collectors.groupingBy(DrugList::getDrugId));
+
         // TODO: 2020/6/19 很多需要返回药品信息的地方可以让前端根据药品id反查具体的药品信息统一展示；后端涉及返回药品信息的接口太多。返回对象也不一样
         for (RecipeDetailBean recipeDetail : detailBeans) {
             OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), recipeDetail.getOrganDrugCode(), recipeDetail.getDrugId());
@@ -248,6 +256,10 @@ public class RecipeValidateUtil {
                 }
             }
             setUsingRateIdAndUsePathwaysId(recipe, recipeDetail);
+            List<DrugList> drugList = drugListMap.get(recipeDetail.getDrugId());
+            if(CollectionUtils.isNotEmpty(drugList)){
+                recipeDetail.setDrugPic(drugList.get(0).getDrugPic());
+            }
             backDetailList.add(recipeDetail);
         }
         return backDetailList;
