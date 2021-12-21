@@ -1,9 +1,6 @@
 package com.ngari.recipe.recipe.model;
 
-import ctd.schema.annotation.Dictionary;
-import ctd.schema.annotation.FileToken;
-import ctd.schema.annotation.ItemProperty;
-import ctd.schema.annotation.Schema;
+import ctd.schema.annotation.*;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -131,8 +128,8 @@ public class RecipeBean implements Serializable {
 
     @ItemProperty(alias = "人工审核日期")
     private Date checkDateYs;
-
     @ItemProperty(alias = "药师电话")
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String checkerTel;
 
     @ItemProperty(alias = "支付方式")
@@ -160,9 +157,11 @@ public class RecipeBean implements Serializable {
     private String receiver;
 
     @ItemProperty(alias = "收货人手机号")
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String recMobile;
 
     @ItemProperty(alias = "收货人电话")
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String recTel;
 
     @ItemProperty(alias = "地址（省）")
@@ -178,6 +177,7 @@ public class RecipeBean implements Serializable {
     private String address3;
 
     @ItemProperty(alias = "详细地址")
+    @Desensitizations(type = DesensitizationsType.ADDRESS)
     private String address4;
 
     @ItemProperty(alias = "邮政编码")
