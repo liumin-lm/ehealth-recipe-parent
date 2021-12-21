@@ -1,5 +1,7 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import lombok.Data;
 
 import java.util.Date;
@@ -10,6 +12,7 @@ public class DispendingPharmacyReportReqTo {
     private Date startDate;
     private java.util.Date endDate;
     private String drugName;
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String cardNo;
     private String patientName;
     private String billNumber;
