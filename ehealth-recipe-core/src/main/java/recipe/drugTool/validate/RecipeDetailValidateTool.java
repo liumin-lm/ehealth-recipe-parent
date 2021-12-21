@@ -58,11 +58,14 @@ public class RecipeDetailValidateTool {
     private final static int VALIDATE_STATUS_YES = 0;
     public final static Integer VALIDATE_STATUS_FAILURE = 1;
     public final static Integer VALIDATE_STATUS_PERFECT = 2;
-
     /**
      * 药品超量天数
      */
     private final static Integer SUPER_SCALAR_DAYS = 7;
+    /**
+     * 字典业务类型 15 超量
+     */
+    private final static Integer DIC_BUS_TYPE = 15;
 
     /**
      * 校验比对药品
@@ -94,7 +97,7 @@ public class RecipeDetailValidateTool {
      * @param recipeDay    处方药物使用天数时间
      * @param organDrug    机构药品
      */
-    public void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug, Integer recipeType, Map<String, DrugEntrust> drugEntrustNameMap, Integer organId,Integer version) {
+    public void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug, Integer recipeType, Map<String, DrugEntrust> drugEntrustNameMap, Integer organId, Integer version) {
         recipeDetail.setDrugName(organDrug.getDrugName());
         recipeDetail.setSaleName(organDrug.getSaleName());
         //剂量单位是否与机构药品目录单位一致
@@ -192,7 +195,7 @@ public class RecipeDetailValidateTool {
         if (null == version) {
             return;
         }
-        List<OrganDictionaryItemDTO> dictionaryItemDTOList = operationClient.findItemByOrgan(organId, 15);
+        List<OrganDictionaryItemDTO> dictionaryItemDTOList = operationClient.findItemByOrgan(organId, DIC_BUS_TYPE);
         if (CollectionUtils.isEmpty(dictionaryItemDTOList)) {
             //机构没有维护超量原因
             return;
