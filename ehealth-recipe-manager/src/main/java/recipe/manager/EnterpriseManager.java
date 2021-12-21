@@ -438,8 +438,8 @@ public class EnterpriseManager extends BaseManager {
             RecipeBean recipeBean = ObjectCopyUtils.convert(rec, RecipeBean.class);
             try {
                 RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
-                if (revisitExDTO != null) {
-                    recipeBean.setPatientChannelId(revisitExDTO.getProjectChannel());
+                if (revisitExDTO != null && StringUtils.isNotEmpty(revisitExDTO.getProjectChannel())) {
+                    pushRecipeAndOrder.getDrugsEnterpriseBean().setThirdEnterpriseCode(revisitExDTO.getProjectChannel());
                 }
             } catch (Exception e) {
                 logger.error("getPushRecipeAndOrder queryPatientChannelId error", e);
@@ -666,10 +666,11 @@ public class EnterpriseManager extends BaseManager {
 
     /**
      * 根据药企名称查询药企列表
+     *
      * @param name
      * @return
      */
-    public List<DrugsEnterprise> findAllDrugsEnterpriseByName(String name){
+    public List<DrugsEnterprise> findAllDrugsEnterpriseByName(String name) {
         List<DrugsEnterprise> drugsEnterprises = drugsEnterpriseDAO.findAllDrugsEnterpriseByName(name);
         logger.info("EnterpriseManager findAllDrugsEnterpriseByName drugsEnterprises:{}", JSONUtils.toString(drugsEnterprises));
         return drugsEnterprises;
