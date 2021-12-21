@@ -1,5 +1,7 @@
 package com.ngari.recipe.offlinetoonline.model;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import lombok.Builder;
 import lombok.Data;
 
@@ -38,6 +40,7 @@ public class FindHisRecipeDetailReqVO implements Serializable {
     /**
      * 卡片号
      */
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String cardId;
 
     /**
