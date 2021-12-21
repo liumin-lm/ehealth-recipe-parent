@@ -4,14 +4,18 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ByteUtils {
 	public static String COMMA = ",";
 	public static String DOT = "\\.";
 	public static String DOT_EN = ".";
 	public static String SEMI_COLON_EN = ";";
-
+	private static Pattern p = Pattern.compile("(?<=<em>).+?(?=</em>)");
 	/**
 	 * 私有构造函数，不允许本类生成实例
 	 */
@@ -153,5 +157,20 @@ public class ByteUtils {
 		} catch (Exception e) {
 			return "";
 		}
+	}
+
+	/**
+	 * 用正则截取指定标记间的字符串
+	 *
+	 * @param highlightedField
+	 * @return
+	 */
+	public static List<String> getListByHighlightedField(String highlightedField) {
+		List list = new ArrayList();
+		Matcher m = p.matcher(highlightedField);
+		while (m.find()) {
+			list.add(m.group().trim());
+		}
+		return list;
 	}
 }

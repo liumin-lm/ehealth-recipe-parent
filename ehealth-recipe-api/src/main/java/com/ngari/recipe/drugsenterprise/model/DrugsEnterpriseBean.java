@@ -1,9 +1,6 @@
 package com.ngari.recipe.drugsenterprise.model;
 
-import ctd.schema.annotation.Dictionary;
-import ctd.schema.annotation.FileToken;
-import ctd.schema.annotation.ItemProperty;
-import ctd.schema.annotation.Schema;
+import ctd.schema.annotation.*;
 import ctd.util.JSONUtils;
 
 import java.io.Serializable;
@@ -49,6 +46,7 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "密码")
     private String password;
 
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     @ItemProperty(alias = "药企联系电话")
     private String tel;
 
@@ -152,6 +150,7 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "寄件人名称")
     private String consignorName;
 
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     @ItemProperty(alias = "寄件人手机号")
     private String consignorMobile;
 
@@ -164,6 +163,7 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "寄件人区域编码")
     private String consignorDistrict;
 
+    @Desensitizations(type = DesensitizationsType.ADDRESS)
     @ItemProperty(alias = "寄件人详细地址")
     private String consignorAddress;
 

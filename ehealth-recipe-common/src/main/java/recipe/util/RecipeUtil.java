@@ -10,7 +10,6 @@ import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import recipe.constant.PayConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -198,19 +197,6 @@ public class RecipeUtil {
                 tips = "待取药";
         }
         return tips;
-    }
-
-    /**
-     * 是否允许删除 默认不允许
-     *
-     * @param payFlag 支付状态
-     * @return
-     */
-    public static boolean isAllowDeleteByPayFlag(Integer payFlag) {
-        if (PayConstant.PAY_FLAG_NOT_PAY == payFlag || PayConstant.PAY_FLAG_REFUND_FAIL == payFlag) {
-            return true;
-        }
-        return false;
     }
 
 }

@@ -26,6 +26,13 @@ public class DrugNameDisplayUtil {
 
     private static IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
 
+    /**
+     * TODO 待优化（尹盛/隋 讨论优化）
+     *
+     * @param organId
+     * @param drugType
+     * @return
+     */
     public static String[] getDrugNameConfigByDrugType(Integer organId, Integer drugType) {
         if (organId != null) {
             String drugNameConfigKey = getDrugNameConfigKey(drugType);

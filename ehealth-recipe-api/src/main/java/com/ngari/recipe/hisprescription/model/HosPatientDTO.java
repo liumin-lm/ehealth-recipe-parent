@@ -1,14 +1,19 @@
 package com.ngari.recipe.hisprescription.model;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
+
 import java.io.Serializable;
 import java.util.Date;
 
 /**
  * created by shiyuping on 2019/11/11
+ *
  * @author shiyuping
  */
 public class HosPatientDTO implements Serializable {
     private static final long serialVersionUID = -5540046098351163199L;
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String mobile;
     //his病人唯一标识
     private String patientID;
@@ -18,10 +23,12 @@ public class HosPatientDTO implements Serializable {
     //病历号 门诊号 等
     private String clinicID;
     //卡号
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String cardID;
     private String cardType;
     private String cardOrgan;
     private String mpi;
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String certificate;
     //证件类型
     private Integer certificateType;
@@ -29,12 +36,14 @@ public class HosPatientDTO implements Serializable {
     private Integer patientUserType;
     //陪诊人(监护人)信息
     //陪诊人证件号
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String guardianCertificate;
     //陪诊人件类型
     private Integer guardianCertificateType;
     //陪诊人姓名
     private String guardianPatientName;
     //陪诊人手机
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String guardianMobile;
 
     public String getMobile() {
