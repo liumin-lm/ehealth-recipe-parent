@@ -39,7 +39,6 @@ import java.util.stream.Collectors;
  * @Author: JRK
  * @Date: 2019/7/8
  */
-@RpcBean(value = "kmsRemoteService",mvc_auth_method_exclude = "false")
 public class KmsRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(KmsRemoteService.class);

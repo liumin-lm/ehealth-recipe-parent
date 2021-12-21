@@ -55,8 +55,18 @@ public interface IStockBusinessService {
 
     /**
      * 医生端 查询购药方式下有库存的药品
+     *
      * @param drugQueryVO
      * @return
      */
-    Map<String, List<DrugForGiveModeVO>>  drugForGiveMode(DrugQueryVO drugQueryVO);
+    Map<String, List<DrugForGiveModeVO>> drugForGiveMode(DrugQueryVO drugQueryVO);
+
+    /**
+     * 查询药品能否开在一张处方上
+     *
+     * @param organId
+     * @param detailList
+     * @return
+     */
+    List<EnterpriseStock> drugRecipeStock(Integer organId, List<Recipedetail> detailList);
 }

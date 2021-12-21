@@ -1,8 +1,6 @@
 package com.ngari.recipe.entity;
 
-import ctd.schema.annotation.Dictionary;
-import ctd.schema.annotation.ItemProperty;
-import ctd.schema.annotation.Schema;
+import ctd.schema.annotation.*;
 import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
@@ -254,8 +252,12 @@ public class RecipeExtend implements Serializable {
 
     @ItemProperty(alias = "监管人姓名")
     private String guardianName;
+
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     @ItemProperty(alias = "监管人证件号")
     private String guardianCertificate;
+
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     @ItemProperty(alias = "监管人手机号")
     private String guardianMobile;
 
