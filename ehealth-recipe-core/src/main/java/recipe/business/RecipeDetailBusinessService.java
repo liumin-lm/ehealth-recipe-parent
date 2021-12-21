@@ -112,10 +112,14 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
         List<RecipeDetailBean> recipeDetails = validateDetailVO.getRecipeDetails();
         //处方药物使用天数时间
         String[] recipeDay = configurationClient.recipeDay(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), validateDetailVO.getLongRecipe());
-        recipeDetails.forEach(a -> {
-            recipeDetailValidateTool.useDayValidate(validateDetailVO.getRecipeType(), recipeDay, a);
-            recipeDetailValidateTool.drugSuperScalarValidate(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), a, validateDetailVO.getVersion());
-        });
+        recipeDetails.forEach(a -> recipeDetailValidateTool.useDayValidate(validateDetailVO.getRecipeType(), recipeDay, a));
+        return recipeDetails;
+    }
+
+    @Override
+    public List<RecipeDetailBean> drugSuperScalarValidate(ValidateDetailVO validateDetailVO) {
+        List<RecipeDetailBean> recipeDetails = validateDetailVO.getRecipeDetails();
+        recipeDetails.forEach(a -> recipeDetailValidateTool.drugSuperScalarValidate(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), a, validateDetailVO.getVersion()));
         return recipeDetails;
     }
 

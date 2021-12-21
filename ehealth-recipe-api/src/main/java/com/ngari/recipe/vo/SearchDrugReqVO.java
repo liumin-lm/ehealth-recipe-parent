@@ -17,6 +17,7 @@ public class SearchDrugReqVO implements Serializable {
      * 搜索关键字
      */
     private String saleName;
+    private String drugName;
     /**
      * 机构id
      */

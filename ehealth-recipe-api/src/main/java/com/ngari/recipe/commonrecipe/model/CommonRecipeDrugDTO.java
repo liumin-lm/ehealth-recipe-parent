@@ -156,4 +156,10 @@ public class CommonRecipeDrugDTO implements java.io.Serializable {
 
     @ItemProperty(alias = "前端展示的商品拼接名")
     private String drugDisplaySplicedSaleName;
+
+    @ItemProperty(alias = "药品超量编码")
+    private String superscalarCode;
+
+    @ItemProperty(alias = "药品超量名称")
+    private String superscalarName;
 }

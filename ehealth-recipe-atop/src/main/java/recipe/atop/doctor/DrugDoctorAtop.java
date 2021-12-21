@@ -18,7 +18,10 @@ import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IStockBusinessService;
 import recipe.util.ByteUtils;
-import recipe.vo.doctor.*;
+import recipe.vo.doctor.DrugEnterpriseStockVO;
+import recipe.vo.doctor.DrugForGiveModeListVO;
+import recipe.vo.doctor.DrugQueryVO;
+import recipe.vo.doctor.PatientOptionalDrugVO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -116,17 +119,17 @@ public class DrugDoctorAtop extends BaseAtop {
     }
 
     /**
-     * 查询药品
+     * 通过es检索药品
      *
-     * @param searchDrugReq
+     * @param searchDrugReq 药品检索条件
      * @return
      */
     @RpcService
     public List<SearchDrugDetailDTO> searchOrganDrugEs(SearchDrugReqVO searchDrugReq) {
-        validateAtop(searchDrugReq, searchDrugReq.getOrganId(), searchDrugReq.getSaleName(), searchDrugReq.getDrugType(), searchDrugReq.getApplyBusiness());
+        validateAtop(searchDrugReq, searchDrugReq.getOrganId(), searchDrugReq.getDrugName(), searchDrugReq.getDrugType(), searchDrugReq.getApplyBusiness());
         DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
         drugInfoDTO.setOrganId(Integer.valueOf(searchDrugReq.getOrganId()));
-        drugInfoDTO.setDrugName(searchDrugReq.getSaleName());
+        drugInfoDTO.setDrugName(searchDrugReq.getDrugName());
         drugInfoDTO.setDrugType(searchDrugReq.getDrugType());
         drugInfoDTO.setApplyBusiness(searchDrugReq.getApplyBusiness());
         drugInfoDTO.setPharmacyId(searchDrugReq.getPharmacyId());
