@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.scratchable.model.ScratchableBean;
 import com.ngari.base.scratchable.service.IScratchableService;
+import com.ngari.opbase.base.mode.OrganDictionaryItemDTO;
+import com.ngari.opbase.base.service.IOrganDictionaryItemService;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
@@ -39,6 +41,8 @@ public class OperationClient extends BaseClient {
     private IScratchableService scratchableService;
     @Autowired
     private IConfigurationCenterUtilsService configService;
+    @Autowired
+    private IOrganDictionaryItemService organDictionaryItemService;
 
 
     /**
@@ -222,6 +226,19 @@ public class OperationClient extends BaseClient {
         }
         logger.info("OperationClient.getGiveModeSettingFromYypt res={}", JSONArray.toJSONString(giveModeShowButtonVO));
         return giveModeShowButtonVO;
+    }
+
+    /**
+     * 获取运营平台字典配置项
+     * @param organId
+     * @param subType
+     * @return
+     */
+    public List<OrganDictionaryItemDTO> findItemByOrgan(Integer organId, Integer subType) {
+        logger.info("OperationClient.findItemByOrgan organId:{},subType:{}.", organId, subType);
+        List<OrganDictionaryItemDTO> dictionaryItemDTOList = organDictionaryItemService.findItemByOrgan(organId, subType);
+        logger.info("OperationClient.findItemByOrgan dictionaryItemDTOList：{}", JSON.toJSONString(dictionaryItemDTOList));
+        return dictionaryItemDTOList;
     }
 
 

@@ -2,6 +2,7 @@ package recipe.drugTool.validate;
 
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
+import com.ngari.opbase.base.mode.OrganDictionaryItemDTO;
 import com.ngari.recipe.dto.ValidateOrganDrugDTO;
 import com.ngari.recipe.entity.DecoctionWay;
 import com.ngari.recipe.entity.DrugEntrust;
@@ -17,6 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bussutil.RecipeUtil;
 import recipe.client.IConfigurationClient;
+import recipe.client.OperationClient;
 import recipe.dao.DrugDecoctionWayDao;
 import recipe.dao.DrugMakingMethodDao;
 import recipe.manager.DrugManager;
@@ -43,6 +45,8 @@ public class RecipeDetailValidateTool {
     DrugMakingMethodDao drugMakingMethodDao;
     @Autowired
     private IConfigurationClient configurationClient;
+    @Autowired
+    private OperationClient operationClient;
 
     /**
      * 患者选择煎法
@@ -54,6 +58,11 @@ public class RecipeDetailValidateTool {
     private final static int VALIDATE_STATUS_YES = 0;
     public final static Integer VALIDATE_STATUS_FAILURE = 1;
     public final static Integer VALIDATE_STATUS_PERFECT = 2;
+
+    /**
+     * 药品超量天数
+     */
+    private final static Integer SUPER_SCALAR_DAYS = 7;
 
     /**
      * 校验比对药品
@@ -85,7 +94,7 @@ public class RecipeDetailValidateTool {
      * @param recipeDay    处方药物使用天数时间
      * @param organDrug    机构药品
      */
-    public void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug, Integer recipeType, Map<String, DrugEntrust> drugEntrustNameMap) {
+    public void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug, Integer recipeType, Map<String, DrugEntrust> drugEntrustNameMap, Integer organId,Integer version) {
         recipeDetail.setDrugName(organDrug.getDrugName());
         recipeDetail.setSaleName(organDrug.getSaleName());
         //剂量单位是否与机构药品目录单位一致
@@ -95,6 +104,8 @@ public class RecipeDetailValidateTool {
         }
         //开药天数
         useDayValidate(recipeType, recipeDay, recipeDetail);
+        //超量原因
+        drugSuperScalarValidate(organId, recipeType, recipeDetail, version);
         /**校验中药 数据是否完善*/
         if (RecipeUtil.isTcmType(recipeType)) {
             //每次剂量
@@ -167,6 +178,31 @@ public class RecipeDetailValidateTool {
         boolean useDayValidate = useDayValidate(recipeDay, recipeDetail);
         if (useDayValidate) {
             recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+        }
+    }
+
+    /**
+     * 判断药品超量
+     * @param organId       机构ID
+     * @param recipeType    处方类型
+     * @param recipeDetail  处方药品明细
+     * @param version       版本号
+     */
+    public void drugSuperScalarValidate(Integer organId, Integer recipeType, RecipeDetailBean recipeDetail, Integer version){
+        if (null == version) {
+            return;
+        }
+        List<OrganDictionaryItemDTO> dictionaryItemDTOList = operationClient.findItemByOrgan(organId, 15);
+        if (CollectionUtils.isEmpty(dictionaryItemDTOList)) {
+            //机构没有维护超量原因
+            return;
+        }
+        if (!RecipeUtil.isTcmType(recipeType)) {
+            if (null != recipeDetail.getUseDays() && recipeDetail.getUseDays() > SUPER_SCALAR_DAYS
+                && StringUtils.isEmpty(recipeDetail.getSuperscalarCode())) {
+                //当前开药天数超过7天,并且没有维护超量原因
+                recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+            }
         }
     }
 
