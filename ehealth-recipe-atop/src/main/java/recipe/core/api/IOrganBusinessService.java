@@ -40,4 +40,11 @@ public interface IOrganBusinessService {
      * @return
      */
     boolean giveModeValidate(Integer organId, String giveModeKey);
+
+    /**
+     * 获取处方配置
+     * @param key
+     * @return
+     */
+    String getRecipeParameterValue(String key);
 }
