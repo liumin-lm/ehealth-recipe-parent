@@ -1,8 +1,6 @@
 package com.ngari.recipe.recipe.model;
 
-import ctd.schema.annotation.Dictionary;
-import ctd.schema.annotation.ItemProperty;
-import ctd.schema.annotation.Schema;
+import ctd.schema.annotation.*;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -36,7 +34,9 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "发病日期")
     private Date onsetDate;
 
-    /**以下为互联网医院字段*/
+    /**
+     * 以下为互联网医院字段
+     */
     @ItemProperty(alias = "现病史")
     private String historyOfPresentIllness;
 
@@ -45,12 +45,15 @@ public class RecipeExtendBean implements Serializable {
 
     @ItemProperty(alias = "体格检查")
     private String physicalCheck;
-    /**为互联网医院字段*/
+    /**
+     * 为互联网医院字段
+     */
     @ItemProperty(alias = "HIS处方关联的卡类型")
-    private String  cardTypeName;
+    private String cardTypeName;
 
     @ItemProperty(alias = "HIS处方关联的卡号")
-    private String  cardNo;
+    @Desensitizations(type = DesensitizationsType.IDCARD)
+    private String cardNo;
 
     @ItemProperty(alias = "HIS处方关联的卡类型")
     private String cardType;
@@ -99,8 +102,10 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "监管人姓名")
     private String guardianName;
     @ItemProperty(alias = "监管人证件号")
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String guardianCertificate;
     @ItemProperty(alias = "监管人手机号")
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String guardianMobile;
 
     /**
@@ -165,7 +170,7 @@ public class RecipeExtendBean implements Serializable {
     private String putOnRecordID;
 
     @ItemProperty(alias = "天猫返回处方编号")
-    private String  rxNo;
+    private String rxNo;
 
     @ItemProperty(alias = "his返回的取药方式1配送到家 2医院取药 3两者都支持")
     private String giveModeFormHis;
