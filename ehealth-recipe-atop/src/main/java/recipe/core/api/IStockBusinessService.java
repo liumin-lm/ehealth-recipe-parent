@@ -4,6 +4,7 @@ import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import recipe.vo.doctor.DrugEnterpriseStockVO;
+import recipe.vo.doctor.DrugForGiveModeListVO;
 import recipe.vo.doctor.DrugForGiveModeVO;
 import recipe.vo.doctor.DrugQueryVO;
 
@@ -59,7 +60,7 @@ public interface IStockBusinessService {
      * @param drugQueryVO
      * @return
      */
-    Map<String, List<DrugForGiveModeVO>> drugForGiveMode(DrugQueryVO drugQueryVO);
+    List<DrugForGiveModeListVO>  drugForGiveMode(DrugQueryVO drugQueryVO);
 
     /**
      * 查询药品能否开在一张处方上

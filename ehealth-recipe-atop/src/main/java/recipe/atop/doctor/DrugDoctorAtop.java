@@ -18,10 +18,7 @@ import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IStockBusinessService;
 import recipe.util.ByteUtils;
-import recipe.vo.doctor.DrugEnterpriseStockVO;
-import recipe.vo.doctor.DrugForGiveModeVO;
-import recipe.vo.doctor.DrugQueryVO;
-import recipe.vo.doctor.PatientOptionalDrugVO;
+import recipe.vo.doctor.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,7 +47,7 @@ public class DrugDoctorAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public Map<String, List<DrugForGiveModeVO>> drugForGiveMode(DrugQueryVO drugQueryVO) {
+    public List<DrugForGiveModeListVO>  drugForGiveMode(DrugQueryVO drugQueryVO) {
         validateAtop(drugQueryVO, drugQueryVO.getRecipeDetails(), drugQueryVO.getOrganId());
         return iDrugEnterpriseBusinessService.drugForGiveMode(drugQueryVO);
     }
