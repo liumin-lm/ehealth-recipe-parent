@@ -240,6 +240,17 @@ public class RecipeDetailBean implements java.io.Serializable {
      */
     private Integer type;
 
+    @ItemProperty(alias = "药品图片")
+    private String drugPic;
+
+    public String getDrugPic() {
+        return drugPic;
+    }
+
+    public void setDrugPic(String drugPic) {
+        this.drugPic = drugPic;
+    }
+
     public String getEntrustmentId() {
         return entrustmentId;
     }

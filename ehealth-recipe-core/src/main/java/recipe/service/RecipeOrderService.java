@@ -47,6 +47,7 @@ import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -157,6 +158,8 @@ public class RecipeOrderService extends RecipeBaseService {
     private RefundClient refundClient;
     @Autowired
     private ButtonManager buttonManager;
+    @Autowired
+    private DrugListDAO drugListDAO;
 
     /**
      * 处方结算时创建临时订单
@@ -1645,6 +1648,10 @@ public class RecipeOrderService extends RecipeBaseService {
                     recipedetails = detailDAO.findByRecipeId(recipe.getRecipeId());
                     String className = Thread.currentThread().getStackTrace()[2].getClassName();
                     String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
+                    List<Integer> drugId = recipedetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+                    List<DrugList> drugLists = drugListDAO.findByDrugIds(drugId);
+                    Map<Integer, List<DrugList>> drugListMap = drugLists.stream().collect(Collectors.groupingBy(DrugList::getDrugId));
+                    ArrayList<RecipeDetailBean> detailBeans = Lists.newArrayList();
                     //药品显示名处理
                     for (Recipedetail recipedetail : recipedetails) {
                         //药品名历史数据处理
@@ -1652,9 +1659,16 @@ public class RecipeOrderService extends RecipeBaseService {
                             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndOrganDrugCodeAndDrugIdWithoutStatus(recipe.getClinicOrgan(), recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
                             recipedetail.setDrugDisplaySplicedName(DrugNameDisplayUtil.dealwithRecipedetailName(organDrugLists, recipedetail, recipe.getRecipeType()));
                         }
+                        RecipeDetailBean recipeDetailBean = new RecipeDetailBean();
+                        BeanUtils.copy(recipedetail,recipeDetailBean);
+                        List<DrugList> drugList = drugListMap.get(recipedetail.getDrugId());
+                        if(CollectionUtils.isNotEmpty(drugList)){
+                            recipeDetailBean.setDrugPic(drugList.get(0).getDrugPic());
+                        }
+                        detailBeans.add(recipeDetailBean);
                     }
                     //获取处方详情
-                    prb.setRecipeDetail(ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class));
+                    prb.setRecipeDetail(detailBeans);
                     boolean isReturnRecipeDetail = recipeListService.isReturnRecipeDetail(recipe.getRecipeId());
                     if (("getOrderDetail".equals(methodName) && "recipe.service.RecipeOrderService".equals(className))) {
                         if (!isReturnRecipeDetail) {
