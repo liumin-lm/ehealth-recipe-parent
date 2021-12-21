@@ -8,9 +8,10 @@ import java.util.Date;
 /**
  * @author yinsheng
  * @date 2020\9\21 0021 15:55
+ * 入参用 无需脱敏
  */
 @Data
-public class ThirdSetAddressRequest implements Serializable{
+public class ThirdSetAddressRequest implements Serializable {
     private static final long serialVersionUID = 7656655233610326896L;
 
     private String appkey;

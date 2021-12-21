@@ -1,5 +1,8 @@
 package recipe.drugsenterprise.bean;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
+
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -9,8 +12,8 @@ import java.util.List;
  * @author yinsheng
  * @date 2020\4\15 0015 14:52
  */
-@XmlRootElement(name="params")
-public class EbsBean implements Serializable{
+@XmlRootElement(name = "params")
+public class EbsBean implements Serializable {
     private static final long serialVersionUID = 598564582027934109L;
 
     private String prescripNo;
@@ -23,7 +26,9 @@ public class EbsBean implements Serializable{
     private String name;
     private int sex;
     private int age;
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String mobile;
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String idCard;
     private String socialSecurityCard;
     private String address;

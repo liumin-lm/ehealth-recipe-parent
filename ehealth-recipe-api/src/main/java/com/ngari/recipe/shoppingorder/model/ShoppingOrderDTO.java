@@ -1,8 +1,6 @@
 package com.ngari.recipe.shoppingorder.model;
 
-import ctd.schema.annotation.Dictionary;
-import ctd.schema.annotation.ItemProperty;
-import ctd.schema.annotation.Schema;
+import ctd.schema.annotation.*;
 
 import java.math.BigDecimal;
 import java.util.Date;
@@ -42,8 +40,10 @@ public class ShoppingOrderDTO implements java.io.Serializable {
     @ItemProperty(alias = "收货人")
     private String receiver;
     @ItemProperty(alias = "收货联系号码")
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String recMobile;
     @ItemProperty(alias = "收货地址")
+    @Desensitizations(type = DesensitizationsType.ADDRESS)
     private String address;
     @ItemProperty(alias = "订单取消时间")
     private Date cancelTime;

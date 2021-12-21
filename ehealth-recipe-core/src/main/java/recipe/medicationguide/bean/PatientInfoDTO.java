@@ -1,12 +1,15 @@
 package recipe.medicationguide.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 
 import java.io.Serializable;
 
 /**
  * created by shiyuping on 2019/10/28
  * 用药指导患者信息数据
+ *
  * @author shiyuping
  */
 public class PatientInfoDTO implements Serializable {
@@ -20,6 +23,7 @@ public class PatientInfoDTO implements Serializable {
      * 卡号
      */
     @JsonProperty("Card")
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String card;
     /**
      * 卡类型（1身份证 2 医保卡 3 临时卡）

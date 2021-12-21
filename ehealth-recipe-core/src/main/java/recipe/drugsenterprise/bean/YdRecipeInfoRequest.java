@@ -3,15 +3,16 @@ package recipe.drugsenterprise.bean;
 import recipe.drugsenterprise.bean.yd.model.RecipeDtlVo;
 
 import java.io.Serializable;
-import java.util.Date;
 import java.util.List;
 
 /**
  * 以大处方参数
+ *
  * @author yinsheng
  * @date 2019\12\13 0013 13:47
+ * 对接药企 无需脱敏
  */
-public class YdRecipeInfoRequest implements Serializable{
+public class YdRecipeInfoRequest implements Serializable {
     private static final long serialVersionUID = -2622463284164459587L;
 
     private String recipeno;

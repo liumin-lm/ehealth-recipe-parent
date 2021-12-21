@@ -8,6 +8,7 @@ import java.io.Serializable;
  * @Description: 对接上海六院易复诊开处方接口中间对象
  * @Author: JRK
  * @Date: 2020/02/20
+ * 对接药企 无需脱敏
  */
 @Schema
 public class YfzMesPatientDto implements Serializable {

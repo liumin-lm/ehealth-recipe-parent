@@ -1,9 +1,6 @@
 package com.ngari.recipe.recipeorder.model;
 
-import ctd.schema.annotation.Dictionary;
-import ctd.schema.annotation.FileToken;
-import ctd.schema.annotation.ItemProperty;
-import ctd.schema.annotation.Schema;
+import ctd.schema.annotation.*;
 
 import javax.persistence.Column;
 import javax.persistence.Transient;
@@ -117,9 +114,11 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "收货人")
     private String receiver;
 
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     @ItemProperty(alias = "收货人手机号")
     private String recMobile;
 
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     @ItemProperty(alias = "收货人电话")
     private String recTel;
 
@@ -139,6 +138,7 @@ public class RecipeOrderBean implements Serializable {
     @Dictionary(id = "eh.base.dictionary.AddrArea")
     private String streetAddress;
 
+    @Desensitizations(type = DesensitizationsType.ADDRESS)
     @ItemProperty(alias = "详细地址")
     private String address4;
 
@@ -197,6 +197,7 @@ public class RecipeOrderBean implements Serializable {
     private Integer copyNum;
 
     @ItemProperty(alias = "完整地址")
+    @Desensitizations(type = DesensitizationsType.ADDRESS)
     private String completeAddress;
 
     @ItemProperty(alias = "处方流转模式")
@@ -208,7 +209,9 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "药企名称")
     private String enterpriseName;
 
+
     @ItemProperty(alias = "药企电话")
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String tel;
 
     //date 2019/10/18
