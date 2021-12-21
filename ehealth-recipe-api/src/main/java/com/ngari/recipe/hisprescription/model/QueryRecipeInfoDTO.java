@@ -2,9 +2,7 @@ package com.ngari.recipe.hisprescription.model;
 
 
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
-import ctd.schema.annotation.Dictionary;
-import ctd.schema.annotation.ItemProperty;
-import ctd.schema.annotation.Schema;
+import ctd.schema.annotation.*;
 import recipe.vo.second.EmrDetailValueVO;
 
 import java.io.Serializable;
@@ -20,88 +18,92 @@ import java.util.Map;
 @Schema
 public class QueryRecipeInfoDTO implements Serializable {
     private static final long serialVersionUID = -708693213105234237L;
-    @ItemProperty(alias="院区代码，示例：A001 院区A，A002院区B")
+    @ItemProperty(alias = "院区代码，示例：A001 院区A，A002院区B")
     private String hoscode;
-    @ItemProperty(alias="平台机构id")
+    @ItemProperty(alias = "平台机构id")
     private String organId;
-    @ItemProperty(alias="卡类型（1医院就诊卡  2医保卡3 医院病历号）")
+    @ItemProperty(alias = "卡类型（1医院就诊卡  2医保卡3 医院病历号）")
     private String cardType;
-    @ItemProperty(alias="卡(病历)号码")
+    @Desensitizations(type = DesensitizationsType.IDCARD)
+    @ItemProperty(alias = "卡(病历)号码")
     private String cardNo;
-    @ItemProperty(alias="患者身份证")
+    @Desensitizations(type = DesensitizationsType.IDCARD)
+    @ItemProperty(alias = "患者身份证")
     private String certID;
-    @ItemProperty(alias="患者姓名")
+    @ItemProperty(alias = "患者姓名")
     private String patientName;
-    @ItemProperty(alias="患者性别")
+    @ItemProperty(alias = "患者性别")
     private String patientSex;
-    @ItemProperty(alias="手机号码")
+    @ItemProperty(alias = "手机号码")
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String mobile;
-    @ItemProperty(alias="复诊id")
+    @ItemProperty(alias = "复诊id")
     private String clinicID;
-    @ItemProperty(alias="挂号序号")
+    @ItemProperty(alias = "挂号序号")
     private String registerId;
-    @ItemProperty(alias="处方医生工号")
+    @ItemProperty(alias = "处方医生工号")
     private String doctorID;
-    @ItemProperty(alias="医生身份证")
+    @ItemProperty(alias = "医生身份证")
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String doctorIDCard;
-    @ItemProperty(alias="处方医生姓名")
+    @ItemProperty(alias = "处方医生姓名")
     private String doctorName;
-    @ItemProperty(alias="开单行政科室代码")
+    @ItemProperty(alias = "开单行政科室代码")
     private String deptID;
-    @ItemProperty(alias="开单挂号科室代码")
+    @ItemProperty(alias = "开单挂号科室代码")
     private String deptCode;
-    @ItemProperty(alias="开单科室名称")
+    @ItemProperty(alias = "开单科室名称")
     private String deptName;
-    @ItemProperty(alias="处方审核医生")
+    @ItemProperty(alias = "处方审核医生")
     private String auditDoctor;
-    @ItemProperty(alias="处方类型 1 西药 2 成药 3 草药")
+    @ItemProperty(alias = "处方类型 1 西药 2 成药 3 草药")
     private String recipeType;
-    @ItemProperty(alias="处方日期")
+    @ItemProperty(alias = "处方日期")
     private Date datein;
-    @ItemProperty(alias="是否已经支付1支付 0未支付")
+    @ItemProperty(alias = "是否已经支付1支付 0未支付")
     private String isPay;
-    @ItemProperty(alias="配送方式 0医院取药 1物流配送 2药店取药")
+    @ItemProperty(alias = "配送方式 0医院取药 1物流配送 2药店取药")
     private String deliveryType;
-    @ItemProperty(alias="平台处方号")
+    @ItemProperty(alias = "平台处方号")
     private String recipeID;
-    @ItemProperty(alias="平台处方id")
+    @ItemProperty(alias = "平台处方id")
     private String platRecipeID;
-    @ItemProperty(alias="医院诊断内码")
+    @ItemProperty(alias = "医院诊断内码")
     private String icdRdn;
-    @ItemProperty(alias="ICD诊断码")
+    @ItemProperty(alias = "ICD诊断码")
     private String icdCode;
-    @ItemProperty(alias="ICD名称")
+    @ItemProperty(alias = "ICD名称")
     private String icdName;
-    @ItemProperty(alias="简要病史(病史摘要)")
+    @ItemProperty(alias = "简要病史(病史摘要)")
     private String diseasesHistory;
-    @ItemProperty(alias="本处方收费类型 1市医保 2省医保 3自费")
+    @ItemProperty(alias = "本处方收费类型 1市医保 2省医保 3自费")
     private String medicalPayFlag;
-    @ItemProperty(alias="处方总金额")
+    @ItemProperty(alias = "处方总金额")
     private String recipeFee;
-    @ItemProperty(alias="处方列表数据")
+    @ItemProperty(alias = "处方列表数据")
     private List<OrderItemDTO> orderList;
-    @ItemProperty(alias="既往史结构体数据集")
+    @ItemProperty(alias = "既往史结构体数据集")
     private PastHistoryInfoDTO pastHistoryInfo;
-    @ItemProperty(alias="婚育史结构体数据集")
+    @ItemProperty(alias = "婚育史结构体数据集")
     private MCHistoryInfoDTO mcHistoryInfo;
-    @ItemProperty(alias="家族史结构体数")
+    @ItemProperty(alias = "家族史结构体数")
     private FamilyHistoryInfoDTO familyHistoryInfo;
-    @ItemProperty(alias="月经史结构体数据集")
+    @ItemProperty(alias = "月经史结构体数据集")
     private MenstrualHistoryInfoDTO menstrualHistoryInfo;
 
-    @ItemProperty(alias="病⼈主诉")
+    @ItemProperty(alias = "病⼈主诉")
     private String BRZS;
-    @ItemProperty(alias="现病史")
+    @ItemProperty(alias = "现病史")
     private String XBS;
-    @ItemProperty(alias="处理⽅法")
+    @ItemProperty(alias = "处理⽅法")
     private String CLFF;
-    @ItemProperty(alias="体格检查")
+    @ItemProperty(alias = "体格检查")
     private String TGJC;
 
-    @ItemProperty(alias="审核状态")
+    @ItemProperty(alias = "审核状态")
     private String auditCheckStatus;
 
-    @ItemProperty(alias="自付比例")
+    @ItemProperty(alias = "自付比例")
     private String payScale;
 
     //date 20200222杭州市互联网 诊断信息
@@ -111,7 +113,7 @@ public class QueryRecipeInfoDTO implements Serializable {
     private List<DeliveryInfo> deliveryInfo;
 
     //date 20200222杭州市互联网 审方时间
-    @ItemProperty(alias="审方时间")
+    @ItemProperty(alias = "审方时间")
     private Date checkDate;
     private RecipeExtendBean recipeExtendBean;
 
@@ -289,7 +291,8 @@ public class QueryRecipeInfoDTO implements Serializable {
         this.deliveryInfo = deliveryInfo;
     }
 
-    public QueryRecipeInfoDTO() {}
+    public QueryRecipeInfoDTO() {
+    }
 
     public String getBRZS() {
         return BRZS;

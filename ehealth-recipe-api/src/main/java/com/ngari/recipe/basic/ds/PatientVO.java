@@ -11,12 +11,12 @@ import java.util.Date;
 import java.util.List;
 
 /*
-* 医生端脱敏对象
-* @author zhangx
-* @create 2020-07-06 15:00
-* @param null
-* @return
-**/
+ * 医生端脱敏对象
+ * @author zhangx
+ * @create 2020-07-06 15:00
+ * @param null
+ * @return
+ **/
 
 @Schema
 public class PatientVO implements Serializable {
@@ -55,6 +55,7 @@ public class PatientVO implements Serializable {
     @ItemProperty(alias = "手机号")
     private String mobile;
 
+    @Desensitizations(type = DesensitizationsType.ADDRESS)
     @ItemProperty(alias = "家庭地址")
     private String address;
 

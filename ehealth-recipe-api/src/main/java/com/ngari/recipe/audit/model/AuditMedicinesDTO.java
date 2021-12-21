@@ -12,19 +12,19 @@ import java.util.List;
 public class AuditMedicinesDTO implements Serializable {
     private static final long serialVersionUID = 8790865932099663823L;
 
-    @ItemProperty(alias="自增id")
+    @ItemProperty(alias = "自增id")
     private Integer id;
 
-    @ItemProperty(alias="处方id")
+    @ItemProperty(alias = "处方id")
     private Integer recipeId;
 
-    @ItemProperty(alias="药品名")
+    @ItemProperty(alias = "药品名")
     private String name;
 
-    @ItemProperty(alias="药品编码")
+    @ItemProperty(alias = "药品编码")
     private String code;
 
-    @ItemProperty(alias="创建时间")
+    @ItemProperty(alias = "创建时间")
     private Date createTime;
 
     @ItemProperty(alias = "最后修改时间")

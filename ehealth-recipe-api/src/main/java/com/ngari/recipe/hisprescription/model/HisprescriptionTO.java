@@ -13,94 +13,96 @@ import java.util.List;
  * @date： 2018/6/28
  * @description： 医院处方记录
  * @version： 1.0
+ * 没地方调用此类，且类中字段定义不清晰 我就不脱敏了
  */
+@Deprecated
 @Schema
-public class HisprescriptionTO implements Serializable{
+public class HisprescriptionTO implements Serializable {
 
     private static final long serialVersionUID = -766429327998976550L;
 
-    @ItemProperty(alias="处方ID")
+    @ItemProperty(alias = "处方ID")
     private Integer recipeId;
 
-    @ItemProperty(alias="机构编码")
+    @ItemProperty(alias = "机构编码")
     private String organId;
 
-    @ItemProperty(alias="院区代码")
+    @ItemProperty(alias = "院区代码")
     private String hoscode;
 
-    @ItemProperty(alias="医院处方编号")
+    @ItemProperty(alias = "医院处方编号")
     private String recipeNo;
 
-    @ItemProperty(alias="处方名称")
+    @ItemProperty(alias = "处方名称")
     private String recipeName;
 
-    @ItemProperty(alias="1西药  2中成药")
+    @ItemProperty(alias = "1西药  2中成药")
     private Integer recipeType;
 
-    @ItemProperty(alias="处方日期")
+    @ItemProperty(alias = "处方日期")
     private Date recipeDate;
 
-    @ItemProperty(alias="诊断")
+    @ItemProperty(alias = "诊断")
     private String icdName;
 
-    @ItemProperty(alias="处方备注")
+    @ItemProperty(alias = "处方备注")
     private String remark;
 
-    @ItemProperty(alias="处方金额")
+    @ItemProperty(alias = "处方金额")
     private BigDecimal amount;
 
-    @ItemProperty(alias="总金额")
+    @ItemProperty(alias = "总金额")
     private BigDecimal totalAmount;
 
-    @ItemProperty(alias="卡(病历)号码")
+    @ItemProperty(alias = "卡(病历)号码")
     private String cardNo;
 
-    @ItemProperty(alias="身份证")
+    @ItemProperty(alias = "身份证")
     private String certID;
 
-    @ItemProperty(alias="就诊病人姓名")
+    @ItemProperty(alias = "就诊病人姓名")
     private String patientName;
 
-    @ItemProperty(alias="病人性别(1：男 2：女)")
+    @ItemProperty(alias = "病人性别(1：男 2：女)")
     private Integer patientSex;
 
-    @ItemProperty(alias="出生日期")
+    @ItemProperty(alias = "出生日期")
     private Date birthday;
 
-    @ItemProperty(alias="年龄")
+    @ItemProperty(alias = "年龄")
     private Integer age;
 
-    @ItemProperty(alias="病人类型")
+    @ItemProperty(alias = "病人类型")
     private String patientType;
 
-    @ItemProperty(alias="病人手机号")
+    @ItemProperty(alias = "病人手机号")
     private String patientMobile;
 
-    @ItemProperty(alias="开单科室（挂号科室）")
+    @ItemProperty(alias = "开单科室（挂号科室）")
     private String deptId;
 
-    @ItemProperty(alias="处方医生工号")
+    @ItemProperty(alias = "处方医生工号")
     private String doctorId;
 
-    @ItemProperty(alias="处方医生姓名")
+    @ItemProperty(alias = "处方医生姓名")
     private String doctorName;
 
-    @ItemProperty(alias="1支付 0未支付")
+    @ItemProperty(alias = "1支付 0未支付")
     private Integer isPay;
 
-    @ItemProperty(alias="0无效 1 有效 8已取消")
+    @ItemProperty(alias = "0无效 1 有效 8已取消")
     private Integer recipeStatus;
 
-    @ItemProperty(alias="0未发药 1已发药")
+    @ItemProperty(alias = "0未发药 1已发药")
     private Integer phStatus;
 
-    @ItemProperty(alias="1医院内部处方 2医院外配处方 3纳里健康平台处方")
+    @ItemProperty(alias = "1医院内部处方 2医院外配处方 3纳里健康平台处方")
     private Integer recipeProperty;
 
-    @ItemProperty(alias="0医院药房取药 1物流配送 2药店取药")
+    @ItemProperty(alias = "0医院药房取药 1物流配送 2药店取药")
     private Integer deliveryType;
 
-    @ItemProperty(alias="配送地址")
+    @ItemProperty(alias = "配送地址")
     private String deliveryAd;
 
     private List<HisprescriptionDetailTO> recipeDetail;

@@ -228,6 +228,8 @@ public class DocIndexClient extends BaseClient {
         docIndexBean.setDocSummary("电子处方病历");
         docIndexBean.setCreateOrgan(recipe.getClinicOrgan());
         docIndexBean.setCreateDepart(recipe.getDepart());
+        docIndexBean.setAppointDeptCode(recipe.getAppointDepart());
+        docIndexBean.setAppointDeptName(recipe.getAppointDepartName());
         try {
             String departName = Optional.ofNullable(departmentService.get(recipe.getDepart())).map(DepartmentDTO::getName).orElse(null);
             docIndexBean.setDepartName(departName);

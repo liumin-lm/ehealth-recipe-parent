@@ -1,5 +1,8 @@
 package com.ngari.recipe.hisprescription.model;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.Map;
@@ -30,6 +33,7 @@ public class QueryPlatRecipeInfoByDateDTO implements Serializable {
     /**
      * 证件号
      */
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String certificate;
     /**
      * 卡类型
@@ -38,6 +42,7 @@ public class QueryPlatRecipeInfoByDateDTO implements Serializable {
     /**
      * 卡号
      */
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String cardNo;
     /**
      * 查询开始时间
@@ -52,7 +57,7 @@ public class QueryPlatRecipeInfoByDateDTO implements Serializable {
      */
     private String medicalInsuranceParam;
     //预留参数
-    private Map<String,Object> params;
+    private Map<String, Object> params;
 
     public String getPatientName() {
         return patientName;
