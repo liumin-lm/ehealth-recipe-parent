@@ -1,7 +1,6 @@
 package recipe.drugsenterprise.bean;
 
 import com.ngari.recipe.common.anno.Verify;
-import com.ngari.recipe.hisprescription.model.HospitalDrugDTO;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
@@ -13,6 +12,7 @@ import java.util.List;
  *
  * @author: 0184/yu_yun
  * date:2017/4/17.
+ * 对接药企 无需脱敏
  */
 @Schema
 public class ZfbRecipeDTO implements Serializable {

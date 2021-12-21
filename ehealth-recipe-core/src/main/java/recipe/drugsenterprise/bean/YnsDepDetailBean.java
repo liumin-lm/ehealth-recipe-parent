@@ -1,14 +1,13 @@
 package recipe.drugsenterprise.bean;
 
-import com.ngari.recipe.drugsenterprise.model.Position;
 import ctd.schema.annotation.Schema;
-
-import java.math.BigDecimal;
 
 /**
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * date:2017/7/3.
+ * 对接药企 无需脱敏
  */
 @Schema
 public class YnsDepDetailBean {
@@ -18,7 +17,7 @@ public class YnsDepDetailBean {
      */
     private String pharmacyName;
     /**
-     *  药店编码
+     * 药店编码
      */
     private String pharmacyCode;
     /**

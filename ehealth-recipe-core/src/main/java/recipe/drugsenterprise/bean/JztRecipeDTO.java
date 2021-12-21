@@ -7,10 +7,11 @@ import java.util.List;
 
 /**
  * @author yinsheng
+ * 对接药企 无需脱敏
  * @date 2019\3\14 0014 15:33
  */
 @Schema
-public class JztRecipeDTO implements Serializable{
+public class JztRecipeDTO implements Serializable {
     private static final long serialVersionUID = 2278967962954405876L;
 
     private String certificateType;

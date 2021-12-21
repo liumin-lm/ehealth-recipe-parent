@@ -3,6 +3,7 @@ package recipe.drugsenterprise.bean;
  * @Description: 对接英克推送处方中间对象
  * @Author: JRK
  * @Date: 2020/02/20
+ * 对接药企 无需脱敏
  */
 
 import ctd.schema.annotation.Schema;
@@ -13,117 +14,117 @@ import java.util.List;
 @Schema
 public class YkRecipeInfoDto implements Serializable {
     /**
-     *门店ID
+     * 门店ID
      */
     private String placepointid;
     /**
-     *处方日期
+     * 处方日期
      */
     private String credata;
     /**
-     *处方编号
+     * 处方编号
      */
     private String prescriptionnumber;
     /**
-     *处方医院
+     * 处方医院
      */
     private String prescriptionhospital;
     /**
-     *处方医生
+     * 处方医生
      */
     private String prescriptiondoctor;
     /**
-     *临床诊断
+     * 临床诊断
      * 非必填
      */
     private String diagnosis;
     /**
-     *患者姓名
+     * 患者姓名
      * 非必填
      */
     private String insidername;
     /**
-     *患者性别
+     * 患者性别
      * 非必填
      */
     private String insidersex;
     /**
-     *患者年龄
+     * 患者年龄
      * 非必填
      */
     private String insiderage;
     /**
-     *出生日期
-     *  非必填
+     * 出生日期
+     * 非必填
      */
     private String birthday;
     /**
-     *身份证号
-     *  非必填
+     * 身份证号
+     * 非必填
      */
     private String id_card;
     /**
-     *民族
+     * 民族
      * 非必填
      */
     private String nation;
     /**
-     *地址
+     * 地址
      * 非必填
      */
     private String address;
     /**
-     *用法用量
+     * 用法用量
      * 非必填
      */
     private String usagedosage;
     /**
-     *用药禁忌
+     * 用药禁忌
      * 非必填
      */
     private String contraindication;
     /**
-     *医保卡号
+     * 医保卡号
      */
     private String medicard;
     /**
-     *会员卡号
+     * 会员卡号
      */
     private int insidercardno;
     /**
-     *重症病种
+     * 重症病种
      */
     private int diseaseid;
     /**
-     *接口处方类型
+     * 接口处方类型
      */
     private int prescriptiontype;
     /**
-     *处方来源平台
+     * 处方来源平台
      */
     private int sourceplatform;
     /**
-     *处方总单号
+     * 处方总单号
      */
     private int prescriptionid;
     /**
-     *接口处方状态
+     * 接口处方状态
      */
     private String usestates;
     /**
-     *收货人姓名
+     * 收货人姓名
      */
     private String consigneename;
     /**
-     *收货人手机
+     * 收货人手机
      */
     private String consigneetel;
     /**
-     *收货地址-省市
+     * 收货地址-省市
      */
     private String consigpcity;
     /**
-     *收货地址-街道地址
+     * 收货地址-街道地址
      */
     private String consigdstreet;
 
