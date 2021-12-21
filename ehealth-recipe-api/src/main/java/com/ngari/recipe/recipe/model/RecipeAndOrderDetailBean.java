@@ -1,18 +1,22 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import lombok.Data;
 
 import java.io.Serializable;
 import java.util.List;
 
 @Data
-public class RecipeAndOrderDetailBean implements Serializable{
+public class RecipeAndOrderDetailBean implements Serializable {
     private static final long serialVersionUID = -1543466696121633673L;
 
     private String msg;
     private String certificateType;
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String certificate;
     private String patientName;
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String patientTel;
     private String patientAddress;
     private String patientNumber;
@@ -45,7 +49,9 @@ public class RecipeAndOrderDetailBean implements Serializable{
     private String streetCode;
     private String expressFee;
     private String receiver;
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String recMobile;
+    @Desensitizations(type = DesensitizationsType.ADDRESS)
     private String recAddress;
     private String orderTotalFee;
     private String outTradeNo;

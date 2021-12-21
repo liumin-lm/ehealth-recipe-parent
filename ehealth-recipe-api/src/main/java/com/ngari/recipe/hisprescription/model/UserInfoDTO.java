@@ -1,5 +1,7 @@
 package com.ngari.recipe.hisprescription.model;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import ctd.schema.annotation.ItemProperty;
 
 import java.io.Serializable;
@@ -8,9 +10,10 @@ import java.util.Date;
 /**
  * @author Created by liuxiaofeng on 2020/11/5.
  */
-public class UserInfoDTO implements Serializable{
+public class UserInfoDTO implements Serializable {
     private static final long serialVersionUID = -7145474926866174754L;
 
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     @ItemProperty(alias = "就诊人手机号")
     private String userMobile;
 

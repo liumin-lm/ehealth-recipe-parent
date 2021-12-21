@@ -1,5 +1,8 @@
 package com.ngari.recipe.hisprescription.model;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
+
 import java.io.Serializable;
 import java.util.Date;
 import java.util.List;
@@ -11,86 +14,91 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
 
 
     private static final long serialVersionUID = 2237309233285181635L;
-    private String  organID;//	机构唯一号
+    private String organID;//	机构唯一号
     private String organizeCode;//机构标识
-    private String  organName;
-    private String  hosCode;//	院区代码
-    private String  hosName;//	院区名称
-    private String  mpiId;
-    private String  bussID;//	互联网医院复诊记录Id
-    private String  bussSource;// 处方来源标记   1 问诊  4 复诊
-    private String  patientNumber;//门诊号
-    private String  originalDiagnosis;//上次就诊诊断名称
-    private String  subjectCode;//	开方医师所属专业代码（诊疗科目代码）
-    private String  subjectName;//	开方医师所属专业名称（诊疗科目名称）
-    private String  deptID;//	医师所属科室代码
-    private String  deptName;//	医师所属科室名称
-    private String  doctorId;//	医生ID
-    private String  doctorCertID;//	医师身份证号
-    private String  doctorName;//	医师姓名
-    private String  doctorNo;// 开方医生工号
+    private String organName;
+    private String hosCode;//	院区代码
+    private String hosName;//	院区名称
+    private String mpiId;
+    private String bussID;//	互联网医院复诊记录Id
+    private String bussSource;// 处方来源标记   1 问诊  4 复诊
+    private String patientNumber;//门诊号
+    private String originalDiagnosis;//上次就诊诊断名称
+    private String subjectCode;//	开方医师所属专业代码（诊疗科目代码）
+    private String subjectName;//	开方医师所属专业名称（诊疗科目名称）
+    private String deptID;//	医师所属科室代码
+    private String deptName;//	医师所属科室名称
+    private String doctorId;//	医生ID
+    @Desensitizations(type = DesensitizationsType.IDCARD)
+    private String doctorCertID;//	医师身份证号
+    private String doctorName;//	医师姓名
+    private String doctorNo;// 开方医生工号
     private String doctorProTitle;//开方医生职称
-    private String  auditDoctorId;//	审方医生ID
-    private String  auditDoctorCertID;//	审方医师身份证号
-    private String  auditDoctor;//	审方医师姓名
-    private String  auditDoctorNo;// 审方医生工号
+    private String auditDoctorId;//	审方医生ID
+    @Desensitizations(type = DesensitizationsType.IDCARD)
+    private String auditDoctorCertID;//	审方医师身份证号
+    private String auditDoctor;//	审方医师姓名
+    private String auditDoctorNo;// 审方医生工号
     private String auditDoctorSign;//审核医生电子签名
     private String auditProTitle;//审方医生职称
-    private String  auditDeptID;//审方医师所属科室代码
-    private String  auditDeptName;//审方医师所属科室名称
-    private String  auditSubjectCode;//	审方医师所属专业代码（诊疗科目代码）
-    private String  auditSubjectName;//	审方医师所属专业名称（诊疗科目名称）
-    private String  patientCardType;//	患者证件
-    private String  patientCertID;//	患者证件号
-    private String  patientName;//	患者姓名
+    private String auditDeptID;//审方医师所属科室代码
+    private String auditDeptName;//审方医师所属科室名称
+    private String auditSubjectCode;//	审方医师所属专业代码（诊疗科目代码）
+    private String auditSubjectName;//	审方医师所属专业名称（诊疗科目名称）
+    private String patientCardType;//	患者证件
+    @Desensitizations(type = DesensitizationsType.IDCARD)
+    private String patientCertID;//	患者证件号
+    private String patientName;//	患者姓名
     private Integer age;//	患者年龄
-    private String  sex;//	患者性别
+    private String sex;//	患者性别
     private Date birthDay;//患者出生日期
-    private String  mobile;//	患者联系电话
-    private String  costType;//	费别 1自费 2医保
-    private String  cardType;//	卡类型
-    private String  cardNo;//	卡号
+    @Desensitizations(type = DesensitizationsType.MOBILE)
+    private String mobile;//	患者联系电话
+    private String costType;//	费别 1自费 2医保
+    private String cardType;//	卡类型
+    @Desensitizations(type = DesensitizationsType.IDCARD)
+    private String cardNo;//	卡号
+    @Desensitizations(type = DesensitizationsType.IDCARD)
+    private String guardianCertID;
+    private String guardianName;
+    private String guardianMobile;
 
-    private String  guardianCertID;
-    private String  guardianName;
-    private String  guardianMobile;
-
-    private String  allergyFlag;//过敏史标记0:无 1:有
-    private String  allergyInfo;//	过敏信息
-    private String  diseasesHistory;//	患者简要病史描述
-    private String  recipeUniqueID;//	互联网医院处方唯一号
-    private String  recipeID;//	互联网医院处方号
-    private String  recipeRecordNo;//处方医保备案号
-    private String  rationalFlag;//是否经过合理用药判断标志 1经过0未经过
-    private String  rationalDrug;//	合理用药审核结果
-    private String  CAInfo;//	处方CA认证文件信息
-    private String  recipeFileId; // 处方笺文件id
-    private String  medicalFileId; //患者病历文件id
-    private String  icdCode;//	诊断ICD码
-    private String  icdName;//	初步诊断名称
+    private String allergyFlag;//过敏史标记0:无 1:有
+    private String allergyInfo;//	过敏信息
+    private String diseasesHistory;//	患者简要病史描述
+    private String recipeUniqueID;//	互联网医院处方唯一号
+    private String recipeID;//	互联网医院处方号
+    private String recipeRecordNo;//处方医保备案号
+    private String rationalFlag;//是否经过合理用药判断标志 1经过0未经过
+    private String rationalDrug;//	合理用药审核结果
+    private String CAInfo;//	处方CA认证文件信息
+    private String recipeFileId; // 处方笺文件id
+    private String medicalFileId; //患者病历文件id
+    private String icdCode;//	诊断ICD码
+    private String icdName;//	初步诊断名称
     private String memo;//诊断备注
-    private String  recipeType;//	处方类型 1西药 2成药 3草药
+    private String recipeType;//	处方类型 1西药 2成药 3草药
     private Integer packetsNum;//	帖数
-    private Date    datein;//	处方日期
+    private Date datein;//	处方日期
     private Integer effectivePeriod;//	处方效期
-    private Date    startDate;//	处方开始日期
-    private Date    endDate;//	处方结束日期
-    private Date  checkDate;//处方审核时间
-    private String  deliveryType;//	处方配送方式 0医院取药 1物流配送 2药店取药
-    private String  deliveryFirm;//	配送厂商名称
-    private Date    deliveryDate;//	配送时间
+    private Date startDate;//	处方开始日期
+    private Date endDate;//	处方结束日期
+    private Date checkDate;//处方审核时间
+    private String deliveryType;//	处方配送方式 0医院取药 1物流配送 2药店取药
+    private String deliveryFirm;//	配送厂商名称
+    private Date deliveryDate;//	配送时间
     private Date sendTime; //配送开始时间
     private Date finishTime; //配送结束时间
     private Integer deliveryStatus; //配送状态
-    private Double  totalFee;//	处方金额
-    private String  isPay;//	是否支付
-    private String  tradeNo;//	第三方支付交易流水号
-    private String  verificationStatus;//	处方核销状态 0未核销 1已核销
-    private Date    verificationTime;//	处方核销时间
-    private String  verificationUnit;//	处方核销单位
-    private Date  updateTime;//	最后更新时间
+    private Double totalFee;//	处方金额
+    private String isPay;//	是否支付
+    private String tradeNo;//	第三方支付交易流水号
+    private String verificationStatus;//	处方核销状态 0未核销 1已核销
+    private Date verificationTime;//	处方核销时间
+    private String verificationUnit;//	处方核销单位
+    private Date updateTime;//	最后更新时间
 
-    private Integer  recipeStatus;//处方状态
+    private Integer recipeStatus;//处方状态
 
     private String payFlag; //支付标识 0未支付 1已支付
 
@@ -109,7 +117,7 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
 
     private List<RegulationRecipeDetailIndicatorsReq> orderList;//处方列表数据集
 
-    private String  unitID;
+    private String unitID;
 
     private String cancelFlag;//撤销标记 1-正常 2-撤销
 
@@ -128,11 +136,14 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     //发药药师姓名
     private String dispensingApothecaryName;
     //发药药师身份证号
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String dispensingApothecaryIdCard;
 
     private String einvoiceNumber; // 电子发票号
 
-    /**商户订单号*/
+    /**
+     * 商户订单号
+     */
     private String outTradeNo;
 
     /**

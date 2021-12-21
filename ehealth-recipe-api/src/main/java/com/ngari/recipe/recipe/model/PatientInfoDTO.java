@@ -1,14 +1,18 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
+
 import java.io.Serializable;
 
 
-public class PatientInfoDTO implements Serializable{
+public class PatientInfoDTO implements Serializable {
 
     private String patientCode;
     /**
      * 卡号
      */
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String card;
     /**
      * 卡类型（1身份证 2 医保卡 3 临时卡）
