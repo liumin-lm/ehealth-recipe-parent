@@ -302,7 +302,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             drugForGiveModeVO.setDrugsName(drugNames);
             list.add(drugForGiveModeVO);
         }
-        Map<String, List<DrugForGiveModeVO>> returnMap = list.stream().collect(Collectors.groupingBy(DrugForGiveModeVO::getGiveModeKey));
+        Map<String, List<DrugForGiveModeVO>> returnMap = list.stream().collect(Collectors.groupingBy(DrugForGiveModeVO::getGiveModeKeyText));
         logger.info("drugForGiveMode returnMap={}", JSONArray.toJSONString(returnMap));
         return returnMap;
     }

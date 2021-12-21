@@ -253,10 +253,10 @@ public class PurchaseService {
                 skipThirdReqVO.setRecipeIds(recipeIds);
                 Integer giveMode = PayModeGiveModeUtil.getGiveMode(payModes.get(0));
                 skipThirdReqVO.setGiveMode(GiveModeTextEnum.getGiveModeText(giveMode));
+                enterpriseManager.uploadRecipeInfoToThird(skipThirdReqVO.getOrganId(), skipThirdReqVO.getGiveMode(), skipThirdReqVO.getRecipeIds());
             } catch (Exception e) {
                 LOG.error("filterSupportDepList error msg ", e);
             }
-            enterpriseManager.uploadRecipeInfoToThird(skipThirdReqVO.getOrganId(), skipThirdReqVO.getGiveMode(), skipThirdReqVO.getRecipeIds());
         }
         return resultBean;
     }
