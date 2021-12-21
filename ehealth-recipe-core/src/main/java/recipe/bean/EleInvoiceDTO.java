@@ -1,5 +1,8 @@
 package recipe.bean;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
+
 import java.io.Serializable;
 import java.util.List;
 
@@ -20,6 +23,7 @@ public class EleInvoiceDTO implements Serializable {
     /*卡类型*/
     private String cardType;
     /*卡号*/
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String cardId;
     /*业务类型 0 在线复诊 1处方*/
     private String type;
