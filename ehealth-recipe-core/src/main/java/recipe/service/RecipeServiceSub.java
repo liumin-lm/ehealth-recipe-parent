@@ -259,7 +259,7 @@ public class RecipeServiceSub {
         RecipeUtil.setDefaultData(recipe);
         //设置处方明细数据
         if (details != null && details.size() > 0) {
-            setReciepeDetailsInfo(flag, recipeBean, recipe, details);
+            setRecipeDetailsInfo(recipeBean, recipe, details);
         }
         setGiveMode(recipe);
         //患者数据前面已校验--设置患者姓名医生姓名机构名
@@ -342,7 +342,7 @@ public class RecipeServiceSub {
         }
     }
 
-    private static void setReciepeDetailsInfo(Integer flag, RecipeBean recipeBean, Recipe recipe, List<Recipedetail> details) {
+    private static void setRecipeDetailsInfo(RecipeBean recipeBean, Recipe recipe, List<Recipedetail> details) {
         //设置药品详情数据
         boolean isSucc = setDetailsInfo(recipe, details);
         if (!isSucc) {
@@ -412,6 +412,12 @@ public class RecipeServiceSub {
             detail.setRecipeId(recipe.getRecipeId());
             detail.setCreateDt(nowDate);
             detail.setLastModify(nowDate);
+            if (StringUtils.isEmpty(detail.getSuperscalarCode())) {
+                detail.setSuperscalarCode("");
+            }
+            if (StringUtils.isEmpty(detail.getSuperscalarName())) {
+                detail.setSuperscalarName("");
+            }
             if (null != detail.getDrugId()) {
                 drugIds.add(detail.getDrugId());
             }

@@ -1,9 +1,7 @@
 package recipe.vo.second;
 
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import ctd.schema.annotation.Dictionary;
-import ctd.schema.annotation.ItemProperty;
-import ctd.schema.annotation.Schema;
+import ctd.schema.annotation.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
@@ -189,6 +187,7 @@ public class RevisitRecipeTraceVo implements Serializable {
         /**
          * 发药药师身份证
          */
+        @Desensitizations(type = DesensitizationsType.ADDRESS)
         private String giveUserIdCard;
 
         /**
@@ -223,9 +222,11 @@ public class RevisitRecipeTraceVo implements Serializable {
         @ItemProperty(alias = "收货人姓名")
         private String receiver;
 
+        @Desensitizations(type = DesensitizationsType.MOBILE)
         @ItemProperty(alias = "收货人手机号")
         private String recMobile;
 
+        @Desensitizations(type = DesensitizationsType.ADDRESS)
         @ItemProperty(alias = "详细地址")
         private String address;
 

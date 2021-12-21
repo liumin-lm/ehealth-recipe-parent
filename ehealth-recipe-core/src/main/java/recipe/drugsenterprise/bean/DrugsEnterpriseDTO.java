@@ -1,10 +1,7 @@
 package recipe.drugsenterprise.bean;
 
 import com.ngari.recipe.entity.DrugEnterpriseLogistics;
-import ctd.schema.annotation.Dictionary;
-import ctd.schema.annotation.FileToken;
-import ctd.schema.annotation.ItemProperty;
-import ctd.schema.annotation.Schema;
+import ctd.schema.annotation.*;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -146,6 +143,7 @@ public class DrugsEnterpriseDTO implements Serializable {
     private String consignorName;
 
     @ItemProperty(alias = "寄件人手机号")
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String consignorMobile;
 
     @ItemProperty(alias = "寄件人省份编码")
@@ -158,6 +156,7 @@ public class DrugsEnterpriseDTO implements Serializable {
     private String consignorDistrict;
 
     @ItemProperty(alias = "寄件人详细地址")
+    @Desensitizations(type = DesensitizationsType.ADDRESS)
     private String consignorAddress;
 
     @ItemProperty(alias = "寄件人街道编码")

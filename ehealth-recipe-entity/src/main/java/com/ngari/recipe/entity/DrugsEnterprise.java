@@ -1,20 +1,16 @@
 package com.ngari.recipe.entity;
 
-import ctd.schema.annotation.Dictionary;
-import ctd.schema.annotation.FileToken;
-import ctd.schema.annotation.ItemProperty;
-import ctd.schema.annotation.Schema;
+import ctd.schema.annotation.*;
 import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 import static javax.persistence.GenerationType.IDENTITY;
 
 /**
  * 药企
+ *
  * @company: ngarihealth
  * @author: 0184/yu_yun
  * @date:2016/6/6.
@@ -54,6 +50,7 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "密码")
     private String password;
 
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     @ItemProperty(alias = "药企联系电话")
     private String tel;
 
@@ -157,6 +154,7 @@ public class DrugsEnterprise implements java.io.Serializable {
     private String consignorName;
 
     @ItemProperty(alias = "寄件人手机号")
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String consignorMobile;
 
     @ItemProperty(alias = "寄件人省份编码")
@@ -169,6 +167,7 @@ public class DrugsEnterprise implements java.io.Serializable {
     private String consignorDistrict;
 
     @ItemProperty(alias = "寄件人详细地址")
+    @Desensitizations(type = DesensitizationsType.ADDRESS)
     private String consignorAddress;
 
     @ItemProperty(alias = "寄件人街道编码")
@@ -190,6 +189,7 @@ public class DrugsEnterprise implements java.io.Serializable {
     private String thirdEnterpriseCode;
 
     @ItemProperty(alias = "药企联系电话")
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String enterprisePhone;
 
     @Column(name = "enterprise_phone")
@@ -591,12 +591,18 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {return true;}
-        if (o == null || getClass() != o.getClass()) {return false;}
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         DrugsEnterprise that = (DrugsEnterprise) o;
 
-        if (!id.equals(that.id)) {return false;}
+        if (!id.equals(that.id)) {
+            return false;
+        }
 
         return true;
     }

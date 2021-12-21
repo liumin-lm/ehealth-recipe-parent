@@ -6,21 +6,22 @@ import java.io.Serializable;
 import java.util.List;
 
 /**
-* @Description: 对接处方推送的中间对象
-* @Author: JRK
-* @Date: 2019/7/9
-*/
+ * @Description: 对接处方推送的中间对象
+ * @Author: JRK
+ * @Date: 2019/7/9
+ * 对接药企 无需脱敏
+ */
 @Schema
-public class YtRecipeDTO implements Serializable{
+public class YtRecipeDTO implements Serializable {
     private static final long serialVersionUID = 6146979557492634276L;
     /**
      * 门店机构编码
-     *  药店下的code
+     * 药店下的code
      */
     private String orgCode;
     /**
      * 处方流水号
-     *  处方标识recipecode
+     * 处方标识recipecode
      */
     private String sourceSerialNumber;
     /**
@@ -49,13 +50,13 @@ public class YtRecipeDTO implements Serializable{
     private Integer validDay = 1;
     /**
      * 医院编码
-     *recipe下clinicOrgan对应的OrganCode
+     * recipe下clinicOrgan对应的OrganCode
      */
     private String hospitalCode;
 
     /**
      * 医院编码
-     *recipe下clinicOrgan对应的OrganName
+     * recipe下clinicOrgan对应的OrganName
      */
     private String hospitalName;
     /**
@@ -151,7 +152,6 @@ public class YtRecipeDTO implements Serializable{
     /**
      * 收货人
      * 非必填
-     *
      */
     private String recipientName;
     /**

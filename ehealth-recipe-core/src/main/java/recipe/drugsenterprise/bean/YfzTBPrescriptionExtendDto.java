@@ -9,15 +9,15 @@ import java.util.Date;
  * @Description: 对接上海六院易复诊开处方接口中间对象
  * @Author: JRK
  * @Date: 2020/02/20
+ * 对接药企 无需脱敏
  */
 @Schema
 public class YfzTBPrescriptionExtendDto implements Serializable {
     /**
      * 电子处方 ID
      */
-   private String prescriptionNo;
+    private String prescriptionNo;
     /**
-
      * 支付方式，默认值线上支付
      */
     private String costCategory;
@@ -89,6 +89,7 @@ public class YfzTBPrescriptionExtendDto implements Serializable {
     public void setPrescriptionNo(String prescriptionNo) {
         this.prescriptionNo = prescriptionNo;
     }
+
     public String getCostCategory() {
         return costCategory;
     }

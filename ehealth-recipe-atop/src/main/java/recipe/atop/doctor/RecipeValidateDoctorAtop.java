@@ -90,6 +90,18 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
     }
 
     /**
+     * 检验处方药品超量
+     * @param validateDetailVO 药品数据VO
+     * @return 处方药品明细
+     */
+    @RpcService
+    public List<RecipeDetailBean> drugSuperScalarValidate(ValidateDetailVO validateDetailVO){
+        validateAtop(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), validateDetailVO.getRecipeDetails());
+        validateDetailVO.setVersion(1);
+        return recipeDetailService.drugSuperScalarValidate(validateDetailVO);
+    }
+
+    /**
      * 校验中药嘱托
      *
      * @param organId       机构id

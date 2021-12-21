@@ -5,6 +5,7 @@ import java.io.Serializable;
 /**
  * @author yinsheng
  * @date 2019\10\25 0025 10:49
+ * 对接药企 无需脱敏
  */
 public class StoreAddress implements Serializable {
     private static final long serialVersionUID = -3855595066266874301L;

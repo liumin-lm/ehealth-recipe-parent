@@ -1,5 +1,7 @@
 package recipe.drugsenterprise.bean.yd.model;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import recipe.drugsenterprise.bean.yd.utils.GsonUtils;
 
 import java.util.List;
@@ -11,6 +13,7 @@ public class RecipeVo implements JsonAware {
     private String hiscardno;
     private String patientname;
     private String idnumber;
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String mobile;
     private String outhospno;
     private String empsex;
@@ -34,6 +37,7 @@ public class RecipeVo implements JsonAware {
     private String province;//省
     private String city;//市
     private String disrict;//区
+    @Desensitizations(type = DesensitizationsType.ADDRESS)
     private String address;//地址
     private String paydate;
     private String paystatus;

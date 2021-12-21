@@ -5,6 +5,8 @@ import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.BeanUtils;
 import ctd.util.event.GlobalEventExecFactory;
@@ -30,10 +32,7 @@ import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.ListValueUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
-import recipe.vo.doctor.DrugEnterpriseStockVO;
-import recipe.vo.doctor.DrugForGiveModeVO;
-import recipe.vo.doctor.DrugQueryVO;
-import recipe.vo.doctor.EnterpriseStockVO;
+import recipe.vo.doctor.*;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -62,7 +61,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     @Resource
     private OrganDrugListDAO organDrugListDAO;
 
-    public Boolean getStockFlag(List<Integer> recipeIds,Recipe recipe,Integer enterpriseId) {
+    public Boolean getStockFlag(List<Integer> recipeIds, Recipe recipe, Integer enterpriseId) {
         logger.info("StockBusinessService getStockFlag recipeIds={}", JSONArray.toJSONString(recipeIds));
         if (CollectionUtils.isEmpty(recipeIds)) {
             return false;
@@ -243,10 +242,11 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     }
 
     @Override
-    public Map<String, List<DrugForGiveModeVO>> drugForGiveMode(DrugQueryVO drugQueryVO) {
+    public List<DrugForGiveModeListVO>  drugForGiveMode(DrugQueryVO drugQueryVO) {
         logger.info("drugForGiveMode DrugQueryVO={}", JSONArray.toJSONString(drugQueryVO));
         List<String> drugNames = new ArrayList<>();
         List<Integer> drugIds = new ArrayList<>();
+
         List<Recipedetail> recipeDetails = drugQueryVO.getRecipeDetails().stream().map(recipeDetailBean -> {
             drugNames.add(recipeDetailBean.getDrugName());
             drugIds.add(recipeDetailBean.getDrugId());
@@ -282,6 +282,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             });
         }
         List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(drugQueryVO.getOrganId());
+
         //下载处方签
         String supportDownloadButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
         if (StringUtils.isNotEmpty(supportDownloadButton)) {
@@ -294,17 +295,26 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             list.add(drugForGiveModeVO);
         }
         //例外支付
-        String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
-        if (StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
-            DrugForGiveModeVO drugForGiveModeVO = new DrugForGiveModeVO();
-            drugForGiveModeVO.setGiveModeKey(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
-            drugForGiveModeVO.setGiveModeKeyText(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getName());
-            drugForGiveModeVO.setDrugsName(drugNames);
-            list.add(drugForGiveModeVO);
-        }
-        Map<String, List<DrugForGiveModeVO>> returnMap = list.stream().collect(Collectors.groupingBy(DrugForGiveModeVO::getGiveModeKeyText));
-        logger.info("drugForGiveMode returnMap={}", JSONArray.toJSONString(returnMap));
-        return returnMap;
+//        String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
+//        if (StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
+//            DrugForGiveModeVO drugForGiveModeVO = new DrugForGiveModeVO();
+//            drugForGiveModeVO.setGiveModeKey(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
+//            drugForGiveModeVO.setGiveModeKeyText(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getName());
+//            drugForGiveModeVO.setDrugsName(drugNames);
+//            list.add(drugForGiveModeVO);
+//        }
+        Map<String, List<DrugForGiveModeVO>> returnMap = list.stream().collect(Collectors.groupingBy(DrugForGiveModeVO::getGiveModeKey));
+        Set<String> strings = returnMap.keySet();
+        List<DrugForGiveModeListVO> result = Lists.newArrayList();
+        strings.forEach(key -> {
+            DrugForGiveModeListVO drugForGiveModeListVO = new DrugForGiveModeListVO();
+            drugForGiveModeListVO.setSupportKey(key);
+            drugForGiveModeListVO.setSupportKeyText(returnMap.get(key).get(0).getGiveModeKeyText());
+            drugForGiveModeListVO.setDrugForGiveModeVOS(returnMap.get(key));
+            result.add(drugForGiveModeListVO);
+        });
+        logger.info("drugForGiveMode result={}", JSONArray.toJSONString(result));
+        return result;
     }
 
     @Override

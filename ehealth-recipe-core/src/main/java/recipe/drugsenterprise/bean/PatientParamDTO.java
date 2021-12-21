@@ -8,9 +8,10 @@ import java.io.Serializable;
 /**
  * @author yinsheng
  * @date 2019\2\28 0028 15:26
+ * 对接药企 无需脱敏
  */
 @Schema
-public class PatientParamDTO implements Serializable{
+public class PatientParamDTO implements Serializable {
 
     private static final long serialVersionUID = -6256585787778201872L;
 

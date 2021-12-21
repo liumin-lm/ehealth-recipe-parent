@@ -99,7 +99,7 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
                 return;
             }
             //校验数据是否完善
-            recipeDetailValidateTool.validateDrug(a, recipeDay, organDrug, recipeType, drugEntrustNameMap);
+            recipeDetailValidateTool.validateDrug(a, recipeDay, organDrug, recipeType, drugEntrustNameMap, organId, validateDetailVO.getVersion());
             //返回前端必须字段
             setRecipeDetail(a, organDrug, configDrugNameMap, recipeType);
         });
@@ -113,6 +113,13 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
         //处方药物使用天数时间
         String[] recipeDay = configurationClient.recipeDay(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), validateDetailVO.getLongRecipe());
         recipeDetails.forEach(a -> recipeDetailValidateTool.useDayValidate(validateDetailVO.getRecipeType(), recipeDay, a));
+        return recipeDetails;
+    }
+
+    @Override
+    public List<RecipeDetailBean> drugSuperScalarValidate(ValidateDetailVO validateDetailVO) {
+        List<RecipeDetailBean> recipeDetails = validateDetailVO.getRecipeDetails();
+        recipeDetails.forEach(a -> recipeDetailValidateTool.drugSuperScalarValidate(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), a, validateDetailVO.getVersion()));
         return recipeDetails;
     }
 

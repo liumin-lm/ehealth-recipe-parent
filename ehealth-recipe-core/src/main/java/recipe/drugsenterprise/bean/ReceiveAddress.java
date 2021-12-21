@@ -5,8 +5,9 @@ import java.io.Serializable;
 /**
  * @author yinsheng
  * @date 2019\10\28 0028 16:20
+ * 对接药企 无需脱敏
  */
-public class ReceiveAddress implements Serializable{
+public class ReceiveAddress implements Serializable {
     private static final long serialVersionUID = -9088079972837447392L;
 
     private String Phone;

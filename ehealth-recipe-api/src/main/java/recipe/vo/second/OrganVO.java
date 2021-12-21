@@ -35,7 +35,6 @@ public class OrganVO implements Serializable {
     @ItemProperty(alias = "属地区域")
     @Dictionary(id = "eh.base.dictionary.AddrArea")
     private String addrArea;
-    private String address;
     private Double longituder;
     private Double latitude;
     private String busLine;

@@ -29,6 +29,13 @@ public interface IRecipeDetailBusinessService {
     List<RecipeDetailBean> useDayValidate(ValidateDetailVO validateDetailVO);
 
     /**
+     * 检验处方药品超量
+     * @param validateDetailVO 药品数据VO
+     * @return 处方药品明细
+     */
+    List<RecipeDetailBean> drugSuperScalarValidate(ValidateDetailVO validateDetailVO);
+
+    /**
      * 校验中药嘱托
      *
      * @param organId       机构id

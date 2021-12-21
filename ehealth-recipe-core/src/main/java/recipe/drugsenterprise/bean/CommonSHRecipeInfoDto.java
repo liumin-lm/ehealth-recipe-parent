@@ -5,125 +5,133 @@ package recipe.drugsenterprise.bean;
  * @Date: 2020/02/20
  */
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.util.List;
 
+/**
+ * 作废了
+ *
+ * @TODO liumin delete
+ */
+@Deprecated
 @Schema
 public class CommonSHRecipeInfoDto implements Serializable {
     /**
-     *处方ID
+     * 处方ID
      */
     private String PRESCRIPTNO;
     /**
-     *处方明细号
+     * 处方明细号
      */
     private String PRESCRIPTNOSEQ;
     /**
-     *医院代码
+     * 医院代码
      */
     private String HOSCODE;
     /**
-     *医院名称
+     * 医院名称
      */
     private String HOSNAME;
     /**
-     *健康卡号
+     * 健康卡号
      */
     private String HEALCARD;
     /**
-     *身份证号
-     *非必填
+     * 身份证号
+     * 非必填
      */
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String IDCARDNO;
     /**
-     *社保卡号
-     *非必填
+     * 社保卡号
+     * 非必填
      */
     private String ENDOWMENT;
     /**
-     *医保卡号
+     * 医保卡号
      */
     private String MEDICALNO;
     /**
-     *军官证号
+     * 军官证号
      * 非必填
      */
     private String ARMYNO;
     /**
-     *学生证号
+     * 学生证号
      * 非必填
      */
     private String STUDENTNO;
     /**
-     *居住证号
-     *  非必填
+     * 居住证号
+     * 非必填
      */
     private String RESIDENCE;
     /**
-     *处方日期
+     * 处方日期
      */
     private String BILLDATE;
     /**
-     *患者姓名
+     * 患者姓名
      */
     private String PATIENTNAME;
     /**
-     *性别
+     * 性别
      */
     private String GENDER;
     /**
-     *患者地址
+     * 患者地址
      */
     private String PATIENTADDRESS;
     /**
-     *患者手机号
+     * 患者手机号
      */
     private String PATIENTPHONE;
     /**
-     *药品编号
+     * 药品编号
      */
     private String GOODS;
     /**
-     *药品名称
+     * 药品名称
      */
     private String GOODSNAME;
     /**
-     *通用名
+     * 通用名
      */
     private String GNAME;
     /**
-     *规格
+     * 规格
      */
     private String SPEC;
     /**
-     *包装单位
+     * 包装单位
      */
     private String MSUNITNO;
     /**
-     *生产厂家
+     * 生产厂家
      */
     private String PRONAME;
     /**
-     *采购数量
+     * 采购数量
      */
     private int HOSQTY;
     /**
-     *采购单价
+     * 采购单价
      */
     private BigDecimal HOSPRICE;
     /**
-     *收费金额
+     * 收费金额
      */
     private BigDecimal SUMVALUE;
     /**
-     *用法用量
+     * 用法用量
      */
     private String METHODDESC;
     /**
-     *社区配送地址编码
+     * 社区配送地址编码
      */
     private String HOSDEPTCODE;
     /**

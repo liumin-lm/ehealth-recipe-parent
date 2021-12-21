@@ -1,5 +1,7 @@
 package com.ngari.recipe.entity;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
@@ -38,6 +40,7 @@ public class HisRecipe implements Serializable {
     @ItemProperty(alias = "患者地址")
     private String patientAddress; // varchar(250) DEFAULT NULL COMMENT '患者地址',
     @ItemProperty(alias = "患者手机号")
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String patientNumber; // varchar(20) DEFAULT NULL COMMENT '患者手机号',
     @ItemProperty(alias = "His处方单号")
     private String recipeCode; // varchar(50) DEFAULT NULL COMMENT 'His处方单号',
@@ -104,12 +107,14 @@ public class HisRecipe implements Serializable {
     @ItemProperty(alias = "配送药企名称")
     private String deliveryName;
     @ItemProperty(alias = "配送地址")
+    @Desensitizations(type = DesensitizationsType.ADDRESS)
     private String sendAddr;
     @ItemProperty(alias = "处方单特殊来源标识：1省中，邵逸夫医保小程序;  2北京 默认null")
     private Integer recipeSource;
     @ItemProperty(alias = "收货人姓名")
     private String receiverName;
     @ItemProperty(alias = "收货人电话")
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String receiverTel;
     @ItemProperty(alias = "是否缓存在平台")
     private Integer isCachePlatform;
@@ -152,6 +157,7 @@ public class HisRecipe implements Serializable {
     @ItemProperty(alias = "中医症候名称")
     private String symptomName;
     @ItemProperty(alias = "卡号")
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String cardNo;
     @ItemProperty(alias = "卡类型")
     private String cardTypeCode;
