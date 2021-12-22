@@ -26,7 +26,6 @@ import recipe.util.DateConversion;
 import recipe.vo.doctor.RecipeInfoVO;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -100,15 +99,7 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
 
     @Override
     public Integer therapyRecipeByMpiIdTotal(String mpiId) {
-        //获取当前用户下所有就诊人
-        List<String> allMpiIds = patientClient.getAllMemberPatientsByCurrentPatient(mpiId);
-        if (CollectionUtils.isEmpty(allMpiIds)) {
-            return 0;
-        }
-        List<RecipeTherapy> recipeTherapyList = recipeTherapyDAO.findTherapyByMpiIds(allMpiIds);
-        if (CollectionUtils.isEmpty(recipeTherapyList)) {
-            return 0;
-        }
+        List<RecipeTherapy>  recipeTherapyList = recipeTherapyManager.findTherapyPageByMpiIds(mpiId, null, null);
         return recipeTherapyList.size();
     }
 
@@ -173,12 +164,7 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
 
     @Override
     public List<RecipeInfoDTO> therapyRecipeListForPatient(String mpiId, int start, int limit) {
-        //获取当前用户下所有就诊人
-        List<String> allMpiIds = patientClient.getAllMemberPatientsByCurrentPatient(mpiId);
-        if (CollectionUtils.isEmpty(allMpiIds)) {
-            return new ArrayList<>();
-        }
-        List<RecipeTherapy> recipeTherapyList = recipeTherapyDAO.findTherapyPageByMpiIds(allMpiIds, start, limit);
+        List<RecipeTherapy>  recipeTherapyList = recipeTherapyManager.findTherapyPageByMpiIds(mpiId, start, limit);
         return paddingRecipeInfoDTO(recipeTherapyList);
     }
 
