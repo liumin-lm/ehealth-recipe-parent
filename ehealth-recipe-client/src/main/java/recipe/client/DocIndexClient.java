@@ -10,6 +10,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.util.JSONUtils;
+import eh.base.constant.BussTypeConstant;
 import eh.cdr.api.service.IDocIndexService;
 import eh.cdr.api.vo.*;
 import eh.cdr.api.vo.request.RecipeInfoReq;
@@ -18,6 +19,7 @@ import eh.cdr.api.vo.response.EmrConfigRes;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import recipe.aop.LogRecord;
 import recipe.constant.RecipeEmrComment;
 import recipe.util.ByteUtils;
 import recipe.util.DictionaryUtil;
@@ -38,6 +40,11 @@ public class DocIndexClient extends BaseClient {
      */
     private static final Integer DOC_STATUS_HOLD = 2;
     private static final Integer DOC_STATUS_USE = 4;
+
+    /**
+     * 处方类型
+     */
+    private static final Integer BUSS_TYPE_RECIPE = 3;
 
     @Resource
     private IDocIndexService docIndexService;
@@ -420,4 +427,15 @@ public class DocIndexClient extends BaseClient {
         }
         return emrDetail;
     }
+
+    /**
+     * 显示
+     * @param bussId
+     * @param docStatus
+     */
+    @LogRecord
+    public void updateStatusByBussIdBussType(Integer bussId,Integer docStatus){
+        docIndexService.updateStatusByBussIdBussType(bussId, BUSS_TYPE_RECIPE,docStatus);
+    }
+
 }
