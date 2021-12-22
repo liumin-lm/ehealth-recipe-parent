@@ -38,6 +38,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.business.StockBusinessService;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.DepartClient;
@@ -99,6 +100,8 @@ public class HisRecipeService {
     HisRecipeManager hisRecipeManager;
     @Autowired
     DepartClient departClient;
+    @Resource
+    private StockBusinessService stockBusinessService;
 
     private static final ThreadLocal<String> recipeCodeThreadLocal = new ThreadLocal<>();
 
@@ -1080,14 +1083,8 @@ public class HisRecipeService {
             savaRecipeDetail(recipe.getRecipeId(), hisRecipe);
             // 线下转线上处理处方支持的购药按钮
 //            Integer continueFlag = getContinueFlag(recipe);
-            List<Integer> drugsEnterpriseContinue = drugsEnterpriseService.getDrugsEnterpriseContinue(recipe.getRecipeId(), recipe.getClinicOrgan());
-            LOGGER.info("getHisRecipeDetailByHisRecipeId recipeId = {} drugsEnterpriseContinue = {}", recipe.getRecipeId(), JSONUtils.toString(drugsEnterpriseContinue));
-            if (CollectionUtils.isNotEmpty(drugsEnterpriseContinue)) {
-                Map<String, Object> attMap = new HashMap<>();
-                String join = StringUtils.join(drugsEnterpriseContinue, ",");
-                attMap.put("recipeSupportGiveMode", join);
-                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attMap);
-            }
+
+            stockBusinessService.setSupportGiveMode(recipe);
         }
         Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(recipe.getClinicOrgan(), recipe.getRecipeType()));
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);

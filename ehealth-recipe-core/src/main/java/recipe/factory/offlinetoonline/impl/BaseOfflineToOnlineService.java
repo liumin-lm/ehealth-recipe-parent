@@ -37,6 +37,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
+import recipe.business.StockBusinessService;
 import recipe.client.DepartClient;
 import recipe.client.RevisitClient;
 import recipe.dao.*;
@@ -140,6 +141,10 @@ public class BaseOfflineToOnlineService {
 
     @Autowired
     private PatientService patientService;
+
+
+    @Resource
+    private StockBusinessService stockBusinessService;
 
     /**
      * 获取购药按钮
@@ -510,16 +515,9 @@ public class BaseOfflineToOnlineService {
             saveRecipeExt(recipe, hisRecipe);
             savaRecipeDetail(recipe.getRecipeId(), hisRecipe);
 
-            //购药按钮
-            List<Integer> drugsEnterpriseContinue = drugsEnterpriseService.getDrugsEnterpriseContinue(recipe.getRecipeId(), recipe.getClinicOrgan());
-            LOGGER.info("getHisRecipeDetailByHisRecipeId recipeId = {} drugsEnterpriseContinue = {}", recipe.getRecipeId(), JSONUtils.toString(drugsEnterpriseContinue));
-            if (CollectionUtils.isNotEmpty(drugsEnterpriseContinue)) {
-                Map<String, Object> attMap = new HashMap<>();
-                String join = StringUtils.join(drugsEnterpriseContinue, ",");
-//                recipe.setRecipeSupportGiveMode(join);
-                attMap.put("recipeSupportGiveMode", join);
-                recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attMap);
-            }
+            // 购药按钮
+            stockBusinessService.setSupportGiveMode(recipe);
+
             LOGGER.info("BaseOfflineToOnlineService saveRecipeInfo res:{}", recipe.getRecipeId());
             revisitManager.saveRevisitTracesList(recipe);
             return recipe.getRecipeId();

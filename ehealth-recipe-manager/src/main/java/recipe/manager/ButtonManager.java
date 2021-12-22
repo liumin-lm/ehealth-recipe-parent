@@ -69,56 +69,6 @@ public class ButtonManager extends BaseManager {
         return PayButtonEnum.MY_PAY.getType();
     }
 
-
-    /**
-     * 传入药企信息
-     *
-     * @param supportDepList
-     * @param recipeSupportGiveModeList
-     * @param recipeId
-     * @param organId
-     * @return
-     */
-    public List<Integer> getGiveModeBuEnterprise(List<DrugsEnterprise> supportDepList, List<Integer> recipeSupportGiveModeList, Integer recipeId, int organId) {
-        Set<Integer> sendTypes = new HashSet<>();
-        // 获取所有药企支持的购药方式
-        if (CollectionUtils.isNotEmpty(supportDepList)) {
-            Set<Integer> collect = supportDepList.stream().map(drugsEnterprise -> {
-                Integer payModeSupport = drugsEnterprise.getPayModeSupport();
-                Integer sendType = drugsEnterprise.getSendType();
-                sendTypes.add(sendType);
-                if (RecipeDistributionFlagEnum.drugsEnterpriseAll.contains(payModeSupport)) {
-                    return RecipeDistributionFlagEnum.DRUGS_HAVE.getType();
-                } else if (RecipeDistributionFlagEnum.drugsEnterpriseTo.contains(payModeSupport)) {
-                    return RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType();
-                } else if (RecipeDistributionFlagEnum.drugsEnterpriseSend.contains(payModeSupport)) {
-                    return RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType();
-                }
-                return null;
-            }).filter(Objects::nonNull).collect(Collectors.toSet());
-
-            // 是否支持到店自取
-            boolean drugHaveTo = collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE_TO.getType());
-            // 是否支持配送
-            boolean drugHaveSend = collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE_SEND.getType());
-            // 根据药企的配送方式获取支持模式
-            if (collect.contains(RecipeDistributionFlagEnum.DRUGS_HAVE.getType()) || (drugHaveTo && drugHaveSend)) {
-                recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
-                sendTypes(sendTypes, recipeSupportGiveModeList);
-            } else if (drugHaveTo) {
-                recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SUPPORT_TFDS.getType());
-            } else if (drugHaveSend) {
-                // 根据配送主体区分医院配送还是药企配送
-                sendTypes(sendTypes, recipeSupportGiveModeList);
-            }
-            logger.info("getGiveModeWhenContinueOne  recipeId= {} recipeSupportGiveModeList= {}", recipeId, JSONUtils.toString(recipeSupportGiveModeList));
-            return recipeSupportGiveModeList;
-        } else {
-            logger.info("getGiveModeWhenContinueOne 药企没有库存 recipeId = {} recipeSupportGiveModeList= {}", recipeId, JSONUtils.toString(recipeSupportGiveModeList));
-            return recipeSupportGiveModeList;
-        }
-    }
-
     /**
      * 通过机构ID从运营平台获取购药方式的基本配置项
      *

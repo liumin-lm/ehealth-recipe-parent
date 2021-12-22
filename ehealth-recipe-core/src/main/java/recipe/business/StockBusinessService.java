@@ -61,6 +61,29 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     @Resource
     private OrganDrugListDAO organDrugListDAO;
 
+
+    /**
+     * 保存购药按钮
+     * @param recipe
+     */
+    public void setSupportGiveMode(Recipe recipe){
+        logger.info("StockBusinessService setSupportGiveMode recipe={}", JSONArray.toJSONString(recipe));
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+        //药企库存
+        List<EnterpriseStock> enterpriseStockList = this.enterpriseStockCheckAll(recipe, recipeDetails, null);
+        List<EnterpriseStock> enterpriseStock = enterpriseStockList.stream().filter(a -> CollectionUtils.isNotEmpty(a.getGiveModeButton())).collect(Collectors.toList());
+        logger.info("DrugEnterpriseBusinessService setSupportGiveMode enterpriseStock={}", JSON.toJSONString(enterpriseStock));
+        //医院库存
+        EnterpriseStock organStock = organDrugListManager.organStock(recipe, recipeDetails);
+        saveGiveMode(recipe, organStock, enterpriseStock, recipeDetails);
+    }
+    /**
+     * 预结算库存校验
+     * @param recipeIds
+     * @param recipe
+     * @param enterpriseId
+     * @return
+     */
     public Boolean getStockFlag(List<Integer> recipeIds, Recipe recipe, Integer enterpriseId) {
         logger.info("StockBusinessService getStockFlag recipeIds={}", JSONArray.toJSONString(recipeIds));
         if (CollectionUtils.isEmpty(recipeIds)) {

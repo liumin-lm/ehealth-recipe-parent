@@ -38,10 +38,6 @@ public class PayModeDownload implements IPurchaseService{
 
     @Autowired
     private OrderManager orderManager;
-    @Autowired
-    private RecipeDetailDAO recipeDetailDAO;
-    @Autowired
-    private OrganDrugListDAO organDrugListDAO;
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
@@ -67,15 +63,6 @@ public class PayModeDownload implements IPurchaseService{
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        List<Integer> recipeIdLists = reicpes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
-        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIdLists);
-        List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
-        Long notCountDownloadRecipe = organDrugListDAO.getCountDownloadRecipe(reicpes.get(0).getClinicOrgan(), drugIds);
-        if (notCountDownloadRecipe > 0) {
-            result.setCode(RecipeResultBean.FAIL);
-            result.setMsg("抱歉，不支持下载处方。");
-            return result;
-        }
         Recipe dbRecipe = reicpes.get(0);
         Integer recipeId = dbRecipe.getRecipeId();
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
