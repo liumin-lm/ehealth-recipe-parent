@@ -107,8 +107,6 @@ public class RecipeDetailValidateTool {
         }
         //开药天数
         useDayValidate(recipeType, recipeDay, recipeDetail);
-        //超量原因
-        drugSuperScalarValidate(organId, recipeType, recipeDetail, version);
         /**校验中药 数据是否完善*/
         if (RecipeUtil.isTcmType(recipeType)) {
             //每次剂量
@@ -122,6 +120,10 @@ public class RecipeDetailValidateTool {
             medicationsValidate(organDrug.getOrganId(), recipeDetail);
         } else {
             /**校验西药 数据是否完善*/
+            //超量原因
+            if (null != version && drugSuperScalarValidate(organId, recipeDetail)) {
+                recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
+            }
             //每次剂量
             if (ValidateUtil.validateObjects(recipeDetail.getUseDose()) && !"适量".equals(recipeDetail.getUseDoseStr())) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
@@ -186,27 +188,21 @@ public class RecipeDetailValidateTool {
 
     /**
      * 判断药品超量
-     * @param organId       机构ID
-     * @param recipeType    处方类型
-     * @param recipeDetail  处方药品明细
-     * @param version       版本号
+     *
+     * @param organId      机构ID
+     * @param recipeDetail 处方药品明细
      */
-    public void drugSuperScalarValidate(Integer organId, Integer recipeType, RecipeDetailBean recipeDetail, Integer version){
-        if (null == version) {
-            return;
-        }
+    public boolean drugSuperScalarValidate(Integer organId, RecipeDetailBean recipeDetail) {
         List<OrganDictionaryItemDTO> dictionaryItemDTOList = operationClient.findItemByOrgan(organId, DIC_BUS_TYPE);
         if (CollectionUtils.isEmpty(dictionaryItemDTOList)) {
-            //机构没有维护超量原因
-            return;
+            return false;
         }
-        if (!RecipeUtil.isTcmType(recipeType)) {
-            if (null != recipeDetail.getUseDays() && recipeDetail.getUseDays() > SUPER_SCALAR_DAYS
+        //当前开药天数超过7天,并且没有维护超量原因
+        if (null != recipeDetail.getUseDays() && recipeDetail.getUseDays() > SUPER_SCALAR_DAYS
                 && StringUtils.isEmpty(recipeDetail.getSuperscalarCode())) {
-                //当前开药天数超过7天,并且没有维护超量原因
-                recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
-            }
+            return true;
         }
+        return false;
     }
 
 

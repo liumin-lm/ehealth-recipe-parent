@@ -21,7 +21,7 @@ public class SearchDrugReqVO implements Serializable {
     /**
      * 机构id
      */
-    private String organId;
+    private Integer organId;
     /**
      * 药房
      */

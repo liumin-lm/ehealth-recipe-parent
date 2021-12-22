@@ -128,7 +128,7 @@ public class DrugDoctorAtop extends BaseAtop {
     public List<SearchDrugDetailDTO> searchOrganDrugEs(SearchDrugReqVO searchDrugReq) {
         validateAtop(searchDrugReq, searchDrugReq.getOrganId(), searchDrugReq.getDrugName(), searchDrugReq.getDrugType(), searchDrugReq.getApplyBusiness());
         DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
-        drugInfoDTO.setOrganId(Integer.valueOf(searchDrugReq.getOrganId()));
+        drugInfoDTO.setOrganId(searchDrugReq.getOrganId());
         drugInfoDTO.setDrugName(searchDrugReq.getDrugName());
         drugInfoDTO.setDrugType(searchDrugReq.getDrugType());
         drugInfoDTO.setApplyBusiness(searchDrugReq.getApplyBusiness());

@@ -24,7 +24,6 @@ import recipe.util.MapValueUtil;
 import recipe.vo.ResultBean;
 import recipe.vo.doctor.ValidateDetailVO;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -119,7 +118,7 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
     @Override
     public List<RecipeDetailBean> drugSuperScalarValidate(ValidateDetailVO validateDetailVO) {
         List<RecipeDetailBean> recipeDetails = validateDetailVO.getRecipeDetails();
-        recipeDetails.forEach(a -> recipeDetailValidateTool.drugSuperScalarValidate(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), a, validateDetailVO.getVersion()));
+        recipeDetails.forEach(a -> recipeDetailValidateTool.drugSuperScalarValidate(validateDetailVO.getOrganId(), a));
         return recipeDetails;
     }
 
