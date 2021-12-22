@@ -290,7 +290,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             List<String> drug = organDrugList.stream().map(OrganDrugList::getDrugName).collect(Collectors.toList());
             DrugForGiveModeVO drugForGiveModeVO = new DrugForGiveModeVO();
             drugForGiveModeVO.setGiveModeKey(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
-            drugForGiveModeVO.setGiveModeKeyText(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getName());
+            drugForGiveModeVO.setGiveModeKeyText(supportDownloadButton);
             drugForGiveModeVO.setDrugsName(drug);
             list.add(drugForGiveModeVO);
         }
