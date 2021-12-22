@@ -242,7 +242,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     }
 
     @Override
-    public List<DrugForGiveModeListVO>  drugForGiveMode(DrugQueryVO drugQueryVO) {
+    public List<DrugForGiveModeVO>  drugForGiveMode(DrugQueryVO drugQueryVO) {
         logger.info("drugForGiveMode DrugQueryVO={}", JSONArray.toJSONString(drugQueryVO));
         List<String> drugNames = new ArrayList<>();
         List<Integer> drugIds = new ArrayList<>();
@@ -303,18 +303,9 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
 //            drugForGiveModeVO.setDrugsName(drugNames);
 //            list.add(drugForGiveModeVO);
 //        }
-        Map<String, List<DrugForGiveModeVO>> returnMap = list.stream().collect(Collectors.groupingBy(DrugForGiveModeVO::getGiveModeKey));
-        Set<String> strings = returnMap.keySet();
-        List<DrugForGiveModeListVO> result = Lists.newArrayList();
-        strings.forEach(key -> {
-            DrugForGiveModeListVO drugForGiveModeListVO = new DrugForGiveModeListVO();
-            drugForGiveModeListVO.setSupportKey(key);
-            drugForGiveModeListVO.setSupportKeyText(returnMap.get(key).get(0).getGiveModeKeyText());
-            drugForGiveModeListVO.setDrugForGiveModeVOS(returnMap.get(key));
-            result.add(drugForGiveModeListVO);
-        });
-        logger.info("drugForGiveMode result={}", JSONArray.toJSONString(result));
-        return result;
+
+        logger.info("drugForGiveMode result={}", JSONArray.toJSONString(list));
+        return list;
     }
 
     @Override

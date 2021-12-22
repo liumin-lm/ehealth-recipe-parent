@@ -60,7 +60,7 @@ public interface IStockBusinessService {
      * @param drugQueryVO
      * @return
      */
-    List<DrugForGiveModeListVO>  drugForGiveMode(DrugQueryVO drugQueryVO);
+    List<DrugForGiveModeVO>  drugForGiveMode(DrugQueryVO drugQueryVO);
 
     /**
      * 查询药品能否开在一张处方上

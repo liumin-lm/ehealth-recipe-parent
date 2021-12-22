@@ -1,5 +1,6 @@
 package recipe.atop.doctor;
 
+import com.google.common.collect.Lists;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.dto.DrugInfoDTO;
@@ -18,14 +19,12 @@ import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IStockBusinessService;
 import recipe.util.ByteUtils;
-import recipe.vo.doctor.DrugEnterpriseStockVO;
-import recipe.vo.doctor.DrugForGiveModeListVO;
-import recipe.vo.doctor.DrugQueryVO;
-import recipe.vo.doctor.PatientOptionalDrugVO;
+import recipe.vo.doctor.*;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -52,7 +51,18 @@ public class DrugDoctorAtop extends BaseAtop {
     @RpcService
     public List<DrugForGiveModeListVO>  drugForGiveMode(DrugQueryVO drugQueryVO) {
         validateAtop(drugQueryVO, drugQueryVO.getRecipeDetails(), drugQueryVO.getOrganId());
-        return iDrugEnterpriseBusinessService.drugForGiveMode(drugQueryVO);
+        List<DrugForGiveModeVO> list = iDrugEnterpriseBusinessService.drugForGiveMode(drugQueryVO);
+        Map<String, List<DrugForGiveModeVO>> returnMap = list.stream().collect(Collectors.groupingBy(DrugForGiveModeVO::getGiveModeKey));
+        Set<String> strings = returnMap.keySet();
+        List<DrugForGiveModeListVO> result = Lists.newArrayList();
+        strings.forEach(key -> {
+            DrugForGiveModeListVO drugForGiveModeListVO = new DrugForGiveModeListVO();
+            drugForGiveModeListVO.setSupportKey(key);
+            drugForGiveModeListVO.setSupportKeyText(returnMap.get(key).get(0).getGiveModeKeyText());
+            drugForGiveModeListVO.setDrugForGiveModeVOS(returnMap.get(key));
+            result.add(drugForGiveModeListVO);
+        });
+        return result;
     }
 
     /**
