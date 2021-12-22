@@ -173,19 +173,6 @@ public class RecipeTherapyManager extends BaseManager {
         updateRecipeTherapy(updateRecipeTherapy);
     }
 
-    /**
-     * 根据处方ids 获取诊疗信息
-     *
-     * @param recipeIds 处方ids
-     * @return 诊疗信息
-     */
-    public List<RecipeTherapy> findTherapyByRecipeIds(List<Integer> recipeIds) {
-        logger.info("RecipeTherapyManager findTherapyByRecipeIds recipeIds:{}", JSON.toJSONString(recipeIds));
-        List<RecipeTherapy> result = recipeTherapyDAO.findTherapyByRecipeIds(recipeIds);
-        logger.info("RecipeTherapyManager findTherapyByRecipeIds result:{}", JSON.toJSONString(result));
-        return result;
-    }
-
     public List<RecipeTherapy> findTherapyByClinicId(Integer clinicId) {
         logger.info("RecipeTherapyManager findTherapyByClinicId recipeIds:{}", clinicId);
         List<RecipeTherapy> result = recipeTherapyDAO.findTherapyByClinicId(clinicId);
