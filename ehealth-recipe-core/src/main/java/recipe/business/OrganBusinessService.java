@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import recipe.client.IConfigurationClient;
 import recipe.client.OrganClient;
 import recipe.core.api.IOrganBusinessService;
+import recipe.dao.RecipeParameterDao;
 import recipe.manager.OrderManager;
 
 import java.util.ArrayList;
@@ -23,6 +24,8 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
     private IConfigurationClient configurationClient;
     @Autowired
     private OrderManager orderManager;
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
 
     @Override
     public List<Integer> getOrganForWeb() {
@@ -64,6 +67,11 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
             return false;
         }
         return recipeTypes.contains(giveModeKey);
+    }
+
+    @Override
+    public String getRecipeParameterValue(String key) {
+        return recipeParameterDao.getByName("kms-placepoint");
     }
 
 }

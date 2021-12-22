@@ -31,7 +31,6 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
     private IRecipeDetailBusinessService recipeDetailService;
     @Autowired
     private IRevisitBusinessService iRevisitBusinessService;
-
     @Autowired
     private IRecipeBusinessService recipeBusinessService;
 

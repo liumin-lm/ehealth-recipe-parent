@@ -38,6 +38,20 @@ public class OrganPatientAtop extends BaseAtop {
     }
 
     /**
+     * 获取处方配置
+     * @param key
+     * @return
+     */
+    @RpcService
+    public String getRecipeParameterValue(String key) {
+        logger.info("OrganAtop getRecipeParameterValue key:{}.", key);
+        String result = organBusinessService.getRecipeParameterValue(key);
+        logger.info("OrganAtop getRecipeParameterValue result:{}.", result);
+        return result;
+
+    }
+
+    /**
      * 获取机构购药方式配置
      * @param organId organId
      * @return 购药方式列表
