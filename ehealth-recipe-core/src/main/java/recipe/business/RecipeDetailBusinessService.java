@@ -105,7 +105,6 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
         return validateDetailVO;
     }
 
-
     @Override
     public List<RecipeDetailBean> useDayValidate(ValidateDetailVO validateDetailVO) {
         List<RecipeDetailBean> recipeDetails = validateDetailVO.getRecipeDetails();
@@ -121,7 +120,6 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
         recipeDetails.forEach(a -> recipeDetailValidateTool.drugSuperScalarValidate(validateDetailVO.getOrganId(), a));
         return recipeDetails;
     }
-
 
     @Override
     public List<RecipeDetailBean> entrustValidate(Integer organId, List<RecipeDetailBean> recipeDetails) {
