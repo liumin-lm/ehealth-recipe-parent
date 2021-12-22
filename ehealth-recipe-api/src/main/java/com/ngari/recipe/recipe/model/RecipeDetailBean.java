@@ -236,10 +236,10 @@ public class RecipeDetailBean implements java.io.Serializable {
     private Integer drugMedicalFlag;
 
     @ItemProperty(alias = "药品超量编码")
-    private String superscalarCode;
+    private String superScalarCode;
 
     @ItemProperty(alias = "药品超量名称")
-    private String superscalarName;
+    private String superScalarName;
 
     /**
      * 类型：1:药品，2:诊疗项目，3....
@@ -815,19 +815,19 @@ public class RecipeDetailBean implements java.io.Serializable {
         this.type = type;
     }
 
-    public String getSuperscalarCode() {
-        return superscalarCode;
+    public String getSuperScalarCode() {
+        return superScalarCode;
     }
 
-    public void setSuperscalarCode(String superscalarCode) {
-        this.superscalarCode = superscalarCode;
+    public void setSuperScalarCode(String superScalarCode) {
+        this.superScalarCode = superScalarCode;
     }
 
-    public String getSuperscalarName() {
-        return superscalarName;
+    public String getSuperScalarName() {
+        return superScalarName;
     }
 
-    public void setSuperscalarName(String superscalarName) {
-        this.superscalarName = superscalarName;
+    public void setSuperScalarName(String superScalarName) {
+        this.superScalarName = superScalarName;
     }
 }

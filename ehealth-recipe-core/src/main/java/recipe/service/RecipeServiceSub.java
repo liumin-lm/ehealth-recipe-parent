@@ -412,11 +412,11 @@ public class RecipeServiceSub {
             detail.setRecipeId(recipe.getRecipeId());
             detail.setCreateDt(nowDate);
             detail.setLastModify(nowDate);
-            if (StringUtils.isEmpty(detail.getSuperscalarCode())) {
-                detail.setSuperscalarCode("");
+            if (StringUtils.isEmpty(detail.getSuperScalarCode())) {
+                detail.setSuperScalarCode("");
             }
-            if (StringUtils.isEmpty(detail.getSuperscalarName())) {
-                detail.setSuperscalarName("");
+            if (StringUtils.isEmpty(detail.getSuperScalarName())) {
+                detail.setSuperScalarName("");
             }
             if (null != detail.getDrugId()) {
                 drugIds.add(detail.getDrugId());

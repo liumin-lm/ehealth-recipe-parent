@@ -199,7 +199,7 @@ public class RecipeDetailValidateTool {
         }
         //当前开药天数超过7天,并且没有维护超量原因
         if (null != recipeDetail.getUseDays() && recipeDetail.getUseDays() > SUPER_SCALAR_DAYS
-                && StringUtils.isEmpty(recipeDetail.getSuperscalarCode())) {
+                && StringUtils.isEmpty(recipeDetail.getSuperScalarCode())) {
             return true;
         }
         return false;

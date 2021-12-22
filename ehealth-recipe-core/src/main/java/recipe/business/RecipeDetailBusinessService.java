@@ -117,7 +117,11 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
     @Override
     public List<RecipeDetailBean> drugSuperScalarValidate(ValidateDetailVO validateDetailVO) {
         List<RecipeDetailBean> recipeDetails = validateDetailVO.getRecipeDetails();
-        recipeDetails.forEach(a -> recipeDetailValidateTool.drugSuperScalarValidate(validateDetailVO.getOrganId(), a));
+        recipeDetails.forEach(a -> {
+            if (recipeDetailValidateTool.drugSuperScalarValidate(validateDetailVO.getOrganId(), a)) {
+                a.setValidateStatus(VALIDATE_STATUS_PERFECT);
+            }
+        });
         return recipeDetails;
     }
 
