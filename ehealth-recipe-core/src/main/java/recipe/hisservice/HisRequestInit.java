@@ -517,6 +517,10 @@ public class HisRequestInit {
                         orderItem.setPharmacy(pharmacyTcm.getPharmacyName());
                     }
                 }
+                //设置超量编码
+                orderItem.setSuperscalarCode(detail.getSuperscalarCode());
+                //设置超量原因
+                orderItem.setSuperscalarName(detail.getSuperscalarName());
                 OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), detail.getOrganDrugCode(), detail.getDrugId());
                 if (null != organDrug) {
                     orderItem.setUseDoseSmallestUnit(organDrug.getUseDoseSmallestUnit());
