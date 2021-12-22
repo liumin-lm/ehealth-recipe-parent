@@ -9,6 +9,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DrugEnterpriseLogisticsBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
+import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBeanNoDS;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseRes;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
@@ -388,7 +389,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
     }
 
     @RpcService
-    public DrugsEnterpriseBean getDrugsEnterpriseByIdForOp(Integer drugsEnterpriseId) {
+    public DrugsEnterpriseBeanNoDS getDrugsEnterpriseByIdForOp(Integer drugsEnterpriseId) {
         DrugsEnterpriseBean bean = getDrugsEnterpriseById(drugsEnterpriseId);
         UserRoleToken urt = UserRoleToken.getCurrent();
         String mu = urt.getManageUnit();
@@ -397,7 +398,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
                 OpSecurityUtil.isAuthorisedOrgan(bean.getOrganId());
             }
         }
-        return bean;
+        return ObjectCopyUtils.convert(bean, DrugsEnterpriseBeanNoDS.class);
     }
 
     @RpcService
