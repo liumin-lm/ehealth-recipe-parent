@@ -1304,7 +1304,7 @@ public class HisRecipeService {
             LOGGER.info("Arrays.asList(hisRecipeDetail.getDrugCode()):" + hisRecipeDetail.getDrugCode());
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(hisRecipeDetail.getDrugCode()));
             if (CollectionUtils.isEmpty(organDrugLists)) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "请联系医院，需要医院维护好对应药品信息到药品目录中");
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "处方中的药品信息未维护到线上平台药品目录");
             }
             Recipedetail recipedetail = new Recipedetail();
             recipedetail.setRecipeId(recipeId);
