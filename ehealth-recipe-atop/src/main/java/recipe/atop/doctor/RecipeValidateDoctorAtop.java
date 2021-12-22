@@ -13,6 +13,7 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.core.api.IRevisitBusinessService;
+import recipe.util.RecipeUtil;
 import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
 import recipe.vo.doctor.ValidateDetailVO;
@@ -90,13 +91,16 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
 
     /**
      * 检验处方药品超量
+     *
      * @param validateDetailVO 药品数据VO
      * @return 处方药品明细
      */
     @RpcService
-    public List<RecipeDetailBean> drugSuperScalarValidate(ValidateDetailVO validateDetailVO){
+    public List<RecipeDetailBean> drugSuperScalarValidate(ValidateDetailVO validateDetailVO) {
         validateAtop(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), validateDetailVO.getRecipeDetails());
-        validateDetailVO.setVersion(1);
+        if (RecipeUtil.isTcmType(validateDetailVO.getRecipeType())) {
+            return validateDetailVO.getRecipeDetails();
+        }
         return recipeDetailService.drugSuperScalarValidate(validateDetailVO);
     }
 
