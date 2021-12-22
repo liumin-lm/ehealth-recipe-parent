@@ -1593,7 +1593,15 @@ public class RecipeServiceSub {
             }
             map.put("medicalFlag", medicalFlag);
             if (null != recipe.getChecker() && recipe.getChecker() > 0) {
-                String ysTel = doctorService.getMobileByDoctorId(recipe.getChecker());
+                String ysTel = "";
+                // 美康药师手机号
+                if (recipe.getCheckMode().equals(5)) {
+                    IRecipeCheckService recipeCheckService = RecipeAuditAPI.getService(IRecipeCheckService.class, "recipeCheckServiceImpl");
+                    RecipeCheckBean recipeCheckBean = recipeCheckService.getNowCheckResultByRecipeId(recipeId);
+                    ysTel = recipeCheckBean.getThirdPharmacistPhone();
+                }else{
+                    ysTel = doctorService.getMobileByDoctorId(recipe.getChecker());
+                }
                 if (StringUtils.isNotEmpty(ysTel)) {
                     recipe.setCheckerTel(ysTel);
                 }

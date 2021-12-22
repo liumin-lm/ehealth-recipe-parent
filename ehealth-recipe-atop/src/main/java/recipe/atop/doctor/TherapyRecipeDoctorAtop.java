@@ -245,17 +245,8 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
      */
     @RpcService
     public boolean abolishTherapyRecipe(Integer recipeId) {
-        logger.info("TherapyRecipeDoctorAtop abolishTherapyRecipe recipeId:{}.", recipeId);
         validateAtop(recipeId);
-        try {
-            return therapyRecipeBusinessService.abolishTherapyRecipe(recipeId);
-        } catch (DAOException e1) {
-            logger.warn("TherapyRecipeDoctorAtop abolishTherapyRecipe  error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("TherapyRecipeDoctorAtop abolishTherapyRecipe  error e", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
+        return therapyRecipeBusinessService.abolishTherapyRecipe(recipeId);
     }
 
     /**
@@ -267,17 +258,8 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
      */
     @RpcService
     public boolean abolishTherapyRecipeForRevisitClose(Integer bussSource, Integer clinicId){
-        logger.info("TherapyRecipeDoctorAtop abolishTherapyRecipeForRevisitClose bussSource:{},clinicId:{}.", bussSource, clinicId);
         validateAtop(bussSource, clinicId);
-        try {
-            return therapyRecipeBusinessService.abolishTherapyRecipeForRevisitClose(bussSource, clinicId);
-        } catch (DAOException e1) {
-            logger.warn("TherapyRecipeDoctorAtop abolishTherapyRecipeForRevisitClose  error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("TherapyRecipeDoctorAtop abolishTherapyRecipeForRevisitClose  error e", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
+        return therapyRecipeBusinessService.abolishTherapyRecipeForRevisitClose(bussSource, clinicId);
     }
 
     /**
@@ -287,26 +269,17 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
      */
     @RpcService
     public List<ItemListVO> searchItemListByKeyWord(ItemListVO itemListVO){
-        logger.info("TherapyRecipeDoctorAtop searchItemListByKeyWord itemListVO:{}.", JSON.toJSONString(itemListVO));
         validateAtop(itemListVO, itemListVO.getOrganId());
-        try {
-            //drugName 为空时可以查询默认的  默认第一个分页数据
-            if(ValidateUtil.integerIsEmpty(itemListVO.getStart())){
-                itemListVO.setStart(PageInfoConstant.PAGE_NO);
-            }
-            if(ValidateUtil.integerIsEmpty(itemListVO.getLimit())){
-                itemListVO.setLimit(PageInfoConstant.PAGE_SIZE);
-            }
-            List<ItemListVO> result = therapyRecipeBusinessService.searchItemListByKeyWord(itemListVO);
-            logger.info("TherapyRecipeDoctorAtop searchItemListByKeyWord result:{}.", JSON.toJSONString(result));
-            return result;
-        } catch (DAOException e1) {
-            logger.warn("TherapyRecipeDoctorAtop searchItemListByKeyWord  error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("TherapyRecipeDoctorAtop searchItemListByKeyWord  error e", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        //drugName 为空时可以查询默认的  默认第一个分页数据
+        if(ValidateUtil.integerIsEmpty(itemListVO.getStart())){
+            itemListVO.setStart(PageInfoConstant.PAGE_NO);
         }
+        if(ValidateUtil.integerIsEmpty(itemListVO.getLimit())){
+            itemListVO.setLimit(PageInfoConstant.PAGE_SIZE);
+        }
+        List<ItemListVO> result = therapyRecipeBusinessService.searchItemListByKeyWord(itemListVO);
+        logger.info("TherapyRecipeDoctorAtop searchItemListByKeyWord result:{}.", JSON.toJSONString(result));
+        return result;
     }
 
 }

@@ -30,11 +30,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.audit.handle.AutoCheckRecipe;
+import recipe.client.DocIndexClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.enumerate.type.DocIndexShowEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
@@ -262,6 +264,9 @@ public class AuditPreMode extends AbstractAuidtMode {
             }
 
         }
+        // 病历处方-状态修改成显示
+        DocIndexClient docIndexClient = AppContextHolder.getBean("docIndexClient", DocIndexClient.class);
+        docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
     }
 }

@@ -10,6 +10,7 @@ import ctd.persistence.exception.DAOException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 import recipe.client.PatientClient;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
@@ -18,6 +19,7 @@ import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.enumerate.type.TherapyCancellationTypeEnum;
 import recipe.util.ValidateUtil;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -84,7 +86,7 @@ public class RecipeTherapyManager extends BaseManager {
      * 分页 获取诊疗处方列表
      *
      * @param recipeTherapy 诊疗处方对象
-     * @param start         页数
+     * @param start         起始页
      * @param limit         每页条数
      * @return 诊疗处方列表
      */
@@ -171,23 +173,32 @@ public class RecipeTherapyManager extends BaseManager {
         updateRecipeTherapy(updateRecipeTherapy);
     }
 
-    /**
-     * 根据处方ids 获取诊疗信息
-     *
-     * @param recipeIds 处方ids
-     * @return 诊疗信息
-     */
-    public List<RecipeTherapy> findTherapyByRecipeIds(List<Integer> recipeIds) {
-        logger.info("RecipeTherapyManager findTherapyByRecipeIds recipeIds:{}", JSON.toJSONString(recipeIds));
-        List<RecipeTherapy> result = recipeTherapyDAO.findTherapyByRecipeIds(recipeIds);
-        logger.info("RecipeTherapyManager findTherapyByRecipeIds result:{}", JSON.toJSONString(result));
-        return result;
-    }
-
     public List<RecipeTherapy> findTherapyByClinicId(Integer clinicId) {
         logger.info("RecipeTherapyManager findTherapyByClinicId recipeIds:{}", clinicId);
         List<RecipeTherapy> result = recipeTherapyDAO.findTherapyByClinicId(clinicId);
         logger.info("RecipeTherapyManager findTherapyByClinicId result:{}", JSON.toJSONString(result));
         return result;
+    }
+
+    /**
+     * 通过患者查询诊疗处方
+     * @param mpiId 患者
+     * @param start 起始页
+     * @param limit 条数
+     * @return 诊疗列表
+     */
+    public List<RecipeTherapy> findTherapyPageByMpiIds(String mpiId, Integer start, Integer limit){
+        List<RecipeTherapy> recipeTherapyList = new ArrayList<>();
+        //获取当前用户下所有就诊人
+        List<String> allMpiIds = patientClient.getAllMemberPatientsByCurrentPatient(mpiId);
+        if (CollectionUtils.isEmpty(allMpiIds)) {
+            return recipeTherapyList;
+        }
+        if (null == start) {
+            recipeTherapyList = recipeTherapyDAO.findTherapyByMpiIds(allMpiIds);
+        } else {
+            recipeTherapyList = recipeTherapyDAO.findTherapyPageByMpiIds(allMpiIds, start, limit);
+        }
+        return recipeTherapyList;
     }
 }

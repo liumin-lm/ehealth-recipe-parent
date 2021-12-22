@@ -168,6 +168,11 @@ public class RecipeService extends RecipeBaseService {
 
     private static List<String> beforeCAList = Arrays.asList("gdsign", "gdsign|2", "jiangsuCA", "beijingCA", "bjYwxCA");
 
+    /**
+     * 不需要审核模式
+     */
+    private static Integer NO_AUDIT = 0;
+
     private static final String EXTEND_VALUE_FLAG = "1";
 
     public static final String KEY_THE_DRUG_SYNC = "THE_DRUG_SYNC";
@@ -564,6 +569,8 @@ public class RecipeService extends RecipeBaseService {
         }
         docIndex.setDocId(recipe.getRecipeId());
         docIndex.setMpiid(recipe.getMpiid());
+        // docStatus   0  正常（显示） 1  删除状态（不显示）
+        docIndex.setDocStatus(recipe.getReviewType().equals(NO_AUDIT)?DocIndexShowEnum.HIDE.getCode():DocIndexShowEnum.HIDE.getCode());
         docIndex.setCreateOrgan(recipe.getClinicOrgan());
         docIndex.setCreateDepart(recipe.getDepart());
         docIndex.setCreateDoctor(recipe.getDoctor());
@@ -2136,6 +2143,7 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     @RpcService
+    @LogRecord
     public RecipeResultBean doSecondSignRecipe(RecipeBean recipe) {
         LOGGER.info("RecipeService doSecondSignRecipe recipe ： {} ", JSON.toJSONString(recipe));
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
@@ -2205,6 +2213,7 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     @RpcService
+    @LogRecord
     public RecipeResultBean afterCheckPassYs(Recipe recipe) {
         if (null == recipe) {
             return null;
@@ -2304,8 +2313,9 @@ public class RecipeService extends RecipeBaseService {
 
             orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("status", status), resultBean);
         }
-
-
+        // 病历处方-状态修改成显示
+        DocIndexClient docIndexClient = AppContextHolder.getBean("docIndexClient", DocIndexClient.class);
+        docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "审核通过处理完成");
         return resultBean;
     }
