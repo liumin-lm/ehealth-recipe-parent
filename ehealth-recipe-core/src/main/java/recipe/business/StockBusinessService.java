@@ -406,12 +406,12 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         }
         //每个药企对应的 不满足的药品列表
         List<Integer> enterpriseIds = enterpriseStockList.stream().map(EnterpriseStock::getDrugsEnterpriseId).collect(Collectors.toList());
-        Map<Integer, List<String>> enterpriseDrugNameGroup = enterpriseManager.checkEnterpriseDrugName(enterpriseIds, recipeDetails);
+        Map<Integer, List<Integer>> enterpriseDrugIdGroup = enterpriseManager.enterpriseDrugIdGroup(enterpriseIds, recipeDetails);
         //校验药企库存
         List<FutureTask<EnterpriseStock>> futureTasks = new LinkedList<>();
         //根据药企配置查询 库存
         for (EnterpriseStock enterpriseStock : enterpriseStockList) {
-            FutureTask<EnterpriseStock> ft = new FutureTask<>(() -> enterpriseStockFutureTask(enterpriseStock, recipe, recipeDetails, enterpriseDrugNameGroup));
+            FutureTask<EnterpriseStock> ft = new FutureTask<>(() -> enterpriseStockFutureTask(enterpriseStock, recipe, recipeDetails, enterpriseDrugIdGroup));
             futureTasks.add(ft);
             GlobalEventExecFactory.instance().getExecutor().submit(ft);
         }
@@ -421,13 +421,13 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     /**
      * 验 药品库存 指定药企的库存数量
      *
-     * @param enterpriseStock         药企
-     * @param recipe                  机构id
-     * @param recipeDetails           药品数据
-     * @param enterpriseDrugNameGroup 验证能否药品配送以及能否开具到一张处方单上
+     * @param enterpriseStock       药企
+     * @param recipe                机构id
+     * @param recipeDetails         药品数据
+     * @param enterpriseDrugIdGroup 验证能否药品配送以及能否开具到一张处方单上
      * @return
      */
-    private EnterpriseStock enterpriseStockFutureTask(EnterpriseStock enterpriseStock, Recipe recipe, List<Recipedetail> recipeDetails, Map<Integer, List<String>> enterpriseDrugNameGroup) {
+    private EnterpriseStock enterpriseStockFutureTask(EnterpriseStock enterpriseStock, Recipe recipe, List<Recipedetail> recipeDetails, Map<Integer, List<Integer>> enterpriseDrugIdGroup) {
         enterpriseStock.setStock(false);
         //药企无对应的购药按钮则 无需查询库存-返回无库存
         if (CollectionUtils.isEmpty(enterpriseStock.getGiveModeButton())) {
@@ -435,9 +435,10 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             return enterpriseStock;
         }
         //验证能否药品配送以及能否开具到一张处方单上
-        if (!enterpriseDrugNameGroup.isEmpty()) {
-            List<String> drugNames = enterpriseDrugNameGroup.get(enterpriseStock.getDrugsEnterpriseId());
-            if (CollectionUtils.isNotEmpty(drugNames)) {
+        if (!enterpriseDrugIdGroup.isEmpty()) {
+            List<Integer> drugIds = enterpriseDrugIdGroup.get(enterpriseStock.getDrugsEnterpriseId());
+            if (CollectionUtils.isNotEmpty(drugIds)) {
+                List<String> drugNames = recipeDetails.stream().filter(a -> drugIds.contains(a.getDrugId())).map(Recipedetail::getDrugName).distinct().collect(Collectors.toList());
                 enterpriseStock.setDrugName(drugNames);
                 enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
                 return enterpriseStock;

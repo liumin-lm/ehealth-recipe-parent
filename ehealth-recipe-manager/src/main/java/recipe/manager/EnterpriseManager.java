@@ -79,27 +79,22 @@ public class EnterpriseManager extends BaseManager {
      * @param recipeDetails 处方明显-开方药品
      * @return 药企-不满足的 药品名称
      */
-    public Map<Integer, List<String>> checkEnterpriseDrugName(List<Integer> enterpriseIds, List<Recipedetail> recipeDetails) {
-        List<String> nameList = new LinkedList<>();
-        List<Integer> drugIds = recipeDetails.stream().map(a -> {
-            nameList.add(a.getDrugName());
-            return a.getDrugId();
-        }).collect(Collectors.toList());
-        Map<Integer, List<Integer>> enterpriseDrugIdGroup = saleDrugListDAO.findDepDrugRelation(drugIds, enterpriseIds);
-        logger.info("DrugStockManager enterpriseDrugNameGroup enterpriseDrugIdGroup= {}", JSON.toJSONString(enterpriseDrugIdGroup));
-
-        Map<Integer, List<String>> enterpriseDrugNameGroup = new HashMap<>();
+    public Map<Integer, List<Integer>> enterpriseDrugIdGroup(List<Integer> enterpriseIds, List<Recipedetail> recipeDetails) {
+        List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).distinct().collect(Collectors.toList());
+        Map<Integer, List<Integer>> enterpriseDrugIdsGroup = saleDrugListDAO.findDepDrugRelation(drugIds, enterpriseIds);
+        logger.info("DrugStockManager enterpriseDrugNameGroup enterpriseDrugIdsGroup= {}", JSON.toJSONString(enterpriseDrugIdsGroup));
+        Map<Integer, List<Integer>> enterpriseDrugGroup = new HashMap<>();
         enterpriseIds.forEach(a -> {
-            List<Integer> drugIdList = enterpriseDrugIdGroup.get(a);
+            List<Integer> drugIdList = enterpriseDrugIdsGroup.get(a);
             if (CollectionUtils.isEmpty(drugIdList)) {
-                enterpriseDrugNameGroup.put(a, nameList);
+                enterpriseDrugGroup.put(a, drugIds);
                 return;
             }
-            List<String> names = recipeDetails.stream().filter(recipeDetail -> !drugIdList.contains(String.valueOf(recipeDetail.getDrugId()))).map(Recipedetail::getDrugName).collect(Collectors.toList());
-            enterpriseDrugNameGroup.put(a, names);
+            List<Integer> drugId = recipeDetails.stream().filter(recipeDetail -> !drugIdList.contains(String.valueOf(recipeDetail.getDrugId()))).map(Recipedetail::getDrugId).collect(Collectors.toList());
+            enterpriseDrugGroup.put(a, drugId);
         });
-        logger.info("DrugStockManager enterpriseDrugNameGroup enterpriseDrugNameGroup= {}", JSON.toJSONString(enterpriseDrugNameGroup));
-        return enterpriseDrugNameGroup;
+        logger.info("DrugStockManager enterpriseDrugNameGroup enterpriseDrugGroup= {}", JSON.toJSONString(enterpriseDrugGroup));
+        return enterpriseDrugGroup;
     }
 
 
