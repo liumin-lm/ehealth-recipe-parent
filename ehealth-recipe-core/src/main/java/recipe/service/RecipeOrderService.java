@@ -37,6 +37,7 @@ import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipeorder.model.MedicalRespData;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import com.ngari.recipe.recipeorder.model.RecipeOrderBeanNoDS;
 import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
 import com.ngari.wxpay.service.INgariPayService;
 import coupon.api.service.ICouponBaseService;
@@ -1456,7 +1457,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 if (status.equals(OrderStatusConstant.CANCEL_MANUAL)) {
 
                     // 邵逸夫手动取消要查看是否有支付审方费
-                    Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode",false);
+                    Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
                     if (syfPayMode) {
                         //邵逸夫支付
                         RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(order.getOrderId(), PayFlowTypeEnum.RECIPE_AUDIT.getType());
@@ -1660,9 +1661,9 @@ public class RecipeOrderService extends RecipeBaseService {
                             recipedetail.setDrugDisplaySplicedName(DrugNameDisplayUtil.dealwithRecipedetailName(organDrugLists, recipedetail, recipe.getRecipeType()));
                         }
                         RecipeDetailBean recipeDetailBean = new RecipeDetailBean();
-                        BeanUtils.copy(recipedetail,recipeDetailBean);
+                        BeanUtils.copy(recipedetail, recipeDetailBean);
                         List<DrugList> drugList = drugListMap.get(recipedetail.getDrugId());
-                        if(CollectionUtils.isNotEmpty(drugList)){
+                        if (CollectionUtils.isNotEmpty(drugList)) {
                             recipeDetailBean.setDrugPic(drugList.get(0).getDrugPic());
                         }
                         detailBeans.add(recipeDetailBean);
@@ -1726,7 +1727,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             }
 
-            RecipeOrderBean orderBean = ObjectCopyUtils.convert(order, RecipeOrderBean.class);
+            RecipeOrderBeanNoDS orderBean = ObjectCopyUtils.convert(order, RecipeOrderBeanNoDS.class);
             orderBean.setDecoctionId(decoctionId);
             orderBean.setDecoctionText(decoctionText);
             BigDecimal needFee = new BigDecimal(0.00);
@@ -1763,7 +1764,7 @@ public class RecipeOrderService extends RecipeBaseService {
                             needFee = orderBean.getTotalFee().subtract(orderBean.getCouponFee()).subtract(new BigDecimal(Double.toString(orderBean.getActualPrice())));
                         }
                         // 邵逸夫模式修改需付款
-                        if(!"supportToHos".equals(order.getGiveModeKey())) {
+                        if (!"supportToHos".equals(order.getGiveModeKey())) {
                             Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
                             if (syfPayMode) {
                                 List<RecipeOrderPayFlow> byOrderId = recipeOrderPayFlowManager.findByOrderId(orderBean.getOrderId());
@@ -1832,21 +1833,22 @@ public class RecipeOrderService extends RecipeBaseService {
             result.setMsg("不存在ID为" + orderId + "的订单");
         }
         // 到院取药是否支持线上支付 标志
-        putSupportToHosPayFlag(result,order);
+        putSupportToHosPayFlag(result, order);
         LOGGER.info("getOrderDetailById.result={}", JSONUtils.toString(result));
         return result;
     }
 
     /**
      * 到院取药是否支持线上支付 标志
+     *
      * @param result
      * @param order
      */
-    private void putSupportToHosPayFlag(RecipeResultBean result, RecipeOrder order){
+    private void putSupportToHosPayFlag(RecipeResultBean result, RecipeOrder order) {
         Map<String, Object> map = result.getExt();
         // 到院取药是否支持线上支付
         Boolean supportToHosPayFlag = configurationClient.getValueBooleanCatch(order.getOrganId(), "supportToHosPayFlag", false);
-        map.put("supportToHosPayFlag",supportToHosPayFlag.toString());
+        map.put("supportToHosPayFlag", supportToHosPayFlag.toString());
         result.setExt(map);
     }
 
@@ -2348,7 +2350,6 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
     }
-
 
 
     /**

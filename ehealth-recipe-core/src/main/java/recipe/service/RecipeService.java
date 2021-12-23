@@ -549,6 +549,7 @@ public class RecipeService extends RecipeBaseService {
      *
      * @param recipe 处方对象
      */
+    @LogRecord
     public void saveRecipeDocIndex(Recipe recipe) {
         IDepartmentService iDepartmentService = ApplicationUtils.getBaseService(IDepartmentService.class);
 
@@ -570,12 +571,13 @@ public class RecipeService extends RecipeBaseService {
         docIndex.setDocId(recipe.getRecipeId());
         docIndex.setMpiid(recipe.getMpiid());
         // docStatus   0  正常（显示） 1  删除状态（不显示）
-        docIndex.setDocStatus(recipe.getReviewType().equals(NO_AUDIT)?DocIndexShowEnum.HIDE.getCode():DocIndexShowEnum.HIDE.getCode());
+        docIndex.setDocStatus(NO_AUDIT.equals(recipe.getReviewType())?DocIndexShowEnum.SHOW.getCode():DocIndexShowEnum.HIDE.getCode());
         docIndex.setCreateOrgan(recipe.getClinicOrgan());
         docIndex.setCreateDepart(recipe.getDepart());
         docIndex.setCreateDoctor(recipe.getDoctor());
         docIndex.setDoctorName(doctorService.getNameById(recipe.getDoctor()));
         docIndex.setDepartName(iDepartmentService.getNameById(recipe.getDepart()));
+        LOGGER.error("saveRecipeDocIndex RecipeType docIndex={},docType={}", JSON.toJSONString(docIndex), docType);
         iPatientService.saveRecipeDocIndex(docIndex, docType, 3);
     }
 
