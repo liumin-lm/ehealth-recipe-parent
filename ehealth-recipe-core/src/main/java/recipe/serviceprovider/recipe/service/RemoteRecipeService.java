@@ -32,6 +32,7 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.opbase.auth.service.ISecurityService;
 import com.ngari.opbase.auth.service.IUserPermissionService;
+import com.ngari.opbase.util.OpSecurityUtil;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -422,7 +423,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public QueryResult<Map> findRecipesByInfo2(RecipesQueryVO recipesQueryVO) {
         if (recipesQueryVO.getOrganId()!=null) {
-            if (!securityService.isAuthoritiedOrganNew(recipesQueryVO.getOrganId())) {
+            if (!OpSecurityUtil.isAuthorisedOrgan(recipesQueryVO.getOrganId())) {
                 return null;
             }
         }
