@@ -249,7 +249,10 @@ public class OperationClient extends BaseClient {
      * @return
      */
     public OrganDictionaryItemDTO getByDictionaryCode(Integer subType, Integer organId, String dictionaryCode){
-        return organDictionaryItemService.getByDictionaryCode(subType, organId, dictionaryCode);
+        logger.info("OperationClient.getByDictionaryCode subType:{},organId:{},dictionaryCode:{}", subType, organId, dictionaryCode);
+        OrganDictionaryItemDTO organDictionaryItemDTO = organDictionaryItemService.getByDictionaryCode(subType, organId, dictionaryCode);
+        logger.info("OperationClient.getByDictionaryCode organDictionaryItemDTO：{}", JSON.toJSONString(organDictionaryItemDTO));
+        return organDictionaryItemDTO;
     }
 
 
