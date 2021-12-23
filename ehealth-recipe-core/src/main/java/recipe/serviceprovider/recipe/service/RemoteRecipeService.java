@@ -11,6 +11,7 @@ import com.ngari.base.clientconfig.service.IClientConfigService;
 import com.ngari.base.clientconfig.to.ClientConfigBean;
 import com.ngari.base.common.ICommonService;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
+import com.ngari.base.op.service.ISecurityService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.service.IHealthCardService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
@@ -30,11 +31,13 @@ import com.ngari.his.recipe.mode.weijianwei.DrugInfoReq;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
+import com.ngari.opbase.auth.service.IUserPermissionService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.DoctorService;
+import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.ca.mode.CaSignResultTo;
@@ -59,6 +62,7 @@ import com.ngari.recipe.recipereportform.model.*;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.account.Client;
+import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -175,6 +179,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private PatientClient patientClient;
     @Autowired
     private ButtonManager buttonManager;
+    @Autowired
+    private IUserPermissionService userPermissionService;
 
     @RpcService
     @Override
@@ -415,10 +421,26 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     public QueryResult<Map> findRecipesByInfo2(RecipesQueryVO recipesQueryVO) {
+        if (recipesQueryVO.getOrganId()!=null) {
+            Set<Integer> o = new HashSet<Integer>();
+            o.add(recipesQueryVO.getOrganId());
+            ISecurityService iSecurityService= AppContextHolder.getBean("eh.remoteSecurityService", ISecurityService.class);
+            if (!iSecurityService.isAuthoritiedOrgan(o)) {
+                return null;
+            }
+        }
+        UserRoleToken urt = UserRoleToken.getCurrent();
+        String manageUnit = urt.getManageUnit();
+        List<Integer> organIds = null;
+        if (!"eh".equals(manageUnit) && !manageUnit.startsWith("yq")) {
+            organIds = new ArrayList<>();
+            OrganService organService=AppContextHolder.getBean("basic.organService", OrganService.class);
+            organIds=organService.queryOrganByManageUnitList(manageUnit, organIds);
+        }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         QueryResult<Map> result = recipeDAO.findRecipesByInfo(recipesQueryVO.getOrganId(), recipesQueryVO.getStatus(), recipesQueryVO.getDoctor()
                 , recipesQueryVO.getPatientName(), recipesQueryVO.getBDate(), recipesQueryVO.getEDate(), recipesQueryVO.getDateType()
-                , recipesQueryVO.getDepart(), recipesQueryVO.getStart(), recipesQueryVO.getLimit(), recipesQueryVO.getOrganIds()
+                , recipesQueryVO.getDepart(), recipesQueryVO.getStart(), recipesQueryVO.getLimit(), organIds
                 , recipesQueryVO.getGiveMode(), recipesQueryVO.getSendType(), recipesQueryVO.getFromFlag(), recipesQueryVO.getRecipeId()
                 , recipesQueryVO.getEnterpriseId(), recipesQueryVO.getCheckStatus(), recipesQueryVO.getPayFlag(), recipesQueryVO.getOrderType(), recipesQueryVO.getRefundNodeStatus(), recipesQueryVO.getRecipeType());
         List<Map> records = result.getItems();
@@ -2855,6 +2877,5 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         Recipe recipe1 = ObjectCopyUtils.convert(recipe, Recipe.class);
         return buttonManager.getGiveModeTextByRecipe(recipe1);
     }
-
 
 }
