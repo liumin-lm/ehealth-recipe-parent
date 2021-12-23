@@ -71,7 +71,7 @@ public class OrganBusinessService extends BaseService implements IOrganBusinessS
 
     @Override
     public String getRecipeParameterValue(String key) {
-        return recipeParameterDao.getByName("kms-placepoint");
+        return recipeParameterDao.getByName(key);
     }
 
 }
