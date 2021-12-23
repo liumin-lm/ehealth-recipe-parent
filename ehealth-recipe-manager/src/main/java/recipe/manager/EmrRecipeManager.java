@@ -134,7 +134,7 @@ public class EmrRecipeManager extends BaseManager {
         recipeDetailList.forEach(a -> a.setDrugName(DrugManager.dealWithRecipeDrugName(a, recipe.getRecipeType(), recipe.getClinicOrgan())));
         docIndexClient.saveRpDetail(recipe, recipeExtend, recipeDetailList, docId);
         //更新电子病例 为已经使用状态
-        docIndexClient.updateEmrStatus(recipeId, docId, recipe.getClinicId());
+        docIndexClient.updateEmrStatus(recipe, docId, recipe.getClinicId());
         updateDisease(recipeId);
     }
 
