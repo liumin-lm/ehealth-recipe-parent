@@ -266,6 +266,8 @@ public class RecipeService extends RecipeBaseService {
     private DepartManager departManager;
     @Autowired
     private DrugDecoctionWayDao drugDecoctionWayDao;
+    @Autowired
+    private DocIndexClient docIndexClient;
     /**
      * 药师审核不通过
      */
@@ -2200,6 +2202,7 @@ public class RecipeService extends RecipeBaseService {
         if (ReviewTypeConstant.Preposition_Check == dbRecipe.getReviewType()) {
             auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckPassYs(dbRecipe);
         }
+        docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
         LOGGER.info("RecipeService doSecondSignRecipe  execute ok!  recipeId ： {} ", recipe.getRecipeId());
         return resultBean;
     }

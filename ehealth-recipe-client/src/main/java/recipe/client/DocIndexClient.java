@@ -157,6 +157,8 @@ public class DocIndexClient extends BaseClient {
         logger.info("DocIndexClient deleteRecipeDetailsFromDoc recipeId={}", recipeId);
         //将药品信息移出病历
         try {
+            // 隐藏
+            this.updateStatusByBussIdBussType(recipeId,DocIndexShowEnum.HIDE.getCode());
             docIndexService.deleteRpDetailRelation(recipeId);
         } catch (Exception e) {
             logger.warn("DocIndexClient deleteRecipeDetailsFromDoc error", e);
