@@ -163,6 +163,7 @@ public class DocIndexClient extends BaseClient {
         }
     }
 
+    @LogRecord
     public void updateEmrStatus(Recipe recipe, Integer docId, Integer clinicId) {
         //更新电子病例 为已经使用状态
         SaveEmrContractReq saveEmrContractReq = new SaveEmrContractReq();
@@ -173,6 +174,7 @@ public class DocIndexClient extends BaseClient {
         if (ValidateUtil.integerIsEmpty(clinicId)) {
             saveEmrContractReq.setDocStatus(DOC_STATUS_USE);
         }
+        logger.info("EmrRecipeManager updateEmrStatus saveEmrContractReq={} ", JSON.toJSONString(saveEmrContractReq));
         Integer result = docIndexService.saveBussContact(saveEmrContractReq);
         logger.info("EmrRecipeManager updateEmrStatus docId={}result={}", docId, result);
     }
