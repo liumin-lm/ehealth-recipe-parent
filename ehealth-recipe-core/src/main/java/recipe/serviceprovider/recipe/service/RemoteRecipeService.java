@@ -416,12 +416,24 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public QueryResult<Map> findRecipesByInfo2(RecipesQueryVO recipesQueryVO) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        return recipeDAO.findRecipesByInfo(recipesQueryVO.getOrganId(), recipesQueryVO.getStatus(), recipesQueryVO.getDoctor()
+        QueryResult<Map> result = recipeDAO.findRecipesByInfo(recipesQueryVO.getOrganId(), recipesQueryVO.getStatus(), recipesQueryVO.getDoctor()
                 , recipesQueryVO.getPatientName(), recipesQueryVO.getBDate(), recipesQueryVO.getEDate(), recipesQueryVO.getDateType()
                 , recipesQueryVO.getDepart(), recipesQueryVO.getStart(), recipesQueryVO.getLimit(), recipesQueryVO.getOrganIds()
                 , recipesQueryVO.getGiveMode(), recipesQueryVO.getSendType(), recipesQueryVO.getFromFlag(), recipesQueryVO.getRecipeId()
                 , recipesQueryVO.getEnterpriseId(), recipesQueryVO.getCheckStatus(), recipesQueryVO.getPayFlag(), recipesQueryVO.getOrderType(), recipesQueryVO.getRefundNodeStatus(), recipesQueryVO.getRecipeType());
-
+        List<Map> records = result.getItems();
+        for (Map record : records) {
+            Recipe recipe = recipeDAO.getByRecipeId((int) record.get("recipeId"));
+            record.put("giveModeText", buttonManager.getGiveModeTextByRecipe(recipe));
+            RecipeOrder recipeOrder = (RecipeOrder) record.get("recipeOrder");
+            if (recipeOrder.getDispensingTime() != null) {
+                ApothecaryDTO giveUserDefault = doctorClient.getGiveUserDefault(recipe);
+                recipeOrder.setDispensingApothecaryName(giveUserDefault.getGiveUserName());
+            } else {
+                recipeOrder.setDispensingApothecaryName("");
+            }
+        }
+        return result;
     }
 
     @RpcService
