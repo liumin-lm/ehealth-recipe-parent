@@ -11,7 +11,6 @@ import com.ngari.base.clientconfig.service.IClientConfigService;
 import com.ngari.base.clientconfig.to.ClientConfigBean;
 import com.ngari.base.common.ICommonService;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
-import com.ngari.base.op.service.ISecurityService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.service.IHealthCardService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
@@ -31,6 +30,7 @@ import com.ngari.his.recipe.mode.weijianwei.DrugInfoReq;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
+import com.ngari.opbase.auth.service.ISecurityService;
 import com.ngari.opbase.auth.service.IUserPermissionService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
@@ -180,7 +180,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Autowired
     private ButtonManager buttonManager;
     @Autowired
-    private IUserPermissionService userPermissionService;
+    private ISecurityService securityService;
 
     @RpcService
     @Override
@@ -422,10 +422,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public QueryResult<Map> findRecipesByInfo2(RecipesQueryVO recipesQueryVO) {
         if (recipesQueryVO.getOrganId()!=null) {
-            Set<Integer> o = new HashSet<Integer>();
-            o.add(recipesQueryVO.getOrganId());
-            ISecurityService iSecurityService= AppContextHolder.getBean("eh.remoteSecurityService", ISecurityService.class);
-            if (!iSecurityService.isAuthoritiedOrgan(o)) {
+            if (!securityService.isAuthoritiedOrganNew(recipesQueryVO.getOrganId())) {
                 return null;
             }
         }
@@ -579,6 +576,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         }
         recipeDetial.put("buttonIsShow", buttonIsShow);
         LOGGER.info("remoteRecipeService.findRecipeAndDetailsAndCheckById 返回处方单详情返回值,{}", JSON.toJSONString(recipeDetial));
+
+        RecipeBean recipeBean = (RecipeBean) recipeDetial.get("recipe");
+        if (recipeBean != null){
+            securityService.isAuthoritiedOrganNew(recipeBean.getClinicOrgan());
+        }
+
         return recipeDetial;
     }
 
