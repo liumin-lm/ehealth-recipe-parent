@@ -577,7 +577,7 @@ public class RecipeService extends RecipeBaseService {
         docIndex.setCreateDoctor(recipe.getDoctor());
         docIndex.setDoctorName(doctorService.getNameById(recipe.getDoctor()));
         docIndex.setDepartName(iDepartmentService.getNameById(recipe.getDepart()));
-        LOGGER.error("saveRecipeDocIndex RecipeType docIndex={},docType={}", docIndex, docType);
+        LOGGER.error("saveRecipeDocIndex RecipeType docIndex={},docType={}", JSON.toJSONString(docIndex), docType);
         iPatientService.saveRecipeDocIndex(docIndex, docType, 3);
     }
 
