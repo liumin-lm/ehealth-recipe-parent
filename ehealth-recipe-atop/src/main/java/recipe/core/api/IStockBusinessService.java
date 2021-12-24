@@ -77,5 +77,5 @@ public interface IStockBusinessService {
      * @param enterpriseId
      * @return
      */
-    Boolean getOrderStockFlag(List<Integer> recipeIds, Integer enterpriseId);
+    Boolean getOrderStockFlag(List<Integer> recipeIds, Integer enterpriseId,Integer giveMode);
 }
