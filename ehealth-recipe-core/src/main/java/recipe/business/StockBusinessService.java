@@ -436,7 +436,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 return enterpriseStock;
             }
             //验证能否药品配送以及能否开具到一张处方单上
-            if (!enterpriseDrugIdGroup.isEmpty()) {
+            if (null != enterpriseDrugIdGroup) {
                 List<Integer> drugIds = enterpriseDrugIdGroup.get(enterpriseStock.getDrugsEnterpriseId());
                 if (CollectionUtils.isNotEmpty(drugIds)) {
                     List<String> drugNames = recipeDetails.stream().filter(a -> drugIds.contains(a.getDrugId())).map(Recipedetail::getDrugName).distinct().collect(Collectors.toList());
