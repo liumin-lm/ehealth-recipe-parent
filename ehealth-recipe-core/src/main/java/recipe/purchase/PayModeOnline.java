@@ -224,7 +224,7 @@ public class PayModeOnline implements IPurchaseService {
 
             // 根据药企查询库存
             EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, depId);
-            if (!enterpriseStock.getStock()) {
+            if (Objects.nonNull(enterpriseStock) && !enterpriseStock.getStock()) {
                 //无法配送
                 result.setCode(RecipeResultBean.FAIL);
                 result.setMsg("药企无法配送");
