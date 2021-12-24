@@ -26,7 +26,6 @@ public class RecipeExportDTO implements Serializable{
     @ItemProperty(alias = "开方机构名称")
     private String organName;
     @ItemProperty(alias = "开方科室")
-    @Dictionary(id = "eh.base.dictionary.Depart")
     private Integer depart;
     @ItemProperty(alias = "开方医生")
     @Dictionary(id = "eh.base.dictionary.Doctor")
@@ -34,7 +33,6 @@ public class RecipeExportDTO implements Serializable{
     @ItemProperty(alias = "机构疾病名称")
     private String organDiseaseName;
     @ItemProperty(alias = "发药方式")
-    @Dictionary(id = "eh.cdr.dictionary.GiveMode")
     private Integer giveMode;
     @ItemProperty(alias = "处方状态")
     @Dictionary(id = "eh.cdr.dictionary.RecipeStatus")
