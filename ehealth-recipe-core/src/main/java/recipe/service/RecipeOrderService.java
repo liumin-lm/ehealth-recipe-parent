@@ -1551,6 +1551,7 @@ public class RecipeOrderService extends RecipeBaseService {
         CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
         RecipeOrder order = recipeOrderDAO.get(orderId);
         recipeResultBean.getExt().put("completeAddress", commonRemoteService.getCompleteAddress(order));
+        LOGGER.info("getOrderDetailByIdV1 recipeResultBean={}", JSON.toJSONString(recipeResultBean));
         return recipeResultBean;
     }
 
