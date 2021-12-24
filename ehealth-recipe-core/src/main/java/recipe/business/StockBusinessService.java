@@ -204,7 +204,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     }
 
     @Override
-    public List<DrugForGiveModeVO>  drugForGiveMode(DrugQueryVO drugQueryVO) {
+    public List<DrugForGiveModeVO> drugForGiveMode(DrugQueryVO drugQueryVO) {
         logger.info("drugForGiveMode DrugQueryVO={}", JSONArray.toJSONString(drugQueryVO));
         List<String> drugNames = new ArrayList<>();
         List<Integer> drugIds = new ArrayList<>();
@@ -297,6 +297,11 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         return enterpriseStock;
     }
 
+    @Override
+    public Boolean getOrderStockFlag(List<Integer> recipeIds, Integer enterpriseId) {
+        return this.getStockFlag(recipeIds, recipeDAO.get(recipeIds.get(0)), enterpriseId);
+    }
+
     /**
      * 保存购药按钮
      *
@@ -349,11 +354,11 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
 
             case GIVE_MODE_DOWNLOAD_RECIPE:
                 // 下载处方签
-                List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
-                Long notCountDownloadRecipe = organDrugListDAO.getCountDownloadRecipe(recipe.getClinicOrgan(), drugIds);
-                if (notCountDownloadRecipe > 0) {
-                    stockFlag = false;
-                }
+//                List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+//                Long notCountDownloadRecipe = organDrugListDAO.getCountDownloadRecipe(recipe.getClinicOrgan(), drugIds);
+//                if (notCountDownloadRecipe > 0) {
+//                    stockFlag = false;
+//                }
                 break;
             default:
                 break;

@@ -70,4 +70,12 @@ public interface IStockBusinessService {
      * @return
      */
     List<EnterpriseStock> drugRecipeStock(Integer organId, List<Recipedetail> detailList);
+
+    /**
+     * 获取药品库存
+     * @param recipeIds
+     * @param enterpriseId
+     * @return
+     */
+    Boolean getOrderStockFlag(List<Integer> recipeIds, Integer enterpriseId);
 }
