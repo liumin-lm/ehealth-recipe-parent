@@ -6,7 +6,6 @@ import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.dto.OrganDTO;
 import com.ngari.recipe.entity.*;
-import ctd.util.JSONUtils;
 import eh.base.constant.CardTypeEnum;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -15,13 +14,18 @@ import org.springframework.stereotype.Service;
 import recipe.client.OperationClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.OrganAndDrugsepRelationDAO;
-import recipe.enumerate.type.*;
+import recipe.enumerate.type.AppointEnterpriseTypeEnum;
+import recipe.enumerate.type.PayButtonEnum;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.factoryManager.button.IGiveModeBase;
 import recipe.factoryManager.button.impl.BjGiveModeServiceImpl;
 import recipe.factoryManager.button.impl.CommonGiveModeServiceImpl;
 import recipe.factoryManager.button.impl.FromHisGiveModeServiceImpl;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -172,34 +176,6 @@ public class ButtonManager extends BaseManager {
         List<GiveModeButtonDTO> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
         Map<String, String> result = giveModeButtonBeans.stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
         return result.get(giveModeKey);
-    }
-
-    /**
-     * 根据配送主体获取购药方式
-     *
-     * @param sendTypes
-     * @param recipeSupportGiveModeList
-     */
-    private void sendTypes(Set<Integer> sendTypes, List<Integer> recipeSupportGiveModeList) {
-        if (CollectionUtils.isEmpty(sendTypes)) {
-            recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
-            recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
-            return;
-        }
-        boolean alReadyPay = sendTypes.contains(RecipeSendTypeEnum.ALRAEDY_PAY.getSendType());
-        boolean noPay = sendTypes.contains(RecipeSendTypeEnum.NO_PAY.getSendType());
-        if (alReadyPay && noPay) {
-            recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
-            recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
-            return;
-        }
-        if (alReadyPay) {
-            recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.getType());
-            return;
-        }
-        if (noPay) {
-            recipeSupportGiveModeList.add(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.getType());
-        }
     }
 
 

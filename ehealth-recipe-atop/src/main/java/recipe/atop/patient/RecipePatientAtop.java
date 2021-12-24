@@ -110,16 +110,9 @@ public class RecipePatientAtop extends BaseAtop {
             }
             logger.info("OutPatientRecipeAtop getOutRecipeDisease diseaseNames = {}", diseaseNames);
             return diseaseNames.toString();
-        } catch (DAOException e1) {
-            logger.error("OutPatientRecipeAtop getOutRecipeDisease error", e1);
-            if (HisErrorCodeEnum.HIS_PARAMETER_ERROR.getCode() == e1.getCode()
-                    || HisErrorCodeEnum.HIS_NULL_ERROR.getCode() == e1.getCode()) {
-                return "";
-            }
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
             logger.error("OutPatientRecipeAtop getOutRecipeDisease error e", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+            return "";
         }
     }
 

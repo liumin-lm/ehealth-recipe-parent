@@ -197,6 +197,12 @@ public class RecipeDetailValidateTool {
         if (CollectionUtils.isEmpty(dictionaryItemDTOList)) {
             return false;
         }
+        if (StringUtils.isNotEmpty(recipeDetail.getSuperScalarCode())) {
+            OrganDictionaryItemDTO organDictionaryItemDTO = operationClient.getByDictionaryCode(DIC_BUS_TYPE, organId, recipeDetail.getSuperScalarCode());
+            if (null == organDictionaryItemDTO) {
+                return true;
+            }
+        }
         //当前开药天数超过7天,并且没有维护超量原因
         if (null != recipeDetail.getUseDays() && recipeDetail.getUseDays() > SUPER_SCALAR_DAYS
                 && StringUtils.isEmpty(recipeDetail.getSuperScalarCode())) {
