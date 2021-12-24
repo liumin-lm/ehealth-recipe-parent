@@ -77,7 +77,7 @@ public class DrugPatientAtop extends BaseAtop {
      */
     @RpcService
     public Boolean getOrderStockFlag(List<Integer> recipeIds,Integer enterpriseId) {
-        validateAtop(recipeIds, enterpriseId);
+        validateAtop(recipeIds);
         return stockBusinessService.getOrderStockFlag(recipeIds, enterpriseId);
     }
 
