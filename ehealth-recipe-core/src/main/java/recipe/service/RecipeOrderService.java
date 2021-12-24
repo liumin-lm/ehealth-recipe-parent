@@ -1539,6 +1539,21 @@ public class RecipeOrderService extends RecipeBaseService {
         return result;
     }
 
+    /**
+     * 订单详情非脱敏completeAddress
+     *
+     * @param orderId
+     * @return
+     */
+    @RpcService
+    public RecipeResultBean getOrderDetailByIdV1(Integer orderId) {
+        RecipeResultBean recipeResultBean = getOrderDetailById(orderId);
+        CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
+        RecipeOrder order = recipeOrderDAO.get(orderId);
+        recipeResultBean.getExt().put("completeAddress", commonRemoteService.getCompleteAddress(order));
+        return recipeResultBean;
+    }
+
     @RpcService
     public RecipeResultBean getOrderDetailById(Integer orderId) {
         LOGGER.info("getOrderDetailById.orderId={}", orderId);
@@ -1549,12 +1564,11 @@ public class RecipeOrderService extends RecipeBaseService {
             result.setMsg("缺少参数");
         }
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
 
-        RecipeOrder order = orderDAO.get(orderId);
+        RecipeOrder order = recipeOrderDAO.get(orderId);
         if (null != order) {
             List<PatientRecipeDTO> patientRecipeBeanList = new ArrayList<>(10);
             List<Recipe> recipeList = null;
@@ -2044,7 +2058,7 @@ public class RecipeOrderService extends RecipeBaseService {
         RecipeOrder order = orderDAO.getByOrderCode(orderCode);
         if (order != null) {
             checkUserHasPermission((Integer) JSONUtils.parse(order.getRecipeIdList(), List.class).get(0));
-            return this.getOrderDetailById(order.getOrderId());
+            return this.getOrderDetailByIdV1(order.getOrderId());
         } else {
             throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "该处方单信息已变更，请退出重新获取处方信息。");
         }
