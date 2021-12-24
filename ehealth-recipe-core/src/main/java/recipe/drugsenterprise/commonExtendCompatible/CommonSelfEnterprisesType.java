@@ -244,6 +244,8 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
                 String inventory = getDrugInventory(recipeDetail.getDrugId(), drugsEnterprise, recipe.getClinicOrgan());
                 if ("有库存".equals(inventory)) {
                     drugInfoDTO.setStock(true);
+                    drugInfoDTO.setStockAmountChin("有库存");
+                    drugInfoDTO.setStockAmount(recipeDetail.getUseTotalDose().intValue());
                 }
                 drugInfoList.add(drugInfoDTO);
             });
