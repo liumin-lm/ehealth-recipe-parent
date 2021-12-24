@@ -298,8 +298,10 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     }
 
     @Override
-    public Boolean getOrderStockFlag(List<Integer> recipeIds, Integer enterpriseId) {
-        return this.getStockFlag(recipeIds, recipeDAO.get(recipeIds.get(0)), enterpriseId);
+    public Boolean getOrderStockFlag(List<Integer> recipeIds, Integer enterpriseId,Integer giveMode) {
+        Recipe recipe = recipeDAO.get(recipeIds.get(0));
+        recipe.setGiveMode(giveMode);
+        return this.getStockFlag(recipeIds, recipe, enterpriseId);
     }
 
     /**
