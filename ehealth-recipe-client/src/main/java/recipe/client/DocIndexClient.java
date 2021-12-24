@@ -21,6 +21,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import recipe.aop.LogRecord;
 import recipe.constant.RecipeEmrComment;
+import recipe.enumerate.type.DocIndexShowEnum;
 import recipe.util.ByteUtils;
 import recipe.util.DictionaryUtil;
 import recipe.util.ValidateUtil;
@@ -156,21 +157,27 @@ public class DocIndexClient extends BaseClient {
         logger.info("DocIndexClient deleteRecipeDetailsFromDoc recipeId={}", recipeId);
         //将药品信息移出病历
         try {
+            // 隐藏
+            this.updateStatusByBussIdBussType(recipeId,DocIndexShowEnum.HIDE.getCode());
             docIndexService.deleteRpDetailRelation(recipeId);
         } catch (Exception e) {
             logger.warn("DocIndexClient deleteRecipeDetailsFromDoc error", e);
         }
     }
 
-    public void updateEmrStatus(Integer recipeId, Integer docId, Integer clinicId) {
+    @LogRecord
+    public void updateEmrStatus(Recipe recipe, Integer docId, Integer clinicId) {
         //更新电子病例 为已经使用状态
         SaveEmrContractReq saveEmrContractReq = new SaveEmrContractReq();
-        saveEmrContractReq.setBussId(recipeId);
+        saveEmrContractReq.setBussId(recipe.getRecipeId());
         saveEmrContractReq.setDocIndexId(docId);
         saveEmrContractReq.setBussType(1);
+        // 没有审核   1 显示 0 撤销
+        saveEmrContractReq.setDocindexExtStatus(DocIndexShowEnum.NO_AUDIT.equals(recipe.getReviewType())?DocIndexShowEnum.NORMAL.getCode():DocIndexShowEnum.REVOKE.getCode());
         if (ValidateUtil.integerIsEmpty(clinicId)) {
             saveEmrContractReq.setDocStatus(DOC_STATUS_USE);
         }
+        logger.info("EmrRecipeManager updateEmrStatus saveEmrContractReq={} ", JSON.toJSONString(saveEmrContractReq));
         Integer result = docIndexService.saveBussContact(saveEmrContractReq);
         logger.info("EmrRecipeManager updateEmrStatus docId={}result={}", docId, result);
     }

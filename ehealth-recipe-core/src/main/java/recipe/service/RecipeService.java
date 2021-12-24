@@ -168,10 +168,6 @@ public class RecipeService extends RecipeBaseService {
 
     private static List<String> beforeCAList = Arrays.asList("gdsign", "gdsign|2", "jiangsuCA", "beijingCA", "bjYwxCA");
 
-    /**
-     * 不需要审核模式
-     */
-    private static Integer NO_AUDIT = 0;
 
     private static final String EXTEND_VALUE_FLAG = "1";
 
@@ -270,6 +266,8 @@ public class RecipeService extends RecipeBaseService {
     private DepartManager departManager;
     @Autowired
     private DrugDecoctionWayDao drugDecoctionWayDao;
+    @Autowired
+    private DocIndexClient docIndexClient;
     /**
      * 药师审核不通过
      */
@@ -571,7 +569,7 @@ public class RecipeService extends RecipeBaseService {
         docIndex.setDocId(recipe.getRecipeId());
         docIndex.setMpiid(recipe.getMpiid());
         // docStatus   0  正常（显示） 1  删除状态（不显示）
-        docIndex.setDocStatus(NO_AUDIT.equals(recipe.getReviewType())?DocIndexShowEnum.SHOW.getCode():DocIndexShowEnum.HIDE.getCode());
+        docIndex.setDocStatus(DocIndexShowEnum.NO_AUDIT.getCode().equals(recipe.getReviewType())?DocIndexShowEnum.SHOW.getCode():DocIndexShowEnum.HIDE.getCode());
         docIndex.setCreateOrgan(recipe.getClinicOrgan());
         docIndex.setCreateDepart(recipe.getDepart());
         docIndex.setCreateDoctor(recipe.getDoctor());
@@ -2204,6 +2202,7 @@ public class RecipeService extends RecipeBaseService {
         if (ReviewTypeConstant.Preposition_Check == dbRecipe.getReviewType()) {
             auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckPassYs(dbRecipe);
         }
+        docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
         LOGGER.info("RecipeService doSecondSignRecipe  execute ok!  recipeId ： {} ", recipe.getRecipeId());
         return resultBean;
     }
