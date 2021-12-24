@@ -427,7 +427,8 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
      * @param enterpriseDrugIdGroup 验证能否药品配送以及能否开具到一张处方单上
      * @return
      */
-    private EnterpriseStock enterpriseStockFutureTask(EnterpriseStock enterpriseStock, Recipe recipe, List<Recipedetail> recipeDetails, Map<Integer, List<Integer>> enterpriseDrugIdGroup) {
+    private EnterpriseStock enterpriseStockFutureTask(EnterpriseStock enterpriseStock, Recipe recipe,
+                                                      List<Recipedetail> recipeDetails, Map<Integer, List<Integer>> enterpriseDrugIdGroup) {
         enterpriseStock.setStock(false);
         try {
             //药企无对应的购药按钮则 无需查询库存-返回无库存
@@ -449,7 +450,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             return enterpriseStock;
         } catch (Exception e) {
             logger.error("StockBusinessService enterpriseStockFutureTask  e", e);
-            logger.error("StockBusinessService enterpriseStockFutureTask enterpriseStock = {},recipe = {}," + "recipeDetails ={} , enterpriseDrugIdGroup = {} , e"
+            logger.error("StockBusinessService enterpriseStockFutureTask enterpriseStock = {},recipe = {}, recipeDetails ={} , enterpriseDrugIdGroup = {} , e"
                     , JSON.toJSONString(enterpriseStock), JSON.toJSONString(recipe), JSON.toJSONString(recipeDetails), JSON.toJSONString(enterpriseDrugIdGroup), e);
             enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
             return enterpriseStock;
