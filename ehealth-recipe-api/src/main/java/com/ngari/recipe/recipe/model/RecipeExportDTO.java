@@ -26,6 +26,7 @@ public class RecipeExportDTO implements Serializable{
     @ItemProperty(alias = "开方机构名称")
     private String organName;
     @ItemProperty(alias = "开方科室")
+    @Dictionary(id = "eh.base.dictionary.Depart")
     private Integer depart;
     @ItemProperty(alias = "开方医生")
     @Dictionary(id = "eh.base.dictionary.Doctor")
@@ -33,6 +34,7 @@ public class RecipeExportDTO implements Serializable{
     @ItemProperty(alias = "机构疾病名称")
     private String organDiseaseName;
     @ItemProperty(alias = "发药方式")
+    @Dictionary(id = "eh.cdr.dictionary.GiveMode")
     private Integer giveMode;
     @ItemProperty(alias = "处方状态")
     @Dictionary(id = "eh.cdr.dictionary.RecipeStatus")
@@ -51,10 +53,6 @@ public class RecipeExportDTO implements Serializable{
     private Integer recipeType;
     @ItemProperty(alias = "发药药师")
     private String giveUser;
-    @ItemProperty(alias = "行政科室名称")
-    private String departText;
-    @ItemProperty(alias = "购药方式名称")
-    private String giveModeText;
 
     @Column(name = "doctorName")
     public String getDoctorName() {
@@ -180,21 +178,5 @@ public class RecipeExportDTO implements Serializable{
 
     public void setGiveUser(String giveUser) {
         this.giveUser = giveUser;
-    }
-
-    public String getDepartText() {
-        return departText;
-    }
-
-    public void setDepartText(String departText) {
-        this.departText = departText;
-    }
-
-    public String getGiveModeText() {
-        return giveModeText;
-    }
-
-    public void setGiveModeText(String giveModeText) {
-        this.giveModeText = giveModeText;
     }
 }
