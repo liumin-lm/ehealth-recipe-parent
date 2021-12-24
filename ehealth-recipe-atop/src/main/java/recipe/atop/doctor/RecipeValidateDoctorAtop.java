@@ -97,8 +97,8 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
      */
     @RpcService
     public List<RecipeDetailBean> drugSuperScalarValidate(ValidateDetailVO validateDetailVO) {
-        validateAtop(validateDetailVO.getOrganId(), validateDetailVO.getRecipeType(), validateDetailVO.getRecipeDetails());
-        if (RecipeUtil.isTcmType(validateDetailVO.getRecipeType())) {
+        validateAtop(validateDetailVO.getOrganId());
+        if (RecipeUtil.isTcmType(validateDetailVO.getRecipeType()) || CollectionUtils.isEmpty(validateDetailVO.getRecipeDetails())) {
             return validateDetailVO.getRecipeDetails();
         }
         return recipeDetailService.drugSuperScalarValidate(validateDetailVO);
