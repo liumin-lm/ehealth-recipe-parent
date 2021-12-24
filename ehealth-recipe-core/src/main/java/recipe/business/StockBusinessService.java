@@ -204,7 +204,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     }
 
     @Override
-    public List<DrugForGiveModeVO>  drugForGiveMode(DrugQueryVO drugQueryVO) {
+    public List<DrugForGiveModeVO> drugForGiveMode(DrugQueryVO drugQueryVO) {
         logger.info("drugForGiveMode DrugQueryVO={}", JSONArray.toJSONString(drugQueryVO));
         List<String> drugNames = new ArrayList<>();
         List<Integer> drugIds = new ArrayList<>();
@@ -297,6 +297,11 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         return enterpriseStock;
     }
 
+    @Override
+    public Boolean getOrderStockFlag(List<Integer> recipeIds, Integer enterpriseId) {
+        return this.getStockFlag(recipeIds, recipeDAO.get(recipeIds.get(0)), enterpriseId);
+    }
+
     /**
      * 保存购药按钮
      *
@@ -337,23 +342,27 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 // 药店取药
                 // 根据药企查询库存
                 EnterpriseStock enterpriseStock = this.enterpriseStockCheck(recipe, recipeDetails, enterpriseId);
-                stockFlag = enterpriseStock.getStock();
+                if(Objects.nonNull(enterpriseStock)) {
+                    stockFlag = enterpriseStock.getStock();
+                }
                 break;
 
             case GIVE_MODE_HOSPITAL_DRUG:
                 // 到院取药
                 // 医院库存
                 EnterpriseStock organStock = organDrugListManager.organStock(recipe.getClinicOrgan(), recipeDetails);
-                stockFlag = organStock.getStock();
+                if(Objects.nonNull(organStock)) {
+                    stockFlag = organStock.getStock();
+                }
                 break;
 
             case GIVE_MODE_DOWNLOAD_RECIPE:
                 // 下载处方签
-                List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
-                Long notCountDownloadRecipe = organDrugListDAO.getCountDownloadRecipe(recipe.getClinicOrgan(), drugIds);
-                if (notCountDownloadRecipe > 0) {
-                    stockFlag = false;
-                }
+//                List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+//                Long notCountDownloadRecipe = organDrugListDAO.getCountDownloadRecipe(recipe.getClinicOrgan(), drugIds);
+//                if (notCountDownloadRecipe > 0) {
+//                    stockFlag = false;
+//                }
                 break;
             default:
                 break;
