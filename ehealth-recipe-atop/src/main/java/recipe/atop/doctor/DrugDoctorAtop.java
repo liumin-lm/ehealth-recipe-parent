@@ -1,5 +1,6 @@
 package recipe.atop.doctor;
 
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
@@ -19,6 +20,7 @@ import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IStockBusinessService;
 import recipe.util.ByteUtils;
+import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.*;
 
 import java.util.ArrayList;
@@ -114,14 +116,12 @@ public class DrugDoctorAtop extends BaseAtop {
         List<Recipedetail> detailList = new ArrayList<>();
         drugQueryVO.getRecipeDetails().forEach(a -> {
             validateAtop(a.getDrugId(), a.getOrganDrugCode(), a.getUseTotalDose());
-            Recipedetail recipedetail = new Recipedetail();
-            recipedetail.setDrugId(a.getDrugId());
-            recipedetail.setOrganDrugCode(a.getOrganDrugCode());
+            Recipedetail recipedetail = ObjectCopyUtils.convert(a, Recipedetail.class);
             recipedetail.setPharmacyId(drugQueryVO.getPharmacyId());
-            recipedetail.setUseTotalDose(a.getUseTotalDose());
             detailList.add(recipedetail);
         });
         List<EnterpriseStock> result = iDrugEnterpriseBusinessService.drugRecipeStock(drugQueryVO.getOrganId(), detailList);
+        logger.info("DrugDoctorAtop drugRecipeStock result={}", JSONArray.toJSONString(result));
         if (CollectionUtils.isEmpty(result)) {
             return false;
         }

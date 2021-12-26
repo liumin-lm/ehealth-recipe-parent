@@ -51,7 +51,6 @@ public class RecipeExportDTO implements Serializable{
     @ItemProperty(alias = "处方类型")
     @Dictionary(id = "eh.cdr.dictionary.RecipeType")
     private Integer recipeType;
-
     @ItemProperty(alias = "发药药师")
     private String giveUser;
 

@@ -369,7 +369,7 @@ public class OperationPlatformRecipeService {
                 //就诊卡名称
                 String cardTypeName = extend.getCardTypeName() == null ? DictionaryController.instance().get("eh.mpi.dictionary.CardType").getText(extend.getCardType()) : extend.getCardTypeName();
                 cardMap.put("cardType", cardType);
-                cardMap.put("cardNo", cardNo);
+                cardMap.put("cardNo", ChinaIDNumberUtil.hideIdCard(cardNo));
                 cardMap.put("cardTypeName", cardTypeName);
                 map.put("card", cardMap);
             } catch (Exception e1) {

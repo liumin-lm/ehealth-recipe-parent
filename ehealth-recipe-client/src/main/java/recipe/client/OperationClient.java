@@ -241,6 +241,20 @@ public class OperationClient extends BaseClient {
         return dictionaryItemDTOList;
     }
 
+    /**
+     * 获取运营平台字典配置项
+     * @param subType
+     * @param organId
+     * @param dictionaryCode
+     * @return
+     */
+    public OrganDictionaryItemDTO getByDictionaryCode(Integer subType, Integer organId, String dictionaryCode){
+        logger.info("OperationClient.getByDictionaryCode subType:{},organId:{},dictionaryCode:{}", subType, organId, dictionaryCode);
+        OrganDictionaryItemDTO organDictionaryItemDTO = organDictionaryItemService.getByDictionaryCode(subType, organId, dictionaryCode);
+        logger.info("OperationClient.getByDictionaryCode organDictionaryItemDTO：{}", JSON.toJSONString(organDictionaryItemDTO));
+        return organDictionaryItemDTO;
+    }
+
 
     private Object getFieldValue(Scratchable scratchable, RecipeInfoDTO recipePdfDTO) {
         if (StringUtils.isEmpty(scratchable.getBoxLink())) {

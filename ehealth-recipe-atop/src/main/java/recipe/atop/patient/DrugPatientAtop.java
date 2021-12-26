@@ -13,6 +13,7 @@ import ctd.util.annotation.RpcService;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IDrugBusinessService;
+import recipe.core.api.IStockBusinessService;
 import recipe.util.ObjectCopyUtils;
 
 import javax.annotation.Resource;
@@ -28,6 +29,8 @@ public class DrugPatientAtop extends BaseAtop {
 
     @Resource
     private IDrugBusinessService drugBusinessService;
+    @Resource
+    private IStockBusinessService stockBusinessService;
 
     /**
      * 患者端获取药品详情
@@ -64,6 +67,18 @@ public class DrugPatientAtop extends BaseAtop {
         validateAtop(organId, recipeDetailBean, recipeDetailBean.getDrugId(), recipeDetailBean.getOrganDrugCode());
         Recipedetail recipedetail = ObjectCopyUtils.convert(recipeDetailBean, Recipedetail.class);
         return drugBusinessService.hisDrugBook(organId, recipedetail);
+    }
+
+    /**
+     * 下单时获取药品库存
+     * @param recipeIds
+     * @param enterpriseId
+     * @return
+     */
+    @RpcService
+    public Boolean getOrderStockFlag(List<Integer> recipeIds,Integer enterpriseId,Integer giveMode) {
+        validateAtop(recipeIds,giveMode);
+        return stockBusinessService.getOrderStockFlag(recipeIds, enterpriseId,giveMode);
     }
 
 }

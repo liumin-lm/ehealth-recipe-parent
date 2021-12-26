@@ -71,19 +71,9 @@ public class PayModeTFDS implements IPurchaseService {
 
         //获取患者位置信息进行缓存处理
         String range = MapValueUtil.getString(extInfo, "range");
-        String longitude = MapValueUtil.getString(extInfo, "longitude");
-        String latitude = MapValueUtil.getString(extInfo, "latitude");
         String sort = MapValueUtil.getString(extInfo, "sort");
         if (StringUtils.isEmpty(range)) {
             range = "10";
-        }
-        String md5Key = longitude + "-" + latitude + "-" + range + "-" + sort;
-        String key = recipeId + "-" + DigestUtils.md5DigestAsHex(md5Key.getBytes());
-        List<DepDetailBean> depDetailBeans = redisClient.get(key);
-        if (CollectionUtils.isNotEmpty(depDetailBeans)) {
-            depListBean.setList(depDetailBeans);
-            resultBean.setObject(depListBean);
-            return resultBean;
         }
         //获取购药方式查询列表
         List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(getPayMode());
@@ -161,9 +151,6 @@ public class PayModeTFDS implements IPurchaseService {
 
         //对药店列表进行排序
         Collections.sort(depDetailList, new DepDetailBeanComparator(sort));
-        if (CollectionUtils.isNotEmpty(depDetailList)) {
-            redisClient.setEX(key, Long.parseLong(EXPIRE_SECOND), depDetailList);
-        }
         LOGGER.info("findSupportDepList recipeId={}, 获取到药店数量[{}]", recipeId, depDetailList.size());
         depListBean.setList(depDetailList);
         resultBean.setObject(depListBean);
@@ -192,7 +179,7 @@ public class PayModeTFDS implements IPurchaseService {
             //患者提交订单前,先进行库存校验
             // 根据药企查询库存
             EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, depId);
-            if (!enterpriseStock.getStock() && dep.getCheckInventoryFlag() != 2) {
+            if (Objects.nonNull(enterpriseStock) && !enterpriseStock.getStock() && dep.getCheckInventoryFlag() != 2) {
                 result.setCode(RecipeResultBean.FAIL);
                 result.setMsg("抱歉，配送商库存不足无法配送。请稍后尝试提交，或更换配送商。");
                 return result;
