@@ -13,10 +13,10 @@ import java.io.Serializable;
  */
 @Schema
 @Data
-public class RecipeOrderBeanNoDS extends RecipeOrderBean implements Serializable {
+public class ObtainConfirmOrderObjectResNoDS extends RecipeOrderBean implements Serializable {
 
     private static final long serialVersionUID = -1365227235362189226L;
 
-    @ItemProperty(alias = "药企电话")
-    private String tel;
+    @ItemProperty(alias = "完整地址")
+    private String completeAddress;
 }
