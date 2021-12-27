@@ -298,8 +298,12 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     }
 
     @Override
-    public Boolean getOrderStockFlag(List<Integer> recipeIds, Integer enterpriseId,Integer giveMode) {
+    public Boolean getOrderStockFlag(List<Integer> recipeIds, Integer enterpriseId, String giveModeKey) {
         Recipe recipe = recipeDAO.get(recipeIds.get(0));
+        Integer giveMode = RecipeSupportGiveModeEnum.getGiveMode(giveModeKey);
+        if (giveMode == 0) {
+            return true;
+        }
         recipe.setGiveMode(giveMode);
         return this.getStockFlag(recipeIds, recipe, enterpriseId);
     }
@@ -344,7 +348,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 // 药店取药
                 // 根据药企查询库存
                 EnterpriseStock enterpriseStock = this.enterpriseStockCheck(recipe, recipeDetails, enterpriseId);
-                if(Objects.nonNull(enterpriseStock)) {
+                if (Objects.nonNull(enterpriseStock)) {
                     stockFlag = enterpriseStock.getStock();
                 }
                 break;
@@ -353,7 +357,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 // 到院取药
                 // 医院库存
                 EnterpriseStock organStock = organDrugListManager.organStock(recipe.getClinicOrgan(), recipeDetails);
-                if(Objects.nonNull(organStock)) {
+                if (Objects.nonNull(organStock)) {
                     stockFlag = organStock.getStock();
                 }
                 break;
