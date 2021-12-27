@@ -40,7 +40,7 @@
     <!-- remote loader -->
     <ngari:reference interface="ctd.controller.ConfigurableLoader" id="eh.userRemoteLoader"/>
     <ngari:reference interface="ctd.controller.ConfigurableLoader" id="eh.roleRemoteLoader"/>
-    <ngari:reference interface="ctd.controller.ConfigurableLoader" id="eh.accessTokenRemoteLoader"/>
+<!--    <ngari:reference interface="ctd.controller.ConfigurableLoader" id="eh.accessTokenRemoteLoader"/>-->
     <ngari:reference interface="ctd.controller.ConfigurableLoader" id="eh.dictionaryRemoteLoader"/>
     <ngari:reference interface="ctd.controller.ConfigurableLoader" id="eh.appRemoteLoader"/>
     <ngari:reference interface="ctd.controller.ConfigurableLoader" id="eh.categoryNodeRemoteLoader"/>
@@ -51,7 +51,7 @@
     <!-- remote updater -->
     <ngari:reference interface="ctd.controller.updater.ConfigurableItemUpdater" id="eh.userUpdater"/>
     <ngari:reference interface="ctd.controller.updater.ConfigurableUpdater" id="eh.roleUpdater"/>
-    <ngari:reference interface="ctd.controller.updater.ConfigurableUpdater" id="eh.accessTokenUpdater"/>
+    <!--    <ngari:reference interface="ctd.controller.updater.ConfigurableUpdater" id="eh.accessTokenUpdater"/>-->
     <ngari:reference interface="ctd.controller.updater.ConfigurableItemUpdater" id="eh.dictionaryUpdater"/>
     <ngari:reference interface="ctd.controller.updater.ConfigurableItemUpdater" id="eh.applicationUpdater"/>
     <ngari:reference interface="ctd.controller.updater.ConfigurableItemUpdater" id="eh.categoryNodeUpdater"/>
@@ -76,14 +76,14 @@
         <property name="controller" ref="roleController"/>
     </bean>
 
-    <!-- accessToken -->
-    <bean id="accessTokenController" class="ctd.access.AccessTokenController">
-        <property name="loader" ref="eh.accessTokenRemoteLoader" />
-        <property name="updater" ref="eh.accessTokenUpdater" />
-    </bean>
-    <bean id="accessTokenWatcher" class="ctd.access.AccessTokenWatcher" lazy-init="false">
-        <property name="controller" ref="accessTokenController"/>
-    </bean>
+    <!--    &lt;!&ndash; accessToken &ndash;&gt;-->
+    <!--    <bean id="accessTokenController" class="ctd.access.AccessTokenController">-->
+    <!--        <property name="loader" ref="eh.accessTokenRemoteLoader" />-->
+    <!--        <property name="updater" ref="eh.accessTokenUpdater" />-->
+    <!--    </bean>-->
+    <!--    <bean id="accessTokenWatcher" class="ctd.access.AccessTokenWatcher" lazy-init="false">-->
+    <!--        <property name="controller" ref="accessTokenController"/>-->
+    <!--    </bean>-->
 
     <!-- dictionary -->
     <bean id="dictionaryController" class="ctd.dictionary.DictionaryController">
