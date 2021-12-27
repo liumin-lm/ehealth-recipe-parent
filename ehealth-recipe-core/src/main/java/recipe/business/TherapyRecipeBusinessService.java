@@ -17,7 +17,6 @@ import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
 import recipe.common.CommonConstant;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
-import recipe.dao.RecipeTherapyDAO;
 import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.enumerate.type.TherapyCancellationTypeEnum;
 import recipe.manager.*;
@@ -54,8 +53,6 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     private ItemListManager itemListManager;
     @Autowired
     private EmrRecipeManager emrRecipeManager;
-    @Resource
-    private RecipeTherapyDAO recipeTherapyDAO;
     @Resource
     private RevisitClient revisitClient;
 
