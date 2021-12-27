@@ -197,15 +197,19 @@ public class RecipeDetailValidateTool {
         if (CollectionUtils.isEmpty(dictionaryItemDTOList)) {
             return false;
         }
-        if (StringUtils.isNotEmpty(recipeDetail.getSuperScalarCode())) {
-            OrganDictionaryItemDTO organDictionaryItemDTO = operationClient.getByDictionaryCode(DIC_BUS_TYPE, organId, recipeDetail.getSuperScalarCode());
-            if (null == organDictionaryItemDTO) {
-                return true;
-            }
-        }
         //当前开药天数超过7天,并且没有维护超量原因
-        if (null != recipeDetail.getUseDays() && recipeDetail.getUseDays() > SUPER_SCALAR_DAYS
-                && StringUtils.isEmpty(recipeDetail.getSuperScalarCode())) {
+        if (null != recipeDetail.getUseDays() && recipeDetail.getUseDays() > SUPER_SCALAR_DAYS && StringUtils.isEmpty(recipeDetail.getSuperScalarCode())) {
+            recipeDetail.setSuperScalarCode(null);
+            recipeDetail.setSuperScalarName(null);
+            return true;
+        }
+        if (StringUtils.isNotEmpty(recipeDetail.getSuperScalarCode())) {
+            return false;
+        }
+        OrganDictionaryItemDTO organDictionaryItemDTO = operationClient.getByDictionaryCode(DIC_BUS_TYPE, organId, recipeDetail.getSuperScalarCode());
+        if (null == organDictionaryItemDTO) {
+            recipeDetail.setSuperScalarCode(null);
+            recipeDetail.setSuperScalarName(null);
             return true;
         }
         return false;
