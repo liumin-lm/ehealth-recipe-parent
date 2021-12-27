@@ -10,6 +10,7 @@ import com.ngari.emergency.model.FamilyDoctorBean;
 import com.ngari.emergency.model.HealthInformationBean;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
+import ctd.schema.annotation.Schema;
 
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -21,6 +22,7 @@ import java.util.List;
  * @Date 2021/12/7 下午2:53
  * @Description
  */
+@Schema
 public class PatientBeanNoDS {
     @ItemProperty(
             alias = "登陆id"
