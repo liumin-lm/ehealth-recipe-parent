@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
+import recipe.client.IConfigurationClient;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
@@ -47,6 +48,8 @@ public class PayModeToHos implements IPurchaseService{
     private OrganDrugListManager organDrugListManager;
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
+    @Autowired
+    private IConfigurationClient configurationClient;
     /**
      * logger
      */
@@ -162,8 +165,14 @@ public class PayModeToHos implements IPurchaseService{
         order.setEffective(1);
         // 目前paymode传入还是老版本 除线上支付外全都算线下支付,下个版本与前端配合修改
         Integer payModeNew = payMode;
+        // 到院取药是否支持线上支付
+        Boolean supportToHosPayFlag = configurationClient.getValueBooleanCatch(order.getOrganId(), "supportToHosPayFlag", false);
+
         if(!payMode.equals(1)){
             payModeNew = 2;
+        }
+        if(supportToHosPayFlag){
+            payModeNew = 1;
         }
         order.setPayMode(payModeNew);
         boolean saveFlag = orderService.saveOrderToDB(order, dbRecipes, payMode, result, recipeDAO, orderDAO);
