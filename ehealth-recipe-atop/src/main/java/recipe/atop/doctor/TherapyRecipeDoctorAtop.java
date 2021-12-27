@@ -56,6 +56,7 @@ public class TherapyRecipeDoctorAtop extends BaseAtop {
     public Integer saveTherapyRecipe(RecipeInfoVO recipeInfoVO) {
         logger.info("TherapyRecipeDoctorAtop saveTherapyRecipe recipeInfoVO = {}", JSON.toJSONString(recipeInfoVO));
         validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean());
+        validateAtop("请添加项目信息", recipeInfoVO.getRecipeDetails());
         RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
         validateAtop(recipeBean.getDoctor(), recipeBean.getMpiid(), recipeBean.getClinicOrgan(), recipeBean.getClinicId(), recipeBean.getDepart());
         recipeBean.setStatus(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType());
