@@ -1374,10 +1374,12 @@ public class RecipeHisService extends RecipeBaseService {
                 item.setOrderID(detail.getRecipeDetailId().toString());
                 // 黄河医院 剂型名称
                 item.setDrugForm(detail.getDrugForm());
-                //超量编码
-                item.setSuperScalarCode(detail.getSuperScalarCode());
-                //超量原因
-                item.setSuperScalarName(detail.getSuperScalarName());
+                if (StringUtils.isNotEmpty(detail.getSuperScalarCode())) {
+                    //超量编码
+                    item.setSuperScalarCode(detail.getSuperScalarCode());
+                    //超量原因
+                    item.setSuperScalarName(detail.getSuperScalarName());
+                }
                 list.add(item);
             }
             hisCheckRecipeReqTO.setOrderList(list);
