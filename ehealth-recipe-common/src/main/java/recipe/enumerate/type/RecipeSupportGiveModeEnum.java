@@ -5,6 +5,7 @@ import com.ngari.recipe.entity.DrugsEnterprise;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.util.StringUtils;
 import recipe.constant.RecipeBussConstant;
+import recipe.enumerate.status.GiveModeEnum;
 import recipe.util.ValidateUtil;
 
 import java.util.Arrays;
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -82,6 +84,44 @@ public enum RecipeSupportGiveModeEnum {
 
     public String getName() {
         return name;
+    }
+
+    /**
+     * 获取  GiveModeEnum type
+     *
+     * @param text
+     * @return
+     */
+    public static Integer getGiveMode(String text) {
+        Integer giveModeType = 0;
+        switch (getRecipeSupportGiveModeEnum(text)) {
+            case SUPPORT_TFDS:
+                giveModeType = GiveModeEnum.GIVE_MODE_PHARMACY_DRUG.getType();
+                break;
+            case SUPPORT_TO_HOS:
+                giveModeType = GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType();
+                break;
+            case DOWNLOAD_RECIPE:
+                giveModeType = GiveModeEnum.GIVE_MODE_DOWNLOAD_RECIPE.getType();
+                break;
+            case SHOW_SEND_TO_HOS:
+            case SHOW_SEND_TO_ENTERPRISES:
+                giveModeType = GiveModeEnum.GIVE_MODE_HOME_DELIVERY.getType();
+                break;
+            case SUPPORT_MEDICAL_PAYMENT:
+            default:
+                break;
+        }
+        return giveModeType;
+    }
+
+    public static RecipeSupportGiveModeEnum getRecipeSupportGiveModeEnum(String text) {
+        for (RecipeSupportGiveModeEnum e : RecipeSupportGiveModeEnum.values()) {
+            if (e.text.equals(text)) {
+                return e;
+            }
+        }
+        return null;
     }
 
     /**
