@@ -222,6 +222,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         }
         CoOrdinateVO recipeCode = redisManager.getPdfCoords(recipeId, "recipe.recipeCode");
         if (null != recipeCode) {
+            recipeCode.setRepeatWrite(true);
             recipeCode.setValue(recipe.getRecipeCode());
             coOrdinateList.add(recipeCode);
         }
@@ -229,11 +230,13 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         CoOrdinateVO medicalRecordNumber = redisManager.getPdfCoords(recipeId, "recipeExtend.medicalRecordNumber");
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (null != medicalRecordNumber) {
+            medicalRecordNumber.setRepeatWrite(true);
             medicalRecordNumber.setValue(recipeExtend.getMedicalRecordNumber());
             coOrdinateList.add(medicalRecordNumber);
         }
         CoOrdinateVO barcode = redisManager.getPdfCoords(recipe.getRecipeId(), OP_BARCODE_ALL);
         if (null != barcode) {
+            barcode.setRepeatWrite(true);
             barcode.setValue(barcode(recipe));
         }
         if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
