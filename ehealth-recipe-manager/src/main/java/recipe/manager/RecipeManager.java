@@ -55,8 +55,8 @@ public class RecipeManager extends BaseManager {
      * @return
      */
     public Recipe saveRecipe(Recipe recipe) {
-        recipe.setCreateDate(new Date());
         if (ValidateUtil.integerIsEmpty(recipe.getRecipeId())) {
+            recipe.setCreateDate(new Date());
             recipe = recipeDAO.save(recipe);
         } else {
             recipe = recipeDAO.update(recipe);
