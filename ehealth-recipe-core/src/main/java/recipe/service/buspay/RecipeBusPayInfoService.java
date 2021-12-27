@@ -224,7 +224,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         confirmOrder.setOrderAmount(orderAmount.stripTrailingZeros().toPlainString());
         confirmOrder.setBusObject(order);
         //设置confirmOrder的扩展信息ext----一些配置信息
-        confirmOrder.setExt(setConfirmOrderExtInfo(order, recipeId, extInfo, recipeExtend, otherFee));
+        confirmOrder.setExt(setConfirmOrderExtInfo(order1, recipeId, extInfo, recipeExtend, otherFee));
         log.info("obtainConfirmOrder recipeId:{} res ={}", recipeId, JSONUtils.toString(confirmOrder));
         return confirmOrder;
     }
