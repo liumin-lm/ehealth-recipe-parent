@@ -31,6 +31,7 @@ import com.ngari.recipe.pay.service.IRecipeBusPayService;
 import com.ngari.recipe.recipe.constant.RecipePayTipEnum;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import com.ngari.recipe.recipeorder.model.ObtainConfirmOrderObjectResNoDS;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -125,7 +126,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     @RpcService
     public ConfirmOrder obtainConfirmOrder(String busType, Integer busId, Map<String, String> extInfo) {
         //先判断处方是否已创建订单
-        RecipeOrderBean order = null;
+        RecipeOrderBean order1 = null;
+        ObtainConfirmOrderObjectResNoDS order = null;
         RecipeExtendBean recipeExtend = null;
         Integer recipeId = null;
         //创建订单时的调用
@@ -136,12 +138,12 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 List<String> recipeIdString = Splitter.on(",").splitToList(recipeIds);
                 List<Integer> recipeIdLists = recipeIdString.stream().map(Integer::valueOf).collect(Collectors.toList());
                 busId = recipeIdLists.get(0);
-                order = recipeOrderService.getOrderByRecipeId(busId);
-                if (null == order) {
+                order1 = recipeOrderService.getOrderByRecipeId(busId);
+                if (null == order1) {
                     //这里为了组装创建订单时的一些订单数据--此时还未生成处方订单
                     RecipeBussResTO<RecipeOrderBean> resTO = recipeOrderService.createBlankOrder(recipeIdLists, extInfo);
                     if (null != resTO) {
-                        order = resTO.getData();
+                        order1 = resTO.getData();
                     } else {
                         log.info("obtainConfirmOrder createBlankOrder order is null.");
                         return null;
@@ -150,8 +152,9 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             }
         } else {
             //提交订单后的调用获取订单信息
-            order = recipeOrderService.get(busId);
+            order1 = recipeOrderService.get(busId);
         }
+        order = ObjectCopyUtils.convert(order1, ObtainConfirmOrderObjectResNoDS.class);
         if (order == null) {
             log.info("RecipeBusPayService.obtainConfirmOrder order is null. busId={}", busId);
             return null;

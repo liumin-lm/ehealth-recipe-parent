@@ -8,7 +8,7 @@ import java.io.Serializable;
 
 /**
  * @company: ngarihealth
- * @author: liujin
+ * @author: liumin
  * @date:20111223
  */
 @Schema
