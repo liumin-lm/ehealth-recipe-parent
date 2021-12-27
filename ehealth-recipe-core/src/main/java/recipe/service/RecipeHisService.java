@@ -491,7 +491,9 @@ public class RecipeHisService extends RecipeBaseService {
      */
     private boolean doRecipeSettle(Recipe recipe, PatientBean patientBean, HealthCardBean cardBean, RecipeResultBean result) {
         //调用前置机结算支持两种方式---配送到家和药店取药
-        if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) || RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
+        // 到院取药线上支付
+        if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) || RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())
+        || RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
             LOGGER.info("doRecipeSettle recipeId={}", recipe.getRecipeId());
             if (StringUtils.isEmpty(recipe.getOrderCode())) {
                 LOGGER.error("doRecipeSettle orderCode is null; recipeId={}", recipe.getRecipeId());
@@ -507,6 +509,11 @@ public class RecipeHisService extends RecipeBaseService {
             if ("111".equals(recipeOrder.getWxPayWay())) {
                 LOGGER.info("doRecipeSettle 卫宁付不走平台结算;recipeId={}", recipe.getRecipeId());
                 //汉中市中心医院对接了卫宁付但是需要用到后面的更新配送信息接口将物流单号传给前置机
+                return true;
+            }
+            // 到院取药只有线上支付才走
+            if(RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode()) && RecipeBussConstant.PAYMODE_OFFLINE.equals(recipeOrder.getPayMode())){
+                LOGGER.info("doRecipeSettle 到院取药线下支付不走平台结算;recipeId={}", recipe.getRecipeId());
                 return true;
             }
             //PayNotifyResTO response = service.payNotify(payNotifyReq);
