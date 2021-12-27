@@ -154,7 +154,9 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             //提交订单后的调用获取订单信息
             order1 = recipeOrderService.get(busId);
         }
+        log.info("obtainConfirmOrder order1:{}", JSONUtils.toString(order1));
         order = ObjectCopyUtils.convert(order1, ObtainConfirmOrderObjectResNoDS.class);
+        log.info("obtainConfirmOrder order:{}", JSONUtils.toString(order));
         if (order == null) {
             log.info("RecipeBusPayService.obtainConfirmOrder order is null. busId={}", busId);
             return null;
