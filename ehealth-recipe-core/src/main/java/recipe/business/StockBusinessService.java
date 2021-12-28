@@ -62,8 +62,6 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     private RecipeDetailDAO recipeDetailDAO;
     @Resource
     private OrganDrugListDAO organDrugListDAO;
-    @Resource
-    private DrugListDAO drugListDAO;
 
 
     @Override
@@ -236,8 +234,8 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 continue;
             }
             List<Integer> ids = stock.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getDrugId).collect(Collectors.toList());
-            List<DrugList> drugLists = drugListDAO.findByDrugIds(ids);
-            List<String> drugName = drugLists.stream().map(DrugList::getDrugName).collect(Collectors.toList());
+            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIds(drugQueryVO.getOrganId(), ids);
+            List<String> drugName = organDrugLists.stream().map(OrganDrugList::getDrugName).collect(Collectors.toList());
             giveModeButton.forEach(giveModeButtonDTO -> {
                 DrugForGiveModeVO drugForGiveModeVO = new DrugForGiveModeVO();
                 drugForGiveModeVO.setGiveModeKey(giveModeButtonDTO.getShowButtonKey());

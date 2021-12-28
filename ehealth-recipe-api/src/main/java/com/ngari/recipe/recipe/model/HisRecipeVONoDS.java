@@ -1,5 +1,7 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 import lombok.Data;
@@ -26,14 +28,18 @@ public class HisRecipeVONoDS implements Serializable {
     @ItemProperty(alias = "证件类型 1 身份证")
     private Integer certificateType; // tinyint(1) DEFAULT NULL COMMENT '证件类型 1 身份证',
     @ItemProperty(alias = "证件号")
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String certificate; // varchar(18) DEFAULT NULL COMMENT '证件号',
     @ItemProperty(alias = "患者姓名")
     private String patientName; // varchar(32) NOT NULL COMMENT '患者姓名',
     @ItemProperty(alias = "患者手机号")
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String patientTel; // varchar(20) DEFAULT NULL COMMENT '患者手机号',
     @ItemProperty(alias = "患者地址")
+    @Desensitizations(type = DesensitizationsType.ADDRESS)
     private String patientAddress; // varchar(250) DEFAULT NULL COMMENT '患者地址',
     @ItemProperty(alias = "患者手机号")
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String patientNumber; // varchar(20) DEFAULT NULL COMMENT '患者手机号',
     @ItemProperty(alias = "His处方单号")
     private String recipeCode; // varchar(50) DEFAULT NULL COMMENT 'His处方单号',
