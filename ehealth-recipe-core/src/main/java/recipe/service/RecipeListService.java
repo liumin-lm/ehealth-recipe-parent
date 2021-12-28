@@ -895,10 +895,10 @@ public class RecipeListService extends RecipeBaseService {
     }
 
 
-
     /**
      * findAllRecipesForPatient
      * for 杨柳郡专用
+     *
      * @param mpiId
      * @param start
      * @return
@@ -1120,7 +1120,9 @@ public class RecipeListService extends RecipeBaseService {
                 patientTabStatusMergeRecipeDTO.setMergeRecipeWay(mergeRecipeWayAfter);
                 if ("e.registerId".equals(mergeRecipeWayAfter)) {
                     // 挂号序号
-                    patientTabStatusMergeRecipeDTO.setGroupField(recipeListBean.getRegisterID());
+                    if (!"-1".equals(recipeListBean.getRegisterID())) {
+                        patientTabStatusMergeRecipeDTO.setGroupField(recipeListBean.getRegisterID());
+                    }
                 } else {
                     // 慢病名称
                     patientTabStatusMergeRecipeDTO.setGroupField(recipeListBean.getChronicDiseaseName());
@@ -1231,7 +1233,7 @@ public class RecipeListService extends RecipeBaseService {
                     patientTabStatusMergeRecipeDTO.setGroupField(key);
                     List<PatientTabStatusRecipeDTO> recipe = Lists.newArrayList();
 
-                    if("-1".equals(key)){
+                    if ("-1".equals(key)) {
                         patientTabStatusMergeRecipeDTO.setGroupField(null);
                         PatientTabStatusRecipeDTO patientTabStatusRecipeDTO = PatientTabStatusRecipeConvert(recipeListBean);
                         recipe.add(patientTabStatusRecipeDTO);
@@ -1243,8 +1245,8 @@ public class RecipeListService extends RecipeBaseService {
                             recipeIds.add(recipeListBean1.getRecipeId());
                         });
                     }
-                patientTabStatusMergeRecipeDTO.setRecipe(recipe);
-                result.add(patientTabStatusMergeRecipeDTO);
+                    patientTabStatusMergeRecipeDTO.setRecipe(recipe);
+                    result.add(patientTabStatusMergeRecipeDTO);
                 }
             });
         } else {
