@@ -69,7 +69,8 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
         //查询库存通过his预校验的返回判断库存是否足够
         LOGGER.info("scanStock-【his管理的药企】-虚拟药企库存入参为：{}，{}", recipeId, JSONUtils.toString(drugsEnterprise));
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
-        if(!valiScanStock(recipeId, drugsEnterprise, result)){
+        if(null == recipeId){
+            result.setCode(DrugEnterpriseResult.FAIL);
             return result;
         }
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
@@ -90,22 +91,14 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
         return result;
     }
 
-    private boolean valiScanStock(Integer recipeId, DrugsEnterprise drugsEnterprise, DrugEnterpriseResult result) {
-        if (null == recipeId) {
-            result.setCode(DrugEnterpriseResult.FAIL);
-            result.setError("传入的处方id为空！");
-            return false;
-        }
-        return true;
-    }
-
     @Override
     //医院管理药企，查询药企列表，按his返回信息展示，现阶段是预校验的时候返回的信息(Y)
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise) {
         LOGGER.info("findSupportDep-【his管理的药企】-虚拟药企导出入参为：{}，{}，{}", JSONUtils.toString(recipeIds), JSONUtils.toString(ext), JSONUtils.toString(enterprise));
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         //校验入参
-        if(!validateRequestDate(recipeIds, ext, result)){
+        if(CollectionUtils.isEmpty(recipeIds)){
+            result.setCode(DrugEnterpriseResult.FAIL);
             return result;
         }
         //date 20200311
@@ -178,29 +171,6 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
         return result;
     }
 
-    private Boolean validateRequestDate(List<Integer> recipeIds, Map ext, DrugEnterpriseResult result) {
-        if (CollectionUtils.isEmpty(recipeIds)) {
-            result.setCode(DrugEnterpriseResult.FAIL);
-            result.setError("传入的处方id为空！");
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * 返回调用信息
-     *
-     * @param result DrugEnterpriseResult
-     * @param msg    提示信息
-     * @return DrugEnterpriseResult
-     */
-    private DrugEnterpriseResult getDrugEnterpriseResult(DrugEnterpriseResult result, String msg) {
-        result.setMsg(msg);
-        result.setCode(DrugEnterpriseResult.FAIL);
-        LOGGER.info("getDrugEnterpriseResult-【his管理的药企】-提示信息：{}.", msg);
-        return result;
-    }
-
     @Override
     //his管理的药企：药品，库存，价格全都由；医院返回的信息提供，判断库存现阶段由预校验的结果判断(Y/+1)
     @Deprecated
@@ -261,7 +231,6 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
         LOGGER.info("appEnterprise-【his管理的药企】-order:{}", JSONUtils.toString(order));
         String hisEnterpriseName = null;
         if (null != order) {
-
             hisEnterpriseName = order.getHisEnterpriseName();
         }
         LOGGER.info("appEnterprise-【his管理的药企】-请求虚拟药企返回：{}", hisEnterpriseName);
