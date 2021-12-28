@@ -1,24 +1,11 @@
 package recipe.drugsenterprise;
 
 import com.alibaba.fastjson.JSON;
-import com.alijk.bqhospital.alijk.conf.TaobaoConf;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ngari.base.BaseAPI;
-import com.ngari.base.common.ICommonService;
-import com.ngari.base.organ.model.OrganBean;
-import com.ngari.base.organ.service.IOrganService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DeliveryList;
-import com.ngari.his.recipe.mode.MedicalPreSettleReqNTO;
 import com.ngari.his.recipe.mode.MedicalPreSettleReqTO;
-import com.ngari.his.recipe.mode.RecipeMedicalPreSettleInfo;
-import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.HealthCardService;
-import com.ngari.patient.service.OrganService;
-import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
@@ -26,10 +13,7 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
-import ctd.controller.exception.ControllerException;
-import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
-import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -43,7 +27,6 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.constant.DrugEnterpriseConstant;
-import recipe.constant.RecipeBussConstant;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -51,10 +34,8 @@ import recipe.drugsenterprise.compatible.HzInternetRemoteNewType;
 import recipe.drugsenterprise.compatible.HzInternetRemoteOldType;
 import recipe.drugsenterprise.compatible.HzInternetRemoteTypeInterface;
 import recipe.hisservice.RecipeToHisService;
-import recipe.service.RecipeLogService;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -68,13 +49,8 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HzInternetRemoteService.class);
 
-    private static final String EXPIRE_TIP = "请重新授权";
-
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
-
-    @Autowired
-    private TaobaoConf taobaoConf;
 
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
@@ -183,15 +159,6 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
         return getRealization(Lists.newArrayList(recipeId)).scanStock(recipeId, drugsEnterprise);
     }
 
-    private boolean valiScanStock(Integer recipeId, DrugsEnterprise drugsEnterprise, DrugEnterpriseResult result) {
-        if (null == recipeId) {
-            result.setCode(DrugEnterpriseResult.FAIL);
-            result.setError("传入的处方id为空！");
-            return false;
-        }
-        return true;
-    }
-
     @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
         return DrugEnterpriseResult.getSuccess();
@@ -205,16 +172,6 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise) {
         return getRealization(recipeIds).findSupportDep(recipeIds, ext, enterprise);
-    }
-
-    private Boolean valiRequestDate(List<Integer> recipeIds, Map ext, DrugEnterpriseResult result) {
-        if (CollectionUtils.isEmpty(recipeIds)) {
-            result.setCode(DrugEnterpriseResult.FAIL);
-            result.setError("传入的处方id为空！");
-            return false;
-        }
-
-        return true;
     }
 
     @Override
@@ -237,75 +194,6 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
         DrugEnterpriseResult drugEnterpriseResult = new DrugEnterpriseResult(DrugEnterpriseResult.SUCCESS);
 
         return drugEnterpriseResult;
-    }
-
-//    /**
-//     *
-//     * @param rxId  处⽅Id
-//     * @param queryOrder  是否查询订单
-//     * @return 处方单
-//     */
-//    @Override
-//    public DrugEnterpriseResult queryPrescription(String rxId, Boolean queryOrder) {
-//        PatientService patientService = BasicAPI.getService(PatientService.class);
-//        OrganService organService = BasicAPI.getService(OrganService.class);
-//        DrugEnterpriseResult drugEnterpriseResult = new DrugEnterpriseResult(DrugEnterpriseResult.SUCCESS);
-//        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-//        Recipe dbRecipe = recipeDAO.getByRecipeCode(rxId);
-//        if (ObjectUtils.isEmpty(dbRecipe)) {
-//            return getDrugEnterpriseResult(drugEnterpriseResult, "处方不存在");
-//        }
-//        String outHospitalId = organService.getOrganizeCodeByOrganId(dbRecipe.getClinicOrgan());
-//        if (StringUtils.isEmpty(outHospitalId)) {
-//            return getDrugEnterpriseResult(drugEnterpriseResult, "医院的外部编码不能为空");
-//        }
-//        String loginId = patientService.getLoginIdByMpiId(dbRecipe.getRequestMpiId());
-//        String accessToken = aldyfRedisService.getTaobaoAccessToken(loginId);
-//        if (ObjectUtils.isEmpty(accessToken)) {
-//            return getDrugEnterpriseResult(drugEnterpriseResult, EXPIRE_TIP);
-//        }
-//        LOGGER.info("获取到accessToken:{}, loginId:{},{},{}", accessToken, loginId, rxId, outHospitalId);
-//        alihealthHospitalService.setTopSessionKey(accessToken);
-//        AlibabaAlihealthRxPrescriptionGetRequest prescriptionGetRequest = new AlibabaAlihealthRxPrescriptionGetRequest();
-//        prescriptionGetRequest.setRxId(rxId);
-//        prescriptionGetRequest.setOutHospitalId(outHospitalId);
-//        BaseResult<AlibabaAlihealthRxPrescriptionGetResponse> responseBaseResult = alihealthHospitalService.queryPrescription(prescriptionGetRequest);
-//        LOGGER.info("查询处方，{}", getJsonLog(responseBaseResult));
-//        getAldyfResult(drugEnterpriseResult, responseBaseResult);
-//        return drugEnterpriseResult;
-//    }
-
-    /**
-     * 返回调用信息
-     *
-     * @param result DrugEnterpriseResult
-     * @param msg    提示信息
-     * @return DrugEnterpriseResult
-     */
-    private DrugEnterpriseResult getDrugEnterpriseResult(DrugEnterpriseResult result, String msg) {
-        result.setMsg(msg);
-        result.setCode(DrugEnterpriseResult.FAIL);
-        LOGGER.info("HzInternetRemoteService-getDrugEnterpriseResult提示信息：{}.", msg);
-        return result;
-    }
-
-    private Integer getClinicOrganByOrganId(String organId, String clinicOrgan) throws Exception {
-        Integer co = null;
-        if (StringUtils.isEmpty(clinicOrgan)) {
-            IOrganService organService = BaseAPI.getService(IOrganService.class);
-
-            List<OrganBean> organList = organService.findByOrganizeCode(organId);
-            if (CollectionUtils.isNotEmpty(organList)) {
-                co = organList.get(0).getOrganId();
-            }
-        } else {
-            co = Integer.parseInt(clinicOrgan);
-        }
-        return co;
-    }
-
-    private static String getJsonLog(Object object) {
-        return JSONUtils.toString(object);
     }
 
     @Override
@@ -406,13 +294,6 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
         List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
         if (null != recipeIdList && CollectionUtils.isNotEmpty(recipeIdList)) {
             return getRealization(Lists.newArrayList(recipeIdList.get(0)));
-        }
-        return new HzInternetRemoteOldType();
-    }
-
-    private HzInternetRemoteTypeInterface getRealization(RecipeBean recipeBean) {
-        if (null != recipeBean) {
-            return getRealization(Lists.newArrayList(recipeBean.getRecipeId()));
         }
         return new HzInternetRemoteOldType();
     }
