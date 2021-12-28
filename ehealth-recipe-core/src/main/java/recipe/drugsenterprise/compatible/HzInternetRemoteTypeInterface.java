@@ -12,24 +12,24 @@ import java.util.Map;
 
 public interface HzInternetRemoteTypeInterface {
 
-    public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise);
+    DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise);
 
-    public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise);
+    DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise);
 
-    public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise);
+    DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise);
 
-    public boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds);
+    boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds);
 
-    public String appEnterprise(RecipeOrder order);
+    String appEnterprise(RecipeOrder order);
 
-    public BigDecimal orderToRecipeFee(RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, BigDecimal recipeFee, Map<String, String> extInfo);
+    BigDecimal orderToRecipeFee(RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, BigDecimal recipeFee, Map<String, String> extInfo);
 
-    public void setOrderEnterpriseMsg(Map<String, String> extInfo, RecipeOrder order);
+    void setOrderEnterpriseMsg(Map<String, String> extInfo, RecipeOrder order);
 
-    public void setEnterpriseMsgToOrder(RecipeOrder order, Integer depId, Map<String, String> extInfo);
+    void setEnterpriseMsgToOrder(RecipeOrder order, Integer depId, Map<String, String> extInfo);
 
-    public Boolean specialMakeDepList(DrugsEnterprise drugsEnterprise, Recipe dbRecipe);
+    Boolean specialMakeDepList(DrugsEnterprise drugsEnterprise, Recipe dbRecipe);
 
-    public DrugEnterpriseResult sendMsgResultMap(Integer recipeId, Map<String, String> extInfo, DrugEnterpriseResult payResult);
+    DrugEnterpriseResult sendMsgResultMap(Integer recipeId, Map<String, String> extInfo, DrugEnterpriseResult payResult);
 
 }

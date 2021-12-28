@@ -104,7 +104,7 @@ public class HdVirtualdyfRemoteService extends AccessDrugEnterpriseService {
         updateTakeDrugWayReqTO.setNgarRecipeId(String.valueOf(recipe.getRecipeId()));
         updateTakeDrugWayReqTO.setOrganID(organService.getOrganizeCodeByOrganId(recipe.getClinicOrgan()));
         //审方药师工号和姓名
-        if (recipe.getChecker()!=null){
+        if (null != recipe.getChecker()){
             IEmploymentService iEmploymentService = ApplicationUtils.getBaseService(IEmploymentService.class);
             EmploymentBean primaryEmp = iEmploymentService.getPrimaryEmpByDoctorId(recipe.getChecker());
             if (primaryEmp != null){
@@ -183,7 +183,4 @@ public class HdVirtualdyfRemoteService extends AccessDrugEnterpriseService {
         return DrugEnterpriseConstant.COMPANY_HDVIRTUALDYF;
     }
 
-    public DrugEnterpriseResult findChemistList(List<Integer> recipeIds, Integer range, String longitude, String latitude , DrugsEnterprise enterprise) {
-        return DrugEnterpriseResult.getSuccess();
-    }
 }
