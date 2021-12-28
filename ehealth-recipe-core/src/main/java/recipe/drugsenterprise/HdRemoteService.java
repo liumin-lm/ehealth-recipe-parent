@@ -90,17 +90,11 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
 
     private static final String distributionFlagDefault = "10";
 
-    private static final String giveModeDefault = "3";
-
-    private static final String payFlagDefault = "1";
-
     private static final String payModeDefault = "2";
 
     private static final String recipeTypeDefault = "1";
 
     private static final String recipeIdDefault = "0";
-
-    private static final String medicalPayDefault = "0";
 
     private static final String useTotalDoseDefault = "0.0";
 
@@ -114,11 +108,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
 
     private static final String getAllPharmacyRange = "0";
 
-    private static final String rangDefault = "0";
-
     private static final String drugRecipeTotal = "0";
-
-
 
     private static final String hdPayMethod = "0";
 
@@ -141,7 +131,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
 
         //组装请求，判断是否组装成功,发送http请求获取,获取新的token
         getNewToken(drugsEnterprise, request, result);
-
     }
 
     /**
