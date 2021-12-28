@@ -4,10 +4,8 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.UpdateTakeDrugWayReqTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.dto.DrugStockAmountDTO;
+import com.ngari.recipe.entity.*;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
@@ -32,11 +30,15 @@ import java.util.Map;
 
 /**
  * @description 杭州互联网（金投）对接服务旧实现方式
+ * 不再使用
  * @author JRK
  * @date 2020/3/16
  */
 @Service("hzInternetRemoteOldType")
+@Deprecated
 public class HzInternetRemoteOldType implements HzInternetRemoteTypeInterface {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(HzInternetRemoteOldType.class);
     @Override
     public Boolean specialMakeDepList(DrugsEnterprise drugsEnterprise, Recipe dbRecipe) {
         LOGGER.info("旧-杭州互联网虚拟药企展示配送列表是否需要个性化，入参：drugsEnterprise：{}，dbRecipe：{}",
@@ -50,10 +52,6 @@ public class HzInternetRemoteOldType implements HzInternetRemoteTypeInterface {
                 recipeId, JSONUtils.toString(extInfo), JSONUtils.toString(payResult));
         return payResult;
     }
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(HzInternetRemoteOldType.class);
-
-    private static final String EXPIRE_TIP = "请重新授权";
 
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
@@ -149,8 +147,12 @@ public class HzInternetRemoteOldType implements HzInternetRemoteTypeInterface {
     @Override
     public boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds) {
         LOGGER.info("旧-scanStock recipeId:{},dep:{},drugIds:{}", dbRecipe.getRecipeId(), JSONUtils.toString(dep), JSONUtils.toString(drugIds));
-        AccessDrugEnterpriseService remoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
-        return remoteService.scanStock(dbRecipe, dep, drugIds);
+        return true;
+    }
+
+    @Override
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        return new DrugStockAmountDTO();
     }
 
     @Override
