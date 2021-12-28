@@ -30,7 +30,6 @@ import recipe.manager.SignManager;
 import recipe.util.ByteUtils;
 import recipe.util.DictionaryUtil;
 import recipe.util.RecipeUtil;
-import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -189,7 +188,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         Integer recipeId = recipe.getRecipeId();
         List<CoOrdinateVO> coOrdinateList = new LinkedList<>();
         CoOrdinateVO patientId = redisManager.getPdfCoordsHeight(recipeId, "recipe.patientID");
-        if (null != patientId && ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
+        if (null != patientId && !Integer.valueOf(2).equals(recipe.getBussSource())) {
             patientId.setRepeatWrite(true);
             patientId.setValue(recipe.getPatientID());
             coOrdinateList.add(patientId);
