@@ -24,7 +24,7 @@ import java.util.List;
  * @author： whf
  * @date： 2021-08-23 18:05
  */
-@RpcBean(value = "drugPatientAtop")
+@RpcBean(value = "drugPatientAtop",mvc_authentication = false)
 public class DrugPatientAtop extends BaseAtop {
 
     @Resource

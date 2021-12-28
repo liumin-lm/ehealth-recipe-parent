@@ -334,13 +334,13 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
      * @return
      */
     public Boolean getStockFlag(List<Integer> recipeIds, Recipe recipe, Integer enterpriseId) {
-        logger.info("StockBusinessService getStockFlag recipeIds={}", JSONArray.toJSONString(recipeIds));
+        logger.info("StockBusinessService getStockFlag recipeIds={} recipe={}", JSONArray.toJSONString(recipeIds), JSONArray.toJSONString(recipe));
         if (CollectionUtils.isEmpty(recipeIds)) {
             return false;
         }
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIds);
 
-        Boolean stockFlag = true;
+        Boolean stockFlag = false;
         switch (GiveModeEnum.getGiveModeEnum(recipe.getGiveMode())) {
             case GIVE_MODE_HOME_DELIVERY:
                 // 配送到家
@@ -348,6 +348,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 // 药店取药
                 // 根据药企查询库存
                 EnterpriseStock enterpriseStock = this.enterpriseStockCheck(recipe, recipeDetails, enterpriseId);
+                logger.info("StockBusinessService getStockFlag enterpriseStock={}", JSONArray.toJSONString(enterpriseStock));
                 if (Objects.nonNull(enterpriseStock)) {
                     stockFlag = enterpriseStock.getStock();
                 }
@@ -357,6 +358,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 // 到院取药
                 // 医院库存
                 EnterpriseStock organStock = organDrugListManager.organStock(recipe.getClinicOrgan(), recipeDetails);
+                logger.info("StockBusinessService getStockFlag organStock={}", JSONArray.toJSONString(organStock));
                 if (Objects.nonNull(organStock)) {
                     stockFlag = organStock.getStock();
                 }
@@ -369,8 +371,9 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
 //                if (notCountDownloadRecipe > 0) {
 //                    stockFlag = false;
 //                }
-                break;
             default:
+                // 下载处方笺或其他购药方式默认有库存
+                stockFlag = true;
                 break;
         }
         logger.info("StockBusinessService getStockFlag stockFlag={}", stockFlag);

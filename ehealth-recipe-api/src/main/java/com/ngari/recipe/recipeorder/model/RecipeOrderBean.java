@@ -20,6 +20,7 @@ public class RecipeOrderBean implements Serializable {
 
     private static final long serialVersionUID = -1365227235362189226L;
 
+
     @ItemProperty(alias = "订单ID")
     private Integer orderId;
 
