@@ -86,7 +86,7 @@ public class PayModeToHos implements IPurchaseService{
         //点击到院取药再次判断库存--防止之前开方的时候有库存流转到此无库存
         // 到院取药校验机构库存
         EnterpriseStock organStock = organDrugListManager.organStock(recipe.getClinicOrgan(), detailList);
-        if (Objects.nonNull(organStock) && !organStock.getStock()) {
+        if (Objects.isNull(organStock) || !organStock.getStock()) {
             resultBean.setCode(RecipeResultBean.FAIL);
             resultBean.setMsg("抱歉，医院没有库存，无法到医院取药，请选择其他购药方式。");
             return resultBean;
@@ -124,7 +124,7 @@ public class PayModeToHos implements IPurchaseService{
         // 到院取药校验机构库存
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIdLists);
         EnterpriseStock organStock = organDrugListManager.organStock(dbRecipes.get(0).getClinicOrgan(), recipeDetails);
-        if (Objects.nonNull(organStock) && !organStock.getStock()) {
+        if (Objects.isNull(organStock) || !organStock.getStock()) {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("抱歉，医院没有库存，无法到医院取药，请选择其他购药方式。");
             return result;

@@ -29,7 +29,10 @@ import recipe.constant.ErrorCode;
 import recipe.constant.OperationConstant;
 import recipe.dao.RecipeExtendDAO;
 import recipe.manager.RedisManager;
-import recipe.util.*;
+import recipe.util.ByteUtils;
+import recipe.util.DictionaryUtil;
+import recipe.util.MapValueUtil;
+import recipe.util.RecipeUtil;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
@@ -205,21 +208,18 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         return coords;
     }
 
-
     @Override
     public String updateCodePdf(Recipe recipe) throws Exception {
         Integer recipeId = recipe.getRecipeId();
         logger.info("CustomCreatePdfServiceImpl updateCodePdf  recipeId={}", recipeId);
         List<CoOrdinateVO> coOrdinateList = new LinkedList<>();
         CoOrdinateVO patientId = redisManager.getPdfCoords(recipe.getRecipeId(), "recipe.patientID");
-        if (null != patientId && ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
-            patientId.setRepeatWrite(true);
+        if (null != patientId && !Integer.valueOf(2).equals(recipe.getBussSource())) {
             patientId.setValue(recipe.getPatientID());
             coOrdinateList.add(patientId);
         }
         CoOrdinateVO recipeCode = redisManager.getPdfCoords(recipeId, "recipe.recipeCode");
         if (null != recipeCode) {
-            recipeCode.setRepeatWrite(true);
             recipeCode.setValue(recipe.getRecipeCode());
             coOrdinateList.add(recipeCode);
         }
@@ -227,13 +227,11 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         CoOrdinateVO medicalRecordNumber = redisManager.getPdfCoords(recipeId, "recipeExtend.medicalRecordNumber");
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         if (null != medicalRecordNumber) {
-            medicalRecordNumber.setRepeatWrite(true);
             medicalRecordNumber.setValue(recipeExtend.getMedicalRecordNumber());
             coOrdinateList.add(medicalRecordNumber);
         }
         CoOrdinateVO barcode = redisManager.getPdfCoords(recipe.getRecipeId(), OP_BARCODE_ALL);
         if (null != barcode) {
-            barcode.setRepeatWrite(true);
             barcode.setValue(barcode(recipe));
         }
         if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {

@@ -14,7 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.DigestUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
@@ -29,9 +28,7 @@ import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.service.RecipeOrderService;
 import recipe.service.RecipeServiceSub;
-import recipe.service.common.RecipeCacheService;
 import recipe.util.MapValueUtil;
-import recipe.util.RedisClient;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -47,18 +44,18 @@ import static ctd.persistence.DAOFactory.getDAO;
  */
 public class PayModeTFDS implements IPurchaseService {
     private static final Logger LOGGER = LoggerFactory.getLogger(PayModeTFDS.class);
-    private RedisClient redisClient = RedisClient.instance();
-    private static String EXPIRE_SECOND;
+
     @Autowired
     private IStockBusinessService stockBusinessService;
     @Autowired
     private OrderManager orderManager;
     @Autowired
     private EnterpriseManager enterpriseManager;
+    @Autowired
+    private RecipeDetailDAO detailDAO;
 
     public PayModeTFDS() {
-        RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
-        EXPIRE_SECOND = cacheService.getRecipeParam("EXPIRE_SECOND", "600");
+
     }
 
     @Override
@@ -67,7 +64,6 @@ public class PayModeTFDS implements IPurchaseService {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         DepListBean depListBean = new DepListBean();
         Integer recipeId = recipe.getRecipeId();
-        RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
 
         //获取患者位置信息进行缓存处理
         String range = MapValueUtil.getString(extInfo, "range");
@@ -179,7 +175,7 @@ public class PayModeTFDS implements IPurchaseService {
             //患者提交订单前,先进行库存校验
             // 根据药企查询库存
             EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, depId);
-            if (Objects.nonNull(enterpriseStock) && !enterpriseStock.getStock() && dep.getCheckInventoryFlag() != 2) {
+            if ((Objects.isNull(enterpriseStock) || !enterpriseStock.getStock()) && dep.getCheckInventoryFlag() != 2) {
                 result.setCode(RecipeResultBean.FAIL);
                 result.setMsg("抱歉，配送商库存不足无法配送。请稍后尝试提交，或更换配送商。");
                 return result;
@@ -289,7 +285,6 @@ public class PayModeTFDS implements IPurchaseService {
      */
     private boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds) {
         SaleDrugListDAO saleDrugListDAO = getDAO(SaleDrugListDAO.class);
-        RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         Integer recipeId = dbRecipe.getRecipeId();
         boolean succFlag = false;
         if(null == dep || CollectionUtils.isEmpty(drugIds)){
@@ -303,8 +298,14 @@ public class PayModeTFDS implements IPurchaseService {
             }
         }
 
-        DrugEnterpriseResult result = remoteDrugService.scanStock(recipeId, dep);
-        succFlag = result.getCode().equals(DrugEnterpriseResult.SUCCESS) ? true : false;
+        RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
+        List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());
+        EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, dep.getId());
+        if(Objects.isNull(enterpriseStock)){
+            succFlag = false;
+        }else {
+            succFlag = enterpriseStock.getStock();
+        }
         if (!succFlag) {
             LOGGER.warn("findSupportDepList 药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}]", recipeId, dep.getId(), dep.getName());
         }

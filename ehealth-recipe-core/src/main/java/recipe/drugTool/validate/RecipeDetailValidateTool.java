@@ -204,13 +204,12 @@ public class RecipeDetailValidateTool {
             return true;
         }
         if (StringUtils.isNotEmpty(recipeDetail.getSuperScalarCode())) {
-            return false;
-        }
-        OrganDictionaryItemDTO organDictionaryItemDTO = operationClient.getByDictionaryCode(DIC_BUS_TYPE, organId, recipeDetail.getSuperScalarCode());
-        if (null == organDictionaryItemDTO) {
-            recipeDetail.setSuperScalarCode(null);
-            recipeDetail.setSuperScalarName(null);
-            return true;
+            OrganDictionaryItemDTO organDictionaryItemDTO = operationClient.getByDictionaryCode(DIC_BUS_TYPE, organId, recipeDetail.getSuperScalarCode());
+            if (null == organDictionaryItemDTO) {
+                recipeDetail.setSuperScalarCode(null);
+                recipeDetail.setSuperScalarName(null);
+                return true;
+            }
         }
         return false;
     }

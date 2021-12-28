@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
@@ -38,6 +39,9 @@ import java.util.stream.Collectors;
 public class HisAdministrationEnterprisesType implements CommonExtendEnterprisesInterface{
     private static final Logger LOGGER = LoggerFactory.getLogger(HisAdministrationEnterprisesType.class);
 
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
+
     @Override
     //医院管理药企需要强实现(Y)
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
@@ -57,7 +61,6 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
     //医院管理药企需要强实现(Y)
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         LOGGER.info("pushRecipeInfo-【his管理的药企】-更新取药信息至处方流转平台开始，处方ID：{}.", JSONUtils.toString(recipeIds));
-
         //虚拟药企推送，修改配送信息的逻辑调整到前面确认订单
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         return result;
@@ -69,34 +72,11 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
         //查询库存通过his预校验的返回判断库存是否足够
         LOGGER.info("scanStock-【his管理的药企】-虚拟药企库存入参为：{}，{}", recipeId, JSONUtils.toString(drugsEnterprise));
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
-        if(!valiScanStock(recipeId, drugsEnterprise, result)){
+        if(checkHisAdminEnterpriseStock(recipeId, drugsEnterprise)){
+            result.setCode(DrugEnterpriseResult.SUCCESS);
             return result;
         }
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipeId);
-        if (null != extend) {
-            //获取当前his返回的药企信息，以及价格信息
-            String deliveryRecipeFees = extend.getDeliveryRecipeFee();
-            String deliveryCodes = extend.getDeliveryCode();
-            String deliveryNames = extend.getDeliveryName();
-            if (StringUtils.isNotEmpty(deliveryRecipeFees) &&
-                    StringUtils.isNotEmpty(deliveryCodes) && StringUtils.isNotEmpty(deliveryNames)) {
-                //只有杭州是互联网医院返回的是库存足够
-                result.setCode(DrugEnterpriseResult.SUCCESS);
-                result.setMsg("调用[" + drugsEnterprise.getName() + "][ scanStock ]结果返回成功,有库存,处方单ID:" + recipeId + ".");
-                return result;
-            }
-        }
         return result;
-    }
-
-    private boolean valiScanStock(Integer recipeId, DrugsEnterprise drugsEnterprise, DrugEnterpriseResult result) {
-        if (null == recipeId) {
-            result.setCode(DrugEnterpriseResult.FAIL);
-            result.setError("传入的处方id为空！");
-            return false;
-        }
-        return true;
     }
 
     @Override
@@ -105,7 +85,8 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
         LOGGER.info("findSupportDep-【his管理的药企】-虚拟药企导出入参为：{}，{}，{}", JSONUtils.toString(recipeIds), JSONUtils.toString(ext), JSONUtils.toString(enterprise));
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         //校验入参
-        if(!valiRequestDate(recipeIds, ext, result)){
+        if(CollectionUtils.isEmpty(recipeIds)){
+            result.setCode(DrugEnterpriseResult.FAIL);
             return result;
         }
         //date 20200311
@@ -178,29 +159,6 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
         return result;
     }
 
-    private Boolean valiRequestDate(List<Integer> recipeIds, Map ext, DrugEnterpriseResult result) {
-        if (CollectionUtils.isEmpty(recipeIds)) {
-            result.setCode(DrugEnterpriseResult.FAIL);
-            result.setError("传入的处方id为空！");
-            return false;
-        }
-        return true;
-    }
-
-    /**
-     * 返回调用信息
-     *
-     * @param result DrugEnterpriseResult
-     * @param msg    提示信息
-     * @return DrugEnterpriseResult
-     */
-    private DrugEnterpriseResult getDrugEnterpriseResult(DrugEnterpriseResult result, String msg) {
-        result.setMsg(msg);
-        result.setCode(DrugEnterpriseResult.FAIL);
-        LOGGER.info("getDrugEnterpriseResult-【his管理的药企】-提示信息：{}.", msg);
-        return result;
-    }
-
     @Override
     //his管理的药企：药品，库存，价格全都由；医院返回的信息提供，判断库存现阶段由预校验的结果判断(Y/+1)
     @Deprecated
@@ -215,10 +173,10 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
 
     @Override
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        LOGGER.info("setDrugStockAmountDTO recipeDetails:{}.", JSONUtils.toString(recipeDetails));
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
         if (null != recipe && null != recipe.getRecipeId()) {
-            DrugEnterpriseResult drugEnterpriseResult = scanStock(recipe.getRecipeId(), drugsEnterprise);
-            if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
+            if (checkHisAdminEnterpriseStock(recipe.getRecipeId(), drugsEnterprise)) {
                 drugStockAmountDTO.setResult(true);
             } else {
                 drugStockAmountDTO.setResult(false);
@@ -230,10 +188,6 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
                 DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
                 BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
                 drugInfoDTO.setStock(true);
-                String inventory = getDrugInventory(recipeDetail.getDrugId(), drugsEnterprise, recipe.getClinicOrgan());
-                if ("暂不支持库存查询".equals(inventory)) {
-                    drugInfoDTO.setStock(false);
-                }
                 drugInfoList.add(drugInfoDTO);
             });
             setDrugStockAmountDTO(drugStockAmountDTO, drugInfoList);
@@ -242,7 +196,6 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
     }
 
     private void setDrugStockAmountDTO(DrugStockAmountDTO drugStockAmountDTO, List<DrugInfoDTO> drugInfoList) {
-        LOGGER.info("setDrugStockAmountDTO drugInfoList:{}.", JSONUtils.toString(drugInfoList));
         List<String> noDrugNames = Optional.ofNullable(drugInfoList).orElseGet(Collections::emptyList)
                 .stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
         LOGGER.info("setDrugStockAmountDTO noDrugNames:{}", JSONUtils.toString(noDrugNames));
@@ -261,7 +214,6 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
         LOGGER.info("appEnterprise-【his管理的药企】-order:{}", JSONUtils.toString(order));
         String hisEnterpriseName = null;
         if (null != order) {
-
             hisEnterpriseName = order.getHisEnterpriseName();
         }
         LOGGER.info("appEnterprise-【his管理的药企】-请求虚拟药企返回：{}", hisEnterpriseName);
@@ -395,5 +347,34 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
             LOGGER.info("order 当前处方{}没有对接同步配送信息，默认成功！", recipeId);
             return payResult;
         }
+    }
+
+    /**
+     * 校验his管理药企的库存
+     * @param recipeId  处方id
+     * @param drugsEnterprise 药企
+     * @return
+     */
+    private boolean checkHisAdminEnterpriseStock(Integer recipeId, DrugsEnterprise drugsEnterprise){
+        //查询库存通过his预校验的返回判断库存是否足够
+        LOGGER.info("scanStock-【his管理的药企】-虚拟药企库存入参为：{}，{}", recipeId, JSONUtils.toString(drugsEnterprise));
+        DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
+        if(null == recipeId){
+            result.setCode(DrugEnterpriseResult.FAIL);
+            return false;
+        }
+        RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (null != extend) {
+            //获取当前his返回的药企信息，以及价格信息
+            String deliveryRecipeFees = extend.getDeliveryRecipeFee();
+            String deliveryCodes = extend.getDeliveryCode();
+            String deliveryNames = extend.getDeliveryName();
+            if (StringUtils.isNotEmpty(deliveryRecipeFees) &&
+                    StringUtils.isNotEmpty(deliveryCodes) && StringUtils.isNotEmpty(deliveryNames)) {
+                //只有杭州是互联网医院返回的是库存足够
+                return true;
+            }
+        }
+        return false;
     }
 }

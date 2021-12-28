@@ -173,7 +173,7 @@ public class DocIndexClient extends BaseClient {
         saveEmrContractReq.setDocIndexId(docId);
         saveEmrContractReq.setBussType(1);
         // 没有审核   1 显示 0 撤销
-        saveEmrContractReq.setDocindexExtStatus(DocIndexShowEnum.NO_AUDIT.equals(recipe.getReviewType())?DocIndexShowEnum.NORMAL.getCode():DocIndexShowEnum.REVOKE.getCode());
+        saveEmrContractReq.setDocindexExtStatus(DocIndexShowEnum.NO_AUDIT.getCode().equals(recipe.getReviewType())?DocIndexShowEnum.NORMAL.getCode():DocIndexShowEnum.REVOKE.getCode());
         if (ValidateUtil.integerIsEmpty(clinicId)) {
             saveEmrContractReq.setDocStatus(DOC_STATUS_USE);
         }

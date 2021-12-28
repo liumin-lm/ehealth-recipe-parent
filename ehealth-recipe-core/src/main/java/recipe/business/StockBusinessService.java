@@ -16,6 +16,7 @@ import recipe.client.DrugStockClient;
 import recipe.client.OperationClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IStockBusinessService;
+import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -222,6 +223,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         List<EnterpriseStock> enterpriseStockButton = buttonManager.enterpriseStockCheck(drugQueryVO.getOrganId());
         List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(drugQueryVO.getOrganId(), recipeDetails, enterpriseStockButton);
         enterpriseStock.add(organStock);
+        logger.info("drugForGiveMode enterpriseStock={}", JSONArray.toJSONString(enterpriseStock));
         List<DrugForGiveModeVO> list = Lists.newArrayList();
         for (EnterpriseStock stock : enterpriseStock) {
             if (!stock.getStock()) {
@@ -231,7 +233,9 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             if (CollectionUtils.isEmpty(giveModeButton)) {
                 continue;
             }
-            List<String> drugName = stock.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+            List<Integer> ids = stock.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getDrugId).collect(Collectors.toList());
+            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIds(drugQueryVO.getOrganId(), ids);
+            List<String> drugName = organDrugLists.stream().map(OrganDrugList::getDrugName).collect(Collectors.toList());
             giveModeButton.forEach(giveModeButtonDTO -> {
                 DrugForGiveModeVO drugForGiveModeVO = new DrugForGiveModeVO();
                 drugForGiveModeVO.setGiveModeKey(giveModeButtonDTO.getShowButtonKey());
@@ -334,13 +338,13 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
      * @return
      */
     public Boolean getStockFlag(List<Integer> recipeIds, Recipe recipe, Integer enterpriseId) {
-        logger.info("StockBusinessService getStockFlag recipeIds={}", JSONArray.toJSONString(recipeIds));
+        logger.info("StockBusinessService getStockFlag recipeIds={} recipe={}", JSONArray.toJSONString(recipeIds), JSONArray.toJSONString(recipe));
         if (CollectionUtils.isEmpty(recipeIds)) {
             return false;
         }
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIds);
 
-        Boolean stockFlag = true;
+        Boolean stockFlag = false;
         switch (GiveModeEnum.getGiveModeEnum(recipe.getGiveMode())) {
             case GIVE_MODE_HOME_DELIVERY:
                 // 配送到家
@@ -348,6 +352,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 // 药店取药
                 // 根据药企查询库存
                 EnterpriseStock enterpriseStock = this.enterpriseStockCheck(recipe, recipeDetails, enterpriseId);
+                logger.info("StockBusinessService getStockFlag enterpriseStock={}", JSONArray.toJSONString(enterpriseStock));
                 if (Objects.nonNull(enterpriseStock)) {
                     stockFlag = enterpriseStock.getStock();
                 }
@@ -357,6 +362,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 // 到院取药
                 // 医院库存
                 EnterpriseStock organStock = organDrugListManager.organStock(recipe.getClinicOrgan(), recipeDetails);
+                logger.info("StockBusinessService getStockFlag organStock={}", JSONArray.toJSONString(organStock));
                 if (Objects.nonNull(organStock)) {
                     stockFlag = organStock.getStock();
                 }
@@ -369,8 +375,9 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
 //                if (notCountDownloadRecipe > 0) {
 //                    stockFlag = false;
 //                }
-                break;
             default:
+                // 下载处方笺或其他购药方式默认有库存
+                stockFlag = true;
                 break;
         }
         logger.info("StockBusinessService getStockFlag stockFlag={}", stockFlag);
