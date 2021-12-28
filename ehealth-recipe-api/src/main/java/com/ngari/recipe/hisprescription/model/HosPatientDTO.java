@@ -23,7 +23,7 @@ public class HosPatientDTO implements Serializable {
     //病历号 门诊号 等
     private String clinicID;
     //卡号
-    @Desensitizations(type = DesensitizationsType.IDCARD)
+    @Desensitizations(type = DesensitizationsType.HEALTHCARD)
     private String cardID;
     private String cardType;
     private String cardOrgan;
