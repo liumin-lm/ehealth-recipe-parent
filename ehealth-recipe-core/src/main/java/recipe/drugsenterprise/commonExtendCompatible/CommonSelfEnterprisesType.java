@@ -227,31 +227,21 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
     @Override
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
-        if (null != recipe && null != recipe.getRecipeId()) {
-            DrugEnterpriseResult drugEnterpriseResult = scanStock(recipe.getRecipeId(), drugsEnterprise);
-            if (DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
-                drugStockAmountDTO.setResult(true);
-            } else {
-                drugStockAmountDTO.setResult(false);
+        List<DrugInfoDTO> drugInfoList = new ArrayList<>();
+        recipeDetails.forEach(recipeDetail -> {
+            DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+            BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
+            drugInfoDTO.setStock(false);
+            String inventory = getDrugInventory(recipeDetail.getDrugId(), drugsEnterprise, recipe.getClinicOrgan());
+            if ("有库存".equals(inventory)) {
+                drugInfoDTO.setStock(true);
+                drugInfoDTO.setStockAmountChin("有库存");
+                drugInfoDTO.setStockAmount(recipeDetail.getUseTotalDose().intValue());
             }
-            return drugStockAmountDTO;
-        } else {
-            List<DrugInfoDTO> drugInfoList = new ArrayList<>();
-            recipeDetails.forEach(recipeDetail -> {
-                DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
-                BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
-                drugInfoDTO.setStock(false);
-                String inventory = getDrugInventory(recipeDetail.getDrugId(), drugsEnterprise, recipe.getClinicOrgan());
-                if ("有库存".equals(inventory)) {
-                    drugInfoDTO.setStock(true);
-                    drugInfoDTO.setStockAmountChin("有库存");
-                    drugInfoDTO.setStockAmount(recipeDetail.getUseTotalDose().intValue());
-                }
-                drugInfoList.add(drugInfoDTO);
-            });
-            setDrugStockAmountDTO(drugStockAmountDTO, drugInfoList);
-            return drugStockAmountDTO;
-        }
+            drugInfoList.add(drugInfoDTO);
+        });
+        setDrugStockAmountDTO(drugStockAmountDTO, drugInfoList);
+        return drugStockAmountDTO;
     }
 
     private void setDrugStockAmountDTO(DrugStockAmountDTO drugStockAmountDTO, List<DrugInfoDTO> drugInfoList) {
