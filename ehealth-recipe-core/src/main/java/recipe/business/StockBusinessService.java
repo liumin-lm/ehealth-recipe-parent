@@ -16,6 +16,7 @@ import recipe.client.DrugStockClient;
 import recipe.client.OperationClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IStockBusinessService;
+import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -61,6 +62,8 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     private RecipeDetailDAO recipeDetailDAO;
     @Resource
     private OrganDrugListDAO organDrugListDAO;
+    @Resource
+    private DrugListDAO drugListDAO;
 
 
     @Override
@@ -222,6 +225,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         List<EnterpriseStock> enterpriseStockButton = buttonManager.enterpriseStockCheck(drugQueryVO.getOrganId());
         List<EnterpriseStock> enterpriseStock = this.enterpriseStockCheck(drugQueryVO.getOrganId(), recipeDetails, enterpriseStockButton);
         enterpriseStock.add(organStock);
+        logger.info("drugForGiveMode enterpriseStock={}", JSONArray.toJSONString(enterpriseStock));
         List<DrugForGiveModeVO> list = Lists.newArrayList();
         for (EnterpriseStock stock : enterpriseStock) {
             if (!stock.getStock()) {
@@ -231,7 +235,9 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             if (CollectionUtils.isEmpty(giveModeButton)) {
                 continue;
             }
-            List<String> drugName = stock.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+            List<Integer> ids = stock.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getDrugId).collect(Collectors.toList());
+            List<DrugList> drugLists = drugListDAO.findByDrugIds(ids);
+            List<String> drugName = drugLists.stream().map(DrugList::getDrugName).collect(Collectors.toList());
             giveModeButton.forEach(giveModeButtonDTO -> {
                 DrugForGiveModeVO drugForGiveModeVO = new DrugForGiveModeVO();
                 drugForGiveModeVO.setGiveModeKey(giveModeButtonDTO.getShowButtonKey());
