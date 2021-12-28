@@ -2,13 +2,16 @@ package recipe.caNew;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.caNew.pdf.CreatePdfFactory;
+import recipe.client.IConfigurationClient;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeDAO;
 
@@ -47,9 +50,15 @@ public class CaBeforeProcessType extends AbstractCaProcessType {
         //这里前置，触发CA时机在推送之前,这里判定his之后的为签名成功
         RecipeResultBean recipeResultBean = new RecipeResultBean();
         recipeResultBean.setCode(RecipeResultBean.SUCCESS);
+        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        IConfigurationClient configurationClient = AppContextHolder.getBean("iConfigurationClient", IConfigurationClient.class);
+        List<String> recipeTypes = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "patientRecipeUploadHis", null);
         try {
-            CreatePdfFactory createPdfFactory = AppContextHolder.getBean("createPdfFactory", CreatePdfFactory.class);
-            createPdfFactory.updateCodePdfExecute(recipeId);
+            if (CollectionUtils.isEmpty(recipeTypes)) {
+                CreatePdfFactory createPdfFactory = AppContextHolder.getBean("createPdfFactory", CreatePdfFactory.class);
+                createPdfFactory.updateCodePdfExecute(recipeId);
+            }
         } catch (Exception e) {
             LOGGER.error("addRecipeCodeAndPatientForRecipePdf error recipeId={}", recipeId, e);
         }
