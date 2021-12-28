@@ -1,18 +1,17 @@
 package recipe.drugsenterprise.compatible;
 
-import com.alijk.bqhospital.alijk.conf.TaobaoConf;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.dto.DrugInfoDTO;
+import com.ngari.recipe.dto.DrugStockAmountDTO;
+import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
@@ -27,9 +26,8 @@ import recipe.purchase.PurchaseService;
 import recipe.service.RecipeLogService;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @description 杭州互联网（金投）对接服务新实现方式
@@ -40,6 +38,9 @@ import java.util.Map;
 public class HzInternetRemoteNewType implements HzInternetRemoteTypeInterface {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HzInternetRemoteNewType.class);
+
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
 
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
@@ -56,34 +57,11 @@ public class HzInternetRemoteNewType implements HzInternetRemoteTypeInterface {
         //查询库存通过his预校验的返回判断库存是否足够
         LOGGER.info("新-scanStock 虚拟药企库存入参为：{}，{}", recipeId, JSONUtils.toString(drugsEnterprise));
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
-        if(!valiScanStock(recipeId, drugsEnterprise, result)){
+        if(checkHisAdminEnterpriseStock(recipeId, drugsEnterprise)){
+            result.setCode(DrugEnterpriseResult.SUCCESS);
             return result;
         }
-        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipeId);
-        if(null != extend){
-            //获取当前his返回的药企信息，以及价格信息
-            String deliveryRecipeFees = extend.getDeliveryRecipeFee();
-            String deliveryCodes = extend.getDeliveryCode();
-            String deliveryNames = extend.getDeliveryName();
-            if(StringUtils.isNotEmpty(deliveryRecipeFees) &&
-                    StringUtils.isNotEmpty(deliveryCodes) && StringUtils.isNotEmpty(deliveryNames)){
-                //只有杭州是互联网医院返回的是库存足够
-                result.setCode(DrugEnterpriseResult.SUCCESS);
-                result.setMsg("调用[" + drugsEnterprise.getName() + "][ scanStock ]结果返回成功,有库存,处方单ID:"+recipeId+".");
-                return result;
-            }
-        }
         return result;
-    }
-
-    private boolean valiScanStock(Integer recipeId, DrugsEnterprise drugsEnterprise, DrugEnterpriseResult result) {
-        if(null == recipeId){
-            result.setCode(DrugEnterpriseResult.FAIL);
-            result.setError("传入的处方id为空！");
-            return false;
-        }
-        return true;
     }
 
     @Override
@@ -91,7 +69,8 @@ public class HzInternetRemoteNewType implements HzInternetRemoteTypeInterface {
         LOGGER.info("新-findSupportDep 虚拟药企导出入参为：{}，{}，{}", JSONUtils.toString(recipeIds), JSONUtils.toString(ext), JSONUtils.toString(enterprise));
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         //校验入参
-        if(!valiRequestDate(recipeIds, ext, result)){
+        if(CollectionUtils.isEmpty(recipeIds)){
+            result.setCode(DrugEnterpriseResult.FAIL);
             return result;
         }
         //date 20200311
@@ -153,25 +132,11 @@ public class HzInternetRemoteNewType implements HzInternetRemoteTypeInterface {
 
                     depDetailList.add(depDetailBean);
                 }
-
-
-
             }
-
         }
         LOGGER.info("新-findSupportDepList 虚拟药企处方{}查询his药企列表展示信息：{}", recipeId, JSONUtils.toString(depDetailList));
         result.setObject(depDetailList);
         return result;
-    }
-
-    private Boolean valiRequestDate(List<Integer> recipeIds, Map ext, DrugEnterpriseResult result) {
-        if (CollectionUtils.isEmpty(recipeIds)) {
-            result.setCode(DrugEnterpriseResult.FAIL);
-            result.setError("传入的处方id为空！");
-            return false;
-        }
-
-        return true;
     }
 
     @Override
@@ -182,6 +147,43 @@ public class HzInternetRemoteNewType implements HzInternetRemoteTypeInterface {
         boolean equals = result.getCode().equals(DrugEnterpriseResult.SUCCESS);
         LOGGER.info("新-scanStock 请求虚拟药企返回：{}", equals);
         return equals;
+    }
+
+    @Override
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails){
+        LOGGER.info("setDrugStockAmountDTO recipeDetails:{}.", JSONUtils.toString(recipeDetails));
+        DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
+        if (null != recipe && null != recipe.getRecipeId()) {
+            if (checkHisAdminEnterpriseStock(recipe.getRecipeId(), drugsEnterprise)) {
+                drugStockAmountDTO.setResult(true);
+            } else {
+                drugStockAmountDTO.setResult(false);
+            }
+            return drugStockAmountDTO;
+        } else {
+            List<DrugInfoDTO> drugInfoList = new ArrayList<>();
+            recipeDetails.forEach(recipeDetail -> {
+                DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
+                BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
+                drugInfoDTO.setStock(true);
+                drugInfoList.add(drugInfoDTO);
+            });
+            setDrugStockAmountDTO(drugStockAmountDTO, drugInfoList);
+            return drugStockAmountDTO;
+        }
+    }
+
+    private void setDrugStockAmountDTO(DrugStockAmountDTO drugStockAmountDTO, List<DrugInfoDTO> drugInfoList) {
+        List<String> noDrugNames = Optional.ofNullable(drugInfoList).orElseGet(Collections::emptyList)
+                .stream().filter(drugInfoDTO -> !drugInfoDTO.getStock()).map(DrugInfoDTO::getDrugName).collect(Collectors.toList());
+        LOGGER.info("setDrugStockAmountDTO noDrugNames:{}", JSONUtils.toString(noDrugNames));
+        if (CollectionUtils.isNotEmpty(noDrugNames)) {
+            drugStockAmountDTO.setNotDrugNames(noDrugNames);
+        }
+        boolean stock = drugInfoList.stream().anyMatch(DrugInfoDTO::getStock);
+        drugStockAmountDTO.setResult(stock);
+        drugStockAmountDTO.setDrugInfoList(drugInfoList);
+        LOGGER.info("setDrugStockAmountDTO drugStockAmountDTO:{}", JSONUtils.toString(drugStockAmountDTO));
     }
 
     @Override
@@ -265,5 +267,34 @@ public class HzInternetRemoteNewType implements HzInternetRemoteTypeInterface {
             LOGGER.info("order 当前处方{}没有对接同步配送信息，默认成功！", recipeId);
             return payResult;
         }
+    }
+
+    /**
+     * 校验his管理药企的库存
+     * @param recipeId  处方id
+     * @param drugsEnterprise 药企
+     * @return
+     */
+    private boolean checkHisAdminEnterpriseStock(Integer recipeId, DrugsEnterprise drugsEnterprise){
+        //查询库存通过his预校验的返回判断库存是否足够
+        LOGGER.info("scanStock-【his管理的药企】-虚拟药企库存入参为：{}，{}", recipeId, JSONUtils.toString(drugsEnterprise));
+        DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
+        if(null == recipeId){
+            result.setCode(DrugEnterpriseResult.FAIL);
+            return false;
+        }
+        RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (null != extend) {
+            //获取当前his返回的药企信息，以及价格信息
+            String deliveryRecipeFees = extend.getDeliveryRecipeFee();
+            String deliveryCodes = extend.getDeliveryCode();
+            String deliveryNames = extend.getDeliveryName();
+            if(StringUtils.isNotEmpty(deliveryRecipeFees) &&
+                    StringUtils.isNotEmpty(deliveryCodes) && StringUtils.isNotEmpty(deliveryNames)){
+                //只有杭州是互联网医院返回的是库存足够
+                return true;
+            }
+        }
+        return false;
     }
 }

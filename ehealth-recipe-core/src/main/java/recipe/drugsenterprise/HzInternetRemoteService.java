@@ -7,10 +7,8 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DeliveryList;
 import com.ngari.his.recipe.mode.MedicalPreSettleReqTO;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.dto.DrugStockAmountDTO;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
@@ -42,9 +40,11 @@ import java.util.Map;
 /**
  * @author gmw
  * @description 杭州互联网（金投）对接服务
+ * 杭州互联网正式环境还有在用这种模式的，新的已不再用
  * @date 2019/9/11
  */
 @RpcBean("hzInternetRemoteService")
+@Deprecated
 public class HzInternetRemoteService extends AccessDrugEnterpriseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HzInternetRemoteService.class);
@@ -106,7 +106,6 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
         }
 
         RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
-        //HisResponseTO hisResult = service.recipeMedicalPreSettle(medicalPreSettleReqTO);
         HisResponseTO hisResult = null;
         if (hisResult != null && "200".equals(hisResult.getMsgCode())) {
             LOGGER.info("杭州互联网虚拟药企-处方预结算成功-his. param={},result={}", JSONUtils.toString(medicalPreSettleReqTO), JSONUtils.toString(hisResult));
@@ -133,12 +132,6 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
     public DrugEnterpriseResult checkMakeOrder(Integer recipeId, Map<String, String> extInfo) {
         LOGGER.info("checkMakeOrder 当前确认订单校验的新流程预结算->同步配送信息, 入参：{}，{}", recipeId, JSONUtils.toString(extInfo));
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-
-        /*result = recipeMedicalPreSettle(recipeId, null == extInfo.get("depId") ? null : Integer.parseInt(extInfo.get("depId").toString()));
-        if (DrugEnterpriseResult.FAIL.equals(result.getCode())) {
-            LOGGER.info("order 当前处方{}确认订单校验处方信息：预结算失败，结算结果：{}", recipeId, JSONUtils.toString(result));
-            return result;
-        }*/
 
         RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
@@ -192,13 +185,17 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
     public DrugEnterpriseResult updatePrescriptionStatus(String rxId, int status) {
         LOGGER.info("更新处方状态");
         DrugEnterpriseResult drugEnterpriseResult = new DrugEnterpriseResult(DrugEnterpriseResult.SUCCESS);
-
         return drugEnterpriseResult;
     }
 
     @Override
     public boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds) {
         return getRealization(dbRecipe).scanStock(dbRecipe, dep, drugIds);
+    }
+
+    @Override
+    public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
+        return getRealization(recipe).scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
     }
 
     @Override
