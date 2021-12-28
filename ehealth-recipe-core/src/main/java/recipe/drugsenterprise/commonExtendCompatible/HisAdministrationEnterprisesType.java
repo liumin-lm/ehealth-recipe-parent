@@ -105,7 +105,7 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
         LOGGER.info("findSupportDep-【his管理的药企】-虚拟药企导出入参为：{}，{}，{}", JSONUtils.toString(recipeIds), JSONUtils.toString(ext), JSONUtils.toString(enterprise));
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         //校验入参
-        if(!valiRequestDate(recipeIds, ext, result)){
+        if(!validateRequestDate(recipeIds, ext, result)){
             return result;
         }
         //date 20200311
@@ -178,7 +178,7 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
         return result;
     }
 
-    private Boolean valiRequestDate(List<Integer> recipeIds, Map ext, DrugEnterpriseResult result) {
+    private Boolean validateRequestDate(List<Integer> recipeIds, Map ext, DrugEnterpriseResult result) {
         if (CollectionUtils.isEmpty(recipeIds)) {
             result.setCode(DrugEnterpriseResult.FAIL);
             result.setError("传入的处方id为空！");

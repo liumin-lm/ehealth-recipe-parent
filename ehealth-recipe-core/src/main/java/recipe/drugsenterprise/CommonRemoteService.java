@@ -173,19 +173,19 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
             }
 
             if (StringUtils.isEmpty(recipe.getOrderCode())) {
-                LOGGER.error("pushRecipInfo recipeId={}, 不存在订单编号.", recipeId);
+                LOGGER.error("pushRecipeInfo recipeId={}, 不存在订单编号.", recipeId);
                 continue;
             }
 
             order = orderDAO.getByOrderCode(recipe.getOrderCode());
             if (null == order) {
-                LOGGER.error("pushRecipInfo code为" + recipe.getOrderCode() + "的订单不存在");
+                LOGGER.error("pushRecipeInfo code为" + recipe.getOrderCode() + "的订单不存在");
                 continue;
             }
 
             Integer enterpriseId = order.getEnterpriseId();
             if (null == enterpriseId) {
-                LOGGER.error("pushRecipInfo 该订单推送药企ID为null，订单编号:" + order.getOrderCode());
+                LOGGER.error("pushRecipeInfo 该订单推送药企ID为null，订单编号:" + order.getOrderCode());
                 continue;
             }
 
@@ -195,7 +195,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
                 patient = null;
             }
             if (null == patient) {
-                LOGGER.error("pushRecipInfo ID为" + recipe.getMpiid() + "的患者不存在");
+                LOGGER.error("pushRecipeInfo ID为" + recipe.getMpiid() + "的患者不存在");
                 continue;
             }
 
@@ -205,7 +205,7 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
                 organ = null;
             }
             if (null == organ) {
-                LOGGER.error("pushRecipInfo ID为" + recipe.getClinicOrgan() + "的机构不存在");
+                LOGGER.error("pushRecipeInfo ID为" + recipe.getClinicOrgan() + "的机构不存在");
                 continue;
             }
 
@@ -315,15 +315,9 @@ public class CommonRemoteService extends AccessDrugEnterpriseService {
                         drugMap.put("msunitno", detail.getDrugUnit());
                         drugMap.put("spec", detail.getDrugSpec());
                         drugMap.put("drugname", drug.getSaleName());
-                        //件包装
-//                        drugMap.put("packnum", 1);
-                        //产地
-//                        drugMap.put("prdarea", "");
-
                         drugsMap.put(drug.getDrugId(), drugMap);
                     }
                 }
-
                 recipeDetailList.add(detailMap);
             }
         }
