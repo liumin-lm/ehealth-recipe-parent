@@ -227,10 +227,10 @@ public class RecipeHisService extends RecipeBaseService {
             //门诊号处理 年月日+患者身份证后5位 例：2019060407915
             orderRepTO.setPatientID(DateConversion.getDateFormatter(now, "yyMMdd") + str);
             orderRepTO.setRegisterID(orderRepTO.getPatientID());
+            //生成处方编号，不需要通过HIS去产生
+            String recipeCodeStr = DigestUtil.md5For16(recipe.getClinicOrgan() + recipe.getMpiid() + Calendar.getInstance().getTimeInMillis());
+            orderRepTO.setRecipeNo(recipeCodeStr);
         }
-        //生成处方编号，不需要通过HIS去产生
-        String recipeCodeStr = DigestUtil.md5For16(recipe.getClinicOrgan() + recipe.getMpiid() + Calendar.getInstance().getTimeInMillis());
-        orderRepTO.setRecipeNo(recipeCodeStr);
         repList.add(orderRepTO);
         response.setData(repList);
         service.sendSuccess(response);

@@ -18,6 +18,7 @@ import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.recipeaudit.api.IRecipeAuditService;
@@ -28,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import recipe.ApplicationUtils;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
@@ -70,6 +70,7 @@ public class RecipeSingleService {
 
     @RpcService
     public RecipeStandardResTO<Map> getRecipeByConditions(RecipeStandardReqTO request) {
+        LOG.info("getRecipeByConditions request:{}", JSONUtils.toString(request));
         RecipeStandardResTO<Map> response = RecipeStandardResTO.getRequest(Map.class);
         response.setCode(RecipeCommonBaseTO.FAIL);
         if (request.isNotEmpty()) {
@@ -138,7 +139,7 @@ public class RecipeSingleService {
                     }
                     other.put("orderId", order.getOrderId());
                     String cancelReason = order.getCancelReason();
-                    if (StringUtils.isNotEmpty(cancelReason)){
+                    if (StringUtils.isNotEmpty(cancelReason)) {
                         other.put("cancelReason", cancelReason);
                     }
                 }
@@ -149,13 +150,13 @@ public class RecipeSingleService {
                 recipeInfo.put("other", other);
                 //审核不通过设置数据
                 if (RecipeStatusConstant.CHECK_NOT_PASS_YS == dbRecipe.getStatus()) {
-                    IRecipeAuditService recipeAuditService=  RecipeAuditAPI.getService(IRecipeAuditService.class,"recipeAuditServiceImpl");
+                    IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
                     //获取审核不通过详情
                     List<Map<String, Object>> mapList = recipeAuditService.getCheckNotPassDetail(recipeId);
                     recipeInfo.put("reasonAndDetails", mapList);
                 }
                 recipeInfo.put("notation", getNotation(dbRecipe));
-                recipeInfo.put("statusTxt",getStatusText(dbRecipe,order));
+                recipeInfo.put("statusTxt", getStatusText(dbRecipe, order));
                 response.setData(recipeInfo);
                 response.setCode(RecipeCommonBaseTO.SUCCESS);
             } else {
@@ -165,7 +166,7 @@ public class RecipeSingleService {
         } else {
             response.setMsg("请求对象为空");
         }
-
+        LOG.info("getRecipeByConditions response:{}", JSONUtils.toString(response));
         return response;
     }
 
@@ -252,10 +253,10 @@ public class RecipeSingleService {
      * @param dbRecipe
      * @return
      */
-    public String getStatusText(Recipe dbRecipe,RecipeOrder order) {
+    public String getStatusText(Recipe dbRecipe, RecipeOrder order) {
         // 根据当前状态返回前端显示状态文案
         String statusTxt = "";
-        if (order.getStatus() == OrderStatusConstant.CANCEL_AUTO){
+        if (order.getStatus() == OrderStatusConstant.CANCEL_AUTO) {
             statusTxt = "已取消";
             return statusTxt;
         }
@@ -276,10 +277,10 @@ public class RecipeSingleService {
             //审核通过
             case RecipeStatusConstant.CHECK_PASS_YS:
                 //患者自选未支付或药店取药未支付
-                if (Integer.valueOf(1).equals(order.getPushFlag())){
+                if (Integer.valueOf(1).equals(order.getPushFlag())) {
                     statusTxt = "审核通过，第三方已接收";
 
-                }else if (Integer.valueOf(-1).equals(order.getPushFlag())) {
+                } else if (Integer.valueOf(-1).equals(order.getPushFlag())) {
                     statusTxt = "审核通过，第三方接收失败";
 
                 }
@@ -288,10 +289,10 @@ public class RecipeSingleService {
             case RecipeStatusConstant.READY_CHECK_YS:
                 //购药模式为药店取药或患者自由选择
                 if (RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())
-                || RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())) {
+                        || RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())) {
                     statusTxt = "已签名，等待药师审核";
-                }else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
-                        && Integer.valueOf(1).equals(dbRecipe.getPayFlag())){
+                } else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())
+                        && Integer.valueOf(1).equals(dbRecipe.getPayFlag())) {
                     statusTxt = "支付成功，等待药师审核";
                 }
                 break;
@@ -299,17 +300,17 @@ public class RecipeSingleService {
             case RecipeStatusConstant.WAIT_SEND:
                 if (Integer.valueOf(1).equals(dbRecipe.getPayFlag())
                         && (RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())
-                        || RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode()))){
+                        || RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode()))) {
                     statusTxt = "已支付";
                 }
                 break;
             //已完成
             case RecipeStatusConstant.FINISH:
-                if (RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())){
+                if (RecipeBussConstant.GIVEMODE_TFDS.equals(dbRecipe.getGiveMode())) {
                     statusTxt = "患者取药完成";
-                }else if (RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode())||RecipeBussConstant.GIVEMODE_TO_HOS.equals(dbRecipe.getGiveMode())) {
+                } else if (RecipeBussConstant.GIVEMODE_FREEDOM.equals(dbRecipe.getGiveMode()) || RecipeBussConstant.GIVEMODE_TO_HOS.equals(dbRecipe.getGiveMode())) {
                     statusTxt = "处方单已完成";
-                }else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())){
+                } else if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(dbRecipe.getGiveMode())) {
                     statusTxt = "配送完成";
                 }
                 break;

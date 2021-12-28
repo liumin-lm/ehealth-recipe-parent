@@ -13,7 +13,7 @@ import java.util.List;
  * @date:20111223
  */
 
-
+@Schema
 public class ObtainConfirmOrderObjectResNoDS implements Serializable {
 
     private static final long serialVersionUID = -1365227235362189226L;
