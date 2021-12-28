@@ -29,7 +29,10 @@ import recipe.constant.ErrorCode;
 import recipe.constant.OperationConstant;
 import recipe.dao.RecipeExtendDAO;
 import recipe.manager.RedisManager;
-import recipe.util.*;
+import recipe.util.ByteUtils;
+import recipe.util.DictionaryUtil;
+import recipe.util.MapValueUtil;
+import recipe.util.RecipeUtil;
 
 import javax.annotation.Resource;
 import java.io.ByteArrayInputStream;
@@ -205,14 +208,13 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         return coords;
     }
 
-
     @Override
     public String updateCodePdf(Recipe recipe) throws Exception {
         Integer recipeId = recipe.getRecipeId();
         logger.info("CustomCreatePdfServiceImpl updateCodePdf  recipeId={}", recipeId);
         List<CoOrdinateVO> coOrdinateList = new LinkedList<>();
         CoOrdinateVO patientId = redisManager.getPdfCoords(recipe.getRecipeId(), "recipe.patientID");
-        if (null != patientId && ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
+        if (null != patientId && !Integer.valueOf(2).equals(recipe.getBussSource())) {
             patientId.setRepeatWrite(true);
             patientId.setValue(recipe.getPatientID());
             coOrdinateList.add(patientId);
