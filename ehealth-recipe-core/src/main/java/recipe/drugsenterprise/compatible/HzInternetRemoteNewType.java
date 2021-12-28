@@ -1,6 +1,5 @@
 package recipe.drugsenterprise.compatible;
 
-import com.alijk.bqhospital.alijk.conf.TaobaoConf;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
@@ -13,7 +12,6 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
@@ -56,7 +54,8 @@ public class HzInternetRemoteNewType implements HzInternetRemoteTypeInterface {
         //查询库存通过his预校验的返回判断库存是否足够
         LOGGER.info("新-scanStock 虚拟药企库存入参为：{}，{}", recipeId, JSONUtils.toString(drugsEnterprise));
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();
-        if(!valiScanStock(recipeId, drugsEnterprise, result)){
+        if(null == recipeId){
+            result.setCode(DrugEnterpriseResult.FAIL);
             return result;
         }
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
@@ -77,21 +76,13 @@ public class HzInternetRemoteNewType implements HzInternetRemoteTypeInterface {
         return result;
     }
 
-    private boolean valiScanStock(Integer recipeId, DrugsEnterprise drugsEnterprise, DrugEnterpriseResult result) {
-        if(null == recipeId){
-            result.setCode(DrugEnterpriseResult.FAIL);
-            result.setError("传入的处方id为空！");
-            return false;
-        }
-        return true;
-    }
-
     @Override
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise) {
         LOGGER.info("新-findSupportDep 虚拟药企导出入参为：{}，{}，{}", JSONUtils.toString(recipeIds), JSONUtils.toString(ext), JSONUtils.toString(enterprise));
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         //校验入参
-        if(!valiRequestDate(recipeIds, ext, result)){
+        if(CollectionUtils.isEmpty(recipeIds)){
+            result.setCode(DrugEnterpriseResult.FAIL);
             return result;
         }
         //date 20200311
@@ -153,25 +144,11 @@ public class HzInternetRemoteNewType implements HzInternetRemoteTypeInterface {
 
                     depDetailList.add(depDetailBean);
                 }
-
-
-
             }
-
         }
         LOGGER.info("新-findSupportDepList 虚拟药企处方{}查询his药企列表展示信息：{}", recipeId, JSONUtils.toString(depDetailList));
         result.setObject(depDetailList);
         return result;
-    }
-
-    private Boolean valiRequestDate(List<Integer> recipeIds, Map ext, DrugEnterpriseResult result) {
-        if (CollectionUtils.isEmpty(recipeIds)) {
-            result.setCode(DrugEnterpriseResult.FAIL);
-            result.setError("传入的处方id为空！");
-            return false;
-        }
-
-        return true;
     }
 
     @Override
