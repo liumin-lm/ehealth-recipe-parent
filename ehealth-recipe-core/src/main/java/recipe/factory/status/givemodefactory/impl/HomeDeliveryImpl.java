@@ -101,7 +101,7 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
                 logger.info("RecipeBusiThreadPool updateStatusAfter 将配送完成信息推送到监管平台 执行时间:{}.", elapsedTime);
             });
         }
-        //根据这个判断,配送中和配送完成可能会出现推送两次
+        //根据这个判断,配送中和配送完成可能会出现推送两次？
         if (null != orderStatus.getLogisticsCompany() || StringUtils.isNotBlank(orderStatus.getTrackingNumber())) {
             try {
                 //同步运单信息至基础服务
@@ -109,8 +109,10 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
             } catch (Exception e) {
                 logger.error("HomeDeliveryImpl updateStatusAfter error ", e);
             }
-            //更新快递信息后，发送消息
-            RecipeMsgService.batchSendMsg(orderStatus.getRecipeId(), RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
+            if (RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType().equals(orderStatus.getTargetRecipeOrderStatus())) {
+                //更新快递信息后，发送消息
+                RecipeMsgService.batchSendMsg(orderStatus.getRecipeId(), RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
+            }
             //将快递公司快递单号信息用更新配送方式接口更新至his
             if (StringUtils.isEmpty(recipe.getMpiid())) {
                 return;
