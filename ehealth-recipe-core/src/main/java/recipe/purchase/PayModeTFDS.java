@@ -303,8 +303,14 @@ public class PayModeTFDS implements IPurchaseService {
             }
         }
 
-        DrugEnterpriseResult result = remoteDrugService.scanStock(recipeId, dep);
-        succFlag = result.getCode().equals(DrugEnterpriseResult.SUCCESS) ? true : false;
+        RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
+        List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());
+        EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, dep.getId());
+        if(Objects.isNull(enterpriseStock)){
+            succFlag = false;
+        }else {
+            succFlag = enterpriseStock.getStock();
+        }
         if (!succFlag) {
             LOGGER.warn("findSupportDepList 药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}]", recipeId, dep.getId(), dep.getName());
         }
