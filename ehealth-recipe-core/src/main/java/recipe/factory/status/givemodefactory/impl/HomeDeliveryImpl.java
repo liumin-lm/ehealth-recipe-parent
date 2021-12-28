@@ -101,7 +101,7 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
                 logger.info("RecipeBusiThreadPool updateStatusAfter 将配送完成信息推送到监管平台 执行时间:{}.", elapsedTime);
             });
         }
-
+        //根据这个判断,配送中和配送完成可能会出现推送两次
         if (null != orderStatus.getLogisticsCompany() || StringUtils.isNotBlank(orderStatus.getTrackingNumber())) {
             try {
                 //同步运单信息至基础服务
@@ -116,15 +116,11 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
                 return;
             }
             RecipeBusiThreadPool.execute(() -> {
-                long start = System.currentTimeMillis();
                 RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
                 List<Recipedetail> details = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
                 PatientBean patientBean = patientService.get(recipe.getMpiid());
                 DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, null);
                 service.drugTakeChange(request);
-                long elapsedTime = System.currentTimeMillis() - start;
-                logger.info("RecipeBusiThreadPool updateStatusAfter 将配送完成信息同步HIS 执行时间:{}.", elapsedTime);
-
             });
 
             //记录日志
