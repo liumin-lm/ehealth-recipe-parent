@@ -188,10 +188,6 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
                 DrugInfoDTO drugInfoDTO = new DrugInfoDTO();
                 BeanUtils.copyProperties(recipeDetail, drugInfoDTO);
                 drugInfoDTO.setStock(true);
-                String inventory = getDrugInventory(recipeDetail.getDrugId(), drugsEnterprise, recipe.getClinicOrgan());
-                if ("暂不支持库存查询".equals(inventory)) {
-                    drugInfoDTO.setStock(false);
-                }
                 drugInfoList.add(drugInfoDTO);
             });
             setDrugStockAmountDTO(drugStockAmountDTO, drugInfoList);
