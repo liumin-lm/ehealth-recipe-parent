@@ -1,8 +1,10 @@
 package recipe.drugsenterprise.compatible;
 
+import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.Recipedetail;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
 
@@ -19,6 +21,8 @@ public interface HzInternetRemoteTypeInterface {
     DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise);
 
     boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds);
+
+    DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails);
 
     String appEnterprise(RecipeOrder order);
 
