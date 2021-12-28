@@ -52,7 +52,7 @@ public class CaBeforeProcessType extends AbstractCaProcessType {
         recipeResultBean.setCode(RecipeResultBean.SUCCESS);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        IConfigurationClient configurationClient = AppContextHolder.getBean("iConfigurationClient", IConfigurationClient.class);
+        IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
         List<String> recipeTypes = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "patientRecipeUploadHis", null);
         try {
             if (CollectionUtils.isEmpty(recipeTypes)) {
