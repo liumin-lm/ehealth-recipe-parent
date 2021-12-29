@@ -372,6 +372,8 @@ public class HisRequestInit {
         requestTO.setDiseasesHistory(recipe.getOrganDiseaseName());
         try {
             if (recipe.getClinicId() != null) {
+                requestTO.setClinicId(recipe.getClinicId());
+                requestTO.setBussSource(recipe.getBussSource());
                 IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
                 RevisitExDTO revisitExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
                 if (requestTO.getRegisteredId() == null) {
