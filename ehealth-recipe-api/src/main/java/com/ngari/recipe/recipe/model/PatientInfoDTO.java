@@ -12,7 +12,7 @@ public class PatientInfoDTO implements Serializable {
     /**
      * 卡号
      */
-    @Desensitizations(type = DesensitizationsType.IDCARD)
+    @Desensitizations(type = DesensitizationsType.HEALTHCARD)
     private String card;
     /**
      * 卡类型（1身份证 2 医保卡 3 临时卡）

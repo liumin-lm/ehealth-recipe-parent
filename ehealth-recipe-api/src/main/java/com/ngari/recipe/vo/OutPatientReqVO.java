@@ -27,7 +27,7 @@ public class OutPatientReqVO implements Serializable {
     /**
      * 身份证号
      */
-    @Desensitizations(type = DesensitizationsType.IDCARD)
+    @Desensitizations(type = DesensitizationsType.HEALTHCARD)
     private String IdCard;
 
     /**
