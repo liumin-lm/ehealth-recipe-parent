@@ -12,7 +12,7 @@ public class DispendingPharmacyReportReqTo {
     private Date startDate;
     private java.util.Date endDate;
     private String drugName;
-    @Desensitizations(type = DesensitizationsType.IDCARD)
+    @Desensitizations(type = DesensitizationsType.HEALTHCARD)
     private String cardNo;
     private String patientName;
     private String billNumber;

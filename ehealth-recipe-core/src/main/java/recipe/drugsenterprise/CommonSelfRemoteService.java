@@ -7,6 +7,7 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -82,27 +83,6 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
         return DrugEnterpriseConstant.COMPANY_COMMON_SELF;
     }
 
-    private List<Pharmacy> getPharmacies(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise, DrugEnterpriseResult result) {
-        PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
-        List<Pharmacy> pharmacyList = new ArrayList<Pharmacy>();
-        if (ext != null && null != ext.get(searchMapRANGE) && null != ext.get(searchMapLongitude) && null != ext.get(searchMapLatitude)) {
-            pharmacyList = pharmacyDAO.findByDrugsenterpriseIdAndStatusAndRangeAndLongitudeAndLatitude(enterprise.getId(), Double.parseDouble(ext.get(searchMapRANGE).toString()), Double.parseDouble(ext.get(searchMapLongitude).toString()), Double.parseDouble(ext.get(searchMapLatitude).toString()));
-        }else{
-            LOGGER.warn("CommonSelfRemoteService.findSupportDep:请求的搜索参数不健全" );
-            getFailResult(result, "请求的搜索参数不健全");
-        }
-        if(CollectionUtils.isEmpty(recipeIds)){
-            LOGGER.warn("CommonSelfRemoteService.findSupportDep:查询的处方单为空" );
-            getFailResult(result, "查询的处方单为空");
-        }
-        return pharmacyList;
-    }
-
-    private void getFailResult(DrugEnterpriseResult result, String msg) {
-        result.setMsg(msg);
-        result.setCode(DrugEnterpriseResult.FAIL);
-    }
-
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         //date 20201023 当前接口有非机构下的查看库存，
@@ -121,7 +101,9 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
 
     @Override
     //走默认实现
+    //TODO 下一个版本直接删除
     public boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds) {
+        LOGGER.info("commonSelfRemoteService scanStock 记录是否被调用,下一个版本直接删除 recipe:{}", JSONUtils.toString(dbRecipe));
         CommonExtendEnterprisesInterface type = CommonExtendRemoteTypeEnum.getTypeFromRecipe(dbRecipe);
         if(type instanceof CommonSelfEnterprisesType){
             return super.scanStock(dbRecipe, dep, drugIds);

@@ -7,9 +7,7 @@ import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Pharmacy;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
-import ctd.util.JSONUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
@@ -89,13 +87,8 @@ public class TestDrugStoreRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-        String startLimit = recipeParameterDao.getByName("supportDepStartLimit");
-        String[] parames = startLimit.split(",");
-        Integer start = Integer.parseInt(parames[0]);
-        Integer limit = Integer.parseInt(parames[1]);
         PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
-        List<Pharmacy> pharmacies = pharmacyDAO.findAll(start, limit);
+        List<Pharmacy> pharmacies = pharmacyDAO.findEnterpriseByDepId(enterprise.getId() ,0, 10);
         List<DepDetailBean> depDetailBeans = new ArrayList<>();
         for (Pharmacy pharmacy : pharmacies) {
             DepDetailBean depDetailBean = new DepDetailBean();

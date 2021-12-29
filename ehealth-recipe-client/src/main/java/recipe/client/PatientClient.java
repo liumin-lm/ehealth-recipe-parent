@@ -203,6 +203,7 @@ public class PatientClient extends BaseClient {
 
     /**
      * 获取当前患者所有家庭成员(包括自己)
+     *
      * @param mpiId 当前就诊人
      * @return 所有就诊人
      */
@@ -244,10 +245,11 @@ public class PatientClient extends BaseClient {
 
     /**
      * 获取健康卡
+     *
      * @param mpiId 患者唯一号
      * @return 健康卡列表
      */
-    public Set<String> findHealthCard(String mpiId){
+    public Set<String> findHealthCard(String mpiId) {
         logger.info("PatientClient findHealthCard mpiId:{}.", mpiId);
         List<HealthCardDTO> healthCards = healthCardService.findByMpiId(mpiId);
         Set<String> result = healthCards.stream().map(HealthCardDTO::getCardId).collect(Collectors.toSet());
@@ -257,9 +259,10 @@ public class PatientClient extends BaseClient {
 
     /**
      * 根据用户信息获取所属公众号相关信息
+     *
      * @return
      */
-    public String getOpenId(){
+    public String getOpenId() {
         try {
             SimpleWxAccountBean simpleWxAccountBean = currentUserInfoService.getSimpleWxAccount();
             String openId = simpleWxAccountBean.getOpenId();

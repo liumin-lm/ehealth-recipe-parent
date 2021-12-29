@@ -42,7 +42,7 @@ public class QueryPlatRecipeInfoByDateDTO implements Serializable {
     /**
      * 卡号
      */
-    @Desensitizations(type = DesensitizationsType.IDCARD)
+    @Desensitizations(type = DesensitizationsType.HEALTHCARD)
     private String cardNo;
     /**
      * 查询开始时间
