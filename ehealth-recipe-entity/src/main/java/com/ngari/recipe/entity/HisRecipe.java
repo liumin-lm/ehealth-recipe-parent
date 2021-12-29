@@ -157,7 +157,7 @@ public class HisRecipe implements Serializable {
     @ItemProperty(alias = "中医症候名称")
     private String symptomName;
     @ItemProperty(alias = "卡号")
-    @Desensitizations(type = DesensitizationsType.IDCARD)
+    @Desensitizations(type = DesensitizationsType.HEALTHCARD)
     private String cardNo;
     @ItemProperty(alias = "卡类型")
     private String cardTypeCode;

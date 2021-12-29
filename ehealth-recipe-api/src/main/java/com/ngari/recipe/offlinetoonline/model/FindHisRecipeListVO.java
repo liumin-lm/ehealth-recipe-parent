@@ -38,7 +38,7 @@ public class FindHisRecipeListVO implements Serializable {
     /**
      * 卡号
      */
-    @Desensitizations(type = DesensitizationsType.IDCARD)
+    @Desensitizations(type = DesensitizationsType.HEALTHCARD)
     private String cardId;
 
     /**

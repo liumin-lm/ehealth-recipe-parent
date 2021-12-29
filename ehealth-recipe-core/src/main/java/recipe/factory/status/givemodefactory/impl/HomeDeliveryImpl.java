@@ -109,10 +109,8 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
             } catch (Exception e) {
                 logger.error("HomeDeliveryImpl updateStatusAfter error ", e);
             }
-            if (RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType().equals(orderStatus.getTargetRecipeOrderStatus())) {
-                //更新快递信息后，发送消息
-                RecipeMsgService.batchSendMsg(orderStatus.getRecipeId(), RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
-            }
+            //更新快递信息后，发送消息
+            RecipeMsgService.batchSendMsg(orderStatus.getRecipeId(), RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
             //将快递公司快递单号信息用更新配送方式接口更新至his
             if (StringUtils.isEmpty(recipe.getMpiid())) {
                 return;

@@ -8,6 +8,8 @@ import com.ngari.recipe.entity.RecipeLog;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.schema.annotation.DesensitizationsType;
+import ctd.util.DesensitizationsUtil;
 import ctd.util.JSONUtils;
 import eh.base.constant.ErrorCode;
 import org.apache.commons.collections.CollectionUtils;
@@ -225,6 +227,7 @@ public class RecipeManager extends BaseManager {
                 recipeExtend.setCardNo(recipeExtend.getCardNo().substring(0, 10));
             }
         }
+        recipeExtend.setCardNo(DesensitizationsUtil.instance().processField(DesensitizationsType.HEALTHCARD.getType(), recipeExtend.getCardNo()));
         return recipeDTO;
     }
 

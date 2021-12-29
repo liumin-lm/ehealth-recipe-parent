@@ -52,7 +52,7 @@ public class RecipeExtendBean implements Serializable {
     private String cardTypeName;
 
     @ItemProperty(alias = "HIS处方关联的卡号")
-    @Desensitizations(type = DesensitizationsType.IDCARD)
+    @Desensitizations(type = DesensitizationsType.HEALTHCARD)
     private String cardNo;
 
     @ItemProperty(alias = "HIS处方关联的卡类型")
