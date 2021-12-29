@@ -492,8 +492,7 @@ public class RecipeHisService extends RecipeBaseService {
     private boolean doRecipeSettle(Recipe recipe, PatientBean patientBean, HealthCardBean cardBean, RecipeResultBean result) {
         //调用前置机结算支持两种方式---配送到家和药店取药
         // 到院取药线上支付
-        if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) || RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())
-        || RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
+        if (RecipeBussConstant.GIVEMODE_SEND_TO_HOME.equals(recipe.getGiveMode()) || RecipeBussConstant.GIVEMODE_TFDS.equals(recipe.getGiveMode())) {
             LOGGER.info("doRecipeSettle recipeId={}", recipe.getRecipeId());
             if (StringUtils.isEmpty(recipe.getOrderCode())) {
                 LOGGER.error("doRecipeSettle orderCode is null; recipeId={}", recipe.getRecipeId());
