@@ -62,8 +62,6 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     private RecipeDetailDAO recipeDetailDAO;
     @Resource
     private OrganDrugListDAO organDrugListDAO;
-    @Resource
-    private DrugListDAO drugListDAO;
 
 
     @Override
@@ -228,16 +226,17 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         logger.info("drugForGiveMode enterpriseStock={}", JSONArray.toJSONString(enterpriseStock));
         List<DrugForGiveModeVO> list = Lists.newArrayList();
         for (EnterpriseStock stock : enterpriseStock) {
-            if (!stock.getStock()) {
-                continue;
-            }
+
             List<GiveModeButtonDTO> giveModeButton = stock.getGiveModeButton();
             if (CollectionUtils.isEmpty(giveModeButton)) {
                 continue;
             }
             List<Integer> ids = stock.getDrugInfoList().stream().filter(DrugInfoDTO::getStock).map(DrugInfoDTO::getDrugId).collect(Collectors.toList());
-            List<DrugList> drugLists = drugListDAO.findByDrugIds(ids);
-            List<String> drugName = drugLists.stream().map(DrugList::getDrugName).collect(Collectors.toList());
+            if(CollectionUtils.isEmpty(ids)){
+                continue;
+            }
+            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIds(drugQueryVO.getOrganId(), ids);
+            List<String> drugName = organDrugLists.stream().map(OrganDrugList::getDrugName).collect(Collectors.toList());
             giveModeButton.forEach(giveModeButtonDTO -> {
                 DrugForGiveModeVO drugForGiveModeVO = new DrugForGiveModeVO();
                 drugForGiveModeVO.setGiveModeKey(giveModeButtonDTO.getShowButtonKey());
