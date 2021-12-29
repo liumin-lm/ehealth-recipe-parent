@@ -193,11 +193,6 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
     }
 
     @Override
-    public void sendDeliveryMsgToHis(Integer recipeId) {
-
-    }
-
-    @Override
     public DrugEnterpriseResult sendMsgResultMap(Integer recipeId, Map<String, String> extInfo, DrugEnterpriseResult payResult) {
         return null;
     }
@@ -297,7 +292,6 @@ public class CommonSelfEnterprisesType implements CommonExtendEnterprisesInterfa
     @Override
     public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<String> result = new ArrayList<>();
             for (RecipeDetailBean recipeDetailBean : drugsDataBean.getRecipeDetailBeans()) {
                 SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganIdAndStatus(recipeDetailBean.getDrugId(), drugsEnterprise.getId());

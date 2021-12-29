@@ -361,6 +361,7 @@ public abstract class AccessDrugEnterpriseService {
      * @param drugIds
      * @return
      */
+    //TODO 下一个版本直接删除
     @Deprecated
     public boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds) {
         LOGGER.info("scanStock 当前公用药企逻辑-推送订单信息，入参：dbRecipe:{},dep:{},drugIds:{}", JSONUtils.toString(dbRecipe), JSONUtils.toString(dep), JSONUtils.toString(drugIds));
