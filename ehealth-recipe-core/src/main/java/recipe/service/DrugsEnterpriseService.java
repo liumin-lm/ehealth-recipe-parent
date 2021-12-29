@@ -6,13 +6,10 @@ import com.ngari.opbase.util.OpSecurityUtil;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DrugEnterpriseLogisticsBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBeanNoDS;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseRes;
-import com.ngari.recipe.dto.GiveModeButtonDTO;
-import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.entity.*;
 import ctd.account.UserRoleToken;
 import ctd.dictionary.DictionaryController;
@@ -34,7 +31,6 @@ import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.EnterpriseManager;
 import recipe.service.drugs.IDrugEnterpriseLogisticsService;
@@ -90,11 +86,10 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
     }
 
     @RpcService
-    public List<DrugsEnterpriseRes> getDrugsEnterpriseByName(String name) {
+    public List<DrugsEnterprise> getDrugsEnterpriseByName(String name) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findAllDrugsEnterpriseByName(name);
-        List<DrugsEnterpriseRes> drugsEnterpriseBeans = ObjectCopyUtils.convert(drugsEnterpriseList, DrugsEnterpriseRes.class);
-        return drugsEnterpriseBeans;
+        return drugsEnterpriseList;
     }
 
     /**
@@ -419,6 +414,22 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
             }
             result = drugsEnterpriseDAO.queryDrugsEnterpriseResultByManageUnit(null, organIdsByManageUnit, status);
         }
+
+        if (result == null) {
+            return result;
+        }
+        LOGGER.info(JSONUtils.toString(result));
+        List<DrugsEnterpriseBean> drugsEnterpriseBeans = result.getItems();
+        //不知道为啥不能直接循环drugsEnterpriseBeans 报转换异常,所以给转换了一下
+        List<DrugsEnterpriseBean> drugsEnterpriseBeans1 = ObjectCopyUtils.convert(drugsEnterpriseBeans, DrugsEnterpriseBean.class);
+        if (CollectionUtils.isNotEmpty(drugsEnterpriseBeans1)) {
+            for (DrugsEnterpriseBean drugsEnterpriseBean : drugsEnterpriseBeans1) {
+                drugsEnterpriseBean.setTel(null);
+                drugsEnterpriseBean.setPassword(null);
+                drugsEnterpriseBean.setAccount(null);
+            }
+        }
+        result.setItems(drugsEnterpriseBeans1);
         return result;
     }
 
