@@ -11,6 +11,7 @@ import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.exception.DAOException;
+import ctd.util.JSONUtils;
 import eh.entity.base.Scratchable;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -135,8 +136,11 @@ public class OperationClient extends BaseClient {
                 }
             }
             RecipeOrder recipeOrder = recipePdfDTO.getRecipeOrder();
-            if (OperationConstant.OP_RECIPE_ACTUAL_PRICE.equals(fieldName) && null != recipeOrder && null != recipeOrder.getRecipeFee()) {
-                return recipeOrder.getRecipeFee().toString();
+            if (OperationConstant.OP_RECIPE_ACTUAL_PRICE.equals(fieldName) && null != recipeOrder) {
+                List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+                if (1 == recipeIdList.size() && null != recipeOrder.getRecipeFee()) {
+                    return recipeOrder.getRecipeFee().toString();
+                }
             }
             ApothecaryDTO apothecaryDTO = recipePdfDTO.getApothecary();
             //医生签名图片
