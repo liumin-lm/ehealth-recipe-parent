@@ -1592,7 +1592,7 @@ public class RecipeServiceSub {
                 medicalFlag = (true == set.getMedicarePrescription()) ? true : false;
             }
             map.put("medicalFlag", medicalFlag);
-            if (null != recipe.getChecker() && recipe.getChecker() > 0) {
+            if(null != recipe.getChecker()){
                 String ysTel = "";
                 // 美康药师手机号
                 if (recipe.getCheckMode().equals(5)) {
@@ -1600,7 +1600,9 @@ public class RecipeServiceSub {
                     RecipeCheckBean recipeCheckBean = recipeCheckService.getNowCheckResultByRecipeId(recipeId);
                     ysTel = recipeCheckBean.getThirdPharmacistPhone();
                 }else{
-                    ysTel = doctorService.getMobileByDoctorId(recipe.getChecker());
+                    if (recipe.getChecker() > 0) {
+                        ysTel = doctorService.getMobileByDoctorId(recipe.getChecker());
+                    }
                 }
                 if (StringUtils.isNotEmpty(ysTel)) {
                     recipe.setCheckerTel(ysTel);
