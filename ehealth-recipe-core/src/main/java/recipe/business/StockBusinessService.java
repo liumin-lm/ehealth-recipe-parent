@@ -16,7 +16,6 @@ import recipe.client.DrugStockClient;
 import recipe.client.OperationClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IStockBusinessService;
-import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
@@ -435,6 +434,8 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         //校验药企库存
         List<FutureTask<EnterpriseStock>> futureTasks = new LinkedList<>();
         //根据药企配置查询 库存
+        logger.info("StockBusinessService enterpriseStockCheckAll  recipe = {},recipeDetails = {},enterpriseStockList = {}"
+                , JSON.toJSONString(recipe), JSON.toJSONString(recipeDetails), JSON.toJSONString(enterpriseStockList));
         for (EnterpriseStock enterpriseStock : enterpriseStockList) {
             FutureTask<EnterpriseStock> ft = new FutureTask<>(() -> enterpriseStockFutureTask(enterpriseStock, recipe, recipeDetails, enterpriseDrugIdGroup));
             futureTasks.add(ft);
