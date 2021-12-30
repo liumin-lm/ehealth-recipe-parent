@@ -14,6 +14,7 @@ import ctd.util.annotation.RpcService;
 import eh.base.constant.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.aop.LogRecord;
 import recipe.ca.CAInterface;
 import recipe.ca.ICommonCAServcie;
 import recipe.ca.vo.CaSignResultVo;
@@ -71,6 +72,7 @@ public class ShanxiCAImpl implements CAInterface {
     }
 
     @RpcService
+    @LogRecord
     public boolean caPasswordBusiness(CaPasswordRequestTO requestTO) {
         RedisClient redisClient = AppContextHolder.getBean("redisClient", RedisClient.class);
         boolean isSuccess= false;

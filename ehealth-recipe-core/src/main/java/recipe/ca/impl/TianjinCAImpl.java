@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.ca.CAInterface;
 import recipe.ca.ICommonCAServcie;
 import recipe.ca.factory.CommonCAFactory;
@@ -99,6 +100,7 @@ public class TianjinCAImpl implements CAInterface {
 
     @Override
     @RpcService
+    @LogRecord
     public boolean caPasswordBusiness(CaPasswordRequestTO requestTO) {
         return iCommonCAServcie.caPasswordBusiness(requestTO);
     }

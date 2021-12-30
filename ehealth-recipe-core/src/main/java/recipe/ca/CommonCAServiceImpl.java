@@ -8,6 +8,7 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.aop.LogRecord;
 
 @RpcBean("iCommonCAServcie")
 public class CommonCAServiceImpl implements ICommonCAServcie {
@@ -90,6 +91,7 @@ public class CommonCAServiceImpl implements ICommonCAServcie {
      * @param requestTO
      * @return
      */
+    @LogRecord
     public boolean caPasswordBusiness(CaPasswordRequestTO requestTO){
         try {
             LOGGER.info("CommonCAServiceImpl caPasswordBusiness start userAccount={}, requestTO={}",requestTO.getUserAccount(), JSONUtils.toString(requestTO));
