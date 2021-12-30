@@ -7,9 +7,8 @@ import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Pharmacy;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
-import ctd.util.JSONUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
@@ -18,6 +17,7 @@ import recipe.dao.PharmacyDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeParameterDao;
 import recipe.service.RecipeLogService;
+import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -89,13 +89,12 @@ public class TestDrugStoreRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-        String startLimit = recipeParameterDao.getByName("supportDepStartLimit");
-        String[] parames = startLimit.split(",");
-        Integer start = Integer.parseInt(parames[0]);
-        Integer limit = Integer.parseInt(parames[1]);
         PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
-        List<Pharmacy> pharmacies = pharmacyDAO.findAll(start, limit);
+        String startStr = MapValueUtil.getString(ext, "start");
+        String limitStr = MapValueUtil.getString(ext, "limit");
+        Integer start = StringUtils.isNotEmpty(startStr)?Integer.parseInt(startStr):0;
+        Integer limit = StringUtils.isNotEmpty(limitStr)?Integer.parseInt(limitStr):10;
+        List<Pharmacy> pharmacies = pharmacyDAO.findEnterpriseByDepId(enterprise.getId() ,start, limit);
         List<DepDetailBean> depDetailBeans = new ArrayList<>();
         for (Pharmacy pharmacy : pharmacies) {
             DepDetailBean depDetailBean = new DepDetailBean();
