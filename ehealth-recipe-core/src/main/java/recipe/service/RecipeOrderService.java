@@ -1863,7 +1863,9 @@ public class RecipeOrderService extends RecipeBaseService {
         Map<String, Object> map = result.getExt();
         // 到院取药是否支持线上支付
         Boolean supportToHosPayFlag = configurationClient.getValueBooleanCatch(order.getOrganId(), "supportToHosPayFlag", false);
-        map.put("supportToHosPayFlag", supportToHosPayFlag.toString());
+        if (supportToHosPayFlag) {
+            map.put("supportToHosPayFlag", 1);
+        }
         result.setExt(map);
     }
 
