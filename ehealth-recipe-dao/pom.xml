@@ -23,6 +23,7 @@
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-recipe-api</artifactId>
+            <version>${project.parent.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>ngari</groupId>

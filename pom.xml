@@ -47,6 +47,7 @@
         <ngari.bill.version>3.11.1.7.master-SNAPSHOT</ngari.bill.version>
         <ngari.account.version>3.11.0.3.master-SNAPSHOT</ngari.account.version>
         <ngari.basicdto.version>3.12.1.4.master-SNAPSHOT</ngari.basicdto.version>
+        <ngari.revisit.version>3.12.3.0.feature20211230-SNAPSHOT</ngari.revisit.version>
 
     </properties>
 
