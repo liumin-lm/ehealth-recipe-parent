@@ -226,7 +226,9 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         logger.info("drugForGiveMode enterpriseStock={}", JSONArray.toJSONString(enterpriseStock));
         List<DrugForGiveModeVO> list = Lists.newArrayList();
         for (EnterpriseStock stock : enterpriseStock) {
-
+            if(Objects.isNull(stock)){
+                continue;
+            }
             List<GiveModeButtonDTO> giveModeButton = stock.getGiveModeButton();
             if (CollectionUtils.isEmpty(giveModeButton)) {
                 continue;
