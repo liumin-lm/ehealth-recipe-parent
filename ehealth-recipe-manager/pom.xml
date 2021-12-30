@@ -33,6 +33,7 @@
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>ngari-broadcast-support</artifactId>
+            <version>${ngari.framework.version}</version>
         </dependency>
     </dependencies>
 

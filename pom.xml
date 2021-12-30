@@ -24,25 +24,24 @@
     </modules>
     <properties>
         <ngari.framework.version>4.1.6.beta2-SNAPSHOT</ngari.framework.version>
-
     </properties>
     <dependencyManagement>
         <dependencies>
-            <dependency>
-                <groupId>ngari</groupId>
-                <artifactId>ngari-mvc</artifactId>
-                <version>${ngari.framework.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>ngari</groupId>
-                <artifactId>ngari-mixins</artifactId>
-                <version>${ngari.framework.version}</version>
-            </dependency>
-            <dependency>
-                <groupId>ngari</groupId>
-                <artifactId>ngari-broadcast-support</artifactId>
-                <version>${ngari.framework.version}</version>
-            </dependency>
+            <!--            <dependency>-->
+            <!--                <groupId>ngari</groupId>-->
+            <!--                <artifactId>ngari-mvc</artifactId>-->
+            <!--                <version>${ngari.framework.version}</version>-->
+            <!--            </dependency>-->
+            <!--            <dependency>-->
+            <!--                <groupId>ngari</groupId>-->
+            <!--                <artifactId>ngari-mixins</artifactId>-->
+            <!--                <version>${ngari.framework.version}</version>-->
+            <!--            </dependency>-->
+            <!--            <dependency>-->
+            <!--                <groupId>ngari</groupId>-->
+            <!--                <artifactId>ngari-broadcast-support</artifactId>-->
+            <!--                <version>${ngari.framework.version}</version>-->
+            <!--            </dependency>-->
             <dependency>
                 <groupId>ngari</groupId>
                 <artifactId>ehealth-voucher-api</artifactId>
