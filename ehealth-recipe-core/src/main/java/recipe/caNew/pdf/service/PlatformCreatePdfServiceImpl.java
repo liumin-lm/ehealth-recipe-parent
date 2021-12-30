@@ -201,7 +201,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         CoOrdinateVO medicalRecordNumber = redisManager.getPdfCoordsHeight(recipeId, "recipeExtend.medicalRecordNumber");
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         logger.info("PlatformCreatePdfServiceImpl updateCodePdf  recipeExtend={}", JSONUtils.toString(recipeExtend));
-        if (null != medicalRecordNumber) {
+        if (null != medicalRecordNumber && StringUtils.isNotEmpty(recipeExtend.getMedicalRecordNumber())) {
             medicalRecordNumber.setValue(recipeExtend.getMedicalRecordNumber());
             coOrdinateList.add(medicalRecordNumber);
         }
