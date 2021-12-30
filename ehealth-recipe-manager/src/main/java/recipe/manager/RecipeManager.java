@@ -75,6 +75,10 @@ public class RecipeManager extends BaseManager {
      * @return
      */
     public RecipeExtend saveRecipeExtend(RecipeExtend recipeExtend, Recipe recipe) {
+        if (!ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
+            RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
+            recipeExtend.setCardNo(revisitExDTO.getCardId());
+        }
         if (ValidateUtil.integerIsEmpty(recipeExtend.getRecipeId())) {
             recipeExtend.setRecipeId(recipe.getRecipeId());
             recipeExtend = recipeExtendDAO.save(recipeExtend);
