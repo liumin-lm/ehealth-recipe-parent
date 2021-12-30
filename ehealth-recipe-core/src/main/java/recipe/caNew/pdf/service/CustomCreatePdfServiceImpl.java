@@ -226,7 +226,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         //病历号
         CoOrdinateVO medicalRecordNumber = redisManager.getPdfCoords(recipeId, "recipeExtend.medicalRecordNumber");
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        if (null != medicalRecordNumber) {
+        if (null != medicalRecordNumber && StringUtils.isNotEmpty(recipeExtend.getMedicalRecordNumber())) {
             medicalRecordNumber.setValue(recipeExtend.getMedicalRecordNumber());
             coOrdinateList.add(medicalRecordNumber);
         }

@@ -64,7 +64,7 @@ public class CreateRecipePdfUtil {
      * @throws DocumentException
      */
     public static String generateOrdinateList(String pdfId, List<CoOrdinateVO> coOrdinateList) throws Exception {
-        logger.info("CreateRecipePdfUtil generateOrdinateList pdfId={}, coOrdinateList={} ", pdfId, coOrdinateList);
+        logger.info("CreateRecipePdfUtil generateOrdinateList pdfId={}, coOrdinateList={} ", pdfId, JSON.toJSONString(coOrdinateList));
         if (StringUtils.isEmpty(pdfId) || CollectionUtils.isEmpty(coOrdinateList)) {
             return null;
         }
@@ -133,7 +133,7 @@ public class CreateRecipePdfUtil {
      * @throws Exception
      */
     public static String generateOrdinateListAndBarcode(String pdfId, List<CoOrdinateVO> coOrdinateList, CoOrdinateVO barcode) throws Exception {
-        logger.info("generateRecipeCodeAndPatientIdRecipePdf pdfId={}, coOrdinateList={} ", pdfId, coOrdinateList);
+        logger.info("generateRecipeCodeAndPatientIdRecipePdf pdfId={}, coOrdinateList={} ", pdfId, JSON.toJSONString(coOrdinateList));
         if (null == barcode || StringUtils.isEmpty(barcode.getValue())) {
             return generateOrdinateList(pdfId, coOrdinateList);
         }
