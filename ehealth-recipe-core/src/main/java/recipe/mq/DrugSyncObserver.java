@@ -213,6 +213,7 @@ public class DrugSyncObserver implements Observer<ShadowMessage> {
                     detailVo.setSearchKey(searchKey.replaceAll(" ", ";"));
                     detailVo.setPlatformSaleName(drug.getSaleName());
                     detailVo.setDrugType(drug.getDrugType());
+                    detailVo.setApplyBusiness(organDrug.getApplyBusiness());
                     //status字段修改注意：先判断基础药品库，再处理机构药品库
                     if (0 == drug.getStatus()) {
                         detailVo.setStatus(0);
