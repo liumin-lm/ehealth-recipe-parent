@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.ca.CAInterface;
 import recipe.ca.ICommonCAServcie;
 import recipe.ca.vo.CaSignResultVo;
@@ -64,6 +65,7 @@ public class ShenzhenImp implements CAInterface {
      * @return
      */
     @Override
+    @LogRecord
     public boolean caPasswordBusiness(CaPasswordRequestTO requestTO) {
         CaPasswordResponseTO responseTO = iCommonCAServcie.caTokenBusiness(requestTO);
         String userAccount = requestTO.getUserAccount();
