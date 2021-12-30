@@ -24,26 +24,32 @@
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>ehealth-cdr-api</artifactId>
+            <version>${ngari.cdr.version}</version>
         </dependency>
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>ehealth-weixin-service-api</artifactId>
+            <version>${ngari.weixin.service.version}</version>
         </dependency>
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>ehealth-jgpt-api</artifactId>
+            <version>${ngari.jgpt.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-his-api</artifactId>
+            <version>${ngari.hisapi.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-base-api</artifactId>
+            <version>${ngari.baseapi.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-basic-api</artifactId>
+            <version>${ngari.basic.version}</version>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
@@ -52,10 +58,82 @@
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>ehealth-es-api</artifactId>
+            <version>${ngari.es.version}</version>
         </dependency>
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>ehealth-recipeaudit-api</artifactId>
+            <version>${ngari.recipeaudit.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>ehealth-consult-api</artifactId>
+            <version>${ngari.consult.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>ehealth-follow-up-api</artifactId>
+            <version>${ngari.followup.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>ehealth-casign-api</artifactId>
+            <version>${ngari.casign.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>ehealth-opbase-api</artifactId>
+            <version>${ngari.opbase.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-shadow-api</artifactId>
+            <version>1.0.1-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-miscellany-api</artifactId>
+            <version>${ngari.miscellany.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-voucher-api</artifactId>
+            <version>${ngari.voucher.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-networkclinic-api</artifactId>
+            <version>${ngari.networkclinic.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>ehealth-bill-api</artifactId>
+            <version>${ngari.bill.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-message-api</artifactId>
+            <version>${ngari.message.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-video-api</artifactId>
+            <version>${ngari.video.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-account-api</artifactId>
+            <version>${ngari.account.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-infra-api</artifactId>
+            <version>${ngari.infra.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-basic-dto</artifactId>
+            <version>${ngari.basicdto.version}</version>
         </dependency>
         <dependency>
             <groupId>com.github.rholder</groupId>

@@ -41,6 +41,7 @@
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-bill-api</artifactId>
+            <version>${ngari.bill.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>aspectjweaver</artifactId>
@@ -65,6 +66,7 @@
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>ehealth-his-api</artifactId>
+            <version>${ngari.hisapi.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>ehealth-patient-api</artifactId>
@@ -75,6 +77,7 @@
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>ehealth-basic-dto</artifactId>
+            <version>${ngari.basicdto.version}</version>
         </dependency>
     </dependencies>
 </project>

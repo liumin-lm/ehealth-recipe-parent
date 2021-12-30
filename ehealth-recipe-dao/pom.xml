@@ -33,10 +33,12 @@
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-basic-api</artifactId>
+            <version>${ngari.basic.version}</version>
         </dependency>
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>ehealth-recipeaudit-api</artifactId>
+            <version>${ngari.recipeaudit.version}</version>
         </dependency>
     </dependencies>
 </project>
