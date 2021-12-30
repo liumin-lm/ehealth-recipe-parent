@@ -1,5 +1,6 @@
 package recipe.ca.remote;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.his.ca.model.CaPasswordRequestTO;
 import com.ngari.patient.dto.DoctorDTO;
@@ -14,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.ca.CAInterface;
 import recipe.ca.factory.CommonCAFactory;
 import recipe.ca.impl.ShenzhenImp;
@@ -59,6 +61,7 @@ public class CARemoteServiceImpl implements ICARemoteService {
      */
     @Override
     @RpcService
+    @LogRecord
     public boolean caPasswordBusiness(Integer doctorId,String password,String newPassword,int busType) {
         LOGGER.info("CARemoteServiceImpl caPasswordBusiness start in doctorId={},password={},newPassword={},busType={}", doctorId,password,newPassword,busType);
         DoctorDTO doctorDTO = doctorService.getByDoctorId(doctorId);
@@ -70,6 +73,7 @@ public class CARemoteServiceImpl implements ICARemoteService {
         requestTO.setPassword(password);
 //        CommonCAFactory caFactory = new CommonCAFactory();
         CAInterface caInterface = commonCAFactory.useCAFunction(doctorDTO.getOrgan());
+        LOGGER.info("CARemoteServiceImpl caPasswordBusiness caInterface = {}", JSON.toJSONString(caInterface));
         if(caInterface instanceof ShenzhenImp){
             EmploymentDTO employmentDTO =employmentService.getByDoctorIdAndOrganId(doctorId,doctorDTO.getOrgan());
             requestTO.setUserAccount(employmentDTO.getJobNumber());

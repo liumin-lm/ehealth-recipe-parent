@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.ca.CAInterface;
 import recipe.ca.ICommonCAServcie;
 import recipe.ca.vo.CaSignResultVo;
@@ -66,6 +67,7 @@ public class ShanghaiCAImpl implements CAInterface {
      * @return
      */
     @RpcService
+    @LogRecord
     public boolean caPasswordBusiness(CaPasswordRequestTO requestTO) {
         return true;
     }
