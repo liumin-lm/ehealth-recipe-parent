@@ -23,7 +23,7 @@ public class EleInvoiceDTO implements Serializable {
     /*卡类型*/
     private String cardType;
     /*卡号*/
-    @Desensitizations(type = DesensitizationsType.IDCARD)
+    @Desensitizations(type = DesensitizationsType.HEALTHCARD)
     private String cardId;
     /*业务类型 0 在线复诊 1处方*/
     private String type;

@@ -315,13 +315,6 @@ public class HisAdministrationEnterprisesType implements CommonExtendEnterprises
     }
 
     @Override
-    //his管理的药企：配送信息同步到his，现阶段是his去做的同步，之后的版本可能会改动(Y/+1)
-    public void sendDeliveryMsgToHis(Integer recipeId) {
-        LOGGER.info("【his管理的药企】-确认订单后同步配送信息 sendDeliveryMsgToHis recipeId:{}", recipeId);
-        return;
-    }
-
-    @Override
     //his管理的药企：在支付前，进行【预结算】成功之后，处方的推送配送信息给医院的行为；
     //**这个接口之所以放在这里是因为，现阶段是将同步配送信息放置在【预结算】之后，可以根据之后的实现调整(Y/+1)
     public DrugEnterpriseResult sendMsgResultMap(Integer recipeId, Map<String, String> extInfo, DrugEnterpriseResult payResult) {

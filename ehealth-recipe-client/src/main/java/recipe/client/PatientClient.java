@@ -237,7 +237,6 @@ public class PatientClient extends BaseClient {
         if (null != p.getCertificateType() && 1 == p.getCertificateType() && StringUtils.isNotEmpty(p.getCertificate())) {
             p.setCertificate(ChinaIDNumberUtil.hideIdCard(p.getCertificate()));
         }
-//        p.setCardId();
         p.setAge(null == p.getBirthday() ? 0 : DateConversion.getAge(p.getBirthday()));
         p.setIdcard2(null);
         p.setPhoto(null == p.getPhoto() ? "" : p.getPhoto());

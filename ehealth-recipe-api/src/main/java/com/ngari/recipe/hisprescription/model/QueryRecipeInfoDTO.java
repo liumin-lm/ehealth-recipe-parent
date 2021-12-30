@@ -24,7 +24,7 @@ public class QueryRecipeInfoDTO implements Serializable {
     private String organId;
     @ItemProperty(alias = "卡类型（1医院就诊卡  2医保卡3 医院病历号）")
     private String cardType;
-    @Desensitizations(type = DesensitizationsType.IDCARD)
+    @Desensitizations(type = DesensitizationsType.HEALTHCARD)
     @ItemProperty(alias = "卡(病历)号码")
     private String cardNo;
     @Desensitizations(type = DesensitizationsType.IDCARD)

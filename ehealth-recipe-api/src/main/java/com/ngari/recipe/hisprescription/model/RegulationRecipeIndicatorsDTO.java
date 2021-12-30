@@ -56,7 +56,7 @@ public class RegulationRecipeIndicatorsDTO implements Serializable {
     private String mobile;//	患者联系电话
     private String costType;//	费别 1自费 2医保
     private String cardType;//	卡类型
-    @Desensitizations(type = DesensitizationsType.IDCARD)
+    @Desensitizations(type = DesensitizationsType.HEALTHCARD)
     private String cardNo;//	卡号
     @Desensitizations(type = DesensitizationsType.IDCARD)
     private String guardianCertID;

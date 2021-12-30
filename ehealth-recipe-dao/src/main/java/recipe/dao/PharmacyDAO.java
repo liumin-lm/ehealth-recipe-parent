@@ -88,14 +88,15 @@ public abstract class PharmacyDAO extends HibernateSupportDelegateDAO<Pharmacy> 
         return action.getResult();
     }
 
-    @DAOMethod(sql = "from Pharmacy where 1=1 ")
-    public abstract List<Pharmacy> findAll(@DAOParam(pageStart = true) int start,
-                                           @DAOParam(pageLimit = true) int limit);
-
     @DAOMethod(sql = "from Pharmacy where status=1 ",limit = 0)
     public abstract List<Pharmacy> find1();
 
     @DAOMethod(sql = "from Pharmacy where drugsenterpriseId=:drugsenterpriseId ")
     public abstract List<Pharmacy> findByDepId(@DAOParam("drugsenterpriseId") Integer drugsenterpriseId);
+
+    @DAOMethod(sql = "from Pharmacy where drugsenterpriseId=:drugsenterpriseId and status = 1 ")
+    public abstract List<Pharmacy> findEnterpriseByDepId(@DAOParam("drugsenterpriseId") Integer drugsenterpriseId,
+                                               @DAOParam(pageStart = true) int start,
+                                               @DAOParam(pageLimit = true) int limit);
 
 }

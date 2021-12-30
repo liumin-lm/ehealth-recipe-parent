@@ -174,11 +174,7 @@ public class HosRecipeListService {
 
     @RpcService
     public PatientBeanNoDS addPatientForDoctorNoDS(HosRecipeListRequest request) {
-        PatientBean patientBean = addPatientForDoctor(request);
-        LOG.info("addPatientForDoctorNoDS patientBean:{}", JSONUtils.toString(patientBean));
-        PatientBeanNoDS patientBeanNoDS = ObjectCopyUtils.convert(patientBean, PatientBeanNoDS.class);
-        LOG.info("addPatientForDoctorNoDS patientBeanNoDS:{}", JSONUtils.toString(patientBeanNoDS));
-        return patientBeanNoDS;
+        return addPatientForDoctor(request);
     }
 
     /**
@@ -186,9 +182,11 @@ public class HosRecipeListService {
      *
      * @param request 医院传来的医生患者信息
      * @return 结果
+     * 老版本pc需调用，处理成不脱敏接口
      */
     @RpcService
-    public PatientBean addPatientForDoctor(HosRecipeListRequest request) {
+    public PatientBeanNoDS addPatientForDoctor(HosRecipeListRequest request) {
+        LOG.info("addPatientForDoctor request:{}", JSONUtils.toString(request));
         validate(request);
         PatientBean patient = null;
         try {
@@ -216,7 +214,10 @@ public class HosRecipeListService {
 
             }
         }
-        return patient;
+        LOG.info("addPatientForDoctor patient:{}", JSONUtils.toString(patient));
+        PatientBeanNoDS patientBeanNoDS = ObjectCopyUtils.convert(patient, PatientBeanNoDS.class);
+        LOG.info("addPatientForDoctor patientBeanNoDS:{}", JSONUtils.toString(patientBeanNoDS));
+        return patientBeanNoDS;
     }
 
     /**

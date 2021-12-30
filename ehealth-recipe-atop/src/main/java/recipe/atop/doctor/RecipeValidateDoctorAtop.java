@@ -21,7 +21,7 @@ import recipe.vo.doctor.ValidateDetailVO;
 import java.util.List;
 
 /**
- * 处方明细服务入口类
+ * 处方校验服务入口类
  *
  * @author fuzi
  */

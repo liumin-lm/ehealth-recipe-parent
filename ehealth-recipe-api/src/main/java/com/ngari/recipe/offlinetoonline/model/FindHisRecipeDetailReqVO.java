@@ -40,7 +40,7 @@ public class FindHisRecipeDetailReqVO implements Serializable {
     /**
      * 卡片号
      */
-    @Desensitizations(type = DesensitizationsType.IDCARD)
+    @Desensitizations(type = DesensitizationsType.HEALTHCARD)
     private String cardId;
 
     /**
