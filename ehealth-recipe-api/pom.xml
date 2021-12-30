@@ -4,8 +4,8 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <parent>
-        <artifactId>ehealth-parent</artifactId>
         <groupId>ngari</groupId>
+        <artifactId>ehealth-recipe-parent</artifactId>
         <version>3.12.3.1.fix-parent-SNAPSHOT</version>
     </parent>
 

@@ -9,9 +9,9 @@
         <version>3.12.3.1.fix-parent-SNAPSHOT</version>
     </parent>
     <artifactId>ehealth-recipe-parent</artifactId>
+    <packaging>pom</packaging>
     <name>root</name>
     <description>处方项目</description>
-    <packaging>pom</packaging>
     <modules>
         <module>ehealth-recipe-entity</module>
         <module>ehealth-recipe-api</module>
@@ -23,6 +23,7 @@
         <module>ehealth-recipe-core</module>
     </modules>
     <properties>
+        <ngari.framework.version>4.1.6.beta2-SNAPSHOT</ngari.framework.version>
 
     </properties>
     <dependencyManagement>
