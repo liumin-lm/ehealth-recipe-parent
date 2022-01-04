@@ -15,31 +15,11 @@
     <artifactId>ehealth-recipe-api</artifactId>
 
     <dependencies>
-        <dependency>
-            <groupId>ngari</groupId>
-            <artifactId>ngari-mixins</artifactId>
-            <exclusions>
-                <exclusion>
-                    <artifactId>okhttp</artifactId>
-                    <groupId>com.squareup.okhttp3</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>okio</artifactId>
-                    <groupId>com.squareup.okio</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>aspectjweaver</artifactId>
-                    <groupId>org.aspectj</groupId>
-                </exclusion>
-                <exclusion>
-                    <artifactId>xml-apis</artifactId>
-                    <groupId>xml-apis</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
+
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-bill-api</artifactId>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <artifactId>aspectjweaver</artifactId>
@@ -64,6 +44,7 @@
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>ehealth-his-api</artifactId>
+            <scope>provided</scope>
             <exclusions>
                 <exclusion>
                     <artifactId>ehealth-patient-api</artifactId>
@@ -74,6 +55,7 @@
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>ehealth-basic-dto</artifactId>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
 </project>
