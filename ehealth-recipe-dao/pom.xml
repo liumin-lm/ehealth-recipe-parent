@@ -3,11 +3,11 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
+        <artifactId>ehealth-recipe-parent</artifactId>
         <version>4.1.1.9.feature20220119-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
     </parent>
+
     <modelVersion>4.0.0</modelVersion>
     <packaging>jar</packaging>
     <name>dao</name>
@@ -23,6 +23,7 @@
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-recipe-api</artifactId>
+            <version>${project.parent.version}</version>
             <exclusions>
                 <exclusion>
                     <groupId>ngari</groupId>
@@ -33,10 +34,12 @@
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-basic-api</artifactId>
+            <version>${ngari.basic.version}</version>
         </dependency>
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>ehealth-recipeaudit-api</artifactId>
+            <version>${ngari.recipeaudit.version}</version>
         </dependency>
     </dependencies>
 </project>
