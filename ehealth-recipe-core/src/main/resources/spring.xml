@@ -75,7 +75,7 @@
     <bean id="testDrugStoreRemoteService" class="recipe.drugsenterprise.TestDrugStoreRemoteService"/>
 
     <!--卫宁健康智能审方-->
-    <bean id="winningPrescriptionService" class="recipe.audit.service.WinningPrescriptionService"/>
+<!--    <bean id="winningPrescriptionService" class="recipe.audit.service.WinningPrescriptionService"/>-->
 
     <!--华润药企-->
     <bean id="hrRemoteService" class="recipe.drugsenterprise.HrRemoteService"/>
