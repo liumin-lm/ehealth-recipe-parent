@@ -6,7 +6,7 @@
     <parent>
         <groupId>ngari</groupId>
         <artifactId>ehealth-recipe-parent</artifactId>
-        <version>4.1.1.9.feature20220119-SNAPSHOT</version>
+        <version>4.1.1.9.master-SNAPSHOT</version>
     </parent>
 
     <packaging>jar</packaging>

@@ -5,7 +5,7 @@
     <parent>
         <groupId>ngari</groupId>
         <artifactId>ehealth-recipe-parent</artifactId>
-        <version>4.1.1.9.feature20220119-SNAPSHOT</version>
+        <version>4.1.1.9.master-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
@@ -43,11 +43,5 @@
             <artifactId>ehealth-basic-api</artifactId>
             <version>${ngari.basic.version}</version>
         </dependency>
-        <!-- todo 需要删除 ehealth-bill-api 引用-->
-        <!--        <dependency>-->
-        <!--            <groupId>ngari</groupId>-->
-        <!--            <artifactId>ehealth-recipeaudit-api</artifactId>-->
-        <!--            <version>${ngari.recipeaudit.version}</version>-->
-        <!--        </dependency>-->
     </dependencies>
 </project>
