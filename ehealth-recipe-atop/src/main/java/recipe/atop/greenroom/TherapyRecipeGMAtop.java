@@ -1,18 +1,24 @@
 package recipe.atop.greenroom;
 
+import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.basic.ds.PatientVO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.dto.RecipeTherapyOpDTO;
 import com.ngari.recipe.dto.RecipeTherapyOpQueryDTO;
-import com.ngari.recipe.recipe.model.RecipeTherapyOpQueryVO;
-import com.ngari.recipe.recipe.model.RecipeTherapyOpVO;
+import com.ngari.recipe.recipe.model.*;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.aop.LogRecord;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.util.ObjectCopyUtils;
+import recipe.vo.doctor.RecipeInfoVO;
+import recipe.vo.doctor.RecipeTherapyVO;
+import recipe.vo.second.OrganVO;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +30,7 @@ import java.util.Map;
  * @date： 2022-01-06 9:39
  */
 @RpcBean("therapyRecipeGMAtop")
-public class TherapyRecipeGMAtop  extends BaseAtop {
+public class TherapyRecipeGMAtop extends BaseAtop {
 
     @Autowired
     private ITherapyRecipeBusinessService therapyRecipeBusinessService;
@@ -37,7 +43,7 @@ public class TherapyRecipeGMAtop  extends BaseAtop {
             QueryResult<RecipeTherapyOpDTO> queryResult = therapyRecipeBusinessService.findTherapyByInfo(recipeTherapyOpQueryDTO);
             List<RecipeTherapyOpDTO> items = queryResult.getItems();
             List<RecipeTherapyOpVO> records = new ArrayList<>();
-            for (RecipeTherapyOpDTO item : items){
+            for (RecipeTherapyOpDTO item : items) {
                 RecipeTherapyOpVO recipeTherapyOpVO = new RecipeTherapyOpVO();
                 recipeTherapyOpVO.setRecipeId(item.getRecipeId());
                 recipeTherapyOpVO.setRecipeCode(item.getRecipeCode());
@@ -51,7 +57,7 @@ public class TherapyRecipeGMAtop  extends BaseAtop {
                 records.add(recipeTherapyOpVO);
             }
             QueryResult<RecipeTherapyOpVO> result = new QueryResult<>();
-            if(queryResult.getProperties() != null){
+            if (queryResult.getProperties() != null) {
                 Map<String, Object> properties = queryResult.getProperties();
                 for (Map.Entry<String, Object> entry : properties.entrySet()) {
                     String key = entry.getKey();
@@ -63,7 +69,7 @@ public class TherapyRecipeGMAtop  extends BaseAtop {
             result.setStart(queryResult.getStart());
             result.setTotal(queryResult.getTotal());
             return result;
-        }catch (DAOException e1) {
+        } catch (DAOException e1) {
             logger.error("TherapyRecipeOpenAtop findTherapyByInfo error", e1);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
         } catch (Exception e) {
@@ -71,5 +77,26 @@ public class TherapyRecipeGMAtop  extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
 
+    }
+
+    /**
+     * 获取诊疗处方明细
+     *
+     * @param recipeId 处方id
+     * @return
+     */
+    @RpcService
+    public RecipeInfoVO therapyRecipeInfo(Integer recipeId) {
+        validateAtop(recipeId);
+        RecipeInfoDTO result = therapyRecipeBusinessService.therapyRecipeInfo(recipeId);
+        RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
+        recipeInfoVO.setPatientVO(ObjectCopyUtils.convert(result.getPatientBean(), PatientVO.class));
+        recipeInfoVO.setRecipeBean(ObjectCopyUtils.convert(result.getRecipe(), RecipeBean.class));
+        recipeInfoVO.setRecipeExtendBean(ObjectCopyUtils.convert(result.getRecipeExtend(), RecipeExtendBean.class));
+        recipeInfoVO.setRecipeDetails(ObjectCopyUtils.convert(result.getRecipeDetails(), RecipeDetailBean.class));
+        recipeInfoVO.setRecipeTherapyVO(ObjectCopyUtils.convert(result.getRecipeTherapy(), RecipeTherapyVO.class));
+        recipeInfoVO.setOrganVO(ObjectCopyUtils.convert(result.getOrgan(), OrganVO.class));
+        logger.info("TherapyRecipeGMAtop therapyRecipeInfo  recipeInfoVO = {}", JSON.toJSONString(recipeInfoVO));
+        return recipeInfoVO;
     }
 }
