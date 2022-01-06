@@ -81,6 +81,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.DepartClient;
+import recipe.client.RecipeAuditClient;
 import recipe.client.RefundClient;
 import recipe.common.CommonConstant;
 import recipe.constant.*;
@@ -159,6 +160,7 @@ public class RecipeServiceSub {
 
     private static DepartClient departClient = AppContextHolder.getBean("departClient", DepartClient.class);
 
+    private static RecipeAuditClient recipeAuditClient = AppContextHolder.getBean("recipeAuditClient", RecipeAuditClient.class);
 
     /**
      * @param recipeBean
@@ -1621,7 +1623,8 @@ public class RecipeServiceSub {
             //判断开关是否开启
             //去掉智能预审结果展示问题在生成的时候控制 原来的 BUG # 33761 需要注意是不是复现了
             if (recipe.getStatus() != 0) {
-                map.put("medicines", getAuditMedicineIssuesByRecipeId(recipeId)); //返回药品分析数据
+                List<AuditMedicinesBean> auditMedicines = recipeAuditClient.getAuditMedicineIssuesByRecipeId(recipeId);
+                map.put("medicines", auditMedicines); //返回药品分析数据
                 List<eh.recipeaudit.model.AuditMedicineIssueBean> auditMedicineIssues = iAuditMedicinesService.findIssueByRecipeId(recipeId);
                 if (CollectionUtils.isNotEmpty(auditMedicineIssues)) {
                     List<AuditMedicineIssueBean> resultMedicineIssues = new ArrayList<>();
@@ -2317,28 +2320,6 @@ public class RecipeServiceSub {
             }
         }
         return isDownload;
-    }
-
-    public static List<AuditMedicinesBean> getAuditMedicineIssuesByRecipeId(int recipeId) {
-        List<AuditMedicinesBean> medicines = iAuditMedicinesService.findMedicinesByRecipeId(recipeId);
-        List<AuditMedicinesBean> list = Lists.newArrayList();
-        if (medicines != null && medicines.size() > 0) {
-            list = ObjectCopyUtils.convert(medicines, AuditMedicinesBean.class);
-            List<AuditMedicineIssueBean> issues = iAuditMedicinesService.findIssueByRecipeId(recipeId);
-            if (issues != null && issues.size() > 0) {
-                List<AuditMedicineIssueBean> issueList;
-                for (AuditMedicinesBean auditMedicinesDTO : list) {
-                    issueList = Lists.newArrayList();
-                    for (AuditMedicineIssueBean auditMedicineIssue : issues) {
-                        if (null != auditMedicineIssue.getMedicineId() && auditMedicineIssue.getMedicineId().equals(auditMedicinesDTO.getId())) {
-                            issueList.add(auditMedicineIssue);
-                        }
-                    }
-                    auditMedicinesDTO.setAuditMedicineIssues(ObjectCopyUtils.convert(issueList, AuditMedicineIssueBean.class));
-                }
-            }
-        }
-        return list;
     }
 
     /**

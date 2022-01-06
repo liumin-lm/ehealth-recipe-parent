@@ -10,7 +10,6 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
 import eh.base.constant.BussTypeConstant;
@@ -26,14 +25,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.audit.handle.AutoCheckRecipe;
-import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.constant.CacheConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeMsgEnum;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.service.RecipeLogService;
@@ -42,7 +39,6 @@ import recipe.service.RecipeService;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -73,8 +69,6 @@ public class AuditPostMode extends AbstractAuidtMode {
         Integer status = RecipeStatusConstant.CHECK_PASS;
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Integer giveMode = null == MapValueUtil.getInteger(attrMap,"giveMode") ? dbRecipe.getGiveMode() : MapValueUtil.getInteger(attrMap,"giveMode");
-//        Integer payMode = null == MapValueUtil.getInteger(attrMap, "payMode") ? dbRecipe.getPayMode() : MapValueUtil.getInteger(attrMap,"payMode");
-//        Integer payMode = MapValueUtil.getInteger(attrMap, "payMode") ;
         Integer payFlag = MapValueUtil.getInteger(attrMap, "payFlag");
         // 获取paymode
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -90,10 +84,6 @@ public class AuditPostMode extends AbstractAuidtMode {
                     if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
                         //配送到家-线上支付
                         status = RecipeStatusConstant.READY_CHECK_YS;
-                        /*// 如果处方类型是中药或膏方不需要走药师审核流程,默认状态审核通过
-                        if (RecipeUtil.isTcmType(dbRecipe.getRecipeType())) {
-                            status = RecipeStatusConstant.CHECK_PASS_YS;
-                        }*/
                         memo = "配送到家-线上支付成功";
                         //更新CheckFlag
                         updateCheckFlagByRecipeid(recipeDAO, dbRecipe);
@@ -101,20 +91,7 @@ public class AuditPostMode extends AbstractAuidtMode {
                         memo = "配送到家-线上支付失败";
                     }
                 }
-//                else if (RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(payMode)) {
-//                    if (dbRecipe.canMedicalPay()) {
-//                        //可医保支付的单子在用户看到之前已进行审核
-//                        status = RecipeStatusConstant.CHECK_PASS_YS;
-//                        memo = "医保支付成功，发送药企处方";
-//                        //更新CheckFlag
-//                        updateCheckFlagByRecipeid(recipeDAO, dbRecipe);
-//                    }
-//                }
                 else if (RecipeBussConstant.PAYMODE_OFFLINE.equals(payMode)) {
-//                    //收到userConfirm通知
-//                    status = RecipeStatusConstant.READY_CHECK_YS;
-//                    memo = "配送到家-货到付款成功";
-                    //date 21090925
                     //货到付款添加支付成功后修改状态
                     if (PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
                         status = RecipeStatusConstant.READY_CHECK_YS;
@@ -125,9 +102,6 @@ public class AuditPostMode extends AbstractAuidtMode {
                 }
             } else if (RecipeBussConstant.GIVEMODE_TO_HOS.equals(giveMode)) {
                 //医院取药-线上支付，这块其实已经用不到了
-//                status = RecipeStatusConstant.HAVE_PAY;
-//                memo = "医院取药-线上支付成功";
-                //date 20190925
                 //添加支付成功后修改状态
                 if(PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag){
                     status = RecipeStatusConstant.READY_CHECK_YS;
@@ -136,10 +110,6 @@ public class AuditPostMode extends AbstractAuidtMode {
                     updateCheckFlagByRecipeid(recipeDAO, dbRecipe);
                 }
             } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode)) {
-                //收到userConfirm通知
-//                status = RecipeStatusConstant.READY_CHECK_YS;
-//                memo = "药店取药-到店取药成功";
-                //date 20190925
                 //添加支付成功后修改状态
                 if(PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag){
                     status = RecipeStatusConstant.READY_CHECK_YS;

@@ -20,7 +20,6 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.account.UserRoleToken;
 import ctd.controller.exception.ControllerException;
-import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
@@ -31,11 +30,10 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.recipeaudit.api.IAuditMedicinesService;
 import eh.recipeaudit.api.IRecipeAuditService;
-import eh.recipeaudit.api.IRecipeCheckDetailService;
 import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.model.AuditMedicineIssueBean;
+import eh.recipeaudit.model.AuditMedicinesBean;
 import eh.recipeaudit.model.RecipeCheckBean;
-import eh.recipeaudit.model.RecipeCheckDetailBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
@@ -49,12 +47,12 @@ import recipe.audit.bean.PAWebRecipeDanger;
 import recipe.audit.service.PrescriptionService;
 import recipe.bussutil.AESUtils;
 import recipe.client.DoctorClient;
+import recipe.client.RecipeAuditClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.manager.ButtonManager;
 import recipe.manager.DepartManager;
 import recipe.service.RecipeService;
-import recipe.service.RecipeServiceSub;
 import recipe.util.ByteUtils;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
@@ -80,9 +78,6 @@ public class OperationPlatformRecipeService {
     @Autowired
     private IRecipeCheckService recipeCheckService;
     @Autowired
-    private IRecipeCheckDetailService recipeCheckDetailService;
-
-    @Autowired
     private DoctorClient doctorClient;
     @Autowired
     private ButtonManager buttonManager;
@@ -90,6 +85,8 @@ public class OperationPlatformRecipeService {
     private IAuditMedicinesService auditMedicinesService;
     @Autowired
     private DepartManager departManager;
+    @Autowired
+    private RecipeAuditClient recipeAuditClient;
 
     /**
      * 审核平台 获取处方单详情
@@ -103,7 +100,6 @@ public class OperationPlatformRecipeService {
         //20200323 解密recipe
         Integer reicpeIdI = null;
         try {
-
             String recipeS = AESUtils.decrypt(recipeId, "1234567890123gmw");
             reicpeIdI = Integer.valueOf(recipeS);
         } catch (Exception e) {
@@ -392,7 +388,8 @@ public class OperationPlatformRecipeService {
         PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
         if (recipe.getStatus() != 0) {
             if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
-                map.put("medicines", RecipeServiceSub.getAuditMedicineIssuesByRecipeId(recipeId));
+                List<AuditMedicinesBean> auditMedicines = recipeAuditClient.getAuditMedicineIssuesByRecipeId(recipeId);
+                map.put("medicines", auditMedicines);
                 List<AuditMedicineIssueBean> auditMedicineIssues = auditMedicinesService.findIssueByRecipeId(recipeId);
                 if (CollectionUtils.isNotEmpty(auditMedicineIssues)) {
                     List<AuditMedicineIssueBean> resultMedicineIssues = new ArrayList<>();
@@ -490,44 +487,6 @@ public class OperationPlatformRecipeService {
     }
 
     /**
-     * 获取不通过详情
-     *
-     * @param recipeId
-     * @return
-     */
-    public List<Map<String, Object>> getCheckNotPassDetail(Integer recipeId) {
-        RecipeCheckBean recipeCheck = recipeCheckService.getByRecipeIdAndCheckStatus(recipeId);
-        if (null != recipeCheck) {
-            //审核不通过 查询审核详情记录
-            List<RecipeCheckDetailBean> checkDetails = recipeCheckDetailService.findByCheckId(recipeCheck.getCheckId());
-            if (null != checkDetails) {
-                List<Map<String, Object>> mapList = new ArrayList<>();
-
-                for (RecipeCheckDetailBean checkDetail : checkDetails) {
-                    Map<String, Object> checkMap = Maps.newHashMap();
-                    String recipeDetailIds = checkDetail.getRecipeDetailIds();
-                    String reasonIds = checkDetail.getReasonIds();
-                    List<Integer> detailIdList;
-                    List<Integer> reasonIdList;
-                    if (StringUtils.isNotEmpty(recipeDetailIds)) {
-                        detailIdList = JSONUtils.parse(recipeDetailIds, List.class);
-                        checkMap.put("checkNotPassDetails", getRecipeDetailList(detailIdList));
-                    }
-                    if (StringUtils.isNotEmpty(reasonIds)) {
-                        reasonIdList = JSONUtils.parse(reasonIds, List.class);
-                        checkMap.put("reason", getReasonDicList(reasonIdList));
-                    }
-                    mapList.add(checkMap);
-                }
-
-                return mapList;
-            }
-        }
-        return null;
-    }
-
-
-    /**
      * 获取待审核列表审核结果
      *
      * @param recipe checkResult 0:未审核 1:通过 2:不通过 3:二次签名 4:失效
@@ -591,50 +550,6 @@ public class OperationPlatformRecipeService {
         return checkResult;
     }
 
-    /**
-     * 获取原因文本
-     *
-     * @param reList
-     * @return
-     */
-    public List<String> getReasonDicList(List<Integer> reList) {
-        List<String> reasonList = new ArrayList<>();
-        try {
-            Dictionary dictionary = DictionaryController.instance().get("eh.cdr.dictionary.Reason");
-            if (null != reList) {
-                for (Integer key : reList) {
-                    String reason = dictionary.getText(key);
-                    if (StringUtils.isNotEmpty(reason)) {
-                        reasonList.add(reason);
-                    }
-                }
-            }
-        } catch (ControllerException e) {
-            LOGGER.error("获取审核不通过原因字典文本出错reasonIds:" + JSONUtils.toString(reList), e);
-        }
-        return reasonList;
-    }
-
-    /**
-     * 根据序号列表 获取详情列表
-     *
-     * @param ids
-     * @return
-     */
-    private List<Recipedetail> getRecipeDetailList(List<Integer> ids) {
-        List<Recipedetail> recipedetailList = new ArrayList<>();
-        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        if (null != ids) {
-            for (Integer id : ids) {
-                Recipedetail recipedetail = recipeDetailDAO.getByRecipeDetailId(id);
-                if (null != recipedetail) {
-                    recipedetailList.add(recipedetail);
-                }
-            }
-        }
-        return recipedetailList;
-    }
-
 
     /**
      * 脱敏身份证号
@@ -670,7 +585,10 @@ public class OperationPlatformRecipeService {
     @RpcService
     public List<OrganBean> findCheckOrganList(Integer doctorId) {
         List<OrganBean> organList = Lists.newArrayList();
-        List<Integer> organIds = findAPOrganIdsByDoctorId(doctorId);
+        if (null == doctorId) {
+            return organList;
+        }
+        List<Integer> organIds = doctorService.findAPOrganIdsByDoctorId(doctorId);
         if (CollectionUtils.isNotEmpty(organIds)) {
             IOrganService organService = ApplicationUtils.getBaseService(IOrganService.class);
             List<OrganBean> detailOrgan = organService.findByIdIn(organIds);
@@ -685,34 +603,6 @@ public class OperationPlatformRecipeService {
         }
         return organList;
     }
-
-
-    /**
-     * app端 显示未处理业务的条数
-     * zhongzx
-     *
-     * @param doctorId
-     * @return
-     */
-    public long getUncheckedRecipeNum(Integer doctorId) {
-        List<Integer> organIds = findAPOrganIdsByDoctorId(doctorId);
-        if (CollectionUtils.isEmpty(organIds)) {
-            return 0;
-        }
-        RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
-        //flag = 0 查询待药师审核的条数
-        Long num = rDao.getRecipeCountByFlag(organIds, 0);
-        return null == num ? 0 : num;
-    }
-
-    private List<Integer> findAPOrganIdsByDoctorId(Integer doctorId) {
-        List<Integer> organIds = null;
-        if (null != doctorId) {
-            organIds = doctorService.findAPOrganIdsByDoctorId(doctorId);
-        }
-        return organIds;
-    }
-
 
     /**
      * 判断登录用户能否审核机构下的处方

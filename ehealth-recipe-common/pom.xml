@@ -3,11 +3,11 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
-        <artifactId>ehealth-recipe-parent</artifactId>
         <groupId>ngari</groupId>
-        <version>3.12.3.0.master-SNAPSHOT</version>
-        <relativePath>../pom.xml</relativePath>
+        <artifactId>ehealth-recipe-parent</artifactId>
+        <version>4.1.1.9.master-SNAPSHOT</version>
     </parent>
+
     <modelVersion>4.0.0</modelVersion>
     <artifactId>ehealth-recipe-common</artifactId>
     <packaging>jar</packaging>
@@ -22,6 +22,7 @@
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>ngari-mvc</artifactId>
+            <version>${ngari.framework.version}</version>
         </dependency>
         <dependency>
             <groupId>ngari</groupId>

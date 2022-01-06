@@ -94,6 +94,10 @@ public class DrugListExtService extends BaseService<DrugListBean> {
     private IDrugEntrustService drugEntrustService;
     @Autowired
     private ButtonManager buttonManager;
+    @Autowired
+    private OrganDrugListDAO organDrugListDAO;
+    @Autowired
+    private DrugSearchService drugSearchService;
 
     @RpcService
     public DrugListBean getById(int drugId) {
@@ -730,11 +734,13 @@ public class DrugListExtService extends BaseService<DrugListBean> {
 
 
     /**
+     * todo 新方法 ：searchOrganDrugEs
      * zhongzx
      * 搜索药品 使用es新方式搜索
      *
      * @return
      */
+    @Deprecated
     public List<SearchDrugDetailDTO> searchDrugListWithES(Integer organId, Integer drugType, String drugName, Integer pharmacyId, Integer start, Integer limit) {
         DrugSearchService searchService = AppContextHolder.getBean("es.drugSearchService", DrugSearchService.class);
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
@@ -863,9 +869,8 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         return dList;
     }
 
+
     public List<SearchDrugDetailDTO> searchDrugListWithESForPatient(Integer organId, Integer drugType, String drugName, Integer start, Integer limit) {
-        DrugSearchService searchService = AppContextHolder.getBean("es.drugSearchService", DrugSearchService.class);
-        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         DrugSearchTO searchTO = new DrugSearchTO();
         searchTO.setDrugName(StringUtils.isEmpty(drugName) ? "" : drugName.toLowerCase());
         searchTO.setOrgan(null == organId ? null : String.valueOf(organId));
@@ -873,26 +878,20 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         searchTO.setStart(start);
         searchTO.setLimit(limit);
         LOGGER.info("searchDrugListWithESForPatient DrugSearchTO={} ", JSONUtils.toString(searchTO));
-        List<String> drugInfo = searchService.searchHighlightedPagesForPatient(searchTO.getDrugName(), searchTO.getOrgan(), searchTO.getDrugType(), searchTO.getStart(), searchTO.getLimit());
-        List<SearchDrugDetailDTO> dList = new ArrayList<>(drugInfo.size());
-        // 将String转化成DrugList对象返回给前端
-        if (CollectionUtils.isNotEmpty(drugInfo)) {
-            SearchDrugDetailDTO drugList = null;
-            for (String s : drugInfo) {
-                try {
-                    drugList = JSONUtils.parse(s, SearchDrugDetailDTO.class);
-                    List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugList.getDrugId(), organId);
-                    drugList.setHospitalPrice(organDrugLists.get(0).getSalePrice());
-                } catch (Exception e) {
-                    LOGGER.error("searchDrugListWithESForPatient parse error. drugInfo={}", s, e);
-                }
-                dList.add(drugList);
-            }
-
-            LOGGER.info("searchDrugListWithESForPatient result size={} ", dList.size());
-        } else {
-            LOGGER.info("searchDrugListWithESForPatient result isEmpty! drugName={} ", drugName);
+        List<String> drugInfo = drugSearchService.searchHighlightedPagesForPatient(searchTO.getDrugName(), searchTO.getOrgan(), searchTO.getDrugType(), searchTO.getStart(), searchTO.getLimit());
+        LOGGER.info("searchDrugListWithESForPatient drugInfo size={} ", drugInfo.size());
+        List<SearchDrugDetailDTO> dList = new ArrayList<>();
+        if (CollectionUtils.isEmpty(drugInfo)) {
+            return dList;
         }
+        // 将String转化成DrugList对象返回给前端
+        drugInfo.forEach(a -> {
+            try {
+                dList.add(JSONUtils.parse(a, SearchDrugDetailDTO.class));
+            } catch (Exception e) {
+                LOGGER.error("searchDrugListWithESForPatient parse error. drugInfo={}", a, e);
+            }
+        });
         return dList;
     }
 

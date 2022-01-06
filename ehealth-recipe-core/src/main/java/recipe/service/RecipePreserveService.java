@@ -20,8 +20,10 @@ import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipe.model.HisRecipeBean;
+import com.ngari.recipe.recipe.model.HisRecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.recipelog.model.RecipeLogBean;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
@@ -36,7 +38,6 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
-import eh.recipeaudit.model.Intelligent.AutoAuditResultBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -46,7 +47,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.audit.auditmode.IAuditMode;
-import recipe.audit.service.PrescriptionService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
@@ -54,7 +54,6 @@ import recipe.constant.CacheConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.RecipeToHisService;
 import recipe.mq.RecipeStatusFromHisObserver;
@@ -369,26 +368,6 @@ public class RecipePreserveService {
             }
         }
         LOGGER.info("deleteOldRedisDataForRecipe Success num=" + num);
-    }
-
-    /**
-     * 内部测试方法
-     *
-     * @param recipeId
-     * @return
-     * @throws Exception
-     */
-    @RpcService
-    public AutoAuditResultBean testGetPAAnalysis(int recipeId) throws Exception {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-
-        Recipe dbrecipe = recipeDAO.getByRecipeId(recipeId);
-        List<Recipedetail> dbdetails = detailDAO.findByRecipeId(recipeId);
-        RecipeBean recipe = ObjectCopyUtils.convert(dbrecipe, RecipeBean.class);
-        List<RecipeDetailBean> details = ObjectCopyUtils.convert(dbdetails, RecipeDetailBean.class);
-        PrescriptionService service = ApplicationUtils.getRecipeService(PrescriptionService.class);
-        return service.analysis(recipe, details);
     }
 
     /**

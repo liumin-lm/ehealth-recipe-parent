@@ -38,6 +38,7 @@ public class RecipesQueryVO implements Serializable {
     private Integer recipeType;
     private String mpiid;
     private Integer refundNodeStatus;
+    private Integer bussSource;
 
     private int start;
     private int limit;
