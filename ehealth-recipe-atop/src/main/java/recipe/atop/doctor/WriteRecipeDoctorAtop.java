@@ -1,6 +1,5 @@
 package recipe.atop.doctor;
 
-import ctd.util.annotation.RpcBean;
 import recipe.atop.BaseAtop;
 
 /**
@@ -8,7 +7,7 @@ import recipe.atop.BaseAtop;
  *
  * @author fuzi
  */
-@RpcBean("writeRecipeDoctorAtop")
+//@RpcBean("writeRecipeDoctorAtop")
 public class WriteRecipeDoctorAtop extends BaseAtop {
 
 }
