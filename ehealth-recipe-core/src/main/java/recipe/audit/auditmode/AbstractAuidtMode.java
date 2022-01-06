@@ -5,7 +5,6 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
@@ -26,8 +25,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
-import recipe.api.open.IRecipeAtopService;
-import recipe.atop.open.RecipeOpenAtop;
 import recipe.audit.handle.AutoCheckRecipe;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeSystemConstant;
@@ -150,8 +147,6 @@ public abstract class AbstractAuidtMode implements IAuditMode {
         //默认待处理
         Integer status = RecipeStatusConstant.CHECK_PASS;
         Integer giveMode = null == MapValueUtil.getInteger(attrMap, "giveMode") ? recipe.getGiveMode() : MapValueUtil.getInteger(attrMap, "giveMode");
-//        Integer payMode = null == MapValueUtil.getInteger(attrMap, "payMode") ? recipe.getPayMode() : MapValueUtil.getInteger(attrMap, "payMode");
-//        Integer payMode = MapValueUtil.getInteger(attrMap, "payMode") ;
         Integer payFlag = MapValueUtil.getInteger(attrMap, "payFlag");
         // 获取paymode
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -171,11 +166,6 @@ public abstract class AbstractAuidtMode implements IAuditMode {
                         memo = "配送到家-线上支付失败";
                     }
                 }
-//                else if (RecipeBussConstant.PAYMODE_MEDICAL_INSURANCE.equals(payMode)) {
-//                    if (recipe.canMedicalPay()) {
-//                        memo = "医保支付成功，发送药企处方";
-//                    }
-//                }
             else if (RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
                     memo = "货到付款-待配送";
                 }

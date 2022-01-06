@@ -25,17 +25,17 @@
     <properties>
         <ngari.framework.version>4.1.6.beta2-SNAPSHOT</ngari.framework.version>
         <ngari.voucher.version>3.8.0.2.master-SNAPSHOT</ngari.voucher.version>
-        <ngari.es.version>3.12.1.4.master-SNAPSHOT</ngari.es.version>
+        <ngari.es.version>4.1.1.9.feature20220119-SNAPSHOT</ngari.es.version>
         <ngari.miscellany.version>3.12.1.4.master-SNAPSHOT</ngari.miscellany.version>
         <ngari.basic.version>3.12.1.4.master-SNAPSHOT</ngari.basic.version>
         <ngari.jgpt.version>3.12.1.4.master-SNAPSHOT</ngari.jgpt.version>
         <ngari.followup.version>3.12.1.4.master-SNAPSHOT</ngari.followup.version>
-        <ngari.cdr.version>3.12.1.4.master-SNAPSHOT</ngari.cdr.version>
-        <ngari.recipeaudit.version>3.12.1.6.master-SNAPSHOT</ngari.recipeaudit.version>
+        <ngari.cdr.version>4.1.1.9.feature20220119-SNAPSHOT</ngari.cdr.version>
+        <ngari.recipeaudit.version>3.12.3.0.master-SNAPSHOT</ngari.recipeaudit.version>
         <ngari.easypay.version>3.12.1.4.master-SNAPSHOT</ngari.easypay.version>
         <ngari.consult.version>3.11.1.7.master-SNAPSHOT</ngari.consult.version>
         <ngari.networkclinic.version>2.11.0.2.master-SNAPSHOT</ngari.networkclinic.version>
-        <ngari.hisapi.version>3.12.1.6.master-SNAPSHOT</ngari.hisapi.version>
+        <ngari.hisapi.version>3.12.3.0.master-SNAPSHOT</ngari.hisapi.version>
         <ngari.baseapi.version>3.12.1.4.master-SNAPSHOT</ngari.baseapi.version>
         <ngari.opbase.version>3.12.1.4.master-SNAPSHOT</ngari.opbase.version>
         <ngari.utils.version>3.12.1.4.master-SNAPSHOT</ngari.utils.version>
