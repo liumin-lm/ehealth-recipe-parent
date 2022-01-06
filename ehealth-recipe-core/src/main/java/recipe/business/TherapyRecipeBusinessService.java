@@ -2,13 +2,14 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.dto.OrganDTO;
-import com.ngari.recipe.dto.PatientDTO;
-import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeTherapyDTO;
+import com.ngari.recipe.recipe.model.RecipeTherapyOpQueryVO;
+import com.ngari.recipe.recipe.model.RecipeTherapyOpVO;
 import com.ngari.recipe.vo.ItemListVO;
 import com.ngari.revisit.RevisitBean;
+import ctd.persistence.bean.QueryResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -168,6 +169,11 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     @Override
     public List<RecipeTherapy> findTherapyByClinicId(Integer clinicId) {
         return recipeTherapyManager.findTherapyByClinicId(clinicId);
+    }
+
+    @Override
+    public QueryResult<RecipeTherapyOpDTO> findTherapyByInfo(RecipeTherapyOpQueryDTO recipeTherapyOpQueryDTO) {
+        return recipeTherapyManager.findTherapyByInfo(recipeTherapyOpQueryDTO);
     }
 
 

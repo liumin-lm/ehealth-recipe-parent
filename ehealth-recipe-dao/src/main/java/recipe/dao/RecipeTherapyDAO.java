@@ -1,13 +1,27 @@
 package recipe.dao;
 
+import com.ngari.recipe.dto.RecipeTherapyOpDTO;
+import com.ngari.recipe.dto.RecipeTherapyOpQueryDTO;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeTherapy;
+import com.ngari.recipe.recipe.model.RecipeTherapyOpVO;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
+import ctd.persistence.bean.QueryResult;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
+import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
+import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
+import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
+import org.apache.commons.collections.CollectionUtils;
+import org.hibernate.Query;
+import org.hibernate.SQLQuery;
+import org.hibernate.StatelessSession;
 import recipe.dao.comment.ExtendDao;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 诊疗处方数据表
@@ -128,5 +142,95 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
      */
     @DAOMethod(sql = "from RecipeTherapy where clinic_id=:clinicId")
     public abstract List<RecipeTherapy> findTherapyByClinicId(@DAOParam("clinicId") Integer clinicId);
+
+    /**
+     * 运营平台展示诊疗处方列表
+     *
+     * @param recipeTherapyOpQueryVO
+     * @return
+     *
+     */
+    public QueryResult<RecipeTherapyOpDTO> findTherapyByInfo(RecipeTherapyOpQueryDTO recipeTherapyOpQueryVO){
+        final StringBuilder sbHql = this.generateRecipeTherapyHQLforStatistics(recipeTherapyOpQueryVO);
+        final StringBuilder sbHqlCount = this.generateRecipeTherapyHQLforStatisticsCount(recipeTherapyOpQueryVO);
+        logger.info("RecipeTherapyDAO findTherapyByInfo sbHql:{}", sbHql.toString());
+        HibernateStatelessResultAction<QueryResult<RecipeTherapyOpDTO>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeTherapyOpDTO>>(){
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+                // 查询总记录数
+                SQLQuery sqlQuery = ss.createSQLQuery(sbHqlCount.toString());
+                sqlQuery.setParameter("startTime", sdf.format(recipeTherapyOpQueryVO.getBDate()));
+                sqlQuery.setParameter("endTime", sdf.format(recipeTherapyOpQueryVO.getEDate()));
+                Long total = Long.valueOf(String.valueOf((sqlQuery.uniqueResult())));
+                // 查询结果
+                Query query = ss.createSQLQuery(sbHql.append(" order by CreateDate DESC").toString());
+                query.setParameter("startTime", sdf.format(recipeTherapyOpQueryVO.getBDate()));
+                query.setParameter("endTime", sdf.format(recipeTherapyOpQueryVO.getEDate()));
+                query.setFirstResult(recipeTherapyOpQueryVO.getStart());
+                query.setMaxResults(recipeTherapyOpQueryVO.getLimit());
+                List<RecipeTherapyOpDTO> recipeTherapyList = query.list();
+                setResult(new QueryResult<>(total, query.getFirstResult(), query.getMaxResults(), recipeTherapyList));
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    protected StringBuilder generateRecipeTherapyHQLforStatistics(RecipeTherapyOpQueryDTO recipeTherapyOpQueryVO){
+        StringBuilder hql = new StringBuilder("select r.RecipeID,r.RecipeCode,r.doctorName,r.patientName,r.appoint_depart_name," +
+                "r.organName,r.CreateDate,cr.status from cdr_recipe r ");
+        hql.append(" INNER JOIN cdr_recipe_therapy cr on r.RecipeID = cr.recipe_id ");
+        hql.append(" where r.recipeSourceType=3 ");
+        return generateRecipeTherapyHQLforStatisticsV1(hql,recipeTherapyOpQueryVO);
+    }
+
+    protected StringBuilder generateRecipeTherapyHQLforStatisticsCount(RecipeTherapyOpQueryDTO recipeTherapyOpQueryVO){
+        StringBuilder hql = new StringBuilder("select count(1) from cdr_recipe r ");
+        hql.append(" INNER JOIN cdr_recipe_therapy cr on r.RecipeID = cr.recipe_id ");
+        hql.append(" where r.recipeSourceType=3 ");
+        return generateRecipeTherapyHQLforStatisticsV1(hql,recipeTherapyOpQueryVO);
+    }
+
+    private StringBuilder generateRecipeTherapyHQLforStatisticsV1(StringBuilder hql, RecipeTherapyOpQueryDTO recipeTherapyOpQueryVO) {
+        //默认查询所有
+        List<Integer> organIds = recipeTherapyOpQueryVO.getOrganIds();
+        if (CollectionUtils.isNotEmpty(organIds)) {
+            // 添加申请机构条件
+            boolean flag = true;
+            for (Integer i : organIds) {
+                if (i != null) {
+                    if (flag) {
+                        hql.append(" and r.clinicOrgan in(");
+                        flag = false;
+                    }
+                    hql.append(i).append(",");
+                }
+            }
+            if (!flag) {
+                hql = new StringBuilder(hql.substring(0, hql.length() - 1) + ") ");
+            }
+        }
+        if (recipeTherapyOpQueryVO.getOrganId() != null) {
+            hql.append(" and r.clinicOrgan =").append(recipeTherapyOpQueryVO.getOrganId());
+        }
+
+        hql.append(" and r.CreateDate BETWEEN :startTime" + " and :endTime ");
+
+        if(recipeTherapyOpQueryVO.getStatus() != null ){
+            hql.append(" and cr.status =").append(recipeTherapyOpQueryVO.getStatus());
+        }
+        if(recipeTherapyOpQueryVO.getPatientMobile() != null ){
+            hql.append(" and r.patientMobile =").append(recipeTherapyOpQueryVO.getPatientMobile());
+        }
+        if(recipeTherapyOpQueryVO.getSearchName() != null ){
+            hql.append("and r.doctorName like " + "%").append(recipeTherapyOpQueryVO.getSearchName()).append("%");
+            hql.append("or r.patientName like " + "%").append(recipeTherapyOpQueryVO.getSearchName()).append("%");
+            hql.append("or r.appoint_depart_name like " + "%").append(recipeTherapyOpQueryVO.getSearchName()).append("%");
+        }
+        return hql;
+    }
+
 
 }

@@ -1,11 +1,10 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
-import com.ngari.recipe.dto.PatientDTO;
-import com.ngari.recipe.dto.RecipeDTO;
-import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeTherapy;
+import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +13,7 @@ import org.springframework.util.CollectionUtils;
 import recipe.client.PatientClient;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
+import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeTherapyDAO;
 import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.enumerate.type.TherapyCancellationTypeEnum;
@@ -35,6 +35,8 @@ public class RecipeTherapyManager extends BaseManager {
     private RecipeTherapyDAO recipeTherapyDAO;
     @Autowired
     private PatientClient patientClient;
+    @Autowired
+    private RecipeDAO recipeDAO;
 
     /**
      * 保存诊疗处方关联信息
@@ -200,5 +202,9 @@ public class RecipeTherapyManager extends BaseManager {
             recipeTherapyList = recipeTherapyDAO.findTherapyPageByMpiIds(allMpiIds, start, limit);
         }
         return recipeTherapyList;
+    }
+
+    public QueryResult<RecipeTherapyOpDTO> findTherapyByInfo(RecipeTherapyOpQueryDTO recipeTherapyOpQueryVO) {
+        return recipeTherapyDAO.findTherapyByInfo(recipeTherapyOpQueryVO);
     }
 }
