@@ -67,24 +67,13 @@ public class AuditPreMode extends AbstractAuidtMode {
             return;
         }
         if (status == RecipeStatusConstant.CHECK_PASS) {
-            //暂时去掉，没有用到
-            /*//todo 判断是否是杭州市医保患者，医保患者得医保信息回传后才能设置待审核
-            if (RecipeServiceSub.isMedicalPatient(recipe.getMpiid(),recipe.getClinicOrgan())){
-                //医保上传确认中----三天后没回传就设置成已取消
-                status = RecipeStatusConstant.CHECKING_MEDICAL_INSURANCE;
-            }else {
-                status = RecipeStatusConstant.READY_CHECK_YS;
-            }*/
             status = RecipeStatusConstant.READY_CHECK_YS;
         }
-        // 平台模式前置需要发送卡片
-        //if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())){
-        //待审核只有平台发
+        // 平台模式前置需要发送卡片 待审核只有平台发
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
             RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
             RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipe.getRecipeId()), null, true);
         }
-        //}
         //生成文件成功后再去更新处方状态
         if (recipeDAO.getByRecipeId(recipe.getRecipeId()).getStatus() == 9) {
             LOGGER.info("afterHisCallBackChange 处方单已经撤销再次判断,recipeid:{}", recipe.getRecipeId());
@@ -99,7 +88,7 @@ public class AuditPreMode extends AbstractAuidtMode {
         //日志记录
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), status, memo);
         //发送消息
-        sendMsg(status, recipe, memo);
+        sendMsg(status, recipe);
         Integer checkMode = recipe.getCheckMode();
         // 是不是三方合理用药
         boolean flag = AutoCheckRecipe.threeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
@@ -178,7 +167,7 @@ public class AuditPreMode extends AbstractAuidtMode {
     }
 
 
-    private void sendMsg(Integer status, Recipe recipe, String memo) {
+    private void sendMsg(Integer status, Recipe recipe) {
         //平台处方进行消息发送等操作
         if (1 == recipe.getFromflag()) {
             Integer checkMode = recipe.getCheckMode();
@@ -253,16 +242,10 @@ public class AuditPreMode extends AbstractAuidtMode {
                 RecipeServiceSub.sendRecipeTagToPatient(recipe, detailDAO.findByRecipeId(recipeId), null, true);
                 //向患者推送处方消息
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS);
-                /*//同步到互联网监管平台
-                SyncExecutorService syncExecutorService = ApplicationUtils.getRecipeService(SyncExecutorService.class);
-                syncExecutorService.uploadRecipeIndicators(recipe);*/
             } else {
-                //平台前置发送审核通过消息
-                //向患者推送处方消息
-                //处方通知您有一张处方单需要处理，请及时查看。
+                //平台前置发送审核通过消息 /向患者推送处方消息 处方通知您有一张处方单需要处理，请及时查看。
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.CHECK_PASS_YS);
             }
-
         }
         // 病历处方-状态修改成显示
         DocIndexClient docIndexClient = AppContextHolder.getBean("docIndexClient", DocIndexClient.class);

@@ -17,21 +17,6 @@ public class AuditModeContext {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuditModeContext.class);
     private static Map<Integer,String> map = Maps.newHashMap();
 
-    /*public IAuditMode getAuditMode(Integer auditMode){
-        AuditModeEnum[] list = AuditModeEnum.values();
-        String serviceName = null;
-        for (AuditModeEnum e : list) {
-            if (e.getAuditMode().equals(auditMode)) {
-                serviceName = e.getServiceName();
-                break;
-            }
-        }
-        IAuditMode iAuditMode = null;
-        if (StringUtils.isNotEmpty(serviceName)) {
-            iAuditMode = AppContextHolder.getBean(serviceName, IAuditMode.class);
-        }
-        return iAuditMode;
-    }*/
 
     public IAuditMode getAuditModes(Integer auditMode){
         String className = map.get(auditMode);

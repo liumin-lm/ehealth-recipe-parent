@@ -2,6 +2,7 @@ package recipe.regulation;
 
 import com.ngari.his.regulation.entity.RegulationChargeDetailReqTo;
 import com.ngari.platform.regulation.mode.QueryRegulationUnitReq;
+import com.ngari.recipe.dto.RegulationChargeDetailDTO;
 import com.ngari.recipe.regulation.service.IRegulationRecipeQueryService;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -11,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.constant.PayConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.util.ObjectCopyUtils;
 
 import java.util.Date;
 import java.util.List;
@@ -32,9 +34,10 @@ public class RegulationRecipeQueryService implements IRegulationRecipeQueryServi
         List<Integer> ngariOrganIds = queryRegulationUnit.getNgariOrganIds();
         Date startTime = queryRegulationUnit.getStartTime();
         Date endTime = queryRegulationUnit.getEndTime();
-        List<RegulationChargeDetailReqTo> result = recipeOrderDAO.queryRegulationChargeDetailList(ngariOrganIds, startTime, endTime);
+        List<RegulationChargeDetailDTO> result = recipeOrderDAO.queryRegulationChargeDetailList(ngariOrganIds, startTime, endTime);
         logger.info("queryRegulationChargeDetailList result " + JSONUtils.toString(result));
-        return result;
+        List<RegulationChargeDetailReqTo> list = ObjectCopyUtils.convert(result, RegulationChargeDetailReqTo.class);
+        return list;
     }
 
 

@@ -1,6 +1,5 @@
 package recipe.drugsenterprise.bean;
 
-import org.apache.lucene.queryparser.surround.query.SrndTermQuery;
 
 import java.io.Serializable;
 /**

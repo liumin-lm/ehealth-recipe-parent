@@ -4,10 +4,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.ngari.his.regulation.entity.RegulationChargeDetailReqTo;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
+import com.ngari.recipe.dto.RegulationChargeDetailDTO;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.pay.model.BusBillDateAccountDTO;
 import com.ngari.recipe.recipereportform.model.*;
@@ -375,8 +375,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @param endTime
      * @return
      */
-    public List<RegulationChargeDetailReqTo> queryRegulationChargeDetailList(final List<Integer> ngariOrganIds, final Date startTime, final Date endTime) {
-        HibernateStatelessResultAction<List<RegulationChargeDetailReqTo>> action = new AbstractHibernateStatelessResultAction<List<RegulationChargeDetailReqTo>>() {
+    public List<RegulationChargeDetailDTO> queryRegulationChargeDetailList(final List<Integer> ngariOrganIds, final Date startTime, final Date endTime) {
+        HibernateStatelessResultAction<List<RegulationChargeDetailDTO>> action = new AbstractHibernateStatelessResultAction<List<RegulationChargeDetailDTO>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
@@ -395,11 +395,11 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 q.setParameterList("ngariOrganIds", ngariOrganIds);
                 logger.info("paramter is startTime:[{}],endTime:[{}],ngariOrganIds[{}]", startTime, endTime, ngariOrganIds);
                 List<Object[]> result = q.list();
-                List<RegulationChargeDetailReqTo> backList = new ArrayList<>();
+                List<RegulationChargeDetailDTO> backList = new ArrayList<>();
                 if (CollectionUtils.isNotEmpty(result)) {
-                    RegulationChargeDetailReqTo vo;
+                    RegulationChargeDetailDTO vo;
                     for (Object[] objs : result) {
-                        vo = new RegulationChargeDetailReqTo();
+                        vo = new RegulationChargeDetailDTO();
                         vo.setOrganID(objs[0] == null ? null : (Integer) objs[0]);
                         vo.setRecipeDetailID(objs[1] == null ? null : objs[1] + "");
                         vo.setPayFlag(objs[2] == null ? null : Integer.parseInt(objs[2] + ""));
