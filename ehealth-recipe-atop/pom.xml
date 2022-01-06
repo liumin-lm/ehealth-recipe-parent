@@ -21,10 +21,17 @@
             <artifactId>ehealth-recipe-api</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
+        <!--需要删除ehealth-revisit-api-->
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-revisit-api</artifactId>
             <version>${ngari.revisit.version}</version>
+        </dependency>
+        <!--需要删除ehealth-his-api-->
+        <dependency>
+            <groupId>${project.parent.groupId}</groupId>
+            <artifactId>ehealth-his-api</artifactId>
+            <version>${ngari.hisapi.version}</version>
         </dependency>
 
         <dependency>

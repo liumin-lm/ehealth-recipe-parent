@@ -15,7 +15,6 @@ import com.ngari.recipe.dto.RecipeOrderDto;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
-import ctd.mvc.weixin.entity.OAuthWeixinMP;
 import ctd.util.JSONUtils;
 import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;

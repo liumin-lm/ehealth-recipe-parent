@@ -24,30 +24,31 @@
     </modules>
     <properties>
         <ngari.framework.version>4.1.6.beta2-SNAPSHOT</ngari.framework.version>
-        <ngari.voucher.version>3.8.0.2.master-SNAPSHOT</ngari.voucher.version>
-        <ngari.es.version>4.1.1.9.feature20220119-SNAPSHOT</ngari.es.version>
-        <ngari.miscellany.version>3.12.1.4.master-SNAPSHOT</ngari.miscellany.version>
-        <ngari.basic.version>3.12.1.4.master-SNAPSHOT</ngari.basic.version>
-        <ngari.jgpt.version>3.12.1.4.master-SNAPSHOT</ngari.jgpt.version>
-        <ngari.followup.version>3.12.1.4.master-SNAPSHOT</ngari.followup.version>
-        <ngari.cdr.version>4.1.1.9.feature20220119-SNAPSHOT</ngari.cdr.version>
-        <ngari.recipeaudit.version>3.12.3.0.master-SNAPSHOT</ngari.recipeaudit.version>
-        <ngari.easypay.version>3.12.1.4.master-SNAPSHOT</ngari.easypay.version>
-        <ngari.consult.version>3.11.1.7.master-SNAPSHOT</ngari.consult.version>
-        <ngari.networkclinic.version>2.11.0.2.master-SNAPSHOT</ngari.networkclinic.version>
-        <ngari.hisapi.version>3.12.3.0.master-SNAPSHOT</ngari.hisapi.version>
-        <ngari.baseapi.version>3.12.1.4.master-SNAPSHOT</ngari.baseapi.version>
-        <ngari.opbase.version>3.12.1.4.master-SNAPSHOT</ngari.opbase.version>
-        <ngari.utils.version>3.12.1.4.master-SNAPSHOT</ngari.utils.version>
-        <ngari.casign.version>3.12.1.4.master-SNAPSHOT</ngari.casign.version>
-        <ngari.video.version>3.11.1.7.master-SNAPSHOT</ngari.video.version>
-        <ngari.weixin.service.version>3.9.2.8.master-SNAPSHOT</ngari.weixin.service.version>
-        <ngari.infra.version>3.12.0.2.master-SNAPSHOT</ngari.infra.version>
-        <ngari.message.version>3.12.3.0.feature20211230-SNAPSHOT</ngari.message.version>
-        <ngari.bill.version>3.11.1.7.master-SNAPSHOT</ngari.bill.version>
-        <ngari.account.version>3.11.0.3.master-SNAPSHOT</ngari.account.version>
-        <ngari.basicdto.version>3.12.1.4.master-SNAPSHOT</ngari.basicdto.version>
-        <ngari.revisit.version>3.12.3.0.feature20211230-SNAPSHOT</ngari.revisit.version>
+        <ngari.voucher.version>4.1.1.9.master-SNAPSHOT</ngari.voucher.version>
+        <ngari.es.version>4.1.1.9.master-SNAPSHOT</ngari.es.version>
+        <ngari.miscellany.version>4.1.1.9.master-SNAPSHOT</ngari.miscellany.version>
+        <ngari.basic.version>4.1.1.9.master-SNAPSHOT</ngari.basic.version>
+        <ngari.jgpt.version>4.1.1.9.master-SNAPSHOT</ngari.jgpt.version>
+        <ngari.followup.version>4.1.1.9.master-SNAPSHOT</ngari.followup.version>
+        <ngari.cdr.version>4.1.1.9.master-SNAPSHOT</ngari.cdr.version>
+        <ngari.recipeaudit.version>4.1.1.9.master-SNAPSHOT</ngari.recipeaudit.version>
+        <ngari.easypay.version>4.1.1.9.master-SNAPSHOT</ngari.easypay.version>
+        <ngari.consult.version>4.1.1.9.master-SNAPSHOT</ngari.consult.version>
+        <ngari.networkclinic.version>4.1.1.9.master-SNAPSHOT</ngari.networkclinic.version>
+        <ngari.hisapi.version>4.1.1.9.master-SNAPSHOT</ngari.hisapi.version>
+        <ngari.baseapi.version>4.1.1.9.master-SNAPSHOT</ngari.baseapi.version>
+        <ngari.opbase.version>4.1.1.9.master-SNAPSHOT</ngari.opbase.version>
+        <ngari.utils.version>4.1.1.9.master-SNAPSHOT</ngari.utils.version>
+        <ngari.casign.version>4.1.1.9.master-SNAPSHOT</ngari.casign.version>
+        <ngari.video.version>4.1.1.9.master-SNAPSHOT</ngari.video.version>
+        <ngari.weixin.service.version>4.1.1.9.master-SNAPSHOT</ngari.weixin.service.version>
+        <ngari.infra.version>4.1.1.9.master-SNAPSHOT</ngari.infra.version>
+        <ngari.message.version>4.1.1.9.master-SNAPSHOT</ngari.message.version>
+        <ngari.bill.version>4.1.1.9.master-SNAPSHOT</ngari.bill.version>
+        <ngari.account.version>4.1.1.9.master-SNAPSHOT</ngari.account.version>
+        <ngari.basicdto.version>4.1.1.9.master-SNAPSHOT</ngari.basicdto.version>
+        <ngari.revisit.version>4.1.1.9.master-SNAPSHOT</ngari.revisit.version>
+        <ngari.entity.version>4.1.1.9.master-SNAPSHOT</ngari.entity.version>
 
     </properties>
 

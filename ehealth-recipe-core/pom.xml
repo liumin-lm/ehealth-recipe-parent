@@ -28,6 +28,12 @@
             <version>${project.parent.version}</version>
         </dependency>
         <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>ehealth-entity</artifactId>
+            <version>${ngari.entity.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
             <groupId>ngari</groupId>
             <artifactId>easy-pay-entity</artifactId>
             <version>${ngari.easypay.version}</version>
@@ -37,12 +43,6 @@
                     <groupId>org.bouncycastle</groupId>
                 </exclusion>
             </exclusions>
-        </dependency>
-
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>ehealth-utils</artifactId>
-            <version>${ngari.utils.version}</version>
         </dependency>
         <dependency>
             <groupId>ngari</groupId>
