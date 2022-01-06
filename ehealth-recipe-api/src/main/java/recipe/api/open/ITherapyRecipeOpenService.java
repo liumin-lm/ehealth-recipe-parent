@@ -58,14 +58,4 @@ public interface ITherapyRecipeOpenService {
     List<RecipeTherapyVO> findTherapyByClinicId(Integer clinicId);
 
 
-    /**
-     * 运营平台展示诊疗处方列表
-     *
-     * @param recipeTherapyOpQueryVO
-     * @return
-     *
-     */
-    @RpcService
-    QueryResult<RecipeTherapyOpVO> findTherapyByInfo(RecipeTherapyOpQueryVO recipeTherapyOpQueryVO);
-
 }
