@@ -32,6 +32,7 @@ import eh.recipeaudit.api.IAuditMedicinesService;
 import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.model.AuditMedicineIssueBean;
+import eh.recipeaudit.model.AuditMedicinesBean;
 import eh.recipeaudit.model.RecipeCheckBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
@@ -46,12 +47,12 @@ import recipe.audit.bean.PAWebRecipeDanger;
 import recipe.audit.service.PrescriptionService;
 import recipe.bussutil.AESUtils;
 import recipe.client.DoctorClient;
+import recipe.client.RecipeAuditClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.manager.ButtonManager;
 import recipe.manager.DepartManager;
 import recipe.service.RecipeService;
-import recipe.service.RecipeServiceSub;
 import recipe.util.ByteUtils;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
@@ -84,6 +85,8 @@ public class OperationPlatformRecipeService {
     private IAuditMedicinesService auditMedicinesService;
     @Autowired
     private DepartManager departManager;
+    @Autowired
+    private RecipeAuditClient recipeAuditClient;
 
     /**
      * 审核平台 获取处方单详情
@@ -385,7 +388,8 @@ public class OperationPlatformRecipeService {
         PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
         if (recipe.getStatus() != 0) {
             if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
-                map.put("medicines", RecipeServiceSub.getAuditMedicineIssuesByRecipeId(recipeId));
+                List<AuditMedicinesBean> auditMedicines = recipeAuditClient.getAuditMedicineIssuesByRecipeId(recipeId);
+                map.put("medicines", auditMedicines);
                 List<AuditMedicineIssueBean> auditMedicineIssues = auditMedicinesService.findIssueByRecipeId(recipeId);
                 if (CollectionUtils.isNotEmpty(auditMedicineIssues)) {
                     List<AuditMedicineIssueBean> resultMedicineIssues = new ArrayList<>();

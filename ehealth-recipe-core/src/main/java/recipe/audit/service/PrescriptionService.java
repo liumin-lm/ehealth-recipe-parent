@@ -36,19 +36,6 @@ public class PrescriptionService {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(PrescriptionService.class);
 
-//    /**
-//     * 早期使用接口，不能删除
-//     *
-//     * @param recipe        处方信息
-//     * @param recipedetails 处方详情
-//     * @return 结果
-//     */
-//    @RpcService
-//    @Deprecated
-//    public String getPAAnalysis(RecipeBean recipe, List<RecipeDetailBean> recipedetails) {
-//        return null;
-//    }
-
     /**
      * 互联网医院使用返回格式
      *
@@ -65,7 +52,7 @@ public class PrescriptionService {
         RecipeExtendBean recipeExtend = recipe.getRecipeExtend();
         RecipeExtendDTO recipeExtendDTO = ObjectCopyUtils.convert(recipeExtend, RecipeExtendDTO.class);
         recipeDTO.setRecipeExtend(recipeExtendDTO);
-        List<RecipeDetailDTO>recipeDetailDTOS = ObjectCopyUtils.convert(recipedetails, RecipeDetailDTO.class);
+        List<RecipeDetailDTO> recipeDetailDTOS = ObjectCopyUtils.convert(recipedetails, RecipeDetailDTO.class);
         AutoAuditResultBean resultBean = recipeAuditService.analysis(recipeDTO, recipeDetailDTOS);
         return JSON.parseObject(JSON.toJSONString(resultBean), AutoAuditResultBean.class);
     }
