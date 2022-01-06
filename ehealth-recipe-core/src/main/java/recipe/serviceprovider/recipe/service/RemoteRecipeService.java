@@ -398,12 +398,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                                               Integer depart, int start, int limit, List<Integer> organIds,
                                               Integer giveMode, Integer sendType, Integer fromflag,
                                               Integer recipeId, Integer enterpriseId, Integer checkStatus,
-                                              Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType) {
+                                              Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType, Integer bussSource) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         QueryResult<Map> result = recipeDAO.findRecipesByInfo(organId, status, doctor, patientName,
                 bDate, eDate, dateType, depart, start, limit, organIds,
                 giveMode, sendType, fromflag, recipeId, enterpriseId,
-                checkStatus, payFlag, orderType, refundNodeStatus, recipeType);
+                checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource);
         List<Map> records = result.getItems();
         for (Map record : records) {
             Recipe recipe = recipeDAO.getByRecipeId((int) record.get("recipeId"));
@@ -440,7 +440,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 , recipesQueryVO.getPatientName(), recipesQueryVO.getBDate(), recipesQueryVO.getEDate(), recipesQueryVO.getDateType()
                 , recipesQueryVO.getDepart(), recipesQueryVO.getStart(), recipesQueryVO.getLimit(), organIds
                 , recipesQueryVO.getGiveMode(), recipesQueryVO.getSendType(), recipesQueryVO.getFromFlag(), recipesQueryVO.getRecipeId()
-                , recipesQueryVO.getEnterpriseId(), recipesQueryVO.getCheckStatus(), recipesQueryVO.getPayFlag(), recipesQueryVO.getOrderType(), recipesQueryVO.getRefundNodeStatus(), recipesQueryVO.getRecipeType());
+                , recipesQueryVO.getEnterpriseId(), recipesQueryVO.getCheckStatus(), recipesQueryVO.getPayFlag(), recipesQueryVO.getOrderType()
+                , recipesQueryVO.getRefundNodeStatus(), recipesQueryVO.getRecipeType(), recipesQueryVO.getBussSource());
         List<Map> records = result.getItems();
         for (Map record : records) {
             Recipe recipe = recipeDAO.getByRecipeId((int) record.get("recipeId"));
@@ -800,8 +801,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     @Deprecated
     public List<Object[]> findRecipeOrdersByInfoForExcel(Integer organId, List<Integer> organIds, Integer status, Integer doctor, String patientName, Date bDate,
-                                                         Date eDate, Integer dateType, Integer depart, Integer giveMode, Integer fromflag, Integer recipeId, Integer recipeType) {
-        LOGGER.info("findRecipeOrdersByInfoForExcel查询处方订单导出信息入参:{},{},{},{},{},{},{},{},{},{},{},{}", organId, organIds, status, doctor, patientName, bDate, eDate, dateType, depart, giveMode, fromflag, recipeId, recipeType);
+                                                         Date eDate, Integer dateType, Integer depart, Integer giveMode, Integer fromflag, Integer recipeId, Integer recipeType, Integer bussSource) {
+        LOGGER.info("findRecipeOrdersByInfoForExcel查询处方订单导出信息入参:{},{},{},{},{},{},{},{},{},{},{},{}", organId, organIds, status, doctor, patientName, bDate, eDate, dateType, depart, giveMode, fromflag, recipeId, recipeType, bussSource);
         RecipesQueryVO recipesQueryVO = new RecipesQueryVO();
         recipesQueryVO.setOrganIds(organIds);
         recipesQueryVO.setOrganId(organId);
@@ -816,6 +817,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         recipesQueryVO.setStatus(status);
         recipesQueryVO.setPatientName(patientName);
         recipesQueryVO.setRecipeType(recipeType);
+        recipesQueryVO.setBussSource(bussSource);
 
         List<Object[]> objectList = findRecipeOrdersByInfoForExcel2(recipesQueryVO);
         return objectList;

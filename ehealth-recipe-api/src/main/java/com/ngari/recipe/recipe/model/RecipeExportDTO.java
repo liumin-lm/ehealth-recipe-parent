@@ -53,6 +53,10 @@ public class RecipeExportDTO implements Serializable{
     private Integer recipeType;
     @ItemProperty(alias = "发药药师")
     private String giveUser;
+    @Dictionary(id = "eh.cdr.dictionary.BussSourceType")
+    private Integer bussSource;
+    @ItemProperty(alias = "处方单号")
+    private String recipeCode;
 
     @Column(name = "doctorName")
     public String getDoctorName() {
@@ -178,5 +182,21 @@ public class RecipeExportDTO implements Serializable{
 
     public void setGiveUser(String giveUser) {
         this.giveUser = giveUser;
+    }
+
+    public Integer getBussSource() {
+        return bussSource;
+    }
+
+    public void setBussSource(Integer bussSource) {
+        this.bussSource = bussSource;
+    }
+
+    public String getRecipeCode() {
+        return recipeCode;
+    }
+
+    public void setRecipeCode(String recipeCode) {
+        this.recipeCode = recipeCode;
     }
 }
