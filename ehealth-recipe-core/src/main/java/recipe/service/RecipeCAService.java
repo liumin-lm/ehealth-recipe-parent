@@ -399,8 +399,6 @@ public class RecipeCAService {
         /** 当前没有设置CA签名中的业务端签名对象，原计划根据签名医生的类型设置请求【BusType】***/
         caAccountRequestTO.setBusType(null == recipeBean.getChecker() ? 4 : 5);
         caAccountRequestTO.setRegulationRecipeIndicatorsReq(Arrays.asList(getCATaskRecipeReq(recipeBean, detailBeanList)));
-
-        //caAccountRequestTO.setSignOriginal(Arrays.asList(getCATaskRecipeReq(recipeBean, detailBeanList)));
         return caAccountRequestTO;
     }
 
@@ -595,9 +593,6 @@ public class RecipeCAService {
         //当前方法提供CA改造后的签名方法
         //改造点：1.根据CA配置项，前置=》流程：新增；后置=》流程：新增+推his
         //2.新增后处方状态为：医生签名中
-
-        //先定义一个CA配置
-        String caStatus = "before";
 
         LOGGER.info("doSignRecipeCABefore param: recipeBean={} detailBean={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList));
         //将密码放到redis中

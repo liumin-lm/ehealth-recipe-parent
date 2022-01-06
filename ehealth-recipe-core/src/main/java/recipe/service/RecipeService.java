@@ -252,7 +252,8 @@ public class RecipeService extends RecipeBaseService {
 
     @Autowired
     private RefundClient refundClient;
-
+    @Autowired
+    private RecipeAuditClient recipeAuditClient;
     @Autowired
     private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
 
@@ -2425,7 +2426,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public List<AuditMedicinesBean> getAuditMedicineIssuesByRecipeId(int recipeId) {
-        return RecipeServiceSub.getAuditMedicineIssuesByRecipeId(recipeId);
+        return recipeAuditClient.getAuditMedicineIssuesByRecipeId(recipeId);
     }
 
     /**

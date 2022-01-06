@@ -75,7 +75,6 @@ public abstract class AbstractAuidtMode implements IAuditMode {
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), status, null);
         //日志记录
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), status, memo);
-
         //平台处方进行消息发送等操作
         if (1 == recipe.getFromflag()) {
             //发送消息--待审核或者待处理消息
@@ -83,15 +82,12 @@ public abstract class AbstractAuidtMode implements IAuditMode {
             Integer checkMode = recipe.getCheckMode();
             boolean flag = judgeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
             //线下审方不推送药师消息
-            if (new Integer(1).equals(checkMode) && !flag) {
-                if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
-                    //增加药师首页待处理任务---创建任务
-                    if (status == RecipeStatusConstant.READY_CHECK_YS) {
-                        RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
-                        LOGGER.info("AbstractAuidtMode saveStatusAndSendMsg recipeId:{},recipeBean:{}", recipe.getRecipeId(), JSON.toJSONString(recipeBean));
-                        ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
-                    }
-                }
+            if (new Integer(1).equals(checkMode) && !flag && RecipeStatusConstant.READY_CHECK_YS == status
+                    && RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+                //增加药师首页待处理任务---创建任务
+                RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+                LOGGER.info("AbstractAuidtMode saveStatusAndSendMsg recipeId:{},recipeBean:{}", recipe.getRecipeId(), JSON.toJSONString(recipeBean));
+                ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
             }
             //保存至电子病历
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
@@ -120,13 +116,11 @@ public abstract class AbstractAuidtMode implements IAuditMode {
                     return true;
                 }
             }
-
             return false;
         } catch (Exception e) {
             LOGGER.error("judgeRecipeAutoCheck error recipe={}", recipeId, e);
             return false;
         }
-
     }
 
     @Override
@@ -165,8 +159,7 @@ public abstract class AbstractAuidtMode implements IAuditMode {
                     } else {
                         memo = "配送到家-线上支付失败";
                     }
-                }
-            else if (RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
+                } else if (RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
                     memo = "货到付款-待配送";
                 }
             } else if (RecipeBussConstant.GIVEMODE_TFDS.equals(giveMode)) {
@@ -174,14 +167,12 @@ public abstract class AbstractAuidtMode implements IAuditMode {
             }
             //记录日志
             RecipeLogService.saveRecipeLog(recipe.getRecipeId(), RecipeStatusConstant.CHECK_PASS, status, memo);
-
         } else {
             attrMap.put("chooseFlag", 0);
             if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipe.getFromflag())) {
                 status = recipe.getStatus();
             }
         }
-
         updateRecipeInfoByRecipeId(recipe.getRecipeId(), status, attrMap, result);
         LOGGER.info("AbstractAuidtMode.afterPayChange saveFlag:{}, payFlag:{}.", saveFlag, payFlag);
         if (saveFlag && new Integer(PayConstant.PAY_FLAG_PAY_SUCCESS).equals(payFlag)) {
