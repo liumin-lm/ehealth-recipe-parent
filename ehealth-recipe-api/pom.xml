@@ -29,8 +29,15 @@
         </dependency>
         <dependency>
             <groupId>ngari</groupId>
-            <artifactId>ngari-mvc</artifactId>
+            <artifactId>ngari-dao</artifactId>
             <version>${ngari.framework.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ngari-core</artifactId>
+            <version>${ngari.framework.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>ngari</groupId>
