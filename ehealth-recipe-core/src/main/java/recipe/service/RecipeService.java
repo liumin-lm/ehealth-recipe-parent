@@ -79,9 +79,6 @@ import eh.cdr.constant.OrderStatusConstant;
 import eh.recipeaudit.api.IRecipeCheckDetailService;
 import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.model.AuditMedicinesBean;
-import eh.recipeaudit.model.Intelligent.AutoAuditResultBean;
-import eh.recipeaudit.model.Intelligent.IssueBean;
-import eh.recipeaudit.model.Intelligent.PAWebMedicinesBean;
 import eh.recipeaudit.model.RecipeCheckBean;
 import eh.recipeaudit.model.RecipeCheckDetailBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
@@ -1506,9 +1503,6 @@ public class RecipeService extends RecipeBaseService {
         Map<String, Object> rMap = new HashMap<String, Object>();
         rMap.put("signResult", true);
         try {
-            //上海肺科个性化处理--智能审方重要警示弹窗处理
-            doforShangHaiFeiKe(recipeBean, detailBeanList);
-
             recipeBean.setDistributionFlag(continueFlag);
             //第一步暂存处方（处方状态未签名）
             doSignRecipeSave(recipeBean, detailBeanList);
@@ -2112,30 +2106,6 @@ public class RecipeService extends RecipeBaseService {
 
         }
     }
-
-    public void doforShangHaiFeiKe(RecipeBean recipe, List<RecipeDetailBean> details) {
-        ////上海医院个性化处理--智能审方重要警示弹窗处理--为了测评-可配置
-        Set<String> organIdList = redisClient.sMembers(CacheConstant.KEY_AUDIT_TIP_LIST);
-        if ((organIdList != null && organIdList.contains(recipe.getClinicOrgan().toString())) || recipe.getClinicOrgan() == 1002902) {//上海肺科
-            PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
-            AutoAuditResultBean autoAuditResult = prescriptionService.analysis(recipe, details);
-            List<PAWebMedicinesBean> paResultList = autoAuditResult.getMedicines();
-            if (CollectionUtils.isNotEmpty(paResultList)) {
-                List<IssueBean> issueList;
-                for (PAWebMedicinesBean paMedicine : paResultList) {
-                    issueList = paMedicine.getIssues();
-                    if (CollectionUtils.isNotEmpty(issueList)) {
-                        for (IssueBean issue : issueList) {
-                            if ("RL001".equals(issue.getLvlCode())) {
-                                throw new DAOException(609, issue.getDetail());
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
 
     /**
      * 处方二次签名

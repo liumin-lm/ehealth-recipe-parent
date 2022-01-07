@@ -28,7 +28,6 @@ import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import eh.recipeaudit.api.IAuditMedicinesService;
 import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.model.AuditMedicinesBean;
@@ -83,8 +82,6 @@ public class OperationPlatformRecipeService {
     private DoctorClient doctorClient;
     @Autowired
     private ButtonManager buttonManager;
-    @Autowired
-    private IAuditMedicinesService auditMedicinesService;
     @Autowired
     private DepartManager departManager;
     @Autowired
