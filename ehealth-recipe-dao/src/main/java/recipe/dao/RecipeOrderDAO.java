@@ -520,33 +520,13 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 q.setMaxResults(limit);
                 List<Object[]> result = q.list();
                 List<Map<String, Object>> backList = new ArrayList<>();
-
-                //     Set<String> mpiIds = Sets.newHashSet();
                 if (CollectionUtils.isNotEmpty(result)) {
-
-                    //获取全部身份证信息
-
-//                    Map<String, String> patientBeanMap = Maps.newHashMap();
-//                    for (Object[] obj : result) {
-//                        if (obj[2] != null) {
-//                            mpiIds.add((String) obj[2]);
-//                        }
-//                    }
-
-//                    if (0 < mpiIds.size()) {
-//                        PatientService patientService = BasicAPI.getService(PatientService.class);
-//                        List<PatientDTO> patientBeanList = patientService.findByMpiIdIn(new ArrayList<String>(mpiIds));
-//                        for (PatientDTO p : patientBeanList) {
-//                            patientBeanMap.put(p.getMpiId(), p.getIdcard());
-//                        }
-//                    }
-
                     Map<String, Object> vo;
                     for (Object[] objs : result) {
                         vo = new HashMap<String, Object>();
                         vo.put("recipeId", objs[0] == null ? null : (Integer) objs[0]);
                         vo.put("patientName", objs[1] == null ? null : (String) objs[1]);
-                        vo.put("cardId", objs[2] == null ? null : (String) objs[2]);
+                        vo.put("mpiId", objs[2] == null ? null : (String) objs[2]);
                         vo.put("enterpriseName", objs[3] == null ? null : (String) objs[3]);
                         vo.put("organName", objs[4] == null ? null : (String) objs[4]);
                         vo.put("doctorName", objs[5] == null ? null : (String) objs[5]);

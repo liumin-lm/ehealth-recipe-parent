@@ -3,6 +3,9 @@ package recipe.serviceprovider.recipeorder.service;
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.BasicAPI;
+import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.common.*;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -192,6 +195,14 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     public Map<String, Object> recipeOrderDetailedStatistics(Date startTime, Date endTime, Integer organId, List<Integer> organIds, Integer depId, Integer drugId, String orderColumn, String orderType, Integer recipeId, Integer payType, int start, int limit) {
         List<Map<String, Object>> list = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeOrderDetailed(startTime, endTime, organId, organIds, depId, drugId, orderColumn, orderType, recipeId, payType, start, limit);
         Map<String, Object> map = DAOFactory.getDAO(RecipeOrderDAO.class).queryrecipeOrderDetailedTotal(startTime, endTime, organId, organIds, depId, drugId, recipeId, payType);
+        PatientService patientService = BasicAPI.getService(PatientService.class);
+        if (CollectionUtils.isNotEmpty(list)) {
+            list.forEach(a -> {
+                String mpiId = String.valueOf(a.get("mpiId"));
+                PatientDTO patient = patientService.get(mpiId);
+                a.put("cardId", null == patient.getCardId() ? null : patient.getCardId());
+            });
+        }
         map.put("orderData", list);
         return map;
     }
