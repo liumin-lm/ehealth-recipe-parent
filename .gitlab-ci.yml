@@ -27,7 +27,7 @@ build-api:
     - /^basic[\d]{8}_.*$/
     - /^basicfix[\d]{8}_.*$/
   script:
-    - 'clean deploy -pl ehealth-recipe-api -am -Dmaven.test.skip=true -U -e'
+    - 'mvn clean deploy -pl ehealth-recipe-api -am -Dmaven.test.skip=true -U -e'
 
   tags:
     - build-jar
@@ -54,7 +54,7 @@ package:
     - /^basic[\d]{8}_.*$/
     - /^basicfix[\d]{8}_.*$/
   script:
-    - 'clean package -Dpackaging=jar -e -U -Dmaven.test.skip=true -Ppro'
+    - 'mvn clean package -Dpackaging=jar -e -U -Dmaven.test.skip=true -Ppro'
     - '/bin/bash /usr/bin/build_image.sh ${AppName} ${CI_COMMIT_SHORT_SHA}'
     - 'python /usr/bin/push_to_xops.py ${AppName} ${CI_COMMIT_REF_NAME} ${CI_COMMIT_SHORT_SHA} ${CI_PIPELINE_ID}'
   tags:
