@@ -29,7 +29,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
-import recipe.audit.handle.AutoCheckRecipe;
 import recipe.client.DocIndexClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
@@ -91,7 +90,7 @@ public class AuditPreMode extends AbstractAuidtMode {
         sendMsg(status, recipe);
         Integer checkMode = recipe.getCheckMode();
         // 是不是三方合理用药
-        boolean flag = AutoCheckRecipe.threeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
+        boolean flag = super.threeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
         LOGGER.info("第三方智能审方flag:{}", flag);
         if (!new Integer(1).equals(checkMode)) {
             if (new Integer(2).equals(checkMode)) {
@@ -106,7 +105,7 @@ public class AuditPreMode extends AbstractAuidtMode {
             }
         } else if (flag) {
             LOGGER.info("第三方智能审方start");
-            AutoCheckRecipe.doAutoRecipe(recipe.getRecipeId());
+            super.doAutoRecipe(recipe.getRecipeId());
             LOGGER.info("第三方智能审方end");
         }
         //异步添加水印
@@ -174,7 +173,7 @@ public class AuditPreMode extends AbstractAuidtMode {
             //发送消息--待审核消息
             RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
             boolean flag = judgeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
-            boolean threeflag = AutoCheckRecipe.threeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
+            boolean threeflag = super.threeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
             //平台审方途径下才发消息  满足自动审方的不推送
             LOGGER.info("sendMsg:判断:{}", (status == RecipeStatusConstant.READY_CHECK_YS && new Integer(1).equals(checkMode) && !(flag || threeflag)));
             if (status == RecipeStatusConstant.READY_CHECK_YS && new Integer(1).equals(checkMode) && !(flag || threeflag)) {

@@ -38,12 +38,14 @@ public class PrescriptionService {
 
     /**
      * 互联网医院使用返回格式
+     * RecipeAuditClient
      *
      * @param recipe        处方信息
      * @param recipedetails 处方详情
      * @return 结果
      */
     @RpcService
+    @Deprecated
     public AutoAuditResultBean analysis(RecipeBean recipe, List<RecipeDetailBean> recipedetails) {
         if (recipe == null) {
             throw new DAOException("处方不存在");

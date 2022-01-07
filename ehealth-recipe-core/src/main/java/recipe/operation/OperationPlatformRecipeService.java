@@ -31,8 +31,8 @@ import ctd.util.annotation.RpcService;
 import eh.recipeaudit.api.IAuditMedicinesService;
 import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.api.IRecipeCheckService;
-import eh.recipeaudit.model.AuditMedicineIssueBean;
 import eh.recipeaudit.model.AuditMedicinesBean;
+import eh.recipeaudit.model.Intelligent.PAWebRecipeDangerBean;
 import eh.recipeaudit.model.RecipeCheckBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
@@ -43,7 +43,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
-import recipe.audit.bean.PAWebRecipeDanger;
 import recipe.audit.service.PrescriptionService;
 import recipe.bussutil.AESUtils;
 import recipe.client.DoctorClient;
@@ -58,7 +57,10 @@ import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
 import recipe.vo.second.ApothecaryVO;
 
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author wzc
@@ -390,27 +392,8 @@ public class OperationPlatformRecipeService {
             if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
                 List<AuditMedicinesBean> auditMedicines = recipeAuditClient.getAuditMedicineIssuesByRecipeId(recipeId);
                 map.put("medicines", auditMedicines);
-                List<AuditMedicineIssueBean> auditMedicineIssues = auditMedicinesService.findIssueByRecipeId(recipeId);
-                if (CollectionUtils.isNotEmpty(auditMedicineIssues)) {
-                    List<AuditMedicineIssueBean> resultMedicineIssues = new ArrayList<>();
-                    auditMedicineIssues.forEach(item -> {
-                        if (null == item.getMedicineId()) {
-                            resultMedicineIssues.add(item);
-                        }
-                    });
-
-                    List<PAWebRecipeDanger> recipeDangers = new ArrayList<>();
-                    resultMedicineIssues.forEach(item -> {
-                        PAWebRecipeDanger recipeDanger = new PAWebRecipeDanger();
-                        recipeDanger.setDangerDesc(item.getDetail());
-                        recipeDanger.setDangerDrug(item.getTitle());
-                        recipeDanger.setDangerLevel(item.getLvlCode());
-                        recipeDanger.setDangerType(item.getLvl());
-                        recipeDanger.setDetailUrl(item.getDetailUrl());
-                        recipeDangers.add(recipeDanger);
-                    });
-                    map.put("recipeDangers", recipeDangers);
-                }
+                List<PAWebRecipeDangerBean> recipeDangers = recipeAuditClient.PAWebRecipeDanger(recipeId);
+                map.put("recipeDangers", recipeDangers);
             }
         }
         Integer one = 1;

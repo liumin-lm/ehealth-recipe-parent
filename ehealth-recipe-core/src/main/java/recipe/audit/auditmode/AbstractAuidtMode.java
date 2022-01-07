@@ -25,7 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
-import recipe.audit.handle.AutoCheckRecipe;
+import recipe.client.RecipeAuditClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.RecipeDAO;
@@ -33,6 +33,7 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.manager.RecipeManager;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeService;
@@ -210,7 +211,8 @@ public abstract class AbstractAuidtMode implements IAuditMode {
         try {
             Integer recipeId = recipe.getRecipeId();
             //处方信息 AND 病历信息重新拉去
-            Recipe recipeManagBean = AutoCheckRecipe.getByRecipeId(recipeId);
+            RecipeManager recipeManager = AppContextHolder.getBean("recipeManager", RecipeManager.class);
+            Recipe recipeManagBean = recipeManager.getRecipeById(recipeId);
             RecipeDTO recipeDTO = ObjectCopyUtils.convert(recipeManagBean, RecipeDTO.class);
             //查詢处方扩展 获取对应的挂号序号
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
@@ -230,6 +232,41 @@ public abstract class AbstractAuidtMode implements IAuditMode {
 
         } catch (Exception e) {
             LOGGER.error("recipeAudit.error", e);
+        }
+    }
+
+
+    /**
+     * @param recipeId
+     * @desc 执行具体的三方 只能是三方审核模式下
+     */
+    protected void doAutoRecipe(Integer recipeId) {
+        RecipeManager recipeManager = AppContextHolder.getBean("recipeManager", RecipeManager.class);
+        Recipe recipe = recipeManager.getRecipeById(recipeId);
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
+        RecipeAuditClient recipeAuditClient = AppContextHolder.getBean("recipeAuditClient", RecipeAuditClient.class);
+        recipeAuditClient.analysis(recipe, null, recipeDetails);
+    }
+
+    /**
+     * @return
+     */
+    protected Boolean threeRecipeAutoCheck(Integer recipeId, Integer organId) {
+        LOGGER.info("threeRecipeAutoCheck recipe={}", recipeId);
+        try {
+            IConfigurationCenterUtilsService iConfigService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            Integer intellectJudicialFlag = (Integer) iConfigService.getConfiguration(organId, "intellectJudicialFlag");
+            String autoRecipecheckLevel = (String) iConfigService.getConfiguration(organId, "autoRecipecheckLevel");
+            String defaultRecipecheckDoctor = (String) iConfigService.getConfiguration(organId, "defaultRecipecheckDoctor");
+            if (intellectJudicialFlag == 3 && StringUtils.isNotEmpty(defaultRecipecheckDoctor) && StringUtils.isNotEmpty(autoRecipecheckLevel)) {
+                // 这个只是一个范围判断
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            LOGGER.error("threeRecipeAutoCheck error recipe={}", recipeId, e);
+            return false;
         }
     }
 }

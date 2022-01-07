@@ -62,8 +62,8 @@ import ctd.util.annotation.RpcService;
 import eh.recipeaudit.api.IAuditMedicinesService;
 import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.api.IRecipeCheckService;
-import eh.recipeaudit.model.AuditMedicineIssueBean;
 import eh.recipeaudit.model.AuditMedicinesBean;
+import eh.recipeaudit.model.Intelligent.PAWebRecipeDangerBean;
 import eh.recipeaudit.model.RecipeCheckBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
@@ -75,7 +75,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
-import recipe.audit.bean.PAWebRecipeDanger;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
@@ -1623,29 +1622,12 @@ public class RecipeServiceSub {
             //判断开关是否开启
             //去掉智能预审结果展示问题在生成的时候控制 原来的 BUG # 33761 需要注意是不是复现了
             if (recipe.getStatus() != 0) {
+                //返回药品分析数据
                 List<AuditMedicinesBean> auditMedicines = recipeAuditClient.getAuditMedicineIssuesByRecipeId(recipeId);
-                map.put("medicines", auditMedicines); //返回药品分析数据
-                List<eh.recipeaudit.model.AuditMedicineIssueBean> auditMedicineIssues = iAuditMedicinesService.findIssueByRecipeId(recipeId);
-                if (CollectionUtils.isNotEmpty(auditMedicineIssues)) {
-                    List<AuditMedicineIssueBean> resultMedicineIssues = new ArrayList<>();
-                    auditMedicineIssues.forEach(item -> {
-                        if (null == item.getMedicineId()) {
-                            resultMedicineIssues.add(item);
-                        }
-                    });
-
-                    List<PAWebRecipeDanger> recipeDangers = new ArrayList<>();
-                    resultMedicineIssues.forEach(item -> {
-                        PAWebRecipeDanger recipeDanger = new PAWebRecipeDanger();
-                        recipeDanger.setDangerDesc(item.getDetail());
-                        recipeDanger.setDangerDrug(item.getTitle());
-                        recipeDanger.setDangerLevel(item.getLvlCode());
-                        recipeDanger.setDangerType(item.getLvl());
-                        recipeDanger.setDetailUrl(item.getDetailUrl());
-                        recipeDangers.add(recipeDanger);
-                    });
-                    map.put("recipeDangers", recipeDangers); //返回处方分析数据
-                }
+                map.put("medicines", auditMedicines);
+                //返回处方分析数据
+                List<PAWebRecipeDangerBean> recipeDangers = recipeAuditClient.PAWebRecipeDanger(recipeId);
+                map.put("recipeDangers", recipeDangers);
             }
             //医生处方单详情页按钮显示
             doctorRecipeInfoBottonShow(map, recipe);
