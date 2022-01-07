@@ -28,6 +28,7 @@ public interface IOfflineRecipeBusinessService {
 
     /**
      * 获取线下处方详情
+     *
      * @param request
      * @return
      */
@@ -50,6 +51,7 @@ public interface IOfflineRecipeBusinessService {
 
     /**
      * 获取卡类型
+     *
      * @param organId
      * @return
      */
@@ -76,4 +78,6 @@ public interface IOfflineRecipeBusinessService {
      * @return RecipeInfoDTO 处方信息
      */
     RecipeInfoDTO pushRecipe(Integer recipeId, Integer pushType, Integer sysType);
+
+    void offlineToOnlineForRecipe(FindHisRecipeDetailReqVO request);
 }

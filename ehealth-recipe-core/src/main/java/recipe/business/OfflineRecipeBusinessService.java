@@ -328,4 +328,20 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方推送his失败");
         }
     }
+
+    @Override
+    public void offlineToOnlineForRecipe(FindHisRecipeDetailReqVO request) {
+        logger.info("OfflineToOnlineService findHisRecipeDetail request:{}", JSONUtils.toString(request));
+        try {
+            request = obtainFindHisRecipeDetailParam(request);
+            IOfflineToOnlineStrategy offlineToOnlineStrategy = offlineToOnlineFactory.getFactoryService(request.getStatus());
+            offlineToOnlineStrategy.offlineToOnlineForRecipe(request);
+        } catch (DAOException e) {
+            logger.error("OfflineToOnlineService findHisRecipeDetail error", e);
+            throw new DAOException(e.getCode(), e.getMessage());
+        } catch (Exception e) {
+            logger.error("OfflineToOnlineService findHisRecipeDetail error", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
 }
