@@ -40,6 +40,11 @@ public class AlreadyPayStrategyImpl extends BaseOfflineToOnlineService implement
     }
 
     @Override
+    public void offlineToOnlineForRecipe(FindHisRecipeDetailReqVO request) {
+
+    }
+
+    @Override
     public List<MergeRecipeVO> findHisRecipeList(HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos, PatientDTO patientDTO, FindHisRecipeListVO request) {
         LOGGER.info("AlreadyPayStrategyServiceImpl findHisRecipeList hisRecipeInfos:{},patientDTO:{},request:{}", JSONUtils.toString(hisRecipeInfos), JSONUtils.toString(patientDTO), JSONUtils.toString(request));
         if (null != hisRecipeInfos && !CollectionUtils.isEmpty(hisRecipeInfos.getData())) {

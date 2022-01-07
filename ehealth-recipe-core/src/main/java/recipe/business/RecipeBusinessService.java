@@ -15,6 +15,7 @@ import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutRecipeDetailDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
+import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.PatientInfoDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -325,6 +326,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         List<RegulationRecipeIndicatorsReq> request = new ArrayList<>();
         hisSyncSupervisionService.splicingBackRecipeData(Collections.singletonList(recipe), request);
         return ObjectCopyUtils.convert(request.get(0), RegulationRecipeIndicatorsDTO.class);
+    }
+
+    @Override
+    public void offlineToOnlineForRecipe(FindHisRecipeDetailReqVO request) {
+        
     }
 
 

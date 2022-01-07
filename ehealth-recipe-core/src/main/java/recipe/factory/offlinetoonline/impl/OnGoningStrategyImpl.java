@@ -102,6 +102,11 @@ public class OnGoningStrategyImpl extends BaseOfflineToOnlineService implements 
         return OfflineToOnlineEnum.OFFLINE_TO_ONLINE_ONGOING.getName();
     }
 
+    @Override
+    public void offlineToOnlineForRecipe(FindHisRecipeDetailReqVO request) {
+
+    }
+
     /**
      * @param data 当前获取HIS的处方单集合
      * @return 前端需要展示的进行中的处方单集合, 先获取进行中的处方返回给前端展示, 然后对处方数据进行校验, 处方发生
