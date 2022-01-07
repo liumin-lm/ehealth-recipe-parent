@@ -76,12 +76,8 @@ import ctd.util.event.GlobalEventExecFactory;
 import eh.base.constant.ErrorCode;
 import eh.base.constant.PageConstant;
 import eh.cdr.constant.OrderStatusConstant;
-import eh.recipeaudit.api.IRecipeCheckDetailService;
-import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.model.AuditMedicinesBean;
 import eh.recipeaudit.model.RecipeCheckBean;
-import eh.recipeaudit.model.RecipeCheckDetailBean;
-import eh.recipeaudit.util.RecipeAuditAPI;
 import eh.utils.params.ParamUtils;
 import eh.utils.params.ParameterConstant;
 import eh.wxpay.constant.PayConstant;
@@ -1295,7 +1291,7 @@ public class RecipeService extends RecipeBaseService {
                     //生成pdf分解成，先生成无医生药师签名的pdf，再将医生药师的签名放置在pdf上
                     String pdfString = null;
                     // 不做ca签名
-                    if (!isShowCheckCA(recipeId)) {
+                    if (!recipeAuditClient.isShowCheckCA(recipeId)) {
                         pharmacyToRecipePDFDefault(recipeId);
                         checkResult.setCode(RecipeResultBean.SUCCESS);
                     } else {
@@ -1367,18 +1363,15 @@ public class RecipeService extends RecipeBaseService {
         }
         //组装审核的结果重新判断审核通过审核不通过
         //根据当前处方最新的审核结果判断审核，获取审核的结果
-        CheckYsInfoBean resultBean = new CheckYsInfoBean();
-        IRecipeCheckService recipeCheckService = RecipeAuditAPI.getService(IRecipeCheckService.class, "recipeCheckServiceImpl");
-        IRecipeCheckDetailService recipeCheckDetailService = RecipeAuditAPI.getService(IRecipeCheckDetailService.class, "recipeCheckDetailServiceImpl");
-        RecipeCheckBean recipeCheckBean = recipeCheckService.getNowCheckResultByRecipeId(recipe.getRecipeId());
+        RecipeCheckBean recipeCheckBean = recipeAuditClient.getNowCheckResultByRecipeId(recipe.getRecipeId());
         if (null == recipeCheckBean) {
             LOGGER.warn("当前药师签名的处方{}没有审核结果，无法进行签名", recipeId);
             return;
         }
+        CheckYsInfoBean resultBean = new CheckYsInfoBean();
         resultBean.setCheckFailMemo(recipe.getCheckFailMemo());
         resultBean.setCheckResult(recipeCheckBean.getCheckStatus());
-        List<RecipeCheckDetailBean> recipeCheckDetailBeans = recipeCheckDetailService.findByCheckId(recipeCheckBean.getCheckId());
-        List<RecipeCheckDetail> recipeCheckDetails = ObjectCopyUtils.convert(recipeCheckDetailBeans, RecipeCheckDetail.class);
+        List<RecipeCheckDetail> recipeCheckDetails = recipeAuditClient.findByCheckId(recipeCheckBean.getCheckId());
         resultBean.setCheckDetailList(recipeCheckDetails);
         int resultNow = recipeCheckBean.getCheckStatus();
 
@@ -1396,27 +1389,24 @@ public class RecipeService extends RecipeBaseService {
         recipeDAO.updateRecipeInfoByRecipeId(recipeId, recipeStatus, null);
         //审核成功往药厂发消息
         //审方做异步处理
-        GlobalEventExecFactory.instance().getExecutor().submit(new Runnable() {
-            @Override
-            public void run() {
-                if (1 == resultNow) {
-                    //审方成功，订单状态的
-                    auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckPassYs(recipe);
-                } else {
-                    //审核不通过后处理
-                    doAfterCheckNotPassYs(recipe);
-                }
-                //将审核结果推送HIS
-                try {
-                    RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                    hisService.recipeAudit(recipe, resultBean);
-                } catch (Exception e) {
-                    LOGGER.warn("saveCheckResult send recipeAudit to his error. recipeId={}", recipeId, e);
-                }
-                if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
-                    //增加药师首页待处理任务---完成任务
-                    ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussFinishEvent(recipeId, BussTypeConstant.RECIPE));
-                }
+        GlobalEventExecFactory.instance().getExecutor().submit(() -> {
+            if (1 == resultNow) {
+                //审方成功，订单状态的
+                auditModeContext.getAuditModes(recipe.getReviewType()).afterCheckPassYs(recipe);
+            } else {
+                //审核不通过后处理
+                doAfterCheckNotPassYs(recipe);
+            }
+            //将审核结果推送HIS
+            try {
+                RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+                hisService.recipeAudit(recipe, resultBean);
+            } catch (Exception e) {
+                LOGGER.warn("saveCheckResult send recipeAudit to his error. recipeId={}", recipeId, e);
+            }
+            if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+                //增加药师首页待处理任务---完成任务
+                ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussFinishEvent(recipeId, BussTypeConstant.RECIPE));
             }
         });
         //推送处方到监管平台(审核后数据)
@@ -1425,22 +1415,6 @@ public class RecipeService extends RecipeBaseService {
         RecipeBusiThreadPool.execute(() -> remoteRecipeService.generateSignetRecipePdf(recipe.getRecipeId(), recipe.getClinicOrgan()));
     }
 
-
-    /**
-     * 判断药师的ca流程是否开启
-     *
-     * @param recipeId
-     * @return
-     */
-    private Boolean isShowCheckCA(Integer recipeId) {
-        IRecipeCheckService recipeCheckService = RecipeAuditAPI.getService(IRecipeCheckService.class, "recipeCheckServiceImpl");
-        RecipeCheckBean recipeCheckBean = recipeCheckService.getNowCheckResultByRecipeId(recipeId);
-        Integer fail = 0;
-        if (recipeCheckBean != null && fail.equals(recipeCheckBean.getIsCheckCA())) {
-            return false;
-        }
-        return true;
-    }
 
     /**
      * 重试   当状态为  11（his写入失败） 19（处方医保状态上传失败） 43（审方接口异常）的时候出现的情况  已取消的状态

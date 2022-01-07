@@ -3,19 +3,19 @@ package recipe.client;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import eh.recipeaudit.api.IAuditMedicinesService;
 import eh.recipeaudit.api.IRecipeAuditService;
+import eh.recipeaudit.api.IRecipeCheckDetailService;
 import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.model.AuditMedicineIssueBean;
 import eh.recipeaudit.model.AuditMedicinesBean;
 import eh.recipeaudit.model.Intelligent.AutoAuditResultBean;
 import eh.recipeaudit.model.Intelligent.PAWebRecipeDangerBean;
 import eh.recipeaudit.model.RecipeCheckBean;
+import eh.recipeaudit.model.RecipeCheckDetailBean;
 import eh.recipeaudit.model.recipe.RecipeDTO;
 import eh.recipeaudit.model.recipe.RecipeDetailDTO;
 import eh.recipeaudit.model.recipe.RecipeExtendDTO;
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  */
 @Service
 public class RecipeAuditClient extends BaseClient {
-
+    private static final Integer CA_FAIL = 0;
     @Autowired
     private IRecipeCheckService recipeCheckService;
 
@@ -47,6 +47,8 @@ public class RecipeAuditClient extends BaseClient {
     @Autowired
     private IAuditMedicinesService iAuditMedicinesService;
 
+    @Autowired
+    private IRecipeCheckDetailService recipeCheckDetailService;
 
     /**
      * 通过处方号获取审方信息
@@ -142,4 +144,64 @@ public class RecipeAuditClient extends BaseClient {
         logger.info("RecipeAuditClient PAWebRecipeDanger recipeDangers:{}", JSON.toJSONString(recipeDangers));
         return recipeDangers;
     }
+
+    /**
+     * 判断药师的ca流程是否开启
+     *
+     * @param recipeId
+     * @return
+     */
+    public Boolean isShowCheckCA(Integer recipeId) {
+        RecipeCheckBean recipeCheckBean = getNowCheckResultByRecipeId(recipeId);
+        if (recipeCheckBean != null && CA_FAIL.equals(recipeCheckBean.getIsCheckCA())) {
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 当前处方已有审核通过中无审核不通过记录
+     *
+     * @param recipe
+     * @param recipeLogs
+     * @return
+     */
+    public boolean isShowChecker(Recipe recipe, List<RecipeLog> recipeLogs) {
+        logger.info("RecipeAuditClient isShowChecker recipe:{}, recipeLogs:{}", JSON.toJSONString(recipe), JSON.toJSONString(recipeLogs));
+        RecipeCheckBean recipeCheckBean = getNowCheckResultByRecipeId(recipe.getRecipeId());
+        if (recipe.getCheckMode() != null && recipe.getCheckMode() == 2) {
+            return false;
+        }
+        //判断是否是通过的
+        if (null == recipeCheckBean) {
+            return false;
+        }
+        //判断有没有不通过的记录，没有就说明是直接审核通过的
+        if (null != recipeCheckBean.getCheckStatus() && 1 == recipeCheckBean.getCheckStatus() && CollectionUtils.isEmpty(recipeLogs)) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 审核通过审核不通过
+     *
+     * @param recipeId
+     * @return
+     */
+    public RecipeCheckBean getNowCheckResultByRecipeId(Integer recipeId) {
+        logger.info("RecipeAuditClient getNowCheckResultByRecipeId recipeId:{}", recipeId);
+        RecipeCheckBean recipeCheckBean = recipeCheckService.getNowCheckResultByRecipeId(recipeId);
+        logger.info("RecipeAuditClient getNowCheckResultByRecipeId recipeCheckBean:{}", JSON.toJSONString(recipeCheckBean));
+        return recipeCheckBean;
+    }
+
+    public List<RecipeCheckDetail> findByCheckId(Integer checkId) {
+        logger.info("RecipeAuditClient findByCheckId checkId:{}", checkId);
+        List<RecipeCheckDetailBean> recipeCheckDetailBeans = recipeCheckDetailService.findByCheckId(checkId);
+        logger.info("RecipeAuditClient findByCheckId recipeCheckDetailBeans:{}", JSON.toJSONString(recipeCheckDetailBeans));
+        List<RecipeCheckDetail> recipeCheckDetails = ObjectCopyUtils.convert(recipeCheckDetailBeans, RecipeCheckDetail.class);
+        return recipeCheckDetails;
+    }
+
 }
