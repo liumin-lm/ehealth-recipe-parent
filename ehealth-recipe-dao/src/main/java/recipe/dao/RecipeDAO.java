@@ -4,9 +4,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.common.dto.DepartChargeReportResult;
 import com.ngari.common.dto.HosBusFundsReportResult;
-import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
 import ctd.dictionary.DictionaryController;
@@ -1115,7 +1112,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         final StringBuilder sbHql = this.generateRecipeOderHQLforStatistics(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource);
         final StringBuilder sbHqlCount = this.generateRecipeOderHQLforStatisticsCount(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource);
         logger.info("RecipeDAO findRecipesByInfo sbHql:{}", sbHql.toString());
-        final PatientService patientService = BasicAPI.getService(PatientService.class);
         HibernateStatelessResultAction<QueryResult<Map>> action = new AbstractHibernateStatelessResultAction<QueryResult<Map>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -1140,12 +1136,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                     for (Recipe recipe : recipeList) {
                         Map<String, Object> map = Maps.newHashMap();
-                        PatientDTO patientBean;
-                        try {
-                            patientBean = patientService.get(recipe.getMpiid());
-                        } catch (Exception e) {
-                            patientBean = new PatientDTO();
-                        }
                         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
                         RecipeOrder order = recipeOrderDAO.getRecipeOrderByRecipeId(recipe.getRecipeId());
                         if (order == null) {
@@ -1176,8 +1166,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         } else {
                             map.put("payDate", null);
                         }
-                        map.put("patient", patientBean);
-
                         // 处方退费状态
                         // 经过表结构讨论，当前不做大修改，因此将退费状态字段RefundNodeStatus放在了RecipeExtend表
                         RecipeExtend recipeExtend = getRecipeRefundNodeStatus(recipe);
@@ -1242,10 +1230,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 } else {
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
                 }
-                /*if (flag == 0 || flag == all) {
-                        hql.append(" and  (recipeType in(:recipeTypes) or grabOrderStatus=1) ");
-                }*/
-                //hql.append("order by signDate desc");
                 Query q;
                 if (flag == all || flag == 0) {
                     q = ss.createSQLQuery(hql.toString()).addEntity(Recipe.class);

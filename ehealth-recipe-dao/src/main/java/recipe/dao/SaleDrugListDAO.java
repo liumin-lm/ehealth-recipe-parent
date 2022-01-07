@@ -1,10 +1,10 @@
 package recipe.dao;
 
 import com.google.common.collect.Maps;
-import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.OrganService;
-import com.ngari.recipe.entity.*;
+import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.OrganAndDrugsepRelation;
+import com.ngari.recipe.entity.SaleDrugList;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -22,7 +22,6 @@ import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.joda.time.DateTime;
 import org.springframework.util.ObjectUtils;
-import recipe.dao.bean.DrugListAndOrganDrugList;
 import recipe.dao.bean.DrugListAndSaleDrugList;
 import recipe.util.LocalStringUtil;
 

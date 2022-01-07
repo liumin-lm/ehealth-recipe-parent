@@ -29,11 +29,19 @@ import recipe.constant.RecipeBaseTrackingStatusEnum;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.RefundNodeStatusConstant;
 import recipe.dao.*;
+import recipe.dao.bean.BillBusFeeBean;
+import recipe.dao.bean.BillDrugFeeBean;
+import recipe.dao.bean.BillRecipeDetailBean;
+import recipe.dao.bean.RecipeBillBean;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.enumerate.type.PayBusTypeEnum;
-import recipe.service.*;
+import recipe.service.PayModeGiveModeUtil;
+import recipe.service.RecipeMsgService;
+import recipe.service.RecipeOrderService;
+import recipe.service.RecipeRefundService;
 import recipe.serviceprovider.BaseService;
 import recipe.util.MapValueUtil;
+import recipe.util.ObjectCopyUtils;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -146,7 +154,6 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
 
     @Override
     public RecipeBillResponse<BillRecipeDetailVo> getRecipePayInfoByDate(RecipeBillRequest request) {
-//        List<BillRecipeDetailVo> list = new ArrayList<BillRecipeDetailVo>();
         RecipeBillResponse<BillRecipeDetailVo> rep = new RecipeBillResponse<BillRecipeDetailVo>();
         if (request == null) {
             LOGGER.error("参数不能为空");
@@ -162,39 +169,12 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
         }
 
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        List<BillRecipeDetailVo> list = recipeOrderDAO.getPayAndRefundInfoByTime(request.getStartTime(), request.getEndTime(), request.getStart(), request.getPageSize());
-
+        List<BillRecipeDetailBean> billRecipeDetailBeanList = recipeOrderDAO.getPayAndRefundInfoByTime(request.getStartTime(), request.getEndTime(), request.getStart(), request.getPageSize());
+        List<BillRecipeDetailVo> list = ObjectCopyUtils.convert(billRecipeDetailBeanList, BillRecipeDetailVo.class);
         rep.setStart(request.getStart());
         rep.setPageSize(request.getPageSize());
         rep.setTotal(list.size());
         rep.setData(list);
-//        for(int i= 0; i<list.size(); i++){
-//            BillRecipeDetailVo vo = new BillRecipeDetailVo();
-//            RecipeOrder order = list.get(i);
-//            vo.setBillType(1);
-//            vo.setOutTradeNo(order.getOutTradeNo();
-//            vo.setRecipeId(order.getrec);
-//            vo.setMpiId(order.getMpiId());
-//            vo.setDoctorId(order.getdoc);
-//            vo.setRecipeTime(order.getPayTime());
-//            vo.setOrganId(order.getOrganId());
-//            vo.setDeptId(order.getEnterpriseId());
-//            vo.setSettleType(order.getOrderType());
-//            vo.setDeliveryMethod(order.getGiveMode());
-//            vo.setDrugCompany(order.getEnterpriseId());
-//            vo.setDrugCompanyName(order.getEnterpriseName());
-//            vo.setPayFlag(order.getPayFlag());
-//            vo.setAppointFee(order.getRegisterFee().doubleValue());
-//            vo.setDeliveryFee(order.getExpressFee().doubleValue());
-//            vo.setDaiJianFee(order.getDecoctionFee().doubleValue());
-//            vo.setReviewFee(order.getAuditFee().doubleValue());
-//            vo.setOtherFee(order.getOtherFee().doubleValue());
-//            vo.setDrugFee(order.getRecipeFee().doubleValue());
-//            vo.setDicountedFee(order.getCouponFee().doubleValue());
-//            vo.setTotalFee(order.getTotalFee().doubleValue());
-//            vo.setMedicarePay(order.getFundAmount());
-//            vo.setSelfPay(order.getTotalFee().subtract(new BigDecimal(order.getFundAmount())).doubleValue());
-//     }
         return rep;
     }
 
@@ -236,14 +216,18 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
 
     @Override
     public List<BillBusFeeVo> findRecipeFeeList(RecipeBillRequest recipeBillRequest) {
+        RecipeBillBean recipeBillBean = ObjectCopyUtils.convert(recipeBillRequest, RecipeBillBean.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        return recipeOrderDAO.findRecipeFeeList(recipeBillRequest);
+        List<BillBusFeeBean> billBusFeeBeanList = recipeOrderDAO.findRecipeFeeList(recipeBillBean);
+        return ObjectCopyUtils.convert(billBusFeeBeanList, BillBusFeeVo.class);
     }
 
     @Override
     public List<BillDrugFeeVo> findDrugFeeList(RecipeBillRequest recipeBillRequest) {
+        RecipeBillBean recipeBillBean = ObjectCopyUtils.convert(recipeBillRequest, RecipeBillBean.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        return recipeOrderDAO.findDrugFeeList(recipeBillRequest);
+        List<BillDrugFeeBean> billDrugFeeBeanList = recipeOrderDAO.findDrugFeeList(recipeBillBean);
+        return ObjectCopyUtils.convert(billDrugFeeBeanList, BillDrugFeeVo.class);
     }
 
     @Override

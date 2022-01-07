@@ -19,24 +19,12 @@
             <artifactId>ehealth-recipe-common</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
-        <!-- todo 需要删除 ehealth-bill-api 引用-->
-        <dependency>
-            <groupId>${project.parent.groupId}</groupId>
-            <artifactId>ehealth-bill-api</artifactId>
-            <version>${ngari.bill.version}</version>
-        </dependency>
+
         <!-- todo 需要删除 ehealth-recipe-api 引用-->
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-recipe-api</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
-        <!-- todo 需要删除 ehealth-basic-api 引用-->
-        <dependency>
-            <groupId>${project.parent.groupId}</groupId>
-            <artifactId>ehealth-basic-api</artifactId>
-            <version>${ngari.basic.version}</version>
-        </dependency>
-
     </dependencies>
 </project>
