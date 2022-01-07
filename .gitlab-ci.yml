@@ -1,81 +1,62 @@
 variables:
   AppName: "ehealth-recipe"
 
-.function: &function |
-  function notify() {
-    curl --location --request POST "${DING_MESSAGE_URL}/dingtalkbot/sendMessageForCi" --header "Content-Type: application/json" --data "{\"email\": \"$GITLAB_USER_EMAIL\",\"job\": \"$CI_JOB_NAME\",\"app\": \"$CI_PROJECT_NAME\",\"branch\": \"$CI_COMMIT_REF_NAME\",\"message\": \"$CI_COMMIT_TITLE\",\"url\": \"$CI_PIPELINE_URL\"}"
-    exit 1
-  }
-  function deploy() {
-    curl --location --request POST "${DING_MESSAGE_URL}/dingtalkbot/sendDeployForCi" --header "Content-Type: application/json" --data "{\"app\": \"$AppName\",\"branch\": \"$CI_COMMIT_REF_NAME\"}"
-    exit 0
-  }
-
-before_script:
- - *function
-
 stages:
-  - check-pom
   - build
   - deploy
 
 
-check_pom:
-  stage: check-pom
-  only: 
-    - master
-  script: 
-    - "if [ `grep -cE 'hotfix.*-SNAPSHOT|dev.*-SNAPSHOT|feature9.*-SNAPSHOT|feature5.*-SNAPSHOT' pom.xml` -gt '0' ]; then notify ; fi"
-  allow_failure: false
-
 build-api:
   stage: build
   only:
-    - branches
+    - /^feature[\d]{8}$/
+    - /^featurefix[\d]{8}$/
+    - /^hotfix[\d]{8}$/
+    - /^health[\d]{8}$/
+    - /^healthfix[\d]{8}$/
+    - /^basic[\d]{8}$/
+    - /^basicfix[\d]{8}$/
+    - master
   except:
-    - develop
+    - latest-release-m
+    - /^feature[\d]{8}_.*$/
+    - /^featurefix[\d]{8}_.*$/
+    - /^hotfix[\d]{8}_.*$/
+    - /^health[\d]{8}_.*$/
+    - /^healthfix[\d]{8}_.*$/
+    - /^basic[\d]{8}_.*$/
+    - /^basicfix[\d]{8}_.*$/
   script:
-    - 'cd *-api'
-    - "mvn clean deploy -U -Dmaven.test.skip=true || notify"
-    # - 'mvn clean deploy -Dmaven.test.skip=true'
-    # - 'echo $?'
+    - 'clean deploy -pl ehealth-recipe-api -am -Dmaven.test.skip=true -U -e'
+
   tags:
     - build-jar
-
-
-# build-other-jar:
-#   stage: build
-#   only:
-#     - branches
-#   except:
-#     - master
-#     - develop
-#     - /^hotfix.*$/
-#   script:
-#     - 'mvn clean deploy -B -e -U -Dmaven.test.skip=true || notify'
-#   tags:
-#     - build-jar
-#   allow_failure: false
+  allow_failure: false
 
 package:
   stage: build
   only:
-    - branches
+    - /^feature[\d]{8}$/
+    - /^featurefix[\d]{8}$/
+    - /^hotfix[\d]{8}$/
+    - /^health[\d]{8}$/
+    - /^healthfix[\d]{8}$/
+    - /^basic[\d]{8}$/
+    - /^basicfix[\d]{8}$/
+    - master
   except:
-    - develop
+    - latest-release-m
+    - /^feature[\d]{8}_.*$/
+    - /^featurefix[\d]{8}_.*$/
+    - /^hotfix[\d]{8}_.*$/
+    - /^health[\d]{8}_.*$/
+    - /^healthfix[\d]{8}_.*$/
+    - /^basic[\d]{8}_.*$/
+    - /^basicfix[\d]{8}_.*$/
   script:
-    - 'mvn clean deploy -Dpackaging=jar -e -U -Dmaven.test.skip=true -Ppro || notify'
+    - 'clean package -Dpackaging=jar -e -U -Dmaven.test.skip=true -Ppro'
     - '/bin/bash /usr/bin/build_image.sh ${AppName} ${CI_COMMIT_SHORT_SHA}'
     - 'python /usr/bin/push_to_xops.py ${AppName} ${CI_COMMIT_REF_NAME} ${CI_COMMIT_SHORT_SHA} ${CI_PIPELINE_ID}'
   tags:
     - image-build
-  allow_failure: false 
-
-deploy:
-  stage: deploy
-  only: 
-    - feature9
-    - feature5
-  script:
-    - deploy
-  allow_failure: true
+  allow_failure: false
