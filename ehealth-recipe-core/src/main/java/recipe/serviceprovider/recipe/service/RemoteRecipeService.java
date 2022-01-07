@@ -457,6 +457,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             } else {
                 recipeOrder.setDispensingApothecaryName("");
             }
+            PatientDTO patientBean;
+            try {
+                patientBean = patientService.get(recipe.getMpiid());
+            } catch (Exception e) {
+                patientBean = new PatientDTO();
+            }
+            record.put("patient", patientBean);
         }
         return result;
     }
