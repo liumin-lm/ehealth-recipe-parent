@@ -7,6 +7,7 @@ import recipe.vo.doctor.DrugEnterpriseStockVO;
 import recipe.vo.doctor.DrugForGiveModeListVO;
 import recipe.vo.doctor.DrugForGiveModeVO;
 import recipe.vo.doctor.DrugQueryVO;
+import recipe.vo.patient.MedicineStationVO;
 
 import java.util.List;
 import java.util.Map;
@@ -78,4 +79,11 @@ public interface IStockBusinessService {
      * @return
      */
     Boolean getOrderStockFlag(List<Integer> recipeIds, Integer enterpriseId,String giveModeKey);
+
+    /**
+     * 获取药企配送的站点
+     * @param medicineStationVO 取药站点的信息
+     * @return 可以取药站点的列表
+     */
+    List<MedicineStationVO> getMedicineStationList(MedicineStationVO medicineStationVO);
 }
