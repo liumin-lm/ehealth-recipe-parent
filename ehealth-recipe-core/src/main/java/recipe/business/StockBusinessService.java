@@ -341,7 +341,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             if (StringUtils.isNotEmpty(medicineStationVO.getLat()) && StringUtils.isNotEmpty(medicineStation.getLat()) && StringUtils.isNotEmpty(medicineStation.getLng())) {
                 Double distance = DistanceUtil.getDistance(Double.parseDouble(medicineStationVO.getLat()), Double.parseDouble(medicineStationVO.getLng()),
                         Double.parseDouble(medicineStation.getLat()), Double.parseDouble(medicineStation.getLng()));
-                medicineStation.setDistance(distance);
+                medicineStation.setDistance(Double.parseDouble(String.format("%.2f",distance)));
             } else {
                 medicineStation.setDistance(0D);
             }
