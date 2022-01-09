@@ -73,7 +73,8 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
      * @param medicineStationVO 取药站点的信息
      * @return 可以取药站点的列表
      */
-    private List<MedicineStationVO> getMedicineStationList(MedicineStationVO medicineStationVO){
+    @RpcService
+    public List<MedicineStationVO> getMedicineStationList(MedicineStationVO medicineStationVO){
         validateAtop(medicineStationVO, medicineStationVO.getOrganId(), medicineStationVO.getEnterpriseId());
         List<MedicineStationVO> medicineStationList = iDrugEnterpriseBusinessService.getMedicineStationList(medicineStationVO);
         //对站点由近到远排序
