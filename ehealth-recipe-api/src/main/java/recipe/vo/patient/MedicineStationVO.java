@@ -28,6 +28,10 @@ public class MedicineStationVO implements Serializable {
      */
     private Integer enterpriseId;
     /**
+     * 站点编码
+     */
+    private String stationCode;
+    /**
      * 站点名称
      */
     private String stationName;
