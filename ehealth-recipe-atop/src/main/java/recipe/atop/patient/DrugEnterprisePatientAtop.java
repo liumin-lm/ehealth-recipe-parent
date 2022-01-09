@@ -78,7 +78,7 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
         validateAtop(medicineStationVO, medicineStationVO.getOrganId(), medicineStationVO.getEnterpriseId());
         List<MedicineStationVO> medicineStationList = iDrugEnterpriseBusinessService.getMedicineStationList(medicineStationVO);
         //对站点由近到远排序
-        Collections.sort(medicineStationList, (o1,o2)-> o1.getDistance() > o2.getDistance() ? 0 : 1);
+        Collections.sort(medicineStationList, (o1,o2)-> o1.getDistance() > o2.getDistance() ? 0 : -1);
         return medicineStationList;
     }
 
