@@ -338,7 +338,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         List<MedicineStationVO> medicineStationVOList = ObjectCopyUtils.convert(medicineStationDTOList, MedicineStationVO.class);
         //根据坐标计算距离
         medicineStationVOList.forEach(medicineStation->{
-            if (StringUtils.isNotEmpty(medicineStationVO.getLat()) && StringUtils.isNotEmpty(medicineStation.getLat()) && StringUtils.isNotEmpty(medicineStation.getLng())) {
+            if (StringUtils.isNotEmpty(medicineStation.getLat()) && StringUtils.isNotEmpty(medicineStation.getLng())) {
                 Double distance = DistanceUtil.getDistance(Double.parseDouble(medicineStationVO.getLat()), Double.parseDouble(medicineStationVO.getLng()),
                         Double.parseDouble(medicineStation.getLat()), Double.parseDouble(medicineStation.getLng()));
                 medicineStation.setDistance(Double.parseDouble(String.format("%.2f",distance)));

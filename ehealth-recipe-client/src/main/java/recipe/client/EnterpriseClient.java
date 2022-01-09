@@ -151,6 +151,7 @@ public class EnterpriseClient extends BaseClient {
             medicineStationReqDTO.setDrugsEnterpriseBean(enterpriseBean);
             HisResponseTO<List<MedicineStationDTO>> response = recipeEnterpriseService.getMedicineStationList(medicineStationReqDTO);
             List<MedicineStationDTO> medicineStationDTOList = getResponse(response);
+            logger.info("EnterpriseClient getMedicineStationList medicineStationDTOList:{}.", JSONUtils.toString(medicineStationDTOList));
             return medicineStationDTOList;
         } catch (Exception e) {
             logger.error("EnterpriseClient getMedicineStationList medicineStationDTOList", e);
