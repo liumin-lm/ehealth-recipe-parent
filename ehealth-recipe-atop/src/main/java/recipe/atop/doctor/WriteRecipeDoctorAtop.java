@@ -35,26 +35,30 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
 
     @RpcService
     @LogRecord
-    public List<Map<String, Object>> findWriteDrugRecipeByRevisitFromHis(String mpid, Integer orgId, Integer doctorId){
-        List<Map<String, Object>> mapList= new ArrayList<>();
+    public List<Map<String, Object>> findWriteDrugRecipeByRevisitFromHis(String mpid, Integer orgId, Integer doctorId) {
+        List<Map<String, Object>> mapList = new ArrayList<>();
         HashMap<String, Object> map = new HashMap<>();
-        PatientDTO patient = recipePatientService.getPatientDTOByMpiID(mpid);
-        LOGGER.info("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis patient={}", JSONUtils.toString(patient));
-        IVisitService iVisitService = AppContextHolder.getBean("his.visitService", IVisitService.class);
-        HisResponseTO<List<WriteDrugRecipeTO>> hisResponseTOList = new HisResponseTO<>();
-        if(null != patient.getPatId()) {
-            hisResponseTOList = iVisitService.findWriteDrugRecipeByRevisitFromHis(patient.getPatId(), orgId, doctorId);
-        }
-        for(WriteDrugRecipeTO hisResponseTO : hisResponseTOList.getData()){
-            map.put("patient",patient);
-            PatientDTO patientDTO = new PatientDTO();
-            if(null != patient.getPatientName()){
-                patientDTO.setPatientName(patient.getPatientName());
+        try {
+            PatientDTO patient = recipePatientService.getPatientDTOByMpiID(mpid);
+            LOGGER.info("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis patient={}", JSONUtils.toString(patient));
+            IVisitService iVisitService = AppContextHolder.getBean("his.visitService", IVisitService.class);
+            HisResponseTO<List<WriteDrugRecipeTO>> hisResponseTOList = new HisResponseTO<>();
+            if (null != patient.getPatId()) {
+                hisResponseTOList = iVisitService.findWriteDrugRecipeByRevisitFromHis(patient.getPatId(), orgId, doctorId);
             }
-            map.put("requestPatient",patientDTO);
-            map.put("consult",hisResponseTO.getConsult());
-            map.put("type",hisResponseTO.getType());
-            mapList.add(map);
+            for (WriteDrugRecipeTO hisResponseTO : hisResponseTOList.getData()) {
+                map.put("patient", patient);
+                PatientDTO patientDTO = new PatientDTO();
+                if (null != patient.getPatientName()) {
+                    patientDTO.setPatientName(patient.getPatientName());
+                }
+                map.put("requestPatient", patientDTO);
+                map.put("consult", hisResponseTO.getConsult());
+                map.put("type", hisResponseTO.getType());
+                mapList.add(map);
+            }
+        } catch (Exception e) {
+            LOGGER.error("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis error={}", JSONUtils.toString(e));
         }
         LOGGER.info("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis map={}", JSONUtils.toString(map));
         return mapList;
