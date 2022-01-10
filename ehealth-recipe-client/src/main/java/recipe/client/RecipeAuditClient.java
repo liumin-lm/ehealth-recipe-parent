@@ -222,15 +222,7 @@ public class RecipeAuditClient extends BaseClient {
     }
 
     @LogRecord
-    public void checkUserIsChemistByDoctorId(Integer recipeId, Integer doctorId) {
-        recipeCheckService.checkUserIsChemistByDoctorId(recipeId,doctorId);
-    }
-
-    @LogRecord
     public Map<String, Object> getGrabOrderStatusAndLimitTime(Map<String, Object> map) {
         return recipeCheckService.getGrabOrderStatusAndLimitTime(map);
     }
-
-
-
 }

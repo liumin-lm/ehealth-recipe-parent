@@ -95,7 +95,6 @@ import recipe.ApplicationUtils;
 import recipe.aop.LogInfo;
 import recipe.aop.LogRecord;
 import recipe.audit.auditmode.AuditModeContext;
-import recipe.audit.service.PrescriptionService;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipeInvalidDTO;
@@ -1516,9 +1515,8 @@ public class RecipeService extends RecipeBaseService {
                     rMap.put("bussSource", bussSource);
                 }
             }
-            //date 2020-11-04将CA的触发放置在开处方最后
-            PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
-            if (prescriptionService.getIntellectJudicialFlag(recipeBean.getClinicOrgan()) == 1) {
+
+            if (getIntellectJudicialFlag(recipeBean.getClinicOrgan())) {
                 //更新审方信息
                 RecipeBusiThreadPool.execute(new SaveAutoReviewRunnable(recipeBean, detailBeanList));
             }
@@ -1554,6 +1552,7 @@ public class RecipeService extends RecipeBaseService {
         revisitManager.saveRevisitTracesList(recipeDAO.get(recipeBean.getRecipeId()));
         return rMap;
     }
+
 
     /**
      * 校验处方扩展信息
@@ -6417,5 +6416,21 @@ public class RecipeService extends RecipeBaseService {
 
         LOGGER.info("getScanRequestBean scanRequestBean:{}.", JSONUtils.toString(scanRequestBean));
         return scanRequestBean;
+    }
+
+    /**
+     * 判断审方信息
+     *
+     * @param organId
+     * @return
+     */
+    private boolean getIntellectJudicialFlag(Integer organId) {
+        IConfigurationCenterUtilsService configurationCenterUtilsService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+        Integer intellectJudicialFlag = (Integer) configurationCenterUtilsService.getConfiguration(organId, "intellectJudicialFlag");
+        if (intellectJudicialFlag == 2 || intellectJudicialFlag == 3) {
+            intellectJudicialFlag = 1;
+        }
+        LOGGER.info("PrescriptionService getIntellectJudicialFlag  organId = {} , intellectJudicialFlag={}", organId, intellectJudicialFlag);
+        return Integer.valueOf(1).equals(intellectJudicialFlag);
     }
 }
