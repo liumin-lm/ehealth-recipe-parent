@@ -40,7 +40,7 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
         HashMap<String, Object> map = new HashMap<>();
         PatientDTO patient = recipePatientService.getPatientDTOByMpiID(mpid);
         LOGGER.info("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis patient={}", JSONUtils.toString(patient));
-        IVisitService iVisitService = AppContextHolder.getBean("his.IVisitService", IVisitService.class);
+        IVisitService iVisitService = AppContextHolder.getBean("his.visitService", IVisitService.class);
         HisResponseTO<List<WriteDrugRecipeTO>> hisResponseTOList = new HisResponseTO<>();
         if(null != patient.getPatId()) {
             hisResponseTOList = iVisitService.findWriteDrugRecipeByRevisitFromHis(patient.getPatId(), orgId, doctorId);
