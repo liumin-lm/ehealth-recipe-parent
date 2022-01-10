@@ -43,9 +43,9 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
             LOGGER.info("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis patient={}", JSONUtils.toString(patient));
             IVisitService iVisitService = AppContextHolder.getBean("his.visitService", IVisitService.class);
             HisResponseTO<List<WriteDrugRecipeTO>> hisResponseTOList = new HisResponseTO<>();
-            if (null != patient.getPatId()) {
+            //if (null != patient.getPatId()) {
                 hisResponseTOList = iVisitService.findWriteDrugRecipeByRevisitFromHis(patient.getPatId(), orgId, doctorId);
-            }
+            //}
             for (WriteDrugRecipeTO hisResponseTO : hisResponseTOList.getData()) {
                 map.put("patient", patient);
                 PatientDTO patientDTO = new PatientDTO();
