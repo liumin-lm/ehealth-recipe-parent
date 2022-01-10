@@ -9,7 +9,6 @@ import com.ngari.recipe.entity.RecipeOrder;
 import com.sf.csim.express.service.CallExpressServiceTools;
 import ctd.mvc.support.HttpClientUtils;
 import ctd.persistence.DAOFactory;
-import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import de.odysseus.staxon.json.JsonXMLConfig;
@@ -63,20 +62,6 @@ public class LogisticsService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LogisticsService.class);
 
-    //DEMO
-    public static void main(String[] args) {
-        LogisticsService api = new LogisticsService();
-        try {
-//            String result = api.getOrderTracesByJson("ZTO", "632603853352");
-//            LogisticsTraceResponse traceResponse = JSON.parseObject(result, LogisticsTraceResponse.class );
-            List<LogisticsTrace> traceList = api.getOrderTraces("ZTO", "632603853352");
-
-            LOGGER.info("***" + JSONUtils.toString(traceList));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     //电商ID
     private String EBusinessID = "1346011";

@@ -1,4 +1,4 @@
-package recipe.audit.auditmode;
+package recipe.audit;
 
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;

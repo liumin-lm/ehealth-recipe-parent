@@ -12,10 +12,11 @@ import recipe.client.RecipeAuditClient;
 import java.util.List;
 
 /**
- * 运营平台获取审方信息服务
+ * 运营平台获取审方信息服务 服务在用 新方法不再此类新增
  * created by shiyuping on 2018/11/26
  */
 @RpcBean(value = "auditMedicinesService")
+@Deprecated
 public class AuditMedicinesRemoteService implements IAuditMedicinesService {
     @Autowired
     private RecipeAuditClient recipeAuditClient;

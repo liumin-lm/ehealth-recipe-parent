@@ -75,6 +75,7 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.PayBusTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.PayFlowTypeEnum;
+import recipe.enumerate.type.TakeMedicineWayEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
 import recipe.purchase.PurchaseService;
@@ -582,6 +583,7 @@ public class RecipeOrderService extends RecipeBaseService {
         }
         //当前操作人的编码，用于获取地址列表信息等
         String operMpiId = MapValueUtil.getString(extInfo, "operMpiId");
+        Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
 
         //设置挂号费（之前是区分购药方式的，要去区分购药方式来挂号费，现在不区分根据配置项来）
         BigDecimal registerFee = getPriceForRecipeRegister(order.getOrganId());
@@ -753,20 +755,21 @@ public class RecipeOrderService extends RecipeBaseService {
             if (StringUtils.isNotEmpty(operAddressId)) {
                 address = addressService.get(Integer.parseInt(operAddressId));
             } else {
-                LOGGER.info("getDefaultAddressByMpiid mpiid:{}", operMpiId);
-                //获取默认收货地址
-                address = addressService.getDefaultAddressDTO();
-                //address = addressService.getLastAddressByMpiId(operMpiId);
-                if (address != null) {
-                    //判断街道是否完善
-                    if (StringUtils.isEmpty(address.getStreetAddress())) {
-                        address = null;
-                    } else {
-                        //判断默认收货地址是否在可配送范围内,若没在配送范围内，则不返回收货地址
-                        EnterpriseAddressService enterpriseAddressService = ApplicationUtils.getRecipeService(EnterpriseAddressService.class);
-                        int flag = enterpriseAddressService.allAddressCanSendForOrder(order.getEnterpriseId(), address.getAddress1(), address.getAddress2(), address.getAddress3());
-                        if (0 != flag) {
+                if (!TakeMedicineWayEnum.TAKE_MEDICINE_STATION.getType().equals(takeMedicineWay)) {
+                    LOGGER.info("getDefaultAddressByMpiid mpiid:{}", operMpiId);
+                    //获取默认收货地址
+                    address = addressService.getDefaultAddressDTO();
+                    if (address != null) {
+                        //判断街道是否完善
+                        if (StringUtils.isEmpty(address.getStreetAddress())) {
                             address = null;
+                        } else {
+                            //判断默认收货地址是否在可配送范围内,若没在配送范围内，则不返回收货地址
+                            EnterpriseAddressService enterpriseAddressService = ApplicationUtils.getRecipeService(EnterpriseAddressService.class);
+                            int flag = enterpriseAddressService.allAddressCanSendForOrder(order.getEnterpriseId(), address.getAddress1(), address.getAddress2(), address.getAddress3());
+                            if (0 != flag) {
+                                address = null;
+                            }
                         }
                     }
                 }
@@ -781,7 +784,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 if (StringUtils.isNotEmpty(operAddressId)) {
                     //表示患者重新修改了地址
                     //运费在这里面设置
-                    setOrderaAddress(result, order, recipeIds, payModeSupport, extInfo, toDbFlag, drugsEnterpriseDAO, address);
+                    setOrderAddress(result, order, recipeIds, payModeSupport, extInfo, toDbFlag, address);
                 } else {
                     if (hisRecipe != null && StringUtils.isNotEmpty(hisRecipe.getSendAddr())) {
                         order.setReceiver(hisRecipe.getReceiverName());
@@ -790,12 +793,12 @@ public class RecipeOrderService extends RecipeBaseService {
                         order.setAddress4(hisRecipe.getSendAddr());
                     } else {
                         //运费在这里面设置
-                        setOrderaAddress(result, order, recipeIds, payModeSupport, extInfo, toDbFlag, drugsEnterpriseDAO, address);
+                        setOrderAddress(result, order, recipeIds, payModeSupport, extInfo, toDbFlag, address);
                     }
                 }
             } else {
                 //运费在这里面设置
-                setOrderaAddress(result, order, recipeIds, payModeSupport, extInfo, toDbFlag, drugsEnterpriseDAO, address);
+                setOrderAddress(result, order, recipeIds, payModeSupport, extInfo, toDbFlag, address);
             }
         }
 
@@ -904,9 +907,12 @@ public class RecipeOrderService extends RecipeBaseService {
         return recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), orderInfo);
     }
 
-
-    private void setOrderaAddress(OrderCreateResult result, RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, Map<String, String> extInfo, Integer toDbFlag, DrugsEnterpriseDAO drugsEnterpriseDAO, AddressDTO address) {
+    private void setOrderAddress(OrderCreateResult result, RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, Map<String, String> extInfo, Integer toDbFlag, AddressDTO address) {
         if (null != address) {
+            Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
+            if (TakeMedicineWayEnum.TAKE_MEDICINE_STATION.getType().equals(takeMedicineWay)) {
+                return;
+            }
             //可以在参数里传递快递费
             String paramExpressFee = MapValueUtil.getString(extInfo, "expressFee");
             //保存地址,费用信息
@@ -944,7 +950,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     expressFee = getExpressFee(order.getEnterpriseId(), address.getAddress3());
                 }
             }
-            LOGGER.info("setOrderaAddress recipeIds:{}, expressFee:{}.", JSONUtils.toString(recipeIds), expressFee);
+            LOGGER.info("setOrderAddress recipeIds:{}, expressFee:{}.", JSONUtils.toString(recipeIds), expressFee);
             order.setExpressFee(expressFee);
             order.setReceiver(address.getReceiver());
             order.setRecMobile(address.getRecMobile());
