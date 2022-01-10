@@ -349,6 +349,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             if (supportToHosPayFlag) {
                 map.put("payTip", "");
             }
+            Boolean toSendStationFlag = configurationClient.getValueBooleanCatch(organId, "toSendStationFlag", false);
+            map.put("toSendStationFlag", toSendStationFlag.toString());
         }
         log.info("setConfirmOrderExtInfo map:{}.", JSONUtils.toString(map));
         return map;
