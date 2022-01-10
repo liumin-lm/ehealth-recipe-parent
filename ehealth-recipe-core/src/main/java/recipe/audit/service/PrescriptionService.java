@@ -8,35 +8,18 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 
 /**
- * 合理用药服务入口
+ * 合理用药服务入口 服务在用 新方法不再此类新增
  *
  * @author jiangtingfeng
  */
 @RpcBean("prescriptionService")
+@Deprecated
 public class PrescriptionService {
-//    @Autowired
-//    private RecipeAuditClient recipeAuditClient;
+
     /**
      * logger
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(PrescriptionService.class);
-
-//    /**
-//     * 互联网医院使用返回格式
-//     * RecipeAuditClient
-//     *
-//     * @param recipeBean    处方信息
-//     * @param recipedetails 处方详情
-//     * @return 结果
-//     */
-//    @RpcService
-//    @Deprecated
-//    public AutoAuditResultBean analysis(RecipeBean recipeBean, List<RecipeDetailBean> recipedetails) {
-//        Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
-//        RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeBean.getRecipeExtend(), RecipeExtend.class);
-//        List<Recipedetail> recipeDetails = ObjectCopyUtils.convert(recipedetails, Recipedetail.class);
-//        return recipeAuditClient.analysis(recipe, recipeExtend, recipeDetails);
-//    }
 
 
     /**
