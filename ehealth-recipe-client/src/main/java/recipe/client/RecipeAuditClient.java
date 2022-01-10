@@ -2,6 +2,7 @@ package recipe.client;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
+import com.ngari.base.organ.model.OrganBean;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
@@ -22,6 +23,7 @@ import eh.recipeaudit.model.recipe.RecipeExtendDTO;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.aop.LogRecord;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -203,5 +205,32 @@ public class RecipeAuditClient extends BaseClient {
         List<RecipeCheckDetail> recipeCheckDetails = ObjectCopyUtils.convert(recipeCheckDetailBeans, RecipeCheckDetail.class);
         return recipeCheckDetails;
     }
+
+    @LogRecord
+    public Map<String, Object> findRecipeAndDetailsAndCheckByIdEncrypt(String recipeId, Integer doctorId) {
+        return recipeCheckService.findRecipeAndDetailsAndCheckByIdEncrypt(recipeId,doctorId);
+    }
+
+    @LogRecord
+    public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId, Integer checkerId) {
+        return recipeCheckService.findRecipeAndDetailsAndCheckById(recipeId,checkerId);
+    }
+
+    @LogRecord
+    public List<OrganBean> findCheckOrganList(Integer doctorId) {
+        return recipeCheckService.findCheckOrganList(doctorId);
+    }
+
+    @LogRecord
+    public void checkUserIsChemistByDoctorId(Integer recipeId, Integer doctorId) {
+        recipeCheckService.checkUserIsChemistByDoctorId(recipeId,doctorId);
+    }
+
+    @LogRecord
+    public Map<String, Object> getGrabOrderStatusAndLimitTime(Map<String, Object> map) {
+        return recipeCheckService.getGrabOrderStatusAndLimitTime(map);
+    }
+
+
 
 }
