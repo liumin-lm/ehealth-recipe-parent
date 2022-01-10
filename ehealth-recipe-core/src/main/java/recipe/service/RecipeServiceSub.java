@@ -18,6 +18,8 @@ import com.ngari.common.dto.RecipeTagMsgBean;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.ConsultBean;
+import com.ngari.consult.common.model.ConsultExDTO;
+import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.follow.service.IRelationLabelService;
 import com.ngari.follow.service.IRelationPatientService;
@@ -157,6 +159,10 @@ public class RecipeServiceSub {
 
     private static RecipeAuditClient recipeAuditClient = AppContextHolder.getBean("recipeAuditClient", RecipeAuditClient.class);
 
+    private static IRevisitExService iRevisitExService = AppContextHolder.getBean("revisit.revisitExService", IRevisitExService.class);
+
+    private static IConsultExService iConsultExService = AppContextHolder.getBean("consult.consultExService", IConsultExService.class);
+
     /**
      * @param recipeBean
      * @param detailBeanList
@@ -232,16 +238,24 @@ public class RecipeServiceSub {
                     recipeExtend.setRecipeFlag(0);
                 }
             }
-            //根据复诊id 保存就诊卡号和就诊卡类型
-            Integer consultId = recipeBean.getClinicId();
-            if (consultId != null) {
-                IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
-                RevisitExDTO revisitExDTO = exService.getByConsultId(consultId);
-                if (revisitExDTO != null) {
-                    recipeExtend.setCardNo(revisitExDTO.getCardId());
-                    recipeExtend.setCardType(revisitExDTO.getCardType());
-                    recipeExtend.setRegisterID(revisitExDTO.getRegisterNo());
-                    revisitExDTO.getPatId();
+            //根据业务id 保存就诊卡号和就诊卡类型
+            if (null != recipeBean.getClinicId()) {
+                if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipeBean.getBussSource())) {
+                    RevisitExDTO revisitExDTO = iRevisitExService.getByConsultId(recipeBean.getClinicId());
+                    LOGGER.info("iRevisitExService.getByConsultId:{}", JSONUtils.toString(revisitExDTO));
+                    if (null != revisitExDTO) {
+                        recipeExtend.setCardNo(revisitExDTO.getCardId());
+                        recipeExtend.setCardType(revisitExDTO.getCardType());
+                        recipeExtend.setRegisterID(revisitExDTO.getRegisterNo());
+                    }
+                } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipeBean.getBussSource())) {
+                    ConsultExDTO consultExDTO = iConsultExService.getByConsultId(recipeBean.getClinicId());
+                    LOGGER.info("iConsultExService.getByConsultId:{}", JSONUtils.toString(consultExDTO));
+                    if (null != consultExDTO) {
+                        recipeExtend.setCardNo(consultExDTO.getCardId());
+                        recipeExtend.setCardType(consultExDTO.getCardType());
+                        recipeExtend.setRegisterID(consultExDTO.getRegisterNo());
+                    }
                 }
             }
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
@@ -582,11 +596,11 @@ public class RecipeServiceSub {
                             throw new DAOException(ErrorCode.SERVICE_ERROR, "药品数据异常！");
                         }
                         detail.setSalePrice(price);
-                        BigDecimal drugCost ;
-                        if(RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())){
+                        BigDecimal drugCost;
+                        if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
                             //保留3位小数
                             drugCost = price.multiply(new BigDecimal(detail.getUseTotalDose())).divide(BigDecimal.valueOf(organDrug.getPack()), 3, RoundingMode.UP);
-                        }else{
+                        } else {
                             //保留3位小数
                             drugCost = price.multiply(new BigDecimal(detail.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP);
                         }
@@ -1574,13 +1588,13 @@ public class RecipeServiceSub {
                 medicalFlag = (true == set.getMedicarePrescription()) ? true : false;
             }
             map.put("medicalFlag", medicalFlag);
-            if(null != recipe.getChecker()){
+            if (null != recipe.getChecker()) {
                 String ysTel = "";
                 // 美康药师手机号
                 if (recipe.getCheckMode().equals(5)) {
                     RecipeCheckBean recipeCheckBean = recipeAuditClient.getNowCheckResultByRecipeId(recipeId);
                     ysTel = recipeCheckBean.getThirdPharmacistPhone();
-                }else{
+                } else {
                     if (recipe.getChecker() > 0) {
                         ysTel = doctorService.getMobileByDoctorId(recipe.getChecker());
                     }

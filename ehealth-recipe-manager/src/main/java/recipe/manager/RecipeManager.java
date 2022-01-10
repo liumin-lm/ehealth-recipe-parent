@@ -3,6 +3,7 @@ package recipe.manager;
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
+import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.platform.recipe.mode.RecipeDetailBean;
 import com.ngari.recipe.dto.*;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.*;
 import recipe.common.CommonConstant;
+import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeLogDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -58,6 +60,8 @@ public class RecipeManager extends BaseManager {
     private DrugClient drugClient;
     @Autowired
     private RecipeAuditClient recipeAuditClient;
+    @Autowired
+    private ConsultClient consultClient;
 
     /**
      * 保存处方信息
@@ -462,5 +466,30 @@ public class RecipeManager extends BaseManager {
             }
         });
         return mapList;
+    }
+
+    /**
+     * 通过处方信息获取卡号
+     *
+     * @param recipe
+     * @return
+     */
+    public String getCardNoByRecipe(Recipe recipe) {
+        String cardNo = "";
+        //根据业务id 保存就诊卡号和就诊卡类型
+        if (null != recipe.getClinicId()) {
+            if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
+                RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
+                if (null != revisitExDTO) {
+                    cardNo = revisitExDTO.getCardId();
+                }
+            } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipe.getBussSource())) {
+                ConsultExDTO consultExDTO = consultClient.getConsultExByClinicId(recipe.getClinicId());
+                if (null != consultExDTO) {
+                    cardNo = consultExDTO.getCardId();
+                }
+            }
+        }
+        return cardNo;
     }
 }

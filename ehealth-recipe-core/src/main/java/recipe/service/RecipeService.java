@@ -262,6 +262,7 @@ public class RecipeService extends RecipeBaseService {
     private DrugDecoctionWayDao drugDecoctionWayDao;
     @Autowired
     private DocIndexClient docIndexClient;
+
     /**
      * 药师审核不通过
      */
@@ -563,7 +564,7 @@ public class RecipeService extends RecipeBaseService {
         docIndex.setDocId(recipe.getRecipeId());
         docIndex.setMpiid(recipe.getMpiid());
         // docStatus   0  正常（显示） 1  删除状态（不显示）
-        docIndex.setDocStatus(DocIndexShowEnum.NO_AUDIT.getCode().equals(recipe.getReviewType())?DocIndexShowEnum.SHOW.getCode():DocIndexShowEnum.HIDE.getCode());
+        docIndex.setDocStatus(DocIndexShowEnum.NO_AUDIT.getCode().equals(recipe.getReviewType()) ? DocIndexShowEnum.SHOW.getCode() : DocIndexShowEnum.HIDE.getCode());
         docIndex.setCreateOrgan(recipe.getClinicOrgan());
         docIndex.setCreateDepart(recipe.getDepart());
         docIndex.setCreateDoctor(recipe.getDoctor());
@@ -2051,7 +2052,10 @@ public class RecipeService extends RecipeBaseService {
                     LOGGER.error("doWithRecipeExtend 获取开关异常", e);
                 }
             }
-
+            String cardNo = recipeManager.getCardNoByRecipe(recipe);
+            if (StringUtils.isNotEmpty(cardNo)) {
+                recipeExtend.setCardNo(cardNo);
+            }
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
         }
