@@ -3,6 +3,10 @@ package recipe.business;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
+import com.ngari.base.organ.model.OrganBean;
+import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.DrugsEnterpriseBean;
+import com.ngari.platform.recipe.mode.MedicineStationDTO;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
@@ -13,13 +17,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DrugStockClient;
+import recipe.client.EnterpriseClient;
 import recipe.client.OperationClient;
+import recipe.client.OrganClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IStockBusinessService;
-import recipe.dao.DrugListDAO;
-import recipe.dao.OrganDrugListDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
+import recipe.dao.*;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.GiveModeEnum;
@@ -28,6 +31,7 @@ import recipe.manager.ButtonManager;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrganDrugListManager;
 import recipe.thread.RecipeBusiThreadPool;
+import recipe.util.DistanceUtil;
 import recipe.util.ListValueUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
@@ -35,6 +39,7 @@ import recipe.vo.doctor.DrugEnterpriseStockVO;
 import recipe.vo.doctor.DrugForGiveModeVO;
 import recipe.vo.doctor.DrugQueryVO;
 import recipe.vo.doctor.EnterpriseStockVO;
+import recipe.vo.patient.MedicineStationVO;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -62,6 +67,12 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     private RecipeDetailDAO recipeDetailDAO;
     @Resource
     private OrganDrugListDAO organDrugListDAO;
+    @Autowired
+    private OrganClient organClient;
+    @Resource
+    private DrugsEnterpriseDAO drugsEnterpriseDAO;
+    @Resource
+    private EnterpriseClient enterpriseClient;
 
 
     @Override
@@ -313,6 +324,29 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         }
         recipe.setGiveMode(giveMode);
         return this.getStockFlag(recipeIds, recipe, enterpriseId);
+    }
+
+    @Override
+    public List<MedicineStationVO> getMedicineStationList(MedicineStationVO medicineStationVO){
+        OrganDTO organDTO = organClient.organDTO(medicineStationVO.getOrganId());
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(medicineStationVO.getEnterpriseId());
+        DrugsEnterpriseBean enterpriseBean = ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class);
+        MedicineStationDTO medicineStationDTO = ObjectCopyUtils.convert(medicineStationVO, MedicineStationDTO.class);
+        OrganBean organBean = ObjectCopyUtils.convert(organDTO, OrganBean.class);
+        //获取取药站点列表
+        List<MedicineStationDTO> medicineStationDTOList = enterpriseClient.getMedicineStationList(medicineStationDTO, organBean, enterpriseBean);
+        List<MedicineStationVO> medicineStationVOList = ObjectCopyUtils.convert(medicineStationDTOList, MedicineStationVO.class);
+        //根据坐标计算距离
+        medicineStationVOList.forEach(medicineStation->{
+            if (StringUtils.isNotEmpty(medicineStation.getLat()) && StringUtils.isNotEmpty(medicineStation.getLng())) {
+                Double distance = DistanceUtil.getDistance(Double.parseDouble(medicineStationVO.getLat()), Double.parseDouble(medicineStationVO.getLng()),
+                        Double.parseDouble(medicineStation.getLat()), Double.parseDouble(medicineStation.getLng()));
+                medicineStation.setDistance(Double.parseDouble(String.format("%.2f",distance)));
+            } else {
+                medicineStation.setDistance(0D);
+            }
+        });
+        return medicineStationVOList;
     }
 
     /**

@@ -24,6 +24,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.TakeMedicineWayEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.service.RecipeOrderService;
@@ -195,7 +196,7 @@ public class PayModeTFDS implements IPurchaseService {
         order.setDrugStoreAddr(MapValueUtil.getString(extInfo, "gysAddr"));
         order.setEnterpriseId(MapValueUtil.getInteger(extInfo, "depId"));
         order.setDrugStoreCode(MapValueUtil.getString(extInfo, "pharmacyCode"));
-
+        order.setTakeMedicineWay(TakeMedicineWayEnum.TAKE_MEDICINE_STORE.getType());
         order.setRecipeIdList(JSONUtils.toString(recipeIdLists));
 
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
