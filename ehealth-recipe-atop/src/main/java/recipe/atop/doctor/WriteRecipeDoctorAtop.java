@@ -1,7 +1,6 @@
 package recipe.atop.doctor;
 
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.mode.Consult;
 import com.ngari.his.recipe.mode.WriteDrugRecipeTO;
 import com.ngari.his.visit.service.IVisitService;
 import com.ngari.patient.dto.PatientDTO;
@@ -55,9 +54,9 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
             map.put("requestPatient",patientDTO);
             map.put("consult",hisResponseTO.getConsult());
             map.put("type",hisResponseTO.getType());
+            mapList.add(map);
         }
         LOGGER.info("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis map={}", JSONUtils.toString(map));
-        mapList.add(map);
         return mapList;
     }
 }
