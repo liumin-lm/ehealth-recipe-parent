@@ -908,11 +908,11 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     private void setOrderAddress(OrderCreateResult result, RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, Map<String, String> extInfo, Integer toDbFlag, AddressDTO address) {
+        Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
+        if (TakeMedicineWayEnum.TAKE_MEDICINE_STATION.getType().equals(takeMedicineWay)) {
+            return;
+        }
         if (null != address) {
-            Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
-            if (TakeMedicineWayEnum.TAKE_MEDICINE_STATION.getType().equals(takeMedicineWay)) {
-                return;
-            }
             //可以在参数里传递快递费
             String paramExpressFee = MapValueUtil.getString(extInfo, "expressFee");
             //保存地址,费用信息
