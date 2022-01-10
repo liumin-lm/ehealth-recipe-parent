@@ -146,6 +146,9 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "邮政编码")
     private String zipCode;
 
+    @ItemProperty(alias = "取药方式")
+    private Integer takeMedicineWay;
+
     @ItemProperty(alias = "创建时间")
     private Date createTime;
 
@@ -1109,6 +1112,14 @@ public class RecipeOrderBean implements Serializable {
 
     public void setDispensingApothecaryIdCard(String dispensingApothecaryIdCard) {
         this.dispensingApothecaryIdCard = dispensingApothecaryIdCard;
+    }
+
+    public Integer getTakeMedicineWay() {
+        return takeMedicineWay;
+    }
+
+    public void setTakeMedicineWay(Integer takeMedicineWay) {
+        this.takeMedicineWay = takeMedicineWay;
     }
 
     public String getOrderMemo() {

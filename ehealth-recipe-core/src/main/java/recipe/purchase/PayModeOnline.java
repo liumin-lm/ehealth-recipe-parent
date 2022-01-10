@@ -214,6 +214,7 @@ public class PayModeOnline implements IPurchaseService {
             order.setAddress1(provinceCode);
             order.setAddress2(cityCode);
             order.setAddress3(areaCode);
+            order.setAddress4(MapValueUtil.getString(extInfo, "address"));
         }
         //如果是医保支付前端目前传的orderType都是1,杭州市医保得特殊处理
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeList.get(0).getRecipeMode())
