@@ -149,6 +149,9 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "取药方式")
     private Integer takeMedicineWay;
 
+    @ItemProperty(alias = "药店或者站点距离")
+    private Double distance;
+
     @ItemProperty(alias = "创建时间")
     private Date createTime;
 
@@ -1160,5 +1163,13 @@ public class RecipeOrderBean implements Serializable {
 
     public void setExpectEndTakeTime(String expectEndTakeTime) {
         this.expectEndTakeTime = expectEndTakeTime;
+    }
+
+    public Double getDistance() {
+        return distance;
+    }
+
+    public void setDistance(Double distance) {
+        this.distance = distance;
     }
 }
