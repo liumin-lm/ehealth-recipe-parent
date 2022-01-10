@@ -143,7 +143,7 @@ public class AuditPostMode extends AbstractAuidtMode {
                     RecipeDTO recipeBean = ObjectCopyUtils.convert(dbRecipe, RecipeDTO.class);
                     recipeAuditService.sendCheckRecipeInfo(recipeBean);
                 } else {
-                    recipeAudit(dbRecipe);
+                    super.recipeAudit(dbRecipe);
                 }
             }else if(flag){
                 LOGGER.info("第三方智能审方start");
