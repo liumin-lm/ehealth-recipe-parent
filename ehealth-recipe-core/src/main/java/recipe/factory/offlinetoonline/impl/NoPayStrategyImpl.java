@@ -118,6 +118,40 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
         return OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getName();
     }
 
+    @Override
+    public void offlineToOnlineForRecipe(FindHisRecipeDetailReqVO request) {
+        LOGGER.info("offlineToOnlineForRecipe request:{}", JSONUtils.toString(request));
+        // 1获取his数据
+        PatientDTO patientDTO = hisRecipeManager.getPatientBeanByMpiId(request.getMpiId());
+        if (null == patientDTO) {
+            throw new DAOException(609, "患者信息不存在");
+        }
+        HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos = hisRecipeManager.queryData(request.getOrganId(), patientDTO, request.getTimeQuantum(), OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType(), request.getRecipeCode());
+        if (null == hisRecipeInfos || CollectionUtils.isEmpty(hisRecipeInfos.getData())) {
+            return;
+        }
+        try {
+            // 2更新数据校验
+            hisRecipeInfoCheck(hisRecipeInfos.getData(), patientDTO);
+        } catch (Exception e) {
+            LOGGER.error("queryHisRecipeInfo hisRecipeInfoCheck error ", e);
+        }
+        List<HisRecipe> hisRecipes = new ArrayList<>();
+        try {
+            // 3保存数据到cdr_his_recipe相关表（cdr_his_recipe、cdr_his_recipeExt、cdr_his_recipedetail）
+            hisRecipes = saveHisRecipeInfo(hisRecipeInfos, patientDTO, OfflineToOnlineEnum.OFFLINE_TO_ONLINE_NO_PAY.getType());
+        } catch (Exception e) {
+            LOGGER.error("queryHisRecipeInfo saveHisRecipeInfo error ", e);
+        }
+
+        // 4.保存数据到cdr_recipe相关表（cdr_recipe、cdr_recipeext、cdr_recipeDetail）
+        hisRecipes.forEach(hisRecipe -> {
+            saveRecipeInfo(hisRecipe.getHisRecipeID());
+        });
+        return;
+
+    }
+
     /**
      * 线下待处理处方转换成前端列表所需对象
      *

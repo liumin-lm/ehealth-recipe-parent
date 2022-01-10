@@ -24,7 +24,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
-import recipe.audit.handle.AutoCheckRecipe;
 import recipe.bean.CheckYsInfoBean;
 import recipe.constant.CacheConstant;
 import recipe.constant.RecipeBussConstant;
@@ -139,7 +138,7 @@ public class AuditPostMode extends AbstractAuidtMode {
         if (saveFlag) {
             //支付后调用
             Integer checkMode = dbRecipe.getCheckMode();
-            boolean flag = AutoCheckRecipe.threeRecipeAutoCheck(dbRecipe.getRecipeId(), dbRecipe.getClinicOrgan());
+            boolean flag = super.threeRecipeAutoCheck(dbRecipe.getRecipeId(), dbRecipe.getClinicOrgan());
             LOGGER.info("第三方智能审方flag:{}", flag);
             if (!new Integer(1).equals(checkMode)) {
                 if (new Integer(2).equals(checkMode)) {
@@ -152,7 +151,7 @@ public class AuditPostMode extends AbstractAuidtMode {
                 }
             }else if(flag){
                 LOGGER.info("第三方智能审方start");
-                AutoCheckRecipe.doAutoRecipe(dbRecipe.getRecipeId());
+                super.doAutoRecipe(dbRecipe.getRecipeId());
                 LOGGER.info("第三方智能审方start");
             }
         }
@@ -181,8 +180,8 @@ public class AuditPostMode extends AbstractAuidtMode {
                         //进行身边医生消息推送
                         RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_READYCHECK_4HIS, dbRecipe);
                     }
-                    boolean flag = judgeRecipeAutoCheck(dbRecipe.getRecipeId(),dbRecipe.getClinicOrgan());
-                    boolean threeFlag = AutoCheckRecipe.threeRecipeAutoCheck(dbRecipe.getRecipeId(),dbRecipe.getClinicOrgan());
+                    boolean flag = judgeRecipeAutoCheck(dbRecipe.getRecipeId(), dbRecipe.getClinicOrgan());
+                    boolean threeFlag = super.threeRecipeAutoCheck(dbRecipe.getRecipeId(), dbRecipe.getClinicOrgan());
                     //平台审方下才推送  满足自动审方的不推送
                     if (new Integer(1).equals(dbRecipe.getCheckMode()) && !(flag || threeFlag)){
                         //如果处方 在待药师审核状态 给对应机构的药师进行消息推送

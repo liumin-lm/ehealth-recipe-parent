@@ -6,7 +6,6 @@ import com.google.common.collect.Maps;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
-import com.ngari.his.ca.model.CaAccountRequestTO;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.regulation.entity.RegulationRecipeDetailIndicatorsReq;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
@@ -279,129 +278,6 @@ public class RecipeCAService {
         return xmlStr;
     }
 
-    /**
-     * 获取重庆签名原文（需跟重庆监管平台数据格式保持严格一致）
-     * null时不要标签名 ""需要标签名[时间紧急，先写死标签]
-     *
-     * @param recipeId
-     * @param isDoctor
-     * @return
-     * @Author liumin
-     */
-    private String getBussDataFromCQ2(Integer recipeId, Boolean isDoctor) {
-        RecipeBean recipeBean = recipeService.getByRecipeId(recipeId);
-        if (null == recipeBean) {
-            LOGGER.warn("当前处方{}信息为空", recipeId);
-            return null;
-        }
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
-        PatientDTO patientDTO = patientService.getPatientBeanByMpiId(recipeBean.getMpiid());
-
-        StringBuffer cqCABussData = new StringBuffer();
-        cqCABussData.append("<CA>");
-        LOGGER.info("Q310***** 开方xml挂号序号" + recipeExtend.getRegisterID());
-        if (null != recipeExtend.getRegisterID()) {
-            cqCABussData.append("<MedicalRecordNo>" + recipeExtend.getRegisterID() + "</MedicalRecordNo>");
-        }
-        if (null != recipeExtend.getRegisterID()) {
-
-        }
-        if (null != recipeBean.getDoctor()) {
-            cqCABussData.append("<DoctorCode>" + recipeBean.getDoctor() + "</DoctorCode>");
-        }
-        if (null != recipeBean.getDoctorName()) {
-            cqCABussData.append("<DoctorName>" + recipeBean.getDoctorName() + "</DoctorName>");
-        }
-        //如果是药师，添加药师信息
-        if (!isDoctor) {
-            if (null != recipeBean.getChecker()) {
-                cqCABussData.append("<TrialPharmCode>" + recipeBean.getChecker() + "</TrialPharmCode>");
-            }
-            if (null != recipeBean.getCheckerText()) {
-                cqCABussData.append("<TrialPharmName>" + recipeBean.getCheckerText() + "</TrialPharmName>");
-            }
-        }
-        if (null != recipeBean.getPatientName()) {
-            cqCABussData.append("<PatientName>" + recipeBean.getPatientName() + "</PatientName>");
-        }
-        if (null != patientDTO.getIdcard()) {
-            cqCABussData.append("<PatientSFZH>" + patientDTO.getIdcard() + "</PatientSFZH>");
-        }
-
-        cqCABussData.append("<DiagnosisList>");
-        cqCABussData.append("<additionaldiagnosis>");
-        String organDiseaseId = "";
-        if (null != recipeBean.getOrganDiseaseId()) {
-            organDiseaseId = recipeBean.getOrganDiseaseId().replaceAll(ByteUtils.SEMI_COLON_EN, "|");
-        }
-        if (null != organDiseaseId) {
-            cqCABussData.append("<diagnosisCode>" + organDiseaseId + "</diagnosisCode>");
-        }
-        String diagnosisName = "";
-
-        if (null != recipeBean.getOrganDiseaseId()) {
-            diagnosisName = recipeBean.getOrganDiseaseName().replaceAll(ByteUtils.SEMI_COLON_EN, "|");
-        }
-        if (null != diagnosisName) {
-            cqCABussData.append("<diagnosisName>" + diagnosisName + "</diagnosisName>");
-        }
-        cqCABussData.append("</additionaldiagnosis>");
-        cqCABussData.append("</DiagnosisList>");
-
-        cqCABussData.append("<DrugList>");
-        recipedetails.forEach(recipeDetail -> {
-            OrganDrugList organDrugList = organDrugDao.getByOrganIdAndOrganDrugCodeAndDrugId(recipeBean.getClinicOrgan(), recipeDetail.getOrganDrugCode(), recipeDetail.getDrugId());
-
-            cqCABussData.append("<drug>");
-            String drCode = "";
-            if (organDrugList == null) {
-                drCode = recipeDetail.getOrganDrugCode();
-            } else {
-                drCode = StringUtils.isNotEmpty(organDrugList.getRegulationDrugCode()) ? organDrugList.getRegulationDrugCode() : organDrugList.getOrganDrugCode();
-                if (null != drCode) {
-                    cqCABussData.append("<hospitalDrugCode>" + drCode + "</hospitalDrugCode>");
-                }
-                if (null != organDrugList.getDrugName()) {
-                    cqCABussData.append("<drugCommonName>" + organDrugList.getDrugName() + "</drugCommonName>");
-                }
-                if (null != organDrugList.getSalePrice().setScale(4).toString()) {
-                    cqCABussData.append("<price>" + organDrugList.getSalePrice().setScale(4).toString() + "</price>");
-                }
-                if (null != organDrugList.getUnit()) {
-                    cqCABussData.append("<deliverNumUnit>" + organDrugList.getUnit() + "</deliverNumUnit>");
-                }
-            }
-            if (null != new BigDecimal(recipeDetail.getUseTotalDose()).setScale(4).toString()) {
-                cqCABussData.append("<money>" + new BigDecimal(recipeDetail.getUseTotalDose()).setScale(4).toString() + "</money>");
-            }
-            cqCABussData.append("</drug>");
-        });
-        cqCABussData.append("</DrugList>");
-        cqCABussData.append("</CA>");
-        return cqCABussData.toString();
-    }
-
-
-    public CaAccountRequestTO packageCAFromBus(Integer recipeId) {
-        RecipeBean recipeBean = recipeService.getByRecipeId(recipeId);
-        if (null == recipeBean) {
-            LOGGER.warn("当前处方{}信息为空", recipeId);
-            return null;
-        }
-        RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
-        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
-
-        List<RecipeDetailBean> detailBeanList = ObjectCopyUtils.convert(recipedetails, RecipeDetailBean.class);
-
-        CaAccountRequestTO caAccountRequestTO = new CaAccountRequestTO();
-        caAccountRequestTO.setOrganId(recipeBean.getClinicOrgan());
-        /** 当前没有设置CA签名中的业务端签名对象，原计划根据签名医生的类型设置请求【BusType】***/
-        caAccountRequestTO.setBusType(null == recipeBean.getChecker() ? 4 : 5);
-        caAccountRequestTO.setRegulationRecipeIndicatorsReq(Arrays.asList(getCATaskRecipeReq(recipeBean, detailBeanList)));
-        return caAccountRequestTO;
-    }
-
     public RegulationRecipeIndicatorsReq obtainCaMixData(Integer recipeId) {
         RecipeBean recipeBean = recipeService.getByRecipeId(recipeId);
         if (null == recipeBean) {
@@ -601,8 +477,6 @@ public class RecipeCAService {
         rMap.put("signResult", true);
         try {
             recipeBean.setDistributionFlag(continueFlag);
-            //上海肺科个性化处理--智能审方重要警示弹窗处理
-            recipeService.doforShangHaiFeiKe(recipeBean, detailBeanList);
             //第一步暂存处方（处方状态未签名）
             recipeService.doSignRecipeSave(recipeBean, detailBeanList);
 

@@ -1,6 +1,10 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.base.dto.UsePathwaysDTO;
+import com.ngari.base.dto.UsingRateDTO;
+import com.ngari.follow.utils.ObjectCopyUtil;
+import com.ngari.platform.recipe.mode.RecipeDetailBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
@@ -29,6 +33,7 @@ import recipe.util.ValidateUtil;
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +54,10 @@ public class RecipeManager extends BaseManager {
     private OfflineRecipeClient offlineRecipeClient;
     @Autowired
     private RevisitClient revisitClient;
+    @Autowired
+    private DrugClient drugClient;
+    @Autowired
+    private RecipeAuditClient recipeAuditClient;
 
     /**
      * 保存处方信息
@@ -431,4 +440,27 @@ public class RecipeManager extends BaseManager {
         return recipeIds;
     }
 
+
+    public List<Map<String, Object>> getCheckNotPassDetail(Recipe recipe) {
+        //获取审核不通过详情
+        List<Map<String, Object>> mapList = recipeAuditClient.getCheckNotPassDetail(recipe.getRecipeId());
+        if (CollectionUtils.isEmpty(mapList)) {
+            return mapList;
+        }
+        mapList.forEach(a -> {
+            List results = (List) a.get("checkNotPassDetails");
+            List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtil.convert(results, RecipeDetailBean.class);
+            for (RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
+                UsingRateDTO usingRateDTO = drugClient.usingRate(recipe.getClinicOrgan(), recipeDetailBean.getOrganUsingRate());
+                if (null != usingRateDTO) {
+                    recipeDetailBean.setUsingRateId(String.valueOf(usingRateDTO.getId()));
+                }
+                UsePathwaysDTO usePathwaysDTO = drugClient.usePathways(recipe.getClinicOrgan(), recipeDetailBean.getOrganUsePathways());
+                if (null != usePathwaysDTO) {
+                    recipeDetailBean.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
+                }
+            }
+        });
+        return mapList;
+    }
 }

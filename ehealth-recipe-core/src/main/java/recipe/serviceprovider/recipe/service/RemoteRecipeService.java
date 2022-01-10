@@ -31,15 +31,11 @@ import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.opbase.auth.service.ISecurityService;
-import com.ngari.opbase.auth.service.IUserPermissionService;
 import com.ngari.opbase.util.OpSecurityUtil;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.DepartmentService;
-import com.ngari.patient.service.DoctorService;
-import com.ngari.patient.service.OrganService;
-import com.ngari.patient.service.PatientService;
+import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.ca.mode.CaSignResultTo;
 import com.ngari.platform.recipe.mode.HospitalReqTo;
@@ -400,6 +396,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                                               Integer recipeId, Integer enterpriseId, Integer checkStatus,
                                               Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        PatientService patientService = BasicAPI.getService(PatientService.class);
         QueryResult<Map> result = recipeDAO.findRecipesByInfo(organId, status, doctor, patientName,
                 bDate, eDate, dateType, depart, start, limit, organIds,
                 giveMode, sendType, fromflag, recipeId, enterpriseId,
@@ -415,6 +412,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             } else {
                 recipeOrder.setDispensingApothecaryName("");
             }
+            PatientDTO patientBean;
+            try {
+                patientBean = patientService.get(recipe.getMpiid());
+            } catch (Exception e) {
+                patientBean = new PatientDTO();
+            }
+            record.put("patient", patientBean);
         }
         return result;
     }
@@ -453,6 +457,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             } else {
                 recipeOrder.setDispensingApothecaryName("");
             }
+            PatientDTO patientBean;
+            try {
+                patientBean = patientService.get(recipe.getMpiid());
+            } catch (Exception e) {
+                patientBean = new PatientDTO();
+            }
+            record.put("patient", patientBean);
         }
         return result;
     }
@@ -776,8 +787,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService(timeout = 600000)
     @Override
     public List<Object[]> findRecipesByInfoForExcel2(RecipesQueryVO recipesQueryVO) {
+        LOGGER.info("remoteRecipeService findRecipesByInfoForExcel2 recipesQueryVO={}",JSONUtils.toString(recipesQueryVO));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         List<Object[]> result = recipeDAO.findRecipesByInfoForExcel(recipesQueryVO);
+        LOGGER.info("remoteRecipeService findRecipesByInfoForExcel2 result={}",JSONUtils.toString(result));
         return result;
     }
 

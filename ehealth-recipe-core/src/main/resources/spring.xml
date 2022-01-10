@@ -128,11 +128,6 @@
         <property name="keepAliveSeconds" value="300"/>
     </bean>
 
-    <!--合理用药设置-->
-    <bean class="recipe.audit.bean.PrescriptionConstants" id="prescriptionConstants">
-        <property name="wnPaServiceUrl" value="${wnpa.url}"/>
-        <property name="wnPaHosCode" value="${wnpa.hoscode}"/>
-    </bean>
 
     <bean id="onsConfig" class="recipe.common.OnsConfig">
         <property name="onsSwitch" value="${ons.switch.on}"/>

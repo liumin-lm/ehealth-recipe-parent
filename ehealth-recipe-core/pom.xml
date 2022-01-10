@@ -27,12 +27,7 @@
             <artifactId>ehealth-recipe-atop</artifactId>
             <version>${project.parent.version}</version>
         </dependency>
-        <dependency>
-            <groupId>${project.groupId}</groupId>
-            <artifactId>ehealth-entity</artifactId>
-            <version>${ngari.entity.version}</version>
-            <scope>provided</scope>
-        </dependency>
+
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>easy-pay-entity</artifactId>
@@ -69,11 +64,6 @@
             <groupId>com.github.rholder</groupId>
             <artifactId>guava-retrying</artifactId>
             <version>2.0.0</version>
-        </dependency>
-        <dependency>
-            <groupId>com.alibaba</groupId>
-            <artifactId>fastjson</artifactId>
-            <version>1.2.61</version>
         </dependency>
 
         <dependency>
@@ -163,18 +153,6 @@
             <version>4.12</version>
             <scope>test</scope>
         </dependency>
-
-        <!--    redis    -->
-        <dependency>
-            <groupId>org.springframework.data</groupId>
-            <artifactId>spring-data-redis</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-        </dependency>
-
-
         <dependency>
             <groupId>commons-logging</groupId>
             <artifactId>commons-logging</artifactId>

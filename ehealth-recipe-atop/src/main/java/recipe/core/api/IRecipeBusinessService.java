@@ -4,6 +4,7 @@ import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
+import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.vo.*;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
@@ -78,14 +79,16 @@ public interface IRecipeBusinessService {
 
     /**
      * 根据状态和失效时间获取处方列表
-     * @param status       状态
-     * @param invalidTime  时间
+     *
+     * @param status      状态
+     * @param invalidTime 时间
      * @return 处方列表
      */
     List<Recipe> findRecipesByStatusAndInvalidTime(List<Integer> status, Date invalidTime);
 
     /**
      * 医生端获取处方指定药品
+     *
      * @param clinicId 复诊id
      * @return
      */
@@ -105,4 +108,7 @@ public interface IRecipeBusinessService {
      * @return
      */
     RegulationRecipeIndicatorsDTO regulationRecipe(Integer recipeId);
+
+    void offlineToOnlineForRecipe(FindHisRecipeDetailReqVO request);
+
 }
