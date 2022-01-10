@@ -25,6 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
+import recipe.audit.IAuditMode;
 import recipe.client.RecipeAuditClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeSystemConstant;
