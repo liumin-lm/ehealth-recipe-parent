@@ -31,14 +31,14 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     private static final Logger LOGGER = LoggerFactory.getLogger(WriteRecipeDoctorAtop.class);
 
     @Autowired
-    private IPatientBusinessService iPatientBusinessService;
+    private IPatientBusinessService recipePatientService;
 
     @RpcService
     @LogRecord
     public List<Map<String, Object>> findWriteDrugRecipeByRevisitFromHis(String mpid, Integer orgId, Integer doctorId){
         List<Map<String, Object>> mapList= new ArrayList<>();
         HashMap<String, Object> map = new HashMap<>();
-        PatientDTO patient = iPatientBusinessService.getPatientDTOByMpiID(mpid);
+        PatientDTO patient = recipePatientService.getPatientDTOByMpiID(mpid);
         map.put("patient",patient);
         LOGGER.info("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis patient={}", JSONUtils.toString(patient));
         IVisitService iVisitService = AppContextHolder.getBean("his.IVisitService", IVisitService.class);
