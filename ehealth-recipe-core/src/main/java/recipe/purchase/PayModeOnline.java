@@ -43,7 +43,6 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.drugsenterprise.paymodeonlineshowdep.PayModeOnlineShowDepServiceProducer;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.type.TakeMedicineWayEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;

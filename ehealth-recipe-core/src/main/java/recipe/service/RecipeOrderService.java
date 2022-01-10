@@ -71,11 +71,9 @@ import recipe.common.ResponseUtils;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
+import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.type.PayBusTypeEnum;
-import recipe.enumerate.type.PayFlagEnum;
-import recipe.enumerate.type.PayFlowTypeEnum;
-import recipe.enumerate.type.TakeMedicineWayEnum;
+import recipe.enumerate.type.*;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
 import recipe.purchase.PurchaseService;
@@ -301,10 +299,6 @@ public class RecipeOrderService extends RecipeBaseService {
                 remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
                 //设置配送费支付方式
                 order.setExpressFeePayWay(drugsEnterprise.getExpressFeePayWay());
-                //设置期望配送时间块相关信息
-//                order.setIsShowExpectSendDate(drugsEnterprise.getIsShowExpectSendDate());
-//                order.setExpectSendDateIsContainsWeekend(drugsEnterprise.getExpectSendDateIsContainsWeekend());
-//                order.setSendDateText(drugsEnterprise.getSendDateText());
             }
         }
         //货到付款设置配送费为线下支付  并且不是上传运费收费标准方式的时候（这种方式直接显示图片不算运费）
@@ -780,7 +774,7 @@ public class RecipeOrderService extends RecipeBaseService {
             Recipe recipe = recipeList.get(0);
             HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
             HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
-            if (new Integer(2).equals(recipe.getRecipeSource())) {
+            if (RecipeSourceTypeEnum.OFFLINE_RECIPE.getType().equals(recipe.getRecipeSource())) {
                 if (StringUtils.isNotEmpty(operAddressId)) {
                     //表示患者重新修改了地址
                     //运费在这里面设置
@@ -808,7 +802,7 @@ public class RecipeOrderService extends RecipeBaseService {
         BigDecimal totalFee;
         //配送到家并且线下支付
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
-        if (new Integer(2).equals(order.getExpressFeePayWay()) && RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
+        if (ExpressFeePayWayEnum.OFFLINE.getType().equals(order.getExpressFeePayWay()) && RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
             if (order.getExpressFee() != null && order.getTotalFee().compareTo(order.getExpressFee()) > -1) {
                 totalFee = order.getTotalFee().subtract(order.getExpressFee());
             } else {
@@ -1082,6 +1076,12 @@ public class RecipeOrderService extends RecipeBaseService {
         if (recipeOrderBean != null && recipeOrderBean.getEnterpriseId() != null) {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrderBean.getEnterpriseId());
             recipeOrderBean.setOrderMemo(drugsEnterprise.getOrderMemo());
+        }
+        if (ExpressFeePayWayEnum.ONLINE.getType().equals(order.getExpressFeePayWay()) &&
+                (order.getExpressFee() != null && order.getTotalFee().compareTo(order.getExpressFee()) > -1)) {
+            recipeOrderBean.setStationSendTotalFee(order.getTotalFee().subtract(order.getExpressFee()));
+        } else {
+            recipeOrderBean.setStationSendTotalFee(order.getTotalFee());
         }
         result.setObject(recipeOrderBean);
         if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == toDbFlag && null != order.getOrderId()) {

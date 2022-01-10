@@ -82,6 +82,9 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "需支付费用")
     private BigDecimal needFee;
 
+    @ItemProperty(alias = "站点配送的总费用 目前为不含运费的总费用")
+    private BigDecimal stationSendTotalFee;
+
     @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付 3-第三方支付 4-上传运费收费标准(运费不取设置的运费仅展示图片的)")
     private Integer expressFeePayWay;
 
@@ -1171,5 +1174,13 @@ public class RecipeOrderBean implements Serializable {
 
     public void setDistance(Double distance) {
         this.distance = distance;
+    }
+
+    public BigDecimal getStationSendTotalFee() {
+        return stationSendTotalFee;
+    }
+
+    public void setStationSendTotalFee(BigDecimal stationSendTotalFee) {
+        this.stationSendTotalFee = stationSendTotalFee;
     }
 }
