@@ -2,6 +2,7 @@ package recipe.atop.doctor;
 
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.WriteDrugRecipeTO;
+import com.ngari.his.visit.mode.WriteDrugRecipeReqTO;
 import com.ngari.his.visit.service.IVisitService;
 import com.ngari.patient.dto.PatientDTO;
 import ctd.util.AppContextHolder;
@@ -44,7 +45,11 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
             IVisitService iVisitService = AppContextHolder.getBean("his.visitService", IVisitService.class);
             HisResponseTO<List<WriteDrugRecipeTO>> hisResponseTOList = new HisResponseTO<>();
             //if (null != patient.getPatId()) {
-                hisResponseTOList = iVisitService.findWriteDrugRecipeByRevisitFromHis(patient.getPatId(), orgId, doctorId);
+            WriteDrugRecipeReqTO writeDrugRecipeReqTO = new WriteDrugRecipeReqTO();
+            writeDrugRecipeReqTO.setPatId(patient.getPatId());
+            writeDrugRecipeReqTO.setOrgId(orgId);
+            writeDrugRecipeReqTO.setDoctorId(doctorId);
+            hisResponseTOList = iVisitService.findWriteDrugRecipeByRevisitFromHis(writeDrugRecipeReqTO);
             //}
             for (WriteDrugRecipeTO hisResponseTO : hisResponseTOList.getData()) {
                 map.put("patient", patient);
