@@ -28,13 +28,13 @@ public interface IAuditMode {
 
     /**
      * 审核不通过后逻辑处理
+     *
      * @param recipe
      */
     void afterCheckNotPassYs(Recipe recipe);
+
     /**
      * 支付后的变更
      */
     void afterPayChange(Boolean saveFlag, Recipe recipe, RecipeResultBean result, Map<String, Object> attrMap);
-
-    Boolean notifyPharAudit(Recipe recipe);
 }

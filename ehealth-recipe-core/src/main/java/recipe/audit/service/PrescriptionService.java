@@ -1,7 +1,6 @@
 package recipe.audit.service;
 
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
-import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
@@ -15,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.client.RecipeAuditClient;
+import recipe.util.ObjectCopyUtils;
 
 import java.util.List;
 
@@ -40,7 +40,7 @@ public class PrescriptionService {
      * @param recipedetails 处方详情
      * @return 结果
      */
-    @RpcService
+//    @RpcService
     @Deprecated
     public AutoAuditResultBean analysis(RecipeBean recipeBean, List<RecipeDetailBean> recipedetails) {
         Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
