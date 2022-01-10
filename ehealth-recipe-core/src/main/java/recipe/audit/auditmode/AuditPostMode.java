@@ -2,7 +2,6 @@ package recipe.audit.auditmode;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
-import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.home.asyn.model.BussCreateEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -11,16 +10,13 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
-import ctd.util.AppContextHolder;
 import eh.base.constant.BussTypeConstant;
 import eh.cdr.constant.RecipeStatusConstant;
-import eh.recipeaudit.api.IAuditMedicinesService;
 import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.model.recipe.RecipeDTO;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import eh.wxpay.constant.PayConstant;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
@@ -180,7 +176,7 @@ public class AuditPostMode extends AbstractAuidtMode {
                         //进行身边医生消息推送
                         RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_YS_READYCHECK_4HIS, dbRecipe);
                     }
-                    boolean flag = judgeRecipeAutoCheck(dbRecipe.getRecipeId(), dbRecipe.getClinicOrgan());
+                    boolean flag = super.judgeRecipeAutoCheck(dbRecipe.getRecipeId(), dbRecipe.getClinicOrgan());
                     boolean threeFlag = super.threeRecipeAutoCheck(dbRecipe.getRecipeId(), dbRecipe.getClinicOrgan());
                     //平台审方下才推送  满足自动审方的不推送
                     if (new Integer(1).equals(dbRecipe.getCheckMode()) && !(flag || threeFlag)){
@@ -202,40 +198,6 @@ public class AuditPostMode extends AbstractAuidtMode {
                 RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
                 remoteDrugEnterpriseService.pushSingleRecipeInfo(dbRecipe.getRecipeId());
             }
-        }
-    }
-
-    @Override
-    public Boolean notifyPharAudit(Recipe recipe) {
-        return null;
-    }
-
-    private boolean judgeRecipeAutoCheck(Integer recipeId, Integer organId) {
-        LOGGER.info("judgeRecipeAutoCheck recipe={}", recipeId);
-        try {
-            IConfigurationCenterUtilsService iConfigService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            Boolean invokeRecipeAnalysis = (Boolean) iConfigService.getConfiguration(organId, "InvokeRecipeAnalysis");
-            Integer intellectJudicialFlag = (Integer) iConfigService.getConfiguration(organId, "intellectJudicialFlag");
-            String autoRecipecheckLevel = (String) iConfigService.getConfiguration(organId, "autoRecipecheckLevel");
-            String defaultRecipecheckDoctor = (String) iConfigService.getConfiguration(organId, "defaultRecipecheckDoctor");
-            if (invokeRecipeAnalysis && intellectJudicialFlag == 1
-                    && StringUtils.isNotEmpty(defaultRecipecheckDoctor) && StringUtils.isNotEmpty(autoRecipecheckLevel)) {
-                String[] levels = autoRecipecheckLevel.split(",");
-                Integer minLevel = Integer.valueOf(levels[0]);
-                Integer maxLevel = Integer.valueOf(levels[1]);
-                IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
-                Map<Integer, Integer> maxLevelMap = iAuditMedicinesService.queryRecipeMaxLevel(recipeId);
-                Integer dbMaxLevel = maxLevelMap.get(recipeId);
-                if (dbMaxLevel == null || (minLevel.intValue() <= dbMaxLevel.intValue() && dbMaxLevel.intValue() <= maxLevel.intValue())) {
-                    LOGGER.info("满足自动审方条件，已拦截，不推送药师消息，recipeId ={}", recipeId);
-                    return true;
-                }
-            }
-
-            return false;
-        } catch (Exception e) {
-            LOGGER.error("judgeRecipeAutoCheck error recipe={}", recipeId, e);
-            return false;
         }
     }
 

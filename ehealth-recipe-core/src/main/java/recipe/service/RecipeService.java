@@ -6301,11 +6301,6 @@ public class RecipeService extends RecipeBaseService {
         list.add(button);
     }
 
-    @RpcService
-    public boolean testNotifyPharAudit(int recipeId) {
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        return auditModeContext.getAuditModes(recipe.getReviewType()).notifyPharAudit(recipe);
-    }
 
     /**
      * @param recipeId
@@ -6319,7 +6314,7 @@ public class RecipeService extends RecipeBaseService {
             //支付完成后
             RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.RECIPE_PAY_CALL_SUCCESS);
         } else if ("2".equals(type)) {
-            return auditModeContext.getAuditModes(recipe.getReviewType()).notifyPharAudit(recipe);
+           // return auditModeContext.getAuditModes(recipe.getReviewType()).notifyPharAudit(recipe);
         } else if ("3".equals(type)) {
             //发送消息--待审核消息
             RecipeMsgService.batchSendMsg(recipe.getRecipeId(), 2);
