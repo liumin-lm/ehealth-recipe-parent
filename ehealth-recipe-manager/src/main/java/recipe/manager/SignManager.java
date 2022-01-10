@@ -6,7 +6,6 @@ import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import ctd.util.FileAuth;
-import eh.recipeaudit.api.IRecipeCheckService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,8 +48,7 @@ public class SignManager extends BaseManager {
     private SignDoctorRecipeInfoDAO signDoctorRecipeInfoDAO;
     @Autowired
     private RecipeAuditClient recipeAuditClient;
-    @Autowired
-    private IRecipeCheckService recipeCheckService;
+
 
     /**
      * 获取全部药师签名信息
