@@ -1,6 +1,7 @@
 package recipe.atop.doctor;
 
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.Consult;
 import com.ngari.his.recipe.mode.WriteDrugRecipeTO;
 import com.ngari.his.visit.service.IVisitService;
 import com.ngari.patient.dto.PatientDTO;
@@ -39,20 +40,22 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
         List<Map<String, Object>> mapList= new ArrayList<>();
         HashMap<String, Object> map = new HashMap<>();
         PatientDTO patient = recipePatientService.getPatientDTOByMpiID(mpid);
-        map.put("patient",patient);
         LOGGER.info("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis patient={}", JSONUtils.toString(patient));
         IVisitService iVisitService = AppContextHolder.getBean("his.IVisitService", IVisitService.class);
-        HisResponseTO<WriteDrugRecipeTO> hisResponseTO = new HisResponseTO<>();
+        HisResponseTO<List<WriteDrugRecipeTO>> hisResponseTOList = new HisResponseTO<>();
         if(null != patient.getPatId()) {
-            hisResponseTO = iVisitService.findWriteDrugRecipeByRevisitFromHis(patient.getPatId(), orgId, doctorId);
+            hisResponseTOList = iVisitService.findWriteDrugRecipeByRevisitFromHis(patient.getPatId(), orgId, doctorId);
         }
-        PatientDTO patientDTO = new PatientDTO();
-        if(null != patient.getPatientName()){
-            patientDTO.setPatientName(patient.getPatientName());
+        for(WriteDrugRecipeTO hisResponseTO : hisResponseTOList.getData()){
+            map.put("patient",patient);
+            PatientDTO patientDTO = new PatientDTO();
+            if(null != patient.getPatientName()){
+                patientDTO.setPatientName(patient.getPatientName());
+            }
+            map.put("requestPatient",patientDTO);
+            map.put("consult",hisResponseTO.getConsult());
+            map.put("type",hisResponseTO.getType());
         }
-        map.put("requestPatient",patientDTO);
-        map.put("consult",hisResponseTO.getData().getConsult());
-        map.put("type",hisResponseTO.getData().getType());
         LOGGER.info("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis map={}", JSONUtils.toString(map));
         mapList.add(map);
         return mapList;
