@@ -2,12 +2,14 @@ package recipe.dao;
 
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.OrganAndDrugsepRelation;
+import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.util.annotation.RpcSupportDAO;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import recipe.dao.comment.ExtendDao;
 
 import java.util.List;
 
@@ -16,13 +18,19 @@ import java.util.List;
  * @author yu_yun
  */
 @RpcSupportDAO
-public abstract class OrganAndDrugsepRelationDAO extends HibernateSupportDelegateDAO<OrganAndDrugsepRelation> {
+public abstract class OrganAndDrugsepRelationDAO extends HibernateSupportDelegateDAO<OrganAndDrugsepRelation> implements ExtendDao<OrganAndDrugsepRelation> {
     private static final Log LOGGER = LogFactory.getLog(OrganAndDrugsepRelationDAO.class);
 
     public OrganAndDrugsepRelationDAO() {
         super();
         this.setEntityName(OrganAndDrugsepRelation.class.getName());
         this.setKeyField("id");
+    }
+
+
+    @Override
+    public boolean updateNonNullFieldByPrimaryKey(OrganAndDrugsepRelation relation) {
+        return updateNonNullFieldByPrimaryKey(relation, "id");
     }
 
     /**

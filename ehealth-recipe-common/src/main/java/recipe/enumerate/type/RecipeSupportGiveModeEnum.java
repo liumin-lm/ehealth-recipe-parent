@@ -2,6 +2,7 @@ package recipe.enumerate.type;
 
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.entity.DrugsEnterprise;
+import ctd.persistence.exception.DAOException;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.util.StringUtils;
 import recipe.constant.RecipeBussConstant;
@@ -114,6 +115,22 @@ public enum RecipeSupportGiveModeEnum {
         }
         return giveModeType;
     }
+
+    /**
+     * 机构与药企关联关系中的购药方式
+     * 医院配送与药企配送只能2选1 到院自取与到店自取只能2选1
+     *
+     * @param giveModeTypes
+     */
+    public static void checkOrganEnterpriseRelationGiveModeType(List<Integer> giveModeTypes) {
+        if (giveModeTypes.contains(RecipeSupportGiveModeEnum.SUPPORT_TFDS.type) && giveModeTypes.contains(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.type)) {
+            throw new DAOException("到院自取与到店自取只能2选1");
+        }
+        if (giveModeTypes.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.type) && giveModeTypes.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.type)) {
+            throw new DAOException("医院配送与药企配送只能2选1");
+        }
+    }
+
 
     public static RecipeSupportGiveModeEnum getRecipeSupportGiveModeEnum(String text) {
         for (RecipeSupportGiveModeEnum e : RecipeSupportGiveModeEnum.values()) {

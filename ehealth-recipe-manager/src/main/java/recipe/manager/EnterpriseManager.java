@@ -70,6 +70,8 @@ public class EnterpriseManager extends BaseManager {
     private DrugStockClient drugStockClient;
     @Autowired
     private DepartClient departClient;
+    @Autowired
+    private OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO;
 
     /**
      * 检查 药企药品 是否满足开方药品
@@ -672,5 +674,21 @@ public class EnterpriseManager extends BaseManager {
         return drugsEnterprises;
     }
 
+    /**
+     * 保存药企机构销售配置
+     *
+     * @param organDrugsSaleConfig
+     */
+    public void saveOrganDrugsSaleConfig(OrganDrugsSaleConfig organDrugsSaleConfig) {
+        logger.info("EnterpriseManager saveOrganDrugsSaleConfig organDrugsSaleConfig:{}", JSONUtils.toString(organDrugsSaleConfig));
+        OrganDrugsSaleConfig saleConfig = organDrugsSaleConfigDAO.findByOrganIdAndEnterpriseId(organDrugsSaleConfig.getOrganId(), organDrugsSaleConfig.getDrugsEnterpriseId());
+        if (Objects.isNull(saleConfig)) {
+            organDrugsSaleConfigDAO.save(organDrugsSaleConfig);
+        } else {
+            organDrugsSaleConfig.setId(saleConfig.getId());
+            organDrugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(organDrugsSaleConfig);
+        }
+
+    }
 }
 
