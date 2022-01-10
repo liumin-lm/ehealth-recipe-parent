@@ -171,6 +171,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "快递单号")
     private String trackingNumber;
 
+    @ItemProperty(alias = "取药方式")
+    private Integer takeMedicineWay;
+
     @ItemProperty(alias = "药店名称")
     private String drugStoreName;
 
@@ -778,6 +781,15 @@ public class RecipeOrder implements Serializable {
 
     public void setZipCode(String zipCode) {
         this.zipCode = zipCode;
+    }
+
+    @Column(name = "take_medicine_way")
+    public Integer getTakeMedicineWay() {
+        return takeMedicineWay;
+    }
+
+    public void setTakeMedicineWay(Integer takeMedicineWay) {
+        this.takeMedicineWay = takeMedicineWay;
     }
 
     @Column(name = "CreateTime")

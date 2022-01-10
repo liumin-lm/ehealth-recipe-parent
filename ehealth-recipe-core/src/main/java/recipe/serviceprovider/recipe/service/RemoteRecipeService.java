@@ -787,8 +787,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService(timeout = 600000)
     @Override
     public List<Object[]> findRecipesByInfoForExcel2(RecipesQueryVO recipesQueryVO) {
+        LOGGER.info("remoteRecipeService findRecipesByInfoForExcel2 recipesQueryVO={}",JSONUtils.toString(recipesQueryVO));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         List<Object[]> result = recipeDAO.findRecipesByInfoForExcel(recipesQueryVO);
+        LOGGER.info("remoteRecipeService findRecipesByInfoForExcel2 result={}",JSONUtils.toString(result));
         return result;
     }
 

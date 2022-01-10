@@ -3846,7 +3846,6 @@ public class RecipeService extends RecipeBaseService {
         //设置查询时间段
         String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(Integer.parseInt(cacheService.getParam(ParameterConstant.KEY_RECIPE_VALIDDATE_DAYS, RECIPE_EXPIRED_DAYS.toString()))), DateConversion.DEFAULT_DATE_TIME);
         String endDt = DateConversion.getDateFormatter(DateTime.now().toDate(), DateConversion.DEFAULT_DATE_TIME);
-        //key为organId,value为recipdeCode集合
         Map<Integer, List<String>> map = Maps.newHashMap();
         List<Recipe> list = recipeDAO.getRecipeStatusFromHis(startDt, endDt);
         LOGGER.info("getRecipeStatusFromHis 需要同步HIS处方，数量=[{}]", (null == list) ? 0 : list.size());
@@ -3939,8 +3938,7 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public List<Map<String, Object>> findPatientRecipesByIds(Integer ext, List<Integer> recipeIds) {
-        Collections.sort(recipeIds);
-        Collections.reverse(recipeIds);
+        Collections.sort(recipeIds, Collections.reverseOrder());
         LOGGER.info("findPatientRecipesByIds recipeIds:{}", JSONUtils.toString(recipeIds));
         //把处方对象返回给前端--合并处方--原确认订单页面的处方详情是通过getPatientRecipeById获取的
         if (CollectionUtils.isNotEmpty(recipeIds)) {

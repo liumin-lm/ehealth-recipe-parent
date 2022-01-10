@@ -43,6 +43,7 @@ import recipe.drugsenterprise.CommonRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.drugsenterprise.paymodeonlineshowdep.PayModeOnlineShowDepServiceProducer;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.TakeMedicineWayEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
@@ -200,6 +201,11 @@ public class PayModeOnline implements IPurchaseService {
             return result;
         }
         order.setWxPayWay(payway);
+        order.setDrugStoreName(MapValueUtil.getString(extInfo, "gysName"));
+        order.setDrugStoreAddr(MapValueUtil.getString(extInfo, "gysAddr"));
+        order.setDrugStoreCode(MapValueUtil.getString(extInfo, "pharmacyCode"));
+        order.setTakeMedicineWay(TakeMedicineWayEnum.TAKE_MEDICINE_STATION.getType());
+
         //如果是医保支付前端目前传的orderType都是1,杭州市医保得特殊处理
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeList.get(0).getRecipeMode())
                 && RecipeBussConstant.ORDERTYPE_ZJS.equals(orderType)) {
