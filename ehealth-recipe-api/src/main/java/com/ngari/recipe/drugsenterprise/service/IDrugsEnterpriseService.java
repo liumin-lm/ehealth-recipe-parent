@@ -21,6 +21,6 @@ public interface IDrugsEnterpriseService extends IBaseService<DrugsEnterpriseBea
 
 
     @RpcService(mvcDisabled = false)
-    DrugsEnterpriseBean getByEnterpriseCode(String code);
+    DrugsEnterpriseBean getByEnterpriseCode(Integer enterId);
 
 }

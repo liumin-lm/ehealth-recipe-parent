@@ -8,6 +8,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
+import org.omg.CORBA.INTERNAL;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.dao.DrugsEnterpriseDAO;
@@ -38,9 +39,9 @@ public class RemoteDrugsEnterpriseService extends BaseService<DrugsEnterpriseBea
     }
 
     @Override
-    public DrugsEnterpriseBean getByEnterpriseCode(String code) {
+    public DrugsEnterpriseBean getByEnterpriseCode(Integer enterId) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(code);
+        DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getById(enterId);
         if (ObjectUtils.isEmpty(byEnterpriseCode)){
             return null;
         }
