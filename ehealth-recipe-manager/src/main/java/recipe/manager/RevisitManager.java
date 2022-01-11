@@ -13,6 +13,8 @@ import com.ngari.recipe.recipe.model.WriteDrugRecipeBean;
 import com.ngari.recipe.recipe.model.WriteDrugRecipeDTO;
 import ctd.net.broadcast.MQHelper;
 import ctd.util.JSONUtils;
+import org.apache.commons.collections.CollectionUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DepartClient;
@@ -133,7 +135,7 @@ public class RevisitManager extends BaseManager {
                 Consult consult = writeDrugRecipeTO.getConsult();
                 String appointDepartCode = consult.getAppointDepartCode();
                 AppointDepartDTO appointDepartDTO = departClient.getAppointDepartByOrganIdAndAppointDepartCode(organId, appointDepartCode);
-                if (null != appointDepartDTO.getDepartId()) {
+                if (null != appointDepartDTO) {
                     writeDrugRecipeBean.setAppointDepartInDepartId(appointDepartDTO.getDepartId());
                 }
                 writeDrugRecipeDTO.setPatient(patient);
