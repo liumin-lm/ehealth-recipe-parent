@@ -1,5 +1,7 @@
 package recipe.business;
 
+import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.WriteDrugRecipeTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.dto.ApothecaryDTO;
@@ -7,6 +9,7 @@ import com.ngari.recipe.dto.RecipeCancelDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeStatusConstant;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.WriteDrugRecipeDTO;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import easypay.entity.po.AccountResult;
@@ -21,10 +24,7 @@ import recipe.client.RecipeAuditClient;
 import recipe.core.api.IRevisitBusinessService;
 import recipe.dao.*;
 import recipe.easypay.IEasyPayService;
-import recipe.manager.OrderManager;
-import recipe.manager.RecipeManager;
-import recipe.manager.RevisitManager;
-import recipe.manager.SignManager;
+import recipe.manager.*;
 import recipe.util.ValidateUtil;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
@@ -76,6 +76,8 @@ public class RevisitBusinessService extends BaseService implements IRevisitBusin
     private IEasyPayService iEasyPayService;
     @Autowired
     private IConfigurationClient configurationClient;
+    @Autowired
+    private WriteRecipeManager writeRecipeManager;
 
 
     @Override
@@ -205,6 +207,14 @@ public class RevisitBusinessService extends BaseService implements IRevisitBusin
         }
         Integer revisitId = revisitManager.getRevisitId(recipe.getMpiid(), recipe.getDoctor(), UNDERWAY_REVISIT_REGISTER_ID.equals(isUnderwayRevisit));
         return !ValidateUtil.integerIsEmpty(revisitId);
+    }
+
+    @Override
+    public List<WriteDrugRecipeDTO> findWriteDrugRecipeByRevisitFromHis(String mpiId, Integer organId, Integer doctorId) throws Exception {
+        logger.info("findWriteDrugRecipeByRevisitFromHis start");
+        List<WriteDrugRecipeDTO> result = writeRecipeManager.findWriteDrugRecipeByRevisitFromHis(mpiId, organId, doctorId);
+        logger.info("findWriteDrugRecipeByRevisitFromHis end");
+        return result;
     }
 
     /**
