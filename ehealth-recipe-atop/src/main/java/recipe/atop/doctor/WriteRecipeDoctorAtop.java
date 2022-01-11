@@ -1,6 +1,6 @@
 package recipe.atop.doctor;
 
-import com.ngari.recipe.recipe.model.WriteDrugRecipeDTO;
+import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
