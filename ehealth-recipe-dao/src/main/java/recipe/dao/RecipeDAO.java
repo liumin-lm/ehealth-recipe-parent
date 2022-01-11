@@ -1606,6 +1606,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 case 2:
                     hql.append(" and r.bussSource=2 ");
                     break;
+                case 3:
+                    hql.append(" and r.bussSource=3 ");
+                    break;
                 case 5:
                     hql.append(" and r.bussSource=5 ");
                     break;
