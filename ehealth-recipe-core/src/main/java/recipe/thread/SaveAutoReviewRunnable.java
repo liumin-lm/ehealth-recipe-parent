@@ -54,9 +54,9 @@ public class SaveAutoReviewRunnable implements Runnable {
             IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
             recipeAuditService.saveAutoReview(recipe,details);
         }catch(Exception e){
-            LOGGER.info("SaveAutoReviewRunnable exception",e);
+            LOGGER.info("SaveAutoReviewRunnable recipe={} exception",JSON.toJSONString(recipe),e);
         }finally {
-            LOGGER.info("SaveAutoReviewRunnable end");
+            LOGGER.info("SaveAutoReviewRunnable end recipe={}",JSON.toJSONString(recipe));
         }
     }
 
