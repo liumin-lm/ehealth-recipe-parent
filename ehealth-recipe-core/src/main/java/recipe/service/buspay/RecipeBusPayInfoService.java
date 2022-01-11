@@ -62,6 +62,7 @@ import recipe.client.IConfigurationClient;
 import recipe.client.RevisitClient;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.DepartManager;
@@ -84,6 +85,11 @@ import java.util.stream.Collectors;
 public class RecipeBusPayInfoService implements IRecipeBusPayService {
 
     private static final Logger log = LoggerFactory.getLogger(RecipeBusPayInfoService.class);
+
+    //支持站点取药
+    private static final String IS_SUPPORT_SEND_TO_STATION = "1";
+    //不支持站点取药
+    private static final String NO_SUPPORT_SEND_TO_STATION = "0";
 
     @Autowired
     private RemoteRecipeOrderService recipeOrderService;
@@ -350,7 +356,11 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 map.put("payTip", "");
             }
             Boolean toSendStationFlag = configurationClient.getValueBooleanCatch(organId, "toSendStationFlag", false);
-            map.put("isSupportSendToStation", toSendStationFlag?"1":"0");
+            if (GiveModeEnum.GIVE_MODE_HOME_DELIVERY.getType().equals(nowRecipeBean.getGiveMode()) && toSendStationFlag) {
+                map.put("isSupportSendToStation", IS_SUPPORT_SEND_TO_STATION);
+            } else {
+                map.put("isSupportSendToStation", NO_SUPPORT_SEND_TO_STATION);
+            }
         }
         log.info("setConfirmOrderExtInfo map:{}.", JSONUtils.toString(map));
         return map;
