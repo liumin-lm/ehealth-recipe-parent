@@ -1,5 +1,7 @@
 package recipe.drugsenterprise.bean;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
@@ -7,7 +9,6 @@ import java.util.List;
 
 /**
  * @author yinsheng
- * 对接药企 无需脱敏
  * @date 2019\3\14 0014 15:33
  */
 @Schema
@@ -16,14 +17,17 @@ public class JztRecipeDTO implements Serializable {
 
     private String certificateType;
 
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String certificate;
 
     private String patientName;
 
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String patientTel;
 
     private String patientNumber;
 
+    @Desensitizations(type = DesensitizationsType.ADDRESS)
     private String patientAddress;
 
     private String recipeCode;
