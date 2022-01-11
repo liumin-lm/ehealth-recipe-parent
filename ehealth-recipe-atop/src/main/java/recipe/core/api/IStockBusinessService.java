@@ -1,6 +1,7 @@
 package recipe.core.api;
 
 import com.ngari.recipe.dto.EnterpriseStock;
+import com.ngari.recipe.entity.OrganDrugsSaleConfig;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import recipe.vo.doctor.DrugEnterpriseStockVO;
@@ -78,4 +79,12 @@ public interface IStockBusinessService {
      * @return
      */
     Boolean getOrderStockFlag(List<Integer> recipeIds, Integer enterpriseId,String giveModeKey);
+
+    /**
+     * 机构药企销售配置
+     * @param organId
+     * @param drugsEnterpriseId
+     * @return
+     */
+    OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId);
 }

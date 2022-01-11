@@ -45,7 +45,7 @@ public class OrganDrugsSaleConfig implements Serializable {
     @ItemProperty(alias = "自取文案提示")
     private String takeOneselfContent;
 
-    @ItemProperty(alias = "自取预约时间 0 不预约 1预约当天 2 预约3天内 3预约7天内 4预约15天内")
+    @ItemProperty(alias = "自取预约时间 0 不预约 1预约当天 3 预约3天内 7预约7天内 15预约15天内")
     private Integer takeOneselfPlanDate;
 
     @ItemProperty(alias = "取药预约取药时间段配置：上午时间段")
@@ -54,7 +54,7 @@ public class OrganDrugsSaleConfig implements Serializable {
     @ItemProperty(alias = "取药预约取药时间段配置：下午时间段")
     private String takeOneselfPlanPmTime;
 
-    @ItemProperty(alias = "取药凭证 0不展示 1就诊卡号 2挂号序号 3病历号 4his单号 5发药流水号 6取药流水号")
+    @ItemProperty(alias = "取药凭证 1不展示 2就诊卡号 3挂号序号 4患者id 5his单号 6发药流水号 7取药流水号 8病历号")
     private Integer takeDrugsVoucher;
 
     @ItemProperty(alias = "医保患者特殊提示")

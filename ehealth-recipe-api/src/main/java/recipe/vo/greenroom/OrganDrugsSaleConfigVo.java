@@ -49,7 +49,7 @@ public class OrganDrugsSaleConfigVo implements Serializable {
     private String takeOneselfContent;
 
     /**
-     * 自取预约时间 0 不预约 1预约当天 2 预约3天内 3预约7天内 4预约15天内
+     * 自取预约时间 0 不预约 1预约当天 3 预约3天内 7预约7天内 15预约15天内
      */
     private Integer takeOneselfPlanDate;
 

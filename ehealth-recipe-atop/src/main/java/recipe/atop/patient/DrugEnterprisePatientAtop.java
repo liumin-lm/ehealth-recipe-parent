@@ -1,6 +1,7 @@
 package recipe.atop.patient;
 
 import com.ngari.recipe.dto.EnterpriseStock;
+import com.ngari.recipe.entity.OrganDrugsSaleConfig;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -9,6 +10,7 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
@@ -16,6 +18,7 @@ import recipe.core.api.IStockBusinessService;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
 import recipe.vo.doctor.ValidateDetailVO;
+import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -64,6 +67,20 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
             a.setDrugInfoList(null);
         });
         return result;
+    }
+
+    /**
+     * 获取机构药企销售配置
+     * @param organId 机构id
+     * @param drugsEnterpriseId 药企id
+     */
+    @RpcService
+    public OrganDrugsSaleConfigVo getOrganDrugsSaleConfig(Integer organId , Integer drugsEnterpriseId){
+        validateAtop(organId);
+        OrganDrugsSaleConfig organDrugsSaleConfig = iDrugEnterpriseBusinessService.getOrganDrugsSaleConfig(organId,drugsEnterpriseId);
+        OrganDrugsSaleConfigVo organDrugsSaleConfigVo = new OrganDrugsSaleConfigVo();
+        BeanUtils.copyProperties(organDrugsSaleConfig,organDrugsSaleConfigVo);
+        return organDrugsSaleConfigVo;
     }
 
 }
