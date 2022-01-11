@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 /**
  * @author yinsheng
- * 对接药企 无需脱敏
+ * 对接药企 无需脱敏 地址字段明确含义不知道，且药企需要
  * @date 2019\10\28 0028 16:27
  */
 public class LinkAddress implements Serializable {
