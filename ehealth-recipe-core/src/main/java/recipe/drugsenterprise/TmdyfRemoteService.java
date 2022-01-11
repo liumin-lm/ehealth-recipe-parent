@@ -448,13 +448,11 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
 
     private void getDetailInfo(Recipe dbRecipe, AlibabaAlihealthOutflowPrescriptionCreateRequest.PrescriptionOutflowUpdateRequest requestParam,Integer depId) {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        //OrganDrugListDAO dao = DAOFactory.getDAO(OrganDrugListDAO.class);
         List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());
         List<AlibabaAlihealthOutflowPrescriptionCreateRequest.Drugs> drugParams = new ArrayList<>();
         if (!ObjectUtils.isEmpty(detailList)) {
             SaleDrugListDAO saleDrugDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
             DrugListDAO drugDAO = DAOFactory.getDAO(DrugListDAO.class);
-            //OrganDrugList organDrugList;
             for (int i = 0; i < detailList.size(); i++) {
                 //一张处方单可能包含相同的药品purchaseService
                 SaleDrugList saleDrugList = saleDrugDAO.getByDrugIdAndOrganId(detailList.get(i).getDrugId(), depId);
@@ -497,11 +495,6 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
                 } else {
                     throw new DAOException("用量单位不能为空");
                 }
-                /*//医院药品id
-                organDrugList = dao.getByDrugIdAndOrganId(saleDrugList.getDrugId(), dbRecipe.getClinicOrgan());
-                if (organDrugList!=null){
-                    drugParam.setDrugId(organDrugList.getOrganDrugCode());
-                }*/
                 drugParam.setDay(detailList.get(i).getUseDays() + "");    //天数
                 drugParam.setNote(detailList.get(i).getMemo());    //说明
                 drugParam.setTotalUnit(detailList.get(i).getDrugUnit());      //开具单位(盒)
@@ -584,7 +577,6 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         ICurrentUserInfoService userInfoService = AppContextHolder.getBean(
                 "eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
         SimpleWxAccountBean account = userInfoService.getSimpleWxAccount();
-        /*requestParam.setAlipayUserId("2088622513812239");*/
         if (account!=null){
             String openId = account.getOpenId();
             if(null != openId){
@@ -622,11 +614,6 @@ public class TmdyfRemoteService extends AccessDrugEnterpriseService{
         } else {
             throw new DAOException("患者不存在");
         }
-    }
-
-    @Override
-    public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override

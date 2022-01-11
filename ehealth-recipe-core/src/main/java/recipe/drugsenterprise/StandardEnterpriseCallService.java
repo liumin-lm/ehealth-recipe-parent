@@ -59,9 +59,6 @@ import java.util.Map;
 @RpcBean("distributionService")
 public class StandardEnterpriseCallService {
 
-    @Autowired
-    private TaobaoConf taobaoConf;
-
     /**
      * logger
      */
@@ -82,8 +79,6 @@ public class StandardEnterpriseCallService {
             result.setMsg("参数错误");
             return result;
         }
-
-
         return null;
     }
 

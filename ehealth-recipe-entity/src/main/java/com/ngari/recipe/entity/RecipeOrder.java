@@ -174,11 +174,17 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "取药方式")
     private Integer takeMedicineWay;
 
-    @ItemProperty(alias = "药店名称")
+    @ItemProperty(alias = "药店或者站点名称")
     private String drugStoreName;
 
-    @ItemProperty(alias = "药店地址")
+    @ItemProperty(alias = "药店或者站点编码")
+    private String drugStoreCode;
+
+    @ItemProperty(alias = "药店或者站点地址")
     private String drugStoreAddr;
+
+    @ItemProperty(alias = "药店或者站点距离")
+    private Double distance;
 
     @ItemProperty(alias = "代煎费")
     private BigDecimal decoctionFee;
@@ -201,9 +207,6 @@ public class RecipeOrder implements Serializable {
 
     @ItemProperty(alias = "取消原因")
     private String cancelReason;
-
-    @ItemProperty(alias = "药店编码")
-    private String drugStoreCode;
 
     @ItemProperty(alias = "处方流转模式")
     private String recipeMode;
@@ -790,6 +793,15 @@ public class RecipeOrder implements Serializable {
 
     public void setTakeMedicineWay(Integer takeMedicineWay) {
         this.takeMedicineWay = takeMedicineWay;
+    }
+
+    @Column(name = "distance")
+    public Double getDistance() {
+        return distance;
+    }
+
+    public void setDistance(Double distance) {
+        this.distance = distance;
     }
 
     @Column(name = "CreateTime")

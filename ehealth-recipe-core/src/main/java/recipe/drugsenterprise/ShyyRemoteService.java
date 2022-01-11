@@ -5,11 +5,9 @@ import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -17,13 +15,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.OrganDrugListDAO;
-import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.SaleDrugListDAO;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -130,30 +126,6 @@ public class ShyyRemoteService  extends AccessDrugEnterpriseService {
             }
         });
         return result;
-    }
-
-    @Override
-    public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        LOGGER.info("ShyyRemoteService.scanStock recipeId:{}.", recipeId);
-        DrugEnterpriseResult drugEnterpriseResult = DrugEnterpriseResult.getSuccess();
-        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        for (Recipedetail recipedetail : recipedetails) {
-            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
-            if (saleDrugList != null && saleDrugList.getInventory() != null) {
-                if (saleDrugList.getInventory().doubleValue() < recipedetail.getUseTotalDose()) {
-                    //说明开药比较多
-                    drugEnterpriseResult.setCode(DrugEnterpriseResult.FAIL);
-                    return drugEnterpriseResult;
-                }
-            } else {
-                drugEnterpriseResult.setCode(DrugEnterpriseResult.FAIL);
-                return drugEnterpriseResult;
-            }
-
-        }
-        return drugEnterpriseResult;
     }
 
     @Override

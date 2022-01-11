@@ -335,8 +335,6 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         return DrugEnterpriseResult.getSuccess();
     }
 
-    @RpcService
-    @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         List<HrStoreBean> hrStoreBeans = findHaveStockStores(Arrays.asList(recipeId), null, drugsEnterprise);
@@ -372,6 +370,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         return DrugEnterpriseResult.getSuccess();
     }
 
+    @RpcService
     @Override
     public DrugEnterpriseResult findSupportDep(List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
@@ -434,7 +433,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         return new ArrayList<>();
     }
 
-    private List<HrStoreBean> findStoreByPosintion(Map ext, DrugsEnterprise drugsEnterprise){
+    private List<HrStoreBean> findStoreByPosition(Map ext, DrugsEnterprise drugsEnterprise){
         String range = MapValueUtil.getString(ext, "range");
         String longitude = MapValueUtil.getString(ext, "longitude");
         String latitude = MapValueUtil.getString(ext, "latitude");
@@ -556,7 +555,7 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         List<HrStoreBean> hrStoreBeans = new ArrayList<>();
         if (ext != null && ext.size() > 0) {
             //通过坐标获取一定范围内的药店
-            hrStoreBeans = findStoreByPosintion(ext, drugsEnterprise);
+            hrStoreBeans = findStoreByPosition(ext, drugsEnterprise);
         } else {
             //获取所有药店
             hrStoreBeans = findAllStores(drugsEnterprise);
@@ -615,22 +614,6 @@ public class HrRemoteService extends AccessDrugEnterpriseService{
         }
         LOGGER.info("HrRemoteService.findHaveStockStores totalHaveStockStores:{}.", JSONUtils.toString(totalHaveStockStores));
         return totalHaveStockStores;
-    }
-
-    /**
-     * 获取区域文本
-     * @param area 区域
-     * @return     区域文本
-     */
-    private String getAddressDic(String area) {
-        if (StringUtils.isNotEmpty(area)) {
-            try {
-               return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
-            } catch (ControllerException e) {
-                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
-            }
-        }
-        return "";
     }
 
     private static String getUtf8Str(String queryString){

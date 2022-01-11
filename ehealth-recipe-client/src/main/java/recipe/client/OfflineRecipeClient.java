@@ -17,6 +17,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.platform.recipe.mode.RecipeDetailBean;
 import com.ngari.platform.recipe.mode.RecipeExtendBean;
+import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
@@ -340,9 +341,9 @@ public class OfflineRecipeClient extends BaseClient {
         drugSpecificationReq.setOrganDrugCode(organDrugList.getOrganDrugCode());
         drugSpecificationReq.setRegulationDrugCode(organDrugList.getRegulationDrugCode());
         drugSpecificationReq.setDrugId(organDrugList.getDrugId());
-        HisResponseTO<DrugSpecificationInfoDTO> hisResponse = recipeHisService.getDrugSpecification(drugSpecificationReq);
-        return getResponseCatch(hisResponse);
-
+        HisResponseTO<com.ngari.his.recipe.mode.DrugSpecificationInfoDTO> hisResponse = recipeHisService.getDrugSpecification(drugSpecificationReq);
+        com.ngari.his.recipe.mode.DrugSpecificationInfoDTO response = getResponseCatch(hisResponse);
+        return ObjectCopyUtils.convert(response, DrugSpecificationInfoDTO.class);
     }
 
 

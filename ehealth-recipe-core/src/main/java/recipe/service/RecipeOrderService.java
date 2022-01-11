@@ -31,6 +31,7 @@ import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
+import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
@@ -69,13 +70,12 @@ import recipe.client.RefundClient;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.constant.*;
+import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
+import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.type.PayBusTypeEnum;
-import recipe.enumerate.type.PayFlagEnum;
-import recipe.enumerate.type.PayFlowTypeEnum;
-import recipe.enumerate.type.TakeMedicineWayEnum;
+import recipe.enumerate.type.*;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
 import recipe.purchase.PurchaseService;
@@ -102,7 +102,7 @@ import static ctd.persistence.DAOFactory.getDAO;
  * @author: 0184/yu_yun
  * @date:2017/2/13.
  */
-@RpcBean(value = "recipeOrderService")
+@RpcBean(value = "recipeOrderService", mvc_authentication = false)
 public class RecipeOrderService extends RecipeBaseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeOrderService.class);
@@ -162,6 +162,10 @@ public class RecipeOrderService extends RecipeBaseService {
     private ButtonManager buttonManager;
     @Autowired
     private DrugListDAO drugListDAO;
+    @Autowired
+    private IStockBusinessService stockBusinessService;
+    @Resource
+    private RecipeDetailDAO recipeDetailDAO;
 
     /**
      * 处方结算时创建临时订单
@@ -301,10 +305,6 @@ public class RecipeOrderService extends RecipeBaseService {
                 remoteService = remoteDrugEnterpriseService.getServiceByDep(drugsEnterprise);
                 //设置配送费支付方式
                 order.setExpressFeePayWay(drugsEnterprise.getExpressFeePayWay());
-                //设置期望配送时间块相关信息
-//                order.setIsShowExpectSendDate(drugsEnterprise.getIsShowExpectSendDate());
-//                order.setExpectSendDateIsContainsWeekend(drugsEnterprise.getExpectSendDateIsContainsWeekend());
-//                order.setSendDateText(drugsEnterprise.getSendDateText());
             }
         }
         //货到付款设置配送费为线下支付  并且不是上传运费收费标准方式的时候（这种方式直接显示图片不算运费）
@@ -780,7 +780,7 @@ public class RecipeOrderService extends RecipeBaseService {
             Recipe recipe = recipeList.get(0);
             HisRecipeDAO hisRecipeDAO = DAOFactory.getDAO(HisRecipeDAO.class);
             HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
-            if (new Integer(2).equals(recipe.getRecipeSource())) {
+            if (RecipeSourceTypeEnum.OFFLINE_RECIPE.getType().equals(recipe.getRecipeSource())) {
                 if (StringUtils.isNotEmpty(operAddressId)) {
                     //表示患者重新修改了地址
                     //运费在这里面设置
@@ -808,7 +808,7 @@ public class RecipeOrderService extends RecipeBaseService {
         BigDecimal totalFee;
         //配送到家并且线下支付
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
-        if (new Integer(2).equals(order.getExpressFeePayWay()) && RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
+        if (ExpressFeePayWayEnum.OFFLINE.getType().equals(order.getExpressFeePayWay()) && RecipeBussConstant.PAYMODE_ONLINE.equals(payMode)) {
             if (order.getExpressFee() != null && order.getTotalFee().compareTo(order.getExpressFee()) > -1) {
                 totalFee = order.getTotalFee().subtract(order.getExpressFee());
             } else {
@@ -908,11 +908,11 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     private void setOrderAddress(OrderCreateResult result, RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, Map<String, String> extInfo, Integer toDbFlag, AddressDTO address) {
+        Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
+        if (TakeMedicineWayEnum.TAKE_MEDICINE_STATION.getType().equals(takeMedicineWay)) {
+            return;
+        }
         if (null != address) {
-            Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
-            if (TakeMedicineWayEnum.TAKE_MEDICINE_STATION.getType().equals(takeMedicineWay)) {
-                return;
-            }
             //可以在参数里传递快递费
             String paramExpressFee = MapValueUtil.getString(extInfo, "expressFee");
             //保存地址,费用信息
@@ -1082,6 +1082,12 @@ public class RecipeOrderService extends RecipeBaseService {
         if (recipeOrderBean != null && recipeOrderBean.getEnterpriseId() != null) {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrderBean.getEnterpriseId());
             recipeOrderBean.setOrderMemo(drugsEnterprise.getOrderMemo());
+            if (ExpressFeePayWayEnum.ONLINE.getType().equals(drugsEnterprise.getExpressFeePayWay()) &&
+                    (order.getExpressFee() != null && order.getTotalFee().compareTo(order.getExpressFee()) > -1)) {
+                recipeOrderBean.setStationSendTotalFee(order.getTotalFee().subtract(order.getExpressFee()));
+            } else {
+                recipeOrderBean.setStationSendTotalFee(order.getTotalFee());
+            }
         }
         result.setObject(recipeOrderBean);
         if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == toDbFlag && null != order.getOrderId()) {
@@ -2322,7 +2328,6 @@ public class RecipeOrderService extends RecipeBaseService {
         }
     }
 
-
     /**
      * @param nowRecipe 处方
      * @param payMode   支付方式
@@ -2355,9 +2360,10 @@ public class RecipeOrderService extends RecipeBaseService {
                 LOGGER.info("审方前置或者不审核-药店取药-药企为空");
             } else {
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(nowRecipe.getEnterpriseId());
-                DrugEnterpriseResult result = remoteDrugService.scanStock(nowRecipe.getRecipeId(), drugsEnterprise);
-                boolean scanFlag = result.getCode().equals(DrugEnterpriseResult.SUCCESS) ? true : false;
-                LOGGER.info("sendTfdsMsg sacnFlag: {}.", scanFlag);
+                List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(nowRecipe.getRecipeId());
+                EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(nowRecipe, recipeDetailList, drugsEnterprise.getId());
+                boolean scanFlag = enterpriseStock.getStock();
+                LOGGER.info("sendMsg scanFlag: {}.", scanFlag);
                 if (scanFlag) {
                     //表示需要进行库存校验并且有库存
                     RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_DRUG_HAVE_STOCK, nowRecipe);
@@ -2371,7 +2377,6 @@ public class RecipeOrderService extends RecipeBaseService {
             // 支付成功 到院取药 推送消息 审方前置
             RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_HOS_TAKE_MEDICINE, nowRecipe);
         }
-
     }
 
 

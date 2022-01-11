@@ -82,6 +82,9 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "需支付费用")
     private BigDecimal needFee;
 
+    @ItemProperty(alias = "站点配送的总费用 目前为不含运费的总费用")
+    private BigDecimal stationSendTotalFee;
+
     @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付 3-第三方支付 4-上传运费收费标准(运费不取设置的运费仅展示图片的)")
     private Integer expressFeePayWay;
 
@@ -145,6 +148,12 @@ public class RecipeOrderBean implements Serializable {
 
     @ItemProperty(alias = "邮政编码")
     private String zipCode;
+
+    @ItemProperty(alias = "取药方式")
+    private Integer takeMedicineWay;
+
+    @ItemProperty(alias = "药店或者站点距离")
+    private Double distance;
 
     @ItemProperty(alias = "创建时间")
     private Date createTime;
@@ -1111,6 +1120,14 @@ public class RecipeOrderBean implements Serializable {
         this.dispensingApothecaryIdCard = dispensingApothecaryIdCard;
     }
 
+    public Integer getTakeMedicineWay() {
+        return takeMedicineWay;
+    }
+
+    public void setTakeMedicineWay(Integer takeMedicineWay) {
+        this.takeMedicineWay = takeMedicineWay;
+    }
+
     public String getOrderMemo() {
         return orderMemo;
     }
@@ -1149,5 +1166,21 @@ public class RecipeOrderBean implements Serializable {
 
     public void setExpectEndTakeTime(String expectEndTakeTime) {
         this.expectEndTakeTime = expectEndTakeTime;
+    }
+
+    public Double getDistance() {
+        return distance;
+    }
+
+    public void setDistance(Double distance) {
+        this.distance = distance;
+    }
+
+    public BigDecimal getStationSendTotalFee() {
+        return stationSendTotalFee;
+    }
+
+    public void setStationSendTotalFee(BigDecimal stationSendTotalFee) {
+        this.stationSendTotalFee = stationSendTotalFee;
     }
 }

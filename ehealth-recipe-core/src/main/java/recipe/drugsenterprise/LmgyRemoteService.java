@@ -23,7 +23,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
-import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.SaleDrugListDAO;
@@ -69,6 +68,7 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
         return DrugEnterpriseResult.getSuccess();
     }
 
+    @RpcService
     @Override
     public DrugEnterpriseResult pushRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
         return DrugEnterpriseResult.getSuccess();
@@ -99,8 +99,6 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
         return super.scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
     }
 
-    @RpcService
-    @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         LOGGER.info("LmgyRemoteService.scanStock:[{}]", JSONUtils.toString(recipeId));
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();

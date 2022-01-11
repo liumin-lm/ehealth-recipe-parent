@@ -57,7 +57,6 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
         return DrugEnterpriseResult.getSuccess();
     }
 
-    @Override
     @RpcService
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         return CommonExtendRemoteTypeEnum.getTypeFromRecipeIds(Lists.newArrayList(recipeId)).scanStock(recipeId, drugsEnterprise);
@@ -97,19 +96,6 @@ public class CommonSelfRemoteService extends AccessDrugEnterpriseService{
     @Override
     public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
         return CommonExtendRemoteTypeEnum.getTypeFromOrganId(drugsDataBean.getOrganId()).getDrugInventoryForApp(drugsDataBean, drugsEnterprise, flag);
-    }
-
-    @Override
-    //走默认实现
-    //TODO 下一个版本直接删除
-    public boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds) {
-        LOGGER.info("commonSelfRemoteService scanStock 记录是否被调用,下一个版本直接删除 recipe:{}", JSONUtils.toString(dbRecipe));
-        CommonExtendEnterprisesInterface type = CommonExtendRemoteTypeEnum.getTypeFromRecipe(dbRecipe);
-        if(type instanceof CommonSelfEnterprisesType){
-            return super.scanStock(dbRecipe, dep, drugIds);
-        }else{
-            return type.scanStock(dbRecipe, dep, drugIds);
-        }
     }
 
     @Override

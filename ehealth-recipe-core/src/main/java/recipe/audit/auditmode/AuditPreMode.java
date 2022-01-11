@@ -131,7 +131,7 @@ public class AuditPreMode extends AbstractAuidtMode {
             } else if (new Integer(5).equals(checkMode)) {
                 this.notifyPharAudit(byRecipeId);
             } else {
-                recipeAudit(recipe);
+                super.recipeAudit(recipe);
             }
         } else if (flag) {
             LOGGER.info("第三方智能审方start");
