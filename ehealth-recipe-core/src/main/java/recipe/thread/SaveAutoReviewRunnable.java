@@ -13,6 +13,7 @@ import eh.recipeaudit.model.Intelligent.AutoAuditResultBean;
 import eh.recipeaudit.model.Intelligent.IssueBean;
 import eh.recipeaudit.model.Intelligent.PAWebMedicinesBean;
 import eh.recipeaudit.model.Intelligent.PAWebRecipeDangerBean;
+import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -50,12 +51,12 @@ public class SaveAutoReviewRunnable implements Runnable {
     public void run() {
         LOGGER.info("SaveAutoReviewRunnable start recipe={},details={}",JSON.toJSONString(recipe),JSON.toJSONString(details));
         try{
-            IRecipeAuditService iRecipeAuditService = ApplicationUtils.getRecipeService(IRecipeAuditService.class);
-            iRecipeAuditService.saveAutoReview(recipe,details);
+            IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
+            recipeAuditService.saveAutoReview(recipe,details);
         }catch(Exception e){
-            LOGGER.info("SaveAutoReviewRunnable exception",e);
+            LOGGER.info("SaveAutoReviewRunnable recipe={} exception",JSON.toJSONString(recipe),e);
         }finally {
-            LOGGER.info("SaveAutoReviewRunnable end");
+            LOGGER.info("SaveAutoReviewRunnable end recipe={}",JSON.toJSONString(recipe));
         }
     }
 
