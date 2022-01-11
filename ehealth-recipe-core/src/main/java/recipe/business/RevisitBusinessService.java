@@ -211,7 +211,7 @@ public class RevisitBusinessService extends BaseService implements IRevisitBusin
     @Override
     public List<WriteDrugRecipeDTO> findWriteDrugRecipeByRevisitFromHis(String mpiId, Integer organId, Integer doctorId) throws Exception {
         logger.info("findWriteDrugRecipeByRevisitFromHis start");
-        List<WriteDrugRecipeDTO> result = null;//revisitManager.findWriteDrugRecipeByRevisitFromHis(mpiId, organId, doctorId);
+        List<WriteDrugRecipeDTO> result = revisitManager.findWriteDrugRecipeByRevisitFromHis(mpiId, organId, doctorId);
         logger.info("findWriteDrugRecipeByRevisitFromHis end");
         return result;
     }
