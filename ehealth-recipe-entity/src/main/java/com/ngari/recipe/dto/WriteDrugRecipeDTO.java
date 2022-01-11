@@ -1,7 +1,5 @@
-package com.ngari.recipe.recipe.model;
+package com.ngari.recipe.dto;
 
-import com.ngari.his.recipe.mode.Consult;
-import com.ngari.patient.dto.PatientDTO;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -23,7 +21,7 @@ public class WriteDrugRecipeDTO implements Serializable {
     //请求的患者信息
     private PatientDTO requestPatient;
     //门诊信息
-    private Consult consult;
+    private ConsultDTO consult;
     //类型 默认复诊 2 复诊  5  门诊
     private Integer type;
     //组装给前端返回的字段对象

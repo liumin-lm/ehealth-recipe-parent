@@ -8,13 +8,12 @@ import com.ngari.his.visit.mode.WriteDrugRecipeReqTO;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.recipe.dto.ConsultDTO;
+import com.ngari.recipe.dto.WriteDrugRecipeBean;
+import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.recipe.model.WriteDrugRecipeBean;
-import com.ngari.recipe.recipe.model.WriteDrugRecipeDTO;
 import ctd.net.broadcast.MQHelper;
 import ctd.util.JSONUtils;
-import org.apache.commons.collections.CollectionUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DepartClient;
@@ -22,6 +21,7 @@ import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
 import recipe.common.OnsConfig;
 import recipe.constant.RecipeSystemConstant;
+import recipe.util.ObjectCopyUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -131,10 +131,12 @@ public class RevisitManager extends BaseManager {
 
     }
 
-    public List<WriteDrugRecipeDTO> WriteDrugRecipeDTO(HisResponseTO<List<WriteDrugRecipeTO>> writeDrugRecipeList,String mpiId, Integer organId) {
+    public List<WriteDrugRecipeDTO> WriteDrugRecipeDTO(HisResponseTO<List<WriteDrugRecipeTO>> writeDrugRecipeList, String mpiId, Integer organId) {
         PatientDTO patient = patientClient.getPatientBeanByMpiId(mpiId);
+        com.ngari.recipe.dto.PatientDTO patientDTO = ObjectCopyUtils.convert(patient, com.ngari.recipe.dto.PatientDTO.class);
         PatientDTO requestPatient = new PatientDTO();
         requestPatient.setPatientName(patient.getPatientName());
+        com.ngari.recipe.dto.PatientDTO requestPatientDTO = ObjectCopyUtils.convert(requestPatient, com.ngari.recipe.dto.PatientDTO.class);
         //组装院内门诊返回数据
         List<WriteDrugRecipeDTO> writeDrugRecipeDTOList = new ArrayList<>();
         List<WriteDrugRecipeTO> dataList = writeDrugRecipeList.getData();
@@ -148,9 +150,10 @@ public class RevisitManager extends BaseManager {
                 if (null != appointDepartDTO) {
                     writeDrugRecipeBean.setAppointDepartInDepartId(appointDepartDTO.getDepartId());
                 }
-                writeDrugRecipeDTO.setPatient(patient);
-                writeDrugRecipeDTO.setRequestPatient(requestPatient);
-                writeDrugRecipeDTO.setConsult(consult);
+                ConsultDTO consultDTO = ObjectCopyUtils.convert(consult, ConsultDTO.class);
+                writeDrugRecipeDTO.setPatient(patientDTO);
+                writeDrugRecipeDTO.setRequestPatient(requestPatientDTO);
+                writeDrugRecipeDTO.setConsult(consultDTO);
                 writeDrugRecipeDTO.setType(writeDrugRecipeTO.getType());
                 writeDrugRecipeDTO.setWriteDrugRecipeBean(writeDrugRecipeBean);
                 logger.info("WriteRecipeManager findWriteDrugRecipeByRevisitFromHis writeDrugRecipeDTO={}", JSONUtils.toString(writeDrugRecipeDTO));
