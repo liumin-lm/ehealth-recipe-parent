@@ -1,7 +1,5 @@
 package recipe.core.api;
 
-import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.mode.WriteDrugRecipeTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.WriteDrugRecipeDTO;
 import recipe.vo.second.RevisitRecipeTraceVo;

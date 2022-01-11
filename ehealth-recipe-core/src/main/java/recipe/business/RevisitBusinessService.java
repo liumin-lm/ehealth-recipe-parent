@@ -1,7 +1,5 @@
 package recipe.business;
 
-import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.mode.WriteDrugRecipeTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.dto.ApothecaryDTO;
@@ -76,8 +74,6 @@ public class RevisitBusinessService extends BaseService implements IRevisitBusin
     private IEasyPayService iEasyPayService;
     @Autowired
     private IConfigurationClient configurationClient;
-    @Autowired
-    private WriteRecipeManager writeRecipeManager;
 
 
     @Override
@@ -212,7 +208,7 @@ public class RevisitBusinessService extends BaseService implements IRevisitBusin
     @Override
     public List<WriteDrugRecipeDTO> findWriteDrugRecipeByRevisitFromHis(String mpiId, Integer organId, Integer doctorId) throws Exception {
         logger.info("findWriteDrugRecipeByRevisitFromHis start");
-        List<WriteDrugRecipeDTO> result = writeRecipeManager.findWriteDrugRecipeByRevisitFromHis(mpiId, organId, doctorId);
+        List<WriteDrugRecipeDTO> result = revisitManager.findWriteDrugRecipeByRevisitFromHis(mpiId, organId, doctorId);
         logger.info("findWriteDrugRecipeByRevisitFromHis end");
         return result;
     }
