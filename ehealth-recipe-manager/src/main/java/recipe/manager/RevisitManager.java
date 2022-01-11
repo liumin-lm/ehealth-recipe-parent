@@ -103,22 +103,32 @@ public class RevisitManager extends BaseManager {
      */
     public List<WriteDrugRecipeDTO> findWriteDrugRecipeByRevisitFromHis(String mpiId, Integer organId, Integer doctorId) throws Exception {
         WriteDrugRecipeReqTO writeDrugRecipeReqTO = writeDrugRecipeReqTO(mpiId, organId, doctorId);
-        HisResponseTO<List<WriteDrugRecipeTO>> writeDrugRecipeList = revisitClient.findWriteDrugRecipeByRevisitFromHis(writeDrugRecipeReqTO);
-        return WriteDrugRecipeDTO(writeDrugRecipeList, mpiId, organId);
+        if (null != writeDrugRecipeReqTO){
+            HisResponseTO<List<WriteDrugRecipeTO>> writeDrugRecipeList = revisitClient.findWriteDrugRecipeByRevisitFromHis(writeDrugRecipeReqTO);
+            return WriteDrugRecipeDTO(writeDrugRecipeList, mpiId, organId);
+        }else {
+            return null;
+        }
     }
 
     public WriteDrugRecipeReqTO writeDrugRecipeReqTO(String mpiId, Integer organId, Integer doctorId) throws Exception {
         logger.info("RevisitManager writeDrugRecipeReqTO start");
         List<String> namesList = Arrays.asList("1", "2", "3", "6");
         ArrayList<String> cardTypes = new ArrayList<>(namesList);
-        List<HealthCardDTO> healthCardDTOS = patientClient.queryCardsByParam(organId, mpiId, cardTypes);
+        List<HealthCardDTO> healthCardDTOList = patientClient.queryCardsByParam(organId, mpiId, cardTypes);
         //组装获取院内门诊请求参数
         WriteDrugRecipeReqTO writeDrugRecipeReqTO = new WriteDrugRecipeReqTO();
-        writeDrugRecipeReqTO.setPatId(null);
-        writeDrugRecipeReqTO.setOrgId(organId);
-        writeDrugRecipeReqTO.setDoctorId(doctorId);
-        logger.info("RevisitManager writeDrugRecipeReqTO={}", JSONUtils.toString(writeDrugRecipeReqTO));
-        return writeDrugRecipeReqTO;
+        if(null != healthCardDTOList){
+            writeDrugRecipeReqTO.setHealthCardDTOList(healthCardDTOList);
+            writeDrugRecipeReqTO.setOrganId(organId);
+            writeDrugRecipeReqTO.setDoctorId(doctorId);
+            logger.info("RevisitManager writeDrugRecipeReqTO={}", JSONUtils.toString(writeDrugRecipeReqTO));
+            return writeDrugRecipeReqTO;
+        }else {
+            logger.info("RevisitManager writeDrugRecipeReqTO为null");
+            return null;
+        }
+
     }
 
     public List<WriteDrugRecipeDTO> WriteDrugRecipeDTO(HisResponseTO<List<WriteDrugRecipeTO>> writeDrugRecipeList,String mpiId, Integer organId) {
