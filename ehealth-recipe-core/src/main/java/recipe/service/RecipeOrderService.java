@@ -1076,12 +1076,12 @@ public class RecipeOrderService extends RecipeBaseService {
         if (recipeOrderBean != null && recipeOrderBean.getEnterpriseId() != null) {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrderBean.getEnterpriseId());
             recipeOrderBean.setOrderMemo(drugsEnterprise.getOrderMemo());
-        }
-        if (ExpressFeePayWayEnum.ONLINE.getType().equals(order.getExpressFeePayWay()) &&
-                (order.getExpressFee() != null && order.getTotalFee().compareTo(order.getExpressFee()) > -1)) {
-            recipeOrderBean.setStationSendTotalFee(order.getTotalFee().subtract(order.getExpressFee()));
-        } else {
-            recipeOrderBean.setStationSendTotalFee(order.getTotalFee());
+            if (ExpressFeePayWayEnum.ONLINE.getType().equals(drugsEnterprise.getExpressFeePayWay()) &&
+                    (order.getExpressFee() != null && order.getTotalFee().compareTo(order.getExpressFee()) > -1)) {
+                recipeOrderBean.setStationSendTotalFee(order.getTotalFee().subtract(order.getExpressFee()));
+            } else {
+                recipeOrderBean.setStationSendTotalFee(order.getTotalFee());
+            }
         }
         result.setObject(recipeOrderBean);
         if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == toDbFlag && null != order.getOrderId()) {
