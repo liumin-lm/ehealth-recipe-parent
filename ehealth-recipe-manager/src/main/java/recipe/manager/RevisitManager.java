@@ -114,8 +114,8 @@ public class RevisitManager extends BaseManager {
         List<HealthCardDTO> healthCardDTOS = patientClient.queryCardsByParam(organId, mpiId, cardTypes);
         //组装获取院内门诊请求参数
         WriteDrugRecipeReqTO writeDrugRecipeReqTO = new WriteDrugRecipeReqTO();
-        writeDrugRecipeReqTO.setPatId(null);
-        writeDrugRecipeReqTO.setOrgId(organId);
+        writeDrugRecipeReqTO.setHealthCardDTOList(healthCardDTOS);
+        writeDrugRecipeReqTO.setOrganId(organId);
         writeDrugRecipeReqTO.setDoctorId(doctorId);
         logger.info("RevisitManager writeDrugRecipeReqTO={}", JSONUtils.toString(writeDrugRecipeReqTO));
         return writeDrugRecipeReqTO;
