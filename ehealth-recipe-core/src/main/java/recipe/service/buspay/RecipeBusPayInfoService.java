@@ -90,6 +90,10 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     private static final String IS_SUPPORT_SEND_TO_STATION = "1";
     //不支持站点取药
     private static final String NO_SUPPORT_SEND_TO_STATION = "0";
+    //payMode的配送到家
+    private static final Integer PAY_MODE_SEND_HOME = 1;
+    //payMode的货到付款
+    private static final Integer PAY_MODE_ONLINE = 2;
 
     @Autowired
     private RemoteRecipeOrderService recipeOrderService;
@@ -356,7 +360,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 map.put("payTip", "");
             }
             Boolean toSendStationFlag = configurationClient.getValueBooleanCatch(organId, "toSendStationFlag", false);
-            if (GiveModeEnum.GIVE_MODE_HOME_DELIVERY.getType().equals(nowRecipeBean.getGiveMode()) && toSendStationFlag) {
+            if ((PAY_MODE_SEND_HOME.equals(payMode) || PAY_MODE_ONLINE.equals(payMode)) && toSendStationFlag) {
                 map.put("isSupportSendToStation", IS_SUPPORT_SEND_TO_STATION);
             } else {
                 map.put("isSupportSendToStation", NO_SUPPORT_SEND_TO_STATION);
