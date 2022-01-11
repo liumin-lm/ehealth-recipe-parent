@@ -210,7 +210,7 @@ public class PayModeOnline implements IPurchaseService {
             String gysName = MapValueUtil.getString(extInfo, "gysName");
             String gysAddr = MapValueUtil.getString(extInfo, "gysAddr");
             String stationCode = MapValueUtil.getString(extInfo, "pharmacyCode");
-            Double distance = MapValueUtil.getDouble(extInfo, "distance");
+            String distance = MapValueUtil.getString(extInfo, "distance");
             order.setDrugStoreName(gysName);
             order.setDrugStoreAddr(gysAddr);
             order.setDrugStoreCode(stationCode);
@@ -219,7 +219,7 @@ public class PayModeOnline implements IPurchaseService {
             order.setAddress2(cityCode);
             order.setAddress3(areaCode);
             order.setAddress4(gysAddr);
-            order.setDistance(distance);
+            order.setDistance(Double.parseDouble(distance));
         }
         //如果是医保支付前端目前传的orderType都是1,杭州市医保得特殊处理
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeList.get(0).getRecipeMode())
