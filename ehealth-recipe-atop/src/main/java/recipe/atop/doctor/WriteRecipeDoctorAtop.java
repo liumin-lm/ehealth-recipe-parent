@@ -1,7 +1,5 @@
 package recipe.atop.doctor;
 
-import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.mode.WriteDrugRecipeTO;
 import com.ngari.recipe.recipe.model.WriteDrugRecipeDTO;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -10,7 +8,6 @@ import recipe.aop.LogRecord;
 import recipe.atop.BaseAtop;
 import recipe.core.api.IRevisitBusinessService;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -26,11 +23,10 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
 
     /**
      * 获取院内门诊
-     * 获取院内门诊
      * @param mpiId 患者唯一标识
      * @param organId  机构ID
      * @param doctorId  医生ID
-     * @return 院内门诊
+     * @return 院内门诊处方列表
      */
     @RpcService
     @LogRecord
