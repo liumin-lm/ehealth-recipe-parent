@@ -1,7 +1,7 @@
 package recipe.core.api;
 
 import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.recipe.model.WriteDrugRecipeDTO;
+import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
 import java.util.List;

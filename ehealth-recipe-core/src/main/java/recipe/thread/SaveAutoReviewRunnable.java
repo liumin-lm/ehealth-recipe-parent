@@ -52,10 +52,12 @@ public class SaveAutoReviewRunnable implements Runnable {
 
     @Override
     public void run() {
-        LOGGER.info("SaveAutoReviewRunnable start recipe={},details={}",JSON.toJSONString(recipe),JSON.toJSONString(details));
+        RecipeDTO recipeDTO = ObjectCopyUtils.convert(recipe, RecipeDTO.class);
+        List<RecipeDetailDTO> detailsList = ObjectCopyUtils.convert(details, RecipeDetailDTO.class);
+        LOGGER.info("SaveAutoReviewRunnable start RecipeDTO={},detailsList={}",JSON.toJSONString(recipeDTO),JSON.toJSONString(detailsList));
         try{
             IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
-            recipeAuditService.saveAutoReview(ObjectCopyUtils.convert(recipe, RecipeDTO.class),ObjectCopyUtils.convert(details, RecipeDetailDTO.class));
+            recipeAuditService.saveAutoReview(recipeDTO,detailsList);
         }catch(Exception e){
             LOGGER.info("SaveAutoReviewRunnable recipe={} exception",JSON.toJSONString(recipe),e);
         }finally {
