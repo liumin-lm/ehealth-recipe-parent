@@ -1,4 +1,4 @@
-package com.ngari.recipe.recipe.model;
+package com.ngari.recipe.dto;
 
 import lombok.Data;
 

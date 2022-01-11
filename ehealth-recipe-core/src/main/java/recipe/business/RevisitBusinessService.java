@@ -7,7 +7,7 @@ import com.ngari.recipe.dto.RecipeCancelDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeStatusConstant;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.model.WriteDrugRecipeDTO;
+import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import easypay.entity.po.AccountResult;
