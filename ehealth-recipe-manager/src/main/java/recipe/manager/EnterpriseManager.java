@@ -3,6 +3,7 @@ package recipe.manager;
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -698,10 +699,12 @@ public class EnterpriseManager extends BaseManager {
      *
      * @param organId
      * @param drugsEnterpriseId
-     * @param key
      */
-    public OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId, List<String> key) {
-        logger.info("EnterpriseManager saveOrganDrugsSaleConfig organId:{}  drugsEnterpriseId:{} key:{}", organId, drugsEnterpriseId, JSONUtils.toString(key));
+    public OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId) {
+        logger.info("EnterpriseManager saveOrganDrugsSaleConfig organId:{}  drugsEnterpriseId:{}", organId, drugsEnterpriseId);
+        // 患者端使用到的机构配置,这个接口仅这些使用
+        ArrayList<String> key = Lists.newArrayList("isSupportSendToStation", "getMedicineRemindContent", "payModeToHosOnlinePayConfig", "supportToHosPayFlag", "toHosPlanDate",
+                "toHosPlanAmTime", "toHosPlanPmTime", "getQrTypeForRecipe", "getQrTypeForRecipeRemind");
         // 到院自取是否采用药企管理模式
         Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(organId, "drugToHosByEnterprise", false);
         if (drugToHosByEnterprise) {

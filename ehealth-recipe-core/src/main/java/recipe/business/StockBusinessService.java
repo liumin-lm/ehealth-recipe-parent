@@ -316,10 +316,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
 
     @Override
     public OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId) {
-        // 患者端使用到的机构配置,这个接口仅这些使用
-        ArrayList<String> key = Lists.newArrayList("isSupportSendToStation", "getMedicineRemindContent", "payModeToHosOnlinePayConfig", "supportToHosPayFlag", "toHosPlanDate",
-                "toHosPlanAmTime", "toHosPlanPmTime", "getQrTypeForRecipe", "getQrTypeForRecipeRemind");
-        return enterpriseManager.getOrganDrugsSaleConfig(organId,drugsEnterpriseId,key);
+        return enterpriseManager.getOrganDrugsSaleConfig(organId,drugsEnterpriseId);
     }
 
     /**

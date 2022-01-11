@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import recipe.ApplicationUtils;
 import recipe.bean.PltPurchaseResponse;
+import recipe.client.IConfigurationClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.enumerate.status.OfflineToOnlineEnum;
@@ -101,6 +102,12 @@ public class PurchaseService {
 
     @Autowired
     HisRecipeDetailDAO hisRecipeDetailDAO;
+
+    @Autowired
+    private IConfigurationClient configurationClient;
+
+    @Autowired
+    private OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO;
 
     /**
      * 获取可用购药方式------------已废弃---已改造成从处方单详情里获取
@@ -565,14 +572,21 @@ public class PurchaseService {
         return false;
     }
 
-    public boolean getToHosPayConfig(Integer clinicOrgan) {
+    public boolean getToHosPayConfig(Integer clinicOrgan,Integer enterpriseId) {
+        Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(clinicOrgan, "drugToHosByEnterprise", false);
         Integer payModeToHosOnlinePayConfig;
-        try {
-            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            payModeToHosOnlinePayConfig = (Integer) configurationService.getConfiguration(clinicOrgan, "payModeToHosOnlinePayConfig");
-        } catch (Exception e) {
-            LOG.error("获取运营平台处方支付配置异常", e);
-            return false;
+        if (drugToHosByEnterprise) {
+            // 获取药企机构配置
+            OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.findByOrganIdAndEnterpriseId(clinicOrgan, enterpriseId);
+            payModeToHosOnlinePayConfig = organDrugsSaleConfig.getTakeOneselfPaymentChannel();
+        }else {
+            try {
+                IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+                payModeToHosOnlinePayConfig = (Integer) configurationService.getConfiguration(clinicOrgan, "payModeToHosOnlinePayConfig");
+            } catch (Exception e) {
+                LOG.error("获取运营平台处方支付配置异常", e);
+                return false;
+            }
         }
         //1平台付 2卫宁付
         if (new Integer(2).equals(payModeToHosOnlinePayConfig)) {

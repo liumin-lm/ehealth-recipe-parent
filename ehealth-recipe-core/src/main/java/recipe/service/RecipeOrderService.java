@@ -162,6 +162,9 @@ public class RecipeOrderService extends RecipeBaseService {
     @Autowired
     private DrugListDAO drugListDAO;
 
+    @Autowired
+    private EnterpriseManager enterpriseManager;
+
     /**
      * 处方结算时创建临时订单
      *
@@ -836,8 +839,9 @@ public class RecipeOrderService extends RecipeBaseService {
                     PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
                     //卫宁付
                     // 到院取药是否支持线上支付
-                    Boolean supportToHosPayFlag = configurationClient.getValueBooleanCatch(order.getOrganId(), "supportToHosPayFlag", false);
-                    if (purchaseService.getToHosPayConfig(firstRecipe.getClinicOrgan()) || supportToHosPayFlag) {
+                    OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId());
+                    Integer takeOneselfPayment = organDrugsSaleConfig.getTakeOneselfPayment();
+                    if (purchaseService.getToHosPayConfig(firstRecipe.getClinicOrgan(),order.getEnterpriseId()) || new Integer(1).equals(takeOneselfPayment)) {
                         order.setActualPrice(totalFee.doubleValue());
                     } else {
                         //此时的实际费用是不包含药品费用的
@@ -1862,8 +1866,8 @@ public class RecipeOrderService extends RecipeBaseService {
     private void putSupportToHosPayFlag(RecipeResultBean result, RecipeOrder order) {
         Map<String, Object> map = result.getExt();
         // 到院取药是否支持线上支付
-        Boolean supportToHosPayFlag = configurationClient.getValueBooleanCatch(order.getOrganId(), "supportToHosPayFlag", false);
-        if (supportToHosPayFlag) {
+        OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId());
+        if (new Integer(1).equals(organDrugsSaleConfig.getTakeOneselfPayment())) {
             map.put("supportToHosPayFlag", 1);
         }
         result.setExt(map);

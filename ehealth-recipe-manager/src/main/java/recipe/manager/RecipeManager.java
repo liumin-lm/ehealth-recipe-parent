@@ -2,9 +2,7 @@ package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.*;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.RecipeLog;
+import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
@@ -49,6 +47,8 @@ public class RecipeManager extends BaseManager {
     private OfflineRecipeClient offlineRecipeClient;
     @Autowired
     private RevisitClient revisitClient;
+    @Autowired
+    private EnterpriseManager enterpriseManager;
 
     /**
      * 保存处方信息
@@ -243,11 +243,11 @@ public class RecipeManager extends BaseManager {
      * @param recipeExtend 处方扩展信息
      * @return 取药凭证
      */
-    public String getToHosProof(Recipe recipe, RecipeExtend recipeExtend) {
+    public String getToHosProof(Recipe recipe, RecipeExtend recipeExtend, RecipeOrder order) {
         String qrName = "";
         try {
-            Integer qrTypeForRecipe = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "getQrTypeForRecipe", 1);
-            RecipeShowQrConfigEnum qrConfigEnum = RecipeShowQrConfigEnum.getEnumByType(qrTypeForRecipe);
+            OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId());
+            RecipeShowQrConfigEnum qrConfigEnum = RecipeShowQrConfigEnum.getEnumByType(organDrugsSaleConfig.getTakeDrugsVoucher());
             switch (qrConfigEnum) {
                 case CARD_NO:
                     //就诊卡号
