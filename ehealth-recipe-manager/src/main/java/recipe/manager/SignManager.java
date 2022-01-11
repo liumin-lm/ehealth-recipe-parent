@@ -6,15 +6,13 @@ import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.sign.SignDoctorRecipeInfo;
 import ctd.util.FileAuth;
-import eh.recipeaudit.api.IRecipeCheckService;
-import eh.recipeaudit.model.RecipeCheckBean;
-import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DoctorClient;
 import recipe.client.IConfigurationClient;
+import recipe.client.RecipeAuditClient;
 import recipe.constant.CARecipeTypeConstant;
 import recipe.dao.sign.SignDoctorRecipeInfoDAO;
 import recipe.util.ByteUtils;
@@ -48,9 +46,9 @@ public class SignManager extends BaseManager {
     private DoctorClient doctorClient;
     @Autowired
     private SignDoctorRecipeInfoDAO signDoctorRecipeInfoDAO;
-
     @Autowired
-    private IRecipeCheckService recipeCheckService;
+    private RecipeAuditClient recipeAuditClient;
+
 
     /**
      * 获取全部药师签名信息
@@ -90,7 +88,7 @@ public class SignManager extends BaseManager {
             attachSealPicDTO.setDoctorId(doctorId);
             attachSealPicDTO.setDoctorSignImgToken(FileAuth.instance().createToken(attachSealPicDTO.getDoctorSignImg(), 3600L));
         }
-        if(isShowCheckCA(recipeId)){
+        if (recipeAuditClient.isShowCheckCA(recipeId)) {
             attachSealPicDTO.setCheckerSignImg(signImg(organId, checker, recipeId, CARecipeTypeConstant.CA_RECIPE_PHA));
             if (StringUtils.isNotEmpty(attachSealPicDTO.getCheckerSignImg())) {
                 attachSealPicDTO.setCheckerId(checker);
@@ -301,19 +299,4 @@ public class SignManager extends BaseManager {
             return null;
         }
     }
-
-    /**
-     * 判断药师的ca流程是否开启
-     * @param recipeId
-     * @return
-     */
-    private Boolean isShowCheckCA(Integer recipeId){
-        RecipeCheckBean recipeCheckBean = recipeCheckService.getNowCheckResultByRecipeId(recipeId);
-        Integer fail = 0;
-        if(recipeCheckBean != null && fail.equals(recipeCheckBean.getIsCheckCA())){
-            return false;
-        }
-        return true;
-    }
-
 }

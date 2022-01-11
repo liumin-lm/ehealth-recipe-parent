@@ -75,7 +75,7 @@
     <bean id="testDrugStoreRemoteService" class="recipe.drugsenterprise.TestDrugStoreRemoteService"/>
 
     <!--卫宁健康智能审方-->
-    <bean id="winningPrescriptionService" class="recipe.audit.service.WinningPrescriptionService"/>
+<!--    <bean id="winningPrescriptionService" class="recipe.audit.service.WinningPrescriptionService"/>-->
 
     <!--华润药企-->
     <bean id="hrRemoteService" class="recipe.drugsenterprise.HrRemoteService"/>
@@ -128,11 +128,6 @@
         <property name="keepAliveSeconds" value="300"/>
     </bean>
 
-    <!--合理用药设置-->
-    <bean class="recipe.audit.bean.PrescriptionConstants" id="prescriptionConstants">
-        <property name="wnPaServiceUrl" value="${wnpa.url}"/>
-        <property name="wnPaHosCode" value="${wnpa.hoscode}"/>
-    </bean>
 
     <bean id="onsConfig" class="recipe.common.OnsConfig">
         <property name="onsSwitch" value="${ons.switch.on}"/>

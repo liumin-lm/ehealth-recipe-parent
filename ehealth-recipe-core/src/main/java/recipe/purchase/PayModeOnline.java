@@ -188,6 +188,10 @@ public class PayModeOnline implements IPurchaseService {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         String insuredArea = MapValueUtil.getString(extInfo, "insuredArea");
         Integer logisticsCompany = MapValueUtil.getInteger(extInfo, "logisticsCompany");
+        String provinceCode = MapValueUtil.getString(extInfo, "provinceCode");
+        String cityCode = MapValueUtil.getString(extInfo, "cityCode");
+        String areaCode = MapValueUtil.getString(extInfo, "areaCode");
+        Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
         if (StringUtils.isNotEmpty(insuredArea)) {
             for (Recipe recipe : recipeList) {
                 recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("insuredArea", insuredArea));
@@ -200,6 +204,23 @@ public class PayModeOnline implements IPurchaseService {
             return result;
         }
         order.setWxPayWay(payway);
+
+        //保存站点相关信息
+        if (null != takeMedicineWay) {
+            String gysName = MapValueUtil.getString(extInfo, "gysName");
+            String gysAddr = MapValueUtil.getString(extInfo, "gysAddr");
+            String stationCode = MapValueUtil.getString(extInfo, "pharmacyCode");
+            Double distance = MapValueUtil.getDouble(extInfo, "distance");
+            order.setDrugStoreName(gysName);
+            order.setDrugStoreAddr(gysAddr);
+            order.setDrugStoreCode(stationCode);
+            order.setTakeMedicineWay(takeMedicineWay);
+            order.setAddress1(provinceCode);
+            order.setAddress2(cityCode);
+            order.setAddress3(areaCode);
+            order.setAddress4(gysAddr);
+            order.setDistance(distance);
+        }
         //如果是医保支付前端目前传的orderType都是1,杭州市医保得特殊处理
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeList.get(0).getRecipeMode())
                 && RecipeBussConstant.ORDERTYPE_ZJS.equals(orderType)) {

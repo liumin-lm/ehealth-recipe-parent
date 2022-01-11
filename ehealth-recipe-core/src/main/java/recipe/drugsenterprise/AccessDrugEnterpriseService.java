@@ -195,16 +195,6 @@ public abstract class AccessDrugEnterpriseService {
     public abstract List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag);
 
     /**
-     * 库存检验
-     *
-     * @param recipeId        处方ID
-     * @param drugsEnterprise 药企
-     * @return
-     */
-    public abstract DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise);
-
-
-    /**
      * 查询药企库存
      * @param recipe  处方
      * @param drugsEnterprise 药企
@@ -353,67 +343,6 @@ public abstract class AccessDrugEnterpriseService {
         }
     }
 
-    /**
-     * 判断药企库存，包含平台内权限及药企实时库存
-     *
-     * @param dbRecipe
-     * @param dep
-     * @param drugIds
-     * @return
-     */
-    //TODO 下一个版本直接删除
-    @Deprecated
-    public boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds) {
-        LOGGER.info("scanStock 当前公用药企逻辑-推送订单信息，入参：dbRecipe:{},dep:{},drugIds:{}", JSONUtils.toString(dbRecipe), JSONUtils.toString(dep), JSONUtils.toString(drugIds));
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-
-        Long count = saleDrugListDAO.getCountByOrganIdAndDrugIds(dep.getId(), drugIds);
-        //判断药企是否校验库存的开关
-        if (dep != null && dep.getCheckInventoryFlag() != null && dep.getCheckInventoryFlag() == 0) {
-            // 没有药品的药企还是不展示
-            List<SaleDrugList> list = saleDrugListDAO.getByOrganIdAndDrugIds(dep.getId(), drugIds);
-            if (Objects.isNull(list)) {
-                return false;
-            }
-            Map<Integer, List<SaleDrugList>> collect = list.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
-            Boolean returnFlag = true;
-            for (Integer drugId : drugIds) {
-                if (Objects.isNull(collect.get(drugId))) {
-                    returnFlag = false;
-                }
-            }
-            //不需要校验库存
-            return returnFlag;
-        }
-        boolean succFlag = false;
-        if (null == dep || CollectionUtils.isEmpty(drugIds)) {
-            return succFlag;
-        }
-
-        //判断药企平台内药品权限，此处简单判断数量是否一致
-        if (null != count && count > 0) {
-            if (count == drugIds.size()) {
-                succFlag = true;
-            }
-        }
-
-        if (!succFlag) {
-            LOGGER.warn("scanStock 存在不支持配送药品. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}], drugIds={}",
-                    dbRecipe.getRecipeId(), dep.getId(), dep.getName(), JSONUtils.toString(drugIds));
-        } else {
-            //通过查询该药企库存，最终确定能否配送
-            DrugEnterpriseResult result = remoteDrugService.scanStock(dbRecipe.getRecipeId(), dep);
-            succFlag = result.getCode().equals(DrugEnterpriseResult.SUCCESS) ? true : false;
-            if (!succFlag) {
-                LOGGER.warn("scanStock 药企库存查询返回药品无库存. 处方ID=[{}], 药企ID=[{}], 药企名称=[{}]",
-                        dbRecipe.getRecipeId(), dep.getId(), dep.getName());
-            }
-        }
-
-        return succFlag;
-    }
-
     public String appEnterprise(RecipeOrder order) {
         String appEnterprise = null;
         if (null != order && order.getEnterpriseId() != null) {
@@ -452,24 +381,7 @@ public abstract class AccessDrugEnterpriseService {
 
     public void checkRecipeGiveDeliveryMsg(RecipeBean recipeBean, Map<String, Object> map) {
         LOGGER.info("checkRecipeGiveDeliveryMsg 当前公用药企逻辑-预校验，入参：recipeBean:{},map:{}", JSONUtils.toString(recipeBean), JSONUtils.toString(map));
-        /*//预校验返回 取药方式1配送到家 2医院取药 3两者都支持
-        String giveMode = null != map.get("giveMode") ? map.get("giveMode").toString() : null;
-        //配送药企代码
-        String deliveryCode = null != map.get("deliveryCode") ? map.get("deliveryCode").toString() : null;
-        //配送药企名称
-        String deliveryName = null != map.get("deliveryName") ? map.get("deliveryName").toString() : null;
-        if (StringUtils.isNotEmpty(giveMode)){
-            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-            Map<String,String> updateMap = Maps.newHashMap();
-            //updateMap.put("giveMode",giveMode);
-            updateMap.put("deliveryCode",deliveryCode);
-            updateMap.put("deliveryName",deliveryName);
-            recipeExtendDAO.updateRecipeExInfoByRecipeId(recipeBean.getRecipeId(),updateMap);
-            LOGGER.info("hisRecipeCheck 当前处方{}预校验，配送方式存储成功:{}！", recipeBean.getRecipeId(), JSONUtils.toString(updateMap));
-        }*/
-
     }
-
 
     public void setEnterpriseMsgToOrder(RecipeOrder order, Integer depId, Map<String, String> extInfo) {
         order.setEnterpriseId(depId);
@@ -523,6 +435,22 @@ public abstract class AccessDrugEnterpriseService {
         drugStockAmountDTO.setResult(stock);
         drugStockAmountDTO.setDrugInfoList(drugInfoList);
         LOGGER.info("setDrugStockAmountDTO drugStockAmountDTO:{}", JSONUtils.toString(drugStockAmountDTO));
+    }
+
+    /**
+     * 获取区域文本
+     * @param area 区域
+     * @return     区域文本
+     */
+    protected String getAddressDic(String area) {
+        if (StringUtils.isNotEmpty(area)) {
+            try {
+                return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
+            } catch (ControllerException e) {
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
+            }
+        }
+        return "";
     }
 
 }

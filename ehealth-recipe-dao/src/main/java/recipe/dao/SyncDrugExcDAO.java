@@ -1,10 +1,7 @@
 package recipe.dao;
 
 import com.google.common.collect.Maps;
-import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.entity.DrugEntrust;
 import com.ngari.recipe.entity.SyncDrugExc;
-import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.bean.QueryResult;

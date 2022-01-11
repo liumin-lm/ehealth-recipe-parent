@@ -7,14 +7,10 @@ import com.ngari.patient.service.*;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import ctd.controller.exception.ControllerException;
-import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
-import org.apache.axis.Constants;
 import org.apache.axis.client.Call;
 import org.apache.axis.client.Service;
 import org.apache.commons.collections.CollectionUtils;
@@ -26,12 +22,10 @@ import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.YkDrugDto;
 import recipe.drugsenterprise.bean.YkRecipeInfoDto;
-import recipe.drugsenterprise.bean.YkRecipeListInfoDto;
 import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import javax.xml.namespace.QName;
-import javax.xml.rpc.ParameterMode;
 import java.net.URL;
 import java.util.*;
 
@@ -62,11 +56,10 @@ public class YkRemoteService extends AccessDrugEnterpriseService {
         DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(235);
         pushRecipeInfo(recipeIds, enterprise);
     }
+
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-//        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-//        DrugsEnterprise enterprise = drugsEnterpriseDAO.getByAccount("yk");
         String depName=enterprise.getName();
         if (CollectionUtils.isEmpty(recipeIds)) {
             result.setMsg("处方ID参数为空");
@@ -97,8 +90,6 @@ public class YkRemoteService extends AccessDrugEnterpriseService {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        Integer depId = enterprise.getId();
-        String depName = enterprise.getName();
         //药品信息MAP，减少DB查询
         List<YkRecipeInfoDto> recipeInfoList = new ArrayList<YkRecipeInfoDto>();
         //每个处方的json数据
@@ -182,11 +173,6 @@ public class YkRemoteService extends AccessDrugEnterpriseService {
     @Override
     public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
         return null;
-    }
-
-    @Override
-    public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override

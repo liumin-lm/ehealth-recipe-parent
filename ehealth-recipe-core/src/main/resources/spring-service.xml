@@ -16,8 +16,6 @@
     <reference interface="recipe.third.IWXServiceInterface" id="wx.wxService"/>
     <!--微信杭州通服务-->
     <reference interface="recipe.third.HztServiceInterface" id="wx.hangztSmkService"/>
-    <!--微信服务-->
-    <reference id="wx.weixinMpService" interface="com.ngari.intface.WeixinMpService"/>
     <!--药品搜索服务-->
     <reference id="es.drugSearchService" interface="es.api.DrugSearchService"/>
     <!--监管平台-->

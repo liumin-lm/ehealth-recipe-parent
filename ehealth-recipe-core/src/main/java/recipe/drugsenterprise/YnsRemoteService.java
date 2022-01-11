@@ -10,7 +10,6 @@ import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -60,6 +59,7 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
         return DrugEnterpriseResult.getSuccess();
     }
 
+    @RpcService
     @Override
     public DrugEnterpriseResult pushRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
         return DrugEnterpriseResult.getSuccess();
@@ -150,19 +150,6 @@ public class YnsRemoteService extends AccessDrugEnterpriseService {
         return null;
     }
 
-    @RpcService
-    public void test(Integer recipeId){
-        List<Integer> recipeIds = Arrays.asList(recipeId);
-        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(238);
-        Map ext=new HashMap();
-        ext.put("longitude","31.2553210000");
-        ext.put("latitude","121.4620020000");
-        ext.put("range","20");
-        getDrugInventory(749, drugsEnterprise, 11);
-//        scanStock(recipeId,drugsEnterprise);
-    }
-    @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         LOGGER.info("YnsRemoteService.scanStock:[{}]", JSONUtils.toString(recipeId));
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();

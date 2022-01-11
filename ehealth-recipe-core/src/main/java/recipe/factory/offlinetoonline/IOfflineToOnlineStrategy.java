@@ -23,6 +23,7 @@ public interface IOfflineToOnlineStrategy {
 
     /**
      * 获取线下处方列表
+     *
      * @param hisRecipeInfos
      * @param patientDTO
      * @param request
@@ -32,6 +33,7 @@ public interface IOfflineToOnlineStrategy {
 
     /**
      * 获取线下处方详情
+     *
      * @param request
      * @return
      */
@@ -51,4 +53,6 @@ public interface IOfflineToOnlineStrategy {
      * @return
      */
     String getHandlerMode();
+
+    void offlineToOnlineForRecipe(FindHisRecipeDetailReqVO request);
 }

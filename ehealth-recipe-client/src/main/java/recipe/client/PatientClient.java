@@ -274,4 +274,8 @@ public class PatientClient extends BaseClient {
         return null;
     }
 
+    public List<HealthCardDTO> queryCardsByParam(Integer organId,String mpiId,List<String> cardTypes) throws Exception {
+        logger.info("PatientClient queryCardsByParam organId:{},mpiId:{},cardTypes:{}", JSONUtils.toString(organId),mpiId,JSONUtils.toString(cardTypes));
+        return healthCardService.queryCardsByParam(organId,mpiId,cardTypes);
+    }
 }

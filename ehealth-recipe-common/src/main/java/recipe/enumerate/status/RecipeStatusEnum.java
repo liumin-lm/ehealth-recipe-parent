@@ -92,6 +92,9 @@ public enum RecipeStatusEnum {
             RECIPE_STATUS_NO_PAY.type, RECIPE_STATUS_NO_OPERATOR.type, RECIPE_STATUS_RECIPE_MEDICAL_FAIL.type, RECIPE_STATUS_CHECKING_HOS.type, RECIPE_STATUS_NO_MEDICAL_INSURANCE_RETURN.type
             , RECIPE_STATUS_SIGN_ERROR_CODE_PHA.type, RECIPE_STATUS_SIGN_ERROR_CODE_DOC.type, RECIPE_STATUS_SIGN_ING_CODE_PHA.type, RECIPE_STATUS_SIGN_NO_CODE_PHA.type);
 
+    //药师审核不通过状态集合 供getUncheckRecipeByClinicId方法使用
+    public static final List<Integer> UncheckedStatus = Arrays.asList(RECIPE_STATUS_UNCHECK.getType(), RECIPE_STATUS_READY_CHECK_YS.getType(),
+            RECIPE_STATUS_SIGN_ERROR_CODE_PHA.getType(), RECIPE_STATUS_SIGN_ING_CODE_PHA.getType(), RECIPE_STATUS_SIGN_NO_CODE_PHA.getType());
 
     RecipeStatusEnum(Integer type, String name, String desc) {
         this.type = type;

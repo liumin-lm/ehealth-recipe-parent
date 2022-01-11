@@ -15,6 +15,7 @@ import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutRecipeDetailDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
+import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.PatientInfoDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -25,6 +26,7 @@ import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
+import eh.cdr.api.vo.MedicalDetailBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,8 +45,8 @@ import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
+import recipe.manager.EmrRecipeManager;
 import recipe.manager.HisRecipeManager;
-import recipe.manager.OrganDrugListManager;
 import recipe.manager.RecipeManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
@@ -54,6 +56,8 @@ import recipe.util.ValidateUtil;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.doctor.PharmacyTcmVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
+import recipe.vo.second.EmrConfigVO;
+import recipe.vo.second.MedicalDetailVO;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -67,10 +71,11 @@ import java.util.stream.Collectors;
  */
 @Service
 public class RecipeBusinessService extends BaseService implements IRecipeBusinessService {
-
-    //药师审核不通过状态集合 供getUncheckRecipeByClinicId方法使用
-    private final List<Integer> UncheckedStatus = Arrays.asList(RecipeStatusEnum.RECIPE_STATUS_UNCHECK.getType(), RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType(),
-            RecipeStatusEnum.RECIPE_STATUS_SIGN_ERROR_CODE_PHA.getType(), RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_PHA.getType(), RecipeStatusEnum.RECIPE_STATUS_SIGN_NO_CODE_PHA.getType());
+    /**
+     * 操作类型 1：查看，2：copy
+     */
+    private static final Integer DOC_ACTION_TYPE_INFO = 1;
+    private static final Integer DOC_ACTION_TYPE_COPY = 2;
     @Autowired
     private RecipeDAO recipeDAO;
     @Autowired
@@ -83,8 +88,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private PatientClient patientClient;
     @Resource
     private IConfigurationClient configurationClient;
-    @Resource
-    private OrganDrugListManager organDrugListManager;
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
@@ -101,6 +104,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private HisRecipeManager hisRecipeManager;
     @Autowired
     private HisSyncSupervisionService hisSyncSupervisionService;
+    @Autowired
+    private EmrRecipeManager emrRecipeManager;
 
     /**
      * 获取线下门诊处方诊断信息
@@ -198,7 +203,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public Boolean existUncheckRecipe(Integer bussSource, Integer clinicId) {
         logger.info("RecipeBusinessService existUncheckRecipe bussSource={},clinicID={}", bussSource, clinicId);
         //获取处方状态为药师审核不通过的处方个数
-        Long recipesCount = recipeDAO.getRecipeCountByBussSourceAndClinicIdAndStatus(bussSource, clinicId, UncheckedStatus);
+        Long recipesCount = recipeDAO.getRecipeCountByBussSourceAndClinicIdAndStatus(bussSource, clinicId, RecipeStatusEnum.UncheckedStatus);
         int uncheckCount = recipesCount.intValue();
         logger.info("RecipeBusinessService existUncheckRecipe recipesCount={}", recipesCount);
         return uncheckCount != 0;
@@ -325,6 +330,42 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         List<RegulationRecipeIndicatorsReq> request = new ArrayList<>();
         hisSyncSupervisionService.splicingBackRecipeData(Collections.singletonList(recipe), request);
         return ObjectCopyUtils.convert(request.get(0), RegulationRecipeIndicatorsDTO.class);
+    }
+
+    @Override
+    public void offlineToOnlineForRecipe(FindHisRecipeDetailReqVO request) {
+
+    }
+
+
+    @Override
+    public MedicalDetailVO getDocIndexInfo(CaseHistoryVO caseHistoryVO) {
+        MedicalDetailBean medicalDetailBean = null;
+        //查看
+        if (DOC_ACTION_TYPE_INFO.equals(caseHistoryVO.getActionType())) {
+            MedicalDetailBean emrDetails = emrRecipeManager.getEmrDetailsByClinicId(caseHistoryVO.getClinicId());
+            if (!org.springframework.util.StringUtils.isEmpty(emrDetails)) {
+                medicalDetailBean = emrDetails;
+            } else {
+                medicalDetailBean = emrRecipeManager.getEmrDetails(caseHistoryVO.getDocIndexId());
+            }
+        }
+        //copy
+        if (DOC_ACTION_TYPE_COPY.equals(caseHistoryVO.getActionType())) {
+            if (ValidateUtil.integerIsEmpty(caseHistoryVO.getRecipeId())) {
+                medicalDetailBean = emrRecipeManager.getEmrDetailsByClinicId(caseHistoryVO.getClinicId());
+            } else {
+                medicalDetailBean = emrRecipeManager.copyEmrDetails(caseHistoryVO.getRecipeId(), caseHistoryVO.getClinicId());
+            }
+        }
+        if (null == medicalDetailBean) {
+            return null;
+        }
+        MedicalDetailVO medicalDetailVO = new MedicalDetailVO();
+        org.springframework.beans.BeanUtils.copyProperties(medicalDetailBean, medicalDetailVO);
+        List<EmrConfigVO> detailList = com.ngari.patient.utils.ObjectCopyUtils.convert(medicalDetailBean.getDetailList(), EmrConfigVO.class);
+        medicalDetailVO.setDetailList(detailList);
+        return medicalDetailVO;
     }
 
 

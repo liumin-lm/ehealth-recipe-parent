@@ -66,12 +66,6 @@ public class YsqnRemoteService extends AccessDrugEnterpriseService {
     }
 
     @RpcService
-    public void test (List<Integer> recipeIds, Integer depId) {
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
-        pushRecipeInfo(recipeIds, drugsEnterprise);
-    }
-
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
@@ -169,21 +163,8 @@ public class YsqnRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        return ysqRemoteService.scanStock(recipeId, drugsEnterprise);
-    }
-
-    @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
         return ysqRemoteService.syncEnterpriseDrug(drugsEnterprise, drugIdList);
-    }
-
-    @RpcService
-    public DrugStockAmountDTO test1(Integer recipeId){
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
-        return scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetails);
     }
 
     @Override

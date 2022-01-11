@@ -1,7 +1,6 @@
 package recipe.drugsenterprise.bean;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import org.apache.lucene.queryparser.surround.query.SrndTermQuery;
 
 import java.io.Serializable;
 /**

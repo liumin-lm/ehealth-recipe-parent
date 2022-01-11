@@ -1,6 +1,7 @@
 package recipe.api.open;
 
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
+import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.util.annotation.RpcService;
 import recipe.vo.patient.PatientOptionalDrugVo;
@@ -83,4 +84,13 @@ public interface IRecipeAtopService {
      */
     @RpcService(mvcDisabled = true)
     RegulationRecipeIndicatorsDTO regulationRecipe(Integer recipeId);
+
+    /**
+     * 消息推送线下转线上
+     *
+     * @param
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    void offlineToOnlineForRecipe(FindHisRecipeDetailReqVO request);
 }

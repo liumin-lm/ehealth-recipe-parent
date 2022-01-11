@@ -44,6 +44,12 @@ public class RecipeInfoExportDTO implements Serializable{
     @Dictionary(id = "eh.cdr.dictionary.RecipeType")
     private Integer recipeType;
 
+    @Dictionary(id = "eh.cdr.dictionary.BussSourceType")
+    private Integer bussSource;
+
+    @ItemProperty(alias = "处方单号")
+    private String recipeCode;
+
     @ItemProperty(alias = "结算方式（医保 自费）")
     private Integer orderType;
 
@@ -243,5 +249,21 @@ public class RecipeInfoExportDTO implements Serializable{
 
     public void setDispensingTime(Date dispensingTime) {
         this.dispensingTime = dispensingTime;
+    }
+
+    public Integer getBussSource() {
+        return bussSource;
+    }
+
+    public void setBussSource(Integer bussSource) {
+        this.bussSource = bussSource;
+    }
+
+    public String getRecipeCode() {
+        return recipeCode;
+    }
+
+    public void setRecipeCode(String recipeCode) {
+        this.recipeCode = recipeCode;
     }
 }

@@ -209,7 +209,6 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
                 String responseData = MapValueUtil.getString(resultMap, "responseData");
                 result.setCode(DrugEnterpriseResult.FAIL);
                 result.setMsg(message + responseData);
-//            getFailResult(result, message + responseData);
             }
         }
         return result;
@@ -322,15 +321,6 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
 
     }
 
-    @RpcService
-    public void test(Integer recipeId){
-        List<Integer> recipeIds = Arrays.asList(recipeId);
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(226);
-        pushRecipeInfo(recipeIds, enterprise);
-//        scanStock(recipeId, enterprise);
-        //findSupportDep(recipeIds,null,enterprise);
-    }
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         LOGGER.info("ByRemoteService.pushRecipeInfo 百洋药企:{}.", JSONUtils.toString(recipeIds));
@@ -479,7 +469,6 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
         return DrugEnterpriseResult.getSuccess();
     }
 
-    @Override
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         LOGGER.info("ByRemoteService.scanStock:[{}]", JSONUtils.toString(recipeId));
         DrugEnterpriseResult result = DrugEnterpriseResult.getFail();

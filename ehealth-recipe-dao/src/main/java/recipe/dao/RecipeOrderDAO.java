@@ -2,12 +2,7 @@ package recipe.dao;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Sets;
-import com.ngari.his.regulation.entity.RegulationChargeDetailReqTo;
-import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.PatientService;
+import com.ngari.recipe.dto.RegulationChargeDetailDTO;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.pay.model.BusBillDateAccountDTO;
 import com.ngari.recipe.recipereportform.model.*;
@@ -21,17 +16,16 @@ import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
 import ctd.util.converter.ConversionUtils;
-import eh.billcheck.constant.BillBusFeeTypeEnum;
-import eh.billcheck.vo.BillBusFeeVo;
-import eh.billcheck.vo.BillDrugFeeVo;
-import eh.billcheck.vo.BillRecipeDetailVo;
-import eh.billcheck.vo.RecipeBillRequest;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.dao.bean.BillBusFeeBean;
+import recipe.dao.bean.BillDrugFeeBean;
+import recipe.dao.bean.BillRecipeDetailBean;
+import recipe.dao.bean.RecipeBillBean;
 import recipe.dao.comment.ExtendDao;
 import recipe.enumerate.status.PayWayEnum;
 
@@ -69,6 +63,19 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      */
     @DAOMethod(sql = "from RecipeOrder where orderCode=:orderCode")
     public abstract RecipeOrder getByOrderCode(@DAOParam("orderCode") String orderCode);
+
+    /**
+     * 获取订单
+     *
+     * @param orderId 订单ID
+     * @param logisticsCompany 快递公司
+     * @param trackingNumber 快递单号
+     * @return
+     */
+    @DAOMethod(sql = "from RecipeOrder where orderId =:orderId and logisticsCompany=:logisticsCompany and trackingNumber =:trackingNumber")
+    public abstract RecipeOrder getByLogisticsCompanyAndTrackingNumber(@DAOParam("orderId") Integer orderId,
+                                                                       @DAOParam("logisticsCompany") Integer logisticsCompany,
+                                                                       @DAOParam("trackingNumber") String trackingNumber);
 
     /**
      * 批量查询 根据编号获取有效订单
@@ -271,8 +278,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @param pageSize
      * @return
      */
-    public List<BillRecipeDetailVo> getPayAndRefundInfoByTime(Date startTime, Date endTime, int start, int pageSize) {
-        HibernateStatelessResultAction<List<BillRecipeDetailVo>> action = new AbstractHibernateStatelessResultAction<List<BillRecipeDetailVo>>() {
+    public List<BillRecipeDetailBean> getPayAndRefundInfoByTime(Date startTime, Date endTime, int start, int pageSize) {
+        HibernateStatelessResultAction<List<BillRecipeDetailBean>> action = new AbstractHibernateStatelessResultAction<List<BillRecipeDetailBean>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
@@ -302,11 +309,11 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 q.setFirstResult(start);
                 q.setMaxResults(pageSize);
                 List<Object[]> result = q.list();
-                List<BillRecipeDetailVo> backList = new ArrayList<>(pageSize);
+                List<BillRecipeDetailBean> backList = new ArrayList<>(pageSize);
                 if (CollectionUtils.isNotEmpty(result)) {
-                    BillRecipeDetailVo vo;
+                    BillRecipeDetailBean vo;
                     for (Object[] objs : result) {
-                        vo = new BillRecipeDetailVo();
+                        vo = new BillRecipeDetailBean();
                         vo.setRecipeId(objs[2] == null ? null : (Integer) objs[0]);
                         vo.setMpiId(objs[2] == null ? null : objs[2] + "");
                         vo.setDoctorId(objs[1] == null ? null : (Integer) objs[1]);
@@ -331,11 +338,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                         vo.setBillType(objs[20] == null ? null : Integer.parseInt(objs[20] + ""));
                         vo.setSelfPay(objs[17] == null ? 0.0 : new BigDecimal(objs[17] + "").subtract(new BigDecimal(objs[18] == null ? "0.0" : objs[18] + "")).doubleValue());
                         vo.setHisRecipeId(objs[22] == null ? null : objs[22].toString());
-
                         backList.add(vo);
                     }
                 }
-
                 setResult(backList);
             }
         };
@@ -375,8 +380,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
      * @param endTime
      * @return
      */
-    public List<RegulationChargeDetailReqTo> queryRegulationChargeDetailList(final List<Integer> ngariOrganIds, final Date startTime, final Date endTime) {
-        HibernateStatelessResultAction<List<RegulationChargeDetailReqTo>> action = new AbstractHibernateStatelessResultAction<List<RegulationChargeDetailReqTo>>() {
+    public List<RegulationChargeDetailDTO> queryRegulationChargeDetailList(final List<Integer> ngariOrganIds, final Date startTime, final Date endTime) {
+        HibernateStatelessResultAction<List<RegulationChargeDetailDTO>> action = new AbstractHibernateStatelessResultAction<List<RegulationChargeDetailDTO>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
@@ -395,11 +400,11 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 q.setParameterList("ngariOrganIds", ngariOrganIds);
                 logger.info("paramter is startTime:[{}],endTime:[{}],ngariOrganIds[{}]", startTime, endTime, ngariOrganIds);
                 List<Object[]> result = q.list();
-                List<RegulationChargeDetailReqTo> backList = new ArrayList<>();
+                List<RegulationChargeDetailDTO> backList = new ArrayList<>();
                 if (CollectionUtils.isNotEmpty(result)) {
-                    RegulationChargeDetailReqTo vo;
+                    RegulationChargeDetailDTO vo;
                     for (Object[] objs : result) {
-                        vo = new RegulationChargeDetailReqTo();
+                        vo = new RegulationChargeDetailDTO();
                         vo.setOrganID(objs[0] == null ? null : (Integer) objs[0]);
                         vo.setRecipeDetailID(objs[1] == null ? null : objs[1] + "");
                         vo.setPayFlag(objs[2] == null ? null : Integer.parseInt(objs[2] + ""));
@@ -528,32 +533,13 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 q.setMaxResults(limit);
                 List<Object[]> result = q.list();
                 List<Map<String, Object>> backList = new ArrayList<>();
-
-                Set<String> mpiIds = Sets.newHashSet();
                 if (CollectionUtils.isNotEmpty(result)) {
-
-                    //获取全部身份证信息
-                    PatientService patientService = BasicAPI.getService(PatientService.class);
-                    Map<String, String> patientBeanMap = Maps.newHashMap();
-                    for (Object[] obj : result) {
-                        if (obj[2] != null) {
-                            mpiIds.add((String) obj[2]);
-                        }
-                    }
-
-                    if (0 < mpiIds.size()) {
-                        List<PatientDTO> patientBeanList = patientService.findByMpiIdIn(new ArrayList<String>(mpiIds));
-                        for (PatientDTO p : patientBeanList) {
-                            patientBeanMap.put(p.getMpiId(), p.getIdcard());
-                        }
-                    }
-
                     Map<String, Object> vo;
                     for (Object[] objs : result) {
                         vo = new HashMap<String, Object>();
                         vo.put("recipeId", objs[0] == null ? null : (Integer) objs[0]);
                         vo.put("patientName", objs[1] == null ? null : (String) objs[1]);
-                        vo.put("cardId", objs[2] == null ? null : patientBeanMap.get((String) objs[2]));
+                        vo.put("mpiId", objs[2] == null ? null : (String) objs[2]);
                         vo.put("enterpriseName", objs[3] == null ? null : (String) objs[3]);
                         vo.put("organName", objs[4] == null ? null : (String) objs[4]);
                         vo.put("doctorName", objs[5] == null ? null : (String) objs[5]);
@@ -737,25 +723,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 List<Object[]> result = q.list();
                 List<Map<String, Object>> backList = new ArrayList<>();
 
-                Set<String> mpiIds = Sets.newHashSet();
                 if (CollectionUtils.isNotEmpty(result)) {
-
-                    //获取全部身份证信息
-                    PatientService patientService = BasicAPI.getService(PatientService.class);
-                    Map<String, String> patientBeanMap = Maps.newHashMap();
-                    for (Object[] obj : result) {
-                        if (obj[2] != null) {
-                            mpiIds.add((String) obj[2]);
-                        }
-                    }
-
-                    if (0 < mpiIds.size()) {
-                        List<PatientDTO> patientBeanList = patientService.findByMpiIdIn(new ArrayList<String>(mpiIds));
-                        for (PatientDTO p : patientBeanList) {
-                            patientBeanMap.put(p.getMpiId(), p.getCardId());
-                        }
-                    }
-
                     Map<String, Object> vo;
                     for (Object[] objs : result) {
                         vo = new HashMap<String, Object>();
@@ -841,8 +809,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return action.getResult();
     }
 
-    public List<BillBusFeeVo> findRecipeFeeList(final RecipeBillRequest recipeBillRequest) {
-        HibernateStatelessResultAction<List<BillBusFeeVo>> action = new AbstractHibernateStatelessResultAction<List<BillBusFeeVo>>() {
+    public List<BillBusFeeBean> findRecipeFeeList(final RecipeBillBean recipeBillRequest) {
+        HibernateStatelessResultAction<List<BillBusFeeBean>> action = new AbstractHibernateStatelessResultAction<List<BillBusFeeBean>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuffer paySql = new StringBuffer();
@@ -873,11 +841,11 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 setResult(convertToBBFVList(recipeBillRequest.getAcctDate(), payList, refundList));
             }
 
-            private List<BillBusFeeVo> convertToBBFVList(String acctDate, List<Object[]> payList, List<Object[]> refundList) {
+            private List<BillBusFeeBean> convertToBBFVList(String acctDate, List<Object[]> payList, List<Object[]> refundList) {
                 Set<Integer> organSet = fetchAllOrgan(payList, refundList);
-                List<BillBusFeeVo> voList = Lists.newArrayList();
+                List<BillBusFeeBean> voList = Lists.newArrayList();
                 for (Integer organId : organSet) {
-                    BillBusFeeVo vo = newBillBusFeeVo(acctDate, organId);
+                    BillBusFeeBean vo = newBillBusFeeVo(acctDate, organId);
                     fullFillPayPartIfExists(vo, payList);
                     fullFillRefundPartIfExists(vo, refundList);
                     vo.setAggregateAmount(vo.getPayAmount() - vo.getRefundAmount());
@@ -886,7 +854,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 return voList;
             }
 
-            private void fullFillRefundPartIfExists(BillBusFeeVo vo, List<Object[]> refundList) {
+            private void fullFillRefundPartIfExists(BillBusFeeBean vo, List<Object[]> refundList) {
                 for (Object[] ros : refundList) {
                     Integer organId = ConversionUtils.convert(ros[0], Integer.class);
                     if (vo.getOrganId().equals(organId)) {
@@ -897,7 +865,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 }
             }
 
-            private void fullFillPayPartIfExists(BillBusFeeVo vo, List<Object[]> payList) {
+            private void fullFillPayPartIfExists(BillBusFeeBean vo, List<Object[]> payList) {
                 for (Object[] pos : payList) {
                     Integer organId = ConversionUtils.convert(pos[0], Integer.class);
                     if (vo.getOrganId().equals(organId)) {
@@ -908,12 +876,12 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 }
             }
 
-            private BillBusFeeVo newBillBusFeeVo(String acctDate, Integer organId) {
-                BillBusFeeVo vo = new BillBusFeeVo();
+            private BillBusFeeBean newBillBusFeeVo(String acctDate, Integer organId) {
+                BillBusFeeBean vo = new BillBusFeeBean();
                 vo.setAcctMonth(acctDate.substring(0, 7));
                 vo.setAcctDate(acctDate);
-                vo.setFeeType(BillBusFeeTypeEnum.RECIPE_ACTUAL_FEE.id());
-                vo.setFeeTypeName(BillBusFeeTypeEnum.RECIPE_ACTUAL_FEE.text());
+                vo.setFeeType(1);
+                vo.setFeeTypeName("电子处方实收");
                 vo.setOrganId(organId);
                 vo.setPayCount(0);
                 vo.setPayAmount(0.0);
@@ -939,8 +907,8 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return action.getResult();
     }
 
-    public List<BillDrugFeeVo> findDrugFeeList(final RecipeBillRequest recipeBillRequest) {
-        HibernateStatelessResultAction<List<BillDrugFeeVo>> action = new AbstractHibernateStatelessResultAction<List<BillDrugFeeVo>>() {
+    public List<BillDrugFeeBean> findDrugFeeList(final RecipeBillBean recipeBillRequest) {
+        HibernateStatelessResultAction<List<BillDrugFeeBean>> action = new AbstractHibernateStatelessResultAction<List<BillDrugFeeBean>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 StringBuffer sql = new StringBuffer();
@@ -959,10 +927,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 setResult(convertToBDFVList(recipeBillRequest.getAcctDate(), list));
             }
 
-            private List<BillDrugFeeVo> convertToBDFVList(String acctDate, List<Object[]> list) {
-                List<BillDrugFeeVo> voList = Lists.newArrayList();
+            private List<BillDrugFeeBean> convertToBDFVList(String acctDate, List<Object[]> list) {
+                List<BillDrugFeeBean> voList = Lists.newArrayList();
                 for (Object[] objs : list) {
-                    BillDrugFeeVo vo = new BillDrugFeeVo();
+                    BillDrugFeeBean vo = new BillDrugFeeBean();
                     vo.setAcctMonth(acctDate.substring(0, 8));
                     vo.setAcctDate(acctDate);
                     vo.setOrganId(ConversionUtils.convert(objs[0], Integer.class));

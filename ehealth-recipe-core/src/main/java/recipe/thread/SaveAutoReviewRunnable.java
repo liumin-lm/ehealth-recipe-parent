@@ -6,6 +6,7 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.util.AppContextHolder;
 import eh.recipeaudit.api.IAuditMedicinesService;
+import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.model.AuditMedicineIssueBean;
 import eh.recipeaudit.model.AuditMedicinesBean;
 import eh.recipeaudit.model.Intelligent.AutoAuditResultBean;
@@ -47,72 +48,14 @@ public class SaveAutoReviewRunnable implements Runnable {
 
     @Override
     public void run() {
-        long start = System.currentTimeMillis();
-        LOGGER.info("SaveAutoReviewRunnable start. recipe={}", JSON.toJSONString(recipe));
+        LOGGER.info("SaveAutoReviewRunnable start recipe={},details={}",JSON.toJSONString(recipe),JSON.toJSONString(details));
         try{
-            Integer recipeId = recipe.getRecipeId();
-            PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
-            IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
-            AutoAuditResultBean autoAuditResult = prescriptionService.analysis(recipe, details);
-            List<AuditMedicinesBean> auditMedicinesList = Lists.newArrayList();
-            List<PAWebMedicinesBean> paResultList = autoAuditResult.getMedicines();
-            List<PAWebRecipeDangerBean> recipeDangers = autoAuditResult.getRecipeDangers();
-            LOGGER.info("SaveAutoReviewRunnable paResultList:{},paResultList:{}", JSON.toJSONString(paResultList), JSON.toJSONString(recipeDangers));
-            if (CollectionUtils.isNotEmpty(recipeDangers)) {
-                recipeDangers.forEach(item -> {
-                    AuditMedicineIssueBean auditMedicineIssue = new AuditMedicineIssueBean();
-                    auditMedicineIssue.setRecipeId(recipeId);
-                    auditMedicineIssue.setLvl(item.getDangerType());
-                    auditMedicineIssue.setLvlCode(item.getDangerLevel());
-                    auditMedicineIssue.setDetail(item.getDangerDesc());
-                    auditMedicineIssue.setTitle(item.getDangerDrug());
-                    auditMedicineIssue.setCreateTime(new Date());
-                    auditMedicineIssue.setLastModify(new Date());
-                    auditMedicineIssue.setDetailUrl(item.getDetailUrl());
-                    auditMedicineIssue.setLogicalDeleted(0);
-                    iAuditMedicinesService.saveAuditMedicineIssue(auditMedicineIssue);
-                });
-            }
-            if (CollectionUtils.isEmpty(paResultList)) {
-                AuditMedicinesBean auditMedicinesDTO = new AuditMedicinesBean();
-                auditMedicinesDTO.setRecipeId(recipeId);
-                auditMedicinesDTO.setRemark(StringUtils.isNotEmpty(autoAuditResult.getMsg())?autoAuditResult.getMsg():"系统预审未发现处方问题");
-                auditMedicinesList.add(auditMedicinesDTO);
-                iAuditMedicinesService.saveAuditMedicines(recipeId, auditMedicinesList);
-            } else if (CollectionUtils.isNotEmpty(paResultList)) {
-                AuditMedicinesBean auditMedicinesDTO;
-                List<IssueBean> issueList;
-                List<AuditMedicineIssueBean> auditMedicineIssues;
-                AuditMedicineIssueBean auditIssueDTO;
-                for (PAWebMedicinesBean paMedicine : paResultList) {
-                    auditMedicinesDTO = new AuditMedicinesBean();
-                    auditMedicinesDTO.setRecipeId(recipeId);
-                    auditMedicinesDTO.setCode(paMedicine.getCode());
-                    auditMedicinesDTO.setName(paMedicine.getName());
-                    auditMedicinesDTO.setRemark(StringUtils.isNotEmpty(autoAuditResult.getMsg())?autoAuditResult.getMsg():"系统预审未发现处方问题");
-                    issueList = paMedicine.getIssues();
-                    if (CollectionUtils.isNotEmpty(issueList)) {
-                        auditMedicineIssues = new ArrayList<>(issueList.size());
-                        for (IssueBean issue : issueList) {
-                            auditIssueDTO = new AuditMedicineIssueBean();
-                            auditIssueDTO.setDetail(issue.getDetail());
-                            auditIssueDTO.setLvl(issue.getLvl());
-                            auditIssueDTO.setLvlCode(issue.getLvlCode());
-                            auditIssueDTO.setTitle(issue.getTitle());
-                            auditMedicineIssues.add(auditIssueDTO);
-                        }
-                        auditMedicinesDTO.setAuditMedicineIssues(auditMedicineIssues);
-                    }
-                    auditMedicinesList.add(auditMedicinesDTO);
-                }
-                iAuditMedicinesService.saveAuditMedicines(recipeId, auditMedicinesList);
-            }
-        }catch (Exception e){
-            LOGGER.error("SaveAutoReviewRunnable error,recipe={}", JSON.toJSONString(recipe), e);
-        } finally {
-            LOGGER.info("SaveAutoReviewRunnable finish. recipe={}", JSON.toJSONString(recipe));
-            long elapsedTime = System.currentTimeMillis() - start;
-            LOGGER.info("RecipeBusiThreadPool SaveAutoReviewRunnable 保存智能审方 执行时间:{}ms.", elapsedTime);
+            IRecipeAuditService iRecipeAuditService = ApplicationUtils.getRecipeService(IRecipeAuditService.class);
+            iRecipeAuditService.saveAutoReview(recipe,details);
+        }catch(Exception e){
+            LOGGER.info("SaveAutoReviewRunnable exception",e);
+        }finally {
+            LOGGER.info("SaveAutoReviewRunnable end");
         }
     }
 

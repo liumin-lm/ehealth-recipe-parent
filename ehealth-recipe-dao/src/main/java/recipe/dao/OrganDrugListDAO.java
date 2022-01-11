@@ -2,9 +2,6 @@ package recipe.dao;
 
 import com.alibaba.druid.util.StringUtils;
 import com.google.common.collect.Lists;
-import com.ngari.patient.dto.OrganDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drug.model.DepSaleDrugInfo;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugsEnterprise;
@@ -409,7 +406,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      * @return
      * @author houxr
      */
-    public QueryResult<DrugListAndOrganDrugList> queryOrganDrugListByOrganIdAndKeyword(final Integer organId, final String drugClass, final String keyword, final Integer status, final int start, final int limit) {
+    public QueryResult<DrugListAndOrganDrugList> queryOrganDrugListByOrganIdAndKeyword(List<Integer> listOrgan, final Integer organId, final String drugClass, final String keyword, final Integer status, final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>>() {
             @SuppressWarnings("unchecked")
             @Override
@@ -419,11 +416,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     if (!StringUtils.isEmpty(drugClass)) {
                         hql.append(" and d.drugClass like :drugClass");
                     }
-                    List<Integer> listOrgan = new ArrayList<>();
-                    if (!ObjectUtils.isEmpty(organId)){
-                        OrganDTO byOrganId = BasicAPI.getService(OrganService.class).getByOrganId(organId);
-                        listOrgan = BasicAPI.getService(OrganService.class).queryOrganByManageUnitList(byOrganId.getManageUnit(), listOrgan);
-//                        hql.append(" and ( d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
+                    if (!ObjectUtils.isEmpty(organId)) {
                         hql.append(" and ( d.sourceOrgan=0 or d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
                     }
                     Integer drugId = null;
@@ -618,7 +611,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
      * @return
      * @author houxr
      */
-    public QueryResult<DrugListAndOrganDrugList> queryOrganDrugListByOrganIdAndKeywordAndProducer(final Integer organId, final String drugType,final String keyword,final String producer,  final Integer status, final int start, final int limit) {
+    public QueryResult<DrugListAndOrganDrugList> queryOrganDrugListByOrganIdAndKeywordAndProducer(List<Integer> listOrgan, final Integer organId, final String drugType, final String keyword, final String producer, final Integer status, final int start, final int limit) {
         HibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>> action = new AbstractHibernateStatelessResultAction<QueryResult<DrugListAndOrganDrugList>>() {
             @SuppressWarnings("unchecked")
             @Override
@@ -631,11 +624,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     if (!StringUtils.isEmpty(producer)) {
                         hql.append(" and d.producer like :producer");
                     }
-                    List<Integer> listOrgan = new ArrayList<>();
                     if (!ObjectUtils.isEmpty(organId)){
-                        OrganDTO byOrganId = BasicAPI.getService(OrganService.class).getByOrganId(organId);
-                        listOrgan = BasicAPI.getService(OrganService.class).queryOrganByManageUnitList(byOrganId.getManageUnit(), listOrgan);
-//                        hql.append(" and ( d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
                         hql.append(" and ( d.sourceOrgan=0 or d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
                     }
                     Integer drugId = null;

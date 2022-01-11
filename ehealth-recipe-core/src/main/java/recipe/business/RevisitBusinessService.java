@@ -1,6 +1,5 @@
 package recipe.business;
 
-import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.dto.ApothecaryDTO;
@@ -8,6 +7,7 @@ import com.ngari.recipe.dto.RecipeCancelDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeStatusConstant;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.WriteDrugRecipeDTO;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import easypay.entity.po.AccountResult;
@@ -16,18 +16,13 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
-import recipe.bussutil.RecipeValidateUtil;
 import recipe.client.DoctorClient;
 import recipe.client.IConfigurationClient;
 import recipe.client.RecipeAuditClient;
 import recipe.core.api.IRevisitBusinessService;
 import recipe.dao.*;
 import recipe.easypay.IEasyPayService;
-import recipe.manager.OrderManager;
-import recipe.manager.RecipeManager;
-import recipe.manager.RevisitManager;
-import recipe.manager.SignManager;
+import recipe.manager.*;
 import recipe.util.ValidateUtil;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
@@ -136,7 +131,8 @@ public class RevisitBusinessService extends BaseService implements IRevisitBusin
                         }
                         innerAudit.setCheckSign(apothecaryDTO.getCheckerSignImg());
                         revisitRecipeTraceVo.setAuditCheck(innerAudit);
-                        obtainCheckNotPassDetail(revisitRecipeTraceVo, recipe);
+                        List<Map<String, Object>> mapList = recipeManager.getCheckNotPassDetail(recipe);
+                        revisitRecipeTraceVo.setReasonAndDetails(mapList);
                     }
 
                     if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
@@ -207,6 +203,14 @@ public class RevisitBusinessService extends BaseService implements IRevisitBusin
         }
         Integer revisitId = revisitManager.getRevisitId(recipe.getMpiid(), recipe.getDoctor(), UNDERWAY_REVISIT_REGISTER_ID.equals(isUnderwayRevisit));
         return !ValidateUtil.integerIsEmpty(revisitId);
+    }
+
+    @Override
+    public List<WriteDrugRecipeDTO> findWriteDrugRecipeByRevisitFromHis(String mpiId, Integer organId, Integer doctorId) throws Exception {
+        logger.info("findWriteDrugRecipeByRevisitFromHis start");
+        List<WriteDrugRecipeDTO> result = revisitManager.findWriteDrugRecipeByRevisitFromHis(mpiId, organId, doctorId);
+        logger.info("findWriteDrugRecipeByRevisitFromHis end");
+        return result;
     }
 
     /**
@@ -310,38 +314,4 @@ public class RevisitBusinessService extends BaseService implements IRevisitBusin
         }
         logger.info("RecipeBusinessService obtainRevisitTraceRecipeDetailInfo res:{}", JSONUtils.toString(revisitRecipeTraceVo));
     }
-
-    /**
-     * 获取复诊处方追溯--获取审方不通过详情
-     *
-     * @param revisitRecipeTraceVo
-     * @param recipe
-     */
-    private void obtainCheckNotPassDetail(RevisitRecipeTraceVo revisitRecipeTraceVo, Recipe recipe) {
-        logger.info("RecipeBusinessService obtainCheckNotPassDetail param:[{},{}]", JSONUtils.toString(revisitRecipeTraceVo), JSONUtils.toString(recipe));
-        //获取审核不通过详情
-        try {
-            List<Map<String, Object>> mapList = recipeAuditClient.getCheckNotPassDetail(recipe.getRecipeId());
-            if (!ObjectUtils.isEmpty(mapList)) {
-                for (int i = 0; i < mapList.size(); i++) {
-                    Map<String, Object> notPassMap = mapList.get(i);
-                    List results = (List) notPassMap.get("checkNotPassDetails");
-                    List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtil.convert(results, RecipeDetailBean.class);
-                    try {
-                        for (RecipeDetailBean recipeDetailBean : recipeDetailBeans) {
-                            RecipeValidateUtil.setUsingRateIdAndUsePathwaysId(recipe, recipeDetailBean);
-                        }
-                    } catch (Exception e) {
-                        logger.error("RecipeServiceSub  setUsingRateIdAndUsePathwaysId error", e);
-                    }
-                }
-            }
-            revisitRecipeTraceVo.setReasonAndDetails(mapList);
-        } catch (Exception e) {
-            logger.error("obtainCheckNotPassDetail error", e);
-            e.printStackTrace();
-        }
-        logger.info("RecipeBusinessService obtainCheckNotPassDetail res:{}", JSONUtils.toString(revisitRecipeTraceVo));
-    }
-
 }
