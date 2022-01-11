@@ -1,8 +1,8 @@
 package recipe.core.api;
 
-import com.ngari.his.recipe.mode.DrugSpecificationInfoDTO;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
+import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.entity.Dispensatory;
 import com.ngari.recipe.entity.DrugList;
