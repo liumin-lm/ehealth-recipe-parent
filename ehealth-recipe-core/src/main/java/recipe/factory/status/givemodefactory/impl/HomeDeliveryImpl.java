@@ -94,12 +94,12 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
         }
 
         if (null != orderStatus.getLogisticsCompany() || StringUtils.isNotBlank(orderStatus.getTrackingNumber())) {
-            RecipeOrder recipeOrder = recipeOrderDAO.getByLogisticsCompanyAndTrackingNumber(orderStatus.getOrderId(), orderStatus.getLogisticsCompany(), orderStatus.getTrackingNumber());
+            RecipeOrder recipeOrderForTrackingNumber = recipeOrderDAO.getByLogisticsCompanyAndTrackingNumber(orderStatus.getOrderId(), orderStatus.getLogisticsCompany(), orderStatus.getTrackingNumber());
             //当没有维护快递信息或者变更快递信息需要重新推送和上传快递信息
-            if (null == recipeOrder
-                    || orderStatus.getLogisticsCompany() != recipeOrder.getLogisticsCompany()
-                    || orderStatus.getTrackingNumber().equals(orderStatus.getTrackingNumber())) {
-
+            if (null == recipeOrderForTrackingNumber
+                    || orderStatus.getLogisticsCompany() != recipeOrderForTrackingNumber.getLogisticsCompany()
+                    || orderStatus.getTrackingNumber().equals(recipeOrderForTrackingNumber.getTrackingNumber())) {
+                RecipeOrder recipeOrder = new RecipeOrder(orderStatus.getOrderId());
                 recipeOrder.setLogisticsCompany(orderStatus.getLogisticsCompany());
                 recipeOrder.setTrackingNumber(orderStatus.getTrackingNumber());
                 recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
