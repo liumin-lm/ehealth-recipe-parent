@@ -31,6 +31,7 @@ import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
+import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.*;
@@ -69,6 +70,7 @@ import recipe.client.RefundClient;
 import recipe.common.CommonConstant;
 import recipe.common.ResponseUtils;
 import recipe.constant.*;
+import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
 import recipe.enumerate.status.RecipeSourceTypeEnum;
@@ -160,6 +162,10 @@ public class RecipeOrderService extends RecipeBaseService {
     private ButtonManager buttonManager;
     @Autowired
     private DrugListDAO drugListDAO;
+    @Autowired
+    private IStockBusinessService stockBusinessService;
+    @Resource
+    private RecipeDetailDAO recipeDetailDAO;
 
     /**
      * 处方结算时创建临时订单
@@ -2322,7 +2328,6 @@ public class RecipeOrderService extends RecipeBaseService {
         }
     }
 
-
     /**
      * @param nowRecipe 处方
      * @param payMode   支付方式
@@ -2355,9 +2360,10 @@ public class RecipeOrderService extends RecipeBaseService {
                 LOGGER.info("审方前置或者不审核-药店取药-药企为空");
             } else {
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(nowRecipe.getEnterpriseId());
-                DrugEnterpriseResult result = remoteDrugService.scanStock(nowRecipe.getRecipeId(), drugsEnterprise);
-                boolean scanFlag = result.getCode().equals(DrugEnterpriseResult.SUCCESS) ? true : false;
-                LOGGER.info("sendTfdsMsg sacnFlag: {}.", scanFlag);
+                List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(nowRecipe.getRecipeId());
+                EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(nowRecipe, recipeDetailList, drugsEnterprise.getId());
+                boolean scanFlag = enterpriseStock.getStock();
+                LOGGER.info("sendMsg scanFlag: {}.", scanFlag);
                 if (scanFlag) {
                     //表示需要进行库存校验并且有库存
                     RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_DRUG_HAVE_STOCK, nowRecipe);
@@ -2371,7 +2377,6 @@ public class RecipeOrderService extends RecipeBaseService {
             // 支付成功 到院取药 推送消息 审方前置
             RecipeMsgService.sendRecipeMsg(RecipeMsgEnum.RECIPE_HOS_TAKE_MEDICINE, nowRecipe);
         }
-
     }
 
 

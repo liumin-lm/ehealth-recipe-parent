@@ -3,7 +3,6 @@ package recipe.drugsenterprise;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -106,11 +105,6 @@ public class YdRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        return DrugEnterpriseResult.getSuccess();
-    }
-
-    @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
         return DrugEnterpriseResult.getSuccess();
     }
@@ -130,16 +124,4 @@ public class YdRemoteService extends AccessDrugEnterpriseService {
         return DrugEnterpriseConstant.COMPANY_YD;
     }
 
-    /**
-     * 返回调用信息
-     * @param result DrugEnterpriseResult
-     * @param msg     提示信息
-     * @return DrugEnterpriseResult
-     */
-    private DrugEnterpriseResult getDrugEnterpriseResult(DrugEnterpriseResult result, String msg) {
-        result.setMsg(msg);
-        LOGGER.info(msg);
-        result.setCode(DrugEnterpriseResult.FAIL);
-        return result;
-    }
 }

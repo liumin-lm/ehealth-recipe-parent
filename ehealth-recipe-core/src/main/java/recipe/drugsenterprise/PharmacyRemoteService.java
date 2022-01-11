@@ -64,12 +64,6 @@ public class PharmacyRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        LOGGER.info("PharmacyRemoteService scanStock not implement.");
-        return DrugEnterpriseResult.getSuccess();
-    }
-
-    @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
         LOGGER.info("PharmacyRemoteService syncEnterpriseDrug not implement.");
         return DrugEnterpriseResult.getSuccess();

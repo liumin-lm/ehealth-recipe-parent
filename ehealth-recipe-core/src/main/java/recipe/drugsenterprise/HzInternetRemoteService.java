@@ -148,11 +148,6 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        return getRealization(Lists.newArrayList(recipeId)).scanStock(recipeId, drugsEnterprise);
-    }
-
-    @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
         return DrugEnterpriseResult.getSuccess();
     }
@@ -188,7 +183,6 @@ public class HzInternetRemoteService extends AccessDrugEnterpriseService {
         return drugEnterpriseResult;
     }
 
-    @Override
     public boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds) {
         return getRealization(dbRecipe).scanStock(dbRecipe, dep, drugIds);
     }

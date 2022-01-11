@@ -1,7 +1,6 @@
 package recipe.drugsenterprise;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -18,20 +17,12 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
-import ctd.mvc.support.HttpClientUtils;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.ContentType;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
@@ -43,7 +34,6 @@ import recipe.drugsenterprise.bean.EbsBean;
 import recipe.drugsenterprise.bean.EbsDetail;
 import recipe.drugsenterprise.bean.EsbWebService;
 import recipe.service.RecipeLogService;
-import recipe.util.AppSiganatureUtils;
 import recipe.util.DateConversion;
 
 import java.math.BigDecimal;
@@ -372,126 +362,8 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        try{
-            String stockMethod = "getMedicineStock";
-            List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
-            for (Recipedetail recipedetail : recipedetails) {
-                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
-                if (saleDrugList != null) {
-                    Map<String, Object> params = new HashMap<>();
-                    params.put("sku", saleDrugList.getOrganDrugCode());
-                    params.put("pageNo","1");
-                    params.put("pageSize","100");
-                    String parames = jsonToXml(params);
-                    LOGGER.info("scanStock parames:{}.", parames);
-                    EsbWebService xkyyHelper = new EsbWebService();
-                    Map<String, String> param=new HashMap<String, String>();
-                    param.put("url", drugsEnterprise.getBusinessUrl());
-                    xkyyHelper.initConfig(param);
-                    try{
-                        String webServiceResult = xkyyHelper.HXCFZT(parames, stockMethod);
-                        System.out.println("result:"+webServiceResult);
-                        Map maps = (Map)JSON.parse(webServiceResult);
-                        Boolean success = (Boolean) maps.get("success");
-                        String code = (String) maps.get("code");
-                        if (success && "0".equals(code)) {
-                            List<Map<String, Object>> list = (List)maps.get("result");
-                            LOGGER.info("scanStock list:{}", JSONUtils.toString(list));
-                            if (!CollectionUtils.isEmpty(list)) {
-                                Map<String, Object> map = list.get(0);
-                                String stockIsEnough = (String)map.get("stockIsEnough");
-                                if ("0".equals(stockIsEnough)) {
-                                    getDrugEnterpriseResult(result, "药品库存不足");
-                                    return result;
-                                }
-                            } else {
-                                getDrugEnterpriseResult(result, "药品库存不足");
-                                return result;
-                            }
-
-                        }
-                    }catch (Exception ex){
-                        LOGGER.error("scanStock error recipeId:{}, {}", recipeId, ex.getMessage(), ex);
-                        getDrugEnterpriseResult(result, "药品库存不足");
-                        return result;
-                    }
-
-                } else {
-                    getDrugEnterpriseResult(result, "药品不存在");
-                    return result;
-                }
-            }
-        }catch(Exception e){
-            LOGGER.info("scanStock error:{}.", e.getMessage(), e);
-            getDrugEnterpriseResult(result, "药品不存在");
-        }
-        return result;
-    }
-
-    @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
-        /*DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        //获取HIS处方状态更新平台处方信息
-        //查询物流信息更新物流状态
-        String getStatusUrl = "prsPrescriptionService/getPrescriptionStatus";
-        List<Recipe> recipes = recipeDAO.findReadyToSendRecipeByDepId(drugsEnterprise.getId());
-        for (Recipe recipe : recipes) {
-            //获取处方状态
-            Map<String, Object> params = new HashMap<>();
-            params.put("prescripNo", recipe.getRecipeCode());
-            String parames = JSONUtils.toString(params);
-            JSONObject jsonObject = sendRequest(drugsEnterprise.getBusinessUrl()+getStatusUrl, parames, drugsEnterprise);
-            if (jsonObject != null) {
-                Boolean success = jsonObject.getBoolean("success");
-                String code = jsonObject.getString("code");
-                if ("0".equals(code) && success) {
-                    Integer drugResult = jsonObject.getInteger("result");
-                    LOGGER.info("syncEnterpriseDrug drugResult:{}.", drugResult);
-                    if (drugResult != null) {
-                        ThirdEnterpriseCallService thirdEnterpriseCallService = ApplicationUtils.getService(ThirdEnterpriseCallService.class, "takeDrugService");
-                        if (drugResult == 43) {
-                            //已经配送待签收,同步配送信息 准备配送
-                            Map<String, Object> paramMap = new HashMap<>();
-                            paramMap.put("recipeId", recipe.getRecipeId());
-                            paramMap.put("sendDate", DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
-                            paramMap.put("sender", "上海益友");
-                            thirdEnterpriseCallService.readyToSend(paramMap);
-                            //配送中
-                            Map<String, Object> toSendParamMap = new HashMap<>();
-                            toSendParamMap.put("recipeId", recipe.getRecipeId());
-                            toSendParamMap.put("sendDate", DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
-                            toSendParamMap.put("sender", "上海益友");
-                            toSendParamMap.put("logisticsCompany", 16);
-                            toSendParamMap.put("trackingNumber","L2003251318067955");
-                            thirdEnterpriseCallService.toSend(toSendParamMap);
-                        } else if (drugResult == 50) {
-                            //配送完成
-                            Map<String, Object> finishParamMap = new HashMap<>();
-                            finishParamMap.put("recipeId", recipe.getRecipeId());
-                            finishParamMap.put("sendDate", DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
-                            finishParamMap.put("sender", "上海益友");
-                            thirdEnterpriseCallService.finishRecipe(finishParamMap);
-                        }
-                    }
-                }
-            }
-        }*/
         return DrugEnterpriseResult.getSuccess();
-    }
-
-    @RpcService
-    public void cancelOrders(Integer recipeId, Integer depId){
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
-        pushRecipeInfoForSy(drugsEnterprise, result, recipe, 0);
     }
 
     @Override
@@ -516,22 +388,6 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
         return result;
     }
 
-    /**
-     * 获取区域文本
-     * @param area 区域
-     * @return     区域文本
-     */
-    private String getAddressDic(String area) {
-        if (StringUtils.isNotEmpty(area)) {
-            try {
-                return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
-            } catch (ControllerException e) {
-                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
-            }
-        }
-        return "";
-    }
-
     private String jsonToXml(Map<String, Object> params){
         StringBuilder result = new StringBuilder("<root><body><params>");
         if (params != null) {
@@ -541,48 +397,6 @@ public class EbsRemoteService extends AccessDrugEnterpriseService {
         }
         result.append("</params></body></root>");
         return result.toString();
-    }
-
-    private JSONObject sendRequest(String url, String json, DrugsEnterprise drugsEnterprise) {
-        try{
-            LOGGER.info("sendRequest input:{},{}.", url, json);
-            String APP_ID = drugsEnterprise.getUserId();
-            String APP_SECRET = drugsEnterprise.getPassword();
-            long timestamp = System.currentTimeMillis();
-            HttpPost method = new HttpPost(url);
-            method.addHeader("ACCESS_APPID", APP_ID);
-            method.addHeader("ACCESS_TIMESTAMP", String.valueOf(timestamp));
-            method.addHeader("ACCESS_SIGANATURE", AppSiganatureUtils.createSiganature(json, APP_ID, APP_SECRET,
-                    timestamp));
-            method.setEntity(new StringEntity(json, ContentType.APPLICATION_JSON));
-            HttpClient httpClient = HttpClientUtils.getHttpClient();
-            HttpResponse httpResponse = httpClient.execute(method);
-            HttpEntity entity = httpResponse.getEntity();
-            String response = EntityUtils.toString(entity);
-            JSONObject jsonObject = JSON.parseObject(response);
-            LOGGER.info("sendRequest output:{}.", JSONUtils.toString(jsonObject));
-            return jsonObject;
-        }catch(Exception e){
-            LOGGER.error("sendRequest error :{},", e.getMessage(), e);
-        }
-        return null;
-    }
-
-    /**
-     * 生成完整地址
-     *
-     * @param order 订单
-     * @return
-     */
-    public String getCompleteAddressForSH(RecipeOrder order) {
-        StringBuilder address = new StringBuilder();
-        if (null != order) {
-            this.getAddressDic(address, order.getAddress1());
-            this.getAddressDic(address, order.getAddress3());
-            this.getAddressDic(address, order.getStreetAddress());
-            address.append(StringUtils.isEmpty(order.getAddress4()) ? "" : order.getAddress4());
-        }
-        return address.toString();
     }
 
 }
