@@ -82,6 +82,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.aop.LogRecord;
 import recipe.audit.auditmode.AuditModeContext;
+import recipe.audit.service.OperationPlatformRecipeService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.ca.CAInterface;
@@ -178,6 +179,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private ISecurityService securityService;
     @Autowired
     private RecipeAuditClient recipeAuditClient;
+    @Autowired
+    private OperationPlatformRecipeService operationPlatformRecipeService;
 
     @RpcService
     @Override
@@ -483,7 +486,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId) {
         Boolean buttonIsShow = false;
         //平台审方详情和审方详情已隔离  平台处方直接在OperationPlatformRecipeService下面改
-        Map<String, Object> recipeDetial = recipeAuditClient.findRecipeAndDetailsAndCheckById(recipeId, null);
+        Map<String, Object> recipeDetial = operationPlatformRecipeService.findRecipeAndDetailsAndCheckById(recipeId, null);
         //根据recipeId查询退款信息 判断该处方是否存在退费
         RecipePatientRefundVO recipePatientRefundVO = recipeRefundDAO.getDoctorPatientRefundByRecipeId(recipeId);
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);

@@ -22,7 +22,10 @@ import recipe.client.RecipeAuditClient;
 import recipe.core.api.IRevisitBusinessService;
 import recipe.dao.*;
 import recipe.easypay.IEasyPayService;
-import recipe.manager.*;
+import recipe.manager.OrderManager;
+import recipe.manager.RecipeManager;
+import recipe.manager.RevisitManager;
+import recipe.manager.SignManager;
 import recipe.util.ValidateUtil;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
@@ -208,7 +211,7 @@ public class RevisitBusinessService extends BaseService implements IRevisitBusin
     @Override
     public List<WriteDrugRecipeDTO> findWriteDrugRecipeByRevisitFromHis(String mpiId, Integer organId, Integer doctorId) throws Exception {
         logger.info("findWriteDrugRecipeByRevisitFromHis start");
-        List<WriteDrugRecipeDTO> result = revisitManager.findWriteDrugRecipeByRevisitFromHis(mpiId, organId, doctorId);
+        List<WriteDrugRecipeDTO> result = null;//revisitManager.findWriteDrugRecipeByRevisitFromHis(mpiId, organId, doctorId);
         logger.info("findWriteDrugRecipeByRevisitFromHis end");
         return result;
     }
