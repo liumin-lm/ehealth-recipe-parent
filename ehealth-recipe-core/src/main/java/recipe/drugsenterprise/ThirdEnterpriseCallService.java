@@ -1349,6 +1349,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
     @RpcService
     public DrugsEnterpriseDTO findByEnterpriseId(Integer id) {
+        LOGGER.info("findByEnterpriseId id:{}", id);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(id);
         if (Objects.isNull(drugsEnterprise)) {
@@ -1358,6 +1359,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         BeanUtils.copy(drugsEnterprise, drugsEnterpriseDTO);
         List<DrugEnterpriseLogistics> drugEnterpriseLogistics = drugEnterpriseLogisticsDAO.getByDrugsEnterpriseId(id);
         drugsEnterpriseDTO.setDrugEnterpriseLogisticsList(drugEnterpriseLogistics);
+        LOGGER.info("findByEnterpriseId drugsEnterpriseDTO:{}", JSONUtils.toString(drugsEnterpriseDTO));
         return drugsEnterpriseDTO;
     }
 
