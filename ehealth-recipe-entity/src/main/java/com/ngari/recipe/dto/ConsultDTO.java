@@ -35,7 +35,7 @@ public class ConsultDTO implements Serializable {
     @ItemProperty(alias = "挂号科室名称")
     private String appointDepartName;
     @ItemProperty(alias = "请求时间")
-    private String requestTime;
+    private Date requestTime;
     @ItemProperty(alias = "病情描述")
     private String leaveMess;
     @ItemProperty(alias = "开始时间")

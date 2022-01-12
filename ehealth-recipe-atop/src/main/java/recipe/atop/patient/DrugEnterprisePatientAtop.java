@@ -75,9 +75,8 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
      */
     @RpcService
     public List<MedicineStationVO> getMedicineStationList(MedicineStationVO medicineStationVO){
+        validateAtop(medicineStationVO, medicineStationVO.getOrganId(), medicineStationVO.getEnterpriseId());
         try {
-            validateAtop(medicineStationVO, medicineStationVO.getOrganId(), medicineStationVO.getEnterpriseId());
-            validateAtop(medicineStationVO.getLat(), medicineStationVO.getLng());
             List<MedicineStationVO> medicineStationList = iDrugEnterpriseBusinessService.getMedicineStationList(medicineStationVO);
             //对站点由近到远排序
             Collections.sort(medicineStationList, (o1,o2)-> o1.getDistance() >= o2.getDistance() ? 0 : -1);
