@@ -104,16 +104,17 @@ public class RevisitManager extends BaseManager {
      */
     public List<WriteDrugRecipeDTO> findWriteDrugRecipeByRevisitFromHis(String mpiId, Integer organId, Integer doctorId) throws Exception {
         PatientDTO patient = patientClient.getPatientBeanByMpiId(mpiId);
-        WriteDrugRecipeReqTO writeDrugRecipeReqTO = writeDrugRecipeReqTO(patient, organId, doctorId);
-        if (null != writeDrugRecipeReqTO){
-            HisResponseTO<List<WriteDrugRecipeTO>> writeDrugRecipeList = revisitClient.findWriteDrugRecipeByRevisitFromHis(writeDrugRecipeReqTO);
-            return WriteDrugRecipeDTO(writeDrugRecipeList, patient, organId);
-        }else {
-            return null;
+        if(null != patient){
+            WriteDrugRecipeReqTO writeDrugRecipeReqTO = getWriteDrugRecipeReqTO(patient, organId, doctorId);
+            if (null != writeDrugRecipeReqTO){
+                HisResponseTO<List<WriteDrugRecipeTO>> writeDrugRecipeList = revisitClient.findWriteDrugRecipeByRevisitFromHis(writeDrugRecipeReqTO);
+                return convertWriteDrugRecipeDTO(writeDrugRecipeList, patient, organId);
+            }
         }
+            return null;
     }
 
-    public WriteDrugRecipeReqTO writeDrugRecipeReqTO(PatientDTO patient, Integer organId, Integer doctorId) throws Exception {
+    public WriteDrugRecipeReqTO getWriteDrugRecipeReqTO(PatientDTO patient, Integer organId, Integer doctorId) throws Exception {
         logger.info("RevisitManager writeDrugRecipeReqTO start");
         List<String> namesList = Arrays.asList("1", "2", "3", "6");
         ArrayList<String> cardTypes = new ArrayList<>(namesList);
@@ -134,7 +135,7 @@ public class RevisitManager extends BaseManager {
 
     }
 
-    public List<WriteDrugRecipeDTO> WriteDrugRecipeDTO(HisResponseTO<List<WriteDrugRecipeTO>> writeDrugRecipeList, PatientDTO patient, Integer organId) {
+    public List<WriteDrugRecipeDTO> convertWriteDrugRecipeDTO(HisResponseTO<List<WriteDrugRecipeTO>> writeDrugRecipeList, PatientDTO patient, Integer organId) {
         com.ngari.recipe.dto.PatientDTO patientDTO = ObjectCopyUtils.convert(patient, com.ngari.recipe.dto.PatientDTO.class);
         PatientDTO requestPatient = new PatientDTO();
         requestPatient.setPatientName(patient.getPatientName());
