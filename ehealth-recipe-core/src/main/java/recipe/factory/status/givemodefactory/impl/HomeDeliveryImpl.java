@@ -98,7 +98,7 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
             //当没有维护快递信息或者变更快递信息需要重新推送和上传快递信息
             if (null == recipeOrderForTrackingNumber
                     || orderStatus.getLogisticsCompany() != recipeOrderForTrackingNumber.getLogisticsCompany()
-                    || orderStatus.getTrackingNumber().equals(recipeOrderForTrackingNumber.getTrackingNumber())) {
+                    || !orderStatus.getTrackingNumber().equals(recipeOrderForTrackingNumber.getTrackingNumber())) {
                 RecipeOrder recipeOrder = new RecipeOrder(orderStatus.getOrderId());
                 recipeOrder.setLogisticsCompany(orderStatus.getLogisticsCompany());
                 recipeOrder.setTrackingNumber(orderStatus.getTrackingNumber());
