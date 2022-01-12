@@ -85,5 +85,5 @@ public abstract class OrganAndDrugsepRelationDAO extends HibernateSupportDelegat
      * @return
      */
     @DAOMethod(sql = "from OrganAndDrugsepRelation where drugsEnterpriseSupportGiveMode LIKE '%:type%' AND organId=:organId")
-    public abstract OrganAndDrugsepRelation getRelationByOrganIdAndGiveMode(Integer clinicOrgan, Integer type);
+    public abstract List<OrganAndDrugsepRelation> getRelationByOrganIdAndGiveMode(Integer clinicOrgan, Integer type);
 }

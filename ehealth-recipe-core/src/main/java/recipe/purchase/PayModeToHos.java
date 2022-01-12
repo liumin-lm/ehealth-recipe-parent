@@ -67,6 +67,23 @@ public class PayModeToHos implements IPurchaseService {
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
+        RecipeResultBean resultBean = RecipeResultBean.getSuccess();
+        // 到院自取是否采用药企管理模式
+        Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(dbRecipe.getClinicOrgan(), "drugToHosByEnterprise", false);
+        if (drugToHosByEnterprise) {
+
+        } else {
+            resultBean = oldModeFindSupportDepList(dbRecipe);
+        }
+        return resultBean;
+    }
+
+    /**
+     * 老模式到院取药获取药企列表
+     * @param dbRecipe
+     * @return
+     */
+    private RecipeResultBean oldModeFindSupportDepList(Recipe dbRecipe){
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -77,23 +94,9 @@ public class PayModeToHos implements IPurchaseService {
         OrganDTO organDTO = organService.getByOrganId(recipe.getClinicOrgan());
         StringBuilder sb = new StringBuilder();
         PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
-        // 到院自取是否采用药企管理模式
-        Integer takeOneselfPaymentChannel = null;
-        Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(dbRecipe.getClinicOrgan(), "drugToHosByEnterprise", false);
-        if (drugToHosByEnterprise) {
-            OrganAndDrugsepRelation organAndDrugsepRelation = organAndDrugsepRelationDAO.getRelationByOrganIdAndGiveMode(dbRecipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
-            if (Objects.isNull(organAndDrugsepRelation)) {
-                throw new DAOException("采用药企销售配置药企不能为空");
-            }
-            // 获取药企机构配置
-            OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.findByOrganIdAndEnterpriseId(dbRecipe.getClinicOrgan(), organAndDrugsepRelation.getDrugsEnterpriseId());
-            takeOneselfPaymentChannel = organDrugsSaleConfig.getTakeOneselfPaymentChannel();
-        }
         //todo---暂时写死上海六院---配送到家判断是否是自费患者
         //到院取药非卫宁付
-        if (!drugToHosByEnterprise) {
-            takeOneselfPaymentChannel = configurationClient.getValueCatch(dbRecipe.getClinicOrgan(), "payModeToHosOnlinePayConfig", 1);
-        }
+        Integer takeOneselfPaymentChannel = configurationClient.getValueCatch(dbRecipe.getClinicOrgan(), "payModeToHosOnlinePayConfig", 1);
 
         if (!new Integer(2).equals(takeOneselfPaymentChannel)) {
             if (dbRecipe.getClinicOrgan() == 1000899 && !purchaseService.isMedicarePatient(1000899, dbRecipe.getMpiid())) {
@@ -120,8 +123,6 @@ public class PayModeToHos implements IPurchaseService {
 
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-
-
         if (!Objects.isNull(recipeExtend) && StringUtils.isNotEmpty(recipeExtend.getPharmNo())) {
             String pharmNo = recipeExtend.getPharmNo();
             if (StringUtils.isNotEmpty(pharmNo)) {
@@ -130,11 +131,10 @@ public class PayModeToHos implements IPurchaseService {
                 sb.append("选择到院自取后，需去医院取药窗口取药");
             }
         }
-
         resultBean.setMsg(sb.toString());
         return resultBean;
-    }
 
+    }
     @Override
     public OrderCreateResult order(List<Recipe> dbRecipes, Map<String, String> extInfo) {
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
