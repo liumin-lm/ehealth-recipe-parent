@@ -19,7 +19,7 @@ public class ConsultDTO implements Serializable {
     @ItemProperty(alias = "钥匙圈渠道id")
     private String projectChannel;
     @ItemProperty(alias = "门诊方式")
-    private String requestMode;
+    private Integer requestMode;
     @ItemProperty(alias = "门诊挂号序号（医保")
     private String registerNo;
     @ItemProperty(alias = "就诊人卡号")
