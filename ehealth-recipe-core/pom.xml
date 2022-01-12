@@ -30,8 +30,8 @@
 
         <dependency>
             <groupId>ngari</groupId>
-            <artifactId>easy-pay-entity</artifactId>
-            <version>${ngari.easypay.version}</version>
+            <artifactId>ehealth-pay-api</artifactId>
+            <version>${ehealth-pay-api.version}</version>
             <exclusions>
                 <exclusion>
                     <artifactId>bcprov-jdk15on</artifactId>
