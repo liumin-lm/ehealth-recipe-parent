@@ -70,6 +70,10 @@ public class OperationConstant {
      */
     public static final String OP_RECIPE_GIVE_USER = "giveUser";
     /**
+     * 处方-卡号
+     */
+    public static final String OP_RECIPE_CARD_NO = "cardNo";
+    /**
      * 监管流水号
      */
     public static final String OP_RECIPE_EXTEND_SUPERVISE = "superviseRecipecode";

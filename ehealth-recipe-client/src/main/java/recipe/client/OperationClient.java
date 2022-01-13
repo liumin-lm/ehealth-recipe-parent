@@ -11,6 +11,8 @@ import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.exception.DAOException;
+import ctd.schema.annotation.DesensitizationsType;
+import ctd.util.DesensitizationsUtil;
 import ctd.util.JSONUtils;
 import eh.entity.base.Scratchable;
 import org.apache.commons.lang3.StringUtils;
@@ -234,6 +236,7 @@ public class OperationClient extends BaseClient {
 
     /**
      * 获取运营平台字典配置项
+     *
      * @param organId
      * @param subType
      * @return
@@ -247,12 +250,13 @@ public class OperationClient extends BaseClient {
 
     /**
      * 获取运营平台字典配置项
+     *
      * @param subType
      * @param organId
      * @param dictionaryCode
      * @return
      */
-    public OrganDictionaryItemDTO getByDictionaryCode(Integer subType, Integer organId, String dictionaryCode){
+    public OrganDictionaryItemDTO getByDictionaryCode(Integer subType, Integer organId, String dictionaryCode) {
         logger.info("OperationClient.getByDictionaryCode subType:{},organId:{},dictionaryCode:{}", subType, organId, dictionaryCode);
         OrganDictionaryItemDTO organDictionaryItemDTO = organDictionaryItemService.getByDictionaryCode(subType, organId, dictionaryCode);
         logger.info("OperationClient.getByDictionaryCode organDictionaryItemDTO：{}", JSON.toJSONString(organDictionaryItemDTO));
@@ -276,6 +280,9 @@ public class OperationClient extends BaseClient {
             String fieldName = boxLink[1];
             if (OperationConstant.OP_RECIPE_ORGAN_NAME.equals(fieldName) && StringUtils.isNotEmpty(scratchable.getBoxDesc())) {
                 return scratchable.getBoxDesc();
+            }
+            if (OperationConstant.OP_RECIPE_CARD_NO.equals(fieldName) && StringUtils.isNotEmpty(scratchable.getBoxDesc())) {
+                return DesensitizationsUtil.instance().processField(DesensitizationsType.HEALTHCARD.getType(), recipePdfDTO.getRecipeExtend().getCardNo());
             }
             return invokeFieldName(objectName, fieldName, recipePdfDTO);
         }
