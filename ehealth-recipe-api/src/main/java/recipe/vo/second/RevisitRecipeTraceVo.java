@@ -188,7 +188,7 @@ public class RevisitRecipeTraceVo implements Serializable {
         /**
          * 发药药师身份证
          */
-        @Desensitizations(type = DesensitizationsType.ADDRESS)
+        @Desensitizations(type = DesensitizationsType.IDCARD)
         private String giveUserIdCard;
 
         /**
