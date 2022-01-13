@@ -1739,7 +1739,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     prb.setOrganId(recipe.getClinicOrgan());
                     prb.setRecipeType(recipe.getRecipeType());
                     prb.setPayFlag(recipe.getPayFlag());
-                    prb.setQrName(recipeManager.getToHosProof(recipe, recipeExtend));
+                    prb.setQrName(recipeManager.getToHosProof(recipe, recipeExtend,order));
                     patientRecipeBeanList.add(prb);
                     LOGGER.info("getOrderDetailById.prb={}", JSONUtils.toString(prb));
 

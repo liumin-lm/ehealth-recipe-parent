@@ -66,6 +66,7 @@ import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.DepartManager;
+import recipe.manager.EnterpriseManager;
 import recipe.manager.RecipeOrderPayFlowManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
