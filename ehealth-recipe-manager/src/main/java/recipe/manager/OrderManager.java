@@ -309,6 +309,23 @@ public class OrderManager extends BaseManager {
     }
 
     /**
+     * 更新订单的物流信息
+     * @param orderId  订单ID
+     * @param logisticsCompany 物流公司
+     * @param trackingNumber   物流单号
+     * @return
+     */
+    public boolean updateOrderLogisticsInfo(Integer orderId, Integer logisticsCompany, String trackingNumber){
+        if (StringUtils.isEmpty(trackingNumber)) {
+            return false;
+        }
+        RecipeOrder recipeOrder = new RecipeOrder(orderId);
+        recipeOrder.setLogisticsCompany(logisticsCompany);
+        recipeOrder.setTrackingNumber(trackingNumber);
+        return recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+    }
+
+    /**
      * 处理患者信息
      *
      * @param mpiId
