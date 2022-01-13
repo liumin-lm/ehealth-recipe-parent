@@ -161,8 +161,8 @@ public class RevisitManager extends BaseManager {
                             consultDTO.setConsultDepartText(consultDepartText);
                         }
                     }
-                    if(null != consult.getAppointDepartCode()){
-                        writeDrugRecipeDTO.setAppointDepartCode(consult.getAppointDepartCode());
+                    if(null != appointDepartCode){
+                        writeDrugRecipeDTO.setAppointDepartCode(appointDepartCode);
                     }
                     if(null != consult.getAppointDepartName()){
                         writeDrugRecipeDTO.setAppointDepartName(consult.getAppointDepartName());
