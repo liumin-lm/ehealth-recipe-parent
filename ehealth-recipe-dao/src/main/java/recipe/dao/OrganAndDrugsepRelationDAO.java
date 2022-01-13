@@ -96,7 +96,6 @@ public abstract class OrganAndDrugsepRelationDAO extends HibernateSupportDelegat
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder sql = new StringBuilder("SELECT * FROM cdr_organ_drugsep_relation WHERE OrganId = ");
                 sql.append(clinicOrgan).append(" and drug_enterprise_support_give_mode LIKE '%").append(type).append("%'");
-                System.out.println(sql);
                 Query query = ss.createSQLQuery(String.valueOf(sql));
 
                 setResult(query.list());
