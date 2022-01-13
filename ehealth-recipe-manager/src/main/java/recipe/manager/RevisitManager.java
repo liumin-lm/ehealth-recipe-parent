@@ -107,9 +107,9 @@ public class RevisitManager extends BaseManager {
     public List<WriteDrugRecipeDTO> findWriteDrugRecipeByRevisitFromHis(String mpiId, Integer organId, Integer doctorId) {
         PatientDTO patient = patientClient.getPatientBeanByMpiId(mpiId);
         if (null != patient) {
-            WriteDrugRecipeReqTO writeDrugRecipeReqTO = getWriteDrugRecipeReqTO(patient, organId, doctorId);
-            if (null != writeDrugRecipeReqTO) {
-                HisResponseTO<List<WriteDrugRecipeTO>> writeDrugRecipeList = revisitClient.findWriteDrugRecipeByRevisitFromHis(writeDrugRecipeReqTO);
+            WriteDrugRecipeReqTO writeDrugRecipeReqTo = getWriteDrugRecipeReqTO(patient, organId, doctorId);
+            if (null != writeDrugRecipeReqTo) {
+                HisResponseTO<List<WriteDrugRecipeTO>> writeDrugRecipeList = revisitClient.findWriteDrugRecipeByRevisitFromHis(writeDrugRecipeReqTo);
                 return convertWriteDrugRecipeDTO(writeDrugRecipeList, patient, organId);
             }
         }
@@ -128,7 +128,7 @@ public class RevisitManager extends BaseManager {
         logger.info("RevisitManager writeDrugRecipeReqTO patient={},organId={},doctorId={}", JSONUtils.toString(patient), JSONUtils.toString(organId), JSONUtils.toString(doctorId));
         List<HealthCardDTO> healthCardDTOList = new ArrayList<>();
         //出参对象
-        WriteDrugRecipeReqTO writeDrugRecipeReqTO = new WriteDrugRecipeReqTO();
+        WriteDrugRecipeReqTO writeDrugRecipeReqTo = new WriteDrugRecipeReqTO();
         try {
             healthCardDTOList = patientClient.queryCardsByParam(organId, patient.getMpiId(), new ArrayList<>(Arrays.asList("1", "2", "3", "6")));
             logger.info("queryCardsByParam res:{}", JSONUtils.toString(healthCardDTOList));
@@ -137,14 +137,14 @@ public class RevisitManager extends BaseManager {
         }
         //组装获取院内门诊请求参数
         if (CollectionUtils.isEmpty(healthCardDTOList)) {
-            return writeDrugRecipeReqTO;
+            return null;
         }
-        writeDrugRecipeReqTO.setHealthCardDTOList(healthCardDTOList);
-        writeDrugRecipeReqTO.setOrganId(organId);
-        writeDrugRecipeReqTO.setDoctorId(doctorId);
-        writeDrugRecipeReqTO.setPatientName(patient.getPatientName());
-        logger.info("RevisitManager writeDrugRecipeReqTO={}", JSONUtils.toString(writeDrugRecipeReqTO));
-        return writeDrugRecipeReqTO;
+        writeDrugRecipeReqTo.setHealthCardDTOList(healthCardDTOList);
+        writeDrugRecipeReqTo.setOrganId(organId);
+        writeDrugRecipeReqTo.setDoctorId(doctorId);
+        writeDrugRecipeReqTo.setPatientName(patient.getPatientName());
+        logger.info("RevisitManager writeDrugRecipeReqTO={}", JSONUtils.toString(writeDrugRecipeReqTo));
+        return writeDrugRecipeReqTo;
     }
 
     /**
@@ -168,10 +168,10 @@ public class RevisitManager extends BaseManager {
                 return writeDrugRecipeDTOList;
             }
             try {
-                for (WriteDrugRecipeTO writeDrugRecipeTO : dataList) {
+                for (WriteDrugRecipeTO writeDrugRecipeTo : dataList) {
                     WriteDrugRecipeDTO writeDrugRecipeDTO = new WriteDrugRecipeDTO();
                     WriteDrugRecipeBean writeDrugRecipeBean = new WriteDrugRecipeBean();
-                    Consult consult = writeDrugRecipeTO.getConsult();
+                    Consult consult = writeDrugRecipeTo.getConsult();
                     if (consult == null) {
                         continue;
                     }
@@ -191,7 +191,7 @@ public class RevisitManager extends BaseManager {
                     writeDrugRecipeDTO.setPatient(patientDTO);
                     writeDrugRecipeDTO.setRequestPatient(requestPatientDTO);
                     writeDrugRecipeDTO.setConsult(consultDTO);
-                    writeDrugRecipeDTO.setType(writeDrugRecipeTO.getType());
+                    writeDrugRecipeDTO.setType(writeDrugRecipeTo.getType());
                     writeDrugRecipeDTO.setWriteDrugRecipeBean(writeDrugRecipeBean);
                     logger.info("WriteRecipeManager findWriteDrugRecipeByRevisitFromHis writeDrugRecipeDTO={}", JSONUtils.toString(writeDrugRecipeDTO));
                     writeDrugRecipeDTOList.add(writeDrugRecipeDTO);
