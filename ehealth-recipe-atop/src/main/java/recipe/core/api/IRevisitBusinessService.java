@@ -1,7 +1,7 @@
 package recipe.core.api;
 
-import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.dto.WriteDrugRecipeDTO;
+import com.ngari.recipe.entity.Recipe;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
 import java.util.List;
@@ -49,10 +49,10 @@ public interface IRevisitBusinessService {
     /**
      * 获取院内门诊
      *
-     * @param mpiId 患者唯一标识
+     * @param mpiId    患者唯一标识
      * @param organId  机构ID
-     * @param doctorId  医生ID
+     * @param doctorId 医生ID
      * @return 院内门诊
      */
-    List<WriteDrugRecipeDTO> findWriteDrugRecipeByRevisitFromHis(String mpiId, Integer organId, Integer doctorId) throws Exception;
+    List<WriteDrugRecipeDTO> findWriteDrugRecipeByRevisitFromHis(String mpiId, Integer organId, Integer doctorId);
 }
