@@ -19,4 +19,8 @@ public interface IDrugsEnterpriseService extends IBaseService<DrugsEnterpriseBea
     @RpcService
     void pushRecipeInfoForThird(RecipeBean recipe,DrugsEnterpriseBean drugsEnterprise);
 
+
+    @RpcService(mvcDisabled = false)
+    DrugsEnterpriseBean getByEnterpriseCode(Integer enterId);
+
 }

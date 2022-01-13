@@ -3,6 +3,7 @@ package recipe.atop.open;
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
+import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -13,6 +14,7 @@ import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRevisitBusinessService;
+import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.RevisitRecipeTraceVo;
@@ -34,6 +36,9 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
 
     @Autowired
     private IRevisitBusinessService revisitRecipeTrace;
+
+    @Autowired
+    IOfflineRecipeBusinessService offlineToOnlineService;
 
     @Override
     public Boolean existUncheckRecipe(Integer bussSource, Integer clinicId) {
@@ -137,6 +142,13 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     public RegulationRecipeIndicatorsDTO regulationRecipe(Integer recipeId) {
         validateAtop(recipeId);
         return recipeBusinessService.regulationRecipe(recipeId);
+    }
+
+    @Override
+    public void offlineToOnlineForRecipe(FindHisRecipeDetailReqVO request) {
+        logger.info("recipeOpenAtop findHisRecipeDetail request:{}", ctd.util.JSONUtils.toString(request));
+        validateAtop(request, request.getOrganId(), request.getMpiId());
+        offlineToOnlineService.offlineToOnlineForRecipe(request);
     }
 
 

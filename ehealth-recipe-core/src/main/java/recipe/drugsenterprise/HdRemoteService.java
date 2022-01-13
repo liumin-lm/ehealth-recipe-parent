@@ -1,6 +1,5 @@
 package recipe.drugsenterprise;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
@@ -861,36 +860,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         result.setCode(DrugEnterpriseResult.FAIL);
     }
 
-    @Override
-    @RpcService
-    public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        tokenUpdateImpl(drugsEnterprise);
-        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-        String hdStoreFlag = recipeParameterDao.getByName("hdStoreFlag");
-        if ("1".equals(hdStoreFlag)) {
-            //根据处方信息发送药企库存查询请求，判断有药店是否满足库存
-            HdPharmacyAndStockResponse response = getHdStockResponse(recipeId, drugsEnterprise, result);
-            if(response != null) {
-                //判断有没有符合药品量的药店
-                if(null == response.getData() || (null != response.getData() && 0 >= response.getData().size())){
-                    getFailResult(result, "当前药企下没有药店的药品库存足够");
-                }
-            }
-
-            LOGGER.info("HdRemoteService-scanStock 药店取药药品库存:{}.", JSONUtils.toString(response));
-        } else {
-            result = DrugEnterpriseResult.getFail();
-        }
-        //处方配送到家的库存校验
-        boolean flag = sendScanStock(recipeId, drugsEnterprise, result);
-        if ( DrugEnterpriseResult.SUCCESS.equals(result.getCode()) || flag) {
-            result.setCode(DrugEnterpriseResult.SUCCESS);
-            result.setMsg("调用[" + drugsEnterprise.getName() + "][ scanStock ]结果返回成功,有库存,处方单ID:"+recipeId+".");
-        }
-        return result;
-    }
-
     public boolean sendScanStock(Integer recipeId, DrugsEnterprise drugsEnterprise, DrugEnterpriseResult result) {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
@@ -1444,22 +1413,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             pharmacyDetailPage.add(newDepDetailBean);
         }
         return pharmacyDetailPage;
-    }
-
-    /**
-     * 获取区域文本
-     * @param area 区域
-     * @return     区域文本
-     */
-    private String getAddressDic(String area) {
-        if (StringUtils.isNotEmpty(area)) {
-            try {
-                return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
-            } catch (ControllerException e) {
-                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
-            }
-        }
-        return "";
     }
 
     public String getDrugEnterpriseCallSys() {

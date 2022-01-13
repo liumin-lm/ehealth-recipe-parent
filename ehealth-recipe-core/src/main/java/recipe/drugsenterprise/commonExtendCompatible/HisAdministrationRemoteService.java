@@ -90,7 +90,6 @@ public class HisAdministrationRemoteService extends AccessDrugEnterpriseService 
         return DrugEnterpriseResult.getSuccess();
     }
 
-    @Override
     //his管理的药企：药品，库存，价格全都由；医院返回的信息提供，判断库存现阶段由预校验的结果判断(Y)
     public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
         //查询库存通过his预校验的返回判断库存是否足够
@@ -278,7 +277,6 @@ public class HisAdministrationRemoteService extends AccessDrugEnterpriseService 
         return result;
     }
 
-    @Override
     //his管理的药企：药品，库存，价格全都由；医院返回的信息提供，判断库存现阶段由预校验的结果判断(Y/+1)
     public boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds) {
         LOGGER.info("scanStock-【his管理的药企】- recipeId:{},dep:{},drugIds:{}", dbRecipe.getRecipeId(), JSONUtils.toString(dep), JSONUtils.toString(drugIds));

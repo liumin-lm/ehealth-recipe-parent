@@ -7,6 +7,8 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
+import com.ngari.pay.api.dto.param.WnAccountDetail;
+import com.ngari.pay.api.dto.param.WnAccountSplitParam;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
@@ -26,8 +28,6 @@ import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.easypay.IEasyPayService;
 import recipe.manager.DepartManager;
-import wnpay.api.model.WnAccountDetail;
-import wnpay.api.model.WnAccountSplitParam;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;

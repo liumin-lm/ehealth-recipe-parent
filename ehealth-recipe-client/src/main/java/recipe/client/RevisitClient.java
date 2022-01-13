@@ -1,6 +1,10 @@
 package recipe.client;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.WriteDrugRecipeTO;
+import com.ngari.his.visit.mode.WriteDrugRecipeReqTO;
+import com.ngari.his.visit.service.IVisitService;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.request.ValidRevisitRequest;
@@ -32,6 +36,9 @@ public class RevisitClient extends BaseClient {
 
     @Autowired
     private IRevisitService revisitService;
+
+    @Autowired
+    private IVisitService iVisitService;
 
     /**
      * 根据挂号序号获取复诊信息
@@ -121,4 +128,19 @@ public class RevisitClient extends BaseClient {
         return revisitBeans;
     }
 
+    /**
+     * @param writeDrugRecipeReqTO 获取院内门诊请求入参
+     * @return 院内门诊
+     */
+    public HisResponseTO<List<WriteDrugRecipeTO>> findWriteDrugRecipeByRevisitFromHis(WriteDrugRecipeReqTO writeDrugRecipeReqTO) {
+        HisResponseTO<List<WriteDrugRecipeTO>> hisResponseTOList = new HisResponseTO<>();
+        try {
+            logger.info("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis writeDrugRecipeReqTO={}", JSONUtils.toString(writeDrugRecipeReqTO));
+            hisResponseTOList = iVisitService.findWriteDrugRecipeByRevisitFromHis(writeDrugRecipeReqTO);
+            logger.info("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis hisResponseTOList={}", JSONUtils.toString(hisResponseTOList));
+        } catch (Exception e) {
+            logger.error("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis error={}", JSONUtils.toString(e));
+        }
+        return hisResponseTOList;
+    }
 }

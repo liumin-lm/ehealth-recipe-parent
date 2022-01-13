@@ -66,7 +66,6 @@ import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.DepartManager;
-import recipe.manager.EnterpriseManager;
 import recipe.manager.RecipeOrderPayFlowManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
@@ -86,6 +85,15 @@ import java.util.stream.Collectors;
 public class RecipeBusPayInfoService implements IRecipeBusPayService {
 
     private static final Logger log = LoggerFactory.getLogger(RecipeBusPayInfoService.class);
+
+    //支持站点取药
+    private static final String IS_SUPPORT_SEND_TO_STATION = "1";
+    //不支持站点取药
+    private static final String NO_SUPPORT_SEND_TO_STATION = "0";
+    //payMode的配送到家
+    private static final Integer PAY_MODE_SEND_HOME = 1;
+    //payMode的货到付款
+    private static final Integer PAY_MODE_ONLINE = 2;
 
     @Autowired
     private RemoteRecipeOrderService recipeOrderService;
@@ -350,6 +358,12 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 map.put("payTip", "");
             } else {
                 map.put("supportToHosPayFlag", "0");
+            }
+            Boolean toSendStationFlag = configurationClient.getValueBooleanCatch(organId, "toSendStationFlag", false);
+            if ((PAY_MODE_SEND_HOME.equals(payMode) || PAY_MODE_ONLINE.equals(payMode)) && toSendStationFlag) {
+                map.put("isSupportSendToStation", IS_SUPPORT_SEND_TO_STATION);
+            } else {
+                map.put("isSupportSendToStation", NO_SUPPORT_SEND_TO_STATION);
             }
         }
         log.info("setConfirmOrderExtInfo map:{}.", JSONUtils.toString(map));

@@ -1,11 +1,8 @@
 package recipe.dao;
 
 import com.google.common.collect.Maps;
-import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.DrugEntrust;
-import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.recipe.model.DrugEntrustDTO;
-import com.ngari.recipe.recipe.model.PharmacyTcmDTO;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.bean.QueryResult;
@@ -20,6 +17,7 @@ import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
+import recipe.util.ObjectCopyUtils;
 
 import java.util.List;
 import java.util.Map;

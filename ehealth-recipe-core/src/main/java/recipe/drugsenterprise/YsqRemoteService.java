@@ -366,12 +366,6 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
     }
 
     @Override
-    public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        List<Integer> recipeIds = Arrays.asList(recipeId);
-        return findSupportDep(recipeIds, null, drugsEnterprise);
-    }
-
-    @Override
     public DrugEnterpriseResult pushCheckResult(Integer recipeId, Integer checkFlag, DrugsEnterprise drugsEnterprise) {
         DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
         if (null == recipeId) {
@@ -1159,21 +1153,5 @@ public class YsqRemoteService extends AccessDrugEnterpriseService {
         //发送药企信息
         sendAndDealResult(drugsEnterprise, methodName, sendInfoStr, result);
         return result;
-    }
-
-    /**
-     * 获取区域文本
-     * @param area 区域
-     * @return     区域文本
-     */
-    private String getAddressDic(String area) {
-        if (StringUtils.isNotEmpty(area)) {
-            try {
-                return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
-            } catch (ControllerException e) {
-                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
-            }
-        }
-        return "";
     }
 }

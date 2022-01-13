@@ -3,13 +3,11 @@ package recipe.drugsenterprise;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -43,11 +41,6 @@ public class HyRemoteService extends AccessDrugEnterpriseService {
     @Override
     public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
         return null;
-    }
-
-    @Override
-    public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        return DrugEnterpriseResult.getSuccess();
     }
 
     @Override

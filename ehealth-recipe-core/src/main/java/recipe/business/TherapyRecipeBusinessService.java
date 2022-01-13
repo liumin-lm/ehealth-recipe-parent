@@ -10,6 +10,7 @@ import com.ngari.recipe.recipe.model.RecipeTherapyOpVO;
 import com.ngari.recipe.vo.ItemListVO;
 import com.ngari.revisit.RevisitBean;
 import ctd.persistence.bean.QueryResult;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -65,6 +66,10 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
         //保存处方扩展
         if (null != recipeInfoVO.getRecipeExtendBean()) {
             RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeInfoVO.getRecipeExtendBean(), RecipeExtend.class);
+            String cardNo = recipeManager.getCardNoByRecipe(recipe);
+            if (StringUtils.isNotEmpty(cardNo)) {
+                recipeExtend.setCardNo(cardNo);
+            }
             recipeManager.saveRecipeExtend(recipeExtend, recipe);
         }
         //保存处方明细
@@ -97,7 +102,7 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
 
     @Override
     public Integer therapyRecipeByMpiIdTotal(String mpiId) {
-        List<RecipeTherapy>  recipeTherapyList = recipeTherapyManager.findTherapyPageByMpiIds(mpiId, null, null);
+        List<RecipeTherapy> recipeTherapyList = recipeTherapyManager.findTherapyPageByMpiIds(mpiId, null, null);
         return recipeTherapyList.size();
     }
 
@@ -162,7 +167,7 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
 
     @Override
     public List<RecipeInfoDTO> therapyRecipeListForPatient(String mpiId, int start, int limit) {
-        List<RecipeTherapy>  recipeTherapyList = recipeTherapyManager.findTherapyPageByMpiIds(mpiId, start, limit);
+        List<RecipeTherapy> recipeTherapyList = recipeTherapyManager.findTherapyPageByMpiIds(mpiId, start, limit);
         return paddingRecipeInfoDTO(recipeTherapyList);
     }
 
@@ -196,7 +201,7 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
         List<String> mpiIds = recipeTherapyList.stream().map(RecipeTherapy::getMpiId).distinct().collect(Collectors.toList());
         List<Integer> clinicIds = recipeTherapyList.stream().map(RecipeTherapy::getClinicId).collect(Collectors.toList());
         List<RevisitBean> revisitBeans = revisitClient.findByConsultIds(clinicIds);
-        Map<Integer, RevisitBean> revisitBeanMap = revisitBeans.stream().collect(Collectors.toMap(RevisitBean::getConsultId, a ->a, (k1, k2) -> k1));
+        Map<Integer, RevisitBean> revisitBeanMap = revisitBeans.stream().collect(Collectors.toMap(RevisitBean::getConsultId, a -> a, (k1, k2) -> k1));
         Map<String, PatientDTO> patientMap = patientClient.findPatientMap(mpiIds);
         recipeTherapyList.forEach(a -> {
             RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();

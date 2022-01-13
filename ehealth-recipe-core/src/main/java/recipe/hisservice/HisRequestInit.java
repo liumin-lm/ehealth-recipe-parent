@@ -376,12 +376,14 @@ public class HisRequestInit {
                 requestTO.setBussSource(recipe.getBussSource());
                 IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
                 RevisitExDTO revisitExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
-                if (requestTO.getRegisteredId() == null) {
-                    requestTO.setPatientChannelId(revisitExDTO.getProjectChannel());
+                if (null != revisitExDTO) {
+                    if (requestTO.getRegisteredId() == null) {
+                        requestTO.setPatientChannelId(revisitExDTO.getProjectChannel());
+                    }
+                    requestTO.setRegisteredId(revisitExDTO.getRegisterNo());
+                    requestTO.setCardType(revisitExDTO.getCardType());
+                    requestTO.setCardNo(revisitExDTO.getCardId());
                 }
-                requestTO.setRegisteredId(revisitExDTO.getRegisterNo());
-                requestTO.setCardType(revisitExDTO.getCardType());
-                requestTO.setCardNo(revisitExDTO.getCardId());
             }
         } catch (Exception e) {
             LOGGER.error("initRecipeSendRequestTO recipeid:{}, clinicId:{} error", recipe.getRecipeId(), recipe.getClinicId(), e);

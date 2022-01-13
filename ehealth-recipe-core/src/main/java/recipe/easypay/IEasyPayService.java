@@ -1,8 +1,8 @@
 package recipe.easypay;
 
+import com.ngari.pay.api.dto.param.WnAccountSplitParam;
 import ctd.util.annotation.RpcService;
 import easypay.entity.po.AccountResult;
-import wnpay.api.model.WnAccountSplitParam;
 
 import java.util.List;
 

@@ -21,6 +21,7 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.client.DrugClient;
 import recipe.constant.ErrorCode;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
@@ -209,9 +211,6 @@ public class RecipeValidateUtil {
             return backDetailList;
         }
         List<RecipeDetailBean> detailBeans = ObjectCopyUtils.convert(details, RecipeDetailBean.class);
-
-        IUsingRateService usingRateService = AppDomainContext.getBean("eh.usingRateService", IUsingRateService.class);
-        IUsePathwaysService usePathwaysService = AppDomainContext.getBean("eh.usePathwaysService", IUsePathwaysService.class);
         //暂存也会走这里但是 暂存要用药品名实时配置
         Map<String, Integer> configDrugNameMap = null;
         if (RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType().equals(recipe.getStatus())) {
@@ -255,31 +254,22 @@ public class RecipeValidateUtil {
                     LOGGER.error("RecipeServiceSub.getRecipeAndDetailByIdImpl 设置药品拼接名error, recipeId:{},{}.", recipeId, e.getMessage(), e);
                 }
             }
-            setUsingRateIdAndUsePathwaysId(recipe, recipeDetail);
+            DrugClient drugClient = AppContextHolder.getBean("drugClient", DrugClient.class);
+            UsingRateDTO usingRateDTO = drugClient.usingRate(recipe.getClinicOrgan(), recipeDetail.getOrganUsingRate());
+            if (null != usingRateDTO) {
+                recipeDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
+            }
+            UsePathwaysDTO usePathwaysDTO = drugClient.usePathways(recipe.getClinicOrgan(), recipeDetail.getOrganUsePathways());
+            if (null != usePathwaysDTO) {
+                recipeDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
+            }
             List<DrugList> drugList = drugListMap.get(recipeDetail.getDrugId());
-            if(CollectionUtils.isNotEmpty(drugList)){
+            if (CollectionUtils.isNotEmpty(drugList)) {
                 recipeDetail.setDrugPic(drugList.get(0).getDrugPic());
             }
             backDetailList.add(recipeDetail);
         }
         return backDetailList;
-    }
-
-    public static void setUsingRateIdAndUsePathwaysId(Recipe recipe, RecipeDetailBean recipeDetail){
-        IUsingRateService usingRateService = AppDomainContext.getBean("eh.usingRateService", IUsingRateService.class);
-        IUsePathwaysService usePathwaysService = AppDomainContext.getBean("eh.usePathwaysService", IUsePathwaysService.class);
-        try {
-            UsingRateDTO usingRateDTO = usingRateService.findUsingRateDTOByOrganAndKey(recipe.getClinicOrgan(), recipeDetail.getOrganUsingRate());
-            if (usingRateDTO != null) {
-                recipeDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
-            }
-            UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(recipe.getClinicOrgan(), recipeDetail.getOrganUsePathways());
-            if (usePathwaysDTO != null) {
-                recipeDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
-            }
-        } catch (Exception e) {
-            LOGGER.error("validateDrugsImpl error,recipeId={}", recipe.getRecipeId(), e);
-        }
     }
 
     /**

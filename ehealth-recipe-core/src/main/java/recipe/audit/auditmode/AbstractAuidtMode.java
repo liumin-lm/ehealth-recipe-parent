@@ -25,7 +25,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
-import recipe.audit.handle.AutoCheckRecipe;
+import recipe.audit.IAuditMode;
+import recipe.client.RecipeAuditClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.RecipeDAO;
@@ -33,6 +34,7 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.manager.RecipeManager;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeService;
@@ -63,12 +65,12 @@ public abstract class AbstractAuidtMode implements IAuditMode {
         RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunable(recipe.getRecipeId()));
     }
 
-    protected void saveStatusAndSendMsg(Integer status, Recipe recipe, String memo) {
+    private void saveStatusAndSendMsg(Integer status, Recipe recipe, String memo) {
         //生成文件成功后再去更新处方状态
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe byRecipeId = recipeDAO.getByRecipeId(recipe.getRecipeId());
         //处方签名中 点击撤销按钮 如果处方单状态处于已取消 则不走下面逻辑
-        if (byRecipeId.getStatus() == 9) {
+        if (9 == byRecipeId.getStatus()) {
             LOGGER.info("saveStatusAndSendMsg 处方单已经撤销,recipeid:{}", recipe.getRecipeId());
             return;
         }
@@ -76,51 +78,23 @@ public abstract class AbstractAuidtMode implements IAuditMode {
         //日志记录
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), status, memo);
         //平台处方进行消息发送等操作
-        if (1 == recipe.getFromflag()) {
-            //发送消息--待审核或者待处理消息
-            RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
-            Integer checkMode = recipe.getCheckMode();
-            boolean flag = judgeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
-            //线下审方不推送药师消息
-            if (new Integer(1).equals(checkMode) && !flag && RecipeStatusConstant.READY_CHECK_YS == status
-                    && RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
-                //增加药师首页待处理任务---创建任务
-                RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
-                LOGGER.info("AbstractAuidtMode saveStatusAndSendMsg recipeId:{},recipeBean:{}", recipe.getRecipeId(), JSON.toJSONString(recipeBean));
-                ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
-            }
-            //保存至电子病历
-            RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-            recipeService.saveRecipeDocIndex(recipe);
+        if (1 != recipe.getFromflag()) {
+            return;
         }
-    }
-
-    private boolean judgeRecipeAutoCheck(Integer recipeId, Integer organId) {
-        LOGGER.info("judgeRecipeAutoCheck recipe={}", recipeId);
-        try {
-            IConfigurationCenterUtilsService iConfigService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            Boolean invokeRecipeAnalysis = (Boolean) iConfigService.getConfiguration(organId, "InvokeRecipeAnalysis");
-            Integer intellectJudicialFlag = (Integer) iConfigService.getConfiguration(organId, "intellectJudicialFlag");
-            String autoRecipecheckLevel = (String) iConfigService.getConfiguration(organId, "autoRecipecheckLevel");
-            String defaultRecipecheckDoctor = (String) iConfigService.getConfiguration(organId, "defaultRecipecheckDoctor");
-            if (invokeRecipeAnalysis && intellectJudicialFlag == 1
-                    && StringUtils.isNotEmpty(defaultRecipecheckDoctor) && StringUtils.isNotEmpty(autoRecipecheckLevel)) {
-                String[] levels = autoRecipecheckLevel.split(",");
-                Integer minLevel = Integer.valueOf(levels[0]);
-                Integer maxLevel = Integer.valueOf(levels[1]);
-                IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
-                Map<Integer, Integer> maxLevelMap = iAuditMedicinesService.queryRecipeMaxLevel(recipeId);
-                Integer dbMaxLevel = maxLevelMap.get(recipeId);
-                if (dbMaxLevel == null || (minLevel.intValue() <= dbMaxLevel.intValue() && dbMaxLevel.intValue() <= maxLevel.intValue())) {
-                    LOGGER.info("满足自动审方条件，已拦截，不推送药师消息，recipeId ={}", recipeId);
-                    return true;
-                }
-            }
-            return false;
-        } catch (Exception e) {
-            LOGGER.error("judgeRecipeAutoCheck error recipe={}", recipeId, e);
-            return false;
+        //发送消息--待审核或者待处理消息
+        RecipeMsgService.batchSendMsg(recipe.getRecipeId(), status);
+        boolean flag = this.judgeRecipeAutoCheck(recipe.getRecipeId(), recipe.getClinicOrgan());
+        //线下审方不推送药师消息
+        if (new Integer(1).equals(recipe.getCheckMode()) && !flag && RecipeStatusConstant.READY_CHECK_YS == status
+                && RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
+            //增加药师首页待处理任务---创建任务
+            RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+            LOGGER.info("AbstractAuidtMode saveStatusAndSendMsg recipeId:{},recipeBean:{}", recipe.getRecipeId(), JSON.toJSONString(recipeBean));
+            ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussCreateEvent(recipeBean, BussTypeConstant.RECIPE));
         }
+        //保存至电子病历
+        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+        recipeService.saveRecipeDocIndex(recipe);
     }
 
     @Override
@@ -210,7 +184,8 @@ public abstract class AbstractAuidtMode implements IAuditMode {
         try {
             Integer recipeId = recipe.getRecipeId();
             //处方信息 AND 病历信息重新拉去
-            Recipe recipeManagBean = AutoCheckRecipe.getByRecipeId(recipeId);
+            RecipeManager recipeManager = AppContextHolder.getBean("recipeManager", RecipeManager.class);
+            Recipe recipeManagBean = recipeManager.getRecipeById(recipeId);
             RecipeDTO recipeDTO = ObjectCopyUtils.convert(recipeManagBean, RecipeDTO.class);
             //查詢处方扩展 获取对应的挂号序号
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
@@ -230,6 +205,69 @@ public abstract class AbstractAuidtMode implements IAuditMode {
 
         } catch (Exception e) {
             LOGGER.error("recipeAudit.error", e);
+        }
+    }
+
+
+    /**
+     * @param recipeId
+     * @desc 执行具体的三方 只能是三方审核模式下
+     */
+    protected void doAutoRecipe(Integer recipeId) {
+        RecipeManager recipeManager = AppContextHolder.getBean("recipeManager", RecipeManager.class);
+        Recipe recipe = recipeManager.getRecipeById(recipeId);
+        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
+        RecipeAuditClient recipeAuditClient = AppContextHolder.getBean("recipeAuditClient", RecipeAuditClient.class);
+        recipeAuditClient.analysis(recipe, null, recipeDetails);
+    }
+
+    protected boolean judgeRecipeAutoCheck(Integer recipeId, Integer organId) {
+        LOGGER.info("judgeRecipeAutoCheck recipe={}", recipeId);
+        try {
+            IConfigurationCenterUtilsService iConfigService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            Boolean invokeRecipeAnalysis = (Boolean) iConfigService.getConfiguration(organId, "InvokeRecipeAnalysis");
+            Integer intellectJudicialFlag = (Integer) iConfigService.getConfiguration(organId, "intellectJudicialFlag");
+            String autoRecipecheckLevel = (String) iConfigService.getConfiguration(organId, "autoRecipecheckLevel");
+            String defaultRecipecheckDoctor = (String) iConfigService.getConfiguration(organId, "defaultRecipecheckDoctor");
+            if (invokeRecipeAnalysis && intellectJudicialFlag == 1 && StringUtils.isNotEmpty(defaultRecipecheckDoctor) && StringUtils.isNotEmpty(autoRecipecheckLevel)) {
+                String[] levels = autoRecipecheckLevel.split(",");
+                Integer minLevel = Integer.valueOf(levels[0]);
+                Integer maxLevel = Integer.valueOf(levels[1]);
+                IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
+                Map<Integer, Integer> maxLevelMap = iAuditMedicinesService.queryRecipeMaxLevel(recipeId);
+                Integer dbMaxLevel = maxLevelMap.get(recipeId);
+                if (dbMaxLevel == null || (minLevel.intValue() <= dbMaxLevel.intValue() && dbMaxLevel.intValue() <= maxLevel.intValue())) {
+                    LOGGER.info("满足自动审方条件，已拦截，不推送药师消息，recipeId ={}", recipeId);
+                    return true;
+                }
+            }
+            return false;
+        } catch (Exception e) {
+            LOGGER.error("judgeRecipeAutoCheck error recipe={}", recipeId, e);
+            return false;
+        }
+    }
+
+
+    /**
+     * @return
+     */
+    protected Boolean threeRecipeAutoCheck(Integer recipeId, Integer organId) {
+        LOGGER.info("threeRecipeAutoCheck recipe={}", recipeId);
+        try {
+            IConfigurationCenterUtilsService iConfigService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            Integer intellectJudicialFlag = (Integer) iConfigService.getConfiguration(organId, "intellectJudicialFlag");
+            String autoRecipecheckLevel = (String) iConfigService.getConfiguration(organId, "autoRecipecheckLevel");
+            String defaultRecipecheckDoctor = (String) iConfigService.getConfiguration(organId, "defaultRecipecheckDoctor");
+            if (intellectJudicialFlag == 3 && StringUtils.isNotEmpty(defaultRecipecheckDoctor) && StringUtils.isNotEmpty(autoRecipecheckLevel)) {
+                // 这个只是一个范围判断
+                return true;
+            }
+            return false;
+        } catch (Exception e) {
+            LOGGER.error("threeRecipeAutoCheck error recipe={}", recipeId, e);
+            return false;
         }
     }
 }

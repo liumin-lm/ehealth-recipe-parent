@@ -15,7 +15,6 @@ import com.ngari.recipe.dto.RecipeOrderDto;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
-import ctd.mvc.weixin.entity.OAuthWeixinMP;
 import ctd.util.JSONUtils;
 import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -307,6 +306,23 @@ public class OrderManager extends BaseManager {
             recipeOrder = recipeOrderDAO.getOrderByRecipeId(recipeId);
         }
         return recipeOrder;
+    }
+
+    /**
+     * 更新订单的物流信息
+     * @param orderId  订单ID
+     * @param logisticsCompany 物流公司
+     * @param trackingNumber   物流单号
+     * @return
+     */
+    public boolean updateOrderLogisticsInfo(Integer orderId, Integer logisticsCompany, String trackingNumber){
+        if (StringUtils.isEmpty(trackingNumber)) {
+            return false;
+        }
+        RecipeOrder recipeOrder = new RecipeOrder(orderId);
+        recipeOrder.setLogisticsCompany(logisticsCompany);
+        recipeOrder.setTrackingNumber(trackingNumber);
+        return recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
     }
 
     /**

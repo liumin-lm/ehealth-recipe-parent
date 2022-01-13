@@ -4,14 +4,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.currentuserinfo.model.SimpleThirdBean;
 import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
+import com.ngari.base.organ.model.OrganBean;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.RecipePDFToHisTO;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.recipe.mode.AddressBean;
-import com.ngari.platform.recipe.mode.PushRecipeAndOrder;
-import com.ngari.platform.recipe.mode.RecipeOrderBean;
+import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -24,6 +23,8 @@ import org.springframework.stereotype.Service;
 import recipe.constant.ErrorCode;
 import recipe.third.IFileDownloadService;
 import recipe.util.ByteUtils;
+
+import java.util.List;
 
 /**
  * 药企对接处理类
@@ -131,6 +132,31 @@ public class EnterpriseClient extends BaseClient {
         result.setPrescId(ByteUtils.objValueOf(responseTO.getExtend().get("prescId")));
         result.setUrl(ByteUtils.objValueOf(responseTO.getExtend().get("urlCode")));
         return result;
+    }
+
+    /**
+     * 获取取药站点
+     * @param medicineStationDTO 站点信息
+     * @param organBean 机构信息
+     * @param enterpriseBean 药企信息
+     * @return 取药站点列表
+     */
+    public List<MedicineStationDTO> getMedicineStationList(MedicineStationDTO medicineStationDTO, OrganBean organBean, DrugsEnterpriseBean enterpriseBean){
+        logger.info("EnterpriseClient getMedicineStationList medicineStationDTO:{},organBean:{},enterpriseBean:{}.", JSONUtils.toString(medicineStationDTO)
+        , JSONUtils.toString(organBean), JSONUtils.toString(enterpriseBean));
+        try {
+            MedicineStationReqDTO medicineStationReqDTO = new MedicineStationReqDTO();
+            medicineStationReqDTO.setMedicineStationDTO(medicineStationDTO);
+            medicineStationReqDTO.setOrganBean(organBean);
+            medicineStationReqDTO.setDrugsEnterpriseBean(enterpriseBean);
+            HisResponseTO<List<MedicineStationDTO>> response = recipeEnterpriseService.getMedicineStationList(medicineStationReqDTO);
+            List<MedicineStationDTO> medicineStationDTOList = getResponse(response);
+            logger.info("EnterpriseClient getMedicineStationList medicineStationDTOList:{}.", JSONUtils.toString(medicineStationDTOList));
+            return medicineStationDTOList;
+        } catch (Exception e) {
+            logger.error("EnterpriseClient getMedicineStationList medicineStationDTOList", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
     }
 
     /**

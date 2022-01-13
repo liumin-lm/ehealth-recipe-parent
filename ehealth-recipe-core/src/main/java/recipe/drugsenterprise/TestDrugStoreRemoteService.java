@@ -5,7 +5,6 @@ import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
 import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Pharmacy;
-import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import ctd.persistence.DAOFactory;
 import org.apache.commons.lang3.StringUtils;
@@ -14,8 +13,6 @@ import org.slf4j.LoggerFactory;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.PharmacyDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeParameterDao;
 import recipe.service.RecipeLogService;
 import recipe.util.MapValueUtil;
 
@@ -58,22 +55,6 @@ public class TestDrugStoreRemoteService extends AccessDrugEnterpriseService {
     @Override
     public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
         return null;
-    }
-
-    @Override
-    public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-       RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-        String scanStockResult = recipeParameterDao.getByName("scanStockResult");
-        if (recipe.getStatus() == -1) {
-            return DrugEnterpriseResult.getSuccess();
-        }
-        if ("1".equals(scanStockResult)) {
-            return DrugEnterpriseResult.getSuccess();
-        } else {
-            return DrugEnterpriseResult.getFail();
-        }
     }
 
     @Override

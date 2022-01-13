@@ -26,7 +26,13 @@
         </dependency>
         <dependency>
             <groupId>ngari</groupId>
-            <artifactId>ngari-utils</artifactId>
+            <artifactId>ehealth-basic-dto</artifactId>
+            <version>${ngari.basicdto.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>ehealth-utils</artifactId>
+            <version>${ngari.utils.version}</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.data</groupId>
@@ -40,6 +46,16 @@
             <groupId>com.huaban</groupId>
             <artifactId>jieba-analysis</artifactId>
             <version>1.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>javax.validation</groupId>
+            <artifactId>validation-api</artifactId>
+            <version>1.1.0.Final</version>
+        </dependency>
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>1.2.61</version>
         </dependency>
     </dependencies>
 </project>

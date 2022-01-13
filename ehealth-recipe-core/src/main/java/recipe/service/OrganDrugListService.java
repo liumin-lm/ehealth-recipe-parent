@@ -701,7 +701,12 @@ public class OrganDrugListService implements IOrganDrugListService {
                                                                                           final String keyword, final Integer status,
                                                                                           final int start, final int limit) {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        QueryResult result = organDrugListDAO.queryOrganDrugListByOrganIdAndKeyword(organId, drugClass, keyword, status, start, limit);
+        List<Integer> listOrgan = new ArrayList<>();
+        if (!ObjectUtils.isEmpty(organId)) {
+            OrganDTO byOrganId = BasicAPI.getService(OrganService.class).getByOrganId(organId);
+            listOrgan = BasicAPI.getService(OrganService.class).queryOrganByManageUnitList(byOrganId.getManageUnit(), listOrgan);
+        }
+        QueryResult result = organDrugListDAO.queryOrganDrugListByOrganIdAndKeyword(listOrgan, organId, drugClass, keyword, status, start, limit);
         result.setItems(covertData(result.getItems()));
         return result;
     }
@@ -723,7 +728,12 @@ public class OrganDrugListService implements IOrganDrugListService {
                                                                                                final String keyword, final Integer status,
                                                                                                final int start, final int limit) {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        QueryResult result = organDrugListDAO.queryOrganDrugListByOrganIdAndKeyword(organId, drugClass, keyword, status, start, limit);
+        List<Integer> listOrgan = new ArrayList<>();
+        if (!ObjectUtils.isEmpty(organId)) {
+            OrganDTO byOrganId = BasicAPI.getService(OrganService.class).getByOrganId(organId);
+            listOrgan = BasicAPI.getService(OrganService.class).queryOrganByManageUnitList(byOrganId.getManageUnit(), listOrgan);
+        }
+        QueryResult result = organDrugListDAO.queryOrganDrugListByOrganIdAndKeyword(listOrgan, organId, drugClass, keyword, status, start, limit);
         result.setItems(covertData(result.getItems()));
         return result;
     }
@@ -765,7 +775,12 @@ public class OrganDrugListService implements IOrganDrugListService {
                                                                                                final String keyword,final String producer, final Integer status,
                                                                                                final int start, final int limit) {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
-        QueryResult result = organDrugListDAO.queryOrganDrugListByOrganIdAndKeywordAndProducer(organId, drugType, keyword,producer, status, start, limit);
+        List<Integer> listOrgan = new ArrayList<>();
+        if (!ObjectUtils.isEmpty(organId)) {
+            OrganDTO byOrganId = BasicAPI.getService(OrganService.class).getByOrganId(organId);
+            listOrgan = BasicAPI.getService(OrganService.class).queryOrganByManageUnitList(byOrganId.getManageUnit(), listOrgan);
+        }
+        QueryResult result = organDrugListDAO.queryOrganDrugListByOrganIdAndKeywordAndProducer(listOrgan, organId, drugType, keyword, producer, status, start, limit);
         result.setItems(covertData(result.getItems()));
         return result;
     }

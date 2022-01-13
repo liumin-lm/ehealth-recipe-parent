@@ -10,7 +10,6 @@ import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugStockAmountDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -58,6 +57,7 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
 
     }
 
+    @RpcService
     @Override
     public DrugEnterpriseResult pushRecipeInfo(List<Integer> recipeIds, DrugsEnterprise enterprise) {
         return DrugEnterpriseResult.getSuccess();
@@ -66,22 +66,6 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
     @Override
     public DrugEnterpriseResult pushRecipe(HospitalRecipeDTO hospitalRecipeDTO, DrugsEnterprise enterprise) {
         return DrugEnterpriseResult.getSuccess();
-    }
-
-    @RpcService
-    public DrugStockAmountDTO test(){
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        Recipe recipe = recipeDAO.getByRecipeId(136534);
-        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(136534);
-        DrugsEnterprise drugsEnterprise = new DrugsEnterprise();
-        drugsEnterprise.setId(3052);
-        drugsEnterprise.setUserId("dplx5274155892");
-        drugsEnterprise.setPassword("329a4ff3a17c7a280bb2b6175");
-        drugsEnterprise.setToken("747e9801-111b-400a-a3fa-3986698df417");
-        drugsEnterprise.setAuthenUrl("http://rx.eastpharm.com:8082/prescription/oauth/token");
-        drugsEnterprise.setBusinessUrl("http://305l5120d3.wicp.vip/dp-ws/");
-        return scanEnterpriseDrugStock(recipe,drugsEnterprise,recipedetails);
     }
 
     @Override
@@ -263,112 +247,6 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
         return null;
     }
 
-    @RpcService
-    public void test(Integer recipeId){
-        List<Integer> recipeIds = Arrays.asList(recipeId);
-        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(242);
-        Map ext=new HashMap();
-        ext.put("longitude","34.975056");
-        ext.put("latitude","118.269448");
-        ext.put("range","20");
-//        findSupportDep(recipeIds,ext,drugsEnterprise);
-        scanStock(recipeId,drugsEnterprise);
-    }
-    @Override
-    public DrugEnterpriseResult scanStock(Integer recipeId, DrugsEnterprise drugsEnterprise) {
-        LOGGER.info("LxRemoteService.scanStock:[{}]", JSONUtils.toString(recipeId));
-        DrugEnterpriseResult result = DrugEnterpriseResult.getSuccess();
-        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-        String loginUrl=recipeParameterDao.getByName("lx-login-url");
-        String checkstockUrl=recipeParameterDao.getByName("lx-checkstock-url");
-        try {
-            Map<String,String> loginBody=new HashMap<String,String>();
-            loginBody.put("username",drugsEnterprise.getUserId());
-            loginBody.put("password",drugsEnterprise.getPassword());
-            String requestStr = JSONUtils.toString(loginBody);
-            LOGGER.info("LxRemoteService.scanStock:[{}][{}]根据用户名和密码获取Token请求，请求内容：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), requestStr);
-            String tokenData = HttpsClientUtils.doPost(drugsEnterprise.getBusinessUrl()+loginUrl, requestStr);
-            LOGGER.info("LxRemoteService.scanStock:[{}][{}]根据用户名和密码获取Token请求，获取响应消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), JSONUtils.toString(tokenData));
-            Map tokenMap = JSONUtils.parse(tokenData, Map.class);
-            if(requestSuccessCode.equals(MapValueUtil.getString(tokenMap, "code"))) {
-                String token = MapValueUtil.getString(tokenMap, "token");
-                Map<String,String> extendHeaders=new HashMap<String,String>();
-                extendHeaders.put("Content-Type",requestHeadJsonValue);
-                extendHeaders.put("X-Token",token);
-                YnsPharmacyAndStockRequest stockRequest=findScanStockBussReq(result,recipeId, drugsEnterprise);
-                if (stockRequest == null) {
-                    getFailResult(result, "库存不足");
-                    return result;
-                }
-                String bodyStr = JSONUtils.toString(stockRequest);
-
-                ////根据处方信息发送药企库存查询请求，判断有药店是否满足库存
-                LOGGER.info("LxRemoteService.scanStock:[{}][{}]根据处方信息发送药企库存查询请求，请求内容：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), bodyStr);
-                String stockData = HttpsClientUtils.doPost(drugsEnterprise.getBusinessUrl()+checkstockUrl, bodyStr,extendHeaders);
-                LOGGER.info("LxRemoteService.scanStock:[{}][{}]获取药企库存查询请求，获取响应getBody消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), stockData);
-                Map resultMap = JSONUtils.parse(stockData, Map.class);
-                if (requestSuccessCode.equals(MapValueUtil.getString(resultMap, "code"))) {
-                    List<Map<String, Object>> drugList = MapValueUtil.getList(resultMap,"drugList");
-                    if (CollectionUtils.isNotEmpty(drugList) && drugList.size() > 0) {
-                        for (Map<String, Object> drugBean : drugList) {
-                            String inventory = MapValueUtil.getObject(drugBean, "inventory").toString();
-                            if ("false".equals(inventory)) {
-                                getFailResult(result, "当前药企下没有药店的药品库存足够");
-                                return result;
-                            }
-                        }
-                        LOGGER.info("LxRemoteService.findSupportDep:[{}][{}]获取药品库存请求，返回前端result消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), JSONUtils.toString(result));
-                    } else {
-                        getFailResult(result, "当前药企下没有药店的药品库存足够");
-                    }
-                    LOGGER.info("LxRemoteService.findSupportDep:[{}][{}]获取药店列表请求，返回前端result消息：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), JSONUtils.toString(result));
-                }else{
-                    getFailResult(result, "当前药企下没有药店的药品库存足够");
-                }
-                LOGGER.info("LxRemoteService-scanStock 药店取药药品库存:{}.", JSONUtils.toString(result));
-            }else{
-                result.setCode(DrugEnterpriseResult.FAIL);
-                result.setMsg("获取Token失败");
-                LOGGER.error("LxRemoteService.findSupportDep: msg [{}][{}]登录罗欣药企获取Token：{}",drugsEnterprise.getId(), drugsEnterprise.getName(), "获取Token失败");
-                getFailResult(result, "获取Token失败");
-                return result;
-            }
-        } catch (Exception e) {
-                result.setCode(DrugEnterpriseResult.FAIL);
-                result.setMsg(e.getMessage());
-                LOGGER.error("LxRemoteService.scanStock:[{}][{}]获取药品库存异常：{}",drugsEnterprise.getId(), drugsEnterprise.getName(), e.getMessage(),e);
-                getFailResult(result,  e.getMessage());
-                return result;
-            } finally {
-                try {
-                } catch (Exception e) {
-                    result.setCode(DrugEnterpriseResult.FAIL);
-                    result.setMsg(e.getMessage());
-                    getFailResult(result,  e.getMessage());
-                    LOGGER.error("LxRemoteService.scanStock:http请求资源关闭异常: {}！", e.getMessage(),e);
-                    return result;
-                }
-            }
-            return result;
-    }
-    private YnsPharmacyAndStockRequest findScanStockBussReq(DrugEnterpriseResult result ,Integer recipeId, DrugsEnterprise drugsEnterprise){
-        LOGGER.info("LxRemoteService.findScanStockBussReq:[{}][{}]获取药企库存查询请求，请求内容：{}", drugsEnterprise.getId(), drugsEnterprise.getName(), recipeId);
-        //查询当前处方信息
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe nowRecipe = recipeDAO.get(recipeId);
-        //查询当前处方下详情信息
-        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        List<Recipedetail> detailList = detailDAO.findByRecipeId(nowRecipe.getRecipeId());
-
-        //根据药品请求华东旗下的所有可用药店，当有一个可用说明库存是足够的
-        Map<String, HdDrugRequestData> resultMap = new HashMap<>();
-        List<HdDrugRequestData> drugRequestDataList = getDrugRequestList(resultMap, detailList, drugsEnterprise, result);
-        if(DrugEnterpriseResult.FAIL == result.getCode()) return null;
-        YnsPharmacyAndStockRequest hdPharmacyAndStockRequest = new YnsPharmacyAndStockRequest();
-        hdPharmacyAndStockRequest.setDrugList(drugRequestDataList);
-        return hdPharmacyAndStockRequest;
-    }
     @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
         return DrugEnterpriseResult.getSuccess();
@@ -499,7 +377,6 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
             hdPharmacyAndStockRequest.setPosition(new HdPosition(MapValueUtil.getString(ext, searchMapLongitude), MapValueUtil.getString(ext, searchMapLatitude)));
 
         }else{
-            //LOGGER.warn("LxRemoteService.findSupportDep:请求的搜索参数不健全" );
             //配送到家的信息
             List<HdDrugRequestData> drugRequestList = getDrugRequestList(resultMap, detailList, enterprise, result);
             hdPharmacyAndStockRequest.setDrugList(drugRequestList);

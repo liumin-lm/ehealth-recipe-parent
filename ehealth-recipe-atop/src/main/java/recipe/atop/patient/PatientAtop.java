@@ -12,6 +12,7 @@ import recipe.core.api.patient.IPatientBusinessService;
 
 /**
  * 患者相关服务
+ *
  * @author yinsheng
  * @date 2021\7\29 0029 19:57
  */
@@ -23,11 +24,12 @@ public class PatientAtop extends BaseAtop {
 
     /**
      * 校验当前就诊人是否有效 是否实名认证 就诊卡是否有效
+     *
      * @param outPatientReqVO 当前就诊人信息
      * @return 枚举值
      */
     @RpcService
-    public Integer checkCurrentPatient(OutPatientReqVO outPatientReqVO){
+    public Integer checkCurrentPatient(OutPatientReqVO outPatientReqVO) {
         logger.info("PatientInfoAtop checkCurrentPatient outPatientReqVO:{}.", JSON.toJSONString(outPatientReqVO));
         validateAtop(outPatientReqVO, outPatientReqVO.getMpiId());
         try {

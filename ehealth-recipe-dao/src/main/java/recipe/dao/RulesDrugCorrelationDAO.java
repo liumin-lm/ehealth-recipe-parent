@@ -1,9 +1,6 @@
 package recipe.dao;
 
-import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.recipe.commonrecipe.model.MedicationRulesDTO;
 import com.ngari.recipe.commonrecipe.model.RulesDrugCorrelationDTO;
-import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.RulesDrugCorrelation;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;

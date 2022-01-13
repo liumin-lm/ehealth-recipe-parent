@@ -27,6 +27,7 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
+import recipe.manager.OrderManager;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.thread.RecipeBusiThreadPool;
@@ -48,6 +49,9 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
 
     @Resource
     private RecipeDetailDAO recipeDetailDAO;
+
+    @Autowired
+    private OrderManager orderManager;
 
     @Override
     public Integer getGiveMode() {
@@ -73,12 +77,6 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
             recipe.setPayDate(date);
             recipe.setPayFlag(1);
         }
-        if (null != orderStatus.getLogisticsCompany()) {
-            recipeOrder.setLogisticsCompany(orderStatus.getLogisticsCompany());
-        }
-        if (StringUtils.isNotEmpty(orderStatus.getTrackingNumber())) {
-            recipeOrder.setTrackingNumber(orderStatus.getTrackingNumber());
-        }
         recipeOrderStatusProxy.updateOrderByStatus(orderStatus, recipeOrder, recipe);
     }
 
@@ -92,25 +90,22 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
             RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.PATIENT_REACHPAY_FINISH);
             //监管平台上传配送信息(配送到家-处方完成)
             RecipeBusiThreadPool.execute(() -> {
-                long start = System.currentTimeMillis();
                 HisSyncSupervisionService hisSyncService = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
                 CommonResponse response = hisSyncService.uploadFinishMedicine(recipeId);
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusEnum.RECIPE_STATUS_FINISH.getType(),
                         "监管平台配送信息[完成]上传code" + response.getCode() + ",msg:" + response.getMsg());
-                long elapsedTime = System.currentTimeMillis() - start;
-                logger.info("RecipeBusiThreadPool updateStatusAfter 将配送完成信息推送到监管平台 执行时间:{}.", elapsedTime);
             });
         }
-        //根据这个判断,配送中和配送完成可能会出现推送两次？
+
         if (null != orderStatus.getLogisticsCompany() || StringUtils.isNotBlank(orderStatus.getTrackingNumber())) {
-            try {
-                //同步运单信息至基础服务
-                ThirdEnterpriseCallService.sendLogisticsInfoToBase(orderStatus.getRecipeId(), orderStatus.getLogisticsCompany() + "", orderStatus.getTrackingNumber());
-            } catch (Exception e) {
-                logger.error("HomeDeliveryImpl updateStatusAfter error ", e);
+            RecipeOrder recipeOrder = orderManager.getRecipeOrderById(orderStatus.getOrderId());
+            orderManager.updateOrderLogisticsInfo(orderStatus.getOrderId(), orderStatus.getLogisticsCompany(), orderStatus.getTrackingNumber());
+            //同步运单信息至基础服务
+            ThirdEnterpriseCallService.sendLogisticsInfoToBase(orderStatus.getRecipeId(), orderStatus.getLogisticsCompany() + "", orderStatus.getTrackingNumber());
+            if (StringUtils.isEmpty(recipeOrder.getTrackingNumber())) {
+                //更新快递信息后，发送消息
+                RecipeMsgService.batchSendMsg(orderStatus.getRecipeId(), RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
             }
-            //更新快递信息后，发送消息
-            RecipeMsgService.batchSendMsg(orderStatus.getRecipeId(), RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
             //将快递公司快递单号信息用更新配送方式接口更新至his
             if (StringUtils.isEmpty(recipe.getMpiid())) {
                 return;
@@ -122,7 +117,6 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
                 DrugTakeChangeReqTO request = HisRequestInit.initDrugTakeChangeReqTO(recipe, details, patientBean, null);
                 service.drugTakeChange(request);
             });
-
             //记录日志
             String company = DictionaryUtil.getDictionary("eh.cdr.dictionary.LogisticsCompany", orderStatus.getLogisticsCompany());
             RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), orderStatus.getSourceRecipeOrderStatus()

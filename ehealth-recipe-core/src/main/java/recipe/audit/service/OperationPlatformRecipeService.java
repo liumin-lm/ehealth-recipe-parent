@@ -1,9 +1,7 @@
-package recipe.operation;
+package recipe.audit.service;
 
-import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.organ.model.OrganBean;
-import com.ngari.base.organ.service.IOrganService;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
@@ -32,19 +30,16 @@ import eh.recipeaudit.api.IAuditMedicinesService;
 import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.model.AuditMedicineIssueBean;
-import eh.recipeaudit.model.AuditMedicinesBean;
+import eh.recipeaudit.model.Intelligent.PAWebRecipeDangerBean;
 import eh.recipeaudit.model.RecipeCheckBean;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.http.util.Args;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
-import recipe.audit.bean.PAWebRecipeDanger;
-import recipe.audit.service.PrescriptionService;
+import recipe.aop.LogRecord;
 import recipe.bussutil.AESUtils;
 import recipe.client.DoctorClient;
 import recipe.client.RecipeAuditClient;
@@ -53,19 +48,24 @@ import recipe.dao.*;
 import recipe.manager.ButtonManager;
 import recipe.manager.DepartManager;
 import recipe.service.RecipeService;
-import recipe.util.ByteUtils;
+import recipe.service.RecipeServiceSub;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
 import recipe.vo.second.ApothecaryVO;
 
 import java.util.*;
 
+import static recipe.util.ByteUtils.hideIdCard;
+
 /**
+ * 服务在用 新方法不再此类新增
+ *
  * @author wzc
  * @date 2020-10-27 14:27
  * @desc 运营平台处方服务
  */
 @RpcBean("operationPlatformRecipeService")
+@Deprecated
 public class OperationPlatformRecipeService {
 
     /**
@@ -95,6 +95,7 @@ public class OperationPlatformRecipeService {
      * @return
      */
     @RpcService
+    @LogRecord
     public Map<String, Object> findRecipeAndDetailsAndCheckByIdEncrypt(String recipeId, Integer doctorId) {
         LOGGER.info("findRecipeAndDetailsAndCheckByIdEncrypt recipeId={},doctorId={}", recipeId, doctorId);
         //20200323 解密recipe
@@ -118,6 +119,7 @@ public class OperationPlatformRecipeService {
      * @return
      */
     @RpcService
+    @LogRecord
     public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId, Integer checkerId) {
 
         LOGGER.info("findRecipeAndDetailsAndCheckById recipeId={}.checkerId={}", recipeId, checkerId);
@@ -388,8 +390,7 @@ public class OperationPlatformRecipeService {
         PrescriptionService prescriptionService = ApplicationUtils.getRecipeService(PrescriptionService.class);
         if (recipe.getStatus() != 0) {
             if (prescriptionService.getIntellectJudicialFlag(recipe.getClinicOrgan()) == 1) {
-                List<AuditMedicinesBean> auditMedicines = recipeAuditClient.getAuditMedicineIssuesByRecipeId(recipeId);
-                map.put("medicines", auditMedicines);
+                map.put("medicines", recipeAuditClient.getAuditMedicineIssuesByRecipeId(recipeId));
                 List<AuditMedicineIssueBean> auditMedicineIssues = auditMedicinesService.findIssueByRecipeId(recipeId);
                 if (CollectionUtils.isNotEmpty(auditMedicineIssues)) {
                     List<AuditMedicineIssueBean> resultMedicineIssues = new ArrayList<>();
@@ -399,9 +400,9 @@ public class OperationPlatformRecipeService {
                         }
                     });
 
-                    List<PAWebRecipeDanger> recipeDangers = new ArrayList<>();
+                    List<PAWebRecipeDangerBean> recipeDangers = new ArrayList<>();
                     resultMedicineIssues.forEach(item -> {
-                        PAWebRecipeDanger recipeDanger = new PAWebRecipeDanger();
+                        PAWebRecipeDangerBean recipeDanger = new PAWebRecipeDangerBean();
                         recipeDanger.setDangerDesc(item.getDetail());
                         recipeDanger.setDangerDrug(item.getTitle());
                         recipeDanger.setDangerLevel(item.getLvlCode());
@@ -444,12 +445,6 @@ public class OperationPlatformRecipeService {
         return map;
     }
 
-    private void setSignStatusToGrabOrder(Map<String, Object> orderStatusAndLimitTime, Recipe recipe) {
-        if (RecipeStatusConstant.SIGN_ERROR_CODE_PHA == recipe.getStatus() || RecipeStatusConstant.SIGN_ING_CODE_PHA == recipe.getStatus()) {
-            orderStatusAndLimitTime.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDERED_OWN);
-            orderStatusAndLimitTime.put("lockLimitTime", 10);
-        }
-    }
 
     private String getSignReasonForChecker(Integer recipeId, Integer status) {
         RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
@@ -468,23 +463,6 @@ public class OperationPlatformRecipeService {
         return signReason;
     }
 
-    private String getCancelReasonForChecker(Integer recipeId) {
-        RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
-        String cancelReason = "";
-        if (CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipeId))) {
-            cancelReason = "由于患者申请退费成功，该处方已取消。";
-        } else {
-
-            RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-            List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.REVOKE);
-
-            if (CollectionUtils.isNotEmpty(recipeLogs)) {
-                cancelReason = "开方医生已撤销处方,撤销原因:" + recipeLogs.get(0).getMemo();
-            }
-        }
-
-        return cancelReason;
-    }
 
     /**
      * 获取待审核列表审核结果
@@ -550,66 +528,33 @@ public class OperationPlatformRecipeService {
         return checkResult;
     }
 
-
-    /**
-     * 脱敏身份证号
-     *
-     * @param idCard
-     * @return
-     */
-    private String hideIdCard(String idCard) {
-        return ByteUtils.hideIdCard(idCard);
-    }
-
-    /**
-     * chuwei
-     * 前端页面调用该接口查询是否存在待审核的处方单
-     *
-     * @param organ 审核机构
-     * @return
-     */
-    @RpcService
-    public boolean existUncheckedRecipe(int organ) {
-        RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
-        boolean bResult = rDao.checkIsExistUncheckedRecipe(organ);
-        return bResult;
-    }
-
-
-    /**
-     * 获取药师能审核的机构
-     *
-     * @param doctorId 药师ID
-     * @return
-     */
-    @RpcService
-    public List<OrganBean> findCheckOrganList(Integer doctorId) {
-        List<OrganBean> organList = Lists.newArrayList();
-        if (null == doctorId) {
-            return organList;
+    private void setSignStatusToGrabOrder(Map<String, Object> orderStatusAndLimitTime, Recipe recipe) {
+        if (RecipeStatusConstant.SIGN_ERROR_CODE_PHA == recipe.getStatus() || RecipeStatusConstant.SIGN_ING_CODE_PHA == recipe.getStatus()) {
+            orderStatusAndLimitTime.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDERED_OWN);
+            orderStatusAndLimitTime.put("lockLimitTime", 10);
         }
-        List<Integer> organIds = doctorService.findAPOrganIdsByDoctorId(doctorId);
-        if (CollectionUtils.isNotEmpty(organIds)) {
-            IOrganService organService = ApplicationUtils.getBaseService(IOrganService.class);
-            List<OrganBean> detailOrgan = organService.findByIdIn(organIds);
-            OrganBean organBean;
-            for (OrganBean bean : detailOrgan) {
-                organBean = new OrganBean();
-                organBean.setOrganId(bean.getOrganId());
-                organBean.setShortName(bean.getShortName());
-                organBean.setName(bean.getName());
-                organList.add(organBean);
+    }
+
+
+    private String getCancelReasonForChecker(Integer recipeId) {
+        RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
+        String cancelReason = "";
+        if (CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipeId))) {
+            cancelReason = "由于患者申请退费成功，该处方已取消。";
+        } else {
+
+            RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+            List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.REVOKE);
+
+            if (CollectionUtils.isNotEmpty(recipeLogs)) {
+                cancelReason = "开方医生已撤销处方,撤销原因:" + recipeLogs.get(0).getMemo();
             }
         }
-        return organList;
+
+        return cancelReason;
     }
 
-    /**
-     * 判断登录用户能否审核机构下的处方
-     *
-     * @param recipeId
-     * @param doctorId
-     */
+
     public void checkUserIsChemistByDoctorId(Integer recipeId, Integer doctorId) {
         RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = rDao.getByRecipeId(recipeId);
@@ -630,6 +575,36 @@ public class OperationPlatformRecipeService {
         }
     }
 
+
+
+    /**
+     * chuwei
+     * 前端页面调用该接口查询是否存在待审核的处方单
+     *
+     * @param organ 审核机构
+     * @return
+     */
+    @RpcService
+    @LogRecord
+    public boolean existUncheckedRecipe(int organ) {
+        RecipeDAO rDao = DAOFactory.getDAO(RecipeDAO.class);
+        return rDao.checkIsExistUncheckedRecipe(organ);
+    }
+
+
+    /**
+     * 获取药师能审核的机构
+     *
+     * @param doctorId 药师ID
+     * @return
+     */
+    @RpcService
+    @LogRecord
+    public List<OrganBean> findCheckOrganList(Integer doctorId) {
+        return recipeAuditClient.findCheckOrganList(doctorId);
+    }
+
+
     /**
      * 获取抢单状态和自动解锁时间
      *
@@ -637,47 +612,8 @@ public class OperationPlatformRecipeService {
      * @return
      */
     @RpcService
+    @LogRecord
     public Map<String, Object> getGrabOrderStatusAndLimitTime(Map<String, Object> map) {
-        Map<String, Object> resultMap = new HashMap<>();
-        Integer recipeId = MapUtils.getInteger(map, "recipeId");
-        Integer doctorId = MapUtils.getInteger(map, "doctorId");
-        Args.notNull(recipeId, "recipeId");
-        Args.notNull(doctorId, "doctorId");
-        String recipeS = null;
-        try {
-            RecipeCheckBean recipeCheck = recipeCheckService.getNowCheckResultByRecipeId(recipeId);
-            if (null == recipeCheck || GrabOrderStatusConstant.GRAB_ORDER_NO.equals(recipeCheck.getGrabOrderStatus())) {
-                resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDER_NO);
-                //单默认返回10未抢
-                resultMap.put("lockLimitTime", 10);
-                return resultMap;
-            }
-            //本人抢单
-            if (GRABORDER_STATUS_YES.equals(recipeCheck.getGrabOrderStatus()) && doctorId.equals(recipeCheck.getGrabDoctorId())) {
-                resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDERED_OWN);
-                long now = new Date().getTime();
-                long localLimeDate = recipeCheck.getLocalLimitDate().getTime();
-                long diff = localLimeDate - now;
-                if (null == recipeCheck.getChecker() && diff <= 0) {
-                    // 自动解除抢单
-                    recipeCheck.setGrabOrderStatus(GrabOrderStatusConstant.GRAB_ORDER_NO);
-                    recipeCheck.setLocalLimitDate(null);
-                    recipeCheckService.update(recipeCheck);
-                    resultMap.put("lockLimitTime", 0);
-                } else {
-                    int localLimitTime = (int) diff / (1000 * 60);
-                    resultMap.put("lockLimitTime", localLimitTime + 1);
-                }
-
-            } else if (GRABORDER_STATUS_YES.equals(recipeCheck.getGrabOrderStatus()) && !doctorId.equals(recipeCheck.getGrabDoctorId())) { //他人抢单
-                resultMap.put("grabOrderStatus", GrabOrderStatusConstant.GRAB_ORDERED_OTHER);
-                resultMap.put("lockLimitTime", 10); //他人抢单默认返回10
-            }
-            return resultMap;
-
-        } catch (Exception e) {
-            LOGGER.error("getGrabOrderStatusAndLimitTime error", e);
-            throw new DAOException("查询失败");
-        }
+        return recipeAuditClient.getGrabOrderStatusAndLimitTime(map);
     }
 }
