@@ -109,7 +109,6 @@ public class HisRecipeManager extends BaseManager {
         List<QueryHisRecipResTO> queryHisRecipeResToFilters = new ArrayList<>();
         //获取详情时防止前置机没过滤数据，做过滤处理
         if (StringUtils.isNotEmpty(recipeCode)) {
-            logger.info("HisRecipeManager filterData recipeCode:{}", recipeCode);
             //详情
             if (!CollectionUtils.isEmpty(queryHisRecipeResTos)) {
                 for (QueryHisRecipResTO queryHisRecipResTo : queryHisRecipeResTos) {
@@ -120,9 +119,7 @@ public class HisRecipeManager extends BaseManager {
                 }
             }
             responseTo.setData(queryHisRecipeResToFilters);
-        }
-        //列表
-        if (StringUtils.isEmpty(recipeCode)) {
+        } else {
             //对状态过滤(1、测试桩会返回所有数据，不好测试，对测试造成干扰 2、也可以做容错处理)
             if (!CollectionUtils.isEmpty(queryHisRecipeResTos)) {
                 for (QueryHisRecipResTO queryHisRecipResTo : queryHisRecipeResTos) {
