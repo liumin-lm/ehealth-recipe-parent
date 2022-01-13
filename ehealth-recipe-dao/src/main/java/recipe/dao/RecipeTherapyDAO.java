@@ -2,9 +2,7 @@ package recipe.dao;
 
 import com.ngari.recipe.dto.RecipeTherapyOpDTO;
 import com.ngari.recipe.dto.RecipeTherapyOpQueryDTO;
-import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeTherapy;
-import com.ngari.recipe.recipe.model.RecipeTherapyOpVO;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.bean.QueryResult;
@@ -13,7 +11,6 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
-import org.apache.commons.collections.CollectionUtils;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
@@ -21,7 +18,6 @@ import recipe.dao.comment.ExtendDao;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
-import java.util.Map;
 
 /**
  * 诊疗处方数据表
@@ -195,23 +191,6 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
 
     private StringBuilder generateRecipeTherapyHQLforStatisticsV1(StringBuilder hql, RecipeTherapyOpQueryDTO recipeTherapyOpQueryVO) {
         //默认查询所有
-        List<Integer> organIds = recipeTherapyOpQueryVO.getOrganIds();
-        if (CollectionUtils.isNotEmpty(organIds)) {
-            // 添加申请机构条件
-            boolean flag = true;
-            for (Integer i : organIds) {
-                if (i != null) {
-                    if (flag) {
-                        hql.append(" and r.clinicOrgan in(");
-                        flag = false;
-                    }
-                    hql.append(i).append(",");
-                }
-            }
-            if (!flag) {
-                hql = new StringBuilder(hql.substring(0, hql.length() - 1) + ") ");
-            }
-        }
         if (recipeTherapyOpQueryVO.getOrganId() != null) {
             hql.append(" and r.clinicOrgan =").append(recipeTherapyOpQueryVO.getOrganId());
         }
@@ -221,13 +200,12 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
         if(recipeTherapyOpQueryVO.getStatus() != null ){
             hql.append(" and cr.status =").append(recipeTherapyOpQueryVO.getStatus());
         }
-        if(recipeTherapyOpQueryVO.getPatientMobile() != null ){
-            hql.append(" and r.patientMobile =").append(recipeTherapyOpQueryVO.getPatientMobile());
+        if(recipeTherapyOpQueryVO.getMpiId() != null ){
+            hql.append(" and r.mpiId =").append(recipeTherapyOpQueryVO.getMpiId());
         }
-        if(recipeTherapyOpQueryVO.getSearchName() != null ){
-            hql.append("and r.doctorName like " + "%").append(recipeTherapyOpQueryVO.getSearchName()).append("%");
-            hql.append("or r.patientName like " + "%").append(recipeTherapyOpQueryVO.getSearchName()).append("%");
-            hql.append("or r.appoint_depart_name like " + "%").append(recipeTherapyOpQueryVO.getSearchName()).append("%");
+        if(recipeTherapyOpQueryVO.getDoctorInfoSearch() != null ){
+            hql.append("and r.doctorName like ").append(recipeTherapyOpQueryVO.getDoctorInfoSearch()).append("%");
+            hql.append("or r.appoint_depart_name like ").append(recipeTherapyOpQueryVO.getDoctorInfoSearch()).append("%");
         }
         return hql;
     }

@@ -43,6 +43,6 @@ public class RecipeTherapyOpVO implements Serializable {
     private Integer status;
 
     @ItemProperty(alias = "开具时间")
-    private Date createTime;
+    private String createTime;
 
 }

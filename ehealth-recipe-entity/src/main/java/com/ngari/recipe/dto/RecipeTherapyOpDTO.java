@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
-import java.util.Date;
 
 /**
  * @author zgy
@@ -42,5 +41,5 @@ public class RecipeTherapyOpDTO implements Serializable {
     private Integer status;
 
     @ItemProperty(alias = "开具时间")
-    private Date createTime;
+    private String createTime;
 }

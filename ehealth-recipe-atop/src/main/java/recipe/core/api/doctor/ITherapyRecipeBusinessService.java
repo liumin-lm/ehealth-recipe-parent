@@ -5,8 +5,6 @@ import com.ngari.recipe.dto.RecipeTherapyOpDTO;
 import com.ngari.recipe.dto.RecipeTherapyOpQueryDTO;
 import com.ngari.recipe.entity.RecipeTherapy;
 import com.ngari.recipe.recipe.model.RecipeTherapyDTO;
-import com.ngari.recipe.recipe.model.RecipeTherapyOpQueryVO;
-import com.ngari.recipe.recipe.model.RecipeTherapyOpVO;
 import com.ngari.recipe.vo.ItemListVO;
 import ctd.persistence.bean.QueryResult;
 import recipe.vo.doctor.RecipeInfoVO;

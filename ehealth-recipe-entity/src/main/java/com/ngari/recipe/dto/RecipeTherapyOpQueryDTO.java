@@ -6,7 +6,6 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
 /**
  * @author zgy
@@ -17,9 +16,6 @@ import java.util.List;
 public class RecipeTherapyOpQueryDTO implements Serializable {
     private static final long serialVersionUID = 5924319256660023000L;
 
-    @ItemProperty(alias = "机构id列表")
-    private List<Integer> organIds;
-
     @ItemProperty(alias = "机构id")
     private Integer organId;
 
@@ -29,20 +25,11 @@ public class RecipeTherapyOpQueryDTO implements Serializable {
     @ItemProperty(alias = "结束时间")
     private Date eDate;
 
-    @ItemProperty(alias = "患者/医生/科室名称")
-    private String searchName;
+    @ItemProperty(alias = "医生姓名/科室名称")
+    private String doctorInfoSearch;
 
-    /*@ItemProperty(alias = "挂号科室名称")
-    private String appointDepartName;
-
-    @ItemProperty(alias = "患者姓名")
-    private String patientName;
-
-    @ItemProperty(alias = "医生姓名")
-    private String doctorName;*/
-
-    @ItemProperty(alias = "患者电话")
-    private String patientMobile;
+    @ItemProperty(alias = "主索引（患者编号）")
+    private String mpiId;
 
     @ItemProperty(alias = "状态")
     private String status;
