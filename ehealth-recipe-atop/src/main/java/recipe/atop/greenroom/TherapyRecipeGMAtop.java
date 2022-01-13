@@ -35,6 +35,7 @@ public class TherapyRecipeGMAtop extends BaseAtop {
     @Autowired
     private ITherapyRecipeBusinessService therapyRecipeBusinessService;
 
+    @RpcService
     @LogRecord
     public QueryResult<RecipeTherapyOpVO> findTherapyByInfo(RecipeTherapyOpQueryVO recipeTherapyOpQueryVO) {
         validateAtop(recipeTherapyOpQueryVO);
@@ -44,7 +45,8 @@ public class TherapyRecipeGMAtop extends BaseAtop {
             List<RecipeTherapyOpDTO> items = queryResult.getItems();
             List<RecipeTherapyOpVO> records = new ArrayList<>();
             for (RecipeTherapyOpDTO item : items) {
-                RecipeTherapyOpVO recipeTherapyOpVO = new RecipeTherapyOpVO();
+                RecipeTherapyOpVO recipeTherapyOpVO = ObjectCopyUtils.convert(item, RecipeTherapyOpVO.class);
+                /*RecipeTherapyOpVO recipeTherapyOpVO = new RecipeTherapyOpVO();
                 recipeTherapyOpVO.setRecipeId(item.getRecipeId());
                 recipeTherapyOpVO.setRecipeCode(item.getRecipeCode());
                 recipeTherapyOpVO.setStatus(item.getStatus());
@@ -53,7 +55,7 @@ public class TherapyRecipeGMAtop extends BaseAtop {
                 recipeTherapyOpVO.setOrganName(item.getOrganName());
                 recipeTherapyOpVO.setAppointDepartName(item.getAppointDepartName());
                 recipeTherapyOpVO.setPatientMobile(item.getPatientMobile());
-                recipeTherapyOpVO.setPatientName(item.getPatientName());
+                recipeTherapyOpVO.setPatientName(item.getPatientName());*/
                 records.add(recipeTherapyOpVO);
             }
             QueryResult<RecipeTherapyOpVO> result = new QueryResult<>();

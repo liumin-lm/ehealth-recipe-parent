@@ -1,6 +1,6 @@
 package recipe.dao;
 
-import com.ngari.recipe.dto.RecipeTherapyOpDTO;
+import com.ngari.recipe.dto.RecipeTherapyOpBean;
 import com.ngari.recipe.dto.RecipeTherapyOpQueryDTO;
 import com.ngari.recipe.entity.RecipeTherapy;
 import ctd.persistence.annotation.DAOMethod;
@@ -146,11 +146,11 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
      * @return
      *
      */
-    public QueryResult<RecipeTherapyOpDTO> findTherapyByInfo(RecipeTherapyOpQueryDTO recipeTherapyOpQueryVO){
+    public QueryResult<RecipeTherapyOpBean> findTherapyByInfo(RecipeTherapyOpQueryDTO recipeTherapyOpQueryVO){
         final StringBuilder sbHql = this.generateRecipeTherapyHQLforStatistics(recipeTherapyOpQueryVO);
         final StringBuilder sbHqlCount = this.generateRecipeTherapyHQLforStatisticsCount(recipeTherapyOpQueryVO);
         logger.info("RecipeTherapyDAO findTherapyByInfo sbHql:{}", sbHql.toString());
-        HibernateStatelessResultAction<QueryResult<RecipeTherapyOpDTO>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeTherapyOpDTO>>(){
+        HibernateStatelessResultAction<QueryResult<RecipeTherapyOpBean>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeTherapyOpBean>>(){
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -161,12 +161,12 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
                 sqlQuery.setParameter("endTime", sdf.format(recipeTherapyOpQueryVO.getEDate()));
                 Long total = Long.valueOf(String.valueOf((sqlQuery.uniqueResult())));
                 // 查询结果
-                Query query = ss.createSQLQuery(sbHql.append(" order by CreateDate DESC").toString());
+                Query query = ss.createSQLQuery(sbHql.append(" order by CreateDate DESC").toString()).addEntity(RecipeTherapyOpBean.class);
                 query.setParameter("startTime", sdf.format(recipeTherapyOpQueryVO.getBDate()));
                 query.setParameter("endTime", sdf.format(recipeTherapyOpQueryVO.getEDate()));
                 query.setFirstResult(recipeTherapyOpQueryVO.getStart());
                 query.setMaxResults(recipeTherapyOpQueryVO.getLimit());
-                List<RecipeTherapyOpDTO> recipeTherapyList = query.list();
+                List<RecipeTherapyOpBean> recipeTherapyList = query.list();
                 setResult(new QueryResult<>(total, query.getFirstResult(), query.getMaxResults(), recipeTherapyList));
             }
         };
@@ -175,17 +175,17 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
     }
 
     protected StringBuilder generateRecipeTherapyHQLforStatistics(RecipeTherapyOpQueryDTO recipeTherapyOpQueryVO){
-        StringBuilder hql = new StringBuilder("select r.RecipeID,r.RecipeCode,r.doctorName,r.patientName,r.appoint_depart_name," +
-                "r.organName,r.CreateDate,cr.status from cdr_recipe r ");
+        StringBuilder hql = new StringBuilder("select r.RecipeID,r.RecipeCode,r.patientName,r.mpiId,r.doctorName,r.appoint_depart_name," +
+                "r.organName,cr.status,cr.gmt_create from cdr_recipe r ");
         hql.append(" INNER JOIN cdr_recipe_therapy cr on r.RecipeID = cr.recipe_id ");
-        hql.append(" where r.recipeSourceType=3 ");
+        hql.append(" where r.recipeSourceType=3 and cr.status!=1 ");
         return generateRecipeTherapyHQLforStatisticsV1(hql,recipeTherapyOpQueryVO);
     }
 
     protected StringBuilder generateRecipeTherapyHQLforStatisticsCount(RecipeTherapyOpQueryDTO recipeTherapyOpQueryVO){
         StringBuilder hql = new StringBuilder("select count(1) from cdr_recipe r ");
         hql.append(" INNER JOIN cdr_recipe_therapy cr on r.RecipeID = cr.recipe_id ");
-        hql.append(" where r.recipeSourceType=3 ");
+        hql.append(" where r.recipeSourceType=3 and cr.status!=1 ");
         return generateRecipeTherapyHQLforStatisticsV1(hql,recipeTherapyOpQueryVO);
     }
 
@@ -195,7 +195,7 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
             hql.append(" and r.clinicOrgan =").append(recipeTherapyOpQueryVO.getOrganId());
         }
 
-        hql.append(" and r.CreateDate BETWEEN :startTime" + " and :endTime ");
+        hql.append(" and cr.gmt_create BETWEEN :startTime" + " and :endTime ");
 
         if(recipeTherapyOpQueryVO.getStatus() != null ){
             hql.append(" and cr.status =").append(recipeTherapyOpQueryVO.getStatus());

@@ -204,7 +204,7 @@ public class RecipeTherapyManager extends BaseManager {
         return recipeTherapyList;
     }
 
-    public QueryResult<RecipeTherapyOpDTO> findTherapyByInfo(RecipeTherapyOpQueryDTO recipeTherapyOpQueryVO) {
+    public QueryResult<RecipeTherapyOpBean> findTherapyByInfo(RecipeTherapyOpQueryDTO recipeTherapyOpQueryVO) {
         return recipeTherapyDAO.findTherapyByInfo(recipeTherapyOpQueryVO);
     }
 }

@@ -5,11 +5,10 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeTherapyDTO;
-import com.ngari.recipe.recipe.model.RecipeTherapyOpQueryVO;
-import com.ngari.recipe.recipe.model.RecipeTherapyOpVO;
 import com.ngari.recipe.vo.ItemListVO;
 import com.ngari.revisit.RevisitBean;
 import ctd.persistence.bean.QueryResult;
+import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -27,6 +26,7 @@ import recipe.util.DateConversion;
 import recipe.vo.doctor.RecipeInfoVO;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -178,7 +178,46 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
 
     @Override
     public QueryResult<RecipeTherapyOpDTO> findTherapyByInfo(RecipeTherapyOpQueryDTO recipeTherapyOpQueryDTO) {
-        return recipeTherapyManager.findTherapyByInfo(recipeTherapyOpQueryDTO);
+        logger.info("TherapyRecipeBusinessService findTherapyByInfo recipeTherapyOpQueryDTO={}", JSONUtils.toString(recipeTherapyOpQueryDTO));
+        QueryResult<RecipeTherapyOpBean> recipeTherapyRes = recipeTherapyManager.findTherapyByInfo(recipeTherapyOpQueryDTO);
+        QueryResult<RecipeTherapyOpDTO> recipeTherapyReq = new QueryResult<>();
+        if(null != recipeTherapyRes){
+            List<RecipeTherapyOpBean> items = recipeTherapyRes.getItems();
+            recipeTherapyReq.setTotal(recipeTherapyRes.getTotal());
+            if (null != recipeTherapyRes.getProperties()) {
+                Map<String, Object> properties = recipeTherapyRes.getProperties();
+                for (Map.Entry<String, Object> entry : properties.entrySet()) {
+                    String key = entry.getKey();
+                    recipeTherapyReq.setProperty(key, entry.getValue());
+                }
+            }
+            recipeTherapyReq.setStart(recipeTherapyRes.getStart());
+            recipeTherapyReq.setLimit((int) recipeTherapyRes.getLimit());
+            List<RecipeTherapyOpDTO>  recipeTherapyList = new ArrayList<>();
+            for(RecipeTherapyOpBean item : items){
+                PatientDTO patientDTO;
+                try{
+                    RecipeTherapyOpDTO recipeTherapyOpDTO = new RecipeTherapyOpDTO();
+                    //patientDTO = patientClient.getPatientDTO(item.getMpiId());
+                    //String mobile = patientDTO.getMobile();
+                    recipeTherapyOpDTO.setRecipeId(item.getRecipeId());
+                    recipeTherapyOpDTO.setRecipeCode(item.getRecipeCode());
+                    recipeTherapyOpDTO.setStatus(item.getStatus());
+                    recipeTherapyOpDTO.setCreateTime(item.getCreateTime());
+                    recipeTherapyOpDTO.setAppointDepartName(item.getAppointDepartName());
+                    recipeTherapyOpDTO.setPatientName(item.getPatientName());
+                    recipeTherapyOpDTO.setDoctorName(item.getDoctorName());
+                    recipeTherapyOpDTO.setOrganName(item.getOrganName());
+                    recipeTherapyOpDTO.setPatientMobile("15179711268");
+                    recipeTherapyList.add(recipeTherapyOpDTO);
+                }catch (Exception e){
+                    logger.error("TherapyRecipeBusinessService findTherapyByInfo error={}", JSONUtils.toString(e));
+                }
+            }
+            recipeTherapyReq.setItems(recipeTherapyList);
+        }
+        logger.info("TherapyRecipeBusinessService findTherapyByInfo recipeTherapyReq={}", JSONUtils.toString(recipeTherapyReq));
+        return recipeTherapyReq;
     }
 
 
