@@ -685,11 +685,11 @@ public class EnterpriseManager extends BaseManager {
      */
     public void saveOrganDrugsSaleConfig(OrganDrugsSaleConfig organDrugsSaleConfig) {
         logger.info("EnterpriseManager saveOrganDrugsSaleConfig organDrugsSaleConfig:{}", JSONUtils.toString(organDrugsSaleConfig));
-        OrganDrugsSaleConfig saleConfig = organDrugsSaleConfigDAO.findByOrganIdAndEnterpriseId(organDrugsSaleConfig.getOrganId(), organDrugsSaleConfig.getDrugsEnterpriseId());
-        if (Objects.isNull(saleConfig)) {
+        List<OrganDrugsSaleConfig> organDrugsSaleConfigs = organDrugsSaleConfigDAO.findByOrganIdAndEnterpriseId(organDrugsSaleConfig.getOrganId(), organDrugsSaleConfig.getDrugsEnterpriseId());
+        if (CollectionUtils.isEmpty(organDrugsSaleConfigs)) {
             organDrugsSaleConfigDAO.save(organDrugsSaleConfig);
         } else {
-            organDrugsSaleConfig.setId(saleConfig.getId());
+            organDrugsSaleConfig.setId(organDrugsSaleConfigs.get(0).getId());
             organDrugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(organDrugsSaleConfig);
         }
     }
@@ -711,7 +711,11 @@ public class EnterpriseManager extends BaseManager {
             if (Objects.isNull(drugsEnterpriseId)) {
                 throw new DAOException("采用药企销售配置模式药企id不能为空");
             }
-            return organDrugsSaleConfigDAO.findByOrganIdAndEnterpriseId(organId, drugsEnterpriseId);
+            List<OrganDrugsSaleConfig> organDrugsSaleConfigs = organDrugsSaleConfigDAO.findByOrganIdAndEnterpriseId(organId, drugsEnterpriseId);
+            if (CollectionUtils.isEmpty(organDrugsSaleConfigs)) {
+                throw new DAOException("未配置药企销售配置");
+            }
+            return organDrugsSaleConfigs.get(0);
         }
         Map<String, Object> configurationByKeyList = configurationClient.getConfigurationByKeyList(organId, key);
         return coverConfig(configurationByKeyList);
@@ -724,7 +728,7 @@ public class EnterpriseManager extends BaseManager {
      * @return
      */
     private OrganDrugsSaleConfig coverConfig(Map<String, Object> configurationByKeyList) {
-        logger.info("EnterpriseManager coverConfig configurationByKeyList:{} ",  JSONUtils.toString(configurationByKeyList));
+        logger.info("EnterpriseManager coverConfig configurationByKeyList:{} ", JSONUtils.toString(configurationByKeyList));
         OrganDrugsSaleConfig organDrugsSaleConfig = new OrganDrugsSaleConfig();
         Boolean isSupportSendToStation = (Boolean) configurationByKeyList.get("isSupportSendToStation");
         organDrugsSaleConfig.setIsSupportSendToStation(isSupportSendToStation ? 1 : 0);
@@ -737,7 +741,7 @@ public class EnterpriseManager extends BaseManager {
         organDrugsSaleConfig.setTakeOneselfPlanPmTime(configurationByKeyList.get("toHosPlanPmTime").toString());
         organDrugsSaleConfig.setTakeDrugsVoucher((Integer) configurationByKeyList.get("getQrTypeForRecipe"));
         organDrugsSaleConfig.setSpecialTips(configurationByKeyList.get("getQrTypeForRecipeRemind").toString());
-        logger.info("EnterpriseManager coverConfig organDrugsSaleConfig:{} ",  JSONUtils.toString(organDrugsSaleConfig));
+        logger.info("EnterpriseManager coverConfig organDrugsSaleConfig:{} ", JSONUtils.toString(organDrugsSaleConfig));
         return organDrugsSaleConfig;
     }
 }

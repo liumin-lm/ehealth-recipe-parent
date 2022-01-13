@@ -2,9 +2,12 @@ package recipe.dao;
 
 import com.ngari.recipe.entity.OrganDrugsSaleConfig;
 import ctd.persistence.annotation.DAOMethod;
+import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.util.annotation.RpcSupportDAO;
 import recipe.dao.comment.ExtendDao;
+
+import java.util.List;
 
 
 /**
@@ -20,5 +23,5 @@ public abstract class OrganDrugsSaleConfigDAO extends HibernateSupportDelegateDA
     }
 
     @DAOMethod(sql = "from OrganDrugsSaleConfig where organId = :organId and drugsEnterpriseId=:drugsEnterpriseId")
-    public abstract OrganDrugsSaleConfig findByOrganIdAndEnterpriseId(Integer organId, Integer drugsEnterpriseId);
+    public abstract List<OrganDrugsSaleConfig> findByOrganIdAndEnterpriseId(@DAOParam("organId")Integer organId, @DAOParam("drugsEnterpriseId")Integer drugsEnterpriseId);
 }

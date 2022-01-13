@@ -1,6 +1,7 @@
 package recipe.atop.greenroom;
 
 import com.ngari.recipe.entity.OrganDrugsSaleConfig;
+import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.springframework.beans.BeanUtils;
@@ -12,13 +13,14 @@ import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.greenroom.OrganEnterpriseRelationVo;
 
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @description： 运营平台药企相关
  * @author： yinsheng
  * @date： 2021-12-08 9:45
  */
-@RpcBean(value = "drugsEnterpriseGmAtop")
+@RpcBean(value = "drugsEnterpriseGmAtop",mvc_authentication = false)
 public class DrugsEnterpriseGmAtop extends BaseAtop {
 
     @Autowired
@@ -56,6 +58,9 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
     public OrganDrugsSaleConfigVo findOrganDrugsSaleConfig(Integer organId,Integer drugsEnterpriseId){
         validateAtop(organId,drugsEnterpriseId);
         OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseBusinessService.findOrganDrugsSaleConfig(organId, drugsEnterpriseId);
+        if(Objects.isNull(organDrugsSaleConfig)){
+           return null;
+        }
         OrganDrugsSaleConfigVo organDrugsSaleConfigVo = new OrganDrugsSaleConfigVo();
         BeanUtils.copyProperties(organDrugsSaleConfig,organDrugsSaleConfigVo);
         return organDrugsSaleConfigVo;

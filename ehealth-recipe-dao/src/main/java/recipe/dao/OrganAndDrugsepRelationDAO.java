@@ -2,13 +2,19 @@ package recipe.dao;
 
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.OrganAndDrugsepRelation;
+import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
+import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
+import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
+import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.hibernate.Query;
+import org.hibernate.StatelessSession;
 import recipe.dao.comment.ExtendDao;
 
 import java.util.List;
@@ -84,6 +90,18 @@ public abstract class OrganAndDrugsepRelationDAO extends HibernateSupportDelegat
      * @param type
      * @return
      */
-    @DAOMethod(sql = "from OrganAndDrugsepRelation where drugsEnterpriseSupportGiveMode LIKE '%:type%' AND organId=:organId")
-    public abstract List<OrganAndDrugsepRelation> getRelationByOrganIdAndGiveMode(Integer clinicOrgan, Integer type);
+    public List<OrganAndDrugsepRelation> getRelationByOrganIdAndGiveMode(@DAOParam("clinicOrgan") Integer clinicOrgan, @DAOParam("type") Integer type){
+        HibernateStatelessResultAction<List<OrganAndDrugsepRelation>> action = new AbstractHibernateStatelessResultAction<List<OrganAndDrugsepRelation>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder sql = new StringBuilder("SELECT * FROM cdr_organ_drugsep_relation WHERE OrganId = ");
+                sql.append(clinicOrgan).append(" and drug_enterprise_support_give_mode LIKE '%").append(type).append("%'");
+                Query query = ss.createSQLQuery(String.valueOf(sql));
+
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        return action.getResult();
+    }
 }
