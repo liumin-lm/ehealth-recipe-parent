@@ -135,7 +135,9 @@ public class RevisitClient extends BaseClient {
     public HisResponseTO<List<WriteDrugRecipeTO>> findWriteDrugRecipeByRevisitFromHis(WriteDrugRecipeReqTO writeDrugRecipeReqTO) {
         HisResponseTO<List<WriteDrugRecipeTO>> hisResponseTOList = new HisResponseTO<>();
         try {
+            logger.info("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis writeDrugRecipeReqTO={}", JSONUtils.toString(writeDrugRecipeReqTO));
             hisResponseTOList = iVisitService.findWriteDrugRecipeByRevisitFromHis(writeDrugRecipeReqTO);
+            logger.info("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis hisResponseTOList={}", JSONUtils.toString(hisResponseTOList));
         } catch (Exception e) {
             logger.error("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis error={}", JSONUtils.toString(e));
         }

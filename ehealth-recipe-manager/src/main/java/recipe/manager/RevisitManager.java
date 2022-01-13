@@ -142,33 +142,35 @@ public class RevisitManager extends BaseManager {
         com.ngari.recipe.dto.PatientDTO requestPatientDTO = ObjectCopyUtils.convert(requestPatient, com.ngari.recipe.dto.PatientDTO.class);
         //组装院内门诊返回数据
         List<WriteDrugRecipeDTO> writeDrugRecipeDTOList = new ArrayList<>();
-        List<WriteDrugRecipeTO> dataList = writeDrugRecipeList.getData();
-        try {
-            for (WriteDrugRecipeTO writeDrugRecipeTO : dataList) {
-                WriteDrugRecipeDTO writeDrugRecipeDTO = new WriteDrugRecipeDTO();
-                WriteDrugRecipeBean writeDrugRecipeBean = new WriteDrugRecipeBean();
-                Consult consult = writeDrugRecipeTO.getConsult();
-                String appointDepartCode = consult.getAppointDepartCode();
-                AppointDepartDTO appointDepartDTO = departClient.getAppointDepartByOrganIdAndAppointDepartCode(organId, appointDepartCode);
-                ConsultDTO consultDTO = ObjectCopyUtils.convert(consult, ConsultDTO.class);
-                if (null != appointDepartDTO) {
-                    writeDrugRecipeBean.setAppointDepartInDepartId(appointDepartDTO.getDepartId());
-                    String consultDepartText = DictionaryController.instance().get("eh.base.dictionary.Depart").getText(appointDepartDTO.getDepartId());
-                    if(null != consultDTO){
-                        consultDTO.setConsultDepart(appointDepartDTO.getDepartId());
-                        consultDTO.setConsultDepartText(consultDepartText);
+        if(null != writeDrugRecipeList){
+            List<WriteDrugRecipeTO> dataList = writeDrugRecipeList.getData();
+            try {
+                for (WriteDrugRecipeTO writeDrugRecipeTO : dataList) {
+                    WriteDrugRecipeDTO writeDrugRecipeDTO = new WriteDrugRecipeDTO();
+                    WriteDrugRecipeBean writeDrugRecipeBean = new WriteDrugRecipeBean();
+                    Consult consult = writeDrugRecipeTO.getConsult();
+                    String appointDepartCode = consult.getAppointDepartCode();
+                    AppointDepartDTO appointDepartDTO = departClient.getAppointDepartByOrganIdAndAppointDepartCode(organId, appointDepartCode);
+                    ConsultDTO consultDTO = ObjectCopyUtils.convert(consult, ConsultDTO.class);
+                    if (null != appointDepartDTO) {
+                        writeDrugRecipeBean.setAppointDepartInDepartId(appointDepartDTO.getDepartId());
+                        String consultDepartText = DictionaryController.instance().get("eh.base.dictionary.Depart").getText(appointDepartDTO.getDepartId());
+                        if(null != consultDTO){
+                            consultDTO.setConsultDepart(appointDepartDTO.getDepartId());
+                            consultDTO.setConsultDepartText(consultDepartText);
+                        }
                     }
+                    writeDrugRecipeDTO.setPatient(patientDTO);
+                    writeDrugRecipeDTO.setRequestPatient(requestPatientDTO);
+                    writeDrugRecipeDTO.setConsult(consultDTO);
+                    writeDrugRecipeDTO.setType(writeDrugRecipeTO.getType());
+                    writeDrugRecipeDTO.setWriteDrugRecipeBean(writeDrugRecipeBean);
+                    logger.info("WriteRecipeManager findWriteDrugRecipeByRevisitFromHis writeDrugRecipeDTO={}", JSONUtils.toString(writeDrugRecipeDTO));
+                    writeDrugRecipeDTOList.add(writeDrugRecipeDTO);
                 }
-                writeDrugRecipeDTO.setPatient(patientDTO);
-                writeDrugRecipeDTO.setRequestPatient(requestPatientDTO);
-                writeDrugRecipeDTO.setConsult(consultDTO);
-                writeDrugRecipeDTO.setType(writeDrugRecipeTO.getType());
-                writeDrugRecipeDTO.setWriteDrugRecipeBean(writeDrugRecipeBean);
-                logger.info("WriteRecipeManager findWriteDrugRecipeByRevisitFromHis writeDrugRecipeDTO={}", JSONUtils.toString(writeDrugRecipeDTO));
-                writeDrugRecipeDTOList.add(writeDrugRecipeDTO);
+            } catch (Exception e) {
+                logger.error("WriteRecipeManager findWriteDrugRecipeByRevisitFromHis error={}", JSONUtils.toString(e));
             }
-        } catch (Exception e) {
-            logger.error("WriteRecipeManager findWriteDrugRecipeByRevisitFromHis error={}", JSONUtils.toString(e));
         }
         return writeDrugRecipeDTOList;
 
