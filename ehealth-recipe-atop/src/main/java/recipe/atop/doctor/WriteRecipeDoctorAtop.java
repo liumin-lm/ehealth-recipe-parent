@@ -23,14 +23,15 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
 
     /**
      * 获取院内门诊
-     * @param mpiId 患者唯一标识
+     *
+     * @param mpiId    患者唯一标识
      * @param organId  机构ID
-     * @param doctorId  医生ID
+     * @param doctorId 医生ID
      * @return 院内门诊处方列表
      */
     @RpcService
     @LogRecord
-    public List<WriteDrugRecipeDTO> findWriteDrugRecipeByRevisitFromHis(String mpiId, Integer organId, Integer doctorId) throws Exception {
+    public List<WriteDrugRecipeDTO> findWriteDrugRecipeByRevisitFromHis(String mpiId, Integer organId, Integer doctorId) {
         return iRevisitBusinessService.findWriteDrugRecipeByRevisitFromHis(mpiId, organId, doctorId);
     }
 }
