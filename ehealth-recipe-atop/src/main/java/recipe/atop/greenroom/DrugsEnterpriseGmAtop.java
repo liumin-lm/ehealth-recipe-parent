@@ -59,7 +59,7 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
         validateAtop(organId,drugsEnterpriseId);
         OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseBusinessService.findOrganDrugsSaleConfig(organId, drugsEnterpriseId);
         if(Objects.isNull(organDrugsSaleConfig)){
-            throw new DAOException("销售配置不存在");
+           return null;
         }
         OrganDrugsSaleConfigVo organDrugsSaleConfigVo = new OrganDrugsSaleConfigVo();
         BeanUtils.copyProperties(organDrugsSaleConfig,organDrugsSaleConfigVo);
