@@ -15,6 +15,8 @@ import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.exception.DAOException;
+import ctd.schema.annotation.DesensitizationsType;
+import ctd.util.DesensitizationsUtil;
 import lombok.Cleanup;
 import org.apache.commons.lang3.StringUtils;
 import org.bouncycastle.util.encoders.Base64;
@@ -416,7 +418,11 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             if (2 == keySplit.length) {
                 String objectName = keySplit[0];
                 String fieldName = keySplit[1];
-                generatePdfList.add(invokeFieldName(key, objectName, fieldName, recipePdfDTO, recipeDetailMap));
+                if (OperationConstant.OP_RECIPE_CARD_NO.equals(fieldName)) {
+                    generatePdfList.add(new WordToPdfBean(key, DesensitizationsUtil.instance().processField(DesensitizationsType.HEALTHCARD.getType(), recipePdfDTO.getRecipeExtend().getCardNo()), null));
+                } else {
+                    generatePdfList.add(invokeFieldName(key, objectName, fieldName, recipePdfDTO, recipeDetailMap));
+                }
                 continue;
             }
             //特殊节点处理
