@@ -596,7 +596,7 @@ public class RecipeService extends RecipeBaseService {
                     RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
                     //从订单获取
                     RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipeId);
-                    if (null != order && null != order.getAddressID()) {
+                    if (null != order && (null != order.getAddressID() || TakeMedicineWayEnum.TAKE_MEDICINE_STATION.getType().equals(order.getTakeMedicineWay()))) {
                         address = commonRemoteService.getCompleteAddress(order);
                     }
                 }
