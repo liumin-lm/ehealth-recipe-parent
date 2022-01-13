@@ -712,10 +712,10 @@ public class EnterpriseManager extends BaseManager {
                 throw new DAOException("采用药企销售配置模式药企id不能为空");
             }
             List<OrganDrugsSaleConfig> organDrugsSaleConfigs = organDrugsSaleConfigDAO.findByOrganIdAndEnterpriseId(organId, drugsEnterpriseId);
-            if (CollectionUtils.isNotEmpty(organDrugsSaleConfigs)) {
-                return organDrugsSaleConfigs.get(0);
+            if (CollectionUtils.isEmpty(organDrugsSaleConfigs)) {
+                throw new DAOException("未配置药企销售配置");
             }
-            return null;
+            return organDrugsSaleConfigs.get(0);
         }
         Map<String, Object> configurationByKeyList = configurationClient.getConfigurationByKeyList(organId, key);
         return coverConfig(configurationByKeyList);
