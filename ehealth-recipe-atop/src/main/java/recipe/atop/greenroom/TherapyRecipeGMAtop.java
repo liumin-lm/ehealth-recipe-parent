@@ -46,16 +46,6 @@ public class TherapyRecipeGMAtop extends BaseAtop {
             List<RecipeTherapyOpVO> records = new ArrayList<>();
             for (RecipeTherapyOpDTO item : items) {
                 RecipeTherapyOpVO recipeTherapyOpVO = ObjectCopyUtils.convert(item, RecipeTherapyOpVO.class);
-                /*RecipeTherapyOpVO recipeTherapyOpVO = new RecipeTherapyOpVO();
-                recipeTherapyOpVO.setRecipeId(item.getRecipeId());
-                recipeTherapyOpVO.setRecipeCode(item.getRecipeCode());
-                recipeTherapyOpVO.setStatus(item.getStatus());
-                recipeTherapyOpVO.setCreateTime(item.getCreateTime());
-                recipeTherapyOpVO.setDoctorName(item.getDoctorName());
-                recipeTherapyOpVO.setOrganName(item.getOrganName());
-                recipeTherapyOpVO.setAppointDepartName(item.getAppointDepartName());
-                recipeTherapyOpVO.setPatientMobile(item.getPatientMobile());
-                recipeTherapyOpVO.setPatientName(item.getPatientName());*/
                 records.add(recipeTherapyOpVO);
             }
             QueryResult<RecipeTherapyOpVO> result = new QueryResult<>();

@@ -178,14 +178,14 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
         StringBuilder hql = new StringBuilder("select r.RecipeID,r.RecipeCode,r.patientName,r.mpiId,r.doctorName,r.appoint_depart_name," +
                 "r.organName,cr.status,cr.gmt_create from cdr_recipe r ");
         hql.append(" INNER JOIN cdr_recipe_therapy cr on r.RecipeID = cr.recipe_id ");
-        hql.append(" where r.recipeSourceType=3 and cr.status!=1 ");
+        hql.append(" where r.recipeSourceType=3 and cr.status !=1 ");
         return generateRecipeTherapyHQLforStatisticsV1(hql,recipeTherapyOpQueryVO);
     }
 
     protected StringBuilder generateRecipeTherapyHQLforStatisticsCount(RecipeTherapyOpQueryDTO recipeTherapyOpQueryVO){
         StringBuilder hql = new StringBuilder("select count(1) from cdr_recipe r ");
         hql.append(" INNER JOIN cdr_recipe_therapy cr on r.RecipeID = cr.recipe_id ");
-        hql.append(" where r.recipeSourceType=3 and cr.status!=1 ");
+        hql.append(" where r.recipeSourceType=3 and cr.status !=1 ");
         return generateRecipeTherapyHQLforStatisticsV1(hql,recipeTherapyOpQueryVO);
     }
 
