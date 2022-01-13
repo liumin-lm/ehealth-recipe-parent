@@ -26,6 +26,7 @@ import recipe.util.ObjectCopyUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -111,11 +112,11 @@ public class RevisitManager extends BaseManager {
                 return convertWriteDrugRecipeDTO(writeDrugRecipeList, patient, organId);
             }
         }
-            return null;
+            return Collections.emptyList();
     }
 
     public WriteDrugRecipeReqTO getWriteDrugRecipeReqTO(PatientDTO patient, Integer organId, Integer doctorId) throws Exception {
-        logger.info("RevisitManager writeDrugRecipeReqTO start");
+        logger.info("RevisitManager writeDrugRecipeReqTO patient={},organId={},doctorId={}",JSONUtils.toString(patient),JSONUtils.toString(organId),JSONUtils.toString(doctorId));
         List<String> namesList = Arrays.asList("1", "2", "3", "6");
         ArrayList<String> cardTypes = new ArrayList<>(namesList);
         List<HealthCardDTO> healthCardDTOList = patientClient.queryCardsByParam(organId, patient.getMpiId(), cardTypes);
@@ -159,6 +160,12 @@ public class RevisitManager extends BaseManager {
                             consultDTO.setConsultDepart(appointDepartDTO.getDepartId());
                             consultDTO.setConsultDepartText(consultDepartText);
                         }
+                    }
+                    if(null != consult.getAppointDepartCode()){
+                        writeDrugRecipeDTO.setAppointDepartCode(consult.getAppointDepartCode());
+                    }
+                    if(null != consult.getAppointDepartName()){
+                        writeDrugRecipeDTO.setAppointDepartName(consult.getAppointDepartName());
                     }
                     writeDrugRecipeDTO.setPatient(patientDTO);
                     writeDrugRecipeDTO.setRequestPatient(requestPatientDTO);
