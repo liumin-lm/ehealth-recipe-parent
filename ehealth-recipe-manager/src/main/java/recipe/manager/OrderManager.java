@@ -139,7 +139,7 @@ public class OrderManager extends BaseManager {
         return recipes;
     }
 
-    public List<Integer> getRecipeIdsByOrderId(Integer orderId){
+    public List<Integer> getRecipeIdsByOrderId(Integer orderId) {
         logger.info("RecipeOrderManager getRecipeIdsByOrderId orderId:{}", orderId);
         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderId(orderId);
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
@@ -239,8 +239,7 @@ public class OrderManager extends BaseManager {
 
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
         // 如果处方中的订单编号与处方中保存的订单编号不一致,则视为订单失效
-        logger.info("RecipeOrderManager getRecipeOrderByBusId orderCode:{} recipeOrderCode:{}", recipeOrder.getOrderCode(),recipeList.get(0).getOrderCode());
-        if(recipeOrder.getOrderCode().equals(recipeList.get(0).getOrderCode())){
+        if (!recipeOrder.getOrderCode().equals(recipeList.get(0).getOrderCode())) {
             return null;
         }
         RecipeOrderDto recipeOrderDto = new RecipeOrderDto();
@@ -315,12 +314,13 @@ public class OrderManager extends BaseManager {
 
     /**
      * 更新订单的物流信息
-     * @param orderId  订单ID
+     *
+     * @param orderId          订单ID
      * @param logisticsCompany 物流公司
      * @param trackingNumber   物流单号
      * @return
      */
-    public boolean updateOrderLogisticsInfo(Integer orderId, Integer logisticsCompany, String trackingNumber){
+    public boolean updateOrderLogisticsInfo(Integer orderId, Integer logisticsCompany, String trackingNumber) {
         if (StringUtils.isEmpty(trackingNumber)) {
             return false;
         }
