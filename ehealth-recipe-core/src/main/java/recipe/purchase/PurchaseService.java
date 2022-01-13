@@ -574,11 +574,13 @@ public class PurchaseService {
 
     public boolean getToHosPayConfig(Integer clinicOrgan,Integer enterpriseId) {
         Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(clinicOrgan, "drugToHosByEnterprise", false);
-        Integer payModeToHosOnlinePayConfig;
+        Integer payModeToHosOnlinePayConfig = null;
         if (drugToHosByEnterprise) {
-            // 获取药企机构配置
-            OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.findByOrganIdAndEnterpriseId(clinicOrgan, enterpriseId);
-            payModeToHosOnlinePayConfig = organDrugsSaleConfig.getTakeOneselfPaymentChannel();
+            // 获取药企机构配
+            List<OrganDrugsSaleConfig> organDrugsSaleConfigs = organDrugsSaleConfigDAO.findByOrganIdAndEnterpriseId(clinicOrgan, enterpriseId);
+           if(CollectionUtils.isNotEmpty(organDrugsSaleConfigs)) {
+               payModeToHosOnlinePayConfig = organDrugsSaleConfigs.get(0).getTakeOneselfPaymentChannel();
+           }
         }else {
             try {
                 IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
