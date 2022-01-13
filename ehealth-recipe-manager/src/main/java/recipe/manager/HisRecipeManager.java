@@ -109,7 +109,6 @@ public class HisRecipeManager extends BaseManager {
         List<QueryHisRecipResTO> queryHisRecipeResToFilters = new ArrayList<>();
         //获取详情时防止前置机没过滤数据，做过滤处理
         if (StringUtils.isNotEmpty(recipeCode)) {
-            logger.info("HisRecipeManager filterData recipeCode:{}", recipeCode);
             //详情
             if (!CollectionUtils.isEmpty(queryHisRecipeResTos)) {
                 for (QueryHisRecipResTO queryHisRecipResTo : queryHisRecipeResTos) {
