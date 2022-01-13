@@ -152,6 +152,7 @@ public class RevisitRecipeTraceVo implements Serializable {
         @ItemProperty(alias = "审核人姓名")
         private String checkerName;
 
+        @Desensitizations(type = DesensitizationsType.IDCARD)
         @ItemProperty(alias = "审核人身份证号")
         private String checkIdCard;
 

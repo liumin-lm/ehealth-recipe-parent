@@ -118,10 +118,11 @@ public class RevisitClient extends BaseClient {
 
     /**
      * 获取复诊列表
+     *
      * @param consultIds
      * @return
      */
-    public List<RevisitBean> findByConsultIds(List<Integer> consultIds){
+    public List<RevisitBean> findByConsultIds(List<Integer> consultIds) {
         logger.info("RevisitClient findByConsultIds consultIds:{}.", JSONUtils.toString(consultIds));
         List<RevisitBean> revisitBeans = revisitService.findByConsultIds(consultIds);
         logger.info("RevisitClient findByConsultIds revisitBeans:{}.", JSONUtils.toString(revisitBeans));
@@ -139,7 +140,7 @@ public class RevisitClient extends BaseClient {
             hisResponseTOList = iVisitService.findWriteDrugRecipeByRevisitFromHis(writeDrugRecipeReqTO);
             logger.info("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis hisResponseTOList={}", JSONUtils.toString(hisResponseTOList));
         } catch (Exception e) {
-            logger.error("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis error={}", JSONUtils.toString(e));
+            logger.error("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis error ", e);
         }
         return hisResponseTOList;
     }

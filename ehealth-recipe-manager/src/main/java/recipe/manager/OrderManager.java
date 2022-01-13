@@ -239,6 +239,7 @@ public class OrderManager extends BaseManager {
 
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
         // 如果处方中的订单编号与处方中保存的订单编号不一致,则视为订单失效
+        logger.info("RecipeOrderManager getRecipeOrderByBusId orderCode:{} recipeOrderCode:{}", recipeOrder.getOrderCode(),recipeList.get(0).getOrderCode());
         if(recipeOrder.getOrderCode().equals(recipeList.get(0).getOrderCode())){
             return null;
         }
