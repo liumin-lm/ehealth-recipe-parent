@@ -238,6 +238,10 @@ public class OrderManager extends BaseManager {
         List<Integer> recipeIds = JSONArray.parseArray(recipeIdList, Integer.class);
 
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
+        // 如果处方中的订单编号与处方中保存的订单编号不一致,则视为订单失效
+        if(recipeOrder.getOrderCode().equals(recipeList.get(0).getOrderCode())){
+            return null;
+        }
         RecipeOrderDto recipeOrderDto = new RecipeOrderDto();
         BeanCopyUtils.copy(recipeOrder, recipeOrderDto);
         recipeOrderDto.setStatusText(getStatusText(recipeOrderDto.getStatus()));
