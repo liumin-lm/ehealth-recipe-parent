@@ -19,6 +19,7 @@
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-bill-api</artifactId>
             <version>${ngari.bill.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>ngari</groupId>
@@ -46,11 +47,13 @@
             <groupId>ngari</groupId>
             <artifactId>ngari-dao</artifactId>
             <version>${ngari.framework.version}</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>ngari-core</artifactId>
             <version>${ngari.framework.version}</version>
+            <scope>provided</scope>
         </dependency>
 
         <dependency>
