@@ -20,7 +20,7 @@ import java.util.Objects;
  * @author： yinsheng
  * @date： 2021-12-08 9:45
  */
-@RpcBean(value = "drugsEnterpriseGmAtop",mvc_authentication = false)
+@RpcBean(value = "drugsEnterpriseGmAtop")
 public class DrugsEnterpriseGmAtop extends BaseAtop {
 
     @Autowired

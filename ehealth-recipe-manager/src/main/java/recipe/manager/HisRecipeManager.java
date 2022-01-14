@@ -103,35 +103,32 @@ public class HisRecipeManager extends BaseManager {
     private HisResponseTO<List<QueryHisRecipResTO>> filterData(HisResponseTO<List<QueryHisRecipResTO>> responseTo, String recipeCode, Integer flag) {
         logger.info("HisRecipeManager filterData responseTo:{},recipeCode:{}", JSONUtils.toString(responseTo), recipeCode);
         if (responseTo == null) {
-            return responseTo;
+            return null;
         }
-        List<QueryHisRecipResTO> queryHisRecipResTos = responseTo.getData();
-        List<QueryHisRecipResTO> queryHisRecipResToFilters = new ArrayList<>();
+        List<QueryHisRecipResTO> queryHisRecipeResTos = responseTo.getData();
+        List<QueryHisRecipResTO> queryHisRecipeResToFilters = new ArrayList<>();
         //获取详情时防止前置机没过滤数据，做过滤处理
         if (StringUtils.isNotEmpty(recipeCode)) {
-            logger.info("HisRecipeManager queryHisRecipeInfo recipeCode:{}", recipeCode);
             //详情
-            if (!CollectionUtils.isEmpty(queryHisRecipResTos)) {
-                for (QueryHisRecipResTO queryHisRecipResTo : queryHisRecipResTos) {
+            if (!CollectionUtils.isEmpty(queryHisRecipeResTos)) {
+                for (QueryHisRecipResTO queryHisRecipResTo : queryHisRecipeResTos) {
                     if (recipeCode.equals(queryHisRecipResTo.getRecipeCode())) {
-                        queryHisRecipResToFilters.add(queryHisRecipResTo);
+                        queryHisRecipeResToFilters.add(queryHisRecipResTo);
                         continue;
                     }
                 }
             }
-            responseTo.setData(queryHisRecipResToFilters);
-        }
-        //列表
-        if (StringUtils.isNotEmpty(recipeCode)) {
+            responseTo.setData(queryHisRecipeResToFilters);
+        } else {
             //对状态过滤(1、测试桩会返回所有数据，不好测试，对测试造成干扰 2、也可以做容错处理)
-            if (!CollectionUtils.isEmpty(queryHisRecipResTos)) {
-                for (QueryHisRecipResTO queryHisRecipResTo : queryHisRecipResTos) {
+            if (!CollectionUtils.isEmpty(queryHisRecipeResTos)) {
+                for (QueryHisRecipResTO queryHisRecipResTo : queryHisRecipeResTos) {
                     if (flag.equals(queryHisRecipResTo.getStatus())) {
-                        queryHisRecipResToFilters.add(queryHisRecipResTo);
+                        queryHisRecipeResToFilters.add(queryHisRecipResTo);
                     }
                 }
             }
-            responseTo.setData(queryHisRecipResToFilters);
+            responseTo.setData(queryHisRecipeResToFilters);
         }
         logger.info("HisRecipeManager filterData:{}.", JSONUtils.toString(responseTo));
         return responseTo;
