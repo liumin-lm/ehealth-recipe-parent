@@ -1,6 +1,6 @@
 package com.ngari.recipe.offlinetoonline.model;
 
-import com.ngari.recipe.recipe.model.HisRecipeVONoDS;
+import com.ngari.recipe.recipe.model.HisRecipeVO;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -19,7 +19,7 @@ public class FindHisRecipeListResVO implements Serializable {
      */
     private String groupField;
 
-    private List<HisRecipeVONoDS> recipe;
+    private List<HisRecipeVO> recipe;
 
     /**
      * 是否合并处方标识

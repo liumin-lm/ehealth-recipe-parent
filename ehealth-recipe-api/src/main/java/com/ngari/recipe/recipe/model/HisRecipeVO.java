@@ -17,7 +17,7 @@ import java.util.List;
  */
 @Schema
 @Data
-public class HisRecipeVONoDS implements Serializable {
+public class HisRecipeVO implements Serializable {
     private static final long serialVersionUID = 1496069628741110154L;
     @ItemProperty(alias = "处方序号")
     private Integer hisRecipeID; // int(11) NOT NULL AUTO_INCREMENT,
@@ -26,6 +26,7 @@ public class HisRecipeVONoDS implements Serializable {
     @ItemProperty(alias = "mpiId")
     private String mpiId;
     @ItemProperty(alias = "证件类型 1 身份证")
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private Integer certificateType; // tinyint(1) DEFAULT NULL COMMENT '证件类型 1 身份证',
     @ItemProperty(alias = "证件号")
     @Desensitizations(type = DesensitizationsType.IDCARD)
