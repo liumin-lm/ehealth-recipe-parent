@@ -18,7 +18,7 @@ public class HisPatientTabStatusMergeRecipeVO implements Serializable {
      */
     private String groupField;
 
-    private List<HisRecipeVONoDS> recipe;
+    private List<HisRecipeVO> recipe;
 
     /**
      * 是否合并处方标识
