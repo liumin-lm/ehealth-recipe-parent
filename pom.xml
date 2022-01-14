@@ -23,7 +23,7 @@
         <module>ehealth-recipe-core</module>
     </modules>
     <properties>
-        <ngari.framework.version>4.1.6.beta2-SNAPSHOT</ngari.framework.version>
+<!--        <ngari.framework.version>4.1.6.beta2-SNAPSHOT</ngari.framework.version>-->
         <ngari.voucher.version>4.1.1.9.master-SNAPSHOT</ngari.voucher.version>
         <ngari.es.version>4.1.1.9.master-SNAPSHOT</ngari.es.version>
         <ngari.miscellany.version>4.1.1.9.master-SNAPSHOT</ngari.miscellany.version>

@@ -45,10 +45,11 @@ import recipe.client.DoctorClient;
 import recipe.client.RecipeAuditClient;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.drugsenterprise.CommonRemoteService;
+import recipe.enumerate.type.TakeMedicineWayEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.DepartManager;
 import recipe.service.RecipeService;
-import recipe.service.RecipeServiceSub;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
 import recipe.vo.second.ApothecaryVO;
@@ -87,6 +88,8 @@ public class OperationPlatformRecipeService {
     private DepartManager departManager;
     @Autowired
     private RecipeAuditClient recipeAuditClient;
+    @Autowired
+    private CommonRemoteService commonRemoteService;
 
     /**
      * 审核平台 获取处方单详情
@@ -343,7 +346,9 @@ public class OperationPlatformRecipeService {
             } else {
                 order.setOrderType(orderType);
             }
-
+            if ((null != order.getAddressID() || TakeMedicineWayEnum.TAKE_MEDICINE_STATION.getType().equals(order.getTakeMedicineWay()))) {
+                order.setCompleteAddress(commonRemoteService.getCompleteAddress(recipeOrder));
+            }
         }
 
         //药师能否撤销标识
@@ -574,7 +579,6 @@ public class OperationPlatformRecipeService {
             throw new DAOException("当前用户没有权限审核该处方");
         }
     }
-
 
 
     /**

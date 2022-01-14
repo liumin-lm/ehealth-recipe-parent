@@ -1,11 +1,14 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
 
 /**
  * 监护人信息
+ *
  * @author yinsheng
  * @date 2019\2\19 0019 14:55
  */
@@ -19,7 +22,9 @@ public class GuardianBean implements Serializable {
     /**
      * 证件号
      */
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String guardianCertificate;
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String mobile;
 
     public String getName() {
