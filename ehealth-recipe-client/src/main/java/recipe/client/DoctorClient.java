@@ -63,7 +63,7 @@ public class DoctorClient extends BaseClient {
         Integer apothecaryId = recipe.getChecker();
         if (!ValidateUtil.integerIsEmpty(apothecaryId)) {
             DoctorDTO doctorDTO = getDoctor(apothecaryId);
-            apothecaryDTO.setCheckApothecaryIdCard(ByteUtils.hideIdCard(doctorDTO.getIdNumber()));
+            apothecaryDTO.setCheckApothecaryIdCard(doctorDTO.getIdNumber());
             apothecaryDTO.setCheckApothecaryName(doctorDTO.getName());
         }
         logger.info("DoctorClient getApothecary apothecaryVO:{} ", JSONUtils.toString(apothecaryDTO));
@@ -87,7 +87,7 @@ public class DoctorClient extends BaseClient {
         if (!ValidateUtil.integerIsEmpty(giveUserId)) {
             DoctorDTO doctorDTO = getDoctor(giveUserId);
             apothecaryDTO.setGiveUserIdCardCleartext(doctorDTO.getIdNumber());
-            apothecaryDTO.setGiveUserIdCard(ByteUtils.hideIdCard(doctorDTO.getIdNumber()));
+            apothecaryDTO.setGiveUserIdCard(doctorDTO.getIdNumber());
             apothecaryDTO.setGiveUserId(doctorDTO.getDoctorId());
             apothecaryDTO.setGiveUserName(doctorDTO.getName());
             apothecaryDTO.setGiveUserSignImg(doctorDTO.getSignImage());
