@@ -45,7 +45,7 @@ public class DoctorClient extends BaseClient {
         }
         DoctorDTO doctorDTO = oragnDefaultDispensingApothecary(recipe.getClinicOrgan());
         apothecaryDTO.setGiveUserId(doctorDTO.getDoctorId());
-        apothecaryDTO.setGiveUserIdCard(ByteUtils.hideIdCard(doctorDTO.getIdNumber()));
+        apothecaryDTO.setGiveUserIdCard(doctorDTO.getIdNumber());
         apothecaryDTO.setGiveUserName(doctorDTO.getName());
         apothecaryDTO.setGiveUserSignImg(doctorDTO.getSignImage());
         return apothecaryDTO;
