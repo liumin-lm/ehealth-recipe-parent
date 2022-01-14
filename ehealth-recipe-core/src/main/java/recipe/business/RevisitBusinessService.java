@@ -4,10 +4,10 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.dto.RecipeCancelDTO;
+import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.constant.RecipeStatusConstant;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import easypay.entity.po.AccountResult;
@@ -209,7 +209,7 @@ public class RevisitBusinessService extends BaseService implements IRevisitBusin
     }
 
     @Override
-    public List<WriteDrugRecipeDTO> findWriteDrugRecipeByRevisitFromHis(String mpiId, Integer organId, Integer doctorId) throws Exception {
+    public List<WriteDrugRecipeDTO> findWriteDrugRecipeByRevisitFromHis(String mpiId, Integer organId, Integer doctorId) {
         logger.info("findWriteDrugRecipeByRevisitFromHis start");
         List<WriteDrugRecipeDTO> result = revisitManager.findWriteDrugRecipeByRevisitFromHis(mpiId, organId, doctorId);
         logger.info("findWriteDrugRecipeByRevisitFromHis end");
