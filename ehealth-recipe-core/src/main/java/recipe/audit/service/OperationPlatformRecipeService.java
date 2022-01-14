@@ -57,8 +57,6 @@ import recipe.vo.second.ApothecaryVO;
 
 import java.util.*;
 
-import static recipe.util.ByteUtils.hideIdCard;
-
 /**
  * 服务在用 新方法不再此类新增
  *
@@ -215,12 +213,6 @@ public class OperationPlatformRecipeService {
         LOGGER.info("findRecipeAndDetailsAndCheckById reicpeid={},r={}", recipeId, JSONUtils.toString(r));
         //取医生的手机号
         DoctorDTO doctor = new DoctorDTO();
-        try {
-            doctor = doctorService.get(doctorId);
-            doctor.setIdNumber(hideIdCard(doctor.getIdNumber()));
-        } catch (Exception e) {
-            LOGGER.warn("findRecipeAndDetailsAndCheckById get doctor error. doctorId={}", recipe.getDoctor(), e);
-        }
         RecipeExtend extend = extendDAO.getByRecipeId(recipeId);
         //监护人信息
         GuardianBean guardian = new GuardianBean();
@@ -236,19 +228,19 @@ public class OperationPlatformRecipeService {
                 p.setPatientType(patient.getPatientType());
                 //加上手机号 和 身份证信息（脱敏）
                 p.setMobile(patient.getMobile());
-                p.setIdcard(hideIdCard(patient.getCertificate()));
-                p.setCertificate(hideIdCard(patient.getCertificate()));
+                p.setIdcard((patient.getCertificate()));
+                p.setCertificate((patient.getCertificate()));
                 p.setMpiId(patient.getMpiId());
                 p.setCertificateType(patient.getCertificateType());
                 //判断该就诊人是否为儿童就诊人
                 if (new Integer(1).equals(patient.getPatientUserType()) || new Integer(2).equals(patient.getPatientUserType())) {
                     if (null != extend && StringUtils.isNotEmpty(extend.getGuardianCertificate())) {
                         guardian.setName(extend.getGuardianName());
-                        guardian.setGuardianCertificate(hideIdCard(extend.getGuardianCertificate()));
+                        guardian.setGuardianCertificate(extend.getGuardianCertificate());
                         guardian.setMobile(extend.getGuardianMobile());
                     } else {
                         guardian.setName(patient.getGuardianName());
-                        guardian.setGuardianCertificate(hideIdCard(patient.getGuardianCertificate()));
+                        guardian.setGuardianCertificate(patient.getGuardianCertificate());
                         guardian.setMobile(patient.getMobile());
                     }
                     try {
