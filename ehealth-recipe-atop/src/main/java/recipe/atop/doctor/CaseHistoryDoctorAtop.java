@@ -48,4 +48,20 @@ public class CaseHistoryDoctorAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
+
+
+    /**
+     * 获取医生下同一个患者 最新 复诊的id
+     * todo兼容老代码 默认返回 无复诊 前端改完删除
+     *
+     * @param mpiId    患者id
+     * @param doctorId 医生id
+     * @return
+     */
+    @RpcService
+    @Deprecated
+    public Integer getRevisitId(String mpiId, Integer doctorId) {
+        return 0;
+    }
+
 }
