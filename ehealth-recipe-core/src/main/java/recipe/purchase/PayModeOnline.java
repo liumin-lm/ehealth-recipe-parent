@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
+import recipe.client.PatientClient;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.ReviewTypeConstant;
@@ -77,6 +78,8 @@ public class PayModeOnline implements IPurchaseService {
     private OrderManager orderManager;
     @Autowired
     private EnterpriseManager enterpriseManager;
+    @Autowired
+    private PatientClient patientClient;
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
@@ -369,6 +372,8 @@ public class PayModeOnline implements IPurchaseService {
         String gysAddr = MapValueUtil.getString(extInfo, "gysAddr");
         String stationCode = MapValueUtil.getString(extInfo, "pharmacyCode");
         String distance = MapValueUtil.getString(extInfo, "distance");
+        PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
+        order.setRecMobile(patientDTO.getMobile());
         order.setDrugStoreName(gysName);
         order.setDrugStoreAddr(gysAddr);
         order.setDrugStoreCode(stationCode);
