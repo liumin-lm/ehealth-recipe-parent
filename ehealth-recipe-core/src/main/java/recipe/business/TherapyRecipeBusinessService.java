@@ -198,8 +198,7 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
                 PatientDTO patientDTO;
                 try{
                     RecipeTherapyOpDTO recipeTherapyOpDTO = new RecipeTherapyOpDTO();
-                    //patientDTO = patientClient.getPatientDTO(item.getMpiId());
-                    //String mobile = patientDTO.getMobile();
+                    patientDTO = patientClient.getPatientDTO(item.getMpiId());
                     recipeTherapyOpDTO.setRecipeId(item.getRecipeId());
                     recipeTherapyOpDTO.setRecipeCode(item.getRecipeCode());
                     recipeTherapyOpDTO.setStatus(item.getStatus());
@@ -208,7 +207,9 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
                     recipeTherapyOpDTO.setPatientName(item.getPatientName());
                     recipeTherapyOpDTO.setDoctorName(item.getDoctorName());
                     recipeTherapyOpDTO.setOrganName(item.getOrganName());
-                    recipeTherapyOpDTO.setPatientMobile("15179711268");
+                    if(StringUtils.isNotEmpty(patientDTO.getMobile())){
+                        recipeTherapyOpDTO.setPatientMobile(patientDTO.getMobile());
+                    }
                     recipeTherapyList.add(recipeTherapyOpDTO);
                 }catch (Exception e){
                     logger.error("TherapyRecipeBusinessService findTherapyByInfo error={}", JSONUtils.toString(e));
