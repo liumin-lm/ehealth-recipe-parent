@@ -12,6 +12,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.CardBean;
 import com.ngari.recipe.recipe.model.GuardianBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -361,7 +362,6 @@ public class OperationPlatformRecipeService {
         map.put("cancelRecipeFlag", cancelRecipeFlag);
 
         //患者就诊卡信息
-        HashMap<String, String> cardMap = Maps.newHashMap();
         if (extend != null) {
             try {
                 //就诊卡卡号--只有复诊的患者才有就诊卡类型
@@ -371,10 +371,11 @@ public class OperationPlatformRecipeService {
                 //如果cardName存在，则取cardName,否则从字典中取，如果两者都没有的话，那就是没有
                 //就诊卡名称
                 String cardTypeName = extend.getCardTypeName() == null ? DictionaryController.instance().get("eh.mpi.dictionary.CardType").getText(extend.getCardType()) : extend.getCardTypeName();
-                cardMap.put("cardType", cardType);
-                cardMap.put("cardNo", ChinaIDNumberUtil.hideIdCard(cardNo));
-                cardMap.put("cardTypeName", cardTypeName);
-                map.put("card", cardMap);
+                CardBean cardBean = new CardBean();
+                cardBean.setCardNo(cardNo);
+                cardBean.setCardType(cardType);
+                cardBean.setCardTypeName(cardTypeName);
+                map.put("card", cardBean);
             } catch (Exception e1) {
                 LOGGER.error("findRecipeAndDetailsAndCheckById.error", e1);
             }
