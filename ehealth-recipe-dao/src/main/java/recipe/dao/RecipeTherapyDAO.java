@@ -11,6 +11,7 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
+import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
@@ -178,14 +179,14 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
         StringBuilder hql = new StringBuilder("select r.RecipeID,r.RecipeCode,r.patientName,r.mpiId,r.doctorName,r.appoint_depart_name," +
                 "r.organName,cr.status,cr.gmt_create from cdr_recipe r ");
         hql.append(" INNER JOIN cdr_recipe_therapy cr on r.RecipeID = cr.recipe_id ");
-        hql.append(" where r.recipeSourceType=3 and cr.status!=1 ");
+        hql.append(" where r.recipeSourceType=3 and cr.status !=1 ");
         return generateRecipeTherapyHQLforStatisticsV1(hql,recipeTherapyOpQueryVO);
     }
 
     protected StringBuilder generateRecipeTherapyHQLforStatisticsCount(RecipeTherapyOpQueryDTO recipeTherapyOpQueryVO){
         StringBuilder hql = new StringBuilder("select count(1) from cdr_recipe r ");
         hql.append(" INNER JOIN cdr_recipe_therapy cr on r.RecipeID = cr.recipe_id ");
-        hql.append(" where r.recipeSourceType=3 and cr.status!=1 ");
+        hql.append(" where r.recipeSourceType=3 and cr.status !=1 ");
         return generateRecipeTherapyHQLforStatisticsV1(hql,recipeTherapyOpQueryVO);
     }
 
@@ -200,12 +201,12 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
         if(recipeTherapyOpQueryVO.getStatus() != null ){
             hql.append(" and cr.status =").append(recipeTherapyOpQueryVO.getStatus());
         }
-        if(recipeTherapyOpQueryVO.getMpiId() != null ){
+        if(StringUtils.isNotEmpty(recipeTherapyOpQueryVO.getDoctorInfoSearch())){
             hql.append(" and r.mpiId =").append(recipeTherapyOpQueryVO.getMpiId());
         }
-        if(recipeTherapyOpQueryVO.getDoctorInfoSearch() != null ){
-            hql.append("and r.doctorName like ").append(recipeTherapyOpQueryVO.getDoctorInfoSearch()).append("%");
-            hql.append("or r.appoint_depart_name like ").append(recipeTherapyOpQueryVO.getDoctorInfoSearch()).append("%");
+        if(StringUtils.isNotEmpty(recipeTherapyOpQueryVO.getDoctorInfoSearch())){
+            hql.append(" and r.doctorName like ").append(recipeTherapyOpQueryVO.getDoctorInfoSearch()).append("%");
+            hql.append(" or r.appoint_depart_name like ").append(recipeTherapyOpQueryVO.getDoctorInfoSearch()).append("%");
         }
         return hql;
     }

@@ -6,7 +6,6 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.Date;
-import java.util.List;
 
 /**
  * 运营平台诊疗处方查询入参
@@ -34,7 +33,7 @@ public class RecipeTherapyOpQueryVO implements Serializable {
     private String mpiId;
 
     @ItemProperty(alias = "状态")
-    private String status;
+    private Integer status;
 
     private int start;
     private int limit;

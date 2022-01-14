@@ -32,7 +32,7 @@ public class RecipeTherapyOpQueryDTO implements Serializable {
     private String mpiId;
 
     @ItemProperty(alias = "状态")
-    private String status;
+    private Integer status;
 
     private int start;
     private int limit;
