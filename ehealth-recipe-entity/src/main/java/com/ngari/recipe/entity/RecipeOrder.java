@@ -316,6 +316,7 @@ public class RecipeOrder implements Serializable {
 
     @ItemProperty(alias = "发药药师身份证")
     @Deprecated
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String dispensingApothecaryIdCard;
 
     @ItemProperty(alias = "中医辨证论治费")

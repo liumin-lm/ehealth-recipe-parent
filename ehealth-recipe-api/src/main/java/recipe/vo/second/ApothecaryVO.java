@@ -1,5 +1,7 @@
 package recipe.vo.second;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -29,6 +31,7 @@ public class ApothecaryVO implements Serializable {
     private String checkApothecaryName;
 
     @ItemProperty(alias = "审核药师身份证")
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     private String checkApothecaryIdCard;
 
     @ItemProperty(alias = "发药药师Id")
@@ -36,6 +39,7 @@ public class ApothecaryVO implements Serializable {
     @ItemProperty(alias = "发药药师姓名")
     private String giveUserName;
 
+    @Desensitizations(type = DesensitizationsType.IDCARD)
     @ItemProperty(alias = "发药药师身份证")
     private String giveUserIdCard;
     /**
