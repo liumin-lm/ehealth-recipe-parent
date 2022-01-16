@@ -457,74 +457,78 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      * @param trackingNumber
      */
     public static void sendLogisticsInfoToBase(Integer recipeId, String logisticsCompany, String trackingNumber) {
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
-        Recipe recipeInfo = recipeDAO.getByRecipeId(recipeId);
-        if (StringUtils.isNotBlank(recipeInfo.getOrderCode())) {
-            RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-            RecipeOrder order = orderDAO.getByOrderCode(recipeInfo.getOrderCode());
-            if (null != order && order.getEnterpriseId() != null) {
-                DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-                DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-                if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_ENT)) {
-                    WriteBackLogisticsOrderDto logisticsOrder = new WriteBackLogisticsOrderDto();
-                    // 机构id
-                    logisticsOrder.setOrganId(recipeInfo.getClinicOrgan());
-                    // 平台用户id
-                    logisticsOrder.setUserId(recipeInfo.getMpiid());
-                    // 业务类型
-                    logisticsOrder.setBusinessType(DrugEnterpriseConstant.BUSINESS_TYPE);
-                    // 业务编码
-                    logisticsOrder.setBusinessNo(order.getOrderCode());
-                    // 快递编码
-                    logisticsOrder.setLogisticsCode(logisticsCompany);
-                    // 运单号
-                    logisticsOrder.setWaybillNo(trackingNumber);
-                    // 运单费
-                    logisticsOrder.setWaybillFee(order.getExpressFee());
-                    // 收件人名称
-                    logisticsOrder.setAddresseeName(order.getReceiver());
-                    // 收件人手机号
-                    logisticsOrder.setAddresseePhone(order.getRecMobile());
-                    // 收件省份
-                    logisticsOrder.setAddresseeProvince(getAddressDic(order.getAddress1()));
-                    // 收件城市
-                    logisticsOrder.setAddresseeCity(getAddressDic(order.getAddress2()));
-                    // 收件镇/区
-                    logisticsOrder.setAddresseeDistrict(getAddressDic(order.getAddress3()));
-                    // 收件人街道
-                    logisticsOrder.setAddresseeStreet(getAddressDic(order.getStreetAddress()));
-                    // 收件详细地址
-                    logisticsOrder.setAddresseeAddress(order.getAddress4());
-                    // 寄托物名称
-                    logisticsOrder.setDepositumName(DrugEnterpriseConstant.DEPOSITUM_NAME);
-                    IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
-                    PatientBean patientBean = iPatientService.get(recipeInfo.getMpiid());
-                    if (patientBean != null) {
-                        // 就诊人名称
-                        logisticsOrder.setPatientName(patientBean.getPatientName());
-                        // 就诊人手机号
-                        logisticsOrder.setPatientPhone(patientBean.getMobile());
-                        // 就诊人身份证
-                        String cardNo = StringUtils.isNotBlank(patientBean.getIdcard()) ? patientBean.getIdcard() : patientBean.getIdcard2();
-                        if (StringUtils.isNotBlank(cardNo) && cardNo.length() > 18) {
-                            cardNo = null;
+        try {
+            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+            Recipe recipeInfo = recipeDAO.getByRecipeId(recipeId);
+            if (StringUtils.isNotBlank(recipeInfo.getOrderCode())) {
+                RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                RecipeOrder order = orderDAO.getByOrderCode(recipeInfo.getOrderCode());
+                if (null != order && order.getEnterpriseId() != null) {
+                    DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
+                    DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+                    if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_ENT)) {
+                        WriteBackLogisticsOrderDto logisticsOrder = new WriteBackLogisticsOrderDto();
+                        // 机构id
+                        logisticsOrder.setOrganId(recipeInfo.getClinicOrgan());
+                        // 平台用户id
+                        logisticsOrder.setUserId(recipeInfo.getMpiid());
+                        // 业务类型
+                        logisticsOrder.setBusinessType(DrugEnterpriseConstant.BUSINESS_TYPE);
+                        // 业务编码
+                        logisticsOrder.setBusinessNo(order.getOrderCode());
+                        // 快递编码
+                        logisticsOrder.setLogisticsCode(logisticsCompany);
+                        // 运单号
+                        logisticsOrder.setWaybillNo(trackingNumber);
+                        // 运单费
+                        logisticsOrder.setWaybillFee(order.getExpressFee());
+                        // 收件人名称
+                        logisticsOrder.setAddresseeName(order.getReceiver());
+                        // 收件人手机号
+                        logisticsOrder.setAddresseePhone(order.getRecMobile());
+                        // 收件省份
+                        logisticsOrder.setAddresseeProvince(getAddressDic(order.getAddress1()));
+                        // 收件城市
+                        logisticsOrder.setAddresseeCity(getAddressDic(order.getAddress2()));
+                        // 收件镇/区
+                        logisticsOrder.setAddresseeDistrict(getAddressDic(order.getAddress3()));
+                        // 收件人街道
+                        logisticsOrder.setAddresseeStreet(getAddressDic(order.getStreetAddress()));
+                        // 收件详细地址
+                        logisticsOrder.setAddresseeAddress(order.getAddress4());
+                        // 寄托物名称
+                        logisticsOrder.setDepositumName(DrugEnterpriseConstant.DEPOSITUM_NAME);
+                        IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+                        PatientBean patientBean = iPatientService.get(recipeInfo.getMpiid());
+                        if (patientBean != null) {
+                            // 就诊人名称
+                            logisticsOrder.setPatientName(patientBean.getPatientName());
+                            // 就诊人手机号
+                            logisticsOrder.setPatientPhone(patientBean.getMobile());
+                            // 就诊人身份证
+                            String cardNo = StringUtils.isNotBlank(patientBean.getIdcard()) ? patientBean.getIdcard() : patientBean.getIdcard2();
+                            if (StringUtils.isNotBlank(cardNo) && cardNo.length() > 18) {
+                                cardNo = null;
+                            }
+                            logisticsOrder.setPatientIdentityCardNo(cardNo);
                         }
-                        logisticsOrder.setPatientIdentityCardNo(cardNo);
-                    }
-                    // 挂号序号
-                    if (recipeInfo.getClinicId() != null) {
-                        IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
-                        RevisitExDTO consultExDTO = iRevisitExService.getByConsultId(recipeInfo.getClinicId());
-                        if (consultExDTO != null) {
-                            logisticsOrder.setOutpatientNumber(consultExDTO.getRegisterNo());
+                        // 挂号序号
+                        if (recipeInfo.getClinicId() != null) {
+                            IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
+                            RevisitExDTO consultExDTO = iRevisitExService.getByConsultId(recipeInfo.getClinicId());
+                            if (consultExDTO != null) {
+                                logisticsOrder.setOutpatientNumber(consultExDTO.getRegisterNo());
+                            }
                         }
+                        LOGGER.info("药企对接物流运单信息回写基础服务，入参={}", JSONObject.toJSONString(logisticsOrder));
+                        ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
+                        String writeResult = logisticsOrderService.writeBackLogisticsOrder(logisticsOrder);
+                        LOGGER.info("药企对接物流运单信息回写基础服务，结果={}", writeResult);
                     }
-                    LOGGER.info("药企对接物流运单信息回写基础服务，入参={}", JSONObject.toJSONString(logisticsOrder));
-                    ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
-                    String writeResult = logisticsOrderService.writeBackLogisticsOrder(logisticsOrder);
-                    LOGGER.info("药企对接物流运单信息回写基础服务，结果={}", writeResult);
                 }
             }
+        } catch (Exception e) {
+            LOGGER.error("sendLogisticsInfoToBase error ", e);
         }
     }
 
@@ -1349,6 +1353,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
     @RpcService
     public DrugsEnterpriseDTO findByEnterpriseId(Integer id) {
+        LOGGER.info("findByEnterpriseId id:{}", id);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(id);
         if (Objects.isNull(drugsEnterprise)) {
@@ -1358,6 +1363,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         BeanUtils.copy(drugsEnterprise, drugsEnterpriseDTO);
         List<DrugEnterpriseLogistics> drugEnterpriseLogistics = drugEnterpriseLogisticsDAO.getByDrugsEnterpriseId(id);
         drugsEnterpriseDTO.setDrugEnterpriseLogisticsList(drugEnterpriseLogistics);
+        LOGGER.info("findByEnterpriseId drugsEnterpriseDTO:{}", JSONUtils.toString(drugsEnterpriseDTO));
         return drugsEnterpriseDTO;
     }
 

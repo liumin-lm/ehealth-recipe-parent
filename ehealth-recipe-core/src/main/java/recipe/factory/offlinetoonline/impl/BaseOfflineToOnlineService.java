@@ -17,7 +17,7 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
 import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
-import com.ngari.recipe.recipe.model.HisRecipeVONoDS;
+import com.ngari.recipe.recipe.model.HisRecipeVO;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.revisit.RevisitAPI;
@@ -273,7 +273,7 @@ public class BaseOfflineToOnlineService {
         String mergeRecipeWay = groupRecipeConfDTO.getMergeRecipeWayAfter();
 
         hisRecipeListBeans.forEach(hisRecipeListBean -> {
-            List<HisRecipeVONoDS> hisRecipeVos = new ArrayList<>();
+            List<HisRecipeVO> hisRecipeVos = new ArrayList<>();
             if (!recipeIds.contains(hisRecipeListBean.getHisRecipeID())) {
                 String orderCode = hisRecipeListBean.getOrderCode();
                 String grpupField = "";
@@ -286,7 +286,7 @@ public class BaseOfflineToOnlineService {
                 }
 
                 if (StringUtils.isEmpty(orderCode)) {
-                    HisRecipeVONoDS hisRecipeVO = ObjectCopyUtils.convert(hisRecipeListBean, HisRecipeVONoDS.class);
+                    HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipeListBean, HisRecipeVO.class);
                     setOtherInfo(hisRecipeVO, mpiId, hisRecipeListBean.getRecipeCode(), organId);
                     recipeIds.add(hisRecipeVO.getHisRecipeID());
                     hisRecipeVos.add(hisRecipeVO);
@@ -317,11 +317,11 @@ public class BaseOfflineToOnlineService {
      * @param recipeIds
      * @return
      */
-    private List<HisRecipeVONoDS> setPatientTabStatusMerge(Map<Integer, List<Recipe>> recipeMap, RecipeOrder recipeOrder, List<HisRecipeListBean> hisRecipeListBeans, Set<Integer> recipeIds) {
+    private List<HisRecipeVO> setPatientTabStatusMerge(Map<Integer, List<Recipe>> recipeMap, RecipeOrder recipeOrder, List<HisRecipeListBean> hisRecipeListBeans, Set<Integer> recipeIds) {
         LOGGER.info("BaseOfflineToOnlineService setPatientTabStatusMerge param recipeMap:{} ,recipeOrder:{} ,hisRecipeListBeans:{} ,recipeIds:{}", JSONUtils.toString(recipeMap), JSONUtils.toString(recipeOrder), JSONUtils.toString(hisRecipeListBeans), JSONUtils.toString(recipeIds));
-        List<HisRecipeVONoDS> hisRecipeVos = new ArrayList<>();
+        List<HisRecipeVO> hisRecipeVos = new ArrayList<>();
         hisRecipeListBeans.forEach(hisRecipeListBean -> {
-            HisRecipeVONoDS hisRecipeVO = ObjectCopyUtils.convert(hisRecipeListBean, HisRecipeVONoDS.class);
+            HisRecipeVO hisRecipeVO = ObjectCopyUtils.convert(hisRecipeListBean, HisRecipeVO.class);
             // 这个接口查询的所有处方都是线下处方 前端展示逻辑 0: 平台, 1: his
             hisRecipeVO.setFromFlag(1);
             // 有订单跳转订单
@@ -350,7 +350,7 @@ public class BaseOfflineToOnlineService {
      * @param recipes
      * @param result
      */
-    protected void covertMergeRecipeVO(String grpupFiled, boolean mergeRecipeFlag, String mergeRecipeWay, Integer firstRecipeId, String listSkipType, List<HisRecipeVONoDS> recipes, List<MergeRecipeVO> result) {
+    protected void covertMergeRecipeVO(String grpupFiled, boolean mergeRecipeFlag, String mergeRecipeWay, Integer firstRecipeId, String listSkipType, List<HisRecipeVO> recipes, List<MergeRecipeVO> result) {
         LOGGER.info("BaseOfflineToOnlineService covertMergeRecipeVO param grpupFiled:{},mergeRecipeFlag:{},mergeRecipeWay:{},firstRecipeId:{},listSkipType:{},recipes:{},result:{}", grpupFiled, mergeRecipeFlag, mergeRecipeWay, firstRecipeId, listSkipType, JSONUtils.toString(recipes), JSONUtils.toString(result));
         if (mergeRecipeFlag) {
             MergeRecipeVO mergeRecipeVO = new MergeRecipeVO();
@@ -362,7 +362,7 @@ public class BaseOfflineToOnlineService {
             mergeRecipeVO.setListSkipType(listSkipType);
             result.add(mergeRecipeVO);
         } else {
-            for (HisRecipeVONoDS hisRecipeVO : recipes) {
+            for (HisRecipeVO hisRecipeVO : recipes) {
                 MergeRecipeVO mergeRecipeVO = new MergeRecipeVO();
                 mergeRecipeVO.setMergeRecipeFlag(mergeRecipeFlag);
                 mergeRecipeVO.setRecipe(Arrays.asList(hisRecipeVO));
@@ -403,7 +403,7 @@ public class BaseOfflineToOnlineService {
      * @param recipeCode  recipeCode
      * @param clinicOrgan clinicOrgan
      */
-    void setOtherInfo(HisRecipeVONoDS hisRecipeVO, String mpiId, String recipeCode, Integer clinicOrgan) {
+    void setOtherInfo(HisRecipeVO hisRecipeVO, String mpiId, String recipeCode, Integer clinicOrgan) {
         Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrganAndMpiid(mpiId, recipeCode, clinicOrgan);
         if (recipe == null) {
             hisRecipeVO.setStatusText("待处理");

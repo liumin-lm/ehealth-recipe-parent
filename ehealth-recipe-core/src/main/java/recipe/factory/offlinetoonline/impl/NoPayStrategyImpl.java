@@ -11,7 +11,7 @@ import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
 import com.ngari.recipe.offlinetoonline.model.SettleForOfflineToOnlineVO;
-import com.ngari.recipe.recipe.model.HisRecipeVONoDS;
+import com.ngari.recipe.recipe.model.HisRecipeVO;
 import com.ngari.recipe.recipe.model.MergeRecipeVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -57,7 +57,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
     public List<MergeRecipeVO> findHisRecipeList(HisResponseTO<List<QueryHisRecipResTO>> hisRecipeInfos, PatientDTO patientDTO, FindHisRecipeListVO request) {
         LOGGER.info("NoPayStrategyImpl findHisRecipeList hisRecipeInfos:{},patientDTO:{},request:{}", JSONUtils.toString(hisRecipeInfos), JSONUtils.toString(patientDTO), JSONUtils.toString(request));
         // 2、将his数据转换成recipe对象
-        List<HisRecipeVONoDS> noPayFeeHisRecipeVO = covertToHisRecipeVoObject(hisRecipeInfos, patientDTO);
+        List<HisRecipeVO> noPayFeeHisRecipeVO = covertToHisRecipeVoObject(hisRecipeInfos, patientDTO);
         // 3、包装成前端所需线下处方列表对象
         GiveModeButtonDTO giveModeButtonBean = getGiveModeButtonBean(request.getOrganId());
         List<MergeRecipeVO> res = findOnReadyHisRecipeList(noPayFeeHisRecipeVO, giveModeButtonBean);
@@ -159,9 +159,9 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
      * @param patientDTO 患者信息
      * @return
      */
-    public List<HisRecipeVONoDS> covertToHisRecipeVoObject(HisResponseTO<List<QueryHisRecipResTO>> responseTo, PatientDTO patientDTO) {
+    public List<HisRecipeVO> covertToHisRecipeVoObject(HisResponseTO<List<QueryHisRecipResTO>> responseTo, PatientDTO patientDTO) {
         LOGGER.info("NoPayServiceImpl covertHisRecipeObject param responseTO:{},patientDTO:{}" + JSONUtils.toString(responseTo), JSONUtils.toString(patientDTO));
-        List<HisRecipeVONoDS> hisRecipeVos = new ArrayList<>();
+        List<HisRecipeVO> hisRecipeVos = new ArrayList<>();
         if (responseTo == null) {
             return hisRecipeVos;
         }
@@ -183,7 +183,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
                 continue;
             }
 
-            HisRecipeVONoDS hisRecipeVO = new HisRecipeVONoDS();
+            HisRecipeVO hisRecipeVO = new HisRecipeVO();
             //详情需要
             hisRecipeVO.setMpiId(patientDTO.getMpiId());
             hisRecipeVO.setClinicOrgan(queryHisRecipResTo.getClinicOrgan());
@@ -217,7 +217,7 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
      * @param request his的处方单集合
      * @return 前端需要的处方单集合
      */
-    public List<MergeRecipeVO> findOnReadyHisRecipeList(List<HisRecipeVONoDS> request, GiveModeButtonDTO giveModeButtonBean) {
+    public List<MergeRecipeVO> findOnReadyHisRecipeList(List<HisRecipeVO> request, GiveModeButtonDTO giveModeButtonBean) {
         LOGGER.info("NoPayServiceImpl findOnReadyHisRecipe request:{}", JSONUtils.toString(request));
         //查询线下待缴费处方
         List<MergeRecipeVO> result = new ArrayList<>();
@@ -228,9 +228,9 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
             //开启合并支付开关
             if (BY_REGISTERID.equals(mergeRecipeWayAfter)) {
                 //表示根据挂号序号分组
-                Map<String, List<HisRecipeVONoDS>> registerIdRelation = request.stream().collect(Collectors.groupingBy(HisRecipeVONoDS::getRegisteredId));
-                for (Map.Entry<String, List<HisRecipeVONoDS>> entry : registerIdRelation.entrySet()) {
-                    List<HisRecipeVONoDS> recipes = entry.getValue();
+                Map<String, List<HisRecipeVO>> registerIdRelation = request.stream().collect(Collectors.groupingBy(HisRecipeVO::getRegisteredId));
+                for (Map.Entry<String, List<HisRecipeVO>> entry : registerIdRelation.entrySet()) {
+                    List<HisRecipeVO> recipes = entry.getValue();
                     if (StringUtils.isEmpty(entry.getKey())) {
                         //表示挂号序号为空,不能进行处方合并
                         covertMergeRecipeVO(null, false, null, null, giveModeButtonBean.getButtonSkipType(), recipes, result);
@@ -241,21 +241,21 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
                 }
             } else {
                 //表示根据相同挂号序号下的同一病种分组
-                Map<String, Map<String, List<HisRecipeVONoDS>>> map = request.stream().collect(Collectors.groupingBy(HisRecipeVONoDS::getRegisteredId, Collectors.groupingBy(HisRecipeVONoDS::getChronicDiseaseName)));
-                for (Map.Entry<String, Map<String, List<HisRecipeVONoDS>>> entry : map.entrySet()) {
+                Map<String, Map<String, List<HisRecipeVO>>> map = request.stream().collect(Collectors.groupingBy(HisRecipeVO::getRegisteredId, Collectors.groupingBy(HisRecipeVO::getChronicDiseaseName)));
+                for (Map.Entry<String, Map<String, List<HisRecipeVO>>> entry : map.entrySet()) {
                     //挂号序号为空表示不能进行处方合并
                     if (StringUtils.isEmpty(entry.getKey())) {
-                        Map<String, List<HisRecipeVONoDS>> recipeMap = entry.getValue();
-                        for (Map.Entry<String, List<HisRecipeVONoDS>> recipeEntry : recipeMap.entrySet()) {
-                            List<HisRecipeVONoDS> recipes = recipeEntry.getValue();
+                        Map<String, List<HisRecipeVO>> recipeMap = entry.getValue();
+                        for (Map.Entry<String, List<HisRecipeVO>> recipeEntry : recipeMap.entrySet()) {
+                            List<HisRecipeVO> recipes = recipeEntry.getValue();
                             covertMergeRecipeVO(null, false, null, null, giveModeButtonBean.getButtonSkipType(), recipes, result);
                         }
                     } else {
                         //表示挂号序号不为空,需要根据当前病种
-                        Map<String, List<HisRecipeVONoDS>> recipeMap = entry.getValue();
-                        for (Map.Entry<String, List<HisRecipeVONoDS>> recipeEntry : recipeMap.entrySet()) {
+                        Map<String, List<HisRecipeVO>> recipeMap = entry.getValue();
+                        for (Map.Entry<String, List<HisRecipeVO>> recipeEntry : recipeMap.entrySet()) {
                             //如果病种为空不能进行合并
-                            List<HisRecipeVONoDS> recipes = recipeEntry.getValue();
+                            List<HisRecipeVO> recipes = recipeEntry.getValue();
                             if (StringUtils.isEmpty(recipeEntry.getKey())) {
                                 covertMergeRecipeVO(null, false, null, null, giveModeButtonBean.getButtonSkipType(), recipes, result);
                             } else {

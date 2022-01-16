@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
+import recipe.client.PatientClient;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.ReviewTypeConstant;
@@ -77,6 +78,8 @@ public class PayModeOnline implements IPurchaseService {
     private OrderManager orderManager;
     @Autowired
     private EnterpriseManager enterpriseManager;
+    @Autowired
+    private PatientClient patientClient;
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
@@ -188,10 +191,8 @@ public class PayModeOnline implements IPurchaseService {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         String insuredArea = MapValueUtil.getString(extInfo, "insuredArea");
         Integer logisticsCompany = MapValueUtil.getInteger(extInfo, "logisticsCompany");
-        String provinceCode = MapValueUtil.getString(extInfo, "provinceCode");
-        String cityCode = MapValueUtil.getString(extInfo, "cityCode");
-        String areaCode = MapValueUtil.getString(extInfo, "areaCode");
         Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
+
         if (StringUtils.isNotEmpty(insuredArea)) {
             for (Recipe recipe : recipeList) {
                 recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("insuredArea", insuredArea));
@@ -207,19 +208,7 @@ public class PayModeOnline implements IPurchaseService {
 
         //保存站点相关信息
         if (null != takeMedicineWay) {
-            String gysName = MapValueUtil.getString(extInfo, "gysName");
-            String gysAddr = MapValueUtil.getString(extInfo, "gysAddr");
-            String stationCode = MapValueUtil.getString(extInfo, "pharmacyCode");
-            String distance = MapValueUtil.getString(extInfo, "distance");
-            order.setDrugStoreName(gysName);
-            order.setDrugStoreAddr(gysAddr);
-            order.setDrugStoreCode(stationCode);
-            order.setTakeMedicineWay(takeMedicineWay);
-            order.setAddress1(provinceCode);
-            order.setAddress2(cityCode);
-            order.setAddress3(areaCode);
-            order.setAddress4(gysAddr);
-            order.setDistance(Double.parseDouble(distance));
+            setStationInfo(recipeList.get(0), extInfo, order, takeMedicineWay);
         }
         //如果是医保支付前端目前传的orderType都是1,杭州市医保得特殊处理
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipeList.get(0).getRecipeMode())
@@ -366,6 +355,36 @@ public class PayModeOnline implements IPurchaseService {
             CommonOrder.updateGoodsReceivingInfoToCreateOrder(recipeId2, extInfo);
         }
         return result;
+    }
+
+    /**
+     * 获取站点信息并设置到订单
+     * @param recipe  处方信息
+     * @param extInfo 前端传递信息
+     * @param order   订单
+     * @param takeMedicineWay 方式
+     */
+    private void setStationInfo(Recipe recipe, Map<String, String> extInfo, RecipeOrder order, Integer takeMedicineWay) {
+        String provinceCode = MapValueUtil.getString(extInfo, "provinceCode");
+        String cityCode = MapValueUtil.getString(extInfo, "cityCode");
+        String areaCode = MapValueUtil.getString(extInfo, "areaCode");
+        String gysName = MapValueUtil.getString(extInfo, "gysName");
+        String gysAddr = MapValueUtil.getString(extInfo, "gysAddr");
+        String stationCode = MapValueUtil.getString(extInfo, "pharmacyCode");
+        String distance = MapValueUtil.getString(extInfo, "distance");
+        PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
+        order.setRecMobile(patientDTO.getMobile());
+        order.setDrugStoreName(gysName);
+        order.setDrugStoreAddr(gysAddr);
+        order.setDrugStoreCode(stationCode);
+        order.setTakeMedicineWay(takeMedicineWay);
+        order.setAddress1(provinceCode);
+        order.setAddress2(cityCode);
+        order.setAddress3(areaCode);
+        order.setAddress4(gysAddr);
+        order.setDistance(Double.parseDouble(distance));
+        //站点配送收货人姓名默认患者姓名
+        order.setReceiver(recipe.getPatientName());
     }
 
     public HisResponseTO updateGoodsReceivingInfoToCreateOrder(Integer recipeId, Map<String, String> extInfo) {

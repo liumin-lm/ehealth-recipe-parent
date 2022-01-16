@@ -15,6 +15,7 @@ import recipe.vo.second.RecipeOrderVO;
 import recipe.vo.second.RecipeVo;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -32,6 +33,9 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
         logger.info("RecipeOrderOpenAtop getRecipeOrderByBusId req orderId={}", orderId);
         validateAtop(orderId);
         RecipeOrderDto recipeOrderDto = recipeOrderService.getRecipeOrderByBusId(orderId);
+        if(Objects.isNull(recipeOrderDto)){
+            return null;
+        }
         RecipeOrderVO recipeOrderVO = new RecipeOrderVO();
         BeanUtils.copyProperties(recipeOrderDto,recipeOrderVO);
         List<RecipeVo> collect = recipeOrderDto.getRecipeList().stream().map(recipeBeanDTO -> {

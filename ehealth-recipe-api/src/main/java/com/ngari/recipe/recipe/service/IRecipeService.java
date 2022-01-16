@@ -944,6 +944,9 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     public String getOrderCodeByRecipeCode(Integer organId, String recipeCode);
 
+    @RpcService
+    Map<String, String> findMsgByparametersByOrganIds(Date startTime, Date endTime, List<Integer> organId);
+
     /**
      * 查询第三方药品库存
      *
