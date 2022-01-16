@@ -1578,9 +1578,13 @@ public class RecipeServiceSub {
             map.put("cancelReason", MapValueUtil.getString(tipMap, "cancelReason"));
             map.put("tips", MapValueUtil.getString(tipMap, "tips"));
             map.put("cancelFlag", cancelFlag);
-            //获取审核不通过详情
-            List<Map<String, Object>> mapList = recipeManager.getCheckNotPassDetail(recipe);
-            map.put("reasonAndDetails", mapList);
+            // ！药师签名中 && ！未签名
+            if(!RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_PHA.getType().equals(recipe.getStatus())
+            && !RecipeStatusEnum.RECIPE_STATUS_SIGN_NO_CODE_PHA.getType().equals(recipe.getStatus())){
+                //获取审核不通过详情
+                List<Map<String, Object>> mapList = recipeManager.getCheckNotPassDetail(recipe);
+                map.put("reasonAndDetails", mapList);
+            }
             //能否开医保处方
             boolean medicalFlag = false;
             ConsultSetDTO set = consultSetService.getBeanByDoctorId(recipe.getDoctor());
