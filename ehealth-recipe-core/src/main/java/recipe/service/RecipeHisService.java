@@ -765,7 +765,7 @@ public class RecipeHisService extends RecipeBaseService {
                         BeanUtils.copyProperties(drugInfoHisBean, drugInfoTO);
                         if (!StringUtils.isEmpty(pharmacy)) {
                             List<String> splitToList = Splitter.on(",").splitToList(pharmacy);
-                            if (!org.springframework.util.CollectionUtils.isEmpty(splitToList) && splitToList.size() == 1) {
+                            if (!org.springframework.util.CollectionUtils.isEmpty(splitToList) && splitToList.size() > 0) {
                                 Integer pharmacyId = Integer.valueOf(splitToList.get(0));
                                 PharmacyTcm p = pharmacyTcmDAO.get(pharmacyId);
                                 if (p != null) {

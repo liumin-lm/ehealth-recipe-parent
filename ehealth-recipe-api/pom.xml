@@ -25,26 +25,22 @@
             <groupId>ngari</groupId>
             <artifactId>ehealth-his-api</artifactId>
             <version>${ngari.hisapi.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>${project.parent.groupId}</groupId>
             <artifactId>ehealth-base-api</artifactId>
             <version>${ngari.baseapi.version}</version>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>ehealth-entity</artifactId>
             <version>${ngari.entity.version}</version>
-            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>ngari</groupId>
             <artifactId>ehealth-basic-dto</artifactId>
             <version>${ngari.basicdto.version}</version>
-            <scope>provided</scope>
         </dependency>
 
         <dependency>

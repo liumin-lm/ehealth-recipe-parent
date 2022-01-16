@@ -259,6 +259,7 @@ public class RecipeToHisService {
             request.setData(drugInfoList);
             List<String> drugIdList = drugInfoList.stream().map(DrugInfoTO::getDrcode).collect(Collectors.toList());
             request.setDrcode(drugIdList);
+            request.setPharmacyCode(drugInfoList.get(0).getPharmacyCode());
         }
         LOGGER.info("queryDrugInfo request={}", JSONUtils.toString(request));
 

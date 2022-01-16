@@ -12,6 +12,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.CardBean;
 import com.ngari.recipe.recipe.model.GuardianBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -45,17 +46,16 @@ import recipe.client.DoctorClient;
 import recipe.client.RecipeAuditClient;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.drugsenterprise.CommonRemoteService;
+import recipe.enumerate.type.TakeMedicineWayEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.DepartManager;
 import recipe.service.RecipeService;
-import recipe.service.RecipeServiceSub;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
 import recipe.vo.second.ApothecaryVO;
 
 import java.util.*;
-
-import static recipe.util.ByteUtils.hideIdCard;
 
 /**
  * 服务在用 新方法不再此类新增
@@ -87,6 +87,8 @@ public class OperationPlatformRecipeService {
     private DepartManager departManager;
     @Autowired
     private RecipeAuditClient recipeAuditClient;
+    @Autowired
+    private CommonRemoteService commonRemoteService;
 
     /**
      * 审核平台 获取处方单详情
@@ -211,12 +213,6 @@ public class OperationPlatformRecipeService {
         LOGGER.info("findRecipeAndDetailsAndCheckById reicpeid={},r={}", recipeId, JSONUtils.toString(r));
         //取医生的手机号
         DoctorDTO doctor = new DoctorDTO();
-        try {
-            doctor = doctorService.get(doctorId);
-            doctor.setIdNumber(hideIdCard(doctor.getIdNumber()));
-        } catch (Exception e) {
-            LOGGER.warn("findRecipeAndDetailsAndCheckById get doctor error. doctorId={}", recipe.getDoctor(), e);
-        }
         RecipeExtend extend = extendDAO.getByRecipeId(recipeId);
         //监护人信息
         GuardianBean guardian = new GuardianBean();
@@ -232,19 +228,19 @@ public class OperationPlatformRecipeService {
                 p.setPatientType(patient.getPatientType());
                 //加上手机号 和 身份证信息（脱敏）
                 p.setMobile(patient.getMobile());
-                p.setIdcard(hideIdCard(patient.getCertificate()));
-                p.setCertificate(hideIdCard(patient.getCertificate()));
+                p.setIdcard((patient.getCertificate()));
+                p.setCertificate((patient.getCertificate()));
                 p.setMpiId(patient.getMpiId());
                 p.setCertificateType(patient.getCertificateType());
                 //判断该就诊人是否为儿童就诊人
                 if (new Integer(1).equals(patient.getPatientUserType()) || new Integer(2).equals(patient.getPatientUserType())) {
                     if (null != extend && StringUtils.isNotEmpty(extend.getGuardianCertificate())) {
                         guardian.setName(extend.getGuardianName());
-                        guardian.setGuardianCertificate(hideIdCard(extend.getGuardianCertificate()));
+                        guardian.setGuardianCertificate(extend.getGuardianCertificate());
                         guardian.setMobile(extend.getGuardianMobile());
                     } else {
                         guardian.setName(patient.getGuardianName());
-                        guardian.setGuardianCertificate(hideIdCard(patient.getGuardianCertificate()));
+                        guardian.setGuardianCertificate(patient.getGuardianCertificate());
                         guardian.setMobile(patient.getMobile());
                     }
                     try {
@@ -343,7 +339,9 @@ public class OperationPlatformRecipeService {
             } else {
                 order.setOrderType(orderType);
             }
-
+            if ((null != order.getAddressID() || TakeMedicineWayEnum.TAKE_MEDICINE_STATION.getType().equals(order.getTakeMedicineWay()))) {
+                order.setCompleteAddress(commonRemoteService.getCompleteAddress(recipeOrder));
+            }
         }
 
         //药师能否撤销标识
@@ -356,7 +354,6 @@ public class OperationPlatformRecipeService {
         map.put("cancelRecipeFlag", cancelRecipeFlag);
 
         //患者就诊卡信息
-        HashMap<String, String> cardMap = Maps.newHashMap();
         if (extend != null) {
             try {
                 //就诊卡卡号--只有复诊的患者才有就诊卡类型
@@ -366,10 +363,11 @@ public class OperationPlatformRecipeService {
                 //如果cardName存在，则取cardName,否则从字典中取，如果两者都没有的话，那就是没有
                 //就诊卡名称
                 String cardTypeName = extend.getCardTypeName() == null ? DictionaryController.instance().get("eh.mpi.dictionary.CardType").getText(extend.getCardType()) : extend.getCardTypeName();
-                cardMap.put("cardType", cardType);
-                cardMap.put("cardNo", ChinaIDNumberUtil.hideIdCard(cardNo));
-                cardMap.put("cardTypeName", cardTypeName);
-                map.put("card", cardMap);
+                CardBean cardBean = new CardBean();
+                cardBean.setCardNo(cardNo);
+                cardBean.setCardType(cardType);
+                cardBean.setCardTypeName(cardTypeName);
+                map.put("card", cardBean);
             } catch (Exception e1) {
                 LOGGER.error("findRecipeAndDetailsAndCheckById.error", e1);
             }
@@ -574,7 +572,6 @@ public class OperationPlatformRecipeService {
             throw new DAOException("当前用户没有权限审核该处方");
         }
     }
-
 
 
     /**

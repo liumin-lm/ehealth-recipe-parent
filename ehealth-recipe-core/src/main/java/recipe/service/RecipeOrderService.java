@@ -1082,7 +1082,7 @@ public class RecipeOrderService extends RecipeBaseService {
         if (recipeOrderBean != null && recipeOrderBean.getEnterpriseId() != null) {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrderBean.getEnterpriseId());
             recipeOrderBean.setOrderMemo(drugsEnterprise.getOrderMemo());
-            if (ExpressFeePayWayEnum.ONLINE.getType().equals(drugsEnterprise.getExpressFeePayWay()) &&
+            if ((null == drugsEnterprise.getExpressFeePayWay() || ExpressFeePayWayEnum.ONLINE.getType().equals(drugsEnterprise.getExpressFeePayWay())) &&
                     (order.getExpressFee() != null && order.getTotalFee().compareTo(order.getExpressFee()) > -1)) {
                 recipeOrderBean.setStationSendTotalFee(order.getTotalFee().subtract(order.getExpressFee()));
             } else {

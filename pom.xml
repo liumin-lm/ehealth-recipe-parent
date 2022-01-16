@@ -23,7 +23,6 @@
         <module>ehealth-recipe-core</module>
     </modules>
     <properties>
-        <ngari.framework.version>4.1.6.beta2-SNAPSHOT</ngari.framework.version>
         <ngari.voucher.version>4.1.1.9.master-SNAPSHOT</ngari.voucher.version>
         <ngari.es.version>4.1.1.9.master-SNAPSHOT</ngari.es.version>
         <ngari.miscellany.version>4.1.1.9.master-SNAPSHOT</ngari.miscellany.version>
@@ -32,7 +31,7 @@
         <ngari.followup.version>4.1.1.9.master-SNAPSHOT</ngari.followup.version>
         <ngari.cdr.version>4.1.1.9.master-SNAPSHOT</ngari.cdr.version>
         <ngari.recipeaudit.version>4.1.1.9.master-SNAPSHOT</ngari.recipeaudit.version>
-        <ngari.easypay.version>4.1.1.9.master-SNAPSHOT</ngari.easypay.version>
+        <ehealth-pay-api.version>4.1.1.9.master-SNAPSHOT</ehealth-pay-api.version>
         <ngari.consult.version>4.1.1.9.master-SNAPSHOT</ngari.consult.version>
         <ngari.networkclinic.version>4.1.1.9.master-SNAPSHOT</ngari.networkclinic.version>
         <ngari.hisapi.version>4.1.1.9.master-SNAPSHOT</ngari.hisapi.version>
