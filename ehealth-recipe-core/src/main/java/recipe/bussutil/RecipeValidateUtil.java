@@ -13,10 +13,7 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
-import com.ngari.recipe.entity.DrugList;
-import com.ngari.recipe.entity.OrganDrugList;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
@@ -24,6 +21,7 @@ import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -199,7 +197,7 @@ public class RecipeValidateUtil {
      * @param recipe
      * @return
      */
-    public static List<RecipeDetailBean> validateDrugsImplForDetail(Recipe recipe) {
+    public static List<RecipeDetailBean> validateDrugsImplForDetail(Recipe recipe,Map<String, List<SaleDrugList>> recipeDetailSalePrice) {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
@@ -210,6 +208,7 @@ public class RecipeValidateUtil {
         if (CollectionUtils.isEmpty(details)) {
             return backDetailList;
         }
+
         List<RecipeDetailBean> detailBeans = ObjectCopyUtils.convert(details, RecipeDetailBean.class);
         //暂存也会走这里但是 暂存要用药品名实时配置
         Map<String, Integer> configDrugNameMap = null;
@@ -266,6 +265,12 @@ public class RecipeValidateUtil {
             List<DrugList> drugList = drugListMap.get(recipeDetail.getDrugId());
             if (CollectionUtils.isNotEmpty(drugList)) {
                 recipeDetail.setDrugPic(drugList.get(0).getDrugPic());
+            }
+            if(MapUtils.isNotEmpty(recipeDetailSalePrice)){
+                List<SaleDrugList> saleDrugLists = recipeDetailSalePrice.get(recipeDetail.getOrganDrugCode());
+                if(CollectionUtils.isNotEmpty(saleDrugLists)){
+                    recipeDetail.setSalePrice(saleDrugLists.get(0).getPrice());
+                }
             }
             backDetailList.add(recipeDetail);
         }

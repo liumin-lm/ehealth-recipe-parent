@@ -124,7 +124,7 @@ public class ThirdRecipeService {
         if (recipe != null) {
             checkUserHasPermission(recipe.getRecipeId());
         }
-        Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(request.getRecipeId(), false);
+        Map<String, Object> result = RecipeServiceSub.getRecipeAndDetailByIdImpl(request.getRecipeId(), false,null);
         PatientDTO patient = (PatientDTO) result.get("patient");
         result.put("patient", ObjectCopyUtils.convert(patient, PatientDS.class));
         LOGGER.info("ThirdRecipeService getPatientRecipeById result:{}.", JSONUtils.toString(result));

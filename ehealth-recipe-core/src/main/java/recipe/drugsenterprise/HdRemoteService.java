@@ -16,7 +16,6 @@ import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
-import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -47,6 +46,7 @@ import recipe.service.common.RecipeCacheService;
 import recipe.third.IFileDownloadService;
 import recipe.util.DistanceUtil;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -72,8 +72,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
     private static final String searchMapLatitude = "latitude";
 
     private static final String searchMapLongitude = "longitude";
-
-    private static final String requestSuccessCodeStr = "200";
 
     private static final String requestHeadAuthorizationKey = "Authorization";
 
@@ -114,6 +112,22 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
     private static final String hdSendMethod = "1";
 
     private static final String imgHead = "data:image/jpeg;base64,";
+
+    @Resource
+    private RecipeDAO recipeDAO;
+    @Resource
+    private RecipeDetailDAO recipeDetailDAO;
+    @Resource
+    private DrugsEnterpriseDAO drugsEnterpriseDAO;
+    @Resource
+    private RecipeOrderDAO recipeOrderDAO;
+    @Resource
+    private RecipeParameterDao recipeParameterDAO;
+    @Resource
+    private RecipeDetailDAO detailDAO;
+    @Resource
+    private SaleDrugListDAO saleDrugListDAO;
+
 
     public HdRemoteService() {
         RecipeCacheService recipeService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
@@ -177,7 +191,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
      * @return void
      */
     private void sendTokenAndUpdateHttpRequest(DrugsEnterprise drugsEnterprise, HdTokenRequest request, CloseableHttpClient httpclient, DrugEnterpriseResult result) throws IOException {
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         //生成post请求
         Map<String, String> requsetMap = JSONUtils.parse(JSONUtils.toString(request), HashMap.class);
         String requsetUrl = getRequsetUrl(requsetMap, drugsEnterprise.getAuthenUrl());
@@ -243,7 +256,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         String userId = drugsEnterprise.getUserId();
         String password = drugsEnterprise.getPassword();
         if (null != userId){
-            request.setClientId(userId.toString());
+            request.setClientId(userId);
         }else{
             LOGGER.warn("HdRemoteService.tokenUpdateImpl:[{}][{}]的userId为空。", drugsEnterprise.getId(), drugsEnterprise.getName());
             getFailResult(result, "userId为空");
@@ -256,8 +269,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
     @RpcService
     public void tests(Integer recipeId){
         List<Integer> recipeIds = Arrays.asList(recipeId);
-        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-        DrugsEnterprise drugsEnterprise = enterpriseDAO.getById(224);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(224);
         pushRecipeInfo(recipeIds, drugsEnterprise);
     }
 
@@ -301,7 +313,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             return;
         }
         //组装hdRecipeDTO和处方明细下的hdDrugDTO
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
         HdRecipeDTO sendHdRecipe = new HdRecipeDTO();
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
@@ -316,7 +327,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 //发送请求，获得推送的结果
 
                 HdPushRecipeResponse responseResult = pushRecipeHttpRequest(result, enterprise, sendHdRecipe);
-                DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                 DrugsEnterprise newTokenEnterprise;
                 HdTokenRequest request;
                 if(null != responseResult && HdPushRecipeStatusEnum.
@@ -327,7 +337,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                     if(DrugEnterpriseResult.FAIL == result.getCode())
                         return;
 
-                    newTokenEnterprise = enterpriseDAO.get(enterprise.getId());
+                    newTokenEnterprise = drugsEnterpriseDAO.get(enterprise.getId());
                     if(null == newTokenEnterprise){
                         LOGGER.warn("HdRemoteService.pushRecipeInfo:[{}][{}]当前药企信息不存在", enterprise.getId(), enterprise.getName());
                         getFailResult(result, "当前药企信息不存在");
@@ -365,7 +375,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         HdPushRecipeResponse pushRecipeResponse = null;
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HdHttpUrlEnum httpUrl;
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = null;
         if (sendHdRecipe != null && sendHdRecipe.getRecipeId() != null) {
             recipe = recipeDAO.getByRecipeId(Integer.parseInt(sendHdRecipe.getRecipeId()));
@@ -535,7 +544,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         sendHdRecipe.setRecipeMemo(nowRecipe.getRecipeMemo());
         sendHdRecipe.setMemo(nowRecipe.getMemo());
         sendHdRecipe.setOrganDiseaseName(nowRecipe.getOrganDiseaseName());
-        //sendHdRecipe.setMedicalPay(null == nowRecipe.getMedicalPayFlag() ? medicalPayDefault : nowRecipe.getMedicalPayFlag().toString());
         sendHdRecipe.setOrganDiseaseId(nowRecipe.getOrganDiseaseId());
         if (nowRecipe.getCheckDateYs() != null) {
             sendHdRecipe.setAudiDate(getNewTime(nowRecipe.getCheckDateYs(), hdTimeCheck));
@@ -546,13 +554,8 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         sendHdRecipe.setCreateDate(getNewTime(nowRecipe.getCreateDate(), hdTimeCheck));
         sendHdRecipe.setTcmUsePathways(nowRecipe.getTcmUsePathways());
         sendHdRecipe.setTcmUsingRate(nowRecipe.getTcmUsingRate());
-
-        //sendHdRecipe.setGiveMode(null == nowRecipe.getGiveMode() ? giveModeDefault : nowRecipe.getGiveMode().toString());
-
         sendHdRecipe.setGiveUser(nowRecipe.getGiveUser());
-        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrder order = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());
-        //sendHdRecipe.setPayFlag(null == nowRecipe.getPayFlag() ? payFlagDefault : nowRecipe.getPayFlag().toString());
         sendHdRecipe.setPayMode(null == order.getPayMode() ? payModeDefault : order.getPayMode().toString());
         sendHdRecipe.setRecipeType(null == nowRecipe.getRecipeType() ? recipeTypeDefault : nowRecipe.getRecipeType().toString());
         sendHdRecipe.setRecipeId(null == nowRecipe.getRecipeId() ? recipeIdDefault : nowRecipe.getRecipeId().toString());
@@ -590,10 +593,9 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             sendHdRecipe.setPayFlag("0");
         }
         //对浙四进行个性化处理,推送到指定药店配送
-        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-        String hdStores = recipeParameterDao.getByName("hd_store_payonline");
+        String hdStores = recipeParameterDAO.getByName("hd_store_payonline");
         String storeOrganName = nowRecipe.getClinicOrgan() + "_" + "hd_organ_store";
-        String organStore = recipeParameterDao.getByName(storeOrganName);
+        String organStore = recipeParameterDAO.getByName(storeOrganName);
 
         if (StringUtils.isNotEmpty(hdStores) && hasOrgan(nowRecipe.getClinicOrgan().toString(),hdStores) && nowRecipe.getGiveMode() != 3) {
             LOGGER.info("HdRemoteService.pushRecipeInfo organStore:{}.", organStore);
@@ -614,7 +616,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
      * @return recipe.bean.DrugEnterpriseResult 操作结果集
      */
     private DrugEnterpriseResult assembleDrugListMsg(DrugEnterpriseResult result, HdRecipeDTO sendHdRecipe, Recipe nowRecipe, OrganDTO organ , DrugsEnterprise enterprise) {
-        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> detailList = detailDAO.findByRecipeId(nowRecipe.getRecipeId());
         if(CollectionUtils.isEmpty(detailList)){
             LOGGER.warn("HdRemoteService.pushRecipeInfo:处方ID为{},绑定订单不存在.", nowRecipe.getRecipeId());
@@ -627,7 +628,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         Double quantity;
         HdDrugDTO nowHdDrugDTO;
         SaleDrugList saleDrug;
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         for (Recipedetail nowDetail : detailList) {
             nowHdDrugDTO = new HdDrugDTO();
             drugList.add(nowHdDrugDTO);
@@ -636,8 +636,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             nowHdDrugDTO.setSpecification(nowDetail.getDrugSpec());
             nowHdDrugDTO.setTotal(null == nowDetail.getUseTotalDose() ? useTotalDoseDefault : nowDetail.getUseTotalDose().toString());
             nowHdDrugDTO.setUsingDays(null == nowDetail.getUseDays() ? useMsgDefault : nowDetail.getUseDays().toString());
-            //nowHdDrugDTO.setUsingRate(null == nowDetail.getUsingRate() ? useMsgDefault : nowDetail.getUsingRate().toString());
-            nowHdDrugDTO.setUsePathways(null == nowDetail.getUsePathways() ? useMsgDefault : nowDetail.getUsePathways().toString());
+            nowHdDrugDTO.setUsePathways(null == nowDetail.getUsePathways() ? useMsgDefault : nowDetail.getUsePathways());
             nowHdDrugDTO.setMemo(nowDetail.getMemo());
             nowHdDrugDTO.setUseDose(nowDetail.getUseDose() + nowDetail.getUseDoseUnit());
 
@@ -733,13 +732,12 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
      * @return recipe.bean.DrugEnterpriseResult 操作结果集
      */
     private DrugEnterpriseResult assembleStoreAndOrderMsg(DrugEnterpriseResult result, HdRecipeDTO sendHdRecipe, Recipe nowRecipe) {
-        RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         if(null == nowRecipe.getOrderCode()){
             LOGGER.warn("HdRemoteService.pushRecipeInfo:处方ID为{},绑定订单code为空.", nowRecipe.getRecipeId());
             getFailResult(result, "处方绑定订单code为空");
             return result;
         }
-        RecipeOrder order = orderDAO.getByOrderCode(nowRecipe.getOrderCode());
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());
 
         if(null == order){
             LOGGER.warn("HdRemoteService.pushRecipeInfo:处方ID为{},绑定订单不存在.", nowRecipe.getRecipeId());
@@ -812,7 +810,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         sendHdRecipe.setPatientTelpatient(patient.getMobile());
         sendHdRecipe.setCertificate(patient.getCertificate());
         sendHdRecipe.setCertificateType(null == patient.getCertificateType() ? certificateTypeDefault : patient.getCertificateType().toString());
-        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         try{
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(nowRecipe.getOrderCode());
             if (recipeOrder != null) {
@@ -861,16 +858,12 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
     }
 
     public boolean sendScanStock(Integer recipeId, DrugsEnterprise drugsEnterprise, DrugEnterpriseResult result) {
-        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeId);
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         Map<String, Object> map = new HashMap<>();
         String methodName = "sendScanStock";
         List<Map<String, String>> hdDrugCodes = new ArrayList<>();
         Map<String, BigDecimal> drugCodes = new HashMap<>();
-        DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         drugsEnterprise = drugsEnterpriseDAO.getById(drugsEnterprise.getId());
         StringBuilder msg = new StringBuilder("药企名称:" + drugsEnterprise.getName() + ",");
         try{
@@ -904,10 +897,9 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
 
         map.put("drugList", hdDrugCodes);
         //对浙四进行个性化处理,推送到指定药店配送
-        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-        String hdStores = recipeParameterDao.getByName("hd_store_payonline");
+        String hdStores = recipeParameterDAO.getByName("hd_store_payonline");
         String storeOrganName = recipe.getClinicOrgan() + "_" + "hd_organ_store";
-        String organStore = recipeParameterDao.getByName(storeOrganName);
+        String organStore = recipeParameterDAO.getByName(storeOrganName);
 
         if (StringUtils.isNotEmpty(hdStores) && hasOrgan(recipe.getClinicOrgan().toString(),hdStores)) {
             LOGGER.info("HdRemoteService.sendScanStock organStore:{}.", organStore);
@@ -991,10 +983,8 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
      */
     private HdPharmacyAndStockResponse getHdStockResponse(Integer recipeId, DrugsEnterprise drugsEnterprise, DrugEnterpriseResult result) {
         //查询当前处方信息
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe nowRecipe = recipeDAO.get(recipeId);
         //查询当前处方下详情信息
-        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         List<Recipedetail> detailList = detailDAO.findByRecipeId(nowRecipe.getRecipeId());
 
         //根据药品请求华东旗下的所有可用药店，当有一个可用说明库存是足够的
@@ -1011,7 +1001,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             return null;
 
         //如果返回token超时就刷新token重新进行请求(鉴权失败，重新请求token，更新后重新进行访问当前接口)
-        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         HdTokenRequest request;
         if(HdFindSupportDepStatusEnum.TOKEN_EXPIRE.equals(HdFindSupportDepStatusEnum.fromCode(responseResult.getCode()))){
             request = new HdTokenRequest();
@@ -1020,7 +1009,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 return null;
 
             //重新获取token信息
-            DrugsEnterprise newTokenEnterprise = enterpriseDAO.get(drugsEnterprise.getId());
+            DrugsEnterprise newTokenEnterprise = drugsEnterpriseDAO.get(drugsEnterprise.getId());
             if(null == newTokenEnterprise){
                 LOGGER.warn("HdRemoteService.scanStock:[{}][{}]当前药企信息不存在", drugsEnterprise.getId(), drugsEnterprise.getName());
                 getFailResult(result, "当前药企信息不存在");
@@ -1051,7 +1040,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
      */
     private HdPharmacyAndStockResponse checkPharmacyAndDrugMsgRequest(DrugsEnterprise drugsEnterprise, HdPharmacyAndStockRequest hdPharmacyAndStockRequest, DrugEnterpriseResult result, String methodName) {
         HdPharmacyAndStockResponse responseResult = null;
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
 
         //访问库存足够的药店列表以及药店下的药品的信息
         CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -1120,7 +1108,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
      */
     private HdPharmacyAndStockResponse checkDrugStockMsgRequest(DrugsEnterprise drugsEnterprise, HdPharmacyAndStockRequest hdPharmacyAndStockRequest, DrugEnterpriseResult result) {
         HdPharmacyAndStockResponse responseResult = null;
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
 
         //访问库存足够的药店列表以及药店下的药品的信息
         CloseableHttpClient httpClient = HttpClients.createDefault();
@@ -1187,7 +1174,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
 
         HdDrugRequestData hdDrugRequestData;
         Double sum;
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         SaleDrugList saleDrug;
         //遍历处方详情，通过drugId判断，相同药品下的需求量叠加
         for (Recipedetail recipedetail : detailList) {
@@ -1288,10 +1274,8 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
      */
     private HdPharmacyAndStockResponse getFindPharamcyList(DrugEnterpriseResult result, List<Integer> recipeIds, Map ext, DrugsEnterprise enterprise, Map<String, HdDrugRequestData> resultMap){
         HdPharmacyAndStockResponse resultResponse = null ;
-        RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         //现在默认只有一个处方单
         List<Recipedetail> detailList = detailDAO.findByRecipeId(recipeIds.get(0));
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         if(CollectionUtils.isEmpty(detailList)){
             LOGGER.warn("HdRemoteService.findSupportDep:处方单{}的细节信息为空", recipeIds.get(0));
             getFailResult(result, "处方单细节信息为空");
@@ -1335,7 +1319,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             return null;
 
         //如果返回token超时就刷新token重新进行请求(鉴权失败，重新请求token，更新后重新进行访问当前接口)
-        DrugsEnterpriseDAO enterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         HdTokenRequest request;
         if(HdFindSupportDepStatusEnum.TOKEN_EXPIRE.equals(HdFindSupportDepStatusEnum.fromCode(responseResult.getCode()))){
             //校验token时效并更新
@@ -1345,7 +1328,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 return null;
 
             //重新获取token信息
-            DrugsEnterprise newTokenEnterprise = enterpriseDAO.get(enterprise.getId());
+            DrugsEnterprise newTokenEnterprise = drugsEnterpriseDAO.get(enterprise.getId());
             if(null == newTokenEnterprise){
                 LOGGER.warn("HdRemoteService.findSupportDep:[{}][{}]当前药企信息不存在", enterprise.getId(), enterprise.getName());
                 getFailResult(result, "当前药企信息不存在");
@@ -1374,7 +1357,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
      */
     private List<DepDetailBean> assemblePharmacyPageMsg(Map ext, DrugsEnterprise enterprise, HdPharmacyAndStockResponse responsResult, Map<String, HdDrugRequestData> drugResult) {
         List<DepDetailBean> pharmacyDetailPage = new ArrayList<>();
-        SaleDrugList checkSaleDrug = null;
         Position position;
         DepDetailBean newDepDetailBean;
 
@@ -1423,10 +1405,9 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         tokenUpdateImpl(drugsEnterprise);
         String methodName = "sendScanStock";
         //对浙四进行个性化处理,推送到指定药店配送
-        RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-        String hdStores = recipeParameterDao.getByName("hd_store_payonline");
+        String hdStores = recipeParameterDAO.getByName("hd_store_payonline");
         String storeOrganName = organId + "_" + "hd_organ_store";
-        String organStore = recipeParameterDao.getByName(storeOrganName);
+        String organStore = recipeParameterDAO.getByName(storeOrganName);
 
         if (StringUtils.isNotEmpty(hdStores) && organId != null && hasOrgan(organId.toString(),hdStores)) {
             LOGGER.info("HdRemoteService.sendScanStock organStore:{}.", organStore);
@@ -1463,7 +1444,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
     @Override
     public String getDrugInventory(Integer drugId, DrugsEnterprise drugsEnterprise, Integer organId) {
         tokenUpdateImpl(drugsEnterprise);
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, drugsEnterprise.getId());
         Map<String, Object> map = new HashMap<>();
         List<Map<String, String>> hdDrugCodes = new ArrayList<>();
@@ -1492,12 +1472,19 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         return "暂不支持库存查询";
     }
 
+    @RpcService
+    public void test(Integer recipeId){
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(3032);
+        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
+        scanEnterpriseDrugStock(recipe, drugsEnterprise, recipeDetailList);
+    }
+
     @Override
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
         try {
             LOGGER.info("scanEnterpriseDrugStock recipeDetails:{}", JSONUtils.toString(recipeDetails));
             List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
-            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
             List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIdsEffectivity(drugsEnterprise.getId(), drugList);
             LOGGER.info("scanEnterpriseDrugStock saleDrugLists:{}.", JSONUtils.toString(saleDrugLists));
             Map<Integer, String> saleDrugListMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId, SaleDrugList::getOrganDrugCode));
@@ -1553,7 +1540,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
     @Override
     public List<String> getDrugInventoryForApp(DrugsDataBean drugsDataBean, DrugsEnterprise drugsEnterprise, Integer flag) {
         tokenUpdateImpl(drugsEnterprise);
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         Map<String, Object> map = new HashMap<>();
         List<Map<String, Object>> hdDrugCodes = new ArrayList<>();
         Map<String, Object> drug = new HashMap<>();
@@ -1574,10 +1560,9 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             String methodName = "sendScanStock";
 
             //对浙四进行个性化处理,推送到指定药店配送
-            RecipeParameterDao recipeParameterDao = DAOFactory.getDAO(RecipeParameterDao.class);
-            String hdStores = recipeParameterDao.getByName("hd_store_payonline");
+            String hdStores = recipeParameterDAO.getByName("hd_store_payonline");
             String storeOrganName = drugsDataBean.getOrganId() + "_" + "hd_organ_store";
-            String organStore = recipeParameterDao.getByName(storeOrganName);
+            String organStore = recipeParameterDAO.getByName(storeOrganName);
 
             if (StringUtils.isNotEmpty(hdStores) && drugsDataBean.getOrganId() != null && hasOrgan(drugsDataBean.getOrganId().toString(),hdStores)) {
                 LOGGER.info("HdRemoteService.sendScanStock organStore:{}.", organStore);
@@ -1692,14 +1677,11 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         return httpClient.execute(httpPost);
     }
 
-    private static boolean hasOrgan(String organ, String parames){
-        if (StringUtils.isNotEmpty(parames)) {
-            String[] organs = parames.split(",");
-            for (String o : organs) {
-                if (organ.equals(o)) {
-                    return true;
-                }
-            }
+    private boolean hasOrgan(String organ, String args){
+        if (StringUtils.isNotEmpty(args)) {
+            String[] organs = args.split(",");
+            List<String> organList = Arrays.asList(organs);
+            return organList.contains(organ);
         }
         return false;
     }
