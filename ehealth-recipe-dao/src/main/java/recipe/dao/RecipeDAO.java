@@ -1151,7 +1151,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         //处方审核状态处理
                         recipe.setCheckStatus(recipe.getCheckFlag());
                         BeanUtils.map(recipe, map);
-                        map.put("bussSourceText",DictionaryController.instance().get("eh.cdr.dictionary.BussSourceType").getText(recipe.getBussSource()));
+                        if(recipe.getBussSource() == null || new Integer(0).equals(recipe.getBussSource())){
+                            map.put("bussSourceText","无诊疗");
+                        }else{
+                            map.put("bussSourceText",DictionaryController.instance().get("eh.cdr.dictionary.BussSourceType").getText(recipe.getBussSource()));
+                        }
                         map.put("recipeOrder", order);
                         map.put("detailCount", recipeDetailDAO.getCountByRecipeId(recipe.getRecipeId()));
                         Integer enterpriseId = recipe.getEnterpriseId();
