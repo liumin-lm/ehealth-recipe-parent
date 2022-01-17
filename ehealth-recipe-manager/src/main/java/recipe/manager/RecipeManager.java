@@ -506,7 +506,7 @@ public class RecipeManager extends BaseManager {
      * @param recipeId 处方id
      * @param depId    药企id
      */
-    public Map<String, List<SaleDrugList>> getRecipeDetailSalePrice(Integer recipeId, Integer depId) {
+    public Map<Integer, List<SaleDrugList>> getRecipeDetailSalePrice(Integer recipeId, Integer depId) {
         logger.info("RecipeManager getRecipeDetailSalePrice req = recipeId:{} depId:{}", JSON.toJSONString(recipeId), depId);
 
         if (Objects.isNull(recipeId)) {
@@ -538,7 +538,7 @@ public class RecipeManager extends BaseManager {
         if (CollectionUtils.isEmpty(saleDrugLists)) {
             return null;
         }
-        Map<String, List<SaleDrugList>> saleDrugMap = saleDrugLists.stream().collect(Collectors.groupingBy(SaleDrugList::getOrganDrugCode));
+        Map<Integer, List<SaleDrugList>> saleDrugMap = saleDrugLists.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
         logger.info("RecipeManager getRecipeDetailSalePrice res = saleDrugMap:{}", JSON.toJSONString(saleDrugMap));
 
         return saleDrugMap;
@@ -572,7 +572,7 @@ public class RecipeManager extends BaseManager {
         if (CollectionUtils.isEmpty(saleDrugLists)) {
             return;
         }
-        Map<String, List<SaleDrugList>> saleDrugMap = saleDrugLists.stream().collect(Collectors.groupingBy(SaleDrugList::getOrganDrugCode));
+        Map<Integer, List<SaleDrugList>> saleDrugMap = saleDrugLists.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
         for (Recipedetail recipeDetail : recipeDetails) {
             List<SaleDrugList> drugLists = saleDrugMap.get(recipeDetail.getDrugId());
             if (CollectionUtils.isEmpty(drugLists)) {
