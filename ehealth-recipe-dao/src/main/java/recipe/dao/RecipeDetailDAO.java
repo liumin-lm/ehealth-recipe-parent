@@ -1,5 +1,8 @@
 package recipe.dao;
 
+import com.ngari.recipe.drugsenterprise.model.DrugEnterpriseLogisticsBean;
+import com.ngari.recipe.entity.DrugEnterpriseLogistics;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -8,11 +11,16 @@ import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
 import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResultAction;
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
+import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcSupportDAO;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
+import org.hibernate.Transaction;
+import recipe.dao.comment.ExtendDao;
 
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -22,7 +30,7 @@ import java.util.Map;
  */
 @RpcSupportDAO
 public abstract class RecipeDetailDAO extends
-        HibernateSupportDelegateDAO<Recipedetail> {
+        HibernateSupportDelegateDAO<Recipedetail> implements ExtendDao<Recipedetail> {
 
     public static final Logger LOGGER = Logger.getLogger(RecipeDetailDAO.class);
 
@@ -30,6 +38,11 @@ public abstract class RecipeDetailDAO extends
         super();
         this.setEntityName(Recipedetail.class.getName());
         this.setKeyField("recipeDetailId");
+    }
+
+    @Override
+    public boolean updateNonNullFieldByPrimaryKey(Recipedetail recipedetail) {
+        return updateNonNullFieldByPrimaryKey(recipedetail, "recipeDetailId");
     }
 
     /**
@@ -44,6 +57,7 @@ public abstract class RecipeDetailDAO extends
 
     /**
      * 根据处方id集合查询
+     *
      * @param recipeIds
      * @return
      */
@@ -128,7 +142,7 @@ public abstract class RecipeDetailDAO extends
 
                 q.setParameter(keyName, keyValue);
                 Iterator<Map.Entry<String, Object>> it = changeAttr.entrySet().iterator();
-                while (it.hasNext()){
+                while (it.hasNext()) {
                     Map.Entry<String, Object> m = it.next();
                     q.setParameter(m.getKey(), m.getValue());
                 }
@@ -157,9 +171,9 @@ public abstract class RecipeDetailDAO extends
                 hql.append(keyHql.toString().substring(1)).append(" where " + keyName + " in (:" + keyName + ")");
                 Query q = ss.createQuery(hql.toString());
 
-                q.setParameterList(keyName, (List<Object>)keyValue);
+                q.setParameterList(keyName, (List<Object>) keyValue);
                 Iterator<Map.Entry<String, Object>> it = changeAttr.entrySet().iterator();
-                while (it.hasNext()){
+                while (it.hasNext()) {
                     Map.Entry<String, Object> m = it.next();
                     q.setParameter(m.getKey(), m.getValue());
                 }
@@ -175,6 +189,7 @@ public abstract class RecipeDetailDAO extends
 
     /**
      * 通过处方明细ID获取处方明细
+     *
      * @param recipeDetailId
      * @return
      */
@@ -217,6 +232,7 @@ public abstract class RecipeDetailDAO extends
 
     /**
      * 根据id及状态查询数量
+     *
      * @param recipeId
      * @return
      */
@@ -274,15 +290,41 @@ public abstract class RecipeDetailDAO extends
      * @return List<Recipedetail>
      * @author luf
      */
-    @DAOMethod(sql = "from Recipedetail where recipeId in (:recipeIds) and status=1",limit = 0)
+    @DAOMethod(sql = "from Recipedetail where recipeId in (:recipeIds) and status=1", limit = 0)
     public abstract List<Recipedetail> findByRecipeIdList(@DAOParam("recipeIds") List<Integer> recipeIds);
 
     /**
      * 根据订单查询处方 详情
+     *
      * @param orderCode
      * @return
      */
     @DAOMethod(sql = "from Recipedetail WHERE RecipeID IN ( SELECT recipeId FROM Recipe WHERE OrderCode = :orderCode ) and status=1 ")
-    public abstract List<Recipedetail> findDetailByOrderCode(@DAOParam("orderCode")String orderCode);
+    public abstract List<Recipedetail> findDetailByOrderCode(@DAOParam("orderCode") String orderCode);
 
+    /**
+     * 批量写入
+     *
+     * @param recipedetails
+     * @return
+     */
+    public Boolean updateAllRecipeDetail(List<Recipedetail> recipedetails) {
+        if (CollectionUtils.isEmpty(recipedetails)) {
+            return true;
+        }
+
+        HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                Transaction transaction = ss.beginTransaction();
+                recipedetails.forEach(recipedetail -> {
+                    ss.update(recipedetail);
+
+                });
+                transaction.commit();
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
 }

@@ -7,9 +7,7 @@ import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.platform.recipe.mode.RecipeDetailBean;
 import com.ngari.recipe.dto.*;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.RecipeLog;
+import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
@@ -24,7 +22,10 @@ import recipe.client.*;
 import recipe.common.CommonConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
+import recipe.dao.DrugsEnterpriseDAO;
+import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeLogDAO;
+import recipe.dao.SaleDrugListDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
 import recipe.util.DictionaryUtil;
@@ -34,6 +35,7 @@ import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -60,6 +62,12 @@ public class RecipeManager extends BaseManager {
     private RecipeAuditClient recipeAuditClient;
     @Autowired
     private ConsultClient consultClient;
+    @Autowired
+    private RecipeDetailDAO recipeDetailDAO;
+    @Autowired
+    private DrugsEnterpriseDAO drugsEnterpriseDAO;
+    @Autowired
+    private SaleDrugListDAO saleDrugListDAO;
 
     /**
      * 保存处方信息
@@ -488,5 +496,33 @@ public class RecipeManager extends BaseManager {
             }
         }
         return cardNo;
+    }
+
+    /**
+     * 药企销售价格
+     * @param recipeId 处方id
+     * @param depId 药企id
+     */
+    public Map<String, List<SaleDrugList>>  getRecipeDetailSalePrice(Integer recipeId, Integer depId) {
+        if(Objects.isNull(recipeId) || Objects.isNull(depId)){
+            return null;
+        }
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+        if (Objects.isNull(drugsEnterprise)){
+            return null;
+        }
+        // 药企结算根据医院价格不用更新
+        if(new Integer(1).equals(drugsEnterprise.getSettlementMode())){
+            return null;
+        }
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
+        List<String> organDrugCode = recipeDetails.stream().map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
+        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugCodes(depId, organDrugCode);
+        if(CollectionUtils.isEmpty(saleDrugLists)){
+            return null;
+        }
+        Map<String, List<SaleDrugList>> saleDrugMap = saleDrugLists.stream().collect(Collectors.groupingBy(SaleDrugList::getOrganDrugCode));
+       return saleDrugMap;
+
     }
 }

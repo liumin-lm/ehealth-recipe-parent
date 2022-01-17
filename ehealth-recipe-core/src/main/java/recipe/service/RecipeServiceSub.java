@@ -1492,7 +1492,7 @@ public class RecipeServiceSub {
      * @param isDoctor true:医生端  false:健康端
      * @return
      */
-    public static Map<String, Object> getRecipeAndDetailByIdImpl(int recipeId, boolean isDoctor) {
+    public static Map<String, Object> getRecipeAndDetailByIdImpl(int recipeId, boolean isDoctor,Integer depId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -1543,7 +1543,8 @@ public class RecipeServiceSub {
             }
         }
         map.put("patient", patient);
-        map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImplForDetail(recipe), isDoctor, recipe.getClinicOrgan()));
+        Map<String, List<SaleDrugList>> recipeDetailSalePrice = recipeManager.getRecipeDetailSalePrice(recipeId, depId);
+        map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImplForDetail(recipe,recipeDetailSalePrice), isDoctor, recipe.getClinicOrgan()));
         //隐方
         boolean isHiddenRecipeDetail = false;
         if (isDoctor == false) {
