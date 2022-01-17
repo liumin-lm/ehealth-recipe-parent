@@ -152,6 +152,14 @@ public class EnterpriseClient extends BaseClient {
             HisResponseTO<List<MedicineStationDTO>> response = recipeEnterpriseService.getMedicineStationList(medicineStationReqDTO);
             List<MedicineStationDTO> medicineStationDTOList = getResponse(response);
             logger.info("EnterpriseClient getMedicineStationList medicineStationDTOList:{}.", JSONUtils.toString(medicineStationDTOList));
+            medicineStationDTOList.forEach(medicineStation -> {
+                if (StringUtils.isNotEmpty(medicineStation.getProvinceCode()) && medicineStation.getProvinceCode().contains("0000")) {
+                    medicineStation.setProvinceCode(medicineStation.getProvinceCode().substring(2));
+                }
+                if (StringUtils.isNotEmpty(medicineStation.getCityCode()) && medicineStation.getCityCode().contains("00")) {
+                    medicineStation.setCityCode(medicineStation.getCityCode().substring(4));
+                }
+            });
             return medicineStationDTOList;
         } catch (Exception e) {
             logger.error("EnterpriseClient getMedicineStationList medicineStationDTOList", e);
