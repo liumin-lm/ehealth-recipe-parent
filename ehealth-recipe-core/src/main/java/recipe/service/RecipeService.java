@@ -3971,7 +3971,7 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public List<Map<String, Object>> findPatientRecipesByIdsAndDepId(Integer ext, List<Integer> recipeIds, Integer depId) {
         Collections.sort(recipeIds, Collections.reverseOrder());
-        LOGGER.info("findPatientRecipesByIdsAndDepId recipeIds:{}", JSONUtils.toString(recipeIds));
+        LOGGER.info("findPatientRecipesByIdsAndDepId recipeIds:{} depId:{}", JSONUtils.toString(recipeIds),depId);
         //把处方对象返回给前端--合并处方--原确认订单页面的处方详情是通过getPatientRecipeById获取的
         if (CollectionUtils.isNotEmpty(recipeIds)) {
             List<Map<String, Object>> recipeInfos = new ArrayList<>(recipeIds.size());
