@@ -524,11 +524,11 @@ public class RecipeManager extends BaseManager {
             logger.info("RecipeManager getRecipeDetailSalePrice depId={}", depId);
         }
 
-        if (Objects.isNull(depId)) {
+        if (depId == null) {
             return null;
         }
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
-        if (Objects.isNull(drugsEnterprise)) {
+        if (drugsEnterprise == null) {
             return null;
         }
         // 药企结算根据医院价格不用更新
