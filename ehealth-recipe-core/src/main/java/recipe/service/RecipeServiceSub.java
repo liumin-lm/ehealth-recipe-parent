@@ -1505,7 +1505,7 @@ public class RecipeServiceSub {
         }
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-//        EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
+        EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
 
         DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
         map.put("checkEnterprise", drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan()));
