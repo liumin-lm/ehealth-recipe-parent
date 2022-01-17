@@ -520,6 +520,9 @@ public class RecipeManager extends BaseManager {
             logger.info("RecipeManager getRecipeDetailSalePrice depId={}", depId);
         }
 
+        if (Objects.isNull(depId)) {
+            return null;
+        }
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
         if (Objects.isNull(drugsEnterprise)) {
             return null;
