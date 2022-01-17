@@ -578,8 +578,10 @@ public class RecipeRefundService extends RecipeBaseService{
         List<RecipePatientRefundVO> recipePatientRefundVOS = recipeRefundDAO.findDoctorPatientRefundListByRefundType(doctorId, refundType, start, limit);
         recipePatientRefundVOS.forEach(a->{
             PatientDTO patient = patientService.get(a.getPatientMpiid());
-            a.setPhoto(patient.getPhoto());
-            a.setPatientSex(patient.getPatientSex());
+            if (null != patient) {
+                a.setPhoto(patient.getPhoto());
+                a.setPatientSex(patient.getPatientSex());
+            }
         });
         return recipePatientRefundVOS;
     }
