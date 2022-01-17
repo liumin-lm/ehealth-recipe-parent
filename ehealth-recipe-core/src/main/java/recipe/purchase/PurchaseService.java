@@ -488,7 +488,10 @@ public class PurchaseService {
 
         try {
             // 根据药企id 更新处方详情saleprice
-            recipeManager.updateRecipeDetailSalePrice(recipeList,Integer.valueOf(extInfo.get("extInfo")));
+            String depId = extInfo.get("depId");
+            if(StringUtils.isNotEmpty(depId)) {
+                recipeManager.updateRecipeDetailSalePrice(recipeList, Integer.valueOf(depId));
+            }
             // 根据paymode 换算givemode
             Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
             IPurchaseService purchaseService = getService(giveMode);
