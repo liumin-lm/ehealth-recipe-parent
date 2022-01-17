@@ -52,6 +52,7 @@ import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.HisRecipeManager;
+import recipe.manager.RecipeManager;
 import recipe.service.*;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
@@ -93,6 +94,9 @@ public class PurchaseService {
     private EnterpriseManager enterpriseManager;
     @Autowired
     HisRecipeManager hisRecipeManager;
+
+    @Autowired
+    RecipeManager recipeManager;
 
     @Autowired
     @Qualifier("basic.patientService")
@@ -483,8 +487,9 @@ public class PurchaseService {
         }
 
         try {
+            // 根据药企id 更新处方详情saleprice
+            recipeManager.updateRecipeDetailSalePrice(recipeList,Integer.valueOf(extInfo.get("extInfo")));
             // 根据paymode 换算givemode
-
             Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
             IPurchaseService purchaseService = getService(giveMode);
             result = purchaseService.order(recipeList, extInfo);

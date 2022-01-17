@@ -516,13 +516,50 @@ public class RecipeManager extends BaseManager {
             return null;
         }
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
-        List<String> organDrugCode = recipeDetails.stream().map(Recipedetail::getOrganDrugCode).collect(Collectors.toList());
-        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugCodes(depId, organDrugCode);
+        List<Integer> drugsIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(depId, drugsIds);
         if(CollectionUtils.isEmpty(saleDrugLists)){
             return null;
         }
         Map<String, List<SaleDrugList>> saleDrugMap = saleDrugLists.stream().collect(Collectors.groupingBy(SaleDrugList::getOrganDrugCode));
        return saleDrugMap;
+
+    }
+
+    /**
+     * 根据药企信息更改处方药品销售价格
+     * @param recipeList
+     * @param depId
+     */
+    public void updateRecipeDetailSalePrice(List<Recipe> recipeList, Integer depId) {
+        if(CollectionUtils.isEmpty(recipeList) || Objects.isNull(depId)){
+            return;
+        }
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
+        if (Objects.isNull(drugsEnterprise)){
+            return;
+        }
+        // 药企结算根据医院价格不用更新
+        if(new Integer(1).equals(drugsEnterprise.getSettlementMode())){
+            return;
+        }
+        List<Integer> recipeIds = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIds);
+        List<Integer> drugsIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(depId, drugsIds);
+        if(CollectionUtils.isEmpty(saleDrugLists)){
+            return;
+        }
+        Map<String, List<SaleDrugList>> saleDrugMap = saleDrugLists.stream().collect(Collectors.groupingBy(SaleDrugList::getOrganDrugCode));
+        for (Recipedetail recipeDetail : recipeDetails) {
+            List<SaleDrugList> drugLists = saleDrugMap.get(recipeDetail.getDrugId());
+            if(CollectionUtils.isEmpty(drugLists)){
+                continue;
+            }
+            recipeDetail.setSalePrice(drugLists.get(0).getPrice());
+        }
+
+        recipeDetailDAO.updateAllRecipeDetail(recipeDetails);
 
     }
 }
