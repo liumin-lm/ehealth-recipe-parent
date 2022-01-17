@@ -453,4 +453,9 @@ public abstract class AccessDrugEnterpriseService {
         return "";
     }
 
+    protected void getFailResult(DrugEnterpriseResult result, String msg) {
+        result.setMsg(msg);
+        result.setCode(DrugEnterpriseResult.FAIL);
+    }
+
 }
