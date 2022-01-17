@@ -1728,6 +1728,22 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         if (null != recipesQueryVO.getRecipeType()) {
             hql.append(" and r.recipeType=").append(recipesQueryVO.getRecipeType());
         }
+        if(recipesQueryVO.getBussSource() != null){
+            switch (recipesQueryVO.getBussSource()){
+                case 1:
+                    hql.append(" and r.bussSource=1 ");
+                    break;
+                case 2:
+                    hql.append(" and r.bussSource=2 ");
+                    break;
+                case 3:
+                    hql.append(" and r.bussSource=3 ");
+                    break;
+                case 5:
+                    hql.append(" and r.bussSource=5 ");
+                    break;
+            }
+        }
         return hql;
     }
 
@@ -1803,6 +1819,22 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         }
         if (null != recipesQueryVO.getRecipeType()) {
             hql.append(" and r.recipeType=").append(recipesQueryVO.getRecipeType());
+        }
+        if(recipesQueryVO.getBussSource() != null){
+            switch (recipesQueryVO.getBussSource()){
+                case 1:
+                    hql.append(" and r.bussSource=1 ");
+                    break;
+                case 2:
+                    hql.append(" and r.bussSource=2 ");
+                    break;
+                case 3:
+                    hql.append(" and r.bussSource=3 ");
+                    break;
+                case 5:
+                    hql.append(" and r.bussSource=5 ");
+                    break;
+            }
         }
         return hql;
     }
