@@ -1505,7 +1505,7 @@ public class RecipeServiceSub {
         }
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
+//        EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
 
         DrugsEnterpriseService drugsEnterpriseService = ApplicationUtils.getRecipeService(DrugsEnterpriseService.class);
         map.put("checkEnterprise", drugsEnterpriseService.checkEnterprise(recipe.getClinicOrgan()));
@@ -1543,7 +1543,7 @@ public class RecipeServiceSub {
             }
         }
         map.put("patient", patient);
-        Map<String, List<SaleDrugList>> recipeDetailSalePrice = recipeManager.getRecipeDetailSalePrice(recipeId, depId);
+        Map<Integer, List<SaleDrugList>> recipeDetailSalePrice = recipeManager.getRecipeDetailSalePrice(recipeId, depId);
         map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImplForDetail(recipe,recipeDetailSalePrice), isDoctor, recipe.getClinicOrgan()));
         //隐方
         boolean isHiddenRecipeDetail = false;

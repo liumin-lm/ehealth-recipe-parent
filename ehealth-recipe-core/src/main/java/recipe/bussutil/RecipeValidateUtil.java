@@ -197,7 +197,7 @@ public class RecipeValidateUtil {
      * @param recipe
      * @return
      */
-    public static List<RecipeDetailBean> validateDrugsImplForDetail(Recipe recipe,Map<String, List<SaleDrugList>> recipeDetailSalePrice) {
+    public static List<RecipeDetailBean> validateDrugsImplForDetail(Recipe recipe,Map<Integer, List<SaleDrugList>> recipeDetailSalePrice) {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
@@ -267,7 +267,7 @@ public class RecipeValidateUtil {
                 recipeDetail.setDrugPic(drugList.get(0).getDrugPic());
             }
             if(MapUtils.isNotEmpty(recipeDetailSalePrice)){
-                List<SaleDrugList> saleDrugLists = recipeDetailSalePrice.get(recipeDetail.getOrganDrugCode());
+                List<SaleDrugList> saleDrugLists = recipeDetailSalePrice.get(recipeDetail.getDrugId());
                 if(CollectionUtils.isNotEmpty(saleDrugLists)){
                     recipeDetail.setSalePrice(saleDrugLists.get(0).getPrice());
                 }
