@@ -1329,6 +1329,7 @@ public class RecipeHisService extends RecipeBaseService {
         hisCheckRecipeReqTO.setRecipeType(String.valueOf(recipeBean.getRecipeType()));
         //处方金额
         hisCheckRecipeReqTO.setRecipePrice(recipeBean.getTotalMoney());
+        Map<Integer, PharmacyTcm> pharmacyTcmMap = pharmacyManager.pharmacyIdMap(recipeBean.getClinicOrgan());
         //orderList
         List<RecipeOrderItemTO> list = Lists.newArrayList();
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
@@ -1385,6 +1386,11 @@ public class RecipeHisService extends RecipeBaseService {
                     item.setSuperScalarCode(detail.getSuperScalarCode());
                     //超量原因
                     item.setSuperScalarName(detail.getSuperScalarName());
+                }
+                PharmacyTcm pharmacyTcm = pharmacyTcmMap.get(detail.getPharmacyId());
+                if (null != pharmacyTcm) {
+                    item.setPharmacyCode(pharmacyTcm.getPharmacyCode());
+                    item.setPharmacyName(pharmacyTcm.getPharmacyName());
                 }
                 list.add(item);
             }
