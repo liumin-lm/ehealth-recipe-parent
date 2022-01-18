@@ -178,6 +178,7 @@ public class RevisitManager extends BaseManager {
                     ConsultDTO consultDTO = ObjectCopyUtils.convert(consult, ConsultDTO.class);
                     String appointDepartCode = consult.getAppointDepartCode();
                     AppointDepartDTO appointDepartDTO = departClient.getAppointDepartByOrganIdAndAppointDepartCode(organId, appointDepartCode);
+                    logger.info("WriteRecipeManager findWriteDrugRecipeByRevisitFromHis appointDepartDTO={}", JSONUtils.toString(appointDepartDTO));
                     if (null != appointDepartDTO) {
                         writeDrugRecipeBean.setAppointDepartInDepartId(appointDepartDTO.getDepartId());
                         String consultDepartText = DictionaryController.instance().get("eh.base.dictionary.Depart").getText(appointDepartDTO.getDepartId());
