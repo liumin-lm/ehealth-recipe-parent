@@ -365,20 +365,6 @@ public class KmsRemoteService extends AccessDrugEnterpriseService {
         return hdDrugRequestDataList;
     }
 
-    /**
-     * @param result 返回的结果集对象
-     * @param msg    失败提示的信息
-     * @return
-     * @method getFailResult
-     * @description 失败操作的结果对象
-     * @date: 2019/7/10
-     * @author: JRK
-     */
-    private void getFailResult(DrugEnterpriseResult result, String msg) {
-        result.setMsg(msg);
-        result.setCode(DrugEnterpriseResult.FAIL);
-    }
-
     @Override
     public String getDrugEnterpriseCallSys() {
         return DrugEnterpriseConstant.COMPANY_KMS;
