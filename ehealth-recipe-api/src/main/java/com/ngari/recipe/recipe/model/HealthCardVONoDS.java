@@ -1,6 +1,5 @@
 package com.ngari.recipe.recipe.model;
 
-import com.ngari.base.patient.model.HealthCardBean;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
@@ -26,6 +25,9 @@ public class HealthCardVONoDS implements Serializable {
 
     @ItemProperty(alias = "证卡号码（转大写）")
     private String cardId;
+
+    @ItemProperty(alias = "证卡号码（转大写）")
+    private String cardIdDS;
 
     @ItemProperty(alias = "证卡类型")
     @Dictionary(id = "eh.mpi.dictionary.CardType")
@@ -71,4 +73,10 @@ public class HealthCardVONoDS implements Serializable {
 
     @ItemProperty(alias = "患者医院patId")
     private String patId;
+
+    public String getCardIdDS() {
+        return this.cardId;
+    }
+
+
 }
