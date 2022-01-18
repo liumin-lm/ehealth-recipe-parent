@@ -5,7 +5,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * 校验工具类
@@ -89,7 +88,7 @@ public class ValidateUtil {
     }
 
     private static boolean validateObject(Object args) {
-        if (Objects.isNull(args)) {
+        if (null == args) {
             return true;
         }
         if (args instanceof Collection) {
