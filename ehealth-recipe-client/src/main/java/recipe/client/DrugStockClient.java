@@ -45,9 +45,10 @@ public class DrugStockClient extends BaseClient {
      * @param recipe           处方
      * @param recipeDetailList 处方明细
      * @param recipeOrderBill  处方订单
+     * @param pharmacyTcmMap   药房集合
      * @return
      */
-    public RecipeDrugInventoryDTO recipeDrugInventory(Recipe recipe, List<Recipedetail> recipeDetailList, RecipeOrderBill recipeOrderBill) {
+    public RecipeDrugInventoryDTO recipeDrugInventory(Recipe recipe, List<Recipedetail> recipeDetailList, RecipeOrderBill recipeOrderBill, Map<Integer, PharmacyTcm> pharmacyTcmMap) {
         RecipeDrugInventoryDTO request = new RecipeDrugInventoryDTO();
         request.setOrganId(recipe.getClinicOrgan());
         request.setRecipeId(recipe.getRecipeId());
@@ -70,6 +71,11 @@ public class DrugStockClient extends BaseClient {
             info.setProducerCode(a.getProducerCode());
             info.setDrugBatch(a.getDrugBatch());
             info.setSalePrice(a.getSalePrice());
+            PharmacyTcm pharmacyTcm = pharmacyTcmMap.get(a.getPharmacyId());
+            if (null != pharmacyTcm) {
+                info.setPharmacyCode(pharmacyTcm.getPharmacyCode());
+                info.setPharmacyName(pharmacyTcm.getPharmacyName());
+            }
             infoList.add(info);
         });
         request.setInfo(infoList);

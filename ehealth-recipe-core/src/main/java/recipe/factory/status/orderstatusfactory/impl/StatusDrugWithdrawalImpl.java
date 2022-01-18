@@ -1,18 +1,17 @@
 package recipe.factory.status.orderstatusfactory.impl;
 
 import com.ngari.platform.recipe.mode.RecipeDrugInventoryDTO;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.RecipeOrderBill;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DrugStockClient;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.manager.PharmacyManager;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 已退药
@@ -27,6 +26,8 @@ public class StatusDrugWithdrawalImpl extends AbstractRecipeOrderStatus {
     protected final static int DISPENSING_FLAG_WITHDRAWAL = 2;
     @Autowired
     private DrugStockClient drugStockClient;
+    @Autowired
+    private PharmacyManager pharmacyManager;
 
     @Override
     public Integer getStatus() {
@@ -38,7 +39,8 @@ public class StatusDrugWithdrawalImpl extends AbstractRecipeOrderStatus {
         recipeOrder.setDispensingFlag(DISPENSING_FLAG_WITHDRAWAL);
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
         RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(recipe.getOrderCode());
-        RecipeDrugInventoryDTO request = drugStockClient.recipeDrugInventory(recipe, recipeDetailList, recipeOrderBill);
+        Map<Integer, PharmacyTcm> pharmacyTcmMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
+        RecipeDrugInventoryDTO request = drugStockClient.recipeDrugInventory(recipe, recipeDetailList, recipeOrderBill, pharmacyTcmMap);
         request.setInventoryType(DISPENSING_FLAG_WITHDRAWAL);
         drugStockClient.drugInventory(request);
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_DRUG_WITHDRAWAL.getType());
