@@ -4148,7 +4148,6 @@ public class RecipeService extends RecipeBaseService {
         DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
         SaleDrugListDAO saleDrugListDAO = getDAO(SaleDrugListDAO.class);
         RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
-        RemoteDrugEnterpriseService remoteDrugService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         IHisConfigService iHisConfigService = ApplicationUtils.getBaseService(IHisConfigService.class);
 
         List<DrugsEnterprise> backList = new ArrayList<>(5);

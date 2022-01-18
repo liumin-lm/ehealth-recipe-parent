@@ -476,7 +476,6 @@ public class RecipeOrderService extends RecipeBaseService {
      */
     private List<Recipe> validateRecipeList(OrderCreateResult result, List<Recipe> recipeList, RecipeOrder order, Integer payMode, RecipePayModeSupportBean payModeSupport) {
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
-        RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 
         List<Recipe> needDelList = new ArrayList<>(10);
