@@ -24,6 +24,8 @@ import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
+import recipe.drugsenterprise.AccessDrugEnterpriseService;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.manager.EnterpriseManager;
@@ -108,13 +110,41 @@ public class PayModeToHos implements IPurchaseService {
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
         RecipePayModeSupportBean payModeSupport = orderService.setPayModeSupport(order, payMode);
         List<Integer> recipeIdLists = dbRecipes.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
-        // 到院取药校验机构库存
-        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIdLists);
-        EnterpriseStock organStock = organDrugListManager.organStock(dbRecipes.get(0).getClinicOrgan(), recipeDetails);
-        if (Objects.isNull(organStock) || !organStock.getStock()) {
-            result.setCode(RecipeResultBean.FAIL);
-            result.setMsg("抱歉，医院没有库存，无法到医院取药，请选择其他购药方式。");
-            return result;
+        // 到院自取是否采用药企管理模式
+        Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(dbRecipes.get(0).getClinicOrgan(), "drugToHosByEnterprise", false);
+        if (drugToHosByEnterprise) {
+            Integer depId = MapValueUtil.getInteger(extInfo, "depId");
+            DrugsEnterprise dep = drugsEnterpriseDAO.get(depId);
+            //处理详情
+            for (Recipe dbRecipe : dbRecipes) {
+                List<Recipedetail> detailList = recipeDetailDAO.findByRecipeId(dbRecipe.getRecipeId());
+
+                order.setRecipeIdList(JSONUtils.toString(recipeIdLists));
+                RemoteDrugEnterpriseService remoteDrugEnterpriseService =
+                        ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+
+                AccessDrugEnterpriseService remoteService = remoteDrugEnterpriseService.getServiceByDep(dep);
+
+                // 根据药企查询库存
+                EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, depId);
+                if (Objects.isNull(enterpriseStock) || !enterpriseStock.getStock()) {
+                    //无法配送
+                    result.setCode(RecipeResultBean.FAIL);
+                    result.setMsg("药企无法配送");
+                    return result;
+                } else {
+                    remoteService.setEnterpriseMsgToOrder(order, depId, extInfo);
+                }
+            }
+        }else {
+            // 到院取药校验机构库存
+            List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIdLists);
+            EnterpriseStock organStock = organDrugListManager.organStock(dbRecipes.get(0).getClinicOrgan(), recipeDetails);
+            if (Objects.isNull(organStock) || !organStock.getStock()) {
+                result.setCode(RecipeResultBean.FAIL);
+                result.setMsg("抱歉，医院没有库存，无法到医院取药，请选择其他购药方式。");
+                return result;
+            }
         }
         order.setMpiId(dbRecipes.get(0).getMpiid());
         order.setOrganId(dbRecipes.get(0).getClinicOrgan());
