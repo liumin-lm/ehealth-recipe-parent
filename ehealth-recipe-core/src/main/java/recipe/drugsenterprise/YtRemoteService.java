@@ -812,20 +812,6 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
     }
 
     /**
-     * @method  getFailResult
-     * @description 失败操作的结果对象
-     * @date: 2019/7/10
-     * @author: JRK
-     * @param result 返回的结果集对象
-     * @param msg 失败提示的信息
-     * @return
-     */
-    private void getFailResult(DrugEnterpriseResult result, String msg) {
-        result.setMsg(msg);
-        result.setCode(DrugEnterpriseResult.FAIL);
-    }
-
-    /**
      * @method  checkDrugListByDeil
      * @description 校验某一家药店下的药品是否符合库存量
      * @date: 2019/7/11

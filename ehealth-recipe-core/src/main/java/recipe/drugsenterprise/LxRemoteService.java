@@ -429,19 +429,7 @@ public class LxRemoteService extends AccessDrugEnterpriseService {
         //将叠加好总量的药品分组转成list
         return new ArrayList<HdDrugRequestData>(result.values());
     }
-    /**
-     * @method  getFailResult
-     * @description 失败操作的结果对象
-     * @date: 2019/7/10
-     * @author: JRK
-     * @param result 返回的结果集对象
-     * @param msg 失败提示的信息
-     * @return
-     */
-    private void getFailResult(DrugEnterpriseResult result, String msg) {
-        result.setMsg(msg);
-        result.setCode(DrugEnterpriseResult.FAIL);
-    }
+
     @Override
     public String getDrugEnterpriseCallSys() {
         return DrugEnterpriseConstant.COMPANY_LY;

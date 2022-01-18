@@ -9,7 +9,8 @@ public enum BussSourceTypeEnum {
 
     BUSSSOURCE_NO(0, "无"),
     BUSSSOURCE_CONSULT(1, "咨询"),
-    BUSSSOURCE_REVISIT(2, "复诊");
+    BUSSSOURCE_REVISIT(2, "复诊"),
+    BUSSSOURCE_OUTPATIENT(5, "门诊");
 
     private Integer type;
     private String name;
