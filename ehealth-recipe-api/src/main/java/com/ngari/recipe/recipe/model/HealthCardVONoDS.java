@@ -1,8 +1,6 @@
 package com.ngari.recipe.recipe.model;
 
-import ctd.schema.annotation.Dictionary;
-import ctd.schema.annotation.ItemProperty;
-import ctd.schema.annotation.Schema;
+import ctd.schema.annotation.*;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -26,6 +24,7 @@ public class HealthCardVONoDS implements Serializable {
     @ItemProperty(alias = "证卡号码（转大写）")
     private String cardId;
 
+    @Desensitizations(type = DesensitizationsType.HEALTHCARD)
     @ItemProperty(alias = "证卡号码（转大写）")
     private String cardIdDS;
 
