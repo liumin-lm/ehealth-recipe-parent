@@ -213,20 +213,6 @@ public class LmgyRemoteService extends AccessDrugEnterpriseService {
         return resultJson;
     }
 
-    /**
-     * @method  getFailResult
-     * @description 失败操作的结果对象
-     * @date: 2019/7/10
-     * @author: JRK
-     * @param result 返回的结果集对象
-     * @param msg 失败提示的信息
-     * @return
-     */
-    private void getFailResult(DrugEnterpriseResult result, String msg) {
-        result.setMsg(msg);
-        result.setCode(DrugEnterpriseResult.FAIL);
-    }
-
     @Override
     public DrugEnterpriseResult syncEnterpriseDrug(DrugsEnterprise drugsEnterprise, List<Integer> drugIdList) {
         return DrugEnterpriseResult.getSuccess();

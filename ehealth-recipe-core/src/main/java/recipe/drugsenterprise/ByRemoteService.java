@@ -302,19 +302,6 @@ public class ByRemoteService extends AccessDrugEnterpriseService {
         }
         return decryptData;
     }
-    /**
-     * @method  getFailResult
-     * @description 失败操作的结果对象
-     * @date: 2020/2/20
-     * @author: JRK
-     * @param result 返回的结果集对象
-     * @param msg 失败提示的信息
-     * @return
-     */
-    private void getFailResult(DrugEnterpriseResult result, String msg) {
-        result.setMsg(msg);
-        result.setCode(DrugEnterpriseResult.FAIL);
-    }
 
     @Override
     public void tokenUpdateImpl(DrugsEnterprise drugsEnterprise) {
