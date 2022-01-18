@@ -31,6 +31,7 @@ import recipe.constant.ReviewTypeConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganDrugListDAO;
+import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.manager.DepartManager;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
@@ -385,7 +386,8 @@ public class RecipeUtil {
         //设置抢单的默认状态
         recipe.setGrabOrderStatus(0);
 
-        if (StringUtils.isEmpty(recipe.getAppointDepart())) {
+        //门诊处方从线下获取挂号科室的编码和名称
+        if (!BussSourceTypeEnum.BUSSSOURCE_OUTPATIENT.getType().equals(recipe.getBussSource())) {
             //如果没有传入挂号科室，需要手动获取
             IRevisitService revisitService = RevisitAPI.getService(IRevisitService.class);
             DepartManager departManager = AppContextHolder.getBean("departManager", DepartManager.class);
