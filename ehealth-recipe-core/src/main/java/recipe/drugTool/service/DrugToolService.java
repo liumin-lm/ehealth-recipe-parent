@@ -1289,7 +1289,7 @@ public class DrugToolService implements IDrugToolService {
     /**
      * 药品提交(将匹配完成的数据提交更新)----互联网六期改为人工提交
      */
-    @RpcService
+    @RpcService(timeout = 120)
     public Map<String, Integer> drugCommit(List<DrugListMatch> lists, Integer organ) {
         List<DrugListMatch> lists1 = new ArrayList<>();
         Map<String, Integer> map = new HashMap<>();
@@ -1311,7 +1311,17 @@ public class DrugToolService implements IDrugToolService {
                     }
                 }
                 if (lists1.size() > 0) {
-                    result = this.drugManualCommitNew(lists1);
+                    List<OrganDrugList> organDrugLists = this.drugManualCommitNew(lists1);
+                    result =organDrugLists.size();
+                    //同步药品到监管备案
+                    RecipeBusiThreadPool.submit(() -> {
+                        if (!ObjectUtils.isEmpty(organDrugLists)){
+                            for (OrganDrugList organDrugList : organDrugLists) {
+                                organDrugListService.uploadDrugToRegulation(organDrugList);
+                            }
+                        }
+                        return null;
+                    });
                 }
                 map.put("successCount", result);
             }
@@ -1349,7 +1359,17 @@ public class DrugToolService implements IDrugToolService {
                     }
                 }
                 if (lists1.size() > 0) {
-                    result = this.drugManualCommitNew(lists1);
+                    List<OrganDrugList> organDrugLists = this.drugManualCommitNew(lists1);
+                    result =organDrugLists.size();
+                    //同步药品到监管备案
+                    RecipeBusiThreadPool.submit(() -> {
+                        if (!ObjectUtils.isEmpty(organDrugLists)){
+                            for (OrganDrugList organDrugList : organDrugLists) {
+                                organDrugListService.uploadDrugToRegulation(organDrugList);
+                            }
+                        }
+                        return null;
+                    });
                 }
                 map.put("successCount", result);
             }
@@ -1362,7 +1382,7 @@ public class DrugToolService implements IDrugToolService {
 
     }
 
-    private Integer drugManualCommitNew(List<DrugListMatch> lists) {
+    private List<OrganDrugList> drugManualCommitNew(List<DrugListMatch> lists) {
         IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
         DrugListMatch drugListMatch = lists.get(0);
         OrganService organService = BasicAPI.getService(OrganService.class);
@@ -1371,11 +1391,12 @@ public class DrugToolService implements IDrugToolService {
         StringBuilder saveMsg = new StringBuilder("【"+organDTO.getName()+"】批量新增药品");
         //【机构名称】更新药品【编码-药品名】……
         StringBuilder updateMsg = new StringBuilder("【"+organDTO.getName()+"】更新药品");
-        final HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
+        final HibernateStatelessResultAction<List<OrganDrugList>> action = new AbstractHibernateStatelessResultAction<List<OrganDrugList>>() {
             @SuppressWarnings("unchecked")
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 int num = 0;
+                List<OrganDrugList> organDrugLists=Lists.newArrayList();
                 //更新数据到organDrugList并更新状态已提交
                 for (DrugListMatch drugListMatch : lists) {
                     if (drugListMatch.getMatchDrugId() != null) {
@@ -1455,11 +1476,7 @@ public class DrugToolService implements IDrugToolService {
                             OrganDrugList save = organDrugListDAO.save(organDrugList);
                             organDrugSync(save);
                             saveMsg.append("【"+organDrugList.getDrugId()+"-"+organDrugList.getDrugName()+"】");
-                            //同步药品到监管备案
-                            RecipeBusiThreadPool.submit(() -> {
-                                organDrugListService.uploadDrugToRegulation(organDrugList);
-                                return null;
-                            });
+                            organDrugLists.add(save);
                             num = num + 1;
                         }else {
                             List<OrganDrugList> byDrugIdAndOrganId = organDrugListDAO.findByOrganDrugCodeAndOrganId(organDrugList.getOrganDrugCode(), organDrugList.getOrganId());
@@ -1473,7 +1490,7 @@ public class DrugToolService implements IDrugToolService {
                         }
                     }
                 }
-                setResult(num);
+                setResult(organDrugLists);
             }
         };
         HibernateSessionTemplate.instance().executeTrans(action);

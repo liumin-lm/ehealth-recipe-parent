@@ -50,7 +50,7 @@ public class IConfigurationClient extends BaseClient {
             return valueBooleanCatch;
         } catch (Exception e) {
             logger.error("IConfigurationClient getPropertyByClientId", e);
-            return null;
+            return false;
         }
     }
 

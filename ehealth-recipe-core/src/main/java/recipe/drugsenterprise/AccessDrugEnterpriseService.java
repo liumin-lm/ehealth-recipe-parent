@@ -431,7 +431,7 @@ public abstract class AccessDrugEnterpriseService {
         if (CollectionUtils.isNotEmpty(noDrugNames)) {
             drugStockAmountDTO.setNotDrugNames(noDrugNames);
         }
-        boolean stock = drugInfoList.stream().anyMatch(DrugInfoDTO::getStock);
+        boolean stock = drugInfoList.stream().allMatch(DrugInfoDTO::getStock);
         drugStockAmountDTO.setResult(stock);
         drugStockAmountDTO.setDrugInfoList(drugInfoList);
         LOGGER.info("setDrugStockAmountDTO drugStockAmountDTO:{}", JSONUtils.toString(drugStockAmountDTO));

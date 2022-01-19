@@ -1,10 +1,7 @@
 package recipe.factory.status.orderstatusfactory.impl;
 
 import com.ngari.platform.recipe.mode.RecipeDrugInventoryDTO;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.RecipeOrderBill;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,10 +9,12 @@ import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DrugStockClient;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.manager.PharmacyManager;
 import recipe.thread.RecipeBusiThreadPool;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 已发药
@@ -32,6 +31,8 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
     private DrugStockClient drugStockClient;
     @Autowired
     private CreatePdfFactory createPdfFactory;
+    @Autowired
+    private PharmacyManager pharmacyManager;
 
     @Override
     public Integer getStatus() {
@@ -44,7 +45,8 @@ public class StatusDoneDispensingImpl extends AbstractRecipeOrderStatus {
         recipeOrder.setDispensingTime(new Date());
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
         RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(recipe.getOrderCode());
-        RecipeDrugInventoryDTO request = drugStockClient.recipeDrugInventory(recipe, recipeDetailList, recipeOrderBill);
+        Map<Integer, PharmacyTcm> pharmacyTcmMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
+        RecipeDrugInventoryDTO request = drugStockClient.recipeDrugInventory(recipe, recipeDetailList, recipeOrderBill, pharmacyTcmMap);
         request.setInventoryType(DISPENSING_FLAG_DONE);
         drugStockClient.drugInventory(request);
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_DONE_DISPENSING.getType());

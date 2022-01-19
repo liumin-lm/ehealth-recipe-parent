@@ -11,6 +11,7 @@ import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.BeanUtils;
+import ctd.util.JSONUtils;
 import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -328,6 +329,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
 
     @Override
     public List<MedicineStationVO> getMedicineStationList(MedicineStationVO medicineStationVO){
+        logger.info("getMedicineStationList medicineStationVO:{}", JSONUtils.toString(medicineStationVO));
         OrganDTO organDTO = organClient.organDTO(medicineStationVO.getOrganId());
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(medicineStationVO.getEnterpriseId());
         DrugsEnterpriseBean enterpriseBean = ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class);
@@ -338,11 +340,16 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         List<MedicineStationVO> medicineStationVOList = ObjectCopyUtils.convert(medicineStationDTOList, MedicineStationVO.class);
         //根据坐标计算距离
         medicineStationVOList.forEach(medicineStation->{
-            if (StringUtils.isNotEmpty(medicineStation.getLat()) && StringUtils.isNotEmpty(medicineStation.getLng())) {
-                Double distance = DistanceUtil.getDistance(Double.parseDouble(medicineStationVO.getLat()), Double.parseDouble(medicineStationVO.getLng()),
-                        Double.parseDouble(medicineStation.getLat()), Double.parseDouble(medicineStation.getLng()));
-                medicineStation.setDistance(Double.parseDouble(String.format("%.2f",distance)));
-            } else {
+            try {
+                if (StringUtils.isNotEmpty(medicineStation.getLat()) && StringUtils.isNotEmpty(medicineStation.getLng())) {
+                    Double distance = DistanceUtil.getDistance(Double.parseDouble(medicineStationVO.getLat()), Double.parseDouble(medicineStationVO.getLng()),
+                            Double.parseDouble(medicineStation.getLat()), Double.parseDouble(medicineStation.getLng()));
+                    medicineStation.setDistance(Double.parseDouble(String.format("%.2f",distance)));
+                } else {
+                    medicineStation.setDistance(0D);
+                }
+            } catch (NumberFormatException e) {
+                logger.error("getMedicineStationList error", e);
                 medicineStation.setDistance(0D);
             }
         });

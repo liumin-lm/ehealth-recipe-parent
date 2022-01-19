@@ -1078,14 +1078,16 @@ public class RecipeOrderService extends RecipeBaseService {
 
         setAppOtherMessage(order);
         RecipeOrderBean recipeOrderBean = ObjectCopyUtils.convert(order, RecipeOrderBean.class);
+        LOGGER.info("setCreateOrderResult order:{}", JSONUtils.toString(order));
         if (recipeOrderBean != null && recipeOrderBean.getEnterpriseId() != null) {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrderBean.getEnterpriseId());
             recipeOrderBean.setOrderMemo(drugsEnterprise.getOrderMemo());
-            if ((null == drugsEnterprise.getExpressFeePayWay() || ExpressFeePayWayEnum.ONLINE.getType().equals(drugsEnterprise.getExpressFeePayWay())) &&
-                    (order.getExpressFee() != null && order.getTotalFee().compareTo(order.getExpressFee()) > -1)) {
-                recipeOrderBean.setStationSendTotalFee(order.getTotalFee().subtract(order.getExpressFee()));
-            } else {
-                recipeOrderBean.setStationSendTotalFee(order.getTotalFee());
+            try {
+                if (null != order.getExpressFee() && order.getTotalFee().compareTo(order.getExpressFee()) > -1) {
+                    recipeOrderBean.setStationSendTotalFee(order.getTotalFee().subtract(order.getExpressFee()));
+                }
+            } catch (Exception e) {
+                LOGGER.error("setCreateOrderResult error", e);
             }
         }
         result.setObject(recipeOrderBean);
