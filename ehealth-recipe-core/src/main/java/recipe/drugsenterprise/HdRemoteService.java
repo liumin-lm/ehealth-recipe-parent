@@ -1537,6 +1537,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             CloseableHttpClient httpClient = HttpClients.createDefault();
             HdHttpUrlEnum httpUrl = HdHttpUrlEnum.fromMethodName(methodName);
             String requestStr = JSONUtils.toString(hdPharmacyAndStockRequest);
+            LOGGER.info("checkStoreInventory requestStr:{}", requestStr);
             CloseableHttpResponse response = sendHttpRequest(drugsEnterprise, httpClient, requestStr, httpUrl);
 
             //当相应状态为200时返回json
