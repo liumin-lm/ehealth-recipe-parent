@@ -1461,6 +1461,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             } else {
                 result = getInventoryResult(map, recipe.getClinicOrgan(), drugsEnterprise);
             }
+            LOGGER.info("scanEnterpriseDrugStock result:{}", JSONUtils.toString(result));
             Map<String, Integer> inventory = new HashMap<>();
             if (CollectionUtils.isNotEmpty(result)) {
                 for (Object drugs : result) {
@@ -1728,6 +1729,10 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                 case "Double" :
                     Double data = (Double)obj;
                     result = data.intValue();
+                    break;
+                case "String" :
+                    String inv = (String)obj;
+                    result = Integer.parseInt(inv);
                     break;
                 default :
                     break;
