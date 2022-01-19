@@ -138,7 +138,7 @@ public class RevisitClient extends BaseClient {
         try {
             logger.info("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis writeDrugRecipeReqTO={}", JSONUtils.toString(writeDrugRecipeReqTO));
             hisResponseTOList = iVisitService.findWriteDrugRecipeByRevisitFromHis(writeDrugRecipeReqTO);
-            logger.info("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis hisResponseTOList={}", JSONUtils.toString(hisResponseTOList));
+            logger.info("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis hisResponseTOList={}", JSON.toJSONString(hisResponseTOList));
         } catch (Exception e) {
             logger.error("WriteRecipeDoctorAtop findWriteDrugRecipeByRevisitFromHis error ", e);
         }
