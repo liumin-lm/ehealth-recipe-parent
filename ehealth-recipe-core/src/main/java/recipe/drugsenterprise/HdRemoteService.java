@@ -1521,7 +1521,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         recipeDetailList.forEach(recipeDetail -> {
             HdDrugRequestData hdDrugRequestData = new HdDrugRequestData();
             hdDrugRequestData.setDrugCode(saleDrugListMap.get(recipeDetail.getDrugId()));
-            hdDrugRequestData.setTotal(recipeDetail.getUseTotalDose().toString());
+            hdDrugRequestData.setTotal(recipeDetail.getUseTotalDose().intValue()+"");
             hdDrugRequestData.setUnit(recipeDetail.getDrugUnit());
             drugRequestDataList.add(hdDrugRequestData);
         });
@@ -1537,6 +1537,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             CloseableHttpClient httpClient = HttpClients.createDefault();
             HdHttpUrlEnum httpUrl = HdHttpUrlEnum.fromMethodName(methodName);
             String requestStr = JSONUtils.toString(hdPharmacyAndStockRequest);
+            LOGGER.info("checkStoreInventory requestStr:{}", requestStr);
             CloseableHttpResponse response = sendHttpRequest(drugsEnterprise, httpClient, requestStr, httpUrl);
 
             //当相应状态为200时返回json
