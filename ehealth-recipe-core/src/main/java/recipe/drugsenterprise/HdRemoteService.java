@@ -1513,6 +1513,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
     private List checkStoreInventory(Recipe recipe, List<Recipedetail> recipeDetailList, Map<Integer, String> saleDrugListMap, DrugsEnterprise drugsEnterprise){
         List result = new ArrayList();
         String methodName = "scanStock";
+        try {
         //组装查询药店的入参
         HdPharmacyAndStockRequest hdPharmacyAndStockRequest = new HdPharmacyAndStockRequest();
         List<HdDrugRequestData> drugRequestDataList = new ArrayList<>();
@@ -1526,10 +1527,11 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         hdPharmacyAndStockRequest.setDrugList(drugRequestDataList);
         //医生端不会传患者的坐标，默认0表示查询所有药店
         hdPharmacyAndStockRequest.setRange("0");
-        hdPharmacyAndStockRequest.setOrganId(recipe.getClinicOrgan().toString());
-        hdPharmacyAndStockRequest.setRecipeCode(recipe.getRecipeCode());
-        hdPharmacyAndStockRequest.setRecipeId(recipe.getRecipeId().toString());
-        try {
+        if (null != recipe) {
+            hdPharmacyAndStockRequest.setOrganId(recipe.getClinicOrgan().toString());
+            hdPharmacyAndStockRequest.setRecipeCode(recipe.getRecipeCode());
+            hdPharmacyAndStockRequest.setRecipeId(recipe.getRecipeId().toString());
+        }
             //访问库存足够的药店列表以及药店下的药品的信息
             CloseableHttpClient httpClient = HttpClients.createDefault();
             HdHttpUrlEnum httpUrl = HdHttpUrlEnum.fromMethodName(methodName);
