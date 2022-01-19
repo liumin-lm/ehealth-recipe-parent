@@ -338,7 +338,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         //获取取药站点列表
         List<MedicineStationDTO> medicineStationDTOList = enterpriseClient.getMedicineStationList(medicineStationDTO, organBean, enterpriseBean);
         List<MedicineStationVO> medicineStationVOList = ObjectCopyUtils.convert(medicineStationDTOList, MedicineStationVO.class);
-        
+
         //根据坐标计算距离
         medicineStationVOList.forEach(medicineStation->{
             try {
