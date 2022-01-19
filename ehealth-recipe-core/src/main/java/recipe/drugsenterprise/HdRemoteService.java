@@ -1521,7 +1521,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         recipeDetailList.forEach(recipeDetail -> {
             HdDrugRequestData hdDrugRequestData = new HdDrugRequestData();
             hdDrugRequestData.setDrugCode(saleDrugListMap.get(recipeDetail.getDrugId()));
-            hdDrugRequestData.setTotal(recipeDetail.getUseTotalDose().toString());
+            hdDrugRequestData.setTotal(recipeDetail.getUseTotalDose().intValue()+"");
             hdDrugRequestData.setUnit(recipeDetail.getDrugUnit());
             drugRequestDataList.add(hdDrugRequestData);
         });
