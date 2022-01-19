@@ -1085,6 +1085,8 @@ public class RecipeOrderService extends RecipeBaseService {
             try {
                 if (null != order.getExpressFee() && order.getTotalFee().compareTo(order.getExpressFee()) > -1) {
                     recipeOrderBean.setStationSendTotalFee(order.getTotalFee().subtract(order.getExpressFee()));
+                } else {
+                    recipeOrderBean.setStationSendTotalFee(order.getTotalFee());
                 }
             } catch (Exception e) {
                 LOGGER.error("setCreateOrderResult error", e);

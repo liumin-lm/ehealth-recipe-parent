@@ -3333,7 +3333,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 Query query = ss.createSQLQuery(sql.toString());
                 query.setParameter("startTime", startTime);
                 query.setParameter("endTime", endTime);
-                query.setParameter("organId", organId);
+                query.setParameterList("organId", organId);
                 List<Object[]> list = query.list();
                 setResult(list);
             }
