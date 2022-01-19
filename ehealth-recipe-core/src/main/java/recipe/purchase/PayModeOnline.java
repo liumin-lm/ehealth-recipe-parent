@@ -370,7 +370,7 @@ public class PayModeOnline implements IPurchaseService {
         String areaCode = MapValueUtil.getString(extInfo, "areaCode");
         String gysName = MapValueUtil.getString(extInfo, "gysName");
         String gysAddr = MapValueUtil.getString(extInfo, "gysAddr");
-        String stationCode = MapValueUtil.getString(extInfo, "pharmacyCode");
+        String stationCode = MapValueUtil.getString(extInfo, "gysCode");
         String distance = MapValueUtil.getString(extInfo, "distance");
         PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
         order.setRecMobile(patientDTO.getMobile());
