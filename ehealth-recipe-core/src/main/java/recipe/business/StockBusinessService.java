@@ -11,6 +11,7 @@ import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.BeanUtils;
+import ctd.util.JSONUtils;
 import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,10 +23,7 @@ import recipe.client.OperationClient;
 import recipe.client.OrganClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IStockBusinessService;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.OrganDrugListDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
+import recipe.dao.*;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.GiveModeEnum;
@@ -221,8 +219,11 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     @Override
     public List<DrugForGiveModeVO> drugForGiveMode(DrugQueryVO drugQueryVO) {
         logger.info("drugForGiveMode DrugQueryVO={}", JSONArray.toJSONString(drugQueryVO));
+        List<String> drugNames = new ArrayList<>();
         List<Integer> drugIds = new ArrayList<>();
+
         List<Recipedetail> recipeDetails = drugQueryVO.getRecipeDetails().stream().map(recipeDetailBean -> {
+            drugNames.add(recipeDetailBean.getDrugName());
             drugIds.add(recipeDetailBean.getDrugId());
             Recipedetail recipedetail = new Recipedetail();
             BeanUtils.copy(recipeDetailBean, recipedetail);
@@ -274,6 +275,16 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             drugForGiveModeVO.setDrugsName(drug);
             list.add(drugForGiveModeVO);
         }
+        //例外支付
+//        String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
+//        if (StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
+//            DrugForGiveModeVO drugForGiveModeVO = new DrugForGiveModeVO();
+//            drugForGiveModeVO.setGiveModeKey(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
+//            drugForGiveModeVO.setGiveModeKeyText(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getName());
+//            drugForGiveModeVO.setDrugsName(drugNames);
+//            list.add(drugForGiveModeVO);
+//        }
+
         logger.info("drugForGiveMode result={}", JSONArray.toJSONString(list));
         return list;
     }
@@ -317,7 +328,8 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     }
 
     @Override
-    public List<MedicineStationVO> getMedicineStationList(MedicineStationVO medicineStationVO) {
+    public List<MedicineStationVO> getMedicineStationList(MedicineStationVO medicineStationVO){
+        logger.info("getMedicineStationList medicineStationVO:{}", JSONUtils.toString(medicineStationVO));
         OrganDTO organDTO = organClient.organDTO(medicineStationVO.getOrganId());
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(medicineStationVO.getEnterpriseId());
         DrugsEnterpriseBean enterpriseBean = ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class);
@@ -327,12 +339,17 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         List<MedicineStationDTO> medicineStationDTOList = enterpriseClient.getMedicineStationList(medicineStationDTO, organBean, enterpriseBean);
         List<MedicineStationVO> medicineStationVOList = ObjectCopyUtils.convert(medicineStationDTOList, MedicineStationVO.class);
         //根据坐标计算距离
-        medicineStationVOList.forEach(medicineStation -> {
-            if (StringUtils.isNotEmpty(medicineStation.getLat()) && StringUtils.isNotEmpty(medicineStation.getLng())) {
-                Double distance = DistanceUtil.getDistance(Double.parseDouble(medicineStationVO.getLat()), Double.parseDouble(medicineStationVO.getLng()),
-                        Double.parseDouble(medicineStation.getLat()), Double.parseDouble(medicineStation.getLng()));
-                medicineStation.setDistance(Double.parseDouble(String.format("%.2f", distance)));
-            } else {
+        medicineStationVOList.forEach(medicineStation->{
+            try {
+                if (StringUtils.isNotEmpty(medicineStation.getLat()) && StringUtils.isNotEmpty(medicineStation.getLng())) {
+                    Double distance = DistanceUtil.getDistance(Double.parseDouble(medicineStationVO.getLat()), Double.parseDouble(medicineStationVO.getLng()),
+                            Double.parseDouble(medicineStation.getLat()), Double.parseDouble(medicineStation.getLng()));
+                    medicineStation.setDistance(Double.parseDouble(String.format("%.2f",distance)));
+                } else {
+                    medicineStation.setDistance(0D);
+                }
+            } catch (NumberFormatException e) {
+                logger.error("getMedicineStationList error", e);
                 medicineStation.setDistance(0D);
             }
         });
@@ -396,6 +413,12 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 break;
 
             case GIVE_MODE_DOWNLOAD_RECIPE:
+                // 下载处方签
+//                List<Integer> drugIds = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+//                Long notCountDownloadRecipe = organDrugListDAO.getCountDownloadRecipe(recipe.getClinicOrgan(), drugIds);
+//                if (notCountDownloadRecipe > 0) {
+//                    stockFlag = false;
+//                }
             default:
                 // 下载处方笺或其他购药方式默认有库存
                 stockFlag = true;
@@ -453,8 +476,6 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         //校验药企库存
         List<FutureTask<EnterpriseStock>> futureTasks = new LinkedList<>();
         //根据药企配置查询 库存
-        logger.info("StockBusinessService enterpriseStockCheckAll  recipe = {},recipeDetails = {},enterpriseStockList = {}"
-                , JSON.toJSONString(recipe), JSON.toJSONString(recipeDetails), JSON.toJSONString(enterpriseStockList));
         for (EnterpriseStock enterpriseStock : enterpriseStockList) {
             FutureTask<EnterpriseStock> ft = new FutureTask<>(() -> enterpriseStockFutureTask(enterpriseStock, recipe, recipeDetails, enterpriseDrugIdGroup));
             futureTasks.add(ft);
