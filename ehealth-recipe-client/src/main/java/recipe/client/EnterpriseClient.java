@@ -154,10 +154,10 @@ public class EnterpriseClient extends BaseClient {
             logger.info("EnterpriseClient getMedicineStationList medicineStationDTOList:{}.", JSONUtils.toString(medicineStationDTOList));
             medicineStationDTOList.forEach(medicineStation -> {
                 if (StringUtils.isNotEmpty(medicineStation.getProvinceCode()) && medicineStation.getProvinceCode().contains("0000")) {
-                    medicineStation.setProvinceCode(medicineStation.getProvinceCode().substring(2));
+                    medicineStation.setProvinceCode(medicineStation.getProvinceCode().substring(0, 2));
                 }
                 if (StringUtils.isNotEmpty(medicineStation.getCityCode()) && medicineStation.getCityCode().contains("00")) {
-                    medicineStation.setCityCode(medicineStation.getCityCode().substring(4));
+                    medicineStation.setCityCode(medicineStation.getCityCode().substring(0, 4));
                 }
             });
             return medicineStationDTOList;
