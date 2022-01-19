@@ -349,7 +349,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 } else {
                     medicineStation.setDistance(0D);
                 }
-            } catch (NumberFormatException e) {
+            } catch (Exception e) {
                 logger.error("getMedicineStationList error", e);
                 medicineStation.setDistance(0D);
             }
