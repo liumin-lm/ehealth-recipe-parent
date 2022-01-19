@@ -1511,6 +1511,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
      * @return
      */
     private List checkStoreInventory(Recipe recipe, List<Recipedetail> recipeDetailList, Map<Integer, String> saleDrugListMap, DrugsEnterprise drugsEnterprise){
+        LOGGER.info("checkStoreInventory recipe:{}", JSONUtils.toString(recipe));
         List result = new ArrayList();
         String methodName = "scanStock";
         try {
@@ -1530,7 +1531,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         if (null != recipe) {
             hdPharmacyAndStockRequest.setOrganId(recipe.getClinicOrgan().toString());
             hdPharmacyAndStockRequest.setRecipeCode(recipe.getRecipeCode());
-            hdPharmacyAndStockRequest.setRecipeId(recipe.getRecipeId().toString());
+            hdPharmacyAndStockRequest.setRecipeId(null!=recipe.getRecipeId()?recipe.getRecipeId().toString():"");
         }
             //访问库存足够的药店列表以及药店下的药品的信息
             CloseableHttpClient httpClient = HttpClients.createDefault();
