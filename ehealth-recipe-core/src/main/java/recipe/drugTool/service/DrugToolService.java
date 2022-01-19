@@ -1289,7 +1289,7 @@ public class DrugToolService implements IDrugToolService {
     /**
      * 药品提交(将匹配完成的数据提交更新)----互联网六期改为人工提交
      */
-    @RpcService
+    @RpcService(timeout = 120)
     public Map<String, Integer> drugCommit(List<DrugListMatch> lists, Integer organ) {
         List<DrugListMatch> lists1 = new ArrayList<>();
         Map<String, Integer> map = new HashMap<>();
