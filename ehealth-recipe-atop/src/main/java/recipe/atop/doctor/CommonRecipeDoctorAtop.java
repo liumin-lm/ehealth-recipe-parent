@@ -75,17 +75,7 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
         logger.info("CommonRecipeAtop commonRecipeListV1 organId = {},doctorId = {},recipeType = {},start = {},limit = {}"
                 , organId, doctorId, recipeType, start, limit);
         validateAtop(doctorId, organId);
-        try {
-            List<CommonDTO> result = commonRecipeService.commonRecipeList(organId, doctorId, recipeType, start, limit);
-            logger.info("CommonRecipeAtop commonRecipeListV1 result = {}", JSON.toJSONString(result));
-            return result;
-        } catch (DAOException e1) {
-            logger.warn("CommonRecipeAtop commonRecipeListV1 error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("CommonRecipeAtop commonRecipeListV1 error", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
+        return commonRecipeService.commonRecipeList(organId, doctorId, recipeType, start, limit);
     }
 
     /**

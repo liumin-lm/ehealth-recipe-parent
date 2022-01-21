@@ -188,6 +188,7 @@ public class CommonRecipeManager extends BaseManager {
                 if (null != commonDrugDTO.getUseTotalDose()) {
                     commonDrugDTO.setDrugCost(organDrug.getSalePrice().multiply(new BigDecimal(commonDrugDTO.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP));
                 }
+                commonDrugDTO.setUnilateralCompound(organDrug.getUnilateralCompound());
                 commonDrugDTO.setDrugStatus(organDrug.getStatus());
                 commonDrugDTO.setSalePrice(organDrug.getSalePrice());
                 commonDrugDTO.setPrice1(organDrug.getSalePrice().doubleValue());

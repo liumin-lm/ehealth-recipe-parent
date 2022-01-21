@@ -4,10 +4,7 @@ import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
-import com.ngari.recipe.entity.Dispensatory;
-import com.ngari.recipe.entity.DrugList;
-import com.ngari.recipe.entity.RecipeRulesDrugcorrelation;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.vo.SearchDrugReqVO;
 
 import java.util.List;
@@ -71,5 +68,14 @@ public interface IDrugBusinessService {
      * @param drugIds 平台药品ids
      * @return
      */
-    Map<Integer, DrugList> drugList(List<Integer> drugIds);
+    List<DrugList> drugList(List<Integer> drugIds);
+
+    /**
+     * 获取机构药品
+     *
+     * @param organId 机构id
+     * @param drugIds 平台药品id
+     * @return 机构药品列表
+     */
+    Map<String, OrganDrugList> organDrugMap(Integer organId, List<Integer> drugIds);
 }
