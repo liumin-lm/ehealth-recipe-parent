@@ -34,7 +34,7 @@
         <ehealth-pay-api.version>4.1.1.9.master-SNAPSHOT</ehealth-pay-api.version>
         <ngari.consult.version>4.1.1.9.master-SNAPSHOT</ngari.consult.version>
         <ngari.networkclinic.version>4.1.1.9.master-SNAPSHOT</ngari.networkclinic.version>
-        <ngari.hisapi.version>4.1.1.9.master-SNAPSHOT</ngari.hisapi.version>
+        <ngari.hisapi.version>4.1.2.6.master-SNAPSHOT</ngari.hisapi.version>
         <ngari.baseapi.version>4.1.1.9.master-SNAPSHOT</ngari.baseapi.version>
         <ngari.opbase.version>4.1.1.9.master-SNAPSHOT</ngari.opbase.version>
         <ngari.utils.version>4.1.1.9.master-SNAPSHOT</ngari.utils.version>
