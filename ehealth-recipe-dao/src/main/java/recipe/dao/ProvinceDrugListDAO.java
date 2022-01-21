@@ -60,7 +60,7 @@ public abstract class ProvinceDrugListDAO extends HibernateSupportDelegateDAO<Pr
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("from ProvinceDrugList where provinceId = :address and status = 1 ");
                 if(!ObjectUtils.isEmpty(seacrhString)){
-                    hql.append(" and (saleName like :seacrhString OR drugName like :seacrhString or producer like :seacrhString )");
+                    hql.append(" and ( provinceDrugCode like :seacrhString OR saleName like :seacrhString OR drugName like :seacrhString or producer like :seacrhString )");
                 }
                 if(!ObjectUtils.isEmpty(drugType)){
                     hql.append(" and drugType =:drugType ");
