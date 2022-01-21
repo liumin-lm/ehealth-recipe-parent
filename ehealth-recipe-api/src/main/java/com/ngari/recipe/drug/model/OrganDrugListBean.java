@@ -158,6 +158,10 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias="药品适用业务  eh.base.dictionary.ApplyBusiness ")
     private String applyBusiness;
 
+    @ItemProperty(alias="单复方 ")
+    @Dictionary(id = "eh.cdr.dictionary.UnilateralCompound")
+    private Integer unilateralCompound;
+
     public OrganDrugListBean() {
     }
 
@@ -540,5 +544,13 @@ public class OrganDrugListBean implements java.io.Serializable {
 
     public void setApplyBusiness(String applyBusiness) {
         this.applyBusiness = applyBusiness;
+    }
+
+    public Integer getUnilateralCompound() {
+        return unilateralCompound;
+    }
+
+    public void setUnilateralCompound(Integer unilateralCompound) {
+        this.unilateralCompound = unilateralCompound;
     }
 }

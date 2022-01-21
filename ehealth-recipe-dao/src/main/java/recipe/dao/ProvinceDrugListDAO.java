@@ -58,7 +58,7 @@ public abstract class ProvinceDrugListDAO extends HibernateSupportDelegateDAO<Pr
         HibernateStatelessResultAction<List<ProvinceDrugList>> action = new AbstractHibernateStatelessResultAction<List<ProvinceDrugList>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("from ProvinceDrugList where provinceId = :address and status = 1 and saleName like :name");
+                StringBuilder hql = new StringBuilder("from ProvinceDrugList where provinceId = :address and status = 1 ");
                 if(!ObjectUtils.isEmpty(seacrhString)){
                     hql.append(" and (saleName like :seacrhString OR drugName like :seacrhString or producer like :seacrhString )");
                 }
@@ -66,7 +66,6 @@ public abstract class ProvinceDrugListDAO extends HibernateSupportDelegateDAO<Pr
                     hql.append(" and drugType =:drugType ");
                 }
                 Query q = ss.createQuery(hql.toString());
-                q.setParameter("name", "%" + name + "%");
                 q.setParameter("address", address);
                 if(!ObjectUtils.isEmpty(seacrhString)){
                     q.setParameter("seacrhString", "%" + seacrhString + "%");
@@ -93,7 +92,7 @@ public abstract class ProvinceDrugListDAO extends HibernateSupportDelegateDAO<Pr
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder("from ProvinceDrugList where provinceId = :address and status = 1 ");
                 if(!ObjectUtils.isEmpty(input)){
-                    hql.append(" and (saleName like :input OR drugName like :input or provinceDrugId like :input ) ");
+                    hql.append(" and (saleName like :input OR drugName like :input or provinceDrugCode like :input ) ");
                 }
                 if(!ObjectUtils.isEmpty(producer)){
                     hql.append(" and producer like :producer ");
