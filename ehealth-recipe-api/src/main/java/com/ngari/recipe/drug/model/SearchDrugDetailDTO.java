@@ -175,6 +175,16 @@ public class SearchDrugDetailDTO implements IDrugInventory, Serializable {
 
     @ItemProperty(alias = "药品嘱托Id")
     private String drugEntrustId;
+    @ItemProperty(alias = "单复方 ")
+    private Integer unilateralCompound;
+
+    public Integer getUnilateralCompound() {
+        return unilateralCompound;
+    }
+
+    public void setUnilateralCompound(Integer unilateralCompound) {
+        this.unilateralCompound = unilateralCompound;
+    }
 
     public String getDrugEntrustId() {
         return drugEntrustId;

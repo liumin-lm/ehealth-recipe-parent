@@ -225,6 +225,7 @@ public class RecipeValidateUtil {
             OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), recipeDetail.getOrganDrugCode(), recipeDetail.getDrugId());
             if (organDrug!=null){
                 recipeDetail.setDrugForm(organDrug.getDrugForm());
+                recipeDetail.setUnilateralCompound(organDrug.getUnilateralCompound());
                 //设置医生端每次剂量和剂量单位联动关系
                 List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = Lists.newArrayList();
                 //用药单位不为空时才返回给前端
