@@ -10,12 +10,12 @@ public enum CheckPatientEnum {
     CHECK_PATIENT_NOAUTH(3, "患者未实名认证"),
     CHECK_PATIENT_CARDDEL(4, "卡删除");
 
-    CheckPatientEnum(Integer type, String desc){
+    CheckPatientEnum(Integer type, String name){
         this.type = type;
-        this.desc = desc;
+        this.name = name;
     }
     private Integer type;
-    private String desc;
+    private String name;
 
     public Integer getType() {
         return type;
@@ -26,10 +26,10 @@ public enum CheckPatientEnum {
     }
 
     public String getDesc() {
-        return desc;
+        return name;
     }
 
     public void setDesc(String desc) {
-        this.desc = desc;
+        this.name = desc;
     }
 }

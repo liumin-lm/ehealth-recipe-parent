@@ -292,8 +292,8 @@ public class DrugToolService implements IDrugToolService {
             if (rowIndex == 0) {
                 String drugCode = getStrFromCell(row.getCell(0));
                 String drugName = getStrFromCell(row.getCell(1));
-                String retrievalCode = getStrFromCell(row.getCell(30));
-                if ("监管药品编码".equals(drugCode) && "平台药品编码".equals(drugName) && "医保控制".equals(retrievalCode)) {
+                String retrievalCode = getStrFromCell(row.getCell(31));
+                if ("监管药品编码".equals(drugCode) && "平台药品编码".equals(drugName) && "单复方".equals(retrievalCode)) {
                     continue;
                 } else {
                     result.put("code", 609);
@@ -691,7 +691,7 @@ public class DrugToolService implements IDrugToolService {
                 if (!StringUtils.isEmpty(getStrFromCell(row.getCell(31)))) {
                     if (("单复方可报").equals(getStrFromCell(row.getCell(31)))) {
                         drug.setUnilateralCompound(1);
-                    } else if (("单方不可报,复方可报").equals(getStrFromCell(row.getCell(31)))) {
+                    } else if (("单方不可报，复方可报").equals(getStrFromCell(row.getCell(31)))) {
                         drug.setUnilateralCompound(2);
                     }  else if (("单复方均不可报").equals(getStrFromCell(row.getCell(31)))){
                         drug.setUnilateralCompound(3);
