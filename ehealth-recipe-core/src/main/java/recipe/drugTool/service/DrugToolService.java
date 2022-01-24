@@ -736,6 +736,32 @@ public class DrugToolService implements IDrugToolService {
                 LOGGER.error("药品国药准字有误 ," + e.getMessage(), e);
                 errMsg.append("药品国药准字有误").append(";");
             }
+            try {
+                if (!StringUtils.isEmpty(getStrFromCell(row.getCell(36)))) {
+                    String strFromCell = getStrFromCell(row.getCell(36));
+                    StringBuilder ss = new StringBuilder();
+                    String[] split = strFromCell.split(",");
+                    for (int i = 0; i < split.length; i++) {
+                        String applyBusiness="";
+                        if ("药品处方".equals(split[i])){
+                            applyBusiness="1";
+                        }else if ("诊疗处方".equals(split[i])){
+                            applyBusiness="2";
+                        }else {
+                            break;
+                        }
+                        if (i != split.length - 1) {
+                            ss.append(applyBusiness+ ",");
+                        } else {
+                            ss.append(applyBusiness);
+                        }
+                    }
+                    drug.setApplyBusiness(ss.toString());
+                }
+            }catch (Exception e){
+                LOGGER.error("适用业务有误," + e.getMessage(), e);
+                errMsg.append("适用业务有误").append(";");
+            }
 
             if (!ObjectUtils.isEmpty(organId)){
                 DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
@@ -1272,6 +1298,11 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setDrugsEnterpriseIds(drugListMatch.getDrugsEnterpriseIds());
                         organDrugList.setUseDoseSmallestUnit(drugListMatch.getUseDoseSmallestUnit());
                         organDrugList.setUnilateralCompound(drugListMatch.getUnilateralCompound());
+                        if (!ObjectUtils.isEmpty(drugListMatch.getApplyBusiness())) {
+                            organDrugList.setApplyBusiness(drugListMatch.getApplyBusiness());
+                        }else {
+                            organDrugList.setApplyBusiness("1");
+                        }
 
                         Boolean isSuccess = organDrugListDAO.updateData(organDrugList);
                         if (!isSuccess) {
