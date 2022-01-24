@@ -757,6 +757,8 @@ public class DrugToolService implements IDrugToolService {
                         }
                     }
                     drug.setApplyBusiness(ss.toString());
+                }else {
+                    errMsg.append("【适用业务】未填写").append(";");
                 }
             }catch (Exception e){
                 LOGGER.error("适用业务有误," + e.getMessage(), e);
