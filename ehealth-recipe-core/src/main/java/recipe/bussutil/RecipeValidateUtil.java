@@ -158,6 +158,7 @@ public class RecipeValidateUtil {
             if (null == mapDetail) {
                 continue;
             }
+            mapDetail.setUnilateralCompound(organDrug.getUnilateralCompound());
             mapDetail.setDrugForm(organDrug.getDrugForm());
             //设置医生端每次剂量和剂量单位联动关系
             List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = Lists.newArrayList();
