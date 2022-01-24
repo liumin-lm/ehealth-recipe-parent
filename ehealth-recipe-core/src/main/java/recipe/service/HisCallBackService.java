@@ -192,7 +192,6 @@ public class HisCallBackService {
 
         //更新复诊挂号序号如果有
         if (null != recipe.getClinicId()) {
-            //更新咨询扩展表recipeid字段
             if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
                 IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
                 RevisitExDTO revisitExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
