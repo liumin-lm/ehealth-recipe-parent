@@ -126,7 +126,6 @@ public class RecipeToHisCallbackService {
             result.setMedicalType(medicalType);
             result.setMedicalTypeText(medicalTypeText);
             result.setHisDiseaseSerial(repList.get(0).getHisDiseaseSerial());
-            result.setMedicalRecordNumber(repList.get(0).getMedicalRecordNumber());
             result.setDetailList(list);
             LOGGER.info("recipeSend recive success. recipeId={}, checkPassSuccess result={}", response.getRecipeId(), JSONUtils.toString(result));
             //没库存操作----推送九州通

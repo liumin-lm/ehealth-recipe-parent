@@ -32,6 +32,7 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.CardTypeEnum;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.DepartManager;
 import recipe.purchase.CommonOrder;
@@ -106,9 +107,7 @@ public class HisCallBackService {
         if (StringUtils.isNotEmpty(result.getHisDiseaseSerial())) {
             recipeExtUpdateDataMap.put("hisDiseaseSerial", result.getHisDiseaseSerial());
         }
-        if (StringUtils.isNotEmpty(result.getMedicalRecordNumber())) {
-            recipeExtUpdateDataMap.put("medicalRecordNumber", result.getMedicalRecordNumber());
-        }
+
         //处方总金额， 外带药处方不做处理
         if (!Integer.valueOf(1).equals(recipe.getTakeMedicine()) && null != result.getTotalMoney()) {
             List<Recipedetail> recipedetailList = detailDAO.findByRecipeId(result.getRecipeId());
@@ -188,7 +187,6 @@ public class HisCallBackService {
 
     private static void updateRecipeRegisterID(Recipe recipe, RecipeCheckPassResult result) {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
-        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         Map<String, String> map = new HashMap<String, String>();
 
@@ -207,6 +205,9 @@ public class HisCallBackService {
                     if (StringUtils.isNotEmpty(revisitExDTO.getCardId()) && StringUtils.isNotEmpty(revisitExDTO.getCardType())) {
                         map.put("cardNo", revisitExDTO.getCardId());
                         map.put("cardType", revisitExDTO.getCardType());
+                        if (CardTypeEnum.MEDICAL_RECORD_CARD.getType().equals(revisitExDTO.getCardType())) {
+                            map.put("medicalRecordNumber", revisitExDTO.getCardId());
+                        }
                     }
                 }
             } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipe.getBussSource())) {
