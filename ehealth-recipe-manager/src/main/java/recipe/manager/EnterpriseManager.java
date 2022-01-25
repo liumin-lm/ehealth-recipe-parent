@@ -70,6 +70,8 @@ public class EnterpriseManager extends BaseManager {
     private DrugStockClient drugStockClient;
     @Autowired
     private DepartClient departClient;
+    @Autowired
+    private PharmacyTcmDAO pharmacyTcmDAO;
 
     /**
      * 检查 药企药品 是否满足开方药品
@@ -139,7 +141,9 @@ public class EnterpriseManager extends BaseManager {
         Map<Integer, OrganDrugList> organDrugMap = organDrugList.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, a -> a, (k1, k2) -> k1));
         //默认走批量新接口
         Map<Integer, List<SaleDrugList>> saleDrugListMap = saleDrugLists.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
-        DrugStockAmountDTO drugStockAmountV1 = drugStockClient.scanEnterpriseDrugStockV1(recipe, drugsEnterprise, recipeDetails, saleDrugListMap, organDrugMap);
+        Set<Integer> pharmacyIds = recipeDetails.stream().map(Recipedetail::getPharmacyId).collect(Collectors.toSet());
+        List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(pharmacyIds);
+        DrugStockAmountDTO drugStockAmountV1 = drugStockClient.scanEnterpriseDrugStockV1(recipe, drugsEnterprise, recipeDetails, saleDrugListMap, organDrugMap, pharmacyTcmByIds);
         logger.info("EnterpriseManager scanEnterpriseDrugStock scanEnterpriseDrugStockV1 end drugStockAmountV1 = {}", JSON.toJSONString(drugStockAmountV1));
         if (null != drugStockAmountV1) {
             return drugStockAmountV1;
@@ -148,7 +152,7 @@ public class EnterpriseManager extends BaseManager {
         List<DrugInfoDTO> drugInfoList = new LinkedList<>();
         boolean result = true;
         for (Recipedetail recipeDetail : recipeDetails) {
-            DrugStockAmountDTO drugStockAmountDTO = drugStockClient.scanEnterpriseDrugStock(recipe, drugsEnterprise, Collections.singletonList(recipeDetail), saleDrugListMap, organDrugMap);
+            DrugStockAmountDTO drugStockAmountDTO = drugStockClient.scanEnterpriseDrugStock(recipe, drugsEnterprise, Collections.singletonList(recipeDetail), saleDrugListMap, organDrugMap, pharmacyTcmByIds);
             drugInfoList.addAll(drugStockAmountDTO.getDrugInfoList());
             if (!drugStockAmountDTO.isResult()) {
                 result = false;
