@@ -235,6 +235,7 @@ public class HisCallBackService {
                 if (StringUtils.isNotEmpty(result.getMedicalTypeText()) && StringUtils.isEmpty(recipeExtend.getMedicalTypeText())) {
                     map.put("medicalTypeText", result.getMedicalTypeText());
                 }
+                LOGGER.info("updateRecipeRegisterID map:{}", JSONUtils.toString(map));
                 recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), map);
             }
         } else {
