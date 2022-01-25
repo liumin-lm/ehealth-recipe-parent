@@ -690,11 +690,11 @@ public class DrugToolService implements IDrugToolService {
             try {
                 if (!StringUtils.isEmpty(getStrFromCell(row.getCell(31)))) {
                     if (("单复方可报").equals(getStrFromCell(row.getCell(31)))) {
-                        drug.setUnilateralCompound(1);
+                        drug.setUnilateralCompound(0;
                     } else if (("单方不可报，复方可报").equals(getStrFromCell(row.getCell(31)))) {
-                        drug.setUnilateralCompound(2);
+                        drug.setUnilateralCompound(1);
                     }  else if (("单复方均不可报").equals(getStrFromCell(row.getCell(31)))){
-                        drug.setUnilateralCompound(3);
+                        drug.setUnilateralCompound(2);
                     }else {
                         errMsg.append("单复方格式错误").append(";");
                     }
