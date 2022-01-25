@@ -487,6 +487,9 @@ public class OrganDrugListService implements IOrganDrugListService {
                 if (organDrugList.getDefaultSmallestUnitUseDose() == null) {
                     target.setDefaultSmallestUnitUseDose(null);
                 }
+                if (organDrugList.getUnilateralCompound() == null) {
+                    target.setUnilateralCompound(null);
+                }
                 target.setLastModify(new Date());
                 validateOrganDrugList(target);
                 target = organDrugListDAO.update(target);
