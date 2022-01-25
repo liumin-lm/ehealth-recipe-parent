@@ -292,8 +292,8 @@ public class DrugToolService implements IDrugToolService {
             if (rowIndex == 0) {
                 String drugCode = getStrFromCell(row.getCell(0));
                 String drugName = getStrFromCell(row.getCell(1));
-                String retrievalCode = getStrFromCell(row.getCell(30));
-                if ("监管药品编码".equals(drugCode) && "平台药品编码".equals(drugName) && "医保控制".equals(retrievalCode)) {
+                String retrievalCode = getStrFromCell(row.getCell(31));
+                if ("监管药品编码".equals(drugCode) && "平台药品编码".equals(drugName) && "单复方".equals(retrievalCode)) {
                     continue;
                 } else {
                     result.put("code", 609);
@@ -688,36 +688,81 @@ public class DrugToolService implements IDrugToolService {
             }
 
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(31)))) {
-                    drug.setMedicalDrugCode(getStrFromCell(row.getCell(31)));
+                if (!StringUtils.isEmpty(getStrFromCell(row.getCell(31)))) {
+                    if (("单复方可报").equals(getStrFromCell(row.getCell(31)))) {
+                        drug.setUnilateralCompound(1);
+                    } else if (("单方不可报，复方可报").equals(getStrFromCell(row.getCell(31)))) {
+                        drug.setUnilateralCompound(2);
+                    }  else if (("单复方均不可报").equals(getStrFromCell(row.getCell(31)))){
+                        drug.setUnilateralCompound(3);
+                    }else {
+                        errMsg.append("单复方格式错误").append(";");
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("单复方有误 ," + e.getMessage(), e);
+                errMsg.append("单复方有误").append(";");
+            }
+
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(32)))) {
+                    drug.setMedicalDrugCode(getStrFromCell(row.getCell(32)));
                 }
             } catch (Exception e) {
                 LOGGER.error("药品医保药品编码有误 ," + e.getMessage(), e);
                 errMsg.append("药品医保药品编码有误").append(";");
             }
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(32)))) {
-                    drug.setMedicalDrugFormCode(getStrFromCell(row.getCell(32)));
+                if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(33)))) {
+                    drug.setMedicalDrugFormCode(getStrFromCell(row.getCell(33)));
                 }
             } catch (Exception e) {
                 LOGGER.error("药品医保剂型代码有误 ," + e.getMessage(), e);
                 errMsg.append("药品医保剂型代码有误").append(";");
             }
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(33)))) {
-                    drug.setHisFormCode(getStrFromCell(row.getCell(33)));
+                if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(34)))) {
+                    drug.setHisFormCode(getStrFromCell(row.getCell(34)));
                 }
             } catch (Exception e) {
                 LOGGER.error("药品HIS剂型代码有误 ," + e.getMessage(), e);
                 errMsg.append("药品HIS剂型代码有误").append(";");
             }
             try {
-                if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(34)))) {
-                    drug.setLicenseNumber(getStrFromCell(row.getCell(34)));
+                if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(35)))) {
+                    drug.setLicenseNumber(getStrFromCell(row.getCell(35)));
                 }
             } catch (Exception e) {
                 LOGGER.error("药品国药准字有误 ," + e.getMessage(), e);
                 errMsg.append("药品国药准字有误").append(";");
+            }
+            try {
+                if (!StringUtils.isEmpty(getStrFromCell(row.getCell(36)))) {
+                    String strFromCell = getStrFromCell(row.getCell(36));
+                    StringBuilder ss = new StringBuilder();
+                    String[] split = strFromCell.split(",");
+                    for (int i = 0; i < split.length; i++) {
+                        String applyBusiness="";
+                        if ("药品处方".equals(split[i])){
+                            applyBusiness="1";
+                        }else if ("诊疗处方".equals(split[i])){
+                            applyBusiness="2";
+                        }else {
+                            break;
+                        }
+                        if (i != split.length - 1) {
+                            ss.append(applyBusiness+ ",");
+                        } else {
+                            ss.append(applyBusiness);
+                        }
+                    }
+                    drug.setApplyBusiness(ss.toString());
+                }else {
+                    errMsg.append("【适用业务】未填写").append(";");
+                }
+            }catch (Exception e){
+                LOGGER.error("适用业务有误," + e.getMessage(), e);
+                errMsg.append("适用业务有误").append(";");
             }
 
             if (!ObjectUtils.isEmpty(organId)){
@@ -1254,6 +1299,12 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setRecommendedUseDose(drugListMatch.getRecommendedUseDose());
                         organDrugList.setDrugsEnterpriseIds(drugListMatch.getDrugsEnterpriseIds());
                         organDrugList.setUseDoseSmallestUnit(drugListMatch.getUseDoseSmallestUnit());
+                        organDrugList.setUnilateralCompound(drugListMatch.getUnilateralCompound());
+                        if (!ObjectUtils.isEmpty(drugListMatch.getApplyBusiness())) {
+                            organDrugList.setApplyBusiness(drugListMatch.getApplyBusiness());
+                        }else {
+                            organDrugList.setApplyBusiness("1");
+                        }
 
                         Boolean isSuccess = organDrugListDAO.updateData(organDrugList);
                         if (!isSuccess) {
@@ -1439,6 +1490,7 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setPharmacy(drugListMatch.getPharmacy());
                         organDrugList.setPackingMaterials(drugListMatch.getPackingMaterials());
                         organDrugList.setUseDoseSmallestUnit(drugListMatch.getUseDoseSmallestUnit());
+                        organDrugList.setUnilateralCompound(drugListMatch.getUnilateralCompound());
 
                         organDrugList.setTakeMedicine(0);
                         organDrugList.setStatus(1);

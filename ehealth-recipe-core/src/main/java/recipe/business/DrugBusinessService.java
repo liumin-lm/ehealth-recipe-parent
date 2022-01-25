@@ -4,10 +4,7 @@ import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
-import com.ngari.recipe.entity.Dispensatory;
-import com.ngari.recipe.entity.DrugList;
-import com.ngari.recipe.entity.RecipeRulesDrugcorrelation;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import com.ngari.recipe.recipe.service.IDrugEntrustService;
 import com.ngari.recipe.vo.SearchDrugReqVO;
@@ -19,6 +16,7 @@ import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.core.api.IDrugBusinessService;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.DrugManager;
+import recipe.manager.OrganDrugListManager;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
@@ -37,7 +35,8 @@ import java.util.stream.Collectors;
  */
 @Service
 public class DrugBusinessService extends BaseService implements IDrugBusinessService {
-
+    @Autowired
+    private OrganDrugListManager organDrugListManager;
     @Resource
     private DrugManager drugManager;
     @Autowired
@@ -104,8 +103,13 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     }
 
     @Override
-    public Map<Integer, DrugList> drugList(List<Integer> drugIds) {
+    public List<DrugList> drugList(List<Integer> drugIds) {
         return drugManager.drugList(drugIds);
+    }
+
+    @Override
+    public Map<String, OrganDrugList> organDrugMap(Integer organId, List<Integer> drugIds) {
+        return organDrugListManager.getOrganDrugByIdAndCode(organId, drugIds);
     }
 
 }

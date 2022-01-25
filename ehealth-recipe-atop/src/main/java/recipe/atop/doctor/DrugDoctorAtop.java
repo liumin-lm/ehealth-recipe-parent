@@ -7,6 +7,7 @@ import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.entity.DrugList;
+import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.vo.SearchDrugReqVO;
 import ctd.util.JSONUtils;
@@ -23,10 +24,7 @@ import recipe.util.ByteUtils;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -145,13 +143,20 @@ public class DrugDoctorAtop extends BaseAtop {
         drugInfoDTO.setPharmacyId(searchDrugReq.getPharmacyId());
         List<SearchDrugDetailDTO> drugWithEsByPatient = drugBusinessService.searchOrganDrugEs(drugInfoDTO, searchDrugReq.getStart(), searchDrugReq.getLimit());
         List<Integer> drugIds = drugWithEsByPatient.stream().map(SearchDrugDetailDTO::getDrugId).distinct().collect(Collectors.toList());
-        Map<Integer, DrugList> drugMap = drugBusinessService.drugList(drugIds);
+        List<DrugList> drugs = drugBusinessService.drugList(drugIds);
+        Map<Integer, DrugList> drugMap = drugs.stream().collect(Collectors.toMap(DrugList::getDrugId, a -> a, (k1, k2) -> k1));
+        Map<String, OrganDrugList> organDrugMap = drugBusinessService.organDrugMap(searchDrugReq.getOrganId(), drugIds);
         drugWithEsByPatient.forEach(drugList -> {
             //添加es价格空填值逻辑
             DrugList drugListNow = drugMap.get(drugList.getDrugId());
             if (null != drugListNow) {
                 drugList.setPrice1(null == drugList.getPrice1() ? drugListNow.getPrice1() : drugList.getPrice1());
                 drugList.setPrice2(null == drugList.getPrice2() ? drugListNow.getPrice2() : drugList.getPrice2());
+            }
+            //添加es单复方字段
+            OrganDrugList organDrug = organDrugMap.get(drugList.getDrugId() + drugList.getOrganDrugCode());
+            if (null != organDrug) {
+                drugList.setUnilateralCompound(organDrug.getUnilateralCompound());
             }
             //该高亮字段给微信端使用:highlightedField
             drugList.setHospitalPrice(drugList.getSalePrice());
@@ -168,17 +173,29 @@ public class DrugDoctorAtop extends BaseAtop {
             if (StringUtils.isEmpty(drugList.getUsePathways())) {
                 drugList.setUsePathways("");
             }
-
-            //设置医生端每次剂量和剂量单位联动关系-用药单位不为空时才返回给前端
-            List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = new ArrayList<>();
-            if (StringUtils.isNotEmpty(drugList.getUseDoseUnit())) {
-                useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(drugList.getRecommendedUseDose(), drugList.getUseDoseUnit(), drugList.getUseDose()));
-            }
-            if (StringUtils.isNotEmpty(drugList.getUseDoseSmallestUnit())) {
-                useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(drugList.getDefaultSmallestUnitUseDose(), drugList.getUseDoseSmallestUnit(), drugList.getSmallestUnitUseDose()));
-            }
-            drugList.setUseDoseAndUnitRelation(useDoseAndUnitRelationList);
+            drugList.setUseDoseAndUnitRelation(defaultUseDose(organDrug));
         });
         return drugWithEsByPatient;
+    }
+
+
+    /**
+     * 默认药品单位计量 机构关联关系
+     *
+     * @param organDrug 机构药品
+     * @return 默认药品单位计量
+     */
+    private List<UseDoseAndUnitRelationBean> defaultUseDose(OrganDrugList organDrug) {
+        List<UseDoseAndUnitRelationBean> useDoseAndUnitRelationList = new LinkedList<>();
+        if (null == organDrug) {
+            return useDoseAndUnitRelationList;
+        }
+        if (StringUtils.isNotEmpty(organDrug.getUseDoseUnit())) {
+            useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getRecommendedUseDose(), organDrug.getUseDoseUnit(), organDrug.getUseDose()));
+        }
+        if (StringUtils.isNotEmpty(organDrug.getUseDoseSmallestUnit())) {
+            useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
+        }
+        return useDoseAndUnitRelationList;
     }
 }

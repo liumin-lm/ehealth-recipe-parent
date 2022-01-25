@@ -4962,6 +4962,10 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getIndicationsDeclare())) {
             drugListMatch.setIndicationsDeclare(drug.getIndicationsDeclare());
         }
+        //单复方
+        if (!ObjectUtils.isEmpty(drug.getUnilateralCompound())) {
+            drugListMatch.setUnilateralCompound(drug.getUnilateralCompound());
+        }
 
         if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
             String pharmacyCode = drug.getPharmacyCode();
@@ -5092,6 +5096,10 @@ public class RecipeService extends RecipeBaseService {
         //院内检索关键字
         if (!ObjectUtils.isEmpty(drug.getRetrievalCode())) {
             organDrug.setRetrievalCode(drug.getRetrievalCode());
+        }
+        //单复方
+        if (!ObjectUtils.isEmpty(drug.getUnilateralCompound())) {
+            organDrug.setUnilateralCompound(drug.getUnilateralCompound());
         }
         if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
             String pharmacyCode = drug.getPharmacyCode();
@@ -5305,6 +5313,10 @@ public class RecipeService extends RecipeBaseService {
         //院内检索关键字
         if (!ObjectUtils.isEmpty(drug.getRetrievalCode())) {
             organDrug.setRetrievalCode(drug.getRetrievalCode());
+        }
+        //单复方
+        if (!ObjectUtils.isEmpty(drug.getUnilateralCompound())) {
+            organDrug.setUnilateralCompound(drug.getUnilateralCompound());
         }
         //药房
         if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {

@@ -248,6 +248,16 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     @ItemProperty(alias = "药品图片")
     private String drugPic;
+    @ItemProperty(alias = "单复方 ")
+    private Integer unilateralCompound;
+
+    public Integer getUnilateralCompound() {
+        return unilateralCompound;
+    }
+
+    public void setUnilateralCompound(Integer unilateralCompound) {
+        this.unilateralCompound = unilateralCompound;
+    }
 
     public String getDrugPic() {
         return drugPic;

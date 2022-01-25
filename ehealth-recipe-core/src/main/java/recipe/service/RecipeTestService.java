@@ -59,6 +59,8 @@ public class RecipeTestService {
     private EnterpriseManager enterpriseManager;
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
+    @Autowired
+    private DrugDistributionPriceDAO drugDistributionPriceDAO;
 
     @RpcService
     public PushRecipeAndOrder getPushRecipeAndOrder(Integer recipeId){
@@ -322,5 +324,21 @@ public class RecipeTestService {
         ThreadPoolTaskExecutor service = AppContextHolder.getBean("busTaskExecutor", ThreadPoolTaskExecutor.class);
         ThreadPoolExecutor threadPoolExecutor = service.getThreadPoolExecutor();
         return "当前线程池排队线程数:"+threadPoolExecutor.getQueue().size()+",当前线程池活动线程数:"+threadPoolExecutor.getActiveCount()+",当前线程池完成线程数:"+threadPoolExecutor.getCompletedTaskCount()+",当前线程池总线程数:"+threadPoolExecutor.getTaskCount();
+    }
+
+    /**
+     * 更新快递费
+     */
+    @RpcService
+    public void updateLogisticsFee(Integer depId, List<String> addrArea, Double price){
+        addrArea.forEach(addr->{
+            DrugDistributionPrice drugDistributionPrice = drugDistributionPriceDAO.getByEnterpriseIdAndAddrArea(depId, addr);
+            if (null == price) {
+                drugDistributionPrice.setDistributionPrice(null);
+            } else {
+                drugDistributionPrice.setDistributionPrice(new BigDecimal(price));
+            }
+            drugDistributionPriceDAO.update(drugDistributionPrice);
+        });
     }
 }

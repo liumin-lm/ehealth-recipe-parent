@@ -306,6 +306,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
 
     @RpcService
     public String getDrugInventory(Integer depId, Integer drugId, Integer organId) {
+        LOGGER.info("getDrugInventory depId:{},drugId:{},organId:{}", depId, drugId, organId);
         List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
         List<Recipedetail> recipeDetails = new LinkedList<>();
         organDrugLists.forEach(a -> {
@@ -313,10 +314,15 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             recipedetail.setOrganDrugCode(a.getOrganDrugCode());
             recipedetail.setDrugId(a.getDrugId());
             recipedetail.setUseTotalDose(1D);
+            if (StringUtils.isNotEmpty(a.getPharmacy())) {
+                String[] pharmacy = a.getPharmacy().split(",");
+                recipedetail.setPharmacyId(Integer.parseInt(pharmacy[0]));
+            }
             recipeDetails.add(recipedetail);
         });
         Recipe recipe = new Recipe();
         recipe.setClinicOrgan(organId);
+        LOGGER.info("getDrugInventory recipeDetails:{}", JSONUtils.toString(recipeDetails));
         EnterpriseStock enterpriseStock = drugEnterpriseBusinessService.enterpriseStockCheck(recipe, recipeDetails, depId);
         if (null == enterpriseStock) {
             return "无库存";

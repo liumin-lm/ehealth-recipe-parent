@@ -199,6 +199,17 @@ public class DrugListBean implements IDrugInventory, Serializable {
     @ItemProperty(alias = "是否标准药品，1-是，0-否")
     private Integer isStandardDrug;
 
+    @ItemProperty(alias = "单复方 ")
+    private Integer unilateralCompound;
+
+    public Integer getUnilateralCompound() {
+        return unilateralCompound;
+    }
+
+    public void setUnilateralCompound(Integer unilateralCompound) {
+        this.unilateralCompound = unilateralCompound;
+    }
+
     public String getDrugEntrustCode() {
         return drugEntrustCode;
     }

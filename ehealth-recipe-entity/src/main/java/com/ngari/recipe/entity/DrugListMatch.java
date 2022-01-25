@@ -205,6 +205,11 @@ public class DrugListMatch implements java.io.Serializable {
     @Dictionary(id = "eh.cdr.dictionary.DrugListMatchSource")
     private Integer drugSource;
 
+    @ItemProperty(alias="单复方 ")
+    @Dictionary(id = "eh.cdr.dictionary.UnilateralCompound")
+    private Integer unilateralCompound;
+
+
     @Column(name = "retrievalCode ")
     public String getRetrievalCode() {
         return retrievalCode;
@@ -633,5 +638,14 @@ public class DrugListMatch implements java.io.Serializable {
 
     public void setApplyBusiness(String applyBusiness) {
         this.applyBusiness = applyBusiness;
+    }
+
+    @Column(name = "unilateral_compound")
+    public Integer getUnilateralCompound() {
+        return unilateralCompound;
+    }
+
+    public void setUnilateralCompound(Integer unilateralCompound) {
+        this.unilateralCompound = unilateralCompound;
     }
 }

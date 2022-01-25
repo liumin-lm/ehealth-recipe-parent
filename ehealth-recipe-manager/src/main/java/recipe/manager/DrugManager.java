@@ -334,14 +334,14 @@ public class DrugManager extends BaseManager {
      * @param drugIds 平台药品id
      * @return
      */
-    public Map<Integer, DrugList> drugList(List<Integer> drugIds) {
+    public List<DrugList> drugList(List<Integer> drugIds) {
         if (CollectionUtils.isEmpty(drugIds)) {
-            return new HashMap<>();
+            return new LinkedList<>();
         }
         List<DrugList> drugs = drugListDAO.findByDrugIds(drugIds);
         if (CollectionUtils.isEmpty(drugs)) {
-            return new HashMap<>();
+            return new LinkedList<>();
         }
-        return drugs.stream().collect(Collectors.toMap(DrugList::getDrugId, a -> a, (k1, k2) -> k1));
+        return drugs;
     }
 }
