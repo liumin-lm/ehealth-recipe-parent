@@ -174,8 +174,8 @@ public class DrugStockClient extends BaseClient {
      * @return
      */
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails,
-                                                      Map<Integer, List<SaleDrugList>> saleDrugListMap, Map<Integer, OrganDrugList> organDrugMap) {
-        ScanRequestBean scanRequestBean = getScanRequestBean(recipe, saleDrugListMap, drugsEnterprise, recipeDetails, organDrugMap);
+                                                      Map<Integer, List<SaleDrugList>> saleDrugListMap, Map<Integer, OrganDrugList> organDrugMap, List<PharmacyTcm> pharmacyTcms) {
+        ScanRequestBean scanRequestBean = getScanRequestBean(recipe, saleDrugListMap, drugsEnterprise, recipeDetails, organDrugMap, pharmacyTcms);
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
         if (CollectionUtils.isEmpty(scanRequestBean.getScanDrugListBeans())) {
             drugStockAmountDTO.setResult(false);
@@ -216,8 +216,8 @@ public class DrugStockClient extends BaseClient {
      * @return
      */
     public DrugStockAmountDTO scanEnterpriseDrugStockV1(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails,
-                                                        Map<Integer, List<SaleDrugList>> saleDrugListMap, Map<Integer, OrganDrugList> organDrugMap) {
-        ScanRequestBean scanRequestBean = getScanRequestBean(recipe, saleDrugListMap, drugsEnterprise, recipeDetails, organDrugMap);
+                                                        Map<Integer, List<SaleDrugList>> saleDrugListMap, Map<Integer, OrganDrugList> organDrugMap, List<PharmacyTcm> pharmacyTcms) {
+        ScanRequestBean scanRequestBean = getScanRequestBean(recipe, saleDrugListMap, drugsEnterprise, recipeDetails, organDrugMap, pharmacyTcms);
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
         try {
             HisResponseTO<List<ScanDrugListBean>> response = recipeEnterpriseService.scanStockV1(scanRequestBean);
@@ -397,7 +397,8 @@ public class DrugStockClient extends BaseClient {
      * @return 前置机接口入参
      */
     private ScanRequestBean getScanRequestBean(Recipe recipe, Map<Integer, List<SaleDrugList>> saleDrugListMap, DrugsEnterprise drugsEnterprise,
-                                               List<Recipedetail> recipeDetails, Map<Integer, OrganDrugList> organDrugMap) {
+                                               List<Recipedetail> recipeDetails, Map<Integer, OrganDrugList> organDrugMap, List<PharmacyTcm> pharmacyTcms) {
+        Map<Integer, PharmacyTcm> pharmacyTcmMap = pharmacyTcms.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
         String channelCode = null;
         try {
             if (null != recipe.getClinicId()) {
@@ -429,8 +430,11 @@ public class DrugStockClient extends BaseClient {
             scanDrugListBean.setPharmacy(organDrug.getPharmacy());
             scanDrugListBean.setName(organDrug.getSaleName());
             scanDrugListBean.setGname(organDrug.getDrugName());
-
-            scanDrugListBean.setPharmacyCode(String.valueOf(recipedetail.getPharmacyId()));
+            PharmacyTcm pharmacyTcm = pharmacyTcmMap.get(recipedetail.getPharmacyId());
+            if (null != pharmacyTcm) {
+                scanDrugListBean.setPharmacyCode(pharmacyTcm.getPharmacyCode());
+                scanDrugListBean.setPharmacyName(pharmacyTcm.getPharmacyName());
+            }
             scanDrugListBean.setProducer(recipedetail.getProducer());
             scanDrugListBeans.add(scanDrugListBean);
         });
