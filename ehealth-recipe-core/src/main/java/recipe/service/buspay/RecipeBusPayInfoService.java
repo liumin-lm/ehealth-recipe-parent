@@ -120,6 +120,9 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     @Autowired
     private IPatientService iPatientService;
 
+    @Autowired
+    private HealthCardService healthCardService;
+
 
     private IConfigurationCenterUtilsService utils = BaseAPI.getService(IConfigurationCenterUtilsService.class);
 
@@ -428,7 +431,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             //杭州互联网流程
             if (order.getRegisterNo() != null) {
                 //杭州市互联网医保支付
-                HealthCardService healthCardService = BasicAPI.getService(HealthCardService.class);
+//                HealthCardService healthCardService = BasicAPI.getService(HealthCardService.class);
                 //杭州市互联网医院监管中心 管理单元eh3301
                 OrganService organService = BasicAPI.getService(OrganService.class);
                 OrganDTO organDTO = organService.getByManageUnit("eh3301");
@@ -446,7 +449,16 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 simpleBusObject.setAccessToken(accessToken);
 
             } else {
+                // 杭州互联网走自费也给卡号
                 simpleBusObject.setSettleType("1");
+                OrganService organService = BasicAPI.getService(OrganService.class);
+                OrganDTO organDTO = organService.getByManageUnit("eh3301");
+                List<HealthCardDTO> list = healthCardService.findByCardOrganAndMpiId(organDTO.getOrganId(), order.getMpiId());
+                if (CollectionUtils.isNotEmpty(list)) {
+                    simpleBusObject.setMrn(list.get(0).getCardId());
+                }else {
+                    simpleBusObject.setMrn("-1");
+                }
             }
 
             // 邵逸夫模式
