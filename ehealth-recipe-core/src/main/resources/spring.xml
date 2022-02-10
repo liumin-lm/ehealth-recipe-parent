@@ -32,6 +32,7 @@
     <import resource="spring-service-opbase.xml"/>
     <import resource="spring-file.xml"/>
     <import resource="spring-service-casign.xml"/>
+    <import resource="spring-service-pay.xml"/>
 
     <bean id="recipeLogAspect" class="recipe.aop.RecipeLogAspect"/>
      <bean id="LogRecordAspect" class="recipe.aop.LogRecordAspect"/>

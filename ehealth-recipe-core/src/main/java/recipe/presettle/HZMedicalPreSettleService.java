@@ -8,6 +8,7 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.MedicalPreSettleReqNTO;
 import com.ngari.his.recipe.mode.RecipeMedicalPreSettleInfo;
+import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
@@ -23,6 +24,7 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -48,8 +50,7 @@ import java.util.Map;
  */
 @Service
 public class HZMedicalPreSettleService implements IRecipePreSettleService {
-    @Autowired
-    private IBusPaySettlementFacade busPaySettlementFacade;
+
     private static final Logger LOGGER = LoggerFactory.getLogger(HZMedicalPreSettleService.class);
     @Override
     public Map<String, Object> recipePreSettle(Integer recipeId, Map<String, Object> extInfo) {
@@ -141,6 +142,7 @@ public class HZMedicalPreSettleService implements IRecipePreSettleService {
                     request.setBxh(bxh);
                 }
             }
+            IBusPaySettlementFacade busPaySettlementFacade = AppContextHolder.getBean("pay.iBusPaySettlementFacade", IBusPaySettlementFacade.class);
 
             LOGGER.info("HZMedicalPreSettleService recipeId={} req={}", recipeId, JSONUtils.toString(request));
             HisResponseTO<RecipeMedicalPreSettleInfo> hisResult = busPaySettlementFacade.recipeMedicalPreSettleSyt(request);
