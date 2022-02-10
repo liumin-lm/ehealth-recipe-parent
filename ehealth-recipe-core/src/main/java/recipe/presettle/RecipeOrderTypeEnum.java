@@ -21,7 +21,7 @@ public enum RecipeOrderTypeEnum {
     /**
      * 主要是杭州互联网会用到，预结算在平台预结算，结算由卫宁互联网去结算
      */
-    HANGZHOU_MEDICAL(2,"杭州市医保","medicalPreSettleService",""),
+    HANGZHOU_MEDICAL(2,"杭州市医保","HZMedicalPreSettleService",""),
     /**
      * 省医保小程序会用到-但是预结算的节点不同0暂时没放到这里来
      */
