@@ -30,17 +30,6 @@
 
         <dependency>
             <groupId>ngari</groupId>
-            <artifactId>ehealth-pay-api</artifactId>
-            <version>${ehealth-pay-api.version}</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>bcprov-jdk15on</artifactId>
-                    <groupId>org.bouncycastle</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
-            <groupId>ngari</groupId>
             <artifactId>openapi-sdk-java</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>

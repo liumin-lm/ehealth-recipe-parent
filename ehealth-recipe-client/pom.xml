@@ -131,6 +131,11 @@
             <artifactId>ehealth-infra-api</artifactId>
             <version>${ngari.infra.version}</version>
         </dependency>
+        <dependency>
+            <groupId>ngari</groupId>
+            <artifactId>ehealth-pay-api</artifactId>
+            <version>${ngari.pay.version}</version>
+        </dependency>
 
 
         <dependency>
