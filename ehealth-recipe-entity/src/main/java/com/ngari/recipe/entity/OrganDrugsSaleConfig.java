@@ -60,9 +60,6 @@ public class OrganDrugsSaleConfig implements Serializable {
     @ItemProperty(alias = "医保患者特殊提示")
     private String specialTips;
 
-    @ItemProperty(alias = "退货是否需要重新审核 0需要重申 1不需要")
-    private Integer returnGoodsReview;
-
     @ItemProperty(alias = "创建时间")
     private Date createTime;
 
@@ -177,15 +174,6 @@ public class OrganDrugsSaleConfig implements Serializable {
 
     public void setSpecialTips(String specialTips) {
         this.specialTips = specialTips;
-    }
-
-    @Column(name = "return_goods_review")
-    public Integer getReturnGoodsReview() {
-        return returnGoodsReview;
-    }
-
-    public void setReturnGoodsReview(Integer returnGoodsReview) {
-        this.returnGoodsReview = returnGoodsReview;
     }
 
     @Column(name = "create_time")
