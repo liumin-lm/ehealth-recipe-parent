@@ -61,7 +61,7 @@ public class RecipeManager extends BaseManager {
     @Autowired
     private ConsultClient consultClient;
     @Autowired
-    private RecipeDetailDAO recipeDetailDAO;
+    private EnterpriseManager enterpriseManager;
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
@@ -259,11 +259,11 @@ public class RecipeManager extends BaseManager {
      * @param recipeExtend 处方扩展信息
      * @return 取药凭证
      */
-    public String getToHosProof(Recipe recipe, RecipeExtend recipeExtend) {
+    public String getToHosProof(Recipe recipe, RecipeExtend recipeExtend, RecipeOrder order) {
         String qrName = "";
         try {
-            Integer qrTypeForRecipe = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "getQrTypeForRecipe", 1);
-            RecipeShowQrConfigEnum qrConfigEnum = RecipeShowQrConfigEnum.getEnumByType(qrTypeForRecipe);
+            OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId());
+            RecipeShowQrConfigEnum qrConfigEnum = RecipeShowQrConfigEnum.getEnumByType(organDrugsSaleConfig.getTakeDrugsVoucher());
             switch (qrConfigEnum) {
                 case CARD_NO:
                     //就诊卡号
@@ -381,6 +381,7 @@ public class RecipeManager extends BaseManager {
         updateRecipeExt.setMedicalTypeText(recipeExtendResult.getMedicalTypeText());
         updateRecipeExt.setRecipeCostNumber(recipeExtendResult.getRecipeCostNumber());
         updateRecipeExt.setHisDiseaseSerial(recipeExtendResult.getHisDiseaseSerial());
+        updateRecipeExt.setMedicalRecordNumber(recipeExtendResult.getMedicalRecordNumber());
         recipeExtendDAO.updateNonNullFieldByPrimaryKey(updateRecipeExt);
         logger.info("RecipeManager updatePushHisRecipeExt updateRecipeExt:{}.", JSON.toJSONString(updateRecipeExt));
     }

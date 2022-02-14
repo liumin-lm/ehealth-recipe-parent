@@ -23,6 +23,7 @@ import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.service.IDrugsEnterpriseService;
 import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.OrganDrugsSaleConfig;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrderPayFlow;
 import com.ngari.recipe.pay.model.BusBillDateAccountDTO;
@@ -62,10 +63,10 @@ import recipe.client.IConfigurationClient;
 import recipe.client.RevisitClient;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeOrderDAO;
-import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.DepartManager;
+import recipe.manager.EnterpriseManager;
 import recipe.manager.RecipeOrderPayFlowManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
@@ -119,6 +120,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
     private IPatientService iPatientService;
+    @Autowired
+    private EnterpriseManager enterpriseManager;
 
 
     private IConfigurationCenterUtilsService utils = BaseAPI.getService(IConfigurationCenterUtilsService.class);
@@ -349,15 +352,13 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             map.put("payButton", payButton.toString());
 
             // 到院取药是否支持线上支付
-            Boolean supportToHosPayFlag = configurationClient.getValueBooleanCatch(nowRecipeBean.getClinicOrgan(), "supportToHosPayFlag", false);
-            map.put("supportToHosPayFlag", supportToHosPayFlag.toString());
-            if (supportToHosPayFlag) {
+            OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId());
+            Integer takeOneselfPayment = organDrugsSaleConfig.getTakeOneselfPayment();
+            if (new Integer(1).equals(takeOneselfPayment)) {
                 map.put("supportToHosPayFlag", "1");
+                map.put("payTip", "");
             } else {
                 map.put("supportToHosPayFlag", "0");
-            }
-            if (supportToHosPayFlag) {
-                map.put("payTip", "");
             }
             Boolean toSendStationFlag = configurationClient.getValueBooleanCatch(organId, "toSendStationFlag", false);
             if ((PAY_MODE_SEND_HOME.equals(payMode) || PAY_MODE_ONLINE.equals(payMode)) && toSendStationFlag) {
