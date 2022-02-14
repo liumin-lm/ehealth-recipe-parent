@@ -29,7 +29,7 @@ public enum RecipeStateEnum {
     /**
      * 处方子状态:作废
      */
-    SUB_CANCELLATION_DOCTOR(91, "医生未提交删除", ""),
+    SUB_CANCELLATION_DOCTOR(91, "医生撤销", ""),
     SUB_CANCELLATION_AUDIT_NOT_PASS(92, "药师审核未通过", "药师不双签，审核不通过"),
     SUB_CANCELLATION_REFUSE_ORDER(93, "售药方拒绝订单", "已拒发"),
     SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE(94, "患者超时未取药", "患者未取药"),

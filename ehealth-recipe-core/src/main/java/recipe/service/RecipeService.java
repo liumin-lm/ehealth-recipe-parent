@@ -114,6 +114,7 @@ import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugTool.service.DrugToolService;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.type.*;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
@@ -264,6 +265,8 @@ public class RecipeService extends RecipeBaseService {
     private IStockBusinessService stockBusinessService;
     @Resource
     private RecipeDetailDAO recipeDetailDAO;
+    @Autowired
+    private StateManager stateManager;
 
     /**
      * 药师审核不通过
@@ -506,7 +509,7 @@ public class RecipeService extends RecipeBaseService {
         }
 
         boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.DELETE, null);
-
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DELETED, RecipeStateEnum.SUB_DELETED_DOCTOR_NOT_SUBMIT);
         //记录日志
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.DELETE, "删除处方单");
 
