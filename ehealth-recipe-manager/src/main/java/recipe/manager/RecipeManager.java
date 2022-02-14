@@ -62,6 +62,10 @@ public class RecipeManager extends BaseManager {
     private ConsultClient consultClient;
     @Autowired
     private EnterpriseManager enterpriseManager;
+    @Autowired
+    private DrugsEnterpriseDAO drugsEnterpriseDAO;
+    @Autowired
+    private SaleDrugListDAO saleDrugListDAO;
 
     /**
      * 保存处方信息

@@ -287,7 +287,6 @@ public class PayModeToHos implements IPurchaseService {
         DepListBean depListBean = new DepListBean();
 
         // 库存判断
-        // TODO 预留位置 需要his返回取药点
         List<OrganAndDrugsepRelation> relation = organAndDrugsepRelationDAO.getRelationByOrganIdAndGiveMode(dbRecipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
         if (CollectionUtils.isEmpty(relation)) {
             resultBean.setCode(RecipeResultBean.FAIL);
@@ -303,26 +302,23 @@ public class PayModeToHos implements IPurchaseService {
             return resultBean;
         }
         List<Recipedetail> detailList = recipeDetailDAO.findByRecipeId(recipeId);
-        List<DrugsEnterprise> subDepList = new ArrayList<>(drugsEnterprises.size());
-        for (DrugsEnterprise dep : drugsEnterprises) {
-            EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, dep.getId());
-            if (null != enterpriseStock && enterpriseStock.getStock()) {
-                subDepList.add(dep);
-            }
-        }
 
-        if (CollectionUtils.isEmpty(subDepList)) {
-            LOG.warn("findSupportDepList 该处方无法配送. recipeId=[{}]", recipeId);
-            resultBean.setCode(5);
-            resultBean.setMsg("抱歉，没有可选择的药企");
-            return resultBean;
-        }
+        // 调his获取取药点
 
-        LOG.info("findSupportDepList subDepList:{}", JSONUtils.toString(subDepList));
-        depListBean.setSigle(false);
-        if (CollectionUtils.isNotEmpty(subDepList) && subDepList.size() == 1) {
-            depListBean.setSigle(true);
-        }
+
+
+//        if (CollectionUtils.isEmpty(subDepList)) {
+//            LOG.warn("findSupportDepList 该处方无法配送. recipeId=[{}]", recipeId);
+//            resultBean.setCode(5);
+//            resultBean.setMsg("抱歉，没有可选择的药企");
+//            return resultBean;
+//        }
+//
+//        LOG.info("findSupportDepList subDepList:{}", JSONUtils.toString(subDepList));
+//        depListBean.setSigle(false);
+//        if (CollectionUtils.isNotEmpty(subDepList) && subDepList.size() == 1) {
+//            depListBean.setSigle(true);
+//        }
         resultBean.setObject(depListBean);
         LOG.info("findSupportDepList 当前处方{}查询药企列表信息：{}", recipeId, JSONUtils.toString(resultBean));
         return resultBean;
