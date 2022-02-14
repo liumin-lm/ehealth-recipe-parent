@@ -30,7 +30,6 @@ import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.his.recipe.mode.OrganDrugInfoRequestTO;
 import com.ngari.his.recipe.mode.OrganDrugInfoResponseTO;
 import com.ngari.his.recipe.mode.OrganDrugInfoTO;
-import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.model.BussFinishEvent;
@@ -500,7 +499,7 @@ public class RecipeService extends RecipeBaseService {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (null == recipe) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不存在或者已删除");
+            return true;
         }
         if (null == recipe.getStatus() || (recipe.getStatus() > RecipeStatusConstant.UNSIGN) && recipe.getStatus() != RecipeStatusConstant.HIS_FAIL) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不是新处方或者审核失败的处方，不能删除");
