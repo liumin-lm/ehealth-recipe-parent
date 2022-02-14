@@ -555,6 +555,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
     public abstract void updateIntroduceByDepId(@DAOParam("organId") int organId, @DAOParam("inventory") Integer inventory);
 
     /**
+     *
      * 根据drugId查询所有配送药品数量
      * @param drugId  平台药品id
      * @return         药品数量
