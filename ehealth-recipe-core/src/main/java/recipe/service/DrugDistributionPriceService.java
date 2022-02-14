@@ -63,9 +63,6 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
         if (price.getAddrArea() == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "price is addrArea");
         }
-        if (price.getDistributionPrice() == null) {
-            price.setDistributionPrice(new BigDecimal(0));
-        }
         DrugDistributionPriceDAO drugDistributionPriceDAO = DAOFactory.getDAO(DrugDistributionPriceDAO.class);
 
         DrugDistributionPrice oldPrice = drugDistributionPriceDAO.getByEnterpriseIdAndAddrArea(price.getEnterpriseId(), price.getAddrArea());
@@ -109,22 +106,10 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
     public void savePriceList(List<DrugDistributionPriceBean> priceList){
         LOGGER.info("savePriceList input： [{}]", JSONUtils.toString(priceList));
         if(ValidateUtil.notBlankList(priceList)) {
-            //DrugDistributionPriceDAO drugDistributionPriceDAO = DAOFactory.getDAO(DrugDistributionPriceDAO.class);
             HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
                 @Override
                 public void execute(StatelessSession ss) throws Exception {
                     for(DrugDistributionPriceBean priceBean : priceList){
-                       /* drugDistributionPriceDAO.deleteByEnterpriseIdAddr(priceBean.getEnterpriseId(),priceBean.getAddrArea());
-                        StringBuffer logMsg = new StringBuffer();
-                        DrugDistributionPrice price = getBean(priceBean,DrugDistributionPrice.class);
-                        price = drugDistributionPriceDAO.save(price);
-                        logMsg.append(" 新增:").append(price.toString());
-                        try{
-                            com.ngari.opbase.base.service.IBusActionLogService iBusActionLogService1 = AppContextHolder.getBean("opbase.busActionLogService", com.ngari.opbase.base.service.IBusActionLogService.class);
-                            iBusActionLogService1.recordBusinessLogRpcNew("药企配送价格管理", price.getId().toString(), "DrugDistributionPrice", logMsg.toString(), com.ngari.opbase.base.service.IBusActionLogService.defaultSubjectName);
-                        } catch (Exception e) {
-                            LOGGER.error("业务日志记录失败： errorMessage[{}]", e.getMessage(), e);
-                        }*/
                         try {
                             saveOrUpdatePrice(priceBean);
                         } catch (Exception e) {
