@@ -70,7 +70,6 @@ public class BaseManager {
         recipeDTO.setRecipeDetails(recipeDetails);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         recipeDTO.setRecipeExtend(recipeExtend);
-        logger.info("BaseManager getRecipeDTO recipeDTO:{}", JSON.toJSONString(recipeDTO));
         return recipeDTO;
     }
 

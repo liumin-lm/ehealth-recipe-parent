@@ -24,6 +24,9 @@ import recipe.client.OrganClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
+import recipe.dao.OrganDrugListDAO;
+import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeDetailDAO;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.GiveModeEnum;
@@ -325,6 +328,11 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         }
         recipe.setGiveMode(giveMode);
         return this.getStockFlag(recipeIds, recipe, enterpriseId);
+    }
+
+    @Override
+    public OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId) {
+        return enterpriseManager.getOrganDrugsSaleConfig(organId,drugsEnterpriseId);
     }
 
     @Override

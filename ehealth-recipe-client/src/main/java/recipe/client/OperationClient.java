@@ -194,9 +194,6 @@ public class OperationClient extends BaseClient {
         //添加按钮配置项key
         GiveModeShowButtonDTO giveModeShowButtonVO = getGiveModeSettingFromYypt(organId);
         List<GiveModeButtonDTO> giveModeButtonBeans = giveModeShowButtonVO.getGiveModeButtons();
-        if (null == giveModeButtonBeans) {
-            return null;
-        }
         return giveModeButtonBeans;
     }
 
