@@ -87,7 +87,7 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
             if (!oldPrice.getId().equals(price.getId())) {
                 throw new DAOException("price is exist and not this id");
             }
-            BeanUtils.map(price, oldPrice);
+            ObjectCopyUtils.copyProperties(oldPrice, price);
             oldPrice.setLastModify(new Date());
             oldPrice = drugDistributionPriceDAO.update(oldPrice);
             logMsg.append(" 更新：原").append(oldPrice.toString()).append("更新为").append(oldPrice.toString());
@@ -100,6 +100,19 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
             LOGGER.error("业务日志记录失败： errorMessage[{}]", e.getMessage(), e);
         }
         return price;
+    }
+
+    public static void main(String[] args) {
+        DrugDistributionPriceBean price = new DrugDistributionPriceBean();
+        price.setAddrArea("12");
+        price.setEnterpriseId(12);
+        price.setDistributionPrice(null);
+        DrugDistributionPriceBean oldPrice = new DrugDistributionPriceBean();
+        oldPrice.setAddrArea("23");
+        oldPrice.setEnterpriseId(12);
+        oldPrice.setDistributionPrice(new BigDecimal(1.0));
+        ObjectCopyUtils.copyProperties(oldPrice, price);
+        System.out.println(JSONUtils.toString(oldPrice));
     }
 
     @Override
