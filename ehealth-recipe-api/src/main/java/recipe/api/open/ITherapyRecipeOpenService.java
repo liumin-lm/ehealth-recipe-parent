@@ -1,8 +1,11 @@
 package recipe.api.open;
 
 import com.ngari.recipe.recipe.model.RecipeTherapyDTO;
+import com.ngari.recipe.recipe.model.RecipeTherapyOpVO;
+import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
 import recipe.vo.doctor.RecipeTherapyVO;
+import com.ngari.recipe.recipe.model.RecipeTherapyOpQueryVO;
 
 import java.util.List;
 

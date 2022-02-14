@@ -1741,8 +1741,9 @@ public class RecipeServiceSub {
 
 
         //设置订单信息
+        RecipeOrder recipeOrder = null;
         if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
-            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             map.put("recipeOrder", recipeOrder);
         }
         //设置签名图片
@@ -1893,7 +1894,7 @@ public class RecipeServiceSub {
             }
         }
 
-        map.put("qrName", recipeManager.getToHosProof(recipe, recipeExtend));
+        map.put("qrName", recipeManager.getToHosProof(recipe, recipeExtend,recipeOrder));
         if (recipe.getEnterpriseId() != null) {
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
