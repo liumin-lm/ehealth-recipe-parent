@@ -15,7 +15,7 @@ import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.HealthCardService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
-import com.ngari.pay.api.service.bus.IBusPaySettlementFacade;
+//import com.ngari.pay.api.service.bus.IBusPaySettlementFacade;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
@@ -142,10 +142,11 @@ public class HZMedicalPreSettleService implements IRecipePreSettleService {
                     request.setBxh(bxh);
                 }
             }
-            IBusPaySettlementFacade busPaySettlementFacade = AppContextHolder.getBean("pay.iBusPaySettlementFacade", IBusPaySettlementFacade.class);
+            //IBusPaySettlementFacade busPaySettlementFacade = AppContextHolder.getBean("pay.iBusPaySettlementFacade", IBusPaySettlementFacade.class);
 
             LOGGER.info("HZMedicalPreSettleService recipeId={} req={}", recipeId, JSONUtils.toString(request));
-            HisResponseTO<RecipeMedicalPreSettleInfo> hisResult = busPaySettlementFacade.recipeMedicalPreSettleSyt(request);
+            //HisResponseTO<RecipeMedicalPreSettleInfo> hisResult = busPaySettlementFacade.recipeMedicalPreSettleSyt(request);
+            HisResponseTO<RecipeMedicalPreSettleInfo> hisResult = null;
             LOGGER.info("HZMedicalPreSettleService recipeId={} res={}", recipeId, JSONUtils.toString(hisResult));
             if (hisResult != null && "200".equals(hisResult.getMsgCode())) {
                 if (hisResult.getData() != null) {
