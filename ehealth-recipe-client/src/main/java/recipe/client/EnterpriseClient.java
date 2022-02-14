@@ -8,6 +8,8 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.RecipePDFToHisTO;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
+import com.ngari.his.recipe.mode.TakeMedicineByToHos;
+import com.ngari.his.recipe.mode.TakeMedicineByToHosReqDTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
@@ -172,18 +174,26 @@ public class EnterpriseClient extends BaseClient {
     /**
      * 到院取药获取取药点
      * @param organBean 机构信息
-     * @param recipeDetailBean 处方药品详情
+     * @param recipeDetailBeans 处方药品详情
      * @param recipeBean 处方信息
      * @return
      */
-    public List<TakeMedicineByToHos> getTakeMedicineByToHosList(OrganBean organBean, RecipeDetailBean recipeDetailBean,RecipeBean recipeBean) {
+    public List<TakeMedicineByToHos> getTakeMedicineByToHosList(OrganBean organBean, List<RecipeDetailBean> recipeDetailBeans, RecipeBean recipeBean) {
         logger.info("EnterpriseClient getTakeMedicineByToHosList organBean:{},recipeDetailBean:{} recipeBean:{}.", JSONUtils.toString(organBean)
-                , JSONUtils.toString(recipeDetailBean), JSONUtils.toString(recipeBean));
+                , JSONUtils.toString(recipeDetailBeans), JSONUtils.toString(recipeBean));
         try {
+            TakeMedicineByToHosReqDTO takeMedicineByToHosReqDTO = new TakeMedicineByToHosReqDTO();
+            takeMedicineByToHosReqDTO.setOrganBean(organBean);
+            takeMedicineByToHosReqDTO.setRecipeBean(recipeBean);
+            takeMedicineByToHosReqDTO.setRecipeDetailBeans(recipeDetailBeans);
+            HisResponseTO<List<TakeMedicineByToHos>> response = recipeEnterpriseService.getTakeMedicineByToHosList(takeMedicineByToHosReqDTO);
 
-            return null;
+            List<TakeMedicineByToHos> takeMedicineByToHos = getResponse(response);
+            logger.info("EnterpriseClient getTakeMedicineByToHosList takeMedicineByToHos:{}.", JSONUtils.toString(takeMedicineByToHos));
+
+            return takeMedicineByToHos;
         } catch (Exception e) {
-            logger.error("EnterpriseClient getMedicineStationList medicineStationDTOList", e);
+            logger.error("EnterpriseClient getTakeMedicineByToHosList takeMedicineByToHos", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }

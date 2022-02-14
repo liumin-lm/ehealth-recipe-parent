@@ -2,6 +2,7 @@ package recipe.purchase;
 
 import com.google.common.collect.ImmutableMap;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.his.recipe.mode.TakeMedicineByToHos;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeResultBean;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
+import recipe.client.EnterpriseClient;
 import recipe.client.IConfigurationClient;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
@@ -301,25 +303,26 @@ public class PayModeToHos implements IPurchaseService {
             resultBean.setMsg("抱歉，没有可选择的药企");
             return resultBean;
         }
-        List<Recipedetail> detailList = recipeDetailDAO.findByRecipeId(recipeId);
+
 
         // 调his获取取药点
 
+        List<TakeMedicineByToHos> takeMedicineByToHosList = enterpriseManager.getTakeMedicineByToHosList(dbRecipe.getClinicOrgan(), dbRecipe);
 
 
-//        if (CollectionUtils.isEmpty(subDepList)) {
-//            LOG.warn("findSupportDepList 该处方无法配送. recipeId=[{}]", recipeId);
-//            resultBean.setCode(5);
-//            resultBean.setMsg("抱歉，没有可选择的药企");
-//            return resultBean;
-//        }
-//
-//        LOG.info("findSupportDepList subDepList:{}", JSONUtils.toString(subDepList));
-//        depListBean.setSigle(false);
-//        if (CollectionUtils.isNotEmpty(subDepList) && subDepList.size() == 1) {
-//            depListBean.setSigle(true);
-//        }
-        resultBean.setObject(depListBean);
+        if (CollectionUtils.isEmpty(takeMedicineByToHosList)) {
+            LOG.warn("findSupportDepList 该处方无法配送. recipeId=[{}]", recipeId);
+            resultBean.setCode(5);
+            resultBean.setMsg("抱歉，没有可选择的药企");
+            return resultBean;
+        }
+
+        LOG.info("findSupportDepList subDepList:{}", JSONUtils.toString(takeMedicineByToHosList));
+        depListBean.setSigle(false);
+        if (CollectionUtils.isNotEmpty(takeMedicineByToHosList) && takeMedicineByToHosList.size() == 1) {
+            depListBean.setSigle(true);
+        }
+        resultBean.setObject(takeMedicineByToHosList);
         LOG.info("findSupportDepList 当前处方{}查询药企列表信息：{}", recipeId, JSONUtils.toString(resultBean));
         return resultBean;
     }

@@ -9,8 +9,6 @@
         <version>4.2.2.4.master-SNAPSHOT</version>
     </parent>
     <artifactId>ehealth-recipe-parent</artifactId>
-    <version>4.1.1.9.test-SNAPSHOT</version>
-
 
     <packaging>pom</packaging>
     <name>root</name>
