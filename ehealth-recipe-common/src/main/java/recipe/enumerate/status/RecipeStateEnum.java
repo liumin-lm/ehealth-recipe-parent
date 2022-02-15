@@ -17,8 +17,8 @@ public enum RecipeStateEnum {
     PROCESS_STATE_DISTRIBUTION(5, "配送中", ""),
     PROCESS_STATE_MEDICINE(6, "待取药", ""),
     PROCESS_STATE_DONE(7, "已完成", ""),
-    PROCESS_STATE_DELETED(8, "已删除", ""),
-    PROCESS_STATE_CANCELLATION(9, "已作废", ""),
+    PROCESS_STATE_DELETED(8, "已作废", "已删除"),
+    PROCESS_STATE_CANCELLATION(9, "已作废", "已作废"),
 
     /**
      * 处方子状态:删除
