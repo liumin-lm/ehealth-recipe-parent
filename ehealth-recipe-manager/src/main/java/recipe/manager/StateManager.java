@@ -31,8 +31,6 @@ public class StateManager extends BaseManager {
         boolean result;
         switch (processState) {
             case PROCESS_STATE_DELETED:
-                result = this.cancellation(recipe, processState, subState);
-                break;
             case PROCESS_STATE_CANCELLATION:
                 result = this.cancellation(recipe, processState, subState);
                 break;
