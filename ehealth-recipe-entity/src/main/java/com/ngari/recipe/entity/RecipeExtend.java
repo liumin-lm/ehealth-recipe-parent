@@ -162,6 +162,61 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "病历号")
     private String medicalRecordNumber;
 
+    @ItemProperty(alias = "撤销原因")
+    private String cancellation;
+
+    @ItemProperty(alias = "处方来源 0 线下his同步 1 平台处方")
+    private Integer fromFlag;
+
+    @ItemProperty(alias = "开处方页面病种选择开关标识")
+    private Integer recipeChooseChronicDisease;
+    @ItemProperty(alias = "病种标识")
+    @Dictionary(id = "eh.cdr.dictionary.ChronicDiseaseFlag")
+    private String chronicDiseaseFlag;
+    @ItemProperty(alias = "病种代码")
+    private String chronicDiseaseCode;
+    @ItemProperty(alias = "病种名称")
+    private String chronicDiseaseName;
+    @ItemProperty(alias = "并发症")
+    private String complication;
+
+    @ItemProperty(alias = "电子票号")
+    private String einvoiceNumber;
+
+    @ItemProperty(alias = "电子处方监管平台流水号")
+    private String superviseRecipecode;
+
+    @ItemProperty(alias = "监管人姓名")
+    private String guardianName;
+
+    @Desensitizations(type = DesensitizationsType.IDCARD)
+    @ItemProperty(alias = "监管人证件号")
+    private String guardianCertificate;
+
+    @Desensitizations(type = DesensitizationsType.MOBILE)
+    @ItemProperty(alias = "监管人手机号")
+    private String guardianMobile;
+
+    @ItemProperty(alias = "his处方付费序号合集")
+    private String recipeCostNumber;
+
+    /**
+     * 处方退费当前节点状态。0-待审核；1-审核通过，退款成功；2-审核通过，退款失败；3-审核不通过
+     */
+    @ItemProperty(alias = "处方退费当前节点状态")
+    @Dictionary(id = "eh.cdr.dictionary.RecipeRefundNodeStatus")
+    private Integer refundNodeStatus;
+
+
+    @Column(name = "cancellation")
+    public String getCancellation() {
+        return cancellation;
+    }
+
+    public void setCancellation(String cancellation) {
+        this.cancellation = cancellation;
+    }
+
     @Column(name = "appoint_enterprise_type")
     public Integer getAppointEnterpriseType() {
         return appointEnterpriseType;
@@ -229,49 +284,6 @@ public class RecipeExtend implements Serializable {
     public void setDeliveryRecipeFee(String deliveryRecipeFee) {
         this.deliveryRecipeFee = deliveryRecipeFee;
     }
-
-    @ItemProperty(alias = "处方来源 0 线下his同步 1 平台处方")
-    private Integer fromFlag;
-
-    @ItemProperty(alias = "开处方页面病种选择开关标识")
-    private Integer recipeChooseChronicDisease;
-    @ItemProperty(alias = "病种标识")
-    @Dictionary(id = "eh.cdr.dictionary.ChronicDiseaseFlag")
-    private String chronicDiseaseFlag;
-    @ItemProperty(alias = "病种代码")
-    private String chronicDiseaseCode;
-    @ItemProperty(alias = "病种名称")
-    private String chronicDiseaseName;
-    @ItemProperty(alias = "并发症")
-    private String complication;
-
-    @ItemProperty(alias = "电子票号")
-    private String einvoiceNumber;
-
-    @ItemProperty(alias = "电子处方监管平台流水号")
-    private String superviseRecipecode;
-
-    @ItemProperty(alias = "监管人姓名")
-    private String guardianName;
-
-    @Desensitizations(type = DesensitizationsType.IDCARD)
-    @ItemProperty(alias = "监管人证件号")
-    private String guardianCertificate;
-
-    @Desensitizations(type = DesensitizationsType.MOBILE)
-    @ItemProperty(alias = "监管人手机号")
-    private String guardianMobile;
-
-    @ItemProperty(alias = "his处方付费序号合集")
-    private String recipeCostNumber;
-
-    /**
-     * 处方退费当前节点状态。0-待审核；1-审核通过，退款成功；2-审核通过，退款失败；3-审核不通过
-     */
-    @ItemProperty(alias = "处方退费当前节点状态")
-    @Dictionary(id = "eh.cdr.dictionary.RecipeRefundNodeStatus")
-    private Integer refundNodeStatus;
-
 
     @Column(name = "recipeCostNumber")
     public String getRecipeCostNumber() {

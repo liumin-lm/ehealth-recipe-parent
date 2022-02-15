@@ -540,15 +540,18 @@ public class OperationPlatformRecipeService {
         if (CollectionUtils.isNotEmpty(recipeRefundDAO.findRefundListByRecipeId(recipeId))) {
             cancelReason = "由于患者申请退费成功，该处方已取消。";
         } else {
-
-            RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
-            List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.REVOKE);
-
-            if (CollectionUtils.isNotEmpty(recipeLogs)) {
-                cancelReason = "开方医生已撤销处方,撤销原因:" + recipeLogs.get(0).getMemo();
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            if (StringUtils.isNotEmpty(recipeExtend.getCancellation())) {
+                cancelReason = "开方医生已撤销处方,撤销原因:" + recipeExtend.getCancellation();
+            } else {
+                RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+                List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipeId, RecipeStatusConstant.REVOKE);
+                if (CollectionUtils.isNotEmpty(recipeLogs)) {
+                    cancelReason = "开方医生已撤销处方,撤销原因:" + recipeLogs.get(0).getMemo();
+                }
             }
         }
-
         return cancelReason;
     }
 

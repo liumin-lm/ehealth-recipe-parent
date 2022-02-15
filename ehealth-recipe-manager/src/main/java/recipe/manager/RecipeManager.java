@@ -9,7 +9,6 @@ import com.ngari.platform.recipe.mode.RecipeDetailBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
-import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import eh.base.constant.ErrorCode;
@@ -23,8 +22,6 @@ import recipe.common.CommonConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeLogDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
@@ -316,7 +313,11 @@ public class RecipeManager extends BaseManager {
         RecipeCancelDTO recipeCancel = new RecipeCancelDTO();
         String cancelReason = "";
         Date cancelDate = null;
-        RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (StringUtils.isNotEmpty(recipeExtend.getCancellation())) {
+            recipeCancel.setCancelReason(recipeExtend.getCancellation());
+            return recipeCancel;
+        }
         List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipeId, RecipeStatusConstant.REVOKE);
         if (CollectionUtils.isNotEmpty(recipeLogs)) {
             cancelReason = recipeLogs.get(0).getMemo();

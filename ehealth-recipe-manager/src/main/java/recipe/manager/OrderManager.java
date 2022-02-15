@@ -285,7 +285,7 @@ public class OrderManager extends BaseManager {
             return "成功";
         }
         if (!configurationClient.isHisEnable(recipe.getClinicOrgan())) {
-            recipeLogDao.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "recipeRefund[RecipeRefundService] HIS未启用");
+            recipeLogDAO.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "recipeRefund[RecipeRefundService] HIS未启用");
             logger.warn("recipeRefund 医院HIS未启用[organId:" + recipe.getClinicOrgan() + ",recipeId:" + recipe.getRecipeId() + "]");
             return "成功";
         }
@@ -293,7 +293,7 @@ public class OrderManager extends BaseManager {
         com.ngari.recipe.dto.PatientDTO patientBean = patientClient.getPatientDTO(recipe.getMpiid());
         HealthCardBean cardBean = patientClient.getCardBean(recipe.getMpiid(), recipe.getClinicOrgan());
         String backInfo = refundClient.recipeRefund(recipe, details, patientBean, cardBean);
-        recipeLogDao.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeStatusEnum.NONE.getType(), "同步HIS退款返回：" + backInfo);
+        recipeLogDAO.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), RecipeStatusEnum.NONE.getType(), "同步HIS退款返回：" + backInfo);
         return backInfo;
     }
 

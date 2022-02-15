@@ -36,6 +36,12 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
         return iRevisitBusinessService.findWriteDrugRecipeByRevisitFromHis(mpiId, organId, doctorId);
     }
 
+    /**
+     * 医生二次确认药师审核结果
+     *
+     * @param recipeId 处方id
+     * @return
+     */
     @RpcService
     public Boolean confirmAgain(Integer recipeId) {
         return recipeBusinessService.confirmAgain(recipeId);

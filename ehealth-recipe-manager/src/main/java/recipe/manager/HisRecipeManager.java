@@ -1,6 +1,5 @@
 package recipe.manager;
 
-import com.alibaba.druid.sql.visitor.functions.Now;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
@@ -10,7 +9,6 @@ import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
-import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -349,7 +347,7 @@ public class HisRecipeManager extends BaseManager {
             recipeLog.setBeforeStatus(recipeMap.get(a).getStatus());
             recipeLog.setAfterStatus(RecipeStatusEnum.RECIPE_STATUS_DELETE.getType());
             recipeLog.setMemo("线下转线上：修改处方状态为已删除,数据是：" + JSONUtils.toString(recipeMap.get(a)));
-            recipeLogDao.saveRecipeLog(recipeLog);
+            recipeLogDAO.saveRecipeLog(recipeLog);
             revisitClient.deleteByBusIdAndBusNumOrder(a);
         });
         LOGGER.info("HisRecipeManager deleteSetRecipeCode is delete end ");
