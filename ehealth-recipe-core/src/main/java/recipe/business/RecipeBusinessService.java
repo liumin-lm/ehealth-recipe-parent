@@ -41,6 +41,7 @@ import recipe.client.RevisitClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.*;
+import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.BussSourceTypeEnum;
@@ -366,8 +367,13 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public Boolean confirmAgain(Integer recipeId) {
-        // stateManager.updateAuditState(recipeId, 6);
+        stateManager.updateAuditState(recipeId, RecipeAuditStateEnum.FAIL);
         return stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
+    }
+
+    @Override
+    public Boolean updateAuditState(Integer recipeId, RecipeAuditStateEnum recipeAuditStateEnum) {
+        return stateManager.updateAuditState(recipeId, recipeAuditStateEnum);
     }
 
 

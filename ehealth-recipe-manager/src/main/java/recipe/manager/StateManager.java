@@ -6,12 +6,13 @@ import ctd.persistence.exception.DAOException;
 import eh.base.constant.ErrorCode;
 import org.springframework.stereotype.Service;
 import recipe.enumerate.status.OrderStateEnum;
+import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 
 import static recipe.enumerate.status.RecipeStateEnum.SUB_CANCELLATION_DOCTOR;
 
 /**
- * 状态处理通用类：处方状态 ，订单状态，
+ * 状态处理通用类：处方状态 ，订单状态，审方状态
  *
  * @author fuzi
  */
@@ -70,10 +71,18 @@ public class StateManager extends BaseManager {
         return result;
     }
 
+    public Boolean updateAuditState(Integer recipeId, RecipeAuditStateEnum state) {
+        Recipe updateRecipe = new Recipe();
+        updateRecipe.setRecipeId(recipeId);
+        updateRecipe.setAuditState(state.getType());
+        recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+        return true;
+    }
+
     /**
      * 作废订单
      *
-     * @param order       订单信息
+     * @param order        订单信息
      * @param processState 父状态枚举
      * @param subState     子状态枚举
      * @return

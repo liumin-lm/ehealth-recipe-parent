@@ -93,4 +93,14 @@ public interface IRecipeAtopService {
      */
     @RpcService(mvcDisabled = true)
     void offlineToOnlineForRecipe(FindHisRecipeDetailReqVO request);
+
+    /**
+     * 修改审方状态
+     *
+     * @param recipeId
+     * @param state
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    Boolean updateAuditState(Integer recipeId, Integer state);
 }
