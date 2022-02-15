@@ -318,8 +318,6 @@ public class Recipe implements Serializable {
     private Integer processState;
     @ItemProperty(alias = "处方子状态")
     private Integer subState;
-    @ItemProperty(alias = "处方子状态文本")
-    private String subStateText;
 
     @Column(name = "process_state")
     public Integer getProcessState() {
@@ -337,15 +335,6 @@ public class Recipe implements Serializable {
 
     public void setSubState(Integer subState) {
         this.subState = subState;
-    }
-
-    @Column(name = "sub_state_text")
-    public String getSubStateText() {
-        return subStateText;
-    }
-
-    public void setSubStateText(String subStateText) {
-        this.subStateText = subStateText;
     }
 
     @Column(name = "recipeSupportGiveMode")
