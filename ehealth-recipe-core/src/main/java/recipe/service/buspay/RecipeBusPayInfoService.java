@@ -451,13 +451,19 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             } else {
                 // 杭州互联网走自费也给卡号
                 simpleBusObject.setSettleType("1");
-                OrganService organService = BasicAPI.getService(OrganService.class);
-                OrganDTO organDTO = organService.getByManageUnit("eh3301");
-                List<HealthCardDTO> list = healthCardService.findByCardOrganAndMpiId(organDTO.getOrganId(), order.getMpiId());
-                if (CollectionUtils.isNotEmpty(list)) {
-                    simpleBusObject.setMrn(list.get(0).getCardId());
-                }else {
-                    simpleBusObject.setMrn("-1");
+                try {
+                    OrganService organService = BasicAPI.getService(OrganService.class);
+                    OrganDTO organDTO = organService.getByManageUnit("eh3301");
+                    if (organDTO != null) {
+                        List<HealthCardDTO> list = healthCardService.findByCardOrganAndMpiId(organDTO.getOrganId(), order.getMpiId());
+                        if (CollectionUtils.isNotEmpty(list)) {
+                            simpleBusObject.setMrn(list.get(0).getCardId());
+                        } else {
+                            simpleBusObject.setMrn("-1");
+                        }
+                    }
+                } catch (Exception e) {
+                    log.info("获取健康卡错误", e);
                 }
             }
 
@@ -476,7 +482,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 }
                 simpleBusObject.setActualPrice(new Double(BigDecimal.valueOf(order.getActualPrice()).subtract(otherFee) + ""));
 
-                // 0自费 1医保
+                // 1自费 0医保
                 if (Objects.isNull(recipeBean.getClinicId())) {
                     simpleBusObject.setSettleType("0");
                 } else {
