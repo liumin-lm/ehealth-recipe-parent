@@ -1969,13 +1969,14 @@ public class RecipeListService extends RecipeBaseService {
                 if (RecipeStatusConstant.CHECK_NOT_PASS_YS == recipe.getStatus()) {
                     effective = orderDAO.isEffectiveOrder(recipe.getOrderCode());
                 }
-                //Map<String, String> tipMap = RecipeServiceSub.getTipsByStatus(recipe.getStatus(), recipe, effective);
-                //date 20190929
                 //修改医生端状态文案显示
                 Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, effective, (orderStatus == null || 0 >= orderStatus.size()) ? null : orderStatus.get(recipe.getOrderCode()));
 
                 recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
-                recipeMap.put(recipe.getRecipeId(), convertRecipeForRAP(recipe));
+                RecipeBean recipeBean = convertRecipeForRAP(recipe);
+                List<HisRecipeDetailBean> detailData = ObjectCopyUtils.convert(recipedetails, HisRecipeDetailBean.class);
+                recipeBean.setDetailData(detailData);
+                recipeMap.put(recipe.getRecipeId(), recipeBean);
             }
 
             Map<String, PatientVO> patientMap = Maps.newHashMap();

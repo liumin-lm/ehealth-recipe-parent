@@ -1414,6 +1414,9 @@ public class RecipeServiceSub {
         r.setRecipeCode(recipe.getRecipeCode());
         r.setClinicOrgan(recipe.getClinicOrgan());
         r.setPayFlag(recipe.getPayFlag());
+        r.setProcessState(recipe.getProcessState());
+        r.setSubState(recipe.getSubState());
+        r.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
         return r;
     }
 
@@ -1432,6 +1435,9 @@ public class RecipeServiceSub {
         r.setClinicOrgan(recipe.getClinicOrgan());
         r.setPayFlag(recipe.getPayFlag());
         r.setDetailData(recipeDetailBeans);
+        r.setProcessState(recipe.getProcessState());
+        r.setSubState(recipe.getSubState());
+        r.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
         return r;
     }
 
@@ -1445,15 +1451,11 @@ public class RecipeServiceSub {
     }
 
     public static RecipeBean convertHisRecipeForRAP(HisRecipeBean recipe) {
-        RecipeBean r = new RecipeBean();
-        r = ObjectCopyUtils.convert(recipe, RecipeBean.class);
-
-//        r.setRecipeId(recipe.ge);
+        RecipeBean r = ObjectCopyUtils.convert(recipe, RecipeBean.class);
         if (StringUtils.isNotEmpty(recipe.getSignDate())) {
             r.setCreateDate(Timestamp.valueOf(recipe.getSignDate()));
         }
         r.setRecipeType(StringUtils.isEmpty(recipe.getRecipeType()) ? null : Integer.parseInt(recipe.getRecipeType()));
-//        r.setStatus(recipe.getStatus());
         r.setOrganDiseaseName(recipe.getOrganDiseaseName());
         LOGGER.info("RecipeServiceSub convertHisRecipeForRAP recipe:{}.", JSONUtils.toString(recipe));
         if (StringUtils.isNotEmpty(recipe.getDetailData().get(0).getDrugDisplaySplicedName())) {
