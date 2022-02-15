@@ -84,6 +84,7 @@ import recipe.common.CommonConstant;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.AldyfRemoteService;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -163,6 +164,8 @@ public class RecipeServiceSub {
     private static IRevisitExService iRevisitExService = AppContextHolder.getBean("revisit.revisitExService", IRevisitExService.class);
 
     private static IConsultExService iConsultExService = AppContextHolder.getBean("consult.consultExService", IConsultExService.class);
+
+    private static StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
 
     /**
      * @param recipeBean
@@ -2805,6 +2808,7 @@ public class RecipeServiceSub {
                 change.put("chooseFlag", 1);
             }
             orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
+            stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_DOCTOR_REPEAL);
         }
         //撤销处方
         change.put("checkFlag", null);
