@@ -26,10 +26,7 @@ import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.his.ca.model.CaSealRequestTO;
-import com.ngari.his.recipe.mode.DrugInfoTO;
-import com.ngari.his.recipe.mode.OrganDrugInfoRequestTO;
-import com.ngari.his.recipe.mode.OrganDrugInfoResponseTO;
-import com.ngari.his.recipe.mode.OrganDrugInfoTO;
+import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.model.BussFinishEvent;
@@ -267,6 +264,8 @@ public class RecipeService extends RecipeBaseService {
     private RecipeDetailDAO recipeDetailDAO;
     @Autowired
     private StateManager stateManager;
+    @Autowired
+    private EnterpriseManager enterpriseManager;
 
     /**
      * 药师审核不通过
@@ -2356,7 +2355,7 @@ public class RecipeService extends RecipeBaseService {
     public Map<String, Object> findRecipeAndDetailById(int recipeId) {
         LOGGER.info("findRecipeAndDetailById recipeId = {}", recipeId);
         try {
-            Map<String, Object> result = getRecipeAndDetailByIdImpl(recipeId, true,null);
+            Map<String, Object> result = getRecipeAndDetailByIdImpl(recipeId, true, null);
             // 智能预审临时操作 bug 79725 【实施】【嘉定区中心医院】【B】【BUG】自动审方结果跟问题说明产生矛盾
 //            result.remove("medicines");
             PatientDTO patient = (PatientDTO) result.get("patient");
@@ -3920,7 +3919,7 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public Map<String, Object> getPatientRecipeById(int recipeId) {
         checkUserHasPermission(recipeId);
-        Map<String, Object> result = getRecipeAndDetailByIdImpl(recipeId, false,null);
+        Map<String, Object> result = getRecipeAndDetailByIdImpl(recipeId, false, null);
         PatientDTO patient = (PatientDTO) result.get("patient");
         result.put("patient", ObjectCopyUtils.convert(patient, PatientDS.class));
         return result;
@@ -3933,7 +3932,7 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     public Map<String, Object> getPatientRecipeByIdForOfflineRecipe(int recipeId) {
-        Map<String, Object> result = getRecipeAndDetailByIdImpl(recipeId, false,null);
+        Map<String, Object> result = getRecipeAndDetailByIdImpl(recipeId, false, null);
         PatientDTO patient = (PatientDTO) result.get("patient");
         result.put("patient", ObjectCopyUtils.convert(patient, PatientDS.class));
         return result;
@@ -3953,7 +3952,7 @@ public class RecipeService extends RecipeBaseService {
         if (CollectionUtils.isNotEmpty(recipeIds)) {
             List<Map<String, Object>> recipeInfos = new ArrayList<>(recipeIds.size());
             for (Integer recipeId : recipeIds) {
-                recipeInfos.add(getRecipeAndDetailByIdImpl(recipeId, false,null));
+                recipeInfos.add(getRecipeAndDetailByIdImpl(recipeId, false, null));
             }
             LOGGER.info("findPatientRecipesByIds response:{}", JSONUtils.toString(recipeInfos));
             return recipeInfos;
@@ -3973,12 +3972,12 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     public List<Map<String, Object>> findPatientRecipesByIdsAndDepId(Integer ext, List<Integer> recipeIds, Integer depId) {
         Collections.sort(recipeIds, Collections.reverseOrder());
-        LOGGER.info("findPatientRecipesByIdsAndDepId recipeIds:{} depId:{}", JSONUtils.toString(recipeIds),depId);
+        LOGGER.info("findPatientRecipesByIdsAndDepId recipeIds:{} depId:{}", JSONUtils.toString(recipeIds), depId);
         //把处方对象返回给前端--合并处方--原确认订单页面的处方详情是通过getPatientRecipeById获取的
         if (CollectionUtils.isNotEmpty(recipeIds)) {
             List<Map<String, Object>> recipeInfos = new ArrayList<>(recipeIds.size());
             for (Integer recipeId : recipeIds) {
-                recipeInfos.add(getRecipeAndDetailByIdImpl(recipeId, false,depId));
+                recipeInfos.add(getRecipeAndDetailByIdImpl(recipeId, false, depId));
             }
             LOGGER.info("findPatientRecipesByIdsAndDepId response:{}", JSONUtils.toString(recipeInfos));
             return recipeInfos;
@@ -6307,6 +6306,10 @@ public class RecipeService extends RecipeBaseService {
         } else if ("7".equals(type)) {
             //前置pdf测试
             AbstractCaProcessType.getCaProcessFactory(recipe.getClinicOrgan()).hisCallBackCARecipeFunction(recipeId);
+        } else if ("8".equals(type)) {
+            //获取患者附近药房
+            List<TakeMedicineByToHos> takeMedicineByToHosList = enterpriseManager.getTakeMedicineByToHosList(recipe.getClinicOrgan(), recipe);
+            LOGGER.info(JSONUtils.toString(takeMedicineByToHosList));
         } else {
             Object isDefaultGiveModeToHos = configService.getConfiguration(recipe.getClinicOrgan(), "isDefaultGiveModeToHos");
             LOGGER.info("setGiveMode isDefaultGiveModeToHos：{} ", isDefaultGiveModeToHos);
