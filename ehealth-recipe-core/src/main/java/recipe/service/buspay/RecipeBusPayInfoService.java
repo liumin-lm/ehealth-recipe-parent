@@ -376,6 +376,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     @Override
     @RpcService
     public SimpleBusObject getSimpleBusObject(Integer busId) {
+        log.info("getSimpleBusObject busId:{}.", JSONUtils.toString(busId));
         RecipeOrderBean order = recipeOrderService.get(busId);
         SimpleBusObject simpleBusObject = new SimpleBusObject();
         simpleBusObject.setSubBusType("8");
