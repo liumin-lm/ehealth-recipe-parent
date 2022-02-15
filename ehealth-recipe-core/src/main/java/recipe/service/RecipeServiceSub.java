@@ -252,6 +252,7 @@ public class RecipeServiceSub {
                         recipeExtend.setCardNo(revisitExDTO.getCardId());
                         recipeExtend.setCardType(revisitExDTO.getCardType());
                         recipeExtend.setRegisterID(revisitExDTO.getRegisterNo());
+                        recipeExtend.setWeight(revisitExDTO.getWeight());
                     }
                 } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipeBean.getBussSource())) {
                     ConsultExDTO consultExDTO = iConsultExService.getByConsultId(recipeBean.getClinicId());
@@ -260,6 +261,7 @@ public class RecipeServiceSub {
                         recipeExtend.setCardNo(consultExDTO.getCardId());
                         recipeExtend.setCardType(consultExDTO.getCardType());
                         recipeExtend.setRegisterID(consultExDTO.getRegisterNo());
+                        recipeExtend.setWeight(consultExDTO.getWeight());
                     }
                 }
             }
