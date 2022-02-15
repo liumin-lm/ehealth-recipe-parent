@@ -111,6 +111,7 @@ import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugTool.service.DrugToolService;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
+import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.type.*;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -2156,6 +2157,7 @@ public class RecipeService extends RecipeBaseService {
             auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckPassYs(dbRecipe);
         }
         docIndexClient.updateStatusByBussIdBussType(recipe.getRecipeId(), DocIndexShowEnum.SHOW.getCode());
+        stateManager.updateAuditState(recipe.getRecipeId(), RecipeAuditStateEnum.DOC_FORCED_PASS);
         LOGGER.info("RecipeService doSecondSignRecipe  execute ok!  recipeId ： {} ", recipe.getRecipeId());
         return resultBean;
     }

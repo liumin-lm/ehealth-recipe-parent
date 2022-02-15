@@ -68,6 +68,7 @@ public class StateManager extends BaseManager {
                 break;
         }
         saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), subState.getName());
+        logger.info("StateManager updateRecipeState recipeId ={} ", recipeId);
         return result;
     }
 
