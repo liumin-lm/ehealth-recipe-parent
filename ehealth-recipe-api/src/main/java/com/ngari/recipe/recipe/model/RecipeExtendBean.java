@@ -193,6 +193,9 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "处方标识 0:普通处方 1:儿童处方")
     private Integer recipeFlag;
 
+    @ItemProperty(alias = "撤销原因")
+    private String cancellation;
+
     public Integer getAppointEnterpriseType() {
         return appointEnterpriseType;
     }
@@ -699,5 +702,13 @@ public class RecipeExtendBean implements Serializable {
 
     public void setRecipeFlag(Integer recipeFlag) {
         this.recipeFlag = recipeFlag;
+    }
+
+    public String getCancellation() {
+        return cancellation;
+    }
+
+    public void setCancellation(String cancellation) {
+        this.cancellation = cancellation;
     }
 }
