@@ -1,20 +1,49 @@
 package recipe.manager;
 
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.exception.DAOException;
 import eh.base.constant.ErrorCode;
 import org.springframework.stereotype.Service;
+import recipe.enumerate.status.OrderStateEnum;
+import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 
 import static recipe.enumerate.status.RecipeStateEnum.SUB_CANCELLATION_DOCTOR;
 
 /**
- * 状态处理通用类：处方状态 ，订单状态，
+ * 状态处理通用类：处方状态 ，订单状态，审方状态
  *
  * @author fuzi
  */
 @Service
 public class StateManager extends BaseManager {
+
+    /**
+     * 修改订单状态
+     *
+     * @param orderId     订单id
+     * @param processState 父状态枚举
+     * @param subState     子状态枚举
+     * @return
+     */
+    public Boolean updateOrderState(Integer orderId, OrderStateEnum processState, OrderStateEnum subState) {
+        RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
+        if (null == recipeOrder) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "该订单不存在");
+        }
+        boolean result;
+        switch (processState) {
+            case PROCESS_STATE_CANCELLATION:
+                result = this.cancelOrder(recipeOrder, processState, subState);
+                break;
+            default:
+                result = false;
+                break;
+        }
+        return result;
+    }
+
     /**
      * 修改处方状态
      *
@@ -40,6 +69,28 @@ public class StateManager extends BaseManager {
         }
         saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), subState.getName());
         return result;
+    }
+
+    public Boolean updateAuditState(Integer recipeId, RecipeAuditStateEnum state) {
+        Recipe updateRecipe = new Recipe();
+        updateRecipe.setRecipeId(recipeId);
+        updateRecipe.setAuditState(state.getType());
+        recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+        return true;
+    }
+
+    /**
+     * 作废订单
+     *
+     * @param order        订单信息
+     * @param processState 父状态枚举
+     * @param subState     子状态枚举
+     * @return
+     */
+    private Boolean cancelOrder(RecipeOrder order, OrderStateEnum processState, OrderStateEnum subState) {
+        RecipeOrder updateOrder = new RecipeOrder(order.getOrderId(),processState.getType(),subState.getType());
+        recipeOrderDAO.updateNonNullFieldByPrimaryKey(updateOrder);
+        return true;
     }
 
     /**
