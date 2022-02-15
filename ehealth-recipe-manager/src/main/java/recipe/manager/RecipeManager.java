@@ -200,6 +200,8 @@ public class RecipeManager extends BaseManager {
         BeanUtils.copyProperties(recipeDTO, recipeInfoDTO);
         Recipe recipe = recipeInfoDTO.getRecipe();
         PatientDTO patientBean = patientClient.getPatientEncipher(recipe.getMpiid());
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        patientBean.setWeight(String.valueOf(recipeExtend.getWeight()));
         recipeInfoDTO.setPatientBean(patientBean);
         logger.info("RecipeOrderManager getRecipeInfoDTO patientBean:{}", JSON.toJSONString(patientBean));
         return recipeInfoDTO;

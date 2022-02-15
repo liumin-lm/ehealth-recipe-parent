@@ -200,6 +200,9 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "his处方付费序号合集")
     private String recipeCostNumber;
 
+    @ItemProperty(alias = "就诊人体重")
+    private Double weight;
+
     /**
      * 处方退费当前节点状态。0-待审核；1-审核通过，退款成功；2-审核通过，退款失败；3-审核不通过
      */
@@ -803,5 +806,14 @@ public class RecipeExtend implements Serializable {
 
     public void setMedicalRecordNumber(String medicalRecordNumber) {
         this.medicalRecordNumber = medicalRecordNumber;
+    }
+
+    @Column(name = "weight")
+    public Double getWeight() {
+        return weight;
+    }
+
+    public void setWeight(Double weight) {
+        this.weight = weight;
     }
 }
