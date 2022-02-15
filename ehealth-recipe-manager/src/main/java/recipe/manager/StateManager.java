@@ -29,10 +29,10 @@ public class StateManager extends BaseManager {
         boolean result;
         switch (processState) {
             case PROCESS_STATE_DELETED:
-                result = cancellation(recipe, processState, subState);
+                result = this.cancellation(recipe, processState, subState);
                 break;
             case PROCESS_STATE_CANCELLATION:
-                result = cancellation(recipe, processState, subState);
+                result = this.cancellation(recipe, processState, subState);
                 break;
             default:
                 result = false;
@@ -58,7 +58,6 @@ public class StateManager extends BaseManager {
         updateRecipe.setRecipeId(recipe.getRecipeId());
         updateRecipe.setProcessState(processState.getType());
         updateRecipe.setSubState(subState.getType());
-        updateRecipe.setSubStateText(subState.getName());
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
         return true;
     }
