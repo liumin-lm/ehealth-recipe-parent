@@ -185,7 +185,8 @@ public class RecipeServiceSub {
         List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
 
         setRecipeMoreInfo(recipe, details, recipeBean, flag);
-
+        // 保存接方状态
+        recipe.setSupportMode(this.getSupportMode(recipe.getOriginClinicOrgan()));
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
         recipe.setRecipeId(recipeId);
         PatientDTO patient = patientService.get(recipe.getMpiid());
@@ -1414,6 +1415,9 @@ public class RecipeServiceSub {
         r.setRecipeCode(recipe.getRecipeCode());
         r.setClinicOrgan(recipe.getClinicOrgan());
         r.setPayFlag(recipe.getPayFlag());
+        r.setProcessState(recipe.getProcessState());
+        r.setSubState(recipe.getSubState());
+        r.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
         return r;
     }
 
@@ -1432,6 +1436,9 @@ public class RecipeServiceSub {
         r.setClinicOrgan(recipe.getClinicOrgan());
         r.setPayFlag(recipe.getPayFlag());
         r.setDetailData(recipeDetailBeans);
+        r.setProcessState(recipe.getProcessState());
+        r.setSubState(recipe.getSubState());
+        r.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
         return r;
     }
 
@@ -1445,15 +1452,11 @@ public class RecipeServiceSub {
     }
 
     public static RecipeBean convertHisRecipeForRAP(HisRecipeBean recipe) {
-        RecipeBean r = new RecipeBean();
-        r = ObjectCopyUtils.convert(recipe, RecipeBean.class);
-
-//        r.setRecipeId(recipe.ge);
+        RecipeBean r = ObjectCopyUtils.convert(recipe, RecipeBean.class);
         if (StringUtils.isNotEmpty(recipe.getSignDate())) {
             r.setCreateDate(Timestamp.valueOf(recipe.getSignDate()));
         }
         r.setRecipeType(StringUtils.isEmpty(recipe.getRecipeType()) ? null : Integer.parseInt(recipe.getRecipeType()));
-//        r.setStatus(recipe.getStatus());
         r.setOrganDiseaseName(recipe.getOrganDiseaseName());
         LOGGER.info("RecipeServiceSub convertHisRecipeForRAP recipe:{}.", JSONUtils.toString(recipe));
         if (StringUtils.isNotEmpty(recipe.getDetailData().get(0).getDrugDisplaySplicedName())) {
@@ -3085,5 +3088,28 @@ public class RecipeServiceSub {
         LOGGER.info("isCQOrgan response false ");
         return false;
     }
+
+    /**
+     * @dsec 接方模式
+     * @author maoze
+     * @param OriginId
+     * @return
+     */
+    public Integer getSupportMode(Integer OriginId) {
+        try {
+            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
+            Boolean supportReciveRecipe = (Boolean) configurationService.getConfiguration(OriginId, "supportReciveRecipe");
+            if (Boolean.TRUE.equals(supportReciveRecipe)) {
+                return 1;
+            } else if (Boolean.FALSE.equals(supportReciveRecipe)) {
+                return 2;
+            }
+        } catch (Exception e) {
+            LOGGER.info("RecipeServiceSub getSupportMode exception ",e);
+        }
+        return 0;
+    }
+
+
 }
 
