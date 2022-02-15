@@ -73,8 +73,4 @@ public class OrganDrugsSaleConfigVo implements Serializable {
      */
     private String specialTips;
 
-    /**
-     * 退货是否需要重新审核 0需要重申 1不需要
-     */
-    private Integer returnGoodsReview;
 }

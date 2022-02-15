@@ -8,6 +8,8 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.RecipePDFToHisTO;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
+import com.ngari.his.recipe.mode.TakeMedicineByToHos;
+import com.ngari.his.recipe.mode.TakeMedicineByToHosReqDTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
@@ -67,9 +69,10 @@ public class EnterpriseClient extends BaseClient {
 
     /**
      * 黄河医院获取药企患者id
+     *
      * @return
      */
-    public SimpleThirdBean getSimpleWxAccount(){
+    public SimpleThirdBean getSimpleWxAccount() {
         try {
             SimpleWxAccountBean account = userInfoService.getSimpleWxAccount();
             logger.info("EnterpriseClient getSimpleWxAccount account={}", JSONObject.toJSONString(account));
@@ -136,14 +139,15 @@ public class EnterpriseClient extends BaseClient {
 
     /**
      * 获取取药站点
+     *
      * @param medicineStationDTO 站点信息
-     * @param organBean 机构信息
-     * @param enterpriseBean 药企信息
+     * @param organBean          机构信息
+     * @param enterpriseBean     药企信息
      * @return 取药站点列表
      */
-    public List<MedicineStationDTO> getMedicineStationList(MedicineStationDTO medicineStationDTO, OrganBean organBean, DrugsEnterpriseBean enterpriseBean){
+    public List<MedicineStationDTO> getMedicineStationList(MedicineStationDTO medicineStationDTO, OrganBean organBean, DrugsEnterpriseBean enterpriseBean) {
         logger.info("EnterpriseClient getMedicineStationList medicineStationDTO:{},organBean:{},enterpriseBean:{}.", JSONUtils.toString(medicineStationDTO)
-        , JSONUtils.toString(organBean), JSONUtils.toString(enterpriseBean));
+                , JSONUtils.toString(organBean), JSONUtils.toString(enterpriseBean));
         try {
             MedicineStationReqDTO medicineStationReqDTO = new MedicineStationReqDTO();
             medicineStationReqDTO.setMedicineStationDTO(medicineStationDTO);
@@ -163,6 +167,33 @@ public class EnterpriseClient extends BaseClient {
             return medicineStationDTOList;
         } catch (Exception e) {
             logger.error("EnterpriseClient getMedicineStationList medicineStationDTOList", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    /**
+     * 到院取药获取取药点
+     * @param organBean 机构信息
+     * @param recipeDetailBeans 处方药品详情
+     * @param recipeBean 处方信息
+     * @return
+     */
+    public List<TakeMedicineByToHos> getTakeMedicineByToHosList(OrganBean organBean, List<RecipeDetailBean> recipeDetailBeans, RecipeBean recipeBean) {
+        logger.info("EnterpriseClient getTakeMedicineByToHosList organBean:{},recipeDetailBean:{} recipeBean:{}.", JSONUtils.toString(organBean)
+                , JSONUtils.toString(recipeDetailBeans), JSONUtils.toString(recipeBean));
+        try {
+            TakeMedicineByToHosReqDTO takeMedicineByToHosReqDTO = new TakeMedicineByToHosReqDTO();
+            takeMedicineByToHosReqDTO.setOrganBean(organBean);
+            takeMedicineByToHosReqDTO.setRecipeBean(recipeBean);
+            takeMedicineByToHosReqDTO.setRecipeDetailBeans(recipeDetailBeans);
+            HisResponseTO<List<TakeMedicineByToHos>> response = recipeEnterpriseService.getTakeMedicineByToHosList(takeMedicineByToHosReqDTO);
+
+            List<TakeMedicineByToHos> takeMedicineByToHos = getResponse(response);
+            logger.info("EnterpriseClient getTakeMedicineByToHosList takeMedicineByToHos:{}.", JSONUtils.toString(takeMedicineByToHos));
+
+            return takeMedicineByToHos;
+        } catch (Exception e) {
+            logger.error("EnterpriseClient getTakeMedicineByToHosList takeMedicineByToHos", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }

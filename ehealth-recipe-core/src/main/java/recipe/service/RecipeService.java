@@ -30,7 +30,6 @@ import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.his.recipe.mode.OrganDrugInfoRequestTO;
 import com.ngari.his.recipe.mode.OrganDrugInfoResponseTO;
 import com.ngari.his.recipe.mode.OrganDrugInfoTO;
-import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.model.BussFinishEvent;
@@ -115,6 +114,7 @@ import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugTool.service.DrugToolService;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.type.*;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.hisservice.syncdata.SyncExecutorService;
@@ -265,6 +265,8 @@ public class RecipeService extends RecipeBaseService {
     private IStockBusinessService stockBusinessService;
     @Resource
     private RecipeDetailDAO recipeDetailDAO;
+    @Autowired
+    private StateManager stateManager;
 
     /**
      * 药师审核不通过
@@ -500,14 +502,14 @@ public class RecipeService extends RecipeBaseService {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (null == recipe) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不存在或者已删除");
+            return true;
         }
         if (null == recipe.getStatus() || (recipe.getStatus() > RecipeStatusConstant.UNSIGN) && recipe.getStatus() != RecipeStatusConstant.HIS_FAIL) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不是新处方或者审核失败的处方，不能删除");
         }
 
         boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.DELETE, null);
-
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_DELETED, RecipeStateEnum.SUB_DELETED_DOCTOR_NOT_SUBMIT);
         //记录日志
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.DELETE, "删除处方单");
 

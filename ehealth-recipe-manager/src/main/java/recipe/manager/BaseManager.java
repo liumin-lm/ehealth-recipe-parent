@@ -1,6 +1,5 @@
 package recipe.manager;
 
-import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
@@ -112,6 +111,21 @@ public class BaseManager {
             recipeLog.setModifyDate(DateTime.now().toDate());
             recipeLog.setBeforeStatus(beforeStatus.getType());
             recipeLog.setAfterStatus(afterStatus.getType());
+            recipeLog.setMemo(memo);
+            recipeLog.setExpand("");
+            recipeLogDAO.saveRecipeLog(recipeLog);
+        } catch (Exception e) {
+            logger.error("BaseManager saveRecipeLog 保存日志出错", e);
+        }
+    }
+
+    protected void saveRecipeLog(Integer recipeId, Integer beforeStatus, Integer afterStatus, String memo) {
+        try {
+            RecipeLog recipeLog = new RecipeLog();
+            recipeLog.setRecipeId(recipeId);
+            recipeLog.setModifyDate(DateTime.now().toDate());
+            recipeLog.setBeforeStatus(beforeStatus);
+            recipeLog.setAfterStatus(afterStatus);
             recipeLog.setMemo(memo);
             recipeLog.setExpand("");
             recipeLogDAO.saveRecipeLog(recipeLog);

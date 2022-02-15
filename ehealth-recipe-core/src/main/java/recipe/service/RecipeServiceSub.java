@@ -85,6 +85,7 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.AldyfRemoteService;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.PayBusTypeEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
@@ -2825,6 +2826,8 @@ public class RecipeServiceSub {
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), memo.toString());
         rMap.put("result", true);
         rMap.put("msg", msg);
+        StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_DOCTOR);
         LOGGER.info("cancelRecipe execute ok rMap:{}， result:{}", JSONUtils.toString(rMap), memo);
         return rMap;
     }

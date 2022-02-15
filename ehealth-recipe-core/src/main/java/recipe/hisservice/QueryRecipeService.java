@@ -784,6 +784,9 @@ public class QueryRecipeService implements IQueryRecipeService {
                     //没有失效的新增
                     organDrugList.setStatus(1);
                     organDrugList.setCreateDt(now);
+                    organDrugList.setMedicalInsuranceControl(false);
+                    organDrugList.setSupportDownloadPrescriptionPad(true);
+                    organDrugList.setApplyBusiness("1");
                     LOGGER.info("updateOrSaveOrganDrug 添加机构药品信息{}", JSONUtils.toString(organDrugList));
                     OrganDrugList nowOrganDrugList = organDrugListDAO.save(organDrugList);
                     OrganDrugListService organDrugListService = AppContextHolder.getBean("organDrugListService", OrganDrugListService.class);

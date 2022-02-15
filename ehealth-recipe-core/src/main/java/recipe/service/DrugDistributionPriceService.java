@@ -63,9 +63,6 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
         if (price.getAddrArea() == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "price is addrArea");
         }
-        if (price.getDistributionPrice() == null) {
-            price.setDistributionPrice(new BigDecimal(0));
-        }
         DrugDistributionPriceDAO drugDistributionPriceDAO = DAOFactory.getDAO(DrugDistributionPriceDAO.class);
 
         DrugDistributionPrice oldPrice = drugDistributionPriceDAO.getByEnterpriseIdAndAddrArea(price.getEnterpriseId(), price.getAddrArea());
@@ -90,7 +87,7 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
             if (!oldPrice.getId().equals(price.getId())) {
                 throw new DAOException("price is exist and not this id");
             }
-            BeanUtils.map(price, oldPrice);
+            ObjectCopyUtils.copyProperties(oldPrice, price);
             oldPrice.setLastModify(new Date());
             oldPrice = drugDistributionPriceDAO.update(oldPrice);
             logMsg.append(" 更新：原").append(oldPrice.toString()).append("更新为").append(oldPrice.toString());
@@ -105,26 +102,27 @@ public class DrugDistributionPriceService extends BaseService<DrugDistributionPr
         return price;
     }
 
+    public static void main(String[] args) {
+        DrugDistributionPriceBean price = new DrugDistributionPriceBean();
+        price.setAddrArea("12");
+        price.setEnterpriseId(12);
+        price.setDistributionPrice(null);
+        DrugDistributionPriceBean oldPrice = new DrugDistributionPriceBean();
+        oldPrice.setAddrArea("23");
+        oldPrice.setEnterpriseId(12);
+        oldPrice.setDistributionPrice(new BigDecimal(1.0));
+        ObjectCopyUtils.copyProperties(oldPrice, price);
+        System.out.println(JSONUtils.toString(oldPrice));
+    }
+
     @Override
     public void savePriceList(List<DrugDistributionPriceBean> priceList){
         LOGGER.info("savePriceList input： [{}]", JSONUtils.toString(priceList));
         if(ValidateUtil.notBlankList(priceList)) {
-            //DrugDistributionPriceDAO drugDistributionPriceDAO = DAOFactory.getDAO(DrugDistributionPriceDAO.class);
             HibernateStatelessResultAction<Integer> action = new AbstractHibernateStatelessResultAction<Integer>() {
                 @Override
                 public void execute(StatelessSession ss) throws Exception {
                     for(DrugDistributionPriceBean priceBean : priceList){
-                       /* drugDistributionPriceDAO.deleteByEnterpriseIdAddr(priceBean.getEnterpriseId(),priceBean.getAddrArea());
-                        StringBuffer logMsg = new StringBuffer();
-                        DrugDistributionPrice price = getBean(priceBean,DrugDistributionPrice.class);
-                        price = drugDistributionPriceDAO.save(price);
-                        logMsg.append(" 新增:").append(price.toString());
-                        try{
-                            com.ngari.opbase.base.service.IBusActionLogService iBusActionLogService1 = AppContextHolder.getBean("opbase.busActionLogService", com.ngari.opbase.base.service.IBusActionLogService.class);
-                            iBusActionLogService1.recordBusinessLogRpcNew("药企配送价格管理", price.getId().toString(), "DrugDistributionPrice", logMsg.toString(), com.ngari.opbase.base.service.IBusActionLogService.defaultSubjectName);
-                        } catch (Exception e) {
-                            LOGGER.error("业务日志记录失败： errorMessage[{}]", e.getMessage(), e);
-                        }*/
                         try {
                             saveOrUpdatePrice(priceBean);
                         } catch (Exception e) {

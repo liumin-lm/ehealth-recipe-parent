@@ -4,6 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.ngari.base.organ.model.OrganBean;
+import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.TakeMedicineByToHos;
+import com.ngari.his.recipe.mode.TakeMedicineByToHosReqDTO;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -22,6 +26,7 @@ import recipe.client.DepartClient;
 import recipe.client.DrugStockClient;
 import recipe.client.EnterpriseClient;
 import recipe.client.IConfigurationClient;
+import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.*;
@@ -79,6 +84,23 @@ public class EnterpriseManager extends BaseManager {
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
 
+
+    /**
+     * 到院取药获取取药点
+     * @param organId 机构id
+     * @param dbRecipe 处方详情
+     * @return
+     */
+    public List<TakeMedicineByToHos> getTakeMedicineByToHosList(Integer organId,Recipe dbRecipe) {
+        logger.info("EnterpriseManager getTakeMedicineByToHosList organId:{},dbRecipe:{} ", JSONUtils.toString(organId)
+                , JSONUtils.toString(dbRecipe) );
+        OrganDTO organDTO = organClient.organDTO(organId);
+        OrganBean organBean = ObjectCopyUtils.convert(organDTO, OrganBean.class);
+        RecipeBean recipeBean = ObjectCopyUtils.convert(dbRecipe, RecipeBean.class);
+        List<Recipedetail> detailList = recipeDetailDAO.findByRecipeId(dbRecipe.getRecipeId());
+        List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(detailList, RecipeDetailBean.class);
+        return enterpriseClient.getTakeMedicineByToHosList(organBean,recipeDetailBeans,recipeBean);
+    }
     /**
      * 检查 药企药品 是否满足开方药品
      * 验证能否药品配送以及能否开具到一张处方单上
