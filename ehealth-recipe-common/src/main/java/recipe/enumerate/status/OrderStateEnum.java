@@ -23,7 +23,7 @@ public enum OrderStateEnum {
     SUB_CANCELLATION_AUDIT_NOT_PASS(92, "药师审核未通过", "药师审核不通过"),
     SUB_CANCELLATION_REFUSE_ORDER(93, "售药方拒绝订单", "已拒发"),
     SUB_CANCELLATION_RETURN_DRUG(94, "售药方退药", "已退药"),
-    SUB_CANCELLATION_USER(95, "用户取消", "已退药"),
+    SUB_CANCELLATION_USER(95, "用户取消", "患者手动取消"),
     SUB_CANCELLATION_TIMEOUT_NON_PAYMENT(96, "超时未支付", "过期处方（未支付过期 /未处理过期）"),
     SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE(97, "超时未取药", "超时未取药系统取消"),
     ;

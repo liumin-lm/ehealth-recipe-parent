@@ -10,6 +10,7 @@ import recipe.dao.RecipeOrderBillDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.factory.status.orderstatusfactory.IRecipeOrderStatusService;
 import recipe.manager.GroupRecipeManager;
+import recipe.manager.StateManager;
 
 /**
  * 状态流转基类
@@ -28,6 +29,8 @@ public abstract class AbstractRecipeOrderStatus implements IRecipeOrderStatusSer
     private GroupRecipeManager groupRecipeManager;
     @Autowired
     protected RecipeOrderBillDAO recipeOrderBillDAO;
+    @Autowired
+    protected StateManager stateManager;
 
     @Override
     public void upRecipeThreadPool(Recipe recipe) {

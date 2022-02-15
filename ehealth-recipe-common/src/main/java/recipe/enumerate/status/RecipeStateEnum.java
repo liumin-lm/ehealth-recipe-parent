@@ -34,6 +34,7 @@ public enum RecipeStateEnum {
     SUB_CANCELLATION_REFUSE_ORDER(93, "售药方拒绝订单", "已拒发"),
     SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE(94, "患者超时未取药", "患者未取药"),
     SUB_CANCELLATION_TIMEOUT_NOT_ORDER(95, "已过有效期未下单", "过期处方（未支付过期 /未处理过期）"),
+    SUB_CANCELLATION_RETURN_DRUG(96, "售药方退药", "已退药"),
     ;
 
     private Integer type;
