@@ -6,6 +6,8 @@ import eh.base.constant.ErrorCode;
 import org.springframework.stereotype.Service;
 import recipe.enumerate.status.RecipeStateEnum;
 
+import static recipe.enumerate.status.RecipeStateEnum.SUB_CANCELLATION_DOCTOR;
+
 /**
  * 状态处理通用类：处方状态 ，订单状态，
  *
@@ -53,6 +55,10 @@ public class StateManager extends BaseManager {
     private Boolean cancellation(Recipe recipe, RecipeStateEnum processState, RecipeStateEnum subState) {
         if (null != recipe.getProcessState() && recipe.getProcessState() > 1) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不是暂存处方不能删除");
+        }
+        // todo 医生撤销情况下 待审核审方 改为无需审核状态
+        if (SUB_CANCELLATION_DOCTOR == subState) {
+            
         }
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipe.getRecipeId());

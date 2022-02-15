@@ -4,8 +4,8 @@ import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
-import recipe.aop.LogRecord;
 import recipe.atop.BaseAtop;
+import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRevisitBusinessService;
 
 import java.util.List;
@@ -20,6 +20,8 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
 
     @Autowired
     private IRevisitBusinessService iRevisitBusinessService;
+    @Autowired
+    private IRecipeBusinessService recipeBusinessService;
 
     /**
      * 获取院内门诊
@@ -30,8 +32,12 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
      * @return 院内门诊处方列表
      */
     @RpcService
-    @LogRecord
     public List<WriteDrugRecipeDTO> findWriteDrugRecipeByRevisitFromHis(String mpiId, Integer organId, Integer doctorId) {
         return iRevisitBusinessService.findWriteDrugRecipeByRevisitFromHis(mpiId, organId, doctorId);
+    }
+
+    @RpcService
+    public Boolean confirmAgain(Integer recipeId) {
+        return recipeBusinessService.confirmAgain(recipeId);
     }
 }

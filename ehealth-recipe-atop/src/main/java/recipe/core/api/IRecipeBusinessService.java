@@ -4,7 +4,6 @@ import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.vo.*;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
@@ -110,7 +109,6 @@ public interface IRecipeBusinessService {
      */
     RegulationRecipeIndicatorsDTO regulationRecipe(Integer recipeId);
 
-    void offlineToOnlineForRecipe(FindHisRecipeDetailReqVO request);
 
     /**
      * 获取电子病历数据
@@ -120,4 +118,12 @@ public interface IRecipeBusinessService {
      * @param caseHistoryVO 电子病历查询对象
      */
     MedicalDetailVO getDocIndexInfo(CaseHistoryVO caseHistoryVO);
+
+    /**
+     * 医生二次确认药师审核结果
+     *
+     * @param recipeId
+     * @return
+     */
+    Boolean confirmAgain(Integer recipeId);
 }
