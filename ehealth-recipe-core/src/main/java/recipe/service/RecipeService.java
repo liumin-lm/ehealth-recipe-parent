@@ -3708,7 +3708,8 @@ public class RecipeService extends RecipeBaseService {
                     //变更处方状态 RECIPE_ORDER_CACEL按NO_OPERATOR处理
                     Integer updateStatus = status == RecipeStatusConstant.RECIPE_ORDER_CACEL ? RecipeStatusConstant.NO_OPERATOR : status;
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, updateStatus, ImmutableMap.of("chooseFlag", 1));
-
+                    StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+                    stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_ORDER);
                     RecipeMsgService.batchSendMsg(recipe, status);
                     if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
                         //药师首页待处理任务---取消未结束任务
@@ -5873,8 +5874,10 @@ public class RecipeService extends RecipeBaseService {
                 //date 20200709 修改前置的处方药师ca签名中签名失败，处方状态未处理
                 if (ReviewTypeConstant.Preposition_Check.equals(recipe.getReviewType()) && (RecipeStatusConstant.SIGN_ING_CODE_PHA == status || RecipeStatusConstant.SIGN_ERROR_CODE_PHA == status)) {
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_OPERATOR, ImmutableMap.of("chooseFlag", 1));
+                    stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_ORDER);
                 } else {
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.DELETE, ImmutableMap.of("chooseFlag", 1));
+                    stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DELETED, RecipeStateEnum.SUB_DELETED_DOCTOR_NOT_SUBMIT);
                 }
 
                 memo.append("当前处方ca操作超时没处理，失效删除");
@@ -5959,7 +5962,7 @@ public class RecipeService extends RecipeBaseService {
                 //变更处方状态
                 status = recipe.getStatus();
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.DELETE, ImmutableMap.of("chooseFlag", 1));
-
+                stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_ORDER);
                 memo.append("当前处方ca操作超时没处理，失效删除");
                 //未支付，三天后自动取消后，优惠券自动释放
                 RecipeCouponService recipeCouponService = ApplicationUtils.getRecipeService(RecipeCouponService.class);
