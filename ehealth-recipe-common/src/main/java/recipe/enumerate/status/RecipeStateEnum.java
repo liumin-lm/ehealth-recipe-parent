@@ -17,8 +17,8 @@ public enum RecipeStateEnum {
     PROCESS_STATE_DISTRIBUTION(5, "配送中", ""),
     PROCESS_STATE_MEDICINE(6, "待取药", ""),
     PROCESS_STATE_DONE(7, "已完成", ""),
-    PROCESS_STATE_DELETED(8, "已作废", "已删除"),
-    PROCESS_STATE_CANCELLATION(9, "已作废", "已作废"),
+    PROCESS_STATE_DELETED(8, "已删除", ""),
+    PROCESS_STATE_CANCELLATION(9, "已作废", ""),
 
     /**
      * 处方子状态:删除
@@ -32,9 +32,10 @@ public enum RecipeStateEnum {
     SUB_CANCELLATION_DOCTOR(91, "医生撤销", ""),
     SUB_CANCELLATION_AUDIT_NOT_PASS(92, "药师审核未通过", "药师不双签，审核不通过"),
     SUB_CANCELLATION_REFUSE_ORDER(93, "售药方拒绝订单", "已拒发"),
-    SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE(94, "患者超时未取药", "患者未取药"),
-    SUB_CANCELLATION_TIMEOUT_NOT_ORDER(95, "已过有效期未下单", "过期处方（未支付过期 /未处理过期）"),
-    SUB_CANCELLATION_RETURN_DRUG(96, "售药方退药", "已退药"),
+    SUB_CANCELLATION_RETURN_DRUG(94, "售药方退药", "已退药"),
+    SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE(95, "患者超时未取药", "患者未取药"),
+    SUB_CANCELLATION_TIMEOUT_NOT_ORDER(96, "已过有效期未下单", "过期处方（未支付过期 /未处理过期）"),
+
     ;
 
     private Integer type;
