@@ -31,10 +31,12 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.CardTypeEnum;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.DepartManager;
+import recipe.manager.StateManager;
 import recipe.purchase.CommonOrder;
 
 import java.math.BigDecimal;
@@ -387,8 +389,8 @@ public class HisCallBackService {
                 if (null != recipe) {
                     //对于已经在线上支付的处方不能直接取消
                     RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+                    RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                     if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
-                        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                         if (new Integer(1).equals(recipeOrder.getPayFlag())) {
                             return;
                         }
@@ -411,8 +413,12 @@ public class HisCallBackService {
                         if (rs) {
                             //线下支付完成后取消订单
                             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+                            StateManager stateManager = ApplicationUtils.getRecipeService(StateManager.class);
                             orderService.cancelOrderByRecipeId(recipeId, OrderStatusConstant.CANCEL_AUTO);
 
+                            if(Objects.nonNull(recipeOrder)){
+                                stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_USER);
+                            }
                             //日志记录
                             RecipeLogService.saveRecipeLog(recipeId, beforeStatus, RecipeStatusConstant.HAVE_PAY, logMemo);
                             //消息推送

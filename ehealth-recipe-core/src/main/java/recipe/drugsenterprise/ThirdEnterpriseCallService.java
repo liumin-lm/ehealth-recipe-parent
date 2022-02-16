@@ -48,6 +48,7 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.DrugsEnterpriseDTO;
 import recipe.drugsenterprise.bean.StandardResultDTO;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.hisservice.HisRequestInit;
@@ -955,7 +956,11 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
             status = RecipeStatusConstant.NO_DRUG;
             if (rs) {
+                RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                 orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO);
+                if(Objects.nonNull(order)) {
+                    stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_DOCTOR_REPEAL);
+                }
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.NO_DRUG, "到店取药失败，原因:" + MapValueUtil.getString(paramMap, "reason"));
                 //发送取药失败消息
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.NO_DRUG);
