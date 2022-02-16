@@ -155,6 +155,9 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "药店或者站点距离")
     private Double distance;
 
+    @ItemProperty(alias = "上海外服支付金额")
+    private BigDecimal wfPayMoney;
+
     @ItemProperty(alias = "创建时间")
     private Date createTime;
 
@@ -531,6 +534,14 @@ public class RecipeOrderBean implements Serializable {
 
     public void setPayFlag(Integer payFlag) {
         this.payFlag = payFlag;
+    }
+
+    public BigDecimal getWfPayMoney() {
+        return wfPayMoney;
+    }
+
+    public void setWfPayMoney(BigDecimal wfPayMoney) {
+        this.wfPayMoney = wfPayMoney;
     }
 
     public Integer getCouponId() {

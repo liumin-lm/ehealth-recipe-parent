@@ -73,6 +73,7 @@ import recipe.constant.*;
 import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.*;
@@ -102,7 +103,7 @@ import static ctd.persistence.DAOFactory.getDAO;
  * @author: 0184/yu_yun
  * @date:2017/2/13.
  */
-@RpcBean(value = "recipeOrderService", mvc_authentication = false)
+@RpcBean(value = "recipeOrderService")
 public class RecipeOrderService extends RecipeBaseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeOrderService.class);
@@ -1550,6 +1551,8 @@ public class RecipeOrderService extends RecipeBaseService {
         CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
         RecipeOrder order = recipeOrderDAO.get(orderId);
         recipeResultBean.getExt().put("completeAddress", commonRemoteService.getCompleteAddress(order));
+        recipeResultBean.getExt().put("processStateText", OrderStateEnum.getOrderStateEnum(order.getProcessState()).getName());
+        recipeResultBean.getExt().put("subStateText", OrderStateEnum.getOrderStateEnum(order.getSubState()).getName());
         LOGGER.info("getOrderDetailByIdV1 recipeResultBean={}", JSON.toJSONString(recipeResultBean));
         return recipeResultBean;
     }
