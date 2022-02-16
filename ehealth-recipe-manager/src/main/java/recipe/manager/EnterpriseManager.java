@@ -87,20 +87,22 @@ public class EnterpriseManager extends BaseManager {
 
     /**
      * 到院取药获取取药点
-     * @param organId 机构id
+     *
+     * @param organId  机构id
      * @param dbRecipe 处方详情
      * @return
      */
-    public List<TakeMedicineByToHos> getTakeMedicineByToHosList(Integer organId,Recipe dbRecipe) {
+    public List<TakeMedicineByToHos> getTakeMedicineByToHosList(Integer organId, Recipe dbRecipe) {
         logger.info("EnterpriseManager getTakeMedicineByToHosList organId:{},dbRecipe:{} ", JSONUtils.toString(organId)
-                , JSONUtils.toString(dbRecipe) );
+                , JSONUtils.toString(dbRecipe));
         OrganDTO organDTO = organClient.organDTO(organId);
         OrganBean organBean = ObjectCopyUtils.convert(organDTO, OrganBean.class);
         RecipeBean recipeBean = ObjectCopyUtils.convert(dbRecipe, RecipeBean.class);
         List<Recipedetail> detailList = recipeDetailDAO.findByRecipeId(dbRecipe.getRecipeId());
         List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(detailList, RecipeDetailBean.class);
-        return enterpriseClient.getTakeMedicineByToHosList(organBean,recipeDetailBeans,recipeBean);
+        return enterpriseClient.getTakeMedicineByToHosList(organBean, recipeDetailBeans, recipeBean);
     }
+
     /**
      * 检查 药企药品 是否满足开方药品
      * 验证能否药品配送以及能否开具到一张处方单上
@@ -766,7 +768,10 @@ public class EnterpriseManager extends BaseManager {
         organDrugsSaleConfig.setTakeOneselfPlanAmTime(configurationByKeyList.get("toHosPlanAmTime").toString());
         organDrugsSaleConfig.setTakeOneselfPlanPmTime(configurationByKeyList.get("toHosPlanPmTime").toString());
         organDrugsSaleConfig.setTakeDrugsVoucher((Integer) configurationByKeyList.get("getQrTypeForRecipe"));
-        organDrugsSaleConfig.setSpecialTips(configurationByKeyList.get("getQrTypeForRecipeRemind").toString());
+        Object getQrTypeForRecipeRemind = configurationByKeyList.get("getQrTypeForRecipeRemind");
+        if (Objects.nonNull(getQrTypeForRecipeRemind)) {
+            organDrugsSaleConfig.setSpecialTips(getQrTypeForRecipeRemind.toString());
+        }
         logger.info("EnterpriseManager coverConfig organDrugsSaleConfig:{} ", JSONUtils.toString(organDrugsSaleConfig));
         return organDrugsSaleConfig;
     }
