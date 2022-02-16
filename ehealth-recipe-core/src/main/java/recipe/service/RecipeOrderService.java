@@ -73,6 +73,7 @@ import recipe.constant.*;
 import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.*;
@@ -1550,6 +1551,8 @@ public class RecipeOrderService extends RecipeBaseService {
         CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
         RecipeOrder order = recipeOrderDAO.get(orderId);
         recipeResultBean.getExt().put("completeAddress", commonRemoteService.getCompleteAddress(order));
+        recipeResultBean.getExt().put("processStateText", OrderStateEnum.getOrderStateEnum(order.getProcessState()).getName());
+        recipeResultBean.getExt().put("subStateText", OrderStateEnum.getOrderStateEnum(order.getSubState()).getName());
         LOGGER.info("getOrderDetailByIdV1 recipeResultBean={}", JSON.toJSONString(recipeResultBean));
         return recipeResultBean;
     }

@@ -11,10 +11,10 @@ import java.util.Date;
 import java.util.List;
 
 /**
-* @Description: PatientTabStatusRecipeDTO 类（或接口）是患者端tab下处方单对象
-* @Author: JRK
-* @Date: 2019/8/27
-*/
+ * @Description: PatientTabStatusRecipeDTO 类（或接口）是患者端tab下处方单对象
+ * @Author: JRK
+ * @Date: 2019/8/27
+ */
 @Schema
 public class PatientTabStatusRecipeDTO implements Serializable {
 
@@ -136,6 +136,28 @@ public class PatientTabStatusRecipeDTO implements Serializable {
     private String recipeCode;
 
     private String recipeNumber;
+
+    @ItemProperty(alias = "处方父状态：0：默认 ， 1：待提交，2：待审核，3：待下单，4：待发药，5：配送中，6：待取药，7：已完成，8：已删除 ，9：已作废")
+    private Integer processState;
+    private String processStateText;
+
+
+    public Integer getProcessState() {
+        return processState;
+    }
+
+    public void setProcessState(Integer processState) {
+        this.processState = processState;
+    }
+
+    public String getProcessStateText() {
+        return processStateText;
+    }
+
+    public void setProcessStateText(String processStateText) {
+        this.processStateText = processStateText;
+    }
+
 
     public String getRecipeNumber() {
         return recipeNumber;

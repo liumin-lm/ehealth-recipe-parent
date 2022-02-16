@@ -3670,7 +3670,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         " 8 ELSE r.STATUS " +
                         "END ) AS STATUS,r.patientName,r.fromflag,r.recipeCode,r.doctorName,r.recipeType,r.organDiseaseName, " +
                         "r.clinicOrgan,r.organName,r.signFile,r.chemistSignFile,r.signDate,r.recipeMode,r.recipeSource,r.mpiid,r.depart, " +
-                        "r.enterpriseId,e.registerID,e.chronicDiseaseName,o.OrderId,IFNULL(o.CreateTime,r.signDate) as time ,o.Status as orderStatus,r.GiveMode,o.PayMode" +
+                        "r.enterpriseId,e.registerID,e.chronicDiseaseName,o.OrderId,IFNULL(o.CreateTime,r.signDate) as time ," +
+                        "o.Status as orderStatus,r.GiveMode,o.PayMode,r.process_state,r.sub_state " +
                         " FROM cdr_recipe r left join cdr_recipeorder o on r.OrderCode = o.OrderCode left join " +
                         " cdr_recipe_ext e  on r.RecipeID = e.recipeId " +
                         " WHERE " +
@@ -3687,7 +3688,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if ("ongoing".equals(tabStatus)) {
                     hql.append(" UNION ALL SELECT r.RecipeID,r.orderCode,r.STATUS,r.patientName,r.fromflag,r.recipeCode,r.doctorName,r.recipeType,r.organDiseaseName,r.clinicOrgan," +
                             " r.organName,r.signFile,r.chemistSignFile,r.signDate,r.recipeMode,r.recipeSource,r.mpiid,r.depart,r.enterpriseId,e.registerID,e.chronicDiseaseName," +
-                            " o.OrderId,IFNULL( o.CreateTime, r.signDate ) AS time,o.STATUS AS orderStatus,r.GiveMode,o.PayMode " +
+                            " o.OrderId,IFNULL( o.CreateTime, r.signDate ) AS time,o.STATUS AS orderStatus,r.GiveMode,o.PayMode ,r.process_state,r.sub_state " +
                             " FROM " +
                             " cdr_recipe r " +
                             " LEFT JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode " +
@@ -3790,6 +3791,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         }
                         if (null != objs[25]) {
                             recipeListBean.setPayMode(Integer.valueOf(objs[25].toString()));
+                        }
+                        if (null != objs[26]) {
+                            recipeListBean.setProcessState(Integer.valueOf(objs[26].toString()));
+                        }
+                        if (null != objs[27]) {
+                            recipeListBean.setSubState(Integer.valueOf(objs[27].toString()));
                         }
 
                         backList.add(recipeListBean);
