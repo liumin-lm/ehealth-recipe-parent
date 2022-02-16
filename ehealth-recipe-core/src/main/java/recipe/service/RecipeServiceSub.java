@@ -1893,6 +1893,7 @@ public class RecipeServiceSub {
             }
         }
         recipeBean.setCheckerTel(LocalStringUtil.coverMobile(recipeBean.getCheckerTel()));
+        recipeBean.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
         map.put("recipe", recipeBean);
         //20200519 zhangx 是否展示退款按钮(重庆大学城退款流程)，前端调用patientRefundForRecipe
         map.put("showRefund", 0);
