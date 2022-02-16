@@ -404,7 +404,7 @@ public class RecipeBean implements Serializable {
     private Integer processState;
     @ItemProperty(alias = "处方子状态")
     private Integer subState;
-
+    @ItemProperty(alias = "处方子状态文本")
     private String subStateText;
 
 

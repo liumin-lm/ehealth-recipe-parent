@@ -49,6 +49,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.bean.DrugsEnterpriseDTO;
 import recipe.drugsenterprise.bean.StandardResultDTO;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -56,6 +57,7 @@ import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.GroupRecipeManager;
 import recipe.manager.OrderManager;
+import recipe.manager.StateManager;
 import recipe.purchase.CommonOrder;
 import recipe.service.*;
 import recipe.serviceprovider.BaseService;
@@ -107,7 +109,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     private GroupRecipeManager groupRecipeManager;
     private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
 
-
+    @Autowired
+    private StateManager stateManager;
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
@@ -949,6 +952,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         } else {
             //患者未取药
             Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_DRUG, attrMap);
+            stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
             status = RecipeStatusConstant.NO_DRUG;
             if (rs) {
                 orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO);

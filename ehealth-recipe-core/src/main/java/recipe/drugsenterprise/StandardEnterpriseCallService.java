@@ -1,6 +1,5 @@
 package recipe.drugsenterprise;
 
-import com.alijk.bqhospital.alijk.conf.TaobaoConf;
 import com.google.common.base.Function;
 import com.google.common.collect.Collections2;
 import com.google.common.collect.Lists;
@@ -35,7 +34,9 @@ import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.hisservice.RecipeToHisService;
+import recipe.manager.StateManager;
 import recipe.purchase.CommonOrder;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeLogService;
@@ -69,6 +70,8 @@ public class StandardEnterpriseCallService {
 
     @Autowired
     private RecipeOrderDAO orderDAO;
+    @Autowired
+    private StateManager stateManager;
 
     @RpcService
     public StandardResultDTO send(List<Map<String, Object>> list) {
@@ -210,6 +213,7 @@ public class StandardEnterpriseCallService {
                     //患者未取药
                     Boolean recipeRs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_DRUG,
                             recipeAttrMap);
+                    stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
                     if (recipeRs) {
                         if (StringUtils.isEmpty(stateDTO.getReason())){
                             stateDTO.setReason("药企端未设置取消原因");
@@ -377,6 +381,7 @@ public class StandardEnterpriseCallService {
             } else {
                 //患者未取药
                 Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_DRUG, null);
+                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
                 if (rs) {
                     RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
                     orderService.cancelOrderByCode(dbRecipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO);
