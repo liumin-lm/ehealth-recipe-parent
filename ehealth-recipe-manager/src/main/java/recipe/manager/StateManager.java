@@ -9,8 +9,6 @@ import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 
-import static recipe.enumerate.status.RecipeStateEnum.SUB_CANCELLATION_DOCTOR;
-
 /**
  * 状态处理通用类：处方状态 ，订单状态，审方状态
  *
@@ -53,6 +51,7 @@ public class StateManager extends BaseManager {
      * @return
      */
     public Boolean updateRecipeState(Integer recipeId, RecipeStateEnum processState, RecipeStateEnum subState) {
+        logger.info("StateManager updateRecipeState recipeId ={},processState={},subState={} ", recipeId, processState, subState);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (null == recipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方不存在");
@@ -103,14 +102,15 @@ public class StateManager extends BaseManager {
      * @return
      */
     private Boolean cancellation(Recipe recipe, RecipeStateEnum processState, RecipeStateEnum subState) {
-        if (null != recipe.getProcessState() && recipe.getProcessState() > 1) {
+        if (RecipeStateEnum.PROCESS_STATE_DELETED == processState && recipe.getProcessState() > 1) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不是暂存处方不能删除");
         }
-        // todo 医生撤销情况下 待审核审方 改为无需审核状态
-        if (SUB_CANCELLATION_DOCTOR == subState) {
-            
-        }
         Recipe updateRecipe = new Recipe();
+        //  医生撤销情况下 待审核审方 改为无需审核状态
+        if (RecipeStateEnum.SUB_CANCELLATION_DOCTOR == subState && recipe.getAuditState() < RecipeAuditStateEnum.PENDING_REVIEW.getType()) {
+            updateRecipe.setAuditState(RecipeAuditStateEnum.NO_REVIEW.getType());
+        }
+
         updateRecipe.setRecipeId(recipe.getRecipeId());
         updateRecipe.setProcessState(processState.getType());
         updateRecipe.setSubState(subState.getType());

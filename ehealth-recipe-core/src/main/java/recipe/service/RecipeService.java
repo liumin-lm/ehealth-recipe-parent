@@ -3484,8 +3484,6 @@ public class RecipeService extends RecipeBaseService {
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-
-        List<Integer> statusList = Arrays.asList(RecipeStatusConstant.NO_PAY, RecipeStatusConstant.NO_OPERATOR);
         StringBuilder memo = new StringBuilder();
         RecipeOrder order;
         //设置查询时间段
@@ -3505,6 +3503,7 @@ public class RecipeService extends RecipeBaseService {
                 orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
                 //变更处方状态
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_OPERATOR, ImmutableMap.of("chooseFlag", 1));
+                stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_ORDER);
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.RECIPE_ORDER_CACEL);
                 memo.append("已取消,超过3天未操作");
                 //HIS消息发送
@@ -3520,6 +3519,7 @@ public class RecipeService extends RecipeBaseService {
             //修改cdr_his_recipe status为已处理
             orderService.updateHisRecieStatus(recipes);
         }
+        List<Integer> statusList = Arrays.asList(RecipeStatusConstant.NO_PAY, RecipeStatusConstant.NO_OPERATOR);
         for (Integer status : statusList) {
             // 2021失效时间可以配置需求，原定时任务查询增加失效时间为空条件
             List<Recipe> recipeList = recipeDAO.getRecipeListForCancelRecipe(status, startDt, endDt);
@@ -3547,6 +3547,7 @@ public class RecipeService extends RecipeBaseService {
 
                     //变更处方状态
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, status, ImmutableMap.of("chooseFlag", 1));
+                    stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_ORDER);
                     RecipeMsgService.batchSendMsg(recipe, status);
                     if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
                         //药师首页待处理任务---取消未结束任务
