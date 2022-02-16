@@ -1414,26 +1414,6 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     /**
-     * @param orderId
-     * @param status
-     * @return
-     */
-    @RpcService
-    public RecipeResultBean cancelOrderById(Integer orderId, Integer status) {
-        RecipeResultBean result = RecipeResultBean.getSuccess();
-        if (null == orderId || null == status) {
-            result.setCode(RecipeResultBean.FAIL);
-            result.setError("缺少参数");
-        }
-
-        if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
-            result = cancelOrder(getDAO(RecipeOrderDAO.class).get(orderId), status, true);
-        }
-
-        return result;
-    }
-
-    /**
      * 取消订单
      *
      * @param order canCancelOrderCode 能否将处方里的OrderCode设置成null

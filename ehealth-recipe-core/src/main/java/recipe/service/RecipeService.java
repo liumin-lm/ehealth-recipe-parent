@@ -111,6 +111,7 @@ import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugTool.service.DrugToolService;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.type.*;
@@ -2297,7 +2298,10 @@ public class RecipeService extends RecipeBaseService {
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         //相应订单处理
         orderService.cancelOrderByRecipeId(recipe.getRecipeId(), OrderStatusConstant.CANCEL_NOT_PASS, false);
-
+        RecipeOrder order = orderDAO.getByOrderCode(recipe.getOrderCode());
+        if(Objects.nonNull(order)){
+            stateManager.updateOrderState(order.getOrderId(),OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
+        }
         //根据付款方式提示不同消息
         //date 2019/10/14
         //逻辑修改成，退款的不筛选支付方式
@@ -3538,6 +3542,10 @@ public class RecipeService extends RecipeBaseService {
                     //相应订单处理
                     order = orderDAO.getOrderByRecipeId(recipeId);
                     orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
+                    // 超时未支付订单处理
+                    if(Objects.nonNull(order)) {
+                        stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_TIMEOUT_NON_PAYMENT);
+                    }
                     if (recipe.getFromflag().equals(RecipeBussConstant.FROMFLAG_HIS_USE)) {
                         if (null != order) {
                             orderDAO.updateByOrdeCode(order.getOrderCode(), ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
