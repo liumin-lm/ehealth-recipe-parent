@@ -761,7 +761,7 @@ public class EnterpriseManager extends BaseManager {
         organDrugsSaleConfig.setTakeOneselfContent(configurationByKeyList.get("getMedicineRemindContent").toString());
         organDrugsSaleConfig.setTakeOneselfPaymentChannel((Integer) configurationByKeyList.get("payModeToHosOnlinePayConfig"));
         organDrugsSaleConfig.setTakeOneselfPayment((Boolean) configurationByKeyList.get("supportToHosPayFlag") ? 1 : 2);
-        Integer toHosPlanDate = (Integer) configurationByKeyList.get("toHosPlanDate");
+        Integer toHosPlanDate = Integer.getInteger((String) configurationByKeyList.get("toHosPlanDate"));
         organDrugsSaleConfig.setTakeOneselfPlanDate(toHosPlanDate);
         organDrugsSaleConfig.setTakeOneselfPlanAmTime(configurationByKeyList.get("toHosPlanAmTime").toString());
         organDrugsSaleConfig.setTakeOneselfPlanPmTime(configurationByKeyList.get("toHosPlanPmTime").toString());
