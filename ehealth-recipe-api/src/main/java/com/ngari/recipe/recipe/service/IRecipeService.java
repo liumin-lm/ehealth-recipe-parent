@@ -959,5 +959,32 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
     @RpcService
     public String getGiveModeTextByRecipe(RecipeBean recipe);
 
+
+
+    /**
+     * 根据审核状态查询处方列表
+     * @param organ       机构集合
+     * @param recipeTypes 处方类型集合
+     * @param flag        审核标记
+     * @param start       当前页
+     * @param limit       页数
+     * @return
+     */
+    @RpcService
+    List<RecipeBean> findRecipeAuditByFlag(List<Integer> organ, List<Integer> recipeTypes, int flag, int start, int limit);
+
+
+    /**
+     * 根据审核状态查询处方列表
+     * @param organ       机构集合
+     * @param recipeTypes 处方类型集合
+     * @param flag        审核标记
+     * @param start       当前页
+     * @param limit       页数
+     * @return
+     */
+    @RpcService
+    Long findRecipeAuditCountByFlag(List<Integer> organ, List<Integer> recipeTypes, int flag);
+
 }
 
