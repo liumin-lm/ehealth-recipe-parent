@@ -664,9 +664,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         Integer recipeId = recipe.getRecipeId();
         String errorMsg = "";
         String sendDateStr = MapValueUtil.getString(paramMap, "sendDate");
-        //此处为配送人
-        String sender = MapValueUtil.getString(paramMap, "sender");
-
         Map<String, Object> attrMap = Maps.newHashMap();
         attrMap.put("giveDate", StringUtils.isEmpty(sendDateStr) ? DateTime.now().toDate() :
                 DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME));
@@ -677,6 +674,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         }
         //更新处方信息
         Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.RECIPE_FAIL, attrMap);
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
         if (rs) {
             //患者未取药
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
@@ -691,7 +689,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             if(Objects.nonNull(order)){
                 stateManager.updateOrderState(order.getOrderId(),OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
             }
-//            orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.FAIL, MapValueUtil.getString(paramMap, "cancelReason"));
             if (RecipeResultBean.FAIL == result.getCode()) {
                 code = ErrorCode.SERVICE_ERROR;
                 errorMsg = "处方订单更新失败";
