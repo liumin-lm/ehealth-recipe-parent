@@ -13,7 +13,6 @@ import org.springframework.util.CollectionUtils;
 import recipe.client.PatientClient;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
-import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeTherapyDAO;
 import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.enumerate.type.TherapyCancellationTypeEnum;
@@ -35,8 +34,7 @@ public class RecipeTherapyManager extends BaseManager {
     private RecipeTherapyDAO recipeTherapyDAO;
     @Autowired
     private PatientClient patientClient;
-    @Autowired
-    private RecipeDAO recipeDAO;
+
 
     /**
      * 保存诊疗处方关联信息

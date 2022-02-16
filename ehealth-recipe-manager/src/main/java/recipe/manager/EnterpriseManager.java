@@ -729,7 +729,7 @@ public class EnterpriseManager extends BaseManager {
     public OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId) {
         logger.info("EnterpriseManager saveOrganDrugsSaleConfig organId:{}  drugsEnterpriseId:{}", organId, drugsEnterpriseId);
         // 患者端使用到的机构配置,这个接口仅这些使用
-        ArrayList<String> key = Lists.newArrayList("isSupportSendToStation", "getMedicineRemindContent", "payModeToHosOnlinePayConfig", "supportToHosPayFlag", "toHosPlanDate",
+        ArrayList<String> key = Lists.newArrayList("toSendStationFlag", "getMedicineRemindContent", "payModeToHosOnlinePayConfig", "supportToHosPayFlag", "toHosPlanDate",
                 "toHosPlanAmTime", "toHosPlanPmTime", "getQrTypeForRecipe", "getQrTypeForRecipeRemind");
         // 到院自取是否采用药企管理模式
         Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(organId, "drugToHosByEnterprise", false);
@@ -756,13 +756,13 @@ public class EnterpriseManager extends BaseManager {
     private OrganDrugsSaleConfig coverConfig(Map<String, Object> configurationByKeyList) {
         logger.info("EnterpriseManager coverConfig configurationByKeyList:{} ", JSONUtils.toString(configurationByKeyList));
         OrganDrugsSaleConfig organDrugsSaleConfig = new OrganDrugsSaleConfig();
-        Boolean isSupportSendToStation = (Boolean) configurationByKeyList.get("isSupportSendToStation");
+        Boolean isSupportSendToStation = (Boolean) configurationByKeyList.get("toSendStationFlag");
         organDrugsSaleConfig.setIsSupportSendToStation(isSupportSendToStation ? 1 : 0);
         organDrugsSaleConfig.setTakeOneselfContent(configurationByKeyList.get("getMedicineRemindContent").toString());
         organDrugsSaleConfig.setTakeOneselfPaymentChannel((Integer) configurationByKeyList.get("payModeToHosOnlinePayConfig"));
         organDrugsSaleConfig.setTakeOneselfPayment((Boolean) configurationByKeyList.get("supportToHosPayFlag") ? 1 : 2);
-        Integer toHosPlanDate = (Integer) configurationByKeyList.get("toHosPlanDate");
-        organDrugsSaleConfig.setTakeOneselfPlanDate(toHosPlanDate);
+        List<String> list = (List<String>) configurationByKeyList.get("toHosPlanDate");
+        organDrugsSaleConfig.setTakeOneselfPlanDate(Integer.parseInt(list.get(0)));
         organDrugsSaleConfig.setTakeOneselfPlanAmTime(configurationByKeyList.get("toHosPlanAmTime").toString());
         organDrugsSaleConfig.setTakeOneselfPlanPmTime(configurationByKeyList.get("toHosPlanPmTime").toString());
         organDrugsSaleConfig.setTakeDrugsVoucher((Integer) configurationByKeyList.get("getQrTypeForRecipe"));

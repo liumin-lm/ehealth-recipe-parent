@@ -34,14 +34,6 @@ public class ItemListManager extends BaseManager {
         return itemLists;
     }
 
-    public void updateItemListStatusById(Integer id, Integer status) {
-        itemListDAO.updateStatus(id, status);
-    }
-
-    public void deleteItemListById(Integer id) {
-        itemListDAO.delete(id);
-    }
-
     public ItemList saveItemList(ItemList itemList) {
         ItemList itemList1 = itemListDAO.save(itemList);
         logger.info("saveItemList result:{}", JSONUtils.toString(itemList1));

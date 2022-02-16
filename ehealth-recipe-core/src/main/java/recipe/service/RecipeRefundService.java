@@ -39,7 +39,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.manager.OrderManager;
+import recipe.manager.StateManager;
 import recipe.service.recipecancel.RecipeCancelService;
 
 import java.text.SimpleDateFormat;
@@ -72,6 +74,8 @@ public class RecipeRefundService extends RecipeBaseService{
     private DrugsEnterpriseDAO enterpriseDAO;
     @Autowired
     private OrderManager orderManager;
+    @Autowired
+    private StateManager stateManager;
 
     /*
      * @description 向his申请处方退费接口
@@ -259,6 +263,8 @@ public class RecipeRefundService extends RecipeBaseService{
                         orderAttrMap.put("refundFlag", 1);
                         orderAttrMap.put("refundTime", new Date());
                         recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
+                        stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_USER);
+
                         //修改处方状态
                         recipe.setStatus(RecipeStatusConstant.REVOKE);
                         recipe.setLastModify(new Date());

@@ -26,6 +26,7 @@ public enum OrderStateEnum {
     SUB_CANCELLATION_TIMEOUT_NON_PAYMENT(95, "超时未支付", "过期处方（未支付过期 /未处理过期）"),
     SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE(96, "超时未取药", "超时未取药系统取消"),
     SUB_CANCELLATION_USER(97, "用户取消", "患者手动取消"),
+    SUB_CANCELLATION_OTHER(98, "其他原因取消订单", ""),
     ;
 
     private Integer type;
