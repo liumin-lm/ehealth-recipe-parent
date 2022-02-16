@@ -2295,6 +2295,7 @@ public class RecipeService extends RecipeBaseService {
         if (!effective) {
             return;
         }
+        stateManager.updateRecipeState(recipe.getRecipeId(),RecipeStateEnum.PROCESS_STATE_DELETED, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         //相应订单处理
         orderService.cancelOrderByRecipeId(recipe.getRecipeId(), OrderStatusConstant.CANCEL_NOT_PASS, false);
@@ -5759,6 +5760,7 @@ public class RecipeService extends RecipeBaseService {
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             updateMap.put("checkStatus", RecipecCheckStatusConstant.First_Check_No_Pass);
             recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), updateMap);
+            stateManager.updateAuditState(recipe.getRecipeId(),RecipeAuditStateEnum.FAIL_DOC_CONFIRMING);
         }
         //由于支持二次签名的机构第一次审方不通过时医生收不到消息。所以将审核不通过推送消息放这里处理
         sendCheckNotPassYsMsg(recipe);

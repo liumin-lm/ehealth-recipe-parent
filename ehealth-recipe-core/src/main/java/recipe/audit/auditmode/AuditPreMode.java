@@ -33,8 +33,11 @@ import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.type.DocIndexShowEnum;
 import recipe.manager.EnterpriseManager;
+import recipe.manager.RecipeManager;
+import recipe.manager.StateManager;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeService;
@@ -98,6 +101,8 @@ public class AuditPreMode extends AbstractAuidtMode {
         if (status == RecipeStatusConstant.CHECK_PASS) {
             status = RecipeStatusConstant.READY_CHECK_YS;
         }
+        // 设置新的审方状态
+        super.setAuditStateToPendingReview(recipe.getRecipeId(),status);
         // 平台模式前置需要发送卡片 待审核只有平台发
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
             RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);

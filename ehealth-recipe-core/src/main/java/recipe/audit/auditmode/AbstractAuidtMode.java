@@ -34,7 +34,9 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.manager.RecipeManager;
+import recipe.manager.StateManager;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeService;
@@ -268,6 +270,13 @@ public abstract class AbstractAuidtMode implements IAuditMode {
         } catch (Exception e) {
             LOGGER.error("threeRecipeAutoCheck error recipe={}", recipeId, e);
             return false;
+        }
+    }
+
+    protected void setAuditStateToPendingReview(Integer recipeId,Integer status) {
+        if (status == recipe.constant.RecipeStatusConstant.READY_CHECK_YS) {
+            StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+            stateManager.updateAuditState(recipeId, RecipeAuditStateEnum.PENDING_REVIEW);
         }
     }
 }

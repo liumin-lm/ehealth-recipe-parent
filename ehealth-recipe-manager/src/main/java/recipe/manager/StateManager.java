@@ -5,6 +5,7 @@ import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.exception.DAOException;
 import eh.base.constant.ErrorCode;
 import org.springframework.stereotype.Service;
+import recipe.aop.LogRecord;
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
@@ -25,6 +26,7 @@ public class StateManager extends BaseManager {
      * @param subState     子状态枚举
      * @return
      */
+    @LogRecord
     public Boolean updateOrderState(Integer orderId, OrderStateEnum processState, OrderStateEnum subState) {
         RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
         if (null == recipeOrder) {
@@ -50,6 +52,7 @@ public class StateManager extends BaseManager {
      * @param subState     子状态枚举
      * @return
      */
+    @LogRecord
     public Boolean updateRecipeState(Integer recipeId, RecipeStateEnum processState, RecipeStateEnum subState) {
         logger.info("StateManager updateRecipeState recipeId ={},processState={},subState={} ", recipeId, processState, subState);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
@@ -71,6 +74,7 @@ public class StateManager extends BaseManager {
         return result;
     }
 
+    @LogRecord
     public Boolean updateAuditState(Integer recipeId, RecipeAuditStateEnum state) {
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipeId);
@@ -87,6 +91,7 @@ public class StateManager extends BaseManager {
      * @param subState     子状态枚举
      * @return
      */
+    @LogRecord
     private Boolean cancelOrder(RecipeOrder order, OrderStateEnum processState, OrderStateEnum subState) {
         RecipeOrder updateOrder = new RecipeOrder(order.getOrderId(),processState.getType(),subState.getType());
         recipeOrderDAO.updateNonNullFieldByPrimaryKey(updateOrder);
@@ -101,6 +106,7 @@ public class StateManager extends BaseManager {
      * @param subState     子状态枚举
      * @return
      */
+    @LogRecord
     private Boolean cancellation(Recipe recipe, RecipeStateEnum processState, RecipeStateEnum subState) {
         if (RecipeStateEnum.PROCESS_STATE_DELETED == processState && recipe.getProcessState() > 1) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不是暂存处方不能删除");

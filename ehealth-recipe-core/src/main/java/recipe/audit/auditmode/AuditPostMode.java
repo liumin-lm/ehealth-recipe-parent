@@ -132,6 +132,8 @@ public class AuditPostMode extends AbstractAuidtMode {
         super.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(),status,attrMap,result);
 
         if (saveFlag) {
+            // 设置新的审方状态
+            super.setAuditStateToPendingReview(dbRecipe.getRecipeId(),status);
             //支付后调用
             Integer checkMode = dbRecipe.getCheckMode();
             boolean flag = super.threeRecipeAutoCheck(dbRecipe.getRecipeId(), dbRecipe.getClinicOrgan());
