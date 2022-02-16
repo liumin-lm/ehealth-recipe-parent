@@ -40,15 +40,15 @@ import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.manager.EmrRecipeManager;
+import recipe.manager.StateManager;
 import recipe.service.*;
 import recipe.service.hospitalrecipe.dataprocess.PrescribeProcess;
 import recipe.util.RedisClient;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.sql.Statement;
+import java.util.*;
 
 /**
  * @author： 0184/yu_yun
@@ -78,6 +78,9 @@ public class PrescribeService {
 
     @Autowired
     private RedisClient redisClient;
+
+    @Autowired
+    private StateManager stateManager;
 
     /**
      * 创建处方
@@ -604,6 +607,9 @@ public class PrescribeService {
         //如果已付款则需要进行退款
         RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
         orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
+        if(Objects.nonNull(order)){
+            stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_OTHER);
+        }
         //取消处方单
         recipeDAO.updateRecipeInfoByRecipeId(dbRecipe.getRecipeId(), RecipeStatusConstant.DELETE, null);
 

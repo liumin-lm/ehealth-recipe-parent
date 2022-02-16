@@ -687,6 +687,10 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderAttrMap.put("effective", 0);
             RecipeResultBean result = orderService.updateOrderInfo(recipe.getOrderCode(), orderAttrMap, null);
 
+            RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            if(Objects.nonNull(order)){
+                stateManager.updateOrderState(order.getOrderId(),OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
+            }
 //            orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.FAIL, MapValueUtil.getString(paramMap, "cancelReason"));
             if (RecipeResultBean.FAIL == result.getCode()) {
                 code = ErrorCode.SERVICE_ERROR;

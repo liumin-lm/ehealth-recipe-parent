@@ -3511,6 +3511,9 @@ public class RecipeService extends RecipeBaseService {
                 //变更处方状态
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_OPERATOR, ImmutableMap.of("chooseFlag", 1));
                 stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_ORDER);
+                if(Objects.nonNull(order)) {
+                    stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_OTHER);
+                }
                 RecipeMsgService.batchSendMsg(recipe, RecipeStatusConstant.RECIPE_ORDER_CACEL);
                 memo.append("已取消,超过3天未操作");
                 //HIS消息发送
@@ -3663,6 +3666,7 @@ public class RecipeService extends RecipeBaseService {
         if (CollectionUtils.isNotEmpty(recipeList)) {
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
             RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+            StateManager stateManager = ApplicationUtils.getRecipeService(StateManager.class);
             RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
             RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
             StringBuilder memo = new StringBuilder();
@@ -3689,6 +3693,9 @@ public class RecipeService extends RecipeBaseService {
                     //相应订单处理
                     order = orderDAO.getOrderByRecipeId(recipeId);
                     orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
+                    if(Objects.nonNull(order)){
+                        stateManager.updateOrderState(order.getOrderId(),OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_OTHER);
+                    }
                     // 邵逸夫模式下 需要查询有无支付审方费
                     if (null != order) {
                         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
@@ -4484,14 +4491,23 @@ public class RecipeService extends RecipeBaseService {
             orderService.updateOrderInfo(order.getOrderCode(), ImmutableMap.of("status", OrderStatusConstant.READY_PAY), null);
         } else if (PUSH_FAIL == flag) {
             orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, false);
+            if(Objects.nonNull(order)){
+                stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_OTHER);
+            }
         } else if (REFUND_MANUALLY == flag) {
             orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, false);
+            if(Objects.nonNull(order)){
+                stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_USER);
+            }
             for (Integer recid : recipeIds) {
                 //处理处方单
                 recipeDAO.updateRecipeInfoByRecipeId(recid, status, null);
             }
         } else if (REFUND_PATIENT == flag) {
             orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, false);
+            if(Objects.nonNull(order)){
+                stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_USER);
+            }
             orderService.updateOrderInfo(order.getOrderCode(), ImmutableMap.of("payFlag", 2), null);
             for (Integer recid : recipeIds) {
                 //处理处方单
@@ -5870,6 +5886,9 @@ public class RecipeService extends RecipeBaseService {
                 order = orderDAO.getOrderByRecipeId(recipeId);
                 if (null != order) {
                     orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
+                    if(Objects.nonNull(order)){
+                        stateManager.updateOrderState(order.getOrderId(),OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_TIMEOUT_NON_PAYMENT);
+                    }
                     if (recipe.getFromflag().equals(RecipeBussConstant.FROMFLAG_HIS_USE)) {
                         orderDAO.updateByOrdeCode(order.getOrderCode(), ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
                         //发送超时取消消息
@@ -5961,6 +5980,9 @@ public class RecipeService extends RecipeBaseService {
                 if (null != order) {
 
                     orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
+                    if(Objects.nonNull(order)){
+                        stateManager.updateOrderState(order.getOrderId(),OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_TIMEOUT_NON_PAYMENT);
+                    }
                     if (recipe.getFromflag().equals(RecipeBussConstant.FROMFLAG_HIS_USE)) {
                         orderDAO.updateByOrdeCode(order.getOrderCode(), ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
                         //发送超时取消消息
@@ -6023,6 +6045,9 @@ public class RecipeService extends RecipeBaseService {
                     //相应订单处理
                     order = orderDAO.getOrderByRecipeId(recipeId);
                     orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
+                    if(Objects.nonNull(order)){
+                        stateManager.updateOrderState(order.getOrderId(),OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_TIMEOUT_NON_PAYMENT);
+                    }
                     if (recipe.getFromflag().equals(RecipeBussConstant.FROMFLAG_HIS_USE)) {
                         if (null != order) {
                             orderDAO.updateByOrdeCode(order.getOrderCode(), ImmutableMap.of("cancelReason", "患者未在规定时间内支付，该处方单已失效"));
