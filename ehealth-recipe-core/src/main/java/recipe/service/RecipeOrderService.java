@@ -102,7 +102,7 @@ import static ctd.persistence.DAOFactory.getDAO;
  * @author: 0184/yu_yun
  * @date:2017/2/13.
  */
-@RpcBean(value = "recipeOrderService", mvc_authentication = false)
+@RpcBean(value = "recipeOrderService")
 public class RecipeOrderService extends RecipeBaseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeOrderService.class);
