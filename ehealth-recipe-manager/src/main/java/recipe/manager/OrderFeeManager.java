@@ -3,16 +3,14 @@ package recipe.manager;
 import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.platform.recipe.mode.EnterpriseResTo;
 import com.ngari.recipe.entity.*;
+import coupon.api.vo.Coupon;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.client.EnterpriseClient;
-import recipe.client.IConfigurationClient;
-import recipe.client.OrganClient;
-import recipe.client.RecipeRedisClient;
+import recipe.client.*;
 import recipe.constant.ErrorCode;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
@@ -20,10 +18,12 @@ import recipe.constant.ReviewTypeConstant;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.type.DecoctionDeployTypeEnum;
+import recipe.enumerate.type.ExpressFeePayWayEnum;
 import recipe.enumerate.type.ExpressFeeTypeEnum;
 import recipe.enumerate.type.SettlementModeTypeEnum;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -57,6 +57,8 @@ public class OrderFeeManager extends BaseManager{
     private EnterpriseClient enterpriseClient;
     @Autowired
     private DrugDistributionPriceDAO drugDistributionPriceDAO;
+    @Autowired
+    private CouponClient couponClient;
 
     /**
      * 订单设置挂号费
@@ -86,6 +88,10 @@ public class OrderFeeManager extends BaseManager{
         }
         //设置审方费用
         Recipe firstRecipe = recipeList.get(0);
+        if (ReviewTypeConstant.Not_Need_Check.equals(firstRecipe.getReviewType())) {
+            //不需要审方
+            return;
+        }
         double auditFee = ReviewTypeConstant.Not_Need_Check == firstRecipe.getReviewType() ? 0d : configurationClient.getValueCatchReturnDouble(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_AUDITFEE, 0d);
         //如果是合并处方单，审方费得乘以处方单数
         order.setAuditFee(BigDecimal.valueOf(auditFee).multiply(BigDecimal.valueOf(recipeList.size())));
@@ -209,6 +215,11 @@ public class OrderFeeManager extends BaseManager{
         order.setCopyNum(tcmRecipeList.size());
     }
 
+    /**
+     * 获取配送费
+     * @param enterpriseResTo
+     * @return
+     */
     public BigDecimal getExpressFee(EnterpriseResTo enterpriseResTo){
         logger.info("OrderFeeManager getExpressFee enterpriseResTo:{}.", JSONUtils.toString(enterpriseResTo));
         if (null == enterpriseResTo || StringUtils.isEmpty(enterpriseResTo.getDepId())) {
@@ -224,16 +235,81 @@ public class OrderFeeManager extends BaseManager{
             return enterpriseClient.getExpressFee(enterpriseResTo);
         } else {
             //运费从平台获取
-
+            return getPlatformExpressFee(Integer.parseInt(enterpriseResTo.getDepId()), enterpriseResTo.getAddress());
         }
-        return BigDecimal.ZERO;
     }
 
-    public BigDecimal getPlatformExpressFee(Integer enterpriseId, String address){
-        return null;
+    /**
+     * 设置优惠券费用
+     * @param order
+     */
+    public void couponFee(RecipeOrder order){
+        Coupon coupon = couponClient.getCouponById(order.getCouponId(), order.getTotalFee());
+        if (null == coupon) {
+            return;
+        }
+        order.setCouponName(coupon.getCouponName());
+        order.setCouponFee(coupon.getDiscountAmount());
+        order.setCouponDesc(coupon.getCouponDesc());
     }
 
-    private BigDecimal getAreaExpressFee(Integer enterpriseId, String addrArea) {
+    /**
+     * 设置总费用
+     * @param order 订单
+     * @param recipeFeeContainFlag 处方费用是否包含在总费用标志
+     */
+    public void totalFee(RecipeOrder order, Boolean recipeFeeContainFlag, Boolean express){
+        BigDecimal full = BigDecimal.ZERO;
+        //添加判断，当处方选择购药方式是下载处方，不计算药品费用
+        //处方费用
+        if (recipeFeeContainFlag) {
+            full = full.add(order.getRecipeFee());
+        }
+        //快递费
+        if (null != order.getExpressFee() && ExpressFeePayWayEnum.ONLINE.getType().equals(order.getExpressFeePayWay())) {
+            full = full.add(order.getExpressFee());
+        }
+        //挂号费
+        if (null != order.getRegisterFee()) {
+            full = full.add(order.getRegisterFee());
+        }
+        //代煎费
+        if (null != order.getDecoctionFee()) {
+            full = full.add(order.getDecoctionFee());
+        }
+        //审方费
+        if (null != order.getAuditFee()) {
+            full = full.add(order.getAuditFee());
+        }
+        //其他服务费
+        if (null != order.getOtherFee()) {
+            full = full.add(order.getOtherFee());
+        }
+        //中医辨证论治费
+        if (null != order.getTcmFee()) {
+            full = full.add(order.getTcmFee());
+        }
+        order.setTotalFee(full.divide(BigDecimal.ONE, 3, RoundingMode.UP));
+    }
+
+    public void actualFee(RecipeOrder order) {
+        //首先看一下是否有优惠费用
+        if (null != order.getCouponFee() && order.getTotalFee().compareTo(order.getCouponFee()) > -1) {
+            order.setActualPrice(order.getTotalFee().subtract(order.getCouponFee()).doubleValue());
+        } else {
+            order.setActualPrice(order.getTotalFee().doubleValue());
+        }
+
+    }
+
+    /**
+     * 从平台获取快递费 如：341001 先获取341001获取不到，则3410->34
+     * @param enterpriseId 药企ID
+     * @param addrArea  地址
+     * @return 配送费
+     */
+    public BigDecimal getPlatformExpressFee(Integer enterpriseId, String addrArea) {
+        logger.info("OrderFeeManager getPlatformExpressFee enterpriseId:{}, addrArea:{}.", enterpriseId, addrArea);
         DrugDistributionPrice drugDistributionPrice;
         int length = addrArea.length();
         do {
@@ -242,7 +318,7 @@ public class OrderFeeManager extends BaseManager{
                 break;
             }
         } while ((length = length - 2) > 0);
-
+        logger.info("OrderFeeManager getPlatformExpressFee drugDistributionPrice:{}.", JSONUtils.toString(drugDistributionPrice));
         if (null == drugDistributionPrice) {
             return null;
         }
