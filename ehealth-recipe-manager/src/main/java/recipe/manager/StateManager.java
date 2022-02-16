@@ -1,5 +1,6 @@
 package recipe.manager;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.exception.DAOException;
@@ -29,6 +30,7 @@ public class StateManager extends BaseManager {
     @LogRecord
     public Boolean updateOrderState(Integer orderId, OrderStateEnum processState, OrderStateEnum subState) {
         RecipeOrder recipeOrder = recipeOrderDAO.get(orderId);
+        logger.info("StateManager updateOrderState recipeOrder:{}", JSON.toJSONString(recipeOrder));
         if (null == recipeOrder) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该订单不存在");
         }
@@ -54,8 +56,8 @@ public class StateManager extends BaseManager {
      */
     @LogRecord
     public Boolean updateRecipeState(Integer recipeId, RecipeStateEnum processState, RecipeStateEnum subState) {
-        logger.info("StateManager updateRecipeState recipeId ={},processState={},subState={} ", recipeId, processState, subState);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        logger.info("StateManager updateRecipeState recipe:{}", JSON.toJSONString(recipe));
         if (null == recipe) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方不存在");
         }
@@ -70,7 +72,6 @@ public class StateManager extends BaseManager {
                 break;
         }
         saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), subState.getName());
-        logger.info("StateManager updateRecipeState recipeId ={} ", recipeId);
         return result;
     }
 
@@ -91,7 +92,6 @@ public class StateManager extends BaseManager {
      * @param subState     子状态枚举
      * @return
      */
-    @LogRecord
     private Boolean cancelOrder(RecipeOrder order, OrderStateEnum processState, OrderStateEnum subState) {
         RecipeOrder updateOrder = new RecipeOrder(order.getOrderId(),processState.getType(),subState.getType());
         recipeOrderDAO.updateNonNullFieldByPrimaryKey(updateOrder);
@@ -106,11 +106,15 @@ public class StateManager extends BaseManager {
      * @param subState     子状态枚举
      * @return
      */
-    @LogRecord
     private Boolean cancellation(Recipe recipe, RecipeStateEnum processState, RecipeStateEnum subState) {
         if (RecipeStateEnum.PROCESS_STATE_DELETED == processState && recipe.getProcessState() > 1) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方单不是暂存处方不能删除");
         }
+        if (RecipeStateEnum.PROCESS_STATE_DELETED.getType().equals(recipe.getProcessState())
+                || RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType().equals(recipe.getProcessState())) {
+            return true;
+        }
+
         Recipe updateRecipe = new Recipe();
         //  医生撤销情况下 待审核审方 改为无需审核状态
         if (RecipeStateEnum.SUB_CANCELLATION_DOCTOR == subState && recipe.getAuditState() < RecipeAuditStateEnum.PENDING_REVIEW.getType()) {
