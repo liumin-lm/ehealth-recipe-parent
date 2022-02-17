@@ -1,17 +1,17 @@
 package recipe.purchase;
 
 import com.google.common.collect.ImmutableMap;
-import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.his.recipe.mode.TakeMedicineByToHos;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
+import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
-import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
-import recipe.client.EnterpriseClient;
 import recipe.client.IConfigurationClient;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
@@ -28,17 +27,16 @@ import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.manager.OrganDrugListManager;
-import recipe.service.RecipeHisService;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -138,7 +136,7 @@ public class PayModeToHos implements IPurchaseService {
                     remoteService.setEnterpriseMsgToOrder(order, depId, extInfo);
                 }
             }
-        }else {
+        } else {
             // 到院取药校验机构库存
             List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIdLists);
             EnterpriseStock organStock = organDrugListManager.organStock(dbRecipes.get(0).getClinicOrgan(), recipeDetails);
@@ -185,7 +183,7 @@ public class PayModeToHos implements IPurchaseService {
         // 目前paymode传入还是老版本 除线上支付外全都算线下支付,下个版本与前端配合修改
         Integer payModeNew = payMode;
         // 到院取药是否支持线上支付
-        OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId());
+        OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId(), GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType());
         Integer takeOneselfPayment = organDrugsSaleConfig.getTakeOneselfPayment();
         if (!payMode.equals(1)) {
             payModeNew = 2;
@@ -280,6 +278,7 @@ public class PayModeToHos implements IPurchaseService {
 
     /**
      * 新模式获取到院取药支持的药企
+     *
      * @param dbRecipe
      * @return
      */
@@ -306,9 +305,7 @@ public class PayModeToHos implements IPurchaseService {
 
 
         // 调his获取取药点
-
         List<TakeMedicineByToHos> takeMedicineByToHosList = enterpriseManager.getTakeMedicineByToHosList(dbRecipe.getClinicOrgan(), dbRecipe);
-
 
         if (CollectionUtils.isEmpty(takeMedicineByToHosList)) {
             LOG.warn("findSupportDepList 该处方无法配送. recipeId=[{}]", recipeId);
@@ -322,9 +319,31 @@ public class PayModeToHos implements IPurchaseService {
         if (CollectionUtils.isNotEmpty(takeMedicineByToHosList) && takeMedicineByToHosList.size() == 1) {
             depListBean.setSigle(true);
         }
-        resultBean.setObject(takeMedicineByToHosList);
+        depListBean.setList(getDepDetailList(takeMedicineByToHosList));
+        resultBean.setObject(depListBean);
         LOG.info("findSupportDepList 当前处方{}查询药企列表信息：{}", recipeId, JSONUtils.toString(resultBean));
         return resultBean;
+    }
+
+    private List<DepDetailBean> getDepDetailList(List<TakeMedicineByToHos> takeMedicineByToHosList) {
+        return takeMedicineByToHosList.stream().map(takeMedicineByToHos -> {
+            DepDetailBean depDetailBean = new DepDetailBean();
+            depDetailBean.setPayMethod(takeMedicineByToHos.getPayWay().toString());
+            depDetailBean.setDepId(takeMedicineByToHos.getEnterpriseId());
+            depDetailBean.setDepName(takeMedicineByToHos.getPharmacyName());
+            depDetailBean.setBelongDepName(takeMedicineByToHos.getEnterpriseName());
+            depDetailBean.setPharmacyName(takeMedicineByToHos.getPharmacyName());
+            depDetailBean.setPharmacyCode(takeMedicineByToHos.getPharmacyCode());
+            depDetailBean.setAddress(takeMedicineByToHos.getPharmacyAddress());
+            depDetailBean.setDistance(takeMedicineByToHos.getDistance());
+            depDetailBean.setRecipeFee(takeMedicineByToHos.getRecipeTotalPrice());
+            Position position = new Position();
+            position.setLatitude(Double.valueOf(takeMedicineByToHos.getLat()));
+            position.setLongitude(Double.valueOf(takeMedicineByToHos.getLng()));
+            position.setRange(takeMedicineByToHos.getRange());
+            depDetailBean.setPosition(position);
+            return depDetailBean;
+        }).collect(Collectors.toList());
     }
 
     /**

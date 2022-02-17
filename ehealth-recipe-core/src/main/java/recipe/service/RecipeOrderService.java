@@ -73,6 +73,7 @@ import recipe.constant.*;
 import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
+import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -811,7 +812,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //快递费线上支付的需要计算是否满足包邮
         if (null != order.getExpressFee() && null != order.getEnterpriseId()) {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-            if (null != drugsEnterprise && order.getRecipeFee().compareTo(drugsEnterprise.getFreeDeliveryMoney()) >= -1) {
+            if (null != drugsEnterprise && null != drugsEnterprise.getFreeDeliveryMoney() && order.getRecipeFee().compareTo(drugsEnterprise.getFreeDeliveryMoney()) > -1) {
                 order.setExpressFee(BigDecimal.ZERO);
             }
         }
@@ -853,7 +854,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
                     //卫宁付
                     // 到院取药是否支持线上支付
-                    OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId());
+                    OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId(),GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType());
                     Integer takeOneselfPayment = organDrugsSaleConfig.getTakeOneselfPayment();
                     if (purchaseService.getToHosPayConfig(firstRecipe.getClinicOrgan(),order.getEnterpriseId()) || new Integer(1).equals(takeOneselfPayment)) {
                         order.setActualPrice(totalFee.doubleValue());
@@ -1110,8 +1111,8 @@ public class RecipeOrderService extends RecipeBaseService {
         }
         //上海外服个性化处理账户支付金额
         String organName = recipeParameterDao.getByName("shwfAccountFee");
-        if (StringUtils.isEmpty(organName)) {
-            BigDecimal accountFee = orderFeeManager.getAccountFee(order.getTotalFee(), order.getMpiId());
+        if (StringUtils.isNotEmpty(organName)) {
+            BigDecimal accountFee = orderFeeManager.getAccountFee(order.getTotalFee(), order.getMpiId(), order.getOrganId());
             if (null != accountFee) {
                 recipeOrderBean.setAccountFee(accountFee);
             }
@@ -1880,10 +1881,15 @@ public class RecipeOrderService extends RecipeBaseService {
      * @param result
      * @param order
      */
-    private void putSupportToHosPayFlag(RecipeResultBean result, RecipeOrder order) {
+    private void putSupportToHosPayFlag(RecipeResultBean result,RecipeOrder order) {
         Map<String, Object> map = result.getExt();
         // 到院取药是否支持线上支付
-        OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId());
+        List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+        List<Recipe> recipeList = null;
+        if (CollectionUtils.isNotEmpty(recipeIdList)) {
+            recipeList = recipeDAO.findByRecipeIds(recipeIdList);
+        }
+        OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId(), recipeList.get(0).getGiveMode());
         if (new Integer(1).equals(organDrugsSaleConfig.getTakeOneselfPayment())) {
             map.put("supportToHosPayFlag", 1);
         }

@@ -358,7 +358,7 @@ public class OfflineRecipeClient extends BaseClient {
             logger.info("OfflineRecipeClient recipeCashPreSettle response:{}.", JSONUtils.toString(response));
             return getResponse(response);
         } catch (Exception e) {
-            logger.error("OfflineRecipeClient queryRecipeSerialNumber hisResponse", e);
+            logger.error("OfflineRecipeClient recipeCashPreSettle", e);
             return null;
         }
     }

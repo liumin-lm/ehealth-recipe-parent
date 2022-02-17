@@ -332,7 +332,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
 
     @Override
     public OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId) {
-        return enterpriseManager.getOrganDrugsSaleConfig(organId,drugsEnterpriseId);
+        return enterpriseManager.getOrganDrugsSaleConfig(organId,drugsEnterpriseId,GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType());
     }
 
     @Override
