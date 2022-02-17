@@ -366,16 +366,18 @@ public class RecipeTestService {
      */
     @RpcService
     @LogRecord
-    public Integer updateAuditState(String startTime){
-        Integer start = 1,pageSize = 1000;
+    public Integer updateAuditState(Integer max,Integer min){
+        Integer start = 1,pageSize = 1000,userNum = 0;
         IRecipeCheckService iRecipeCheckService = AppContextHolder.getBean("recipeaudit.recipeCheckServiceImpl", IRecipeCheckService.class);
         StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
         List<RecipeCheckBean> list = new ArrayList<>();
-        while(start == 1){
-            list = iRecipeCheckService.findRecipeCheck(start,pageSize);
+        do{
+            list = iRecipeCheckService.findRecipeCheck(max,min,start,pageSize);
             start += pageSize ;
-            if(CollectionUtils.isNotEmpty(list)){
-                return start;
+            if(CollectionUtils.isEmpty(list)){
+                return userNum;
+            }else{
+                userNum += list.size();
             }
             List<Integer> recipeIds = list.stream().map(item -> item.getRecipeId() ).collect(Collectors.toList());
             List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
@@ -412,8 +414,8 @@ public class RecipeTestService {
                     LOGGER.info("recipeTestService-updateAuditState recipecheck:{} - recipe:{} Exception:" , JSON.toJSONString(item), JSON.toJSONString(recipeMap.get(item.getRecipeId())), e);
                 }
             }
-        }
-        return start;
+        }while(CollectionUtils.isNotEmpty(list));
+        return 0;
     }
 
 }
