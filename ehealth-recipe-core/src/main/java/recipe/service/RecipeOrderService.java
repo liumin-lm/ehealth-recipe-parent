@@ -1881,10 +1881,15 @@ public class RecipeOrderService extends RecipeBaseService {
      * @param result
      * @param order
      */
-    private void putSupportToHosPayFlag(RecipeResultBean result, RecipeOrder order) {
+    private void putSupportToHosPayFlag(RecipeResultBean result,RecipeOrder order) {
         Map<String, Object> map = result.getExt();
         // 到院取药是否支持线上支付
-        OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId(), GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType());
+        List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+        List<Recipe> recipeList = null;
+        if (CollectionUtils.isNotEmpty(recipeIdList)) {
+            recipeList = recipeDAO.findByRecipeIds(recipeIdList);
+        }
+        OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId(), recipeList.get(0).getGiveMode());
         if (new Integer(1).equals(organDrugsSaleConfig.getTakeOneselfPayment())) {
             map.put("supportToHosPayFlag", 1);
         }

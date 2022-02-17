@@ -262,7 +262,7 @@ public class RecipeManager extends BaseManager {
     public String getToHosProof(Recipe recipe, RecipeExtend recipeExtend, RecipeOrder order) {
         String qrName = "";
         try {
-            OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId(), GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType());
+            OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId(), recipe.getGiveMode());
             RecipeShowQrConfigEnum qrConfigEnum = RecipeShowQrConfigEnum.getEnumByType(organDrugsSaleConfig.getTakeDrugsVoucher());
             switch (qrConfigEnum) {
                 case CARD_NO:
