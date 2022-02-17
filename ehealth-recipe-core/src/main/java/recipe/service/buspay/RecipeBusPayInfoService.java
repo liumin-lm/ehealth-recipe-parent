@@ -83,7 +83,7 @@ import java.util.stream.Collectors;
  * created by shiyuping on 2021/1/25
  * base里的处方业务支付信息放到recipe里处理
  */
-@RpcBean
+@RpcBean(mvc_authentication = false)
 public class RecipeBusPayInfoService implements IRecipeBusPayService {
 
     private static final Logger log = LoggerFactory.getLogger(RecipeBusPayInfoService.class);

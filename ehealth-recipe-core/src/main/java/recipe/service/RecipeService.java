@@ -111,6 +111,7 @@ import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugTool.service.DrugToolService;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
+import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
@@ -4094,6 +4095,10 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     public Integer supportDistributionExt(Integer recipeId, Integer clinicOrgan, Integer selectDepId, Integer payMode) {
+        Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
+        if(GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(giveMode)){
+            return selectDepId;
+        }
         Integer backDepId = null;
         //date 20191022 修改到院取药配置项
         boolean flag = RecipeServiceSub.getDrugToHos(recipeId, clinicOrgan);

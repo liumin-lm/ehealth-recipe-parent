@@ -730,7 +730,7 @@ public class EnterpriseManager extends BaseManager {
      * @param drugsEnterpriseId
      */
     public OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId,Integer giveMode) {
-        logger.info("EnterpriseManager saveOrganDrugsSaleConfig organId:{}  drugsEnterpriseId:{} giveMode:{}", organId, drugsEnterpriseId,giveMode);
+        logger.info("EnterpriseManager getOrganDrugsSaleConfig organId:{}  drugsEnterpriseId:{} giveMode:{}", organId, drugsEnterpriseId,giveMode);
         // 患者端使用到的机构配置,这个接口仅这些使用
         ArrayList<String> key = Lists.newArrayList("toSendStationFlag", "getMedicineRemindContent", "payModeToHosOnlinePayConfig", "supportToHosPayFlag", "toHosPlanDate",
                 "toHosPlanAmTime", "toHosPlanPmTime", "getQrTypeForRecipe", "getQrTypeForRecipeRemind");
