@@ -1112,7 +1112,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //上海外服个性化处理账户支付金额
         String organName = recipeParameterDao.getByName("shwfAccountFee");
         if (StringUtils.isNotEmpty(organName)) {
-            BigDecimal accountFee = orderFeeManager.getAccountFee(order.getTotalFee(), order.getMpiId());
+            BigDecimal accountFee = orderFeeManager.getAccountFee(order.getTotalFee(), order.getMpiId(), order.getOrganId());
             if (null != accountFee) {
                 recipeOrderBean.setAccountFee(accountFee);
             }
