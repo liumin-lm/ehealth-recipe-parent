@@ -117,7 +117,7 @@ public class StateManager extends BaseManager {
 
         Recipe updateRecipe = new Recipe();
         //  医生撤销情况下 待审核审方 改为无需审核状态
-        if (RecipeStateEnum.SUB_CANCELLATION_DOCTOR == subState && recipe.getAuditState() < RecipeAuditStateEnum.PENDING_REVIEW.getType()) {
+        if (RecipeStateEnum.SUB_CANCELLATION_DOCTOR == subState && recipe.getAuditState() <= RecipeAuditStateEnum.PENDING_REVIEW.getType()) {
             updateRecipe.setAuditState(RecipeAuditStateEnum.NO_REVIEW.getType());
         }
 
