@@ -46,6 +46,7 @@ import recipe.bean.PltPurchaseResponse;
 import recipe.client.IConfigurationClient;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.GiveModeTextEnum;

@@ -13,12 +13,14 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.client.*;
+import recipe.client.CouponClient;
+import recipe.client.OfflineRecipeClient;
+import recipe.client.RecipeRedisClient;
 import recipe.constant.ErrorCode;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.ReviewTypeConstant;
-import recipe.dao.*;
+import recipe.dao.DrugDistributionPriceDAO;
 import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.type.DecoctionDeployTypeEnum;
 import recipe.enumerate.type.ExpressFeePayWayEnum;
@@ -38,7 +40,7 @@ import java.util.stream.Collectors;
  * @date 2022\2\14 0030 17:22
  */
 @Service
-public class OrderFeeManager extends BaseManager{
+public class OrderFeeManager extends BaseManager {
 
     @Autowired
     private RecipeRedisClient recipeRedisClient;
@@ -53,9 +55,10 @@ public class OrderFeeManager extends BaseManager{
 
     /**
      * 订单设置挂号费
+     *
      * @param order 订单
      */
-    public RecipeOrder setRegisterFee(RecipeOrder order){
+    public RecipeOrder setRegisterFee(RecipeOrder order) {
         //获取挂号费配置项
         BigDecimal registerFee = configurationClient.getValueCatchReturnBigDecimal(order.getOrganId(), "priceForRecipeRegister", null);
         if (null != registerFee) {
@@ -68,10 +71,11 @@ public class OrderFeeManager extends BaseManager{
 
     /**
      * 订单设置审方费
-     * @param order 订单
+     *
+     * @param order      订单
      * @param recipeList 处方列表
      */
-    public RecipeOrder setAuditFee(RecipeOrder order, List<Recipe> recipeList){
+    public RecipeOrder setAuditFee(RecipeOrder order, List<Recipe> recipeList) {
         if (CollectionUtils.isEmpty(recipeList)) {
             return order;
         }
@@ -89,9 +93,10 @@ public class OrderFeeManager extends BaseManager{
 
     /**
      * 设置其他费用
+     *
      * @param order 订单
      */
-    public RecipeOrder setOtherFee(RecipeOrder order){
+    public RecipeOrder setOtherFee(RecipeOrder order) {
         //设置其他服务费用
         BigDecimal otherFee = configurationClient.getValueCatchReturnBigDecimal(order.getOrganId(), ParameterConstant.KEY_OTHERFEE, BigDecimal.ZERO);
         order.setOtherFee(otherFee);
@@ -100,16 +105,17 @@ public class OrderFeeManager extends BaseManager{
 
     /**
      * 订单设置处方费用：默认为医院药品总费用，如果为药企配送，药品单价根据药企药企结算类型决定
-     * @param order 订单
-     * @param recipeList 处方列表
+     *
+     * @param order              订单
+     * @param recipeList         处方列表
      * @param payModeSupportFlag 是否为配送类型
      */
-    public RecipeOrder setRecipeFee(RecipeOrder order, List<Recipe> recipeList, Boolean payModeSupportFlag){
+    public RecipeOrder setRecipeFee(RecipeOrder order, List<Recipe> recipeList, Boolean payModeSupportFlag) {
         BigDecimal recipeFee = BigDecimal.ZERO;
         List<BigDecimal> totalMoneyList = recipeList.stream().map(Recipe::getTotalMoney).collect(Collectors.toList());
         List<Integer> recipeIdList = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
         //默认的药品总费用为机构药品价格计算的总费用
-        totalMoneyList.forEach(item->{
+        totalMoneyList.forEach(item -> {
             if (null != item) {
                 recipeFee.add(item);
             }
@@ -137,10 +143,11 @@ public class OrderFeeManager extends BaseManager{
 
     /**
      * TODO 膏方费目前没有用到
-     * @param order 订单
+     *
+     * @param order        订单
      * @param recipeIdList 处方列表
      */
-    public RecipeOrder setGfFee(RecipeOrder order, List<Integer> recipeIdList){
+    public RecipeOrder setGfFee(RecipeOrder order, List<Integer> recipeIdList) {
         OrganConfigBean organConfig = organClient.getOrganConfigBean(order.getOrganId());
         BigDecimal gfTotalMoney = BigDecimal.ZERO;
         //制作单价
@@ -158,12 +165,13 @@ public class OrderFeeManager extends BaseManager{
 
     /**
      * 设置订单代煎费
-     * @param order  订单
+     *
+     * @param order      订单
      * @param recipeList 处方列表
      */
-    public RecipeOrder setDecoctionFee(RecipeOrder order, List<Recipe> recipeList){
+    public RecipeOrder setDecoctionFee(RecipeOrder order, List<Recipe> recipeList) {
         //获取中药处方
-        List<Recipe> tcmRecipeList = recipeList.stream().filter(recipe->RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())).collect(Collectors.toList());
+        List<Recipe> tcmRecipeList = recipeList.stream().filter(recipe -> RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(tcmRecipeList)) {
             return order;
         }
@@ -185,12 +193,13 @@ public class OrderFeeManager extends BaseManager{
 
     /**
      * 设置中医辨证论证费
-     * @param order 订单
+     *
+     * @param order      订单
      * @param recipeList 处方列表
      */
-    public RecipeOrder setTcmFee(RecipeOrder order, List<Recipe> recipeList){
+    public RecipeOrder setTcmFee(RecipeOrder order, List<Recipe> recipeList) {
         //获取中药处方
-        List<Recipe> tcmRecipeList = recipeList.stream().filter(recipe->RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())).collect(Collectors.toList());
+        List<Recipe> tcmRecipeList = recipeList.stream().filter(recipe -> RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(tcmRecipeList)) {
             return order;
         }
@@ -200,7 +209,7 @@ public class OrderFeeManager extends BaseManager{
         if (CollectionUtils.isNotEmpty(offLineRecipeList)) {
             tcmFee = setOffLineTcmFee(order.getOrganId(), offLineRecipeList);
         } else {
-            tcmFee = setOnLineTcmFee(order.getOrganId(),tcmRecipeList);
+            tcmFee = setOnLineTcmFee(order.getOrganId(), tcmRecipeList);
         }
         order.setTcmFee(tcmFee);
         order.setCopyNum(tcmRecipeList.size());
@@ -209,10 +218,11 @@ public class OrderFeeManager extends BaseManager{
 
     /**
      * 获取配送费
+     *
      * @param enterpriseResTo
      * @return
      */
-    public BigDecimal getExpressFee(EnterpriseResTo enterpriseResTo){
+    public BigDecimal getExpressFee(EnterpriseResTo enterpriseResTo) {
         logger.info("OrderFeeManager getExpressFee enterpriseResTo:{}.", JSONUtils.toString(enterpriseResTo));
         if (null == enterpriseResTo || StringUtils.isEmpty(enterpriseResTo.getDepId())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "参数为空");
@@ -233,9 +243,10 @@ public class OrderFeeManager extends BaseManager{
 
     /**
      * 设置优惠券费用
+     *
      * @param order
      */
-    public RecipeOrder setCouponFee(RecipeOrder order){
+    public RecipeOrder setCouponFee(RecipeOrder order) {
         Coupon coupon = couponClient.getCouponById(order.getCouponId(), order.getTotalFee());
         if (null == coupon) {
             return order;
@@ -248,7 +259,8 @@ public class OrderFeeManager extends BaseManager{
 
     /**
      * 设置总费用
-     * @param order 订单
+     *
+     * @param order                订单
      * @param recipeFeeContainFlag 处方费用是否包含在总费用标志
      */
     public RecipeOrder setTotalFee(RecipeOrder order, Boolean recipeFeeContainFlag, Boolean express) {
@@ -288,6 +300,7 @@ public class OrderFeeManager extends BaseManager{
 
     /**
      * 设置实际支付费用
+     *
      * @param order 订单
      * @return 订单
      */
@@ -303,11 +316,12 @@ public class OrderFeeManager extends BaseManager{
 
     /**
      * 获取账户支付金额
-     * @param totalFee  总金额
-     * @param mpiId 处方列表
+     *
+     * @param totalFee 总金额
+     * @param mpiId    处方列表
      * @return 账户支付金额
      */
-    public BigDecimal getAccountFee(BigDecimal totalFee, String mpiId){
+    public BigDecimal getAccountFee(BigDecimal totalFee, String mpiId) {
         if (null == totalFee || StringUtils.isEmpty(mpiId)) {
             return null;
         }
@@ -327,8 +341,9 @@ public class OrderFeeManager extends BaseManager{
 
     /**
      * 从平台获取快递费 如：341001 先获取341001获取不到，则3410->34
+     *
      * @param enterpriseId 药企ID
-     * @param addrArea  地址
+     * @param addrArea     地址
      * @return 配送费
      */
     public BigDecimal getPlatformExpressFee(Integer enterpriseId, String addrArea) {
@@ -350,21 +365,23 @@ public class OrderFeeManager extends BaseManager{
 
     /**
      * 设置线上中医辨证论证费
-     * @param organId 机构ID
+     *
+     * @param organId       机构ID
      * @param tcmRecipeList 中药处方
      * @return 中医辨证论证费
      */
     private BigDecimal setOnLineTcmFee(Integer organId, List<Recipe> tcmRecipeList) {
         BigDecimal recipeTCMPrice = configurationClient.getValueCatchReturnBigDecimal(organId, "recipeTCMPrice", BigDecimal.ZERO);
         if (null != recipeTCMPrice && recipeTCMPrice.compareTo(BigDecimal.ZERO) > -1) {
-          return recipeTCMPrice.multiply(new BigDecimal(tcmRecipeList.size()));
+            return recipeTCMPrice.multiply(new BigDecimal(tcmRecipeList.size()));
         }
         return BigDecimal.ZERO;
     }
 
     /**
      * 设置线下中医辨证论证费
-     * @param organId 机构ID
+     *
+     * @param organId           机构ID
      * @param offLineRecipeList 中药处方
      * @return 中医辨证论证费
      */
@@ -375,7 +392,7 @@ public class OrderFeeManager extends BaseManager{
         BigDecimal tcmFee = BigDecimal.ZERO;
         for (HisRecipe hisRecipe : hisRecipeList) {
             if (null == hisRecipe.getTcmFee()) {
-               continue;
+                continue;
             }
             tcmFee = tcmFee.add(hisRecipe.getTcmFee());
         }
@@ -384,8 +401,9 @@ public class OrderFeeManager extends BaseManager{
 
     /**
      * 设置线上处方代煎费
-     * @param decoctionUnitPrice  代煎单价
-     * @param tcmRecipeList 处方列表
+     *
+     * @param decoctionUnitPrice 代煎单价
+     * @param tcmRecipeList      处方列表
      * @return 代煎费
      */
     private BigDecimal setOnLineRecipeDecoctionFee(BigDecimal decoctionUnitPrice, List<Recipe> tcmRecipeList) {
@@ -398,9 +416,10 @@ public class OrderFeeManager extends BaseManager{
 
     /**
      * 获取线下处方代煎费
-     * @param organId   机构ID
-     * @param offLineRecipeList   线下处方列表
-     * @return  线下处方代煎费
+     *
+     * @param organId           机构ID
+     * @param offLineRecipeList 线下处方列表
+     * @return 线下处方代煎费
      */
     private BigDecimal setOffLineRecipeDecoctionFee(Integer organId, List<Recipe> offLineRecipeList) {
         String decoctionDeploy = configurationClient.getValueCatchReturnArr(organId, "decoctionDeploy", "0");
