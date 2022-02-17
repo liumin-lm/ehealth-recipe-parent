@@ -1429,7 +1429,7 @@ public class HisRecipeService {
                 msg = "写入his失败";
                 break;
             case RecipeStatusConstant.CHECK_NOT_PASS_YS:
-                msg = "审核不通过";
+                msg = "审核未通过";
                 break;
             case RecipeStatusConstant.IN_SEND:
                 msg = "配送中";

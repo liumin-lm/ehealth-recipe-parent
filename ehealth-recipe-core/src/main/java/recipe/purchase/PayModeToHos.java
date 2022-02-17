@@ -1,7 +1,6 @@
 package recipe.purchase;
 
 import com.google.common.collect.ImmutableMap;
-import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.his.recipe.mode.TakeMedicineByToHos;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
@@ -13,7 +12,6 @@ import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
-import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -22,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
-import recipe.client.EnterpriseClient;
 import recipe.client.IConfigurationClient;
 import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
@@ -36,12 +33,10 @@ import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.manager.OrganDrugListManager;
-import recipe.service.RecipeHisService;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -141,7 +136,7 @@ public class PayModeToHos implements IPurchaseService {
                     remoteService.setEnterpriseMsgToOrder(order, depId, extInfo);
                 }
             }
-        }else {
+        } else {
             // 到院取药校验机构库存
             List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIdLists);
             EnterpriseStock organStock = organDrugListManager.organStock(dbRecipes.get(0).getClinicOrgan(), recipeDetails);
@@ -283,6 +278,7 @@ public class PayModeToHos implements IPurchaseService {
 
     /**
      * 新模式获取到院取药支持的药企
+     *
      * @param dbRecipe
      * @return
      */

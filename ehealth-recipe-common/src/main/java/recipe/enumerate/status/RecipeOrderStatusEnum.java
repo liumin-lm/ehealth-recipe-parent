@@ -15,7 +15,7 @@ public enum RecipeOrderStatusEnum {
     ORDER_STATUS_AWAIT_SHIPPING(3, "待配送", ""),
     ORDER_STATUS_PROCEED_SHIPPING(4, "配送中", ""),
     ORDER_STATUS_DONE(5, "已完成", ""),
-    ORDER_STATUS_CANCEL_NOT_PASS(6, "审核不通过", "已取消"),
+    ORDER_STATUS_CANCEL_NOT_PASS(6, "审核未通过", "已取消"),
     ORDER_STATUS_CANCEL_MANUAL(7, "已取消", "手动取消"),
     ORDER_STATUS_CANCEL_AUTO(8, "已取消", "处方单自动取消或其他原因导致的订单取消"),
     ORDER_STATUS_READY_CHECK(9, "待审核", ""),
