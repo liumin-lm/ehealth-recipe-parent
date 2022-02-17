@@ -36,6 +36,10 @@ public class BaseManager {
     @Autowired
     protected OrganDrugListDAO organDrugListDAO;
     @Autowired
+    protected SaleDrugListDAO saleDrugListDAO;
+    @Autowired
+    protected DrugsEnterpriseDAO drugsEnterpriseDAO;
+    @Autowired
     protected HisRecipeDAO hisRecipeDAO;
     @Autowired
     protected RecipeLogDAO recipeLogDAO;
@@ -51,6 +55,8 @@ public class BaseManager {
     protected OrganClient organClient;
     @Autowired
     protected DepartClient departClient;
+    @Autowired
+    protected EnterpriseClient enterpriseClient;
 
     /**
      * 获取处方相关信息
