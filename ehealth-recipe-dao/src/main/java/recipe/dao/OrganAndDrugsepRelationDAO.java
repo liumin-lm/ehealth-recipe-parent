@@ -2,8 +2,6 @@ package recipe.dao;
 
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.OrganAndDrugsepRelation;
-import com.ngari.recipe.entity.OrganDrugList;
-import com.ngari.recipe.entity.Recipe;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
 import ctd.persistence.support.hibernate.HibernateSupportDelegateDAO;
@@ -11,15 +9,12 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.util.annotation.RpcSupportDAO;
-import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.hibernate.Query;
 import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
 import recipe.dao.comment.ExtendDao;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -101,23 +96,11 @@ public abstract class OrganAndDrugsepRelationDAO extends HibernateSupportDelegat
         HibernateStatelessResultAction<List<OrganAndDrugsepRelation>> action = new AbstractHibernateStatelessResultAction<List<OrganAndDrugsepRelation>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder sql = new StringBuilder("SELECT id,organid,DrugsEnterpriseId,drug_enterprise_support_give_mode FROM cdr_organ_drugsep_relation WHERE OrganId = ");
+                StringBuilder sql = new StringBuilder("SELECT * FROM cdr_organ_drugsep_relation WHERE OrganId = ");
                 sql.append(clinicOrgan).append(" and drug_enterprise_support_give_mode LIKE '%").append(type).append("%'");
-                Query query = ss.createSQLQuery(String.valueOf(sql));
-
-                List<Object[]> result = query.list();
-                List<OrganAndDrugsepRelation> vo = new ArrayList<>();
-                if (CollectionUtils.isNotEmpty(result)) {
-                    for (Object[] objects : result) {
-                        OrganAndDrugsepRelation organAndDrugsepRelation = new OrganAndDrugsepRelation();
-                        organAndDrugsepRelation.setDrugsEnterpriseId(Integer.valueOf(objects[2].toString()));
-                        organAndDrugsepRelation.setDrugsEnterpriseSupportGiveMode(objects[3].toString());
-                        organAndDrugsepRelation.setOrganId(Integer.valueOf(objects[1].toString()));
-                        organAndDrugsepRelation.setId(Integer.valueOf(objects[0].toString()));
-                        vo.add(organAndDrugsepRelation);
-                    }
-                }
-                setResult(vo);
+                SQLQuery query = ss.createSQLQuery(String.valueOf(sql));
+                query.addEntity(OrganAndDrugsepRelation.class);
+                setResult(query.list());
             }
         };
         HibernateSessionTemplate.instance().executeReadOnly(action);

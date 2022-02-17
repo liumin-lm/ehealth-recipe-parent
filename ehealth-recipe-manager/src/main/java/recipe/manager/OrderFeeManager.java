@@ -331,7 +331,7 @@ public class OrderFeeManager extends BaseManager {
         }
         RecipeCashPreSettleReqTO request = new RecipeCashPreSettleReqTO();
         request.setCertificate(patientDTO.getCertificate());
-        //request.setTotalFee(totalFee);
+        request.setTotalFee(totalFee);
         RecipeCashPreSettleInfo recipeCashPreSettleInfo = offlineRecipeClient.recipeCashPreSettle(request);
         if (null != recipeCashPreSettleInfo && StringUtils.isNotEmpty(recipeCashPreSettleInfo.getZhzf())) {
             return new BigDecimal(recipeCashPreSettleInfo.getZhzf());
