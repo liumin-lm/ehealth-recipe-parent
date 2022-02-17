@@ -260,6 +260,7 @@ public enum RecipeSupportGiveModeEnum {
             GiveModeButtonDTO giveModeButtonDTO = new GiveModeButtonDTO();
             giveModeButtonDTO.setShowButtonKey(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.text);
             giveModeButtonDTO.setShowButtonName(configGiveModeMap.get(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.text));
+            giveModeButtonDTO.setType(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
             giveModeKey.add(giveModeButtonDTO);
         }
         return giveModeKey;
