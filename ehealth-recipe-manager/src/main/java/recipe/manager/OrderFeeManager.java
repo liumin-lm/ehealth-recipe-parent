@@ -333,10 +333,10 @@ public class OrderFeeManager extends BaseManager {
         RecipeCashPreSettleReqTO request = new RecipeCashPreSettleReqTO();
         request.setCertificate(patientDTO.getCertificate());
         request.setTotalFee(totalFee);
-        request.setMobile(request.getMobile());
-        request.setPatientName(request.getPatientName());
-        request.setSex(request.getSex());
-        request.setIdcard(request.getIdcard());
+        request.setMobile(patientDTO.getMobile());
+        request.setPatientName(patientDTO.getPatientName());
+        request.setSex("男");
+        request.setIdcard(patientDTO.getIdcard());
         request.setBirthday(new Date());
         RecipeCashPreSettleInfo recipeCashPreSettleInfo = offlineRecipeClient.recipeCashPreSettle(request);
         if (null != recipeCashPreSettleInfo && StringUtils.isNotEmpty(recipeCashPreSettleInfo.getZhzf())) {
