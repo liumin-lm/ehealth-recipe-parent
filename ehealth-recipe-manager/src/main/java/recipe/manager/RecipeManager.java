@@ -1,6 +1,7 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.consult.common.model.ConsultExDTO;
@@ -260,6 +261,7 @@ public class RecipeManager extends BaseManager {
      * @return 取药凭证
      */
     public String getToHosProof(Recipe recipe, RecipeExtend recipeExtend, RecipeOrder order) {
+        logger.info("getToHosProof recipe:{} " , JSONArray.toJSONString(recipe));
         String qrName = "";
         try {
             OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId(), recipe.getGiveMode());
