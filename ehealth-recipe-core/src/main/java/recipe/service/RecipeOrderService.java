@@ -1551,8 +1551,6 @@ public class RecipeOrderService extends RecipeBaseService {
         CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
         RecipeOrder order = recipeOrderDAO.get(orderId);
         recipeResultBean.getExt().put("completeAddress", commonRemoteService.getCompleteAddress(order));
-        recipeResultBean.getExt().put("processStateText", OrderStateEnum.getOrderStateEnum(order.getProcessState()).getName());
-        recipeResultBean.getExt().put("subStateText", OrderStateEnum.getOrderStateEnum(order.getSubState()).getName());
         LOGGER.info("getOrderDetailByIdV1 recipeResultBean={}", JSON.toJSONString(recipeResultBean));
         return recipeResultBean;
     }
@@ -1836,6 +1834,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 orderBean.setTcmFee(null);
             }
             orderBean.setList(patientRecipeBeanList);
+            orderBean.setProcessStateText(OrderStateEnum.getOrderStateEnum(order.getProcessState()).getName());
+            orderBean.setSubStateText(OrderStateEnum.getOrderStateEnum(order.getSubState()).getName());
             result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
             result.setExt(RecipeUtil.getParamFromOgainConfig(order, recipeList));
