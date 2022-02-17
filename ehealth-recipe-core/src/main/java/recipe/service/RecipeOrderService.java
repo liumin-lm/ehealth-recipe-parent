@@ -170,6 +170,10 @@ public class RecipeOrderService extends RecipeBaseService {
 
     @Autowired
     private EnterpriseManager enterpriseManager;
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
+    @Autowired
+    private OrderFeeManager orderFeeManager;
 
     /**
      * 处方结算时创建临时订单
@@ -1102,6 +1106,14 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             } catch (Exception e) {
                 LOGGER.error("setCreateOrderResult error", e);
+            }
+        }
+        //上海外服个性化处理账户支付金额
+        String organName = recipeParameterDao.getByName("shwfAccountFee");
+        if (StringUtils.isEmpty(organName)) {
+            BigDecimal accountFee = orderFeeManager.getAccountFee(order.getTotalFee(), order.getMpiId());
+            if (null != accountFee) {
+                recipeOrderBean.setAccountFee(accountFee);
             }
         }
         result.setObject(recipeOrderBean);
