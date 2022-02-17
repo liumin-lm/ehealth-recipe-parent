@@ -3999,12 +3999,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }
                 //1是审核通过
                 else if (flag == 1) {
-                    hql.append("from Recipe where clinicOrgan in (:organ) and  recipeType in (:recipeTypes) and r.audit_state in (4,5) ");
+                    hql.append("select * from cdr_recipe where clinicOrgan in (:organ) and  recipeType in (:recipeTypes) and r.audit_state in (4,5) ");
                     hql.append(" order by signDate desc");
                 }
                 //2是审核未通过
                 else if (flag == 2) {
-                    hql.append("from Recipe where clinicOrgan in (:organ) and  recipeType in (:recipeTypes) and r.audit_state in (2,3) ");
+                    hql.append("select * from cdr_recipe where clinicOrgan in (:organ) and  recipeType in (:recipeTypes) and r.audit_state in (2,3) ");
                     hql.append(" order by signDate desc");
                 }
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
@@ -4054,11 +4054,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }
                 //1是审核通过
                 else if (flag == 1) {
-                    hql.append("select count(*) from Recipe where clinicOrgan in (:organ) and   recipeType in (:recipeTypes) and r.audit_state in (4,5) ");
+                    hql.append("select count(*) from cdr_recipe where clinicOrgan in (:organ) and   recipeType in (:recipeTypes) and r.audit_state in (4,5) ");
                 }
                 //2是审核未通过
                 else if (flag == 2) {
-                    hql.append("select count(*) from Recipe where clinicOrgan in (:organ) and   recipeType in (:recipeTypes) and r.audit_state in (2,3) ");
+                    hql.append("select count(*) from cdr_recipe where clinicOrgan in (:organ) and   recipeType in (:recipeTypes) and r.audit_state in (2,3) ");
                 }
 
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
