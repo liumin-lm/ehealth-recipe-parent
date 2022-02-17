@@ -17,10 +17,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.client.DrugStockClient;
-import recipe.client.EnterpriseClient;
-import recipe.client.OperationClient;
-import recipe.client.OrganClient;
+import recipe.client.*;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
@@ -77,6 +74,8 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Resource
     private EnterpriseClient enterpriseClient;
+    @Resource
+    private IConfigurationClient configurationClient;
 
 
     @Override
@@ -396,7 +395,12 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             return false;
         }
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIds);
+        Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "drugToHosByEnterprise", false);
 
+        // 到院取药 开启药企配偶就校验药企库存
+        if(drugToHosByEnterprise && GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(recipe.getGiveMode())){
+            recipe.setGiveMode(GiveModeEnum.GIVE_MODE_PHARMACY_DRUG.getType());
+        }
         Boolean stockFlag = false;
         switch (GiveModeEnum.getGiveModeEnum(recipe.getGiveMode())) {
             case GIVE_MODE_HOME_DELIVERY:
