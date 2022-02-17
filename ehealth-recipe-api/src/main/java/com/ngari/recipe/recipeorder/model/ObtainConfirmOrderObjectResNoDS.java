@@ -79,6 +79,9 @@ public class ObtainConfirmOrderObjectResNoDS implements Serializable {
     @ItemProperty(alias = "需支付费用")
     private BigDecimal needFee;
 
+    @ItemProperty(alias = "账户支付金额")
+    private BigDecimal accountFee;
+
     @ItemProperty(alias = "站点配送的总费用 目前为不含运费的总费用")
     private BigDecimal stationSendTotalFee;
 
@@ -1131,5 +1134,13 @@ public class ObtainConfirmOrderObjectResNoDS implements Serializable {
 
     public void setStationSendTotalFee(BigDecimal stationSendTotalFee) {
         this.stationSendTotalFee = stationSendTotalFee;
+    }
+
+    public BigDecimal getAccountFee() {
+        return accountFee;
+    }
+
+    public void setAccountFee(BigDecimal accountFee) {
+        this.accountFee = accountFee;
     }
 }
