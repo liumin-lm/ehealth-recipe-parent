@@ -354,7 +354,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
 
             // 到院取药是否支持线上支付
             Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
-            OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId(),giveMode);
+            OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), depId,giveMode);
             Integer takeOneselfPayment = organDrugsSaleConfig.getTakeOneselfPayment();
             if (new Integer(1).equals(takeOneselfPayment)) {
                 map.put("supportToHosPayFlag", "1");
