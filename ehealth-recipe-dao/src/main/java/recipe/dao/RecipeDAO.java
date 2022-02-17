@@ -3999,17 +3999,17 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }
                 //1是审核通过
                 else if (flag == 1) {
-                    hql.append("select * from cdr_recipe where clinicOrgan in (:organ) and  recipeType in (:recipeTypes) and r.audit_state in (4,5) ");
-                    hql.append(" order by signDate desc");
+                    hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and  r.recipeType in (:recipeTypes) and r.audit_state in (4,5) ");
+                    hql.append(" order by r.signDate desc");
                 }
                 //2是审核未通过
                 else if (flag == 2) {
-                    hql.append("select * from cdr_recipe where clinicOrgan in (:organ) and  recipeType in (:recipeTypes) and r.audit_state in (2,3) ");
-                    hql.append(" order by signDate desc");
+                    hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and  r.recipeType in (:recipeTypes) and r.audit_state in (2,3) ");
+                    hql.append(" order by r.signDate desc");
                 }
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
                 else if (flag == all) {
-                    hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<2   and r.audit_state in (1,2,3,4,5,6)  and  (recipeType in(:recipeTypes) or grabOrderStatus=1) and r.reviewType != 0 order by signDate desc");
+                    hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<2   and r.audit_state in (1,2,3,4,5,6)  and  (r.recipeType in(:recipeTypes) or r.grabOrderStatus=1) and r.reviewType != 0 order by r.signDate desc");
                 } else {
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
                 }
@@ -4054,16 +4054,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }
                 //1是审核通过
                 else if (flag == 1) {
-                    hql.append("select count(*) from cdr_recipe where clinicOrgan in (:organ) and   recipeType in (:recipeTypes) and r.audit_state in (4,5) ");
+                    hql.append("select count(*) from cdr_recipe r where r.clinicOrgan in (:organ) and   r.recipeType in (:recipeTypes) and r.audit_state in (4,5) ");
                 }
                 //2是审核未通过
                 else if (flag == 2) {
-                    hql.append("select count(*) from cdr_recipe where clinicOrgan in (:organ) and   recipeType in (:recipeTypes) and r.audit_state in (2,3) ");
+                    hql.append("select count(*) from cdr_recipe r where r.clinicOrgan in (:organ) and   r.recipeType in (:recipeTypes) and r.audit_state in (2,3) ");
                 }
 
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
                 else if (flag == all) {
-                    hql.append("select count(*) from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<2   and r.audit_state in (1,2,3,4,5,6)  and  (recipeType in(:recipeTypes) or grabOrderStatus=1) and r.reviewType != 0 order by signDate desc");
+                    hql.append("select count(*) from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<2   and r.audit_state in (1,2,3,4,5,6)  and  (r.recipeType in(:recipeTypes) or r.grabOrderStatus=1) and r.reviewType != 0 order by r.signDate desc");
                 } else {
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
                 }
