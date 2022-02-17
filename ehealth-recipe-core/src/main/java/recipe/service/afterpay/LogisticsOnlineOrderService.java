@@ -29,6 +29,7 @@ import recipe.constant.RecipeMsgEnum;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.dao.RecipeParameterDao;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.type.ExpressFeePayWayEnum;
@@ -36,6 +37,7 @@ import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.util.AddressUtils;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -62,6 +64,9 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
 
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
+
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
 
     /**
      * 根据支付结果进行物流下单
@@ -209,8 +214,14 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
      */
     private CreateLogisticsOrderDto getCreateLogisticsOrderDto(RecipeOrder order, Recipe recipe, DrugsEnterprise enterprise) {
         CreateLogisticsOrderDto logisticsOrder = new CreateLogisticsOrderDto();
-        // 机构id
-        logisticsOrder.setOrganId(recipe.getClinicOrgan());
+        String organList = recipeParameterDao.getByName("zhHospitalOrganList");
+        if (null != enterprise.getOrganId() && StringUtils.isNotEmpty(organList) && hasOrgan(enterprise.getOrganId().toString(), organList)) {
+            // 取药企对应的机构ID
+            logisticsOrder.setOrganId(enterprise.getOrganId());
+        } else {
+            // 机构id
+            logisticsOrder.setOrganId(recipe.getClinicOrgan());
+        }
         // 平台用户id
         logisticsOrder.setUserId(recipe.getMpiid());
         // 业务类型
@@ -280,5 +291,14 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
             LOGGER.error("基础服务物流下单非必填信息获取异常：", e);
         }
         return logisticsOrder;
+    }
+
+    private boolean hasOrgan(String organ, String args){
+        if (StringUtils.isNotEmpty(args)) {
+            String[] organs = args.split(",");
+            List<String> organList = Arrays.asList(organs);
+            return organList.contains(organ);
+        }
+        return false;
     }
 }
