@@ -9,6 +9,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 
 /**
  * 组织与药企间关系
+ *
  * @company: ngarihealth
  * @author: 0184/yu_yun
  * @date:2016/6/6.
@@ -30,6 +31,10 @@ public class OrganAndDrugsepRelation implements java.io.Serializable {
 
     @ItemProperty(alias = "药企序号")
     private Integer drugsEnterpriseId;
+
+    @ItemProperty(alias = "药企支持的购药方式")
+    private String drugsEnterpriseSupportGiveMode;
+
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -58,5 +63,14 @@ public class OrganAndDrugsepRelation implements java.io.Serializable {
 
     public void setDrugsEnterpriseId(Integer drugsEnterpriseId) {
         this.drugsEnterpriseId = drugsEnterpriseId;
+    }
+
+    @Column(name = "drug_enterprise_support_give_mode")
+    public String getDrugsEnterpriseSupportGiveMode() {
+        return drugsEnterpriseSupportGiveMode;
+    }
+
+    public void setDrugsEnterpriseSupportGiveMode(String drugsEnterpriseSupportGiveMode) {
+        this.drugsEnterpriseSupportGiveMode = drugsEnterpriseSupportGiveMode;
     }
 }

@@ -9,6 +9,7 @@ import com.ngari.recipe.entity.*;
 import eh.base.constant.CardTypeEnum;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.shaded.com.google.common.collect.Lists;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.OperationClient;
@@ -106,6 +107,13 @@ public class ButtonManager extends BaseManager {
             configGiveModeMap = giveModeButtonBeans.stream().collect(Collectors.toMap(GiveModeButtonDTO::getShowButtonKey, GiveModeButtonDTO::getShowButtonName));
         }
         List<String> configGiveMode = RecipeSupportGiveModeEnum.checkEnterprise(giveModeButtonBeans);
+        // 到院取药是否采用药企管理模式
+        Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(organId, "drugToHosByEnterprise", false);
+        List<OrganAndDrugsepRelation> relation = Lists.newArrayList();
+        if(drugToHosByEnterprise){
+            relation = organAndDrugsepRelationDAO.getRelationByOrganIdAndGiveMode(organId, RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
+        }
+        Map<Integer, List<OrganAndDrugsepRelation>> relationMap = relation.stream().collect(Collectors.groupingBy(OrganAndDrugsepRelation::getDrugsEnterpriseId));
         for (DrugsEnterprise drugsEnterprise : enterprises) {
             EnterpriseStock enterpriseStock = new EnterpriseStock();
             enterpriseStock.setDrugsEnterprise(drugsEnterprise);
@@ -113,7 +121,7 @@ public class ButtonManager extends BaseManager {
             enterpriseStock.setDeliveryName(drugsEnterprise.getName());
             enterpriseStock.setDeliveryCode(drugsEnterprise.getId().toString());
             enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ENTERPRISE_APPOINT.getType());
-            List<GiveModeButtonDTO> giveModeButton = RecipeSupportGiveModeEnum.giveModeButtonList(drugsEnterprise, configGiveMode, configGiveModeMap);
+            List<GiveModeButtonDTO> giveModeButton = RecipeSupportGiveModeEnum.giveModeButtonList(drugsEnterprise, configGiveMode, configGiveModeMap,drugToHosByEnterprise,relationMap);
             enterpriseStock.setGiveModeButton(giveModeButton);
             list.add(enterpriseStock);
         }

@@ -354,6 +354,8 @@ public class HisRequestInit {
                 if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
                     DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
                     requestTO.getRecipeExtend().setDecoctionCode(decoctionWay.getDecoctionCode());
+                    //是否代煎
+                    requestTO.setGenerationisOfDecoction(decoctionWay.getGenerationisOfDecoction());
                 }
                 if (StringUtils.isNotBlank(recipeExtend.getMakeMethodId())) {
                     DrugMakingMethod drugMakingMethod = drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
@@ -549,6 +551,7 @@ public class HisRequestInit {
             LOGGER.error("initRecipeSendRequestTO error ", e);
         }
         requestTO.setOrderList(orderList);
+        LOGGER.info("initRecipeSendRequestTO recipeId:{},requestTO:{}",recipe.getRecipeId(),JSONUtils.toString(requestTO));
         return requestTO;
     }
 

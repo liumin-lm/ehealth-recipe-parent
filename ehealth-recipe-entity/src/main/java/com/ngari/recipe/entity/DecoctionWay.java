@@ -53,6 +53,11 @@ public class DecoctionWay implements Serializable {
     )
     private Integer sort;
 
+    @ItemProperty(
+            alias = "是否代煎"
+    )
+    private Boolean generationisOfDecoction;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     public Integer getDecoctionId() {
@@ -109,5 +114,14 @@ public class DecoctionWay implements Serializable {
 
     public void setOrganId(Integer organId) {
         this.organId = organId;
+    }
+
+    @Column(name = "generationis_of_decoction")
+    public Boolean getGenerationisOfDecoction() {
+        return generationisOfDecoction;
+    }
+
+    public void setGenerationisOfDecoction(Boolean generationisOfDecoction) {
+        this.generationisOfDecoction = generationisOfDecoction;
     }
 }

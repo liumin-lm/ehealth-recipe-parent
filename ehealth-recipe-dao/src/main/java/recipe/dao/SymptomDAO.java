@@ -103,7 +103,7 @@ public abstract class SymptomDAO extends HibernateSupportDelegateDAO<Symptom> {
                 StringBuffer sql = new StringBuffer(" from Symptom where organId =:organId ");
                 param.put("organId",organId);
                 if (!StringUtils.isEmpty(input)){
-                    sql.append(" and symptomName like:name ");
+                    sql.append(" and ( symptomName like:name or pinYin like:name ) ");
                     param.put("name","%"+input+"%");
                 }
                 Query countQuery = ss.createQuery("select count(*) "+sql.toString());

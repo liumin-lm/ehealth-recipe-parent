@@ -19,6 +19,7 @@ import recipe.util.ByteUtils;
 import recipe.util.RecipeUtil;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -118,7 +119,55 @@ public class IConfigurationClient extends BaseClient {
             }
             return Integer.parseInt(value);
         } catch (Exception e) {
-            logger.error("IConfigurationClient getValueCatch organId:{}, recipeId:{}", organId, key, e);
+            logger.error("IConfigurationClient getValueCatch organId:{}, key:{}", organId, key, e);
+            return defaultValue;
+        }
+    }
+
+    /**
+     * 根据配置获取 配置项值，捕获异常时返回默认值
+     *
+     * @param organId      机构id
+     * @param key          配置项建
+     * @param defaultValue 配置项默认值报错时返回
+     * @return
+     */
+    public BigDecimal getValueCatchReturnBigDecimal(Integer organId, String key, BigDecimal defaultValue){
+        if (null == organId || StringUtils.isEmpty(key)) {
+            return defaultValue;
+        }
+        try {
+            BigDecimal value = (BigDecimal) configService.getConfiguration(organId, key);
+            if (Objects.isNull(value)) {
+                return defaultValue;
+            }
+            return value;
+        } catch (Exception e) {
+            logger.error("IConfigurationClient getValueCatchReturnBigDecimal organId:{}, key:{}", organId, key, e);
+            return defaultValue;
+        }
+    }
+
+    /**
+     * 根据配置获取 配置项值，捕获异常时返回默认值
+     *
+     * @param organId      机构id
+     * @param key          配置项建
+     * @param defaultValue 配置项默认值报错时返回
+     * @return
+     */
+    public Double getValueCatchReturnDouble(Integer organId, String key, Double defaultValue){
+        if (null == organId || StringUtils.isEmpty(key)) {
+            return defaultValue;
+        }
+        try {
+            Double value = (Double) configService.getConfiguration(organId, key);
+            if (Objects.isNull(value)) {
+                return defaultValue;
+            }
+            return value;
+        } catch (Exception e) {
+            logger.error("IConfigurationClient getValueCatchReturnDouble organId:{}, key:{}", organId, key, e);
             return defaultValue;
         }
     }
@@ -142,7 +191,31 @@ public class IConfigurationClient extends BaseClient {
             }
             return value;
         } catch (Exception e) {
-            logger.error("IConfigurationClient getValueCatch organId:{}, recipeId:{}", organId, key, e);
+            logger.error("IConfigurationClient getValueCatch organId:{}, key:{}", organId, key, e);
+            return defaultValue;
+        }
+    }
+
+    /**
+     * 根据配置获取 配置项值，捕获异常时返回默认值
+     *
+     * @param organId      机构id
+     * @param key          配置项建
+     * @param defaultValue 配置项默认值报错时返回
+     * @return
+     */
+    public String getValueCatchReturnArr(Integer organId, String key, String defaultValue){
+        if (null == organId || StringUtils.isEmpty(key)) {
+            return defaultValue;
+        }
+        try {
+            String[] value = (String[]) configService.getConfiguration(organId, key);
+            if (null == value) {
+                return defaultValue;
+            }
+            return value[0];
+        } catch (Exception e) {
+            logger.error("IConfigurationClient getValueBooleanCatch organId:{}, key:{}", organId, key, e);
             return defaultValue;
         }
     }
@@ -166,7 +239,7 @@ public class IConfigurationClient extends BaseClient {
             }
             return value;
         } catch (Exception e) {
-            logger.error("IConfigurationClient getValueBooleanCatch organId:{}, recipeId:{}", organId, key, e);
+            logger.error("IConfigurationClient getValueBooleanCatch organId:{}, key:{}", organId, key, e);
             return defaultValue;
         }
     }
@@ -192,7 +265,7 @@ public class IConfigurationClient extends BaseClient {
             }
             return jsonArray.getString(0);
         } catch (Exception e) {
-            logger.error("IConfigurationClient getValueEnumCatch organId:{}, recipeId:{}", organId, key, e);
+            logger.error("IConfigurationClient getValueEnumCatch organId:{}, key:{}", organId, key, e);
             return defaultValue;
         }
     }
@@ -219,7 +292,7 @@ public class IConfigurationClient extends BaseClient {
             }
             return Arrays.asList(invalidInfoObject);
         } catch (Exception e) {
-            logger.error("IConfigurationClient getValueEnumCatch organId:{}, recipeId:{}", organId, key, e);
+            logger.error("IConfigurationClient getValueEnumCatch organId:{}, key:{}", organId, key, e);
             return defaultValue;
         }
     }

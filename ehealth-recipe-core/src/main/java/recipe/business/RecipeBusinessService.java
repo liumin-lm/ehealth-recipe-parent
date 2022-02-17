@@ -15,7 +15,6 @@ import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutRecipeDetailDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
-import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.PatientInfoDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -42,12 +41,15 @@ import recipe.client.RevisitClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.*;
+import recipe.enumerate.status.RecipeAuditStateEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.HisRecipeManager;
 import recipe.manager.RecipeManager;
+import recipe.manager.StateManager;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.MapValueUtil;
@@ -106,6 +108,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private HisSyncSupervisionService hisSyncSupervisionService;
     @Autowired
     private EmrRecipeManager emrRecipeManager;
+    @Autowired
+    private StateManager stateManager;
 
     /**
      * 获取线下门诊处方诊断信息
@@ -114,7 +118,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
      * @return 诊断列表
      */
     @Override
-
     public List<DiseaseInfoDTO> getOutRecipeDisease(PatientInfoVO patientInfoVO) {
         return offlineRecipeClient.queryPatientDisease(patientInfoVO.getOrganId(), patientInfoVO.getPatientName(), patientInfoVO.getRegisterID(), patientInfoVO.getPatientId());
     }
@@ -333,12 +336,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     @Override
-    public void offlineToOnlineForRecipe(FindHisRecipeDetailReqVO request) {
-
-    }
-
-
-    @Override
     public MedicalDetailVO getDocIndexInfo(CaseHistoryVO caseHistoryVO) {
         MedicalDetailBean medicalDetailBean = null;
         //查看
@@ -366,6 +363,17 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         List<EmrConfigVO> detailList = com.ngari.patient.utils.ObjectCopyUtils.convert(medicalDetailBean.getDetailList(), EmrConfigVO.class);
         medicalDetailVO.setDetailList(detailList);
         return medicalDetailVO;
+    }
+
+    @Override
+    public Boolean confirmAgain(Integer recipeId) {
+        stateManager.updateAuditState(recipeId, RecipeAuditStateEnum.FAIL);
+        return stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
+    }
+
+    @Override
+    public Boolean updateAuditState(Integer recipeId, RecipeAuditStateEnum recipeAuditStateEnum) {
+        return stateManager.updateAuditState(recipeId, recipeAuditStateEnum);
     }
 
 

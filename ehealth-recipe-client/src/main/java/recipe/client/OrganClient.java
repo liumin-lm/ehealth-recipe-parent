@@ -1,5 +1,7 @@
 package recipe.client;
 
+import com.ngari.base.organconfig.model.OrganConfigBean;
+import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.AppointDepartService;
 import com.ngari.patient.service.DepartmentService;
@@ -27,6 +29,8 @@ public class OrganClient extends BaseClient {
     private OrganService organService;
     @Autowired
     private DepartmentService departmentService;
+    @Autowired
+    private IOrganConfigService iOrganConfigService;
 
     /**
      * 查询当前区域公众号下所有归属机构
@@ -65,5 +69,16 @@ public class OrganClient extends BaseClient {
         OrganDTO organDTO = organService.getByOrganId(organId);
         logger.info("OrganClient organDTO organDTO {}", JSONUtils.toString(organDTO));
         return ObjectCopyUtils.convert(organDTO, com.ngari.recipe.dto.OrganDTO.class);
+    }
+
+    /**
+     * 获取机构配置
+     * @param organId 机构ID
+     * @return 机构配置
+     */
+    public OrganConfigBean getOrganConfigBean(Integer organId){
+        OrganConfigBean organConfigBean = iOrganConfigService.get(organId);
+        logger.info("OrganClient organConfigBean:{}", JSONUtils.toString(organConfigBean));
+        return organConfigBean;
     }
 }

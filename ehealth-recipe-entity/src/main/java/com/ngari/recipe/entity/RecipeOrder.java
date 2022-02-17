@@ -362,6 +362,31 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "预约取药结束时间")
     private String expectEndTakeTime;
 
+
+    @ItemProperty(alias = "订单父状态：0：默认 ，1：预下单，2：待支付，3：处理中，4：已完成，9：已作废")
+    private Integer processState;
+    @ItemProperty(alias = "订单子状态")
+    private Integer subState;
+
+
+    @Column(name = "process_state")
+    public Integer getProcessState() {
+        return processState;
+    }
+
+    public void setProcessState(Integer processState) {
+        this.processState = processState;
+    }
+
+    @Column(name = "sub_state")
+    public Integer getSubState() {
+        return subState;
+    }
+
+    public void setSubState(Integer subState) {
+        this.subState = subState;
+    }
+
     @Column(name = "healthInsurancePayContent")
     public String getHealthInsurancePayContent() {
         return healthInsurancePayContent;
@@ -409,6 +434,9 @@ public class RecipeOrder implements Serializable {
     }
 
     public RecipeOrder(String orderCode) {
+
+    }
+    public RecipeOrder(Integer orderId,Integer processState,Integer subState) {
 
     }
 

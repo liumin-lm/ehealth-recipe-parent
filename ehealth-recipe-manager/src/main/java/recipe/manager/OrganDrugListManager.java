@@ -75,6 +75,11 @@ public class OrganDrugListManager extends BaseManager {
      * @return
      */
     public EnterpriseStock organStock(Recipe recipe, List<Recipedetail> detailList) {
+        // 到院取药是否采用药企管理模式
+        Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "drugToHosByEnterprise", false);
+        if(drugToHosByEnterprise){
+            return null;
+        }
         List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(recipe.getClinicOrgan());
         //无到院取药
         GiveModeButtonDTO showButton = RecipeSupportGiveModeEnum.getGiveMode(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText());

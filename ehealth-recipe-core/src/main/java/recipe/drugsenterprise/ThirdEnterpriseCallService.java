@@ -48,7 +48,9 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.DrugsEnterpriseDTO;
 import recipe.drugsenterprise.bean.StandardResultDTO;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.hisservice.HisRequestInit;
 import recipe.hisservice.RecipeToHisService;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
@@ -56,6 +58,7 @@ import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.GroupRecipeManager;
 import recipe.manager.OrderManager;
+import recipe.manager.StateManager;
 import recipe.purchase.CommonOrder;
 import recipe.service.*;
 import recipe.serviceprovider.BaseService;
@@ -107,7 +110,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     private GroupRecipeManager groupRecipeManager;
     private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
 
-
+    @Autowired
+    private StateManager stateManager;
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
@@ -660,9 +664,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         Integer recipeId = recipe.getRecipeId();
         String errorMsg = "";
         String sendDateStr = MapValueUtil.getString(paramMap, "sendDate");
-        //此处为配送人
-        String sender = MapValueUtil.getString(paramMap, "sender");
-
         Map<String, Object> attrMap = Maps.newHashMap();
         attrMap.put("giveDate", StringUtils.isEmpty(sendDateStr) ? DateTime.now().toDate() :
                 DateConversion.parseDate(sendDateStr, DateConversion.DEFAULT_DATE_TIME));
@@ -673,6 +674,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         }
         //更新处方信息
         Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.RECIPE_FAIL, attrMap);
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
         if (rs) {
             //患者未取药
             RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
@@ -683,7 +685,10 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderAttrMap.put("effective", 0);
             RecipeResultBean result = orderService.updateOrderInfo(recipe.getOrderCode(), orderAttrMap, null);
 
-//            orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.FAIL, MapValueUtil.getString(paramMap, "cancelReason"));
+            RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            if(Objects.nonNull(order)){
+                stateManager.updateOrderState(order.getOrderId(),OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
+            }
             if (RecipeResultBean.FAIL == result.getCode()) {
                 code = ErrorCode.SERVICE_ERROR;
                 errorMsg = "处方订单更新失败";
@@ -949,9 +954,14 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         } else {
             //患者未取药
             Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_DRUG, attrMap);
+            stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
             status = RecipeStatusConstant.NO_DRUG;
             if (rs) {
+                RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                 orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO);
+                if(Objects.nonNull(order)) {
+                    stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_DOCTOR_REPEAL);
+                }
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.NO_DRUG, "到店取药失败，原因:" + MapValueUtil.getString(paramMap, "reason"));
                 //发送取药失败消息
                 RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.NO_DRUG);

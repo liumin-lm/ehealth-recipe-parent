@@ -73,6 +73,7 @@ import recipe.constant.*;
 import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.*;
@@ -102,7 +103,7 @@ import static ctd.persistence.DAOFactory.getDAO;
  * @author: 0184/yu_yun
  * @date:2017/2/13.
  */
-@RpcBean(value = "recipeOrderService", mvc_authentication = false)
+@RpcBean(value = "recipeOrderService")
 public class RecipeOrderService extends RecipeBaseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeOrderService.class);
@@ -166,6 +167,13 @@ public class RecipeOrderService extends RecipeBaseService {
     private IStockBusinessService stockBusinessService;
     @Resource
     private RecipeDetailDAO recipeDetailDAO;
+
+    @Autowired
+    private EnterpriseManager enterpriseManager;
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
+    @Autowired
+    private OrderFeeManager orderFeeManager;
 
     /**
      * 处方结算时创建临时订单
@@ -800,6 +808,13 @@ public class RecipeOrderService extends RecipeBaseService {
                 setOrderAddress(result, order, recipeIds, payModeSupport, extInfo, toDbFlag, address);
             }
         }
+        //快递费线上支付的需要计算是否满足包邮
+        if (null != order.getExpressFee() && null != order.getEnterpriseId()) {
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+            if (null != drugsEnterprise && order.getRecipeFee().compareTo(drugsEnterprise.getFreeDeliveryMoney()) >= -1) {
+                order.setExpressFee(BigDecimal.ZERO);
+            }
+        }
 
         //}
         order.setTotalFee(countOrderTotalFeeByRecipeInfo(order, firstRecipe, payModeSupport));
@@ -838,8 +853,9 @@ public class RecipeOrderService extends RecipeBaseService {
                     PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
                     //卫宁付
                     // 到院取药是否支持线上支付
-                    Boolean supportToHosPayFlag = configurationClient.getValueBooleanCatch(order.getOrganId(), "supportToHosPayFlag", false);
-                    if (purchaseService.getToHosPayConfig(firstRecipe.getClinicOrgan()) || supportToHosPayFlag) {
+                    OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId());
+                    Integer takeOneselfPayment = organDrugsSaleConfig.getTakeOneselfPayment();
+                    if (purchaseService.getToHosPayConfig(firstRecipe.getClinicOrgan(),order.getEnterpriseId()) || new Integer(1).equals(takeOneselfPayment)) {
                         order.setActualPrice(totalFee.doubleValue());
                     } else {
                         //此时的实际费用是不包含药品费用的
@@ -1090,6 +1106,14 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             } catch (Exception e) {
                 LOGGER.error("setCreateOrderResult error", e);
+            }
+        }
+        //上海外服个性化处理账户支付金额
+        String organName = recipeParameterDao.getByName("shwfAccountFee");
+        if (StringUtils.isEmpty(organName)) {
+            BigDecimal accountFee = orderFeeManager.getAccountFee(order.getTotalFee(), order.getMpiId());
+            if (null != accountFee) {
+                recipeOrderBean.setAccountFee(accountFee);
             }
         }
         result.setObject(recipeOrderBean);
@@ -1410,26 +1434,6 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     /**
-     * @param orderId
-     * @param status
-     * @return
-     */
-    @RpcService
-    public RecipeResultBean cancelOrderById(Integer orderId, Integer status) {
-        RecipeResultBean result = RecipeResultBean.getSuccess();
-        if (null == orderId || null == status) {
-            result.setCode(RecipeResultBean.FAIL);
-            result.setError("缺少参数");
-        }
-
-        if (RecipeResultBean.SUCCESS.equals(result.getCode())) {
-            result = cancelOrder(getDAO(RecipeOrderDAO.class).get(orderId), status, true);
-        }
-
-        return result;
-    }
-
-    /**
      * 取消订单
      *
      * @param order canCancelOrderCode 能否将处方里的OrderCode设置成null
@@ -1738,7 +1742,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     prb.setOrganId(recipe.getClinicOrgan());
                     prb.setRecipeType(recipe.getRecipeType());
                     prb.setPayFlag(recipe.getPayFlag());
-                    prb.setQrName(recipeManager.getToHosProof(recipe, recipeExtend));
+                    prb.setQrName(recipeManager.getToHosProof(recipe, recipeExtend,order));
                     patientRecipeBeanList.add(prb);
                     LOGGER.info("getOrderDetailById.prb={}", JSONUtils.toString(prb));
 
@@ -1849,6 +1853,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 orderBean.setTcmFee(null);
             }
             orderBean.setList(patientRecipeBeanList);
+            orderBean.setProcessStateText(OrderStateEnum.getOrderStateEnum(order.getProcessState()).getName());
+            orderBean.setSubStateText(OrderStateEnum.getOrderStateEnum(order.getSubState()).getName());
             result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
             result.setExt(RecipeUtil.getParamFromOgainConfig(order, recipeList));
@@ -1877,8 +1883,8 @@ public class RecipeOrderService extends RecipeBaseService {
     private void putSupportToHosPayFlag(RecipeResultBean result, RecipeOrder order) {
         Map<String, Object> map = result.getExt();
         // 到院取药是否支持线上支付
-        Boolean supportToHosPayFlag = configurationClient.getValueBooleanCatch(order.getOrganId(), "supportToHosPayFlag", false);
-        if (supportToHosPayFlag) {
+        OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId());
+        if (new Integer(1).equals(organDrugsSaleConfig.getTakeOneselfPayment())) {
             map.put("supportToHosPayFlag", 1);
         }
         result.setExt(map);

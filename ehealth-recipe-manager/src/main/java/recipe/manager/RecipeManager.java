@@ -9,7 +9,6 @@ import com.ngari.platform.recipe.mode.RecipeDetailBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
-import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import eh.base.constant.ErrorCode;
@@ -23,8 +22,6 @@ import recipe.common.CommonConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.RecipeLogDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
@@ -61,7 +58,7 @@ public class RecipeManager extends BaseManager {
     @Autowired
     private ConsultClient consultClient;
     @Autowired
-    private RecipeDetailDAO recipeDetailDAO;
+    private EnterpriseManager enterpriseManager;
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
@@ -203,6 +200,8 @@ public class RecipeManager extends BaseManager {
         BeanUtils.copyProperties(recipeDTO, recipeInfoDTO);
         Recipe recipe = recipeInfoDTO.getRecipe();
         PatientDTO patientBean = patientClient.getPatientEncipher(recipe.getMpiid());
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        patientBean.setWeight(String.valueOf(recipeExtend.getWeight()));
         recipeInfoDTO.setPatientBean(patientBean);
         logger.info("RecipeOrderManager getRecipeInfoDTO patientBean:{}", JSON.toJSONString(patientBean));
         return recipeInfoDTO;
@@ -259,11 +258,11 @@ public class RecipeManager extends BaseManager {
      * @param recipeExtend 处方扩展信息
      * @return 取药凭证
      */
-    public String getToHosProof(Recipe recipe, RecipeExtend recipeExtend) {
+    public String getToHosProof(Recipe recipe, RecipeExtend recipeExtend, RecipeOrder order) {
         String qrName = "";
         try {
-            Integer qrTypeForRecipe = configurationClient.getValueCatchReturnInteger(recipe.getClinicOrgan(), "getQrTypeForRecipe", 1);
-            RecipeShowQrConfigEnum qrConfigEnum = RecipeShowQrConfigEnum.getEnumByType(qrTypeForRecipe);
+            OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId());
+            RecipeShowQrConfigEnum qrConfigEnum = RecipeShowQrConfigEnum.getEnumByType(organDrugsSaleConfig.getTakeDrugsVoucher());
             switch (qrConfigEnum) {
                 case CARD_NO:
                     //就诊卡号
@@ -316,7 +315,11 @@ public class RecipeManager extends BaseManager {
         RecipeCancelDTO recipeCancel = new RecipeCancelDTO();
         String cancelReason = "";
         Date cancelDate = null;
-        RecipeLogDAO recipeLogDAO = DAOFactory.getDAO(RecipeLogDAO.class);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if (StringUtils.isNotEmpty(recipeExtend.getCancellation())) {
+            recipeCancel.setCancelReason(recipeExtend.getCancellation());
+            return recipeCancel;
+        }
         List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipeId, RecipeStatusConstant.REVOKE);
         if (CollectionUtils.isNotEmpty(recipeLogs)) {
             cancelReason = recipeLogs.get(0).getMemo();
@@ -381,6 +384,7 @@ public class RecipeManager extends BaseManager {
         updateRecipeExt.setMedicalTypeText(recipeExtendResult.getMedicalTypeText());
         updateRecipeExt.setRecipeCostNumber(recipeExtendResult.getRecipeCostNumber());
         updateRecipeExt.setHisDiseaseSerial(recipeExtendResult.getHisDiseaseSerial());
+        updateRecipeExt.setMedicalRecordNumber(recipeExtendResult.getMedicalRecordNumber());
         recipeExtendDAO.updateNonNullFieldByPrimaryKey(updateRecipeExt);
         logger.info("RecipeManager updatePushHisRecipeExt updateRecipeExt:{}.", JSON.toJSONString(updateRecipeExt));
     }

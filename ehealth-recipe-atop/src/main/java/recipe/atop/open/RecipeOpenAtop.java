@@ -15,6 +15,7 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRevisitBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
+import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.RevisitRecipeTraceVo;
@@ -151,5 +152,8 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         offlineToOnlineService.offlineToOnlineForRecipe(request);
     }
 
-
+    @Override
+    public Boolean updateAuditState(Integer recipeId, Integer state) {
+        return recipeBusinessService.updateAuditState(recipeId, RecipeAuditStateEnum.getRecipeAuditStateEnum(state));
+    }
 }

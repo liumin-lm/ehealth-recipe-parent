@@ -1,9 +1,12 @@
 package recipe.core.api.doctor;
 
 import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.dto.RecipeTherapyOpDTO;
+import com.ngari.recipe.dto.RecipeTherapyOpQueryDTO;
 import com.ngari.recipe.entity.RecipeTherapy;
 import com.ngari.recipe.recipe.model.RecipeTherapyDTO;
 import com.ngari.recipe.vo.ItemListVO;
+import ctd.persistence.bean.QueryResult;
 import recipe.vo.doctor.RecipeInfoVO;
 
 import java.util.List;
@@ -110,4 +113,13 @@ public interface ITherapyRecipeBusinessService {
      * @return
      */
     List<RecipeTherapy> findTherapyByClinicId(Integer clinicId);
+
+    /**
+     * 运营平台展示诊疗处方列表
+     *
+     * @param recipeTherapyOpQueryVO
+     * @return
+     *
+     */
+    QueryResult<RecipeTherapyOpDTO> findTherapyByInfo(RecipeTherapyOpQueryDTO recipeTherapyOpQueryVO);
 }

@@ -51,6 +51,11 @@ public class DecoctionWayBean implements Serializable {
     )
     private Integer sort;
 
+    @ItemProperty(
+            alias = "是否代煎"
+    )
+
+    private Boolean generationisOfDecoction;
     public Integer getDecoctionId() {
         return decoctionId;
     }
@@ -105,5 +110,13 @@ public class DecoctionWayBean implements Serializable {
 
     public void setOrganId(Integer organId) {
         this.organId = organId;
+    }
+
+    public Boolean getGenerationisOfDecoction() {
+        return generationisOfDecoction;
+    }
+
+    public void setGenerationisOfDecoction(Boolean generationisOfDecoction) {
+        this.generationisOfDecoction = generationisOfDecoction;
     }
 }

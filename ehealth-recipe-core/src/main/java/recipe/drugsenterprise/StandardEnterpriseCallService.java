@@ -15,10 +15,7 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.utils.VerifyUtils;
 import com.ngari.recipe.drugsenterprise.model.ReadjustDrugDTO;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.entity.SaleDrugList;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.logistics.model.RecipeLogisticsBean;
 import ctd.persistence.DAOFactory;
 import ctd.util.AppContextHolder;
@@ -35,7 +32,10 @@ import recipe.ApplicationUtils;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.*;
+import recipe.enumerate.status.RecipeStateEnum;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.hisservice.RecipeToHisService;
+import recipe.manager.StateManager;
 import recipe.purchase.CommonOrder;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeLogService;
@@ -45,10 +45,7 @@ import recipe.util.DateConversion;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author： 0184/yu_yun
@@ -69,6 +66,8 @@ public class StandardEnterpriseCallService {
 
     @Autowired
     private RecipeOrderDAO orderDAO;
+    @Autowired
+    private StateManager stateManager;
 
     @RpcService
     public StandardResultDTO send(List<Map<String, Object>> list) {
@@ -210,6 +209,7 @@ public class StandardEnterpriseCallService {
                     //患者未取药
                     Boolean recipeRs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_DRUG,
                             recipeAttrMap);
+                    stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
                     if (recipeRs) {
                         if (StringUtils.isEmpty(stateDTO.getReason())){
                             stateDTO.setReason("药企端未设置取消原因");
@@ -219,6 +219,10 @@ public class StandardEnterpriseCallService {
 
                         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
                         RecipeResultBean orderRs = orderService.cancelOrderByCode(orderCode, OrderStatusConstant.CANCEL_AUTO);
+                        RecipeOrder order = orderDAO.getByOrderCode(orderCode);
+                        if (Objects.nonNull(order)){
+                            stateManager.updateOrderState(order.getOrderId(),OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
+                        }
                         if (RecipeResultBean.SUCCESS.equals(orderRs.getCode())) {
                             orderAttrMap.put("cancelReason", stateDTO.getReason());
                             orderDAO.updateByOrdeCode(orderCode, orderAttrMap);
@@ -377,9 +381,14 @@ public class StandardEnterpriseCallService {
             } else {
                 //患者未取药
                 Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_DRUG, null);
+                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
                 if (rs) {
                     RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-                    orderService.cancelOrderByCode(dbRecipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO);
+                    RecipeOrder order = orderDAO.getByOrderCode(dbRecipe.getOrderCode());
+                    if(Objects.nonNull(order)) {
+                        orderService.cancelOrderByCode(dbRecipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO);
+                        stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
+                    }
                 }
 
                 //记录日志
@@ -642,102 +651,7 @@ public class StandardEnterpriseCallService {
         return result;
     }
 
-    @RpcService
-    public StandardResultDTO updateStatusByPatientGetDrug(List<ChangeStatusByGetDrugDTO> list) {
-        LOGGER.info("updateStatusByPatientGetDrug 药企调用接口更新状态. param = {}", list);
-        StandardResultDTO result = new StandardResultDTO();
-        result.setCode(StandardResultDTO.SUCCESS);
-        if (CollectionUtils.isEmpty(list)) {
-            result.setCode(StandardResultDTO.FAIL);
-            result.setMsg("入参信息不能为空");
-            return result;
-        }
-        //校验提交修改状态的处方信息是否和
-        for (ChangeStatusByGetDrugDTO changeStatusByGetDrugDTO : list) {
-            //校验药企传输数据安全性
-            changeStatusByGetDrugDTO.checkRation(result);
-            if (StandardResultDTO.FAIL == result.getCode()) {
-                return result;
-            }
-        }
-        //接口目的是为了设置患者确认购药方式后获取药品过程中药企设置处方/处方订单状态
-        //现在有两种情况：
-        for (ChangeStatusByGetDrugDTO changeStatus : list) {
-            Recipe nowRecipe = recipeDAO.get(changeStatus.getRecipeId());
-            if(null == nowRecipe){
-                result.setMsg("[" + changeStatus.getRecipeId() + "]当前处方信息不存在！");
-                result.setCode(StandardResultDTO.FAIL);
-                return result;
-            }
-            switch (changeStatus.getInstallScene().intValue()){
-                //第一种：取药失败时候，处方的状态设置为失败，同时设置recipeLog中设置失败的原因
-                case GetDrugChangeStatusSceneConstant.Fail_Change_Recipe:
-                    failChangeRecipe(changeStatus, result, nowRecipe);
-                    break;
-                //第二种：药店取药购药方式下，患者支付成功后，药店确认库存，库存足够为待取药（有库存）/库存不足为待取药（无库存）的订单状态
-                case GetDrugChangeStatusSceneConstant.Only_Change_RecipeOrderStatus:
-                    onlyChangeRecipeOrderStatus(changeStatus, nowRecipe);
-                    break;
-                default:
-                    result.setMsg("[" + changeStatus.getInstallScene() + "]不支持该变更设置场景");
-                    result.setCode(StandardResultDTO.FAIL);
-                    break;
-            }
-        }
 
-        LOGGER.info("updateStatusByPatientGetDrug 接口调用结束");
-        return result;
-    }
-    /**
-     * @method  onlyChangeRecipeOrderStatus
-     * @description 只需要修改订单状态
-     * @date: 2019/8/23
-     * @author: JRK
-     * @param changeStatus 药企方修改处方状态信息
-     * @param result 请求结果
-     * @param nowRecipe 当前的处方
-     * @return void
-     */
-    private void onlyChangeRecipeOrderStatus(ChangeStatusByGetDrugDTO changeStatus, Recipe nowRecipe) {
-
-        RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        Map<String, Object> updateMap = new HashMap<>();
-        updateMap.put("status", changeStatus.getChangeStatus());
-        //返回一个RecipeResultBean
-        orderService.updateOrderInfo(nowRecipe.getOrderCode(), updateMap, null);
-
-        //发送取药提示信息给用户
-        //设置发送消息的内容
-        ThirdChangeStatusMsgEnum msgEnum = ThirdChangeStatusMsgEnum.fromStatusAndChangeStatus(1, changeStatus.getChangeStatus());
-        if(null != msgEnum){
-            RecipeMsgService.batchSendMsg(nowRecipe, msgEnum.getMsgStatus());
-        }
-    }
-
-    /**
-     * @method  failChangeRecipe
-     * @description 修改处方失败状态
-     * @date: 2019/8/23
-     * @author: JRK
-     * @param changeStatus 药企方修改处方状态信息
-     * @param result 请求结果
-     * @param nowRecipe 当前的处方
-     * @return void
-     */
-    private void failChangeRecipe(ChangeStatusByGetDrugDTO changeStatus, StandardResultDTO result, Recipe nowRecipe) {
-        //修改处方的状态，为失败（失败有多种失败的情况状态）
-        Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(changeStatus.getRecipeId(), changeStatus.getChangeStatus(), null);
-        if (rs) {
-            //更新处方状态后，结束当前订单的状态
-            RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-            orderService.cancelOrderByCode(nowRecipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO);
-        }
-
-        //记录日志,处方的状态变更为失败的状态，记录失败的原因
-        RecipeLogService.saveRecipeLog(changeStatus.getRecipeId(), nowRecipe.getStatus(), changeStatus.getChangeStatus(),
-                 changeStatus.getFailureReason());
-
-    }
 
     /**
      * 同步药企药品价格

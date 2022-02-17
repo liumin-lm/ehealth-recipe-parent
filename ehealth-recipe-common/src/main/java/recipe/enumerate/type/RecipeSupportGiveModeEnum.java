@@ -2,16 +2,15 @@ package recipe.enumerate.type;
 
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.OrganAndDrugsepRelation;
+import ctd.persistence.exception.DAOException;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.util.StringUtils;
 import recipe.constant.RecipeBussConstant;
 import recipe.enumerate.status.GiveModeEnum;
 import recipe.util.ValidateUtil;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.reducing;
@@ -114,6 +113,22 @@ public enum RecipeSupportGiveModeEnum {
         }
         return giveModeType;
     }
+
+    /**
+     * 机构与药企关联关系中的购药方式
+     * 医院配送与药企配送只能2选1 到院自取与到店自取只能2选1
+     *
+     * @param giveModeTypes
+     */
+    public static void checkOrganEnterpriseRelationGiveModeType(List<Integer> giveModeTypes) {
+        if (giveModeTypes.contains(RecipeSupportGiveModeEnum.SUPPORT_TFDS.type) && giveModeTypes.contains(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.type)) {
+            throw new DAOException("到院自取与到店自取只能2选1");
+        }
+        if (giveModeTypes.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_HOS.type) && giveModeTypes.contains(RecipeSupportGiveModeEnum.SHOW_SEND_TO_ENTERPRISES.type)) {
+            throw new DAOException("医院配送与药企配送只能2选1");
+        }
+    }
+
 
     public static RecipeSupportGiveModeEnum getRecipeSupportGiveModeEnum(String text) {
         for (RecipeSupportGiveModeEnum e : RecipeSupportGiveModeEnum.values()) {
@@ -229,7 +244,7 @@ public enum RecipeSupportGiveModeEnum {
      * @param configGiveModeMap 机构按钮配置 key ：text ， value ： name
      * @return 药企展示的购药按钮
      */
-    public static List<GiveModeButtonDTO> giveModeButtonList(DrugsEnterprise drugsEnterprise, List<String> configGiveMode, Map<String, String> configGiveModeMap) {
+    public static List<GiveModeButtonDTO> giveModeButtonList(DrugsEnterprise drugsEnterprise, List<String> configGiveMode, Map<String, String> configGiveModeMap, Boolean drugToHosByEnterprise, Map<Integer, List<OrganAndDrugsepRelation>> relationMap) {
         List<GiveModeButtonDTO> enterpriseGiveMode = enterpriseEnum(drugsEnterprise.getPayModeSupport(), drugsEnterprise.getSendType());
         if (null == enterpriseGiveMode || null == configGiveMode) {
             return null;
@@ -239,6 +254,14 @@ public enum RecipeSupportGiveModeEnum {
             return null;
         }
         giveModeKey.forEach(a -> a.setShowButtonName(configGiveModeMap.get(a.getShowButtonKey())));
+        // 采用新模式且机构支持到院取药 且机构药企支持到院取药
+        if (drugToHosByEnterprise && !StringUtils.isEmpty(configGiveModeMap.get(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.text))
+                && Objects.nonNull(relationMap) && Objects.nonNull(relationMap.get(drugsEnterprise.getId()))) {
+            GiveModeButtonDTO giveModeButtonDTO = new GiveModeButtonDTO();
+            giveModeButtonDTO.setShowButtonKey(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.text);
+            giveModeButtonDTO.setShowButtonName(configGiveModeMap.get(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.text));
+            giveModeKey.add(giveModeButtonDTO);
+        }
         return giveModeKey;
     }
 

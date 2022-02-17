@@ -314,6 +314,34 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "处方审核状态")
     private Integer checkFlag;
 
+    @ItemProperty(alias = "处方父状态：0：默认 ， 1：待提交，2：待审核，3：待下单，4：待发药，5：配送中，6：待取药，7：已完成，8：已删除 ，9：已作废")
+    private Integer processState;
+    @ItemProperty(alias = "处方子状态")
+    private Integer subState;
+
+    @ItemProperty(alias = "审核状态：0：默认 , 1：待审核， 2：审核中， 3：审核未通过，4：未通过，医生确认中，5：审核通过，6：医生强制通过，7：无需审核")
+    private Integer auditState;
+    @ItemProperty(alias = "接方模式：0：默认 , 1：接方模式， 2：非接方模式")
+    private Integer supportMode;
+
+    @Column(name = "process_state")
+    public Integer getProcessState() {
+        return processState;
+    }
+
+    public void setProcessState(Integer processState) {
+        this.processState = processState;
+    }
+
+    @Column(name = "sub_state")
+    public Integer getSubState() {
+        return subState;
+    }
+
+    public void setSubState(Integer subState) {
+        this.subState = subState;
+    }
+
     @Column(name = "recipeSupportGiveMode")
     public String getRecipeSupportGiveMode() {
         return recipeSupportGiveMode;
@@ -1116,6 +1144,25 @@ public class Recipe implements Serializable {
     public Integer getCheckFlag() {
         return checkFlag;
     }
+
+    @Column(name = "audit_state")
+    public Integer getAuditState() {
+        return auditState;
+    }
+    public void setAuditState(Integer auditState) {
+        this.auditState = auditState;
+    }
+
+
+    @Column(name = "support_mode")
+    public Integer getSupportMode() {
+        return supportMode;
+    }
+    public void setSupportMode(Integer supportMode) {
+        this.supportMode = supportMode;
+    }
+
+
 
     public void setCheckFlag(Integer checkFlag) {
         this.checkFlag = checkFlag;

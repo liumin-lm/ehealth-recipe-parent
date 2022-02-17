@@ -16,6 +16,7 @@ import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -25,6 +26,7 @@ import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.ThirdResultBean;
 import recipe.constant.OrderStatusConstant;
@@ -37,7 +39,10 @@ import recipe.dao.bean.BillDrugFeeBean;
 import recipe.dao.bean.BillRecipeDetailBean;
 import recipe.dao.bean.RecipeBillBean;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
+import recipe.enumerate.status.OrderStateEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.type.PayBusTypeEnum;
+import recipe.manager.StateManager;
 import recipe.service.PayModeGiveModeUtil;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeOrderService;
@@ -62,6 +67,10 @@ import java.util.Map;
 public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> implements IRecipeOrderService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RemoteRecipeOrderService.class);
+
+
+    @Autowired
+    private StateManager stateManager;
 
     @RpcService
     @Override
@@ -288,6 +297,8 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
                 recipes.forEach(recipe1 -> {
                     recipeDAO.updateRecipeInfoByRecipeId(recipe1.getRecipeId(), RecipeStatusConstant.REVOKE, ImmutableMap.of("payFlag", 3));
+                    StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+                    stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_DOCTOR);
                     LOGGER.info("退款完成修改处方状态：{}", recipe1.getRecipeId());
                 });
                 //订单状态修改
@@ -299,6 +310,8 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 orderAttrMap.put("refundFlag", 1);
                 orderAttrMap.put("refundTime", new Date());
                 recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
+                stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_USER);
+
                 LOGGER.info("退款完成修改订单状态：{}", recipe.getRecipeId());
 //                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.REVOKE, null);
                 LOGGER.info("存储退款完成记录-remoteRecipeOrderService：{}", recipe.getRecipeId());

@@ -91,7 +91,6 @@ import recipe.ca.vo.CaSignResultVo;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DoctorClient;
 import recipe.client.PatientClient;
-import recipe.client.RecipeAuditClient;
 import recipe.client.RevisitClient;
 import recipe.constant.*;
 import recipe.dao.*;
@@ -102,6 +101,7 @@ import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.drugsenterprise.TmdyfRemoteService;
 import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
@@ -178,7 +178,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Autowired
     private ISecurityService securityService;
     @Autowired
-    private RecipeAuditClient recipeAuditClient;
+    private StateManager stateManager;
     @Autowired
     private OperationPlatformRecipeService operationPlatformRecipeService;
 
@@ -1845,11 +1845,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                         case "2":
                             //该处方已失效
                             recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("status", RecipeStatusConstant.NO_PAY));
+                            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_ORDER);
                             stringBuilder.append("[处方状态]该处方已失效;");
                             break;
                         case "3":
                             //该处方已撤销
                             recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("status", RecipeStatusConstant.REVOKE));
+                            stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_DOCTOR);
                             stringBuilder.append("[处方状态]该处方已撤销;");
                             break;
                         default:
@@ -2810,5 +2812,26 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         Recipe recipe1 = ObjectCopyUtils.convert(recipe, Recipe.class);
         return buttonManager.getGiveModeTextByRecipe(recipe1);
     }
+
+
+
+    @RpcService
+    @Override
+    @LogRecord
+    public List<RecipeBean> findRecipeAuditByFlag(List<Integer> organ, List<Integer> recipeTypes, int flag, int start, int limit) {
+        List<Recipe> recipes = recipeDAO.findRecipeAuditByFlag(organ, recipeTypes, flag, start, limit);
+        //转换前端的展示实体类
+        List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
+        return recipeBeans;
+    }
+
+    @RpcService
+    @Override
+    @LogRecord
+    public Long findRecipeAuditCountByFlag(List<Integer> organ, List<Integer> recipeTypes, int flag) {
+        Long recipeCount = recipeDAO.findRecipeAuditCountByFlag(organ, recipeTypes, flag);
+        return recipeCount;
+    }
+
 
 }

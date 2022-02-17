@@ -3,6 +3,11 @@ package recipe.manager;
 import com.alibaba.fastjson.JSON;
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
+import com.ngari.base.organ.model.OrganBean;
+import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.TakeMedicineByToHos;
+import com.ngari.his.recipe.mode.TakeMedicineByToHosReqDTO;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -20,6 +25,8 @@ import org.springframework.stereotype.Service;
 import recipe.client.DepartClient;
 import recipe.client.DrugStockClient;
 import recipe.client.EnterpriseClient;
+import recipe.client.IConfigurationClient;
+import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.*;
@@ -71,7 +78,30 @@ public class EnterpriseManager extends BaseManager {
     @Autowired
     private DepartClient departClient;
     @Autowired
+    private OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO;
+    @Autowired
+    private IConfigurationClient configurationClient;
+    @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
+
+
+    /**
+     * 到院取药获取取药点
+     *
+     * @param organId  机构id
+     * @param dbRecipe 处方详情
+     * @return
+     */
+    public List<TakeMedicineByToHos> getTakeMedicineByToHosList(Integer organId, Recipe dbRecipe) {
+        logger.info("EnterpriseManager getTakeMedicineByToHosList organId:{},dbRecipe:{} ", JSONUtils.toString(organId)
+                , JSONUtils.toString(dbRecipe));
+        OrganDTO organDTO = organClient.organDTO(organId);
+        OrganBean organBean = ObjectCopyUtils.convert(organDTO, OrganBean.class);
+        RecipeBean recipeBean = ObjectCopyUtils.convert(dbRecipe, RecipeBean.class);
+        List<Recipedetail> detailList = recipeDetailDAO.findByRecipeId(dbRecipe.getRecipeId());
+        List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(detailList, RecipeDetailBean.class);
+        return enterpriseClient.getTakeMedicineByToHosList(organBean, recipeDetailBeans, recipeBean);
+    }
 
     /**
      * 检查 药企药品 是否满足开方药品
@@ -676,5 +706,74 @@ public class EnterpriseManager extends BaseManager {
         return drugsEnterprises;
     }
 
+    /**
+     * 保存药企机构销售配置
+     *
+     * @param organDrugsSaleConfig
+     */
+    public void saveOrganDrugsSaleConfig(OrganDrugsSaleConfig organDrugsSaleConfig) {
+        logger.info("EnterpriseManager saveOrganDrugsSaleConfig organDrugsSaleConfig:{}", JSONUtils.toString(organDrugsSaleConfig));
+        List<OrganDrugsSaleConfig> organDrugsSaleConfigs = organDrugsSaleConfigDAO.findByOrganIdAndEnterpriseId(organDrugsSaleConfig.getOrganId(), organDrugsSaleConfig.getDrugsEnterpriseId());
+        if (CollectionUtils.isEmpty(organDrugsSaleConfigs)) {
+            organDrugsSaleConfigDAO.save(organDrugsSaleConfig);
+        } else {
+            organDrugsSaleConfig.setId(organDrugsSaleConfigs.get(0).getId());
+            organDrugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(organDrugsSaleConfig);
+        }
+    }
+
+    /**
+     * 查询药企配置,这个要看是否走机构配置
+     *
+     * @param organId
+     * @param drugsEnterpriseId
+     */
+    public OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId) {
+        logger.info("EnterpriseManager saveOrganDrugsSaleConfig organId:{}  drugsEnterpriseId:{}", organId, drugsEnterpriseId);
+        // 患者端使用到的机构配置,这个接口仅这些使用
+        ArrayList<String> key = Lists.newArrayList("toSendStationFlag", "getMedicineRemindContent", "payModeToHosOnlinePayConfig", "supportToHosPayFlag", "toHosPlanDate",
+                "toHosPlanAmTime", "toHosPlanPmTime", "getQrTypeForRecipe", "getQrTypeForRecipeRemind");
+        // 到院自取是否采用药企管理模式
+        Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(organId, "drugToHosByEnterprise", false);
+        if (drugToHosByEnterprise) {
+            if (Objects.isNull(drugsEnterpriseId)) {
+                throw new DAOException("采用药企销售配置模式药企id不能为空");
+            }
+            List<OrganDrugsSaleConfig> organDrugsSaleConfigs = organDrugsSaleConfigDAO.findByOrganIdAndEnterpriseId(organId, drugsEnterpriseId);
+            if (CollectionUtils.isEmpty(organDrugsSaleConfigs)) {
+                throw new DAOException("未配置药企销售配置");
+            }
+            return organDrugsSaleConfigs.get(0);
+        }
+        Map<String, Object> configurationByKeyList = configurationClient.getConfigurationByKeyList(organId, key);
+        return coverConfig(configurationByKeyList);
+    }
+
+    /**
+     * 机构配置转换
+     *
+     * @param configurationByKeyList
+     * @return
+     */
+    private OrganDrugsSaleConfig coverConfig(Map<String, Object> configurationByKeyList) {
+        logger.info("EnterpriseManager coverConfig configurationByKeyList:{} ", JSONUtils.toString(configurationByKeyList));
+        OrganDrugsSaleConfig organDrugsSaleConfig = new OrganDrugsSaleConfig();
+        Boolean isSupportSendToStation = (Boolean) configurationByKeyList.get("toSendStationFlag");
+        organDrugsSaleConfig.setIsSupportSendToStation(isSupportSendToStation ? 1 : 0);
+        organDrugsSaleConfig.setTakeOneselfContent(configurationByKeyList.get("getMedicineRemindContent").toString());
+        organDrugsSaleConfig.setTakeOneselfPaymentChannel((Integer) configurationByKeyList.get("payModeToHosOnlinePayConfig"));
+        organDrugsSaleConfig.setTakeOneselfPayment((Boolean) configurationByKeyList.get("supportToHosPayFlag") ? 1 : 2);
+        String[] toHosPlanDate = (String[]) configurationByKeyList.get("toHosPlanDate");
+        organDrugsSaleConfig.setTakeOneselfPlanDate(Integer.parseInt(toHosPlanDate[0]));
+        organDrugsSaleConfig.setTakeOneselfPlanAmTime(configurationByKeyList.get("toHosPlanAmTime").toString());
+        organDrugsSaleConfig.setTakeOneselfPlanPmTime(configurationByKeyList.get("toHosPlanPmTime").toString());
+        organDrugsSaleConfig.setTakeDrugsVoucher((Integer) configurationByKeyList.get("getQrTypeForRecipe"));
+        Object getQrTypeForRecipeRemind = configurationByKeyList.get("getQrTypeForRecipeRemind");
+        if (Objects.nonNull(getQrTypeForRecipeRemind)) {
+            organDrugsSaleConfig.setSpecialTips(getQrTypeForRecipeRemind.toString());
+        }
+        logger.info("EnterpriseManager coverConfig organDrugsSaleConfig:{} ", JSONUtils.toString(organDrugsSaleConfig));
+        return organDrugsSaleConfig;
+    }
 }
 
