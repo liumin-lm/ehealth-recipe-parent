@@ -261,7 +261,7 @@ public class RecipeManager extends BaseManager {
      * @return 取药凭证
      */
     public String getToHosProof(Recipe recipe, RecipeExtend recipeExtend, RecipeOrder order) {
-        logger.info("getToHosProof recipe:{} " , JSONArray.toJSONString(recipe));
+        logger.info("getToHosProof recipe:{} order:{}" , JSONArray.toJSONString(recipe),JSONArray.toJSONString(order));
         String qrName = "";
         try {
             OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId(), recipe.getGiveMode());
