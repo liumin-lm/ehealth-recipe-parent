@@ -14,6 +14,7 @@ import ctd.util.annotation.RpcSupportDAO;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Query;
+import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
 import recipe.dao.comment.ExtendDao;
 
@@ -96,8 +97,8 @@ public abstract class OrganAndDrugsepRelationDAO extends HibernateSupportDelegat
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder sql = new StringBuilder("SELECT * FROM cdr_organ_drugsep_relation WHERE OrganId = ");
                 sql.append(clinicOrgan).append(" and drug_enterprise_support_give_mode LIKE '%").append(type).append("%'");
-                Query query = ss.createSQLQuery(String.valueOf(sql));
-
+                SQLQuery query = ss.createSQLQuery(String.valueOf(sql));
+                query.addEntity(OrganAndDrugsepRelation.class);
                 setResult(query.list());
             }
         };
