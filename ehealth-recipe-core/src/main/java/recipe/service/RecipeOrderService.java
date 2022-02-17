@@ -73,6 +73,7 @@ import recipe.constant.*;
 import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
+import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -811,7 +812,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //快递费线上支付的需要计算是否满足包邮
         if (null != order.getExpressFee() && null != order.getEnterpriseId()) {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-            if (null != drugsEnterprise && order.getRecipeFee().compareTo(drugsEnterprise.getFreeDeliveryMoney()) >= -1) {
+            if (null != drugsEnterprise && null != drugsEnterprise.getFreeDeliveryMoney() && order.getRecipeFee().compareTo(drugsEnterprise.getFreeDeliveryMoney()) > -1) {
                 order.setExpressFee(BigDecimal.ZERO);
             }
         }
@@ -853,7 +854,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
                     //卫宁付
                     // 到院取药是否支持线上支付
-                    OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId());
+                    OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId(),GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType());
                     Integer takeOneselfPayment = organDrugsSaleConfig.getTakeOneselfPayment();
                     if (purchaseService.getToHosPayConfig(firstRecipe.getClinicOrgan(),order.getEnterpriseId()) || new Integer(1).equals(takeOneselfPayment)) {
                         order.setActualPrice(totalFee.doubleValue());
@@ -1883,7 +1884,7 @@ public class RecipeOrderService extends RecipeBaseService {
     private void putSupportToHosPayFlag(RecipeResultBean result, RecipeOrder order) {
         Map<String, Object> map = result.getExt();
         // 到院取药是否支持线上支付
-        OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId());
+        OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId(), GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType());
         if (new Integer(1).equals(organDrugsSaleConfig.getTakeOneselfPayment())) {
             map.put("supportToHosPayFlag", 1);
         }
