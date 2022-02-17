@@ -528,7 +528,6 @@ public class RecipeService extends RecipeBaseService {
     public Integer saveRecipeData(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
         recipeBean.setSubState(RecipeStateEnum.NONE.getType());
         recipeBean.setProcessState(RecipeStateEnum.NONE.getType());
-        recipeBean.setStatus(RecipeStatusConstant.UNSIGN);
         Integer recipeId = recipeServiceSub.saveRecipeDataImpl(recipeBean, detailBeanList, 1);
         if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipeBean.getFromflag())) {
             //生成订单数据，与 HosPrescriptionService 中 createPrescription 方法一致
