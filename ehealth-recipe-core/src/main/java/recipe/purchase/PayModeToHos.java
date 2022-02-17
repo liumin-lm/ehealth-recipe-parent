@@ -6,7 +6,9 @@ import com.ngari.his.recipe.mode.TakeMedicineByToHos;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
+import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
@@ -307,9 +309,7 @@ public class PayModeToHos implements IPurchaseService {
 
 
         // 调his获取取药点
-
         List<TakeMedicineByToHos> takeMedicineByToHosList = enterpriseManager.getTakeMedicineByToHosList(dbRecipe.getClinicOrgan(), dbRecipe);
-
 
         if (CollectionUtils.isEmpty(takeMedicineByToHosList)) {
             LOG.warn("findSupportDepList 该处方无法配送. recipeId=[{}]", recipeId);
@@ -323,9 +323,30 @@ public class PayModeToHos implements IPurchaseService {
         if (CollectionUtils.isNotEmpty(takeMedicineByToHosList) && takeMedicineByToHosList.size() == 1) {
             depListBean.setSigle(true);
         }
-        resultBean.setObject(takeMedicineByToHosList);
+        depListBean.setList(getDepDetailList(takeMedicineByToHosList));
+        resultBean.setObject(depListBean);
         LOG.info("findSupportDepList 当前处方{}查询药企列表信息：{}", recipeId, JSONUtils.toString(resultBean));
         return resultBean;
+    }
+
+    private List<DepDetailBean> getDepDetailList(List<TakeMedicineByToHos> takeMedicineByToHosList) {
+        return takeMedicineByToHosList.stream().map(takeMedicineByToHos -> {
+            DepDetailBean depDetailBean = new DepDetailBean();
+            depDetailBean.setPayMethod(takeMedicineByToHos.getPayWay().toString());
+            depDetailBean.setDepId(takeMedicineByToHos.getEnterpriseId());
+            depDetailBean.setDepName(takeMedicineByToHos.getEnterpriseName());
+            depDetailBean.setPharmacyName(takeMedicineByToHos.getPharmacyName());
+            depDetailBean.setPharmacyCode(takeMedicineByToHos.getPharmacyCode());
+            depDetailBean.setAddress(takeMedicineByToHos.getPharmacyAddress());
+            depDetailBean.setDistance(takeMedicineByToHos.getDistance());
+            depDetailBean.setRecipeFee(takeMedicineByToHos.getRecipeTotalPrice());
+            Position position = new Position();
+            position.setLatitude(Double.valueOf(takeMedicineByToHos.getLat()));
+            position.setLongitude(Double.valueOf(takeMedicineByToHos.getLng()));
+            position.setRange(takeMedicineByToHos.getRange());
+            depDetailBean.setPosition(position);
+            return depDetailBean;
+        }).collect(Collectors.toList());
     }
 
     /**
