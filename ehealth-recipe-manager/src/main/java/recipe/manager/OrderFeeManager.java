@@ -29,6 +29,7 @@ import recipe.enumerate.type.SettlementModeTypeEnum;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -332,6 +333,11 @@ public class OrderFeeManager extends BaseManager {
         RecipeCashPreSettleReqTO request = new RecipeCashPreSettleReqTO();
         request.setCertificate(patientDTO.getCertificate());
         request.setTotalFee(totalFee);
+        request.setMobile(request.getMobile());
+        request.setPatientName(request.getPatientName());
+        request.setSex(request.getSex());
+        request.setIdcard(request.getIdcard());
+        request.setBirthday(new Date());
         RecipeCashPreSettleInfo recipeCashPreSettleInfo = offlineRecipeClient.recipeCashPreSettle(request);
         if (null != recipeCashPreSettleInfo && StringUtils.isNotEmpty(recipeCashPreSettleInfo.getZhzf())) {
             return new BigDecimal(recipeCashPreSettleInfo.getZhzf());
