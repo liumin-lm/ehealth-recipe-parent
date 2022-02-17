@@ -812,7 +812,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //快递费线上支付的需要计算是否满足包邮
         if (null != order.getExpressFee() && null != order.getEnterpriseId()) {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-            if (null != drugsEnterprise && order.getRecipeFee().compareTo(drugsEnterprise.getFreeDeliveryMoney()) >= -1) {
+            if (null != drugsEnterprise && null != drugsEnterprise.getFreeDeliveryMoney() && order.getRecipeFee().compareTo(drugsEnterprise.getFreeDeliveryMoney()) > -1) {
                 order.setExpressFee(BigDecimal.ZERO);
             }
         }

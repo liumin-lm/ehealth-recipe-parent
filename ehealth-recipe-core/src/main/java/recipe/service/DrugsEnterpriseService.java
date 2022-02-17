@@ -243,6 +243,9 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         if (drugsEnterpriseBean.getTransFeeDetail() == null) {
             target.setTransFeeDetail(null);
         }
+        if (null == drugsEnterprise.getFreeDeliveryMoney()) {
+            target.setFreeDeliveryMoney(null);
+        }
         target = drugsEnterpriseDAO.update(target);
         // 写入药企关联物流公司信息
         drugEnterpriseLogisticsService.saveDrugEnterpriseLogistics(drugsEnterpriseBean.getDrugEnterpriseLogisticsBeans(), target.getId());
