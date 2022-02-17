@@ -258,7 +258,7 @@ public class OrderFeeManager extends BaseManager{
      * @param order 订单
      * @param recipeFeeContainFlag 处方费用是否包含在总费用标志
      */
-    public void totalFee(RecipeOrder order, Boolean recipeFeeContainFlag, Boolean express){
+    public void totalFee(RecipeOrder order, Boolean recipeFeeContainFlag, Boolean express) {
         BigDecimal full = BigDecimal.ZERO;
         //添加判断，当处方选择购药方式是下载处方，不计算药品费用
         //处方费用
