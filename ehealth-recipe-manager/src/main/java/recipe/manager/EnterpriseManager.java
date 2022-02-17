@@ -743,10 +743,13 @@ public class EnterpriseManager extends BaseManager {
             if (CollectionUtils.isEmpty(organDrugsSaleConfigs)) {
                 throw new DAOException("未配置药企销售配置");
             }
-            return organDrugsSaleConfigs.get(0);
+            OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigs.get(0);
+            organDrugsSaleConfig.setOrganId(organId);
+            organDrugsSaleConfig.setDrugsEnterpriseId(drugsEnterpriseId);
+            return organDrugsSaleConfig;
         }
         Map<String, Object> configurationByKeyList = configurationClient.getConfigurationByKeyList(organId, key);
-        return coverConfig(configurationByKeyList);
+        return coverConfig(configurationByKeyList,organId);
     }
 
     /**
@@ -755,9 +758,10 @@ public class EnterpriseManager extends BaseManager {
      * @param configurationByKeyList
      * @return
      */
-    private OrganDrugsSaleConfig coverConfig(Map<String, Object> configurationByKeyList) {
+    private OrganDrugsSaleConfig coverConfig(Map<String, Object> configurationByKeyList,Integer organId) {
         logger.info("EnterpriseManager coverConfig configurationByKeyList:{} ", JSONUtils.toString(configurationByKeyList));
         OrganDrugsSaleConfig organDrugsSaleConfig = new OrganDrugsSaleConfig();
+        organDrugsSaleConfig.setOrganId(organId);
         Boolean isSupportSendToStation = (Boolean) configurationByKeyList.get("toSendStationFlag");
         organDrugsSaleConfig.setIsSupportSendToStation(isSupportSendToStation ? 1 : 0);
         organDrugsSaleConfig.setTakeOneselfContent(configurationByKeyList.get("getMedicineRemindContent").toString());
