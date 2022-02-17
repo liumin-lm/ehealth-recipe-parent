@@ -170,6 +170,10 @@ public class RecipeOrderService extends RecipeBaseService {
 
     @Autowired
     private EnterpriseManager enterpriseManager;
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
+    @Autowired
+    private OrderFeeManager orderFeeManager;
 
     /**
      * 处方结算时创建临时订单
@@ -804,6 +808,13 @@ public class RecipeOrderService extends RecipeBaseService {
                 setOrderAddress(result, order, recipeIds, payModeSupport, extInfo, toDbFlag, address);
             }
         }
+        //快递费线上支付的需要计算是否满足包邮
+        if (null != order.getExpressFee() && null != order.getEnterpriseId()) {
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+            if (null != drugsEnterprise && order.getRecipeFee().compareTo(drugsEnterprise.getFreeDeliveryMoney()) >= -1) {
+                order.setExpressFee(BigDecimal.ZERO);
+            }
+        }
 
         //}
         order.setTotalFee(countOrderTotalFeeByRecipeInfo(order, firstRecipe, payModeSupport));
@@ -1095,6 +1106,14 @@ public class RecipeOrderService extends RecipeBaseService {
                 }
             } catch (Exception e) {
                 LOGGER.error("setCreateOrderResult error", e);
+            }
+        }
+        //上海外服个性化处理账户支付金额
+        String organName = recipeParameterDao.getByName("shwfAccountFee");
+        if (StringUtils.isEmpty(organName)) {
+            BigDecimal accountFee = orderFeeManager.getAccountFee(order.getTotalFee(), order.getMpiId());
+            if (null != accountFee) {
+                recipeOrderBean.setAccountFee(accountFee);
             }
         }
         result.setObject(recipeOrderBean);
@@ -1551,8 +1570,6 @@ public class RecipeOrderService extends RecipeBaseService {
         CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
         RecipeOrder order = recipeOrderDAO.get(orderId);
         recipeResultBean.getExt().put("completeAddress", commonRemoteService.getCompleteAddress(order));
-        recipeResultBean.getExt().put("processStateText", OrderStateEnum.getOrderStateEnum(order.getProcessState()).getName());
-        recipeResultBean.getExt().put("subStateText", OrderStateEnum.getOrderStateEnum(order.getSubState()).getName());
         LOGGER.info("getOrderDetailByIdV1 recipeResultBean={}", JSON.toJSONString(recipeResultBean));
         return recipeResultBean;
     }
@@ -1836,6 +1853,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 orderBean.setTcmFee(null);
             }
             orderBean.setList(patientRecipeBeanList);
+            orderBean.setProcessStateText(OrderStateEnum.getOrderStateEnum(order.getProcessState()).getName());
+            orderBean.setSubStateText(OrderStateEnum.getOrderStateEnum(order.getSubState()).getName());
             result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
             result.setExt(RecipeUtil.getParamFromOgainConfig(order, recipeList));

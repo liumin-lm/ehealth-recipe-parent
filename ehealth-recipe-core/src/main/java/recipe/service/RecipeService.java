@@ -526,6 +526,8 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Integer saveRecipeData(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
+        recipeBean.setSubState(RecipeStateEnum.NONE.getType());
+        recipeBean.setProcessState(RecipeStateEnum.NONE.getType());
         Integer recipeId = recipeServiceSub.saveRecipeDataImpl(recipeBean, detailBeanList, 1);
         if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipeBean.getFromflag())) {
             //生成订单数据，与 HosPrescriptionService 中 createPrescription 方法一致
@@ -1713,6 +1715,7 @@ public class RecipeService extends RecipeBaseService {
         recipe.setStatus(RecipeStatusConstant.UNSIGN);
         recipe.setSignDate(DateTime.now().toDate());
         Integer recipeId = recipe.getRecipeId();
+        LOGGER.error("doSignRecipeSave recipe={}", JSON.toJSONString(recipe));
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
         details.stream().filter(a -> "无特殊煎法".equals(a.getMemo())).forEach(a -> a.setMemo(""));
         if (null != recipeId && recipeId > 0) {

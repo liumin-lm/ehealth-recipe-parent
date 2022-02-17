@@ -155,8 +155,8 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "药店或者站点距离")
     private Double distance;
 
-    @ItemProperty(alias = "上海外服支付金额")
-    private BigDecimal wfPayMoney;
+    @ItemProperty(alias = "账户支付金额")
+    private BigDecimal accountFee;
 
     @ItemProperty(alias = "创建时间")
     private Date createTime;
@@ -345,6 +345,44 @@ public class RecipeOrderBean implements Serializable {
     private Integer payMode;
     @ItemProperty(alias = "发药方式文案")
     private String giveModeText;
+    @ItemProperty(alias = "订单父状态：0：默认 ，1：预下单，2：待支付，3：处理中，4：已完成，9：已作废")
+    private Integer processState;
+    private String processStateText;
+    @ItemProperty(alias = "订单子状态")
+    private Integer subState;
+    private String subStateText;
+
+    public Integer getProcessState() {
+        return processState;
+    }
+
+    public void setProcessState(Integer processState) {
+        this.processState = processState;
+    }
+
+    public String getProcessStateText() {
+        return processStateText;
+    }
+
+    public void setProcessStateText(String processStateText) {
+        this.processStateText = processStateText;
+    }
+
+    public Integer getSubState() {
+        return subState;
+    }
+
+    public void setSubState(Integer subState) {
+        this.subState = subState;
+    }
+
+    public String getSubStateText() {
+        return subStateText;
+    }
+
+    public void setSubStateText(String subStateText) {
+        this.subStateText = subStateText;
+    }
 
     public String getGiveModeText() {
         return giveModeText;
@@ -536,12 +574,12 @@ public class RecipeOrderBean implements Serializable {
         this.payFlag = payFlag;
     }
 
-    public BigDecimal getWfPayMoney() {
-        return wfPayMoney;
+    public BigDecimal getAccountFee() {
+        return accountFee;
     }
 
-    public void setWfPayMoney(BigDecimal wfPayMoney) {
-        this.wfPayMoney = wfPayMoney;
+    public void setAccountFee(BigDecimal accountFee) {
+        this.accountFee = accountFee;
     }
 
     public Integer getCouponId() {
