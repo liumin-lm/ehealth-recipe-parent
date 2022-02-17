@@ -4,6 +4,7 @@ import ctd.schema.annotation.*;
 import ctd.util.JSONUtils;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -187,6 +188,9 @@ public class DrugsEnterpriseBean implements Serializable {
 
     @ItemProperty(alias = "药企联系电话")
     private String enterprisePhone;
+
+    @ItemProperty(alias = "包邮金额")
+    private BigDecimal freeDeliveryMoney;
 
     public String getEnterprisePhone() {
         return enterprisePhone;
@@ -627,5 +631,13 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setThirdEnterpriseCode(String thirdEnterpriseCode) {
         this.thirdEnterpriseCode = thirdEnterpriseCode;
+    }
+
+    public BigDecimal getFreeDeliveryMoney() {
+        return freeDeliveryMoney;
+    }
+
+    public void setFreeDeliveryMoney(BigDecimal freeDeliveryMoney) {
+        this.freeDeliveryMoney = freeDeliveryMoney;
     }
 }

@@ -57,6 +57,7 @@ import recipe.dao.bean.RecipeListBean;
 import recipe.dao.bean.RecipeRollingInfo;
 import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.manager.ButtonManager;
@@ -1168,6 +1169,7 @@ public class RecipeListService extends RecipeBaseService {
             patientTabStatusRecipeDTO.setRecordType(LIST_TYPE_RECIPE);
             patientTabStatusRecipeDTO.setRecordId(recipeListBean.getRecipeId());
         }
+        patientTabStatusRecipeDTO.setProcessStateText(RecipeStateEnum.getRecipeStateEnum(recipeListBean.getProcessState()).getName());
 
         String recipeNumber = configurationClient.getValueCatch(recipeListBean.getClinicOrgan(), "recipeNumber", "");
         if (StringUtils.isNotEmpty(recipeNumber)) {

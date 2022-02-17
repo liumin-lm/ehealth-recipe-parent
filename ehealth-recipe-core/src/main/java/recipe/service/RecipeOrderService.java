@@ -73,6 +73,7 @@ import recipe.constant.*;
 import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.*;
@@ -102,7 +103,7 @@ import static ctd.persistence.DAOFactory.getDAO;
  * @author: 0184/yu_yun
  * @date:2017/2/13.
  */
-@RpcBean(value = "recipeOrderService", mvc_authentication = false)
+@RpcBean(value = "recipeOrderService")
 public class RecipeOrderService extends RecipeBaseService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeOrderService.class);
@@ -801,6 +802,13 @@ public class RecipeOrderService extends RecipeBaseService {
             } else {
                 //运费在这里面设置
                 setOrderAddress(result, order, recipeIds, payModeSupport, extInfo, toDbFlag, address);
+            }
+        }
+        //快递费线上支付的需要计算是否满足包邮
+        if (null != order.getExpressFee() && null != order.getEnterpriseId()) {
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
+            if (null != drugsEnterprise && order.getRecipeFee().compareTo(drugsEnterprise.getFreeDeliveryMoney()) >= -1) {
+                order.setExpressFee(BigDecimal.ZERO);
             }
         }
 
@@ -1833,6 +1841,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 orderBean.setTcmFee(null);
             }
             orderBean.setList(patientRecipeBeanList);
+            orderBean.setProcessStateText(OrderStateEnum.getOrderStateEnum(order.getProcessState()).getName());
+            orderBean.setSubStateText(OrderStateEnum.getOrderStateEnum(order.getSubState()).getName());
             result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
             result.setExt(RecipeUtil.getParamFromOgainConfig(order, recipeList));
