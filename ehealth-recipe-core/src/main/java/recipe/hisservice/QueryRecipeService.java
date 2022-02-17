@@ -832,13 +832,13 @@ public class QueryRecipeService implements IQueryRecipeService {
                 BeanUtils.copyProperties(organDrugList, organDrugListChange, getNullPropertyNames(organDrugList));
                 organDrugListChange.setStatus(1);
                 organDrugListChange.setLastModify(now);
-                if (ObjectUtils.isEmpty(organDrugList.getMedicalInsuranceControl())){
+                if (ObjectUtils.isEmpty(organDrugListChange.getMedicalInsuranceControl())){
                     organDrugListChange.setMedicalInsuranceControl(false);
                 }
-                if (ObjectUtils.isEmpty(organDrugList.getSupportDownloadPrescriptionPad())){
+                if (ObjectUtils.isEmpty(organDrugListChange.getSupportDownloadPrescriptionPad())){
                     organDrugListChange.setSupportDownloadPrescriptionPad(true);
                 }
-                if (ObjectUtils.isEmpty(organDrugList.getApplyBusiness())){
+                if (ObjectUtils.isEmpty(organDrugListChange.getApplyBusiness())){
                     organDrugListChange.setApplyBusiness("1");
                 }
                 LOGGER.info("updateOrSaveOrganDrug 更新机构药品信息{}", JSONUtils.toString(organDrugListChange));
