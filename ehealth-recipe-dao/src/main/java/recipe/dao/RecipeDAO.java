@@ -3979,8 +3979,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public abstract List<Recipe> findRecipesByStatusAndInvalidTime(@DAOParam("status") List<Integer> status, @DAOParam("invalidTime") Date invalidTime);
 
 
-    public List<Recipe> findRecipeAuditByFlag(final List<Integer> organ, List<Integer> recipeTypes, final int flag, final int start, final int limit) {
-        final int notPass = 2;
+    public List<Recipe> findRecipeAuditByFlag(final List<Integer> organ, List<Integer> recipeTypes,Integer checker , final int flag, final int start, final int limit) {
         final int all = 3;
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
@@ -3999,13 +3998,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }
                 //1是审核通过
                 else if (flag == 1) {
-                    hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and  r.recipeType in (:recipeTypes) and r.audit_state in (4,5) ");
-                    hql.append(" order by r.signDate desc");
+                    hql.append("from Recipe  where clinicOrgan in (:organ)  and Checker = :checker  and audit_state in (4,5) ");
+                    hql.append(" order by signDate desc");
                 }
                 //2是审核未通过
                 else if (flag == 2) {
-                    hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and  r.recipeType in (:recipeTypes) and r.audit_state in (2,3) ");
-                    hql.append(" order by r.signDate desc");
+                    hql.append("from Recipe where clinicOrgan in (:organ)  and Checker = :checker  and audit_state in (2,3) ");
+                    hql.append(" order by signDate desc");
                 }
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
                 else if (flag == all) {
@@ -4022,6 +4021,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 q.setParameterList("organ", organ);
                 if (flag == 0 || flag == all) {
                     q.setParameterList("recipeTypes", recipeTypes);
+                }else{
+                    q.setParameter("checker", checker);
                 }
                 q.setFirstResult(start);
                 q.setMaxResults(limit);
@@ -4035,7 +4036,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     /**
      * 查询药师审核的总数
      */
-    public Long findRecipeAuditCountByFlag(final List<Integer> organ, List<Integer> recipeTypes, final int flag) {
+    public Long findRecipeAuditCountByFlag(final List<Integer> organ, List<Integer> recipeTypes,Integer checker, final int flag) {
         final int all = 3;
         HibernateStatelessResultAction<Long> action = new AbstractHibernateStatelessResultAction<Long>() {
             @Override
@@ -4054,11 +4055,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }
                 //1是审核通过
                 else if (flag == 1) {
-                    hql.append("select count(*) from cdr_recipe r where r.clinicOrgan in (:organ) and   r.recipeType in (:recipeTypes) and r.audit_state in (4,5) ");
+                    hql.append("select count(*) from cdr_recipe r where r.clinicOrgan in (:organ) and r.Checker = :checker and r.audit_state in (4,5) ");
                 }
                 //2是审核未通过
                 else if (flag == 2) {
-                    hql.append("select count(*) from cdr_recipe r where r.clinicOrgan in (:organ) and   r.recipeType in (:recipeTypes) and r.audit_state in (2,3) ");
+                    hql.append("select count(*) from cdr_recipe r where r.clinicOrgan in (:organ) and r.Checker = :checker and r.audit_state in (2,3) ");
                 }
 
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
@@ -4078,6 +4079,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 q.setParameterList("organ", organ);
                 if (flag == 0 || flag == all) {
                     q.setParameterList("recipeTypes", recipeTypes);
+                }else{
+                    q.setParameter("checker", checker);
                 }
                 BigInteger count = (BigInteger) q.uniqueResult();
                 setResult(count.longValue());
