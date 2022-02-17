@@ -322,7 +322,7 @@ public class OrderFeeManager extends BaseManager {
      * @param mpiId    处方列表
      * @return 账户支付金额
      */
-    public BigDecimal getAccountFee(BigDecimal totalFee, String mpiId) {
+    public BigDecimal getAccountFee(BigDecimal totalFee, String mpiId, Integer organId) {
         if (null == totalFee || StringUtils.isEmpty(mpiId)) {
             return null;
         }
@@ -338,6 +338,7 @@ public class OrderFeeManager extends BaseManager {
         request.setSex("男");
         request.setIdcard(patientDTO.getIdcard());
         request.setBirthday(new Date());
+        request.setClinicOrgan(organId);
         RecipeCashPreSettleInfo recipeCashPreSettleInfo = offlineRecipeClient.recipeCashPreSettle(request);
         if (null != recipeCashPreSettleInfo && StringUtils.isNotEmpty(recipeCashPreSettleInfo.getZhzf())) {
             return new BigDecimal(recipeCashPreSettleInfo.getZhzf());
