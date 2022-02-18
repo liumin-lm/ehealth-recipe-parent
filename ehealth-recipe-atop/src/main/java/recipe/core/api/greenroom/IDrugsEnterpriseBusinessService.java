@@ -35,4 +35,11 @@ public interface IDrugsEnterpriseBusinessService {
      * @param organDrugsSaleConfigVo
      */
     void saveOrganDrugsSaleConfig(OrganDrugsSaleConfigVo organDrugsSaleConfigVo);
+
+    /**
+     * 获取药企流转配置
+     * @param organEnterpriseRelationVo
+     * @return
+     */
+    OrganEnterpriseRelationVo getOrganEnterpriseRelation(OrganEnterpriseRelationVo organEnterpriseRelationVo);
 }
