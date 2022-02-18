@@ -1,6 +1,7 @@
 package recipe.business;
 
 import com.alibaba.fastjson.JSONArray;
+import com.google.common.collect.Lists;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.OrganAndDrugsepRelation;
 import com.ngari.recipe.entity.OrganDrugsSaleConfig;
@@ -17,8 +18,12 @@ import recipe.manager.EnterpriseManager;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.greenroom.OrganEnterpriseRelationVo;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @description： 药企 业务类
@@ -33,6 +38,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
     @Autowired
     private OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO;
+
     @Override
     public Boolean existEnterpriseByName(String name) {
         List<DrugsEnterprise> drugsEnterprises = enterpriseManager.findAllDrugsEnterpriseByName(name);
@@ -46,7 +52,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     public void saveOrganEnterpriseRelation(OrganEnterpriseRelationVo organEnterpriseRelationVo) {
         logger.info("DrugsEnterpriseBusinessService saveOrganEnterpriseRelation organEnterpriseRelationVo={}", JSONArray.toJSONString(organEnterpriseRelationVo));
         OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organEnterpriseRelationVo.getOrganId(), organEnterpriseRelationVo.getDrugsEnterpriseId());
-        if(Objects.isNull(relation)){
+        if (Objects.isNull(relation)) {
             throw new DAOException("机构药企关联关系不存在");
         }
         String join = StringUtils.join(organEnterpriseRelationVo.getGiveModeTypes(), ",");
@@ -54,19 +60,37 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(relation);
     }
 
-    @Override
-    public OrganDrugsSaleConfig findOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId) {
-        List<OrganDrugsSaleConfig> byOrganIdAndEnterpriseId = organDrugsSaleConfigDAO.findByOrganIdAndEnterpriseId(organId, drugsEnterpriseId);
-        if(CollectionUtils.isNotEmpty(byOrganIdAndEnterpriseId)){
-            return byOrganIdAndEnterpriseId.get(0);
-        }
-        return null;
-    }
 
     @Override
     public void saveOrganDrugsSaleConfig(OrganDrugsSaleConfigVo organDrugsSaleConfigVo) {
         OrganDrugsSaleConfig organDrugsSaleConfig = new OrganDrugsSaleConfig();
-        BeanUtils.copyProperties(organDrugsSaleConfigVo,organDrugsSaleConfig);
+        BeanUtils.copyProperties(organDrugsSaleConfigVo, organDrugsSaleConfig);
         enterpriseManager.saveOrganDrugsSaleConfig(organDrugsSaleConfig);
+    }
+
+    @Override
+    public OrganEnterpriseRelationVo getOrganEnterpriseRelation(OrganEnterpriseRelationVo organEnterpriseRelationVo) {
+        logger.info("DrugsEnterpriseBusinessService getOrganEnterpriseRelation req organEnterpriseRelationVo={}", JSONArray.toJSONString(organEnterpriseRelationVo));
+        OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organEnterpriseRelationVo.getOrganId(), organEnterpriseRelationVo.getDrugsEnterpriseId());
+        if (Objects.isNull(relation)) {
+            throw new DAOException("请到机构配置关联药企");
+        }
+        List<Integer> list = Lists.newArrayList();
+        if (StringUtils.isNotEmpty(relation.getDrugsEnterpriseSupportGiveMode())) {
+            String[] split = relation.getDrugsEnterpriseSupportGiveMode().split(",");
+            for (String s : split) {
+                list.add(Integer.valueOf(s));
+            }
+        }
+        organEnterpriseRelationVo.setGiveModeTypes(list);
+        logger.info("DrugsEnterpriseBusinessService getOrganEnterpriseRelation res organEnterpriseRelationVo={}", JSONArray.toJSONString(organEnterpriseRelationVo));
+        return organEnterpriseRelationVo;
+    }
+
+    @Override
+    public OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer drugsEnterpriseId) {
+        OrganDrugsSaleConfig byOrganIdAndEnterpriseId = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig( drugsEnterpriseId);
+
+        return byOrganIdAndEnterpriseId;
     }
 }

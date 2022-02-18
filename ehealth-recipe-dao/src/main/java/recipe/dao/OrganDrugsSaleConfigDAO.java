@@ -22,6 +22,6 @@ public abstract class OrganDrugsSaleConfigDAO extends HibernateSupportDelegateDA
         return updateNonNullFieldByPrimaryKey(config, SQL_KEY_ID);
     }
 
-    @DAOMethod(sql = "from OrganDrugsSaleConfig where organId = :organId and drugsEnterpriseId=:drugsEnterpriseId")
-    public abstract List<OrganDrugsSaleConfig> findByOrganIdAndEnterpriseId(@DAOParam("organId")Integer organId, @DAOParam("drugsEnterpriseId")Integer drugsEnterpriseId);
+     @DAOMethod(sql = "from OrganDrugsSaleConfig where drugsEnterpriseId=:drugsEnterpriseId")
+    public abstract OrganDrugsSaleConfig getOrganDrugsSaleConfig(@DAOParam("drugsEnterpriseId")Integer drugsEnterpriseId);
 }

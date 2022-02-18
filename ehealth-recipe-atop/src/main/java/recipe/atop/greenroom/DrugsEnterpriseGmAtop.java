@@ -28,51 +28,66 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
 
     /**
      * 根据名称查询药企是否存在
+     *
      * @param name 药企名称
      * @return 是否存在
      */
     @RpcService
-    public Boolean existEnterpriseByName(String name){
+    public Boolean existEnterpriseByName(String name) {
         validateAtop(name);
         return enterpriseBusinessService.existEnterpriseByName(name);
     }
 
     /**
      * 保存机构药企关联关系
+     *
      * @param organEnterpriseRelationVo
      */
     @RpcService
-    public void saveOrganEnterpriseRelation(OrganEnterpriseRelationVo organEnterpriseRelationVo){
-        validateAtop(organEnterpriseRelationVo.getOrganId(),organEnterpriseRelationVo.getDrugsEnterpriseId(),organEnterpriseRelationVo.getGiveModeTypes());
+    public void saveOrganEnterpriseRelation(OrganEnterpriseRelationVo organEnterpriseRelationVo) {
+        validateAtop(organEnterpriseRelationVo.getOrganId(), organEnterpriseRelationVo.getDrugsEnterpriseId(), organEnterpriseRelationVo.getGiveModeTypes());
         // 医院配送与药企配送只能2选1 到院自取与到店自取只能2选1
         RecipeSupportGiveModeEnum.checkOrganEnterpriseRelationGiveModeType(organEnterpriseRelationVo.getGiveModeTypes());
         enterpriseBusinessService.saveOrganEnterpriseRelation(organEnterpriseRelationVo);
     }
 
     /**
+     * 保存机构药企关联关系
+     *
+     * @param organEnterpriseRelationVo
+     */
+    @RpcService
+    public OrganEnterpriseRelationVo getOrganEnterpriseRelation(OrganEnterpriseRelationVo organEnterpriseRelationVo) {
+        validateAtop(organEnterpriseRelationVo.getOrganId(), organEnterpriseRelationVo.getDrugsEnterpriseId());
+        return enterpriseBusinessService.getOrganEnterpriseRelation(organEnterpriseRelationVo);
+    }
+
+    /**
      * 查询药企机构销售配置
-     * @param organId 机构id
+     *
+     * @param organId           机构id
      * @param drugsEnterpriseId 药企id
      */
     @RpcService
-    public OrganDrugsSaleConfigVo findOrganDrugsSaleConfig(Integer organId,Integer drugsEnterpriseId){
-        validateAtop(organId,drugsEnterpriseId);
-        OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseBusinessService.findOrganDrugsSaleConfig(organId, drugsEnterpriseId);
-        if(Objects.isNull(organDrugsSaleConfig)){
-           return null;
+    public OrganDrugsSaleConfigVo findOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId) {
+        validateAtop(drugsEnterpriseId);
+        OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseBusinessService.getOrganDrugsSaleConfig(drugsEnterpriseId);
+        if (Objects.isNull(organDrugsSaleConfig)) {
+            return null;
         }
         OrganDrugsSaleConfigVo organDrugsSaleConfigVo = new OrganDrugsSaleConfigVo();
-        BeanUtils.copyProperties(organDrugsSaleConfig,organDrugsSaleConfigVo);
+        BeanUtils.copyProperties(organDrugsSaleConfig, organDrugsSaleConfigVo);
         return organDrugsSaleConfigVo;
     }
 
     /**
      * 保存机构药企销售配置
+     *
      * @param organDrugsSaleConfigVo
      */
     @RpcService
-    public OrganDrugsSaleConfigVo saveOrganDrugsSaleConfig(OrganDrugsSaleConfigVo organDrugsSaleConfigVo){
-        validateAtop(organDrugsSaleConfigVo.getOrganId(),organDrugsSaleConfigVo.getDrugsEnterpriseId());
+    public OrganDrugsSaleConfigVo saveOrganDrugsSaleConfig(OrganDrugsSaleConfigVo organDrugsSaleConfigVo) {
+        validateAtop( organDrugsSaleConfigVo.getDrugsEnterpriseId());
         enterpriseBusinessService.saveOrganDrugsSaleConfig(organDrugsSaleConfigVo);
         return organDrugsSaleConfigVo;
     }
