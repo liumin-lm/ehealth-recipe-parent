@@ -359,7 +359,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
 
             // 到院取药是否支持线上支付
             Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
-            OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), depId,giveMode);
+            OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), depId, giveMode);
             Integer takeOneselfPayment = organDrugsSaleConfig.getTakeOneselfPayment();
             if (new Integer(1).equals(takeOneselfPayment)) {
                 map.put("supportToHosPayFlag", "1");
@@ -488,8 +488,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 }
                 simpleBusObject.setActualPrice(new Double(BigDecimal.valueOf(order.getActualPrice()).subtract(otherFee) + ""));
 
-                // 1自费 0医保
-                if (Objects.isNull(recipeBean.getClinicId())) {
+                // 0自费 1医保
+                if (!new Integer(2).equals(recipeBean.getBussSource())) {
                     simpleBusObject.setSettleType("0");
                 } else {
                     RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipeBean.getClinicId());
@@ -563,7 +563,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 simpleBusObject.setCardId(recipeExtend.getCardNo());
                 simpleBusObject.setCardType(recipeExtend.getCardType());
             }
-            if (null == recipeBean.getClinicId()) {
+            if (!new Integer(2).equals(recipeBean.getBussSource())) {
                 simpleBusObject.setSettleType("0");
             } else {
                 // 0自费 1医保
