@@ -70,8 +70,8 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
      */
     @RpcService
     public OrganDrugsSaleConfigVo findOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId) {
-        validateAtop(organId, drugsEnterpriseId);
-        OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseBusinessService.findOrganDrugsSaleConfig(organId, drugsEnterpriseId);
+        validateAtop(drugsEnterpriseId);
+        OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseBusinessService.getOrganDrugsSaleConfig(drugsEnterpriseId);
         if (Objects.isNull(organDrugsSaleConfig)) {
             return null;
         }

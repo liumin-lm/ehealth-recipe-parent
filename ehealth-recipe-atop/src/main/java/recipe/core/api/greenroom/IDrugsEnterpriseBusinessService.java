@@ -42,4 +42,11 @@ public interface IDrugsEnterpriseBusinessService {
      * @return
      */
     OrganEnterpriseRelationVo getOrganEnterpriseRelation(OrganEnterpriseRelationVo organEnterpriseRelationVo);
+
+    /**
+     * 查询药企机构销售配置
+     * @param drugsEnterpriseId
+     * @return
+     */
+    OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer drugsEnterpriseId);
 }
