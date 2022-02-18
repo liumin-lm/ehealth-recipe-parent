@@ -60,14 +60,6 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(relation);
     }
 
-    @Override
-    public OrganDrugsSaleConfig findOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId) {
-        List<OrganDrugsSaleConfig> byOrganIdAndEnterpriseId = organDrugsSaleConfigDAO.findByOrganIdAndEnterpriseId(organId, drugsEnterpriseId);
-        if (CollectionUtils.isNotEmpty(byOrganIdAndEnterpriseId)) {
-            return byOrganIdAndEnterpriseId.get(0);
-        }
-        return null;
-    }
 
     @Override
     public void saveOrganDrugsSaleConfig(OrganDrugsSaleConfigVo organDrugsSaleConfigVo) {

@@ -586,7 +586,7 @@ public class PurchaseService {
         Integer payModeToHosOnlinePayConfig = null;
         if (drugToHosByEnterprise) {
             // 获取药企机构配
-            List<OrganDrugsSaleConfig> organDrugsSaleConfigs = organDrugsSaleConfigDAO.findByOrganIdAndEnterpriseId(clinicOrgan, enterpriseId);
+            List<OrganDrugsSaleConfig> organDrugsSaleConfigs = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(enterpriseId);
            if(CollectionUtils.isNotEmpty(organDrugsSaleConfigs)) {
                payModeToHosOnlinePayConfig = organDrugsSaleConfigs.get(0).getTakeOneselfPaymentChannel();
            }

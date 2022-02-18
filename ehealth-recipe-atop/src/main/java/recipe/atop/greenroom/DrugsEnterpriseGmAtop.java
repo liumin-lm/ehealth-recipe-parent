@@ -87,7 +87,7 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
      */
     @RpcService
     public OrganDrugsSaleConfigVo saveOrganDrugsSaleConfig(OrganDrugsSaleConfigVo organDrugsSaleConfigVo) {
-        validateAtop(organDrugsSaleConfigVo.getOrganId(), organDrugsSaleConfigVo.getDrugsEnterpriseId());
+        validateAtop( organDrugsSaleConfigVo.getDrugsEnterpriseId());
         enterpriseBusinessService.saveOrganDrugsSaleConfig(organDrugsSaleConfigVo);
         return organDrugsSaleConfigVo;
     }
