@@ -409,6 +409,28 @@ public class OfflineRecipeClient extends BaseClient {
         return recipeDTO;
     }
 
+    /**
+     * 获取用药提醒的线下处方
+     *
+     * @param patientBean 患者信息
+     * @return
+     */
+    public RecipeInfoDTO queryRemindRecipe(com.ngari.recipe.dto.PatientDTO patientBean) {
+        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = new com.ngari.platform.recipe.mode.RecipeDTO();
+        recipeDTO.setPatientDTO(ObjectCopyUtils.convert(patientBean, PatientDTO.class));
+        HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse = recipeHisService.pushRecipe(recipeDTO);
+        RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
+        try {
+            com.ngari.platform.recipe.mode.RecipeDTO hisResponseData = getResponse(hisResponse);
+            recipeInfoDTO.setRecipe(ObjectCopyUtils.convert(hisResponseData.getRecipeBean(), Recipe.class));
+            recipeInfoDTO.setRecipeDetails(ObjectCopyUtils.convert(hisResponseData.getRecipeDetails(), Recipedetail.class));
+            recipeInfoDTO.setPatientBean(ObjectCopyUtils.convert(patientBean, com.ngari.recipe.dto.PatientDTO.class));
+        } catch (Exception e) {
+            logger.error("OfflineRecipeClient queryRemindRecipe hisResponseData", e);
+        }
+        return recipeInfoDTO;
+    }
+
     private RecipeInfoDTO recipeInfoDTO(HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse, RecipeTherapy recipeTherapy) throws Exception {
         com.ngari.platform.recipe.mode.RecipeDTO hisResponseData = getResponse(hisResponse);
         RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
