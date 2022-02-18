@@ -1921,7 +1921,7 @@ public class RecipeServiceSub {
                 map.put("sendType", drugsEnterprise.getSendType());
             }
         }
-        LOGGER.info("getRecipeAndDetailByIdImpl map : {}", JSONUtils.toString(map));
+        LOGGER.info("getRecipeAndDetailByIdImpl map : {}", JSON.toJSONString(map));
         return map;
     }
 
