@@ -401,6 +401,7 @@ public class RecipeBean implements Serializable {
     private Integer recipeFlag;
 
     @ItemProperty(alias = "处方父状态：0：默认 ， 1：待提交，2：待审核，3：待下单，4：待发药，5：配送中，6：待取药，7：已完成，8：已删除 ，9：已作废")
+    @Dictionary(id = "eh.recipe.recipeState.process")
     private Integer processState;
     @ItemProperty(alias = "处方子状态")
     private Integer subState;
