@@ -78,4 +78,9 @@ public interface IDrugBusinessService {
      * @return 机构药品列表
      */
     Map<String, OrganDrugList> organDrugMap(Integer organId, List<Integer> drugIds);
+
+    /**
+     * 定时 获取用药提醒的线下处方
+     */
+    void queryRemindRecipe();
 }

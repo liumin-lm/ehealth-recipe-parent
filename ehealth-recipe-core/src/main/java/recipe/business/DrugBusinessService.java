@@ -113,7 +113,9 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         return organDrugListManager.getOrganDrugByIdAndCode(organId, drugIds);
     }
 
-    public void queryRemindRecipe(Integer organId) {
+    @Override
+    public void queryRemindRecipe() {
+        Integer organId = 0;
         List<RecipeInfoDTO> recipeInfoDTO = drugManager.queryRemindRecipe(organId);
     }
 
