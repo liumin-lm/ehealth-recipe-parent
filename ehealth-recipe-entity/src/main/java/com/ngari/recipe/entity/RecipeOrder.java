@@ -436,6 +436,7 @@ public class RecipeOrder implements Serializable {
     public RecipeOrder(String orderCode) {
 
     }
+
     public RecipeOrder(Integer orderId,Integer processState,Integer subState) {
 
     }
