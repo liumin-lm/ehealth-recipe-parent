@@ -15,6 +15,7 @@ import com.ngari.patient.service.HealthCardService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.PatientDTO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -277,5 +278,15 @@ public class PatientClient extends BaseClient {
     public List<HealthCardDTO> queryCardsByParam(Integer organId,String mpiId,List<String> cardTypes) throws Exception {
         logger.info("PatientClient queryCardsByParam organId:{},mpiId:{},cardTypes:{}", JSONUtils.toString(organId),mpiId,JSONUtils.toString(cardTypes));
         return healthCardService.queryCardsByParam(organId,mpiId,cardTypes);
+    }
+
+    /**
+     * 提醒患者用药
+     * @param recipeInfoDTOList 处方信息
+     * @return 是否成功
+     */
+    public Boolean remindPatientTakeMedicine(List<RecipeInfoDTO> recipeInfoDTOList){
+        logger.info("PatientClient remindPatientTakeMedicine recipeInfoDTOList:{}.", JSONUtils.toString(recipeInfoDTOList));
+        return true;
     }
 }
