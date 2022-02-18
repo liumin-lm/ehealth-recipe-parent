@@ -157,10 +157,4 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     public Boolean updateAuditState(Integer recipeId, Integer state) {
         return recipeBusinessService.updateAuditState(recipeId, RecipeAuditStateEnum.getRecipeAuditStateEnum(state));
     }
-
-    @Override
-    public Boolean remindPatientTakeMedicine(List<RecipeInfoVO> recipeInfoVOList) {
-
-        return null;
-    }
 }
