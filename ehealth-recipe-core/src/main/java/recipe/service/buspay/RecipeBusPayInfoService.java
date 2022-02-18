@@ -59,6 +59,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.ObjectUtils;
+import recipe.aop.LogRecord;
 import recipe.client.IConfigurationClient;
 import recipe.client.RevisitClient;
 import recipe.dao.DrugsEnterpriseDAO;
@@ -141,6 +142,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
      */
     @Override
     @RpcService
+    @LogRecord
     public ConfirmOrder obtainConfirmOrder(String busType, Integer busId, Map<String, String> extInfo) {
         //先判断处方是否已创建订单
         RecipeOrderBean order1 = null;

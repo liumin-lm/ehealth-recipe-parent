@@ -73,7 +73,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         logger.info("DrugsEnterpriseBusinessService getOrganEnterpriseRelation req organEnterpriseRelationVo={}", JSONArray.toJSONString(organEnterpriseRelationVo));
         OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organEnterpriseRelationVo.getOrganId(), organEnterpriseRelationVo.getDrugsEnterpriseId());
         if (Objects.isNull(relation)) {
-            throw new DAOException("机构药企关联关系不存在");
+            throw new DAOException("请到机构配置关联药企");
         }
         List<Integer> list = Lists.newArrayList();
         if (StringUtils.isNotEmpty(relation.getDrugsEnterpriseSupportGiveMode())) {
