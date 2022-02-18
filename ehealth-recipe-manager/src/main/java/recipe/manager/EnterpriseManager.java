@@ -714,7 +714,7 @@ public class EnterpriseManager extends BaseManager {
      */
     public void saveOrganDrugsSaleConfig(OrganDrugsSaleConfig organDrugsSaleConfig) {
         logger.info("EnterpriseManager saveOrganDrugsSaleConfig organDrugsSaleConfig:{}", JSONUtils.toString(organDrugsSaleConfig));
-        List<OrganDrugsSaleConfig> organDrugsSaleConfigs = organDrugsSaleConfigDAO.findByOrganIdAndEnterpriseId(organDrugsSaleConfig.getOrganId(), organDrugsSaleConfig.getDrugsEnterpriseId());
+        List<OrganDrugsSaleConfig> organDrugsSaleConfigs = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(organDrugsSaleConfig.getDrugsEnterpriseId());
         if (CollectionUtils.isEmpty(organDrugsSaleConfigs)) {
             organDrugsSaleConfigDAO.save(organDrugsSaleConfig);
         } else {
@@ -740,7 +740,7 @@ public class EnterpriseManager extends BaseManager {
             if (Objects.isNull(drugsEnterpriseId)) {
                 throw new DAOException("采用药企销售配置模式药企id不能为空");
             }
-            List<OrganDrugsSaleConfig> organDrugsSaleConfigs = organDrugsSaleConfigDAO.findByOrganIdAndEnterpriseId(organId, drugsEnterpriseId);
+            List<OrganDrugsSaleConfig> organDrugsSaleConfigs = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig( drugsEnterpriseId);
             if (CollectionUtils.isEmpty(organDrugsSaleConfigs)) {
                 throw new DAOException("未配置药企销售配置");
             }
