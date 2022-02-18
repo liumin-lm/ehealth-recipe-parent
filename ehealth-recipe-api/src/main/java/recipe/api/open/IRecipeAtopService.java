@@ -104,12 +104,4 @@ public interface IRecipeAtopService {
      */
     @RpcService(mvcDisabled = true)
     Boolean updateAuditState(Integer recipeId, Integer state);
-
-    /**
-     * 患者用药提醒
-     * @param recipeInfoVOList
-     * @return
-     */
-    @RpcService
-    Boolean remindPatientTakeMedicine(List<RecipeInfoVO> recipeInfoVOList);
 }
