@@ -4,6 +4,7 @@ import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.util.annotation.RpcService;
+import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
@@ -103,4 +104,12 @@ public interface IRecipeAtopService {
      */
     @RpcService(mvcDisabled = true)
     Boolean updateAuditState(Integer recipeId, Integer state);
+
+    /**
+     * 患者用药提醒
+     * @param recipeInfoVOList
+     * @return
+     */
+    @RpcService
+    Boolean remindPatientTakeMedicine(List<RecipeInfoVO> recipeInfoVOList);
 }

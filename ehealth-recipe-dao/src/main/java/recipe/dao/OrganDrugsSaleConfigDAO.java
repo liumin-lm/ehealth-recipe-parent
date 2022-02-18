@@ -24,4 +24,6 @@ public abstract class OrganDrugsSaleConfigDAO extends HibernateSupportDelegateDA
 
     @DAOMethod(sql = "from OrganDrugsSaleConfig where organId = :organId and drugsEnterpriseId=:drugsEnterpriseId")
     public abstract List<OrganDrugsSaleConfig> findByOrganIdAndEnterpriseId(@DAOParam("organId")Integer organId, @DAOParam("drugsEnterpriseId")Integer drugsEnterpriseId);
+    @DAOMethod(sql = "from OrganDrugsSaleConfig where drugsEnterpriseId=:drugsEnterpriseId")
+    public abstract List<OrganDrugsSaleConfig> getOrganDrugsSaleConfig(@DAOParam("drugsEnterpriseId")Integer drugsEnterpriseId);
 }

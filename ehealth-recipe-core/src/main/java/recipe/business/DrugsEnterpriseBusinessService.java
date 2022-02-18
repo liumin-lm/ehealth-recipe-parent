@@ -94,4 +94,13 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         logger.info("DrugsEnterpriseBusinessService getOrganEnterpriseRelation res organEnterpriseRelationVo={}", JSONArray.toJSONString(organEnterpriseRelationVo));
         return organEnterpriseRelationVo;
     }
+
+    @Override
+    public OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer drugsEnterpriseId) {
+        List<OrganDrugsSaleConfig> byOrganIdAndEnterpriseId = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig( drugsEnterpriseId);
+        if (CollectionUtils.isNotEmpty(byOrganIdAndEnterpriseId)) {
+            return byOrganIdAndEnterpriseId.get(0);
+        }
+        return null;
+    }
 }
