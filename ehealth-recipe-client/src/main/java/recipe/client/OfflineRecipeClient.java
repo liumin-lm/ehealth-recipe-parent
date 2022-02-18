@@ -17,6 +17,7 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.platform.recipe.mode.RecipeDetailBean;
 import com.ngari.platform.recipe.mode.RecipeExtendBean;
+import com.ngari.platform.recipe.mode.RemindRecipeDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
@@ -412,23 +413,27 @@ public class OfflineRecipeClient extends BaseClient {
     /**
      * 获取用药提醒的线下处方
      *
-     * @param patientBean 患者信息
+     * @param organId 机构id
      * @return
      */
-    public RecipeInfoDTO queryRemindRecipe(com.ngari.recipe.dto.PatientDTO patientBean) {
-        com.ngari.platform.recipe.mode.RecipeDTO recipeDTO = new com.ngari.platform.recipe.mode.RecipeDTO();
-        recipeDTO.setPatientDTO(ObjectCopyUtils.convert(patientBean, PatientDTO.class));
-        HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse = recipeHisService.pushRecipe(recipeDTO);
-        RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
+    public List<RecipeInfoDTO> queryRemindRecipe(Integer organId) {
+        RemindRecipeDTO remindRecipeDTO = new RemindRecipeDTO();
+        remindRecipeDTO.setOrganId(organId);
+        HisResponseTO<List<com.ngari.platform.recipe.mode.RecipeDTO>> hisResponse = recipeHisService.queryRemindRecipe(remindRecipeDTO);
+        List<RecipeInfoDTO> recipeInfoList = new ArrayList<>();
         try {
-            com.ngari.platform.recipe.mode.RecipeDTO hisResponseData = getResponse(hisResponse);
-            recipeInfoDTO.setRecipe(ObjectCopyUtils.convert(hisResponseData.getRecipeBean(), Recipe.class));
-            recipeInfoDTO.setRecipeDetails(ObjectCopyUtils.convert(hisResponseData.getRecipeDetails(), Recipedetail.class));
-            recipeInfoDTO.setPatientBean(ObjectCopyUtils.convert(patientBean, com.ngari.recipe.dto.PatientDTO.class));
+            List<com.ngari.platform.recipe.mode.RecipeDTO> hisResponseData = getResponse(hisResponse);
+            hisResponseData.forEach(a -> {
+                RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
+                recipeInfoDTO.setRecipe(ObjectCopyUtils.convert(a.getRecipeBean(), Recipe.class));
+                recipeInfoDTO.setRecipeDetails(ObjectCopyUtils.convert(a.getRecipeDetails(), Recipedetail.class));
+                recipeInfoDTO.setPatientBean(ObjectCopyUtils.convert(a.getPatientDTO(), com.ngari.recipe.dto.PatientDTO.class));
+                recipeInfoList.add(recipeInfoDTO);
+            });
         } catch (Exception e) {
             logger.error("OfflineRecipeClient queryRemindRecipe hisResponseData", e);
         }
-        return recipeInfoDTO;
+        return recipeInfoList;
     }
 
     private RecipeInfoDTO recipeInfoDTO(HisResponseTO<com.ngari.platform.recipe.mode.RecipeDTO> hisResponse, RecipeTherapy recipeTherapy) throws Exception {

@@ -1,7 +1,10 @@
 package recipe.business;
 
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
-import com.ngari.recipe.dto.*;
+import com.ngari.recipe.dto.DrugInfoDTO;
+import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
+import com.ngari.recipe.dto.PatientDrugWithEsDTO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import com.ngari.recipe.recipe.service.IDrugEntrustService;
@@ -11,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
-import recipe.client.OfflineRecipeClient;
 import recipe.core.api.IDrugBusinessService;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.DrugManager;
@@ -40,8 +42,6 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     private DrugManager drugManager;
     @Autowired
     private IDrugEntrustService drugEntrustService;
-    @Autowired
-    private OfflineRecipeClient offlineRecipeClient;
 
     @Override
     public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVO searchDrugReqVo) {
@@ -113,10 +113,8 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         return organDrugListManager.getOrganDrugByIdAndCode(organId, drugIds);
     }
 
-    public void queryRemindRecipe(PatientDTO patientBean) {
-        RecipeInfoDTO recipeInfoDTO = offlineRecipeClient.queryRemindRecipe(patientBean);
-        
-
+    public void queryRemindRecipe(Integer organId) {
+        List<RecipeInfoDTO> recipeInfoDTO = drugManager.queryRemindRecipe(organId);
     }
 
 }
