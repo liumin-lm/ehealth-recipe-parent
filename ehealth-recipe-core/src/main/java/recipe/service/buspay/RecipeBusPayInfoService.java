@@ -544,7 +544,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 simpleBusObject.setCardId(recipeExtend.getCardNo());
                 simpleBusObject.setCardType(recipeExtend.getCardType());
             }
-            if (null == recipeBean.getClinicId()) {
+            if (null == recipeBean.getClinicId() || new Integer(0).equals(recipeBean.getClinicId())) {
                 simpleBusObject.setSettleType("0");
             } else {
                 // 0自费 1医保
