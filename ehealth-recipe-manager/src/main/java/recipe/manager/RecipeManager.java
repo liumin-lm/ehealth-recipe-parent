@@ -185,6 +185,12 @@ public class RecipeManager extends BaseManager {
         if (StringUtils.isNotEmpty(patientBean.getPatientSex())) {
             patientBean.setPatientSex(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", String.valueOf(patientBean.getPatientSex())));
         }
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if(null != recipeExtend.getWeight()){
+            patientBean.setWeight(String.valueOf(recipeExtend.getWeight()));
+        }else {
+            patientBean.setWeight("");
+        }
         return recipeInfoDTO;
     }
 
@@ -200,8 +206,6 @@ public class RecipeManager extends BaseManager {
         BeanUtils.copyProperties(recipeDTO, recipeInfoDTO);
         Recipe recipe = recipeInfoDTO.getRecipe();
         PatientDTO patientBean = patientClient.getPatientEncipher(recipe.getMpiid());
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        patientBean.setWeight(String.valueOf(recipeExtend.getWeight()));
         recipeInfoDTO.setPatientBean(patientBean);
         logger.info("RecipeOrderManager getRecipeInfoDTO patientBean:{}", JSON.toJSONString(patientBean));
         return recipeInfoDTO;
