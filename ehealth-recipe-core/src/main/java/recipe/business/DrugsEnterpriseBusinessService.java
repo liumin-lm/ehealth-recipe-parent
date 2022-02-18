@@ -38,6 +38,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
     @Autowired
     private OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO;
+
     @Override
     public Boolean existEnterpriseByName(String name) {
         List<DrugsEnterprise> drugsEnterprises = enterpriseManager.findAllDrugsEnterpriseByName(name);
@@ -51,7 +52,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     public void saveOrganEnterpriseRelation(OrganEnterpriseRelationVo organEnterpriseRelationVo) {
         logger.info("DrugsEnterpriseBusinessService saveOrganEnterpriseRelation organEnterpriseRelationVo={}", JSONArray.toJSONString(organEnterpriseRelationVo));
         OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organEnterpriseRelationVo.getOrganId(), organEnterpriseRelationVo.getDrugsEnterpriseId());
-        if(Objects.isNull(relation)){
+        if (Objects.isNull(relation)) {
             throw new DAOException("机构药企关联关系不存在");
         }
         String join = StringUtils.join(organEnterpriseRelationVo.getGiveModeTypes(), ",");
@@ -62,7 +63,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     @Override
     public OrganDrugsSaleConfig findOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId) {
         List<OrganDrugsSaleConfig> byOrganIdAndEnterpriseId = organDrugsSaleConfigDAO.findByOrganIdAndEnterpriseId(organId, drugsEnterpriseId);
-        if(CollectionUtils.isNotEmpty(byOrganIdAndEnterpriseId)){
+        if (CollectionUtils.isNotEmpty(byOrganIdAndEnterpriseId)) {
             return byOrganIdAndEnterpriseId.get(0);
         }
         return null;
@@ -71,7 +72,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     @Override
     public void saveOrganDrugsSaleConfig(OrganDrugsSaleConfigVo organDrugsSaleConfigVo) {
         OrganDrugsSaleConfig organDrugsSaleConfig = new OrganDrugsSaleConfig();
-        BeanUtils.copyProperties(organDrugsSaleConfigVo,organDrugsSaleConfig);
+        BeanUtils.copyProperties(organDrugsSaleConfigVo, organDrugsSaleConfig);
         enterpriseManager.saveOrganDrugsSaleConfig(organDrugsSaleConfig);
     }
 
@@ -79,17 +80,17 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     public OrganEnterpriseRelationVo getOrganEnterpriseRelation(OrganEnterpriseRelationVo organEnterpriseRelationVo) {
         logger.info("DrugsEnterpriseBusinessService getOrganEnterpriseRelation req organEnterpriseRelationVo={}", JSONArray.toJSONString(organEnterpriseRelationVo));
         OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organEnterpriseRelationVo.getOrganId(), organEnterpriseRelationVo.getDrugsEnterpriseId());
-        if(Objects.isNull(relation)){
+        if (Objects.isNull(relation)) {
             throw new DAOException("机构药企关联关系不存在");
         }
-        if(StringUtils.isNotEmpty(relation.getDrugsEnterpriseSupportGiveMode())) {
+        List<Integer> list = Lists.newArrayList();
+        if (StringUtils.isNotEmpty(relation.getDrugsEnterpriseSupportGiveMode())) {
             String[] split = relation.getDrugsEnterpriseSupportGiveMode().split(",");
-            List<Integer> list = Lists.newArrayList();
             for (String s : split) {
                 list.add(Integer.valueOf(s));
             }
-            organEnterpriseRelationVo.setGiveModeTypes(list);
         }
+        organEnterpriseRelationVo.setGiveModeTypes(list);
         logger.info("DrugsEnterpriseBusinessService getOrganEnterpriseRelation res organEnterpriseRelationVo={}", JSONArray.toJSONString(organEnterpriseRelationVo));
         return organEnterpriseRelationVo;
     }
