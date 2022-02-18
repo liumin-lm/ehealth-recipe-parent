@@ -282,10 +282,11 @@ public class PatientClient extends BaseClient {
 
     /**
      * 提醒患者用药
+     *
      * @param recipeInfoDTOList 处方信息
      * @return 是否成功
      */
-    public Boolean remindPatientTakeMedicine(List<RecipeInfoDTO> recipeInfoDTOList){
+    public Boolean remindPatientTakeMedicine(List<RecipeInfoDTO> recipeInfoDTOList) {
         logger.info("PatientClient remindPatientTakeMedicine recipeInfoDTOList:{}.", JSONUtils.toString(recipeInfoDTOList));
         //TODO 数据转换并推送
         return true;

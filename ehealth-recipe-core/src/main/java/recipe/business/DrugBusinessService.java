@@ -4,6 +4,7 @@ import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import com.ngari.recipe.recipe.service.IDrugEntrustService;
@@ -110,6 +111,10 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     @Override
     public Map<String, OrganDrugList> organDrugMap(Integer organId, List<Integer> drugIds) {
         return organDrugListManager.getOrganDrugByIdAndCode(organId, drugIds);
+    }
+
+    public void queryRemindRecipe(Integer organId) {
+        List<RecipeInfoDTO> recipeInfoDTO = drugManager.queryRemindRecipe(organId);
     }
 
 }
