@@ -714,11 +714,11 @@ public class EnterpriseManager extends BaseManager {
      */
     public void saveOrganDrugsSaleConfig(OrganDrugsSaleConfig organDrugsSaleConfig) {
         logger.info("EnterpriseManager saveOrganDrugsSaleConfig organDrugsSaleConfig:{}", JSONUtils.toString(organDrugsSaleConfig));
-        List<OrganDrugsSaleConfig> organDrugsSaleConfigs = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(organDrugsSaleConfig.getDrugsEnterpriseId());
-        if (CollectionUtils.isEmpty(organDrugsSaleConfigs)) {
+        OrganDrugsSaleConfig organDrugsSaleConfigs = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(organDrugsSaleConfig.getDrugsEnterpriseId());
+        if (Objects.isNull(organDrugsSaleConfigs)) {
             organDrugsSaleConfigDAO.save(organDrugsSaleConfig);
         } else {
-            organDrugsSaleConfig.setId(organDrugsSaleConfigs.get(0).getId());
+            organDrugsSaleConfig.setId(organDrugsSaleConfigs.getId());
             organDrugsSaleConfigDAO.updateNonNullFieldByPrimaryKey(organDrugsSaleConfig);
         }
     }
@@ -740,11 +740,10 @@ public class EnterpriseManager extends BaseManager {
             if (Objects.isNull(drugsEnterpriseId)) {
                 throw new DAOException("采用药企销售配置模式药企id不能为空");
             }
-            List<OrganDrugsSaleConfig> organDrugsSaleConfigs = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig( drugsEnterpriseId);
-            if (CollectionUtils.isEmpty(organDrugsSaleConfigs)) {
+            OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig( drugsEnterpriseId);
+            if (Objects.isNull(organDrugsSaleConfig)) {
                 throw new DAOException("未配置药企销售配置");
             }
-            OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigs.get(0);
             organDrugsSaleConfig.setOrganId(organId);
             organDrugsSaleConfig.setDrugsEnterpriseId(drugsEnterpriseId);
             return organDrugsSaleConfig;

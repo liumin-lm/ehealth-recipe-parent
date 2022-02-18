@@ -89,10 +89,8 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
 
     @Override
     public OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer drugsEnterpriseId) {
-        List<OrganDrugsSaleConfig> byOrganIdAndEnterpriseId = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig( drugsEnterpriseId);
-        if (CollectionUtils.isNotEmpty(byOrganIdAndEnterpriseId)) {
-            return byOrganIdAndEnterpriseId.get(0);
-        }
-        return null;
+        OrganDrugsSaleConfig byOrganIdAndEnterpriseId = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig( drugsEnterpriseId);
+
+        return byOrganIdAndEnterpriseId;
     }
 }
