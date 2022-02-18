@@ -470,7 +470,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 simpleBusObject.setActualPrice(new Double(BigDecimal.valueOf(order.getActualPrice()).subtract(otherFee) + ""));
 
                 // 0自费 1医保
-                if (Objects.isNull(recipeBean.getClinicId())) {
+                if (new Integer(2).equals(recipeBean.getBussSource())) {
                     simpleBusObject.setSettleType("0");
                 } else {
                     RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipeBean.getClinicId());
@@ -544,7 +544,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 simpleBusObject.setCardId(recipeExtend.getCardNo());
                 simpleBusObject.setCardType(recipeExtend.getCardType());
             }
-            if (null == recipeBean.getClinicId() || new Integer(0).equals(recipeBean.getClinicId())) {
+            if (new Integer(2).equals(recipeBean.getBussSource())) {
                 simpleBusObject.setSettleType("0");
             } else {
                 // 0自费 1医保
