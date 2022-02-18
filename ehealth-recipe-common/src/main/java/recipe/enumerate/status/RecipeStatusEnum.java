@@ -35,7 +35,7 @@ public enum RecipeStatusEnum {
 
     RECIPE_STATUS_NO_PAY(13, "未支付", "已取消:超过3天未支付"),
     RECIPE_STATUS_NO_OPERATOR(14, "未处理", "已取消:超过3天未操作"),
-    RECIPE_STATUS_CHECK_NOT_PASS_YS(15, "审核不通过", "审核未通过(药师平台人工审核)"),
+    RECIPE_STATUS_CHECK_NOT_PASS_YS(15, "审核未通过", "审核未通过(药师平台人工审核)"),
     RECIPE_STATUS_CHECKING_HOS(16, "医院确认中", "医院审核确认中"),
     RECIPE_STATUS_RECIPE_FAIL(17, "失败", "已取消：取药失败"),
     RECIPE_STATUS_RECIPE_DOWNLOADED(18, "待取药", "已下载：处方已下载"),

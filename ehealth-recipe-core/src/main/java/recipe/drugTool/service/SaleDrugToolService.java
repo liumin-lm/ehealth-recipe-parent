@@ -416,115 +416,119 @@ public class SaleDrugToolService implements ISaleDrugToolService {
                 break;
         }
         SaleDrugList byDrugIdAndOrganId = saleDrugListDAO.getByDrugIdAndOrganId(detail.getDrugId(), drugsEnterpriseId);
-        if (byOrganIdAndDrugCode != null && byOrganIdAndDrugCode.size()>0) {
-            if (syncTypeList.indexOf("3")!=-1){
-                if (detail.getStatus().equals(0)){
-                    for (SaleDrugList saleDrugList : byOrganIdAndDrugCode) {
-                        saleDrugListDAO.remove(saleDrugList);
-                        /*DataSyncDTO dataSyncDTO = convertDataSyn(saleDrugList, drugsEnterpriseId, 4, null, 3,detail);
+        try {
+            if (byOrganIdAndDrugCode != null && byOrganIdAndDrugCode.size()>0) {
+                if (syncTypeList.indexOf("3")!=-1){
+                    if (detail.getStatus().equals(0)){
+                        for (SaleDrugList saleDrugList : byOrganIdAndDrugCode) {
+                            saleDrugListDAO.remove(saleDrugList);
+                            /*DataSyncDTO dataSyncDTO = convertDataSyn(saleDrugList, drugsEnterpriseId, 4, null, 3,detail);
+                            List<DataSyncDTO> syncDTOList = Lists.newArrayList();
+                            syncDTOList.add(dataSyncDTO);
+                            dataSyncLogService.addDataSyncLog("2", syncDTOList);*/
+                            LOGGER.info("syncOrganDrugDataToSaleDrugList 删除" + detail.getDrugName() + " 药企Id=[{}] 药企药品=[{}]  机构药品=[{}]", drugsEnterpriseId, JSONUtils.toString(saleDrugList),JSONUtils.toString(detail));
+                        }
+                        //deleteNum++;
+                    }
+                }
+                if (syncTypeList.indexOf("2")!=-1){
+                    if (detail.getStatus().equals(1)){
+                        SaleDrugList saleDrugList1 = byOrganIdAndDrugCode.get(0);
+                        saleDrugList1.setPrice(detail.getSalePrice());
+                        saleDrugList1.setDrugId(detail.getDrugId());
+                        saleDrugList1.setDrugName(detail.getDrugName());
+                        saleDrugList1.setSaleName(detail.getSaleName());
+                        saleDrugList1.setDrugSpec(detail.getDrugSpec());
+                        saleDrugList1.setStatus(detail.getStatus());
+                        saleDrugList1.setLastModify(new Date());
+                        switch (config.getSyncSaleDrugCodeType()) {
+                            case 1:
+                                saleDrugList1.setOrganDrugCode(detail.getOrganDrugCode());
+                                saleDrugList1.setSaleDrugCode(detail.getOrganDrugCode());
+                                break;
+                            case 2:
+                                saleDrugList1.setOrganDrugCode(detail.getDrugId().toString());
+                                saleDrugList1.setSaleDrugCode(detail.getDrugId().toString());
+                                break;
+                            case 3:
+                                saleDrugList1.setOrganDrugCode(detail.getMedicalDrugCode());
+                                saleDrugList1.setSaleDrugCode(detail.getMedicalDrugCode());
+                                break;
+                            case 4:
+                                saleDrugList1.setOrganDrugCode(detail.getProducerCode());
+                                saleDrugList1.setSaleDrugCode(detail.getProducerCode());
+                                break;
+                            default:
+                                break;
+                        }
+                        SaleDrugList update = saleDrugListDAO.update(saleDrugList1);
+                        DataSyncDTO dataSyncDTO = convertDataSyn(update, drugsEnterpriseId, 2, null, 2,detail);
                         List<DataSyncDTO> syncDTOList = Lists.newArrayList();
                         syncDTOList.add(dataSyncDTO);
-                        dataSyncLogService.addDataSyncLog("2", syncDTOList);*/
-                        LOGGER.info("syncOrganDrugDataToSaleDrugList 删除" + detail.getDrugName() + " 药企Id=[{}] 药企药品=[{}]  机构药品=[{}]", drugsEnterpriseId, JSONUtils.toString(saleDrugList),JSONUtils.toString(detail));
+                        dataSyncLogService.addDataSyncLog("2", syncDTOList);
+                        //dataSyncLog(drugsEnterpriseId,update,1,detail);
+                        LOGGER.info("syncOrganDrugDataToSaleDrugList 更新 " + update.getDrugName() + " 药企Id=[{}] 药企药品=[{}]  机构药品=[{}]", drugsEnterpriseId, JSONUtils.toString(update),JSONUtils.toString(detail));
+                        updateNum++;
                     }
-                    //deleteNum++;
+                }
+            }else if (byDrugIdAndOrganId == null) {
+                if (syncTypeList.indexOf("1")!=-1){
+                    if (detail.getStatus().equals(1)) {
+                        SaleDrugList saleDrugList=new SaleDrugList();
+                        saleDrugList.setDrugId(detail.getDrugId());
+                        saleDrugList.setDrugName(detail.getDrugName());
+                        saleDrugList.setSaleName(detail.getSaleName());
+                        saleDrugList.setDrugSpec(detail.getDrugSpec());
+                        saleDrugList.setOrganId(drugsEnterpriseId);
+                        saleDrugList.setStatus(1);
+                        saleDrugList.setPrice(detail.getSalePrice());
+                        switch (config.getSyncSaleDrugCodeType()) {
+                            case 1:
+                                saleDrugList.setOrganDrugCode(detail.getOrganDrugCode());
+                                break;
+                            case 2:
+                                saleDrugList.setOrganDrugCode(detail.getDrugId().toString());
+                                break;
+                            case 3:
+                                if (!ObjectUtils.isEmpty(detail.getMedicalDrugCode())){
+                                    saleDrugList.setOrganDrugCode(detail.getMedicalDrugCode());
+                                }else {
+                                    map.put("addNum",0);
+                                    map.put("updateNum",0);
+                                    map.put("falseNum",1);
+                                    return map;
+                                }
+                                break;
+                            case 4:
+                                if (!ObjectUtils.isEmpty(detail.getProducerCode())){
+                                    saleDrugList.setOrganDrugCode(detail.getProducerCode());
+                                }else {
+                                    map.put("addNum",0);
+                                    map.put("updateNum",0);
+                                    map.put("falseNum",1);
+                                    return map;
+                                }
+                                break;
+                            default:
+                                break;
+                        }
+                        saleDrugList.setSaleDrugCode(saleDrugList.getOrganDrugCode());
+                        saleDrugList.setInventory(new BigDecimal(100));
+                        saleDrugList.setCreateDt(new Date());
+                        saleDrugList.setLastModify(new Date());
+                        SaleDrugList save = saleDrugListDAO.save(saleDrugList);
+                        DataSyncDTO dataSyncDTO = convertDataSyn(save, drugsEnterpriseId, 1, null, 1,detail);
+                        List<DataSyncDTO> syncDTOList = Lists.newArrayList();
+                        syncDTOList.add(dataSyncDTO);
+                        dataSyncLogService.addDataSyncLog("2", syncDTOList);
+                        //dataSyncLog(drugsEnterpriseId,save,2,detail);
+                        LOGGER.info("syncOrganDrugDataToSaleDrugList 新增 " + save.getDrugName() + " 药企Id=[{}] 药企药品=[{}]  机构药品=[{}]", drugsEnterpriseId, JSONUtils.toString(save),JSONUtils.toString(detail));
+                        addNum++;
+                    }
                 }
             }
-            if (syncTypeList.indexOf("2")!=-1){
-                if (detail.getStatus().equals(1)){
-                    SaleDrugList saleDrugList1 = byOrganIdAndDrugCode.get(0);
-                    saleDrugList1.setPrice(detail.getSalePrice());
-                    saleDrugList1.setDrugId(detail.getDrugId());
-                    saleDrugList1.setDrugName(detail.getDrugName());
-                    saleDrugList1.setSaleName(detail.getSaleName());
-                    saleDrugList1.setDrugSpec(detail.getDrugSpec());
-                    saleDrugList1.setStatus(detail.getStatus());
-                    saleDrugList1.setLastModify(new Date());
-                    switch (config.getSyncSaleDrugCodeType()) {
-                        case 1:
-                            saleDrugList1.setOrganDrugCode(detail.getOrganDrugCode());
-                            saleDrugList1.setSaleDrugCode(detail.getOrganDrugCode());
-                            break;
-                        case 2:
-                            saleDrugList1.setOrganDrugCode(detail.getDrugId().toString());
-                            saleDrugList1.setSaleDrugCode(detail.getDrugId().toString());
-                            break;
-                        case 3:
-                            saleDrugList1.setOrganDrugCode(detail.getMedicalDrugCode());
-                            saleDrugList1.setSaleDrugCode(detail.getMedicalDrugCode());
-                            break;
-                        case 4:
-                            saleDrugList1.setOrganDrugCode(detail.getProducerCode());
-                            saleDrugList1.setSaleDrugCode(detail.getProducerCode());
-                            break;
-                        default:
-                            break;
-                    }
-                    SaleDrugList update = saleDrugListDAO.update(saleDrugList1);
-                    DataSyncDTO dataSyncDTO = convertDataSyn(update, drugsEnterpriseId, 2, null, 2,detail);
-                    List<DataSyncDTO> syncDTOList = Lists.newArrayList();
-                    syncDTOList.add(dataSyncDTO);
-                    dataSyncLogService.addDataSyncLog("2", syncDTOList);
-                    //dataSyncLog(drugsEnterpriseId,update,1,detail);
-                    LOGGER.info("syncOrganDrugDataToSaleDrugList 更新 " + update.getDrugName() + " 药企Id=[{}] 药企药品=[{}]  机构药品=[{}]", drugsEnterpriseId, JSONUtils.toString(update),JSONUtils.toString(detail));
-                    updateNum++;
-                }
-            }
-        }else if (byDrugIdAndOrganId == null) {
-            if (syncTypeList.indexOf("1")!=-1){
-                if (detail.getStatus().equals(1)) {
-                    SaleDrugList saleDrugList=new SaleDrugList();
-                    saleDrugList.setDrugId(detail.getDrugId());
-                    saleDrugList.setDrugName(detail.getDrugName());
-                    saleDrugList.setSaleName(detail.getSaleName());
-                    saleDrugList.setDrugSpec(detail.getDrugSpec());
-                    saleDrugList.setOrganId(drugsEnterpriseId);
-                    saleDrugList.setStatus(1);
-                    saleDrugList.setPrice(detail.getSalePrice());
-                    switch (config.getSyncSaleDrugCodeType()) {
-                        case 1:
-                            saleDrugList.setOrganDrugCode(detail.getOrganDrugCode());
-                            break;
-                        case 2:
-                            saleDrugList.setOrganDrugCode(detail.getDrugId().toString());
-                            break;
-                        case 3:
-                            if (!ObjectUtils.isEmpty(detail.getMedicalDrugCode())){
-                                saleDrugList.setOrganDrugCode(detail.getMedicalDrugCode());
-                            }else {
-                                map.put("addNum",0);
-                                map.put("updateNum",0);
-                                map.put("falseNum",1);
-                                return map;
-                            }
-                            break;
-                        case 4:
-                            if (!ObjectUtils.isEmpty(detail.getProducerCode())){
-                                saleDrugList.setOrganDrugCode(detail.getProducerCode());
-                            }else {
-                                map.put("addNum",0);
-                                map.put("updateNum",0);
-                                map.put("falseNum",1);
-                                return map;
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                    saleDrugList.setSaleDrugCode(saleDrugList.getOrganDrugCode());
-                    saleDrugList.setInventory(new BigDecimal(100));
-                    saleDrugList.setCreateDt(new Date());
-                    saleDrugList.setLastModify(new Date());
-                    SaleDrugList save = saleDrugListDAO.save(saleDrugList);
-                    DataSyncDTO dataSyncDTO = convertDataSyn(save, drugsEnterpriseId, 1, null, 1,detail);
-                    List<DataSyncDTO> syncDTOList = Lists.newArrayList();
-                    syncDTOList.add(dataSyncDTO);
-                    dataSyncLogService.addDataSyncLog("2", syncDTOList);
-                    //dataSyncLog(drugsEnterpriseId,save,2,detail);
-                    LOGGER.info("syncOrganDrugDataToSaleDrugList 新增 " + save.getDrugName() + " 药企Id=[{}] 药企药品=[{}]  机构药品=[{}]", drugsEnterpriseId, JSONUtils.toString(save),JSONUtils.toString(detail));
-                    addNum++;
-                }
-            }
+        } catch (Exception e) {
+            LOGGER.info("syncOrganDrugDataToSaleDrugList error" ,e);
         }
         map.put("addNum",addNum);
         map.put("updateNum",updateNum);

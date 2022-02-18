@@ -111,6 +111,7 @@ import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugTool.service.DrugToolService;
 import recipe.drugsenterprise.*;
 import recipe.drugsenterprise.bean.YdUrlPatient;
+import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
@@ -526,6 +527,8 @@ public class RecipeService extends RecipeBaseService {
      */
     @RpcService
     public Integer saveRecipeData(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
+        recipeBean.setSubState(RecipeStateEnum.NONE.getType());
+        recipeBean.setProcessState(RecipeStateEnum.NONE.getType());
         Integer recipeId = recipeServiceSub.saveRecipeDataImpl(recipeBean, detailBeanList, 1);
         if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipeBean.getFromflag())) {
             //生成订单数据，与 HosPrescriptionService 中 createPrescription 方法一致
@@ -1713,6 +1716,7 @@ public class RecipeService extends RecipeBaseService {
         recipe.setStatus(RecipeStatusConstant.UNSIGN);
         recipe.setSignDate(DateTime.now().toDate());
         Integer recipeId = recipe.getRecipeId();
+        LOGGER.error("doSignRecipeSave recipe={}", JSON.toJSONString(recipe));
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
         details.stream().filter(a -> "无特殊煎法".equals(a.getMemo())).forEach(a -> a.setMemo(""));
         if (null != recipeId && recipeId > 0) {
@@ -3094,16 +3098,8 @@ public class RecipeService extends RecipeBaseService {
                                         if (ObjectUtils.isEmpty(organDrugInfoTO)) {
                                             try {
                                                 organDrugListService.updateOrganDrugListStatusByIdSync(organId, detail.getOrganDrugId());
-                                                /*DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, 4, null, 3, detail);
-                                                List<DataSyncDTO> syncDTOList = Lists.newArrayList();
-                                                syncDTOList.add(dataSyncDTO);
-                                                dataSyncLogService.addDataSyncLog("1", syncDTOList);*/
                                                 deleteNum++;
                                             } catch (Exception e) {
-                                               /* DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, 3, e, 3, detail);
-                                                List<DataSyncDTO> syncDTOList = Lists.newArrayList();
-                                                syncDTOList.add(dataSyncDTO);
-                                                dataSyncLogService.addDataSyncLog("1", syncDTOList);*/
                                                 LOGGER.info("drugInfoSynMovement机构药品数据同步 删除失败,{}", JSONUtils.toString(detail) + "Exception:{}" + e);
                                                 continue;
                                             }
@@ -3373,16 +3369,8 @@ public class RecipeService extends RecipeBaseService {
                                 if (ObjectUtils.isEmpty(organDrugInfoTO)) {
                                     try {
                                         organDrugListService.updateOrganDrugListStatusByIdSync(organId, detail.getOrganDrugId());
-                                       /* DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, 4, null, 3, detail);
-                                        List<DataSyncDTO> syncDTOList = Lists.newArrayList();
-                                        syncDTOList.add(dataSyncDTO);
-                                        dataSyncLogService.addDataSyncLog("1", syncDTOList);*/
                                         deleteNum++;
                                     } catch (Exception e) {
-/*                                        DataSyncDTO dataSyncDTO = convertDataSyn(organDrugInfoTO, organId, 3, e, 3, detail);
-                                        List<DataSyncDTO> syncDTOList = Lists.newArrayList();
-                                        syncDTOList.add(dataSyncDTO);
-                                        dataSyncLogService.addDataSyncLog("1", syncDTOList);*/
                                         LOGGER.info("定时drugInfoSynMovement机构药品数据同步 删除失败,{}", JSONUtils.toString(detail) + "Exception:{}" + e);
                                         continue;
                                     }
@@ -4107,6 +4095,10 @@ public class RecipeService extends RecipeBaseService {
      * @return
      */
     public Integer supportDistributionExt(Integer recipeId, Integer clinicOrgan, Integer selectDepId, Integer payMode) {
+        Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
+        if(GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(giveMode)){
+            return selectDepId;
+        }
         Integer backDepId = null;
         //date 20191022 修改到院取药配置项
         boolean flag = RecipeServiceSub.getDrugToHos(recipeId, clinicOrgan);

@@ -22,17 +22,24 @@ public interface IDrugsEnterpriseBusinessService {
      */
     void saveOrganEnterpriseRelation(OrganEnterpriseRelationVo organEnterpriseRelationVo);
 
-    /**
-     * 查询药企机构销售配置
-     * @param organId
-     * @param drugsEnterpriseId
-     * @return
-     */
-    OrganDrugsSaleConfig findOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId);
 
     /**
      * 保存药企机构销售配置
      * @param organDrugsSaleConfigVo
      */
     void saveOrganDrugsSaleConfig(OrganDrugsSaleConfigVo organDrugsSaleConfigVo);
+
+    /**
+     * 获取药企流转配置
+     * @param organEnterpriseRelationVo
+     * @return
+     */
+    OrganEnterpriseRelationVo getOrganEnterpriseRelation(OrganEnterpriseRelationVo organEnterpriseRelationVo);
+
+    /**
+     * 查询药企机构销售配置
+     * @param drugsEnterpriseId
+     * @return
+     */
+    OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer drugsEnterpriseId);
 }

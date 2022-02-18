@@ -33,15 +33,19 @@ public class MqRevisitRecipeServer implements Observer<RevisitStatusNotifyDTO> {
     @Override
     public void onMessage(RevisitStatusNotifyDTO revisitStatusNotifyDTO) {
         logger.info("MqRevisitRecipeServer onMessage revisitStatusNotifyDTO ={} ", JSON.toJSONString(revisitStatusNotifyDTO));
-        if(!revisitStatus.contains(revisitStatusNotifyDTO.getRevisitStatus())){
+        if (!revisitStatus.contains(revisitStatusNotifyDTO.getRevisitStatus())) {
             return;
         }
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         List<Recipe> recipeList = recipeDAO.findRecipeClinicIdAndProcessState(revisitStatusNotifyDTO.getRevisitId(), Collections.singletonList(RecipeStateEnum.PROCESS_STATE_SUBMIT.getType()));
-        if(CollectionUtils.isEmpty(recipeList)){
+        if (CollectionUtils.isEmpty(recipeList)) {
             return;
         }
         StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
-        recipeList.forEach(a->stateManager.updateRecipeState(a.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DELETED, RecipeStateEnum.SUB_DELETED_REVISIT_END));
+        recipeList.forEach(a -> {
+            if (a.getProcessState() < RecipeStateEnum.PROCESS_STATE_SUBMIT.getType()) {
+                stateManager.updateRecipeState(a.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DELETED, RecipeStateEnum.SUB_DELETED_REVISIT_END);
+            }
+        });
     }
 }

@@ -25,8 +25,11 @@ import org.springframework.stereotype.Service;
 import recipe.constant.ErrorCode;
 import recipe.third.IFileDownloadService;
 import recipe.util.ByteUtils;
+import recipe.util.ValidateUtil;
 
+import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 药企对接处理类
@@ -196,6 +199,29 @@ public class EnterpriseClient extends BaseClient {
             logger.error("EnterpriseClient getTakeMedicineByToHosList takeMedicineByToHos", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
+    }
+
+    /**
+     * 获取第三方配送费
+     * @param enterpriseResTo
+     * @return
+     */
+    public BigDecimal getExpressFee(EnterpriseResTo enterpriseResTo){
+        logger.info("EnterpriseClient getExpressFee enterpriseResTo:{}.", JSONUtils.toString(enterpriseResTo));
+        if (null == enterpriseResTo || StringUtils.isEmpty(enterpriseResTo.getDepId())) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "参数为空");
+        }
+        HisResponseTO hisResponseTO = recipeEnterpriseService.getEnterpriseExpress(enterpriseResTo);
+        logger.info("EnterpriseClient getExpressFee hisResponseTO:{}", JSONUtils.toString(hisResponseTO));
+        if (hisResponseTO != null && hisResponseTO.isSuccess()) {
+            Map<String, Object> extend = hisResponseTO.getExtend();
+            Boolean expressFeeFlag = (Boolean) extend.get("result");
+            Object expressFee = extend.get("postagePrice");
+            if (expressFeeFlag && null != expressFee) {
+                return new BigDecimal(expressFee.toString());
+            }
+        }
+        return BigDecimal.ZERO;
     }
 
     /**

@@ -64,6 +64,11 @@ public class DepDetailBean {
     private String pharmacyCode;
 
     /**
+     * 药店名称
+     */
+    private String pharmacyName;
+
+    /**
      * 自费金额
      */
     private BigDecimal actualFee;
@@ -111,6 +116,14 @@ public class DepDetailBean {
 
     //药店|药柜 区分类型
     private Integer type;
+
+    public String getPharmacyName() {
+        return pharmacyName;
+    }
+
+    public void setPharmacyName(String pharmacyName) {
+        this.pharmacyName = pharmacyName;
+    }
 
     public BigDecimal getHisDepFee() {
         return hisDepFee;

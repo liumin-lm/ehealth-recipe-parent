@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
 import com.ngari.common.mode.HisResponseTO;
@@ -23,15 +24,22 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.msg.constant.MqConstant;
+import eh.recipeaudit.api.IAuditMedicinesService;
+import eh.recipeaudit.api.IRecipeCheckService;
+import eh.recipeaudit.model.RecipeCheckBean;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.common.OnsConfig;
 import recipe.dao.*;
+import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.manager.EnterpriseManager;
+import recipe.manager.StateManager;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
 import recipe.service.recipecancel.RecipeCancelService;
 import recipe.util.DateConversion;
@@ -41,6 +49,8 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * @author yu_yun
@@ -341,4 +351,71 @@ public class RecipeTestService {
             drugDistributionPriceDAO.update(drugDistributionPrice);
         });
     }
+
+
+    /**
+     * @auther maoze
+     * @desc 修改新的审方状态
+     * REVIEWING(2, "审核中"),
+     * FAIL(3, "审核未通过"),
+     * FAIL_DOC_CONFIRMING(4, "未通过，医生确认中"),
+     * PASS(5, "审核通过"),
+     * DOC_FORCED_PASS(6, "医生强制通过"),
+     * NO_REVIEW(7, "无需审核"),
+     * @param startTime
+     */
+    @RpcService
+    @LogRecord
+    public Integer updateAuditState(Integer max,Integer min){
+        Integer start = 1,pageSize = 1000,userNum = 0;
+        IRecipeCheckService iRecipeCheckService = AppContextHolder.getBean("recipeaudit.recipeCheckServiceImpl", IRecipeCheckService.class);
+        StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+        List<RecipeCheckBean> list = new ArrayList<>();
+        do{
+            list = iRecipeCheckService.findRecipeCheck(max,min,start,pageSize);
+            start += pageSize ;
+            if(CollectionUtils.isEmpty(list)){
+                return userNum;
+            }else{
+                userNum += list.size();
+            }
+            List<Integer> recipeIds = list.stream().map(item -> item.getRecipeId() ).collect(Collectors.toList());
+            List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
+            HashMap<Integer,Recipe> recipeMap = (HashMap<Integer, Recipe>) recipes.stream().collect(Collectors.toMap(Recipe::getRecipeId, Recipe -> Recipe));
+            for (RecipeCheckBean item:list){
+                try {
+                    Recipe recipe = recipeMap.get(item.getRecipeId());
+                    if(recipe == null){
+                        break;
+                    }
+                    if( item.getChecker() != null ){
+                        // 审核通过
+                        if(item.getCheckStatus() == 0){
+                            stateManager.updateAuditState(item.getRecipeId(), RecipeAuditStateEnum.FAIL);
+                        }
+                        // 审核未通过
+                        if(item.getCheckStatus() == 1){
+                            stateManager.updateAuditState(item.getRecipeId(), RecipeAuditStateEnum.PASS);
+                        }
+                    }
+                    // 医生确认中
+                    if(recipe.getCheckStatus() == 1){
+                        stateManager.updateAuditState(item.getRecipeId(), RecipeAuditStateEnum.FAIL_DOC_CONFIRMING);
+                    }
+                    // 医生强制通过
+                    if(recipe.getCheckStatus() == 0 && StringUtils.isNoneBlank(recipe.getSupplementaryMemo()) && recipe.getCheckFlag() == 1){
+                        stateManager.updateAuditState(item.getRecipeId(), RecipeAuditStateEnum.DOC_FORCED_PASS);
+                    }
+                    // 取消
+                    if(recipe.getStatus() == 9){
+                        stateManager.updateAuditState(item.getRecipeId(), RecipeAuditStateEnum.NO_REVIEW);
+                    }
+                } catch (Exception e) {
+                    LOGGER.info("recipeTestService-updateAuditState recipecheck:{} - recipe:{} Exception:" , JSON.toJSONString(item), JSON.toJSONString(recipeMap.get(item.getRecipeId())), e);
+                }
+            }
+        }while(CollectionUtils.isNotEmpty(list));
+        return 0;
+    }
+
 }

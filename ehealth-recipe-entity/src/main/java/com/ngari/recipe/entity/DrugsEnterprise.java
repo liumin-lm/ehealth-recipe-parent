@@ -4,6 +4,7 @@ import ctd.schema.annotation.*;
 import org.hibernate.annotations.DynamicInsert;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.util.Date;
 
 import static javax.persistence.GenerationType.IDENTITY;
@@ -191,6 +192,9 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "药企联系电话")
     @Desensitizations(type = DesensitizationsType.MOBILE)
     private String enterprisePhone;
+
+    @ItemProperty(alias = "包邮金额")
+    private BigDecimal freeDeliveryMoney;
 
     @Column(name = "enterprise_phone")
     public String getEnterprisePhone() {
@@ -688,5 +692,14 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setThirdEnterpriseCode(String thirdEnterpriseCode) {
         this.thirdEnterpriseCode = thirdEnterpriseCode;
+    }
+
+    @Column(name = "free_delivery_money")
+    public BigDecimal getFreeDeliveryMoney() {
+        return freeDeliveryMoney;
+    }
+
+    public void setFreeDeliveryMoney(BigDecimal freeDeliveryMoney) {
+        this.freeDeliveryMoney = freeDeliveryMoney;
     }
 }

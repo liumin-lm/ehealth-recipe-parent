@@ -46,6 +46,7 @@ import recipe.bean.PltPurchaseResponse;
 import recipe.client.IConfigurationClient;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
@@ -585,7 +586,7 @@ public class PurchaseService {
         Integer payModeToHosOnlinePayConfig = null;
         if (drugToHosByEnterprise) {
             // 获取药企机构配
-            List<OrganDrugsSaleConfig> organDrugsSaleConfigs = organDrugsSaleConfigDAO.findByOrganIdAndEnterpriseId(clinicOrgan, enterpriseId);
+            List<OrganDrugsSaleConfig> organDrugsSaleConfigs = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(enterpriseId);
            if(CollectionUtils.isNotEmpty(organDrugsSaleConfigs)) {
                payModeToHosOnlinePayConfig = organDrugsSaleConfigs.get(0).getTakeOneselfPaymentChannel();
            }

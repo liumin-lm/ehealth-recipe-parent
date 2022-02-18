@@ -2813,4 +2813,25 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return buttonManager.getGiveModeTextByRecipe(recipe1);
     }
 
+
+
+    @RpcService
+    @Override
+    @LogRecord
+    public List<RecipeBean> findRecipeAuditByFlag(List<Integer> organ, List<Integer> recipeTypes,Integer checker, int flag, int start, int limit) {
+        List<Recipe> recipes = recipeDAO.findRecipeAuditByFlag(organ, recipeTypes,checker, flag, start, limit);
+        //转换前端的展示实体类
+        List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
+        return recipeBeans;
+    }
+
+    @RpcService
+    @Override
+    @LogRecord
+    public Long findRecipeAuditCountByFlag(List<Integer> organ, List<Integer> recipeTypes,Integer checker, int flag) {
+        Long recipeCount = recipeDAO.findRecipeAuditCountByFlag(organ, recipeTypes,checker, flag);
+        return recipeCount;
+    }
+
+
 }

@@ -1,6 +1,7 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.consult.common.model.ConsultExDTO;
@@ -23,6 +24,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.SaleDrugListDAO;
+import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
@@ -263,9 +265,13 @@ public class RecipeManager extends BaseManager {
      * @return 取药凭证
      */
     public String getToHosProof(Recipe recipe, RecipeExtend recipeExtend, RecipeOrder order) {
+        logger.info("getToHosProof recipe:{} order:{}" , JSONArray.toJSONString(recipe),JSONArray.toJSONString(order));
         String qrName = "";
         try {
-            OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId());
+            if(Objects.isNull(order)){
+                return "";
+            }
+            OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(recipe.getClinicOrgan(), order.getEnterpriseId(), recipe.getGiveMode());
             RecipeShowQrConfigEnum qrConfigEnum = RecipeShowQrConfigEnum.getEnumByType(organDrugsSaleConfig.getTakeDrugsVoucher());
             switch (qrConfigEnum) {
                 case CARD_NO:

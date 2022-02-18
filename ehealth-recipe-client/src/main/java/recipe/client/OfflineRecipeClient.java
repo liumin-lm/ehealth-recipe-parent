@@ -286,7 +286,7 @@ public class OfflineRecipeClient extends BaseClient {
      * @return
      */
     public QueryHisRecipResTO queryOffLineRecipeDetail(OffLineRecipeDetailDTO offLineRecipeDetailDTO, Integer organId, PatientDTO patientDTO, Integer timeQuantum, Integer flag, String recipeCode) {
-        logger.info("HisRecipeManager queryOffLineRecipeDetail param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode);
+        logger.info("OfflineRecipeClient queryOffLineRecipeDetail param organId:{},patientDTO:{},timeQuantum:{},flag:{},recipeCode:{}", organId, JSONUtils.toString(patientDTO), timeQuantum, flag, recipeCode);
         List<QueryHisRecipResTO> response = null;
         HisResponseTO<List<QueryHisRecipResTO>> responseTo = null;
         try {
@@ -344,6 +344,23 @@ public class OfflineRecipeClient extends BaseClient {
         HisResponseTO<com.ngari.his.recipe.mode.DrugSpecificationInfoDTO> hisResponse = recipeHisService.getDrugSpecification(drugSpecificationReq);
         com.ngari.his.recipe.mode.DrugSpecificationInfoDTO response = getResponseCatch(hisResponse);
         return ObjectCopyUtils.convert(response, DrugSpecificationInfoDTO.class);
+    }
+
+    /**
+     * 自费预结算
+     * @param request 预结算参数
+     * @return 预结算返回值
+     */
+    public RecipeCashPreSettleInfo recipeCashPreSettle(RecipeCashPreSettleReqTO request){
+        logger.info("OfflineRecipeClient recipeCashPreSettle request:{}.", JSONUtils.toString(request));
+        try {
+            HisResponseTO<RecipeCashPreSettleInfo> response = recipeHisService.recipeCashPreSettle(request);
+            logger.info("OfflineRecipeClient recipeCashPreSettle response:{}.", JSONUtils.toString(response));
+            return getResponse(response);
+        } catch (Exception e) {
+            logger.error("OfflineRecipeClient recipeCashPreSettle", e);
+            return null;
+        }
     }
 
 
@@ -412,7 +429,7 @@ public class OfflineRecipeClient extends BaseClient {
      * @Description 数据过滤
      */
     private HisResponseTO<List<QueryHisRecipResTO>> filterData(HisResponseTO<List<QueryHisRecipResTO>> responseTo, String recipeCode, Integer flag) {
-        logger.info("HisRecipeManager filterData responseTo:{},recipeCode:{}", JSONUtils.toString(responseTo), recipeCode);
+        logger.info("OfflineRecipeClient filterData responseTo:{},recipeCode:{}", JSONUtils.toString(responseTo), recipeCode);
         if (responseTo == null) {
             return responseTo;
         }
@@ -420,7 +437,7 @@ public class OfflineRecipeClient extends BaseClient {
         List<QueryHisRecipResTO> queryHisRecipResToFilters = new ArrayList<>();
         //获取详情时防止前置机没过滤数据，做过滤处理
         if (responseTo != null && recipeCode != null) {
-            logger.info("HisRecipeManager queryHisRecipeInfo recipeCode:{}", recipeCode);
+            logger.info("OfflineRecipeClient queryHisRecipeInfo recipeCode:{}", recipeCode);
             //详情
             if (!CollectionUtils.isEmpty(queryHisRecipResTos)) {
                 for (QueryHisRecipResTO queryHisRecipResTo : queryHisRecipResTos) {
@@ -444,7 +461,7 @@ public class OfflineRecipeClient extends BaseClient {
             }
             responseTo.setData(queryHisRecipResToFilters);
         }
-        logger.info("HisRecipeManager filterData:{}.", JSONUtils.toString(responseTo));
+        logger.info("OfflineRecipeClient filterData:{}.", JSONUtils.toString(responseTo));
         return responseTo;
     }
 
