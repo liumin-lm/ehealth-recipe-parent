@@ -2,6 +2,7 @@ package recipe.client;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
+import com.google.inject.internal.cglib.core.$Constants;
 import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.patient.model.HealthCardBean;
@@ -282,12 +283,25 @@ public class PatientClient extends BaseClient {
 
     /**
      * 提醒患者用药
+     *
      * @param recipeInfoDTOList 处方信息
      * @return 是否成功
      */
-    public Boolean remindPatientTakeMedicine(List<RecipeInfoDTO> recipeInfoDTOList){
+    public Boolean remindPatientTakeMedicine(List<RecipeInfoDTO> recipeInfoDTOList) {
         logger.info("PatientClient remindPatientTakeMedicine recipeInfoDTOList:{}.", JSONUtils.toString(recipeInfoDTOList));
         //TODO 数据转换并推送
+        for (RecipeInfoDTO recipeInfoDTO : recipeInfoDTOList) {
+            PatientDTO patientDTO = recipeInfoDTO.getPatientBean();
+            if (null == patientDTO) {
+                continue;
+            }
+            String idCard = patientDTO.getIdcard();
+            if (StringUtils.isEmpty(idCard)) {
+                continue;
+            }
+            List<com.ngari.patient.dto.PatientDTO> patientDTOList = patientService.findByIdCard(idCard);
+
+        }
         return true;
     }
 }

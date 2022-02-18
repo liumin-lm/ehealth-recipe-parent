@@ -565,6 +565,14 @@ public class RecipeOrderService extends RecipeBaseService {
         return needDelList;
     }
 
+    public void setOrderFeeNew(OrderCreateResult result, RecipeOrder order, List<Recipe> recipeList, RecipePayModeSupportBean payModeSupport, Map<String, String> extInfo, Integer toDbFlag){
+        //当前操作人的编码，用于获取地址列表信息等
+        String openMpiId = MapValueUtil.getString(extInfo, "operMpiId");
+        //站点配送的标志
+        Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
+
+    }
+
     /**
      * 设置处方费用
      *

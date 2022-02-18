@@ -1,6 +1,7 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
 import ctd.persistence.exception.DAOException;
@@ -94,6 +95,10 @@ public class StateManager extends BaseManager {
      */
     private Boolean cancelOrder(RecipeOrder order, OrderStateEnum processState, OrderStateEnum subState) {
         RecipeOrder updateOrder = new RecipeOrder(order.getOrderId(),processState.getType(),subState.getType());
+        logger.info("updateOrder:{}",JSONArray.toJSONString(updateOrder));
+        updateOrder.setOrderId(order.getOrderId());
+        updateOrder.setProcessState(processState.getType());
+        updateOrder.setSubState(subState.getType());
         recipeOrderDAO.updateNonNullFieldByPrimaryKey(updateOrder);
         return true;
     }

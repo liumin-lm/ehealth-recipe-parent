@@ -36,7 +36,6 @@ public class IConfigurationClient extends BaseClient {
     @Resource
     private IHisConfigService hisConfigService;
 
-
     /**
      * 获取终端id
      *
@@ -395,5 +394,15 @@ public class IConfigurationClient extends BaseClient {
         List<ScratchableBean> scratchableBeans = scratchableService.findScratchableByPlatform("myRecipeDetailList", organId + "", 1);
         logger.info("IConfigurationClient getOrganGiveMode scratchableBeans:{}.", JSON.toJSONString(scratchableBeans));
         return scratchableBeans;
+    }
+
+    /**
+     * 根据配置项获取机构
+     *
+     * @param boo
+     * @return
+     */
+    public List<Integer> organIdList(String propertyKey, String boo) {
+        return configService.findOrganByPropertyKeyAndValue(propertyKey, boo);
     }
 }

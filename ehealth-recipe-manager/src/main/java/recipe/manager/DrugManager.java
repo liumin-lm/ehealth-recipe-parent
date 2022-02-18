@@ -6,6 +6,7 @@ import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -343,5 +344,14 @@ public class DrugManager extends BaseManager {
             return new LinkedList<>();
         }
         return drugs;
+    }
+
+    /**
+     * 定时 获取用药提醒的线下处方
+     */
+    public List<RecipeInfoDTO> queryRemindRecipe(Integer organId) {
+        List<RecipeInfoDTO> recipeInfoDTO = offlineRecipeClient.queryRemindRecipe(organId);
+        patientClient.remindPatientTakeMedicine(recipeInfoDTO);
+        return recipeInfoDTO;
     }
 }

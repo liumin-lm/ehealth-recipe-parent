@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.client.IConfigurationClient;
 import recipe.core.api.IDrugBusinessService;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.DrugManager;
@@ -41,6 +42,8 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     private DrugManager drugManager;
     @Autowired
     private IDrugEntrustService drugEntrustService;
+    @Autowired
+    private IConfigurationClient configurationClient;
 
     @Override
     public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVO searchDrugReqVo) {
@@ -110,6 +113,12 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     @Override
     public Map<String, OrganDrugList> organDrugMap(Integer organId, List<Integer> drugIds) {
         return organDrugListManager.getOrganDrugByIdAndCode(organId, drugIds);
+    }
+
+    @Override
+    public void queryRemindRecipe() {
+        List<Integer> organIdList = configurationClient.organIdList("remindPatientTakeMedicineFlag", "true");
+        organIdList.forEach(a -> drugManager.queryRemindRecipe(a));
     }
 
 }
