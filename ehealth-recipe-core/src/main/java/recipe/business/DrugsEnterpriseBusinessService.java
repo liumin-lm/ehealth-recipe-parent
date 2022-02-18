@@ -1,6 +1,7 @@
 package recipe.business;
 
 import com.alibaba.fastjson.JSONArray;
+import com.google.common.collect.Lists;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.OrganAndDrugsepRelation;
 import com.ngari.recipe.entity.OrganDrugsSaleConfig;
@@ -17,8 +18,12 @@ import recipe.manager.EnterpriseManager;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.greenroom.OrganEnterpriseRelationVo;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @description： 药企 业务类
@@ -68,5 +73,24 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         OrganDrugsSaleConfig organDrugsSaleConfig = new OrganDrugsSaleConfig();
         BeanUtils.copyProperties(organDrugsSaleConfigVo,organDrugsSaleConfig);
         enterpriseManager.saveOrganDrugsSaleConfig(organDrugsSaleConfig);
+    }
+
+    @Override
+    public OrganEnterpriseRelationVo getOrganEnterpriseRelation(OrganEnterpriseRelationVo organEnterpriseRelationVo) {
+        logger.info("DrugsEnterpriseBusinessService getOrganEnterpriseRelation req organEnterpriseRelationVo={}", JSONArray.toJSONString(organEnterpriseRelationVo));
+        OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organEnterpriseRelationVo.getOrganId(), organEnterpriseRelationVo.getDrugsEnterpriseId());
+        if(Objects.isNull(relation)){
+            throw new DAOException("机构药企关联关系不存在");
+        }
+        if(StringUtils.isNotEmpty(relation.getDrugsEnterpriseSupportGiveMode())) {
+            String[] split = relation.getDrugsEnterpriseSupportGiveMode().split(",");
+            List<Integer> list = Lists.newArrayList();
+            for (String s : split) {
+                list.add(Integer.valueOf(s));
+            }
+            organEnterpriseRelationVo.setGiveModeTypes(list);
+        }
+        logger.info("DrugsEnterpriseBusinessService getOrganEnterpriseRelation res organEnterpriseRelationVo={}", JSONArray.toJSONString(organEnterpriseRelationVo));
+        return organEnterpriseRelationVo;
     }
 }
