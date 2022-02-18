@@ -4,6 +4,7 @@ import com.ngari.recipe.entity.Dispensatory;
 import com.ngari.recipe.entity.RecipeRulesDrugcorrelation;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import recipe.api.open.IDrugAtopService;
 import recipe.atop.BaseAtop;
@@ -48,7 +49,16 @@ public class DrugOpenAtop extends BaseAtop implements IDrugAtopService {
 
     @Override
     public List<RecipeRulesDrugcorrelationVo> getListDrugRules(List<Integer> list, Integer ruleId) {
-        List<RecipeRulesDrugcorrelation> result =  drugBusinessService.getListDrugRules(list,ruleId);
-        return CollectionUtils.isEmpty(result)? new ArrayList<>() :ObjectCopyUtils.convert(result, RecipeRulesDrugcorrelationVo.class);
+        List<RecipeRulesDrugcorrelation> result = drugBusinessService.getListDrugRules(list, ruleId);
+        return CollectionUtils.isEmpty(result) ? new ArrayList<>() : ObjectCopyUtils.convert(result, RecipeRulesDrugcorrelationVo.class);
     }
+
+    /**
+     * 定时 获取用药提醒的线下处方
+     */
+    @RpcService
+    public void queryRemindRecipe() {
+        drugBusinessService.queryRemindRecipe();
+    }
+
 }

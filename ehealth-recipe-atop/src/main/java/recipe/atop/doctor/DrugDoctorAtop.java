@@ -180,15 +180,6 @@ public class DrugDoctorAtop extends BaseAtop {
 
 
     /**
-     * 定时 获取用药提醒的线下处方
-     */
-    @RpcService
-    public void queryRemindRecipe() {
-        drugBusinessService.queryRemindRecipe();
-    }
-
-
-    /**
      * 默认药品单位计量 机构关联关系
      *
      * @param organDrug 机构药品
