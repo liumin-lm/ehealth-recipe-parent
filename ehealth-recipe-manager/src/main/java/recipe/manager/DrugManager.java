@@ -346,6 +346,9 @@ public class DrugManager extends BaseManager {
         return drugs;
     }
 
+    /**
+     * 定时 获取用药提醒的线下处方
+     */
     public List<RecipeInfoDTO> queryRemindRecipe(Integer organId) {
         List<RecipeInfoDTO> recipeInfoDTO = offlineRecipeClient.queryRemindRecipe(organId);
         patientClient.remindPatientTakeMedicine(recipeInfoDTO);
