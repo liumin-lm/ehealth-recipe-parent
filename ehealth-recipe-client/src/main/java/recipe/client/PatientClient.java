@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
+import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.bus.op.service.IUsePathwaysService;
@@ -295,6 +296,7 @@ public class PatientClient extends BaseClient {
         }
         //数据转换
         List<com.ngari.patient.dto.PatientDTO> patientList = patientService.findByIdCard(idCard);
+        logger.info("PatientClient patientByIdCard patientList:{}", JSON.toJSONString(patientList));
         if (CollectionUtils.isEmpty(patientList)) {
             return null;
         }
@@ -328,11 +330,22 @@ public class PatientClient extends BaseClient {
                     medicineRemindTO.setCode(recipedetail.getDrugCode());
                     medicineRemindTO.setName(recipedetail.getDrugName());
                     medicineRemindTO.setBusType("recipe");
-                    medicineRemindTO.setOrganId(recipeInfoDTO.getOrgan().getOrganId());
+                    medicineRemindTO.setOrganId(recipeInfoDTO.getRecipe().getClinicOrgan());
                     medicineRemindTO.setMpiId(patient.getMpiId());
                     medicineRemindTO.setExplan("用法用量");
+                    StringBuilder explan = new StringBuilder("用法用量");
+                    try {
+                        UsePathwaysDTO usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndPlatformKey(recipeInfoDTO.getRecipe().getClinicOrgan(), recipedetail.getUsePathways());
+                        if (null != usePathwaysDTO) {
+                            explan.append(usePathwaysDTO.getRelatedPlatformText()).append(" ");
+                        }
+                    } catch (Exception e) {
+                        logger.error("PatientClient remindPatientTakeMedicine error", e);
+                    }
+                    explan.append(recipedetail.getUseDose()).append(recipedetail.getUseDoseUnit());
+                    medicineRemindTO.setExplan(explan.toString());
                     medicineRemindTO.setNum(recipedetail.getUseDays());
-                    medicineRemindTO.setUnit(0);
+                    medicineRemindTO.setUnit(1);
                     medicineRemindTO.setEvery(0);
                     medicineRemindTO.setDayTime(getDayTime(recipedetail.getUsingRate()));
                     medicineRemindTOList.add(medicineRemindTO);
