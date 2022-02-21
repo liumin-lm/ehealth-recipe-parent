@@ -141,6 +141,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     @RpcService
     @LogRecord
     public ConfirmOrder obtainConfirmOrder(String busType, Integer busId, Map<String, String> extInfo) {
+        log.info("RecipeBusPayService.obtainConfirmOrder busType:{}, busId:{},extInfo={}", busType,busId,JSONObject.toJSONString(extInfo));
         //先判断处方是否已创建订单
         RecipeOrderBean order1 = null;
         ObtainConfirmOrderObjectResNoDS order = null;
@@ -177,6 +178,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             log.info("RecipeBusPayService.obtainConfirmOrder order is null. busId={}", busId);
             return null;
         }
+        extInfo.put("depId", order.getEnterpriseId().toString());
         //获取处方扩展信息
         if (StringUtils.isNotEmpty(order.getRecipeIdList())) {
             List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
