@@ -424,6 +424,7 @@ public class OfflineRecipeClient extends BaseClient {
         remindRecipeDTO.setStartTime(sTime);
         Date eTime = DateConversion.lastSecondsOfDay(calendar.getTime());
         remindRecipeDTO.setEndTime(eTime);
+        logger.info("OfflineRecipeClient queryRemindRecipe remindRecipeDTO:{}.", JSON.toJSONString(remindRecipeDTO));
         HisResponseTO<List<com.ngari.platform.recipe.mode.RecipeDTO>> hisResponse = recipeHisService.queryRemindRecipe(remindRecipeDTO);
         List<RecipeInfoDTO> recipeInfoList = new ArrayList<>();
         try {
