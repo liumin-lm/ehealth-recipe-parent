@@ -57,6 +57,9 @@ public class BaseManager {
     protected DepartClient departClient;
     @Autowired
     protected EnterpriseClient enterpriseClient;
+    @Autowired
+    protected DrugClient drugClient;
+
 
     /**
      * 获取处方相关信息
