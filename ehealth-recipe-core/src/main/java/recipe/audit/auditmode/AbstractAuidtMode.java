@@ -35,6 +35,7 @@ import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeAuditStateEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.manager.RecipeManager;
 import recipe.manager.StateManager;
 import recipe.service.RecipeLogService;
@@ -110,6 +111,8 @@ public abstract class AbstractAuidtMode implements IAuditMode {
 
     @Override
     public void afterCheckNotPassYs(Recipe recipe) {
+        StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DELETED, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
     }
 
     @Override

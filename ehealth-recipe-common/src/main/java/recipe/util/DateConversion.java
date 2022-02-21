@@ -104,29 +104,6 @@ public class DateConversion
 	}
 
 	/**
-	 * 几年前
-	 * 
-	 * @author luf
-	 * @param years
-	 *            年数
-	 * @return Date
-	 */
-	public static Date getYearsAgo(int years) {
-		LocalDate dt = new LocalDate();
-		return dt.minusYears(years).toDate();
-	}
-
-	/**
-	 * 几年后
-	 * @param years
-	 * @return
-     */
-	public static Date getYearslater(int years) {
-		LocalDate dt = new LocalDate();
-		return dt.plusYears(years).toDateTimeAtCurrentTime().toDate();
-	}
-
-	/**
 	 * @function 根据出生日期获取年岁
 	 * @author zhangjr
 	 * @param birthDate
