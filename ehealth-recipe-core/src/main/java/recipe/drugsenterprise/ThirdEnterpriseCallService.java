@@ -109,9 +109,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     @Autowired
     private GroupRecipeManager groupRecipeManager;
     private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
-
-    @Autowired
-    private StateManager stateManager;
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
@@ -674,6 +671,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         }
         //更新处方信息
         Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.RECIPE_FAIL, attrMap);
+        StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
         if (rs) {
             //患者未取药
@@ -954,6 +952,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         } else {
             //患者未取药
             Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_DRUG, attrMap);
+            StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
             stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
             status = RecipeStatusConstant.NO_DRUG;
             if (rs) {
