@@ -29,7 +29,7 @@
         <ngari.miscellany.version>4.1.1.9.master-SNAPSHOT</ngari.miscellany.version>
         <ngari.basic.version>4.1.1.9.master-SNAPSHOT</ngari.basic.version>
         <ngari.jgpt.version>4.1.1.9.master-SNAPSHOT</ngari.jgpt.version>
-        <ngari.followup.version>4.1.1.9.master-SNAPSHOT</ngari.followup.version>
+        <ngari.followup.version>4.2.2.4.master-SNAPSHOT</ngari.followup.version>
         <ngari.cdr.version>4.1.1.9.master-SNAPSHOT</ngari.cdr.version>
         <ngari.pay.version>4.2.1.4.master-SNAPSHOT</ngari.pay.version>
         <ngari.recipeaudit.version>4.2.2.4.master-SNAPSHOT</ngari.recipeaudit.version>

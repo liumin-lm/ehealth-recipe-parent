@@ -112,7 +112,7 @@ public abstract class AbstractAuidtMode implements IAuditMode {
     @Override
     public void afterCheckNotPassYs(Recipe recipe) {
         StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
-        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DELETED, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
+        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
     }
 
     @Override
