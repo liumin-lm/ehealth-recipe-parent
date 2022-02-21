@@ -5,9 +5,13 @@ import com.google.common.collect.Lists;
 import com.google.inject.internal.cglib.core.$Constants;
 import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
+import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.service.IPatientService;
+import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.follow.service.IMedicineRemindService;
+import com.ngari.follow.vo.MedicineRemindTO;
 import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.jgpt.zjs.service.IMinkeOrganService;
 import com.ngari.patient.dto.HealthCardDTO;
@@ -17,6 +21,7 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,10 +34,7 @@ import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 
 import javax.annotation.Resource;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -54,6 +56,10 @@ public class PatientClient extends BaseClient {
     private HealthCardService healthCardService;
     @Autowired
     private ICurrentUserInfoService currentUserInfoService;
+    @Autowired
+    private IMedicineRemindService medicineRemindService;
+    @Autowired
+    private IUsePathwaysService usePathwaysService;
 
     /**
      * 获取 脱敏后的 患者对象
@@ -289,7 +295,7 @@ public class PatientClient extends BaseClient {
      */
     public Boolean remindPatientTakeMedicine(List<RecipeInfoDTO> recipeInfoDTOList) {
         logger.info("PatientClient remindPatientTakeMedicine recipeInfoDTOList:{}.", JSONUtils.toString(recipeInfoDTOList));
-        //TODO 数据转换并推送
+        List<MedicineRemindTO> medicineRemindTOList = new ArrayList<>();
         for (RecipeInfoDTO recipeInfoDTO : recipeInfoDTOList) {
             PatientDTO patientDTO = recipeInfoDTO.getPatientBean();
             if (null == patientDTO) {
@@ -299,9 +305,27 @@ public class PatientClient extends BaseClient {
             if (StringUtils.isEmpty(idCard)) {
                 continue;
             }
-            List<com.ngari.patient.dto.PatientDTO> patientDTOList = patientService.findByIdCard(idCard);
+            List<Recipedetail> recipeDetails = recipeInfoDTO.getRecipeDetails();
+            for (Recipedetail recipedetail : recipeDetails) {
+                //数据转换
+                List<com.ngari.patient.dto.PatientDTO> patientDTOList = patientService.findByIdCard(idCard);
+                for (com.ngari.patient.dto.PatientDTO patient : patientDTOList) {
+                    MedicineRemindTO medicineRemindTO = new MedicineRemindTO();
+                    medicineRemindTO.setCode(recipedetail.getDrugCode());
+                    medicineRemindTO.setName(recipedetail.getDrugName());
+                    medicineRemindTO.setBusType("recipe");
+                    medicineRemindTO.setOrganId(recipeInfoDTO.getOrgan().getOrganId());
+                    medicineRemindTO.setMpiId(patient.getMpiId());
+                    medicineRemindTO.setExplan("用法用量");
+                    medicineRemindTO.setNum(recipedetail.getUseDays());
+                    medicineRemindTO.setUnit(0);
+                    medicineRemindTO.setEvery(0);
 
+                    medicineRemindTOList.add(medicineRemindTO);
+                }
+            }
         }
+        medicineRemindService.createMedicineRemind(medicineRemindTOList);
         return true;
     }
 }

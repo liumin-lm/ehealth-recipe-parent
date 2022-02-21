@@ -64,6 +64,7 @@ import recipe.client.IConfigurationClient;
 import recipe.client.RevisitClient;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.DepartManager;
@@ -359,13 +360,15 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
 
             // 到院取药是否支持线上支付
             Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
-            OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), depId, giveMode);
-            Integer takeOneselfPayment = organDrugsSaleConfig.getTakeOneselfPayment();
-            if (new Integer(1).equals(takeOneselfPayment)) {
-                map.put("supportToHosPayFlag", "1");
-                map.put("payTip", "");
-            } else {
-                map.put("supportToHosPayFlag", "0");
+            if(GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(giveMode)) {
+                OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId(), giveMode);
+                Integer takeOneselfPayment = organDrugsSaleConfig.getTakeOneselfPayment();
+                if (new Integer(1).equals(takeOneselfPayment)) {
+                    map.put("supportToHosPayFlag", "1");
+                    map.put("payTip", "");
+                } else {
+                    map.put("supportToHosPayFlag", "0");
+                }
             }
             Boolean toSendStationFlag = configurationClient.getValueBooleanCatch(organId, "toSendStationFlag", false);
             if ((PAY_MODE_SEND_HOME.equals(payMode) || PAY_MODE_ONLINE.equals(payMode)) && toSendStationFlag) {
@@ -487,7 +490,6 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                     }
                 }
                 simpleBusObject.setActualPrice(new Double(BigDecimal.valueOf(order.getActualPrice()).subtract(otherFee) + ""));
-
                 // 0自费 1医保
                 if (!new Integer(2).equals(recipeBean.getBussSource())) {
                     simpleBusObject.setSettleType("0");
