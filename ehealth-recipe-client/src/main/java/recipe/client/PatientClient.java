@@ -329,7 +329,7 @@ public class PatientClient extends BaseClient {
                     medicineRemindTO.setCode(recipedetail.getDrugCode());
                     medicineRemindTO.setName(recipedetail.getDrugName());
                     medicineRemindTO.setBusType("recipe");
-                    medicineRemindTO.setOrganId(recipeInfoDTO.getOrgan().getOrganId());
+                    medicineRemindTO.setOrganId(recipeInfoDTO.getRecipe().getClinicOrgan());
                     medicineRemindTO.setMpiId(patient.getMpiId());
                     medicineRemindTO.setExplan("用法用量");
                     String explan = "用法用量";
