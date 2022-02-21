@@ -295,6 +295,7 @@ public class PatientClient extends BaseClient {
         }
         //数据转换
         List<com.ngari.patient.dto.PatientDTO> patientList = patientService.findByIdCard(idCard);
+        logger.info("PatientClient patientByIdCard patientList:{}", JSON.toJSONString(patientList));
         if (CollectionUtils.isEmpty(patientList)) {
             return null;
         }
@@ -331,6 +332,8 @@ public class PatientClient extends BaseClient {
                     medicineRemindTO.setOrganId(recipeInfoDTO.getOrgan().getOrganId());
                     medicineRemindTO.setMpiId(patient.getMpiId());
                     medicineRemindTO.setExplan("用法用量");
+                    String explan = "用法用量";
+                    medicineRemindTO.setExplan(explan);
                     medicineRemindTO.setNum(recipedetail.getUseDays());
                     medicineRemindTO.setUnit(0);
                     medicineRemindTO.setEvery(0);
