@@ -68,7 +68,9 @@ public class BusMsgConsumer {
          * 接收电子病历删除发送
          */
         subscriber.attach(OnsConfig.emrRecipe, "emrDeleted_recipe", new MqEmrRecipeServer());
-
+        /**
+         *接收复诊状态通知
+         */
         subscriber.attach(OnsConfig.revisitStatusNotify, "revisitStatusNotifyTag", new MqRevisitRecipeServer());
         /**
          * 接收处方失效延迟消息

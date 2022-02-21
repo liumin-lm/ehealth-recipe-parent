@@ -585,20 +585,24 @@ public class HisRecipeManager extends BaseManager {
     }
 
     /**
-     * 定时 获取用药提醒的线下处方
+     * 用药提醒的线下处方 存在患者的数据 转换药品为线上数据
      */
     public List<RecipeInfoDTO> queryRemindRecipe(Integer organId) {
         List<RecipeInfoDTO> recipeInfoList = offlineRecipeClient.queryRemindRecipe(organId);
         if (CollectionUtils.isEmpty(recipeInfoList)) {
             return null;
         }
+        List<RecipeInfoDTO> recipeList = new LinkedList<>();
         recipeInfoList.forEach(a -> {
+            //排除患者
             List<PatientDTO> patientList = patientClient.patientByIdCard(a.getPatientBean());
             if (CollectionUtils.isEmpty(patientList)) {
                 return;
             }
-            
+            //转换药品
+
+            recipeList.add(a);
         });
-        return recipeInfoList;
+        return recipeList;
     }
 }

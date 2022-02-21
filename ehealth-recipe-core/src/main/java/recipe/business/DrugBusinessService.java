@@ -126,10 +126,9 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         organIdList.forEach(a -> {
             try {
                 List<RecipeInfoDTO> list = hisRecipeManager.queryRemindRecipe(a);
-                if (CollectionUtils.isEmpty(list)) {
-                    return;
+                if (CollectionUtils.isNotEmpty(list)) {
+                    drugManager.remindPatient(list);
                 }
-                drugManager.remindPatient(list);
             } catch (Exception e) {
                 logger.info("DrugBusinessService queryRemindRecipe organId= {}", a, e);
             }
