@@ -588,7 +588,17 @@ public class HisRecipeManager extends BaseManager {
      * 定时 获取用药提醒的线下处方
      */
     public List<RecipeInfoDTO> queryRemindRecipe(Integer organId) {
-        List<RecipeInfoDTO> recipeInfoDTO = offlineRecipeClient.queryRemindRecipe(organId);
-        return recipeInfoDTO;
+        List<RecipeInfoDTO> recipeInfoList = offlineRecipeClient.queryRemindRecipe(organId);
+        if (CollectionUtils.isEmpty(recipeInfoList)) {
+            return null;
+        }
+        recipeInfoList.forEach(a -> {
+            List<PatientDTO> patientList = patientClient.patientByIdCard(a.getPatientBean());
+            if (CollectionUtils.isEmpty(patientList)) {
+                return;
+            }
+            
+        });
+        return recipeInfoList;
     }
 }

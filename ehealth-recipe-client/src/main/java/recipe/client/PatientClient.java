@@ -2,10 +2,8 @@ package recipe.client;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
-import com.google.inject.internal.cglib.core.$Constants;
 import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
-import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.bus.op.service.IUsePathwaysService;
@@ -282,9 +280,25 @@ public class PatientClient extends BaseClient {
         return null;
     }
 
-    public List<HealthCardDTO> queryCardsByParam(Integer organId,String mpiId,List<String> cardTypes) throws Exception {
-        logger.info("PatientClient queryCardsByParam organId:{},mpiId:{},cardTypes:{}", JSONUtils.toString(organId),mpiId,JSONUtils.toString(cardTypes));
-        return healthCardService.queryCardsByParam(organId,mpiId,cardTypes);
+    public List<HealthCardDTO> queryCardsByParam(Integer organId, String mpiId, List<String> cardTypes) throws Exception {
+        logger.info("PatientClient queryCardsByParam organId:{},mpiId:{},cardTypes:{}", JSONUtils.toString(organId), mpiId, JSONUtils.toString(cardTypes));
+        return healthCardService.queryCardsByParam(organId, mpiId, cardTypes);
+    }
+
+    public List<com.ngari.patient.dto.PatientDTO> patientByIdCard(PatientDTO patientDTO) {
+        if (null == patientDTO) {
+            return null;
+        }
+        String idCard = patientDTO.getIdcard();
+        if (StringUtils.isEmpty(idCard)) {
+            return null;
+        }
+        //数据转换
+        List<com.ngari.patient.dto.PatientDTO> patientList = patientService.findByIdCard(idCard);
+        if (CollectionUtils.isEmpty(patientList)) {
+            return null;
+        }
+        return patientList;
     }
 
     /**

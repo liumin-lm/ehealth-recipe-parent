@@ -69,7 +69,7 @@ public class BusMsgConsumer {
          */
         subscriber.attach(OnsConfig.emrRecipe, "emrDeleted_recipe", new MqEmrRecipeServer());
 
-        subscriber.attach(OnsConfig.revisitTraceTopic, "revisitStatusNotifyTag", new MqRevisitRecipeServer());
+        subscriber.attach(OnsConfig.revisitStatusNotify, "revisitStatusNotifyTag", new MqRevisitRecipeServer());
         /**
          * 接收处方失效延迟消息
          */

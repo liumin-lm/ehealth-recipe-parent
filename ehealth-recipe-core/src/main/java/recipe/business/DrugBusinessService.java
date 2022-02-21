@@ -10,6 +10,7 @@ import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import com.ngari.recipe.recipe.service.IDrugEntrustService;
 import com.ngari.recipe.vo.SearchDrugReqVO;
 import ctd.util.JSONUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
@@ -125,6 +126,9 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         organIdList.forEach(a -> {
             try {
                 List<RecipeInfoDTO> list = hisRecipeManager.queryRemindRecipe(a);
+                if (CollectionUtils.isEmpty(list)) {
+                    return;
+                }
                 drugManager.remindPatient(list);
             } catch (Exception e) {
                 logger.info("DrugBusinessService queryRemindRecipe organId= {}", a, e);

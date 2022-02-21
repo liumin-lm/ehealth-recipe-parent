@@ -25,6 +25,12 @@ public class OnsConfig {
 
     public static String revisitTraceTopic;
 
+    public static String revisitStatusNotify;
+
+
+    public void setRevisitStatusNotify(String revisitStatusNotify) {
+        OnsConfig.revisitStatusNotify = revisitStatusNotify;
+    }
 
     public void setRevisitTraceTopic(String revisitTraceTopic) {
         OnsConfig.revisitTraceTopic = revisitTraceTopic;
