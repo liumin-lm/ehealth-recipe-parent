@@ -15,6 +15,7 @@ import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutRecipeDetailDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
+import com.ngari.recipe.recipe.constant.RecipecCheckStatusConstant;
 import com.ngari.recipe.recipe.model.PatientInfoDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -367,7 +368,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public Boolean confirmAgain(Integer recipeId) {
-        stateManager.updateAuditState(recipeId, RecipeAuditStateEnum.FAIL);
+        Recipe updateRecipe = new Recipe();
+        updateRecipe.setRecipeId(recipeId);
+        updateRecipe.setAuditState(RecipeAuditStateEnum.FAIL.getType());
+        updateRecipe.setCheckStatus(RecipecCheckStatusConstant.Check_Normal);
+        recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
         return stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
     }
 
