@@ -435,7 +435,6 @@ public class OfflineRecipeClient extends BaseClient {
                 recipeInfoDTO.setRecipe(ObjectCopyUtils.convert(a.getRecipeBean(), Recipe.class));
                 recipeInfoDTO.setRecipeDetails(ObjectCopyUtils.convert(a.getRecipeDetails(), Recipedetail.class));
                 recipeInfoDTO.setPatientBean(ObjectCopyUtils.convert(a.getPatientDTO(), com.ngari.recipe.dto.PatientDTO.class));
-                recipeInfoDTO.getPatientBean().setIdcard(a.getPatientDTO().getIdcard());
                 recipeInfoList.add(recipeInfoDTO);
             });
         } catch (Exception e) {
