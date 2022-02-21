@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
+import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.bus.op.service.IUsePathwaysService;
@@ -332,8 +333,17 @@ public class PatientClient extends BaseClient {
                     medicineRemindTO.setOrganId(recipeInfoDTO.getRecipe().getClinicOrgan());
                     medicineRemindTO.setMpiId(patient.getMpiId());
                     medicineRemindTO.setExplan("用法用量");
-                    String explan = "用法用量";
-                    medicineRemindTO.setExplan(explan);
+                    StringBuilder explan = new StringBuilder("用法用量");
+                    try {
+                        UsePathwaysDTO usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndPlatformKey(recipeInfoDTO.getRecipe().getClinicOrgan(), recipedetail.getUsePathways());
+                        if (null != usePathwaysDTO) {
+                            explan.append(usePathwaysDTO.getRelatedPlatformText()).append(" ");
+                        }
+                    } catch (Exception e) {
+                        logger.error("PatientClient remindPatientTakeMedicine error", e);
+                    }
+                    explan.append(recipedetail.getUseDose()).append(recipedetail.getUseDoseUnit());
+                    medicineRemindTO.setExplan(explan.toString());
                     medicineRemindTO.setNum(recipedetail.getUseDays());
                     medicineRemindTO.setUnit(0);
                     medicineRemindTO.setEvery(0);
