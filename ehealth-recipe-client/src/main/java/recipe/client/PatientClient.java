@@ -310,6 +310,7 @@ public class PatientClient extends BaseClient {
     public Boolean remindPatientTakeMedicine(List<RecipeInfoDTO> recipeInfoDTOList) {
         logger.info("PatientClient remindPatientTakeMedicine recipeInfoDTOList:{}.", JSONUtils.toString(recipeInfoDTOList));
         List<MedicineRemindTO> medicineRemindTOList = new ArrayList<>();
+
         for (RecipeInfoDTO recipeInfoDTO : recipeInfoDTOList) {
             PatientDTO patientDTO = recipeInfoDTO.getPatientBean();
             if (null == patientDTO) {
@@ -320,10 +321,9 @@ public class PatientClient extends BaseClient {
                 continue;
             }
             List<Recipedetail> recipeDetails = recipeInfoDTO.getRecipeDetails();
-            for (Recipedetail recipedetail : recipeDetails) {
-                //数据转换
-                List<com.ngari.patient.dto.PatientDTO> patientDTOList = patientService.findByIdCard(idCard);
-                for (com.ngari.patient.dto.PatientDTO patient : patientDTOList) {
+            List<com.ngari.patient.dto.PatientDTO> patientDTOList = patientService.findByIdCard(idCard);
+            for (com.ngari.patient.dto.PatientDTO patient : patientDTOList) {
+                for (Recipedetail recipedetail : recipeDetails) {
                     MedicineRemindTO medicineRemindTO = new MedicineRemindTO();
                     medicineRemindTO.setCode(recipedetail.getDrugCode());
                     medicineRemindTO.setName(recipedetail.getDrugName());
@@ -334,12 +334,37 @@ public class PatientClient extends BaseClient {
                     medicineRemindTO.setNum(recipedetail.getUseDays());
                     medicineRemindTO.setUnit(0);
                     medicineRemindTO.setEvery(0);
-
+                    medicineRemindTO.setDayTime(getDayTime(recipedetail.getUsingRate()));
                     medicineRemindTOList.add(medicineRemindTO);
                 }
             }
         }
+        logger.info("PatientClient remindPatientTakeMedicine medicineRemindTOList:{}.", JSON.toJSONString(medicineRemindTOList));
         medicineRemindService.createMedicineRemind(medicineRemindTOList);
         return true;
+    }
+
+    /**
+     * 获取每天提醒时间点
+     * @param useRate 用药频率
+     * @return 提醒时间点
+     */
+    private String getDayTime(String useRate){
+        String result;
+        switch (useRate) {
+            case "bid":
+                result = "[8,18]";
+                break;
+            case "tid":
+                result = "[8,12,18]";
+                break;
+            case "qn":
+                result = "[18]";
+                break;
+            default:
+                result = "[8]";
+                break;
+        }
+        return result;
     }
 }
