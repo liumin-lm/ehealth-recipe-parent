@@ -16,7 +16,6 @@ import java.util.List;
  */
 @Getter
 @Setter
-@Schema
 public class RecipeInfoVO {
     /**
      * 处方信息
