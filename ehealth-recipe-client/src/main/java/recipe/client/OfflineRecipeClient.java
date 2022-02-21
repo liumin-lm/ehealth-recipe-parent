@@ -34,10 +34,7 @@ import recipe.constant.ErrorCode;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.DateConversion;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -419,10 +416,19 @@ public class OfflineRecipeClient extends BaseClient {
     public List<RecipeInfoDTO> queryRemindRecipe(Integer organId) {
         RemindRecipeDTO remindRecipeDTO = new RemindRecipeDTO();
         remindRecipeDTO.setOrganId(organId);
+        remindRecipeDTO.setLimit(5000);
+        remindRecipeDTO.setStart(1);
+        Calendar calendar = Calendar.getInstance();
+        calendar.add(Calendar.DATE, -1);
+        Date sTime = DateConversion.firstSecondsOfDay(calendar.getTime());
+        remindRecipeDTO.setStartTime(sTime);
+        Date eTime = DateConversion.lastSecondsOfDay(calendar.getTime());
+        remindRecipeDTO.setEndTime(eTime);
         HisResponseTO<List<com.ngari.platform.recipe.mode.RecipeDTO>> hisResponse = recipeHisService.queryRemindRecipe(remindRecipeDTO);
         List<RecipeInfoDTO> recipeInfoList = new ArrayList<>();
         try {
             List<com.ngari.platform.recipe.mode.RecipeDTO> hisResponseData = getResponse(hisResponse);
+            logger.info("OfflineRecipeClient queryRemindRecipe hisResponseData  = {}", hisResponseData.size());
             hisResponseData.forEach(a -> {
                 RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
                 recipeInfoDTO.setRecipe(ObjectCopyUtils.convert(a.getRecipeBean(), Recipe.class));

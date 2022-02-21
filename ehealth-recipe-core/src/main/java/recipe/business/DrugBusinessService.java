@@ -118,7 +118,13 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     @Override
     public void queryRemindRecipe() {
         List<Integer> organIdList = configurationClient.organIdList("remindPatientTakeMedicineFlag", "true");
-        organIdList.forEach(a -> drugManager.queryRemindRecipe(a));
+        organIdList.forEach(a -> {
+            try {
+                drugManager.queryRemindRecipe(a);
+            } catch (Exception e) {
+                logger.info("DrugBusinessService queryRemindRecipe organId= {}", a, e);
+            }
+        });
     }
 
 }
