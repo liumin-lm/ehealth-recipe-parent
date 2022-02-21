@@ -8,6 +8,7 @@ import com.ngari.recipe.dto.RecipeTherapyOpQueryDTO;
 import com.ngari.recipe.recipe.model.*;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,6 +39,7 @@ public class TherapyRecipeGMAtop extends BaseAtop {
     @RpcService
     @LogRecord
     public QueryResult<RecipeTherapyOpVO> findTherapyByInfo(RecipeTherapyOpQueryVO recipeTherapyOpQueryVO) {
+        logger.info("TherapyRecipeGMAtop findTherapyByInfo recipeTherapyOpQueryVO={}", JSONUtils.toString(recipeTherapyOpQueryVO));
         validateAtop(recipeTherapyOpQueryVO);
         try {
             RecipeTherapyOpQueryDTO recipeTherapyOpQueryDTO = ObjectCopyUtils.convert(recipeTherapyOpQueryVO, RecipeTherapyOpQueryDTO.class);
