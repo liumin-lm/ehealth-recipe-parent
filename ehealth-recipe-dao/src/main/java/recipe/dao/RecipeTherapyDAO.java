@@ -201,7 +201,7 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
         if(recipeTherapyOpQueryVO.getStatus() != null ){
             hql.append(" and cr.status =").append(recipeTherapyOpQueryVO.getStatus());
         }
-        if(StringUtils.isNotEmpty(recipeTherapyOpQueryVO.getDoctorInfoSearch())){
+        if(StringUtils.isNotEmpty(recipeTherapyOpQueryVO.getMpiId())){
             hql.append(" and r.mpiId =").append(recipeTherapyOpQueryVO.getMpiId());
         }
         if(StringUtils.isNotEmpty(recipeTherapyOpQueryVO.getDoctorInfoSearch())){
