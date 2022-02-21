@@ -29,7 +29,7 @@ public class RecipeTherapyOpQueryDTO implements Serializable {
     private String doctorInfoSearch;
 
     @ItemProperty(alias = "主索引（患者编号）")
-    private String mpiId;
+    private String mpiid;
 
     @ItemProperty(alias = "状态")
     private Integer status;
