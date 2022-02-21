@@ -345,7 +345,7 @@ public class PatientClient extends BaseClient {
                     explan.append(recipedetail.getUseDose()).append(recipedetail.getUseDoseUnit());
                     medicineRemindTO.setExplan(explan.toString());
                     medicineRemindTO.setNum(recipedetail.getUseDays());
-                    medicineRemindTO.setUnit(0);
+                    medicineRemindTO.setUnit(1);
                     medicineRemindTO.setEvery(0);
                     medicineRemindTO.setDayTime(getDayTime(recipedetail.getUsingRate()));
                     medicineRemindTOList.add(medicineRemindTO);
