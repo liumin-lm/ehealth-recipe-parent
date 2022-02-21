@@ -325,6 +325,7 @@ public class PatientClient extends BaseClient {
                 }
             }
         }
+        logger.info("PatientClient remindPatientTakeMedicine medicineRemindTOList:{}.", JSON.toJSONString(medicineRemindTOList));
         medicineRemindService.createMedicineRemind(medicineRemindTOList);
         return true;
     }
