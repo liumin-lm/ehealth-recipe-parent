@@ -202,7 +202,8 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
                     recipeTherapyOpDTO.setRecipeId(item.getRecipeId());
                     recipeTherapyOpDTO.setRecipeCode(item.getRecipeCode());
                     recipeTherapyOpDTO.setStatus(item.getStatus());
-                    recipeTherapyOpDTO.setCreateTime(item.getCreateTime());
+                    String createTime = item.getCreateTime().replace(".0", "");
+                    recipeTherapyOpDTO.setCreateTime(createTime);
                     recipeTherapyOpDTO.setAppointDepartName(item.getAppointDepartName());
                     recipeTherapyOpDTO.setPatientName(item.getPatientName());
                     recipeTherapyOpDTO.setDoctorName(item.getDoctorName());
