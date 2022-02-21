@@ -2293,13 +2293,13 @@ public class RecipeService extends RecipeBaseService {
             return;
         }
         LOGGER.info("afterCheckNotPassYs recipeId= {}", recipe.getRecipeId());
+        stateManager.updateRecipeState(recipe.getRecipeId(),RecipeStateEnum.PROCESS_STATE_DELETED, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         boolean effective = orderDAO.isEffectiveOrder(recipe.getOrderCode());
         //是否是有效订单
         if (!effective) {
             return;
         }
-        stateManager.updateRecipeState(recipe.getRecipeId(),RecipeStateEnum.PROCESS_STATE_DELETED, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         //相应订单处理
         orderService.cancelOrderByRecipeId(recipe.getRecipeId(), OrderStatusConstant.CANCEL_NOT_PASS, false);
