@@ -64,6 +64,7 @@ import recipe.client.IConfigurationClient;
 import recipe.client.RevisitClient;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.DepartManager;
@@ -141,7 +142,6 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
     @RpcService
     @LogRecord
     public ConfirmOrder obtainConfirmOrder(String busType, Integer busId, Map<String, String> extInfo) {
-        log.info("RecipeBusPayService.obtainConfirmOrder busType:{}, busId:{},extInfo={}", busType,busId,JSONObject.toJSONString(extInfo));
         //先判断处方是否已创建订单
         RecipeOrderBean order1 = null;
         ObtainConfirmOrderObjectResNoDS order = null;
@@ -178,7 +178,6 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             log.info("RecipeBusPayService.obtainConfirmOrder order is null. busId={}", busId);
             return null;
         }
-        extInfo.put("depId", order.getEnterpriseId().toString());
         //获取处方扩展信息
         if (StringUtils.isNotEmpty(order.getRecipeIdList())) {
             List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
@@ -358,13 +357,15 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
 
             // 到院取药是否支持线上支付
             Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
-            OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), depId, giveMode);
-            Integer takeOneselfPayment = organDrugsSaleConfig.getTakeOneselfPayment();
-            if (new Integer(1).equals(takeOneselfPayment)) {
-                map.put("supportToHosPayFlag", "1");
-                map.put("payTip", "");
-            } else {
-                map.put("supportToHosPayFlag", "0");
+            if(GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(giveMode)) {
+                OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId(), giveMode);
+                Integer takeOneselfPayment = organDrugsSaleConfig.getTakeOneselfPayment();
+                if (new Integer(1).equals(takeOneselfPayment)) {
+                    map.put("supportToHosPayFlag", "1");
+                    map.put("payTip", "");
+                } else {
+                    map.put("supportToHosPayFlag", "0");
+                }
             }
             Boolean toSendStationFlag = configurationClient.getValueBooleanCatch(organId, "toSendStationFlag", false);
             if ((PAY_MODE_SEND_HOME.equals(payMode) || PAY_MODE_ONLINE.equals(payMode)) && toSendStationFlag) {

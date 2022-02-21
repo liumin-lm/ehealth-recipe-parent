@@ -1,6 +1,7 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
@@ -349,9 +350,8 @@ public class DrugManager extends BaseManager {
     /**
      * 定时 获取用药提醒的线下处方
      */
-    public List<RecipeInfoDTO> queryRemindRecipe(Integer organId) {
-        List<RecipeInfoDTO> recipeInfoDTO = offlineRecipeClient.queryRemindRecipe(organId);
-        patientClient.remindPatientTakeMedicine(recipeInfoDTO);
-        return recipeInfoDTO;
+    public void remindPatient(List<RecipeInfoDTO> list) {
+        List<List<RecipeInfoDTO>> recipeInfoList = Lists.partition(list, 500);
+        recipeInfoList.forEach(a -> patientClient.remindPatientTakeMedicine(a));
     }
 }

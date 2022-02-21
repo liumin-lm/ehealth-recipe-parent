@@ -45,7 +45,6 @@ public class RecipeOrderPatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
-
     public Map<String, List<RecipeFeeDTO>> findRecipeOrderDetailFee(String orderCode) {
         logger.info("RecipeOrderAtop findRecipeOrderDetailFee orderCode = {}", orderCode);
         if (StringUtils.isEmpty(orderCode)) {
