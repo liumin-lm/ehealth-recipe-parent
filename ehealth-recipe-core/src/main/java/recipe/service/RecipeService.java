@@ -3655,7 +3655,7 @@ public class RecipeService extends RecipeBaseService {
             if (CollectionUtils.isNotEmpty(recipeList)) {
                 RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
                 RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
-                StateManager stateManager = ApplicationUtils.getRecipeService(StateManager.class);
+                StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
                 RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
                 RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
                 StringBuilder memo = new StringBuilder();
