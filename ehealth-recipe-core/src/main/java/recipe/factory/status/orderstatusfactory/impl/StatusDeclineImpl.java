@@ -24,9 +24,9 @@ public class StatusDeclineImpl extends AbstractRecipeOrderStatus {
     @Override
     public Recipe updateStatus(UpdateOrderStatusVO orderStatus, RecipeOrder recipeOrder, Recipe recipe) {
         recipe.setStatus(RecipeStatusEnum.RECIPE_STATUS_DECLINE.getType());
-        stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_REFUSE_ORDER);
-        stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_REFUSE_ORDER);
-
+        recipe.setProcessState(RecipeStateEnum.PROCESS_STATE_CANCELLATION.getType());
+        recipe.setSubState(RecipeStateEnum.SUB_CANCELLATION_REFUSE_ORDER.getType());
+        stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_REFUSE_ORDER);
         return recipe;
     }
 }
