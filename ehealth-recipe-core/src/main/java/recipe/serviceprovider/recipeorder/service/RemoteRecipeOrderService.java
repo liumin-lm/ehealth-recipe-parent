@@ -16,7 +16,6 @@ import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
-import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -40,7 +39,6 @@ import recipe.dao.bean.BillRecipeDetailBean;
 import recipe.dao.bean.RecipeBillBean;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.enumerate.status.OrderStateEnum;
-import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.type.PayBusTypeEnum;
 import recipe.manager.StateManager;
 import recipe.service.PayModeGiveModeUtil;
@@ -297,8 +295,8 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIdList);
                 recipes.forEach(recipe1 -> {
                     recipeDAO.updateRecipeInfoByRecipeId(recipe1.getRecipeId(), RecipeStatusConstant.REVOKE, ImmutableMap.of("payFlag", 3));
-                    StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
-                    stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_DOCTOR);
+                    //StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+                    //stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_DOCTOR);
                     LOGGER.info("退款完成修改处方状态：{}", recipe1.getRecipeId());
                 });
                 //订单状态修改
