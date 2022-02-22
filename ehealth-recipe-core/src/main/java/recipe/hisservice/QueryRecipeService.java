@@ -739,7 +739,7 @@ public class QueryRecipeService implements IQueryRecipeService {
         }
         Integer drugsEnterpriseId = drugsEnterprises.get(0).getId();
         Date now = DateTime.now().toDate();
-
+        OrganDrugListService organDrugListService = AppContextHolder.getBean("organDrugListService", OrganDrugListService.class);
         switch (operationCode) {
             //新增
             case 1:
@@ -767,7 +767,11 @@ public class QueryRecipeService implements IQueryRecipeService {
                     organDrugListAdd.setLastModify(now);
                     LOGGER.info("updateOrSaveOrganDrug 更新机构药品信息{}", JSONUtils.toString(organDrugListAdd));
                     OrganDrugList nowOrganDrugList = organDrugListDAO.update(organDrugListAdd);
-
+                    //同步药品到监管备案
+                    RecipeBusiThreadPool.submit(() -> {
+                        organDrugListService.uploadDrugToRegulation(nowOrganDrugList);
+                        return null;
+                    });
                     SaleDrugList nowSaleDrugList = saleDrugLists.get(0);
                     nowSaleDrugList.setStatus(1);
                     nowSaleDrugList.setDrugId(organDrugChangeBean.getDrugId());
@@ -789,7 +793,6 @@ public class QueryRecipeService implements IQueryRecipeService {
                     organDrugList.setApplyBusiness("1");
                     LOGGER.info("updateOrSaveOrganDrug 添加机构药品信息{}", JSONUtils.toString(organDrugList));
                     OrganDrugList nowOrganDrugList = organDrugListDAO.save(organDrugList);
-                    OrganDrugListService organDrugListService = AppContextHolder.getBean("organDrugListService", OrganDrugListService.class);
                     //同步药品到监管备案
                     RecipeBusiThreadPool.submit(() -> {
                         organDrugListService.uploadDrugToRegulation(organDrugList);
@@ -843,7 +846,11 @@ public class QueryRecipeService implements IQueryRecipeService {
                 }
                 LOGGER.info("updateOrSaveOrganDrug 更新机构药品信息{}", JSONUtils.toString(organDrugListChange));
                 OrganDrugList nowOrganDrugList = organDrugListDAO.update(organDrugListChange);
-
+                //同步药品到监管备案
+                RecipeBusiThreadPool.submit(() -> {
+                    organDrugListService.uploadDrugToRegulation(nowOrganDrugList);
+                    return null;
+                });
                 SaleDrugList nowSaleDrugList = saleDrugLists.get(0);
                 nowSaleDrugList.setStatus(1);
                 nowSaleDrugList.setDrugId(organDrugChangeBean.getDrugId());
@@ -877,7 +884,12 @@ public class QueryRecipeService implements IQueryRecipeService {
                 organDrugListDown.setStatus(0);
                 organDrugListDown.setLastModify(now);
                 LOGGER.info("updateOrSaveOrganDrug 停用机构药品信息{}", JSONUtils.toString(organDrugListDown));
-                organDrugListDAO.update(organDrugListDown);
+                OrganDrugList update = organDrugListDAO.update(organDrugListDown);
+                //同步药品到监管备案
+                RecipeBusiThreadPool.submit(() -> {
+                    organDrugListService.uploadDrugToRegulation(update);
+                    return null;
+                });
 
                 SaleDrugList saleDrugListDown = saleDrugListsDown.get(0);
                 saleDrugListDown.setLastModify(now);
