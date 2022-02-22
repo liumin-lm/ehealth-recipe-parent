@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
-import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.bus.op.service.IUsePathwaysService;
@@ -30,7 +29,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
-import recipe.util.LocalStringUtil;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -333,13 +331,8 @@ public class PatientClient extends BaseClient {
                     medicineRemindTO.setOrganId(recipeInfoDTO.getRecipe().getClinicOrgan());
                     medicineRemindTO.setMpiId(patient.getMpiId());
                     StringBuilder explan = new StringBuilder("");
-                    try {
-                        UsePathwaysDTO usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndPlatformKey(recipeInfoDTO.getRecipe().getClinicOrgan(), recipedetail.getUsePathways());
-                        if (null != usePathwaysDTO) {
-                            explan.append(usePathwaysDTO.getRelatedPlatformText()).append(" ");
-                        }
-                    } catch (Exception e) {
-                        logger.error("PatientClient remindPatientTakeMedicine error", e);
+                    if (StringUtils.isNotEmpty(recipedetail.getUsePathways())) {
+                        explan.append(recipedetail.getUsePathways()).append(" ");
                     }
                     explan.append(recipedetail.getUseDose()).append(recipedetail.getUseDoseUnit());
                     medicineRemindTO.setExplan(explan.toString());
