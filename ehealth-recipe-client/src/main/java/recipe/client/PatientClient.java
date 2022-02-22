@@ -332,8 +332,7 @@ public class PatientClient extends BaseClient {
                     medicineRemindTO.setBusType("recipe");
                     medicineRemindTO.setOrganId(recipeInfoDTO.getRecipe().getClinicOrgan());
                     medicineRemindTO.setMpiId(patient.getMpiId());
-                    medicineRemindTO.setExplan("用法用量");
-                    StringBuilder explan = new StringBuilder("用法用量");
+                    StringBuilder explan = new StringBuilder("");
                     try {
                         UsePathwaysDTO usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndPlatformKey(recipeInfoDTO.getRecipe().getClinicOrgan(), recipedetail.getUsePathways());
                         if (null != usePathwaysDTO) {
