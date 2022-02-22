@@ -123,6 +123,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private StateManager stateManager;
     @Resource
     private AuditModeContext auditModeContext;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
     
     /**
      * 获取线下门诊处方诊断信息
@@ -410,6 +412,14 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public Boolean updateAuditState(Integer recipeId, RecipeAuditStateEnum recipeAuditStateEnum) {
         return stateManager.updateAuditState(recipeId, recipeAuditStateEnum);
+    }
+
+    @Override
+    public RecipeBean getByRecipeCodeAndRegisterIdAndOrganId(String recipeCode, String registerId, int organId) {
+        if (StringUtils.isNotEmpty(registerId)) {
+            //根据挂号序号查询处方列表
+        }
+        return null;
     }
 
 
