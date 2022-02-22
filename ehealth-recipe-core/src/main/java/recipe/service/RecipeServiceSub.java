@@ -252,9 +252,6 @@ public class RecipeServiceSub {
                         recipeExtend.setCardNo(revisitExDTO.getCardId());
                         recipeExtend.setCardType(revisitExDTO.getCardType());
                         recipeExtend.setRegisterID(revisitExDTO.getRegisterNo());
-                        if(new Double(0).equals(revisitExDTO.getWeight())){
-                            recipeExtend.setWeight(null);
-                        }
                         recipeExtend.setWeight(revisitExDTO.getWeight());
                     }
                 } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipeBean.getBussSource())) {
@@ -264,9 +261,6 @@ public class RecipeServiceSub {
                         recipeExtend.setCardNo(consultExDTO.getCardId());
                         recipeExtend.setCardType(consultExDTO.getCardType());
                         recipeExtend.setRegisterID(consultExDTO.getRegisterNo());
-                        if(new Double(0).equals(consultExDTO.getWeight())){
-                            recipeExtend.setWeight(null);
-                        }
                         recipeExtend.setWeight(consultExDTO.getWeight());
                     }
                 }
