@@ -106,9 +106,12 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      */
     private static final Integer CHECK_RECIPE = 1;
 
-    @Autowired
-    private GroupRecipeManager groupRecipeManager;
+//    @Autowired
+//    private GroupRecipeManager groupRecipeManager;
+
     private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+
+    private GroupRecipeManager groupRecipeManager = ApplicationUtils.getBaseService(GroupRecipeManager.class);
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
