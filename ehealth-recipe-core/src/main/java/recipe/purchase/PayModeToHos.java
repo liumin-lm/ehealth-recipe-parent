@@ -37,9 +37,7 @@ import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static ctd.persistence.DAOFactory.getDAO;
@@ -343,7 +341,7 @@ public class PayModeToHos implements IPurchaseService {
             position.setRange(takeMedicineByToHos.getRange());
             depDetailBean.setPosition(position);
             return depDetailBean;
-        }).collect(Collectors.toList());
+        }).sorted(Comparator.comparing(DepDetailBean::getDistance)).collect(Collectors.toList());
     }
 
     /**

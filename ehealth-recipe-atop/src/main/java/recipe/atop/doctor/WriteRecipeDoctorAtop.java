@@ -37,7 +37,7 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     }
 
     /**
-     * 医生二次确认药师审核结果
+     * 医生二次确认药师审核结果-不通过
      *
      * @param recipeId 处方id
      * @return
