@@ -3,10 +3,7 @@ package recipe.util;
 import org.apache.commons.lang3.StringUtils;
 import recipe.constant.BussTypeConstant;
 
-import java.util.Calendar;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Random;
+import java.util.*;
 import java.util.regex.Pattern;
 
 /**
@@ -99,5 +96,14 @@ public class LocalStringUtil {
         }
 
         return obj.toString();
+    }
+
+    public static boolean hasOrgan(String organ, String args){
+        if (StringUtils.isNotEmpty(args)) {
+            String[] organs = args.split(",");
+            List<String> organList = Arrays.asList(organs);
+            return organList.contains(organ);
+        }
+        return false;
     }
 }
