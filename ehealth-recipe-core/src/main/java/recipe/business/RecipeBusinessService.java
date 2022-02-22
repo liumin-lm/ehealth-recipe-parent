@@ -31,7 +31,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.ApplicationUtils;
 import recipe.aop.LogRecord;
+import recipe.audit.auditmode.AuditModeContext;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
@@ -40,8 +42,10 @@ import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
 import recipe.constant.ErrorCode;
+import recipe.constant.RecipeStatusConstant;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.*;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -51,6 +55,8 @@ import recipe.manager.EmrRecipeManager;
 import recipe.manager.HisRecipeManager;
 import recipe.manager.RecipeManager;
 import recipe.manager.StateManager;
+import recipe.service.RecipeHisService;
+import recipe.service.RecipeMsgService;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.MapValueUtil;
@@ -79,6 +85,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
      */
     private static final Integer DOC_ACTION_TYPE_INFO = 1;
     private static final Integer DOC_ACTION_TYPE_COPY = 2;
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
     @Autowired
     private RecipeDAO recipeDAO;
     @Autowired
@@ -111,7 +119,9 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private EmrRecipeManager emrRecipeManager;
     @Autowired
     private StateManager stateManager;
-
+    @Resource
+    private AuditModeContext auditModeContext;
+    
     /**
      * 获取线下门诊处方诊断信息
      *
@@ -366,13 +376,29 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return medicalDetailVO;
     }
 
+
     @Override
     public Boolean confirmAgain(Integer recipeId) {
+        Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
+        //添加发送不通过消息
+        RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
+        //HIS消息发送
+        //审核不通过 往his更新状态（已取消）
+        RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
+        hisService.recipeStatusUpdateWithOrganId(recipeId, null, null);
+        //根据审方模式改变--审核未通过处理
+        auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckNotPassYs(dbRecipe);
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipeId);
         updateRecipe.setAuditState(RecipeAuditStateEnum.FAIL.getType());
         updateRecipe.setCheckStatus(RecipecCheckStatusConstant.Check_Normal);
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+        if (StringUtils.isNotEmpty(dbRecipe.getOrderCode())) {
+            RecipeOrder order = recipeOrderDAO.getByOrderCode(dbRecipe.getOrderCode());
+            if (null != order) {
+                stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
+            }
+        }
         return stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
     }
 
