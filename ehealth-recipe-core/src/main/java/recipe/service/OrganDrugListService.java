@@ -624,8 +624,10 @@ public class OrganDrugListService implements IOrganDrugListService {
             drugCategoryReq.setPlatDrugCode(targetDrugId.toString());
         } else {
             String regulationDrugCode = organDrugList.getRegulationDrugCode();
-            //2 入驻 直接取平台药品ID 不用维护监管平台药品ID
-            if(StringUtils.isEmpty(regulationDrugCode)){
+            IHisServiceConfigService configService = AppContextHolder.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
+            Boolean regulationFlag = configService.getRegulationFlag();
+            //2 入驻 且监管调用 直接取平台药品ID 不用维护监管平台药品ID
+            if(StringUtils.isEmpty(regulationDrugCode)&&regulationFlag ){
                 drugCategoryReq.setPlatDrugCode(organDrugList.getDrugId().toString());
             }
             //3 自建  对应运营平台药品详情中的 监管平台药品ID*
