@@ -24,8 +24,6 @@ import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
 import com.ngari.recipe.recipe.model.GiveModeButtonBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
-import ctd.controller.exception.ControllerException;
-import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
@@ -38,7 +36,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
-import recipe.aop.LogInfo;
+import recipe.aop.LogRecord;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.client.DrugStockClient;
 import recipe.client.RevisitClient;
@@ -199,7 +197,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
 
 
     @RpcService
-    @LogInfo
+    @LogRecord
     public void uploadRecipePdfToHis(Integer recipeId) {
         enterpriseManager.uploadRecipePdfToHis(recipeId);
     }
@@ -947,7 +945,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
     }
 
     @RpcService
-    @LogInfo
+    @LogRecord
     public void updateAccessTokenByDep(DrugsEnterprise drugsEnterprise) {
         try {
             AccessDrugEnterpriseService service = getServiceByDep(drugsEnterprise);
