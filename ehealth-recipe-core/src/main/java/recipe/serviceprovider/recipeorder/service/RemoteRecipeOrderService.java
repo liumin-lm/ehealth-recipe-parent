@@ -308,7 +308,7 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
                 orderAttrMap.put("refundFlag", 1);
                 orderAttrMap.put("refundTime", new Date());
                 recipeOrderDAO.updateByOrdeCode(recipeOrder.getOrderCode(), orderAttrMap);
-                stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_USER);
+//                stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_USER);
 
                 LOGGER.info("退款完成修改订单状态：{}", recipe.getRecipeId());
 //                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.REVOKE, null);
