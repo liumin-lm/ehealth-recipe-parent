@@ -221,7 +221,7 @@ public class DrugStockClient extends BaseClient {
         DrugStockAmountDTO drugStockAmountDTO = new DrugStockAmountDTO();
         try {
             HisResponseTO<List<ScanDrugListBean>> response = recipeEnterpriseService.scanStockV1(scanRequestBean);
-            logger.error("DrugStockClient scanEnterpriseDrugStockV1 response ={} ", JSON.toJSONString(response));
+            logger.info("DrugStockClient scanEnterpriseDrugStockV1 response ={} ", JSON.toJSONString(response));
             List<ScanDrugListBean> list = getResponseCatch(response);
             if (CollectionUtils.isEmpty(list)) {
                 return null;

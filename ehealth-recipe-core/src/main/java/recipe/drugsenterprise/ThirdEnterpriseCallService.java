@@ -106,9 +106,12 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      */
     private static final Integer CHECK_RECIPE = 1;
 
-    @Autowired
-    private GroupRecipeManager groupRecipeManager;
+//    @Autowired
+//    private GroupRecipeManager groupRecipeManager;
+
     private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
+
+    private GroupRecipeManager groupRecipeManager = AppContextHolder.getBean("groupRecipeManager", GroupRecipeManager.class);
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
@@ -682,7 +685,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderAttrMap.put("cancelReason", MapValueUtil.getString(paramMap, "cancelReason"));
             orderAttrMap.put("effective", 0);
             RecipeResultBean result = orderService.updateOrderInfo(recipe.getOrderCode(), orderAttrMap, null);
-
+            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             if(Objects.nonNull(order)){
                 stateManager.updateOrderState(order.getOrderId(),OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
