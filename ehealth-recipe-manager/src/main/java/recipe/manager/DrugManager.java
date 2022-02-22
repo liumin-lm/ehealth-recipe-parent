@@ -350,10 +350,8 @@ public class DrugManager extends BaseManager {
     /**
      * 定时 获取用药提醒的线下处方
      */
-    public List<RecipeInfoDTO> queryRemindRecipe(Integer organId) {
-        List<RecipeInfoDTO> recipeInfoDTO = offlineRecipeClient.queryRemindRecipe(organId);
-        List<List<RecipeInfoDTO>> recipeInfoList = Lists.partition(recipeInfoDTO, 500);
+    public void remindPatient(List<RecipeInfoDTO> list) {
+        List<List<RecipeInfoDTO>> recipeInfoList = Lists.partition(list, 500);
         recipeInfoList.forEach(a -> patientClient.remindPatientTakeMedicine(a));
-        return recipeInfoDTO;
     }
 }

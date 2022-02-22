@@ -1,6 +1,9 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.Desensitizations;
+import ctd.schema.annotation.DesensitizationsType;
 import ctd.schema.annotation.ItemProperty;
+import ctd.schema.annotation.Schema;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -15,6 +18,7 @@ import java.util.List;
  */
 @Getter
 @Setter
+@Schema
 public class RecipeTherapyOpVO implements Serializable {
     private static final long serialVersionUID = -6990095333192024627L;
 
@@ -28,6 +32,7 @@ public class RecipeTherapyOpVO implements Serializable {
     private String patientName;
 
     @ItemProperty(alias = "患者电话")
+    @Desensitizations(type = DesensitizationsType.MOBILE)
     private String patientMobile;
 
     @ItemProperty(alias = "医生姓名")

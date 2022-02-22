@@ -106,12 +106,12 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      */
     private static final Integer CHECK_RECIPE = 1;
 
-    @Autowired
-    private GroupRecipeManager groupRecipeManager;
+//    @Autowired
+//    private GroupRecipeManager groupRecipeManager;
+
     private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
 
-    @Autowired
-    private StateManager stateManager;
+    private GroupRecipeManager groupRecipeManager = AppContextHolder.getBean("groupRecipeManager", GroupRecipeManager.class);
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
@@ -674,6 +674,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         }
         //更新处方信息
         Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.RECIPE_FAIL, attrMap);
+        StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
         stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
         if (rs) {
             //患者未取药
@@ -684,7 +685,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderAttrMap.put("cancelReason", MapValueUtil.getString(paramMap, "cancelReason"));
             orderAttrMap.put("effective", 0);
             RecipeResultBean result = orderService.updateOrderInfo(recipe.getOrderCode(), orderAttrMap, null);
-
+            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             if(Objects.nonNull(order)){
                 stateManager.updateOrderState(order.getOrderId(),OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
@@ -954,6 +955,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         } else {
             //患者未取药
             Boolean rs = recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.NO_DRUG, attrMap);
+            StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
             stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
             status = RecipeStatusConstant.NO_DRUG;
             if (rs) {

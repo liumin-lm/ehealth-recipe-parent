@@ -4,11 +4,13 @@ import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import com.ngari.recipe.recipe.service.IDrugEntrustService;
 import com.ngari.recipe.vo.SearchDrugReqVO;
 import ctd.util.JSONUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
@@ -17,6 +19,7 @@ import recipe.client.IConfigurationClient;
 import recipe.core.api.IDrugBusinessService;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.DrugManager;
+import recipe.manager.HisRecipeManager;
 import recipe.manager.OrganDrugListManager;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
@@ -40,6 +43,8 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     private OrganDrugListManager organDrugListManager;
     @Resource
     private DrugManager drugManager;
+    @Autowired
+    private HisRecipeManager hisRecipeManager;
     @Autowired
     private IDrugEntrustService drugEntrustService;
     @Autowired
@@ -120,7 +125,10 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         List<Integer> organIdList = configurationClient.organIdList("remindPatientTakeMedicineFlag", "true");
         organIdList.forEach(a -> {
             try {
-                drugManager.queryRemindRecipe(a);
+                List<RecipeInfoDTO> list = hisRecipeManager.queryRemindRecipe(a);
+                if (CollectionUtils.isNotEmpty(list)) {
+                    drugManager.remindPatient(list);
+                }
             } catch (Exception e) {
                 logger.info("DrugBusinessService queryRemindRecipe organId= {}", a, e);
             }

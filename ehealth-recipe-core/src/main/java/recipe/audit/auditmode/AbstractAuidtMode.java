@@ -16,11 +16,13 @@ import ctd.util.AppContextHolder;
 import eh.base.constant.BussTypeConstant;
 import eh.cdr.constant.RecipeStatusConstant;
 import eh.recipeaudit.api.IAuditMedicinesService;
+import eh.recipeaudit.api.ICheckScheduleService;
 import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.model.recipe.RecipeDTO;
 import eh.recipeaudit.model.recipe.RecipeDetailDTO;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import eh.wxpay.constant.PayConstant;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -234,8 +236,9 @@ public abstract class AbstractAuidtMode implements IAuditMode {
             Boolean invokeRecipeAnalysis = (Boolean) iConfigService.getConfiguration(organId, "InvokeRecipeAnalysis");
             Integer intellectJudicialFlag = (Integer) iConfigService.getConfiguration(organId, "intellectJudicialFlag");
             String autoRecipecheckLevel = (String) iConfigService.getConfiguration(organId, "autoRecipecheckLevel");
-            String defaultRecipecheckDoctor = (String) iConfigService.getConfiguration(organId, "defaultRecipecheckDoctor");
-            if (invokeRecipeAnalysis && intellectJudicialFlag == 1 && StringUtils.isNotEmpty(defaultRecipecheckDoctor) && StringUtils.isNotEmpty(autoRecipecheckLevel)) {
+            ICheckScheduleService iCheckScheduleService = AppContextHolder.getBean("recipeaudit.checkScheduleServiceImpl", ICheckScheduleService.class);
+            List<Integer> docIds = iCheckScheduleService.getDocIdInTime(organId);
+            if (invokeRecipeAnalysis && intellectJudicialFlag == 1 && CollectionUtils.isNotEmpty(docIds) && StringUtils.isNotEmpty(autoRecipecheckLevel)) {
                 String[] levels = autoRecipecheckLevel.split(",");
                 Integer minLevel = Integer.valueOf(levels[0]);
                 Integer maxLevel = Integer.valueOf(levels[1]);
@@ -264,8 +267,10 @@ public abstract class AbstractAuidtMode implements IAuditMode {
             IConfigurationCenterUtilsService iConfigService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
             Integer intellectJudicialFlag = (Integer) iConfigService.getConfiguration(organId, "intellectJudicialFlag");
             String autoRecipecheckLevel = (String) iConfigService.getConfiguration(organId, "autoRecipecheckLevel");
-            String defaultRecipecheckDoctor = (String) iConfigService.getConfiguration(organId, "defaultRecipecheckDoctor");
-            if (intellectJudicialFlag == 3 && StringUtils.isNotEmpty(defaultRecipecheckDoctor) && StringUtils.isNotEmpty(autoRecipecheckLevel)) {
+//            String defaultRecipecheckDoctor = (String) iConfigService.getConfiguration(organId, "defaultRecipecheckDoctor");
+            ICheckScheduleService iCheckScheduleService = AppContextHolder.getBean("recipeaudit.checkScheduleServiceImpl", ICheckScheduleService.class);
+            List<Integer> docIds = iCheckScheduleService.getDocIdInTime(organId);
+            if (intellectJudicialFlag == 3 && CollectionUtils.isNotEmpty(docIds) && StringUtils.isNotEmpty(autoRecipecheckLevel)) {
                 // 这个只是一个范围判断
                 return true;
             }

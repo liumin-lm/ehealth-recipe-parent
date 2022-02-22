@@ -9,6 +9,8 @@ import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
+import eh.entity.base.UsePathways;
+import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -582,5 +584,42 @@ public class HisRecipeManager extends BaseManager {
             return null;
         }
         return docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
+    }
+
+    /**
+     * 用药提醒的线下处方 存在患者的数据 转换药品为线上数据
+     */
+    public List<RecipeInfoDTO> queryRemindRecipe(Integer organId) {
+        List<RecipeInfoDTO> recipeInfoList = offlineRecipeClient.queryRemindRecipe(organId);
+        if (CollectionUtils.isEmpty(recipeInfoList)) {
+            return null;
+        }
+        Map<String, UsingRate> usingRateMap = drugClient.usingRateMapCode(organId);
+        Map<String, UsePathways> usePathwaysMap = drugClient.usePathwaysCodeMap(organId);
+        List<RecipeInfoDTO> recipeList = new LinkedList<>();
+        recipeInfoList.forEach(a -> {
+            //排除患者
+            List<PatientDTO> patientList = patientClient.patientByIdCard(a.getPatientBean());
+            if (CollectionUtils.isEmpty(patientList)) {
+                return;
+            }
+            //转换药品
+            List<Recipedetail> recipeDetails = a.getRecipeDetails();
+            if (CollectionUtils.isEmpty(recipeDetails)) {
+                return;
+            }
+            for (Recipedetail recipedetail : recipeDetails) {
+                UsingRate usingRate = usingRateMap.get(recipedetail.getOrganUsingRate());
+                if (null != usingRate) {
+                    recipedetail.setUsingRate(usingRate.getRelatedPlatformKey());
+                }
+                UsePathways usePathways = usePathwaysMap.get(recipedetail.getOrganUsePathways());
+                if (null != usePathways) {
+                    recipedetail.setUsePathways(usePathways.getRelatedPlatformKey());
+                }
+            }
+            recipeList.add(a);
+        });
+        return recipeList;
     }
 }

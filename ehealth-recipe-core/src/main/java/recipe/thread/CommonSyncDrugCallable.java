@@ -90,7 +90,7 @@ public class CommonSyncDrugCallable implements Callable<String> {
                     }
                 }
             } else {
-                logger.error("药企返回错误信息,message={}", MapValueUtil.getString(backMap, "message"));
+                logger.warn("药企返回错误信息,message={}", MapValueUtil.getString(backMap, "message"));
             }
         }
         logger.info("SyncDrugCallable end " + logInfo);

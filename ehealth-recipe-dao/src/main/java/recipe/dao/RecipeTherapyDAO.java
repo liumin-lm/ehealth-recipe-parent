@@ -201,12 +201,12 @@ public abstract class RecipeTherapyDAO extends HibernateSupportDelegateDAO<Recip
         if(recipeTherapyOpQueryVO.getStatus() != null ){
             hql.append(" and cr.status =").append(recipeTherapyOpQueryVO.getStatus());
         }
-        if(StringUtils.isNotEmpty(recipeTherapyOpQueryVO.getDoctorInfoSearch())){
-            hql.append(" and r.mpiId =").append(recipeTherapyOpQueryVO.getMpiId());
+        if(StringUtils.isNotEmpty(recipeTherapyOpQueryVO.getMpiid())){
+            hql.append(" and r.mpiId = '").append(recipeTherapyOpQueryVO.getMpiid()).append("'");
         }
         if(StringUtils.isNotEmpty(recipeTherapyOpQueryVO.getDoctorInfoSearch())){
-            hql.append(" and r.doctorName like ").append(recipeTherapyOpQueryVO.getDoctorInfoSearch()).append("%");
-            hql.append(" or r.appoint_depart_name like ").append(recipeTherapyOpQueryVO.getDoctorInfoSearch()).append("%");
+            hql.append(" and r.doctorName like '").append(recipeTherapyOpQueryVO.getDoctorInfoSearch()).append("%'");
+            hql.append(" or r.appoint_depart_name like '").append(recipeTherapyOpQueryVO.getDoctorInfoSearch()).append("%'");
         }
         return hql;
     }

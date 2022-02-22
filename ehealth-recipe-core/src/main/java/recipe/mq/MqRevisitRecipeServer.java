@@ -43,7 +43,7 @@ public class MqRevisitRecipeServer implements Observer<RevisitStatusNotifyDTO> {
         }
         StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
         recipeList.forEach(a -> {
-            if (a.getProcessState() < RecipeStateEnum.PROCESS_STATE_SUBMIT.getType()) {
+            if (a.getProcessState() <= RecipeStateEnum.PROCESS_STATE_SUBMIT.getType()) {
                 stateManager.updateRecipeState(a.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DELETED, RecipeStateEnum.SUB_DELETED_REVISIT_END);
             }
         });

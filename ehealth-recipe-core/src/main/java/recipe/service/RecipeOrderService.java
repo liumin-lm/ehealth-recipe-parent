@@ -73,10 +73,8 @@ import recipe.constant.*;
 import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.*;
-import recipe.enumerate.status.GiveModeEnum;
-import recipe.enumerate.status.OrderStateEnum;
-import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.*;
 import recipe.enumerate.type.*;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
@@ -175,6 +173,8 @@ public class RecipeOrderService extends RecipeBaseService {
     private RecipeParameterDao recipeParameterDao;
     @Autowired
     private OrderFeeManager orderFeeManager;
+    @Autowired
+    private StateManager stateManager;
 
     /**
      * 处方结算时创建临时订单
@@ -2724,6 +2724,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 resultBean = thirdEnterpriseCallService.finishRecipe(attrMap);
                 saveOrderInfo(recipeId, attrMap);
             } else if (RecipeStatusConstant.RECIPE_FAIL == status2) {
+                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
                 resultBean = thirdEnterpriseCallService.RecipeFall(attrMap);
             }
         } else if (3 == recipe.getGiveMode() && status2 != null) {
@@ -2731,6 +2732,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 attrMap.put("result", "1");
                 resultBean = thirdEnterpriseCallService.recordDrugStoreResult(attrMap);
             } else if (RecipeStatusConstant.RECIPE_FAIL == status2) {
+                stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
                 resultBean = thirdEnterpriseCallService.RecipeFall(attrMap);
             }
         }

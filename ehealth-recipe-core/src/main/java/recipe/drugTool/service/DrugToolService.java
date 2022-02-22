@@ -1485,7 +1485,18 @@ public class DrugToolService implements IDrugToolService {
                         organDrugList.setDrugForm(drugListMatch.getDrugForm());
                         organDrugList.setChemicalName(drugListMatch.getChemicalName());
                         organDrugList.setBaseDrug(drugListMatch.getBaseDrug());
-                        organDrugList.setRegulationDrugCode(drugListMatch.getRegulationDrugCode());
+                        if (ObjectUtils.isEmpty(drugListMatch.getRegulationDrugCode())){
+                            IHisServiceConfigService configService = AppContextHolder.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
+                            Boolean regulationFlag = configService.getRegulationFlag();
+                            if (regulationFlag){
+                                organDrugList.setRegulationDrugCode(organDrugList.getDrugId().toString());
+                            }else {
+                                organDrugList.setRegulationDrugCode(drugListMatch.getRegulationDrugCode());
+                            }
+                        }else {
+                            organDrugList.setRegulationDrugCode(drugListMatch.getRegulationDrugCode());
+                        }
+
                         organDrugList.setLicenseNumber(drugListMatch.getLicenseNumber());
                         organDrugList.setPharmacy(drugListMatch.getPharmacy());
                         organDrugList.setPackingMaterials(drugListMatch.getPackingMaterials());

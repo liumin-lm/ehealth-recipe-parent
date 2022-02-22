@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
+import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.common.mode.HisResponseTO;
@@ -610,28 +611,28 @@ public class OrganDrugListService implements IOrganDrugListService {
         drugCategoryReq.setOrganName(organDTO.getName());
         //如果存在 转换省平台药品id
         Integer targetDrugId = compareDrugDAO.findTargetDrugIdByOriginalDrugId(organDrugList.getDrugId());
-        if (targetDrugId != null) {
+       /* if (targetDrugId != null) {
             drugCategoryReq.setPlatDrugCode(targetDrugId.toString());
         } else {
 //            drugCategoryReq.setPlatDrugCode(organDrugList.getDrugId().toString());
             //对应运营平台药品详情中的 监管平台药品ID
             drugCategoryReq.setPlatDrugCode(organDrugList.getRegulationDrugCode());
-        }
+        }*/
         //还原：测试说先不改。
         //1 如果存在 转换省平台药品id （入驻（浙江省）该表为空）
-//        if (targetDrugId != null) {
-//            drugCategoryReq.setPlatDrugCode(targetDrugId.toString());
-//        } else {
-//            String regulationDrugCode = organDrugList.getRegulationDrugCode();
-//            //2 入驻 直接取平台药品ID 不用维护监管平台药品ID
-//            if(StringUtils.isEmpty(regulationDrugCode)){
-//                drugCategoryReq.setPlatDrugCode(organDrugList.getDrugId().toString());
-//            }
-//            //3 自建  对应运营平台药品详情中的 监管平台药品ID*
-//            else{
-//                drugCategoryReq.setPlatDrugCode(regulationDrugCode);
-//            }
-//        }
+        if (targetDrugId != null) {
+            drugCategoryReq.setPlatDrugCode(targetDrugId.toString());
+        } else {
+            String regulationDrugCode = organDrugList.getRegulationDrugCode();
+            //2 入驻 直接取平台药品ID 不用维护监管平台药品ID
+            if(StringUtils.isEmpty(regulationDrugCode)){
+                drugCategoryReq.setPlatDrugCode(organDrugList.getDrugId().toString());
+            }
+            //3 自建  对应运营平台药品详情中的 监管平台药品ID*
+            else{
+                drugCategoryReq.setPlatDrugCode(regulationDrugCode);
+            }
+        }
         drugCategoryReq.setPlatDrugName(organDrugList.getDrugName());
         if (StringUtils.isNotEmpty(organDrugList.getOrganDrugCode())) {
             drugCategoryReq.setHospDrugCode(organDrugList.getOrganDrugCode());
