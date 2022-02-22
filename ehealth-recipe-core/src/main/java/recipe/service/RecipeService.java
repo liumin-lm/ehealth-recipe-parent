@@ -2295,7 +2295,7 @@ public class RecipeService extends RecipeBaseService {
             return;
         }
         LOGGER.info("afterCheckNotPassYs recipeId= {}", recipe.getRecipeId());
-        stateManager.updateRecipeState(recipe.getRecipeId(),RecipeStateEnum.PROCESS_STATE_DELETED, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
+        stateManager.updateRecipeState(recipe.getRecipeId(),RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         boolean effective = orderDAO.isEffectiveOrder(recipe.getOrderCode());
         //是否是有效订单
