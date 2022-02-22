@@ -23,6 +23,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
+import recipe.client.IConfigurationClient;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
 import recipe.enumerate.type.EnterpriseCreateTypeEnum;
@@ -50,6 +51,8 @@ public abstract class AccessDrugEnterpriseService {
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private SaleDrugListDAO saleDrugListDAO;
+    @Autowired
+    private IConfigurationClient configurationClient;
 
     /**
      * 单个线程处理药企药品数量
@@ -196,9 +199,10 @@ public abstract class AccessDrugEnterpriseService {
 
     /**
      * 查询药企库存
-     * @param recipe  处方
+     *
+     * @param recipe          处方
      * @param drugsEnterprise 药企
-     * @param recipeDetails 处方详情
+     * @param recipeDetails   处方详情
      * @return 库存信息
      */
     public DrugStockAmountDTO scanEnterpriseDrugStock(Recipe recipe, DrugsEnterprise drugsEnterprise, List<Recipedetail> recipeDetails) {
@@ -209,7 +213,7 @@ public abstract class AccessDrugEnterpriseService {
             return new DrugStockAmountDTO();
         }
         List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugList);
-        Map<Integer, Integer> saleMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId,SaleDrugList::getStatus));
+        Map<Integer, Integer> saleMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId, SaleDrugList::getStatus));
         drugStockAmountDTO.setResult(true);
         List<DrugInfoDTO> drugInfoList = new ArrayList<>();
         recipeDetails.forEach(recipeDetail -> {
@@ -227,6 +231,7 @@ public abstract class AccessDrugEnterpriseService {
         LOGGER.info("scanEnterpriseDrugStock drugStockAmountDTO:{}", JSONUtils.toString(drugStockAmountDTO));
         return drugStockAmountDTO;
     }
+
     /**
      * 库存检验
      *
@@ -320,10 +325,10 @@ public abstract class AccessDrugEnterpriseService {
                     PharmacyDAO pharmacyDAO = DAOFactory.getDAO(PharmacyDAO.class);
                     List<Pharmacy> list = pharmacyDAO.findByDepId(nowRecipe.getEnterpriseId());
                     mobile = list.get(0).getPharmacyPhone();
-                }else {
+                } else {
                     mobile = drugsEnterprise.getEnterprisePhone();
                 }
-                if(StringUtils.isNotEmpty(mobile)) {
+                if (StringUtils.isNotEmpty(mobile)) {
                     SmsInfoBean smsInfo = new SmsInfoBean();
                     smsInfo.setBusType("RecipeOrderCreate");
                     smsInfo.setSmsType("RecipeOrderCreate");
@@ -358,7 +363,12 @@ public abstract class AccessDrugEnterpriseService {
     public BigDecimal orderToRecipeFee(RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, BigDecimal recipeFee, Map<String, String> extInfo) {
         BigDecimal nowFee = recipeFee;
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        if ((payModeSupport.isSupportCOD() || payModeSupport.isSupportTFDS() || payModeSupport.isSupportOnlinePay()) && null != order.getEnterpriseId()) {
+        // 到院自取是否采用药企管理模式
+        Boolean drugToHosByEnterprise = false;
+        if (payModeSupport.isSupportToHos()) {
+            drugToHosByEnterprise = configurationClient.getValueBooleanCatch(order.getOrganId(), "drugToHosByEnterprise", false);
+        }
+        if ((drugToHosByEnterprise || payModeSupport.isSupportCOD() || payModeSupport.isSupportTFDS() || payModeSupport.isSupportOnlinePay()) && null != order.getEnterpriseId()) {
             nowFee = orderService.reCalculateRecipeFee(order.getEnterpriseId(), recipeIds, null);
         }
         LOGGER.info("appEnterprise 当前公用药企逻辑-返回订单的处方费用为：{}", nowFee);
@@ -439,15 +449,16 @@ public abstract class AccessDrugEnterpriseService {
 
     /**
      * 获取区域文本
+     *
      * @param area 区域
-     * @return     区域文本
+     * @return 区域文本
      */
     protected String getAddressDic(String area) {
         if (StringUtils.isNotEmpty(area)) {
             try {
                 return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
             } catch (ControllerException e) {
-                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area,e);
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area, e);
             }
         }
         return "";
