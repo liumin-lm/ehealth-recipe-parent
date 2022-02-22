@@ -615,7 +615,7 @@ public class HisRecipeManager extends BaseManager {
                 }
                 UsePathways usePathways = usePathwaysMap.get(recipedetail.getOrganUsePathways());
                 if (null != usePathways) {
-                    recipedetail.setUsePathways(usePathways.getText());
+                    recipedetail.setUsePathways(usePathways.getRelatedPlatformKey());
                 }
             }
             recipeList.add(a);
