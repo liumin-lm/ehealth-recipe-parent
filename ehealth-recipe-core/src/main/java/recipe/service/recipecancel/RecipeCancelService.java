@@ -61,6 +61,8 @@ public class RecipeCancelService {
             if (recipe != null) {
                 req.setOrganId(recipe.getClinicOrgan());
                 req.setPrescriptionNo(String.valueOf(recipe.getRecipeId()));
+                req.setRecipeId(recipe.getRecipeId());
+                req.setRecipeCode(recipe.getRecipeCode());
                 req.setOrgCode(patientClient.getMinkeOrganCodeByOrganId(recipe.getClinicOrgan()));
             }
             LOGGER.info("doCancelRecipeForEnterprise recipeId={} req={}", recipe.getRecipeId(), JSONUtils.toString(req));
