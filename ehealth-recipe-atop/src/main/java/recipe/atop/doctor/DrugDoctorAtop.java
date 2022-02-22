@@ -66,7 +66,7 @@ public class DrugDoctorAtop extends BaseAtop {
     }
 
     /**
-     * 医生端查询药品列表-实时查单个药品 所有药企的库存
+     * 医生端查询药品列表-实时查药品对应所有药企的库存
      *
      * @param drugQueryVO
      * @return
