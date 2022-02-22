@@ -579,7 +579,7 @@ public class RecipeService extends RecipeBaseService {
         docIndex.setCreateDoctor(recipe.getDoctor());
         docIndex.setDoctorName(doctorService.getNameById(recipe.getDoctor()));
         docIndex.setDepartName(iDepartmentService.getNameById(recipe.getDepart()));
-        LOGGER.error("saveRecipeDocIndex RecipeType docIndex={},docType={}", JSON.toJSONString(docIndex), docType);
+        LOGGER.info("saveRecipeDocIndex RecipeType docIndex={},docType={}", JSON.toJSONString(docIndex), docType);
         iPatientService.saveRecipeDocIndex(docIndex, docType, 3);
     }
 
@@ -1716,7 +1716,7 @@ public class RecipeService extends RecipeBaseService {
         recipe.setStatus(RecipeStatusConstant.UNSIGN);
         recipe.setSignDate(DateTime.now().toDate());
         Integer recipeId = recipe.getRecipeId();
-        LOGGER.error("doSignRecipeSave recipe={}", JSON.toJSONString(recipe));
+        LOGGER.info("doSignRecipeSave recipe={}", JSON.toJSONString(recipe));
         //如果是已经暂存过的处方单，要去数据库取状态 判断能不能进行签名操作
         details.stream().filter(a -> "无特殊煎法".equals(a.getMemo())).forEach(a -> a.setMemo(""));
         if (null != recipeId && recipeId > 0) {
