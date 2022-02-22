@@ -28,6 +28,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.GiveModeEnum;
+import recipe.enumerate.status.PayModeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.manager.EnterpriseManager;
@@ -335,6 +336,7 @@ public class PayModeToHos implements IPurchaseService {
             depDetailBean.setAddress(takeMedicineByToHos.getPharmacyAddress());
             depDetailBean.setDistance(takeMedicineByToHos.getDistance());
             depDetailBean.setRecipeFee(takeMedicineByToHos.getRecipeTotalPrice());
+            depDetailBean.setPayModeText(PayModeEnum.getPayModeEnumName(takeMedicineByToHos.getPayWay()));
             Position position = new Position();
             position.setLatitude(Double.valueOf(takeMedicineByToHos.getLat()));
             position.setLongitude(Double.valueOf(takeMedicineByToHos.getLng()));
