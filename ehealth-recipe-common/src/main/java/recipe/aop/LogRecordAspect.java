@@ -30,22 +30,6 @@ public class LogRecordAspect {
     @Around(value = "conPoint()")
     public Object around(ProceedingJoinPoint joinPoint)  {
         return aroundStatic(joinPoint);
-//        Object result = null;
-//        String className = joinPoint.getTarget().getClass().getSimpleName();
-//        String methodName = joinPoint.getSignature().getName();
-//        long startTime = System.currentTimeMillis();
-//        try {
-//            Object[] objects = joinPoint.getArgs();
-//            logger.info("LogRecordAspect-{}-{} ,入参={}", className, methodName, JSON.toJSONString(objects));
-//            result = joinPoint.proceed();
-//        } catch (Throwable throwable) {
-//            logger.error("LogRecordAspect-{}-{},Exception", className, methodName, throwable);
-//            throw new DAOException(ErrorCode.SERVICE_ERROR, throwable.getMessage());
-//        } finally {
-//            long elapsedTime = System.currentTimeMillis() - startTime;
-//            logger.info("LogRecordAspect-{}-{} ,耗时:{}ms ,出参={}", className, methodName, elapsedTime, JSON.toJSONString(result));
-//        }
-//        return result;
     }
 
     public static Object aroundStatic(ProceedingJoinPoint joinPoint) {

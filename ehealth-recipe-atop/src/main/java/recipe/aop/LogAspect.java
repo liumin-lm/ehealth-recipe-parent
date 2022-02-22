@@ -5,8 +5,6 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.aspectj.lang.annotation.Pointcut;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.core.annotation.Order;
 
 /**
@@ -18,32 +16,18 @@ import org.springframework.core.annotation.Order;
 @Slf4j
 @Order(10)
 public class LogAspect {
-    private static final Logger logger = LoggerFactory.getLogger(LogRecordAspect.class);
 
-    //切点问题
+    /**
+     * 切面
+     */
     @Pointcut("execution(* recipe.atop..*.*(..))")
-    public void conPoint(){}
+    public void conPoint() {
+    }
 
 
     @Around(value = "conPoint()")
-    public Object around(ProceedingJoinPoint joinPoint)  {
+    public Object around(ProceedingJoinPoint joinPoint) {
         return LogRecordAspect.aroundStatic(joinPoint);
-//        Object result = null;
-//        String className = joinPoint.getTarget().getClass().getSimpleName();
-//        String methodName = joinPoint.getSignature().getName();
-//        long startTime = System.currentTimeMillis();
-//        try {
-//            Object[] objects = joinPoint.getArgs();
-//            logger.info("LogAspect-{}-{} ,入参={}", className, methodName, JSON.toJSONString(objects));
-//            result = joinPoint.proceed();
-//        } catch (Throwable throwable) {
-//            logger.error("LogAspect-{}-{},Exception", className, methodName, throwable);
-//            throw new DAOException(ErrorCode.SERVICE_ERROR, throwable.getMessage());
-//        } finally {
-//            long elapsedTime = System.currentTimeMillis() - startTime;
-//            logger.info("LogAspect-{}-{} ,耗时:{}ms ,出参={}", className, methodName, elapsedTime, JSON.toJSONString(result));
-//        }
-//        return result;
     }
 
 }
