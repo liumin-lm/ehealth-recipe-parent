@@ -334,7 +334,12 @@ public class PatientClient extends BaseClient {
                     if (StringUtils.isNotEmpty(recipedetail.getUsePathways())) {
                         explan.append(recipedetail.getUsePathways()).append(" ");
                     }
-                    explan.append(recipedetail.getUseDose()).append(recipedetail.getUseDoseUnit());
+                    if (null != recipedetail.getUseDose()) {
+                        explan.append(recipedetail.getUseDose());
+                        if (StringUtils.isNotEmpty(recipedetail.getUseDoseUnit())) {
+                            explan.append(recipedetail.getUseDoseUnit());
+                        }
+                    }
                     medicineRemindTO.setExplan(explan.toString());
                     medicineRemindTO.setNum(recipedetail.getUseDays());
                     medicineRemindTO.setUnit(1);
