@@ -16,7 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import recipe.aop.LogInfo;
+import recipe.aop.LogRecord;
 import recipe.bean.RecipeCheckPassResult;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeMsgEnum;
@@ -182,7 +182,7 @@ public class RecipeToHisCallbackService {
      * @param response
      */
     @RpcService
-    @LogInfo
+    @LogRecord
     public void sendFail(HisSendResTO response) {
         LOGGER.error("recipeSend recive fail. recipeId={}, response={}", response.getRecipeId(), JSONUtils.toString(response));
         // 给申请医生，患者发送推送消息
