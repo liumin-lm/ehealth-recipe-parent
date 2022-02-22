@@ -1119,7 +1119,7 @@ public class RecipeOrderService extends RecipeBaseService {
         }
         //上海外服个性化处理账户支付金额
         String organName = recipeParameterDao.getByName("shwfAccountFee");
-        if (StringUtils.isNotEmpty(organName)) {
+        if (StringUtils.isNotEmpty(organName) && LocalStringUtil.hasOrgan(order.getOrganId().toString(), organName)) {
             BigDecimal accountFee = orderFeeManager.getAccountFee(order.getTotalFee(), order.getMpiId(), order.getOrganId());
             if (null != accountFee) {
                 recipeOrderBean.setAccountFee(accountFee);
@@ -1864,6 +1864,11 @@ public class RecipeOrderService extends RecipeBaseService {
             orderBean.setList(patientRecipeBeanList);
             orderBean.setProcessStateText(OrderStateEnum.getOrderStateEnum(order.getProcessState()).getName());
             orderBean.setSubStateText(OrderStateEnum.getOrderStateEnum(order.getSubState()).getName());
+            String organName = recipeParameterDao.getByName("shwfAccountFee");
+            if (StringUtils.isNotEmpty(organName) && LocalStringUtil.hasOrgan(recipe.getClinicOrgan().toString(), organName)) {
+                //上海外服自费金额设置为空
+                orderBean.setFundAmount(null);
+            }
             result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
             result.setExt(RecipeUtil.getParamFromOgainConfig(order, recipeList));

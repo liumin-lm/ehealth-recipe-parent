@@ -36,6 +36,7 @@ import recipe.enumerate.type.ExpressFeePayWayEnum;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
 import recipe.util.AddressUtils;
+import recipe.util.LocalStringUtil;
 
 import java.util.Arrays;
 import java.util.List;
@@ -215,7 +216,7 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
     private CreateLogisticsOrderDto getCreateLogisticsOrderDto(RecipeOrder order, Recipe recipe, DrugsEnterprise enterprise) {
         CreateLogisticsOrderDto logisticsOrder = new CreateLogisticsOrderDto();
         String organList = recipeParameterDao.getByName("zhHospitalOrganList");
-        if (null != enterprise.getOrganId() && StringUtils.isNotEmpty(organList) && hasOrgan(enterprise.getOrganId().toString(), organList)) {
+        if (null != enterprise.getOrganId() && StringUtils.isNotEmpty(organList) && LocalStringUtil.hasOrgan(enterprise.getOrganId().toString(), organList)) {
             // 取药企对应的机构ID
             logisticsOrder.setOrganId(enterprise.getOrganId());
         } else {
@@ -291,14 +292,5 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
             LOGGER.error("基础服务物流下单非必填信息获取异常：", e);
         }
         return logisticsOrder;
-    }
-
-    private boolean hasOrgan(String organ, String args){
-        if (StringUtils.isNotEmpty(args)) {
-            String[] organs = args.split(",");
-            List<String> organList = Arrays.asList(organs);
-            return organList.contains(organ);
-        }
-        return false;
     }
 }
