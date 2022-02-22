@@ -23,6 +23,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
+import recipe.client.IConfigurationClient;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.dao.*;
 import recipe.enumerate.type.EnterpriseCreateTypeEnum;
@@ -50,6 +51,8 @@ public abstract class AccessDrugEnterpriseService {
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private SaleDrugListDAO saleDrugListDAO;
+    @Autowired
+    private IConfigurationClient configurationClient;
 
     /**
      * 单个线程处理药企药品数量
@@ -358,7 +361,12 @@ public abstract class AccessDrugEnterpriseService {
     public BigDecimal orderToRecipeFee(RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, BigDecimal recipeFee, Map<String, String> extInfo) {
         BigDecimal nowFee = recipeFee;
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        if ((payModeSupport.isSupportCOD() || payModeSupport.isSupportTFDS() || payModeSupport.isSupportOnlinePay()) && null != order.getEnterpriseId()) {
+        // 到院自取是否采用药企管理模式
+        Boolean drugToHosByEnterprise = false;
+        if (payModeSupport.isSupportToHos()) {
+            drugToHosByEnterprise = configurationClient.getValueBooleanCatch(order.getOrganId(), "drugToHosByEnterprise", false);
+        }
+        if ((drugToHosByEnterprise || payModeSupport.isSupportCOD() || payModeSupport.isSupportTFDS() || payModeSupport.isSupportOnlinePay()) && null != order.getEnterpriseId()) {
             nowFee = orderService.reCalculateRecipeFee(order.getEnterpriseId(), recipeIds, null);
         }
         LOGGER.info("appEnterprise 当前公用药企逻辑-返回订单的处方费用为：{}", nowFee);

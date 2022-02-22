@@ -216,8 +216,13 @@ public class RecipeRefundService extends RecipeBaseService{
         LOGGER.info("RecipeRefundService.refundResultCallBack refundRequestBean:{}.", JSONUtils.toString(refundRequestBean));
         //记录操作日志
         IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
-        if (refundRequestBean != null && StringUtils.isNotEmpty(refundRequestBean.getRecipeCode())) {
-            Recipe recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(refundRequestBean.getRecipeCode(), refundRequestBean.getOrganId());
+        if (refundRequestBean != null) {
+            Recipe recipe;
+            if (StringUtils.isNotEmpty(refundRequestBean.getRecipeCode())) {
+                recipe = recipeDAO.getByHisRecipeCodeAndClinicOrgan(refundRequestBean.getRecipeCode(), refundRequestBean.getOrganId());
+            } else {
+                recipe = recipeDAO.getByRecipeId(refundRequestBean.getRecipeId());
+            }
             if (recipe == null) {
                 LOGGER.info("RecipeRefundService.refundResultCallBack recipe is null.");
                 return;

@@ -21,6 +21,7 @@ import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
+import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.service.IConsultService;
@@ -88,7 +89,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
-import recipe.aop.LogInfo;
 import recipe.aop.LogRecord;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.CheckYsInfoBean;
@@ -743,7 +743,7 @@ public class RecipeService extends RecipeBaseService {
      * @param recipeId
      */
     @RpcService
-    @LogInfo
+    @LogRecord
     public RecipeResultBean generateRecipePdfAndSign(Integer recipeId) {
         RecipeResultBean result = RecipeResultBean.getSuccess();
         if (null == recipeId) {
@@ -1479,7 +1479,7 @@ public class RecipeService extends RecipeBaseService {
      * @return Map<String, Object>
      */
     @RpcService
-    @LogInfo
+    @LogRecord
     public Map<String, Object> doSignRecipeNew(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, int continueFlag) {
         LOGGER.info("RecipeService.doSignRecipeNew param: recipeBean={} detailBean={} continueFlag={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList), continueFlag);
         //将密码放到redis中
@@ -5050,6 +5050,13 @@ public class RecipeService extends RecipeBaseService {
             DrugListMatch save = drugListMatchDAO.save(drugListMatch);
             try {
                 drugToolService.automaticDrugMatch(save, operator);
+                DrugListMatch drugListMatch1 = drugListMatchDAO.get(save.getDrugId());
+                IHisServiceConfigService configService = AppContextHolder.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
+                Boolean regulationFlag = configService.getRegulationFlag();
+                if (regulationFlag){
+                    drugListMatch1.setRegulationDrugCode(drugListMatch1.getPlatformDrugId().toString());
+                    drugListMatchDAO.updateData(drugListMatch1);
+                }
             } catch (Exception e) {
                 LOGGER.error("addHisDrug.updateMatchAutomatic fail,", e);
             }
@@ -5153,6 +5160,14 @@ public class RecipeService extends RecipeBaseService {
         //监管平台药品编码
         if (!ObjectUtils.isEmpty(drug.getRegulationDrugCode())) {
             organDrug.setRegulationDrugCode(drug.getRegulationDrugCode());
+        }else {
+            if (ObjectUtils.isEmpty(organDrug.getRegulationDrugCode())){
+                IHisServiceConfigService configService = AppContextHolder.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
+                Boolean regulationFlag = configService.getRegulationFlag();
+                if (regulationFlag){
+                    organDrug.setRegulationDrugCode(organDrug.getDrugId().toString());
+                }
+            }
         }
         //是否基药
         if (!ObjectUtils.isEmpty(drug.getBaseDrug())) {
@@ -5207,6 +5222,11 @@ public class RecipeService extends RecipeBaseService {
         }
         organDrug.setLastModify(new Date());
         OrganDrugList update = organDrugListDAO.update(organDrug);
+        //同步药品到监管备案
+        RecipeBusiThreadPool.submit(() -> {
+            organDrugListService.uploadDrugToRegulation(update);
+            return null;
+        });
         LOGGER.info("drugInfoSynMovement updateHisDrug" + update.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(update));
         try {
             drugToolService.organDrugSync(update);
@@ -5374,6 +5394,14 @@ public class RecipeService extends RecipeBaseService {
         //监管平台药品编码
         if (!ObjectUtils.isEmpty(drug.getRegulationDrugCode())) {
             organDrug.setRegulationDrugCode(drug.getRegulationDrugCode());
+        }else {
+            if (ObjectUtils.isEmpty(organDrug.getRegulationDrugCode())){
+                IHisServiceConfigService configService = AppContextHolder.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
+                Boolean regulationFlag = configService.getRegulationFlag();
+                if (regulationFlag){
+                    organDrug.setRegulationDrugCode(organDrug.getDrugId().toString());
+                }
+            }
         }
         //剂型
         if (!ObjectUtils.isEmpty(drug.getDrugForm())) {
@@ -5408,6 +5436,11 @@ public class RecipeService extends RecipeBaseService {
 
         LOGGER.info("updateHisDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(organDrug));
         OrganDrugList update = organDrugListDAO.update(organDrug);
+        //同步药品到监管备案
+        RecipeBusiThreadPool.submit(() -> {
+            organDrugListService.uploadDrugToRegulation(update);
+            return null;
+        });
         try {
             drugToolService.organDrugSync(update);
         } catch (Exception e) {
