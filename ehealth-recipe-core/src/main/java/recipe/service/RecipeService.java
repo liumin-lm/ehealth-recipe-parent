@@ -615,11 +615,13 @@ public class RecipeService extends RecipeBaseService {
 
     /**
      * 药师审核不通过的情况下，医生重新开处方   审核不通过的时候，重新开具处方按钮
+     * 以替换为续方操作，二次审核操作替换为confirmAgain方法
      *
      * @param recipeId
      * @return
      */
     @RpcService
+    @Deprecated
     public List<RecipeDetailBean> reCreatedRecipe(Integer recipeId) {
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         //查询现有（原来）处方数据信息
@@ -5805,11 +5807,6 @@ public class RecipeService extends RecipeBaseService {
             updateMap.put("checkStatus", RecipecCheckStatusConstant.First_Check_No_Pass);
             recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), updateMap);
             stateManager.updateAuditState(recipe.getRecipeId(),RecipeAuditStateEnum.FAIL_DOC_CONFIRMING);
-            RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
-            RecipeOrder order = orderDAO.getByOrderCode(recipe.getOrderCode());
-            if(Objects.nonNull(order)){
-                stateManager.updateOrderState(order.getOrderId(),OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
-            }
         }
         //由于支持二次签名的机构第一次审方不通过时医生收不到消息。所以将审核不通过推送消息放这里处理
         sendCheckNotPassYsMsg(recipe);
