@@ -111,7 +111,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
     private IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
 
-    private GroupRecipeManager groupRecipeManager = ApplicationUtils.getBaseService(GroupRecipeManager.class);
+    private GroupRecipeManager groupRecipeManager = AppContextHolder.getBean("groupRecipeManager", GroupRecipeManager.class);
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
