@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
@@ -358,6 +359,7 @@ public abstract class AccessDrugEnterpriseService {
         return appEnterprise;
     }
 
+    @LogRecord
     public BigDecimal orderToRecipeFee(RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, BigDecimal recipeFee, Map<String, String> extInfo) {
         BigDecimal nowFee = recipeFee;
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
