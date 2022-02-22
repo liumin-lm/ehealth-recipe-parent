@@ -13,6 +13,7 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -54,7 +55,8 @@ public abstract class AccessDrugEnterpriseService {
     @Autowired
     private SaleDrugListDAO saleDrugListDAO;
     @Autowired
-    private IConfigurationClient configurationClient;
+    private IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
+
 
     /**
      * 单个线程处理药企药品数量
