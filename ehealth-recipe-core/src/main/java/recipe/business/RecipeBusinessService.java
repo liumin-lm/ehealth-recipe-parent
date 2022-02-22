@@ -42,6 +42,7 @@ import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
 import recipe.constant.ErrorCode;
+import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.*;
@@ -57,6 +58,7 @@ import recipe.manager.RecipeManager;
 import recipe.manager.StateManager;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeMsgService;
+import recipe.service.RecipeServiceSub;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.MapValueUtil;
@@ -400,6 +402,9 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             if (null != order) {
                 stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
             }
+        }
+        if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(dbRecipe.getFromflag())) {
+                RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASS);
         }
         return stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
     }
