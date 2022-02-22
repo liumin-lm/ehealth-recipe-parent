@@ -1,5 +1,6 @@
 package recipe.drugsenterprise;
 
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Maps;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
@@ -359,8 +360,9 @@ public abstract class AccessDrugEnterpriseService {
         return appEnterprise;
     }
 
-    @LogRecord
     public BigDecimal orderToRecipeFee(RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, BigDecimal recipeFee, Map<String, String> extInfo) {
+        LOGGER.info("appEnterprise req order：{} extInfo:{}", JSONArray.toJSONString(order),JSONArray.toJSONString(extInfo));
+
         BigDecimal nowFee = recipeFee;
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         // 到院自取是否采用药企管理模式
