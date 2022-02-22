@@ -88,7 +88,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
-import recipe.aop.LogInfo;
 import recipe.aop.LogRecord;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.CheckYsInfoBean;
@@ -743,7 +742,7 @@ public class RecipeService extends RecipeBaseService {
      * @param recipeId
      */
     @RpcService
-    @LogInfo
+    @LogRecord
     public RecipeResultBean generateRecipePdfAndSign(Integer recipeId) {
         RecipeResultBean result = RecipeResultBean.getSuccess();
         if (null == recipeId) {
@@ -1479,7 +1478,7 @@ public class RecipeService extends RecipeBaseService {
      * @return Map<String, Object>
      */
     @RpcService
-    @LogInfo
+    @LogRecord
     public Map<String, Object> doSignRecipeNew(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, int continueFlag) {
         LOGGER.info("RecipeService.doSignRecipeNew param: recipeBean={} detailBean={} continueFlag={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList), continueFlag);
         //将密码放到redis中

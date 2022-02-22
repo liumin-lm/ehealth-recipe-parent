@@ -54,7 +54,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
-import recipe.aop.LogInfo;
+import recipe.aop.LogRecord;
 import recipe.bean.CheckYsInfoBean;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.UsePathwaysFilter;
@@ -138,7 +138,7 @@ public class RecipeHisService extends RecipeBaseService {
      * @param recipeId
      */
     @RpcService
-    @LogInfo
+    @LogRecord
     public boolean recipeSendHis(Integer recipeId, Integer otherOrganId) {
         boolean result = true;
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -549,7 +549,7 @@ public class RecipeHisService extends RecipeBaseService {
      * @param organId
      */
     @RpcService
-    @LogInfo
+    @LogRecord
     public void recipeListQuery(List<String> recipeCodes, Integer organId) {
         if (isHisEnable(organId)) {
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
