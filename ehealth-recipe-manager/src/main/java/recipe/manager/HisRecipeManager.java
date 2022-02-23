@@ -22,10 +22,7 @@ import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
 import recipe.common.CommonConstant;
-import recipe.dao.HisRecipeDAO;
-import recipe.dao.HisRecipeDataDelDAO;
-import recipe.dao.HisRecipeDetailDAO;
-import recipe.dao.HisRecipeExtDAO;
+import recipe.dao.*;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.util.MapValueUtil;
@@ -62,6 +59,8 @@ public class HisRecipeManager extends BaseManager {
     private RevisitClient revisitClient;
     @Autowired
     private HisRecipeDataDelDAO hisRecipeDataDelDAO;
+    @Autowired
+    private DrugDecoctionWayDao drugDecoctionWayDao;
 
 
     /**
@@ -567,6 +566,12 @@ public class HisRecipeManager extends BaseManager {
         if (CommonConstant.RECIPE_DOCTOR_TYPE.equals(sysType)) {
             return offlineRecipeClient.pushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
         } else {
+            RecipeExtend recipeExtend = recipePdfDTO.getRecipeExtend();
+            if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
+                DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+                //是否代煎
+                recipePdfDTO.setGenerationisOfDecoction(decoctionWay.getGenerationisOfDecoction());
+            }
             return offlineRecipeClient.patientPushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
         }
     }
