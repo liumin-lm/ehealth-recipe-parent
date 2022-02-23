@@ -4,6 +4,7 @@ import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.vo.*;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.vo.doctor.PatientOptionalDrugVO;
@@ -136,4 +137,6 @@ public interface IRecipeBusinessService {
      * @return
      */
     Boolean updateAuditState(Integer recipeId, RecipeAuditStateEnum recipeAuditStateEnum);
+
+    RecipeBean getByRecipeCodeAndRegisterIdAndOrganId(String recipeCode, String registerId, int organId);
 }

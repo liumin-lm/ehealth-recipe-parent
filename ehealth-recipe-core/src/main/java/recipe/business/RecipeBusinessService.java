@@ -42,6 +42,7 @@ import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
 import recipe.constant.ErrorCode;
+import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.*;
@@ -57,6 +58,7 @@ import recipe.manager.RecipeManager;
 import recipe.manager.StateManager;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeMsgService;
+import recipe.service.RecipeServiceSub;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.MapValueUtil;
@@ -121,6 +123,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private StateManager stateManager;
     @Resource
     private AuditModeContext auditModeContext;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
     
     /**
      * 获取线下门诊处方诊断信息
@@ -381,7 +385,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public Boolean confirmAgain(Integer recipeId) {
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
         //添加发送不通过消息
-        RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
+//        RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
+        RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASS);
         //HIS消息发送
         //审核不通过 往his更新状态（已取消）
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
@@ -405,6 +410,14 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public Boolean updateAuditState(Integer recipeId, RecipeAuditStateEnum recipeAuditStateEnum) {
         return stateManager.updateAuditState(recipeId, recipeAuditStateEnum);
+    }
+
+    @Override
+    public RecipeBean getByRecipeCodeAndRegisterIdAndOrganId(String recipeCode, String registerId, int organId) {
+        if (StringUtils.isNotEmpty(registerId)) {
+            //根据挂号序号查询处方列表
+        }
+        return null;
     }
 
 

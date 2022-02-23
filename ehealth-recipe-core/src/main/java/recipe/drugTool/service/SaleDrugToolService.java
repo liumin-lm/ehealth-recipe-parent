@@ -313,10 +313,22 @@ public class SaleDrugToolService implements ISaleDrugToolService {
         }else {
             for (SaleDrugList drugList : drugLists) {
                 try {
-                    //自动匹配功能暂无法提供
-                    saleDrugListDAO.save(drugList);
-                    addNum++;
-
+                    List<SaleDrugList> byOrganIdAndDrugCode = saleDrugListDAO.findByOrganIdAndDrugCode(organId, drugList.getOrganDrugCode());
+                    if (!ObjectUtils.isEmpty(byOrganIdAndDrugCode)){
+                        SaleDrugList saleDrugList = byOrganIdAndDrugCode.get(0);
+                        saleDrugList.setDrugId(drugList.getDrugId());
+                        saleDrugList.setDrugName(drugList.getDrugName());
+                        saleDrugList.setSaleName(drugList.getSaleName());
+                        saleDrugList.setDrugSpec(drugList.getDrugSpec());
+                        saleDrugList.setOrganId(organId);
+                        saleDrugList.setStatus(1);
+                        saleDrugList.setPrice(drugList.getPrice());
+                        saleDrugListDAO.update(drugList);
+                        updateNum++;
+                    }else {
+                        saleDrugListDAO.save(drugList);
+                        addNum++;
+                    }
                 } catch (Exception e) {
                     LOGGER.error("save or update drugListMatch error " + e.getMessage(),e);
                 }

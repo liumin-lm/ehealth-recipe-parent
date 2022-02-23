@@ -90,7 +90,7 @@ public class PayModeToHos implements IPurchaseService {
         // 到院自取是否采用药企管理模式
         Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(dbRecipe.getClinicOrgan(), "drugToHosByEnterprise", false);
         if (drugToHosByEnterprise) {
-            resultBean = newModeFindSupportDepList(dbRecipe);
+            resultBean = newModeFindSupportDepList(dbRecipe, extInfo);
         } else {
             resultBean = oldModeFindSupportDepList(dbRecipe);
         }
@@ -282,11 +282,11 @@ public class PayModeToHos implements IPurchaseService {
      * @param dbRecipe
      * @return
      */
-    private RecipeResultBean newModeFindSupportDepList(Recipe dbRecipe) {
+    private RecipeResultBean newModeFindSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
         Integer recipeId = dbRecipe.getRecipeId();
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         DepListBean depListBean = new DepListBean();
-
+        String sort = extInfo.get("sort");
         // 库存判断
         List<OrganAndDrugsepRelation> relation = organAndDrugsepRelationDAO.getRelationByOrganIdAndGiveMode(dbRecipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
         if (CollectionUtils.isEmpty(relation)) {
@@ -326,6 +326,15 @@ public class PayModeToHos implements IPurchaseService {
             saleMap = organDrugsSaleConfigs.stream().collect(Collectors.groupingBy(OrganDrugsSaleConfig::getDrugsEnterpriseId));
         }
         depListBean.setList(getDepDetailList(takeMedicineByToHosList,saleMap));
+        List<DepDetailBean> result = getDepDetailList(takeMedicineByToHosList);
+        if ("1".equals(sort)) {
+            //价格优先
+            result = result.stream().sorted(Comparator.comparing(DepDetailBean::getRecipeFee)).collect(Collectors.toList());
+        } else {
+            //距离优先
+            result = result.stream().sorted(Comparator.comparing(DepDetailBean::getDistance)).collect(Collectors.toList());
+        }
+        depListBean.setList(result);
         resultBean.setObject(depListBean);
         LOG.info("findSupportDepList 当前处方{}查询药企列表信息：{}", recipeId, JSONUtils.toString(resultBean));
         return resultBean;
@@ -352,7 +361,7 @@ public class PayModeToHos implements IPurchaseService {
             position.setRange(takeMedicineByToHos.getRange());
             depDetailBean.setPosition(position);
             return depDetailBean;
-        }).sorted(Comparator.comparing(DepDetailBean::getDistance)).collect(Collectors.toList());
+        }).collect(Collectors.toList());
     }
 
     /**
