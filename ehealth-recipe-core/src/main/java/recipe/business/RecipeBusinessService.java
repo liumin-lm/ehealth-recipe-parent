@@ -411,6 +411,10 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public RecipeBean getByRecipeCodeAndRegisterIdAndOrganId(String recipeCode, String registerId, int organId) {
+        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
+        if (null != recipe) {
+            return ObjectCopyUtils.convert(recipe, RecipeBean.class);
+        }
         List<Recipe> recipeList;
         if (StringUtils.isNotEmpty(registerId)) {
             //根据挂号序号查询处方列表
