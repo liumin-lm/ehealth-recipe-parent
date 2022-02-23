@@ -1,5 +1,6 @@
 package recipe.dao;
 
+import com.ngari.his.recipe.mode.TakeMedicineByToHos;
 import com.ngari.recipe.entity.OrganDrugsSaleConfig;
 import ctd.persistence.annotation.DAOMethod;
 import ctd.persistence.annotation.DAOParam;
@@ -24,4 +25,7 @@ public abstract class OrganDrugsSaleConfigDAO extends HibernateSupportDelegateDA
 
      @DAOMethod(sql = "from OrganDrugsSaleConfig where drugsEnterpriseId=:drugsEnterpriseId")
     public abstract OrganDrugsSaleConfig getOrganDrugsSaleConfig(@DAOParam("drugsEnterpriseId")Integer drugsEnterpriseId);
+
+    @DAOMethod(sql = "from OrganDrugsSaleConfig where drugsEnterpriseId in (:saleDepIds)", limit = 0)
+    public abstract List<OrganDrugsSaleConfig> findSaleConfigs(@DAOParam("saleDepIds")List<Integer> saleDepIds);
 }

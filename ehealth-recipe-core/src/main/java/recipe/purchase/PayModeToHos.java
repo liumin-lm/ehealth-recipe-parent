@@ -14,6 +14,7 @@ import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -318,16 +319,21 @@ public class PayModeToHos implements IPurchaseService {
         if (CollectionUtils.isNotEmpty(takeMedicineByToHosList) && takeMedicineByToHosList.size() == 1) {
             depListBean.setSigle(true);
         }
-        depListBean.setList(getDepDetailList(takeMedicineByToHosList));
+        List<Integer> saleDepIds = takeMedicineByToHosList.stream().map(TakeMedicineByToHos::getEnterpriseId).collect(Collectors.toList());
+        List<OrganDrugsSaleConfig> organDrugsSaleConfigs = organDrugsSaleConfigDAO.findSaleConfigs(saleDepIds);
+        Map<Integer, List<OrganDrugsSaleConfig>> saleMap = null;
+        if (CollectionUtils.isNotEmpty(organDrugsSaleConfigs)) {
+            saleMap = organDrugsSaleConfigs.stream().collect(Collectors.groupingBy(OrganDrugsSaleConfig::getDrugsEnterpriseId));
+        }
+        depListBean.setList(getDepDetailList(takeMedicineByToHosList,saleMap));
         resultBean.setObject(depListBean);
         LOG.info("findSupportDepList 当前处方{}查询药企列表信息：{}", recipeId, JSONUtils.toString(resultBean));
         return resultBean;
     }
 
-    private List<DepDetailBean> getDepDetailList(List<TakeMedicineByToHos> takeMedicineByToHosList) {
+    private List<DepDetailBean> getDepDetailList(List<TakeMedicineByToHos> takeMedicineByToHosList,Map<Integer, List<OrganDrugsSaleConfig>> saleMap) {
         return takeMedicineByToHosList.stream().map(takeMedicineByToHos -> {
             DepDetailBean depDetailBean = new DepDetailBean();
-            depDetailBean.setPayMethod(takeMedicineByToHos.getPayWay().toString());
             depDetailBean.setDepId(takeMedicineByToHos.getEnterpriseId());
             depDetailBean.setDepName(takeMedicineByToHos.getPharmacyName());
             depDetailBean.setBelongDepName(takeMedicineByToHos.getEnterpriseName());
@@ -336,7 +342,10 @@ public class PayModeToHos implements IPurchaseService {
             depDetailBean.setAddress(takeMedicineByToHos.getPharmacyAddress());
             depDetailBean.setDistance(takeMedicineByToHos.getDistance());
             depDetailBean.setRecipeFee(takeMedicineByToHos.getRecipeTotalPrice());
-            depDetailBean.setPayModeText(PayModeEnum.getPayModeEnumName(takeMedicineByToHos.getPayWay()));
+            depDetailBean.setPayMethod(takeMedicineByToHos.getPayWay().toString());
+            if(MapUtils.isNotEmpty(saleMap)) {
+                depDetailBean.setPayModeText(PayModeEnum.getPayModeEnumName(saleMap.get(takeMedicineByToHos.getEnterpriseId()).get(0).getTakeOneselfPayment()));
+            }
             Position position = new Position();
             position.setLatitude(Double.valueOf(takeMedicineByToHos.getLat()));
             position.setLongitude(Double.valueOf(takeMedicineByToHos.getLng()));
