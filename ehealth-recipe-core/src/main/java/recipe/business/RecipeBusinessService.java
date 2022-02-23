@@ -79,8 +79,7 @@ import java.util.stream.Collectors;
  * @author yinsheng
  * @date 2021\7\16 0016 17:30
  */
-//@Service
-@RpcBean(value = "recipeBusinessService", mvc_authentication = false)
+@Service
 public class RecipeBusinessService extends BaseService implements IRecipeBusinessService {
     /**
      * 操作类型 1：查看，2：copy
@@ -382,7 +381,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
 
     @Override
-    @RpcService
     public Boolean confirmAgain(Integer recipeId) {
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
         //HIS消息发送
