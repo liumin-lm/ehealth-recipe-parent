@@ -14,6 +14,7 @@ import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,7 +90,7 @@ public class PayModeToHos implements IPurchaseService {
         // 到院自取是否采用药企管理模式
         Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(dbRecipe.getClinicOrgan(), "drugToHosByEnterprise", false);
         if (drugToHosByEnterprise) {
-            resultBean = newModeFindSupportDepList(dbRecipe);
+            resultBean = newModeFindSupportDepList(dbRecipe, extInfo);
         } else {
             resultBean = oldModeFindSupportDepList(dbRecipe);
         }
@@ -281,11 +282,11 @@ public class PayModeToHos implements IPurchaseService {
      * @param dbRecipe
      * @return
      */
-    private RecipeResultBean newModeFindSupportDepList(Recipe dbRecipe) {
+    private RecipeResultBean newModeFindSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
         Integer recipeId = dbRecipe.getRecipeId();
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         DepListBean depListBean = new DepListBean();
-
+        String sort = extInfo.get("sort");
         // 库存判断
         List<OrganAndDrugsepRelation> relation = organAndDrugsepRelationDAO.getRelationByOrganIdAndGiveMode(dbRecipe.getClinicOrgan(), RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
         if (CollectionUtils.isEmpty(relation)) {
@@ -318,16 +319,30 @@ public class PayModeToHos implements IPurchaseService {
         if (CollectionUtils.isNotEmpty(takeMedicineByToHosList) && takeMedicineByToHosList.size() == 1) {
             depListBean.setSigle(true);
         }
-        depListBean.setList(getDepDetailList(takeMedicineByToHosList));
+        List<Integer> saleDepIds = takeMedicineByToHosList.stream().map(TakeMedicineByToHos::getEnterpriseId).collect(Collectors.toList());
+        List<OrganDrugsSaleConfig> organDrugsSaleConfigs = organDrugsSaleConfigDAO.findSaleConfigs(saleDepIds);
+        Map<Integer, List<OrganDrugsSaleConfig>> saleMap = null;
+        if (CollectionUtils.isNotEmpty(organDrugsSaleConfigs)) {
+            saleMap = organDrugsSaleConfigs.stream().collect(Collectors.groupingBy(OrganDrugsSaleConfig::getDrugsEnterpriseId));
+        }
+        depListBean.setList(getDepDetailList(takeMedicineByToHosList,saleMap));
+        List<DepDetailBean> result = getDepDetailList(takeMedicineByToHosList,saleMap);
+        if ("1".equals(sort)) {
+            //价格优先
+            result = result.stream().sorted(Comparator.comparing(DepDetailBean::getRecipeFee)).collect(Collectors.toList());
+        } else {
+            //距离优先
+            result = result.stream().sorted(Comparator.comparing(DepDetailBean::getDistance)).collect(Collectors.toList());
+        }
+        depListBean.setList(result);
         resultBean.setObject(depListBean);
         LOG.info("findSupportDepList 当前处方{}查询药企列表信息：{}", recipeId, JSONUtils.toString(resultBean));
         return resultBean;
     }
 
-    private List<DepDetailBean> getDepDetailList(List<TakeMedicineByToHos> takeMedicineByToHosList) {
+    private List<DepDetailBean> getDepDetailList(List<TakeMedicineByToHos> takeMedicineByToHosList,Map<Integer, List<OrganDrugsSaleConfig>> saleMap) {
         return takeMedicineByToHosList.stream().map(takeMedicineByToHos -> {
             DepDetailBean depDetailBean = new DepDetailBean();
-            depDetailBean.setPayMethod(takeMedicineByToHos.getPayWay().toString());
             depDetailBean.setDepId(takeMedicineByToHos.getEnterpriseId());
             depDetailBean.setDepName(takeMedicineByToHos.getPharmacyName());
             depDetailBean.setBelongDepName(takeMedicineByToHos.getEnterpriseName());
@@ -336,14 +351,17 @@ public class PayModeToHos implements IPurchaseService {
             depDetailBean.setAddress(takeMedicineByToHos.getPharmacyAddress());
             depDetailBean.setDistance(takeMedicineByToHos.getDistance());
             depDetailBean.setRecipeFee(takeMedicineByToHos.getRecipeTotalPrice());
-            depDetailBean.setPayModeText(PayModeEnum.getPayModeEnumName(takeMedicineByToHos.getPayWay()));
+            depDetailBean.setPayMethod(takeMedicineByToHos.getPayWay().toString());
+            if(MapUtils.isNotEmpty(saleMap)) {
+                depDetailBean.setPayModeText(PayModeEnum.getPayModeEnumName(saleMap.get(takeMedicineByToHos.getEnterpriseId()).get(0).getTakeOneselfPayment()));
+            }
             Position position = new Position();
             position.setLatitude(Double.valueOf(takeMedicineByToHos.getLat()));
             position.setLongitude(Double.valueOf(takeMedicineByToHos.getLng()));
             position.setRange(takeMedicineByToHos.getRange());
             depDetailBean.setPosition(position);
             return depDetailBean;
-        }).sorted(Comparator.comparing(DepDetailBean::getDistance)).collect(Collectors.toList());
+        }).collect(Collectors.toList());
     }
 
     /**

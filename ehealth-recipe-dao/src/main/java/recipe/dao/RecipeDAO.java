@@ -108,6 +108,30 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public abstract List<Integer> findRecipeIdsByOrderCode(@DAOParam("orderCode") String orderCode);
 
     /**
+     * 根据机构和时间获取his处方号
+     * @param organId
+     * @param start
+     * @param end
+     * @return
+     */
+    public List<Recipe> findRecipeCodesByOrderIdAndTime(final Integer organId, final Date start, final Date end) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "from Recipe where ClinicOrgan=:organId and createDate>=:start and createDate<=:end ";
+                Query q = ss.createQuery(hql);
+                q.setParameter("organId", organId);
+                q.setParameter("start", start);
+                q.setParameter("end", end);
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        return action.getResult();
+    }
+
+
+    /**
      * @param ids        in 语句集合对象
      * @param splitCount in 语句中出现的条件个数
      * @param field      in 语句对应的数据库查询字段
@@ -1967,6 +1991,28 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             diseaseIds.add(iterator.next().getKey());
         }
         return diseaseIds;
+    }
+
+    /**
+     * 通过挂号序号和机构ID获取his处方号合集
+     * @param registerId 挂号序号
+     * @param organId 机构ID
+     * @return 处方号合集
+     */
+    public List<Recipe> findByRecipeCodeAndRegisterIdAndOrganId(final String registerId, final Integer organId){
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String hql = "SELECT r FROM Recipe r ,RecipeExtend re WHERE " + "r.recipeId=re.recipeId and re.registerID = :registerId AND r.clinicOrgan = :organId  ";
+                Query query = ss.createQuery(hql);
+                query.setParameter("registerId", registerId);
+                query.setParameter("organId", organId);
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        List<Recipe> list = action.getResult();
+        return list;
     }
 
     public List<String> findCommonSymptomIdByDoctorAndOrganId(final int doctorId, final int organId) {

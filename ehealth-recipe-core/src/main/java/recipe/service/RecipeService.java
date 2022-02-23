@@ -5043,6 +5043,10 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(organId)) {
             drugListMatch.setSourceOrgan(organId);
         }
+        //药品嘱托
+        if (!ObjectUtils.isEmpty(drug.getDrugEntrust())) {
+            drugListMatch.setDrugEntrust(drug.getDrugEntrust());
+        }
         drugListMatch.setStatus(0);
         drugListMatch.setDrugSource(1);
         drugListMatch.setApplyBusiness("1");
@@ -5192,6 +5196,10 @@ public class RecipeService extends RecipeBaseService {
         }
         if (!ObjectUtils.isEmpty(drug.getIndicationsDeclare())) {
             organDrug.setIndicationsDeclare(drug.getIndicationsDeclare());
+        }
+        //药品嘱托
+        if (!ObjectUtils.isEmpty(drug.getDrugEntrust())) {
+            organDrug.setDrugEntrust(drug.getDrugEntrust());
         }
         if (!ObjectUtils.isEmpty(drug.getDrugsEnterpriseCode())) {
             String pharmacyCode = drug.getDrugsEnterpriseCode();
@@ -5430,6 +5438,10 @@ public class RecipeService extends RecipeBaseService {
         }
         if (!ObjectUtils.isEmpty(drug.getIndicationsDeclare())) {
             organDrug.setIndicationsDeclare(drug.getIndicationsDeclare());
+        }
+        //药品嘱托
+        if (!ObjectUtils.isEmpty(drug.getDrugEntrust())) {
+            organDrug.setDrugEntrust(drug.getDrugEntrust());
         }
         //医保剂型编码
         if (!ObjectUtils.isEmpty(drug.getMedicalDrugFormCode())) {

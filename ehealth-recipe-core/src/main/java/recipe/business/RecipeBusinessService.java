@@ -26,6 +26,8 @@ import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import eh.cdr.api.vo.MedicalDetailBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -42,6 +44,7 @@ import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
 import recipe.constant.ErrorCode;
+import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.*;
@@ -57,11 +60,9 @@ import recipe.manager.RecipeManager;
 import recipe.manager.StateManager;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeMsgService;
+import recipe.service.RecipeServiceSub;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
-import recipe.util.ChinaIDNumberUtil;
-import recipe.util.MapValueUtil;
-import recipe.util.ObjectCopyUtils;
-import recipe.util.ValidateUtil;
+import recipe.util.*;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.doctor.PharmacyTcmVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
@@ -78,7 +79,8 @@ import java.util.stream.Collectors;
  * @author yinsheng
  * @date 2021\7\16 0016 17:30
  */
-@Service
+//@Service
+@RpcBean(value = "recipeBusinessService", mvc_authentication = false)
 public class RecipeBusinessService extends BaseService implements IRecipeBusinessService {
     /**
      * 操作类型 1：查看，2：copy
@@ -121,6 +123,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private StateManager stateManager;
     @Resource
     private AuditModeContext auditModeContext;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
     
     /**
      * 获取线下门诊处方诊断信息
@@ -378,10 +382,12 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
 
     @Override
+    @RpcService
     public Boolean confirmAgain(Integer recipeId) {
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
         //添加发送不通过消息
         RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
+//        RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASS);
         //HIS消息发送
         //审核不通过 往his更新状态（已取消）
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
@@ -405,6 +411,43 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public Boolean updateAuditState(Integer recipeId, RecipeAuditStateEnum recipeAuditStateEnum) {
         return stateManager.updateAuditState(recipeId, recipeAuditStateEnum);
+    }
+
+    @Override
+    public RecipeBean getByRecipeCodeAndRegisterIdAndOrganId(String recipeCode, String registerId, int organId) {
+        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
+        if (null != recipe) {
+            return ObjectCopyUtils.convert(recipe, RecipeBean.class);
+        }
+        List<Recipe> recipeList;
+        if (StringUtils.isNotEmpty(registerId)) {
+            //根据挂号序号查询处方列表
+            recipeList = recipeDAO.findByRecipeCodeAndRegisterIdAndOrganId(registerId, organId);
+        } else {
+            //获取当前一个月的时间段
+            Date lastMonthDate = DateConversion.getMonthsAgo(1);
+            recipeList = recipeDAO.findRecipeCodesByOrderIdAndTime(organId, lastMonthDate, new Date());
+        }
+        //查看recipeCode是否在recipeCodeList中，这里可能存在这种数据["1212","1222,1211","2312"]
+        List<Recipe> result = new ArrayList<>();
+        recipeList.forEach(a->{
+            if (a.getRecipeCode().contains(",")) {
+                String[] codes = a.getRecipeCode().split(",");
+                if (Arrays.asList(codes).contains(recipeCode)){
+                    result.add(a);
+                    return;
+                }
+            } else {
+               if (recipeCode.equals(a.getRecipeCode())) {
+                   result.add(a);
+                   return;
+               }
+            }
+        });
+        if (CollectionUtils.isNotEmpty(result)) {
+            return ObjectCopyUtils.convert(result.get(0), RecipeBean.class);
+        }
+        return null;
     }
 
 
