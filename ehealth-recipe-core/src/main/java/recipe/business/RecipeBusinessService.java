@@ -26,6 +26,8 @@ import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import eh.cdr.api.vo.MedicalDetailBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -78,6 +80,7 @@ import java.util.stream.Collectors;
  * @date 2021\7\16 0016 17:30
  */
 @Service
+@RpcBean(value = "recipeBusinessService", mvc_authentication = false)
 public class RecipeBusinessService extends BaseService implements IRecipeBusinessService {
     /**
      * 操作类型 1：查看，2：copy
@@ -379,6 +382,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
 
     @Override
+    @RpcService
     public Boolean confirmAgain(Integer recipeId) {
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
         //添加发送不通过消息
