@@ -110,10 +110,13 @@ public class GroupRecipeManager extends BaseManager {
         if (CollectionUtils.isEmpty(recipeIds)) {
             return;
         }
+        Recipe outRecipe = recipeDAO.getByRecipeId(outRecipeId);
         recipeIds.forEach(a -> {
             Recipe recipeUpdate = new Recipe();
             recipeUpdate.setStatus(status);
             recipeUpdate.setRecipeId(a);
+            recipeUpdate.setProcessState(outRecipe.getProcessState());
+            recipeUpdate.setSubState(outRecipe.getSubState());
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         });
     }
