@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
-import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.bus.op.service.IUsePathwaysService;
@@ -30,7 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
-import recipe.util.LocalStringUtil;
+import recipe.util.DictionaryUtil;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -332,18 +331,18 @@ public class PatientClient extends BaseClient {
                     medicineRemindTO.setBusType("recipe");
                     medicineRemindTO.setOrganId(recipeInfoDTO.getRecipe().getClinicOrgan());
                     medicineRemindTO.setMpiId(patient.getMpiId());
-                    medicineRemindTO.setExplan("用法用量");
-                    StringBuilder explan = new StringBuilder("用法用量");
-                    try {
-                        UsePathwaysDTO usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndPlatformKey(recipeInfoDTO.getRecipe().getClinicOrgan(), recipedetail.getUsePathways());
-                        if (null != usePathwaysDTO) {
-                            explan.append(usePathwaysDTO.getRelatedPlatformText()).append(" ");
-                        }
-                    } catch (Exception e) {
-                        logger.error("PatientClient remindPatientTakeMedicine error", e);
+                    StringBuilder explain = new StringBuilder("");
+                    if (StringUtils.isNotEmpty(recipedetail.getUsePathways())) {
+                        String usePathwaysText = DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", recipedetail.getUsePathways());
+                        explain.append(usePathwaysText).append(" ");
                     }
-                    explan.append(recipedetail.getUseDose()).append(recipedetail.getUseDoseUnit());
-                    medicineRemindTO.setExplan(explan.toString());
+                    if (null != recipedetail.getUseDose()) {
+                        explain.append(recipedetail.getUseDose());
+                        if (StringUtils.isNotEmpty(recipedetail.getUseDoseUnit())) {
+                            explain.append(recipedetail.getUseDoseUnit());
+                        }
+                    }
+                    medicineRemindTO.setExplan(explain.toString());
                     medicineRemindTO.setNum(recipedetail.getUseDays());
                     medicineRemindTO.setUnit(1);
                     medicineRemindTO.setEvery(0);

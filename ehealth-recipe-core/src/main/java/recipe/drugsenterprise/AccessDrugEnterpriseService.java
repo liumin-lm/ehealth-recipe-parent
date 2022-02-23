@@ -1,5 +1,6 @@
 package recipe.drugsenterprise;
 
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Maps;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
@@ -12,6 +13,7 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -20,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
@@ -52,7 +55,8 @@ public abstract class AccessDrugEnterpriseService {
     @Autowired
     private SaleDrugListDAO saleDrugListDAO;
     @Autowired
-    private IConfigurationClient configurationClient;
+    private IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
+
 
     /**
      * 单个线程处理药企药品数量
@@ -359,6 +363,8 @@ public abstract class AccessDrugEnterpriseService {
     }
 
     public BigDecimal orderToRecipeFee(RecipeOrder order, List<Integer> recipeIds, RecipePayModeSupportBean payModeSupport, BigDecimal recipeFee, Map<String, String> extInfo) {
+        LOGGER.info("appEnterprise req order：{} extInfo:{}", JSONArray.toJSONString(order),JSONArray.toJSONString(extInfo));
+
         BigDecimal nowFee = recipeFee;
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         // 到院自取是否采用药企管理模式

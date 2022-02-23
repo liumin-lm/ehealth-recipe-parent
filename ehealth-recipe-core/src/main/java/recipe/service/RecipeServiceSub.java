@@ -188,6 +188,8 @@ public class RecipeServiceSub {
         List<Recipedetail> details = ObjectCopyUtils.convert(detailBeanList, Recipedetail.class);
 
         setRecipeMoreInfo(recipe, details, recipeBean, flag);
+        // 不用审核
+        recipe.setAuditState(0);
         // 保存接方状态
         recipe.setSupportMode(this.getSupportMode(recipe.getOriginClinicOrgan()));
         Integer recipeId = recipeDAO.updateOrSaveRecipeAndDetail(recipe, details, false);
