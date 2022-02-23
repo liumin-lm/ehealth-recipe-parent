@@ -567,10 +567,14 @@ public class HisRecipeManager extends BaseManager {
             return offlineRecipeClient.pushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
         } else {
             RecipeExtend recipeExtend = recipePdfDTO.getRecipeExtend();
-            if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
-                DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
-                //是否代煎
-                recipePdfDTO.setGenerationisOfDecoction(decoctionWay.getGenerationisOfDecoction());
+            if(null != recipeExtend){
+                if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
+                    DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+                    if(null != decoctionWay){
+                        //是否代煎
+                        recipeExtend.setGenerationisOfDecoction(decoctionWay.getGenerationisOfDecoction());
+                    }
+                }
             }
             return offlineRecipeClient.patientPushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
         }
