@@ -79,8 +79,7 @@ import java.util.stream.Collectors;
  * @author yinsheng
  * @date 2021\7\16 0016 17:30
  */
-//@Service
-@RpcBean(value = "recipeBusinessService", mvc_authentication = false)
+@Service
 public class RecipeBusinessService extends BaseService implements IRecipeBusinessService {
     /**
      * 操作类型 1：查看，2：copy
@@ -382,18 +381,12 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
 
     @Override
-    @RpcService
     public Boolean confirmAgain(Integer recipeId) {
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
-        //添加发送不通过消息
-        RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
-//        RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASS);
         //HIS消息发送
         //审核不通过 往his更新状态（已取消）
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
         hisService.recipeStatusUpdateWithOrganId(recipeId, null, null);
-        //根据审方模式改变--审核未通过处理
-        auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckNotPassYs(dbRecipe);
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipeId);
         updateRecipe.setAuditState(RecipeAuditStateEnum.FAIL.getType());
@@ -405,6 +398,10 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
                 stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
             }
         }
+        //根据审方模式改变--审核未通过处理
+        auditModeContext.getAuditModes(dbRecipe.getReviewType()).afterCheckNotPassYs(dbRecipe);
+        //添加发送不通过消息
+        RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
         return stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS);
     }
 
