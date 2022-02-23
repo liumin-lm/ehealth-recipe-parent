@@ -79,7 +79,7 @@ import java.util.stream.Collectors;
  * @author yinsheng
  * @date 2021\7\16 0016 17:30
  */
-@Service
+//@Service
 @RpcBean(value = "recipeBusinessService", mvc_authentication = false)
 public class RecipeBusinessService extends BaseService implements IRecipeBusinessService {
     /**
