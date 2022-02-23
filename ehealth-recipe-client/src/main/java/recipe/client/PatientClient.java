@@ -29,6 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
+import recipe.util.DictionaryUtil;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -330,17 +331,18 @@ public class PatientClient extends BaseClient {
                     medicineRemindTO.setBusType("recipe");
                     medicineRemindTO.setOrganId(recipeInfoDTO.getRecipe().getClinicOrgan());
                     medicineRemindTO.setMpiId(patient.getMpiId());
-                    StringBuilder explan = new StringBuilder("");
+                    StringBuilder explain = new StringBuilder("");
                     if (StringUtils.isNotEmpty(recipedetail.getUsePathways())) {
-                        explan.append(recipedetail.getUsePathways()).append(" ");
+                        String usePathwaysText = DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", recipedetail.getUsePathways());
+                        explain.append(usePathwaysText).append(" ");
                     }
                     if (null != recipedetail.getUseDose()) {
-                        explan.append(recipedetail.getUseDose());
+                        explain.append(recipedetail.getUseDose());
                         if (StringUtils.isNotEmpty(recipedetail.getUseDoseUnit())) {
-                            explan.append(recipedetail.getUseDoseUnit());
+                            explain.append(recipedetail.getUseDoseUnit());
                         }
                     }
-                    medicineRemindTO.setExplan(explan.toString());
+                    medicineRemindTO.setExplan(explain.toString());
                     medicineRemindTO.setNum(recipedetail.getUseDays());
                     medicineRemindTO.setUnit(1);
                     medicineRemindTO.setEvery(0);
