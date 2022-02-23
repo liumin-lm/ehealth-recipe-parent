@@ -385,8 +385,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public Boolean confirmAgain(Integer recipeId) {
         Recipe dbRecipe = recipeDAO.getByRecipeId(recipeId);
         //添加发送不通过消息
-//        RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
-        RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASS);
+        RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASSYS_REACHPAY);
+//        RecipeMsgService.batchSendMsg(dbRecipe, RecipeStatusConstant.CHECK_NOT_PASS);
         //HIS消息发送
         //审核不通过 往his更新状态（已取消）
         RecipeHisService hisService = ApplicationUtils.getRecipeService(RecipeHisService.class);
