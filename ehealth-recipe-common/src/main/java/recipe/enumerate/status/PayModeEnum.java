@@ -7,9 +7,9 @@ package recipe.enumerate.status;
  */
 public enum PayModeEnum {
 
-    // 0：线下支付   1：在线支付
-    OFFLINE_PAY(0, "到院支付", ""),
-    ONLINE_PAY(1, "在线支付", ""),
+    // 自取支付方式 1 在线支付 2 线下支付
+    OFFLINE_PAY(1, "在线支付", ""),
+    ONLINE_PAY(2, "到院支付", ""),
     ;
     private Integer type;
     private String name;
