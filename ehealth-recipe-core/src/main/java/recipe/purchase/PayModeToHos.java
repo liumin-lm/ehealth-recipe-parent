@@ -326,7 +326,7 @@ public class PayModeToHos implements IPurchaseService {
             saleMap = organDrugsSaleConfigs.stream().collect(Collectors.groupingBy(OrganDrugsSaleConfig::getDrugsEnterpriseId));
         }
         depListBean.setList(getDepDetailList(takeMedicineByToHosList,saleMap));
-        List<DepDetailBean> result = getDepDetailList(takeMedicineByToHosList);
+        List<DepDetailBean> result = getDepDetailList(takeMedicineByToHosList,saleMap);
         if ("1".equals(sort)) {
             //价格优先
             result = result.stream().sorted(Comparator.comparing(DepDetailBean::getRecipeFee)).collect(Collectors.toList());
