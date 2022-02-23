@@ -33,5 +33,9 @@ public class RecipeInfoDTO extends RecipeDTO implements Serializable {
      * 复诊时间
      */
     private String revisitTime;
+    /**
+     * 是否代煎
+     */
+    private Boolean generationisOfDecoction;
 
 }
