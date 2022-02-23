@@ -140,8 +140,6 @@ public class RecipeExtend implements Serializable {
     private String decoctionText;
     @ItemProperty(alias = "煎法单价")
     private Double decoctionPrice;
-    @ItemProperty(alias = "是否代煎")
-    private Boolean generationisOfDecoction;
 
     @ItemProperty(alias = "病历索引Id")
     private Integer docIndexId;
@@ -819,12 +817,4 @@ public class RecipeExtend implements Serializable {
         this.weight = weight;
     }
 
-    @Transient
-    public Boolean getGenerationisOfDecoction() {
-        return generationisOfDecoction;
-    }
-
-    public void setGenerationisOfDecoction(Boolean generationisOfDecoction) {
-        this.generationisOfDecoction = generationisOfDecoction;
-    }
 }
