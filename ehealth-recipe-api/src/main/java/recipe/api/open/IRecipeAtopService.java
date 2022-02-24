@@ -106,12 +106,12 @@ public interface IRecipeAtopService {
     Boolean updateAuditState(Integer recipeId, Integer state);
 
     /**
-     * 查询处方
-     * @param recipeCode
-     * @param registerId
-     * @param organId
-     * @return
+     * 根据his处方号和挂号序号机构查询处方
+     * @param recipeCode his处方号
+     * @param registerId 挂号序号
+     * @param organId 机构ID
+     * @return 处方
      */
-    @RpcService
+    @RpcService(mvcDisabled = true)
     RecipeBean getByRecipeCodeAndRegisterIdAndOrganId(String recipeCode, String registerId, int organId);
 }

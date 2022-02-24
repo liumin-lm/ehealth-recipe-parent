@@ -160,6 +160,7 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
 
     @Override
     public RecipeBean getByRecipeCodeAndRegisterIdAndOrganId(String recipeCode, String registerId, int organId) {
+        validateAtop(recipeCode, organId);
         return recipeBusinessService.getByRecipeCodeAndRegisterIdAndOrganId(recipeCode, registerId, organId);
     }
 

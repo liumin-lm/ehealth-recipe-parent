@@ -413,6 +413,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public RecipeBean getByRecipeCodeAndRegisterIdAndOrganId(String recipeCode, String registerId, int organId) {
         Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(recipeCode, organId);
+        logger.info("RecipeBusinessService getByRecipeCodeAndRegisterIdAndOrganId recipe:{}", JSON.toJSONString(recipe));
         if (null != recipe) {
             return ObjectCopyUtils.convert(recipe, RecipeBean.class);
         }
@@ -425,6 +426,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             Date lastMonthDate = DateConversion.getMonthsAgo(1);
             recipeList = recipeDAO.findRecipeCodesByOrderIdAndTime(organId, lastMonthDate, new Date());
         }
+        logger.info("RecipeBusinessService getByRecipeCodeAndRegisterIdAndOrganId recipeList:{}", JSON.toJSONString(recipeList));
         //查看recipeCode是否在recipeCodeList中，这里可能存在这种数据["1212","1222,1211","2312"]
         List<Recipe> result = new ArrayList<>();
         recipeList.forEach(a->{
