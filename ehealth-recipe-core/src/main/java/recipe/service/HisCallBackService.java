@@ -32,10 +32,10 @@ import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.status.OrderStateEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.CardTypeEnum;
 import recipe.hisservice.syncdata.SyncExecutorService;
-import recipe.manager.DepartManager;
 import recipe.manager.StateManager;
 import recipe.purchase.CommonOrder;
 
@@ -57,8 +57,7 @@ import java.util.Objects;
 public class HisCallBackService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HisCallBackService.class);
-
-    private static DepartManager departManager = AppContextHolder.getBean("departManager", DepartManager.class);
+    private static StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
 
     /**
      * 处方HIS审核通过成功
@@ -351,6 +350,10 @@ public class HisCallBackService {
         RecipeOrder order = orderDAO.getOrderByRecipeId(recipeId);
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.CHECK_PASS, "HIS线上支付返回：写入his失败，订单号:" + order.getOutTradeNo() + "，流水号:" + order.getTradeNo());
 
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_REFUSE_ORDER);
+        if (Objects.nonNull(order)) {
+            stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_USER);
+        }
         //微信退款
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         recipeService.wxPayRefundForRecipe(1, recipeId, null);
