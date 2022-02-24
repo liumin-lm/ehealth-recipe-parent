@@ -118,7 +118,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                String hql = "from Recipe where ClinicOrgan=:organId and createDate>=:start and createDate<=:end ";
+                String hql = "from Recipe where  RecipeCode is not null and ClinicOrgan=:organId and createDate>=:start and createDate<=:end ";
                 Query q = ss.createQuery(hql);
                 q.setParameter("organId", organId);
                 q.setParameter("start", start);
@@ -2003,7 +2003,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                String hql = "SELECT r FROM Recipe r ,RecipeExtend re WHERE " + "r.recipeId=re.recipeId and re.registerID = :registerId AND r.clinicOrgan = :organId  ";
+                String hql = "SELECT r FROM Recipe r ,RecipeExtend re WHERE " + "r.recipeId=re.recipeId and  r.RecipeCode is not null  and re.registerID = :registerId AND r.clinicOrgan = :organId  ";
                 Query query = ss.createQuery(hql);
                 query.setParameter("registerId", registerId);
                 query.setParameter("organId", organId);

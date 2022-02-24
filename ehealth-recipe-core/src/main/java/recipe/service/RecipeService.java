@@ -1417,8 +1417,14 @@ public class RecipeService extends RecipeBaseService {
                 LOGGER.warn("saveCheckResult send recipeAudit to his error. recipeId={}", recipeId, e);
             }
             if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
-                //增加药师首页待处理任务---完成任务
-                ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussFinishEvent(recipeId, BussTypeConstant.RECIPE));
+                try {
+                    LOGGER.info("retryCaPharmacistCallBackToRecipe pendingTask start recipeId={}", recipeId);
+                    //增加药师首页待处理任务---完成任务
+                    ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussFinishEvent(recipeId, BussTypeConstant.RECIPE));
+                    LOGGER.info("retryCaPharmacistCallBackToRecipe pendingTask end" );
+                } catch (Exception e) {
+                    LOGGER.warn("retryCaPharmacistCallBackToRecipe pendingTask error. recipeId={}", recipeId, e);
+                }
             }
         });
         //推送处方到监管平台(审核后数据)
