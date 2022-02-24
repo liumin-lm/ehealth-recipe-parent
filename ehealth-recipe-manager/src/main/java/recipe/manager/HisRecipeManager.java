@@ -59,8 +59,6 @@ public class HisRecipeManager extends BaseManager {
     private RevisitClient revisitClient;
     @Autowired
     private HisRecipeDataDelDAO hisRecipeDataDelDAO;
-    @Autowired
-    private DrugDecoctionWayDao drugDecoctionWayDao;
 
 
     /**
@@ -566,12 +564,6 @@ public class HisRecipeManager extends BaseManager {
         if (CommonConstant.RECIPE_DOCTOR_TYPE.equals(sysType)) {
             return offlineRecipeClient.pushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
         } else {
-            RecipeExtend recipeExtend = recipePdfDTO.getRecipeExtend();
-            if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
-                DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
-                //是否代煎
-                recipePdfDTO.setGenerationisOfDecoction(decoctionWay.getGenerationisOfDecoction());
-            }
             return offlineRecipeClient.patientPushRecipe(pushType, recipePdfDTO, emrDetail, pharmacyIdMap);
         }
     }

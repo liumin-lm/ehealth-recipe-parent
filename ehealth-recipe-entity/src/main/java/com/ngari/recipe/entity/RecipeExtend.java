@@ -816,4 +816,5 @@ public class RecipeExtend implements Serializable {
     public void setWeight(Double weight) {
         this.weight = weight;
     }
+
 }
