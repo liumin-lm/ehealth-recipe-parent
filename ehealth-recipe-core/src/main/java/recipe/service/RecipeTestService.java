@@ -419,10 +419,4 @@ public class RecipeTestService {
         return 0;
     }
 
-    @RpcService
-    @LogRecord
-    public void schedule(Integer max){
-        AppContextHolder.getBean("recipeaudit.checkScheduleServiceImpl", ICheckScheduleService.class);
-    }
-
 }
