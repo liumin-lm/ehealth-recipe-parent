@@ -56,7 +56,7 @@ public class DrugOpenAtop extends BaseAtop implements IDrugAtopService {
     /**
      * 定时 获取用药提醒的线下处方
      */
-    @RpcService
+    @RpcService(timeout = 3600)
     public void queryRemindRecipe() {
         drugBusinessService.queryRemindRecipe();
     }
