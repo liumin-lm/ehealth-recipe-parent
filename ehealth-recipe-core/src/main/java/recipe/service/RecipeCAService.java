@@ -42,6 +42,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.bean.cqjgptbussdata.AdditionalDiagnosis;
 import recipe.bean.cqjgptbussdata.Drug;
 import recipe.bean.cqjgptbussdata.RecipeDocSignatureXML;
@@ -641,6 +642,7 @@ public class RecipeCAService {
     }
 
     @RpcService
+    @LogRecord
     public void signRecipeCAInterrupt(Integer recipeId) {
         //首先判断处方的装填是不是可以设置成需要重新中断的
         //暂时不用加判断筛选是否可以设置【失败】
@@ -660,6 +662,7 @@ public class RecipeCAService {
 
     @RpcService
     public void checkRecipeCAInterrupt(Integer recipeId) {
+
         //首先判断处方的装填是不是可以设置成需要重新中断的
         //暂时不用加判断筛选是否可以设置【失败】
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);

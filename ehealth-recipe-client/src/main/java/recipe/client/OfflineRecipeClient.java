@@ -404,7 +404,6 @@ public class OfflineRecipeClient extends BaseClient {
             });
         }
         recipeDTO.setRecipeDetails(detailList);
-        recipeDTO.setGenerationisOfDecoction(recipePdfDTO.getGenerationisOfDecoction());
         return recipeDTO;
     }
 

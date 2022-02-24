@@ -42,9 +42,6 @@ public class OrganDrugsSaleConfig implements Serializable {
     @ItemProperty(alias = "自取支付通道 1平台支付 2卫宁支付")
     private Integer takeOneselfPaymentChannel;
 
-    @ItemProperty(alias = "自取文案提示")
-    private String takeOneselfContent;
-
     @ItemProperty(alias = "自取预约时间 0 不预约 1预约当天 3 预约3天内 7预约7天内 15预约15天内")
     private Integer takeOneselfPlanDate;
 
@@ -120,15 +117,6 @@ public class OrganDrugsSaleConfig implements Serializable {
 
     public void setTakeOneselfPaymentChannel(Integer takeOneselfPaymentChannel) {
         this.takeOneselfPaymentChannel = takeOneselfPaymentChannel;
-    }
-
-    @Column(name = "take_oneself_content")
-    public String getTakeOneselfContent() {
-        return takeOneselfContent;
-    }
-
-    public void setTakeOneselfContent(String takeOneselfContent) {
-        this.takeOneselfContent = takeOneselfContent;
     }
 
     @Column(name = "take_oneself_plan_date")
