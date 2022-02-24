@@ -37,6 +37,7 @@
     <reference id="recipeaudit.recipeCheckDetailServiceImpl" interface="eh.recipeaudit.api.IRecipeCheckDetailService"/>
     <reference id="recipeaudit.recipeCheckServiceImpl" interface="eh.recipeaudit.api.IRecipeCheckService"/>
     <reference id="recipeaudit.remoteAuditMedicinesService" interface="eh.recipeaudit.api.IAuditMedicinesService"/>
+    <reference id="recipeaudit.checkScheduleServiceImpl" interface="eh.recipeaudit.api.ICheckScheduleService"/>
     <!--视频-->
     <reference id="video.videoInfoService" interface="video.ainemo.server.IVideoInfoService"/>
     <reference id="account.thirdPartyMappingService" interface="eh.account.api.ThirdPartyMappingService"/>

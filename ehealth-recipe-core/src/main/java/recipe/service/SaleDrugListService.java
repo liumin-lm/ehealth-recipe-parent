@@ -95,6 +95,10 @@ public class SaleDrugListService implements ISaleDrugListService {
         }
 
         SaleDrugList saleDrug = dao.getByOrganIdAndDrugId(saleDrugList.getOrganId(),saleDrugList.getDrugId());
+        List<SaleDrugList> byOrganIdAndDrugCode = dao.findByOrganIdAndDrugCode(saleDrugList.getOrganId(), saleDrugList.getOrganDrugCode());
+        if (!ObjectUtils.isEmpty(byOrganIdAndDrugCode)){
+            throw new DAOException( "药企药品编码添加重复!");
+        }
         if (saleDrug != null){
             throw new DAOException( "添加重复");
         }
@@ -131,6 +135,14 @@ public class SaleDrugListService implements ISaleDrugListService {
             throw new DAOException(DAOException.VALUE_NEEDED, "drugId is required");
         }
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+        List<SaleDrugList> byOrganIdAndDrugCode = saleDrugListDAO.findByOrganIdAndDrugCode(saleDrugList.getOrganId(), saleDrugList.getOrganDrugCode());
+        if (!ObjectUtils.isEmpty(byOrganIdAndDrugCode)){
+            for (SaleDrugList drugList : byOrganIdAndDrugCode) {
+                if (drugList.getOrganDrugCode().equals(saleDrugList.getOrganDrugCode())&&!drugList.getOrganDrugId().equals(saleDrugList.getOrganDrugId())){
+                    throw new DAOException( "药企药品编码添加重复!");
+                }
+            }
+        }
         SaleDrugList target = saleDrugListDAO.get(saleDrugList.getOrganDrugId());
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
