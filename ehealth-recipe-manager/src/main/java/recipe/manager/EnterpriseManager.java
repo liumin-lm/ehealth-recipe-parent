@@ -732,7 +732,7 @@ public class EnterpriseManager extends BaseManager {
     public OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId,Integer giveMode) {
         logger.info("EnterpriseManager getOrganDrugsSaleConfig organId:{}  drugsEnterpriseId:{} giveMode:{}", organId, drugsEnterpriseId,giveMode);
         // 患者端使用到的机构配置,这个接口仅这些使用
-        ArrayList<String> key = Lists.newArrayList("toSendStationFlag", "getMedicineRemindContent", "payModeToHosOnlinePayConfig", "supportToHosPayFlag", "toHosPlanDate",
+        ArrayList<String> key = Lists.newArrayList("toSendStationFlag", "payModeToHosOnlinePayConfig", "supportToHosPayFlag", "toHosPlanDate",
                 "toHosPlanAmTime", "toHosPlanPmTime", "getQrTypeForRecipe", "getQrTypeForRecipeRemind");
         // 到院自取是否采用药企管理模式
         Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(organId, "drugToHosByEnterprise", false);
@@ -764,7 +764,6 @@ public class EnterpriseManager extends BaseManager {
         organDrugsSaleConfig.setOrganId(organId);
         Boolean isSupportSendToStation = (Boolean) configurationByKeyList.get("toSendStationFlag");
         organDrugsSaleConfig.setIsSupportSendToStation(isSupportSendToStation ? 1 : 0);
-        organDrugsSaleConfig.setTakeOneselfContent(configurationByKeyList.get("getMedicineRemindContent").toString());
         organDrugsSaleConfig.setTakeOneselfPaymentChannel((Integer) configurationByKeyList.get("payModeToHosOnlinePayConfig"));
         organDrugsSaleConfig.setTakeOneselfPayment((Boolean) configurationByKeyList.get("supportToHosPayFlag") ? 1 : 2);
         String[] toHosPlanDate = (String[]) configurationByKeyList.get("toHosPlanDate");
