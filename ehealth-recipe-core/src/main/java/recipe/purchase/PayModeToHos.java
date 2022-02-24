@@ -325,7 +325,6 @@ public class PayModeToHos implements IPurchaseService {
         if (CollectionUtils.isNotEmpty(organDrugsSaleConfigs)) {
             saleMap = organDrugsSaleConfigs.stream().collect(Collectors.groupingBy(OrganDrugsSaleConfig::getDrugsEnterpriseId));
         }
-        depListBean.setList(getDepDetailList(takeMedicineByToHosList,saleMap));
         List<DepDetailBean> result = getDepDetailList(takeMedicineByToHosList,saleMap);
         if ("1".equals(sort)) {
             //价格优先
@@ -352,7 +351,7 @@ public class PayModeToHos implements IPurchaseService {
             depDetailBean.setDistance(takeMedicineByToHos.getDistance());
             depDetailBean.setRecipeFee(takeMedicineByToHos.getRecipeTotalPrice());
             depDetailBean.setPayMethod(takeMedicineByToHos.getPayWay().toString());
-            if(MapUtils.isNotEmpty(saleMap)) {
+            if(MapUtils.isNotEmpty(saleMap) && CollectionUtils.isNotEmpty(saleMap.get(takeMedicineByToHos.getEnterpriseId()))) {
                 depDetailBean.setPayModeText(PayModeEnum.getPayModeEnumName(saleMap.get(takeMedicineByToHos.getEnterpriseId()).get(0).getTakeOneselfPayment()));
             }
             Position position = new Position();
