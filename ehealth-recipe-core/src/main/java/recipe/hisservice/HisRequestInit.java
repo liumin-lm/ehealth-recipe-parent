@@ -674,10 +674,16 @@ public class HisRequestInit {
                 requestTO.setCardNo(card.getCardId());
             }
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             requestTO.setPatientID(recipe.getPatientID());
             if (null != recipeExtend) {
                 requestTO.setRegisterID(recipeExtend.getRegisterID());
+                if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
+                    DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+                    //是否代煎
+                    requestTO.setGenerationisOfDecoction(decoctionWay.getGenerationisOfDecoction());
+                }
             }
 
             if (null != patient) {

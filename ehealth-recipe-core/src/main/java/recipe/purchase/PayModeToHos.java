@@ -299,7 +299,7 @@ public class PayModeToHos implements IPurchaseService {
         if (CollectionUtils.isEmpty(drugsEnterprises)) {
             LOG.warn("findSupportDepList 处方[{}]没有任何药企可以进行到院取药！", recipeId);
             resultBean.setCode(5);
-            resultBean.setMsg("抱歉，没有可选择的药企");
+            resultBean.setMsg("抱歉，未获取到相关药房信息，您可以选择其他方式购药");
             return resultBean;
         }
 
@@ -310,7 +310,7 @@ public class PayModeToHos implements IPurchaseService {
         if (CollectionUtils.isEmpty(takeMedicineByToHosList)) {
             LOG.warn("findSupportDepList 该处方无法配送. recipeId=[{}]", recipeId);
             resultBean.setCode(5);
-            resultBean.setMsg("抱歉，没有可选择的药企");
+            resultBean.setMsg("抱歉，未获取到相关药房信息，您可以选择其他方式购药");
             return resultBean;
         }
 

@@ -2439,9 +2439,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 StringBuilder hql = new StringBuilder("from Recipe where fromflag=1 ");
                 //是否查的是已审核数据
                 if (checkFlag) {
-                    hql.append("and checkDateYs between '" + startDate + "' and '" + endDate + "' and clinicOrgan =:organId and syncFlag =0 and checker is not null");
+                    hql.append("and checkDateYs between '" + startDate + "' and '" + endDate + "' and clinicOrgan =:organId and checker is not null");
                 } else {
-                    hql.append("and SignDate between '" + startDate + "' and '" + endDate + "' and clinicOrgan =:organId and syncFlag =0 and status not in (0,10,11,16)");
+                    hql.append("and SignDate between '" + startDate + "' and '" + endDate + "' and clinicOrgan =:organId and status not in (0,10,11,16)");
                 }
                 Query query = ss.createQuery(hql.toString());
                 query.setParameter("organId", organId);

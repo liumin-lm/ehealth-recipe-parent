@@ -69,9 +69,12 @@ public class CreateRecipePdfUtil {
             return null;
         }
         FileMetaRecord fileMetaRecord = fileDownloadService.downloadAsRecord(pdfId);
+        byte[] downloadAsByte = fileDownloadService.downloadAsByte(pdfId);
+        logger.info("CreateRecipePdfUtil generateOrdinateList,fileMetaRecord={}, downloadAsByte:{} ", fileMetaRecord.getFileName(), JSON.toJSONString(downloadAsByte));
+
         File file = new File(fileMetaRecord.getFileName());
         @Cleanup OutputStream output = new FileOutputStream(file);
-        @Cleanup InputStream input = new ByteArrayInputStream(fileDownloadService.downloadAsByte(pdfId));
+        @Cleanup InputStream input = new ByteArrayInputStream(downloadAsByte);
         PdfReader reader = new PdfReader(input);
         PdfStamper stamper = new PdfStamper(reader, output);
         generateOrdinateList(coOrdinateList, stamper);
