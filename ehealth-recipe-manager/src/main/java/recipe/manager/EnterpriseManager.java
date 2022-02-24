@@ -729,18 +729,18 @@ public class EnterpriseManager extends BaseManager {
      * @param organId
      * @param drugsEnterpriseId
      */
-    public OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId,Integer giveMode) {
-        logger.info("EnterpriseManager getOrganDrugsSaleConfig organId:{}  drugsEnterpriseId:{} giveMode:{}", organId, drugsEnterpriseId,giveMode);
+    public OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer organId, Integer drugsEnterpriseId, Integer giveMode) {
+        logger.info("EnterpriseManager getOrganDrugsSaleConfig organId:{}  drugsEnterpriseId:{} giveMode:{}", organId, drugsEnterpriseId, giveMode);
         // 患者端使用到的机构配置,这个接口仅这些使用
         ArrayList<String> key = Lists.newArrayList("toSendStationFlag", "payModeToHosOnlinePayConfig", "supportToHosPayFlag", "toHosPlanDate",
-                "toHosPlanAmTime", "toHosPlanPmTime", "getQrTypeForRecipe", "getQrTypeForRecipeRemind");
+                "toHosPlanAmTime", "toHosPlanPmTime", "getQrTypeForRecipe", "getQrTypeForRecipeRemind", "isShowPlanTime");
         // 到院自取是否采用药企管理模式
         Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(organId, "drugToHosByEnterprise", false);
         if (drugToHosByEnterprise && GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(giveMode)) {
             if (Objects.isNull(drugsEnterpriseId)) {
                 throw new DAOException("采用药企销售配置模式药企id不能为空");
             }
-            OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig( drugsEnterpriseId);
+            OrganDrugsSaleConfig organDrugsSaleConfig = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterpriseId);
             if (Objects.isNull(organDrugsSaleConfig)) {
                 throw new DAOException("未配置药企销售配置");
             }
@@ -749,7 +749,7 @@ public class EnterpriseManager extends BaseManager {
             return organDrugsSaleConfig;
         }
         Map<String, Object> configurationByKeyList = configurationClient.getConfigurationByKeyList(organId, key);
-        return coverConfig(configurationByKeyList,organId);
+        return coverConfig(configurationByKeyList, organId);
     }
 
     /**
@@ -758,7 +758,7 @@ public class EnterpriseManager extends BaseManager {
      * @param configurationByKeyList
      * @return
      */
-    private OrganDrugsSaleConfig coverConfig(Map<String, Object> configurationByKeyList,Integer organId) {
+    private OrganDrugsSaleConfig coverConfig(Map<String, Object> configurationByKeyList, Integer organId) {
         logger.info("EnterpriseManager coverConfig configurationByKeyList:{} ", JSONUtils.toString(configurationByKeyList));
         OrganDrugsSaleConfig organDrugsSaleConfig = new OrganDrugsSaleConfig();
         organDrugsSaleConfig.setOrganId(organId);
@@ -766,8 +766,13 @@ public class EnterpriseManager extends BaseManager {
         organDrugsSaleConfig.setIsSupportSendToStation(isSupportSendToStation ? 1 : 0);
         organDrugsSaleConfig.setTakeOneselfPaymentChannel((Integer) configurationByKeyList.get("payModeToHosOnlinePayConfig"));
         organDrugsSaleConfig.setTakeOneselfPayment((Boolean) configurationByKeyList.get("supportToHosPayFlag") ? 1 : 2);
-        String[] toHosPlanDate = (String[]) configurationByKeyList.get("toHosPlanDate");
-        organDrugsSaleConfig.setTakeOneselfPlanDate(Integer.parseInt(toHosPlanDate[0]));
+        Boolean isShowPlanTime = (Boolean) configurationByKeyList.get("isShowPlanTime");
+        if (isShowPlanTime) {
+            String[] toHosPlanDate = (String[]) configurationByKeyList.get("toHosPlanDate");
+            organDrugsSaleConfig.setTakeOneselfPlanDate(Integer.parseInt(toHosPlanDate[0]));
+        } else {
+            organDrugsSaleConfig.setTakeOneselfPlanDate(0);
+        }
         organDrugsSaleConfig.setTakeOneselfPlanAmTime(configurationByKeyList.get("toHosPlanAmTime").toString());
         organDrugsSaleConfig.setTakeOneselfPlanPmTime(configurationByKeyList.get("toHosPlanPmTime").toString());
         organDrugsSaleConfig.setTakeDrugsVoucher((Integer) configurationByKeyList.get("getQrTypeForRecipe"));
