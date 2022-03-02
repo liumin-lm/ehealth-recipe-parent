@@ -974,7 +974,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     @RpcService
-    List<RecipeBean> findRecipeAuditByFlag(List<Integer> organ, List<Integer> recipeTypes,Integer checker , int flag, int start, int limit, Time startTime, Time endTime);
+    List<RecipeBean> findRecipeAuditByFlag(List<Integer> organ, List<Integer> recipeTypes,Integer checker , int flag, int start, int limit, String startTime, String endTime);
 
 
     /**
@@ -987,7 +987,7 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @return
      */
     @RpcService
-    Long findRecipeAuditCountByFlag(List<Integer> organ, List<Integer> recipeTypes,Integer checker , int flag, Time startTime, Time endTime);
+    Long findRecipeAuditCountByFlag(List<Integer> organ, List<Integer> recipeTypes,Integer checker , int flag, String startTime, String endTime);
 
 }
 

@@ -4026,7 +4026,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public abstract List<Recipe> findRecipesByStatusAndInvalidTime(@DAOParam("status") List<Integer> status, @DAOParam("invalidTime") Date invalidTime);
 
 
-    public List<Recipe> findRecipeAuditByFlag(final List<Integer> organ, List<Integer> recipeTypes,Integer checker , final int flag, final int start, final int limit,Time startTime,Time endTime) {
+    public List<Recipe> findRecipeAuditByFlag(final List<Integer> organ, List<Integer> recipeTypes,Integer checker , final int flag, final int start, final int limit,String startTime,String endTime) {
         final int all = 3;
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
@@ -4041,7 +4041,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                             "\tcdr_recipe r\n" +
                             "LEFT JOIN cdr_recipe_ext cre ON r.recipeid = cre.recipeid\n" +
                             "WHERE cre.canUrgentAuditRecipe is not null and r.clinicOrgan in (:organ) and r.checkMode<2 and  r.audit_state = 1 and  (recipeType in(:recipeTypes) or grabOrderStatus=1) " );
-                    if(startTime != null && endTime != null){
+                    if(StringUtils.isNoneBlank(startTime) && StringUtils.isNoneBlank(endTime)){
                         hql.append(" and  r.CreateDate >= :startTime and  r.CreateDate <= :endTime");
                     }
                     hql.append(" ORDER BY canUrgentAuditRecipe desc, r.grabOrderStatus DESC, signdate asc");
@@ -4049,7 +4049,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 //1是审核通过
                 else if (flag == 1) {
                     hql.append("from Recipe  where clinicOrgan in (:organ)  and Checker = :checker  and audit_state = 5 ");
-                    if(startTime != null && endTime != null){
+                    if(StringUtils.isNoneBlank(startTime) && StringUtils.isNoneBlank(endTime)){
                         hql.append(" and CreateDate >= :startTime and CreateDate <= :endTime");
                     }
                     hql.append(" order by signDate desc");
@@ -4057,7 +4057,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 //2是审核未通过
                 else if (flag == 2) {
                     hql.append("from Recipe where clinicOrgan in (:organ)  and Checker = :checker  and audit_state in (3,4,6) ");
-                    if(startTime != null && endTime != null){
+                    if(StringUtils.isNoneBlank(startTime) && StringUtils.isNoneBlank(endTime)){
                         hql.append(" and CreateDate >= :startTime and CreateDate <= :endTime");
                     }
                     hql.append(" order by signDate desc");
@@ -4084,7 +4084,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }else{
                     q.setParameter("checker", checker);
                 }
-                if(startTime != null && endTime != null){
+                if(StringUtils.isNoneBlank(startTime) && StringUtils.isNoneBlank(endTime)){
                     q.setParameter("startTime", startTime);
                     q.setParameter("endTime", endTime);
                 }
@@ -4100,7 +4100,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     /**
      * 查询药师审核的总数
      */
-    public Long findRecipeAuditCountByFlag(final List<Integer> organ, List<Integer> recipeTypes, Integer checker, final int flag, Time startTime, Time endTime) {
+    public Long findRecipeAuditCountByFlag(final List<Integer> organ, List<Integer> recipeTypes, Integer checker, final int flag, String startTime, String endTime) {
         final int all = 3;
         HibernateStatelessResultAction<Long> action = new AbstractHibernateStatelessResultAction<Long>() {
             @Override
@@ -4132,7 +4132,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
                 }
 
-                if(startTime != null && endTime != null){
+                if(StringUtils.isNoneBlank(startTime) && StringUtils.isNoneBlank(endTime)){
                     hql.append(" and r.CreateDate >= :startTime and r.CreateDate <= :endTime");
                 }
 
@@ -4149,7 +4149,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }else{
                     q.setParameter("checker", checker);
                 }
-                if(startTime != null && endTime != null){
+                if(StringUtils.isNoneBlank(startTime) && StringUtils.isNoneBlank(endTime)){
                     q.setParameter("startTime", startTime);
                     q.setParameter("endTime", endTime);
                 }
