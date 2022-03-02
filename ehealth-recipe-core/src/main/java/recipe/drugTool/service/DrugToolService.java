@@ -229,6 +229,7 @@ public class DrugToolService implements IDrugToolService {
 
     @Override
     public Map<String, Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
+        LOGGER.info("机构id", organId);
         LOGGER.info(operator + "开始 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         String key = organId + operator;
         Map<String, Object> result = Maps.newHashMap();
