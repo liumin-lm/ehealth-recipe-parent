@@ -89,7 +89,7 @@ public class OrderManager extends BaseManager {
         String addressId = MapValueUtil.getString(extInfo, "addressId");
         String recipeId = MapValueUtil.getString(extInfo, "recipeId");
         Integer logisticsCompany = MapValueUtil.getInteger(extInfo, "logisticsCompany");
-        if(Objects.isNull(depId) || Objects.isNull(addressId) || Objects.isNull(recipeId)){
+        if (Objects.isNull(depId) || Objects.isNull(addressId) || Objects.isNull(recipeId)) {
             logger.info("orderCanSend have null params");
             return true;
         }
@@ -97,7 +97,7 @@ public class OrderManager extends BaseManager {
         AddressService addressService = AppContextHolder.getBean("basic.addressService", AddressService.class);
         AddressDTO address = addressService.get(Integer.parseInt(addressId));
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
-        if (!RecipeBussConstant.PAYMODE_ONLINE.equals(payMode) && !RecipeBussConstant.PAYMODE_COD.equals(payMode)){
+        if (!RecipeBussConstant.PAYMODE_ONLINE.equals(payMode) && !RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
             return true;
         }
         DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(depId);
@@ -151,10 +151,12 @@ public class OrderManager extends BaseManager {
             // 收件详细地址
             controlLogisticsOrderDto.setAddresseeAddress(address4);
             // 物流公司编码
-            controlLogisticsOrderDto.setLogisticsCode(logisticsCompany.toString());
-            logger.info("orderCanSend req controlLogisticsOrderDto={}",controlLogisticsOrderDto);
+            if (Objects.nonNull(logisticsCompany)) {
+                controlLogisticsOrderDto.setLogisticsCode(logisticsCompany.toString());
+            }
+            logger.info("orderCanSend req controlLogisticsOrderDto={}", controlLogisticsOrderDto);
             String orderCanSend = infraClient.orderCanSend(controlLogisticsOrderDto);
-            if(!"0".equals(orderCanSend)){
+            if (!"0".equals(orderCanSend)) {
                 return false;
             }
         }
