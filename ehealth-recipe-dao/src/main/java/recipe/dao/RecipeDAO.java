@@ -42,6 +42,7 @@ import recipe.util.LocalStringUtil;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -4025,7 +4026,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public abstract List<Recipe> findRecipesByStatusAndInvalidTime(@DAOParam("status") List<Integer> status, @DAOParam("invalidTime") Date invalidTime);
 
 
-    public List<Recipe> findRecipeAuditByFlag(final List<Integer> organ, List<Integer> recipeTypes,Integer checker , final int flag, final int start, final int limit) {
+    public List<Recipe> findRecipeAuditByFlag(final List<Integer> organ, List<Integer> recipeTypes,Integer checker , final int flag, final int start, final int limit,Time startTime,Time endTime) {
         final int all = 3;
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
@@ -4039,22 +4040,35 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                             "FROM\n" +
                             "\tcdr_recipe r\n" +
                             "LEFT JOIN cdr_recipe_ext cre ON r.recipeid = cre.recipeid\n" +
-                            "WHERE cre.canUrgentAuditRecipe is not null and r.clinicOrgan in (:organ) and r.checkMode<2 and  r.audit_state = 1 and  (recipeType in(:recipeTypes) or grabOrderStatus=1) " +
-                            "ORDER BY canUrgentAuditRecipe desc, r.grabOrderStatus DESC, signdate asc");
+                            "WHERE cre.canUrgentAuditRecipe is not null and r.clinicOrgan in (:organ) and r.checkMode<2 and  r.audit_state = 1 and  (recipeType in(:recipeTypes) or grabOrderStatus=1) " );
+                    if(startTime != null && endTime != null){
+                        hql.append(" and  r.CreateDate >= :startTime and  r.CreateDate <= :endTime");
+                    }
+                    hql.append(" ORDER BY canUrgentAuditRecipe desc, r.grabOrderStatus DESC, signdate asc");
                 }
                 //1是审核通过
                 else if (flag == 1) {
                     hql.append("from Recipe  where clinicOrgan in (:organ)  and Checker = :checker  and audit_state = 5 ");
+                    if(startTime != null && endTime != null){
+                        hql.append(" and CreateDate >= :startTime and CreateDate <= :endTime");
+                    }
                     hql.append(" order by signDate desc");
                 }
                 //2是审核未通过
                 else if (flag == 2) {
                     hql.append("from Recipe where clinicOrgan in (:organ)  and Checker = :checker  and audit_state in (3,4,6) ");
+                    if(startTime != null && endTime != null){
+                        hql.append(" and CreateDate >= :startTime and CreateDate <= :endTime");
+                    }
                     hql.append(" order by signDate desc");
                 }
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
                 else if (flag == all) {
-                    hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<2   and r.audit_state in (1,2,3,4,5,6,7)  and  (r.recipeType in(:recipeTypes) or r.grabOrderStatus=1) and r.reviewType != 0 order by r.signDate desc");
+                    hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<2   and r.audit_state in (1,2,3,4,5,6,7)  and  (r.recipeType in(:recipeTypes) or r.grabOrderStatus=1) and r.reviewType != 0 ");
+                    if(startTime != null && endTime != null){
+                        hql.append(" and r.CreateDate >= :startTime and r.CreateDate <= :endTime");
+                    }
+                    hql.append(" order by r.signDate desc");
                 } else {
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
                 }
@@ -4070,6 +4084,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }else{
                     q.setParameter("checker", checker);
                 }
+                if(startTime != null && endTime != null){
+                    q.setParameter("startTime", startTime);
+                    q.setParameter("endTime", endTime);
+                }
                 q.setFirstResult(start);
                 q.setMaxResults(limit);
                 setResult(q.list());
@@ -4082,7 +4100,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     /**
      * 查询药师审核的总数
      */
-    public Long findRecipeAuditCountByFlag(final List<Integer> organ, List<Integer> recipeTypes,Integer checker, final int flag) {
+    public Long findRecipeAuditCountByFlag(final List<Integer> organ, List<Integer> recipeTypes, Integer checker, final int flag, Time startTime, Time endTime) {
         final int all = 3;
         HibernateStatelessResultAction<Long> action = new AbstractHibernateStatelessResultAction<Long>() {
             @Override
@@ -4096,8 +4114,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                             "FROM\n" +
                             "\tcdr_recipe r\n" +
                             "LEFT JOIN cdr_recipe_ext cre ON r.recipeid = cre.recipeid\n" +
-                            "WHERE cre.canUrgentAuditRecipe is not null and r.clinicOrgan in (:organ) and r.checkMode<2 and r.audit_state = 1 and  (recipeType in(:recipeTypes) or grabOrderStatus=1) " +
-                            "ORDER BY canUrgentAuditRecipe desc, signdate asc");
+                            "WHERE cre.canUrgentAuditRecipe is not null and r.clinicOrgan in (:organ) and r.checkMode<2 and r.audit_state = 1 and  (recipeType in(:recipeTypes) or grabOrderStatus=1) ");
                 }
                 //1是审核通过
                 else if (flag == 1) {
@@ -4110,9 +4127,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
                 else if (flag == all) {
-                    hql.append("select count(*) from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<2   and r.audit_state in (1,2,3,4,5,6,7)  and  (r.recipeType in(:recipeTypes) or r.grabOrderStatus=1) and r.reviewType != 0 order by r.signDate desc");
+                    hql.append("select count(*) from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<2   and r.audit_state in (1,2,3,4,5,6,7)  and  (r.recipeType in(:recipeTypes) or r.grabOrderStatus=1) and r.reviewType != 0 ");
                 } else {
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
+                }
+
+                if(startTime != null && endTime != null){
+                    hql.append(" and r.CreateDate >= :startTime and r.CreateDate <= :endTime");
                 }
 
                 Query q;
@@ -4127,6 +4148,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     q.setParameterList("recipeTypes", recipeTypes);
                 }else{
                     q.setParameter("checker", checker);
+                }
+                if(startTime != null && endTime != null){
+                    q.setParameter("startTime", startTime);
+                    q.setParameter("endTime", endTime);
                 }
                 BigInteger count = (BigInteger) q.uniqueResult();
                 setResult(count.longValue());

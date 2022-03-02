@@ -26,6 +26,7 @@ import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
 
 import java.math.BigDecimal;
+import java.sql.Time;
 import java.util.*;
 
 /**
@@ -968,10 +969,12 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @param flag        审核标记
      * @param start       当前页
      * @param limit       页数
+     * @param startTime   开始时间
+     * @param endTime     结束时间
      * @return
      */
     @RpcService
-    List<RecipeBean> findRecipeAuditByFlag(List<Integer> organ, List<Integer> recipeTypes,Integer checker , int flag, int start, int limit);
+    List<RecipeBean> findRecipeAuditByFlag(List<Integer> organ, List<Integer> recipeTypes,Integer checker , int flag, int start, int limit, Time startTime, Time endTime);
 
 
     /**
@@ -979,12 +982,12 @@ public interface IRecipeService extends IBaseService<RecipeBean> {
      * @param organ       机构集合
      * @param recipeTypes 处方类型集合
      * @param flag        审核标记
-     * @param start       当前页
-     * @param limit       页数
+     * @param startTime   开始时间
+     * @param endTime     结束时间
      * @return
      */
     @RpcService
-    Long findRecipeAuditCountByFlag(List<Integer> organ, List<Integer> recipeTypes,Integer checker , int flag);
+    Long findRecipeAuditCountByFlag(List<Integer> organ, List<Integer> recipeTypes,Integer checker , int flag, Time startTime, Time endTime);
 
 }
 

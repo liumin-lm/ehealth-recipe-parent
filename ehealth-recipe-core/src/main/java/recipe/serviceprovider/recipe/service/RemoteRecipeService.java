@@ -120,6 +120,7 @@ import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
+import java.sql.Time;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -2819,8 +2820,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     @LogRecord
-    public List<RecipeBean> findRecipeAuditByFlag(List<Integer> organ, List<Integer> recipeTypes,Integer checker, int flag, int start, int limit) {
-        List<Recipe> recipes = recipeDAO.findRecipeAuditByFlag(organ, recipeTypes,checker, flag, start, limit);
+    public List<RecipeBean> findRecipeAuditByFlag(List<Integer> organ, List<Integer> recipeTypes, Integer checker, int flag, int start, int limit, Time startTime, Time endTime) {
+        List<Recipe>  recipes = recipeDAO.findRecipeAuditByFlag(organ, recipeTypes,checker, flag, start, limit, startTime, endTime);
         //转换前端的展示实体类
         List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
         return recipeBeans;
@@ -2829,8 +2830,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     @LogRecord
-    public Long findRecipeAuditCountByFlag(List<Integer> organ, List<Integer> recipeTypes,Integer checker, int flag) {
-        Long recipeCount = recipeDAO.findRecipeAuditCountByFlag(organ, recipeTypes,checker, flag);
+    public Long findRecipeAuditCountByFlag(List<Integer> organ, List<Integer> recipeTypes,Integer checker, int flag, Time startTime, Time endTime) {
+        Long recipeCount = recipeDAO.findRecipeAuditCountByFlag(organ, recipeTypes,checker, flag, startTime, endTime);
         return recipeCount;
     }
 
