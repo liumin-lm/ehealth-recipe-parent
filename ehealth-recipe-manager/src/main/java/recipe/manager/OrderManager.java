@@ -88,6 +88,7 @@ public class OrderManager extends BaseManager {
         Integer depId = MapValueUtil.getInteger(extInfo, "depId");
         String addressId = MapValueUtil.getString(extInfo, "addressId");
         String recipeId = MapValueUtil.getString(extInfo, "recipeId");
+        Integer logisticsCompany = MapValueUtil.getInteger(extInfo, "logisticsCompany");
         if(Objects.isNull(depId) || Objects.isNull(addressId) || Objects.isNull(recipeId)){
             logger.info("orderCanSend have null params");
             return true;
@@ -149,6 +150,8 @@ public class OrderManager extends BaseManager {
             controlLogisticsOrderDto.setAddresseeStreet(AddressUtils.getAddressDic(streetAddress));
             // 收件详细地址
             controlLogisticsOrderDto.setAddresseeAddress(address4);
+            // 物流公司编码
+            controlLogisticsOrderDto.setLogisticsCode(logisticsCompany.toString());
             logger.info("orderCanSend req controlLogisticsOrderDto={}",controlLogisticsOrderDto);
             String orderCanSend = infraClient.orderCanSend(controlLogisticsOrderDto);
             if(!"0".equals(orderCanSend)){
