@@ -3476,6 +3476,31 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @return
      * @author zhongzx
      */
+    public List<Recipe> searchRecipeByDepartName(final Set<Integer> organs, final Integer searchFlag, final String searchString, final List<Integer> departIds, final Integer start, final Integer limit) {
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("select distinct r from Recipe r");
+                hql.append(" where r.appoint_depart_name like:searchString and r.Depart in (:departIds)");
+                hql.append("and (r.checkDateYs is not null or r.status = 8) " + "and r.clinicOrgan in (:organs) order by r.signDate desc");
+
+                Query q = ss.createQuery(hql.toString());
+                q.setParameter("searchString", "%" + searchString + "%");
+                q.setParameterList("organs", organs);
+                q.setParameterList("departIds", departIds);
+                if (null != start && null != limit) {
+                    q.setFirstResult(start);
+                    q.setMaxResults(limit);
+                }
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+
     public List<Recipe> searchRecipe(final Set<Integer> organs, final Integer searchFlag, final String searchString, final Integer start, final Integer limit) {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
@@ -4040,7 +4065,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                             "FROM\n" +
                             "\tcdr_recipe r\n" +
                             "LEFT JOIN cdr_recipe_ext cre ON r.recipeid = cre.recipeid\n" +
-                            "WHERE cre.canUrgentAuditRecipe is not null and r.clinicOrgan in (:organ) and r.checkMode<2 and  r.audit_state = 1 and  (recipeType in(:recipeTypes) or grabOrderStatus=1) " );
+                            "WHERE cre.canUrgentAuditRecipe is not null and r.clinicOrgan in (:organ) and r.checkMode<2 and  r.audit_state = 1 and  (r.recipeType in(:recipeTypes) or r.grabOrderStatus=1) " );
                     if(StringUtils.isNoneBlank(startTime) && StringUtils.isNoneBlank(endTime)){
                         hql.append(" and  r.CreateDate >= :startTime and  r.CreateDate <= :endTime");
                     }

@@ -25,7 +25,6 @@ import org.springframework.stereotype.Service;
 import recipe.constant.ErrorCode;
 import recipe.third.IFileDownloadService;
 import recipe.util.ByteUtils;
-import recipe.util.ValidateUtil;
 
 import java.math.BigDecimal;
 import java.util.List;
