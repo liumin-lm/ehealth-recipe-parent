@@ -620,6 +620,7 @@ public class DrugToolService implements IDrugToolService {
 
 
             try {
+                LOGGER.info("机构药品目录导入cell26", row.getCell(26));
                 if (!StringUtils.isEmpty(getStrFromCell(row.getCell(26)))) {
                     if ((new Integer(3).equals(drug.getDrugType()))) {
                         DrugEntrust byOrganIdAndDrugEntrustName = drugEntrustDAO.getByOrganIdAndDrugEntrustName(organId, getStrFromCell(row.getCell(26)));
