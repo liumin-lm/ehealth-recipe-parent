@@ -6,8 +6,13 @@ import com.google.common.collect.Lists;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
+import com.ngari.infra.logistics.mode.ControlLogisticsOrderDto;
+import com.ngari.infra.logistics.mode.CreateLogisticsOrderDto;
+import com.ngari.infra.logistics.service.ILogisticsOrderService;
+import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.dto.RecipeBeanDTO;
 import com.ngari.recipe.dto.RecipeFeeDTO;
@@ -15,6 +20,7 @@ import com.ngari.recipe.dto.RecipeOrderDto;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -23,16 +29,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.aop.LogRecord;
 import recipe.client.*;
+import recipe.constant.DrugEnterpriseConstant;
+import recipe.constant.RecipeBussConstant;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeOrderPayFlowDao;
+import recipe.dao.RecipeParameterDao;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeOrderDetailFeeEnum;
-import recipe.util.DictionaryUtil;
-import recipe.util.RecipeUtil;
-import recipe.util.ValidateUtil;
+import recipe.util.*;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -65,6 +73,90 @@ public class OrderManager extends BaseManager {
     private DoctorService doctorService;
     @Autowired
     private RefundClient refundClient;
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
+    @Autowired
+    private InfraClient infraClient;
+
+    /**
+     * 订单能否配送 物流管控
+     *
+     * @return
+     */
+    @LogRecord
+    public boolean orderCanSend(Map<String, String> extInfo) {
+        Integer depId = MapValueUtil.getInteger(extInfo, "depId");
+        String addressId = MapValueUtil.getString(extInfo, "addressId");
+        String recipeId = MapValueUtil.getString(extInfo, "recipeId");
+        if(Objects.isNull(depId) || Objects.isNull(addressId) || Objects.isNull(recipeId)){
+            logger.info("orderCanSend have null params");
+            return true;
+        }
+        Recipe recipe = recipeDAO.get(recipeId);
+        AddressService addressService = AppContextHolder.getBean("basic.addressService", AddressService.class);
+        AddressDTO address = addressService.get(Integer.parseInt(addressId));
+        Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
+        if (!RecipeBussConstant.PAYMODE_ONLINE.equals(payMode) && !RecipeBussConstant.PAYMODE_COD.equals(payMode)){
+            return true;
+        }
+        DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(depId);
+        if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_PLATFORM)) {
+            ControlLogisticsOrderDto controlLogisticsOrderDto = new ControlLogisticsOrderDto();
+            String organList = recipeParameterDao.getByName("zhHospitalOrganList");
+            if (null != enterprise.getOrganId() && StringUtils.isNotEmpty(organList) && LocalStringUtil.hasOrgan(enterprise.getOrganId().toString(), organList)) {
+                // 取药企对应的机构ID
+                controlLogisticsOrderDto.setOrganId(enterprise.getOrganId());
+            } else {
+                // 机构id
+                controlLogisticsOrderDto.setOrganId(recipe.getClinicOrgan());
+            }
+            // 寄件人姓名
+            controlLogisticsOrderDto.setConsignorName(enterprise.getConsignorName());
+            // 寄件人手机号
+            controlLogisticsOrderDto.setConsignorPhone(enterprise.getConsignorMobile());
+            // 寄件人省份
+            controlLogisticsOrderDto.setConsignorProvince(AddressUtils.getAddressDic(enterprise.getConsignorProvince()));
+            // 寄件人城市
+            controlLogisticsOrderDto.setConsignorCity(AddressUtils.getAddressDic(enterprise.getConsignorCity()));
+            // 寄件人区域
+            controlLogisticsOrderDto.setConsignorDistrict(AddressUtils.getAddressDic(enterprise.getConsignorDistrict()));
+            // 寄件人街道
+            controlLogisticsOrderDto.setConsignorStreet(AddressUtils.getAddressDic(enterprise.getConsignorStreet()));
+            // 寄件人详细地址
+            controlLogisticsOrderDto.setConsignorAddress(enterprise.getConsignorAddress());
+            //省
+            String address1 = address.getAddress1();
+            //市
+            String address2 = address.getAddress2();
+            //区
+            String address3 = address.getAddress3();
+            //详细地址
+            String address4 = address.getAddress4();
+            // 街道
+            String streetAddress = address.getStreetAddress();
+            String phone = address.getRecMobile();
+            // 收件人名称
+            controlLogisticsOrderDto.setAddresseeName(address.getReceiver());
+            // 收件人手机号
+            controlLogisticsOrderDto.setAddresseePhone(phone);
+            // 收件省份
+            controlLogisticsOrderDto.setAddresseeProvince(AddressUtils.getAddressDic(address1));
+            // 收件城市
+            controlLogisticsOrderDto.setAddresseeCity(AddressUtils.getAddressDic(address2));
+            // 收件镇/区
+            controlLogisticsOrderDto.setAddresseeDistrict(AddressUtils.getAddressDic(address3));
+            // 收件人街道
+            controlLogisticsOrderDto.setAddresseeStreet(AddressUtils.getAddressDic(streetAddress));
+            // 收件详细地址
+            controlLogisticsOrderDto.setAddresseeAddress(address4);
+            logger.info("orderCanSend req controlLogisticsOrderDto={}",controlLogisticsOrderDto);
+            String orderCanSend = infraClient.orderCanSend(controlLogisticsOrderDto);
+            if(!"0".equals(orderCanSend)){
+                return false;
+            }
+        }
+        return true;
+    }
 
     /**
      * 邵逸夫模式下 订单没有运费与审方费用的情况下生成一条支付流水
@@ -238,7 +330,7 @@ public class OrderManager extends BaseManager {
         List<Integer> recipeIds = JSONArray.parseArray(recipeIdList, Integer.class);
 
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
-        if(CollectionUtils.isEmpty(recipeList)){
+        if (CollectionUtils.isEmpty(recipeList)) {
             return null;
         }
         // 如果处方中的订单编号与处方中保存的订单编号不一致,则视为订单失效
