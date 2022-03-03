@@ -1044,7 +1044,13 @@ public class RecipeService extends RecipeBaseService {
             }
         }
         //推送处方到监管平台
-        RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
+        //门诊处方不推送到监管平台
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        if(null != recipeExtend){
+            if(!(new Integer(1).equals(recipeExtend.getRecipeBusinessType()))){
+                RecipeBusiThreadPool.submit(new PushRecipeToRegulationCallable(Collections.singletonList(recipe.getRecipeId()), 1));
+            }
+        }
 
         //将原先互联网回调修改处方的推送的逻辑移到这里
         //判断是否是阿里药企，是阿里大药房就推送处方给药企

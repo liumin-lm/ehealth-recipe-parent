@@ -223,6 +223,19 @@ public class RecipeServiceSub {
                     default:
                 }
             }
+            //处方业务类型
+            switch (recipeBean.getBussSource()){
+                case 1:
+                case 5:
+                    recipeExtend.setRecipeBusinessType(1);//门诊处方
+                    break;
+                case 2:
+                    recipeExtend.setRecipeBusinessType(2);//复诊处方
+                    break;
+                default:
+                    recipeExtend.setRecipeBusinessType(3);//其他处方
+                    break;
+            }
             //慢病开关
             if (recipeExtend.getRecipeChooseChronicDisease() == null) {
                 try {
