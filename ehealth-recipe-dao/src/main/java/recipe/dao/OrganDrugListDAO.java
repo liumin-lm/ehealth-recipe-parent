@@ -1485,14 +1485,20 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
                     hql.append(" and r.lastModify <= :endTime");
                 }
                 hql.append(" order by organdrugid desc  ");
-                hql.append(" limit :offSet,:limit");
                 Query query = ss.createQuery(hql.toString());
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-                query.setTimestamp("startTime", sdf.parse(param.getStartDate()));
-                query.setTimestamp("endTime", sdf.parse(param.getEndDate()));
+                if (!StringUtils.isEmpty(param.getStartDate())) {
+                    query.setTimestamp("startTime", sdf.parse(param.getStartDate()));
+                }
+                if (!StringUtils.isEmpty(param.getEndDate())) {
+                    query.setTimestamp("endTime", sdf.parse(param.getEndDate()));
+                }
                 query.setParameter("organId", param.getOrganId());
-                query.setParameter("offSet", (param.getPage() - 1) * param.getLimit());
-                query.setParameter("limit", param.getLimit());
+                if (null == param.getLimit() || param.getLimit() > 500) {
+                    param.setLimit(500);
+                }
+                query.setFirstResult((param.getPage() - 1) * param.getLimit());
+                query.setMaxResults(param.getLimit());
                 setResult(query.list());
             }
         };
