@@ -64,6 +64,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
+import recipe.aop.LogRecord;
 import recipe.bean.DoctorDrugUsageRequest;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.OrganToolBean;
@@ -2598,6 +2599,7 @@ public class DrugToolService implements IDrugToolService {
      * @return
      */
     @RpcService
+    @LogRecord
     public Map<String, Object> findDrugUsageCountForDoctor(Integer organId, Integer doctorId) {
         if (null == organId || null == doctorId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构id医生id不能为空");
