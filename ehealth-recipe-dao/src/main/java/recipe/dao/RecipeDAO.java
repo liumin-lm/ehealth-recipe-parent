@@ -3482,10 +3482,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
                 hql.append("select distinct r from Recipe r");
-                hql.append(" where r.appointDepartName like :searchString ");
-                hql.append(" and (r.checkDateYs is not null or r.status = 8) " + "and r.clinicOrgan in (:organs) ");
+                hql.append(" where  (r.checkDateYs is not null or r.status = 8)");
+                hql.append( "and r.clinicOrgan in (:organs) ");
                 if(CollectionUtils.isNotEmpty(departIds)){
-                    hql.append("  and r.depart in (:departIds)");
+                    hql.append(" and (  r.appointDepartName LIKE :searchString or r.depart in (:departIds) )");
+                }else{
+                    hql.append("  and r.appointDepartName LIKE :searchString ");
                 }
                 hql.append("  order by r.signDate desc");
 
