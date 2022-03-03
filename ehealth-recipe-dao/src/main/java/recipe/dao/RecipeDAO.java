@@ -3482,13 +3482,19 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             public void execute(StatelessSession ss) throws Exception {
                 StringBuilder hql = new StringBuilder();
                 hql.append("select distinct r from Recipe r");
-                hql.append(" where r.appoint_depart_name like:searchString and r.Depart in (:departIds)");
-                hql.append("and (r.checkDateYs is not null or r.status = 8) " + "and r.clinicOrgan in (:organs) order by r.signDate desc");
+                hql.append(" where r.appointDepartName like :searchString ");
+                hql.append(" and (r.checkDateYs is not null or r.status = 8) " + "and r.clinicOrgan in (:organs) ");
+                if(CollectionUtils.isNotEmpty(departIds)){
+                    hql.append("  and r.depart in (:departIds)");
+                }
+                hql.append("  order by r.signDate desc");
 
                 Query q = ss.createQuery(hql.toString());
                 q.setParameter("searchString", "%" + searchString + "%");
                 q.setParameterList("organs", organs);
-                q.setParameterList("departIds", departIds);
+                if(CollectionUtils.isNotEmpty(departIds)){
+                    q.setParameterList("departIds", departIds);
+                }
                 if (null != start && null != limit) {
                     q.setFirstResult(start);
                     q.setMaxResults(limit);
