@@ -12,6 +12,7 @@ import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
+import com.ngari.recipe.dto.OutPatientRecordResDTO;
 import com.ngari.recipe.dto.OutRecipeDetailDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
@@ -26,8 +27,6 @@ import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
-import ctd.util.annotation.RpcBean;
-import ctd.util.annotation.RpcService;
 import eh.cdr.api.vo.MedicalDetailBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,7 +43,6 @@ import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
 import recipe.constant.ErrorCode;
-import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.dao.*;
@@ -54,13 +52,9 @@ import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
-import recipe.manager.EmrRecipeManager;
-import recipe.manager.HisRecipeManager;
-import recipe.manager.RecipeManager;
-import recipe.manager.StateManager;
+import recipe.manager.*;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeMsgService;
-import recipe.service.RecipeServiceSub;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.*;
 import recipe.vo.doctor.PatientOptionalDrugVO;
@@ -124,6 +118,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private AuditModeContext auditModeContext;
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
+    @Autowired
+    private ConsultManager consultManager;
     
     /**
      * 获取线下门诊处方诊断信息
@@ -447,6 +443,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             return ObjectCopyUtils.convert(result.get(0), RecipeBean.class);
         }
         return null;
+    }
+
+    @Override
+    public OutPatientRecordResDTO findOutPatientRecordFromHis(String mpiId, Integer organId, Integer doctorId) {
+        return consultManager.findOutPatientRecordFromHis(mpiId,organId,doctorId);
     }
 
 

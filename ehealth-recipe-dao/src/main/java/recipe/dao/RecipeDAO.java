@@ -1132,10 +1132,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param limit       分页长度
      * @return QueryResult<Map>
      */
-    public QueryResult<Map> findRecipesByInfo(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType, final Integer depart, final int start, final int limit, List<Integer> organIds, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType, Integer bussSource) {
+    public QueryResult<Map> findRecipesByInfo(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType, final Integer depart, final int start, final int limit, List<Integer> organIds, Integer giveMode, Integer sendType, Integer fromflag,
+                                              Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType, Integer bussSource,Integer recipeBusinessType) {
         this.validateOptionForStatistics(status, doctor, patientName, bDate, eDate, dateType, start, limit);
-        final StringBuilder sbHql = this.generateRecipeOderHQLforStatistics(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource);
-        final StringBuilder sbHqlCount = this.generateRecipeOderHQLforStatisticsCount(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource);
+        final StringBuilder sbHql = this.generateRecipeOderHQLforStatistics(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource,recipeBusinessType);
+        final StringBuilder sbHqlCount = this.generateRecipeOderHQLforStatisticsCount(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource,recipeBusinessType);
         logger.info("RecipeDAO findRecipesByInfo sbHql:{}", sbHql.toString());
         HibernateStatelessResultAction<QueryResult<Map>> action = new AbstractHibernateStatelessResultAction<QueryResult<Map>>() {
             @Override
@@ -1205,6 +1206,17 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         if (recipeExtend != null) {
                             Map<String, Object> recipeExtendMap = Maps.newHashMap();
                             BeanUtils.map(recipeExtend, recipeExtendMap);
+                            switch (recipeExtend.getRecipeBusinessType()){
+                                case 1:
+                                    recipeExtendMap.put("recipeBusinessText","门诊处方");
+                                    break;
+                                case 2:
+                                    recipeExtendMap.put("recipeBusinessText","复诊处方");
+                                    break;
+                                case 3:
+                                    recipeExtendMap.put("recipeBusinessText","其他处方");
+                                    break;
+                            }
                             map.put("recipeExtend", recipeExtendMap);
                         }
 
@@ -1502,24 +1514,26 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return hql;
     }
 
-    private StringBuilder generateRecipeOderHQLforStatistics(Integer organId, Integer status, Integer doctor, String mpiId, Integer dateType, Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType, Integer bussSource) {
+    private StringBuilder generateRecipeOderHQLforStatistics(Integer organId, Integer status, Integer doctor, String mpiId, Integer dateType, Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId,
+                                                             Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType, Integer bussSource,Integer recipeBusinessType) {
         StringBuilder hql = new StringBuilder("select r.*  from cdr_recipe r ");
         hql.append(" LEFT JOIN cdr_recipeorder o on r.orderCode = o.orderCode ");
         hql.append(" LEFT JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId ");
         hql.append(" where  r.recipeSourceType!=3 ");
-        return generateRecipeOderHQLforStatisticsV1(hql, organId, status, doctor, mpiId, dateType, depart, requestOrgans, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource);
+        return generateRecipeOderHQLforStatisticsV1(hql, organId, status, doctor, mpiId, dateType, depart, requestOrgans, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource,recipeBusinessType);
     }
 
-    private StringBuilder generateRecipeOderHQLforStatisticsCount(Integer organId, Integer status, Integer doctor, String mpiId, Integer dateType, Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType, Integer bussSource) {
+    private StringBuilder generateRecipeOderHQLforStatisticsCount(Integer organId, Integer status, Integer doctor, String mpiId, Integer dateType, Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId,
+                                                                  Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType, Integer bussSource,Integer recipeBusinessType) {
         StringBuilder hql = new StringBuilder("select count(1)  from cdr_recipe r ");
         hql.append(" LEFT JOIN cdr_recipeorder o on r.orderCode = o.orderCode ");
         hql.append(" LEFT JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId ");
         hql.append(" where  r.recipeSourceType!=3 ");
-        return generateRecipeOderHQLforStatisticsV1(hql, organId, status, doctor, mpiId, dateType, depart, requestOrgans, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource);
+        return generateRecipeOderHQLforStatisticsV1(hql, organId, status, doctor, mpiId, dateType, depart, requestOrgans, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource,recipeBusinessType);
     }
 
 
-    private StringBuilder generateRecipeOderHQLforStatisticsV1(StringBuilder hql, Integer organId, Integer status, Integer doctor, String mpiId, Integer dateType, Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType, Integer bussSource) {
+    private StringBuilder generateRecipeOderHQLforStatisticsV1(StringBuilder hql, Integer organId, Integer status, Integer doctor, String mpiId, Integer dateType, Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType, Integer bussSource,Integer recipeBusinessType) {
         //默认查询所有
         if (CollectionUtils.isNotEmpty(requestOrgans)) {
             // 添加申请机构条件
@@ -1642,6 +1656,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     hql.append(" and r.bussSource=5 ");
                     break;
             }
+        }
+        if(recipeBusinessType != null){
+            hql.append(" and re.recipe_business_type= ").append(recipeBusinessType);
         }
         return hql;
     }

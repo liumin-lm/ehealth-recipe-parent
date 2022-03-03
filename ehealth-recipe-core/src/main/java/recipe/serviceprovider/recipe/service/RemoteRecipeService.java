@@ -405,7 +405,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         QueryResult<Map> result = recipeDAO.findRecipesByInfo(organId, status, doctor, patientName,
                 bDate, eDate, dateType, depart, start, limit, organIds,
                 giveMode, sendType, fromflag, recipeId, enterpriseId,
-                checkStatus, payFlag, orderType, refundNodeStatus, recipeType, null);
+                checkStatus, payFlag, orderType, refundNodeStatus, recipeType, null,null);
         List<Map> records = result.getItems();
         for (Map record : records) {
             Recipe recipe = recipeDAO.getByRecipeId((int) record.get("recipeId"));
@@ -450,7 +450,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 , recipesQueryVO.getDepart(), recipesQueryVO.getStart(), recipesQueryVO.getLimit(), organIds
                 , recipesQueryVO.getGiveMode(), recipesQueryVO.getSendType(), recipesQueryVO.getFromFlag(), recipesQueryVO.getRecipeId()
                 , recipesQueryVO.getEnterpriseId(), recipesQueryVO.getCheckStatus(), recipesQueryVO.getPayFlag(), recipesQueryVO.getOrderType()
-                , recipesQueryVO.getRefundNodeStatus(), recipesQueryVO.getRecipeType(), recipesQueryVO.getBussSource());
+                , recipesQueryVO.getRefundNodeStatus(), recipesQueryVO.getRecipeType(), recipesQueryVO.getBussSource(),recipesQueryVO.getRecipeBusinessType());
         List<Map> records = result.getItems();
         for (Map record : records) {
             Recipe recipe = recipeDAO.getByRecipeId((int) record.get("recipeId"));

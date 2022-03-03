@@ -1,7 +1,12 @@
 package recipe.client;
 
+import com.alibaba.fastjson.JSON;
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
+import com.ngari.his.recipe.mode.OutPatientRecordResTO;
+import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.his.visit.mode.WriteDrugRecipeReqTO;
 import ctd.util.JSONUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,6 +25,9 @@ public class ConsultClient extends BaseClient {
     @Autowired
     private IConsultExService consultExService;
 
+    @Autowired
+    private IRecipeHisService iRecipeHisService;
+
     /**
      * 根据单号获取网络门诊信息
      *
@@ -36,4 +44,20 @@ public class ConsultClient extends BaseClient {
         return consultExDTO;
     }
 
+    /**
+     * 获取有效门诊记录
+     *
+     * @param writeDrugRecipeReqTO 获取有效门诊记录请求入参
+     * @return 门诊记录
+     */
+    public HisResponseTO<OutPatientRecordResTO> findOutPatientRecordFromHis(WriteDrugRecipeReqTO writeDrugRecipeReqTO){
+        logger.info("ConsultClient findOutPatientRecordFromHis writeDrugRecipeReqTO={}", JSON.toJSONString(writeDrugRecipeReqTO));
+        HisResponseTO<OutPatientRecordResTO> hisResponseTO = new HisResponseTO<>();
+        try{
+            hisResponseTO = iRecipeHisService.findOutPatientRecordFromHis(writeDrugRecipeReqTO);
+        }catch (Exception e){
+            logger.error("ConsultClient findOutPatientRecordFromHis error ", e);
+        }
+        return hisResponseTO;
+    }
 }

@@ -1,5 +1,6 @@
 package recipe.atop.doctor;
 
+import com.ngari.recipe.dto.OutPatientRecordResDTO;
 import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -45,5 +46,18 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     @RpcService
     public Boolean confirmAgain(Integer recipeId) {
         return recipeBusinessService.confirmAgain(recipeId);
+    }
+
+    /**
+     * 获取有效门诊记录
+     *
+     * @param mpiId    患者唯一标识
+     * @param organId  机构ID
+     * @param doctorId 医生ID
+     * @return 门诊记录
+     */
+    @RpcService
+    public OutPatientRecordResDTO findOutPatientRecordFromHis(String mpiId, Integer organId, Integer doctorId){
+        return recipeBusinessService.findOutPatientRecordFromHis(mpiId, organId, doctorId);
     }
 }

@@ -210,6 +210,8 @@ public class RecipeExtend implements Serializable {
     @Dictionary(id = "eh.cdr.dictionary.RecipeRefundNodeStatus")
     private Integer refundNodeStatus;
 
+    @ItemProperty(alias = "处方业务类型  1 门诊处方  2  复诊处方  3 其他处方")
+    private Integer recipeBusinessType;
 
     @Column(name = "cancellation")
     public String getCancellation() {
@@ -817,4 +819,12 @@ public class RecipeExtend implements Serializable {
         this.weight = weight;
     }
 
+    @Column(name = "recipe_business_type")
+    public Integer getRecipeBusinessType() {
+        return recipeBusinessType;
+    }
+
+    public void setRecipeBusinessType(Integer recipeBusinessType) {
+        this.recipeBusinessType = recipeBusinessType;
+    }
 }

@@ -2,6 +2,7 @@ package recipe.core.api;
 
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
+import com.ngari.recipe.dto.OutPatientRecordResDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -139,4 +140,14 @@ public interface IRecipeBusinessService {
     Boolean updateAuditState(Integer recipeId, RecipeAuditStateEnum recipeAuditStateEnum);
 
     RecipeBean getByRecipeCodeAndRegisterIdAndOrganId(String recipeCode, String registerId, int organId);
+
+    /**
+     * 获取有效门诊记录
+     *
+     * @param mpiId    患者唯一标识
+     * @param organId  机构ID
+     * @param doctorId 医生ID
+     * @return 门诊记录
+     */
+    OutPatientRecordResDTO findOutPatientRecordFromHis(String mpiId, Integer organId, Integer doctorId);
 }
