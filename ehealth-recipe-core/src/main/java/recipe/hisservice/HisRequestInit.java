@@ -683,6 +683,8 @@ public class HisRequestInit {
                     DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
                     //是否代煎
                     requestTO.setGenerationisOfDecoction(decoctionWay.getGenerationisOfDecoction());
+                    requestTO.setDecoctionCode(decoctionWay.getDecoctionCode());
+                    requestTO.setDecoctionText(decoctionWay.getDecoctionText());
                 }
             }
 
