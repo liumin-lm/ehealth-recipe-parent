@@ -621,11 +621,12 @@ public class DrugToolService implements IDrugToolService {
 
 
             try {
+                LOGGER.info("机构药品目录导入cell26", row.getCell(26));
                 if (!StringUtils.isEmpty(getStrFromCell(row.getCell(26)))) {
                     if ((new Integer(3).equals(drug.getDrugType()))) {
-                        DrugEntrust byOrganIdAndDrugEntrustName = drugEntrustDAO.getByOrganIdAndDrugEntrustName(organId, getStrFromCell(row.getCell(11)));
+                        DrugEntrust byOrganIdAndDrugEntrustName = drugEntrustDAO.getByOrganIdAndDrugEntrustName(organId, getStrFromCell(row.getCell(26)));
                         if (byOrganIdAndDrugEntrustName != null) {
-                            drug.setDrugEntrust(byOrganIdAndDrugEntrustName.getDrugEntrustId().toString());
+                            drug.setDrugEntrust(byOrganIdAndDrugEntrustName.getDrugEntrustName().toString());
                         } else {
                             errMsg.append("中药药品字典未找到该嘱托").append(";");
                         }
