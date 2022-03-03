@@ -136,9 +136,9 @@ public class RevisitManager extends BaseManager {
             logger.error("queryCardsByParam 获取卡号错误", e);
         }
         //组装获取院内门诊请求参数
-        if (CollectionUtils.isEmpty(healthCardDTOList)) {
-            return null;
-        }
+//        if (CollectionUtils.isEmpty(healthCardDTOList)) {
+//            return null;
+//        }
         writeDrugRecipeReqTo.setHealthCardDTOList(healthCardDTOList);
         writeDrugRecipeReqTo.setOrganId(organId);
         writeDrugRecipeReqTo.setDoctorId(doctorId);
