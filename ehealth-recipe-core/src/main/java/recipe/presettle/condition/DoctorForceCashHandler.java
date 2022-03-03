@@ -5,6 +5,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import recipe.enumerate.type.ForceCashTypeEnum;
 import recipe.presettle.RecipeOrderTypeEnum;
 import recipe.presettle.model.OrderTypeCreateConditionRequest;
 
@@ -27,13 +28,14 @@ public class DoctorForceCashHandler implements IOrderTypeConditionHandler {
         LOGGER.info("DoctorForceCashHandler.getOrderType req={}", JSONArray.toJSONString(request));
         if (request.getRecipeExtend() != null){
             String medicalType = request.getRecipeExtend().getMedicalType();
+            Integer forceCashType = request.getRecipeExtend().getForceCashType();
             if (StringUtils.isEmpty(medicalType)){
                 return null;
             }
             //有医生选择的医保还是自费的功能时才返回具体预结算
             //医生强制自费后就结束
             //医生强制医保还得看患者是否选择自费
-            if (MEDICALTYPE_ZF.equals(medicalType)){
+            if (MEDICALTYPE_ZF.equals(medicalType) || ForceCashTypeEnum.FORCE_CASH_TYPE.getType().equals(forceCashType)){
                 return RecipeOrderTypeEnum.COMMON_SELF.getType();
             }
         }

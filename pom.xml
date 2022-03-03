@@ -27,7 +27,7 @@
         <ngari.voucher.version>4.1.1.9.master-SNAPSHOT</ngari.voucher.version>
         <ngari.es.version>4.1.1.9.master-SNAPSHOT</ngari.es.version>
         <ngari.miscellany.version>4.1.1.9.master-SNAPSHOT</ngari.miscellany.version>
-        <ngari.basic.version>4.1.1.9.master-SNAPSHOT</ngari.basic.version>
+        <ngari.basic.version>4.3.1.0.idt.master-SNAPSHOT</ngari.basic.version>
         <ngari.jgpt.version>4.1.1.9.master-SNAPSHOT</ngari.jgpt.version>
         <ngari.followup.version>4.2.2.4.master-SNAPSHOT</ngari.followup.version>
         <ngari.cdr.version>4.1.1.9.master-SNAPSHOT</ngari.cdr.version>
@@ -42,7 +42,7 @@
         <ngari.casign.version>4.1.1.9.master-SNAPSHOT</ngari.casign.version>
         <ngari.video.version>4.1.1.9.master-SNAPSHOT</ngari.video.version>
         <ngari.weixin.service.version>4.1.1.9.master-SNAPSHOT</ngari.weixin.service.version>
-        <ngari.infra.version>4.1.1.9.master-SNAPSHOT</ngari.infra.version>
+        <ngari.infra.version>4.3.1.0.msd.master-SNAPSHOT</ngari.infra.version>
         <ngari.message.version>4.1.1.9.master-SNAPSHOT</ngari.message.version>
         <ngari.bill.version>4.1.1.9.master-SNAPSHOT</ngari.bill.version>
         <ngari.account.version>4.1.1.9.master-SNAPSHOT</ngari.account.version>

@@ -1,6 +1,7 @@
 package recipe.atop.open;
 
 import com.ngari.recipe.entity.Dispensatory;
+import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.RecipeRulesDrugcorrelation;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
@@ -12,6 +13,8 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.IDrugBusinessService;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.DrugBookVo;
+import recipe.vo.greenroom.ListOrganDrugReq;
+import recipe.vo.greenroom.ListOrganDrugRes;
 import recipe.vo.second.RecipeRulesDrugcorrelationVo;
 
 import javax.annotation.Resource;
@@ -34,7 +37,7 @@ public class DrugOpenAtop extends BaseAtop implements IDrugAtopService {
         logger.info("DrugOpenAtop getDrugBook organId={} organDrugCode={}", organId, organDrugCode);
         validateAtop(organId, organDrugCode);
         try {
-            Dispensatory dispensatory = drugBusinessService.getDrugBook(organId,organDrugCode);
+            Dispensatory dispensatory = drugBusinessService.getDrugBook(organId, organDrugCode);
             DrugBookVo drugBookVo = ObjectCopyUtils.convert(dispensatory, DrugBookVo.class);
             logger.info("DrugOpenAtop getDrugBook result = {}", drugBookVo);
             return drugBookVo;
@@ -51,6 +54,12 @@ public class DrugOpenAtop extends BaseAtop implements IDrugAtopService {
     public List<RecipeRulesDrugcorrelationVo> getListDrugRules(List<Integer> list, Integer ruleId) {
         List<RecipeRulesDrugcorrelation> result = drugBusinessService.getListDrugRules(list, ruleId);
         return CollectionUtils.isEmpty(result) ? new ArrayList<>() : ObjectCopyUtils.convert(result, RecipeRulesDrugcorrelationVo.class);
+    }
+
+    @Override
+    public List<ListOrganDrugRes> listOrganDrug(ListOrganDrugReq listOrganDrugReq) {
+        List<OrganDrugList> listOrganDrugRes = drugBusinessService.listOrganDrug(listOrganDrugReq);
+        return ObjectCopyUtils.convert(listOrganDrugRes, ListOrganDrugRes.class);
     }
 
     /**

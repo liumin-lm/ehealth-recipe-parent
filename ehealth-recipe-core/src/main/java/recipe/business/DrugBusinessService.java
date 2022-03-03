@@ -1,5 +1,6 @@
 package recipe.business;
 
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
@@ -24,6 +25,7 @@ import recipe.manager.OrganDrugListManager;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
+import recipe.vo.greenroom.ListOrganDrugReq;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
@@ -133,6 +135,11 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                 logger.info("DrugBusinessService queryRemindRecipe organId= {}", a, e);
             }
         });
+    }
+
+    @Override
+    public List<OrganDrugList> listOrganDrug(ListOrganDrugReq listOrganDrugReq) {
+        return drugManager.listOrganDrug(ObjectCopyUtils.convert(listOrganDrugReq, com.ngari.recipe.dto.ListOrganDrugReq.class));
     }
 
 }

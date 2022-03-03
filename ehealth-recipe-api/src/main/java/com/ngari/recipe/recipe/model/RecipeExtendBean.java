@@ -196,6 +196,9 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "撤销原因")
     private String cancellation;
 
+    @ItemProperty(alias = "强制自费的标识 1 强制 2 不强制")
+    private Integer forceCashType;
+
     public Integer getAppointEnterpriseType() {
         return appointEnterpriseType;
     }
@@ -710,5 +713,13 @@ public class RecipeExtendBean implements Serializable {
 
     public void setCancellation(String cancellation) {
         this.cancellation = cancellation;
+    }
+
+    public Integer getForceCashType() {
+        return forceCashType;
+    }
+
+    public void setForceCashType(Integer forceCashType) {
+        this.forceCashType = forceCashType;
     }
 }

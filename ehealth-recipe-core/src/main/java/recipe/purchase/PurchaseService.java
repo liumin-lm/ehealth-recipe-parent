@@ -13,6 +13,7 @@ import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.his.recipe.mode.MedicInsurSettleApplyReqTO;
 import com.ngari.his.recipe.mode.MedicInsurSettleApplyResTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
+import com.ngari.infra.logistics.service.ILogisticsOrderService;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
@@ -51,10 +52,7 @@ import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
-import recipe.manager.EmrRecipeManager;
-import recipe.manager.EnterpriseManager;
-import recipe.manager.HisRecipeManager;
-import recipe.manager.RecipeManager;
+import recipe.manager.*;
 import recipe.service.*;
 import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
@@ -99,6 +97,9 @@ public class PurchaseService {
 
     @Autowired
     RecipeManager recipeManager;
+
+    @Autowired
+    private OrderManager orderManager;
 
     @Autowired
     @Qualifier("basic.patientService")
@@ -313,6 +314,13 @@ public class PurchaseService {
      * @return
      */
     private OrderCreateResult checkOrderInfo(List<Integer> recipeIds, Map<String, String> extInfo) {
+        // 物流是否管控
+        extInfo.put("recipeId", recipeIds.get(0).toString());
+        boolean sendFlag = orderManager.orderCanSend(extInfo);
+        if (!sendFlag) {
+            throw new DAOException(609, "于疫情影响，本地无法进行快递配送，尽请见谅！");
+        }
+
         //在确认订单页，用户点击提交订单，需要再次判断该处方单状态，若更新了诊断或药品信息或者删除了处方或者处方已经支付，则提示患者该处方已做变更，需要重新进入处理。
         OrderCreateResult result = new OrderCreateResult(RecipeResultBean.SUCCESS);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -497,7 +505,7 @@ public class PurchaseService {
         try {
             // 根据药企id 更新处方详情saleprice
             String depId = extInfo.get("depId");
-            if(StringUtils.isNotEmpty(depId)) {
+            if (StringUtils.isNotEmpty(depId)) {
                 recipeManager.updateRecipeDetailSalePrice(recipeList, Integer.valueOf(depId));
             }
             // 根据paymode 换算givemode
@@ -559,6 +567,11 @@ public class PurchaseService {
                     }
                     recipeDetailDAO.update(recipedetail);
                 }
+            } else {
+                recipedetails.forEach(recipeDetail -> {
+                    recipeDetail.setActualSalePrice(recipeDetail.getSalePrice());
+                    recipeDetailDAO.updateNonNullFieldByPrimaryKey(recipeDetail);
+                });
             }
         } catch (Exception e) {
             LOG.error("PayModeOnline.updateRecipeDetail error recipeId:{}.", recipeId, e);
@@ -581,16 +594,16 @@ public class PurchaseService {
         return false;
     }
 
-    public boolean getToHosPayConfig(Integer clinicOrgan,Integer enterpriseId) {
+    public boolean getToHosPayConfig(Integer clinicOrgan, Integer enterpriseId) {
         Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(clinicOrgan, "drugToHosByEnterprise", false);
         Integer payModeToHosOnlinePayConfig = null;
         if (drugToHosByEnterprise) {
             // 获取药企机构配
             OrganDrugsSaleConfig organDrugsSaleConfigs = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(enterpriseId);
-           if(Objects.nonNull(organDrugsSaleConfigs)) {
-               payModeToHosOnlinePayConfig = organDrugsSaleConfigs.getTakeOneselfPaymentChannel();
-           }
-        }else {
+            if (Objects.nonNull(organDrugsSaleConfigs)) {
+                payModeToHosOnlinePayConfig = organDrugsSaleConfigs.getTakeOneselfPaymentChannel();
+            }
+        } else {
             try {
                 IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
                 payModeToHosOnlinePayConfig = (Integer) configurationService.getConfiguration(clinicOrgan, "payModeToHosOnlinePayConfig");

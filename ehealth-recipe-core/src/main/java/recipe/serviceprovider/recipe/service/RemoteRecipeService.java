@@ -1674,7 +1674,16 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public List<RecipeBean> searchRecipe(Set<Integer> organs, Integer searchFlag, String searchString, Integer start, Integer limit) {
-        List<Recipe> recipes = recipeDAO.searchRecipe(organs, searchFlag, searchString, start, limit);
+        List<Recipe> recipes = Collections.EMPTY_LIST;
+        if(4 == searchFlag) {
+            if(StringUtils.isNoneBlank(searchString)){
+                DepartmentService departService = ApplicationUtils.getBasicService(DepartmentService.class);
+                List<Integer> departIds = departService.findIdsByName(searchString);
+                recipes = recipeDAO.searchRecipeByDepartName(organs, searchFlag, searchString, departIds, start, limit);
+            }
+        }else{
+            recipes = recipeDAO.searchRecipe(organs, searchFlag, searchString, start, limit);
+        }
         //转换前端的展示实体类
         List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
         return recipeBeans;

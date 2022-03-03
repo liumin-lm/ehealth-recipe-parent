@@ -103,7 +103,7 @@ public class RecipeExtend implements Serializable {
     private String isLongRecipe;
 
     //开当前处方的配置项信息
-    @ItemProperty(alias = "可开长处方按钮状态、长处方开药天数、非长处方开药天数")
+    @ItemProperty(alias = "可开长处方按钮状态、长处方开药天数、非长处方开药天数等")
     private String recipeJsonConfig;
 
 
@@ -152,6 +152,9 @@ public class RecipeExtend implements Serializable {
 
     @ItemProperty(alias = "诊断序号")
     private String hisDiseaseSerial;
+
+    @ItemProperty(alias = "强制自费的标识 1 强制 2 不强制")
+    private Integer forceCashType;
 
     @ItemProperty(alias = "处方指定药企类型 1医院 2药企 默认 0")
     private Integer appointEnterpriseType;
@@ -826,5 +829,13 @@ public class RecipeExtend implements Serializable {
 
     public void setRecipeBusinessType(Integer recipeBusinessType) {
         this.recipeBusinessType = recipeBusinessType;
+    }
+    @Column(name = "force_cash_type")
+    public Integer getForceCashType() {
+        return forceCashType;
+    }
+
+    public void setForceCashType(Integer forceCashType) {
+        this.forceCashType = forceCashType;
     }
 }
