@@ -88,7 +88,8 @@ public class OrderManager extends BaseManager {
         Integer depId = MapValueUtil.getInteger(extInfo, "depId");
         String addressId = MapValueUtil.getString(extInfo, "addressId");
         String recipeId = MapValueUtil.getString(extInfo, "recipeId");
-        if(Objects.isNull(depId) || Objects.isNull(addressId) || Objects.isNull(recipeId)){
+        Integer logisticsCompany = MapValueUtil.getInteger(extInfo, "logisticsCompany");
+        if (Objects.isNull(depId) || Objects.isNull(addressId) || Objects.isNull(recipeId)) {
             logger.info("orderCanSend have null params");
             return true;
         }
@@ -96,7 +97,7 @@ public class OrderManager extends BaseManager {
         AddressService addressService = AppContextHolder.getBean("basic.addressService", AddressService.class);
         AddressDTO address = addressService.get(Integer.parseInt(addressId));
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
-        if (!RecipeBussConstant.PAYMODE_ONLINE.equals(payMode) && !RecipeBussConstant.PAYMODE_COD.equals(payMode)){
+        if (!RecipeBussConstant.PAYMODE_ONLINE.equals(payMode) && !RecipeBussConstant.PAYMODE_COD.equals(payMode)) {
             return true;
         }
         DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(depId);
@@ -149,9 +150,13 @@ public class OrderManager extends BaseManager {
             controlLogisticsOrderDto.setAddresseeStreet(AddressUtils.getAddressDic(streetAddress));
             // 收件详细地址
             controlLogisticsOrderDto.setAddresseeAddress(address4);
-            logger.info("orderCanSend req controlLogisticsOrderDto={}",controlLogisticsOrderDto);
+            // 物流公司编码
+            if (Objects.nonNull(logisticsCompany)) {
+                controlLogisticsOrderDto.setLogisticsCode(logisticsCompany.toString());
+            }
+            logger.info("orderCanSend req controlLogisticsOrderDto={}", controlLogisticsOrderDto);
             String orderCanSend = infraClient.orderCanSend(controlLogisticsOrderDto);
-            if(!"0".equals(orderCanSend)){
+            if (!"0".equals(orderCanSend)) {
                 return false;
             }
         }

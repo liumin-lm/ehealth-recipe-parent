@@ -103,7 +103,7 @@ public class RecipeExtend implements Serializable {
     private String isLongRecipe;
 
     //开当前处方的配置项信息
-    @ItemProperty(alias = "可开长处方按钮状态、长处方开药天数、非长处方开药天数")
+    @ItemProperty(alias = "可开长处方按钮状态、长处方开药天数、非长处方开药天数等")
     private String recipeJsonConfig;
 
 
