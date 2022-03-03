@@ -2,6 +2,8 @@ package recipe.api.open;
 
 import ctd.util.annotation.RpcService;
 import recipe.vo.doctor.DrugBookVo;
+import recipe.vo.greenroom.ListOrganDrugReq;
+import recipe.vo.greenroom.ListOrganDrugRes;
 import recipe.vo.second.RecipeRulesDrugcorrelationVo;
 
 import java.util.List;
@@ -25,6 +27,7 @@ public interface IDrugAtopService {
 
     /**
      * 获取药品规则
+     *
      * @param list
      * @param ruleId
      * @return
@@ -32,4 +35,12 @@ public interface IDrugAtopService {
     @RpcService(mvcDisabled = true)
     List<RecipeRulesDrugcorrelationVo> getListDrugRules(List<Integer> list, Integer ruleId);
 
+    /**
+     * 获取机构药品目录
+     *
+     * @param listOrganDrugReq
+     * @return
+     */
+    @RpcService
+    List<ListOrganDrugRes> listOrganDrug(ListOrganDrugReq listOrganDrugReq);
 }

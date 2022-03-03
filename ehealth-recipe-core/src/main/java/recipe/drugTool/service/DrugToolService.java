@@ -2627,6 +2627,7 @@ public class DrugToolService implements IDrugToolService {
      * @return
      */
     @RpcService
+    @LogRecord
     public Map<String, Object> findDrugUsageCountForDoctor(Integer organId, Integer doctorId, Integer recipeType) {
         if (null == organId || null == doctorId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构id医生id不能为空");

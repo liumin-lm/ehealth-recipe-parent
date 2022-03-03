@@ -4,10 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
-import com.ngari.recipe.dto.DrugInfoDTO;
-import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
-import com.ngari.recipe.dto.PatientDrugWithEsDTO;
-import com.ngari.recipe.dto.RecipeInfoDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -51,6 +48,8 @@ public class DrugManager extends BaseManager {
     private RecipeRulesDrugcorrelationDao recipeRulesDrugcorrelationDao;
     @Autowired
     private OfflineRecipeClient offlineRecipeClient;
+    @Autowired
+    private OrganDrugListDAO organDrugListDAO;
 
     /**
      * todo 分层不合理 静态不合理 方法使用不合理 需要修改 （尹盛）
@@ -353,5 +352,9 @@ public class DrugManager extends BaseManager {
     public void remindPatient(List<RecipeInfoDTO> list) {
         List<List<RecipeInfoDTO>> recipeInfoList = Lists.partition(list, 500);
         recipeInfoList.forEach(a -> patientClient.remindPatientTakeMedicine(a));
+    }
+
+    public List<OrganDrugList> listOrganDrug(ListOrganDrugReq listOrganDrugReq) {
+        return organDrugListDAO.listOrganDrugByTime(listOrganDrugReq);
     }
 }

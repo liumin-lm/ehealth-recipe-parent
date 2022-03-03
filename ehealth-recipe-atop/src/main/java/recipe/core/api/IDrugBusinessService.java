@@ -6,6 +6,7 @@ import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.vo.SearchDrugReqVO;
+import recipe.vo.greenroom.ListOrganDrugReq;
 
 import java.util.List;
 import java.util.Map;
@@ -83,4 +84,12 @@ public interface IDrugBusinessService {
      * 定时 获取用药提醒的线下处方
      */
     void queryRemindRecipe();
+
+    /**
+     * 获取机构药品目录
+     *
+     * @param listOrganDrugReq
+     * @return
+     */
+    List<OrganDrugList> listOrganDrug(ListOrganDrugReq listOrganDrugReq);
 }
