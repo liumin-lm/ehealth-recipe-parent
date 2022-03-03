@@ -1,7 +1,6 @@
 package recipe.client;
 
 import com.ngari.infra.logistics.mode.ControlLogisticsOrderDto;
-import com.ngari.infra.logistics.mode.CreateLogisticsOrderDto;
 import com.ngari.infra.logistics.service.ILogisticsOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
