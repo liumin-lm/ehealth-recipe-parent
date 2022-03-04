@@ -2,6 +2,7 @@ package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.Lists;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.his.base.PatientBaseInfo;
@@ -157,8 +158,10 @@ public class OrderManager extends BaseManager {
             logger.info("orderCanSend req controlLogisticsOrderDto={}", controlLogisticsOrderDto);
             String orderCanSend = infraClient.orderCanSend(controlLogisticsOrderDto);
             logger.info("orderCanSend:{}",orderCanSend);
+            JSONObject jsonObject = JSONObject.parseObject(orderCanSend);
+            String code = jsonObject.getString("code");
 
-            if (!"0".equals(orderCanSend)) {
+            if (!"0".equals(code)) {
                 logger.info("物流地址管控!!!!!");
                 return false;
             }
