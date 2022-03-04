@@ -6,6 +6,7 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
 import ctd.util.JSONUtils;
@@ -19,6 +20,7 @@ import recipe.common.response.CommonResponse;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.RecipeDAO;
+import recipe.dao.RecipeExtendDAO;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.service.RecipeLogService;
@@ -67,6 +69,14 @@ public class PushRecipeToRegulationCallable implements Callable<String> {
         long start = System.currentTimeMillis();
         if (CollectionUtils.isEmpty(recipeIds)){
             return null;
+        }
+        //门诊处方不推送到监管平台
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        for (Integer recipeId : recipeIds){
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            if(null != recipeExtend && (new Integer(1).equals(recipeExtend.getRecipeBusinessType()))){
+                return null;
+            }
         }
         logger.info("uploadRecipeIndicators start recipeIds={},status={}", JSON.toJSONString(recipeIds), status);
         try {
