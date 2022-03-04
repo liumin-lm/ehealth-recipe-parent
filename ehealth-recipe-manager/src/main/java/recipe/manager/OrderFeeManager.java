@@ -86,6 +86,7 @@ public class OrderFeeManager extends BaseManager {
 
     /**
      * 处方代缴费用
+     *
      * @param order
      * @param recipeList
      */
@@ -106,7 +107,7 @@ public class OrderFeeManager extends BaseManager {
                     OrderVisitMoneyDTO orderVisitMoney = revisitClient.getOrderVisitMoney(recipe.getClinicId());
                     // 0待支付，1支付
                     if (PayFlagEnum.NOPAY.getType().equals(orderVisitMoney.getVisitPayFlag()) &&
-                            !BigDecimal.ZERO.equals(orderVisitMoney.getVisitMoney())) {
+                            orderVisitMoney.getVisitMoney().compareTo(BigDecimal.ZERO) > 0) {
                         // 复诊只保存了中医辨证论治费
                         order.setTcmFee(orderVisitMoney.getVisitMoney());
                     }
@@ -126,14 +127,14 @@ public class OrderFeeManager extends BaseManager {
                     List<String> code = recipeList.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
                     needPayment.setRecipeCode(code);
                     NeedPaymentRecipeResTo recipePaymentFee = consultClient.getRecipePaymentFee(needPayment);
-                    if(Objects.isNull(recipePaymentFee)){
+                    if (Objects.isNull(recipePaymentFee)) {
                         return;
                     }
-                    if(!BigDecimal.ZERO.equals(recipePaymentFee.getRegisterFee())){
+                    if (recipePaymentFee.getRegisterFee().compareTo(BigDecimal.ZERO) > 0) {
                         // 挂号费
                         order.setRegisterFee(recipePaymentFee.getRegisterFee());
                     }
-                    if(!BigDecimal.ZERO.equals(recipePaymentFee.getTcmFee())){
+                    if (recipePaymentFee.getTcmFee().compareTo(BigDecimal.ZERO) > 0) {
                         // 中医辨证费
                         order.setTcmFee(recipePaymentFee.getTcmFee());
                     }
