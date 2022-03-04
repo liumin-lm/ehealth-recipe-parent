@@ -1,9 +1,9 @@
 package recipe.api.open;
 
+import com.ngari.platform.recipe.mode.ListOrganDrugReq;
+import com.ngari.platform.recipe.mode.ListOrganDrugRes;
 import ctd.util.annotation.RpcService;
 import recipe.vo.doctor.DrugBookVo;
-import recipe.vo.greenroom.ListOrganDrugReq;
-import recipe.vo.greenroom.ListOrganDrugRes;
 import recipe.vo.second.RecipeRulesDrugcorrelationVo;
 
 import java.util.List;

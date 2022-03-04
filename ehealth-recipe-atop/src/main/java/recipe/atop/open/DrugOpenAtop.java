@@ -1,5 +1,7 @@
 package recipe.atop.open;
 
+import com.ngari.platform.recipe.mode.ListOrganDrugReq;
+import com.ngari.platform.recipe.mode.ListOrganDrugRes;
 import com.ngari.recipe.entity.Dispensatory;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.RecipeRulesDrugcorrelation;
@@ -13,8 +15,6 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.IDrugBusinessService;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.DrugBookVo;
-import recipe.vo.greenroom.ListOrganDrugReq;
-import recipe.vo.greenroom.ListOrganDrugRes;
 import recipe.vo.second.RecipeRulesDrugcorrelationVo;
 
 import javax.annotation.Resource;
