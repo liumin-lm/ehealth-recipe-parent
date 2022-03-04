@@ -31,6 +31,11 @@ public class ConsultClient extends BaseClient {
     private IRecipeHisService iRecipeHisService;
 
 
+    /**
+     * 向门诊获取代缴费用
+     * @param needPaymentRecipeReqTo
+     * @return
+     */
     public NeedPaymentRecipeResTo getRecipePaymentFee(NeedPaymentRecipeReqTo needPaymentRecipeReqTo) {
         logger.info("ConsultClient getRecipePaymentFee needPaymentRecipeReqTo={}", JSON.toJSONString(needPaymentRecipeReqTo));
         NeedPaymentRecipeResTo response = null;

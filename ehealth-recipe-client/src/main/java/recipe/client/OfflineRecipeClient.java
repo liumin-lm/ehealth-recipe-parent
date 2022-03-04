@@ -413,7 +413,7 @@ public class OfflineRecipeClient extends BaseClient {
      * @param organId 机构id
      * @return
      */
-    public List<RecipeInfoDTO> queryRemindRecipe(Integer organId) {
+    public List<RecipeInfoDTO> queryRemindRecipe(Integer organId) throws Exception {
         RemindRecipeDTO remindRecipeDTO = new RemindRecipeDTO();
         remindRecipeDTO.setOrganId(organId);
         remindRecipeDTO.setLimit(5000);
@@ -427,19 +427,16 @@ public class OfflineRecipeClient extends BaseClient {
         logger.info("OfflineRecipeClient queryRemindRecipe remindRecipeDTO:{}.", JSON.toJSONString(remindRecipeDTO));
         HisResponseTO<List<com.ngari.platform.recipe.mode.RecipeDTO>> hisResponse = recipeHisService.queryRemindRecipe(remindRecipeDTO);
         List<RecipeInfoDTO> recipeInfoList = new ArrayList<>();
-        try {
-            List<com.ngari.platform.recipe.mode.RecipeDTO> hisResponseData = getResponse(hisResponse);
-            logger.info("OfflineRecipeClient queryRemindRecipe hisResponseData  = {}", hisResponseData.size());
-            hisResponseData.forEach(a -> {
-                RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
-                recipeInfoDTO.setRecipe(ObjectCopyUtils.convert(a.getRecipeBean(), Recipe.class));
-                recipeInfoDTO.setRecipeDetails(ObjectCopyUtils.convert(a.getRecipeDetails(), Recipedetail.class));
-                recipeInfoDTO.setPatientBean(ObjectCopyUtils.convert(a.getPatientDTO(), com.ngari.recipe.dto.PatientDTO.class));
-                recipeInfoList.add(recipeInfoDTO);
-            });
-        } catch (Exception e) {
-            logger.error("OfflineRecipeClient queryRemindRecipe hisResponseData", e);
-        }
+        List<com.ngari.platform.recipe.mode.RecipeDTO> hisResponseData = getResponse(hisResponse);
+        logger.info("OfflineRecipeClient queryRemindRecipe hisResponseData  = {}", hisResponseData.size());
+        hisResponseData.forEach(a -> {
+            RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
+            recipeInfoDTO.setRecipe(ObjectCopyUtils.convert(a.getRecipeBean(), Recipe.class));
+            recipeInfoDTO.getRecipe().setClinicOrgan(organId);
+            recipeInfoDTO.setRecipeDetails(ObjectCopyUtils.convert(a.getRecipeDetails(), Recipedetail.class));
+            recipeInfoDTO.setPatientBean(ObjectCopyUtils.convert(a.getPatientDTO(), com.ngari.recipe.dto.PatientDTO.class));
+            recipeInfoList.add(recipeInfoDTO);
+        });
         return recipeInfoList;
     }
 

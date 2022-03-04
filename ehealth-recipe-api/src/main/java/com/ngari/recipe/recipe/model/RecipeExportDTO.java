@@ -57,6 +57,8 @@ public class RecipeExportDTO implements Serializable{
     private Integer bussSource;
     @ItemProperty(alias = "处方单号")
     private String recipeCode;
+    @ItemProperty(alias = "处方业务类型  1 门诊处方  2  复诊处方  3 其他处方")
+    private Integer recipeBusinessType;
 
     @Column(name = "doctorName")
     public String getDoctorName() {
@@ -198,5 +200,13 @@ public class RecipeExportDTO implements Serializable{
 
     public void setRecipeCode(String recipeCode) {
         this.recipeCode = recipeCode;
+    }
+
+    public Integer getRecipeBusinessType() {
+        return recipeBusinessType;
+    }
+
+    public void setRecipeBusinessType(Integer recipeBusinessType) {
+        this.recipeBusinessType = recipeBusinessType;
     }
 }

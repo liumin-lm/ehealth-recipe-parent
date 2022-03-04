@@ -30,6 +30,7 @@ import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.model.RecipeCheckBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.curator.shaded.com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,12 +41,14 @@ import recipe.common.OnsConfig;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.manager.EnterpriseManager;
+import recipe.manager.OrderFeeManager;
 import recipe.manager.StateManager;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
 import recipe.service.recipecancel.RecipeCancelService;
 import recipe.util.DateConversion;
 import recipe.util.RecipeMsgUtils;
 
+import javax.annotation.Resource;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
@@ -73,6 +76,16 @@ public class RecipeTestService {
     @Autowired
     private DrugDistributionPriceDAO drugDistributionPriceDAO;
 
+    @Resource
+    OrderFeeManager orderFeeManager;
+
+
+    @RpcService
+    public void testRecipe() {
+        Recipe recipe = recipeDAO.get(136136);
+        RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        orderFeeManager.setRecipePaymentFee(order, Lists.newArrayList(recipe));
+    }
     @RpcService
     public PushRecipeAndOrder getPushRecipeAndOrder(Integer recipeId){
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
