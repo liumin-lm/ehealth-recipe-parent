@@ -87,7 +87,7 @@ public class OrderManager extends BaseManager {
     public boolean orderCanSend(Map<String, String> extInfo) {
         Integer depId = MapValueUtil.getInteger(extInfo, "depId");
         String addressId = MapValueUtil.getString(extInfo, "addressId");
-        String recipeId = MapValueUtil.getString(extInfo, "recipeId");
+        Integer recipeId = MapValueUtil.getInteger(extInfo, "recipeId");
         Integer logisticsCompany = MapValueUtil.getInteger(extInfo, "logisticsCompany");
         if (Objects.isNull(depId) || Objects.isNull(addressId) || Objects.isNull(recipeId)) {
             logger.info("orderCanSend have null params");
