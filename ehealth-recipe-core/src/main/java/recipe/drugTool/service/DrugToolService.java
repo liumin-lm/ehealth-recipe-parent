@@ -2637,6 +2637,8 @@ public class DrugToolService implements IDrugToolService {
         com.ngari.patient.service.IUsePathwaysService usePathwaysService = AppDomainContext.getBean("basic.usePathwaysService", IUsePathwaysService.class);
         List<UsingRateDTO> usingRates = usingRateService.findAllusingRateByOrganId(organId);
         List<UsePathwaysDTO> usePathways = usePathwaysService.findAllUsePathwaysByOrganId(organId);
+        LOGGER.info("findDrugUsageCountForDoctor all usingRates:{}", JSONUtils.toString(usingRates));
+        LOGGER.info("findDrugUsageCountForDoctor all usePathways:{}", JSONUtils.toString(usePathways));
         if (recipeType != null) {
             usingRates = usingRates.stream().filter(u -> u.getCategory() != null && u.getCategory().contains(recipeType.toString())).collect(Collectors.toList());
             usePathways = usePathways.stream().filter(u -> u.getCategory() != null && u.getCategory().contains(recipeType.toString())).collect(Collectors.toList());
@@ -2645,7 +2647,7 @@ public class DrugToolService implements IDrugToolService {
         result.put("usePathway", usePathways);
         // 处理医生使用次数排序逻辑
         handleRateAndPathwayUsage(organId, doctorId, result, usingRates, usePathways);
-
+        LOGGER.info("findDrugUsageCountForDoctor res:{}", JSONUtils.toString(result));
         return result;
     }
 
