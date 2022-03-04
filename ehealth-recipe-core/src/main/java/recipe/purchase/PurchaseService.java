@@ -317,7 +317,7 @@ public class PurchaseService {
         // 物流是否管控
         extInfo.put("recipeId", recipeIds.get(0).toString());
         boolean sendFlag = orderManager.orderCanSend(extInfo);
-        if (!sendFlag) {
+        if (sendFlag) {
             throw new DAOException(609, "于疫情影响，本地无法进行快递配送，尽请见谅！");
         }
 
