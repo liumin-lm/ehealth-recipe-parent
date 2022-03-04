@@ -156,7 +156,10 @@ public class OrderManager extends BaseManager {
             }
             logger.info("orderCanSend req controlLogisticsOrderDto={}", controlLogisticsOrderDto);
             String orderCanSend = infraClient.orderCanSend(controlLogisticsOrderDto);
+            logger.info("orderCanSend:{}",orderCanSend);
+
             if (!"0".equals(orderCanSend)) {
+                logger.info("物流地址管控!!!!!");
                 return false;
             }
         }
