@@ -40,6 +40,9 @@ import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBeanNoDS;
 import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
+import com.ngari.revisit.RevisitAPI;
+import com.ngari.revisit.common.request.RecipeVisitMoneyRequest;
+import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.wxpay.service.INgariPayService;
 import coupon.api.service.ICouponBaseService;
 import coupon.api.vo.Coupon;
@@ -2296,6 +2299,16 @@ public class RecipeOrderService extends RecipeBaseService {
                 //支付成功后，对来源于HIS的处方单状态更新为已处理
                 updateHisRecieStatus(recipes);
                 purchaseService.setRecipePayWay(order);
+                // 支付成功通知复诊
+                if (null != nowRecipe.getClinicId() &&RecipeBussConstant.BUSS_SOURCE_FZ.equals(nowRecipe.getBussSource())) {
+                    IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
+                    RecipeVisitMoneyRequest request = new RecipeVisitMoneyRequest();
+                    request.setConsultId(nowRecipe.getClinicId());
+                    request.setRecipeId(nowRecipe.getRecipeId());
+                    request.setVisitMoney(order.getTcmFee());
+                    request.setVisitPayFlag(PayConstant.PAY_FLAG_PAY_SUCCESS);
+                    iRevisitExService.updateRecipeIdByConsultId(request);
+                }
             } else if (PayConstant.PAY_FLAG_NOT_PAY == payFlag && null != order) {
                 attrMap.put("status", getPayStatus(reviewType, giveMode, nowRecipe));
                 //支付前调用

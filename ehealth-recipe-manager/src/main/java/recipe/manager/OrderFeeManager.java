@@ -14,6 +14,7 @@ import com.ngari.revisit.common.model.OrderVisitMoneyDTO;
 import coupon.api.vo.Coupon;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,6 +101,7 @@ public class OrderFeeManager extends BaseManager {
         Recipe recipe = recipeList.get(0);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         Integer recipeBusinessType = recipeExtend.getRecipeBusinessType();
+        recipeBusinessType = 1;
 
         switch (RecipeBusinessTypeEnum.getRecipeBusinessTypeEnum(recipeBusinessType)) {
             case BUSINESS_RECIPE_REVISIT:
