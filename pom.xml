@@ -27,7 +27,7 @@
         <ngari.voucher.version>4.1.1.9.master-SNAPSHOT</ngari.voucher.version>
         <ngari.es.version>4.1.1.9.master-SNAPSHOT</ngari.es.version>
         <ngari.miscellany.version>4.1.1.9.master-SNAPSHOT</ngari.miscellany.version>
-        <ngari.basic.version>4.3.1.0.idt.master-SNAPSHOT</ngari.basic.version>
+        <ngari.basic.version>4.3.1.0.master-SNAPSHOT</ngari.basic.version>
         <ngari.jgpt.version>4.1.1.9.master-SNAPSHOT</ngari.jgpt.version>
         <ngari.followup.version>4.2.2.4.master-SNAPSHOT</ngari.followup.version>
         <ngari.cdr.version>4.1.1.9.master-SNAPSHOT</ngari.cdr.version>
@@ -35,7 +35,7 @@
         <ngari.recipeaudit.version>4.2.2.4.master-SNAPSHOT</ngari.recipeaudit.version>
         <ngari.consult.version>4.1.1.9.master-SNAPSHOT</ngari.consult.version>
         <ngari.networkclinic.version>4.1.1.9.master-SNAPSHOT</ngari.networkclinic.version>
-        <ngari.hisapi.version>4.3.1.0.idt.master-SNAPSHOT</ngari.hisapi.version>
+        <ngari.hisapi.version>4.3.1.0.master-SNAPSHOT</ngari.hisapi.version>
         <ngari.baseapi.version>4.1.1.9.master-SNAPSHOT</ngari.baseapi.version>
         <ngari.opbase.version>4.1.1.9.master-SNAPSHOT</ngari.opbase.version>
         <ngari.utils.version>4.1.1.9.master-SNAPSHOT</ngari.utils.version>
@@ -47,7 +47,7 @@
         <ngari.bill.version>4.1.1.9.master-SNAPSHOT</ngari.bill.version>
         <ngari.account.version>4.1.1.9.master-SNAPSHOT</ngari.account.version>
         <ngari.basicdto.version>4.1.1.9.master-SNAPSHOT</ngari.basicdto.version>
-        <ngari.revisit.version>4.3.1.0.idt.master-SNAPSHOT</ngari.revisit.version>
+        <ngari.revisit.version>4.3.1.0.master-SNAPSHOT</ngari.revisit.version>
         <ngari.entity.version>4.1.1.9.master-SNAPSHOT</ngari.entity.version>
 
     </properties>
