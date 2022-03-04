@@ -10,6 +10,7 @@ import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.request.RecipeVisitMoneyRequest;
 import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.persistence.DAOFactory;
@@ -34,7 +35,6 @@ import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.type.CardTypeEnum;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.DepartManager;
 import recipe.manager.StateManager;
@@ -200,17 +200,20 @@ public class HisCallBackService {
                 IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
                 RevisitExDTO revisitExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
                 LOGGER.info("updateRecipeRegisterID revisitExDTO:{}", JSONUtils.toString(revisitExDTO));
-                iRevisitExService.updateRecipeIdByConsultId(recipe.getClinicId(), recipe.getRecipeId());
+                RecipeVisitMoneyRequest request = new RecipeVisitMoneyRequest();
+                request.setConsultId(recipe.getClinicId());
+                request.setRecipeId(recipe.getRecipeId());
+                request.setVisitMoney(result.getVisitMoney());
+                request.setVisitPayFlag(result.getVisitPayFlag());
+                iRevisitExService.updateRecipeIdByConsultId(request);
                 if (null != revisitExDTO) {
                     if (StringUtils.isNotEmpty(revisitExDTO.getRegisterNo())) {
                         result.setRegisterID(revisitExDTO.getRegisterNo());
                     }
+
                     if (StringUtils.isNotEmpty(revisitExDTO.getCardId()) && StringUtils.isNotEmpty(revisitExDTO.getCardType())) {
                         map.put("cardNo", revisitExDTO.getCardId());
                         map.put("cardType", revisitExDTO.getCardType());
-                        if (CardTypeEnum.MEDICAL_RECORD_CARD.getType().equals(revisitExDTO.getCardType())) {
-                            map.put("medicalRecordNumber", revisitExDTO.getCardId());
-                        }
                     }
                 }
             } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipe.getBussSource())) {
