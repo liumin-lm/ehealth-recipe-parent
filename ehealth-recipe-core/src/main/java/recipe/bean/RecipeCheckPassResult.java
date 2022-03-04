@@ -85,6 +85,19 @@ public class RecipeCheckPassResult {
     )
     private BigDecimal visitMoney;
 
+    @ItemProperty(
+            alias = "中药处方辩证论证费代码"
+    )
+    private String visitCode;
+
+    public String getVisitCode() {
+        return visitCode;
+    }
+
+    public void setVisitCode(String visitCode) {
+        this.visitCode = visitCode;
+    }
+
     public Integer getVisitPayFlag() {
         return visitPayFlag;
     }
