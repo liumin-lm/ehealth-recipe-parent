@@ -199,6 +199,9 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "强制自费的标识 1 强制 2 不强制")
     private Integer forceCashType;
 
+    @ItemProperty(alias = "处方业务类型  1 门诊处方  2  复诊处方  3 其他处方")
+    private Integer recipeBusinessType;
+
     public Integer getAppointEnterpriseType() {
         return appointEnterpriseType;
     }
@@ -721,5 +724,13 @@ public class RecipeExtendBean implements Serializable {
 
     public void setForceCashType(Integer forceCashType) {
         this.forceCashType = forceCashType;
+    }
+
+    public Integer getRecipeBusinessType() {
+        return recipeBusinessType;
+    }
+
+    public void setRecipeBusinessType(Integer recipeBusinessType) {
+        this.recipeBusinessType = recipeBusinessType;
     }
 }
