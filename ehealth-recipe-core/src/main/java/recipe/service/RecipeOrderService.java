@@ -891,6 +891,9 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setActualPrice(totalFee.doubleValue());
             }
         }
+
+        // 更新处方代缴费用
+        orderFeeManager.setRecipePaymentFee(order,recipeList);
     }
 
     public Boolean dealWithOrderInfo(Map<String, String> map, RecipeOrder order, Recipe recipe) {

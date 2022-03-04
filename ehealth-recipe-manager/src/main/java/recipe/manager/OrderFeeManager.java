@@ -89,7 +89,7 @@ public class OrderFeeManager extends BaseManager {
      * @param order
      * @param recipeList
      */
-    private void setRecipePaymentFee(RecipeOrder order, List<Recipe> recipeList) {
+    public void setRecipePaymentFee(RecipeOrder order, List<Recipe> recipeList) {
         // 获取机构配置是否需要代缴费用
         List<String> needPaymentRecipeBusiness = configurationClient.getValueListCatch(order.getOrganId(), "needPaymentRecipeBusiness", null);
         if (CollectionUtils.isEmpty(needPaymentRecipeBusiness)) {
