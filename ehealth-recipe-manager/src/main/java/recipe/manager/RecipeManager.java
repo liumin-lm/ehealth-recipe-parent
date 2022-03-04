@@ -24,7 +24,6 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.SaleDrugListDAO;
-import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
@@ -394,7 +393,6 @@ public class RecipeManager extends BaseManager {
         updateRecipeExt.setMedicalTypeText(recipeExtendResult.getMedicalTypeText());
         updateRecipeExt.setRecipeCostNumber(recipeExtendResult.getRecipeCostNumber());
         updateRecipeExt.setHisDiseaseSerial(recipeExtendResult.getHisDiseaseSerial());
-        updateRecipeExt.setMedicalRecordNumber(recipeExtendResult.getMedicalRecordNumber());
         recipeExtendDAO.updateNonNullFieldByPrimaryKey(updateRecipeExt);
         logger.info("RecipeManager updatePushHisRecipeExt updateRecipeExt:{}.", JSON.toJSONString(updateRecipeExt));
     }

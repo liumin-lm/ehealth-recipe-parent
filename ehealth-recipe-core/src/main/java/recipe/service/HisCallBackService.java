@@ -34,7 +34,6 @@ import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.type.CardTypeEnum;
 import recipe.hisservice.syncdata.SyncExecutorService;
 import recipe.manager.DepartManager;
 import recipe.manager.StateManager;
@@ -205,12 +204,10 @@ public class HisCallBackService {
                     if (StringUtils.isNotEmpty(revisitExDTO.getRegisterNo())) {
                         result.setRegisterID(revisitExDTO.getRegisterNo());
                     }
+
                     if (StringUtils.isNotEmpty(revisitExDTO.getCardId()) && StringUtils.isNotEmpty(revisitExDTO.getCardType())) {
                         map.put("cardNo", revisitExDTO.getCardId());
                         map.put("cardType", revisitExDTO.getCardType());
-                        if (CardTypeEnum.MEDICAL_RECORD_CARD.getType().equals(revisitExDTO.getCardType())) {
-                            map.put("medicalRecordNumber", revisitExDTO.getCardId());
-                        }
                     }
                 }
             } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipe.getBussSource())) {
