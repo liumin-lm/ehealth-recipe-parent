@@ -205,7 +205,9 @@ public class HisCallBackService {
                 request.setRecipeId(recipe.getRecipeId());
                 request.setVisitMoney(result.getVisitMoney());
                 request.setVisitPayFlag(result.getVisitPayFlag());
+                request.setVisitCode(result.getVisitCode());
                 iRevisitExService.updateRecipeIdByConsultId(request);
+                LOGGER.info("updateRecipeRegisterID request:{}", JSONUtils.toString(request));
                 if (null != revisitExDTO) {
                     if (StringUtils.isNotEmpty(revisitExDTO.getRegisterNo())) {
                         result.setRegisterID(revisitExDTO.getRegisterNo());
