@@ -2638,8 +2638,8 @@ public class DrugToolService implements IDrugToolService {
         List<UsingRateDTO> usingRates = usingRateService.findAllusingRateByOrganId(organId);
         List<UsePathwaysDTO> usePathways = usePathwaysService.findAllUsePathwaysByOrganId(organId);
         if (recipeType != null) {
-            usingRates = usingRates.stream().filter(u -> new Integer(recipeType).equals(u.getCategory())).collect(Collectors.toList());
-            usePathways = usePathways.stream().filter(u -> new Integer(recipeType).equals(u.getCategory())).collect(Collectors.toList());
+            usingRates = usingRates.stream().filter(u -> u.getCategory() != null && u.getCategory().contains(recipeType.toString())).collect(Collectors.toList());
+            usePathways = usePathways.stream().filter(u -> u.getCategory() != null && u.getCategory().contains(recipeType.toString())).collect(Collectors.toList());
         }
         result.put("usingRate", usingRates);
         result.put("usePathway", usePathways);
