@@ -1,7 +1,9 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -42,6 +44,44 @@ public class HisSendResTO implements java.io.Serializable {
      * 处方收费序号合集（多个用逗号拼接）
      */
     private String recipeCostNumber;
+
+    @ItemProperty(
+            alias = "中药处方辩证论证费支付状态 0:待支付1:已支付"
+    )
+    private Integer visitPayFlag;
+    @ItemProperty(
+            alias = "中药处方辩证论证费"
+    )
+    private BigDecimal visitMoney;
+
+    @ItemProperty(
+            alias = "中药处方辩证论证费id"
+    )
+    private Integer visitId;
+
+    public Integer getVisitPayFlag() {
+        return visitPayFlag;
+    }
+
+    public void setVisitPayFlag(Integer visitPayFlag) {
+        this.visitPayFlag = visitPayFlag;
+    }
+
+    public BigDecimal getVisitMoney() {
+        return visitMoney;
+    }
+
+    public void setVisitMoney(BigDecimal visitMoney) {
+        this.visitMoney = visitMoney;
+    }
+
+    public Integer getVisitId() {
+        return visitId;
+    }
+
+    public void setVisitId(Integer visitId) {
+        this.visitId = visitId;
+    }
 
     public String getRecipeCostNumber() {
         return recipeCostNumber;

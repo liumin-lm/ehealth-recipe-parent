@@ -101,7 +101,6 @@ public class RecipeToHisCallbackService {
                 detail.setOrderNo(LocalStringUtil.toString(rep.getOrderNo()));
                 detail.setDrugGroup(LocalStringUtil.toString(rep.getSetNo()));
                 //取药窗口是否都是返回同一窗口
-//                detail.setPharmNo(LocalStringUtil.toString(rep.getPharmNo()));
                 if (StringUtils.isNotEmpty(rep.getPharmNo())) {
                     pharmNo = LocalStringUtil.toString(rep.getPharmNo());
                 }
@@ -127,6 +126,8 @@ public class RecipeToHisCallbackService {
             result.setMedicalTypeText(medicalTypeText);
             result.setHisDiseaseSerial(repList.get(0).getHisDiseaseSerial());
             result.setDetailList(list);
+            result.setVisitMoney(response.getVisitMoney());
+            result.setVisitPayFlag(response.getVisitPayFlag());
             LOGGER.info("recipeSend recive success. recipeId={}, checkPassSuccess result={}", response.getRecipeId(), JSONUtils.toString(result));
             //没库存操作----推送九州通
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);

@@ -14,6 +14,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.request.RecipeVisitMoneyRequest;
 import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.persistence.DAOFactory;
 import ctd.spring.AppDomainContext;
@@ -162,7 +163,10 @@ public class AuditPreMode extends AbstractAuidtMode {
                 IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
                 RevisitExDTO revisitExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
                 LOGGER.info("notifyPharAudit revisitExDTO:{}", JSONUtils.toString(revisitExDTO));
-                iRevisitExService.updateRecipeIdByConsultId(recipe.getClinicId(), recipe.getRecipeId());
+                RecipeVisitMoneyRequest recipeRequest = new RecipeVisitMoneyRequest();
+                recipeRequest.setConsultId(recipe.getClinicId());
+                recipeRequest.setRecipeId(recipe.getRecipeId());
+                iRevisitExService.updateRecipeIdByConsultId(recipeRequest);
                 if (null != revisitExDTO) {
                     if (StringUtils.isNotEmpty(revisitExDTO.getRegisterNo())) {
                         registerNo = revisitExDTO.getRegisterNo();
