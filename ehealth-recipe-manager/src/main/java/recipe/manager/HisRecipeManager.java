@@ -22,7 +22,10 @@ import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
 import recipe.common.CommonConstant;
-import recipe.dao.*;
+import recipe.dao.HisRecipeDAO;
+import recipe.dao.HisRecipeDataDelDAO;
+import recipe.dao.HisRecipeDetailDAO;
+import recipe.dao.HisRecipeExtDAO;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.util.MapValueUtil;
@@ -586,7 +589,7 @@ public class HisRecipeManager extends BaseManager {
     /**
      * 用药提醒的线下处方 存在患者的数据 转换药品为线上数据
      */
-    public List<RecipeInfoDTO> queryRemindRecipe(Integer organId) {
+    public List<RecipeInfoDTO> queryRemindRecipe(Integer organId) throws Exception {
         List<RecipeInfoDTO> recipeInfoList = offlineRecipeClient.queryRemindRecipe(organId);
         if (CollectionUtils.isEmpty(recipeInfoList)) {
             return null;
