@@ -10,6 +10,7 @@ import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import com.ngari.revisit.common.request.RecipeVisitMoneyRequest;
 import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.persistence.DAOFactory;
@@ -199,7 +200,12 @@ public class HisCallBackService {
                 IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
                 RevisitExDTO revisitExDTO = iRevisitExService.getByConsultId(recipe.getClinicId());
                 LOGGER.info("updateRecipeRegisterID revisitExDTO:{}", JSONUtils.toString(revisitExDTO));
-                iRevisitExService.updateRecipeIdByConsultId(recipe.getClinicId(), recipe.getRecipeId());
+                RecipeVisitMoneyRequest request = new RecipeVisitMoneyRequest();
+                request.setConsultId(recipe.getClinicId());
+                request.setRecipeId(recipe.getRecipeId());
+                request.setVisitMoney(result.getVisitMoney());
+                request.setVisitPayFlag(result.getVisitPayFlag());
+                iRevisitExService.updateRecipeIdByConsultId(request);
                 if (null != revisitExDTO) {
                     if (StringUtils.isNotEmpty(revisitExDTO.getRegisterNo())) {
                         result.setRegisterID(revisitExDTO.getRegisterNo());

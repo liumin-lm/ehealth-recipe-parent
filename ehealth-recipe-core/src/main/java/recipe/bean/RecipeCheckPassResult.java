@@ -2,6 +2,7 @@ package recipe.bean;
 
 
 import com.ngari.recipe.entity.Recipedetail;
+import ctd.schema.annotation.ItemProperty;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -71,8 +72,34 @@ public class RecipeCheckPassResult {
 
     /**
      * 病历号
-     * */
+     */
     private String medicalRecordNumber;
+
+
+    @ItemProperty(
+            alias = "中药处方辩证论证费支付状态 0:待支付1:已支付"
+    )
+    private Integer visitPayFlag;
+    @ItemProperty(
+            alias = "中药处方辩证论证费"
+    )
+    private BigDecimal visitMoney;
+
+    public Integer getVisitPayFlag() {
+        return visitPayFlag;
+    }
+
+    public void setVisitPayFlag(Integer visitPayFlag) {
+        this.visitPayFlag = visitPayFlag;
+    }
+
+    public BigDecimal getVisitMoney() {
+        return visitMoney;
+    }
+
+    public void setVisitMoney(BigDecimal visitMoney) {
+        this.visitMoney = visitMoney;
+    }
 
     public String getHisDiseaseSerial() {
         return hisDiseaseSerial;
