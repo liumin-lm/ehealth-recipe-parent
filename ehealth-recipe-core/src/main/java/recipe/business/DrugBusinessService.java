@@ -25,7 +25,6 @@ import recipe.manager.OrganDrugListManager;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
-import recipe.vo.greenroom.ListOrganDrugReq;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
@@ -138,7 +137,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     }
 
     @Override
-    public List<OrganDrugList> listOrganDrug(ListOrganDrugReq listOrganDrugReq) {
+    public List<OrganDrugList> listOrganDrug(com.ngari.platform.recipe.mode.ListOrganDrugReq listOrganDrugReq) {
         return drugManager.listOrganDrug(ObjectCopyUtils.convert(listOrganDrugReq, com.ngari.recipe.dto.ListOrganDrugReq.class));
     }
 

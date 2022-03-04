@@ -6,6 +6,8 @@ import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.his.recipe.mode.OutPatientRecordResTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.his.visit.mode.NeedPaymentRecipeReqTo;
+import com.ngari.his.visit.mode.NeedPaymentRecipeResTo;
 import com.ngari.his.visit.mode.WriteDrugRecipeReqTO;
 import ctd.util.JSONUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,22 @@ public class ConsultClient extends BaseClient {
 
     @Autowired
     private IRecipeHisService iRecipeHisService;
+
+
+    public NeedPaymentRecipeResTo getRecipePaymentFee(NeedPaymentRecipeReqTo needPaymentRecipeReqTo) {
+        logger.info("ConsultClient getRecipePaymentFee needPaymentRecipeReqTo={}", JSON.toJSONString(needPaymentRecipeReqTo));
+        NeedPaymentRecipeResTo response = null;
+        try {
+            HisResponseTO<NeedPaymentRecipeResTo> hisResponseTO = iRecipeHisService.getRecipePaymentFee(needPaymentRecipeReqTo);
+            response = this.getResponse(hisResponseTO);
+        } catch (Exception e) {
+            logger.error("ConsultClient getRecipePaymentFee error ", e);
+        }
+        logger.info("ConsultClient getRecipePaymentFee res={}", JSON.toJSONString(response));
+
+        return response;
+    }
+
 
     /**
      * 根据单号获取网络门诊信息
@@ -50,12 +68,12 @@ public class ConsultClient extends BaseClient {
      * @param writeDrugRecipeReqTO 获取有效门诊记录请求入参
      * @return 门诊记录
      */
-    public HisResponseTO<OutPatientRecordResTO> findOutPatientRecordFromHis(WriteDrugRecipeReqTO writeDrugRecipeReqTO){
+    public HisResponseTO<OutPatientRecordResTO> findOutPatientRecordFromHis(WriteDrugRecipeReqTO writeDrugRecipeReqTO) {
         logger.info("ConsultClient findOutPatientRecordFromHis writeDrugRecipeReqTO={}", JSON.toJSONString(writeDrugRecipeReqTO));
         HisResponseTO<OutPatientRecordResTO> hisResponseTO = new HisResponseTO<>();
-        try{
+        try {
             hisResponseTO = iRecipeHisService.findOutPatientRecordFromHis(writeDrugRecipeReqTO);
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error("ConsultClient findOutPatientRecordFromHis error ", e);
         }
         return hisResponseTO;

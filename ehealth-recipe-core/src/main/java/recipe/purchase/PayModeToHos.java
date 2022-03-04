@@ -72,6 +72,8 @@ public class PayModeToHos implements IPurchaseService {
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
     private IStockBusinessService stockBusinessService;
+    @Autowired
+    private PharmacyDAO pharmacyDAO;
     /**
      * logger
      */
@@ -303,28 +305,31 @@ public class PayModeToHos implements IPurchaseService {
             return resultBean;
         }
 
-
+        //判断药企是否不展示药店
+        boolean showStoreFlag = drugsEnterprises.stream().anyMatch(drugsEnterprise -> "0".equals(drugsEnterprise.getShowStoreFlag()));
+        List<DepDetailBean> depDetailBeans = new ArrayList<>();
+        if (showStoreFlag) {
+            List<DrugsEnterprise> noShowStoreEnterprises = drugsEnterprises.stream().filter(drugsEnterprise -> "0".equals(drugsEnterprise.getShowStoreFlag())).collect(Collectors.toList());
+            List<Integer> depIdList = noShowStoreEnterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
+            Map<Integer, List<OrganDrugsSaleConfig>> saleMap = getIntegerListMap(depIdList);
+            depDetailBeans = setEnterpriseToStore(dbRecipe, noShowStoreEnterprises, saleMap);
+        }
+        if (CollectionUtils.isNotEmpty(depDetailBeans) && depDetailBeans.size() == drugsEnterprises.size()) {
+            if (depDetailBeans.size() == 1) {
+                depListBean.setSigle(true);
+            }
+            //说明不展示药店的开关全部打开
+            depListBean.setList(depDetailBeans);
+            resultBean.setObject(depListBean);
+            return resultBean;
+        }
         // 调his获取取药点
         List<TakeMedicineByToHos> takeMedicineByToHosList = enterpriseManager.getTakeMedicineByToHosList(dbRecipe.getClinicOrgan(), dbRecipe);
 
-        if (CollectionUtils.isEmpty(takeMedicineByToHosList)) {
-            LOG.warn("findSupportDepList 该处方无法配送. recipeId=[{}]", recipeId);
-            resultBean.setCode(5);
-            resultBean.setMsg("抱歉，未获取到相关药房信息，您可以选择其他方式购药");
-            return resultBean;
-        }
-
         LOG.info("findSupportDepList subDepList:{}", JSONUtils.toString(takeMedicineByToHosList));
-        depListBean.setSigle(false);
-        if (CollectionUtils.isNotEmpty(takeMedicineByToHosList) && takeMedicineByToHosList.size() == 1) {
-            depListBean.setSigle(true);
-        }
+
         List<Integer> saleDepIds = takeMedicineByToHosList.stream().map(TakeMedicineByToHos::getEnterpriseId).collect(Collectors.toList());
-        List<OrganDrugsSaleConfig> organDrugsSaleConfigs = organDrugsSaleConfigDAO.findSaleConfigs(saleDepIds);
-        Map<Integer, List<OrganDrugsSaleConfig>> saleMap = null;
-        if (CollectionUtils.isNotEmpty(organDrugsSaleConfigs)) {
-            saleMap = organDrugsSaleConfigs.stream().collect(Collectors.groupingBy(OrganDrugsSaleConfig::getDrugsEnterpriseId));
-        }
+        Map<Integer, List<OrganDrugsSaleConfig>> saleMap = getIntegerListMap(saleDepIds);
         List<DepDetailBean> result = getDepDetailList(takeMedicineByToHosList,saleMap);
         if ("1".equals(sort)) {
             //价格优先
@@ -333,10 +338,47 @@ public class PayModeToHos implements IPurchaseService {
             //距离优先
             result = result.stream().sorted(Comparator.comparing(DepDetailBean::getDistance)).collect(Collectors.toList());
         }
+        result.addAll(depDetailBeans);
         depListBean.setList(result);
+        depListBean.setSigle(false);
+        if (CollectionUtils.isNotEmpty(result) && result.size() == 1) {
+            depListBean.setSigle(true);
+        }
         resultBean.setObject(depListBean);
         LOG.info("findSupportDepList 当前处方{}查询药企列表信息：{}", recipeId, JSONUtils.toString(resultBean));
         return resultBean;
+    }
+
+    private Map<Integer, List<OrganDrugsSaleConfig>> getIntegerListMap(List<Integer> saleDepIds) {
+        List<OrganDrugsSaleConfig> organDrugsSaleConfigs = organDrugsSaleConfigDAO.findSaleConfigs(saleDepIds);
+        Map<Integer, List<OrganDrugsSaleConfig>> saleMap = null;
+        if (CollectionUtils.isNotEmpty(organDrugsSaleConfigs)) {
+            saleMap = organDrugsSaleConfigs.stream().collect(Collectors.groupingBy(OrganDrugsSaleConfig::getDrugsEnterpriseId));
+        }
+        return saleMap;
+    }
+
+    private List<DepDetailBean> setEnterpriseToStore(Recipe recipe, List<DrugsEnterprise> noShowStoreEnterprises, Map<Integer, List<OrganDrugsSaleConfig>> saleMap) {
+        return noShowStoreEnterprises.stream().map(enterprise -> {
+            List<Pharmacy> pharmacyList = pharmacyDAO.findByDepId(enterprise.getId());
+            DepDetailBean depDetailBean = new DepDetailBean();
+            depDetailBean.setDepId(enterprise.getId());
+            depDetailBean.setDepName(enterprise.getName());
+            depDetailBean.setBelongDepName(enterprise.getName());
+            depDetailBean.setAddress(enterprise.getMemo());
+            depDetailBean.setRecipeFee(recipe.getTotalMoney());
+            if(MapUtils.isNotEmpty(saleMap) && CollectionUtils.isNotEmpty(saleMap.get(enterprise.getId()))) {
+                depDetailBean.setPayModeText(PayModeEnum.getPayModeEnumName(saleMap.get(enterprise.getId()).get(0).getTakeOneselfPayment()));
+            }
+            Pharmacy pharmacy = pharmacyList.get(0);
+            Position position = new Position();
+            position.setLatitude(Double.valueOf(pharmacy.getPharmacyLatitude()));
+            position.setLongitude(Double.valueOf(pharmacy.getPharmacyLongitude()));
+            depDetailBean.setPharmacyName(pharmacy.getPharmacyName());
+            depDetailBean.setPharmacyCode(pharmacy.getPharmacyCode());
+            depDetailBean.setPosition(position);
+            return depDetailBean;
+        }).collect(Collectors.toList());
     }
 
     private List<DepDetailBean> getDepDetailList(List<TakeMedicineByToHos> takeMedicineByToHosList,Map<Integer, List<OrganDrugsSaleConfig>> saleMap) {

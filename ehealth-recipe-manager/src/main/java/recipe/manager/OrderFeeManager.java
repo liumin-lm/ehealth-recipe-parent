@@ -1,12 +1,16 @@
 package recipe.manager;
 
 import com.ngari.base.organconfig.model.OrganConfigBean;
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.RecipeCashPreSettleInfo;
 import com.ngari.his.recipe.mode.RecipeCashPreSettleReqTO;
+import com.ngari.his.visit.mode.NeedPaymentRecipeReqTo;
+import com.ngari.his.visit.mode.NeedPaymentRecipeResTo;
 import com.ngari.platform.recipe.mode.EnterpriseResTo;
 import com.ngari.recipe.dto.OrderFeeSetCondition;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.revisit.common.model.OrderVisitMoneyDTO;
 import coupon.api.vo.Coupon;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -14,25 +18,21 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.client.CouponClient;
-import recipe.client.OfflineRecipeClient;
-import recipe.client.RecipeRedisClient;
+import recipe.client.*;
 import recipe.constant.ErrorCode;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.ReviewTypeConstant;
 import recipe.dao.DrugDistributionPriceDAO;
 import recipe.enumerate.status.RecipeSourceTypeEnum;
-import recipe.enumerate.type.DecoctionDeployTypeEnum;
-import recipe.enumerate.type.ExpressFeePayWayEnum;
-import recipe.enumerate.type.ExpressFeeTypeEnum;
-import recipe.enumerate.type.SettlementModeTypeEnum;
+import recipe.enumerate.type.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -54,8 +54,14 @@ public class OrderFeeManager extends BaseManager {
     private CouponClient couponClient;
     @Autowired
     private OfflineRecipeClient offlineRecipeClient;
+    @Autowired
+    private IConfigurationClient configurationClient;
+    @Autowired
+    private RevisitClient revisitClient;
+    @Autowired
+    private ConsultClient consultClient;
 
-    public RecipeOrder setOrderFee(RecipeOrder order, List<Recipe> recipeList, OrderFeeSetCondition condition){
+    public RecipeOrder setOrderFee(RecipeOrder order, List<Recipe> recipeList, OrderFeeSetCondition condition) {
         if (null == order || CollectionUtils.isEmpty(recipeList)) {
             return order;
         }
@@ -71,10 +77,76 @@ public class OrderFeeManager extends BaseManager {
         setDecoctionFee(order, recipeList);
         //设置中医辨证论治费
         setTcmFee(order, recipeList);
+        // 设置处方代缴费用
+        setRecipePaymentFee(order, recipeList);
         //设置配送费
         return order;
 
     }
+
+    /**
+     * 处方代缴费用
+     *
+     * @param order
+     * @param recipeList
+     */
+    public void setRecipePaymentFee(RecipeOrder order, List<Recipe> recipeList) {
+        // 获取机构配置是否需要代缴费用
+        List<String> needPaymentRecipeBusiness = configurationClient.getValueListCatch(order.getOrganId(), "needPaymentRecipeBusiness", null);
+        if (CollectionUtils.isEmpty(needPaymentRecipeBusiness)) {
+            return;
+        }
+        // 获取处方 类型
+        Recipe recipe = recipeList.get(0);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        Integer recipeBusinessType = recipeExtend.getRecipeBusinessType();
+
+        switch (RecipeBusinessTypeEnum.getRecipeBusinessTypeEnum(recipeBusinessType)) {
+            case BUSINESS_RECIPE_REVISIT:
+                if (needPaymentRecipeBusiness.contains(RecipeBusinessTypeEnum.BUSINESS_RECIPE_REVISIT.getType().toString())) {
+                    OrderVisitMoneyDTO orderVisitMoney = revisitClient.getOrderVisitMoney(recipe.getClinicId());
+                    // 0待支付，1支付
+                    if (PayFlagEnum.NOPAY.getType().equals(orderVisitMoney.getVisitPayFlag()) &&
+                            orderVisitMoney.getVisitMoney().compareTo(BigDecimal.ZERO) > 0) {
+                        // 复诊只保存了中医辨证论治费
+                        order.setTcmFee(orderVisitMoney.getVisitMoney());
+                    }
+                }
+                break;
+            case BUSINESS_RECIPE_OUTPATIENT:
+                if (needPaymentRecipeBusiness.contains(RecipeBusinessTypeEnum.BUSINESS_RECIPE_OUTPATIENT.getType().toString())) {
+                    NeedPaymentRecipeReqTo needPayment = new NeedPaymentRecipeReqTo();
+                    needPayment.setCardNo(recipeExtend.getCardNo());
+                    needPayment.setCardType(recipeExtend.getCardType());
+                    needPayment.setDepartId(recipe.getDepart());
+                    needPayment.setOrganId(recipe.getClinicOrgan());
+                    needPayment.setDoctorId(recipe.getDoctor());
+                    needPayment.setPatientID(recipe.getPatientID());
+                    needPayment.setPatientName(recipe.getPatientName());
+                    needPayment.setRegisterID(recipeExtend.getRegisterID());
+                    List<String> code = recipeList.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
+                    needPayment.setRecipeCode(code);
+                    NeedPaymentRecipeResTo recipePaymentFee = consultClient.getRecipePaymentFee(needPayment);
+                    if (Objects.isNull(recipePaymentFee)) {
+                        return;
+                    }
+                    if (recipePaymentFee.getRegisterFee().compareTo(BigDecimal.ZERO) > 0) {
+                        // 挂号费
+                        order.setRegisterFee(recipePaymentFee.getRegisterFee());
+                    }
+                    if (recipePaymentFee.getTcmFee().compareTo(BigDecimal.ZERO) > 0) {
+                        // 中医辨证费
+                        order.setTcmFee(recipePaymentFee.getTcmFee());
+                    }
+
+                }
+                break;
+            case BUSINESS_RECIPE_OTHER:
+            default:
+                break;
+        }
+    }
+
 
     /**
      * 订单设置挂号费

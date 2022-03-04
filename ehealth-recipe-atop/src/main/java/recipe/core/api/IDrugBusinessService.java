@@ -1,12 +1,12 @@
 package recipe.core.api;
 
+import com.ngari.platform.recipe.mode.ListOrganDrugReq;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.vo.SearchDrugReqVO;
-import recipe.vo.greenroom.ListOrganDrugReq;
 
 import java.util.List;
 import java.util.Map;
