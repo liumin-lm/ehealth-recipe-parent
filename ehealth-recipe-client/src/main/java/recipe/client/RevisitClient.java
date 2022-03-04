@@ -1,14 +1,17 @@
 package recipe.client;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.WriteDrugRecipeTO;
 import com.ngari.his.visit.mode.WriteDrugRecipeReqTO;
 import com.ngari.his.visit.service.IVisitService;
 import com.ngari.revisit.RevisitBean;
+import com.ngari.revisit.common.model.OrderVisitMoneyDTO;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.request.ValidRevisitRequest;
 import com.ngari.revisit.common.service.IRevisitExService;
+import com.ngari.revisit.common.service.IRevisitInfoService;
 import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.traces.service.IRevisitTracesSortService;
 import ctd.util.JSONUtils;
@@ -39,6 +42,22 @@ public class RevisitClient extends BaseClient {
 
     @Autowired
     private IVisitService iVisitService;
+
+    @Autowired
+    private IRevisitInfoService revisitInfoService;
+
+    /**
+     * 根据复诊号获取需要代缴的费用
+     *
+     * @param clinicId
+     * @return
+     */
+    public OrderVisitMoneyDTO getOrderVisitMoney(Integer clinicId) {
+        logger.info("RevisitClient getOrderVisitMoney param clinicId:{}", clinicId);
+        OrderVisitMoneyDTO orderVisitMoney = revisitInfoService.getOrderVisitMoney(clinicId);
+        logger.info("RevisitClient getOrderVisitMoney res:{}", JSONArray.toJSONString(orderVisitMoney));
+        return orderVisitMoney;
+    }
 
     /**
      * 根据挂号序号获取复诊信息

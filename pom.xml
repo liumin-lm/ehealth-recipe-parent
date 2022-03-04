@@ -47,7 +47,7 @@
         <ngari.bill.version>4.1.1.9.master-SNAPSHOT</ngari.bill.version>
         <ngari.account.version>4.1.1.9.master-SNAPSHOT</ngari.account.version>
         <ngari.basicdto.version>4.1.1.9.master-SNAPSHOT</ngari.basicdto.version>
-        <ngari.revisit.version>4.2.2.4.master-SNAPSHOT</ngari.revisit.version>
+        <ngari.revisit.version>4.3.1.0.idt.master-SNAPSHOT</ngari.revisit.version>
         <ngari.entity.version>4.1.1.9.master-SNAPSHOT</ngari.entity.version>
 
     </properties>
