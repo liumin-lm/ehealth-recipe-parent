@@ -36,6 +36,7 @@ import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.manager.OrganDrugListManager;
 import recipe.service.RecipeOrderService;
+import recipe.util.DistanceUtil;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
@@ -51,6 +52,9 @@ import static ctd.persistence.DAOFactory.getDAO;
  * @version： 1.0
  */
 public class PayModeToHos implements IPurchaseService {
+
+    private static final String searchMapLatitude = "latitude";
+    private static final String searchMapLongitude = "longitude";
 
     @Autowired
     private OrderManager orderManager;
@@ -317,7 +321,7 @@ public class PayModeToHos implements IPurchaseService {
             List<DrugsEnterprise> noShowStoreEnterprises = drugsEnterprises.stream().filter(drugsEnterprise -> "0".equals(drugsEnterprise.getShowStoreFlag())).collect(Collectors.toList());
             List<Integer> depIdList = noShowStoreEnterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
             Map<Integer, List<OrganDrugsSaleConfig>> saleMap = getIntegerListMap(depIdList);
-            depDetailBeans = setEnterpriseToStore(dbRecipe, noShowStoreEnterprises, saleMap);
+            depDetailBeans = setEnterpriseToStore(dbRecipe, noShowStoreEnterprises, saleMap, extInfo);
         }
         LOG.info("newModeFindSupportDepList depDetailBeans:{}", JSONUtils.toString(depDetailBeans));
         if (CollectionUtils.isNotEmpty(depDetailBeans) && depDetailBeans.size() == drugsEnterprises.size()) {
@@ -364,7 +368,10 @@ public class PayModeToHos implements IPurchaseService {
         return saleMap;
     }
 
-    private List<DepDetailBean> setEnterpriseToStore(Recipe recipe, List<DrugsEnterprise> noShowStoreEnterprises, Map<Integer, List<OrganDrugsSaleConfig>> saleMap) {
+    private List<DepDetailBean> setEnterpriseToStore(Recipe recipe, List<DrugsEnterprise> noShowStoreEnterprises, Map<Integer, List<OrganDrugsSaleConfig>> saleMap, Map<String, String> extInfo) {
+        LOG.info("setEnterpriseToStore recipe:{},noShowStoreEnterprises:{},extInfo:{}", JSONUtils.toString(recipe), JSONUtils.toString(noShowStoreEnterprises), JSONUtils.toString(extInfo));
+        String longitude = MapValueUtil.getString(extInfo, searchMapLongitude);
+        String latitude = MapValueUtil.getString(extInfo, searchMapLatitude);
         return noShowStoreEnterprises.stream().map(enterprise -> {
             List<Pharmacy> pharmacyList = pharmacyDAO.findByDepId(enterprise.getId());
             DepDetailBean depDetailBean = new DepDetailBean();
@@ -383,7 +390,11 @@ public class PayModeToHos implements IPurchaseService {
             depDetailBean.setPharmacyName(pharmacy.getPharmacyName());
             depDetailBean.setPharmacyCode(pharmacy.getPharmacyCode());
             depDetailBean.setPosition(position);
-            //TODO 距离设置
+            if (StringUtils.isNotEmpty(pharmacy.getPharmacyLatitude()) && StringUtils.isNotEmpty(pharmacy.getPharmacyLongitude())) {
+                Double distance = DistanceUtil.getDistance(Double.parseDouble(pharmacy.getPharmacyLatitude()), Double.parseDouble(pharmacy.getPharmacyLongitude()),
+                        Double.parseDouble(latitude), Double.parseDouble(longitude));
+                depDetailBean.setDistance(distance);
+            }
             return depDetailBean;
         }).collect(Collectors.toList());
     }
