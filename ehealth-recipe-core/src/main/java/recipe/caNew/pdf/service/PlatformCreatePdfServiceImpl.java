@@ -435,15 +435,15 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
             list.add(new RecipeLabelDTO("chineMedicine", "drugInfo" + i, drugShowName));
         }
         Recipedetail detail = recipeDetails.get(0);
-        if(tcmRecipeList.contains("3")){
+        if(tcmRecipeList.get(0).contains("3")){
             list.add(new RecipeLabelDTO(recipeJsonObject.getString("makeMethodTextConfig"), "tcmUseDay", getUseDays(detail.getUseDaysB(), detail.getUseDays())));
         }
         try {
-            if(tcmRecipeList.contains("4")){
+            if(tcmRecipeList.get(0).contains("4")){
                 list.add(new RecipeLabelDTO(recipeJsonObject.getString("usePathwaysTextConfig"), "tcmUsePathways", DictionaryController.instance().get("eh.cdr.dictionary.UsePathways").getText(detail.getUsePathways())));
             }
-            if(tcmRecipeList.contains("5")){
-                list.add(new RecipeLabelDTO("usingRateTextConfig", "tcmUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detail.getUsingRate())));
+            if(tcmRecipeList.get(0).contains("5")){
+                list.add(new RecipeLabelDTO(recipeJsonObject.getString("usingRateTextConfig"), "tcmUsingRate", DictionaryController.instance().get("eh.cdr.dictionary.UsingRate").getText(detail.getUsingRate())));
             }
         } catch (Exception e) {
             logger.error("用药途径 用药频率有误");
@@ -451,19 +451,19 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         if (null != extend) {
 
             list.add(new RecipeLabelDTO("煎法", "tcmDecoction", ByteUtils.objValueOfString(extend.getDecoctionText())));
-            if(tcmRecipeList.contains("2")){
-                list.add(new RecipeLabelDTO("juiceTextConfig", "tcmJuice", ByteUtils.objValueOfString(extend.getJuice()) + ByteUtils.objValueOfString(extend.getJuiceUnit())));
+            if(tcmRecipeList.get(0).contains("2")){
+                list.add(new RecipeLabelDTO(recipeJsonObject.getString("juiceTextConfig"), "tcmJuice", ByteUtils.objValueOfString(extend.getJuice()) + ByteUtils.objValueOfString(extend.getJuiceUnit())));
             }
-            if(tcmRecipeList.contains("6")){
-                list.add(new RecipeLabelDTO("minorTextConfig", "tcmMinor", ByteUtils.objValueOfString(extend.getMinor()) + ByteUtils.objValueOfString(extend.getMinorUnit())));
+            if(tcmRecipeList.get(0).contains("6")){
+                list.add(new RecipeLabelDTO(recipeJsonObject.getString("minorTextConfig"), "tcmMinor", ByteUtils.objValueOfString(extend.getMinor()) + ByteUtils.objValueOfString(extend.getMinorUnit())));
             }
-            if(tcmRecipeList.contains("1")){
-                list.add(new RecipeLabelDTO("makeMethodTextConfig", "tcmMakeMethod", ByteUtils.objValueOfString(extend.getMakeMethodText())));
+            if(tcmRecipeList.get(0).contains("1")){
+                list.add(new RecipeLabelDTO(recipeJsonObject.getString("makeMethodTextConfig"), "tcmMakeMethod", ByteUtils.objValueOfString(extend.getMakeMethodText())));
             }
         }
         list.add(new RecipeLabelDTO("贴数", "copyNum", recipe.getCopyNum() + "贴"));
-        if(tcmRecipeList.contains("7")){
-            list.add(new RecipeLabelDTO("recipeMemoTextConfig", "tcmRecipeMemo", ByteUtils.objValueOfString(recipe.getRecipeMemo())));
+        if(tcmRecipeList.get(0).contains("7")){
+            list.add(new RecipeLabelDTO(recipeJsonObject.getString("recipeMemoTextConfig"), "tcmRecipeMemo", ByteUtils.objValueOfString(recipe.getRecipeMemo())));
         }
     }
 }
