@@ -392,7 +392,7 @@ public class PayModeToHos implements IPurchaseService {
                  && StringUtils.isNotEmpty(latitude) && StringUtils.isNotEmpty(longitude)) {
                 Double distance = DistanceUtil.getDistance(Double.parseDouble(pharmacy.getPharmacyLatitude()), Double.parseDouble(pharmacy.getPharmacyLongitude()),
                         Double.parseDouble(latitude), Double.parseDouble(longitude));
-                depDetailBean.setDistance(distance);
+                depDetailBean.setDistance(Double.parseDouble(String.format("%.2f",distance)));
             } else {
                 depDetailBean.setDistance(0D);
             }
