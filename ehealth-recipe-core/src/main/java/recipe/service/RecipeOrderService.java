@@ -590,6 +590,7 @@ public class RecipeOrderService extends RecipeBaseService {
     public void setOrderFee(OrderCreateResult result, RecipeOrder order, List<Integer> recipeIds, List<Recipe> recipeList, RecipePayModeSupportBean payModeSupport, Map<String, String> extInfo, Integer toDbFlag) {
         LOGGER.info("setOrderFee recipeIds:{},payModeSupport:{},extInfo:{},toDbFlag:{}.", JSONUtils.toString(recipeIds), JSONUtils.toString(payModeSupport), JSONUtils.toString(extInfo), toDbFlag);
         IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
+        IConfigurationCenterUtilsService configurationCenterUtilsService = (IConfigurationCenterUtilsService) AppContextHolder.getBean("eh.configurationCenterUtils");
         OrganConfigBean organConfig = iOrganConfigService.get(order.getOrganId());
         LOGGER.info("进入方法setOrderFee");
         if (null == organConfig) {
@@ -606,7 +607,11 @@ public class RecipeOrderService extends RecipeBaseService {
         orderFeeManager.setRegisterFee(order);
         //设置审方费用
         Recipe firstRecipe = recipeList.get(0);
-        orderFeeManager.setAuditFee(order, recipeList);
+        //date 20190929
+        //审方费判断非不需要审核再去计算
+        double auditFee = ReviewTypeConstant.Not_Need_Check == firstRecipe.getReviewType() ? 0d : getFee(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_AUDITFEE));
+        //如果是合并处方单，审方费得乘以处方单数
+        order.setAuditFee(BigDecimal.valueOf(auditFee).multiply(BigDecimal.valueOf(recipeList.size())));
         //设置其他服务费用
         orderFeeManager.setOtherFee(order);
 
