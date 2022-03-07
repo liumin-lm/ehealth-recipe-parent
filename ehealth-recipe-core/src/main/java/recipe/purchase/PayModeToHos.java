@@ -78,10 +78,8 @@ public class PayModeToHos implements IPurchaseService {
     private IStockBusinessService stockBusinessService;
     @Autowired
     private PharmacyDAO pharmacyDAO;
-    /**
-     * logger
-     */
-    private static final Logger LOG = LoggerFactory.getLogger(PurchaseService.class);
+
+    private static final Logger LOG = LoggerFactory.getLogger(PayModeToHos.class);
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
@@ -315,10 +313,10 @@ public class PayModeToHos implements IPurchaseService {
         }
 
         //判断药企是否不展示药店
-        boolean showStoreFlag = drugsEnterprises.stream().anyMatch(drugsEnterprise -> "0".equals(drugsEnterprise.getShowStoreFlag()));
+        boolean showStoreFlag = drugsEnterprises.stream().anyMatch(drugsEnterprise -> 0 == drugsEnterprise.getShowStoreFlag());
         List<DepDetailBean> depDetailBeans = new ArrayList<>();
         if (showStoreFlag) {
-            List<DrugsEnterprise> noShowStoreEnterprises = drugsEnterprises.stream().filter(drugsEnterprise -> "0".equals(drugsEnterprise.getShowStoreFlag())).collect(Collectors.toList());
+            List<DrugsEnterprise> noShowStoreEnterprises = drugsEnterprises.stream().filter(drugsEnterprise -> 0 == drugsEnterprise.getShowStoreFlag()).collect(Collectors.toList());
             List<Integer> depIdList = noShowStoreEnterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
             Map<Integer, List<OrganDrugsSaleConfig>> saleMap = getIntegerListMap(depIdList);
             depDetailBeans = setEnterpriseToStore(dbRecipe, noShowStoreEnterprises, saleMap, extInfo);
