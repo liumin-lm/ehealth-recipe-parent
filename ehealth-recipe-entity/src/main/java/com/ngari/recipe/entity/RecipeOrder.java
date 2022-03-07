@@ -368,6 +368,29 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "订单子状态")
     private Integer subState;
 
+    @ItemProperty(alias = "挂号费单号编号")
+    private String registerFeeNo;
+
+    @ItemProperty(alias = "中医辨证论治费单号编号")
+    private String tcmFeeNo;
+
+    @Column(name = "register_fee_no")
+    public String getRegisterFeeNo() {
+        return registerFeeNo;
+    }
+
+    public void setRegisterFeeNo(String registerFeeNo) {
+        this.registerFeeNo = registerFeeNo;
+    }
+
+    @Column(name = "tcm_fee_no")
+    public String getTcmFeeNo() {
+        return tcmFeeNo;
+    }
+
+    public void setTcmFeeNo(String tcmFeeNo) {
+        this.tcmFeeNo = tcmFeeNo;
+    }
 
     @Column(name = "process_state")
     public Integer getProcessState() {

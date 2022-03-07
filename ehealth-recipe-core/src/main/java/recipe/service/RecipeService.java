@@ -6420,10 +6420,6 @@ public class RecipeService extends RecipeBaseService {
         return true;
     }
 
-    @RpcService
-    public void testGetRecipePaymentFee(NeedPaymentRecipeReqTo a) {
-        consultClient.getRecipePaymentFee(a);
-    }
 
     /**
      * recipeFlag数据处理
