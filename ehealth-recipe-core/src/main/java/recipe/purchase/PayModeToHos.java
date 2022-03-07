@@ -377,6 +377,7 @@ public class PayModeToHos implements IPurchaseService {
             depDetailBean.setPharmacyName(pharmacy.getPharmacyName());
             depDetailBean.setPharmacyCode(pharmacy.getPharmacyCode());
             depDetailBean.setPosition(position);
+            //TODO 距离设置
             return depDetailBean;
         }).collect(Collectors.toList());
     }
