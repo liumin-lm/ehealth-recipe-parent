@@ -426,9 +426,10 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         }
         String recipeJsonConfig = extend.getRecipeJsonConfig();
         JSONObject recipeJsonObject = JSONObject.parseObject(recipeJsonConfig);
+        logger.info("createChineMedicinePDF recipeJsonObject={}",recipeJsonObject);
         String tcmRecipePageControl = recipeJsonObject.getString("tcmRecipePageControl");
         List<String> tcmRecipeList = Collections.singletonList(tcmRecipePageControl);
-
+        logger.info("createChineMedicinePDF tcmRecipeList={}",JSONUtils.toString(tcmRecipeList));
         for (int i = 0; i < recipeDetails.size(); i++) {
             String drugShowName = RecipeUtil.drugChineShowName(recipeDetails.get(i));
             list.add(new RecipeLabelDTO("chineMedicine", "drugInfo" + i, drugShowName));
