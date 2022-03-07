@@ -78,10 +78,8 @@ public class PayModeToHos implements IPurchaseService {
     private IStockBusinessService stockBusinessService;
     @Autowired
     private PharmacyDAO pharmacyDAO;
-    /**
-     * logger
-     */
-    private static final Logger LOG = LoggerFactory.getLogger(PurchaseService.class);
+
+    private static final Logger LOG = LoggerFactory.getLogger(PayModeToHos.class);
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
