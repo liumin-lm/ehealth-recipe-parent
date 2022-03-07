@@ -10,6 +10,7 @@ import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
+import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
@@ -792,6 +793,11 @@ public class QueryRecipeService implements IQueryRecipeService {
                     organDrugList.setSupportDownloadPrescriptionPad(true);
                     organDrugList.setApplyBusiness("1");
                     LOGGER.info("updateOrSaveOrganDrug 添加机构药品信息{}", JSONUtils.toString(organDrugList));
+                    IHisServiceConfigService configService = AppContextHolder.getBean("his.hisServiceConfig", IHisServiceConfigService.class);
+                    Boolean regulationFlag = configService.getRegulationFlag();
+                    if (regulationFlag){
+                        organDrugList.setRegulationDrugCode(organDrugList.getDrugId().toString());
+                    }
                     OrganDrugList nowOrganDrugList = organDrugListDAO.save(organDrugList);
                     //同步药品到监管备案
                     RecipeBusiThreadPool.submit(() -> {
