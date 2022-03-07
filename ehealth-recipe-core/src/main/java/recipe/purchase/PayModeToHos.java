@@ -78,6 +78,8 @@ public class PayModeToHos implements IPurchaseService {
     private IStockBusinessService stockBusinessService;
     @Autowired
     private PharmacyDAO pharmacyDAO;
+    @Autowired
+    private RecipeOrderService recipeOrderService;
 
     private static final Logger LOG = LoggerFactory.getLogger(PayModeToHos.class);
 
@@ -377,7 +379,8 @@ public class PayModeToHos implements IPurchaseService {
             depDetailBean.setDepName(enterprise.getName());
             depDetailBean.setBelongDepName(enterprise.getName());
             depDetailBean.setAddress(enterprise.getMemo());
-            depDetailBean.setRecipeFee(recipe.getTotalMoney());
+            //重置药企处方价格
+            depDetailBean.setRecipeFee(recipeOrderService.reCalculateRecipeFee(enterprise.getId(), Arrays.asList(recipe.getRecipeId()), null));
             if(MapUtils.isNotEmpty(saleMap) && CollectionUtils.isNotEmpty(saleMap.get(enterprise.getId()))) {
                 depDetailBean.setPayModeText(PayModeEnum.getPayModeEnumName(saleMap.get(enterprise.getId()).get(0).getTakeOneselfPayment()));
             }
