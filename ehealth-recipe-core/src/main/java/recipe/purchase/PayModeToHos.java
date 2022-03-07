@@ -200,6 +200,11 @@ public class PayModeToHos implements IPurchaseService {
             result.setMsg("提交失败，请重新提交。");
             return result;
         }
+
+        // 到院自取也需要更新药品实际销售价格
+        recipeIdLists.forEach(recipeId->{
+            purchaseService.updateRecipeDetail(recipeId);
+        });
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
         //更新处方信息
         //更新处方信息
