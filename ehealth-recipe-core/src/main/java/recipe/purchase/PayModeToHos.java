@@ -314,6 +314,7 @@ public class PayModeToHos implements IPurchaseService {
             Map<Integer, List<OrganDrugsSaleConfig>> saleMap = getIntegerListMap(depIdList);
             depDetailBeans = setEnterpriseToStore(dbRecipe, noShowStoreEnterprises, saleMap);
         }
+        LOG.info("newModeFindSupportDepList depDetailBeans:{}", JSONUtils.toString(depDetailBeans));
         if (CollectionUtils.isNotEmpty(depDetailBeans) && depDetailBeans.size() == drugsEnterprises.size()) {
             if (depDetailBeans.size() == 1) {
                 depListBean.setSigle(true);
@@ -377,6 +378,7 @@ public class PayModeToHos implements IPurchaseService {
             depDetailBean.setPharmacyName(pharmacy.getPharmacyName());
             depDetailBean.setPharmacyCode(pharmacy.getPharmacyCode());
             depDetailBean.setPosition(position);
+            //TODO 距离设置
             return depDetailBean;
         }).collect(Collectors.toList());
     }

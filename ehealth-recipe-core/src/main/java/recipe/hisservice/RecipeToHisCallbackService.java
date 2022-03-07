@@ -128,6 +128,7 @@ public class RecipeToHisCallbackService {
             result.setDetailList(list);
             result.setVisitMoney(response.getVisitMoney());
             result.setVisitPayFlag(response.getVisitPayFlag());
+            result.setVisitCode(null == response.getVisitId() ? null : response.getVisitId().toString());
             LOGGER.info("recipeSend recive success. recipeId={}, checkPassSuccess result={}", response.getRecipeId(), JSONUtils.toString(result));
             //没库存操作----推送九州通
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);

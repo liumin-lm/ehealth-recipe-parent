@@ -101,7 +101,6 @@ public class OrderFeeManager extends BaseManager {
         Recipe recipe = recipeList.get(0);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         Integer recipeBusinessType = recipeExtend.getRecipeBusinessType();
-        recipeBusinessType = 1;
 
         switch (RecipeBusinessTypeEnum.getRecipeBusinessTypeEnum(recipeBusinessType)) {
             case BUSINESS_RECIPE_REVISIT:
@@ -112,6 +111,7 @@ public class OrderFeeManager extends BaseManager {
                             orderVisitMoney.getVisitMoney().compareTo(BigDecimal.ZERO) > 0) {
                         // 复诊只保存了中医辨证论治费
                         order.setTcmFee(orderVisitMoney.getVisitMoney());
+                        order.setTcmFeeNo(orderVisitMoney.getVisitCode());
                     }
                 }
                 break;
@@ -135,10 +135,12 @@ public class OrderFeeManager extends BaseManager {
                     if (recipePaymentFee.getRegisterFee().compareTo(BigDecimal.ZERO) > 0) {
                         // 挂号费
                         order.setRegisterFee(recipePaymentFee.getRegisterFee());
+                        order.setRegisterFeeNo(recipePaymentFee.getRegisterFeeNo());
                     }
                     if (recipePaymentFee.getTcmFee().compareTo(BigDecimal.ZERO) > 0) {
                         // 中医辨证费
                         order.setTcmFee(recipePaymentFee.getTcmFee());
+                        order.setTcmFeeNo(recipePaymentFee.getTcmFeeNo());
                     }
 
                 }
