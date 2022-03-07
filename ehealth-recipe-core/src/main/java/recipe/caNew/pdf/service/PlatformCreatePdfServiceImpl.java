@@ -436,7 +436,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         }
         Recipedetail detail = recipeDetails.get(0);
         if(tcmRecipeList.get(0).contains("3")){
-            list.add(new RecipeLabelDTO(recipeJsonObject.getString("makeMethodTextConfig"), "tcmUseDay", getUseDays(detail.getUseDaysB(), detail.getUseDays())));
+            list.add(new RecipeLabelDTO(recipeJsonObject.getString("useDaysTextConfig"), "tcmUseDay", getUseDays(detail.getUseDaysB(), detail.getUseDays())));
         }
         try {
             if(tcmRecipeList.get(0).contains("4")){
