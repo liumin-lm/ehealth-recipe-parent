@@ -803,6 +803,10 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         //}
+
+        // 更新处方代缴费用
+        orderFeeManager.setRecipePaymentFee(order,recipeList);
+
         order.setTotalFee(countOrderTotalFeeByRecipeInfo(order, firstRecipe, payModeSupport));
         //判断计算扣掉运费的总金额----等于线下支付----总计要先算上运费，实际支付时再不支付运费
         BigDecimal totalFee;
@@ -869,8 +873,6 @@ public class RecipeOrderService extends RecipeBaseService {
             }
         }
 
-        // 更新处方代缴费用
-        orderFeeManager.setRecipePaymentFee(order,recipeList);
     }
 
     public Boolean dealWithOrderInfo(Map<String, String> map, RecipeOrder order, Recipe recipe) {
@@ -1839,7 +1841,7 @@ public class RecipeOrderService extends RecipeBaseService {
             if (!tcmFlag) {
                 //表示处方单中不存在中药处方,需要将中医辨证论证费和代煎费去掉
                 orderBean.setDecoctionFee(null);
-                orderBean.setTcmFee(null);
+//                orderBean.setTcmFee(null);
             }
             orderBean.setList(patientRecipeBeanList);
             orderBean.setProcessStateText(OrderStateEnum.getOrderStateEnum(order.getProcessState()).getName());
