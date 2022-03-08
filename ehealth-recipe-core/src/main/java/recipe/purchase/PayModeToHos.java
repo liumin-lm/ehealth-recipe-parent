@@ -318,8 +318,9 @@ public class PayModeToHos implements IPurchaseService {
         //判断药企是否不展示药店
         boolean showStoreFlag = drugsEnterprises.stream().anyMatch(drugsEnterprise -> 0 == drugsEnterprise.getShowStoreFlag());
         List<DepDetailBean> depDetailBeans = new ArrayList<>();
+        List<DrugsEnterprise> noShowStoreEnterprises = new ArrayList<>();
         if (showStoreFlag) {
-            List<DrugsEnterprise> noShowStoreEnterprises = drugsEnterprises.stream().filter(drugsEnterprise -> 0 == drugsEnterprise.getShowStoreFlag()).collect(Collectors.toList());
+            noShowStoreEnterprises = drugsEnterprises.stream().filter(drugsEnterprise -> 0 == drugsEnterprise.getShowStoreFlag()).collect(Collectors.toList());
             List<Integer> depIdList = noShowStoreEnterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
             Map<Integer, List<OrganDrugsSaleConfig>> saleMap = getIntegerListMap(depIdList);
             depDetailBeans = setEnterpriseToStore(dbRecipe, noShowStoreEnterprises, saleMap, extInfo);
@@ -338,7 +339,10 @@ public class PayModeToHos implements IPurchaseService {
         List<TakeMedicineByToHos> takeMedicineByToHosList = enterpriseManager.getTakeMedicineByToHosList(dbRecipe.getClinicOrgan(), dbRecipe);
 
         LOG.info("findSupportDepList subDepList:{}", JSONUtils.toString(takeMedicineByToHosList));
-
+        List<Integer> enterpriseList = drugsEnterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(enterpriseList)) {
+            takeMedicineByToHosList = takeMedicineByToHosList.stream().filter(takeMedicineByToHos -> !enterpriseList.contains(takeMedicineByToHos.getEnterpriseId())).collect(Collectors.toList());
+        }
         List<Integer> saleDepIds = takeMedicineByToHosList.stream().map(TakeMedicineByToHos::getEnterpriseId).collect(Collectors.toList());
         Map<Integer, List<OrganDrugsSaleConfig>> saleMap = getIntegerListMap(saleDepIds);
         List<DepDetailBean> result = getDepDetailList(takeMedicineByToHosList,saleMap);
