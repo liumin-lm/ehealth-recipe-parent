@@ -1,5 +1,6 @@
 package recipe.purchase;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.ImmutableMap;
 import com.ngari.his.recipe.mode.TakeMedicineByToHos;
 import com.ngari.patient.dto.OrganDTO;
@@ -360,11 +361,16 @@ public class PayModeToHos implements IPurchaseService {
     }
 
     private Map<Integer, List<OrganDrugsSaleConfig>> getIntegerListMap(List<Integer> saleDepIds) {
+        LOG.info("getIntegerListMap saleDepIds:{}", JSON.toJSONString(saleDepIds));
+        if (CollectionUtils.isEmpty(saleDepIds)) {
+            return null;
+        }
         List<OrganDrugsSaleConfig> organDrugsSaleConfigs = organDrugsSaleConfigDAO.findSaleConfigs(saleDepIds);
         Map<Integer, List<OrganDrugsSaleConfig>> saleMap = null;
         if (CollectionUtils.isNotEmpty(organDrugsSaleConfigs)) {
             saleMap = organDrugsSaleConfigs.stream().collect(Collectors.groupingBy(OrganDrugsSaleConfig::getDrugsEnterpriseId));
         }
+        LOG.info("getIntegerListMap saleMap:{}.", JSON.toJSONString(saleMap));
         return saleMap;
     }
 
