@@ -36,6 +36,7 @@ import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.manager.OrganDrugListManager;
 import recipe.service.RecipeOrderService;
+import recipe.util.DistanceUtil;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
@@ -51,6 +52,9 @@ import static ctd.persistence.DAOFactory.getDAO;
  * @version： 1.0
  */
 public class PayModeToHos implements IPurchaseService {
+
+    private static final String searchMapLatitude = "latitude";
+    private static final String searchMapLongitude = "longitude";
 
     @Autowired
     private OrderManager orderManager;
@@ -74,10 +78,10 @@ public class PayModeToHos implements IPurchaseService {
     private IStockBusinessService stockBusinessService;
     @Autowired
     private PharmacyDAO pharmacyDAO;
-    /**
-     * logger
-     */
-    private static final Logger LOG = LoggerFactory.getLogger(PurchaseService.class);
+    @Autowired
+    private RecipeOrderService recipeOrderService;
+
+    private static final Logger LOG = LoggerFactory.getLogger(PayModeToHos.class);
 
     @Override
     public RecipeResultBean findSupportDepList(Recipe dbRecipe, Map<String, String> extInfo) {
@@ -200,6 +204,11 @@ public class PayModeToHos implements IPurchaseService {
             result.setMsg("提交失败，请重新提交。");
             return result;
         }
+
+        // 到院自取也需要更新药品实际销售价格
+        recipeIdLists.forEach(recipeId->{
+            purchaseService.updateRecipeDetail(recipeId);
+        });
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
         //更新处方信息
         //更新处方信息
@@ -306,14 +315,15 @@ public class PayModeToHos implements IPurchaseService {
         }
 
         //判断药企是否不展示药店
-        boolean showStoreFlag = drugsEnterprises.stream().anyMatch(drugsEnterprise -> "0".equals(drugsEnterprise.getShowStoreFlag()));
+        boolean showStoreFlag = drugsEnterprises.stream().anyMatch(drugsEnterprise -> 0 == drugsEnterprise.getShowStoreFlag());
         List<DepDetailBean> depDetailBeans = new ArrayList<>();
         if (showStoreFlag) {
-            List<DrugsEnterprise> noShowStoreEnterprises = drugsEnterprises.stream().filter(drugsEnterprise -> "0".equals(drugsEnterprise.getShowStoreFlag())).collect(Collectors.toList());
+            List<DrugsEnterprise> noShowStoreEnterprises = drugsEnterprises.stream().filter(drugsEnterprise -> 0 == drugsEnterprise.getShowStoreFlag()).collect(Collectors.toList());
             List<Integer> depIdList = noShowStoreEnterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
             Map<Integer, List<OrganDrugsSaleConfig>> saleMap = getIntegerListMap(depIdList);
-            depDetailBeans = setEnterpriseToStore(dbRecipe, noShowStoreEnterprises, saleMap);
+            depDetailBeans = setEnterpriseToStore(dbRecipe, noShowStoreEnterprises, saleMap, extInfo);
         }
+        LOG.info("newModeFindSupportDepList depDetailBeans:{}", JSONUtils.toString(depDetailBeans));
         if (CollectionUtils.isNotEmpty(depDetailBeans) && depDetailBeans.size() == drugsEnterprises.size()) {
             if (depDetailBeans.size() == 1) {
                 depListBean.setSigle(true);
@@ -358,7 +368,10 @@ public class PayModeToHos implements IPurchaseService {
         return saleMap;
     }
 
-    private List<DepDetailBean> setEnterpriseToStore(Recipe recipe, List<DrugsEnterprise> noShowStoreEnterprises, Map<Integer, List<OrganDrugsSaleConfig>> saleMap) {
+    private List<DepDetailBean> setEnterpriseToStore(Recipe recipe, List<DrugsEnterprise> noShowStoreEnterprises, Map<Integer, List<OrganDrugsSaleConfig>> saleMap, Map<String, String> extInfo) {
+        LOG.info("setEnterpriseToStore recipe:{},noShowStoreEnterprises:{},extInfo:{}", JSONUtils.toString(recipe), JSONUtils.toString(noShowStoreEnterprises), JSONUtils.toString(extInfo));
+        String longitude = MapValueUtil.getString(extInfo, searchMapLongitude);
+        String latitude = MapValueUtil.getString(extInfo, searchMapLatitude);
         return noShowStoreEnterprises.stream().map(enterprise -> {
             List<Pharmacy> pharmacyList = pharmacyDAO.findByDepId(enterprise.getId());
             DepDetailBean depDetailBean = new DepDetailBean();
@@ -366,7 +379,8 @@ public class PayModeToHos implements IPurchaseService {
             depDetailBean.setDepName(enterprise.getName());
             depDetailBean.setBelongDepName(enterprise.getName());
             depDetailBean.setAddress(enterprise.getMemo());
-            depDetailBean.setRecipeFee(recipe.getTotalMoney());
+            //重置药企处方价格
+            depDetailBean.setRecipeFee(recipeOrderService.reCalculateRecipeFee(enterprise.getId(), Arrays.asList(recipe.getRecipeId()), null));
             if(MapUtils.isNotEmpty(saleMap) && CollectionUtils.isNotEmpty(saleMap.get(enterprise.getId()))) {
                 depDetailBean.setPayModeText(PayModeEnum.getPayModeEnumName(saleMap.get(enterprise.getId()).get(0).getTakeOneselfPayment()));
             }
@@ -377,6 +391,14 @@ public class PayModeToHos implements IPurchaseService {
             depDetailBean.setPharmacyName(pharmacy.getPharmacyName());
             depDetailBean.setPharmacyCode(pharmacy.getPharmacyCode());
             depDetailBean.setPosition(position);
+            if (StringUtils.isNotEmpty(pharmacy.getPharmacyLatitude()) && StringUtils.isNotEmpty(pharmacy.getPharmacyLongitude())
+                 && StringUtils.isNotEmpty(latitude) && StringUtils.isNotEmpty(longitude)) {
+                Double distance = DistanceUtil.getDistance(Double.parseDouble(pharmacy.getPharmacyLatitude()), Double.parseDouble(pharmacy.getPharmacyLongitude()),
+                        Double.parseDouble(latitude), Double.parseDouble(longitude));
+                depDetailBean.setDistance(Double.parseDouble(String.format("%.2f",distance)));
+            } else {
+                depDetailBean.setDistance(0D);
+            }
             return depDetailBean;
         }).collect(Collectors.toList());
     }

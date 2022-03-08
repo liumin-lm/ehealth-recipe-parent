@@ -76,16 +76,8 @@ public class RecipeTestService {
     @Autowired
     private DrugDistributionPriceDAO drugDistributionPriceDAO;
 
-    @Resource
-    OrderFeeManager orderFeeManager;
 
 
-    @RpcService
-    public void testRecipe() {
-        Recipe recipe = recipeDAO.get(136136);
-        RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-        orderFeeManager.setRecipePaymentFee(order, Lists.newArrayList(recipe));
-    }
     @RpcService
     public PushRecipeAndOrder getPushRecipeAndOrder(Integer recipeId){
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);

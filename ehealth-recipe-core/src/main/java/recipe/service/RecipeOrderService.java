@@ -591,7 +591,6 @@ public class RecipeOrderService extends RecipeBaseService {
         LOGGER.info("setOrderFee recipeIds:{},payModeSupport:{},extInfo:{},toDbFlag:{}.", JSONUtils.toString(recipeIds), JSONUtils.toString(payModeSupport), JSONUtils.toString(extInfo), toDbFlag);
         IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
         IConfigurationCenterUtilsService configurationCenterUtilsService = (IConfigurationCenterUtilsService) AppContextHolder.getBean("eh.configurationCenterUtils");
-        RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
         OrganConfigBean organConfig = iOrganConfigService.get(order.getOrganId());
         LOGGER.info("进入方法setOrderFee");
         if (null == organConfig) {
@@ -605,14 +604,7 @@ public class RecipeOrderService extends RecipeBaseService {
         Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
 
         //设置挂号费（之前是区分购药方式的，要去区分购药方式来挂号费，现在不区分根据配置项来）
-        BigDecimal registerFee = getPriceForRecipeRegister(order.getOrganId());
-        if (null != registerFee) {
-            order.setRegisterFee(registerFee);
-        } else {
-            //取base_parameter表数据---默认挂号费10元
-            order.setRegisterFee(new BigDecimal(cacheService.getParam(ParameterConstant.KEY_RECIPE_REGISTER_FEE, "0")));
-        }
-
+        orderFeeManager.setRegisterFee(order);
         //设置审方费用
         Recipe firstRecipe = recipeList.get(0);
         //date 20190929
@@ -621,8 +613,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //如果是合并处方单，审方费得乘以处方单数
         order.setAuditFee(BigDecimal.valueOf(auditFee).multiply(BigDecimal.valueOf(recipeList.size())));
         //设置其他服务费用
-        double otherServiceFee = getFee(configurationCenterUtilsService.getConfiguration(firstRecipe.getClinicOrgan(), ParameterConstant.KEY_OTHERFEE));
-        order.setOtherFee(BigDecimal.valueOf(otherServiceFee));
+        orderFeeManager.setOtherFee(order);
 
         //设置优惠券信息
         Integer couponId = MapValueUtil.getInteger(extInfo, "couponId");
@@ -654,26 +645,9 @@ public class RecipeOrderService extends RecipeBaseService {
         //order.setRecipeFee(recipeFee);
 
         //膏方代表制作费
-        BigDecimal otherFee = BigDecimal.ZERO;
         boolean needCalDecFee = false;
         if (order.getDecoctionUnitPrice() != null) {
             needCalDecFee = (order.getDecoctionUnitPrice().compareTo(BigDecimal.ZERO) == 1) ? true : false;
-        }
-
-        //设置膏方制作费
-        Integer gfFeeFlag = MapValueUtil.getInteger(extInfo, "gfFeeFlag");
-        //1表示膏方制作费
-        if (Integer.valueOf(1).equals(gfFeeFlag)) {
-            //制作单价
-            BigDecimal gfFeeUnitPrice = organConfig.getRecipeCreamPrice();
-            if (null == gfFeeUnitPrice) {
-                gfFeeUnitPrice = BigDecimal.ZERO;
-            }
-            //存在制作单价且大于0
-            if (gfFeeUnitPrice.compareTo(BigDecimal.ZERO) == 1) {
-                Double totalDose = recipeDetailDAO.getUseTotalDoseByRecipeIds(recipeIds);
-                otherFee = gfFeeUnitPrice.multiply(BigDecimal.valueOf(totalDose));
-            }
         }
 
         BigDecimal tcmFee = null;//null表示用户在运营平台没有配置这项费用

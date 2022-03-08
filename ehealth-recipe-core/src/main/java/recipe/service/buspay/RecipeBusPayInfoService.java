@@ -22,10 +22,7 @@ import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussResTO;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.service.IDrugsEnterpriseService;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.OrganDrugsSaleConfig;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrderPayFlow;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.pay.model.BusBillDateAccountDTO;
 import com.ngari.recipe.pay.model.WnExtBusCdrRecipeDTO;
 import com.ngari.recipe.pay.service.IRecipeBusPayService;
@@ -360,7 +357,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
 
             // 到院取药是否支持线上支付
             Integer giveMode = PayModeGiveModeUtil.getGiveMode(payMode);
-            if(GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(giveMode)) {
+            if (GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType().equals(giveMode)) {
                 OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId(), giveMode);
                 Integer takeOneselfPayment = organDrugsSaleConfig.getTakeOneselfPayment();
                 if (new Integer(1).equals(takeOneselfPayment)) {
@@ -726,6 +723,13 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             RecipeExtendBean recipeExtendBean = recipeService.findRecipeExtendByRecipeId(recipeId);
             String costNumber = StringUtils.isBlank(recipeExtendBean.getRecipeCostNumber()) ? recipe.getRecipeCode() : recipe.getRecipeCostNumber();
             costNumbers.add(costNumber);
+        }
+        RecipeOrder order = recipeOrderDAO.get(recipeOrder.getOrderId());
+        if (StringUtils.isNotEmpty(order.getRegisterFeeNo())) {
+            costNumbers.add(order.getRegisterFeeNo());
+        }
+        if (StringUtils.isNotEmpty(order.getTcmFeeNo())) {
+            costNumbers.add(order.getTcmFeeNo());
         }
         String recipeCode = String.join(",", costNumbers);
         wnExtBusCdrRecipe.setCfxhhj(StringUtils.isBlank(recipeCode) ? "" : recipeCode);
