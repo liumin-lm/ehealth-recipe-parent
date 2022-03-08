@@ -119,12 +119,12 @@ public class OrderFeeManager extends BaseManager {
         if (Objects.isNull(recipePaymentFee)) {
             return;
         }
-        if (recipePaymentFee.getRegisterFee().compareTo(BigDecimal.ZERO) > 0) {
+        if (null != recipePaymentFee.getRegisterFee() && recipePaymentFee.getRegisterFee().compareTo(BigDecimal.ZERO) > 0) {
             // 挂号费
             order.setRegisterFee(recipePaymentFee.getRegisterFee());
             order.setRegisterFeeNo(recipePaymentFee.getRegisterFeeNo());
         }
-        if (recipePaymentFee.getTcmFee().compareTo(BigDecimal.ZERO) > 0) {
+        if (null != recipePaymentFee.getTcmFee() && recipePaymentFee.getTcmFee().compareTo(BigDecimal.ZERO) > 0) {
             // 中医辨证费
             order.setTcmFee(recipePaymentFee.getTcmFee());
             order.setTcmFeeNo(recipePaymentFee.getTcmFeeNo());
