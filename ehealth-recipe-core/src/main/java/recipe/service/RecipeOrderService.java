@@ -1841,7 +1841,7 @@ public class RecipeOrderService extends RecipeBaseService {
             if (!tcmFlag) {
                 //表示处方单中不存在中药处方,需要将中医辨证论证费和代煎费去掉
                 orderBean.setDecoctionFee(null);
-                orderBean.setTcmFee(null);
+//                orderBean.setTcmFee(null);
             }
             orderBean.setList(patientRecipeBeanList);
             orderBean.setProcessStateText(OrderStateEnum.getOrderStateEnum(order.getProcessState()).getName());
