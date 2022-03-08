@@ -339,7 +339,7 @@ public class PayModeToHos implements IPurchaseService {
         List<TakeMedicineByToHos> takeMedicineByToHosList = enterpriseManager.getTakeMedicineByToHosList(dbRecipe.getClinicOrgan(), dbRecipe);
 
         LOG.info("newModeFindSupportDepList subDepList:{}", JSONUtils.toString(takeMedicineByToHosList));
-        List<Integer> enterpriseList = drugsEnterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
+        List<Integer> enterpriseList = noShowStoreEnterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
         LOG.info("newModeFindSupportDepList enterpriseList:{}.", JSON.toJSONString(enterpriseList));
         if (CollectionUtils.isNotEmpty(enterpriseList)) {
             takeMedicineByToHosList = takeMedicineByToHosList.stream().filter(takeMedicineByToHos -> !enterpriseList.contains(takeMedicineByToHos.getEnterpriseId())).collect(Collectors.toList());
