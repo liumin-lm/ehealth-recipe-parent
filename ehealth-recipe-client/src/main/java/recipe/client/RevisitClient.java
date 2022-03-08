@@ -1,17 +1,14 @@
 package recipe.client;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.WriteDrugRecipeTO;
 import com.ngari.his.visit.mode.WriteDrugRecipeReqTO;
 import com.ngari.his.visit.service.IVisitService;
 import com.ngari.revisit.RevisitBean;
-import com.ngari.revisit.common.model.OrderVisitMoneyDTO;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.request.ValidRevisitRequest;
 import com.ngari.revisit.common.service.IRevisitExService;
-import com.ngari.revisit.common.service.IRevisitInfoService;
 import com.ngari.revisit.common.service.IRevisitService;
 import com.ngari.revisit.traces.service.IRevisitTracesSortService;
 import ctd.util.JSONUtils;
