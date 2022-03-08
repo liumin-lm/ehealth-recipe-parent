@@ -342,6 +342,7 @@ public class PayModeToHos implements IPurchaseService {
         List<Integer> saleDepIds = takeMedicineByToHosList.stream().map(TakeMedicineByToHos::getEnterpriseId).collect(Collectors.toList());
         Map<Integer, List<OrganDrugsSaleConfig>> saleMap = getIntegerListMap(saleDepIds);
         List<DepDetailBean> result = getDepDetailList(takeMedicineByToHosList,saleMap);
+        result.addAll(depDetailBeans);
         if ("1".equals(sort)) {
             //价格优先
             result = result.stream().sorted(Comparator.comparing(DepDetailBean::getRecipeFee)).collect(Collectors.toList());
@@ -349,7 +350,6 @@ public class PayModeToHos implements IPurchaseService {
             //距离优先
             result = result.stream().sorted(Comparator.comparing(DepDetailBean::getDistance)).collect(Collectors.toList());
         }
-        result.addAll(depDetailBeans);
         depListBean.setList(result);
         depListBean.setSigle(false);
         if (CollectionUtils.isNotEmpty(result) && result.size() == 1) {
