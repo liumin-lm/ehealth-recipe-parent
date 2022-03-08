@@ -92,7 +92,7 @@ public class OrderFeeManager extends BaseManager {
         // 获取机构配置是否需要代缴费用
         Boolean isNeedRecipePaymentFee = configurationClient.getValueBooleanCatch(order.getOrganId(), "isNeedRecipePaymentFee", false);
         logger.info("setRecipePaymentFee isNeedRecipePaymentFee={}",isNeedRecipePaymentFee);
-        if (isNeedRecipePaymentFee) {
+        if (!isNeedRecipePaymentFee) {
             return;
         }
         // 获取处方 类型
