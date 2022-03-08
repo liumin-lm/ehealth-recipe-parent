@@ -1,7 +1,6 @@
 package recipe.manager;
 
 import com.ngari.base.organconfig.model.OrganConfigBean;
-import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.RecipeCashPreSettleInfo;
 import com.ngari.his.recipe.mode.RecipeCashPreSettleReqTO;
 import com.ngari.his.visit.mode.NeedPaymentRecipeReqTo;
@@ -10,11 +9,9 @@ import com.ngari.platform.recipe.mode.EnterpriseResTo;
 import com.ngari.recipe.dto.OrderFeeSetCondition;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.entity.*;
-import com.ngari.revisit.common.model.OrderVisitMoneyDTO;
 import coupon.api.vo.Coupon;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
-import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,8 +54,6 @@ public class OrderFeeManager extends BaseManager {
     private OfflineRecipeClient offlineRecipeClient;
     @Autowired
     private IConfigurationClient configurationClient;
-    @Autowired
-    private RevisitClient revisitClient;
     @Autowired
     private ConsultClient consultClient;
 
