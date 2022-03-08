@@ -57,6 +57,8 @@ public class OrderFeeManager extends BaseManager {
     private IConfigurationClient configurationClient;
     @Autowired
     private ConsultClient consultClient;
+    @Autowired
+    private PatientClient patientClient;
 
     public RecipeOrder setOrderFee(RecipeOrder order, List<Recipe> recipeList, OrderFeeSetCondition condition) {
         if (null == order || CollectionUtils.isEmpty(recipeList)) {
@@ -98,7 +100,7 @@ public class OrderFeeManager extends BaseManager {
         // 获取处方 类型
         Recipe recipe = recipeList.get(0);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-
+        PatientDTO patientDTO = patientClient.getPatientDTO(recipe.getMpiid());
         NeedPaymentRecipeReqTo needPayment = new NeedPaymentRecipeReqTo();
         needPayment.setCardNo(recipeExtend.getCardNo());
         needPayment.setCardType(recipeExtend.getCardType());
@@ -110,6 +112,9 @@ public class OrderFeeManager extends BaseManager {
         needPayment.setRegisterID(recipeExtend.getRegisterID());
         List<String> code = recipeList.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
         needPayment.setRecipeCode(code);
+        if(Objects.nonNull(patientDTO)){
+            needPayment.setIdCard(patientDTO.getIdcard());
+        }
         NeedPaymentRecipeResTo recipePaymentFee = consultClient.getRecipePaymentFee(needPayment);
         if (Objects.isNull(recipePaymentFee)) {
             return;
