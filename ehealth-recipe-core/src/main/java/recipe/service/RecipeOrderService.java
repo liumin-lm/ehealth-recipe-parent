@@ -803,6 +803,10 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         //}
+
+        // 更新处方代缴费用
+        orderFeeManager.setRecipePaymentFee(order,recipeList);
+
         order.setTotalFee(countOrderTotalFeeByRecipeInfo(order, firstRecipe, payModeSupport));
         //判断计算扣掉运费的总金额----等于线下支付----总计要先算上运费，实际支付时再不支付运费
         BigDecimal totalFee;
@@ -869,8 +873,6 @@ public class RecipeOrderService extends RecipeBaseService {
             }
         }
 
-        // 更新处方代缴费用
-        orderFeeManager.setRecipePaymentFee(order,recipeList);
     }
 
     public Boolean dealWithOrderInfo(Map<String, String> map, RecipeOrder order, Recipe recipe) {
