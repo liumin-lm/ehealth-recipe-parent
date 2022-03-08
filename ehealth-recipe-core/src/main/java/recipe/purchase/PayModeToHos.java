@@ -338,11 +338,13 @@ public class PayModeToHos implements IPurchaseService {
         // 调his获取取药点
         List<TakeMedicineByToHos> takeMedicineByToHosList = enterpriseManager.getTakeMedicineByToHosList(dbRecipe.getClinicOrgan(), dbRecipe);
 
-        LOG.info("findSupportDepList subDepList:{}", JSONUtils.toString(takeMedicineByToHosList));
+        LOG.info("newModeFindSupportDepList subDepList:{}", JSONUtils.toString(takeMedicineByToHosList));
         List<Integer> enterpriseList = drugsEnterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
+        LOG.info("newModeFindSupportDepList enterpriseList:{}.", JSON.toJSONString(enterpriseList));
         if (CollectionUtils.isNotEmpty(enterpriseList)) {
             takeMedicineByToHosList = takeMedicineByToHosList.stream().filter(takeMedicineByToHos -> !enterpriseList.contains(takeMedicineByToHos.getEnterpriseId())).collect(Collectors.toList());
         }
+        LOG.info("newModeFindSupportDepList takeMedicineByToHosList:{}.", JSON.toJSONString(takeMedicineByToHosList));
         List<Integer> saleDepIds = takeMedicineByToHosList.stream().map(TakeMedicineByToHos::getEnterpriseId).collect(Collectors.toList());
         Map<Integer, List<OrganDrugsSaleConfig>> saleMap = getIntegerListMap(saleDepIds);
         List<DepDetailBean> result = getDepDetailList(takeMedicineByToHosList,saleMap);
