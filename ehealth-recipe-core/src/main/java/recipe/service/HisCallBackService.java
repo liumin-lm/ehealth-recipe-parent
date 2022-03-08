@@ -203,9 +203,6 @@ public class HisCallBackService {
                 RecipeVisitMoneyRequest request = new RecipeVisitMoneyRequest();
                 request.setConsultId(recipe.getClinicId());
                 request.setRecipeId(recipe.getRecipeId());
-                request.setVisitMoney(result.getVisitMoney());
-                request.setVisitPayFlag(result.getVisitPayFlag());
-                request.setVisitCode(result.getVisitCode());
                 iRevisitExService.updateRecipeIdByConsultId(request);
                 LOGGER.info("updateRecipeRegisterID request:{}", JSONUtils.toString(request));
                 if (null != revisitExDTO) {
