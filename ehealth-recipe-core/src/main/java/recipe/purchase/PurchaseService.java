@@ -89,31 +89,43 @@ public class PurchaseService {
     private HisRecipeDAO hisRecipeDAO;
 
     @Autowired
-    private RecipeOrderService recipeOrderService;
-    @Autowired
     private EnterpriseManager enterpriseManager;
     @Autowired
-    HisRecipeManager hisRecipeManager;
+    private HisRecipeManager hisRecipeManager;
 
     @Autowired
-    RecipeManager recipeManager;
+    private RecipeManager recipeManager;
 
     @Autowired
     private OrderManager orderManager;
 
     @Autowired
     @Qualifier("basic.patientService")
-    PatientService patientService;
-
+    private PatientService patientService;
 
     @Autowired
-    HisRecipeDetailDAO hisRecipeDetailDAO;
+    private HisRecipeDetailDAO hisRecipeDetailDAO;
 
     @Autowired
     private IConfigurationClient configurationClient;
 
     @Autowired
     private OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO;
+
+    @Autowired
+    private OrganDrugListDAO organDrugListDAO;
+
+    @Autowired
+    private SaleDrugListDAO saleDrugListDAO;
+
+    @Autowired
+    private RecipeDAO recipeDAO;
+
+    @Autowired
+    private RecipeDetailDAO recipeDetailDAO;
+
+    @Autowired
+    private DrugsEnterpriseDAO drugsEnterpriseDAO;
 
     /**
      * 获取可用购药方式------------已废弃---已改造成从处方单详情里获取
@@ -525,12 +537,11 @@ public class PurchaseService {
 
     public void updateRecipeDetail(Integer recipeId) {
         try {
-            RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             Recipe recipe = recipeDAO.getByRecipeId(recipeId);
-            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-            DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-            List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipeId);
-            SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
+            List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
+            List<Integer> drugList = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugIdList(recipe.getClinicOrgan(), drugList);
+            Map<Integer, OrganDrugList> organDrugListMap = organDrugLists.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, a->a,(k1,k2)->k1));
             if (recipe.getEnterpriseId() != null) {
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
                 //结算方式 0:药店价格 1:医院价格
@@ -538,7 +549,7 @@ public class PurchaseService {
                 if (drugsEnterprise != null && drugsEnterprise.getSettlementMode() != null && drugsEnterprise.getSettlementMode() == 1) {
                     settlementMode = 1;
                 }
-                for (Recipedetail recipedetail : recipedetails) {
+                for (Recipedetail recipedetail : recipeDetails) {
                     SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
                     LOG.info("PayModeOnline.updateRecipeDetail recipeId:{},saleDrugList:{}.", recipeId, JSONUtils.toString(saleDrugList));
 
@@ -568,9 +579,13 @@ public class PurchaseService {
                     recipeDetailDAO.update(recipedetail);
                 }
             } else {
-                recipedetails.forEach(recipeDetail -> {
-                    recipeDetail.setActualSalePrice(recipeDetail.getSalePrice());
-                    recipeDetailDAO.updateNonNullFieldByPrimaryKey(recipeDetail);
+                recipeDetails.forEach(recipeDetail -> {
+                    try {
+                        recipeDetail.setActualSalePrice(organDrugListMap.get(recipeDetail.getDrugId()).getSalePrice());
+                        recipeDetailDAO.updateNonNullFieldByPrimaryKey(recipeDetail);
+                    } catch (Exception e) {
+                        LOG.error("PayModeOnline updateRecipeDetail error", e);
+                    }
                 });
             }
         } catch (Exception e) {
