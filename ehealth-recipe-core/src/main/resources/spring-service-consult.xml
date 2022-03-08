@@ -22,6 +22,5 @@
 
     <reference id="revisit.revisitTracesSortService"
                interface="com.ngari.revisit.traces.service.IRevisitTracesSortService"/>
-    <reference interface="com.ngari.revisit.common.service.IRevisitInfoService" id="revisit.revisitInfoService"/>
 
 </s:beans>
