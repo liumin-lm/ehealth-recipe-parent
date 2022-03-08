@@ -16,6 +16,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.aop.LogRecord;
 import recipe.client.*;
 import recipe.constant.ErrorCode;
 import recipe.constant.ParameterConstant;
@@ -86,9 +87,11 @@ public class OrderFeeManager extends BaseManager {
      * @param order
      * @param recipeList
      */
+    @LogRecord
     public void setRecipePaymentFee(RecipeOrder order, List<Recipe> recipeList) {
         // 获取机构配置是否需要代缴费用
         Boolean isNeedRecipePaymentFee = configurationClient.getValueBooleanCatch(order.getOrganId(), "isNeedRecipePaymentFee", false);
+        logger.info("setRecipePaymentFee isNeedRecipePaymentFee={}",isNeedRecipePaymentFee);
         if (isNeedRecipePaymentFee) {
             return;
         }
