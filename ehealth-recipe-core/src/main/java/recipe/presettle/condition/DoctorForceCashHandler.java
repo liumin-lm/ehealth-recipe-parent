@@ -29,9 +29,6 @@ public class DoctorForceCashHandler implements IOrderTypeConditionHandler {
         if (request.getRecipeExtend() != null){
             String medicalType = request.getRecipeExtend().getMedicalType();
             Integer forceCashType = request.getRecipeExtend().getForceCashType();
-            if (StringUtils.isEmpty(medicalType)){
-                return null;
-            }
             //有医生选择的医保还是自费的功能时才返回具体预结算
             //医生强制自费后就结束
             //医生强制医保还得看患者是否选择自费
