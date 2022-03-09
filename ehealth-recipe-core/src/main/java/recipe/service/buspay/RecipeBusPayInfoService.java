@@ -62,6 +62,7 @@ import recipe.client.RevisitClient;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.status.GiveModeEnum;
+import recipe.enumerate.type.ForceCashTypeEnum;
 import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.DepartManager;
@@ -352,7 +353,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 }
             }
             // 杭州互联网 支付按钮
-            Integer payButton = buttonManager.getPayButton(nowRecipeBean.getClinicOrgan(), cardType, "0".equals(recipeExtend.getMedicalType()));
+            boolean forceCashFlag = "0".equals(recipeExtend.getMedicalType()) || ForceCashTypeEnum.FORCE_CASH_TYPE.getType().equals(recipeExtend.getForceCashType());
+            Integer payButton = buttonManager.getPayButton(nowRecipeBean.getClinicOrgan(), cardType, forceCashFlag);
             map.put("payButton", payButton.toString());
 
             // 到院取药是否支持线上支付
