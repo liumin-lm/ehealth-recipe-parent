@@ -126,7 +126,7 @@ public class StateManager extends BaseManager {
              RecipeStateEnum.SUB_CANCELLATION_REFUSE_ORDER == subState ||
              RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE == subState ||
              RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_ORDER == subState )
-                && recipe.getAuditState() == RecipeAuditStateEnum.PENDING_REVIEW.getType()) {
+                && recipe.getAuditState().equals(RecipeAuditStateEnum.PENDING_REVIEW.getType())) {
             updateRecipe.setAuditState(RecipeAuditStateEnum.NO_REVIEW.getType());
         }
 
