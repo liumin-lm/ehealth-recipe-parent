@@ -1206,16 +1206,18 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         if (recipeExtend != null) {
                             Map<String, Object> recipeExtendMap = Maps.newHashMap();
                             BeanUtils.map(recipeExtend, recipeExtendMap);
-                            switch (recipeExtend.getRecipeBusinessType()){
-                                case 1:
-                                    recipeExtendMap.put("recipeBusinessText","门诊处方");
-                                    break;
-                                case 2:
-                                    recipeExtendMap.put("recipeBusinessText","复诊处方");
-                                    break;
-                                case 3:
-                                    recipeExtendMap.put("recipeBusinessText","其他处方");
-                                    break;
+                            if(null != recipeExtend.getRecipeBusinessType()){
+                                switch (recipeExtend.getRecipeBusinessType()){
+                                    case 1:
+                                        recipeExtendMap.put("recipeBusinessText","门诊处方");
+                                        break;
+                                    case 2:
+                                        recipeExtendMap.put("recipeBusinessText","复诊处方");
+                                        break;
+                                    case 3:
+                                        recipeExtendMap.put("recipeBusinessText","其他处方");
+                                        break;
+                                }
                             }
                             map.put("recipeExtend", recipeExtendMap);
                         }
