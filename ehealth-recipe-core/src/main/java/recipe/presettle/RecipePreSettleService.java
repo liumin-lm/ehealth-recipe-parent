@@ -106,34 +106,6 @@ public class RecipePreSettleService {
         if (preSettleService != null){
             return preSettleService.recipePreSettle(recipe.getRecipeId(), param);
         }
-
-        /*if (orderType == 0 && RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipe.getRecipeMode())) {
-            //平台自费预结算--仅少数机构用到
-            //目前省中走自费预结算
-            if ((dep != null && new Integer(1).equals(dep.getIsHosDep()))) {
-                return recipeHisService.provincialCashPreSettle(recipe.getRecipeId(), recipe.getPayMode());
-            }
-        } else {
-            //获取医保支付开关端配置----浙江省互联网没有预结算--浙江省不会打开医保端配置
-            //杭州是互联网会打开医保端配置
-            //杭州市互联网自费预结算不调预结算接口
-            if (!RecipeBussConstant.ORDERTYPE_ZF.equals(orderType)) {
-                ICommonService commonService = BaseAPI.getService(ICommonService.class);
-                Boolean medicalPayConfig = (Boolean) commonService.getClientConfigByKey("medicalPayConfig");
-                //杭州市医保预结算和自费预结算一样
-                //平台省医保预结算
-                String insuredArea = extend.getInsuredArea();
-                Map<String, String> param = Maps.newHashMap();
-                param.put("depId", String.valueOf(depId));
-                param.put("insuredArea", insuredArea);
-                param.put("recipeNoS", JSONUtils.toString(recipeNoS));
-                LOGGER.info("unifyRecipePreSettle recipe={},param={},medicalPayConfig={}", recipe.getRecipeId(), JSONUtils.toString(param), medicalPayConfig);
-                if (medicalPayConfig) {
-                    return recipeHisService.provincialMedicalPreSettle(recipe.getRecipeId(), param);
-                }
-            }
-
-        }*/
         result.put("code", "200");
         return result;
     }
