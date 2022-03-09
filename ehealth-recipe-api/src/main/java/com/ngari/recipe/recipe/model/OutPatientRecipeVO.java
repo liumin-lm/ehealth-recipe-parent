@@ -129,7 +129,7 @@ public class OutPatientRecipeVO implements Serializable{
     private String statusText;
 
     /**
-     * 中药贴数
+     * 中药帖数
      */
     private String copyNum;
 

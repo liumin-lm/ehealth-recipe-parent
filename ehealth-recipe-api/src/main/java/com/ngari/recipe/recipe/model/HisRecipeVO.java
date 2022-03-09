@@ -76,8 +76,8 @@ public class HisRecipeVO implements Serializable {
     private String tcmUsePathways; //varchar(30) DEFAULT NULL COMMENT '中药处方用法',
     @ItemProperty(alias = "中药处方用量")
     private String tcmUsingRate; // varchar(20) DEFAULT NULL COMMENT '中药处方用量',
-    @ItemProperty(alias = "贴数")
-    private String tcmNum; // int(11) DEFAULT '0' COMMENT '贴数',
+    @ItemProperty(alias = "帖数")
+    private String tcmNum; // int(11) DEFAULT '0' COMMENT '帖数',
     @ItemProperty(alias = "1 自费  2 医保")
     private Integer medicalType; // tinyint(4) NOT NULL DEFAULT '1' COMMENT '1 自费  2 医保',
     @ItemProperty(alias = "提示文本")
