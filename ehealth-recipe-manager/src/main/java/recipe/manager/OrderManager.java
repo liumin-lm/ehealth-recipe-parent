@@ -158,6 +158,9 @@ public class OrderManager extends BaseManager {
             logger.info("orderCanSend req controlLogisticsOrderDto={}", controlLogisticsOrderDto);
             String orderCanSend = infraClient.orderCanSend(controlLogisticsOrderDto);
             logger.info("orderCanSend:{}",orderCanSend);
+            if(Objects.isNull(orderCanSend)){
+                return true;
+            }
             JSONObject jsonObject = JSONObject.parseObject(orderCanSend);
             String code = jsonObject.getString("code");
 

@@ -34,6 +34,7 @@ import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.enumerate.type.ForceCashTypeEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
@@ -97,7 +98,8 @@ public class MedicalPreSettleService implements IRecipePreSettleService {
                     request.setRegisterID(ext.getRegisterID());
                 }
                 //默认是医保，医生选择了自费时，强制设置为自费
-                if (ext.getMedicalType() != null && "0".equals(ext.getMedicalType())) {
+                if ((ext.getMedicalType() != null && "0".equals(ext.getMedicalType())) ||
+                        (null != ext.getForceCashType() && ForceCashTypeEnum.FORCE_CASH_TYPE.getType().equals(ext.getForceCashType()))) {
                     request.setIszfjs("1");
                 } else {
                     request.setIszfjs("0");
