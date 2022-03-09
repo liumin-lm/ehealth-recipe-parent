@@ -686,7 +686,7 @@ public class RecipeOrderService extends RecipeBaseService {
                             isExistValue = true;
                         } else {
                             totalCopyNum = totalCopyNum + recipe.getCopyNum();
-                            //无代煎总额 需计算代煎总额=贴数*代煎单价
+                            //无代煎总额 需计算代煎总额=帖数*代煎单价
                             if (hisRecipe.getDecoctionUnitFee() != null && recipe.getCopyNum() != null) {
                                 //代煎费等于剂数乘以代煎单价
                                 //如果是合并处方-多张处方下得累加

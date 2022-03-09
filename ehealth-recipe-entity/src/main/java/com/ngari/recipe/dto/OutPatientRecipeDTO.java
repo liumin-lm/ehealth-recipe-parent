@@ -107,7 +107,7 @@ public class OutPatientRecipeDTO implements Serializable{
     private Integer status;
 
     /**
-     * 中药贴数
+     * 中药帖数
      */
     private String copyNum;
 

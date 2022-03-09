@@ -88,7 +88,7 @@ public class OffLineRecipeDetailVO implements Serializable {
     @ItemProperty(alias = "中药使用频率")
     private String tcmUsingRate;
 
-    @ItemProperty(alias = "贴数")
+    @ItemProperty(alias = "帖数")
     private Integer tcmNum;
 
     @ItemProperty(alias = "煎法编码")

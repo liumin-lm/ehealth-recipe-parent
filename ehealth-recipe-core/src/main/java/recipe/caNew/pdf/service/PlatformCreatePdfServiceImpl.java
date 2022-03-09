@@ -461,7 +461,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
                 list.add(new RecipeLabelDTO(recipeJsonObject.getString("makeMethodTextConfig"), "tcmMakeMethod", ByteUtils.objValueOfString(extend.getMakeMethodText())));
             }
         }
-        list.add(new RecipeLabelDTO("贴数", "copyNum", recipe.getCopyNum() + "贴"));
+        list.add(new RecipeLabelDTO("帖数", "copyNum", recipe.getCopyNum() + "帖"));
         if(tcmRecipeList.get(0).contains("7")){
             list.add(new RecipeLabelDTO(recipeJsonObject.getString("recipeMemoTextConfig"), "tcmRecipeMemo", ByteUtils.objValueOfString(recipe.getRecipeMemo())));
         }

@@ -513,7 +513,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         list.add(new RecipeLabelDTO("用药途径", "recipeDetail.usePathways", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsePathways", recipeDetail.getUsePathways())));
         list.add(new RecipeLabelDTO("用药频次", "recipeDetail.usingRate", DictionaryUtil.getDictionary("eh.cdr.dictionary.UsingRate", recipeDetail.getUsingRate())));
         Recipe recipe = recipeInfoDTO.getRecipe();
-        list.add(new RecipeLabelDTO("贴数", "recipeDetail.copyNum", recipe.getCopyNum() + "贴"));
+        list.add(new RecipeLabelDTO("帖数", "recipeDetail.copyNum", recipe.getCopyNum() + "帖"));
         list.add(new RecipeLabelDTO("嘱托", "recipeDetail.recipeMemo", ByteUtils.objValueOfString(recipe.getRecipeMemo())));
         RecipeExtend recipeExtend = recipeInfoDTO.getRecipeExtend();
         list.add(new RecipeLabelDTO("煎法", "recipeDetail.decoctionText", ByteUtils.objValueOfString(recipeExtend.getDecoctionText())));

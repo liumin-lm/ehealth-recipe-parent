@@ -928,7 +928,7 @@ public class RecipeServiceSub {
             paramMap.put("mobile", p.getMobile());
             paramMap.put("loginId", p.getLoginId());
             paramMap.put("label", recipeType + "处方");
-            paramMap.put("copyNum", recipe.getCopyNum() + "贴");
+            paramMap.put("copyNum", recipe.getCopyNum() + "帖");
             paramMap.put("recipeMemo", recipe.getRecipeMemo());
             int i = 0;
             for (Recipedetail d : details) {
@@ -1898,7 +1898,7 @@ public class RecipeServiceSub {
                         //有代煎总额
                         recipeBean.setDecoctionFee(hisRecipe.getDecoctionFee());
                     } else {
-                        //无代煎总额 需计算代煎总额=贴数*代煎单价
+                        //无代煎总额 需计算代煎总额=帖数*代煎单价
                         if (hisRecipe.getDecoctionUnitFee() != null && recipe.getCopyNum() != null) {
                             //代煎费等于剂数乘以代煎单价
                             recipeBean.setDecoctionFee(hisRecipe.getDecoctionUnitFee().multiply(BigDecimal.valueOf(recipe.getCopyNum())));

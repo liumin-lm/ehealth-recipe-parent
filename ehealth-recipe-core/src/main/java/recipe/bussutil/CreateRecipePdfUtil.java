@@ -477,7 +477,7 @@ public class CreateRecipePdfUtil {
             page.restoreState();
         }
 
-        //将图片贴入pdf
+        //将图片帖入pdf
         Image image = Image.getInstance(url);
         if (null != width) {
             //显示的大小

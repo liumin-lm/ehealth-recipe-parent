@@ -190,7 +190,7 @@ public class OperationPlatformRecipeService {
         r.setSignCADate(recipe.getSignCADate());
         r.setFromflag(recipe.getFromflag());
         r.setOrderCode(recipe.getOrderCode());
-        //贴数
+        //帖数
         r.setCopyNum(recipe.getCopyNum());
         //总金额
         r.setTotalMoney(recipe.getTotalMoney());
