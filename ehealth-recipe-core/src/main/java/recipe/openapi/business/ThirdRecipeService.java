@@ -105,7 +105,7 @@ public class ThirdRecipeService {
             recipeAndRecipeDetailsBean.setRecipeDetailBeans(recipeDetailBeans);
             recipeAndRecipeDetailsBeans.add(recipeAndRecipeDetailsBean);
         }
-        LOGGER.info("ThirdRecipeService findRecipesForPatientAndTabStatus recipeAndRecipeDetailsBeans:{}.", JSONUtils.toString(recipeAndRecipeDetailsBeans));
+        //LOGGER.info("ThirdRecipeService findRecipesForPatientAndTabStatus recipeAndRecipeDetailsBeans:{}.", JSONUtils.toString(recipeAndRecipeDetailsBeans));
         return recipeAndRecipeDetailsBeans;
     }
 
