@@ -2,6 +2,7 @@ package recipe.text;
 
 import com.ngari.base.esign.model.CoOrdinateVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.core.api.greenroom.ITextService;
 import recipe.manager.RedisManager;
@@ -13,6 +14,7 @@ import java.util.Collections;
  *
  * @author fuzi
  */
+@Service
 public class TextService implements ITextService {
     @Autowired
     private CreatePdfFactory createPdfFactory;
