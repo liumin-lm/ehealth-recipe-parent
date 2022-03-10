@@ -121,11 +121,8 @@ public class StateManager extends BaseManager {
         }
 
         Recipe updateRecipe = new Recipe();
-        //  1. 医生撤销 2.订单过去未操作 3.超时未支付 4.药商拒绝
-        if ((RecipeStateEnum.SUB_CANCELLATION_DOCTOR == subState ||
-             RecipeStateEnum.SUB_CANCELLATION_REFUSE_ORDER == subState ||
-             RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE == subState ||
-             RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_ORDER == subState )
+        //  药师审核未通过 只要不是审核不通过
+        if (  RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS != subState
                 && recipe.getAuditState().equals(RecipeAuditStateEnum.PENDING_REVIEW.getType())) {
             updateRecipe.setAuditState(RecipeAuditStateEnum.NO_REVIEW.getType());
         }
