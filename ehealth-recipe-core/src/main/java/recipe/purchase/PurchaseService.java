@@ -330,7 +330,7 @@ public class PurchaseService {
         extInfo.put("recipeId", recipeIds.get(0).toString());
         boolean sendFlag = orderManager.orderCanSend(extInfo);
         if (!sendFlag) {
-            throw new DAOException(609, "由于疫情影响，本地无法进行快递配送，尽请见谅！");
+            throw new DAOException(609, "由于疫情影响，本地无法进行快递配送，敬请谅解！");
         }
 
         //在确认订单页，用户点击提交订单，需要再次判断该处方单状态，若更新了诊断或药品信息或者删除了处方或者处方已经支付，则提示患者该处方已做变更，需要重新进入处理。
