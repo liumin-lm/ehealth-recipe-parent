@@ -224,17 +224,22 @@ public class RecipeServiceSub {
                 }
             }
             //处方业务类型
-            switch (recipeBean.getBussSource()){
-                case 1:
-                case 5:
-                    recipeExtend.setRecipeBusinessType(1);//门诊处方
-                    break;
-                case 2:
-                    recipeExtend.setRecipeBusinessType(2);//复诊处方
-                    break;
-                default:
-                    recipeExtend.setRecipeBusinessType(3);//其他处方
-                    break;
+            try {
+                switch (recipeBean.getBussSource()) {
+                    case 1:
+                    case 5:
+                        recipeExtend.setRecipeBusinessType(1);//门诊处方
+                        break;
+                    case 2:
+                        recipeExtend.setRecipeBusinessType(2);//复诊处方
+                        break;
+                    default:
+                        recipeExtend.setRecipeBusinessType(3);//其他处方
+                        break;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                LOGGER.info("recipeExtend.setRecipeBusinessType error :{}", recipeBean.getBussSource());
             }
             //慢病开关
             if (recipeExtend.getRecipeChooseChronicDisease() == null) {
@@ -1526,7 +1531,7 @@ public class RecipeServiceSub {
      * @param isDoctor true:医生端  false:健康端
      * @return
      */
-    public static Map<String, Object> getRecipeAndDetailByIdImpl(int recipeId, boolean isDoctor,Integer depId) {
+    public static Map<String, Object> getRecipeAndDetailByIdImpl(int recipeId, boolean isDoctor, Integer depId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
@@ -1578,7 +1583,7 @@ public class RecipeServiceSub {
         }
         map.put("patient", patient);
         Map<Integer, List<SaleDrugList>> recipeDetailSalePrice = recipeManager.getRecipeDetailSalePrice(recipeId, depId);
-        map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImplForDetail(recipe,recipeDetailSalePrice), isDoctor, recipe.getClinicOrgan()));
+        map.put("recipedetails", RecipeValidateUtil.covertDrugUnitdoseAndUnit(RecipeValidateUtil.validateDrugsImplForDetail(recipe, recipeDetailSalePrice), isDoctor, recipe.getClinicOrgan()));
         //隐方
         boolean isHiddenRecipeDetail = false;
         if (isDoctor == false) {
@@ -1614,8 +1619,8 @@ public class RecipeServiceSub {
             map.put("tips", MapValueUtil.getString(tipMap, "tips"));
             map.put("cancelFlag", cancelFlag);
             // ！药师签名中 && ！未签名
-            if(!RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_PHA.getType().equals(recipe.getStatus())
-            && !RecipeStatusEnum.RECIPE_STATUS_SIGN_NO_CODE_PHA.getType().equals(recipe.getStatus())){
+            if (!RecipeStatusEnum.RECIPE_STATUS_SIGN_ING_CODE_PHA.getType().equals(recipe.getStatus())
+                    && !RecipeStatusEnum.RECIPE_STATUS_SIGN_NO_CODE_PHA.getType().equals(recipe.getStatus())) {
                 //获取审核不通过详情
                 List<Map<String, Object>> mapList = recipeManager.getCheckNotPassDetail(recipe);
                 map.put("reasonAndDetails", mapList);
@@ -1929,7 +1934,7 @@ public class RecipeServiceSub {
             }
         }
 
-        map.put("qrName", recipeManager.getToHosProof(recipe, recipeExtend,recipeOrder));
+        map.put("qrName", recipeManager.getToHosProof(recipe, recipeExtend, recipeOrder));
         if (recipe.getEnterpriseId() != null) {
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
@@ -2827,7 +2832,7 @@ public class RecipeServiceSub {
                 change.put("chooseFlag", 1);
             }
             orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
-            stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_DOCTOR_REPEAL);
+            stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_DOCTOR_REPEAL);
         }
         //撤销处方
         change.put("checkFlag", null);
@@ -3113,10 +3118,10 @@ public class RecipeServiceSub {
     }
 
     /**
-     * @dsec 接方模式
-     * @author maoze
      * @param OriginId
      * @return
+     * @dsec 接方模式
+     * @author maoze
      */
     public Integer getSupportMode(Integer OriginId) {
         try {
@@ -3128,7 +3133,7 @@ public class RecipeServiceSub {
                 return 2;
             }
         } catch (Exception e) {
-            LOGGER.info("RecipeServiceSub getSupportMode exception ",e);
+            LOGGER.info("RecipeServiceSub getSupportMode exception ", e);
         }
         return 0;
     }
