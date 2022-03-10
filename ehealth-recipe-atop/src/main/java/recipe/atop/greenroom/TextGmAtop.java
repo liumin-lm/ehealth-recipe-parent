@@ -13,16 +13,16 @@ import recipe.core.api.greenroom.ITextService;
  */
 @RpcBean(value = "textGmAtop")
 public class TextGmAtop {
-    @Autowired
-    private ITextService textBusinessService;
+//    @Autowired
+//    private ITextService textBusinessService;
 
     @RpcService
     public void coOrdinate(Integer recipeId, CoOrdinateVO ordinateVO) {
-        textBusinessService.coOrdinate(recipeId, ordinateVO);
+//        textBusinessService.coOrdinate(recipeId, ordinateVO);
     }
 
-    @RpcService
-    public void updateAddressPdfExecute(Integer recipeId) {
-        textBusinessService.updateAddressPdfExecute(recipeId);
-    }
+//    @RpcService
+//    public void updateAddressPdfExecute(Integer recipeId) {
+//        textBusinessService.updateAddressPdfExecute(recipeId);
+//    }
 }
