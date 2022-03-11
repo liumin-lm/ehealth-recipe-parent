@@ -425,6 +425,10 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
             return;
         }
         String recipeJsonConfig = extend.getRecipeJsonConfig();
+        if (StringUtils.isEmpty(recipeJsonConfig)) {
+            //兼容老版本
+            createChineMedicinePDFOld(list, recipeDetails, extend, recipe);
+        }
         JSONObject recipeJsonObject = JSONObject.parseObject(recipeJsonConfig);
         logger.info("createChineMedicinePDF recipeJsonObject={}", recipeJsonObject);
         String tcmRecipePageControl = recipeJsonObject.getString("tcmRecipePageControl");
