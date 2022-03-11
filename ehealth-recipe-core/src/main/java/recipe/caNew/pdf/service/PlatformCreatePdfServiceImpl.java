@@ -428,6 +428,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         if (StringUtils.isEmpty(recipeJsonConfig)) {
             //兼容老版本
             createChineMedicinePDFOld(list, recipeDetails, extend, recipe);
+            return;
         }
         JSONObject recipeJsonObject = JSONObject.parseObject(recipeJsonConfig);
         logger.info("createChineMedicinePDF recipeJsonObject={}", recipeJsonObject);
@@ -436,6 +437,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
         if (StringUtils.isEmpty(tcmRecipePageControl)) {
             //兼容老版本
             createChineMedicinePDFOld(list, recipeDetails, extend, recipe);
+            return;
         }
         List<String> tcmRecipeList = Collections.singletonList(tcmRecipePageControl);
         logger.info("createChineMedicinePDF tcmRecipeList={}", JSONUtils.toString(tcmRecipeList));
