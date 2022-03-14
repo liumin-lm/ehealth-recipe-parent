@@ -5,7 +5,7 @@
     <parent>
         <groupId>ngari</groupId>
         <artifactId>ehealth-recipe-parent</artifactId>
-        <version>4.3.1.1.idt.master-SNAPSHOT</version>
+        <version>4.3.1.4.msd.master-SNAPSHOT</version>
     </parent>
 
     <modelVersion>4.0.0</modelVersion>
