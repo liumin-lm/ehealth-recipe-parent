@@ -649,15 +649,15 @@ public class HisRequestInit {
                     requestTO.setTradeNo(order.getTradeNo());
                     requestTO.setOutTradeNo(order.getOutTradeNo());
 
-                    if (Objects.nonNull(order.getRegisterFee()) && order.getRegisterFee().compareTo(BigDecimal.ZERO) > 0) {
-                        // 挂号费
-                        order.setRegisterFee(order.getRegisterFee());
-                        order.setRegisterFeeNo(order.getRegisterFeeNo());
-                    }
-                    if (Objects.nonNull(order.getTcmFee()) && order.getTcmFee().compareTo(BigDecimal.ZERO) > 0) {
-                        // 中医辨证费
-                        order.setTcmFee(order.getTcmFee());
-                        order.setTcmFeeNo(order.getTcmFeeNo());
+                    try {
+                        if (Objects.nonNull(order)) {
+                            requestTO.setRegisterFee(order.getRegisterFee());
+                            requestTO.setRegisterFeeNo(order.getRegisterFeeNo());
+                            requestTO.setTcmFee(order.getTcmFee());
+                            requestTO.setTcmFeeNo(order.getTcmFeeNo());
+                        }
+                    }catch (Exception e){
+                        LOGGER.error("MedicalPreSettleService 代缴费用有误");
                     }
                 }
                 //合并支付的处方需要将所有his处方编码传过去
