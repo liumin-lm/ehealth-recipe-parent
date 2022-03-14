@@ -213,12 +213,16 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
     public RecipeSkipVO getRecipeSkipUrl(Integer organId, String recipeCode) {
         RecipeSkipVO recipeSkipVO = new RecipeSkipVO();
         recipeSkipVO.setShowFlag(false);
-        String recipeSkipOrgan = parameterDao.getByName("recipeSkipOrgan");
-        if (LocalStringUtil.hasOrgan(organId.toString(), recipeSkipOrgan)) {
-            //包含机构
-            String recipeSkipUrl = parameterDao.getByName("recipeSkipUrl");
-            recipeSkipVO.setShowFlag(true);
-            recipeSkipVO.setSkipUrl(recipeSkipUrl+recipeCode);
+        try {
+            String recipeSkipOrgan = parameterDao.getByName("recipeSkipOrgan");
+            if (LocalStringUtil.hasOrgan(organId.toString(), recipeSkipOrgan)) {
+                //包含机构
+                String recipeSkipUrl = parameterDao.getByName("recipeSkipUrl");
+                recipeSkipVO.setShowFlag(true);
+                recipeSkipVO.setSkipUrl(recipeSkipUrl+recipeCode);
+            }
+        } catch (Exception e) {
+            logger.error("getRecipeSkipUrl error", e);
         }
         return recipeSkipVO;
     }
