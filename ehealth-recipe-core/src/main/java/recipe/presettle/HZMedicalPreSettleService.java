@@ -42,6 +42,7 @@ import recipe.util.MapValueUtil;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @description： 杭州医保预结算对接支付平台版本
@@ -144,6 +145,17 @@ public class HZMedicalPreSettleService implements IRecipePreSettleService {
             }
             IBusPaySettlementFacade busPaySettlementFacade = AppContextHolder.getBean("pay.iBusPaySettlementFacade", IBusPaySettlementFacade.class);
 
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            try {
+                if (Objects.nonNull(recipeOrder)) {
+                    request.setRegisterFee(recipeOrder.getRegisterFee());
+                    request.setRegisterFeeNo(recipeOrder.getRegisterFeeNo());
+                    request.setTcmFee(recipeOrder.getTcmFee());
+                    request.setTcmFeeNo(recipeOrder.getTcmFeeNo());
+                }
+            }catch (Exception e){
+                LOGGER.error("MedicalPreSettleService 代缴费用有误");
+            }
             LOGGER.info("HZMedicalPreSettleService recipeId={} req={}", recipeId, JSONUtils.toString(request));
             HisResponseTO<RecipeMedicalPreSettleInfo> hisResult = busPaySettlementFacade.recipeMedicalPreSettleSyt(request);
             LOGGER.info("HZMedicalPreSettleService recipeId={} res={}", recipeId, JSONUtils.toString(hisResult));
@@ -166,7 +178,6 @@ public class HZMedicalPreSettleService implements IRecipePreSettleService {
                         map.put("fundAmount", fundAmount);
                         map.put("cashAmount", cashAmount);
                         //此时订单已经生成还需要更新订单信息
-                        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                         if (recipeOrder != null) {
                             RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
                             if (!recipeOrderService.dealWithOrderInfo(map, recipeOrder, recipe)) {

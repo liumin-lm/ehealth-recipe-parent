@@ -30,6 +30,7 @@ import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
 
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * created by shiyuping on 2020/11/27
@@ -77,6 +78,20 @@ public class CashPreSettleService implements IRecipePreSettleService {
             request.setPatientId(recipe.getPatientID());
             request.setDepartId(null!=recipe.getDepart()?recipe.getDepart().toString():"");
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
+
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+
+            try {
+                if (Objects.nonNull(recipeOrder)) {
+                    request.setRegisterFee(recipeOrder.getRegisterFee());
+                    request.setRegisterFeeNo(recipeOrder.getRegisterFeeNo());
+                    request.setTcmFee(recipeOrder.getTcmFee());
+                    request.setTcmFeeNo(recipeOrder.getTcmFeeNo());
+                }
+            }catch (Exception e){
+                LOGGER.error("MedicalPreSettleService 代缴费用有误");
+            }
+
             LOGGER.info("CashPreSettleService recipeId={} req={}", recipeId, JSONUtils.toString(request));
             HisResponseTO<RecipeCashPreSettleInfo> hisResult = service.recipeCashPreSettleHis(request);
             LOGGER.info("CashPreSettleService recipeId={} res={}", recipeId, JSONUtils.toString(hisResult));
@@ -94,7 +109,7 @@ public class CashPreSettleService implements IRecipePreSettleService {
                             map.put("cashAmount", cashAmount);
                             map.put("hisSettlementNo", hisSettlementNo);
                             //订单信息更新
-                            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+
                             if (recipeOrder != null) {
                                 RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
                                 if (!recipeOrderService.dealWithOrderInfo(map, recipeOrder, recipe)) {
