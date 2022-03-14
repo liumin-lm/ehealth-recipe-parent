@@ -212,6 +212,7 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
     @Override
     public RecipeSkipVO getRecipeSkipUrl(Integer organId, String recipeCode) {
         RecipeSkipVO recipeSkipVO = new RecipeSkipVO();
+        recipeSkipVO.setShowFlag(false);
         String recipeSkipOrgan = parameterDao.getByName("recipeSkipOrgan");
         if (LocalStringUtil.hasOrgan(organId.toString(), recipeSkipOrgan)) {
             //包含机构
