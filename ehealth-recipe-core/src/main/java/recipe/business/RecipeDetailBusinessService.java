@@ -5,6 +5,7 @@ import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.vo.RecipeSkipVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -17,9 +18,11 @@ import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.IConfigurationClient;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeParameterDao;
 import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.manager.*;
+import recipe.util.LocalStringUtil;
 import recipe.util.MapValueUtil;
 import recipe.vo.ResultBean;
 import recipe.vo.doctor.ValidateDetailVO;
@@ -62,6 +65,8 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
     private RecipeManager recipeManager;
     @Autowired
     private OrderManager orderManager;
+    @Autowired
+    private RecipeParameterDao parameterDao;
 
     @Override
     public ValidateDetailVO continueRecipeValidateDrug(ValidateDetailVO validateDetailVO) {
@@ -202,6 +207,19 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
         resultBean.setMsgList(drugNames);
         resultBean.setBool(false);
         return resultBean;
+    }
+
+    @Override
+    public RecipeSkipVO getRecipeSkipUrl(Integer organId, String recipeCode) {
+        RecipeSkipVO recipeSkipVO = new RecipeSkipVO();
+        String recipeSkipOrgan = parameterDao.getByName("recipeSkipOrgan");
+        if (LocalStringUtil.hasOrgan(organId.toString(), recipeSkipOrgan)) {
+            //包含机构
+            String recipeSkipUrl = parameterDao.getByName("recipeSkipUrl");
+            recipeSkipVO.setShowFlag(true);
+            recipeSkipVO.setSkipUrl(recipeSkipUrl+recipeCode);
+        }
+        return recipeSkipVO;
     }
 
 

@@ -1,6 +1,7 @@
 package recipe.core.api;
 
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.vo.RecipeSkipVO;
 import recipe.vo.ResultBean;
 import recipe.vo.doctor.ValidateDetailVO;
 
@@ -59,4 +60,12 @@ public interface IRecipeDetailBusinessService {
      * @return
      */
     ResultBean<String> validateRepeatRecipe(ValidateDetailVO validateDetailVO);
+
+    /**
+     * 跳转到第三方
+     * @param organId 机构ID
+     * @param recipeCode his处方号
+     * @return
+     */
+    RecipeSkipVO getRecipeSkipUrl(Integer organId, String recipeCode);
 }

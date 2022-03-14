@@ -132,7 +132,7 @@ public class RecipeDetailValidateTool {
             if (ValidateUtil.validateObjects(recipeDetail.getUseTotalDose())) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
-            //用药频次，用药途径是否在机构字典范围内
+            //用药频次，用药途径是否在机构字典范围内ecipeDetailService validateDrug organDrug is null OrganDrugCode
             if (medicationsValidate(organDrug.getOrganId(), recipeDetail)) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
