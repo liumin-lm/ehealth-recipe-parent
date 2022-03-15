@@ -28,11 +28,16 @@ public class RedisManager extends BaseManager {
      * @param coOrdinateList
      */
     public void coOrdinate(Integer recipeId, List<CoOrdinateVO> coOrdinateList) {
+        logger.info("RedisManager coOrdinate error recipeId :{},coOrdinateList={}", recipeId, JSON.toJSONString(coOrdinateList));
         if (ValidateUtil.validateObjects(recipeId, coOrdinateList)) {
             logger.warn("RedisManager coOrdinate error recipeId :{}", recipeId);
             return;
         }
-        redisClient.addList(CacheConstant.KEY_RECIPE_LABEL + recipeId.toString(), coOrdinateList, 3 * 24 * 60 * 60L);
+        try {
+            redisClient.addList(CacheConstant.KEY_RECIPE_LABEL + recipeId.toString(), coOrdinateList, 3 * 24 * 60 * 60L);
+        } catch (Exception e) {
+            logger.error("RedisManager coOrdinate  recipeId :{}", recipeId, e);
+        }
     }
 
 
