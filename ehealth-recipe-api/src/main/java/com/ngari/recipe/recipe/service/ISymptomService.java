@@ -26,7 +26,7 @@ public interface ISymptomService {
      * @return
      */
     @RpcService
-    QueryResult<SymptomDTO> querSymptomByOrganIdAndName(Integer organId , String input, final int start, final int limit);
+    QueryResult<SymptomDTO> querSymptomByOrganIdAndName(Integer organId , String input,Boolean isRegulationSymptom, final int start, final int limit);
 
     /**
      *根据机构Id查找对应症候
