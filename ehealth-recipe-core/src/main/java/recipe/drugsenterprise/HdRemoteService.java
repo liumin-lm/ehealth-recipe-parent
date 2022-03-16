@@ -1369,17 +1369,18 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         String organStore = recipeParameterDAO.getByName(storeOrganName);
 
         if (StringUtils.isNotEmpty(hdStores) && organId != null && hasOrgan(organId.toString(),hdStores)) {
-            LOGGER.info("HdRemoteService.sendScanStock organStore:{}.", organStore);
+            LOGGER.info("HdRemoteService getInventoryResult organStore:{}.", organStore);
             map.put("pharmacyCode", organStore);
         }
 
-        String requestParames = JSONUtils.toString(map);
+        String request = JSONUtils.toString(map);
+        LOGGER.info("HdRemoteService getInventoryResult request:{}", request);
         //访问库存足够的药店列表以及药店下的药品的信息
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HdHttpUrlEnum httpUrl;
         try {
             httpUrl = HdHttpUrlEnum.fromMethodName(methodName);
-            CloseableHttpResponse response = sendHttpRequest(httpClient, requestParames, httpUrl, drugsEnterprise);
+            CloseableHttpResponse response = sendHttpRequest(httpClient, request, httpUrl, drugsEnterprise);
             //当相应状态为200时返回json
             HttpEntity httpEntity = response.getEntity();
             String responseStr = EntityUtils.toString(httpEntity);
