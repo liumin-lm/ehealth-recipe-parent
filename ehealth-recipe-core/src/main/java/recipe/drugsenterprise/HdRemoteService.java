@@ -1697,7 +1697,9 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
     }
 
     private static CloseableHttpResponse sendHttpRequest(CloseableHttpClient httpClient, String requestStr, HdHttpUrlEnum httpUrl, DrugsEnterprise drugsEnterprise) throws IOException {
-        HttpPost httpPost = new HttpPost(drugsEnterprise.getBusinessUrl() + httpUrl.getUrl());
+        String businessUrl = drugsEnterprise.getBusinessUrl() + httpUrl.getUrl();
+        LOGGER.info("sendHttpRequest businessUrl:{}, requestStr:{}", businessUrl, requestStr);
+        HttpPost httpPost = new HttpPost(businessUrl);
         //组装请求参数(组装权限验证部分)
         httpPost.setHeader(requestHeadJsonKey, requestHeadJsonValue);
         httpPost.setHeader(requestHeadAuthorizationKey, requestAuthorizationValueHead + drugsEnterprise.getToken());
