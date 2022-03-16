@@ -363,6 +363,9 @@ public class PatientClient extends BaseClient {
      */
     private String getDayTime(String useRate){
         String result;
+        if (StringUtils.isEmpty(useRate)) {
+            return "[8]";
+        }
         switch (useRate) {
             case "bid":
                 result = "[8,18]";
