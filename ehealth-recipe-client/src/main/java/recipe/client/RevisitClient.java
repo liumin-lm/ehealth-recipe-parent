@@ -145,4 +145,14 @@ public class RevisitClient extends BaseClient {
         }
         return hisResponseTOList;
     }
+
+    /**
+     * 处方开成功回写复诊更改处方id
+     *
+     * @param recipeId
+     * @param clinicId
+     */
+    public void updateRecipeIdByConsultId(Integer recipeId, Integer clinicId) {
+        revisitExService.updateRecipeIdByConsultId(recipeId, clinicId);
+    }
 }
