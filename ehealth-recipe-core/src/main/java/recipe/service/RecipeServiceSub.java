@@ -1188,7 +1188,7 @@ public class RecipeServiceSub {
                     listTips = "审核通过";
                     break;
                 case RecipeStatusConstant.HIS_FAIL:
-                    tips = "已取消";
+                    tips = "无法保存,请重试或重新编辑";
                     cancelReason = "可能由于医院接口异常，处方单已取消，请稍后重试！";
                     RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                     if (StringUtils.isNotEmpty(recipeExtend.getCancellation())) {
