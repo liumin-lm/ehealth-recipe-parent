@@ -1,5 +1,6 @@
 package recipe.dao;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.recipe.model.SymptomDTO;
@@ -16,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.Logger;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
+import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
 
 import java.util.List;
@@ -45,6 +47,16 @@ public abstract class SymptomDAO extends HibernateSupportDelegateDAO<Symptom> {
      */
     @DAOMethod(sql = "from Symptom where organId=:organId ",limit =0)
     public abstract List<Symptom> findByOrganId(@DAOParam("organId") Integer organId);
+
+
+    /**
+     * 根据机构id删除
+     *
+     * @param organId
+     */
+    @DAOMethod(sql = " delete from Symptom where organId =:organId")
+    public abstract void deleteByOrganId(@DAOParam("organId") Integer organId);
+
 
     /**
      *
@@ -83,6 +95,17 @@ public abstract class SymptomDAO extends HibernateSupportDelegateDAO<Symptom> {
     @DAOMethod(sql = "from Symptom where organId=:organId and symptomName=:symptomName ")
     public abstract Symptom getByOrganIdAndSymptomName(@DAOParam("organId") Integer organId,@DAOParam("symptomName") String symptomName);
 
+
+
+    /**
+     * 通过orgsnId获取
+     *
+     * @param organId
+     * @return
+     */
+    @DAOMethod(sql = "from Symptom where organId=:organId and symptomName=:symptomName and symptomCode=:symptomCode ")
+    public abstract Symptom getByOrganIdAndSymptomNameAndSymptomCode(@DAOParam("organId") Integer organId,@DAOParam("symptomName") String symptomName,@DAOParam("symptomCode") String symptomCode);
+
     /**
      * 通过orgsnId 和症候名称  模糊查询
      * @param organId
@@ -91,7 +114,7 @@ public abstract class SymptomDAO extends HibernateSupportDelegateDAO<Symptom> {
      * @param limit
      * @return
      */
-    public QueryResult<SymptomDTO> queryTempByTimeAndName(Integer organId , String input, final int start, final int limit){
+    public QueryResult<SymptomDTO> queryTempByTimeAndName(Integer organId , String input,Boolean isRegulationSymptom, final int start, final int limit){
         HibernateStatelessResultAction<QueryResult<SymptomDTO>> action = new AbstractHibernateStatelessResultAction<QueryResult<SymptomDTO>>(){
 
             @Override
@@ -105,6 +128,13 @@ public abstract class SymptomDAO extends HibernateSupportDelegateDAO<Symptom> {
                 if (!StringUtils.isEmpty(input)){
                     sql.append(" and ( symptomName like:name or pinYin like:name ) ");
                     param.put("name","%"+input+"%");
+                }
+                if (!ObjectUtils.isEmpty(isRegulationSymptom)){
+                    if (isRegulationSymptom){
+                        sql.append(" and regulationSymptomCode is not null ");
+                    }else {
+                        sql.append(" and regulationSymptomCode is  null ");
+                    }
                 }
                 Query countQuery = ss.createQuery("select count(*) "+sql.toString());
                 countQuery.setProperties(param);
