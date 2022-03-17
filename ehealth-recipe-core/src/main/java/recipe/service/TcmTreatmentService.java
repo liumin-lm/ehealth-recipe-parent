@@ -86,7 +86,7 @@ public class TcmTreatmentService implements ITcmTreatmentService {
      * @param treatmentDTO
      */
     @RpcService
-    private Boolean validateAddNameOrCode(TcmTreatmentDTO treatmentDTO) {
+    public Boolean validateAddNameOrCode(TcmTreatmentDTO treatmentDTO) {
         if (null == treatmentDTO) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "治法信息不能为空");
         }
@@ -115,7 +115,7 @@ public class TcmTreatmentService implements ITcmTreatmentService {
      * @param treatmentDTO
      */
     @RpcService
-    private Boolean validateUpdateNameOrCode(TcmTreatmentDTO treatmentDTO) {
+    public Boolean validateUpdateNameOrCode(TcmTreatmentDTO treatmentDTO) {
         if (null == treatmentDTO) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "治法信息不能为空");
         }
