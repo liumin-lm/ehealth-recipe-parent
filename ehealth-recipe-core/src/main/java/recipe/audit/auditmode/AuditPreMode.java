@@ -51,7 +51,7 @@ import static ctd.persistence.DAOFactory.getDAO;
  * 审方前置
  */
 @AuditMode(ReviewTypeConstant.Pre_AuditMode)
-public class AuditPreMode extends AbstractAuidtMode {
+public class AuditPreMode extends AbstractAuditMode {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuditPreMode.class);
 
     @Override
@@ -62,6 +62,7 @@ public class AuditPreMode extends AbstractAuidtMode {
     @Override
     public void afterCheckPassYs(Recipe recipe) {
         LOGGER.info("AuditPreMode afterCheckPassYs recipeId:{}.", recipe.getRecipeId());
+        super.afterCheckPassYs(recipe);
         RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
         Integer recipeId = recipe.getRecipeId();
         String recipeMode = recipe.getRecipeMode();

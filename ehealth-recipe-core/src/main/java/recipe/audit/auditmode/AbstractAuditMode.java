@@ -28,6 +28,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.ApplicationUtils;
 import recipe.audit.IAuditMode;
+import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.RecipeAuditClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeSystemConstant;
@@ -38,6 +39,7 @@ import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
+import recipe.enumerate.type.SignImageTypeEnum;
 import recipe.manager.RecipeManager;
 import recipe.manager.StateManager;
 import recipe.service.RecipeLogService;
@@ -56,9 +58,9 @@ import static ctd.persistence.DAOFactory.getDAO;
 /**
  * created by shiyuping on 2019/9/3
  */
-public abstract class AbstractAuidtMode implements IAuditMode {
+public abstract class AbstractAuditMode implements IAuditMode {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractAuidtMode.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractAuditMode.class);
 
     @Override
     public void afterHisCallBackChange(Integer status, Recipe recipe, String memo) {
@@ -109,6 +111,14 @@ public abstract class AbstractAuidtMode implements IAuditMode {
 
     @Override
     public void afterCheckPassYs(Recipe recipe) {
+        LOGGER.info("AbstractAuditMode afterCheckPassYs recipe:{}", JSON.toJSONString(recipe));
+        try {
+            //药师审核通过后，重新根据药师的pdf生成签名图片
+            CreatePdfFactory createPdfFactory = AppContextHolder.getBean("createPdfFactory", CreatePdfFactory.class);
+            createPdfFactory.updatePdfToImg(recipe.getRecipeId(), SignImageTypeEnum.SIGN_IMAGE_TYPE_CHEMIST.getType());
+        } catch (Exception e) {
+            LOGGER.error("AbstractAuditMode afterCheckPassYs error", e);
+        }
     }
 
     @Override
@@ -209,7 +219,6 @@ public abstract class AbstractAuidtMode implements IAuditMode {
             } else {
                 recipeAuditService.offlineRecipeAudit(recipeDTO, recipeDetailBeans);
             }
-
         } catch (Exception e) {
             LOGGER.error("recipeAudit.error", e);
         }

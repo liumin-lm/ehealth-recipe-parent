@@ -24,6 +24,7 @@ import recipe.constant.ErrorCode;
 import recipe.constant.OperationConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.enumerate.type.SignImageTypeEnum;
 import recipe.manager.SignManager;
 import recipe.service.RecipeLogService;
 import recipe.thread.RecipeBusiThreadPool;
@@ -445,10 +446,11 @@ public class CreatePdfFactory {
     /**
      * pdf 转 图片
      *
-     * @param recipeId
+     * @param recipeId 处方号
+     * @param signImageType 签名图片类型 0 医生签名图片 1 药师签名图片
      * @return
      */
-    public void updatePdfToImg(Integer recipeId) {
+    public void updatePdfToImg(Integer recipeId, Integer signImageType) {
         logger.info("CreatePdfFactory updatePdfToImg recipeId:{}", recipeId);
         RecipeBusiThreadPool.execute(() -> {
             long start = System.currentTimeMillis();
@@ -457,7 +459,13 @@ public class CreatePdfFactory {
                 return;
             }
             try {
-                String imageFile = CreateRecipePdfUtil.updatePdfToImg(recipe.getRecipeId(), recipe.getSignFile());
+                String signFile = "";
+                if (SignImageTypeEnum.SIGN_IMAGE_TYPE_DOCTOR.getType().equals(signImageType)) {
+                    signFile = recipe.getSignFile();
+                } else {
+                    signFile = recipe.getChemistSignFile();
+                }
+                String imageFile = CreateRecipePdfUtil.updatePdfToImg(recipe.getRecipeId(), signFile);
                 if (StringUtils.isNotEmpty(imageFile)) {
                     Recipe recipeUpdate = new Recipe();
                     recipeUpdate.setRecipeId(recipeId);
