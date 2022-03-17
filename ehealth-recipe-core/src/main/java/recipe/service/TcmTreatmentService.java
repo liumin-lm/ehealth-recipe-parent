@@ -167,6 +167,7 @@ public class TcmTreatmentService implements ITcmTreatmentService {
         return true;
 
     }
+
     /**
      * 验证
      *
@@ -190,7 +191,6 @@ public class TcmTreatmentService implements ITcmTreatmentService {
         }
         treatment.setModifyDate(new Date());
     }
-
 
 
     /**
@@ -334,8 +334,6 @@ public class TcmTreatmentService implements ITcmTreatmentService {
     }
 
 
-
-
     /**
      * 症候批量导入
      *
@@ -348,7 +346,7 @@ public class TcmTreatmentService implements ITcmTreatmentService {
      */
     @Override
     public Map<String, Object> readTcmTreatmentExcel(byte[] buf, String originalFilename, int organId, String operator, String ossId, String manageUnit) {
-        logger.info(operator + "开始 readSymptomExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
+        logger.info(operator + "开始 readTcmTreatmentExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         StringBuilder errMsgAll = new StringBuilder();
         Map<String, Object> result = Maps.newHashMap();
         if (StringUtils.isEmpty(operator)) {
@@ -357,7 +355,7 @@ public class TcmTreatmentService implements ITcmTreatmentService {
             return result;
         }
         int length = buf.length;
-        logger.info("readSymptomExcel byte[] length=" + length);
+        logger.info("readTcmTreatmentExcel byte[] length=" + length);
         int max = 1343518;
         //控制导入数据量
         if (max <= length) {
@@ -460,7 +458,6 @@ public class TcmTreatmentService implements ITcmTreatmentService {
             }
 
 
-
             try {
                 if (!StringUtils.isEmpty(getStrFromCell(row.getCell(2)))) {
                     treatment.setRegulationTreatmentCode(getStrFromCell(row.getCell(2)));
@@ -516,7 +513,7 @@ public class TcmTreatmentService implements ITcmTreatmentService {
             result.put("updateNum", updateNum);
             result.put("failNum", total - addNum - updateNum);
             result.put("ImportExcelInfoId", importExcelInfoDTO.getId());
-            logger.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
+            logger.info(operator + "结束 readTcmTreatmentExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
             return result;
 
         } else {
@@ -559,7 +556,7 @@ public class TcmTreatmentService implements ITcmTreatmentService {
         result.put("addNum", addNum);
         result.put("updateNum", updateNum);
         result.put("failNum", total - addNum - updateNum);
-        logger.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
+        logger.info(operator + "结束 readTcmTreatmentExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         result.put("code", 200);
         return result;
     }
@@ -576,7 +573,6 @@ public class TcmTreatmentService implements ITcmTreatmentService {
         symptom.setModifyDate(new Date());
         return symptom;
     }
-
 
 
 }
