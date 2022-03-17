@@ -44,13 +44,14 @@ import static ctd.persistence.DAOFactory.getDAO;
  * 审方后置
  */
 @AuditMode(ReviewTypeConstant.Post_AuditMode)
-public class AuditPostMode extends AbstractAuidtMode {
+public class AuditPostMode extends AbstractAuditMode {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuditPostMode.class);
 
     private RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
 
     @Override
     public void afterCheckPassYs(Recipe recipe) {
+        super.afterCheckPassYs(recipe);
         recipeService.afterCheckPassYs(recipe);
     }
 

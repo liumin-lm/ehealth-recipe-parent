@@ -45,7 +45,6 @@ public class GiveModeProxy implements ApplicationContextAware {
         factoryService.updateStatus(orderStatus);
         after(giveMode, orderStatus);
         logger.info("GiveModeProxy updateOrderByGiveMode end");
-
     }
 
     private void after(Integer giveMode, UpdateOrderStatusVO orderStatus) {

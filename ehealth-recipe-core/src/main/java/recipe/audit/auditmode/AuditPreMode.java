@@ -40,7 +40,7 @@ import recipe.service.RecipeMsgService;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.thread.UpdateWaterPrintRecipePdfRunable;
+import recipe.thread.UpdateWaterPrintRecipePdfRunnable;
 
 import java.util.Map;
 
@@ -51,7 +51,7 @@ import static ctd.persistence.DAOFactory.getDAO;
  * 审方前置
  */
 @AuditMode(ReviewTypeConstant.Pre_AuditMode)
-public class AuditPreMode extends AbstractAuidtMode {
+public class AuditPreMode extends AbstractAuditMode {
     private static final Logger LOGGER = LoggerFactory.getLogger(AuditPreMode.class);
 
     @Override
@@ -62,6 +62,7 @@ public class AuditPreMode extends AbstractAuidtMode {
     @Override
     public void afterCheckPassYs(Recipe recipe) {
         LOGGER.info("AuditPreMode afterCheckPassYs recipeId:{}.", recipe.getRecipeId());
+        super.afterCheckPassYs(recipe);
         RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
         Integer recipeId = recipe.getRecipeId();
         String recipeMode = recipe.getRecipeMode();
@@ -141,7 +142,7 @@ public class AuditPreMode extends AbstractAuidtMode {
             LOGGER.info("第三方智能审方end");
         }
         //异步添加水印
-        RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunable(recipe.getRecipeId()));
+        RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunnable(recipe.getRecipeId()));
     }
 
     /**

@@ -31,7 +31,9 @@ import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.ConfigStatusCheckDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
+import recipe.enumerate.type.NeedSendTypeEnum;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
@@ -121,6 +123,10 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         orderStatus.setOrderId(recipeOrder.getOrderId());
         orderStatus.setSourceRecipeStatus(recipe.getStatus());
         giveModeProxy.updateOrderByGiveMode(recipe.getGiveMode(), orderStatus);
+        if (NeedSendTypeEnum.NO_NEED_SEND_TYPE.getType().equals(orderStatus.getNeedSendType())) {
+            orderStatus.setTargetRecipeOrderStatus(RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType());
+            giveModeProxy.updateOrderByGiveMode(recipe.getGiveMode(), orderStatus);
+        }
         logger.info("RecipeOrderTwoService updateRecipeOrderStatus result = {}", JSON.toJSONString(result));
         return result;
     }

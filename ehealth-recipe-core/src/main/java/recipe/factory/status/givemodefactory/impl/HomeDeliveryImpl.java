@@ -1,5 +1,6 @@
 package recipe.factory.status.givemodefactory.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
@@ -64,7 +65,7 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
             //检查运营人员维护的运单号是否已经存在
             List<RecipeOrder> recipeOrders = recipeOrderDAO.findByLogisticsCompanyAndTrackingNumber(orderStatus.getOrderId(), orderStatus.getLogisticsCompany(), orderStatus.getTrackingNumber());
             if (CollectionUtils.isNotEmpty(recipeOrders)) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "运单号重复");
+                logger.info("HomeDeliveryImpl updateStatus 运单号重复 recipeOrders:{}.", JSON.toJSONString(recipeOrders));
             }
         }
         orderStatus.setSender("system");

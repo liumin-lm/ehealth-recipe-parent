@@ -53,6 +53,22 @@ public class BaseClient {
         return result;
     }
 
+    protected <T> T getResponseMsg(HisResponseTO<T> hisResponse) throws DAOException, Exception {
+        logger.info("BaseClient getResponseMsg  hisResponse= {}", JSON.toJSONString(hisResponse));
+        if (null == hisResponse) {
+            throw new DAOException(HisErrorCodeEnum.HIS_NULL_ERROR.getCode(), HisErrorCodeEnum.HIS_NULL_ERROR.getMsg());
+        }
+        if (!String.valueOf(HisErrorCodeEnum.HIS_SUCCEED.getCode()).equals(hisResponse.getMsgCode())) {
+            throw new DAOException(HisErrorCodeEnum.HIS_CODE_ERROR.getCode(), hisResponse.getMsg());
+        }
+        if (null == hisResponse.getData()) {
+            throw new DAOException(HisErrorCodeEnum.HIS_PARAMETER_ERROR.getCode(), HisErrorCodeEnum.HIS_PARAMETER_ERROR.getMsg());
+        }
+        T result = hisResponse.getData();
+        logger.info("BaseClient getResponseMsg result= {}", JSON.toJSONString(result));
+        return result;
+    }
+
 
     /**
      * 扩展 当 前置机没实现接口时特殊处理返回值
