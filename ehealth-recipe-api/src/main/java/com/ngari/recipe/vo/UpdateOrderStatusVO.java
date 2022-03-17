@@ -53,6 +53,11 @@ public class UpdateOrderStatusVO implements Serializable {
      * 源处方状态
      */
     private Integer sourceRecipeStatus;
+
+    /**
+     * 需要配送类型 0 无需配送 1 需要配送
+     */
+    private Integer needSendType;
 }
 
 
