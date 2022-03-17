@@ -31,13 +31,13 @@ public class UpdateWaterPrintRecipePdfRunnable implements Runnable {
     @Override
     public void run() {
         long start = System.currentTimeMillis();
-        logger.info("UpdateWaterPrintRecipePdfRunable start. recipeId={}", recipeId);
+        logger.info("UpdateWaterPrintRecipePdfRunnable start. recipeId={}", recipeId);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.get(recipeId);
-        logger.info("UpdateWaterPrintRecipePdfRunable recipeId={} recipe={}", recipeId, JSON.toJSONString(recipe));
+        logger.info("UpdateWaterPrintRecipePdfRunnable recipeId={} recipe={}", recipeId, JSON.toJSONString(recipe));
         //更新pdf
         if (null == recipe) {
-            logger.warn("UpdateWaterPrintRecipePdfRunable recipe is null  recipeId={}", recipeId);
+            logger.warn("UpdateWaterPrintRecipePdfRunnable recipe is null  recipeId={}", recipeId);
             return;
         }
         try {
@@ -59,18 +59,18 @@ public class UpdateWaterPrintRecipePdfRunnable implements Runnable {
                 newPfd = CreateRecipePdfUtil.generateWaterPrintRecipePdf(recipe.getSignFile(), (waterPrintText != null ? waterPrintText.toString() : "") + (isShowTime ? " " + dateFormatter : ""));
                 key = "SignFile";
             } else {
-                logger.warn("UpdateWaterPrintRecipePdfRunable file is null  recipeId={}", recipeId);
+                logger.warn("UpdateWaterPrintRecipePdfRunnable file is null  recipeId={}", recipeId);
             }
-            logger.info("UpdateWaterPrintRecipePdfRunable file recipeId={},newPfd ={},key ={}",recipeId, newPfd, key);
+            logger.info("UpdateWaterPrintRecipePdfRunnable file recipeId={},newPfd ={},key ={}",recipeId, newPfd, key);
             if (StringUtils.isNotEmpty(newPfd) && StringUtils.isNotEmpty(key)) {
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of(key, newPfd));
             }
 
         } catch (Exception e) {
-            logger.error("UpdateWaterPrintRecipePdfRunable error recipeId={},e=", recipeId, e);
+            logger.error("UpdateWaterPrintRecipePdfRunnable error recipeId={},e=", recipeId, e);
         }finally {
             long elapsedTime = System.currentTimeMillis() - start;
-            logger.info("RecipeBusiThreadPool UpdateWaterPrintRecipePdfRunable 在sendSuccess-PDF-添加水印 执行时间:{}.", elapsedTime);
+            logger.info("RecipeBusThreadPool UpdateWaterPrintRecipePdfRunnable 在sendSuccess-PDF-添加水印 执行时间:{}.", elapsedTime);
         }
     }
 }
