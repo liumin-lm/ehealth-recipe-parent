@@ -42,7 +42,6 @@ import recipe.util.LocalStringUtil;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.Time;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -110,6 +109,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     /**
      * 根据机构和时间获取his处方号
+     *
      * @param organId
      * @param start
      * @param end
@@ -1133,10 +1133,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @return QueryResult<Map>
      */
     public QueryResult<Map> findRecipesByInfo(final Integer organId, final Integer status, final Integer doctor, final String patientName, final Date bDate, final Date eDate, final Integer dateType, final Integer depart, final int start, final int limit, List<Integer> organIds, Integer giveMode, Integer sendType, Integer fromflag,
-                                              Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType, Integer bussSource,Integer recipeBusinessType) {
+                                              Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType, Integer bussSource, Integer recipeBusinessType) {
         this.validateOptionForStatistics(status, doctor, patientName, bDate, eDate, dateType, start, limit);
-        final StringBuilder sbHql = this.generateRecipeOderHQLforStatistics(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource,recipeBusinessType);
-        final StringBuilder sbHqlCount = this.generateRecipeOderHQLforStatisticsCount(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource,recipeBusinessType);
+        final StringBuilder sbHql = this.generateRecipeOderHQLforStatistics(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource, recipeBusinessType);
+        final StringBuilder sbHqlCount = this.generateRecipeOderHQLforStatisticsCount(organId, status, doctor, patientName, dateType, depart, organIds, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource, recipeBusinessType);
         logger.info("RecipeDAO findRecipesByInfo sbHql:{}", sbHql.toString());
         HibernateStatelessResultAction<QueryResult<Map>> action = new AbstractHibernateStatelessResultAction<QueryResult<Map>>() {
             @Override
@@ -1177,10 +1177,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         //处方审核状态处理
                         recipe.setCheckStatus(recipe.getCheckFlag());
                         BeanUtils.map(recipe, map);
-                        if(recipe.getBussSource() == null || new Integer(0).equals(recipe.getBussSource())){
-                            map.put("bussSourceText","无诊疗");
-                        }else{
-                            map.put("bussSourceText",DictionaryController.instance().get("eh.cdr.dictionary.BussSourceType").getText(recipe.getBussSource()));
+                        if (recipe.getBussSource() == null || new Integer(0).equals(recipe.getBussSource())) {
+                            map.put("bussSourceText", "无诊疗");
+                        } else {
+                            map.put("bussSourceText", DictionaryController.instance().get("eh.cdr.dictionary.BussSourceType").getText(recipe.getBussSource()));
                         }
                         map.put("recipeOrder", order);
                         map.put("detailCount", recipeDetailDAO.getCountByRecipeId(recipe.getRecipeId()));
@@ -1206,16 +1206,16 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         if (recipeExtend != null) {
                             Map<String, Object> recipeExtendMap = Maps.newHashMap();
                             BeanUtils.map(recipeExtend, recipeExtendMap);
-                            if(null != recipeExtend.getRecipeBusinessType()){
-                                switch (recipeExtend.getRecipeBusinessType()){
+                            if (null != recipeExtend.getRecipeBusinessType()) {
+                                switch (recipeExtend.getRecipeBusinessType()) {
                                     case 1:
-                                        recipeExtendMap.put("recipeBusinessText","门诊处方");
+                                        recipeExtendMap.put("recipeBusinessText", "门诊处方");
                                         break;
                                     case 2:
-                                        recipeExtendMap.put("recipeBusinessText","复诊处方");
+                                        recipeExtendMap.put("recipeBusinessText", "复诊处方");
                                         break;
                                     case 3:
-                                        recipeExtendMap.put("recipeBusinessText","其他处方");
+                                        recipeExtendMap.put("recipeBusinessText", "其他处方");
                                         break;
                                 }
                             }
@@ -1517,25 +1517,25 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     }
 
     private StringBuilder generateRecipeOderHQLforStatistics(Integer organId, Integer status, Integer doctor, String mpiId, Integer dateType, Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId,
-                                                             Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType, Integer bussSource,Integer recipeBusinessType) {
+                                                             Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType, Integer bussSource, Integer recipeBusinessType) {
         StringBuilder hql = new StringBuilder("select r.*  from cdr_recipe r ");
         hql.append(" LEFT JOIN cdr_recipeorder o on r.orderCode = o.orderCode ");
         hql.append(" LEFT JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId ");
         hql.append(" where  r.recipeSourceType!=3 ");
-        return generateRecipeOderHQLforStatisticsV1(hql, organId, status, doctor, mpiId, dateType, depart, requestOrgans, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource,recipeBusinessType);
+        return generateRecipeOderHQLforStatisticsV1(hql, organId, status, doctor, mpiId, dateType, depart, requestOrgans, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource, recipeBusinessType);
     }
 
     private StringBuilder generateRecipeOderHQLforStatisticsCount(Integer organId, Integer status, Integer doctor, String mpiId, Integer dateType, Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId,
-                                                                  Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType, Integer bussSource,Integer recipeBusinessType) {
+                                                                  Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType, Integer bussSource, Integer recipeBusinessType) {
         StringBuilder hql = new StringBuilder("select count(1)  from cdr_recipe r ");
         hql.append(" LEFT JOIN cdr_recipeorder o on r.orderCode = o.orderCode ");
         hql.append(" LEFT JOIN cdr_recipe_ext re ON r.RecipeID = re.recipeId ");
         hql.append(" where  r.recipeSourceType!=3 ");
-        return generateRecipeOderHQLforStatisticsV1(hql, organId, status, doctor, mpiId, dateType, depart, requestOrgans, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource,recipeBusinessType);
+        return generateRecipeOderHQLforStatisticsV1(hql, organId, status, doctor, mpiId, dateType, depart, requestOrgans, giveMode, sendType, fromflag, recipeId, enterpriseId, checkStatus, payFlag, orderType, refundNodeStatus, recipeType, bussSource, recipeBusinessType);
     }
 
 
-    private StringBuilder generateRecipeOderHQLforStatisticsV1(StringBuilder hql, Integer organId, Integer status, Integer doctor, String mpiId, Integer dateType, Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType, Integer bussSource,Integer recipeBusinessType) {
+    private StringBuilder generateRecipeOderHQLforStatisticsV1(StringBuilder hql, Integer organId, Integer status, Integer doctor, String mpiId, Integer dateType, Integer depart, final List<Integer> requestOrgans, Integer giveMode, Integer sendType, Integer fromflag, Integer recipeId, Integer enterpriseId, Integer checkStatus, Integer payFlag, Integer orderType, Integer refundNodeStatus, Integer recipeType, Integer bussSource, Integer recipeBusinessType) {
         //默认查询所有
         if (CollectionUtils.isNotEmpty(requestOrgans)) {
             // 添加申请机构条件
@@ -1643,8 +1643,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         if (recipeType != null) {
             hql.append(" and r.recipeType=").append(recipeType);
         }
-        if(bussSource != null){
-            switch (bussSource){
+        if (bussSource != null) {
+            switch (bussSource) {
                 case 1:
                     hql.append(" and r.bussSource=1 ");
                     break;
@@ -1659,7 +1659,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     break;
             }
         }
-        if(recipeBusinessType != null){
+        if (recipeBusinessType != null) {
             hql.append(" and re.recipe_business_type= ").append(recipeBusinessType);
         }
         return hql;
@@ -1667,7 +1667,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
 
     private StringBuilder generateRecipeMsgHQLforStatistics(RecipesQueryVO recipesQueryVO) {
-        StringBuilder hql = new StringBuilder("select r.recipeId,r.patientName,r.Mpiid mpiId,r.organName,r.depart,r.doctor,r.organDiseaseName,r.totalMoney,r.checker,r.checkDateYs,r.fromflag,r.status,o.payTime, r.doctorName, r.giveUser, o.dispensingTime, sum(cr.useTotalDose) sumDose ,o.send_type sendType ,o.outTradeNo ,o.cashAmount,o.fundAmount,o.orderType,r.recipeType,r.bussSource,r.recipeCode,ce.recipe_business_type as recipeBusinessType from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode left join cdr_recipedetail cr on cr.recipeId = r.recipeId left join cdr_recipe_ext ce on ce.recipeId = r.recipeId and cr.status =1  where 1=1 ");
+        StringBuilder hql = new StringBuilder("select r.recipeId,r.patientName,r.Mpiid mpiId,r.organName,r.depart,r.doctor,r.organDiseaseName,o.totalMoney,r.recipeFee,r.checker,r.checkDateYs,r.fromflag,r.status,o.payTime, r.doctorName, r.giveUser, o.dispensingTime, sum(cr.useTotalDose) sumDose ,o.send_type sendType ,o.outTradeNo ,o.cashAmount,o.fundAmount,o.orderType,r.recipeType,r.bussSource,r.recipeCode,ce.recipe_business_type as recipeBusinessType from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode left join cdr_recipedetail cr on cr.recipeId = r.recipeId left join cdr_recipe_ext ce on ce.recipeId = r.recipeId and cr.status =1  where 1=1 ");
         //默认查询所有
         if (CollectionUtils.isNotEmpty(recipesQueryVO.getOrganIds())) {
             // 添加申请机构条件
@@ -1776,8 +1776,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         if (null != recipesQueryVO.getRecipeType()) {
             hql.append(" and r.recipeType=").append(recipesQueryVO.getRecipeType());
         }
-        if(recipesQueryVO.getBussSource() != null){
-            switch (recipesQueryVO.getBussSource()){
+        if (recipesQueryVO.getBussSource() != null) {
+            switch (recipesQueryVO.getBussSource()) {
                 case 1:
                     hql.append(" and r.bussSource=1 ");
                     break;
@@ -1792,7 +1792,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     break;
             }
         }
-        if(null != recipesQueryVO.getRecipeBusinessType()){
+        if (null != recipesQueryVO.getRecipeBusinessType()) {
             hql.append(" and ce.recipe_business_type=").append(recipesQueryVO.getRecipeBusinessType());
         }
         return hql;
@@ -1871,8 +1871,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         if (null != recipesQueryVO.getRecipeType()) {
             hql.append(" and r.recipeType=").append(recipesQueryVO.getRecipeType());
         }
-        if(recipesQueryVO.getBussSource() != null){
-            switch (recipesQueryVO.getBussSource()){
+        if (recipesQueryVO.getBussSource() != null) {
+            switch (recipesQueryVO.getBussSource()) {
                 case 1:
                     hql.append(" and r.bussSource=1 ");
                     break;
@@ -1887,7 +1887,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     break;
             }
         }
-        if(null != recipesQueryVO.getRecipeBusinessType()){
+        if (null != recipesQueryVO.getRecipeBusinessType()) {
             hql.append(" and ce.recipe_business_type=").append(recipesQueryVO.getRecipeBusinessType());
         }
         return hql;
@@ -2021,11 +2021,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     /**
      * 通过挂号序号和机构ID获取his处方号合集
+     *
      * @param registerId 挂号序号
-     * @param organId 机构ID
+     * @param organId    机构ID
      * @return 处方号合集
      */
-    public List<Recipe> findByRecipeCodeAndRegisterIdAndOrganId(final String registerId, final Integer organId){
+    public List<Recipe> findByRecipeCodeAndRegisterIdAndOrganId(final String registerId, final Integer organId) {
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -3508,10 +3509,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 StringBuilder hql = new StringBuilder();
                 hql.append("select distinct r from Recipe r");
                 hql.append(" where  (r.checkDateYs is not null or r.status = 8)");
-                hql.append( "and r.clinicOrgan in (:organs) ");
-                if(CollectionUtils.isNotEmpty(departIds)){
+                hql.append("and r.clinicOrgan in (:organs) ");
+                if (CollectionUtils.isNotEmpty(departIds)) {
                     hql.append(" and (  r.appointDepartName LIKE :searchString or r.depart in (:departIds) )");
-                }else{
+                } else {
                     hql.append("  and r.appointDepartName LIKE :searchString ");
                 }
                 hql.append("  order by r.signDate desc");
@@ -3519,7 +3520,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 Query q = ss.createQuery(hql.toString());
                 q.setParameter("searchString", "%" + searchString + "%");
                 q.setParameterList("organs", organs);
-                if(CollectionUtils.isNotEmpty(departIds)){
+                if (CollectionUtils.isNotEmpty(departIds)) {
                     q.setParameterList("departIds", departIds);
                 }
                 if (null != start && null != limit) {
@@ -4084,7 +4085,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public abstract List<Recipe> findRecipesByStatusAndInvalidTime(@DAOParam("status") List<Integer> status, @DAOParam("invalidTime") Date invalidTime);
 
 
-    public List<Recipe> findRecipeAuditByFlag(final List<Integer> organ, List<Integer> recipeTypes,Integer checker , final int flag, final int start, final int limit,String startTime,String endTime) {
+    public List<Recipe> findRecipeAuditByFlag(final List<Integer> organ, List<Integer> recipeTypes, Integer checker, final int flag, final int start, final int limit, String startTime, String endTime) {
         final int all = 3;
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
@@ -4098,8 +4099,8 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                             "FROM\n" +
                             "\tcdr_recipe r\n" +
                             "LEFT JOIN cdr_recipe_ext cre ON r.recipeid = cre.recipeid\n" +
-                            "WHERE cre.canUrgentAuditRecipe is not null and r.clinicOrgan in (:organ) and r.checkMode<2 and  r.audit_state = 1 and  (r.recipeType in(:recipeTypes) or r.grabOrderStatus=1) " );
-                    if(StringUtils.isNoneBlank(startTime) && StringUtils.isNoneBlank(endTime)){
+                            "WHERE cre.canUrgentAuditRecipe is not null and r.clinicOrgan in (:organ) and r.checkMode<2 and  r.audit_state = 1 and  (r.recipeType in(:recipeTypes) or r.grabOrderStatus=1) ");
+                    if (StringUtils.isNoneBlank(startTime) && StringUtils.isNoneBlank(endTime)) {
                         hql.append(" and  r.CreateDate >= :startTime and  r.CreateDate <= :endTime");
                     }
                     hql.append(" ORDER BY canUrgentAuditRecipe desc, r.grabOrderStatus DESC, signdate asc");
@@ -4107,7 +4108,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 //1是审核通过
                 else if (flag == 1) {
                     hql.append("from Recipe  where clinicOrgan in (:organ)  and Checker = :checker  and audit_state = 5 ");
-                    if(StringUtils.isNoneBlank(startTime) && StringUtils.isNoneBlank(endTime)){
+                    if (StringUtils.isNoneBlank(startTime) && StringUtils.isNoneBlank(endTime)) {
                         hql.append(" and CreateDate >= :startTime and CreateDate <= :endTime");
                     }
                     hql.append(" order by signDate desc");
@@ -4115,7 +4116,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 //2是审核未通过
                 else if (flag == 2) {
                     hql.append("from Recipe where clinicOrgan in (:organ)  and Checker = :checker  and audit_state in (3,4,6) ");
-                    if(StringUtils.isNoneBlank(startTime) && StringUtils.isNoneBlank(endTime)){
+                    if (StringUtils.isNoneBlank(startTime) && StringUtils.isNoneBlank(endTime)) {
                         hql.append(" and CreateDate >= :startTime and CreateDate <= :endTime");
                     }
                     hql.append(" order by signDate desc");
@@ -4123,7 +4124,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 //3是全部---0409小版本要包含待审核或者审核后已撤销的处方
                 else if (flag == all) {
                     hql.append("select r.* from cdr_recipe r where r.clinicOrgan in (:organ) and r.checkMode<2   and r.audit_state in (1,2,3,4,5,6,7)  and  (r.recipeType in(:recipeTypes) or r.grabOrderStatus=1) and r.reviewType != 0 ");
-                    if(startTime != null && endTime != null){
+                    if (startTime != null && endTime != null) {
                         hql.append(" and r.CreateDate >= :startTime and r.CreateDate <= :endTime");
                     }
                     hql.append(" order by r.signDate desc");
@@ -4139,10 +4140,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 q.setParameterList("organ", organ);
                 if (flag == 0 || flag == all) {
                     q.setParameterList("recipeTypes", recipeTypes);
-                }else{
+                } else {
                     q.setParameter("checker", checker);
                 }
-                if(StringUtils.isNoneBlank(startTime) && StringUtils.isNoneBlank(endTime)){
+                if (StringUtils.isNoneBlank(startTime) && StringUtils.isNoneBlank(endTime)) {
                     q.setParameter("startTime", startTime);
                     q.setParameter("endTime", endTime);
                 }
@@ -4190,7 +4191,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                     throw new DAOException(ErrorCode.SERVICE_ERROR, "flag is invalid");
                 }
 
-                if(StringUtils.isNoneBlank(startTime) && StringUtils.isNoneBlank(endTime)){
+                if (StringUtils.isNoneBlank(startTime) && StringUtils.isNoneBlank(endTime)) {
                     hql.append(" and r.CreateDate >= :startTime and r.CreateDate <= :endTime");
                 }
 
@@ -4204,10 +4205,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 q.setParameterList("organ", organ);
                 if (flag == 0 || flag == all) {
                     q.setParameterList("recipeTypes", recipeTypes);
-                }else{
+                } else {
                     q.setParameter("checker", checker);
                 }
-                if(StringUtils.isNoneBlank(startTime) && StringUtils.isNoneBlank(endTime)){
+                if (StringUtils.isNoneBlank(startTime) && StringUtils.isNoneBlank(endTime)) {
                     q.setParameter("startTime", startTime);
                     q.setParameter("endTime", endTime);
                 }
