@@ -280,6 +280,11 @@ public class HisCallBackService {
         if (recipe == null) {
             return;
         }
+        RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeExtend recipeExtend = new RecipeExtend();
+        recipeExtend.setRecipeId(recipeId);
+        recipeExtend.setCancellation(errMsg);
+        recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
         if (new Integer(2).equals(recipe.getBussSource())) {
             LOGGER.info("checkPassFail 复诊开方HIS确认失败 发送环信消息 recipeId:{}", recipeId);
             IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
