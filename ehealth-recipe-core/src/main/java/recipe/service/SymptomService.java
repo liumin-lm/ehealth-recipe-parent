@@ -61,28 +61,31 @@ public class SymptomService implements ISymptomService {
 
     /**
      * 获取单元格值（字符串）
+     *
      * @param cell
      * @return
      */
-    public static String getStrFromCell(Cell cell){
-        if(cell==null){
+    public static String getStrFromCell(Cell cell) {
+        if (cell == null) {
             return null;
         }
-        String strCell =cell.getStringCellValue();
-        if(strCell!=null){
+        String strCell = cell.getStringCellValue();
+        if (strCell != null) {
             strCell = strCell.trim();
-            if(StringUtils.isEmpty(strCell)){
-                strCell=null;
+            if (StringUtils.isEmpty(strCell)) {
+                strCell = null;
             }
         }
-        return strCell ;
+        return strCell;
     }
 
 
     /**
      * 新增验证
+     *
      * @param symptom
      */
+    @RpcService
     private Boolean validateAddNameOrCode(Symptom symptom) {
         if (null == symptom) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "证候信息不能为空");
@@ -92,13 +95,13 @@ public class SymptomService implements ISymptomService {
         }
         if (!StringUtils.isEmpty(symptom.getSymptomCode())) {
             Symptom byOrganIdAndSymptomName = symptomDAO.getByOrganIdAndSymptomName(symptom.getOrganId(), symptom.getSymptomName());
-            if (!ObjectUtils.isEmpty(byOrganIdAndSymptomName)){
+            if (!ObjectUtils.isEmpty(byOrganIdAndSymptomName)) {
                 return false;
             }
         }
         if (!StringUtils.isEmpty(symptom.getSymptomName())) {
             Symptom byOrganIdAndSymptomCode = symptomDAO.getByOrganIdAndSymptomCode(symptom.getOrganId(), symptom.getSymptomCode());
-            if (!ObjectUtils.isEmpty(byOrganIdAndSymptomCode)){
+            if (!ObjectUtils.isEmpty(byOrganIdAndSymptomCode)) {
                 return false;
             }
         }
@@ -108,8 +111,10 @@ public class SymptomService implements ISymptomService {
 
     /**
      * 更新验证
+     *
      * @param symptom
      */
+    @RpcService
     private Boolean validateUpdateNameOrCode(Symptom symptom) {
         if (null == symptom) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "证候信息不能为空");
@@ -122,13 +127,13 @@ public class SymptomService implements ISymptomService {
         }
         if (!StringUtils.isEmpty(symptom.getSymptomCode())) {
             Symptom byOrganIdAndSymptomCode = symptomDAO.getByOrganIdAndSymptomCode(symptom.getOrganId(), symptom.getSymptomCode());
-            if (!ObjectUtils.isEmpty(byOrganIdAndSymptomCode)&& byOrganIdAndSymptomCode.getSymptomId()!=symptom.getSymptomId()){
-                throw new DAOException(DAOException.VALUE_NEEDED, "该机构证候 编码已存在!");
+            if (!ObjectUtils.isEmpty(byOrganIdAndSymptomCode) && byOrganIdAndSymptomCode.getSymptomId() != symptom.getSymptomId()) {
+                return false;
             }
         }
         if (!StringUtils.isEmpty(symptom.getSymptomName())) {
             Symptom byOrganIdAndSymptomName = symptomDAO.getByOrganIdAndSymptomName(symptom.getOrganId(), symptom.getSymptomName());
-            if (!ObjectUtils.isEmpty(byOrganIdAndSymptomName) && byOrganIdAndSymptomName.getSymptomId()!=symptom.getSymptomId()){
+            if (!ObjectUtils.isEmpty(byOrganIdAndSymptomName) && byOrganIdAndSymptomName.getSymptomId() != symptom.getSymptomId()) {
                 return false;
             }
         }
@@ -136,9 +141,9 @@ public class SymptomService implements ISymptomService {
     }
 
 
-
     /**
      * 新增中医症候
+     *
      * @param symptom
      * @return
      */
@@ -153,11 +158,11 @@ public class SymptomService implements ISymptomService {
         //验证症候必要信息
         validate(convert);
         Symptom byOrganIdAndSymptomName = symptomDAO.getByOrganIdAndSymptomName(symptom.getOrganId(), symptom.getSymptomName());
-        if (!ObjectUtils.isEmpty(byOrganIdAndSymptomName)){
+        if (!ObjectUtils.isEmpty(byOrganIdAndSymptomName)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "该机构证候 名称已存在!");
         }
         Symptom byOrganIdAndSymptomCode = symptomDAO.getByOrganIdAndSymptomCode(symptom.getOrganId(), symptom.getSymptomCode());
-        if (!ObjectUtils.isEmpty(byOrganIdAndSymptomCode)){
+        if (!ObjectUtils.isEmpty(byOrganIdAndSymptomCode)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "该机构证候 编码已存在!");
         }
         symptomDAO.save(convert);
@@ -168,6 +173,7 @@ public class SymptomService implements ISymptomService {
 
     /**
      * 更新中医症候
+     *
      * @param symptom
      * @return
      */
@@ -177,20 +183,20 @@ public class SymptomService implements ISymptomService {
         if (null == symptom) {
             throw new DAOException(DAOException.VALUE_NEEDED, "symptom is null");
         }
-        logger.info("新增中医证候服务[addSymptomForOrgan]:" + JSONUtils.toString(symptom));
+        logger.info("更新中医证候服务[updateSymptomForOrgan]:" + JSONUtils.toString(symptom));
         Symptom convert = ObjectCopyUtils.convert(symptom, Symptom.class);
         //验证症候必要信息
         validate(convert);
         Symptom byOrganIdAndSymptomName = symptomDAO.getByOrganIdAndSymptomName(symptom.getOrganId(), symptom.getSymptomName());
-        if (!ObjectUtils.isEmpty(byOrganIdAndSymptomName) && byOrganIdAndSymptomName.getSymptomId()!=symptom.getSymptomId()){
+        if (!ObjectUtils.isEmpty(byOrganIdAndSymptomName) && byOrganIdAndSymptomName.getSymptomId() != symptom.getSymptomId()) {
             throw new DAOException(DAOException.VALUE_NEEDED, "该机构证候 名称已存在!");
         }
         Symptom byOrganIdAndSymptomCode = symptomDAO.getByOrganIdAndSymptomCode(symptom.getOrganId(), symptom.getSymptomCode());
-        if (!ObjectUtils.isEmpty(byOrganIdAndSymptomCode)&& byOrganIdAndSymptomCode.getSymptomId()!=symptom.getSymptomId()){
+        if (!ObjectUtils.isEmpty(byOrganIdAndSymptomCode) && byOrganIdAndSymptomCode.getSymptomId() != symptom.getSymptomId()) {
             throw new DAOException(DAOException.VALUE_NEEDED, "该机构证候 编码已存在!");
         }
         Symptom update = symptomDAO.update(convert);
-        return ObjectCopyUtils.convert(update,SymptomDTO.class);
+        return ObjectCopyUtils.convert(update, SymptomDTO.class);
 
     }
 
@@ -201,7 +207,7 @@ public class SymptomService implements ISymptomService {
      * @param symptomIds 入参证候参数集合
      */
     @RpcService
-    public void deleteSymptomByIds(List<Integer> symptomIds,Integer organId) {
+    public void deleteSymptomByIds(List<Integer> symptomIds, Integer organId) {
         if (CollectionUtils.isEmpty(symptomIds)) {
             throw new DAOException(DAOException.VALUE_NEEDED, "symptomIds is required");
         }
@@ -257,13 +263,13 @@ public class SymptomService implements ISymptomService {
         symptomDAO.deleteByOrganId(organId);
         IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
         busActionLogService.recordBusinessLogRpcNew("机构证候管理", "", "Symptom", "【" + urt.getUserName() + "】一键删除【" + byOrganId.getName()
-                +"】证候", byOrganId.getName());
+                + "】证候", byOrganId.getName());
     }
-
 
 
     /**
      * 验证
+     *
      * @param symptom
      */
     private void validate(Symptom symptom) {
@@ -279,7 +285,7 @@ public class SymptomService implements ISymptomService {
         if (null == symptom.getOrganId()) {
             throw new DAOException(DAOException.VALUE_NEEDED, "organId is needed");
         }
-        if (ObjectUtils.isEmpty(symptom.getSymptomId())){
+        if (ObjectUtils.isEmpty(symptom.getSymptomId())) {
             symptom.setCreateDate(new Date());
         }
         symptom.setModifyDate(new Date());
@@ -287,6 +293,7 @@ public class SymptomService implements ISymptomService {
 
     /**
      * 根据机构Id和查询条件查询中医症候
+     *
      * @param organId
      * @param input
      * @param start
@@ -294,39 +301,77 @@ public class SymptomService implements ISymptomService {
      * @return
      */
     @RpcService
-    public QueryResult<SymptomDTO> querSymptomByOrganIdAndName(Integer organId , String input,Boolean isRegulationSymptom , final int start, final int limit) {
+    public QueryResult<SymptomDTO> querSymptomByOrganIdAndNameYypt(Integer organId, String input, Boolean isRegulationSymptom, final int start, final int limit) {
         if (null == organId) {
-            return  null;
+            return null;
         }
         SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
-        QueryResult<SymptomDTO> symptomQueryResult = symptomDAO.queryTempByTimeAndName(organId, input,isRegulationSymptom, start, limit);
+        QueryResult<SymptomDTO> symptomQueryResult = symptomDAO.queryTempByTimeAndName(organId, input, isRegulationSymptom, start, limit);
+        logger.info("查询中医证候服务[querSymptomByOrganIdAndNameYypt]:" + JSONUtils.toString(symptomQueryResult.getItems()));
+        return symptomQueryResult;
+    }
+
+    /**
+     * 根据机构Id和查询条件查询中医症候
+     *
+     * @param organId
+     * @param input
+     * @param start
+     * @param limit
+     * @return
+     */
+    @RpcService
+    public QueryResult<SymptomDTO> querSymptomByOrganIdAndName(Integer organId, String input, final int start, final int limit) {
+        if (null == organId) {
+            return null;
+        }
+        SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
+        QueryResult<SymptomDTO> symptomQueryResult = symptomDAO.queryTempByTimeAndName(organId, input, null, start, limit);
         logger.info("查询中医证候服务[queryymptomByOrganIdAndName]:" + JSONUtils.toString(symptomQueryResult.getItems()));
-        return  symptomQueryResult;
+        return symptomQueryResult;
     }
 
     /**
      * 根据机构Id查询中医症候
+     *
      * @param organId
      * @return
      */
     @RpcService
-    public List<SymptomDTO> querSymptomByOrganId(Integer organId ) {
+    public List<SymptomDTO> querSymptomByOrganId(Integer organId) {
         if (null == organId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构Id不能为空");
         }
         SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
         List<Symptom> byOrganId = symptomDAO.findByOrganId(organId);
         logger.info("查询中医证候服务[queryymptomByOrganIdAndName]:" + JSONUtils.toString(byOrganId));
-        return  ObjectCopyUtils.convert(byOrganId, SymptomDTO.class);
+        return ObjectCopyUtils.convert(byOrganId, SymptomDTO.class);
     }
 
+
     /**
-     * 根据机构Id 和 症候ID查询中医症候
+     * 根据机构Id查询中医症候未关联监管平台数量
+     *
      * @param organId
      * @return
      */
     @RpcService
-    public SymptomDTO querSymptomByOrganIdAndSymptomId(Integer organId , Integer symptomId ) {
+    public Long getCountByOrganId(Integer organId) {
+        if (null == organId) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "机构Id不能为空");
+        }
+        Long byOrganId = symptomDAO.getCountByOrganId(organId);
+        return byOrganId;
+    }
+
+    /**
+     * 根据机构Id 和 症候ID查询中医症候
+     *
+     * @param organId
+     * @return
+     */
+    @RpcService
+    public SymptomDTO querSymptomByOrganIdAndSymptomId(Integer organId, Integer symptomId) {
         if (null == organId) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构Id不能为空");
         }
@@ -334,13 +379,14 @@ public class SymptomService implements ISymptomService {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "症候Id不能为空");
         }
         SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
-        Symptom byOrganIdAndSymptomId = symptomDAO.getByOrganIdAndSymptomId(organId,symptomId);
+        Symptom byOrganIdAndSymptomId = symptomDAO.getByOrganIdAndSymptomId(organId, symptomId);
         logger.info("查询中医证候服务[queryymptomByOrganIdAndName]:" + JSONUtils.toString(byOrganIdAndSymptomId));
-        return  ObjectCopyUtils.convert(byOrganIdAndSymptomId, SymptomDTO.class);
+        return ObjectCopyUtils.convert(byOrganIdAndSymptomId, SymptomDTO.class);
     }
 
     /**
      * 症候批量导入
+     *
      * @param buf
      * @param originalFilename
      * @param organId
@@ -349,7 +395,7 @@ public class SymptomService implements ISymptomService {
      * @return
      */
     @Override
-    public Map<String, Object> readSymptomExcel(byte[] buf, String originalFilename, int organId, String operator, String ossId,String manageUnit) {
+    public Map<String, Object> readSymptomExcel(byte[] buf, String originalFilename, int organId, String operator, String ossId, String manageUnit) {
         logger.info(operator + "开始 readSymptomExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         StringBuilder errMsgAll = new StringBuilder();
         Map<String, Object> result = Maps.newHashMap();
@@ -384,7 +430,7 @@ public class SymptomService implements ISymptomService {
             }
         } catch (Exception e) {
             e.printStackTrace();
-            logger.error("readDrugExcel error ," + e.getMessage(),e);
+            logger.error("readDrugExcel error ," + e.getMessage(), e);
             result.put("code", 609);
             result.put("msg", "上传文件格式有问题");
             return result;
@@ -401,7 +447,7 @@ public class SymptomService implements ISymptomService {
         List<String> errDrugListMatchList = Lists.newArrayList();
         Integer addNum = 0;
         Integer updateNum = 0;
-        List<Symptom> symptomLists=Lists.newArrayList();
+        List<Symptom> symptomLists = Lists.newArrayList();
 
         for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
             Symptom symptom;
@@ -410,8 +456,8 @@ public class SymptomService implements ISymptomService {
             // 判断是否是模板
             if (rowIndex == 0) {
                 String symptomCode = getStrFromCell(row.getCell(0));
-                String pinyin= getStrFromCell(row.getCell(1));
-                String  symptomName= getStrFromCell(row.getCell(2));
+                String pinyin = getStrFromCell(row.getCell(1));
+                String symptomName = getStrFromCell(row.getCell(2));
                 if ("*证候编码".equals(symptomCode) && "*证候名称".equals(pinyin) && "证候拼音".equals(symptomName)) {
                     continue;
                 } else {
@@ -430,7 +476,7 @@ public class SymptomService implements ISymptomService {
                 }
                 symptom.setSymptomCode(getStrFromCell(row.getCell(0)));
             } catch (Exception e) {
-                logger.error("证候编码有误 ," + e.getMessage(),e);
+                logger.error("证候编码有误 ," + e.getMessage(), e);
                 errMsg.append("证候编码有误").append(";");
             }
 
@@ -440,24 +486,24 @@ public class SymptomService implements ISymptomService {
                 }
                 symptom.setSymptomName(getStrFromCell(row.getCell(1)));
             } catch (Exception e) {
-                logger.error("证候名称有误 ," + e.getMessage(),e);
+                logger.error("证候名称有误 ," + e.getMessage(), e);
                 errMsg.append("证候名称有误").append(";");
             }
 
             try {
-                if (!StringUtils.isEmpty(getStrFromCell(row.getCell(1)))&&!StringUtils.isEmpty(getStrFromCell(row.getCell(0)))) {
-                    Symptom byOrganIdAndSymptomNameAndSymptomCode  = symptomDAO.getByOrganIdAndSymptomNameAndSymptomCode(organId, getStrFromCell(row.getCell(1)), getStrFromCell(row.getCell(0)));
-                    if (ObjectUtils.isEmpty(byOrganIdAndSymptomNameAndSymptomCode)){
-                        if (symptomDAO.getByOrganIdAndSymptomName(organId,getStrFromCell(row.getCell(1))) != null){
+                if (!StringUtils.isEmpty(getStrFromCell(row.getCell(1))) && !StringUtils.isEmpty(getStrFromCell(row.getCell(0)))) {
+                    Symptom byOrganIdAndSymptomNameAndSymptomCode = symptomDAO.getByOrganIdAndSymptomNameAndSymptomCode(organId, getStrFromCell(row.getCell(1)), getStrFromCell(row.getCell(0)));
+                    if (ObjectUtils.isEmpty(byOrganIdAndSymptomNameAndSymptomCode)) {
+                        if (symptomDAO.getByOrganIdAndSymptomName(organId, getStrFromCell(row.getCell(1))) != null) {
                             errMsg.append("该机构此证候名称已存在！").append(";");
                         }
-                        if (symptomDAO.getByOrganIdAndSymptomCode(organId,getStrFromCell(row.getCell(0))) != null){
+                        if (symptomDAO.getByOrganIdAndSymptomCode(organId, getStrFromCell(row.getCell(0))) != null) {
                             errMsg.append("该机构此证候编码已存在！").append(";");
                         }
                     }
                 }
             } catch (Exception e) {
-                logger.error("症候名称编码唯一校验有误 ," + e.getMessage(),e);
+                logger.error("症候名称编码唯一校验有误 ," + e.getMessage(), e);
                 errMsg.append("症候名称编码唯一校验有误").append(";");
             }
 
@@ -466,7 +512,7 @@ public class SymptomService implements ISymptomService {
                     symptom.setPinYin(getStrFromCell(row.getCell(2)));
                 }
             } catch (Exception e) {
-                logger.error("拼音有误 ," + e.getMessage(),e);
+                logger.error("拼音有误 ," + e.getMessage(), e);
                 errMsg.append("拼音有误").append(";");
             }
 
@@ -475,7 +521,7 @@ public class SymptomService implements ISymptomService {
                     symptom.setTreatmentCode(getStrFromCell(row.getCell(3)));
                 }
             } catch (Exception e) {
-                logger.error("关联治法编码有误 ," + e.getMessage(),e);
+                logger.error("关联治法编码有误 ," + e.getMessage(), e);
                 errMsg.append("关联治法编码有误").append(";");
             }
 
@@ -484,7 +530,7 @@ public class SymptomService implements ISymptomService {
                     symptom.setTreatmentName(getStrFromCell(row.getCell(4)));
                 }
             } catch (Exception e) {
-                logger.error("关联治法名称有误 ," + e.getMessage(),e);
+                logger.error("关联治法名称有误 ," + e.getMessage(), e);
                 errMsg.append("关联治法名称有误").append(";");
             }
 
@@ -493,7 +539,7 @@ public class SymptomService implements ISymptomService {
                     symptom.setRegulationSymptomCode(getStrFromCell(row.getCell(5)));
                 }
             } catch (Exception e) {
-                logger.error("关联监管证候编码有误 ," + e.getMessage(),e);
+                logger.error("关联监管证候编码有误 ," + e.getMessage(), e);
                 errMsg.append("关联监管证候编码有误").append(";");
             }
             try {
@@ -501,10 +547,9 @@ public class SymptomService implements ISymptomService {
                     symptom.setRegulationSymptomName(getStrFromCell(row.getCell(6)));
                 }
             } catch (Exception e) {
-                logger.error("关联监管证候名称有误 ," + e.getMessage(),e);
+                logger.error("关联监管证候名称有误 ," + e.getMessage(), e);
                 errMsg.append("关联监管证候名称有误").append(";");
             }
-
 
 
             symptom.setOrganId(organId);
@@ -512,18 +557,18 @@ public class SymptomService implements ISymptomService {
             symptom.setModifyDate(new Date());
             if (errMsg.length() > 1) {
                 int showNum = rowIndex + 1;
-                String error = ("【第" + showNum + "行】" + errMsg.substring(0, errMsg.length() - 1)+"\n");
+                String error = ("【第" + showNum + "行】" + errMsg.substring(0, errMsg.length() - 1) + "\n");
                 errMsgAll.append(error);
                 errDrugListMatchList.add(error);
             } else {
                 symptomLists.add(symptom);
             }
         }
-        if (errDrugListMatchList.size()>0){
+        if (errDrugListMatchList.size() > 0) {
 
             IImportExcelInfoService iImportExcelInfoService = AppContextHolder.getBean("opbase.importExcelInfoService", IImportExcelInfoService.class);
 
-            ImportExcelInfoDTO importExcelInfoDTO=new ImportExcelInfoDTO();
+            ImportExcelInfoDTO importExcelInfoDTO = new ImportExcelInfoDTO();
             //导入症候记录
             importExcelInfoDTO.setFileName(originalFilename);
             importExcelInfoDTO.setExcelType(15);
@@ -540,29 +585,29 @@ public class SymptomService implements ISymptomService {
             importExcelInfoDTO = iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
             result.put("code", 609);
             result.put("msg", errDrugListMatchList);
-            result.put("addNum",addNum);
-            result.put("updateNum",updateNum);
-            result.put("failNum",total-addNum-updateNum);
-            result.put("ImportExcelInfoId",importExcelInfoDTO.getId());
+            result.put("addNum", addNum);
+            result.put("updateNum", updateNum);
+            result.put("failNum", total - addNum - updateNum);
+            result.put("ImportExcelInfoId", importExcelInfoDTO.getId());
             logger.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
             return result;
 
-        }else {
+        } else {
             for (Symptom symptom1 : symptomLists) {
                 try {
                     //自动匹配功能暂无法提供
-                    if (symptomDAO.getByOrganIdAndSymptomNameAndSymptomCode(organId,symptom1.getSymptomName(),symptom1.getSymptomCode()) != null){
+                    if (symptomDAO.getByOrganIdAndSymptomNameAndSymptomCode(organId, symptom1.getSymptomName(), symptom1.getSymptomCode()) != null) {
                         Symptom symptom = symptomDAO.getByOrganIdAndSymptomNameAndSymptomCode(organId, symptom1.getSymptomName(), symptom1.getSymptomCode());
                         Symptom updatevalidate = updatevalidate(symptom, symptom1);
                         symptomDAO.update(updatevalidate);
                         updateNum++;
-                    }else {
+                    } else {
                         symptomDAO.save(symptom1);
                         addNum++;
                     }
 
                 } catch (Exception e) {
-                    logger.error("save  Symptom error " + e.getMessage(),e);
+                    logger.error("save  Symptom error " + e.getMessage(), e);
                 }
             }
         }
@@ -570,7 +615,7 @@ public class SymptomService implements ISymptomService {
         //导入药品记录
         IImportExcelInfoService iImportExcelInfoService = AppContextHolder.getBean("opbase.importExcelInfoService", IImportExcelInfoService.class);
 
-        ImportExcelInfoDTO importExcelInfoDTO=new ImportExcelInfoDTO();
+        ImportExcelInfoDTO importExcelInfoDTO = new ImportExcelInfoDTO();
         //导入药品记录
         importExcelInfoDTO.setFileName(originalFilename);
         importExcelInfoDTO.setExcelType(15);
@@ -583,18 +628,17 @@ public class SymptomService implements ISymptomService {
         importExcelInfoDTO.setExecuteDate(new Date());
         importExcelInfoDTO.setOssId(ossId);
         importExcelInfoDTO = iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
-        result.put("ImportExcelInfoId",importExcelInfoDTO.getId());
-        result.put("addNum",addNum);
-        result.put("updateNum",updateNum);
-        result.put("failNum",total-addNum-updateNum);
+        result.put("ImportExcelInfoId", importExcelInfoDTO.getId());
+        result.put("addNum", addNum);
+        result.put("updateNum", updateNum);
+        result.put("failNum", total - addNum - updateNum);
         logger.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         result.put("code", 200);
         return result;
     }
 
 
-
-    private Symptom updatevalidate(Symptom symptom,Symptom symptom1) {
+    private Symptom updatevalidate(Symptom symptom, Symptom symptom1) {
         if (!ObjectUtils.isEmpty(symptom1.getPinYin())) {
             symptom.setPinYin(symptom1.getPinYin());
         }
@@ -610,9 +654,9 @@ public class SymptomService implements ISymptomService {
         if (!ObjectUtils.isEmpty(symptom1.getRegulationSymptomName())) {
             symptom.setRegulationSymptomName(symptom1.getRegulationSymptomName());
         }
+        symptom.setModifyDate(new Date());
         return symptom;
     }
-
 
 
 }

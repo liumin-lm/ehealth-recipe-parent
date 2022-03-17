@@ -87,6 +87,16 @@ public abstract class SymptomDAO extends HibernateSupportDelegateDAO<Symptom> {
 
 
     /**
+     * 根据机构id查询未关联监管数量
+     *
+     * @param organId
+     */
+    @DAOMethod(sql = " select count(*) from Symptom where organId =:organId and ( regulationSymptomCode is null or regulationSymptomCode='' )  ")
+    public abstract Long getCountByOrganId(@DAOParam("organId") Integer organId);
+
+
+
+    /**
      * 通过orgsnId获取
      *
      * @param organId
