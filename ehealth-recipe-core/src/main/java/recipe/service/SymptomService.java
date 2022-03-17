@@ -301,12 +301,32 @@ public class SymptomService implements ISymptomService {
      * @return
      */
     @RpcService
-    public QueryResult<SymptomDTO> querSymptomByOrganIdAndName(Integer organId, String input, Boolean isRegulationSymptom, final int start, final int limit) {
+    public QueryResult<SymptomDTO> querSymptomByOrganIdAndNameYypt(Integer organId, String input, Boolean isRegulationSymptom, final int start, final int limit) {
         if (null == organId) {
             return null;
         }
         SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
         QueryResult<SymptomDTO> symptomQueryResult = symptomDAO.queryTempByTimeAndName(organId, input, isRegulationSymptom, start, limit);
+        logger.info("查询中医证候服务[querSymptomByOrganIdAndNameYypt]:" + JSONUtils.toString(symptomQueryResult.getItems()));
+        return symptomQueryResult;
+    }
+
+    /**
+     * 根据机构Id和查询条件查询中医症候
+     *
+     * @param organId
+     * @param input
+     * @param start
+     * @param limit
+     * @return
+     */
+    @RpcService
+    public QueryResult<SymptomDTO> querSymptomByOrganIdAndName(Integer organId, String input, final int start, final int limit) {
+        if (null == organId) {
+            return null;
+        }
+        SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
+        QueryResult<SymptomDTO> symptomQueryResult = symptomDAO.queryTempByTimeAndName(organId, input, null, start, limit);
         logger.info("查询中医证候服务[queryymptomByOrganIdAndName]:" + JSONUtils.toString(symptomQueryResult.getItems()));
         return symptomQueryResult;
     }
