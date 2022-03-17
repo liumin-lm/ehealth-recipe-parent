@@ -1667,7 +1667,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
 
     private StringBuilder generateRecipeMsgHQLforStatistics(RecipesQueryVO recipesQueryVO) {
-        StringBuilder hql = new StringBuilder("select r.recipeId,r.patientName,r.Mpiid mpiId,r.organName,r.depart,r.doctor,r.organDiseaseName,o.recipeFee,r.recipeFee,r.checker,r.checkDateYs,r.fromflag,r.status,o.payTime, r.doctorName, r.giveUser, o.dispensingTime, sum(cr.useTotalDose) sumDose ,o.send_type sendType ,o.outTradeNo ,o.cashAmount,o.fundAmount,o.orderType,r.recipeType,r.bussSource,r.recipeCode,ce.recipe_business_type as recipeBusinessType from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode left join cdr_recipedetail cr on cr.recipeId = r.recipeId left join cdr_recipe_ext ce on ce.recipeId = r.recipeId and cr.status =1  where 1=1 ");
+        StringBuilder hql = new StringBuilder("select r.recipeId,r.patientName,r.Mpiid mpiId,r.organName,r.depart,r.doctor,r.organDiseaseName,o.totalMoney,r.recipeFee,r.checker,r.checkDateYs,r.fromflag,r.status,o.payTime, r.doctorName, r.giveUser, o.dispensingTime, sum(cr.useTotalDose) sumDose ,o.send_type sendType ,o.outTradeNo ,o.cashAmount,o.fundAmount,o.orderType,r.recipeType,r.bussSource,r.recipeCode,ce.recipe_business_type as recipeBusinessType from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode left join cdr_recipedetail cr on cr.recipeId = r.recipeId left join cdr_recipe_ext ce on ce.recipeId = r.recipeId and cr.status =1  where 1=1 ");
         //默认查询所有
         if (CollectionUtils.isNotEmpty(recipesQueryVO.getOrganIds())) {
             // 添加申请机构条件
