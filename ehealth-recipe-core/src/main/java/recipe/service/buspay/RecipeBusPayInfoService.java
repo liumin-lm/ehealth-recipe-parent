@@ -692,12 +692,14 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         String mtTypeCode = "";
         //医保类型名称
         String insureTypeName = "";
+        String insureType = "";
         if (consultExDTO != null) {
             registerId = consultExDTO.getRegisterNo();
             cardId = null == consultExDTO.getCardId() ? "" : consultExDTO.getCardId();
             insureTypeCode = null == consultExDTO.getInsureTypeCode() ? "" : consultExDTO.getInsureTypeCode();
             mtTypeCode = null == consultExDTO.getMtTypeCode() ? "" : consultExDTO.getMtTypeCode();
             insureTypeName = null == consultExDTO.getInsureTypeName() ? "" : consultExDTO.getInsureTypeName();
+            insureType = null == consultExDTO.getMedicalFlag() ? "0" : consultExDTO.getMedicalFlag().toString();
 
         } else {
             registerId = "";
@@ -756,6 +758,9 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             builder.append("<InsureTypeName>");
             builder.append(insureTypeName);
             builder.append("</InsureTypeName>");
+            builder.append("<InsureType>");
+            builder.append(insureType);
+            builder.append("</InsureType>");
             builder.append("<ChronicDiseaseFlag>");
             builder.append(chronicDiseaseFlag);
             builder.append("</ChronicDiseaseFlag>");
