@@ -1,25 +1,32 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
+import es.api.DrugSearchService;
+import es.vo.DoctorDrugDetailVO;
+import es.vo.PatientDrugDetailVO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.DrugClient;
 import recipe.client.OfflineRecipeClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
+import recipe.util.LocalStringUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -50,6 +57,105 @@ public class DrugManager extends BaseManager {
     private OfflineRecipeClient offlineRecipeClient;
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
+    @Autowired
+    private DrugSearchService searchService ;
+
+    /**
+     * 更新drugList 到Es
+     *
+     * @param drugLists
+     */
+    public void updateDrugListToEs(List<DrugList> drugLists, int deleteFlag) {
+        List<PatientDrugDetailVO> updateList = new ArrayList<>();
+        for (DrugList drugList : drugLists) {
+            PatientDrugDetailVO detailVO = new PatientDrugDetailVO();
+            BeanUtils.copyProperties(drugList, detailVO);
+            detailVO.setDeleteFlag(deleteFlag);
+            detailVO.setDrugId(drugList.getDrugId());
+            updateList.add(detailVO);
+        }
+        if (CollectionUtils.isNotEmpty(updateList)) {
+            searchService.updatePatientDrugDetail(updateList);
+        }
+    }
+
+    /**
+     * 更新 organDrugList 到es
+     *
+     * @param organDrugLists
+     * @param deleteFlag
+     */
+    public void updateOrganDrugListToEs(List<OrganDrugList> organDrugLists, int deleteFlag, List<DrugList> drugList) {
+        if (CollectionUtils.isEmpty(organDrugLists)) {
+            LOGGER.warn("updateOrganDrugListToEs OrganDrugList is empty. ");
+            return;
+        }
+        List<DoctorDrugDetailVO> updateList = new ArrayList<>(organDrugLists.size());
+        List<Integer> drugIds = organDrugLists.stream().map(OrganDrugList::getDrugId).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(drugList)) {
+            DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+            drugList = drugListDAO.findByDrugIds(drugIds);
+        }
+        //基础数据为空的话则存在问题
+        if (CollectionUtils.isEmpty(drugList)) {
+            LOGGER.warn("updateOrganDrugListToEs drugList is empty. drugIds={}", JSONUtils.toString(drugIds));
+            drugList = Lists.newArrayList();
+        }
+        Map<Integer, List<DrugList>> drugListMap = drugList.stream().collect(Collectors.groupingBy(DrugList::getDrugId));
+        organDrugLists.forEach(organDrugList -> {
+            DoctorDrugDetailVO doctorDrugDetailVO = new DoctorDrugDetailVO();
+            BeanUtils.copyProperties(organDrugList, doctorDrugDetailVO);
+            doctorDrugDetailVO.setDeleteFlag(deleteFlag);
+            List<DrugList> drugLists = drugListMap.get(organDrugList.getDrugId());
+            if (CollectionUtils.isEmpty(drugLists)) {
+                doctorDrugDetailVO.setStatus(0);
+            } else {
+                //药品用法用量默认使用机构的，无机构数据则使用平台的，两者都无数据则为空
+                if (org.springframework.util.StringUtils.isEmpty(organDrugList.getUsePathways())) {
+                    doctorDrugDetailVO.setUsePathways(drugLists.get(0).getUsePathways());
+                }
+                if (org.springframework.util.StringUtils.isEmpty(organDrugList.getUsingRate())) {
+                    doctorDrugDetailVO.setUsingRate(drugLists.get(0).getUsingRate());
+                }
+                if (org.springframework.util.StringUtils.isEmpty(organDrugList.getUsePathwaysId())) {
+                    doctorDrugDetailVO.setUsePathwaysId(drugLists.get(0).getUsePathwaysId());
+                }
+                if (org.springframework.util.StringUtils.isEmpty(organDrugList.getUsingRateId())) {
+                    doctorDrugDetailVO.setUsingRateId(drugLists.get(0).getUsingRateId());
+                }
+                //重置searchKey
+                //机构药品名+平台商品名+机构商品名+院内别名
+                String searchKey = organDrugList.getDrugName() + ";" + drugLists.get(0).getSaleName() + ";" + organDrugList.getSaleName() + ";" +
+                        LocalStringUtil.toString(organDrugList.getRetrievalCode()) + ";" + organDrugList.getChemicalName();
+                doctorDrugDetailVO.setSearchKey(searchKey.replaceAll(" ", ";"));
+                doctorDrugDetailVO.setPlatformSaleName(drugLists.get(0).getSaleName());
+                doctorDrugDetailVO.setDrugType(drugLists.get(0).getDrugType());
+                doctorDrugDetailVO.setApplyBusiness(organDrugList.getApplyBusiness());
+                //status字段修改注意：先判断基础药品库，再处理机构药品库
+                if (0 == drugLists.get(0).getStatus()) {
+                    doctorDrugDetailVO.setStatus(0);
+                } else {
+                    doctorDrugDetailVO.setStatus(organDrugList.getStatus());
+                }
+                //设置药房id列表
+                if (org.apache.commons.lang3.StringUtils.isNotEmpty(organDrugList.getPharmacy())) {
+                    try {
+                        List<String> splitToList = Splitter.on(",").splitToList(organDrugList.getPharmacy());
+                        List<Integer> pharmacyIds = splitToList.stream().map(Integer::valueOf).collect(Collectors.toList());
+                        doctorDrugDetailVO.setPharmacyIds(pharmacyIds);
+                    } catch (Exception e) {
+                        LOGGER.error("pharmacyId transform exception! updateList={}", JSONUtils.toString(organDrugList), e);
+                    }
+                }
+            }
+            updateList.add(doctorDrugDetailVO);
+
+        });
+        if (CollectionUtils.isEmpty(updateList)) {
+            return;
+        }
+        searchService.updateDoctorDrugDetail(updateList);
+    }
 
     /**
      * todo 分层不合理 静态不合理 方法使用不合理 需要修改 （尹盛）
