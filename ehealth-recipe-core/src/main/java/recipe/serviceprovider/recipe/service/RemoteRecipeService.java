@@ -120,7 +120,6 @@ import recipe.util.DateConversion;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
-import java.sql.Time;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -405,7 +404,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         QueryResult<Map> result = recipeDAO.findRecipesByInfo(organId, status, doctor, patientName,
                 bDate, eDate, dateType, depart, start, limit, organIds,
                 giveMode, sendType, fromflag, recipeId, enterpriseId,
-                checkStatus, payFlag, orderType, refundNodeStatus, recipeType, null,null);
+                checkStatus, payFlag, orderType, refundNodeStatus, recipeType, null, null);
         List<Map> records = result.getItems();
         for (Map record : records) {
             Recipe recipe = recipeDAO.getByRecipeId((int) record.get("recipeId"));
@@ -428,10 +427,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         return result;
     }
 
+    @LogRecord
     @RpcService
     @Override
     public QueryResult<Map> findRecipesByInfo2(RecipesQueryVO recipesQueryVO) {
-        if (recipesQueryVO.getOrganId()!=null) {
+        if (recipesQueryVO.getOrganId() != null) {
             if (!OpSecurityUtil.isAuthorisedOrgan(recipesQueryVO.getOrganId())) {
                 return null;
             }
@@ -441,8 +441,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         List<Integer> organIds = null;
         if (!"eh".equals(manageUnit) && !manageUnit.startsWith("yq")) {
             organIds = new ArrayList<>();
-            OrganService organService=AppContextHolder.getBean("basic.organService", OrganService.class);
-            organIds=organService.queryOrganByManageUnitList(manageUnit, organIds);
+            OrganService organService = AppContextHolder.getBean("basic.organService", OrganService.class);
+            organIds = organService.queryOrganByManageUnitList(manageUnit, organIds);
         }
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         QueryResult<Map> result = recipeDAO.findRecipesByInfo(recipesQueryVO.getOrganId(), recipesQueryVO.getStatus(), recipesQueryVO.getDoctor()
@@ -450,7 +450,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
                 , recipesQueryVO.getDepart(), recipesQueryVO.getStart(), recipesQueryVO.getLimit(), organIds
                 , recipesQueryVO.getGiveMode(), recipesQueryVO.getSendType(), recipesQueryVO.getFromFlag(), recipesQueryVO.getRecipeId()
                 , recipesQueryVO.getEnterpriseId(), recipesQueryVO.getCheckStatus(), recipesQueryVO.getPayFlag(), recipesQueryVO.getOrderType()
-                , recipesQueryVO.getRefundNodeStatus(), recipesQueryVO.getRecipeType(), recipesQueryVO.getBussSource(),recipesQueryVO.getRecipeBusinessType());
+                , recipesQueryVO.getRefundNodeStatus(), recipesQueryVO.getRecipeType(), recipesQueryVO.getBussSource(), recipesQueryVO.getRecipeBusinessType());
         List<Map> records = result.getItems();
         for (Map record : records) {
             Recipe recipe = recipeDAO.getByRecipeId((int) record.get("recipeId"));
@@ -567,7 +567,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         LOGGER.info("remoteRecipeService.findRecipeAndDetailsAndCheckById 返回处方单详情返回值,{}", JSON.toJSONString(recipeDetial));
 
         RecipeBean recipeBean = (RecipeBean) recipeDetial.get("recipe");
-        if (recipeBean != null){
+        if (recipeBean != null) {
             securityService.isAuthoritiedOrganNew(recipeBean.getClinicOrgan());
         }
 
@@ -763,10 +763,10 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService(timeout = 600000)
     @Override
     public List<Object[]> findRecipesByInfoForExcel2(RecipesQueryVO recipesQueryVO) {
-        LOGGER.info("remoteRecipeService findRecipesByInfoForExcel2 recipesQueryVO={}",JSONUtils.toString(recipesQueryVO));
+        LOGGER.info("remoteRecipeService findRecipesByInfoForExcel2 recipesQueryVO={}", JSONUtils.toString(recipesQueryVO));
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         List<Object[]> result = recipeDAO.findRecipesByInfoForExcel(recipesQueryVO);
-        LOGGER.info("remoteRecipeService findRecipesByInfoForExcel2 result={}",JSONUtils.toString(result));
+        LOGGER.info("remoteRecipeService findRecipesByInfoForExcel2 result={}", JSONUtils.toString(result));
         return result;
     }
 
@@ -790,8 +790,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     @Deprecated
     public List<Object[]> findRecipeOrdersByInfoForExcel(Integer organId, List<Integer> organIds, Integer status, Integer doctor, String patientName, Date bDate,
-                                                         Date eDate, Integer dateType, Integer depart, Integer giveMode, Integer fromflag, Integer recipeId, Integer recipeType, Integer bussSource,Integer recipeBusinessType) {
-        LOGGER.info("findRecipeOrdersByInfoForExcel查询处方订单导出信息入参:{},{},{},{},{},{},{},{},{},{},{},{}", organId, organIds, status, doctor, patientName, bDate, eDate, dateType, depart, giveMode, fromflag, recipeId, recipeType, bussSource,recipeBusinessType);
+                                                         Date eDate, Integer dateType, Integer depart, Integer giveMode, Integer fromflag, Integer recipeId, Integer recipeType, Integer bussSource, Integer recipeBusinessType) {
+        LOGGER.info("findRecipeOrdersByInfoForExcel查询处方订单导出信息入参:{},{},{},{},{},{},{},{},{},{},{},{}", organId, organIds, status, doctor, patientName, bDate, eDate, dateType, depart, giveMode, fromflag, recipeId, recipeType, bussSource, recipeBusinessType);
         RecipesQueryVO recipesQueryVO = new RecipesQueryVO();
         recipesQueryVO.setOrganIds(organIds);
         recipesQueryVO.setOrganId(organId);
@@ -1593,6 +1593,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     /**
      * 只要可能存在的机构盖章
+     *
      * @param requestSealTO
      * @param recipe
      * @param organId
@@ -1676,13 +1677,13 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @Override
     public List<RecipeBean> searchRecipe(Set<Integer> organs, Integer searchFlag, String searchString, Integer start, Integer limit) {
         List<Recipe> recipes = Collections.EMPTY_LIST;
-        if(4 == searchFlag) {
-            if(StringUtils.isNoneBlank(searchString)){
+        if (4 == searchFlag) {
+            if (StringUtils.isNoneBlank(searchString)) {
                 DepartmentService departService = ApplicationUtils.getBasicService(DepartmentService.class);
                 List<Integer> departIds = departService.findIdsByName(searchString);
                 recipes = recipeDAO.searchRecipeByDepartName(organs, searchFlag, searchString, departIds, start, limit);
             }
-        }else{
+        } else {
             recipes = recipeDAO.searchRecipe(organs, searchFlag, searchString, start, limit);
         }
         //转换前端的展示实体类
@@ -2048,7 +2049,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @Override
     public void pharmacyToRecipePDF(Integer recipeId, Integer checker) {
-            createPdfFactory.updateCheckNamePdfESign(recipeId);
+        createPdfFactory.updateCheckNamePdfESign(recipeId);
     }
 
 
@@ -2826,12 +2827,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     }
 
 
-
     @RpcService
     @Override
     @LogRecord
     public List<RecipeBean> findRecipeAuditByFlag(List<Integer> organ, List<Integer> recipeTypes, Integer checker, int flag, int start, int limit, String startTime, String endTime) {
-        List<Recipe>  recipes = recipeDAO.findRecipeAuditByFlag(organ, recipeTypes,checker, flag, start, limit, startTime, endTime);
+        List<Recipe> recipes = recipeDAO.findRecipeAuditByFlag(organ, recipeTypes, checker, flag, start, limit, startTime, endTime);
         //转换前端的展示实体类
         List<RecipeBean> recipeBeans = changBean(recipes, RecipeBean.class);
         return recipeBeans;
@@ -2840,8 +2840,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     @RpcService
     @Override
     @LogRecord
-    public Long findRecipeAuditCountByFlag(List<Integer> organ, List<Integer> recipeTypes,Integer checker, int flag, String startTime, String endTime) {
-        Long recipeCount = recipeDAO.findRecipeAuditCountByFlag(organ, recipeTypes,checker, flag, startTime, endTime);
+    public Long findRecipeAuditCountByFlag(List<Integer> organ, List<Integer> recipeTypes, Integer checker, int flag, String startTime, String endTime) {
+        Long recipeCount = recipeDAO.findRecipeAuditCountByFlag(organ, recipeTypes, checker, flag, startTime, endTime);
         return recipeCount;
     }
 
