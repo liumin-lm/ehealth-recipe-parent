@@ -40,7 +40,7 @@ import recipe.service.RecipeMsgService;
 import recipe.service.RecipeService;
 import recipe.service.RecipeServiceSub;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.thread.UpdateWaterPrintRecipePdfRunable;
+import recipe.thread.UpdateWaterPrintRecipePdfRunnable;
 
 import java.util.Map;
 
@@ -141,7 +141,7 @@ public class AuditPreMode extends AbstractAuidtMode {
             LOGGER.info("第三方智能审方end");
         }
         //异步添加水印
-        RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunable(recipe.getRecipeId()));
+        RecipeBusiThreadPool.execute(new UpdateWaterPrintRecipePdfRunnable(recipe.getRecipeId()));
     }
 
     /**

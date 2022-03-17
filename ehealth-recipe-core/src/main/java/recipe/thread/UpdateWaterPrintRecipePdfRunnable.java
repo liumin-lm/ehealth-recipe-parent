@@ -18,13 +18,13 @@ import recipe.util.DateConversion;
  * @author liumin
  */
 
-public class UpdateWaterPrintRecipePdfRunable implements Runnable {
+public class UpdateWaterPrintRecipePdfRunnable implements Runnable {
 
-    private static final Logger logger = LoggerFactory.getLogger(UpdateWaterPrintRecipePdfRunable.class);
+    private static final Logger logger = LoggerFactory.getLogger(UpdateWaterPrintRecipePdfRunnable.class);
 
     private Integer recipeId;
 
-    public UpdateWaterPrintRecipePdfRunable(Integer recipeId) {
+    public UpdateWaterPrintRecipePdfRunnable(Integer recipeId) {
         this.recipeId = recipeId;
     }
 
