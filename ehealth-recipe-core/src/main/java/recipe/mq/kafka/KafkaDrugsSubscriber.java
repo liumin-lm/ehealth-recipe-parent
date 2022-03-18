@@ -28,13 +28,14 @@ public class KafkaDrugsSubscriber implements MonitorSubscriber {
     public void init() {
         //groupid 不同时，消费同一topic，相当于广播消费
         try {
-            subscriber = KafkaHelperForCommon.createSubscriber(
-                    OnsConfig.kafkaServers, "drugList-consumer");
-            //订阅业务topic
-            subscriber.attach(Sets.newHashSet(
-                    OnsConfig.drugListNursingTopic),
-                    new KafkaDrugsSyncObserver());
-
+            if (OnsConfig.onsSwitch) {
+                subscriber = KafkaHelperForCommon.createSubscriber(
+                        OnsConfig.kafkaServers, "drugList-consumer");
+                //订阅业务topic
+                subscriber.attach(Sets.newHashSet(
+                        OnsConfig.drugListNursingTopic),
+                        new KafkaDrugsSyncObserver());
+            }
         } catch (KafkaException e) {
             logger.error(e.getMessage(), e);
         }

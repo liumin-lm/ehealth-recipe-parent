@@ -6,13 +6,13 @@ package recipe.mq.kafka;
 public class OnsConfig {
     public static boolean onsSwitch;
 
-    public static String kafkaServers = "172.21.1.142:9092";
+    public static String kafkaServers;
 
 
     /**
      * 药品topic
      */
-    public static String drugListNursingTopic = "eh_recipe_encrypt";
+    public static String drugListNursingTopic;
 
 
     public void setOnsSwitch(boolean onsSwitch) {
