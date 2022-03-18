@@ -786,6 +786,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @param fromflag
      * @return
      */
+    @LogRecord
     @RpcService(timeout = 600000)
     @Override
     @Deprecated

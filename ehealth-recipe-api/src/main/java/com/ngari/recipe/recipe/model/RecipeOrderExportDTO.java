@@ -76,27 +76,6 @@ public class RecipeOrderExportDTO implements Serializable {
     @ItemProperty(alias = "发药时间")
     private Date dispensingTime;
 
-    @ItemProperty(alias = "机构药品编码")
-    private String organDrugCode;
-
-    @ItemProperty(alias = "医保药品编码")
-    private String medicalDrugCode;
-
-    public String getOrganDrugCode() {
-        return organDrugCode;
-    }
-
-    public void setOrganDrugCode(String organDrugCode) {
-        this.organDrugCode = organDrugCode;
-    }
-
-    public String getMedicalDrugCode() {
-        return medicalDrugCode;
-    }
-
-    public void setMedicalDrugCode(String medicalDrugCode) {
-        this.medicalDrugCode = medicalDrugCode;
-    }
 
     @Column(name = "RecipeIdList")
     public String getRecipeIdList() {

@@ -11,34 +11,34 @@ import java.math.BigDecimal;
 import static javax.persistence.GenerationType.IDENTITY;
 
 /**
- *@author  Created by liuxiaofeng on 2020/12/7.
+ * @author Created by liuxiaofeng on 2020/12/7.
  * 配送订单导出 处方实体
  */
 @Schema
 @Entity
 @Access(AccessType.PROPERTY)
-public class RecipeDetailExportDTO implements Serializable{
+public class RecipeDetailExportDTO implements Serializable {
     private static final long serialVersionUID = 5319317470905380390L;
 
-    @ItemProperty(alias="处方明细序号")
+    @ItemProperty(alias = "处方明细序号")
     private Integer recipeDetailId;
-    @ItemProperty(alias="药物名称")
+    @ItemProperty(alias = "药物名称")
     private String drugName;
-    @ItemProperty(alias="药物规格")
+    @ItemProperty(alias = "药物规格")
     private String drugSpec;
-    @ItemProperty(alias="药物单位")
+    @ItemProperty(alias = "药物单位")
     private String drugUnit;
-    @ItemProperty(alias="药物使用次剂量")
+    @ItemProperty(alias = "药物使用次剂量")
     private Double useDose;
-    @ItemProperty(alias="药物使用规格单位")
+    @ItemProperty(alias = "药物使用规格单位")
     private String useDoseUnit;
-    @ItemProperty(alias="平台药物使用频率代码")
-    @Dictionary(id="eh.cdr.dictionary.UsingRate")
+    @ItemProperty(alias = "平台药物使用频率代码")
+    @Dictionary(id = "eh.cdr.dictionary.UsingRate")
     private String usingRate;
-    @ItemProperty(alias="平台药物使用途径代码")
-    @Dictionary(id="eh.cdr.dictionary.UsePathways")
+    @ItemProperty(alias = "平台药物使用途径代码")
+    @Dictionary(id = "eh.cdr.dictionary.UsePathways")
     private String usePathways;
-    @ItemProperty(alias="销售价格")
+    @ItemProperty(alias = "销售价格")
     private BigDecimal salePrice;
     //同步机构药品信息新添字段
     @ItemProperty(alias = "生产厂家")
@@ -50,9 +50,31 @@ public class RecipeDetailExportDTO implements Serializable{
     private BigDecimal actualSalePrice;
     @ItemProperty(alias = "药企药品编码")
     private String saleDrugCode;
-    @ItemProperty(alias="药物使用总数量")
+    @ItemProperty(alias = "药物使用总数量")
     private Double useTotalDose;
+    @ItemProperty(alias = "机构药品编码")
+    private String organDrugCode;
 
+    @ItemProperty(alias = "医保药品编码")
+    private String medicalDrugCode;
+
+    @Column(name = "organDrugCode")
+    public String getOrganDrugCode() {
+        return organDrugCode;
+    }
+
+    public void setOrganDrugCode(String organDrugCode) {
+        this.organDrugCode = organDrugCode;
+    }
+
+    @Column(name = "medicalDrugCode")
+    public String getMedicalDrugCode() {
+        return medicalDrugCode;
+    }
+
+    public void setMedicalDrugCode(String medicalDrugCode) {
+        this.medicalDrugCode = medicalDrugCode;
+    }
 
     @Column(name = "licenseNumber")
     public String getLicenseNumber() {
@@ -104,7 +126,6 @@ public class RecipeDetailExportDTO implements Serializable{
     }
 
 
-
     @Column(name = "DrugUnit")
     public String getDrugUnit() {
         return this.drugUnit;
@@ -132,7 +153,6 @@ public class RecipeDetailExportDTO implements Serializable{
     public void setUseDoseUnit(String useDoseUnit) {
         this.useDoseUnit = useDoseUnit;
     }
-
 
 
     @Column(name = "UsingRate", length = 20)
@@ -163,7 +183,6 @@ public class RecipeDetailExportDTO implements Serializable{
     }
 
 
-
     @Column(name = "salePrice", precision = 10)
     public BigDecimal getSalePrice() {
         return salePrice;
@@ -172,7 +191,6 @@ public class RecipeDetailExportDTO implements Serializable{
     public void setSalePrice(BigDecimal salePrice) {
         this.salePrice = salePrice;
     }
-
 
 
     @Column(name = "actualSalePrice")
