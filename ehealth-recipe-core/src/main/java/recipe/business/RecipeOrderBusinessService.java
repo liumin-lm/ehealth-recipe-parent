@@ -215,6 +215,17 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         createPdfFactory.updateCodePdfExecute(recipeId);
     }
 
+    /**
+     *  根据订单号更新物流单号
+     * @param orderCode 订单号
+     * @param trackingNumber 物流单号
+     * @return 是否成功
+     */
+    @Override
+    public Boolean updateTrackingNumberByOrderCode(String orderCode, String trackingNumber) {
+        recipeOrderDAO.updateTrackingNumberByOrderCode(orderCode, trackingNumber);
+        return true;
+    }
 
     /**
      * todo 需要修改成 新模式
