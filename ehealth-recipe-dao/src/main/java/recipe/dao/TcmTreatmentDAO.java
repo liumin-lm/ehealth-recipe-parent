@@ -123,7 +123,7 @@ public abstract class TcmTreatmentDAO extends HibernateSupportDelegateDAO<TcmTre
                     if (isRegulation) {
                         sql.append(" and regulationTreatmentCode is not null ");
                     } else {
-                        sql.append(" and regulationTreatmentCode is  null ");
+                        sql.append(" and ( regulationTreatmentCode is  null or regulationTreatmentCode='' )");
                     }
                 }
                 Query countQuery = ss.createQuery("select count(*) " + sql.toString());

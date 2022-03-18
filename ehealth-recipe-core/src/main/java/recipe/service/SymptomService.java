@@ -20,6 +20,7 @@ import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
+import ctd.util.PyConverter;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
@@ -285,6 +286,10 @@ public class SymptomService implements ISymptomService {
         if (null == symptom.getOrganId()) {
             throw new DAOException(DAOException.VALUE_NEEDED, "organId is needed");
         }
+        /*if (StringUtils.isEmpty(symptom.getPinYin())) {
+            String firstLetter = PyConverter.getFirstLetter(symptom.getSymptomName());
+            symptom.setPinYin(firstLetter);
+        }*/
         if (ObjectUtils.isEmpty(symptom.getSymptomId())) {
             symptom.setCreateDate(new Date());
         }
@@ -510,7 +515,12 @@ public class SymptomService implements ISymptomService {
             try {
                 if (!StringUtils.isEmpty(getStrFromCell(row.getCell(2)))) {
                     symptom.setPinYin(getStrFromCell(row.getCell(2)));
-                }
+                } /*else {
+                    if (!StringUtils.isEmpty(getStrFromCell(row.getCell(1)))) {
+                        String firstLetter = PyConverter.getFirstLetter(symptom.getSymptomName());
+                        symptom.setPinYin(firstLetter);
+                    }
+                }*/
             } catch (Exception e) {
                 logger.error("拼音有误 ," + e.getMessage(), e);
                 errMsg.append("拼音有误").append(";");
