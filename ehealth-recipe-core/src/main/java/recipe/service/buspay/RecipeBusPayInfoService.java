@@ -671,6 +671,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         log.info("newWnExtBusCdrRecipe.recipeBean={}", JSONObject.toJSONString(recipeBean));
         IRevisitExService revisitExService = RevisitAPI.getService(IRevisitExService.class);
         RevisitExDTO consultExDTO = revisitExService.getByConsultId(recipeBean.getClinicId());
+        log.info("consultExDTO :{}", JSONUtils.toString(consultExDTO));
         WnExtBusCdrRecipeDTO wnExtBusCdrRecipe = new WnExtBusCdrRecipeDTO();
         wnExtBusCdrRecipe.setAction("PUTMZSYT");
         wnExtBusCdrRecipe.setHzxm(patient.getPatientName());
@@ -774,7 +775,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             builder.append(complication);
             builder.append("</Complication>");
             wnExtBusCdrRecipe.setYbrc(ctd.util.Base64.encodeToString(builder.toString().getBytes(), 2));
-            log.info("newWnExtBusCdrRecipe builder={}", builder.toString());
+            log.info("newWnExtBusCdrRecipe clinicId={} builder={}", recipeBean.getClinicId(), builder.toString());
         } else {
             //医保入参--处方人脸识别token-base64加密
             if (extend != null && StringUtils.isNotEmpty(extend.getMedicalSettleData())) {
