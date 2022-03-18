@@ -94,13 +94,13 @@ public class SymptomService implements ISymptomService {
         if (ObjectUtils.isEmpty(symptom.getOrganId())) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "机构ID不能为空");
         }
-        if (!StringUtils.isEmpty(symptom.getSymptomCode())) {
+        if (!StringUtils.isEmpty(symptom.getSymptomName())) {
             Symptom byOrganIdAndSymptomName = symptomDAO.getByOrganIdAndSymptomName(symptom.getOrganId(), symptom.getSymptomName());
             if (!ObjectUtils.isEmpty(byOrganIdAndSymptomName)) {
                 return false;
             }
         }
-        if (!StringUtils.isEmpty(symptom.getSymptomName())) {
+        if (!StringUtils.isEmpty(symptom.getSymptomCode())) {
             Symptom byOrganIdAndSymptomCode = symptomDAO.getByOrganIdAndSymptomCode(symptom.getOrganId(), symptom.getSymptomCode());
             if (!ObjectUtils.isEmpty(byOrganIdAndSymptomCode)) {
                 return false;
