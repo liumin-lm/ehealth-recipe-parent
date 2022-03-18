@@ -68,4 +68,12 @@ public interface IRecipeOrderBusinessService {
      * @param recipeId
      */
     void updatePdfForSubmitOrderAfter(Integer recipeId);
+
+    /**
+     *  根据订单号更新物流单号
+     * @param orderCode 订单号
+     * @param trackingNumber 物流单号
+     * @return 是否成功
+     */
+    Boolean updateTrackingNumberByOrderCode(String orderCode, String trackingNumber);
 }

@@ -27,4 +27,13 @@ public interface IRecipeOrderAtopService {
      */
     @RpcService(mvcDisabled = true)
     CheckRequestCommonOrderPageDTO getRecipePageForCommonOrder(SyncOrderVO request);
+
+    /**
+     *  根据订单号更新物流单号
+     * @param orderCode 订单号
+     * @param trackingNumber 物流单号
+     * @return 是否更新成功
+     */
+    @RpcService(mvcDisabled = true)
+    Boolean updateTrackingNumberByOrderCode(String orderCode, String trackingNumber);
 }

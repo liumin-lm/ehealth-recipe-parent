@@ -59,4 +59,10 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
         logger.info("RecipeOrderOpenAtop getRevisitPageForCommonOrder res CheckRequestCommonOrderPageDTO={}", JSONArray.toJSONString(checkRequestCommonOrderPageDTO));
         return checkRequestCommonOrderPageDTO;
     }
+
+    @Override
+    public Boolean updateTrackingNumberByOrderCode(String orderCode, String trackingNumber) {
+        validateAtop(orderCode, trackingNumber);
+        return recipeOrderService.updateTrackingNumberByOrderCode(orderCode, trackingNumber);
+    }
 }
