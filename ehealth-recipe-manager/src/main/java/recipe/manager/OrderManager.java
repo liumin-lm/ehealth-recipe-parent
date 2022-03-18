@@ -95,6 +95,10 @@ public class OrderManager extends BaseManager {
             return true;
         }
         Recipe recipe = recipeDAO.get(recipeId);
+        Boolean logisticsPlaceOrderFlag = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "logisticsPlaceOrderFlag", false);
+        if (!logisticsPlaceOrderFlag) {
+            return true;
+        }
         AddressService addressService = AppContextHolder.getBean("basic.addressService", AddressService.class);
         AddressDTO address = addressService.get(Integer.parseInt(addressId));
         Integer payMode = MapValueUtil.getInteger(extInfo, "payMode");
