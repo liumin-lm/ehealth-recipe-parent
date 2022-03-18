@@ -27,6 +27,30 @@ public class OnsConfig {
 
     public static String revisitStatusNotify;
 
+    public static boolean kafkaSwitch;
+
+    public static String kafkaServers;
+
+
+    /**
+     * 药品topic
+     */
+    public static String drugListNursingTopic;
+
+
+    public void setKafkaSwitch(boolean kafkaSwitch) {
+        OnsConfig.kafkaSwitch = kafkaSwitch;
+    }
+
+
+    public void setDrugListNursingTopic(String drugListNursingTopic) {
+        OnsConfig.drugListNursingTopic = drugListNursingTopic;
+    }
+
+    public void setKafkaServers(String kafkaServers) {
+        OnsConfig.kafkaServers = kafkaServers;
+    }
+
 
     public void setRevisitStatusNotify(String revisitStatusNotify) {
         OnsConfig.revisitStatusNotify = revisitStatusNotify;

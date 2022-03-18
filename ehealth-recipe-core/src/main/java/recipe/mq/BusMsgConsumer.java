@@ -61,7 +61,7 @@ public class BusMsgConsumer {
         /**
          * 接收药品修改消息
          */
-        if(!recipe.mq.kafka.OnsConfig.onsSwitch) {
+        if(!OnsConfig.kafkaSwitch) {
             subscriber.attach(OnsConfig.dbModifyTopic, "base_druglist||base_organdruglist",
                     new DrugSyncObserver());
         }

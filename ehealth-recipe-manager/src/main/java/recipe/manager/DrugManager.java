@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.aop.LogRecord;
 import recipe.client.DrugClient;
 import recipe.client.OfflineRecipeClient;
 import recipe.constant.RecipeBussConstant;
@@ -65,6 +66,7 @@ public class DrugManager extends BaseManager {
      *
      * @param drugLists
      */
+    @LogRecord
     public void updateDrugListToEs(List<DrugList> drugLists, int deleteFlag) {
         List<PatientDrugDetailVO> updateList = new ArrayList<>();
         for (DrugList drugList : drugLists) {
@@ -85,6 +87,7 @@ public class DrugManager extends BaseManager {
      * @param organDrugLists
      * @param deleteFlag
      */
+    @LogRecord
     public void updateOrganDrugListToEs(List<OrganDrugList> organDrugLists, int deleteFlag, List<DrugList> drugList) {
         if (CollectionUtils.isEmpty(organDrugLists)) {
             LOGGER.warn("updateOrganDrugListToEs OrganDrugList is empty. ");

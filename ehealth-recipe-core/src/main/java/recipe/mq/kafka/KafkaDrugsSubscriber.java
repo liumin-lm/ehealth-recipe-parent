@@ -8,6 +8,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import recipe.common.OnsConfig;
 
 import java.util.Arrays;
 import java.util.Properties;
@@ -28,7 +29,7 @@ public class KafkaDrugsSubscriber implements MonitorSubscriber {
     public void init() {
         //groupid 不同时，消费同一topic，相当于广播消费
         try {
-            if (OnsConfig.onsSwitch) {
+            if (OnsConfig.kafkaSwitch) {
                 subscriber = KafkaHelperForCommon.createSubscriber(
                         OnsConfig.kafkaServers, "drugList-consumer");
                 //订阅业务topic
