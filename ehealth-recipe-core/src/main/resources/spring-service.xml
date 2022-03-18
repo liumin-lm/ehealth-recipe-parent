@@ -47,7 +47,6 @@
     <reference id="infra.waybillService" interface="com.ngari.infra.logistics.service.IWaybillService"/>
     <!--支付平台记账-->
     <reference id="easypay.payService" interface="recipe.easypay.IEasyPayService"/>
-    <reference id="eh.scratchableService" interface="com.ngari.base.scratchable.service.IScratchableService"/>
     <!--随访服务-->
     <reference id="pm.remoteMedicineRemindService" interface="com.ngari.follow.service.IMedicineRemindService"/>
 
