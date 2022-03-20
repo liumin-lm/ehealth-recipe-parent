@@ -55,11 +55,11 @@ public class RecipeDetailExportDTO implements Serializable {
     @ItemProperty(alias = "医保药品编码")
     private String drugId;
 
-    @ItemProperty(alias = "机构药品编码")
-    private String organDrugCode;
-
-    @ItemProperty(alias = "医保药品编码")
-    private String medicalDrugCode;
+//    @ItemProperty(alias = "机构药品编码")
+//    private String organDrugCode;
+//
+//    @ItemProperty(alias = "医保药品编码")
+//    private String medicalDrugCode;
 
     @Column(name = "drugId")
     public String getDrugId() {
@@ -70,23 +70,23 @@ public class RecipeDetailExportDTO implements Serializable {
         this.drugId = drugId;
     }
 
-    @Column(name = "organDrugCode")
-    public String getOrganDrugCode() {
-        return organDrugCode;
-    }
-
-    public void setOrganDrugCode(String organDrugCode) {
-        this.organDrugCode = organDrugCode;
-    }
-
-    @Column(name = "medicalDrugCode")
-    public String getMedicalDrugCode() {
-        return medicalDrugCode;
-    }
-
-    public void setMedicalDrugCode(String medicalDrugCode) {
-        this.medicalDrugCode = medicalDrugCode;
-    }
+//    @Column(name = "organDrugCode")
+//    public String getOrganDrugCode() {
+//        return organDrugCode;
+//    }
+//
+//    public void setOrganDrugCode(String organDrugCode) {
+//        this.organDrugCode = organDrugCode;
+//    }
+//
+//    @Column(name = "medicalDrugCode")
+//    public String getMedicalDrugCode() {
+//        return medicalDrugCode;
+//    }
+//
+//    public void setMedicalDrugCode(String medicalDrugCode) {
+//        this.medicalDrugCode = medicalDrugCode;
+//    }
 
     @Column(name = "licenseNumber")
     public String getLicenseNumber() {
