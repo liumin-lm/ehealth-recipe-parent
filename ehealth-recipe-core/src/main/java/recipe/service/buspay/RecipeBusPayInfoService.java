@@ -665,6 +665,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
 
     @Override
     @RpcService
+    @LogRecord
     public WnExtBusCdrRecipeDTO newWnExtBusCdrRecipe(RecipeOrderBean recipeOrder, Patient patient) {
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
         RecipeBean recipeBean = recipeService.getByRecipeId(recipeIdList.get(0));

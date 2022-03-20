@@ -52,11 +52,23 @@ public class RecipeDetailExportDTO implements Serializable {
     private String saleDrugCode;
     @ItemProperty(alias = "药物使用总数量")
     private Double useTotalDose;
+    @ItemProperty(alias = "医保药品编码")
+    private String drugId;
+
     @ItemProperty(alias = "机构药品编码")
     private String organDrugCode;
 
     @ItemProperty(alias = "医保药品编码")
     private String medicalDrugCode;
+
+    @Column(name = "drugId")
+    public String getDrugId() {
+        return drugId;
+    }
+
+    public void setDrugId(String drugId) {
+        this.drugId = drugId;
+    }
 
     @Column(name = "organDrugCode")
     public String getOrganDrugCode() {
