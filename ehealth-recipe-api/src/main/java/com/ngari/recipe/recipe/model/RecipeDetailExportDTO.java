@@ -55,8 +55,8 @@ public class RecipeDetailExportDTO implements Serializable {
     @ItemProperty(alias = "医保药品编码")
     private String drugId;
 
-//    @ItemProperty(alias = "机构药品编码")
-//    private String organDrugCode;
+    @ItemProperty(alias = "机构药品编码")
+    private String organDrugCode;
 //
 //    @ItemProperty(alias = "医保药品编码")
 //    private String medicalDrugCode;
@@ -70,14 +70,14 @@ public class RecipeDetailExportDTO implements Serializable {
         this.drugId = drugId;
     }
 
-//    @Column(name = "organDrugCode")
-//    public String getOrganDrugCode() {
-//        return organDrugCode;
-//    }
-//
-//    public void setOrganDrugCode(String organDrugCode) {
-//        this.organDrugCode = organDrugCode;
-//    }
+    @Column(name = "organDrugCode")
+    public String getOrganDrugCode() {
+        return organDrugCode;
+    }
+
+    public void setOrganDrugCode(String organDrugCode) {
+        this.organDrugCode = organDrugCode;
+    }
 //
 //    @Column(name = "medicalDrugCode")
 //    public String getMedicalDrugCode() {
