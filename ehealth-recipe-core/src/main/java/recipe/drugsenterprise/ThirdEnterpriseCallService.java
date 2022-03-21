@@ -1719,7 +1719,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                         && recipeOrder.getEnterpriseId() == 433
                         && recipe.getRecipeType() == 3) {
                     if (StringUtils.isNotEmpty(recipeExtend.getDecoctionId())
-                            && (recipeExtend.getDecoctionId().equals("88") || recipeExtend.getDecoctionId().equals("89"))) {
+                            && (recipeExtend.getDecoctionId().equals("87") || recipeExtend.getDecoctionId().equals("88"))) {
                         continue;
                     }
                 }
