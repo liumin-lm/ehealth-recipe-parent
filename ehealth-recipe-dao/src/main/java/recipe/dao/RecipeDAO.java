@@ -1805,9 +1805,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         hql.append("d.recipeDetailId,d.drugName,d.drugSpec,d.drugUnit,d.salePrice,d.actualSalePrice,d.saleDrugCode,d.producer,d.licenseNumber,d.useDose,d.useDoseUnit,d.usePathways,d.usingRate,d.useTotalDose,d.drugId ,d.organDrugCode ");
 //        hql.append(" ,drug.organDrugCode,drug.medicalDrugCode  ");
         hql.append(" from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode ");
-        hql.append("LEFT JOIN cdr_recipedetail d ON r.RecipeID = d.RecipeID LEFT JOIN cdr_recipe_ext ce on ce.recipeId = r.recipeId and d.Status= 1 ");
+        hql.append("LEFT JOIN cdr_recipedetail d ON r.RecipeID = d.RecipeID LEFT JOIN cdr_recipe_ext ce on ce.recipeId = r.recipeId ");
 //        hql.append("LEFT JOIN base_organdruglist drug on drug.OrganDrugCode=d.OrganDrugCode and drug.OrganID=r.clinicorgan  ");
-        hql.append(" where 1=1 ");
+        hql.append(" where d.Status= 1 ");
         //默认查询所有
         if (CollectionUtils.isNotEmpty(recipesQueryVO.getOrganIds())) {
             // 添加申请机构条件
