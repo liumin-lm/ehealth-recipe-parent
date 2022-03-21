@@ -190,11 +190,11 @@ public class SymptomService implements ISymptomService {
         //验证症候必要信息
         validate(convert);
         Symptom byOrganIdAndSymptomName = symptomDAO.getByOrganIdAndSymptomName(symptom.getOrganId(), symptom.getSymptomName());
-        if (!ObjectUtils.isEmpty(byOrganIdAndSymptomName) && byOrganIdAndSymptomName.getSymptomId() != symptom.getSymptomId()) {
+        if (!ObjectUtils.isEmpty(byOrganIdAndSymptomName) && !byOrganIdAndSymptomName.getSymptomId().equals(symptom.getSymptomId()) ) {
             throw new DAOException(DAOException.VALUE_NEEDED, "该机构证候 名称已存在!");
         }
         Symptom byOrganIdAndSymptomCode = symptomDAO.getByOrganIdAndSymptomCode(symptom.getOrganId(), symptom.getSymptomCode());
-        if (!ObjectUtils.isEmpty(byOrganIdAndSymptomCode) && byOrganIdAndSymptomCode.getSymptomId() != symptom.getSymptomId()) {
+        if (!ObjectUtils.isEmpty(byOrganIdAndSymptomCode) && !byOrganIdAndSymptomCode.getSymptomId().equals(symptom.getSymptomId()) ) {
             throw new DAOException(DAOException.VALUE_NEEDED, "该机构证候 编码已存在!");
         }
         Symptom update = symptomDAO.update(convert);
