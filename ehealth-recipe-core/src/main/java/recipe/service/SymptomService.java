@@ -87,7 +87,7 @@ public class SymptomService implements ISymptomService {
      * @param symptom
      */
     @RpcService
-    public Boolean validateAddNameOrCode(Symptom symptom) {
+    public Boolean validateAddNameOrCode(SymptomDTO symptom) {
         if (null == symptom) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "证候信息不能为空");
         }
@@ -116,7 +116,7 @@ public class SymptomService implements ISymptomService {
      * @param symptom
      */
     @RpcService
-    public Boolean validateUpdateNameOrCode(Symptom symptom) {
+    public Boolean validateUpdateNameOrCode(SymptomDTO symptom) {
         if (null == symptom) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "证候信息不能为空");
         }
