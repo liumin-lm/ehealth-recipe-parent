@@ -204,4 +204,14 @@ public class RevisitManager extends BaseManager {
         return writeDrugRecipeDTOList;
 
     }
+
+    /**
+     * 处方开成功回写复诊更改处方id
+     *
+     * @param recipeId
+     * @param clinicId
+     */
+    public void updateRecipeIdByConsultId(Integer recipeId, Integer clinicId) {
+        revisitClient.updateRecipeIdByConsultId(recipeId, clinicId);
+    }
 }

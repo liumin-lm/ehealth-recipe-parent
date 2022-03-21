@@ -139,6 +139,9 @@
         <property name="sessionTopic" value="${ons_topic_session}"/>
         <property name="revisitTraceTopic" value="${ons_topic_revisit_traces}"/>
         <property name="revisitStatusNotify" value="${ons_topic_revisitStatusNotify}"/>
+        <property name="kafkaSwitch" value="${kafka_switch}"/>
+        <property name="kafkaServers" value="${kafka_servers}"/>
+        <property name="drugListNursingTopic" value="${kafka_drugList_topic}"/>
     </bean>
 
     <bean id="tokenUpdateService" class="recipe.service.TokenUpdateService" init-method="updateTokenAfterInit"></bean>
@@ -169,4 +172,7 @@
     <bean class="ctd.account.thirdparty.ThirdPartyMappingController">
         <property name="loader" ref="eh.thirdPartyMappingRemoteLoader"/>
     </bean>
+
+    <bean id="kafkaDrugsSubscriber" class="recipe.mq.kafka.KafkaDrugsSubscriber" init-method="init"
+          destroy-method="shutdown"/>
 </beans>

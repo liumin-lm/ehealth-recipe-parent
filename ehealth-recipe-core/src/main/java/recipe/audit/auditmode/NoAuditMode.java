@@ -7,5 +7,5 @@ import recipe.constant.ReviewTypeConstant;
  * 不需要审方
  */
 @AuditMode(ReviewTypeConstant.Not_AuditMode)
-public class NoAuditMode extends AbstractAuidtMode {
+public class NoAuditMode extends AbstractAuditMode {
 }

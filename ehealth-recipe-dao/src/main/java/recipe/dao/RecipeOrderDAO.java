@@ -64,6 +64,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     @DAOMethod(sql = "from RecipeOrder where orderCode=:orderCode")
     public abstract RecipeOrder getByOrderCode(@DAOParam("orderCode") String orderCode);
 
+    @DAOMethod(sql = "update RecipeOrder set trackingNumber=:trackingNumber where orderCode=:orderCode")
+    public abstract void updateTrackingNumberByOrderCode(@DAOParam("orderCode") String orderCode,
+                                                         @DAOParam("trackingNumber") String trackingNumber);
+
     /**
      * 获取订单
      *

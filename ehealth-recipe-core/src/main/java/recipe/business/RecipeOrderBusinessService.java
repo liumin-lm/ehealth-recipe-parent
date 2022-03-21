@@ -31,7 +31,9 @@ import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.ConfigStatusCheckDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
+import recipe.enumerate.type.NeedSendTypeEnum;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
@@ -121,6 +123,10 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         orderStatus.setOrderId(recipeOrder.getOrderId());
         orderStatus.setSourceRecipeStatus(recipe.getStatus());
         giveModeProxy.updateOrderByGiveMode(recipe.getGiveMode(), orderStatus);
+        if (NeedSendTypeEnum.NO_NEED_SEND_TYPE.getType().equals(orderStatus.getNeedSendType())) {
+            orderStatus.setTargetRecipeOrderStatus(RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType());
+            giveModeProxy.updateOrderByGiveMode(recipe.getGiveMode(), orderStatus);
+        }
         logger.info("RecipeOrderTwoService updateRecipeOrderStatus result = {}", JSON.toJSONString(result));
         return result;
     }
@@ -209,6 +215,17 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         createPdfFactory.updateCodePdfExecute(recipeId);
     }
 
+    /**
+     *  根据订单号更新物流单号
+     * @param orderCode 订单号
+     * @param trackingNumber 物流单号
+     * @return 是否成功
+     */
+    @Override
+    public Boolean updateTrackingNumberByOrderCode(String orderCode, String trackingNumber) {
+        recipeOrderDAO.updateTrackingNumberByOrderCode(orderCode, trackingNumber);
+        return true;
+    }
 
     /**
      * todo 需要修改成 新模式

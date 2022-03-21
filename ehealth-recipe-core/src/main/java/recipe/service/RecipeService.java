@@ -798,7 +798,7 @@ public class RecipeService extends RecipeBaseService {
                 result.setCode(RecipeResultBean.FAIL);
             }
         }
-        createPdfFactory.updatePdfToImg(recipeId);
+        createPdfFactory.updatePdfToImg(recipeId, SignImageTypeEnum.SIGN_IMAGE_TYPE_DOCTOR.getType());
         //日志记录
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), memo);
         return result;
@@ -4692,7 +4692,7 @@ public class RecipeService extends RecipeBaseService {
         // CARecipeTypeEnum.getCaProcessType(0).hisCallBackCARecipeFunction(recipeId);
         //createPdfFactory.updateAddressPdfExecute(recipeId);
         //createPdfFactory.updateTotalPdfExecute(recipeId, BigDecimal.valueOf(521.20));
-        createPdfFactory.updatePdfToImg(recipeId);
+        createPdfFactory.updatePdfToImg(recipeId, SignImageTypeEnum.SIGN_IMAGE_TYPE_DOCTOR.getType());
         CreateRecipePdfUtil.generateTemplatePdf(recipeId, null);
         return null;
     }

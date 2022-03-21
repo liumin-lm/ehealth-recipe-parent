@@ -1,9 +1,7 @@
 package recipe.client;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import com.google.common.base.Splitter;
-import com.google.gson.JsonObject;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoResponseTO;
@@ -94,7 +92,7 @@ public class DrugStockClient extends BaseClient {
         logger.info("HisInventoryClient drugInventory request= {}", JSON.toJSONString(request));
         try {
             HisResponseTO<Boolean> hisResponse = recipeHisService.drugInventory(request);
-            Boolean result = getResponse(hisResponse);
+            Boolean result = getResponseMsg(hisResponse);
             if (!result) {
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "his库存操作失败");
             }

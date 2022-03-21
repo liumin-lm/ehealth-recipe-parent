@@ -48,7 +48,6 @@ public abstract class GiveModeManager implements IGiveModeBase {
     @Autowired
     private OperationClient operationClient;
 
-
     @Override
     public void setSpecialItem(GiveModeShowButtonDTO giveModeShowButtonVO, Recipe recipe, RecipeExtend recipeExtend) {
         //处理医院配送和药企配送的药企按钮，根据该机构配置的药企配送主体来决定
@@ -111,7 +110,6 @@ public abstract class GiveModeManager implements IGiveModeBase {
         return giveModeShowButtonDTO;
     }
 
-
     protected void removeGiveModeData(List<GiveModeButtonDTO> giveModeButtonBeans, String remoteGiveMode) {
         Iterator iterator = giveModeButtonBeans.iterator();
         while (iterator.hasNext()) {
@@ -121,7 +119,6 @@ public abstract class GiveModeManager implements IGiveModeBase {
             }
         }
     }
-
 
     protected void saveGiveModeData(List<GiveModeButtonDTO> giveModeButtonBeans, String saveGiveMode) {
         Iterator iterator = giveModeButtonBeans.iterator();
@@ -133,29 +130,21 @@ public abstract class GiveModeManager implements IGiveModeBase {
         }
     }
 
-
     private void setOtherButton(GiveModeShowButtonDTO giveModeShowButtonVO, Recipe recipe) {
-        String recordType = getRecordInfo(recipe).get("recordType");
-        String recordStatusCode = getRecordInfo(recipe).get("recordStatusCode");
         // 按钮的展示类型
         Boolean showUseDrugConfig = (Boolean) configService.getConfiguration(recipe.getClinicOrgan(), "medicationGuideFlag");
-        //已完成的处方单设置
-        if ((LIST_TYPE_ORDER.equals(recordType) && RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType().toString().equals(recordStatusCode))
-                || (LIST_TYPE_RECIPE.equals(recordType) && RecipeStatusEnum.RECIPE_STATUS_FINISH.getType().toString().equals(recordStatusCode))) {
-            //设置用药指导按钮
-            if (showUseDrugConfig) {
-                GiveModeButtonDTO giveModeButton = new GiveModeButtonDTO();
-                giveModeButton.setButtonSkipType("1");
-                giveModeButton.setShowButtonName("用药指导");
-                giveModeButton.setShowButtonKey("supportMedicationGuide");
-                giveModeShowButtonVO.getGiveModeButtons().add(giveModeButton);
-                //此时将ButtonType设置为4
-                giveModeShowButtonVO.setButtonType(4);
-            }
+        //设置用药指导按钮
+        if (showUseDrugConfig) {
+            GiveModeButtonDTO giveModeButton = new GiveModeButtonDTO();
+            giveModeButton.setButtonSkipType("1");
+            giveModeButton.setShowButtonName("用药指导");
+            giveModeButton.setShowButtonKey("supportMedicationGuide");
+            giveModeShowButtonVO.getGiveModeButtons().add(giveModeButton);
+            //此时将ButtonType设置为4
+            giveModeShowButtonVO.setButtonType(4);
         }
         LOGGER.info("setOtherButton giveModeButtons:{}", JSONUtils.toString(giveModeShowButtonVO));
     }
-
 
     private void setShowButton(GiveModeShowButtonDTO giveModeShowButtonVO, Recipe recipe) {
         boolean showButton = false;

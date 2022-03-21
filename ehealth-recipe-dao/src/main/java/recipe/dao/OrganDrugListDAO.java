@@ -1139,6 +1139,9 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
     @DAOMethod(sql = "select organDrugId from OrganDrugList where drugId in (:drugId) ", limit = 0)
     public abstract List<Integer> findOrganDrugIdByDrugIds(@DAOParam("drugId") List<Integer> drugId);
 
+    @DAOMethod(sql = "from OrganDrugList where drugId in (:drugId) ", limit = 0)
+    public abstract List<OrganDrugList> findOrganDrugByDrugIds(@DAOParam("drugId") List<Integer> drugId);
+
     public Boolean updatePharmacy(final int organId, final String pharmacy) {
         HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
             @Override

@@ -57,7 +57,9 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
      * @return 门诊记录
      */
     @RpcService
-    public OutPatientRecordResDTO findOutPatientRecordFromHis(String mpiId, Integer organId, Integer doctorId){
+    public OutPatientRecordResDTO findOutPatientRecordFromHis(String mpiId, Integer organId, Integer doctorId) {
         return recipeBusinessService.findOutPatientRecordFromHis(mpiId, organId, doctorId);
     }
+
+    
 }

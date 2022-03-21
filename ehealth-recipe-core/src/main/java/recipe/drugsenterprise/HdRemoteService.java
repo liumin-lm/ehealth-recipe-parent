@@ -45,6 +45,7 @@ import recipe.service.RecipeLogService;
 import recipe.third.IFileDownloadService;
 import recipe.util.DateConversion;
 import recipe.util.DistanceUtil;
+import recipe.util.LocalStringUtil;
 
 import javax.annotation.Resource;
 import java.io.IOException;
@@ -584,7 +585,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         String storeOrganName = nowRecipe.getClinicOrgan() + "_" + "hd_organ_store";
         String organStore = recipeParameterDAO.getByName(storeOrganName);
 
-        if (StringUtils.isNotEmpty(hdStores) && hasOrgan(nowRecipe.getClinicOrgan().toString(),hdStores) && nowRecipe.getGiveMode() != 3) {
+        if (StringUtils.isNotEmpty(hdStores) && LocalStringUtil.hasOrgan(nowRecipe.getClinicOrgan().toString(),hdStores) && nowRecipe.getGiveMode() != 3) {
             LOGGER.info("HdRemoteService.pushRecipeInfo organStore:{}.", organStore);
             sendHdRecipe.setGiveMode("4");
             sendHdRecipe.setPharmacyCode(organStore);
@@ -812,7 +813,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         }catch(Exception e){
             LOGGER.info("HdRemoteService.assemblePatientMsg error:{}.", e.getMessage(),e);
         }
-
         return result;
     }
 
@@ -860,7 +860,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         String storeOrganName = recipe.getClinicOrgan() + "_" + "hd_organ_store";
         String organStore = recipeParameterDAO.getByName(storeOrganName);
 
-        if (StringUtils.isNotEmpty(hdStores) && hasOrgan(recipe.getClinicOrgan().toString(),hdStores)) {
+        if (StringUtils.isNotEmpty(hdStores) && LocalStringUtil.hasOrgan(recipe.getClinicOrgan().toString(),hdStores)) {
             LOGGER.info("HdRemoteService.sendScanStock organStore:{}.", organStore);
             map.put("pharmacyCode", organStore);
         }
@@ -931,62 +931,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
     }
 
     /**
-     * @method  getHdStockResponse
-     * @description 获取库存够得药店响应结果
-     * @date: 2019/7/26
-     * @author: JRK
-     * @param recipeId 处方单id
-     * @param drugsEnterprise 药企
-     * @param result 总的请求结果集
-     * @return recipe.drugsenterprise.bean.HdPharmacyAndStockResponse
-     */
-    private HdPharmacyAndStockResponse getHdStockResponse(Integer recipeId, DrugsEnterprise drugsEnterprise, DrugEnterpriseResult result) {
-        //查询当前处方信息
-        Recipe nowRecipe = recipeDAO.get(recipeId);
-        //查询当前处方下详情信息
-        List<Recipedetail> detailList = detailDAO.findByRecipeId(nowRecipe.getRecipeId());
-
-        //根据药品请求华东旗下的所有可用药店，当有一个可用说明库存是足够的
-        Map<String, HdDrugRequestData> resultMap = new HashMap<>();
-        List<HdDrugRequestData> drugRequestDataList = getDrugRequestList(resultMap, detailList, drugsEnterprise, result);
-        if(DrugEnterpriseResult.FAIL == result.getCode()) return null;
-        HdPharmacyAndStockRequest hdPharmacyAndStockRequest = new HdPharmacyAndStockRequest();
-        hdPharmacyAndStockRequest.setDrugList(drugRequestDataList);
-        hdPharmacyAndStockRequest.setRange(getAllPharmacyRange);
-
-
-        HdPharmacyAndStockResponse responseResult = checkPharmacyAndDrugMsgRequest(drugsEnterprise, hdPharmacyAndStockRequest, result, "scanStock");
-        if(DrugEnterpriseResult.FAIL == result.getCode())
-            return null;
-
-        //如果返回token超时就刷新token重新进行请求(鉴权失败，重新请求token，更新后重新进行访问当前接口)
-        HdTokenRequest request;
-        if(HdFindSupportDepStatusEnum.TOKEN_EXPIRE.equals(HdFindSupportDepStatusEnum.fromCode(responseResult.getCode()))){
-            request = new HdTokenRequest();
-            this.getNewToken(drugsEnterprise, request, result);
-            if(DrugEnterpriseResult.FAIL == result.getCode())
-                return null;
-
-            //重新获取token信息
-            DrugsEnterprise newTokenEnterprise = drugsEnterpriseDAO.get(drugsEnterprise.getId());
-            if(null == newTokenEnterprise){
-                LOGGER.warn("HdRemoteService.scanStock:[{}][{}]当前药企信息不存在", drugsEnterprise.getId(), drugsEnterprise.getName());
-                getFailResult(result, "当前药企信息不存在");
-                return null;
-            }
-            //根据重新获取的token信息重新进行请求
-            responseResult = this.checkPharmacyAndDrugMsgRequest(newTokenEnterprise, hdPharmacyAndStockRequest, result, "scanStock");
-            if(DrugEnterpriseResult.FAIL.equals(result.getCode())){
-                return null;
-            }
-        }
-        if(DrugEnterpriseResult.FAIL.equals(result.getCode())){
-            return null;
-        }
-        return responseResult;
-    }
-
-    /**
      * @method  checkPharmacyAndDrugMsgRequest
      * @description 检查库存获取药店的http请求
      * @date: 2019/7/25
@@ -1037,7 +981,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                     getFailResult(result, HdFindSupportDepStatusEnum.fromCode(responseResult.getCode()).getMean());
                     return responseResult;
                 }
-
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -1049,71 +992,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             } catch (Exception e) {
                 e.printStackTrace();
                 LOGGER.error("HdRemoteService." + methodName + ":http请求资源关闭异常: {}", e.getMessage(),e);
-                getFailResult(result, "http请求资源关闭异常");
-            }
-        }
-        return responseResult;
-    }
-
-    /**
-     * @method  checkDrugStockMsgRequest
-     * @description 检查药品库存的http请求
-     * @date: 2019/7/25
-     * @author: JRK
-     * @param drugsEnterprise 药企信息
-     * @param hdPharmacyAndStockRequest 检查库存获取药店请求
-     * @param result 请求总的结果集
-     * @return recipe.drugsenterprise.bean.HdPharmacyAndStockResponse 检查库存获取药店的响应结果
-     */
-    private HdPharmacyAndStockResponse checkDrugStockMsgRequest(DrugsEnterprise drugsEnterprise, HdPharmacyAndStockRequest hdPharmacyAndStockRequest, DrugEnterpriseResult result) {
-        HdPharmacyAndStockResponse responseResult = null;
-
-        //访问库存足够的药店列表以及药店下的药品的信息
-        CloseableHttpClient httpClient = HttpClients.createDefault();
-        HdHttpUrlEnum httpUrl;
-        try {
-            if (drugsEnterprise.getBusinessUrl().contains("http:")) {
-
-                httpUrl = HdHttpUrlEnum.fromMethodName("scanStock");
-                if(null == httpUrl){
-                    getFailResult(result, "没有请求对应的url");
-                    return responseResult;
-                }
-                String requestStr = JSONUtils.toString(hdPharmacyAndStockRequest);
-                CloseableHttpResponse response = sendHttpRequest(drugsEnterprise, httpClient, requestStr, httpUrl);
-
-                //当相应状态为200时返回json
-                HttpEntity httpEntity = response.getEntity();
-                String responseStr = EntityUtils.toString(httpEntity);
-                responseResult = JSONUtils.parse(responseStr, HdPharmacyAndStockResponse.class);
-                if(null == responseResult || null == responseResult.getSuccess()){
-                    LOGGER.warn("HdRemoteService.scanStock:查询可用的药店及其药品信息,请求没有响应结果");
-                    getFailResult(result, "请求没有响应结果");
-                    return responseResult;
-                }
-                if(responseResult.getSuccess()){
-                    LOGGER.info("HdRemoteService.scanStock:查询可用的药店及其药品信息请求成功，请求返回:{}", responseStr);
-                    return responseResult;
-                }else if(HdFindSupportDepStatusEnum.TOKEN_EXPIRE.equals(HdFindSupportDepStatusEnum.fromCode(responseResult.getCode()))){
-                    LOGGER.info("HdRemoteService.scanStock:查询可用的药店及其药品信息请求鉴权失败需要重新获取token");
-                    return responseResult;
-                }else{
-                    LOGGER.warn("HdRemoteService.scanStock:查询可用的药店及其药品信息请求失败,失败原因:{}", responseResult.getMessage());
-                    getFailResult(result, HdFindSupportDepStatusEnum.fromCode(responseResult.getCode()).getMean());
-                    return responseResult;
-                }
-
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            LOGGER.error("HdRemoteService.scanStock:查询可用的药店及其药品信息请求异常：{}", e.getMessage(),e);
-            getFailResult(result, "请求异常");
-        } finally {
-            try {
-                httpClient.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-                LOGGER.error("HdRemoteService.scanStock:http请求资源关闭异常: {}", e.getMessage(),e);
                 getFailResult(result, "http请求资源关闭异常");
             }
         }
@@ -1368,18 +1246,19 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         String storeOrganName = organId + "_" + "hd_organ_store";
         String organStore = recipeParameterDAO.getByName(storeOrganName);
 
-        if (StringUtils.isNotEmpty(hdStores) && organId != null && hasOrgan(organId.toString(),hdStores)) {
-            LOGGER.info("HdRemoteService.sendScanStock organStore:{}.", organStore);
+        if (StringUtils.isNotEmpty(hdStores) && organId != null && LocalStringUtil.hasOrgan(organId.toString(),hdStores)) {
+            LOGGER.info("HdRemoteService getInventoryResult organStore:{}.", organStore);
             map.put("pharmacyCode", organStore);
         }
 
-        String requestParames = JSONUtils.toString(map);
+        String request = JSONUtils.toString(map);
+        LOGGER.info("HdRemoteService getInventoryResult request:{}", request);
         //访问库存足够的药店列表以及药店下的药品的信息
         CloseableHttpClient httpClient = HttpClients.createDefault();
         HdHttpUrlEnum httpUrl;
         try {
             httpUrl = HdHttpUrlEnum.fromMethodName(methodName);
-            CloseableHttpResponse response = sendHttpRequest(httpClient, requestParames, httpUrl, drugsEnterprise);
+            CloseableHttpResponse response = sendHttpRequest(httpClient, request, httpUrl, drugsEnterprise);
             //当相应状态为200时返回json
             HttpEntity httpEntity = response.getEntity();
             String responseStr = EntityUtils.toString(httpEntity);
@@ -1594,18 +1473,18 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
             String storeOrganName = drugsDataBean.getOrganId() + "_" + "hd_organ_store";
             String organStore = recipeParameterDAO.getByName(storeOrganName);
 
-            if (StringUtils.isNotEmpty(hdStores) && drugsDataBean.getOrganId() != null && hasOrgan(drugsDataBean.getOrganId().toString(),hdStores)) {
+            if (StringUtils.isNotEmpty(hdStores) && drugsDataBean.getOrganId() != null && LocalStringUtil.hasOrgan(drugsDataBean.getOrganId().toString(),hdStores)) {
                 LOGGER.info("HdRemoteService.sendScanStock organStore:{}.", organStore);
                 map.put("pharmacyCode", organStore);
             }
 
-            String requestParames = JSONUtils.toString(map);
+            String request = JSONUtils.toString(map);
             //访问库存足够的药店列表以及药店下的药品的信息
             CloseableHttpClient httpClient = HttpClients.createDefault();
             HdHttpUrlEnum httpUrl;
             try {
                 httpUrl = HdHttpUrlEnum.fromMethodName(methodName);
-                CloseableHttpResponse response = sendHttpRequest(httpClient, requestParames, httpUrl, drugsEnterprise);
+                CloseableHttpResponse response = sendHttpRequest(httpClient, request, httpUrl, drugsEnterprise);
                 //当相应状态为200时返回json
                 HttpEntity httpEntity = response.getEntity();
                 String responseStr = EntityUtils.toString(httpEntity);
@@ -1638,21 +1517,20 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                     httpClient.close();
                 } catch (Exception e) {
                     e.printStackTrace();
-
                 }
             }
         } else {
             //到店取药
             String methodName = "findSupportDep";
             map.put("range", "0");
-            String requestParames = JSONUtils.toString(map);
-            LOGGER.info("requestParames :{}.", requestParames);
+            String request = JSONUtils.toString(map);
+            LOGGER.info("request :{}.", request);
             //访问库存足够的药店列表以及药店下的药品的信息
             CloseableHttpClient httpClient = HttpClients.createDefault();
             HdHttpUrlEnum httpUrl;
             try {
                 httpUrl = HdHttpUrlEnum.fromMethodName(methodName);
-                CloseableHttpResponse response = sendHttpRequest(httpClient, requestParames, httpUrl, drugsEnterprise);
+                CloseableHttpResponse response = sendHttpRequest(httpClient, request, httpUrl, drugsEnterprise);
                 //当相应状态为200时返回json
                 HttpEntity httpEntity = response.getEntity();
                 String responseStr = EntityUtils.toString(httpEntity);
@@ -1696,7 +1574,9 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
     }
 
     private static CloseableHttpResponse sendHttpRequest(CloseableHttpClient httpClient, String requestStr, HdHttpUrlEnum httpUrl, DrugsEnterprise drugsEnterprise) throws IOException {
-        HttpPost httpPost = new HttpPost(drugsEnterprise.getBusinessUrl() + httpUrl.getUrl());
+        String businessUrl = drugsEnterprise.getBusinessUrl() + httpUrl.getUrl();
+        LOGGER.info("sendHttpRequest businessUrl:{}, requestStr:{}", businessUrl, requestStr);
+        HttpPost httpPost = new HttpPost(businessUrl);
         //组装请求参数(组装权限验证部分)
         httpPost.setHeader(requestHeadJsonKey, requestHeadJsonValue);
         httpPost.setHeader(requestHeadAuthorizationKey, requestAuthorizationValueHead + drugsEnterprise.getToken());
@@ -1705,15 +1585,6 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
         httpPost.setEntity(requestEntry);
         //获取响应消息
         return httpClient.execute(httpPost);
-    }
-
-    private boolean hasOrgan(String organ, String args){
-        if (StringUtils.isNotEmpty(args)) {
-            String[] organs = args.split(",");
-            List<String> organList = Arrays.asList(organs);
-            return organList.contains(organ);
-        }
-        return false;
     }
 
     private static Integer getInventoryNum(Object obj){
