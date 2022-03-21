@@ -128,13 +128,14 @@ public class SymptomService implements ISymptomService {
         }
         if (!StringUtils.isEmpty(symptom.getSymptomCode())) {
             Symptom byOrganIdAndSymptomCode = symptomDAO.getByOrganIdAndSymptomCode(symptom.getOrganId(), symptom.getSymptomCode());
-            if (!ObjectUtils.isEmpty(byOrganIdAndSymptomCode) && byOrganIdAndSymptomCode.getSymptomId() != symptom.getSymptomId()) {
+            if (!ObjectUtils.isEmpty(byOrganIdAndSymptomCode) && !byOrganIdAndSymptomCode.getSymptomId().equals(symptom.getSymptomId())) {
                 return false;
             }
         }
         if (!StringUtils.isEmpty(symptom.getSymptomName())) {
             Symptom byOrganIdAndSymptomName = symptomDAO.getByOrganIdAndSymptomName(symptom.getOrganId(), symptom.getSymptomName());
-            if (!ObjectUtils.isEmpty(byOrganIdAndSymptomName) && byOrganIdAndSymptomName.getSymptomId() != symptom.getSymptomId()) {
+            logger.info("中医证候更新验证[validateUpdateNameOrCode]:" + JSONUtils.toString(byOrganIdAndSymptomName));
+            if (!ObjectUtils.isEmpty(byOrganIdAndSymptomName) && !byOrganIdAndSymptomName.getSymptomId().equals(symptom.getSymptomId())) {
                 return false;
             }
         }
