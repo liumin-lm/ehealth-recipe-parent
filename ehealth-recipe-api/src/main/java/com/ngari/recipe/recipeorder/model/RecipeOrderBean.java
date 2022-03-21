@@ -357,6 +357,18 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "中医辨证论治费单号编号")
     private String tcmFeeNo;
 
+    //用户页面选择
+    @ItemProperty(alias = "患者选择是否代煎（ 0:否 1：是）")
+    private String patientIsDecoction;
+
+    public String getPatientIsDecoction() {
+        return patientIsDecoction;
+    }
+
+    public void setPatientIsDecoction(String patientIsDecoction) {
+        this.patientIsDecoction = patientIsDecoction;
+    }
+
     public String getRegisterFeeNo() {
         return registerFeeNo;
     }

@@ -374,6 +374,19 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "中医辨证论治费单号编号")
     private String tcmFeeNo;
 
+    //用户页面选择
+    @ItemProperty(alias = "患者选择是否代煎（ 0:否 1：是）")
+    private String patientIsDecoction;
+
+    @Column(name = "patient_is_decoction")
+    public String getPatientIsDecoction() {
+        return patientIsDecoction;
+    }
+
+    public void setPatientIsDecoction(String patientIsDecoction) {
+        this.patientIsDecoction = patientIsDecoction;
+    }
+
     @Column(name = "register_fee_no")
     public String getRegisterFeeNo() {
         return registerFeeNo;
@@ -460,7 +473,7 @@ public class RecipeOrder implements Serializable {
 
     }
 
-    public RecipeOrder(Integer orderId,Integer processState,Integer subState) {
+    public RecipeOrder(Integer orderId, Integer processState, Integer subState) {
 
     }
 
