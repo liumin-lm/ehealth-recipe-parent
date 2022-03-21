@@ -1717,7 +1717,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             List<String> decoctionIdList = Arrays.asList("87", "88");
             try {
                 if (recipe.getClinicOrgan() == 1003041
-                        && Integer.valueOf(443).equals(recipeOrder.getEnterpriseId())
+                        && Integer.valueOf(433).equals(recipeOrder.getEnterpriseId())
                         && recipe.getRecipeType() == 3
                         && decoctionIdList.contains(recipeExtend.getDecoctionId())){
                         continue;
