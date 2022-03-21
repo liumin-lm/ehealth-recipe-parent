@@ -2,6 +2,7 @@ package recipe.drugsenterprise;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
@@ -1713,15 +1714,13 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             Recipe recipe = recipes.get(0);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             //个性化处理
+            List<String> decoctionIdList = Arrays.asList("87", "88");
             try {
                 if (recipe.getClinicOrgan() == 1003041
-                        && null != recipeOrder.getEnterpriseId()
-                        && recipeOrder.getEnterpriseId() == 433
-                        && recipe.getRecipeType() == 3) {
-                    if (StringUtils.isNotEmpty(recipeExtend.getDecoctionId())
-                            && (recipeExtend.getDecoctionId().equals("87") || recipeExtend.getDecoctionId().equals("88"))) {
+                        && Integer.valueOf(443).equals(recipeOrder.getEnterpriseId())
+                        && recipe.getRecipeType() == 3
+                        && decoctionIdList.contains(recipeExtend.getDecoctionId())){
                         continue;
-                    }
                 }
             } catch (Exception e) {
                 LOGGER.error("个性化处理 e", e);
