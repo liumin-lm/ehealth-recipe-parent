@@ -17,4 +17,8 @@ his库存查询->scanDrugStock
 
 查询his药品信息并价格同步->queryDrugInfo
 ```
+### 数据库表描述
+```
+base_drug_decoctionway 煎法表
+```
 ### End
