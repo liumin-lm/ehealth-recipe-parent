@@ -1713,14 +1713,18 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             Recipe recipe = recipes.get(0);
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             //个性化处理
-            if (recipe.getClinicOrgan() == 1003041
-                    && null != recipeOrder.getEnterpriseId()
-                    && recipeOrder.getEnterpriseId() == 433
-                    && recipe.getRecipeType() == 3) {
-                if (StringUtils.isNotEmpty(recipeExtend.getDecoctionId())
-                        && (recipeExtend.getDecoctionId().equals("88") || recipeExtend.getDecoctionId().equals("89"))) {
-                    continue;
+            try {
+                if (recipe.getClinicOrgan() == 1003041
+                        && null != recipeOrder.getEnterpriseId()
+                        && recipeOrder.getEnterpriseId() == 433
+                        && recipe.getRecipeType() == 3) {
+                    if (StringUtils.isNotEmpty(recipeExtend.getDecoctionId())
+                            && (recipeExtend.getDecoctionId().equals("88") || recipeExtend.getDecoctionId().equals("89"))) {
+                        continue;
+                    }
                 }
+            } catch (Exception e) {
+                LOGGER.error("个性化处理 e", e);
             }
             if (!new Integer(1).equals(recipeOrder.getOrderType()) && BigDecimal.ZERO.compareTo(recipeOrder.getCouponFee()) == 0
                     && new Integer(1).equals(recipeOrder.getPayMode())) {
