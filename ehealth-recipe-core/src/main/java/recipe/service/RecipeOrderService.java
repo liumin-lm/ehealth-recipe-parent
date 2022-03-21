@@ -40,9 +40,6 @@ import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBeanNoDS;
 import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
-import com.ngari.revisit.RevisitAPI;
-import com.ngari.revisit.common.request.RecipeVisitMoneyRequest;
-import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.wxpay.service.INgariPayService;
 import coupon.api.service.ICouponBaseService;
 import coupon.api.vo.Coupon;
@@ -568,7 +565,7 @@ public class RecipeOrderService extends RecipeBaseService {
         return needDelList;
     }
 
-    public void setOrderFeeNew(OrderCreateResult result, RecipeOrder order, List<Recipe> recipeList, RecipePayModeSupportBean payModeSupport, Map<String, String> extInfo, Integer toDbFlag){
+    public void setOrderFeeNew(OrderCreateResult result, RecipeOrder order, List<Recipe> recipeList, RecipePayModeSupportBean payModeSupport, Map<String, String> extInfo, Integer toDbFlag) {
         //当前操作人的编码，用于获取地址列表信息等
         String openMpiId = MapValueUtil.getString(extInfo, "operMpiId");
         //站点配送的标志
@@ -805,7 +802,7 @@ public class RecipeOrderService extends RecipeBaseService {
         //}
 
         // 更新处方代缴费用
-        orderFeeManager.setRecipePaymentFee(order,recipeList);
+        orderFeeManager.setRecipePaymentFee(order, recipeList);
 
         order.setTotalFee(countOrderTotalFeeByRecipeInfo(order, firstRecipe, payModeSupport));
         //判断计算扣掉运费的总金额----等于线下支付----总计要先算上运费，实际支付时再不支付运费
@@ -843,9 +840,9 @@ public class RecipeOrderService extends RecipeBaseService {
                     PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
                     //卫宁付
                     // 到院取药是否支持线上支付
-                    OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId(),GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType());
+                    OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(order.getOrganId(), order.getEnterpriseId(), GiveModeEnum.GIVE_MODE_HOSPITAL_DRUG.getType());
                     Integer takeOneselfPayment = organDrugsSaleConfig.getTakeOneselfPayment();
-                    if (purchaseService.getToHosPayConfig(firstRecipe.getClinicOrgan(),order.getEnterpriseId()) || new Integer(1).equals(takeOneselfPayment)) {
+                    if (purchaseService.getToHosPayConfig(firstRecipe.getClinicOrgan(), order.getEnterpriseId()) || new Integer(1).equals(takeOneselfPayment)) {
                         order.setActualPrice(totalFee.doubleValue());
                     } else {
                         //此时的实际费用是不包含药品费用的
@@ -1733,7 +1730,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     prb.setOrganId(recipe.getClinicOrgan());
                     prb.setRecipeType(recipe.getRecipeType());
                     prb.setPayFlag(recipe.getPayFlag());
-                    prb.setQrName(recipeManager.getToHosProof(recipe, recipeExtend,order));
+                    prb.setQrName(recipeManager.getToHosProof(recipe, recipeExtend, order));
                     patientRecipeBeanList.add(prb);
                     LOGGER.info("getOrderDetailById.prb={}", JSONUtils.toString(prb));
 
@@ -1851,6 +1848,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 //上海外服自费金额设置为空
                 orderBean.setFundAmount(null);
             }
+            orderBean.setPatientIsDecoction(order.getPatientIsDecoction());
             result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
             result.setExt(RecipeUtil.getParamFromOgainConfig(order, recipeList));
@@ -1876,7 +1874,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @param result
      * @param order
      */
-    private void putSupportToHosPayFlag(RecipeResultBean result,RecipeOrder order) {
+    private void putSupportToHosPayFlag(RecipeResultBean result, RecipeOrder order) {
         Map<String, Object> map = result.getExt();
         // 到院取药是否支持线上支付
         List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
