@@ -127,13 +127,13 @@ public class TcmTreatmentService implements ITcmTreatmentService {
         }
         if (!StringUtils.isEmpty(treatmentDTO.getTreatmentCode())) {
             TcmTreatment byOrganIdAndTreatmentCode = tcmTreatmentDAO.getByOrganIdAndTreatmentCode(treatmentDTO.getOrganId(), treatmentDTO.getTreatmentCode());
-            if (!ObjectUtils.isEmpty(byOrganIdAndTreatmentCode) && byOrganIdAndTreatmentCode.getId() != treatmentDTO.getId()) {
+            if (!ObjectUtils.isEmpty(byOrganIdAndTreatmentCode) && !byOrganIdAndTreatmentCode.getId().equals(treatmentDTO.getId())) {
                 return false;
             }
         }
         if (!StringUtils.isEmpty(treatmentDTO.getTreatmentName())) {
             TcmTreatment byOrganIdAndTreatmentName = tcmTreatmentDAO.getByOrganIdAndTreatmentName(treatmentDTO.getOrganId(), treatmentDTO.getTreatmentName());
-            if (!ObjectUtils.isEmpty(byOrganIdAndTreatmentName) && byOrganIdAndTreatmentName.getId() != treatmentDTO.getId()) {
+            if (!ObjectUtils.isEmpty(byOrganIdAndTreatmentName) && !byOrganIdAndTreatmentName.getId().equals(treatmentDTO.getId())) {
                 return false;
             }
         }
@@ -167,6 +167,7 @@ public class TcmTreatmentService implements ITcmTreatmentService {
         return true;
 
     }
+
     /**
      * 验证
      *
@@ -192,7 +193,6 @@ public class TcmTreatmentService implements ITcmTreatmentService {
     }
 
 
-
     /**
      * 更新中医治法
      *
@@ -209,11 +209,11 @@ public class TcmTreatmentService implements ITcmTreatmentService {
         //验证症候必要信息
         validate(convert);
         TcmTreatment byOrganIdAndTreatmentName = tcmTreatmentDAO.getByOrganIdAndTreatmentName(treatmentDTO.getOrganId(), treatmentDTO.getTreatmentName());
-        if (!ObjectUtils.isEmpty(byOrganIdAndTreatmentName) && byOrganIdAndTreatmentName.getId() != treatmentDTO.getId()) {
+        if (!ObjectUtils.isEmpty(byOrganIdAndTreatmentName) && !byOrganIdAndTreatmentName.getId().equals(treatmentDTO.getId())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "该机构治法 名称已存在!");
         }
         TcmTreatment byOrganIdAndTreatmentCode = tcmTreatmentDAO.getByOrganIdAndTreatmentCode(treatmentDTO.getOrganId(), treatmentDTO.getTreatmentCode());
-        if (!ObjectUtils.isEmpty(byOrganIdAndTreatmentCode) && byOrganIdAndTreatmentCode.getId() != treatmentDTO.getId()) {
+        if (!ObjectUtils.isEmpty(byOrganIdAndTreatmentCode) && !byOrganIdAndTreatmentCode.getId().equals(treatmentDTO.getId())) {
             throw new DAOException(DAOException.VALUE_NEEDED, "该机构治法 编码已存在!");
         }
         TcmTreatment update = tcmTreatmentDAO.update(convert);
@@ -332,8 +332,6 @@ public class TcmTreatmentService implements ITcmTreatmentService {
         Long byOrganId = tcmTreatmentDAO.getCountByOrganId(organId);
         return byOrganId;
     }
-
-
 
 
     /**
@@ -460,7 +458,6 @@ public class TcmTreatmentService implements ITcmTreatmentService {
             }
 
 
-
             try {
                 if (!StringUtils.isEmpty(getStrFromCell(row.getCell(2)))) {
                     treatment.setRegulationTreatmentCode(getStrFromCell(row.getCell(2)));
@@ -576,7 +573,6 @@ public class TcmTreatmentService implements ITcmTreatmentService {
         symptom.setModifyDate(new Date());
         return symptom;
     }
-
 
 
 }
