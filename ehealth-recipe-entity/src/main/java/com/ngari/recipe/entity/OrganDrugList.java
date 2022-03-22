@@ -31,8 +31,11 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "药品序号")
     private Integer drugId;
 
-    @ItemProperty(alias = "机构药品编码")
+    @ItemProperty(alias = "机构唯一索引")
     private String organDrugCode;
+
+    @ItemProperty(alias = "机构药品编码")
+    private String drugItemCode;
 
     @ItemProperty(alias = "通用名")
     private String drugName;
@@ -607,5 +610,14 @@ public class OrganDrugList implements java.io.Serializable {
 
     public void setUnilateralCompound(Integer unilateralCompound) {
         this.unilateralCompound = unilateralCompound;
+    }
+
+    @Column(name = "drug_item_code")
+    public String getDrugItemCode() {
+        return drugItemCode;
+    }
+
+    public void setDrugItemCode(String drugItemCode) {
+        this.drugItemCode = drugItemCode;
     }
 }
