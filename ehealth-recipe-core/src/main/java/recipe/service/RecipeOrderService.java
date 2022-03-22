@@ -1431,7 +1431,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @return
      */
     public RecipeResultBean cancelOrder(RecipeOrder order, Integer status, Boolean canCancelOrderCode) {
-        LOGGER.info("RecipeOrderService cancelOrder  order= {}，order= {}，canCancelOrderCode= {}", JSON.toJSONString(order), status, canCancelOrderCode);
+        LOGGER.info("RecipeOrderService cancelOrder  order= {}，status= {}，canCancelOrderCode= {}", JSON.toJSONString(order), status, canCancelOrderCode);
         RecipeResultBean result = RecipeResultBean.getSuccess();
         if (null == order || null == status) {
             result.setCode(RecipeResultBean.FAIL);

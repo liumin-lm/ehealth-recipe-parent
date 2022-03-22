@@ -23,8 +23,11 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "药品序号")
     private Integer drugId;
 
-    @ItemProperty(alias = "his药品编码")
+    @ItemProperty(alias = "机构唯一索引")
     private String organDrugCode;
+
+    @ItemProperty(alias = "his药品编码")
+    private String drugItemCode;
 
     @Column(name = "organDrugCode", length = 100)
     public String getOrganDrugCode() {
@@ -638,6 +641,15 @@ public class DrugListMatch implements java.io.Serializable {
 
     public void setApplyBusiness(String applyBusiness) {
         this.applyBusiness = applyBusiness;
+    }
+
+    @Column(name = "drug_item_code")
+    public String getDrugItemCode() {
+        return drugItemCode;
+    }
+
+    public void setDrugItemCode(String drugItemCode) {
+        this.drugItemCode = drugItemCode;
     }
 
     @Column(name = "unilateral_compound")
