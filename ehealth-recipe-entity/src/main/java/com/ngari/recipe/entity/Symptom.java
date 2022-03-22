@@ -41,6 +41,18 @@ public class Symptom implements java.io.Serializable{
     @ItemProperty(alias = "修改时间")
     private Date modifyDate;
 
+    @ItemProperty(alias = "关联治法编码")
+    private String treatmentCode;
+
+    @ItemProperty(alias = "关联治法名称")
+    private String treatmentName;
+
+    @ItemProperty(alias = "关联监管证候编码")
+    private String regulationSymptomCode;
+
+    @ItemProperty(alias = "关联监管证候名称")
+    private String regulationSymptomName;
+
     @Id
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "symptomId", unique = true, nullable = false)
@@ -106,5 +118,41 @@ public class Symptom implements java.io.Serializable{
 
     public void setModifyDate(Date modifyDate) {
         this.modifyDate = modifyDate;
+    }
+
+    @Column(name = "treatment_code")
+    public String getTreatmentCode() {
+        return treatmentCode;
+    }
+
+    public void setTreatmentCode(String treatmentCode) {
+        this.treatmentCode = treatmentCode;
+    }
+
+    @Column(name = "treatment_name")
+    public String getTreatmentName() {
+        return treatmentName;
+    }
+
+    public void setTreatmentName(String treatmentName) {
+        this.treatmentName = treatmentName;
+    }
+
+    @Column(name = "regulation_symptom_code")
+    public String getRegulationSymptomCode() {
+        return regulationSymptomCode;
+    }
+
+    public void setRegulationSymptomCode(String regulationSymptomCode) {
+        this.regulationSymptomCode = regulationSymptomCode;
+    }
+
+    @Column(name = "regulation_symptom_name")
+    public String getRegulationSymptomName() {
+        return regulationSymptomName;
+    }
+
+    public void setRegulationSymptomName(String regulationSymptomName) {
+        this.regulationSymptomName = regulationSymptomName;
     }
 }
