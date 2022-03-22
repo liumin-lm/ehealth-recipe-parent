@@ -278,7 +278,7 @@ public class TcmTreatmentService implements ITcmTreatmentService {
         }
         tcmTreatmentDAO.deleteByOrganId(organId);
         IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
-        busActionLogService.recordBusinessLogRpcNew("中医治法", "", "TcmTreatment", "一键清除中医治法。", byOrganId.getName());
+        busActionLogService.recordBusinessLogRpcNew("中医治法", "", "TcmTreatment", "一键清除中医治法", byOrganId.getName());
     }
 
     /**

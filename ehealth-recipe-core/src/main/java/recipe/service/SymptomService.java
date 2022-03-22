@@ -264,7 +264,7 @@ public class SymptomService implements ISymptomService {
         SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
         symptomDAO.deleteByOrganId(organId);
         IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
-        busActionLogService.recordBusinessLogRpcNew("中医证候", "", "Symptom", "一键清除中医证候。", byOrganId.getName());
+        busActionLogService.recordBusinessLogRpcNew("中医证候", "", "Symptom", "一键清除中医证候", byOrganId.getName());
     }
 
 
