@@ -2834,7 +2834,7 @@ public class RecipeServiceSub {
             if (!recipe.canMedicalPay()) {
                 change.put("chooseFlag", 1);
             }
-            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
+            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_MANUAL, true);
             stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_DOCTOR_REPEAL);
         }
         //撤销处方
@@ -2873,13 +2873,6 @@ public class RecipeServiceSub {
         if (null != order && order.getActualPrice() > 0 && RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType().equals(order.getStatus())) {
             refundClient.refund(order.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
             orderManager.recipeRefundMsg(recipeId);
-        }
-        //通过运营平台控制开关决定是否走此种模式
-        Boolean syfPayMode = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "syfPayMode",false);
-        RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(order.getOrderId(), PayFlowTypeEnum.RECIPE_AUDIT.getType());
-        if (syfPayMode && null != order && PayFlagEnum.NOPAY.getType().equals(order.getPayFlag()) && null != recipeOrderPayFlow) {
-            //表示已经支付快递费等费用
-            refundClient.refund(order.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
         }
         //记录日志
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), memo.toString());
