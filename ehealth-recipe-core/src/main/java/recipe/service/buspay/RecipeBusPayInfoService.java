@@ -665,12 +665,14 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
 
     @Override
     @RpcService
+    @LogRecord
     public WnExtBusCdrRecipeDTO newWnExtBusCdrRecipe(RecipeOrderBean recipeOrder, Patient patient) {
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
         RecipeBean recipeBean = recipeService.getByRecipeId(recipeIdList.get(0));
         log.info("newWnExtBusCdrRecipe.recipeBean={}", JSONObject.toJSONString(recipeBean));
         IRevisitExService revisitExService = RevisitAPI.getService(IRevisitExService.class);
         RevisitExDTO consultExDTO = revisitExService.getByConsultId(recipeBean.getClinicId());
+        log.info("consultExDTO :{}", JSONUtils.toString(consultExDTO));
         WnExtBusCdrRecipeDTO wnExtBusCdrRecipe = new WnExtBusCdrRecipeDTO();
         wnExtBusCdrRecipe.setAction("PUTMZSYT");
         wnExtBusCdrRecipe.setHzxm(patient.getPatientName());
@@ -692,12 +694,14 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         String mtTypeCode = "";
         //医保类型名称
         String insureTypeName = "";
+        String insureType = "";
         if (consultExDTO != null) {
             registerId = consultExDTO.getRegisterNo();
             cardId = null == consultExDTO.getCardId() ? "" : consultExDTO.getCardId();
             insureTypeCode = null == consultExDTO.getInsureTypeCode() ? "" : consultExDTO.getInsureTypeCode();
             mtTypeCode = null == consultExDTO.getMtTypeCode() ? "" : consultExDTO.getMtTypeCode();
             insureTypeName = null == consultExDTO.getInsureTypeName() ? "" : consultExDTO.getInsureTypeName();
+            insureType = null == consultExDTO.getMedicalFlag() ? "0" : consultExDTO.getMedicalFlag().toString();
 
         } else {
             registerId = "";
@@ -756,6 +760,9 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             builder.append("<InsureTypeName>");
             builder.append(insureTypeName);
             builder.append("</InsureTypeName>");
+            builder.append("<InsureType>");
+            builder.append(insureType);
+            builder.append("</InsureType>");
             builder.append("<ChronicDiseaseFlag>");
             builder.append(chronicDiseaseFlag);
             builder.append("</ChronicDiseaseFlag>");
@@ -769,7 +776,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
             builder.append(complication);
             builder.append("</Complication>");
             wnExtBusCdrRecipe.setYbrc(ctd.util.Base64.encodeToString(builder.toString().getBytes(), 2));
-            log.info("newWnExtBusCdrRecipe builder={}", builder.toString());
+            log.info("newWnExtBusCdrRecipe clinicId={} builder={}", recipeBean.getClinicId(), builder.toString());
         } else {
             //医保入参--处方人脸识别token-base64加密
             if (extend != null && StringUtils.isNotEmpty(extend.getMedicalSettleData())) {

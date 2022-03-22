@@ -76,6 +76,7 @@ public class RecipeOrderExportDTO implements Serializable {
     @ItemProperty(alias = "发药时间")
     private Date dispensingTime;
 
+
     @Column(name = "RecipeIdList")
     public String getRecipeIdList() {
         return recipeIdList;

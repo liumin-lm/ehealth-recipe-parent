@@ -2,6 +2,7 @@ package recipe.drugsenterprise;
 
 import com.alibaba.fastjson.JSONObject;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
@@ -1711,7 +1712,19 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             List<Recipe> recipes = recipeDAO.findRecipeListByOrderCode(orderCode);
             LOGGER.info("ThirdEnterpriseCallService.downLoadRecipes recipes:{} .", JSONUtils.toString(recipes));
             Recipe recipe = recipes.get(0);
-
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            //个性化处理
+            List<String> decoctionIdList = Arrays.asList("87", "88");
+            try {
+                if (recipe.getClinicOrgan() == 1003041
+                        && Integer.valueOf(433).equals(recipeOrder.getEnterpriseId())
+                        && recipe.getRecipeType() == 3
+                        && decoctionIdList.contains(recipeExtend.getDecoctionId())){
+                        continue;
+                }
+            } catch (Exception e) {
+                LOGGER.error("个性化处理 e", e);
+            }
             if (!new Integer(1).equals(recipeOrder.getOrderType()) && BigDecimal.ZERO.compareTo(recipeOrder.getCouponFee()) == 0
                     && new Integer(1).equals(recipeOrder.getPayMode())) {
                 //表示不是医保患者并且没有优惠券并且是线上支付的,那他一定要支付钱
@@ -1719,7 +1732,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                     continue;
                 }
             }
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+
             EmrRecipeManager.getMedicalInfo(recipe, recipeExtend);
             //设置医院信息
             OrganDTO organ = organService.getByOrganId(recipe.getClinicOrgan());

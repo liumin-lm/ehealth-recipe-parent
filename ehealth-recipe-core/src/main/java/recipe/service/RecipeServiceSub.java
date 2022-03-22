@@ -1143,7 +1143,6 @@ public class RecipeServiceSub {
         String cancelReason = "";
         String tips = "";
         String listTips = "";
-        // List<RecipeLog> recipeLog;
         //修改展示状态的方式，有订单的状态现优先展示订单的状态再展示处方的状态
         if (null != orderStatus && RecipeOrderStatusEnum.DOCTOR_SHOW_ORDER_STATUS.contains(orderStatus)) {
             if (RecipeOrderStatusEnum.ORDER_STATUS_NO_DRUG.getType().equals(orderStatus)
@@ -1190,15 +1189,16 @@ public class RecipeServiceSub {
                     break;
                 case RecipeStatusConstant.HIS_FAIL:
                     tips = "已取消";
-                    //date 20200507
-                    //判断当前处方调用医院接口是否有异常信息，有的话展示异常信息抹油获取默认信息
-//                    List<RecipeLog> recipeFailLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipe.getRecipeId(), RecipeStatusConstant.HIS_FAIL);
-//                    if (CollectionUtils.isNotEmpty(recipeFailLogs)) {
-//                        cancelReason = recipeFailLogs.get(0).getMemo().substring(recipeFailLogs.get(0).getMemo().indexOf("|") + 1, recipeFailLogs.get(0).getMemo().length() - 1);
-//                    } else {
-//                        cancelReason = "可能由于医院接口异常，处方单已取消，请稍后重试！";
-//                    }
                     cancelReason = "可能由于医院接口异常，处方单已取消，请稍后重试！";
+                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                    if (StringUtils.isNotEmpty(recipeExtend.getCancellation())) {
+                        cancelReason = recipeExtend.getCancellation();
+                    } else {
+                        List<RecipeLog> recipeFailLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipe.getRecipeId(), RecipeStatusConstant.HIS_FAIL);
+                        if (CollectionUtils.isNotEmpty(recipeFailLogs)) {
+                            cancelReason = recipeFailLogs.get(0).getMemo().substring(recipeFailLogs.get(0).getMemo().indexOf("|") + 1, recipeFailLogs.get(0).getMemo().length() - 1);
+                        }
+                    }
                     break;
                 case RecipeStatusConstant.NO_DRUG:
                     tips = "已取消";
@@ -2765,9 +2765,9 @@ public class RecipeServiceSub {
         if (!cancelFlag && Integer.valueOf(1).equals(recipe.getPayFlag())) {
             msg = "该处方单用户已支付，不能进行撤销操作";
         }
-        if (!cancelFlag && Integer.valueOf(1).equals(recipe.getChooseFlag())) {
+        /*if (!cancelFlag && Integer.valueOf(1).equals(recipe.getChooseFlag())) {
             msg = "患者已选择购药方式，不能进行撤销操作";
-        }
+        }*/
         if (1 == flag) {
             if (StringUtils.isEmpty(name)) {
                 msg = "姓名不能为空";
