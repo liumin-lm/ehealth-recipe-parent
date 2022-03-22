@@ -21,4 +21,8 @@ his库存查询->scanDrugStock
 ```
 base_drug_decoctionway 煎法表
 ```
+### 常用接口定位
+```
+cancelRecipe 处方撤销
+```
 ### End

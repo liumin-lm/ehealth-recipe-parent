@@ -2764,9 +2764,9 @@ public class RecipeServiceSub {
         if (!cancelFlag && Integer.valueOf(1).equals(recipe.getPayFlag())) {
             msg = "该处方单用户已支付，不能进行撤销操作";
         }
-        if (!cancelFlag && Integer.valueOf(1).equals(recipe.getChooseFlag())) {
+        /*if (!cancelFlag && Integer.valueOf(1).equals(recipe.getChooseFlag())) {
             msg = "患者已选择购药方式，不能进行撤销操作";
-        }
+        }*/
         if (1 == flag) {
             if (StringUtils.isEmpty(name)) {
                 msg = "姓名不能为空";
