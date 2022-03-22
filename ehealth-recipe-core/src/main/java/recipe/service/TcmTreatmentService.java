@@ -549,6 +549,7 @@ public class TcmTreatmentService implements ITcmTreatmentService {
         importExcelInfoDTO.setSuccess(addNum);
         importExcelInfoDTO.setExecuterName(operator);
         importExcelInfoDTO.setExecuteDate(new Date());
+        importExcelInfoDTO.setManageUnit(manageUnit);
         importExcelInfoDTO.setOssId(ossId);
         importExcelInfoDTO = iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
         result.put("ImportExcelInfoId", importExcelInfoDTO.getId());
