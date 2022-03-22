@@ -220,7 +220,7 @@ public class SymptomService implements ISymptomService {
         SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
         OrganService organService = BasicAPI.getService(OrganService.class);
         OrganDTO organDTO = organService.getByOrganId(organId);
-        StringBuilder msg = new StringBuilder("【" + organDTO.getName() + "】删除证候");
+        StringBuilder msg = new StringBuilder("批量删除中医证候");
         for (Integer symptomId : symptomIds) {
             Symptom symptom = symptomDAO.get(symptomId);
             msg.append("【" + symptom.getSymptomId() + "-" + symptom.getSymptomName() + "】");
@@ -264,8 +264,7 @@ public class SymptomService implements ISymptomService {
         SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
         symptomDAO.deleteByOrganId(organId);
         IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
-        busActionLogService.recordBusinessLogRpcNew("中医证候", "", "Symptom", "【" + urt.getUserName() + "】一键删除【" + byOrganId.getName()
-                + "】证候", byOrganId.getName());
+        busActionLogService.recordBusinessLogRpcNew("中医证候", "", "Symptom", "一键清除中医证候。", byOrganId.getName());
     }
 
 
