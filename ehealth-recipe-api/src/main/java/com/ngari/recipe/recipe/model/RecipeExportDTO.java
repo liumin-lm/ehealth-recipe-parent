@@ -16,7 +16,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Entity
 @Schema
 @Access(AccessType.PROPERTY)
-public class RecipeExportDTO implements Serializable{
+public class RecipeExportDTO implements Serializable {
     private static final long serialVersionUID = 8970764712165652375L;
 
     @ItemProperty(alias = "处方序号")
@@ -25,6 +25,8 @@ public class RecipeExportDTO implements Serializable{
     private String mpiid;
     @ItemProperty(alias = "开方机构名称")
     private String organName;
+    @ItemProperty(alias = "开方机构")
+    private Integer clinicOrgan;
     @ItemProperty(alias = "开方科室")
     @Dictionary(id = "eh.base.dictionary.Depart")
     private Integer depart;
@@ -59,6 +61,15 @@ public class RecipeExportDTO implements Serializable{
     private String recipeCode;
     @ItemProperty(alias = "处方业务类型  1 门诊处方  2  复诊处方  3 其他处方")
     private Integer recipeBusinessType;
+
+    @Column(name = "clinicOrgan")
+    public Integer getClinicOrgan() {
+        return clinicOrgan;
+    }
+
+    public void setClinicOrgan(Integer clinicOrgan) {
+        this.clinicOrgan = clinicOrgan;
+    }
 
     @Column(name = "doctorName")
     public String getDoctorName() {

@@ -17,7 +17,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Entity
 @Schema
 @Access(AccessType.PROPERTY)
-public class RecipeInfoExportDTO implements Serializable{
+public class RecipeInfoExportDTO implements Serializable {
     private static final long serialVersionUID = 2739705893333991122L;
 
     private Integer recipeId;
@@ -30,6 +30,7 @@ public class RecipeInfoExportDTO implements Serializable{
     private Integer doctor;
     private String organDiseaseName;
     private BigDecimal totalMoney;
+    private BigDecimal recipeFee;
     private Integer checker;
     private Date checkDateYs;
     @Dictionary(id = "eh.cdr.dictionary.FromFlag")
@@ -39,7 +40,7 @@ public class RecipeInfoExportDTO implements Serializable{
     private Date payTime;
     private String doctorName;
     private Integer sumDose;
-    private  Integer sendType;
+    private Integer sendType;
     private String outTradeNo;
     @Dictionary(id = "eh.cdr.dictionary.RecipeType")
     private Integer recipeType;
@@ -152,6 +153,14 @@ public class RecipeInfoExportDTO implements Serializable{
 
     public Integer getFromflag() {
         return fromflag;
+    }
+
+    public BigDecimal getRecipeFee() {
+        return recipeFee;
+    }
+
+    public void setRecipeFee(BigDecimal recipeFee) {
+        this.recipeFee = recipeFee;
     }
 
     public void setFromflag(Integer fromflag) {
