@@ -202,6 +202,18 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "处方业务类型  1 门诊处方  2  复诊处方  3 其他处方")
     private Integer recipeBusinessType;
 
+    //用户页面选择
+    @ItemProperty(alias = "医生选择是否代煎（ 0:否 1：是）")
+    private String doctorIsDecoction;
+
+    public String getDoctorIsDecoction() {
+        return doctorIsDecoction;
+    }
+
+    public void setDoctorIsDecoction(String doctorIsDecoction) {
+        this.doctorIsDecoction = doctorIsDecoction;
+    }
+
     public Integer getAppointEnterpriseType() {
         return appointEnterpriseType;
     }

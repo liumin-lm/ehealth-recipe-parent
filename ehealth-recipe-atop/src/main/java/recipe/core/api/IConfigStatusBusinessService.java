@@ -27,4 +27,11 @@ public interface IConfigStatusBusinessService {
      * @return
      */
     List<ConfigStatusCheckVO> findByLocationAndSource(Integer location, Integer source);
+
+    /**
+     * 获取处方是否展示生产厂商
+     * @param openRecipeHideDrugManufacturer
+     * @return
+     */
+    Boolean getOpenRecipeHideDrugManufacturer(Integer organId,String openRecipeHideDrugManufacturer);
 }

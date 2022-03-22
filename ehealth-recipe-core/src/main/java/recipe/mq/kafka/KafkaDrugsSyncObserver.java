@@ -62,7 +62,7 @@ public class KafkaDrugsSyncObserver implements Observer<String> {
             if (!TYPE_LIST.contains(type)) {
                 return;
             }
-            int deleteFlag = !TYPE_DELETE.equals(type) ? 1 : 0;
+            int deleteFlag = TYPE_DELETE.equals(type) ? 1 : 0;
             String table = value.getString("table");
             LOG.info("table:" + table);
             JSONArray array = value.getJSONArray("data");

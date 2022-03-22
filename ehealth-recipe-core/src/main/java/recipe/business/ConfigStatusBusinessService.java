@@ -7,6 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.client.IConfigurationClient;
 import recipe.core.api.IConfigStatusBusinessService;
 import recipe.dao.ConfigStatusCheckDAO;
 
@@ -23,6 +24,9 @@ public class ConfigStatusBusinessService implements IConfigStatusBusinessService
     @Autowired
     private ConfigStatusCheckDAO configStatusCheckDAO;
 
+    @Autowired
+    private IConfigurationClient configurationClient;
+
     @Override
     public List<ConfigStatusCheckVO> getConfigStatus(Integer location) {
         List<ConfigStatusCheck> list = configStatusCheckDAO.findByLocation(location);
@@ -33,5 +37,10 @@ public class ConfigStatusBusinessService implements IConfigStatusBusinessService
     public List<ConfigStatusCheckVO> findByLocationAndSource(Integer location, Integer source) {
         List<ConfigStatusCheck> list = configStatusCheckDAO.findByLocationAndSource(location, source);
         return ObjectCopyUtils.convert(list, ConfigStatusCheckVO.class);
+    }
+
+    @Override
+    public Boolean getOpenRecipeHideDrugManufacturer(Integer organId,String openRecipeHideDrugManufacturer) {
+        return configurationClient.getValueBooleanCatch(organId,openRecipeHideDrugManufacturer,false);
     }
 }

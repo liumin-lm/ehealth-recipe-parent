@@ -2,6 +2,7 @@ package recipe.enumerate.status;
 
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
+import recipe.enumerate.type.PayFlagEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 
 import java.util.Arrays;
@@ -204,6 +205,10 @@ public enum RecipeStatusEnum {
         }
         if (null != order && RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getText().equals(order.getGiveModeKey())
                 && (RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType().equals(order.getStatus()) || RecipeOrderStatusEnum.ORDER_STATUS_READY_PAY.getType().equals(order.getStatus()))) {
+            return true;
+        }
+        if (null != order && PayFlagEnum.NOPAY.getType().equals(order.getPayFlag())
+                && RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType().equals(recipe.getStatus())) {
             return true;
         }
         Integer one = Integer.valueOf(1);
