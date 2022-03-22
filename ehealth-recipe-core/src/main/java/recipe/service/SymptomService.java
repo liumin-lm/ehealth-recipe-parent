@@ -592,6 +592,7 @@ public class SymptomService implements ISymptomService {
             importExcelInfoDTO.setErrMsg(errMsgAll.toString());
             importExcelInfoDTO.setOssId(ossId);
             importExcelInfoDTO.setManageUnit(manageUnit);
+            logger.info("readSymptomExcel manageUnit ," ,JSONUtils.toString(manageUnit));
             importExcelInfoDTO = iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
             result.put("code", 609);
             result.put("msg", errDrugListMatchList);

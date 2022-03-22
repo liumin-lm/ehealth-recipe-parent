@@ -505,6 +505,7 @@ public class TcmTreatmentService implements ITcmTreatmentService {
             importExcelInfoDTO.setErrMsg(errMsgAll.toString());
             importExcelInfoDTO.setOssId(ossId);
             importExcelInfoDTO.setManageUnit(manageUnit);
+            logger.info("readTcmTreatmentExcel manageUnit ," ,JSONUtils.toString(manageUnit));
             importExcelInfoDTO = iImportExcelInfoService.addExcelInfo(importExcelInfoDTO);
             result.put("code", 609);
             result.put("msg", errDrugListMatchList);
