@@ -78,6 +78,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.DepartClient;
+import recipe.client.IConfigurationClient;
 import recipe.client.RecipeAuditClient;
 import recipe.client.RefundClient;
 import recipe.common.CommonConstant;
@@ -88,9 +89,7 @@ import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.type.PayBusTypeEnum;
-import recipe.enumerate.type.RecipeDistributionFlagEnum;
-import recipe.enumerate.type.RecipeSupportGiveModeEnum;
+import recipe.enumerate.type.*;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.*;
@@ -167,6 +166,9 @@ public class RecipeServiceSub {
 
     private static StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
 
+    private static IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
+
+    private static RecipeOrderPayFlowManager recipeOrderPayFlowManager = AppContextHolder.getBean("recipeOrderPayFlowManager", RecipeOrderPayFlowManager.class);
     /**
      * @param recipeBean
      * @param detailBeanList
@@ -2871,6 +2873,13 @@ public class RecipeServiceSub {
         if (null != order && order.getActualPrice() > 0 && RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getType().equals(order.getStatus())) {
             refundClient.refund(order.getOrderId(), PayBusTypeEnum.RECIPE_BUS_TYPE.getName());
             orderManager.recipeRefundMsg(recipeId);
+        }
+        //通过运营平台控制开关决定是否走此种模式
+        Boolean syfPayMode = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "syfPayMode",false);
+        RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowManager.getByOrderIdAndType(order.getOrderId(), PayFlowTypeEnum.RECIPE_AUDIT.getType());
+        if (syfPayMode && null != order && PayFlagEnum.NOPAY.getType().equals(order.getPayFlag()) && null != recipeOrderPayFlow) {
+            //表示已经支付快递费等费用
+            refundClient.refund(order.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
         }
         //记录日志
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), memo.toString());

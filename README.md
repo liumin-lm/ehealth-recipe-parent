@@ -24,5 +24,6 @@ base_drug_decoctionway 煎法表
 ### 常用接口定位
 ```
 cancelRecipe 处方撤销
+submitRecipeHis 患者创建订单 根据配送方式上传处方给his  配置项  patientRecipeUploadHis 患者提交订单需要回写his的购药方式
 ```
 ### End
