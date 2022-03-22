@@ -327,6 +327,7 @@ public class PayModeOnline implements IPurchaseService {
         if (Objects.nonNull(logisticsCompany)) {
             order.setLogisticsCompany(logisticsCompany);
         }
+        order.setPatientIsDecoction(MapValueUtil.getString(extInfo, "patientIsDecoction"));
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
         if (!saveFlag) {
             result.setCode(RecipeResultBean.FAIL);
@@ -359,9 +360,10 @@ public class PayModeOnline implements IPurchaseService {
 
     /**
      * 获取站点信息并设置到订单
-     * @param recipe  处方信息
-     * @param extInfo 前端传递信息
-     * @param order   订单
+     *
+     * @param recipe          处方信息
+     * @param extInfo         前端传递信息
+     * @param order           订单
      * @param takeMedicineWay 方式
      */
     private void setStationInfo(Recipe recipe, Map<String, String> extInfo, RecipeOrder order, Integer takeMedicineWay) {
