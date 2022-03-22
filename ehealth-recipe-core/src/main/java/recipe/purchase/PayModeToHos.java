@@ -199,6 +199,7 @@ public class PayModeToHos implements IPurchaseService {
             payModeNew = 1;
         }
         order.setPayMode(payModeNew);
+        order.setPatientIsDecoction(MapValueUtil.getString(extInfo, "patientIsDecoction"));
         boolean saveFlag = orderService.saveOrderToDB(order, dbRecipes, payMode, result, recipeDAO, orderDAO);
         if (!saveFlag) {
             result.setCode(RecipeResultBean.FAIL);
@@ -207,7 +208,7 @@ public class PayModeToHos implements IPurchaseService {
         }
 
         // 到院自取也需要更新药品实际销售价格
-        recipeIdLists.forEach(recipeId->{
+        recipeIdLists.forEach(recipeId -> {
             purchaseService.updateRecipeDetail(recipeId);
         });
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
@@ -347,7 +348,7 @@ public class PayModeToHos implements IPurchaseService {
         LOG.info("newModeFindSupportDepList takeMedicineByToHosList:{}.", JSON.toJSONString(takeMedicineByToHosList));
         List<Integer> saleDepIds = takeMedicineByToHosList.stream().map(TakeMedicineByToHos::getEnterpriseId).collect(Collectors.toList());
         Map<Integer, List<OrganDrugsSaleConfig>> saleMap = getIntegerListMap(saleDepIds);
-        List<DepDetailBean> result = getDepDetailList(takeMedicineByToHosList,saleMap);
+        List<DepDetailBean> result = getDepDetailList(takeMedicineByToHosList, saleMap);
         result.addAll(depDetailBeans);
         if ("1".equals(sort)) {
             //价格优先
@@ -393,7 +394,7 @@ public class PayModeToHos implements IPurchaseService {
             depDetailBean.setAddress(enterprise.getMemo());
             //重置药企处方价格
             depDetailBean.setRecipeFee(recipeOrderService.reCalculateRecipeFee(enterprise.getId(), Arrays.asList(recipe.getRecipeId()), null));
-            if(MapUtils.isNotEmpty(saleMap) && CollectionUtils.isNotEmpty(saleMap.get(enterprise.getId()))) {
+            if (MapUtils.isNotEmpty(saleMap) && CollectionUtils.isNotEmpty(saleMap.get(enterprise.getId()))) {
                 depDetailBean.setPayModeText(PayModeEnum.getPayModeEnumName(saleMap.get(enterprise.getId()).get(0).getTakeOneselfPayment()));
             }
             Pharmacy pharmacy = pharmacyList.get(0);
@@ -404,10 +405,10 @@ public class PayModeToHos implements IPurchaseService {
             depDetailBean.setPharmacyCode(pharmacy.getPharmacyCode());
             depDetailBean.setPosition(position);
             if (StringUtils.isNotEmpty(pharmacy.getPharmacyLatitude()) && StringUtils.isNotEmpty(pharmacy.getPharmacyLongitude())
-                 && StringUtils.isNotEmpty(latitude) && StringUtils.isNotEmpty(longitude)) {
+                    && StringUtils.isNotEmpty(latitude) && StringUtils.isNotEmpty(longitude)) {
                 Double distance = DistanceUtil.getDistance(Double.parseDouble(pharmacy.getPharmacyLatitude()), Double.parseDouble(pharmacy.getPharmacyLongitude()),
                         Double.parseDouble(latitude), Double.parseDouble(longitude));
-                depDetailBean.setDistance(Double.parseDouble(String.format("%.2f",distance)));
+                depDetailBean.setDistance(Double.parseDouble(String.format("%.2f", distance)));
             } else {
                 depDetailBean.setDistance(0D);
             }
@@ -415,7 +416,7 @@ public class PayModeToHos implements IPurchaseService {
         }).collect(Collectors.toList());
     }
 
-    private List<DepDetailBean> getDepDetailList(List<TakeMedicineByToHos> takeMedicineByToHosList,Map<Integer, List<OrganDrugsSaleConfig>> saleMap) {
+    private List<DepDetailBean> getDepDetailList(List<TakeMedicineByToHos> takeMedicineByToHosList, Map<Integer, List<OrganDrugsSaleConfig>> saleMap) {
         return takeMedicineByToHosList.stream().map(takeMedicineByToHos -> {
             DepDetailBean depDetailBean = new DepDetailBean();
             depDetailBean.setDepId(takeMedicineByToHos.getEnterpriseId());
@@ -427,7 +428,7 @@ public class PayModeToHos implements IPurchaseService {
             depDetailBean.setDistance(takeMedicineByToHos.getDistance());
             depDetailBean.setRecipeFee(takeMedicineByToHos.getRecipeTotalPrice());
             depDetailBean.setPayMethod(takeMedicineByToHos.getPayWay().toString());
-            if(MapUtils.isNotEmpty(saleMap) && CollectionUtils.isNotEmpty(saleMap.get(takeMedicineByToHos.getEnterpriseId()))) {
+            if (MapUtils.isNotEmpty(saleMap) && CollectionUtils.isNotEmpty(saleMap.get(takeMedicineByToHos.getEnterpriseId()))) {
                 depDetailBean.setPayModeText(PayModeEnum.getPayModeEnumName(saleMap.get(takeMedicineByToHos.getEnterpriseId()).get(0).getTakeOneselfPayment()));
             }
             Position position = new Position();

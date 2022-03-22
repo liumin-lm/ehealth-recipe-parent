@@ -3,7 +3,6 @@ package recipe.purchase;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -16,9 +15,7 @@ import recipe.constant.OrderStatusConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.constant.ReviewTypeConstant;
-import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.manager.OrderManager;
 import recipe.service.RecipeOrderService;
@@ -27,14 +24,13 @@ import recipe.util.MapValueUtil;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
-* @Description: PayModeDownloadService 类（或接口）是 承接购药方式中下载处方方式
-* @Author: JRK
-* @Date: 2019/8/6
-*/
-public class PayModeDownload implements IPurchaseService{
+ * @Description: PayModeDownloadService 类（或接口）是 承接购药方式中下载处方方式
+ * @Author: JRK
+ * @Date: 2019/8/6
+ */
+public class PayModeDownload implements IPurchaseService {
 
     @Autowired
     private OrderManager orderManager;
@@ -47,9 +43,9 @@ public class PayModeDownload implements IPurchaseService{
         RecipeResultBean resultBean = RecipeResultBean.getSuccess();
         Map<String, Object> ext = new HashedMap();
         //当不需要审核的时候弹出特性弹窗
-        if(ReviewTypeConstant.Not_Need_Check == dbRecipe.getReviewType()){
+        if (ReviewTypeConstant.Not_Need_Check == dbRecipe.getReviewType()) {
             ext.put("popupFeature", "noCheck");
-        }else{
+        } else {
             ext.put("popupFeature", "needCheck");
         }
         resultBean.setExt(ext);
@@ -93,10 +89,11 @@ public class PayModeDownload implements IPurchaseService{
         order.setEffective(1);
         // 目前paymode传入还是老版本 除线上支付外全都算线下支付,下个版本与前端配合修改
         Integer payModeNew = payMode;
-        if(!payMode.equals(1)){
+        if (!payMode.equals(1)) {
             payModeNew = 2;
         }
         order.setPayMode(payModeNew);
+        order.setPatientIsDecoction(MapValueUtil.getString(extInfo, "patientIsDecoction"));
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
         if (!saveFlag) {
             result.setCode(RecipeResultBean.FAIL);
@@ -106,10 +103,10 @@ public class PayModeDownload implements IPurchaseService{
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
         //修改订单线下支付的状态
         //更新处方信息
-        if(0d >= order.getActualPrice()){
+        if (0d >= order.getActualPrice()) {
             //如果不需要支付则不走支付,直接掉支付后的逻辑
             orderService.finishOrderPay(order.getOrderCode(), 1, MapValueUtil.getInteger(extInfo, "payMode"));
-        }else{
+        } else {
             // 邵逸夫模式下 不需要审方物流费需要生成一条流水记录
             orderManager.saveFlowByOrder(order);
 
@@ -137,17 +134,17 @@ public class PayModeDownload implements IPurchaseService{
         int orderStatus = null == order ? -1 : order.getStatus();
         String tips = "";
         //下载处方购药方式特殊状态,已下载
-        if(RecipeStatusConstant.RECIPE_DOWNLOADED == status){
+        if (RecipeStatusConstant.RECIPE_DOWNLOADED == status) {
             tips = "已下载处方笺";
         }
         //下载处方购药下通用状态的文案
-        if(OrderStatusConstant.FINISH == orderStatus || RecipeStatusConstant.FINISH == status){
+        if (OrderStatusConstant.FINISH == orderStatus || RecipeStatusConstant.FINISH == status) {
             tips = "订单完成";
         }
-        if(OrderStatusConstant.READY_GET_DRUG == orderStatus){
-            if(ReviewTypeConstant.Postposition_Check == recipe.getReviewType()){
+        if (OrderStatusConstant.READY_GET_DRUG == orderStatus) {
+            if (ReviewTypeConstant.Postposition_Check == recipe.getReviewType()) {
                 tips = "处方已审核通过，请下载处方笺";
-            }else if(ReviewTypeConstant.Preposition_Check == recipe.getReviewType()){
+            } else if (ReviewTypeConstant.Preposition_Check == recipe.getReviewType()) {
 
                 tips = "订单已处理，请下载处方笺";
             }
