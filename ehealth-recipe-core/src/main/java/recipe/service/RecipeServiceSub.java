@@ -78,6 +78,7 @@ import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.DepartClient;
+import recipe.client.IConfigurationClient;
 import recipe.client.RecipeAuditClient;
 import recipe.client.RefundClient;
 import recipe.common.CommonConstant;
@@ -88,9 +89,7 @@ import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.type.PayBusTypeEnum;
-import recipe.enumerate.type.RecipeDistributionFlagEnum;
-import recipe.enumerate.type.RecipeSupportGiveModeEnum;
+import recipe.enumerate.type.*;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.*;
@@ -167,6 +166,9 @@ public class RecipeServiceSub {
 
     private static StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
 
+    private static IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
+
+    private static RecipeOrderPayFlowManager recipeOrderPayFlowManager = AppContextHolder.getBean("recipeOrderPayFlowManager", RecipeOrderPayFlowManager.class);
     /**
      * @param recipeBean
      * @param detailBeanList
@@ -2832,7 +2834,7 @@ public class RecipeServiceSub {
             if (!recipe.canMedicalPay()) {
                 change.put("chooseFlag", 1);
             }
-            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_AUTO, true);
+            orderService.cancelOrder(order, OrderStatusConstant.CANCEL_MANUAL, true);
             stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_DOCTOR_REPEAL);
         }
         //撤销处方

@@ -75,7 +75,7 @@ public class PayModeTFDS implements IPurchaseService {
         //获取购药方式查询列表
         List<Integer> payModeSupport = RecipeServiceSub.getDepSupportMode(getPayMode());
         // 获取药企
-        List<DrugsEnterprise> drugsEnterprises = enterpriseManager.findEnterpriseByTFDS(recipe,payModeSupport);
+        List<DrugsEnterprise> drugsEnterprises = enterpriseManager.findEnterpriseByTFDS(recipe, payModeSupport);
         if (CollectionUtils.isEmpty(drugsEnterprises)) {
             //该机构没有对应可药店取药的药企
             resultBean.setCode(RecipeResultBean.FAIL);
@@ -102,7 +102,7 @@ public class PayModeTFDS implements IPurchaseService {
         //针对浙江省互联网药店取药走的是配送模式的处理
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())) {
             DrugsEnterprise drugsEnterprise = drugsEnterprises.get(0);
-            if (new Integer(0).equals(drugsEnterprise.getOrderType())){
+            if (new Integer(0).equals(drugsEnterprise.getOrderType())) {
                 //表示跳转第三方订单,给前端返回具体的药企
                 DepDetailBean depDetailBean = new DepDetailBean();
                 depDetailBean.setDepName(drugsEnterprise.getName());
@@ -128,7 +128,7 @@ public class PayModeTFDS implements IPurchaseService {
         if (CollectionUtils.isNotEmpty(depDetailList)) {
             Iterator iterator = depDetailList.iterator();
             while (iterator.hasNext()) {
-                DepDetailBean depDetailBean = (DepDetailBean)iterator.next();
+                DepDetailBean depDetailBean = (DepDetailBean) iterator.next();
                 Integer depId = depDetailBean.getDepId();
                 //如果是价格自定义的药企，则需要设置单独价格
                 RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
@@ -203,7 +203,7 @@ public class PayModeTFDS implements IPurchaseService {
         //设置中药代建费
         Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
         RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
-        if(decoctionId != null){
+        if (decoctionId != null) {
             DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
             DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
             for (Recipe dbRecipe : dbRecipes) {
@@ -220,7 +220,7 @@ public class PayModeTFDS implements IPurchaseService {
         }
         // 目前paymode传入还是老版本 除线上支付外全都算线下支付,下个版本与前端配合修改
         Integer payModeNew = payMode;
-        if(!payMode.equals(1)){
+        if (!payMode.equals(1)) {
             payModeNew = 2;
         }
         //如果是医保支付前端目前传的orderType都是1,杭州市医保得特殊处理
@@ -238,18 +238,19 @@ public class PayModeTFDS implements IPurchaseService {
         order.setEffective(1);
 
         order.setPayMode(payModeNew);
+        order.setPatientIsDecoction(MapValueUtil.getString(extInfo, "patientIsDecoction"));
         boolean saveFlag = orderService.saveOrderToDB(order, dbRecipes, payMode, result, recipeDAO, orderDAO);
-        if(!saveFlag){
+        if (!saveFlag) {
             result.setCode(RecipeResultBean.FAIL);
             result.setMsg("提交失败，请重新提交。");
             return result;
         }
         orderService.setCreateOrderResult(result, order, payModeSupport, 1);
         //更新处方信息
-        if(0d >= order.getActualPrice()){
+        if (0d >= order.getActualPrice()) {
             //如果不需要支付则不走支付,直接掉支付后的逻辑
             orderService.finishOrderPay(order.getOrderCode(), 1, MapValueUtil.getInteger(extInfo, "payMode"));
-        }else{
+        } else {
             // 邵逸夫模式下 不需要审方物流费需要生成一条流水记录
             orderManager.saveFlowByOrder(order);
 
@@ -258,13 +259,13 @@ public class PayModeTFDS implements IPurchaseService {
         }
         //根据药企判断是否药店取药改药品价格
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
-        if(drugsEnterprise != null && drugsEnterprise.getStorePayFlag() != null && drugsEnterprise.getStorePayFlag() == 1){
+        if (drugsEnterprise != null && drugsEnterprise.getStorePayFlag() != null && drugsEnterprise.getStorePayFlag() == 1) {
             for (Integer reicpeId : recipeIdLists) {
                 PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
                 purchaseService.updateRecipeDetail(reicpeId);
             }
         }
-        for (Integer recipeId2 : recipeIdLists){
+        for (Integer recipeId2 : recipeIdLists) {
             PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
             purchaseService.updateRecipeDetail(recipeId2);
             //date 20200318
@@ -272,23 +273,24 @@ public class PayModeTFDS implements IPurchaseService {
             extInfo.put("payMode", "4");
             extInfo.put("drugStoreCode", order.getDrugStoreCode());
             extInfo.put("drugStoreName", order.getDrugStoreName());
-            CommonOrder.updateGoodsReceivingInfoToCreateOrder(recipeId2,extInfo);
+            CommonOrder.updateGoodsReceivingInfoToCreateOrder(recipeId2, extInfo);
         }
         return result;
     }
 
     /**
      * 判断药企药店库存，包含平台内权限及药企药店实时库存
-     * @param dbRecipe  处方单
-     * @param dep       药企
-     * @param drugIds   药品列表
-     * @return          是否存在库存
+     *
+     * @param dbRecipe 处方单
+     * @param dep      药企
+     * @param drugIds  药品列表
+     * @return 是否存在库存
      */
     private boolean scanStock(Recipe dbRecipe, DrugsEnterprise dep, List<Integer> drugIds) {
         SaleDrugListDAO saleDrugListDAO = getDAO(SaleDrugListDAO.class);
         Integer recipeId = dbRecipe.getRecipeId();
         boolean succFlag = false;
-        if(null == dep || CollectionUtils.isEmpty(drugIds)){
+        if (null == dep || CollectionUtils.isEmpty(drugIds)) {
             return false;
         }
         //判断药企平台内药品权限，此处简单判断数量是否一致
@@ -302,9 +304,9 @@ public class PayModeTFDS implements IPurchaseService {
         RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
         List<Recipedetail> detailList = detailDAO.findByRecipeId(dbRecipe.getRecipeId());
         EnterpriseStock enterpriseStock = stockBusinessService.enterpriseStockCheck(dbRecipe, detailList, dep.getId());
-        if(Objects.isNull(enterpriseStock)){
+        if (Objects.isNull(enterpriseStock)) {
             succFlag = false;
-        }else {
+        } else {
             succFlag = enterpriseStock.getStock();
         }
         if (!succFlag) {
@@ -365,7 +367,7 @@ public class PayModeTFDS implements IPurchaseService {
             case RECIPE_STATUS_FINISH:
                 tips = "到店取药成功，订单完成";
                 break;
-                default:
+            default:
         }
         return tips;
     }
@@ -403,7 +405,7 @@ public class PayModeTFDS implements IPurchaseService {
         recipeOrderDAO.update(recipeOrder);
     }
 
-    private List<DepDetailBean> findAllSupportDeps(DrugEnterpriseResult drugEnterpriseResult, DrugsEnterprise dep, Map<String, String> extInfo){
+    private List<DepDetailBean> findAllSupportDeps(DrugEnterpriseResult drugEnterpriseResult, DrugsEnterprise dep, Map<String, String> extInfo) {
         List<DepDetailBean> depDetailList = new ArrayList<>();
         if (null != drugEnterpriseResult && DrugEnterpriseResult.SUCCESS.equals(drugEnterpriseResult.getCode())) {
             Object result = drugEnterpriseResult.getObject();
@@ -424,9 +426,11 @@ public class PayModeTFDS implements IPurchaseService {
 
     class DepDetailBeanComparator implements Comparator<DepDetailBean> {
         String sort;
-        DepDetailBeanComparator(String sort){
+
+        DepDetailBeanComparator(String sort) {
             this.sort = sort;
         }
+
         @Override
         public int compare(DepDetailBean depDetailBeanOne, DepDetailBean depDetailBeanTwo) {
             int cp = 0;
