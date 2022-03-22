@@ -17,6 +17,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
+import recipe.core.api.IConfigStatusBusinessService;
 import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IStockBusinessService;
@@ -41,6 +42,9 @@ public class DrugDoctorAtop extends BaseAtop {
     private IRecipeBusinessService recipeBusinessService;
     @Autowired
     private IDrugBusinessService drugBusinessService;
+    @Autowired
+    private IConfigStatusBusinessService configStatusBusinessService;
+
 
     /**
      * 医生端 查询购药方式下有库存的药品
@@ -146,7 +150,12 @@ public class DrugDoctorAtop extends BaseAtop {
         List<DrugList> drugs = drugBusinessService.drugList(drugIds);
         Map<Integer, DrugList> drugMap = drugs.stream().collect(Collectors.toMap(DrugList::getDrugId, a -> a, (k1, k2) -> k1));
         Map<String, OrganDrugList> organDrugMap = drugBusinessService.organDrugMap(searchDrugReq.getOrganId(), drugIds);
+        Boolean openRecipeHideDrugManufacturer = configStatusBusinessService.getOpenRecipeHideDrugManufacturer(searchDrugReq.getOrganId(),"openRecipeHideDrugManufacturer");
         drugWithEsByPatient.forEach(drugList -> {
+            // 药品信息里不能显示生产厂家
+            if(openRecipeHideDrugManufacturer){
+                drugList.setProducer("****");
+            }
             //添加es价格空填值逻辑
             DrugList drugListNow = drugMap.get(drugList.getDrugId());
             if (null != drugListNow) {
