@@ -243,7 +243,7 @@ public class TcmTreatmentService implements ITcmTreatmentService {
             msg.append("【" + tcmTreatment.getId() + "-" + tcmTreatment.getTreatmentName() + "】");
             deletetcmTreatmentById(tcmTreatmentId);
         }
-        busActionLogService.recordBusinessLogRpcNew("机构治法管理", "", "TcmTreatment", msg.toString(), organDTO.getName());
+        busActionLogService.recordBusinessLogRpcNew("中医治法", "", "TcmTreatment", msg.toString(), organDTO.getName());
     }
 
     /**
@@ -278,7 +278,7 @@ public class TcmTreatmentService implements ITcmTreatmentService {
         }
         tcmTreatmentDAO.deleteByOrganId(organId);
         IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
-        busActionLogService.recordBusinessLogRpcNew("机构治法管理", "", "TcmTreatment", "【" + urt.getUserName() + "】一键删除【" + byOrganId.getName()
+        busActionLogService.recordBusinessLogRpcNew("中医治法", "", "TcmTreatment", "【" + urt.getUserName() + "】一键删除【" + byOrganId.getName()
                 + "】治法", byOrganId.getName());
     }
 

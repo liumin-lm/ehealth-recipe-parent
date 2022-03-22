@@ -226,7 +226,7 @@ public class SymptomService implements ISymptomService {
             msg.append("【" + symptom.getSymptomId() + "-" + symptom.getSymptomName() + "】");
             deleteSymptomById(symptomId);
         }
-        busActionLogService.recordBusinessLogRpcNew("机构证候管理", "", "Symptom", msg.toString(), organDTO.getName());
+        busActionLogService.recordBusinessLogRpcNew("中医证候", "", "Symptom", msg.toString(), organDTO.getName());
     }
 
 
@@ -264,7 +264,7 @@ public class SymptomService implements ISymptomService {
         SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
         symptomDAO.deleteByOrganId(organId);
         IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
-        busActionLogService.recordBusinessLogRpcNew("机构证候管理", "", "Symptom", "【" + urt.getUserName() + "】一键删除【" + byOrganId.getName()
+        busActionLogService.recordBusinessLogRpcNew("中医证候", "", "Symptom", "【" + urt.getUserName() + "】一键删除【" + byOrganId.getName()
                 + "】证候", byOrganId.getName());
     }
 
