@@ -1840,6 +1840,7 @@ public class RecipeServiceSub {
         Boolean childRecipeFlag = false;
         //医生端/患者端获取处方扩展信息
         if (recipeExtend != null) {
+            //医生选择煎法后的每贴待煎费
             if (recipeExtend.getDecoctionId() != null && recipeExtend.getDecoctionText() != null) {
                 DrugDecoctionWayDao DecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
                 DecoctionWay decoctionWay = DecoctionWayDao.get(Integer.valueOf(recipeExtend.getDecoctionId()));

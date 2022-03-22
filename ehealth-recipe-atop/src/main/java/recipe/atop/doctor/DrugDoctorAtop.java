@@ -9,6 +9,7 @@ import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
 import com.ngari.recipe.vo.SearchDrugReqVO;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -152,8 +153,8 @@ public class DrugDoctorAtop extends BaseAtop {
         Map<String, OrganDrugList> organDrugMap = drugBusinessService.organDrugMap(searchDrugReq.getOrganId(), drugIds);
         Boolean openRecipeHideDrugManufacturer = configStatusBusinessService.getOpenRecipeHideDrugManufacturer(searchDrugReq.getOrganId(),"openRecipeHideDrugManufacturer");
         drugWithEsByPatient.forEach(drugList -> {
-            // 药品信息里不能显示生产厂家
-            if(openRecipeHideDrugManufacturer){
+            // 中药 药品信息里不能显示生产厂家
+            if(openRecipeHideDrugManufacturer  && RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(drugList.getDrugType())){
                 drugList.setProducer("****");
             }
             //添加es价格空填值逻辑
