@@ -87,7 +87,7 @@ public class SymptomService implements ISymptomService {
      * @param symptom
      */
     @RpcService
-    public Boolean validateAddNameOrCode(Symptom symptom) {
+    public Boolean validateAddNameOrCode(SymptomDTO symptom) {
         if (null == symptom) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "证候信息不能为空");
         }
@@ -116,7 +116,7 @@ public class SymptomService implements ISymptomService {
      * @param symptom
      */
     @RpcService
-    public Boolean validateUpdateNameOrCode(Symptom symptom) {
+    public Boolean validateUpdateNameOrCode(SymptomDTO symptom) {
         if (null == symptom) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "证候信息不能为空");
         }
@@ -128,13 +128,14 @@ public class SymptomService implements ISymptomService {
         }
         if (!StringUtils.isEmpty(symptom.getSymptomCode())) {
             Symptom byOrganIdAndSymptomCode = symptomDAO.getByOrganIdAndSymptomCode(symptom.getOrganId(), symptom.getSymptomCode());
-            if (!ObjectUtils.isEmpty(byOrganIdAndSymptomCode) && byOrganIdAndSymptomCode.getSymptomId() != symptom.getSymptomId()) {
+            if (!ObjectUtils.isEmpty(byOrganIdAndSymptomCode) && !byOrganIdAndSymptomCode.getSymptomId().equals(symptom.getSymptomId())) {
                 return false;
             }
         }
         if (!StringUtils.isEmpty(symptom.getSymptomName())) {
             Symptom byOrganIdAndSymptomName = symptomDAO.getByOrganIdAndSymptomName(symptom.getOrganId(), symptom.getSymptomName());
-            if (!ObjectUtils.isEmpty(byOrganIdAndSymptomName) && byOrganIdAndSymptomName.getSymptomId() != symptom.getSymptomId()) {
+            logger.info("中医证候更新验证[validateUpdateNameOrCode]:" + JSONUtils.toString(byOrganIdAndSymptomName));
+            if (!ObjectUtils.isEmpty(byOrganIdAndSymptomName) && !byOrganIdAndSymptomName.getSymptomId().equals(symptom.getSymptomId())) {
                 return false;
             }
         }
@@ -189,11 +190,11 @@ public class SymptomService implements ISymptomService {
         //验证症候必要信息
         validate(convert);
         Symptom byOrganIdAndSymptomName = symptomDAO.getByOrganIdAndSymptomName(symptom.getOrganId(), symptom.getSymptomName());
-        if (!ObjectUtils.isEmpty(byOrganIdAndSymptomName) && byOrganIdAndSymptomName.getSymptomId() != symptom.getSymptomId()) {
+        if (!ObjectUtils.isEmpty(byOrganIdAndSymptomName) && !byOrganIdAndSymptomName.getSymptomId().equals(symptom.getSymptomId()) ) {
             throw new DAOException(DAOException.VALUE_NEEDED, "该机构证候 名称已存在!");
         }
         Symptom byOrganIdAndSymptomCode = symptomDAO.getByOrganIdAndSymptomCode(symptom.getOrganId(), symptom.getSymptomCode());
-        if (!ObjectUtils.isEmpty(byOrganIdAndSymptomCode) && byOrganIdAndSymptomCode.getSymptomId() != symptom.getSymptomId()) {
+        if (!ObjectUtils.isEmpty(byOrganIdAndSymptomCode) && !byOrganIdAndSymptomCode.getSymptomId().equals(symptom.getSymptomId()) ) {
             throw new DAOException(DAOException.VALUE_NEEDED, "该机构证候 编码已存在!");
         }
         Symptom update = symptomDAO.update(convert);
@@ -219,13 +220,13 @@ public class SymptomService implements ISymptomService {
         SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
         OrganService organService = BasicAPI.getService(OrganService.class);
         OrganDTO organDTO = organService.getByOrganId(organId);
-        StringBuilder msg = new StringBuilder("【" + organDTO.getName() + "】删除证候");
+        StringBuilder msg = new StringBuilder("批量删除中医证候");
         for (Integer symptomId : symptomIds) {
             Symptom symptom = symptomDAO.get(symptomId);
             msg.append("【" + symptom.getSymptomId() + "-" + symptom.getSymptomName() + "】");
             deleteSymptomById(symptomId);
         }
-        busActionLogService.recordBusinessLogRpcNew("机构证候管理", "", "Symptom", msg.toString(), organDTO.getName());
+        busActionLogService.recordBusinessLogRpcNew("中医证候", "", "Symptom", msg.toString(), organDTO.getName());
     }
 
 
@@ -263,8 +264,7 @@ public class SymptomService implements ISymptomService {
         SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
         symptomDAO.deleteByOrganId(organId);
         IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
-        busActionLogService.recordBusinessLogRpcNew("机构证候管理", "", "Symptom", "【" + urt.getUserName() + "】一键删除【" + byOrganId.getName()
-                + "】证候", byOrganId.getName());
+        busActionLogService.recordBusinessLogRpcNew("中医证候", "", "Symptom", "一键清除中医证候。", byOrganId.getName());
     }
 
 

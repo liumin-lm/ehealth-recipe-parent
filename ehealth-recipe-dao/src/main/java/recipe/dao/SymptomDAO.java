@@ -141,9 +141,9 @@ public abstract class SymptomDAO extends HibernateSupportDelegateDAO<Symptom> {
                 }
                 if (!ObjectUtils.isEmpty(isRegulationSymptom)){
                     if (isRegulationSymptom){
-                        sql.append(" and regulationSymptomCode is not null ");
+                        sql.append(" and regulationSymptomCode is not null and regulationSymptomCode <> '' ");
                     }else {
-                        sql.append(" and ( regulationSymptomCode is  null  or regulationTreatmentCode='' ) ");
+                        sql.append(" and ( regulationSymptomCode is  null  or regulationSymptomCode = '' ) ");
                     }
                 }
                 Query countQuery = ss.createQuery("select count(*) "+sql.toString());
