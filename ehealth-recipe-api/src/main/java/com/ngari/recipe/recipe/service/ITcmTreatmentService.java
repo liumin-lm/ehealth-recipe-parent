@@ -18,7 +18,7 @@ public interface ITcmTreatmentService  {
     @RpcService
     List<TcmTreatmentDTO> querTcmTreatmentByOrganId(Integer organId);
 
-    @RpcService
+    @RpcService(mvcDisabled = false)
     Map<String, Object> readTcmTreatmentExcel(byte[] buf, String originalFilename, int organId, String operator, String ossId, String manageUnit);
 
 }
