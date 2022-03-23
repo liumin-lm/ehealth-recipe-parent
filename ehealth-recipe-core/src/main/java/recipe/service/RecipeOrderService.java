@@ -659,13 +659,13 @@ public class RecipeOrderService extends RecipeBaseService {
         boolean isExistValue = false;
         boolean isOfflineRecipe = false;
         for (Recipe recipe : recipeList) {
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
                 //处理线下转线上的代煎费
                 if (new Integer(2).equals(recipe.getRecipeSourceType())) {
                     isOfflineRecipe = true;
                     //表示为线下的处方
                     HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
-                    RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                     tcmFlag = false;
                     //设置中医辨证论证费
                     if (hisRecipe != null && hisRecipe.getTcmFee() != null) {
@@ -673,7 +673,7 @@ public class RecipeOrderService extends RecipeBaseService {
                     }
                     IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
                     String decoctionDeploy = ((String[]) configService.getConfiguration(recipe.getClinicOrgan(), "decoctionDeploy"))[0];
-                    //设置代煎费
+                    //设置代煎费 { "options": { "0": "无", "1": "医生选择", "2": "患者选择", "3": "医生患者都可以选择" }, "multiple": false, "required": true }
                     //如果为医生选择且recipeExt存在decoctionText，需设置待煎费   患者选择由前端计算
                     if ("1".equals(decoctionDeploy)
                             && recipeExtend != null && StringUtils.isNotEmpty(recipeExtend.getDecoctionText())) {
@@ -706,7 +706,10 @@ public class RecipeOrderService extends RecipeBaseService {
                     if (needCalDecFee) {
                         //代煎费等于剂数乘以代煎单价
                         //如果是合并处方-多张处方下得累加
-                        decoctionFee = decoctionFee.add(order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
+                        //只有最终选择了代煎才计算收取代煎费，如果是非代煎则隐藏代煎费并且不收代煎费
+                        if ("1".equals(order.getPatientIsDecoction()) || "1".equals(recipeExtend.getDoctorIsDecoction())) {
+                            decoctionFee = decoctionFee.add(order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
+                        }
                     }
                     i++;
                 }
