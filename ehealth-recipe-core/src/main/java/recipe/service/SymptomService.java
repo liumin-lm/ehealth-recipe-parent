@@ -518,7 +518,7 @@ public class SymptomService implements ISymptomService {
                 if (textMap != null && textMap.size() > 0) {
                     Set<Integer> integers = textMap.keySet();
                     for (Integer integer : integers) {
-                        if ( keyMap.get(integer).equals(getStrFromCell(row.getCell(1)))) {
+                        if ( textMap.get(integer).equals(getStrFromCell(row.getCell(1)))) {
                             errMsg.append("证候名称与第[" + integer + "]行重复!").append(";");
                         }
                     }
@@ -606,7 +606,7 @@ public class SymptomService implements ISymptomService {
             ImportExcelInfoDTO importExcelInfoDTO = new ImportExcelInfoDTO();
             //导入症候记录
             importExcelInfoDTO.setFileName(originalFilename);
-            importExcelInfoDTO.setExcelType(15);
+            importExcelInfoDTO.setExcelType(35);
             importExcelInfoDTO.setUploaderName(operator);
             importExcelInfoDTO.setUploadDate(new Date());
             importExcelInfoDTO.setStatus(0);
@@ -657,7 +657,7 @@ public class SymptomService implements ISymptomService {
         ImportExcelInfoDTO importExcelInfoDTO = new ImportExcelInfoDTO();
         //导入药品记录
         importExcelInfoDTO.setFileName(originalFilename);
-        importExcelInfoDTO.setExcelType(15);
+        importExcelInfoDTO.setExcelType(35);
         importExcelInfoDTO.setUploaderName(operator);
         importExcelInfoDTO.setUploadDate(new Date());
         importExcelInfoDTO.setStatus(1);

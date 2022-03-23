@@ -464,7 +464,7 @@ public class TcmTreatmentService implements ITcmTreatmentService {
                 if (textMap != null && textMap.size() > 0) {
                     Set<Integer> integers = textMap.keySet();
                     for (Integer integer : integers) {
-                        if ( keyMap.get(integer).equals(getStrFromCell(row.getCell(1)))) {
+                        if ( textMap.get(integer).equals(getStrFromCell(row.getCell(1)))) {
                             errMsg.append("治法名称与第[" + integer + "]行重复!").append(";");
                         }
                     }
