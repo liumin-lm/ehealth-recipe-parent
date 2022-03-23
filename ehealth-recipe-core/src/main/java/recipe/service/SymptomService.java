@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author renfuhao
@@ -453,6 +454,8 @@ public class SymptomService implements ISymptomService {
         Integer addNum = 0;
         Integer updateNum = 0;
         List<Symptom> symptomLists = Lists.newArrayList();
+        Map<Integer, String> textMap = Maps.newHashMap();
+        Map<Integer, String> keyMap = Maps.newHashMap();
 
         for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
             Symptom symptom;
@@ -510,6 +513,28 @@ public class SymptomService implements ISymptomService {
             } catch (Exception e) {
                 logger.error("症候名称编码唯一校验有误 ," + e.getMessage(), e);
                 errMsg.append("症候名称编码唯一校验有误").append(";");
+            }
+            if (!StringUtils.isEmpty(getStrFromCell(row.getCell(1))) && !StringUtils.isEmpty(getStrFromCell(row.getCell(0)))) {
+                if (textMap != null && textMap.size() > 0) {
+                    Set<Integer> integers = textMap.keySet();
+                    for (Integer integer : integers) {
+                        if ( textMap.get(integer).equals(getStrFromCell(row.getCell(1)))) {
+                            errMsg.append("证候名称与第[" + integer + "]行重复!").append(";");
+                        }
+                    }
+
+                }
+                textMap.put(rowIndex, getStrFromCell(row.getCell(1)));
+                if (keyMap != null && keyMap.size() > 0) {
+                    Set<Integer> integers = keyMap.keySet();
+                    for (Integer integer : integers) {
+                        if ( keyMap.get(integer).equals(getStrFromCell(row.getCell(0)))) {
+                            errMsg.append("证候编码与第[" + integer + "]行重复!").append(";");
+                        }
+                    }
+
+                }
+                keyMap.put(rowIndex, getStrFromCell(row.getCell(0)));
             }
 
             try {
@@ -581,7 +606,7 @@ public class SymptomService implements ISymptomService {
             ImportExcelInfoDTO importExcelInfoDTO = new ImportExcelInfoDTO();
             //导入症候记录
             importExcelInfoDTO.setFileName(originalFilename);
-            importExcelInfoDTO.setExcelType(15);
+            importExcelInfoDTO.setExcelType(35);
             importExcelInfoDTO.setUploaderName(operator);
             importExcelInfoDTO.setUploadDate(new Date());
             importExcelInfoDTO.setStatus(0);
@@ -612,8 +637,12 @@ public class SymptomService implements ISymptomService {
                         symptomDAO.update(updatevalidate);
                         updateNum++;
                     } else {
-                        symptomDAO.save(symptom1);
-                        addNum++;
+                        if (validateAddNameOrCode(ObjectCopyUtils.convert(symptom1,SymptomDTO.class))){
+                            symptomDAO.save(symptom1);
+                            addNum++;
+                        }else {
+                            continue;
+                        }
                     }
 
                 } catch (Exception e) {
@@ -628,7 +657,7 @@ public class SymptomService implements ISymptomService {
         ImportExcelInfoDTO importExcelInfoDTO = new ImportExcelInfoDTO();
         //导入药品记录
         importExcelInfoDTO.setFileName(originalFilename);
-        importExcelInfoDTO.setExcelType(15);
+        importExcelInfoDTO.setExcelType(35);
         importExcelInfoDTO.setUploaderName(operator);
         importExcelInfoDTO.setUploadDate(new Date());
         importExcelInfoDTO.setStatus(1);
