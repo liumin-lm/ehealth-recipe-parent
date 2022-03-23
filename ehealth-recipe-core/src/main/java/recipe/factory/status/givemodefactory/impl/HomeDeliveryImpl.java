@@ -119,7 +119,7 @@ public class HomeDeliveryImpl extends AbstractGiveMode {
                 service.drugTakeChange(request);
             });
             //记录日志
-            String company = DictionaryUtil.getDictionary("eh.cdr.dictionary.LogisticsCompany", orderStatus.getLogisticsCompany());
+            String company = DictionaryUtil.getDictionary("eh.infra.dictionary.LogisticsCode", orderStatus.getLogisticsCompany());
             RecipeLogService.saveRecipeLog(orderStatus.getRecipeId(), orderStatus.getSourceRecipeOrderStatus()
                     , orderStatus.getTargetRecipeOrderStatus(), "配送中,配送人：" + orderStatus.getSender() +
                             ",快递公司：" + company + ",快递单号：" + orderStatus.getTrackingNumber());
