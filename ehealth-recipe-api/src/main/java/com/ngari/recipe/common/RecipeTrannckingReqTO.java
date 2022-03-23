@@ -17,7 +17,7 @@ public class RecipeTrannckingReqTO implements Serializable{
     private String trackingNumber;
 
     @Verify(desc = "物流公司")
-    @Dictionary(id = "eh.cdr.dictionary.LogisticsCompany")
+    @Dictionary(id = "eh.infra.dictionary.LogisticsCode")
     private String logisticsCompany;
 
     @Verify(desc = "物流状态")

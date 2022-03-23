@@ -402,7 +402,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             RecipeMsgService.batchSendMsg(recipeId, RecipeMsgEnum.EXPRESSINFO_REMIND.getStatus());
             String company = logisticsCompany;
             try {
-                company = DictionaryController.instance().get("eh.cdr.dictionary.LogisticsCompany").getText(logisticsCompany);
+                company = DictionaryController.instance().get("eh.infra.dictionary.LogisticsCode").getText(logisticsCompany);
             } catch (ControllerException e) {
                 LOGGER.warn("toSend get logisticsCompany error. logisticsCompany={}", logisticsCompany, e);
             }
