@@ -131,18 +131,6 @@ public abstract class GiveModeManager implements IGiveModeBase {
     }
 
     private void setOtherButton(GiveModeShowButtonDTO giveModeShowButtonVO, Recipe recipe) {
-        // 按钮的展示类型
-        Boolean showUseDrugConfig = (Boolean) configService.getConfiguration(recipe.getClinicOrgan(), "medicationGuideFlag");
-        //设置用药指导按钮
-        if (showUseDrugConfig) {
-            GiveModeButtonDTO giveModeButton = new GiveModeButtonDTO();
-            giveModeButton.setButtonSkipType("1");
-            giveModeButton.setShowButtonName("用药指导");
-            giveModeButton.setShowButtonKey("supportMedicationGuide");
-            giveModeShowButtonVO.getGiveModeButtons().add(giveModeButton);
-            //此时将ButtonType设置为4
-            giveModeShowButtonVO.setButtonType(4);
-        }
         LOGGER.info("setOtherButton giveModeButtons:{}", JSONUtils.toString(giveModeShowButtonVO));
     }
 
