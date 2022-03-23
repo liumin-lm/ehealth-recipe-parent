@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author renfuhao
@@ -453,6 +454,8 @@ public class SymptomService implements ISymptomService {
         Integer addNum = 0;
         Integer updateNum = 0;
         List<Symptom> symptomLists = Lists.newArrayList();
+        Map<Integer, String> textMap = Maps.newHashMap();
+        Map<Integer, String> keyMap = Maps.newHashMap();
 
         for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
             Symptom symptom;
@@ -502,9 +505,29 @@ public class SymptomService implements ISymptomService {
                         if (symptomDAO.getByOrganIdAndSymptomName(organId, getStrFromCell(row.getCell(1))) != null) {
                             errMsg.append("该机构此证候名称已存在！").append(";");
                         }
+                        if (textMap != null && textMap.size() > 0) {
+                            Set<Integer> integers = textMap.keySet();
+                            for (Integer integer : integers) {
+                                if (getStrFromCell(row.getCell(1)) == keyMap.get(integer)) {
+                                    errMsg.append("证候名称与第[" + integer + "]行重复!").append(";");
+                                }
+                            }
+
+                        }
+                        textMap.put(rowIndex, getStrFromCell(row.getCell(1)));
                         if (symptomDAO.getByOrganIdAndSymptomCode(organId, getStrFromCell(row.getCell(0))) != null) {
                             errMsg.append("该机构此证候编码已存在！").append(";");
                         }
+                        if (keyMap != null && keyMap.size() > 0) {
+                            Set<Integer> integers = keyMap.keySet();
+                            for (Integer integer : integers) {
+                                if (getStrFromCell(row.getCell(0)) == keyMap.get(integer)) {
+                                    errMsg.append("证候编码与第[" + integer + "]行重复!").append(";");
+                                }
+                            }
+
+                        }
+                        keyMap.put(rowIndex, getStrFromCell(row.getCell(0)));
                     }
                 }
             } catch (Exception e) {

@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author renfuhao
@@ -397,6 +398,9 @@ public class TcmTreatmentService implements ITcmTreatmentService {
         Integer addNum = 0;
         Integer updateNum = 0;
         List<TcmTreatment> treatmentList = Lists.newArrayList();
+        Map<Integer, String> textMap = Maps.newHashMap();
+        Map<Integer, String> keyMap = Maps.newHashMap();
+
 
         for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
             TcmTreatment treatment;
@@ -446,9 +450,29 @@ public class TcmTreatmentService implements ITcmTreatmentService {
                         if (tcmTreatmentDAO.getByOrganIdAndTreatmentName(organId, getStrFromCell(row.getCell(1))) != null) {
                             errMsg.append("该机构此治法名称已存在！").append(";");
                         }
+                        if (textMap != null && textMap.size() > 0) {
+                            Set<Integer> integers = textMap.keySet();
+                            for (Integer integer : integers) {
+                                if (getStrFromCell(row.getCell(1)) == keyMap.get(integer)) {
+                                    errMsg.append("治法名称与第[" + integer + "]行重复!").append(";");
+                                }
+                            }
+
+                        }
+                        textMap.put(rowIndex, getStrFromCell(row.getCell(1)));
                         if (tcmTreatmentDAO.getByOrganIdAndTreatmentCode(organId, getStrFromCell(row.getCell(0))) != null) {
                             errMsg.append("该机构此治法编码已存在！").append(";");
                         }
+                        if (keyMap != null && keyMap.size() > 0) {
+                            Set<Integer> integers = keyMap.keySet();
+                            for (Integer integer : integers) {
+                                if (getStrFromCell(row.getCell(0)) == keyMap.get(integer)) {
+                                    errMsg.append("治法编码与第[" + integer + "]行重复!").append(";");
+                                }
+                            }
+
+                        }
+                        keyMap.put(rowIndex, getStrFromCell(row.getCell(0)));
                     }
                 }
             } catch (Exception e) {
