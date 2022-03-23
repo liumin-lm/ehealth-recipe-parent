@@ -761,7 +761,9 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
             //审方医生信息
             req.setCheckDoctor(getRegulationBusDocReq(recipe.getChecker(), null, null));
-
+            if (null != req.getCheckDoctor() && StringUtils.isNotEmpty(req.getCheckDoctor().getIdNumber())) {
+                req.setAuditDoctorCertID(req.getCheckDoctor().getIdNumber());
+            }
             //开方医生信息
             req.setDoctor(getRegulationBusDocReq(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
 
