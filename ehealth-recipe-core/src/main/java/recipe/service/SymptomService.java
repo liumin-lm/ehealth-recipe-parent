@@ -11,6 +11,7 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Symptom;
+import com.ngari.recipe.entity.TcmTreatment;
 import com.ngari.recipe.recipe.model.SymptomDTO;
 import com.ngari.recipe.recipe.service.ISymptomService;
 import ctd.account.UserRoleToken;
@@ -38,6 +39,7 @@ import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.SymptomDAO;
+import recipe.dao.TcmTreatmentDAO;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
@@ -60,6 +62,8 @@ public class SymptomService implements ISymptomService {
 
     @Autowired
     private SymptomDAO symptomDAO;
+    @Autowired
+    private TcmTreatmentDAO treatmentDAO;
 
     /**
      * 获取单元格值（字符串）
@@ -553,7 +557,12 @@ public class SymptomService implements ISymptomService {
 
             try {
                 if (!StringUtils.isEmpty(getStrFromCell(row.getCell(3)))) {
-                    symptom.setTreatmentCode(getStrFromCell(row.getCell(3)));
+                    TcmTreatment byOrganIdAndTreatmentCode = treatmentDAO.getByOrganIdAndTreatmentCode(organId, getStrFromCell(row.getCell(3)));
+                    if (ObjectUtils.isEmpty(byOrganIdAndTreatmentCode)){
+                        errMsg.append("机构未查询出此治法编码").append(";");
+                    }else {
+                        symptom.setTreatmentCode(getStrFromCell(row.getCell(3)));
+                    }
                 }
             } catch (Exception e) {
                 logger.error("关联治法编码有误 ," + e.getMessage(), e);
@@ -562,7 +571,12 @@ public class SymptomService implements ISymptomService {
 
             try {
                 if (!StringUtils.isEmpty(getStrFromCell(row.getCell(4)))) {
-                    symptom.setTreatmentName(getStrFromCell(row.getCell(4)));
+                    TcmTreatment byOrganIdAndTreatmentName = treatmentDAO.getByOrganIdAndTreatmentName(organId, getStrFromCell(row.getCell(4)));
+                    if (ObjectUtils.isEmpty(byOrganIdAndTreatmentName)){
+                        errMsg.append("机构未查询出此治法名称").append(";");
+                    }else {
+                        symptom.setTreatmentName(getStrFromCell(row.getCell(4)));
+                    }
                 }
             } catch (Exception e) {
                 logger.error("关联治法名称有误 ," + e.getMessage(), e);
