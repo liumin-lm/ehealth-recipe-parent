@@ -558,7 +558,7 @@ public class SymptomService implements ISymptomService {
             try {
                 if (!StringUtils.isEmpty(getStrFromCell(row.getCell(3)))) {
                     TcmTreatment byOrganIdAndTreatmentCode = treatmentDAO.getByOrganIdAndTreatmentCode(organId, getStrFromCell(row.getCell(3)));
-                    if (!ObjectUtils.isEmpty(byOrganIdAndTreatmentCode)){
+                    if (ObjectUtils.isEmpty(byOrganIdAndTreatmentCode)){
                         errMsg.append("机构未查询出此治法编码").append(";");
                     }else {
                         symptom.setTreatmentCode(getStrFromCell(row.getCell(3)));
@@ -572,7 +572,7 @@ public class SymptomService implements ISymptomService {
             try {
                 if (!StringUtils.isEmpty(getStrFromCell(row.getCell(4)))) {
                     TcmTreatment byOrganIdAndTreatmentName = treatmentDAO.getByOrganIdAndTreatmentName(organId, getStrFromCell(row.getCell(4)));
-                    if (!ObjectUtils.isEmpty(byOrganIdAndTreatmentName)){
+                    if (ObjectUtils.isEmpty(byOrganIdAndTreatmentName)){
                         errMsg.append("机构未查询出此治法名称").append(";");
                     }else {
                         symptom.setTreatmentName(getStrFromCell(row.getCell(4)));
