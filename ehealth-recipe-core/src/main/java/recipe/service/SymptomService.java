@@ -637,8 +637,12 @@ public class SymptomService implements ISymptomService {
                         symptomDAO.update(updatevalidate);
                         updateNum++;
                     } else {
-                        symptomDAO.save(symptom1);
-                        addNum++;
+                        if (validateAddNameOrCode(ObjectCopyUtils.convert(symptom1,SymptomDTO.class))){
+                            symptomDAO.save(symptom1);
+                            addNum++;
+                        }else {
+                            continue;
+                        }
                     }
 
                 } catch (Exception e) {

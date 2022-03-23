@@ -552,12 +552,16 @@ public class TcmTreatmentService implements ITcmTreatmentService {
                         tcmTreatmentDAO.update(updatevalidate);
                         updateNum++;
                     } else {
-                        tcmTreatmentDAO.save(treatment);
-                        addNum++;
+                        if (validateAddNameOrCode(ObjectCopyUtils.convert(treatment,TcmTreatmentDTO.class))){
+                            tcmTreatmentDAO.save(treatment);
+                            addNum++;
+                        }else {
+                            continue;
+                        }
                     }
 
                 } catch (Exception e) {
-                    logger.error("save  Symptom error " + e.getMessage(), e);
+                    logger.error("save  TcmTreatment error " + e.getMessage(), e);
                 }
             }
         }
