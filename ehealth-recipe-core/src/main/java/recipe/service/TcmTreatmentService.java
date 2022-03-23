@@ -561,7 +561,7 @@ public class TcmTreatmentService implements ITcmTreatmentService {
                     }
 
                 } catch (Exception e) {
-                    logger.error("save  Symptom error " + e.getMessage(), e);
+                    logger.error("save  TcmTreatment error " + e.getMessage(), e);
                 }
             }
         }
