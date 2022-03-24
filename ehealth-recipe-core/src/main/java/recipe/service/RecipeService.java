@@ -2980,6 +2980,7 @@ public class RecipeService extends RecipeBaseService {
                 //查询全部药品信息，返回的是医院所有有效的药品信息
                 request.setData(Lists.newArrayList());
                 request.setDrcode(Lists.newArrayList());
+                request.setDrugItemCode(Lists.newArrayList());
                 try {
                     responseTO = recipeHisService.queryOrganDrugInfo(request);
                     LOGGER.info("drugInfoSynMovement request={}", JSONUtils.toString(request));
@@ -3264,6 +3265,7 @@ public class RecipeService extends RecipeBaseService {
         //查询全部药品信息，返回的是医院所有有效的药品信息
         request.setData(Lists.newArrayList());
         request.setDrcode(Lists.newArrayList());
+        request.setDrugItemCode(Lists.newArrayList());
         try {
             responseTO = recipeHisService.queryOrganDrugInfo(request);
             LOGGER.info("drugInfoSynMovement request={}", JSONUtils.toString(request));

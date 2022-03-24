@@ -577,6 +577,16 @@ public class DrugListExtService extends BaseService<DrugListBean> {
                 if (StringUtils.isNotEmpty(producerCode)) {
                     drugInfo.setManfcode(producerCode);
                 }
+                try {
+                    Map<Integer, String> drugItemCodeMap = organDrugs.stream().collect(
+                            Collectors.toMap(OrganDrugList::getDrugId, OrganDrugList::getDrugItemCode));
+                    String drugItemCode = drugItemCodeMap.get(organDrugItem.getDrugId());
+                    if (StringUtils.isNotEmpty(drugItemCode)) {
+                        drugInfo.setDrugItemCode(drugItemCode);
+                    }
+                }catch(Exception e){
+                    LOGGER.error("getHisDrugStock error", e);
+                }
             }
 
             // 药房
