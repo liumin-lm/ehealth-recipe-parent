@@ -599,9 +599,13 @@ public class TcmTreatmentService implements ITcmTreatmentService {
 
         if (!ObjectUtils.isEmpty(symptom1.getRegulationTreatmentName())) {
             symptom.setRegulationTreatmentName(symptom1.getRegulationTreatmentName());
+        }else {
+            symptom.setRegulationTreatmentName(null);
         }
         if (!ObjectUtils.isEmpty(symptom1.getRegulationTreatmentCode())) {
             symptom.setRegulationTreatmentCode(symptom1.getRegulationTreatmentCode());
+        }else {
+            symptom.setRegulationTreatmentCode(null);
         }
         symptom.setModifyDate(new Date());
         return symptom;

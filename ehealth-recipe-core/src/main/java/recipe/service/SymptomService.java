@@ -704,18 +704,28 @@ public class SymptomService implements ISymptomService {
     private Symptom updatevalidate(Symptom symptom, Symptom symptom1) {
         if (!ObjectUtils.isEmpty(symptom1.getPinYin())) {
             symptom.setPinYin(symptom1.getPinYin());
+        }else {
+            symptom.setPinYin(null);
         }
         if (!ObjectUtils.isEmpty(symptom1.getTreatmentCode())) {
             symptom.setTreatmentCode(symptom1.getTreatmentCode());
+        }else {
+            symptom.setTreatmentCode(null);
         }
         if (!ObjectUtils.isEmpty(symptom1.getTreatmentName())) {
             symptom.setTreatmentName(symptom1.getTreatmentName());
+        }else {
+            symptom.setTreatmentName(null);
         }
         if (!ObjectUtils.isEmpty(symptom1.getRegulationSymptomCode())) {
             symptom.setRegulationSymptomCode(symptom1.getRegulationSymptomCode());
+        }else {
+            symptom.setRegulationSymptomCode(null);
         }
         if (!ObjectUtils.isEmpty(symptom1.getRegulationSymptomName())) {
             symptom.setRegulationSymptomName(symptom1.getRegulationSymptomName());
+        }else {
+            symptom.setRegulationSymptomName(null);
         }
         symptom.setModifyDate(new Date());
         return symptom;
