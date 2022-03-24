@@ -797,11 +797,6 @@ public class BaseOfflineToOnlineService {
         recipeExtend.setChronicDiseaseName(hisRecipe.getChronicDiseaseName());
         recipeExtend.setAppointEnterpriseType(AppointEnterpriseTypeEnum.DEFAULT.getType());
 
-        hisRecipe.setDecoctionFee(queryHisRecipResTo.getDecoctionFee());
-        hisRecipe.setDecoctionCode(queryHisRecipResTo.getDecoctionCode());
-        hisRecipe.setDecoctionText(queryHisRecipResTo.getDecoctionText());
-        hisRecipe.setDecoctionUnitFee(queryHisRecipResTo.getDecoctionUnitFee());
-
         //煎法相关
         DecoctionWay decoctionWay = new DecoctionWay();
         if (StringUtils.isNotEmpty(hisRecipe.getDecoctionCode())) {
