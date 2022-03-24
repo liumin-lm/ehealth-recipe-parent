@@ -170,7 +170,7 @@ public class ObtainConfirmOrderObjectResNoDS implements Serializable {
     private Boolean addressCanSend;
 
     @ItemProperty(alias = "物流公司")
-    @Dictionary(id = "eh.cdr.dictionary.LogisticsCompany")
+    @Dictionary(id = "eh.infra.dictionary.LogisticsCode")
     private Integer logisticsCompany;
 
     @ItemProperty(alias = "快递单号")

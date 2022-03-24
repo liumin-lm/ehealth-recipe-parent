@@ -280,6 +280,8 @@ public class HisRequestInit {
                         orderItem.setItemPrice(organDrug.getSalePrice());
                         //产地名称
                         orderItem.setDrugManf(organDrug.getProducer());
+                        //机构药品编码
+                        orderItem.setDrugItemCode(organDrug.getDrugItemCode());
                     }
 
                     orderList.add(orderItem);
@@ -542,6 +544,8 @@ public class HisRequestInit {
                     orderItem.setItemPrice(organDrug.getSalePrice());
                     //产地名称
                     orderItem.setDrugManf(organDrug.getProducer());
+                    //机构药品编码
+                    orderItem.setDrugItemCode(organDrug.getDrugItemCode());
                 }
                 //设置单个药品医保类型
                 orderItem.setDrugMedicalFlag(detail.getDrugMedicalFlag());
@@ -893,6 +897,7 @@ public class HisRequestInit {
         request.setPatientName(recipe.getPatientName());
         request.setPatientId(recipe.getPatientID());
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         if (recipeExtend != null) {
             request.setRegisterId(recipeExtend.getRegisterID());
@@ -941,6 +946,7 @@ public class HisRequestInit {
             List<DrugList> drugList = drugListDAO.findByDrugIds(drugIds);
             Map<Integer, DrugList> drugInfo = Maps.newHashMap();
             Map<Integer, String> drugCodeMap = Maps.newHashMap();
+            Map<Integer, String> drugItemCodeMap = Maps.newHashMap();
             for (Recipedetail detail : recipeDetailList) {
                 for (DrugList drug : drugList) {
                     if (drug.getDrugId().equals(detail.getDrugId())) {
@@ -949,6 +955,15 @@ public class HisRequestInit {
                     }
                 }
                 drugCodeMap.put(detail.getRecipeDetailId(), detail.getDrugCode());
+                try {
+                    OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), detail.getOrganDrugCode(), detail.getDrugId());
+                    LOGGER.info("recipeAudit organDrugList={}",JSONUtils.toString(organDrugList));
+                    if(null != organDrugList){
+                        drugItemCodeMap.put(detail.getRecipeDetailId(),organDrugList.getDrugItemCode());
+                    }
+                }catch (Exception e){
+                    LOGGER.error("recipeAudit error",e);
+                }
             }
             RecipeAuditDetailReqTO auditDetail;
             List<Integer> detailIdList;
@@ -963,6 +978,7 @@ public class HisRequestInit {
                         auditDetail.setReason(getReasonDicList(reasonIdList));
                         drug = drugInfo.get(detailId);
                         auditDetail.setDrugCode(drugCodeMap.get(detailId));
+                        auditDetail.setDrugItemCode(drugItemCodeMap.get(detailId));
                         auditDetail.setDrugName(drug.getSaleName());
                         auditDetail.setProducer(drug.getProducer());
                         auditDetail.setSpecification(drug.getDrugSpec());

@@ -13,6 +13,9 @@ public class DrugInfoHisBean implements Serializable{
     //药品医院代码
     private String drcode;
 
+    // 机构药品编码
+    private String drugItemCode;
+
     //药品名称
     private String drname;
 
@@ -137,5 +140,13 @@ public class DrugInfoHisBean implements Serializable{
 
     public void setPharmacy(String pharmacy) {
         this.pharmacy = pharmacy;
+    }
+
+    public String getDrugItemCode() {
+        return drugItemCode;
+    }
+
+    public void setDrugItemCode(String drugItemCode) {
+        this.drugItemCode = drugItemCode;
     }
 }
