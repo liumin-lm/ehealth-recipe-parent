@@ -8,13 +8,11 @@ import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.PatientService;
+import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.dto.OffLineRecipeDetailDTO;
 import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
-import com.ngari.recipe.entity.HisRecipe;
-import com.ngari.recipe.entity.PharmacyTcm;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeListVO;
@@ -46,6 +44,7 @@ import recipe.manager.HisRecipeManager;
 import recipe.manager.PharmacyManager;
 import recipe.manager.RecipeManager;
 import recipe.manager.RecipeTherapyManager;
+import recipe.service.OrganDrugListService;
 import recipe.service.RecipeLogService;
 import recipe.util.MapValueUtil;
 import recipe.vo.patient.RecipeGiveModeButtonRes;
@@ -85,6 +84,8 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
     private RecipeTherapyManager recipeTherapyManager;
     @Autowired
     private PharmacyManager pharmacyManager;
+    @Autowired
+    private OrganDrugListService organDrugListService;
 
 
     @Override
@@ -316,6 +317,13 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);
         Recipe recipe = recipePdfDTO.getRecipe();
         try {
+            List<Recipedetail> recipeDetailList = recipePdfDTO.getRecipeDetails();
+            for(Recipedetail recipedetail : recipeDetailList){
+                OrganDrugListBean organDrugList = organDrugListService.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getRecipeId(), recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
+                if(null != organDrugList){
+                    recipedetail.setDrugItemCode(organDrugList.getDrugItemCode());
+                }
+            }
             Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
             RecipeInfoDTO result = hisRecipeManager.pushRecipe(recipePdfDTO, pushType, pharmacyIdMap, sysType);
             recipeManager.updatePushHisRecipe(result.getRecipe(), recipeId, pushType);

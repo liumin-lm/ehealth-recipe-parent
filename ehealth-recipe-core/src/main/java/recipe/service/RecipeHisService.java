@@ -1359,6 +1359,8 @@ public class RecipeHisService extends RecipeBaseService {
                     item.setManfCode(organDrug.getProducerCode());
                     //药品单价
                     item.setPrice(organDrug.getSalePrice());
+                    //机构药品编码
+                    item.setDrugItemCode(organDrug.getDrugItemCode());
                 }
                 //频次
                 item.setFrequency(UsingRateFilter.filterNgari(recipeBean.getClinicOrgan(), detail.getUsingRate()));
