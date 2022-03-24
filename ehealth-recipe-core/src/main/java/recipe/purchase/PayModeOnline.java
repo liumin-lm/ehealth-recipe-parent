@@ -270,7 +270,10 @@ public class PayModeOnline implements IPurchaseService {
                 }
             }
         }
-
+        //线下处方和线上PatientIsDecoction处理成一样
+        //在患者没有选择的情况下：前端会根据医生是否选择字段传入patientIsDecoction  对于线下处方而言，线下转线上的时候医生是否选择已经赋值
+        //在患者选择的情况下：前端会根据患者自己选择传入patientIsDecoction
+        order.setPatientIsDecoction(MapValueUtil.getString(extInfo, "patientIsDecoction"));
         // 暂时还是设置成处方单的患者，不然用户历史处方列表不好查找
         order.setMpiId(recipeList.get(0).getMpiid());
         order.setOrganId(recipeList.get(0).getClinicOrgan());
@@ -327,7 +330,6 @@ public class PayModeOnline implements IPurchaseService {
         if (Objects.nonNull(logisticsCompany)) {
             order.setLogisticsCompany(logisticsCompany);
         }
-        order.setPatientIsDecoction(MapValueUtil.getString(extInfo, "patientIsDecoction"));
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
         if (!saveFlag) {
             result.setCode(RecipeResultBean.FAIL);

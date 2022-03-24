@@ -796,17 +796,43 @@ public class BaseOfflineToOnlineService {
         recipeExtend.setChronicDiseaseCode(hisRecipe.getChronicDiseaseCode());
         recipeExtend.setChronicDiseaseName(hisRecipe.getChronicDiseaseName());
         recipeExtend.setAppointEnterpriseType(AppointEnterpriseTypeEnum.DEFAULT.getType());
+
+        hisRecipe.setDecoctionFee(queryHisRecipResTo.getDecoctionFee());
+        hisRecipe.setDecoctionCode(queryHisRecipResTo.getDecoctionCode());
+        hisRecipe.setDecoctionText(queryHisRecipResTo.getDecoctionText());
+        hisRecipe.setDecoctionUnitFee(queryHisRecipResTo.getDecoctionUnitFee());
+
+        //煎法相关
+        DecoctionWay decoctionWay = new DecoctionWay();
+        if (StringUtils.isNotEmpty(hisRecipe.getDecoctionCode())) {
+            DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
+            decoctionWay = drugDecoctionWayDao.getDecoctionWayByOrganIdAndCode(recipe.getClinicOrgan(), hisRecipe.getDecoctionCode());
+            LOGGER.info("decoctionWay:{}", JSONUtils.toString(decoctionWay));
+        }
         //设置煎法
         if (StringUtils.isNotEmpty(hisRecipe.getDecoctionText())) {
             recipeExtend.setDecoctionText(hisRecipe.getDecoctionText());
         } else {
             if (StringUtils.isNotEmpty(hisRecipe.getDecoctionCode())) {
-                DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
-                DecoctionWay decoctionWay = drugDecoctionWayDao.getDecoctionWayByOrganIdAndCode(recipe.getClinicOrgan(), hisRecipe.getDecoctionCode());
                 if (decoctionWay != null) {
                     recipeExtend.setDecoctionText(decoctionWay.getDecoctionText());
                 }
+                recipeExtend.setDecoctionId(decoctionWay.getDecoctionId() == null ? "" : decoctionWay.getDecoctionId().toString());
             }
+        }
+        //是否代煎
+        if (null != hisRecipe.getDecoctionFee()) {
+            recipeExtend.setDoctorIsDecoction("1");
+        } else if (null != hisRecipe.getDecoctionUnitFee()) {
+            recipeExtend.setDoctorIsDecoction("1");
+        } else if (null != decoctionWay) {
+            if (null != decoctionWay.getGenerationisOfDecoction() && decoctionWay.getGenerationisOfDecoction()) {
+                recipeExtend.setDoctorIsDecoction("1");
+            } else {
+                recipeExtend.setDoctorIsDecoction("0");
+            }
+        } else {
+            recipeExtend.setDoctorIsDecoction("0");
         }
 
         DrugMakingMethod drugMakingMethod = drugMakingMethodDao.getDrugMakingMethodByOrganIdAndCode(recipe.getClinicOrgan(), hisRecipe.getMakeMethodCode());

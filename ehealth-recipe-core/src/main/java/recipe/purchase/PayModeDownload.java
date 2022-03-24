@@ -93,6 +93,9 @@ public class PayModeDownload implements IPurchaseService {
             payModeNew = 2;
         }
         order.setPayMode(payModeNew);
+        //线下处方和线上PatientIsDecoction处理成一样
+        //在患者没有选择的情况下：前端会根据医生是否选择字段传入patientIsDecoction  对于线下处方而言，线下转线上的时候医生是否选择已经赋值
+        //在患者选择的情况下：前端会根据患者自己选择传入patientIsDecoction
         order.setPatientIsDecoction(MapValueUtil.getString(extInfo, "patientIsDecoction"));
         boolean saveFlag = orderService.saveOrderToDB(order, recipeList, payMode, result, recipeDAO, orderDAO);
         if (!saveFlag) {
