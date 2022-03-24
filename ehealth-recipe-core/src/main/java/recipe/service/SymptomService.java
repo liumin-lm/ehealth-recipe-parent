@@ -583,6 +583,13 @@ public class SymptomService implements ISymptomService {
                 errMsg.append("关联治法名称有误").append(";");
             }
 
+            if (!StringUtils.isEmpty(getStrFromCell(row.getCell(3))) && !StringUtils.isEmpty(getStrFromCell(row.getCell(4)))) {
+                TcmTreatment byOrganIdAndTreatmentNameAndTreatmentCode = treatmentDAO.getByOrganIdAndTreatmentNameAndTreatmentCode(organId, getStrFromCell(row.getCell(4)), getStrFromCell(row.getCell(3)));
+                if (ObjectUtils.isEmpty(byOrganIdAndTreatmentNameAndTreatmentCode)){
+                    errMsg.append("编码与名称联查为空!").append(";");
+                }
+            }
+
             try {
                 if (!StringUtils.isEmpty(getStrFromCell(row.getCell(5)))) {
                     symptom.setRegulationSymptomCode(getStrFromCell(row.getCell(5)));
