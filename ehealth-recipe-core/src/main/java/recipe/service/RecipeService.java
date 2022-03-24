@@ -5462,6 +5462,9 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getMedicalDrugFormCode())) {
             organDrug.setMedicalDrugFormCode(drug.getMedicalDrugFormCode());
         }
+        if (StringUtils.isNotEmpty(drug.getDrugItemCode())) {
+            organDrug.setDrugItemCode(drug.getDrugItemCode());
+        }
 
         LOGGER.info("updateHisDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(organDrug));
         OrganDrugList update = organDrugListDAO.update(organDrug);
