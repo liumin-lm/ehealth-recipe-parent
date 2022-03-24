@@ -465,7 +465,8 @@ public class TcmTreatmentService implements ITcmTreatmentService {
                     Set<Integer> integers = textMap.keySet();
                     for (Integer integer : integers) {
                         if ( textMap.get(integer).equals(getStrFromCell(row.getCell(1)))) {
-                            errMsg.append("治法名称与第[" + integer + "]行重复!").append(";");
+                            int i = integer + 1;
+                            errMsg.append("治法名称与第[" + i + "]行重复!").append(";");
                         }
                     }
 
@@ -475,7 +476,8 @@ public class TcmTreatmentService implements ITcmTreatmentService {
                     Set<Integer> integers = keyMap.keySet();
                     for (Integer integer : integers) {
                         if ( keyMap.get(integer).equals(getStrFromCell(row.getCell(0)))) {
-                            errMsg.append("治法编码与第[" + integer + "]行重复!").append(";");
+                            int i = integer + 1;
+                            errMsg.append("治法编码与第[" + i + "]行重复!").append(";");
                         }
                     }
 
@@ -597,9 +599,13 @@ public class TcmTreatmentService implements ITcmTreatmentService {
 
         if (!ObjectUtils.isEmpty(symptom1.getRegulationTreatmentName())) {
             symptom.setRegulationTreatmentName(symptom1.getRegulationTreatmentName());
+        }else {
+            symptom.setRegulationTreatmentName(null);
         }
         if (!ObjectUtils.isEmpty(symptom1.getRegulationTreatmentCode())) {
             symptom.setRegulationTreatmentCode(symptom1.getRegulationTreatmentCode());
+        }else {
+            symptom.setRegulationTreatmentCode(null);
         }
         symptom.setModifyDate(new Date());
         return symptom;
