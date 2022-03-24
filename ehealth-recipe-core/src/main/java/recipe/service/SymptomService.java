@@ -586,7 +586,7 @@ public class SymptomService implements ISymptomService {
             if (!StringUtils.isEmpty(getStrFromCell(row.getCell(3))) && !StringUtils.isEmpty(getStrFromCell(row.getCell(4)))) {
                 TcmTreatment byOrganIdAndTreatmentNameAndTreatmentCode = treatmentDAO.getByOrganIdAndTreatmentNameAndTreatmentCode(organId, getStrFromCell(row.getCell(4)), getStrFromCell(row.getCell(3)));
                 if (ObjectUtils.isEmpty(byOrganIdAndTreatmentNameAndTreatmentCode)){
-                    errMsg.append("编码与名称联查为空!").append(";");
+                    errMsg.append("治法编码与名称联查为空!").append(";");
                 }
             }
 
