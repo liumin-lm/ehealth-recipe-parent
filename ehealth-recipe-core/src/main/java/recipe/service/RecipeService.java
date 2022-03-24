@@ -29,7 +29,6 @@ import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
-import com.ngari.his.visit.mode.NeedPaymentRecipeReqTo;
 import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
@@ -6110,6 +6109,7 @@ public class RecipeService extends RecipeBaseService {
 
                     //变更处方状态
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, statusCancel, ImmutableMap.of("chooseFlag", 1));
+                    stateManager.updateRecipeState(order.getOrderId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_ORDER);
                     RecipeMsgService.batchSendMsg(recipe, statusCancel);
                     if (RecipeStatusConstant.NO_PAY == statusCancel) {
                         memo.append("已取消,超过3天未支付");
