@@ -523,7 +523,7 @@ public class SymptomService implements ISymptomService {
                     Set<Integer> integers = textMap.keySet();
                     for (Integer integer : integers) {
                         if ( textMap.get(integer).equals(getStrFromCell(row.getCell(1)))) {
-                            errMsg.append("证候名称与第[" + integer + "]行重复!").append(";");
+                            errMsg.append("证候名称与第[" + integer+1 + "]行重复!").append(";");
                         }
                     }
 
@@ -533,7 +533,7 @@ public class SymptomService implements ISymptomService {
                     Set<Integer> integers = keyMap.keySet();
                     for (Integer integer : integers) {
                         if ( keyMap.get(integer).equals(getStrFromCell(row.getCell(0)))) {
-                            errMsg.append("证候编码与第[" + integer + "]行重复!").append(";");
+                            errMsg.append("证候编码与第[" + integer+1 + "]行重复!").append(";");
                         }
                     }
 
