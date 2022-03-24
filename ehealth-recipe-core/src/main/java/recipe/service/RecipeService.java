@@ -2980,6 +2980,7 @@ public class RecipeService extends RecipeBaseService {
                 //查询全部药品信息，返回的是医院所有有效的药品信息
                 request.setData(Lists.newArrayList());
                 request.setDrcode(Lists.newArrayList());
+                request.setDrugItemCode(Lists.newArrayList());
                 try {
                     responseTO = recipeHisService.queryOrganDrugInfo(request);
                     LOGGER.info("drugInfoSynMovement request={}", JSONUtils.toString(request));
@@ -3264,6 +3265,7 @@ public class RecipeService extends RecipeBaseService {
         //查询全部药品信息，返回的是医院所有有效的药品信息
         request.setData(Lists.newArrayList());
         request.setDrcode(Lists.newArrayList());
+        request.setDrugItemCode(Lists.newArrayList());
         try {
             responseTO = recipeHisService.queryOrganDrugInfo(request);
             LOGGER.info("drugInfoSynMovement request={}", JSONUtils.toString(request));
@@ -5003,6 +5005,15 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getUnilateralCompound())) {
             drugListMatch.setUnilateralCompound(drug.getUnilateralCompound());
         }
+        if(Objects.nonNull(drug.getSmallestUnitUseDose())){
+            drugListMatch.setSmallestUnitUseDose(drug.getSmallestUnitUseDose());
+        }
+        if(Objects.nonNull(drug.getDefaultSmallestUnitUseDose())){
+            drugListMatch.setDefaultSmallestUnitUseDose(drug.getDefaultSmallestUnitUseDose());
+        }
+        if(StringUtils.isNotEmpty(drug.getUseDoseSmallestUnit())){
+            drugListMatch.setUseDoseSmallestUnit(drug.getUseDoseSmallestUnit());
+        }
 
         if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
             String pharmacyCode = drug.getPharmacyCode();
@@ -5211,6 +5222,15 @@ public class RecipeService extends RecipeBaseService {
         //药品嘱托
         if (!ObjectUtils.isEmpty(drug.getDrugEntrust())) {
             organDrug.setDrugEntrust(drug.getDrugEntrust());
+        }
+        if(Objects.nonNull(drug.getSmallestUnitUseDose())){
+            organDrug.setSmallestUnitUseDose(drug.getSmallestUnitUseDose());
+        }
+        if(Objects.nonNull(drug.getDefaultSmallestUnitUseDose())){
+            organDrug.setDefaultSmallestUnitUseDose(drug.getDefaultSmallestUnitUseDose());
+        }
+        if(StringUtils.isNotEmpty(drug.getUseDoseSmallestUnit())){
+            organDrug.setUseDoseSmallestUnit(drug.getUseDoseSmallestUnit());
         }
         if (!ObjectUtils.isEmpty(drug.getDrugsEnterpriseCode())) {
             String pharmacyCode = drug.getDrugsEnterpriseCode();
@@ -5465,6 +5485,15 @@ public class RecipeService extends RecipeBaseService {
             organDrug.setDrugItemCode(drug.getDrugItemCode());
         }
 
+        if(Objects.nonNull(drug.getSmallestUnitUseDose())){
+            organDrug.setSmallestUnitUseDose(drug.getSmallestUnitUseDose());
+        }
+        if(Objects.nonNull(drug.getDefaultSmallestUnitUseDose())){
+            organDrug.setDefaultSmallestUnitUseDose(drug.getDefaultSmallestUnitUseDose());
+        }
+        if(StringUtils.isNotEmpty(drug.getUseDoseSmallestUnit())){
+            organDrug.setUseDoseSmallestUnit(drug.getUseDoseSmallestUnit());
+        }
         LOGGER.info("updateHisDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(organDrug));
         OrganDrugList update = organDrugListDAO.update(organDrug);
         //同步药品到监管备案
