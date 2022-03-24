@@ -990,7 +990,7 @@ public class RecipeService extends RecipeBaseService {
                     IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
                     recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(), recipe.getClinicId());
                 }
-                return;
+                throw new DAOException(ErrorCode.SERVICE_ERROR, recipeSignResult.getMsg());
             } else {
                 //说明处方签名成功，记录日志，走签名成功逻辑
                 LOGGER.info("当前签名处方{}签名成功！", recipeId);
