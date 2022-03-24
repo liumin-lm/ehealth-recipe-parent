@@ -811,8 +811,8 @@ public class BaseOfflineToOnlineService {
             if (StringUtils.isNotEmpty(hisRecipe.getDecoctionCode())) {
                 if (decoctionWay != null) {
                     recipeExtend.setDecoctionText(decoctionWay.getDecoctionText());
+                    recipeExtend.setDecoctionId(decoctionWay.getDecoctionId() == null ? "" : decoctionWay.getDecoctionId().toString());
                 }
-                recipeExtend.setDecoctionId(decoctionWay.getDecoctionId() == null ? "" : decoctionWay.getDecoctionId().toString());
             }
         }
         //是否代煎
