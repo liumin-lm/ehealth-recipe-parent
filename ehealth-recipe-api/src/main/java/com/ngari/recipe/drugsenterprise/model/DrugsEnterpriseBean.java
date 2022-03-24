@@ -142,7 +142,7 @@ public class DrugsEnterpriseBean implements Serializable {
     private Integer settlementMode;
 
     @ItemProperty(alias = "物流公司")
-    @Dictionary(id = "eh.cdr.dictionary.LogisticsCompany")
+    @Dictionary(id = "eh.infra.dictionary.LogisticsCode")
     private Integer logisticsCompany;
 
     @ItemProperty(alias = "物流类型 1-平台 2-药企")
