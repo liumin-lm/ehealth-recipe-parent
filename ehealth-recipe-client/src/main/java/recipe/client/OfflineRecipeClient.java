@@ -337,8 +337,10 @@ public class OfflineRecipeClient extends BaseClient {
         DrugSpecificationReq drugSpecificationReq = new DrugSpecificationReq();
         drugSpecificationReq.setOrganId(organId);
         drugSpecificationReq.setOrganDrugCode(organDrugList.getOrganDrugCode());
+        drugSpecificationReq.setDrugItemCode(organDrugList.getDrugItemCode());
         drugSpecificationReq.setRegulationDrugCode(organDrugList.getRegulationDrugCode());
         drugSpecificationReq.setDrugId(organDrugList.getDrugId());
+        logger.info("OfflineRecipeClient drugSpecification drugSpecificationReq:{}.", JSONUtils.toString(drugSpecificationReq));
         HisResponseTO<com.ngari.his.recipe.mode.DrugSpecificationInfoDTO> hisResponse = recipeHisService.getDrugSpecification(drugSpecificationReq);
         com.ngari.his.recipe.mode.DrugSpecificationInfoDTO response = getResponseCatch(hisResponse);
         return ObjectCopyUtils.convert(response, DrugSpecificationInfoDTO.class);

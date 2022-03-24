@@ -44,6 +44,7 @@ import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author renfuhao
@@ -397,6 +398,9 @@ public class TcmTreatmentService implements ITcmTreatmentService {
         Integer addNum = 0;
         Integer updateNum = 0;
         List<TcmTreatment> treatmentList = Lists.newArrayList();
+        Map<Integer, String> textMap = Maps.newHashMap();
+        Map<Integer, String> keyMap = Maps.newHashMap();
+
 
         for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
             TcmTreatment treatment;
@@ -454,6 +458,29 @@ public class TcmTreatmentService implements ITcmTreatmentService {
             } catch (Exception e) {
                 logger.error("治法名称编码唯一校验有误 ," + e.getMessage(), e);
                 errMsg.append("治法名称编码唯一校验有误").append(";");
+            }
+
+            if (!StringUtils.isEmpty(getStrFromCell(row.getCell(1))) && !StringUtils.isEmpty(getStrFromCell(row.getCell(0)))) {
+                if (textMap != null && textMap.size() > 0) {
+                    Set<Integer> integers = textMap.keySet();
+                    for (Integer integer : integers) {
+                        if ( textMap.get(integer).equals(getStrFromCell(row.getCell(1)))) {
+                            errMsg.append("治法名称与第[" + integer + "]行重复!").append(";");
+                        }
+                    }
+
+                }
+                textMap.put(rowIndex, getStrFromCell(row.getCell(1)));
+                if (keyMap != null && keyMap.size() > 0) {
+                    Set<Integer> integers = keyMap.keySet();
+                    for (Integer integer : integers) {
+                        if ( keyMap.get(integer).equals(getStrFromCell(row.getCell(0)))) {
+                            errMsg.append("治法编码与第[" + integer + "]行重复!").append(";");
+                        }
+                    }
+
+                }
+                keyMap.put(rowIndex, getStrFromCell(row.getCell(0)));
             }
 
 
@@ -518,19 +545,23 @@ public class TcmTreatmentService implements ITcmTreatmentService {
         } else {
             for (TcmTreatment treatment : treatmentList) {
                 try {
-                    //自动匹配功能暂无法提供
+                    ////根据名称和编码 结合唯一去判断是否更新 非唯一名称或编码单独重复数据在导入数据处理时被过滤
                     if (tcmTreatmentDAO.getByOrganIdAndTreatmentNameAndTreatmentCode(organId, treatment.getTreatmentName(), treatment.getTreatmentCode()) != null) {
                         TcmTreatment tcmTreatment = tcmTreatmentDAO.getByOrganIdAndTreatmentNameAndTreatmentCode(organId, treatment.getTreatmentName(), treatment.getTreatmentCode());
                         TcmTreatment updatevalidate = updatevalidate(tcmTreatment, treatment);
                         tcmTreatmentDAO.update(updatevalidate);
                         updateNum++;
                     } else {
-                        tcmTreatmentDAO.save(treatment);
-                        addNum++;
+                        if (validateAddNameOrCode(ObjectCopyUtils.convert(treatment,TcmTreatmentDTO.class))){
+                            tcmTreatmentDAO.save(treatment);
+                            addNum++;
+                        }else {
+                            continue;
+                        }
                     }
 
                 } catch (Exception e) {
-                    logger.error("save  Symptom error " + e.getMessage(), e);
+                    logger.error("save  TcmTreatment error " + e.getMessage(), e);
                 }
             }
         }

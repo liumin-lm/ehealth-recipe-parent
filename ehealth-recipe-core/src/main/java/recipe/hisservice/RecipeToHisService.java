@@ -254,10 +254,13 @@ public class RecipeToHisService {
             //查询全部药品信息，返回的是医院所有有效的药品信息
             request.setData(Lists.newArrayList());
             request.setDrcode(Lists.newArrayList());
+            request.setDrugItemCode(Lists.newArrayList());
         } else {
             //查询限定范围内容的药品数据，返回的是该医院 无效的药品信息
             request.setData(drugInfoList);
             List<String> drugIdList = drugInfoList.stream().map(DrugInfoTO::getDrcode).collect(Collectors.toList());
+            List<String> drugItemCodeList = drugInfoList.stream().map(DrugInfoTO::getDrugItemCode).collect(Collectors.toList());
+            request.setDrugItemCode(drugItemCodeList);
             request.setDrcode(drugIdList);
             request.setPharmacyCode(drugInfoList.get(0).getPharmacyCode());
         }
@@ -332,6 +335,15 @@ public class RecipeToHisService {
                 String producerCode = producerCodeMap.get(a.getDrugId());
                 if (StringUtils.isNotEmpty(producerCode)) {
                     drugInfo.setManfcode(producerCode);
+                }
+                try {
+                    Map<Integer, String> drugItemCodeMap = organDrugs.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, OrganDrugList::getDrugItemCode));
+                    String drugItemCode = drugItemCodeMap.get(a.getDrugId());
+                    if (StringUtils.isNotEmpty(drugItemCode)) {
+                        drugInfo.setDrugItemCode(drugItemCode);
+                    }
+                }catch (Exception e){
+                    LOGGER.error("drugItemCodeMap error ", e);
                 }
             }
             //药房

@@ -11,6 +11,7 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Symptom;
+import com.ngari.recipe.entity.TcmTreatment;
 import com.ngari.recipe.recipe.model.SymptomDTO;
 import com.ngari.recipe.recipe.service.ISymptomService;
 import ctd.account.UserRoleToken;
@@ -38,12 +39,14 @@ import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.SymptomDAO;
+import recipe.dao.TcmTreatmentDAO;
 
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * @author renfuhao
@@ -59,6 +62,8 @@ public class SymptomService implements ISymptomService {
 
     @Autowired
     private SymptomDAO symptomDAO;
+    @Autowired
+    private TcmTreatmentDAO treatmentDAO;
 
     /**
      * 获取单元格值（字符串）
@@ -453,6 +458,8 @@ public class SymptomService implements ISymptomService {
         Integer addNum = 0;
         Integer updateNum = 0;
         List<Symptom> symptomLists = Lists.newArrayList();
+        Map<Integer, String> textMap = Maps.newHashMap();
+        Map<Integer, String> keyMap = Maps.newHashMap();
 
         for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
             Symptom symptom;
@@ -511,6 +518,28 @@ public class SymptomService implements ISymptomService {
                 logger.error("症候名称编码唯一校验有误 ," + e.getMessage(), e);
                 errMsg.append("症候名称编码唯一校验有误").append(";");
             }
+            if (!StringUtils.isEmpty(getStrFromCell(row.getCell(1))) && !StringUtils.isEmpty(getStrFromCell(row.getCell(0)))) {
+                if (textMap != null && textMap.size() > 0) {
+                    Set<Integer> integers = textMap.keySet();
+                    for (Integer integer : integers) {
+                        if ( textMap.get(integer).equals(getStrFromCell(row.getCell(1)))) {
+                            errMsg.append("证候名称与第[" + integer + "]行重复!").append(";");
+                        }
+                    }
+
+                }
+                textMap.put(rowIndex, getStrFromCell(row.getCell(1)));
+                if (keyMap != null && keyMap.size() > 0) {
+                    Set<Integer> integers = keyMap.keySet();
+                    for (Integer integer : integers) {
+                        if ( keyMap.get(integer).equals(getStrFromCell(row.getCell(0)))) {
+                            errMsg.append("证候编码与第[" + integer + "]行重复!").append(";");
+                        }
+                    }
+
+                }
+                keyMap.put(rowIndex, getStrFromCell(row.getCell(0)));
+            }
 
             try {
                 if (!StringUtils.isEmpty(getStrFromCell(row.getCell(2)))) {
@@ -528,7 +557,12 @@ public class SymptomService implements ISymptomService {
 
             try {
                 if (!StringUtils.isEmpty(getStrFromCell(row.getCell(3)))) {
-                    symptom.setTreatmentCode(getStrFromCell(row.getCell(3)));
+                    TcmTreatment byOrganIdAndTreatmentCode = treatmentDAO.getByOrganIdAndTreatmentCode(organId, getStrFromCell(row.getCell(3)));
+                    if (ObjectUtils.isEmpty(byOrganIdAndTreatmentCode)){
+                        errMsg.append("机构未查询出此治法编码").append(";");
+                    }else {
+                        symptom.setTreatmentCode(getStrFromCell(row.getCell(3)));
+                    }
                 }
             } catch (Exception e) {
                 logger.error("关联治法编码有误 ," + e.getMessage(), e);
@@ -537,11 +571,23 @@ public class SymptomService implements ISymptomService {
 
             try {
                 if (!StringUtils.isEmpty(getStrFromCell(row.getCell(4)))) {
-                    symptom.setTreatmentName(getStrFromCell(row.getCell(4)));
+                    TcmTreatment byOrganIdAndTreatmentName = treatmentDAO.getByOrganIdAndTreatmentName(organId, getStrFromCell(row.getCell(4)));
+                    if (ObjectUtils.isEmpty(byOrganIdAndTreatmentName)){
+                        errMsg.append("机构未查询出此治法名称").append(";");
+                    }else {
+                        symptom.setTreatmentName(getStrFromCell(row.getCell(4)));
+                    }
                 }
             } catch (Exception e) {
                 logger.error("关联治法名称有误 ," + e.getMessage(), e);
                 errMsg.append("关联治法名称有误").append(";");
+            }
+
+            if (!StringUtils.isEmpty(getStrFromCell(row.getCell(3))) && !StringUtils.isEmpty(getStrFromCell(row.getCell(4)))) {
+                TcmTreatment byOrganIdAndTreatmentNameAndTreatmentCode = treatmentDAO.getByOrganIdAndTreatmentNameAndTreatmentCode(organId, getStrFromCell(row.getCell(4)), getStrFromCell(row.getCell(3)));
+                if (ObjectUtils.isEmpty(byOrganIdAndTreatmentNameAndTreatmentCode)){
+                    errMsg.append("治法编码与名称联查为空!").append(";");
+                }
             }
 
             try {
@@ -581,7 +627,7 @@ public class SymptomService implements ISymptomService {
             ImportExcelInfoDTO importExcelInfoDTO = new ImportExcelInfoDTO();
             //导入症候记录
             importExcelInfoDTO.setFileName(originalFilename);
-            importExcelInfoDTO.setExcelType(15);
+            importExcelInfoDTO.setExcelType(35);
             importExcelInfoDTO.setUploaderName(operator);
             importExcelInfoDTO.setUploadDate(new Date());
             importExcelInfoDTO.setStatus(0);
@@ -605,15 +651,19 @@ public class SymptomService implements ISymptomService {
         } else {
             for (Symptom symptom1 : symptomLists) {
                 try {
-                    //自动匹配功能暂无法提供
+                    //根据名称和编码 结合唯一去判断是否更新 非唯一名称或编码单独重复数据在导入数据处理时被过滤
                     if (symptomDAO.getByOrganIdAndSymptomNameAndSymptomCode(organId, symptom1.getSymptomName(), symptom1.getSymptomCode()) != null) {
                         Symptom symptom = symptomDAO.getByOrganIdAndSymptomNameAndSymptomCode(organId, symptom1.getSymptomName(), symptom1.getSymptomCode());
                         Symptom updatevalidate = updatevalidate(symptom, symptom1);
                         symptomDAO.update(updatevalidate);
                         updateNum++;
                     } else {
-                        symptomDAO.save(symptom1);
-                        addNum++;
+                        if (validateAddNameOrCode(ObjectCopyUtils.convert(symptom1,SymptomDTO.class))){
+                            symptomDAO.save(symptom1);
+                            addNum++;
+                        }else {
+                            continue;
+                        }
                     }
 
                 } catch (Exception e) {
@@ -628,7 +678,7 @@ public class SymptomService implements ISymptomService {
         ImportExcelInfoDTO importExcelInfoDTO = new ImportExcelInfoDTO();
         //导入药品记录
         importExcelInfoDTO.setFileName(originalFilename);
-        importExcelInfoDTO.setExcelType(15);
+        importExcelInfoDTO.setExcelType(35);
         importExcelInfoDTO.setUploaderName(operator);
         importExcelInfoDTO.setUploadDate(new Date());
         importExcelInfoDTO.setStatus(1);

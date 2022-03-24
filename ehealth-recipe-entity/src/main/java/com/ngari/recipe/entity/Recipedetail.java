@@ -36,8 +36,11 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias="药品序号")
 	private Integer drugId;
 	
-	@ItemProperty(alias="机构药品编号")
+	@ItemProperty(alias="机构唯一索引")
 	private String organDrugCode;
+
+	@ItemProperty(alias="机构药品编号")
+	private String drugItemCode;
 	
 	@ItemProperty(alias="药物名称")
 	private String drugName;
@@ -883,5 +886,14 @@ public class Recipedetail implements java.io.Serializable {
 
 	public void setSuperScalarName(String superScalarName) {
 		this.superScalarName = superScalarName;
+	}
+
+	@Transient
+	public String getDrugItemCode() {
+		return drugItemCode;
+	}
+
+	public void setDrugItemCode(String drugItemCode) {
+		this.drugItemCode = drugItemCode;
 	}
 }

@@ -29,7 +29,6 @@ import com.ngari.consult.process.service.IRecipeOnLineConsultService;
 import com.ngari.his.ca.model.CaSealRequestTO;
 import com.ngari.his.recipe.mode.*;
 import com.ngari.his.recipe.service.IRecipeHisService;
-import com.ngari.his.visit.mode.NeedPaymentRecipeReqTo;
 import com.ngari.home.asyn.model.BussCancelEvent;
 import com.ngari.home.asyn.model.BussFinishEvent;
 import com.ngari.home.asyn.service.IAsynDoBussService;
@@ -991,7 +990,7 @@ public class RecipeService extends RecipeBaseService {
                     IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
                     recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(), recipe.getClinicId());
                 }
-                return;
+                throw new DAOException(ErrorCode.SERVICE_ERROR, recipeSignResult.getMsg());
             } else {
                 //说明处方签名成功，记录日志，走签名成功逻辑
                 LOGGER.info("当前签名处方{}签名成功！", recipeId);
@@ -2981,6 +2980,7 @@ public class RecipeService extends RecipeBaseService {
                 //查询全部药品信息，返回的是医院所有有效的药品信息
                 request.setData(Lists.newArrayList());
                 request.setDrcode(Lists.newArrayList());
+                request.setDrugItemCode(Lists.newArrayList());
                 try {
                     responseTO = recipeHisService.queryOrganDrugInfo(request);
                     LOGGER.info("drugInfoSynMovement request={}", JSONUtils.toString(request));
@@ -3265,6 +3265,7 @@ public class RecipeService extends RecipeBaseService {
         //查询全部药品信息，返回的是医院所有有效的药品信息
         request.setData(Lists.newArrayList());
         request.setDrcode(Lists.newArrayList());
+        request.setDrugItemCode(Lists.newArrayList());
         try {
             responseTO = recipeHisService.queryOrganDrugInfo(request);
             LOGGER.info("drugInfoSynMovement request={}", JSONUtils.toString(request));
@@ -5004,6 +5005,15 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getUnilateralCompound())) {
             drugListMatch.setUnilateralCompound(drug.getUnilateralCompound());
         }
+        if(Objects.nonNull(drug.getSmallestUnitUseDose())){
+            drugListMatch.setSmallestUnitUseDose(drug.getSmallestUnitUseDose());
+        }
+        if(Objects.nonNull(drug.getDefaultSmallestUnitUseDose())){
+            drugListMatch.setDefaultSmallestUnitUseDose(drug.getDefaultSmallestUnitUseDose());
+        }
+        if(StringUtils.isNotEmpty(drug.getUseDoseSmallestUnit())){
+            drugListMatch.setUseDoseSmallestUnit(drug.getUseDoseSmallestUnit());
+        }
 
         if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
             String pharmacyCode = drug.getPharmacyCode();
@@ -5212,6 +5222,15 @@ public class RecipeService extends RecipeBaseService {
         //药品嘱托
         if (!ObjectUtils.isEmpty(drug.getDrugEntrust())) {
             organDrug.setDrugEntrust(drug.getDrugEntrust());
+        }
+        if(Objects.nonNull(drug.getSmallestUnitUseDose())){
+            organDrug.setSmallestUnitUseDose(drug.getSmallestUnitUseDose());
+        }
+        if(Objects.nonNull(drug.getDefaultSmallestUnitUseDose())){
+            organDrug.setDefaultSmallestUnitUseDose(drug.getDefaultSmallestUnitUseDose());
+        }
+        if(StringUtils.isNotEmpty(drug.getUseDoseSmallestUnit())){
+            organDrug.setUseDoseSmallestUnit(drug.getUseDoseSmallestUnit());
         }
         if (!ObjectUtils.isEmpty(drug.getDrugsEnterpriseCode())) {
             String pharmacyCode = drug.getDrugsEnterpriseCode();
@@ -5462,7 +5481,19 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getMedicalDrugFormCode())) {
             organDrug.setMedicalDrugFormCode(drug.getMedicalDrugFormCode());
         }
+        if (StringUtils.isNotEmpty(drug.getDrugItemCode())) {
+            organDrug.setDrugItemCode(drug.getDrugItemCode());
+        }
 
+        if(Objects.nonNull(drug.getSmallestUnitUseDose())){
+            organDrug.setSmallestUnitUseDose(drug.getSmallestUnitUseDose());
+        }
+        if(Objects.nonNull(drug.getDefaultSmallestUnitUseDose())){
+            organDrug.setDefaultSmallestUnitUseDose(drug.getDefaultSmallestUnitUseDose());
+        }
+        if(StringUtils.isNotEmpty(drug.getUseDoseSmallestUnit())){
+            organDrug.setUseDoseSmallestUnit(drug.getUseDoseSmallestUnit());
+        }
         LOGGER.info("updateHisDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(organDrug));
         OrganDrugList update = organDrugListDAO.update(organDrug);
         //同步药品到监管备案
@@ -6116,6 +6147,7 @@ public class RecipeService extends RecipeBaseService {
 
                     //变更处方状态
                     recipeDAO.updateRecipeInfoByRecipeId(recipeId, statusCancel, ImmutableMap.of("chooseFlag", 1));
+                    stateManager.updateRecipeState(order.getOrderId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_ORDER);
                     RecipeMsgService.batchSendMsg(recipe, statusCancel);
                     if (RecipeStatusConstant.NO_PAY == statusCancel) {
                         memo.append("已取消,超过3天未支付");
