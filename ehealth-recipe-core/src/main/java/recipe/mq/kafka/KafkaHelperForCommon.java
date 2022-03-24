@@ -18,11 +18,8 @@ import java.util.Properties;
 public class KafkaHelperForCommon {
     private static final Logger log = LoggerFactory.getLogger(ctd.net.broadcast.kafka.KafkaHelper.class);
     private static final String SYS_PROP_KAFKA_SERVERS = "kafka.servers";
-    private static final String SYS_PROP_NS_PUBLIC = "apollo.ns_public";
-    private static final String PUBLIC_NAMESPACE = "DEV.publicUrl";
     private static final String COMMONORDER_GROUPID = "drugList-consumer";
     private static String rpcStatLogTopic;
-    private static final String RPC_STAT_LOG_TOPIC = "rpc.statLog.topic";
     private static KafkaPublisherString publisher;
     private static KafkaSubscriberString subscriber;
 
