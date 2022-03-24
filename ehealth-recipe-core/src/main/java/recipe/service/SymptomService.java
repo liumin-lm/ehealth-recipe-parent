@@ -586,7 +586,7 @@ public class SymptomService implements ISymptomService {
             if (!StringUtils.isEmpty(getStrFromCell(row.getCell(3))) && !StringUtils.isEmpty(getStrFromCell(row.getCell(4)))) {
                 TcmTreatment byOrganIdAndTreatmentNameAndTreatmentCode = treatmentDAO.getByOrganIdAndTreatmentNameAndTreatmentCode(organId, getStrFromCell(row.getCell(4)), getStrFromCell(row.getCell(3)));
                 if (ObjectUtils.isEmpty(byOrganIdAndTreatmentNameAndTreatmentCode)){
-                    errMsg.append("编码与名称联查为空!").append(";");
+                    errMsg.append("治法编码与名称联查为空!").append(";");
                 }
             }
 
@@ -651,7 +651,7 @@ public class SymptomService implements ISymptomService {
         } else {
             for (Symptom symptom1 : symptomLists) {
                 try {
-                    //自动匹配功能暂无法提供
+                    //根据名称和编码 结合唯一去判断是否更新 非唯一名称或编码单独重复数据在导入数据处理时被过滤
                     if (symptomDAO.getByOrganIdAndSymptomNameAndSymptomCode(organId, symptom1.getSymptomName(), symptom1.getSymptomCode()) != null) {
                         Symptom symptom = symptomDAO.getByOrganIdAndSymptomNameAndSymptomCode(organId, symptom1.getSymptomName(), symptom1.getSymptomCode());
                         Symptom updatevalidate = updatevalidate(symptom, symptom1);
