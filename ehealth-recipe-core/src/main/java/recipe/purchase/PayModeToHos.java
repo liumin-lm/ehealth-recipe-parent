@@ -184,6 +184,10 @@ public class PayModeToHos implements IPurchaseService {
                 }
             }
         }
+        //线下处方和线上PatientIsDecoction处理成一样
+        //在患者没有选择的情况下：前端会根据医生是否选择字段传入patientIsDecoction  对于线下处方而言，线下转线上的时候医生是否选择已经赋值
+        //在患者选择的情况下：前端会根据患者自己选择传入patientIsDecoction
+        order.setPatientIsDecoction(MapValueUtil.getString(extInfo, "patientIsDecoction"));
         CommonOrder.createDefaultOrder(extInfo, result, order, payModeSupport, dbRecipes, calculateFee);
         //设置为有效订单
         order.setEffective(1);
@@ -199,7 +203,6 @@ public class PayModeToHos implements IPurchaseService {
             payModeNew = 1;
         }
         order.setPayMode(payModeNew);
-        order.setPatientIsDecoction(MapValueUtil.getString(extInfo, "patientIsDecoction"));
         boolean saveFlag = orderService.saveOrderToDB(order, dbRecipes, payMode, result, recipeDAO, orderDAO);
         if (!saveFlag) {
             result.setCode(RecipeResultBean.FAIL);
