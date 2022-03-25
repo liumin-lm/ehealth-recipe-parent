@@ -566,6 +566,12 @@ public class SymptomService implements ISymptomService {
                         if (StringUtils.isEmpty(getStrFromCell(row.getCell(4)))){
                             errMsg.append("关联治法编码正确,但治法名称未给出").append(";");
                         }else {
+                            if (!StringUtils.isEmpty(getStrFromCell(row.getCell(3))) && !StringUtils.isEmpty(getStrFromCell(row.getCell(4)))) {
+                                TcmTreatment byOrganIdAndTreatmentNameAndTreatmentCode = treatmentDAO.getByOrganIdAndTreatmentNameAndTreatmentCode(organId, getStrFromCell(row.getCell(4)), getStrFromCell(row.getCell(3)));
+                                if (ObjectUtils.isEmpty(byOrganIdAndTreatmentNameAndTreatmentCode)){
+                                    errMsg.append("治法编码与名称联查为空!").append(";");
+                                }
+                            }
                             symptom.setTreatmentCode(getStrFromCell(row.getCell(3)));
                         }
                     }
@@ -584,6 +590,12 @@ public class SymptomService implements ISymptomService {
                         if (StringUtils.isEmpty(getStrFromCell(row.getCell(3)))){
                             errMsg.append("关联治法名称正确,但治法编码未给出").append(";");
                         }else {
+                            if (!StringUtils.isEmpty(getStrFromCell(row.getCell(3))) && !StringUtils.isEmpty(getStrFromCell(row.getCell(4)))) {
+                                TcmTreatment byOrganIdAndTreatmentNameAndTreatmentCode = treatmentDAO.getByOrganIdAndTreatmentNameAndTreatmentCode(organId, getStrFromCell(row.getCell(4)), getStrFromCell(row.getCell(3)));
+                                if (ObjectUtils.isEmpty(byOrganIdAndTreatmentNameAndTreatmentCode)){
+                                    errMsg.append("治法编码与名称联查为空!").append(";");
+                                }
+                            }
                             symptom.setTreatmentName(getStrFromCell(row.getCell(4)));
                         }
                     }
@@ -593,12 +605,6 @@ public class SymptomService implements ISymptomService {
                 errMsg.append("关联治法名称有误").append(";");
             }
 
-            if (!StringUtils.isEmpty(getStrFromCell(row.getCell(3))) && !StringUtils.isEmpty(getStrFromCell(row.getCell(4)))) {
-                TcmTreatment byOrganIdAndTreatmentNameAndTreatmentCode = treatmentDAO.getByOrganIdAndTreatmentNameAndTreatmentCode(organId, getStrFromCell(row.getCell(4)), getStrFromCell(row.getCell(3)));
-                if (ObjectUtils.isEmpty(byOrganIdAndTreatmentNameAndTreatmentCode)){
-                    errMsg.append("治法编码与名称联查为空!").append(";");
-                }
-            }
 
             try {
                 if (!StringUtils.isEmpty(getStrFromCell(row.getCell(5)))) {
