@@ -2983,6 +2983,7 @@ public class RecipeService extends RecipeBaseService {
                 request.setDrugItemCode(Lists.newArrayList());
                 try {
                     responseTO = recipeHisService.queryOrganDrugInfo(request);
+                    LOGGER.info("drugInfoSynMovement responseTO={}", JSONUtils.toString(responseTO));
                     LOGGER.info("drugInfoSynMovement request={}", JSONUtils.toString(request));
                 } catch (Exception e) {
                     LOGGER.info("drugInfoSynMovement error{} ", e);
