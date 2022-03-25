@@ -20,7 +20,7 @@ public class DownRecipeVO extends BaseRecipeVO implements Serializable {
     private static final long serialVersionUID = -1550787664443643742L;
 
     @ItemProperty(alias = "开方机构")
-    private Integer organ;
+    private Integer organId;
 
     @ItemProperty(alias = "签名文件的URL")
     private String signFileUrl;
