@@ -23,12 +23,10 @@ import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DoctorClient;
+import recipe.client.OrganClient;
 import recipe.client.PatientClient;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
-import recipe.dao.ConfigStatusCheckDAO;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeOrderDAO;
+import recipe.dao.*;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.NeedSendTypeEnum;
@@ -74,6 +72,10 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     private PatientClient patientClient;
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
+    @Autowired
+    private OrganClient organClient;
+    @Autowired
+    private RecipeParameterDao parameterDao;
 
     @Override
     public ResultBean updateRecipeGiveUser(Integer recipeId, Integer giveUser) {
@@ -319,6 +321,19 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 DownRecipeVO downRecipeVO = new DownRecipeVO();
                 List<BaseRecipeDetailVO> baseRecipeDetailVOList = new ArrayList<>();
                 ObjectCopyUtils.copyProperties(downRecipeVO, recipe);
+                downRecipeVO.setOrganId(recipe.getClinicOrgan());
+                if (null != recipe.getCheckOrgan()) {
+                    downRecipeVO.setCheckerName(recipe.getCheckerText());
+                    com.ngari.recipe.dto.OrganDTO organDTO = organClient.organDTO(recipe.getCheckOrgan());
+                    downRecipeVO.setCheckOrganName(organDTO.getName());
+                }
+                //设置签名图片的url
+                String fileImgUrl = parameterDao.getByName("fileImgUrl");
+                if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
+                    downRecipeVO.setSignFileUrl(fileImgUrl+recipe.getChemistSignFile());
+                } else {
+                    downRecipeVO.setSignFileUrl(fileImgUrl+recipe.getSignFile());
+                }
                 RecipeExtend recipeExtend = recipeExtendMap.get(recipe.getRecipeId());
                 ObjectCopyUtils.copyProperties(downRecipeVO, recipeExtend);
                 List<Recipedetail> recipeDetailListFromMap = recipeDetailListMap.get(recipe.getRecipeId());
