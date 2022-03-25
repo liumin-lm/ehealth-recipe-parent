@@ -144,7 +144,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
      * @param drugIds
      * @return
      */
-    @DAOMethod(sql = "from SaleDrugList where organId in :organId and drugId in :drugIds ", limit = 0)
+    @DAOMethod(sql = "from SaleDrugList where organId in :organIds and drugId in :drugIds ", limit = 0)
     public abstract List<SaleDrugList> findByOrganIdsAndDrugIds(@DAOParam("organIds") List<Integer> organIds, @DAOParam("drugIds") List<Integer> drugIds);
 
 
