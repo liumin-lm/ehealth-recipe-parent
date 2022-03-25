@@ -29,6 +29,9 @@ public class BaseRecipeDetailVO implements Serializable {
     @ItemProperty(alias="机构药品编号")
     private String organDrugCode;
 
+    @ItemProperty(alias="药企药品编号")
+    private String saleDrugCode;
+
     @ItemProperty(alias="药物名称")
     private String drugName;
 

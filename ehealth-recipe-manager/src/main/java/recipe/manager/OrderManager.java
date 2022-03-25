@@ -467,8 +467,11 @@ public class OrderManager extends BaseManager {
         Map<Integer, RecipeExtend> recipeExtendMap = recipeExtendList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, a -> a, (k1, k2) -> k1));
         //根据处方查询明细信息
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIds(recipeIdList);
+        //查询药企药品信息
+        List<Integer> drugIdList = recipeDetailList.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+        List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdsAndDrugIds(enterpriseIdList, drugIdList);
         Map<Integer, List<Recipedetail>> recipeDetailListMap = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
-        recipeOrderList.forEach(recipeOrder->{
+        recipeOrderList.forEach(recipeOrder -> {
             DownLoadRecipeOrderDTO downLoadRecipeOrderDTO = new DownLoadRecipeOrderDTO();
             downLoadRecipeOrderDTO.setRecipeOrder(recipeOrder);
             List<Recipe> recipes = recipeListMap.get(recipeOrder.getOrderCode());
@@ -483,6 +486,7 @@ public class OrderManager extends BaseManager {
             });
             downLoadRecipeOrderDTO.setRecipeExtendList(recipeExtends);
             downLoadRecipeOrderDTO.setRecipeDetailList(recipeDetails);
+            downLoadRecipeOrderDTO.setSaleDrugLists(saleDrugLists);
             downLoadRecipeOrderDTOList.add(downLoadRecipeOrderDTO);
         });
         logger.info("findOrderAndRecipes downLoadRecipeOrderDTOList:{}", JSON.toJSONString(downLoadRecipeOrderDTOList));
