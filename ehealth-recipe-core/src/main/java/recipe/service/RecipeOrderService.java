@@ -890,11 +890,20 @@ public class RecipeOrderService extends RecipeBaseService {
      */
     private Boolean getIsCalculateDecoctionFee(RecipeOrder order, RecipeExtend recipeExtend) {
         Boolean result = false;
-        if (order != null && null != order.getOrderId()) {
-            if ("1".equals(order.getPatientIsDecoction())) {
+        //下单的时候会order.setPatientIsDecoction(MapValueUtil.getString(extInfo, "patientIsDecoction"));
+        if (order != null) {
+            //有订单 提交订单
+            if (StringUtils.isNotEmpty(order.getPatientIsDecoction()) && "1".equals(order.getPatientIsDecoction())) {
                 result = true;
             }
+            //有订单之后
+            else if (null != order.getOrderId()) {
+                if ("1".equals(order.getPatientIsDecoction())) {
+                    result = true;
+                }
+            }
         } else {
+            //没有订单 且不是提交订单
             if ("1".equals(recipeExtend.getDoctorIsDecoction())) {
                 result = true;
             }
