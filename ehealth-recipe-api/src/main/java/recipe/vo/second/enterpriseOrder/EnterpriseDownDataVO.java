@@ -19,5 +19,5 @@ public class EnterpriseDownDataVO implements Serializable {
      */
     private String msg;
 
-    private List<DownRecipeOrderVO> downRecipeOrderVOList;
+    private List<DownRecipeOrderVO> recipeOrderList;
 }
