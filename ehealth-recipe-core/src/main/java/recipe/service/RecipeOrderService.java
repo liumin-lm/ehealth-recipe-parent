@@ -892,16 +892,19 @@ public class RecipeOrderService extends RecipeBaseService {
         Boolean result = false;
         //下单的时候会order.setPatientIsDecoction(MapValueUtil.getString(extInfo, "patientIsDecoction"));
         if (order != null) {
-            //有订单 提交订单
-            if (StringUtils.isNotEmpty(order.getPatientIsDecoction()) && "1".equals(order.getPatientIsDecoction())) {
-                result = true;
+            //有订单 eg:提交订单orderForRecipeNew
+            if (StringUtils.isNotEmpty(order.getPatientIsDecoction())) {
+                if ("1".equals(order.getPatientIsDecoction())) {
+                    result = true;
+                }
             }
-            //有订单之后
+            //有订单之后 findConfirmOrderInfoExt
             else if (null != order.getOrderId()) {
                 if ("1".equals(order.getPatientIsDecoction())) {
                     result = true;
                 }
-            }//没有订单 且不是提交订单  首次进入确认订单页
+            }
+            //没有订单 且不是提交订单  首次进入确认订单页 findConfirmOrderInfoExt
             else if (null != recipeExtend && "1".equals(recipeExtend.getDoctorIsDecoction())) {
                 result = true;
             }
