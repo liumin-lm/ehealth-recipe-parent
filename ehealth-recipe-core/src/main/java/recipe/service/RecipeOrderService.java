@@ -901,10 +901,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 if ("1".equals(order.getPatientIsDecoction())) {
                     result = true;
                 }
-            }
-        } else {
-            //没有订单 且不是提交订单
-            if ("1".equals(recipeExtend.getDoctorIsDecoction())) {
+            }//没有订单 且不是提交订单  首次进入确认订单页
+            else if (null != recipeExtend && "1".equals(recipeExtend.getDoctorIsDecoction())) {
                 result = true;
             }
         }
