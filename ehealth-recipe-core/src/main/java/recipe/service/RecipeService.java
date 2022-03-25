@@ -977,7 +977,7 @@ public class RecipeService extends RecipeBaseService {
             //date 20200617
             //添加逻辑：ca返回异步无结果
             if (RecipeResultBean.NO_ADDRESS.equals(recipeSignResult.getCode())) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, recipeSignResult.getMsg());
+                return;
             }
             String memo;
             if (RecipeResultBean.FAIL.equals(recipeSignResult.getCode())) {
@@ -990,7 +990,7 @@ public class RecipeService extends RecipeBaseService {
                     IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
                     recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(), recipe.getClinicId());
                 }
-                throw new DAOException(ErrorCode.SERVICE_ERROR, recipeSignResult.getMsg());
+                return;
             } else {
                 //说明处方签名成功，记录日志，走签名成功逻辑
                 LOGGER.info("当前签名处方{}签名成功！", recipeId);
@@ -1008,7 +1008,6 @@ public class RecipeService extends RecipeBaseService {
             auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status, recipe, memo);
         } catch (Exception e) {
             LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. recipe={} ", recipeId, e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
 
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
