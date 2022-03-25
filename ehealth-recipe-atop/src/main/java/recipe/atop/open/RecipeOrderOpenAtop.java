@@ -3,7 +3,9 @@ package recipe.atop.open;
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
 import com.ngari.common.dto.SyncOrderVO;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.RecipeOrderDto;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.util.annotation.RpcBean;
 import eh.utils.BeanCopyUtils;
 import recipe.util.DateConversion;
@@ -84,5 +86,10 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
             downOrderRequestVO.setEndTime(DateConversion.getDateFormatter(DateConversion.lastSecondsOfDay(new Date()), DateConversion.DEFAULT_DATE_TIME));
         }
         return recipeOrderService.findOrderAndRecipes(downOrderRequestVO);
+    }
+
+    @Override
+    public RecipeResultBean cancelOrderByRecipeId(Integer recipeId, Integer status) {
+        return recipeOrderService.cancelOrderByRecipeId(recipeId, status);
     }
 }
