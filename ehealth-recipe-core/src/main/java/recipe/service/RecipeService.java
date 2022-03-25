@@ -957,8 +957,6 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.info("retryDoctorSignCheck 处方单已经撤销，recipeid：{}", recipe.getRecipeId());
             return;
         }
-
-        //recipeManager.isOpenRecipeNumber(recipe.getClinicId(), recipe.getClinicOrgan(), recipeId);
         try {
             //写入his成功后，生成pdf并签名
             //date 20200827 修改his返回请求CA
@@ -975,10 +973,11 @@ public class RecipeService extends RecipeBaseService {
                 //触发CA前置操作
                 recipeSignResult = AbstractCaProcessType.getCaProcessFactory(recipe.getClinicOrgan()).hisCallBackCARecipeFunction(recipe.getRecipeId());
             }
+            LOGGER.info("retryDoctorSignCheck recipeSignResult ！{}", JSON.toJSONString(recipeSignResult));
             //date 20200617
             //添加逻辑：ca返回异步无结果
             if (RecipeResultBean.NO_ADDRESS.equals(recipeSignResult.getCode())) {
-                return;
+                throw new DAOException(ErrorCode.SERVICE_ERROR, recipeSignResult.getMsg());
             }
             String memo;
             if (RecipeResultBean.FAIL.equals(recipeSignResult.getCode())) {
@@ -1009,6 +1008,7 @@ public class RecipeService extends RecipeBaseService {
             auditModeContext.getAuditModes(recipe.getReviewType()).afterHisCallBackChange(status, recipe, memo);
         } catch (Exception e) {
             LOGGER.error("checkPassSuccess 签名服务或者发送卡片异常. recipe={} ", recipeId, e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
 
         if (RecipeBussConstant.RECIPEMODE_NGARIHEALTH.equals(recipeMode)) {
