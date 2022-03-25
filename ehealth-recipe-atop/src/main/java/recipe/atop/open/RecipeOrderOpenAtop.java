@@ -75,11 +75,13 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
     public EnterpriseDownDataVO findOrderAndRecipes(DownOrderRequestVO downOrderRequestVO) {
         validateAtop(downOrderRequestVO, downOrderRequestVO.getAppKey());
         validateAtop(downOrderRequestVO.getBeginTime(), downOrderRequestVO.getEndTime());
+        Date beginDate = DateConversion.parseDate(downOrderRequestVO.getBeginTime(), DateConversion.DEFAULT_DATE_TIME);
+        Date endDate = DateConversion.parseDate(downOrderRequestVO.getEndTime(), DateConversion.DEFAULT_DATE_TIME);
         //校验时间间隔，默认查询当天支付的处方
-        int daysBetween = DateConversion.getDaysBetween(downOrderRequestVO.getBeginTime(), downOrderRequestVO.getEndTime());
+        int daysBetween = DateConversion.getDaysBetween(beginDate, endDate);
         if (daysBetween > 1) {
-            downOrderRequestVO.setBeginTime(DateConversion.firstSecondsOfDay(new Date()));
-            downOrderRequestVO.setEndTime(DateConversion.lastSecondsOfDay(new Date()));
+            downOrderRequestVO.setBeginTime(DateConversion.getDateFormatter(DateConversion.firstSecondsOfDay(new Date()), DateConversion.DEFAULT_DATE_TIME));
+            downOrderRequestVO.setEndTime(DateConversion.getDateFormatter(DateConversion.lastSecondsOfDay(new Date()), DateConversion.DEFAULT_DATE_TIME));
         }
         return recipeOrderService.findOrderAndRecipes(downOrderRequestVO);
     }
