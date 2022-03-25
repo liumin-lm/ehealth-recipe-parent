@@ -15,10 +15,7 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.DoctorService;
-import com.ngari.recipe.dto.RecipeBeanDTO;
-import com.ngari.recipe.dto.RecipeFeeDTO;
-import com.ngari.recipe.dto.RecipeOrderDto;
-import com.ngari.recipe.dto.SkipThirdDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.util.AppContextHolder;
@@ -441,6 +438,52 @@ public class OrderManager extends BaseManager {
         recipeOrder.setLogisticsCompany(logisticsCompany);
         recipeOrder.setTrackingNumber(trackingNumber);
         return recipeOrderDAO.updateNonNullFieldByPrimaryKey(recipeOrder);
+    }
+
+    /**
+     * 查询订单处方信息
+     * @param enterpriseIdList 药企ID列表
+     * @param mpiIdList 患者mpiId列表
+     * @param beginTime 查询开始时间
+     * @param endTime 查询结束时间
+     * @return
+     */
+    public List<DownLoadRecipeOrderDTO> findOrderAndRecipes(List<Integer> enterpriseIdList, List<String> mpiIdList, Date beginTime, Date endTime){
+        List<DownLoadRecipeOrderDTO> downLoadRecipeOrderDTOList = new ArrayList<>();
+        //查询订单信息
+        List<RecipeOrder> recipeOrderList = recipeOrderDAO.findOrderForEnterprise(enterpriseIdList, mpiIdList, beginTime, endTime);
+        List<String> recipeOrderCodeList = recipeOrderList.stream().map(RecipeOrder::getOrderCode).collect(Collectors.toList());
+        logger.info("findOrderAndRecipes recipeOrderCodeList:{}", JSON.toJSONString(recipeOrderCodeList));
+        //根据订单号查询处方
+        List<Recipe> recipeList = recipeDAO.findByOrderCode(recipeOrderCodeList);
+        List<Integer> recipeIdList = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+        logger.info("findOrderAndRecipes recipeIdList:{}", JSON.toJSONString(recipeIdList));
+        Map<String, List<Recipe>> recipeListMap = recipeList.stream().collect(Collectors.groupingBy(Recipe::getOrderCode));
+        //根据处方查询扩展信息
+        List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
+        Map<Integer, RecipeExtend> recipeExtendMap = recipeExtendList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, a -> a, (k1, k2) -> k1));
+        //根据处方查询明细信息
+        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIds(recipeIdList);
+        Map<Integer, List<Recipedetail>> recipeDetailListMap = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
+        recipeOrderList.forEach(recipeOrder->{
+            DownLoadRecipeOrderDTO downLoadRecipeOrderDTO = new DownLoadRecipeOrderDTO();
+            downLoadRecipeOrderDTO.setRecipeOrder(recipeOrder);
+            List<Recipe> recipes = recipeListMap.get(recipeOrder.getOrderCode());
+            downLoadRecipeOrderDTO.setRecipeList(recipes);
+            List<RecipeExtend> recipeExtends = new ArrayList<>();
+            List<Recipedetail> recipeDetails = new ArrayList<>();
+            recipes.forEach(recipe -> {
+                RecipeExtend recipeExtend = recipeExtendMap.get(recipe.getRecipeId());
+                recipeExtends.add(recipeExtend);
+                List<Recipedetail> recipeDetailSmall = recipeDetailListMap.get(recipe.getRecipeId());
+                recipeDetails.addAll(recipeDetailSmall);
+            });
+            downLoadRecipeOrderDTO.setRecipeExtendList(recipeExtends);
+            downLoadRecipeOrderDTO.setRecipeDetailList(recipeDetails);
+            downLoadRecipeOrderDTOList.add(downLoadRecipeOrderDTO);
+        });
+        logger.info("findOrderAndRecipes downLoadRecipeOrderDTOList:{}", JSON.toJSONString(downLoadRecipeOrderDTOList));
+        return downLoadRecipeOrderDTOList;
     }
 
     /**

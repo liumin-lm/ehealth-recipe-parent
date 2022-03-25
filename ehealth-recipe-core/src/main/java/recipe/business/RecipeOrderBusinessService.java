@@ -4,15 +4,11 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.common.dto.CheckRequestCommonOrderItemDTO;
 import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
 import com.ngari.common.dto.SyncOrderVO;
+import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
-import com.ngari.recipe.dto.ApothecaryDTO;
-import com.ngari.recipe.dto.RecipeFeeDTO;
-import com.ngari.recipe.dto.RecipeOrderDto;
-import com.ngari.recipe.dto.SkipThirdDTO;
-import com.ngari.recipe.entity.ConfigStatusCheck;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.dto.*;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.persistence.bean.QueryResult;
@@ -27,8 +23,10 @@ import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.DoctorClient;
+import recipe.client.PatientClient;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.ConfigStatusCheckDAO;
+import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
@@ -38,13 +36,17 @@ import recipe.factory.status.givemodefactory.GiveModeProxy;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.service.RecipeOrderService;
+import recipe.util.LocalStringUtil;
+import recipe.util.ObjectCopyUtils;
 import recipe.vo.ResultBean;
-import recipe.vo.second.RecipeOrderVO;
+import recipe.vo.base.BaseRecipeDetailVO;
+import recipe.vo.second.enterpriseOrder.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 处方订单处理实现类 （新增）
@@ -70,6 +72,10 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     private OrderManager orderManager;
     @Autowired
     private EnterpriseManager enterpriseManager;
+    @Autowired
+    private PatientClient patientClient;
+    @Autowired
+    private DrugsEnterpriseDAO drugsEnterpriseDAO;
 
     @Override
     public ResultBean updateRecipeGiveUser(Integer recipeId, Integer giveUser) {
@@ -225,6 +231,107 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     public Boolean updateTrackingNumberByOrderCode(String orderCode, String trackingNumber) {
         recipeOrderDAO.updateTrackingNumberByOrderCode(orderCode, trackingNumber);
         return true;
+    }
+
+    /**
+     * 第三方查询平台处方订单信息
+     * @param downOrderRequestVO 请求入参
+     * @return 处方订单列表
+     */
+    @Override
+    public EnterpriseDownDataVO findOrderAndRecipes(DownOrderRequestVO downOrderRequestVO) {
+        EnterpriseDownDataVO result = new EnterpriseDownDataVO();
+        List<DownRecipeOrderVO> downRecipeOrderVOList = new ArrayList<>();
+        result.setCode(200);
+        //根据appKey查询药企，查询不到给出提示
+        List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByAppKey(downOrderRequestVO.getAppKey());
+        List<Integer> enterpriseIdList = drugsEnterpriseList.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
+        logger.info("findOrderAndRecipes enterpriseIdList:{}.", JSON.toJSONString(enterpriseIdList));
+        if (CollectionUtils.isEmpty(enterpriseIdList)) {
+            result.setCode(-1);
+            result.setMsg("根据appKey查询不到药企信息");
+            logger.warn("findOrderAndRecipes 根据appKey查询不到药企信息 enterpriseIdList:{}.", JSON.toJSONString(enterpriseIdList));
+            return result;
+        }
+
+        //获取患者信息
+        List<String> mpiIdList = new ArrayList<>();
+        if (StringUtils.isNotEmpty(downOrderRequestVO.getIdCard())) {
+            com.ngari.recipe.dto.PatientDTO patientDTO = new com.ngari.recipe.dto.PatientDTO();
+            patientDTO.setIdcard(downOrderRequestVO.getIdCard());
+            List<PatientDTO> patientList = patientClient.patientByIdCard(patientDTO);
+            logger.info("findOrderAndRecipes patientList:{}.", JSON.toJSONString(patientList));
+            if (CollectionUtils.isEmpty(patientList)) {
+                result.setCode(-1);
+                result.setMsg("根据当前患者身份证信息没有获取到患者信息,请检查后重新获取");
+                logger.warn("findOrderAndRecipes 根据当前患者身份证信息没有获取到患者信息,请检查后重新获取");
+                return result;
+            }
+            mpiIdList = patientList.stream().map(PatientDTO::getMpiId).collect(Collectors.toList());
+        }
+        if (null != downOrderRequestVO.getOrganId() && StringUtils.isNotEmpty(downOrderRequestVO.getRecipeCode())) {
+            Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(downOrderRequestVO.getRecipeCode(), downOrderRequestVO.getOrganId());
+            if (null == recipe) {
+                result.setCode(-1);
+                result.setMsg("根据当前患者信息没有获取到处方信息,请检查后重新获取");
+                return result;
+            }
+            mpiIdList.add(recipe.getMpiid());
+        }
+        List<DownLoadRecipeOrderDTO> downLoadRecipeOrderDTOList = orderManager.findOrderAndRecipes(enterpriseIdList, mpiIdList, downOrderRequestVO.getBeginTime(), downOrderRequestVO.getEndTime());
+        downLoadRecipeOrderDTOList.forEach(downLoadRecipeOrderDTO -> {
+            DownRecipeOrderVO downRecipeOrderVO = new DownRecipeOrderVO();
+            //订单信息
+            DownOrderVO downOrderVO = new DownOrderVO();
+            //收件人信息
+            ReceiverInfoVO receiverInfo = new ReceiverInfoVO();
+            //处方信息
+            List<DownRecipeVO> downRecipeVOList = new ArrayList<>();
+
+            RecipeOrder recipeOrder = downLoadRecipeOrderDTO.getRecipeOrder();
+            List<Recipe> recipeList = downLoadRecipeOrderDTO.getRecipeList();
+            List<RecipeExtend> recipeExtendList = downLoadRecipeOrderDTO.getRecipeExtendList();
+            Map<Integer, RecipeExtend> recipeExtendMap = recipeExtendList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, a -> a, (k1, k2) -> k1));
+            List<Recipedetail> recipeDetailList = downLoadRecipeOrderDTO.getRecipeDetailList();
+            Map<Integer, List<Recipedetail>> recipeDetailListMap = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
+
+            ObjectCopyUtils.copyProperties(downOrderVO, recipeOrder);
+            downRecipeOrderVO.setOrder(downOrderVO);
+            ObjectCopyUtils.copyProperties(receiverInfo, recipeOrder);
+
+            //设置省市区街道相关配送信息
+            String province = LocalStringUtil.getAddressDic(recipeOrder.getAddress1());
+            String city = LocalStringUtil.getAddressDic(recipeOrder.getAddress2());
+            String district = LocalStringUtil.getAddressDic(recipeOrder.getAddress3());
+            String street = LocalStringUtil.getAddressDic(recipeOrder.getStreetAddress());
+            receiverInfo.setProvince(province);
+            receiverInfo.setCity(city);
+            receiverInfo.setDistrict(district);
+            receiverInfo.setStreet(street);
+            receiverInfo.setProvinceCode(StringUtils.isNotEmpty(recipeOrder.getAddress1())?recipeOrder.getAddress1()+"0000":"");
+            receiverInfo.setCityCode(StringUtils.isNotEmpty(recipeOrder.getAddress2())?recipeOrder.getAddress2()+"00":"");
+            downRecipeOrderVO.setReceiverInfo(receiverInfo);
+            //设置处方信息
+            recipeList.forEach(recipe -> {
+                DownRecipeVO downRecipeVO = new DownRecipeVO();
+                List<BaseRecipeDetailVO> baseRecipeDetailVOList = new ArrayList<>();
+                ObjectCopyUtils.copyProperties(downRecipeVO, recipe);
+                RecipeExtend recipeExtend = recipeExtendMap.get(recipe.getRecipeId());
+                ObjectCopyUtils.copyProperties(downRecipeVO, recipeExtend);
+                List<Recipedetail> recipeDetailListFromMap = recipeDetailListMap.get(recipe.getRecipeId());
+                recipeDetailListFromMap.forEach(recipeDetail -> {
+                    BaseRecipeDetailVO baseRecipeDetailVO = new BaseRecipeDetailVO();
+                    ObjectCopyUtils.copyProperties(baseRecipeDetailVO, recipeDetail);
+                    baseRecipeDetailVOList.add(baseRecipeDetailVO);
+                });
+                downRecipeVO.setRecipeDetailList(baseRecipeDetailVOList);
+                downRecipeVOList.add(downRecipeVO);
+            });
+            downRecipeOrderVO.setRecipeList(downRecipeVOList);
+            downRecipeOrderVOList.add(downRecipeOrderVO);
+        });
+        result.setDownRecipeOrderVOList(downRecipeOrderVOList);
+        return result;
     }
 
     /**
