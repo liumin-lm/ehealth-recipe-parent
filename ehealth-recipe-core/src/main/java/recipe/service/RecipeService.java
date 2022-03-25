@@ -973,10 +973,11 @@ public class RecipeService extends RecipeBaseService {
                 //触发CA前置操作
                 recipeSignResult = AbstractCaProcessType.getCaProcessFactory(recipe.getClinicOrgan()).hisCallBackCARecipeFunction(recipe.getRecipeId());
             }
+            LOGGER.info("retryDoctorSignCheck recipeSignResult ！{}", JSON.toJSONString(recipeSignResult));
             //date 20200617
             //添加逻辑：ca返回异步无结果
             if (RecipeResultBean.NO_ADDRESS.equals(recipeSignResult.getCode())) {
-                return;
+                throw new DAOException(ErrorCode.SERVICE_ERROR, recipeSignResult.getMsg());
             }
             String memo;
             if (RecipeResultBean.FAIL.equals(recipeSignResult.getCode())) {
@@ -989,7 +990,6 @@ public class RecipeService extends RecipeBaseService {
                     IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
                     recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(), recipe.getClinicId());
                 }
-                LOGGER.info("retryDoctorSignCheck recipeSignResult ！{}", JSON.toJSONString(recipeSignResult));
                 throw new DAOException(ErrorCode.SERVICE_ERROR, recipeSignResult.getMsg());
             } else {
                 //说明处方签名成功，记录日志，走签名成功逻辑
