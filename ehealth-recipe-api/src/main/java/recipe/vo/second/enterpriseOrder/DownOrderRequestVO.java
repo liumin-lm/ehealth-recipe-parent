@@ -26,8 +26,8 @@ public class DownOrderRequestVO implements Serializable {
     @ItemProperty(alias = "HIS处方号")
     private String recipeCode;
     @ItemProperty(alias = "查询开始时间")
-    private Date beginTime;
+    private String beginTime;
     @ItemProperty(alias = "查询结束时间")
-    private Date endTime;
+    private String endTime;
 
 }

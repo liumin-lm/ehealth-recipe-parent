@@ -36,16 +36,14 @@ import recipe.factory.status.givemodefactory.GiveModeProxy;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.service.RecipeOrderService;
+import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.ResultBean;
 import recipe.vo.base.BaseRecipeDetailVO;
 import recipe.vo.second.enterpriseOrder.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -278,7 +276,9 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             }
             mpiIdList.add(recipe.getMpiid());
         }
-        List<DownLoadRecipeOrderDTO> downLoadRecipeOrderDTOList = orderManager.findOrderAndRecipes(enterpriseIdList, mpiIdList, downOrderRequestVO.getBeginTime(), downOrderRequestVO.getEndTime());
+        Date beginDate = DateConversion.parseDate(downOrderRequestVO.getBeginTime(), DateConversion.DEFAULT_DATE_TIME);
+        Date endDate = DateConversion.parseDate(downOrderRequestVO.getEndTime(), DateConversion.DEFAULT_DATE_TIME);
+        List<DownLoadRecipeOrderDTO> downLoadRecipeOrderDTOList = orderManager.findOrderAndRecipes(enterpriseIdList, mpiIdList, beginDate, endDate);
         downLoadRecipeOrderDTOList.forEach(downLoadRecipeOrderDTO -> {
             DownRecipeOrderVO downRecipeOrderVO = new DownRecipeOrderVO();
             //订单信息
