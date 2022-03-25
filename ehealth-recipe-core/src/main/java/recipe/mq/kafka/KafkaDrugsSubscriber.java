@@ -30,6 +30,7 @@ public class KafkaDrugsSubscriber implements MonitorSubscriber {
         //groupid 不同时，消费同一topic，相当于广播消费
         try {
             if (OnsConfig.kafkaSwitch) {
+                logger.info("初始化 consumer----------");
                 subscriber = KafkaHelperForCommon.createSubscriber(
                         OnsConfig.kafkaServers, "drugList-consumer");
                 //订阅业务topic
@@ -55,7 +56,7 @@ public class KafkaDrugsSubscriber implements MonitorSubscriber {
     public static void main(String[] args) {
         Properties props = new Properties();
 
-        props.put("bootstrap.servers", OnsConfig.kafkaServers);
+        props.put("bootstrap.servers", "172.21.1.142:9092");
 
         props.put("group.id", "drugList-consumer");
         props.put("enable.auto.commit", "true");
@@ -66,7 +67,7 @@ public class KafkaDrugsSubscriber implements MonitorSubscriber {
 
         KafkaConsumer<String, String> consumer = new KafkaConsumer<>(props);
 
-        consumer.subscribe(Arrays.asList(OnsConfig.drugListNursingTopic));
+        consumer.subscribe(Arrays.asList("eh_recipe_feature"));
         while (true) {
             ConsumerRecords<String, String> records = consumer.poll(100);
             for (ConsumerRecord<String, String> record : records) {

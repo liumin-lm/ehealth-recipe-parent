@@ -1568,6 +1568,31 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return action.getResult();
     }
 
+    public List<RecipeOrder> findOrderForEnterprise(List<Integer> enterpriseIdList, List<String> mpiIdList, Date beginTime, Date endTime) {
+        HibernateStatelessResultAction<List<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrder>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder("select a from RecipeOrder a,Recipe b where a.orderCode = b.orderCode and b.pushFlag = 0 and a.payFlag = 1 and a.effective = 1 and a.status in (3,12)" +
+                        " and a.effective = 1 and a.enterpriseId in (:enterpriseIds) ");
+                if (CollectionUtils.isNotEmpty(mpiIdList)) {
+                    hql.append(" AND a.MpiId in (:mpiIdList) ");
+                }
+                if (null != beginTime) {
+                    hql.append(" AND PayTime >= :startTime ");
+                }
+                if (null != endTime) {
+                    hql.append(" AND createTime <= :endTime ");
+                }
+                Query q = ss.createQuery(hql.toString());
+                q.setParameterList("enterpriseIds", enterpriseIdList);
+                setResult(q.list());
+            }
+        };
+
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
     private StringBuilder findSqlForfindByPayTimeAndOrganIdAndPayOrganId(String billDate, Integer organId, String payOrganId) {
         StringBuilder hql = new StringBuilder();
         hql.append("select distinct a.* from ( ");

@@ -6,6 +6,7 @@ import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.recipe.dto.RecipeOrderDto;
 import ctd.util.annotation.RpcBean;
 import eh.utils.BeanCopyUtils;
+import recipe.util.DateConversion;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.api.open.IRecipeOrderAtopService;
@@ -13,7 +14,11 @@ import recipe.atop.BaseAtop;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.vo.second.RecipeOrderVO;
 import recipe.vo.second.RecipeVo;
+import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
+import recipe.vo.second.enterpriseOrder.DownRecipeOrderVO;
+import recipe.vo.second.enterpriseOrder.EnterpriseDownDataVO;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -64,5 +69,18 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
     public Boolean updateTrackingNumberByOrderCode(String orderCode, String trackingNumber) {
         validateAtop(orderCode, trackingNumber);
         return recipeOrderService.updateTrackingNumberByOrderCode(orderCode, trackingNumber);
+    }
+
+    @Override
+    public EnterpriseDownDataVO findOrderAndRecipes(DownOrderRequestVO downOrderRequestVO) {
+        validateAtop(downOrderRequestVO, downOrderRequestVO.getAppKey());
+        validateAtop(downOrderRequestVO.getBeginTime(), downOrderRequestVO.getEndTime());
+        //校验时间间隔，默认查询当天支付的处方
+        int daysBetween = DateConversion.getDaysBetween(downOrderRequestVO.getBeginTime(), downOrderRequestVO.getEndTime());
+        if (daysBetween > 1) {
+            downOrderRequestVO.setBeginTime(DateConversion.firstSecondsOfDay(new Date()));
+            downOrderRequestVO.setEndTime(DateConversion.lastSecondsOfDay(new Date()));
+        }
+        return recipeOrderService.findOrderAndRecipes(downOrderRequestVO);
     }
 }
