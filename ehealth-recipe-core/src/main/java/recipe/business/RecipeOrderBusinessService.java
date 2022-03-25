@@ -276,6 +276,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             }
             mpiIdList.add(recipe.getMpiid());
         }
+        logger.info("findOrderAndRecipes mpiIdList:{}", JSON.toJSONString(mpiIdList));
         Date beginDate = DateConversion.parseDate(downOrderRequestVO.getBeginTime(), DateConversion.DEFAULT_DATE_TIME);
         Date endDate = DateConversion.parseDate(downOrderRequestVO.getEndTime(), DateConversion.DEFAULT_DATE_TIME);
         List<DownLoadRecipeOrderDTO> downLoadRecipeOrderDTOList = orderManager.findOrderAndRecipes(enterpriseIdList, mpiIdList, beginDate, endDate);
