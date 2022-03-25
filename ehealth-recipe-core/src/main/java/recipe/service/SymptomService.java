@@ -523,7 +523,8 @@ public class SymptomService implements ISymptomService {
                     Set<Integer> integers = textMap.keySet();
                     for (Integer integer : integers) {
                         if ( textMap.get(integer).equals(getStrFromCell(row.getCell(1)))) {
-                            errMsg.append("证候名称与第[" + integer + "]行重复!").append(";");
+                            int i = integer + 1;
+                            errMsg.append("证候名称与第[" + i + "]行重复!").append(";");
                         }
                     }
 
@@ -533,7 +534,8 @@ public class SymptomService implements ISymptomService {
                     Set<Integer> integers = keyMap.keySet();
                     for (Integer integer : integers) {
                         if ( keyMap.get(integer).equals(getStrFromCell(row.getCell(0)))) {
-                            errMsg.append("证候编码与第[" + integer + "]行重复!").append(";");
+                            int i = integer + 1;
+                            errMsg.append("证候编码与第[" + i + "]行重复!").append(";");
                         }
                     }
 
@@ -561,7 +563,17 @@ public class SymptomService implements ISymptomService {
                     if (ObjectUtils.isEmpty(byOrganIdAndTreatmentCode)){
                         errMsg.append("机构未查询出此治法编码").append(";");
                     }else {
-                        symptom.setTreatmentCode(getStrFromCell(row.getCell(3)));
+                        if (StringUtils.isEmpty(getStrFromCell(row.getCell(4)))){
+                            errMsg.append("关联治法编码正确,但治法名称未给出").append(";");
+                        }else {
+                            if (!StringUtils.isEmpty(getStrFromCell(row.getCell(3))) && !StringUtils.isEmpty(getStrFromCell(row.getCell(4)))) {
+                                TcmTreatment byOrganIdAndTreatmentNameAndTreatmentCode = treatmentDAO.getByOrganIdAndTreatmentNameAndTreatmentCode(organId, getStrFromCell(row.getCell(4)), getStrFromCell(row.getCell(3)));
+                                if (ObjectUtils.isEmpty(byOrganIdAndTreatmentNameAndTreatmentCode)){
+                                    errMsg.append("治法编码与名称联查为空!").append(";");
+                                }
+                            }
+                            symptom.setTreatmentCode(getStrFromCell(row.getCell(3)));
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -575,7 +587,17 @@ public class SymptomService implements ISymptomService {
                     if (ObjectUtils.isEmpty(byOrganIdAndTreatmentName)){
                         errMsg.append("机构未查询出此治法名称").append(";");
                     }else {
-                        symptom.setTreatmentName(getStrFromCell(row.getCell(4)));
+                        if (StringUtils.isEmpty(getStrFromCell(row.getCell(3)))){
+                            errMsg.append("关联治法名称正确,但治法编码未给出").append(";");
+                        }else {
+                            if (!StringUtils.isEmpty(getStrFromCell(row.getCell(3))) && !StringUtils.isEmpty(getStrFromCell(row.getCell(4)))) {
+                                TcmTreatment byOrganIdAndTreatmentNameAndTreatmentCode = treatmentDAO.getByOrganIdAndTreatmentNameAndTreatmentCode(organId, getStrFromCell(row.getCell(4)), getStrFromCell(row.getCell(3)));
+                                if (ObjectUtils.isEmpty(byOrganIdAndTreatmentNameAndTreatmentCode)){
+                                    errMsg.append("治法编码与名称联查为空!").append(";");
+                                }
+                            }
+                            symptom.setTreatmentName(getStrFromCell(row.getCell(4)));
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -583,12 +605,6 @@ public class SymptomService implements ISymptomService {
                 errMsg.append("关联治法名称有误").append(";");
             }
 
-            if (!StringUtils.isEmpty(getStrFromCell(row.getCell(3))) && !StringUtils.isEmpty(getStrFromCell(row.getCell(4)))) {
-                TcmTreatment byOrganIdAndTreatmentNameAndTreatmentCode = treatmentDAO.getByOrganIdAndTreatmentNameAndTreatmentCode(organId, getStrFromCell(row.getCell(4)), getStrFromCell(row.getCell(3)));
-                if (ObjectUtils.isEmpty(byOrganIdAndTreatmentNameAndTreatmentCode)){
-                    errMsg.append("治法编码与名称联查为空!").append(";");
-                }
-            }
 
             try {
                 if (!StringUtils.isEmpty(getStrFromCell(row.getCell(5)))) {
@@ -702,18 +718,28 @@ public class SymptomService implements ISymptomService {
     private Symptom updatevalidate(Symptom symptom, Symptom symptom1) {
         if (!ObjectUtils.isEmpty(symptom1.getPinYin())) {
             symptom.setPinYin(symptom1.getPinYin());
+        }else {
+            symptom.setPinYin(null);
         }
         if (!ObjectUtils.isEmpty(symptom1.getTreatmentCode())) {
             symptom.setTreatmentCode(symptom1.getTreatmentCode());
+        }else {
+            symptom.setTreatmentCode(null);
         }
         if (!ObjectUtils.isEmpty(symptom1.getTreatmentName())) {
             symptom.setTreatmentName(symptom1.getTreatmentName());
+        }else {
+            symptom.setTreatmentName(null);
         }
         if (!ObjectUtils.isEmpty(symptom1.getRegulationSymptomCode())) {
             symptom.setRegulationSymptomCode(symptom1.getRegulationSymptomCode());
+        }else {
+            symptom.setRegulationSymptomCode(null);
         }
         if (!ObjectUtils.isEmpty(symptom1.getRegulationSymptomName())) {
             symptom.setRegulationSymptomName(symptom1.getRegulationSymptomName());
+        }else {
+            symptom.setRegulationSymptomName(null);
         }
         symptom.setModifyDate(new Date());
         return symptom;
