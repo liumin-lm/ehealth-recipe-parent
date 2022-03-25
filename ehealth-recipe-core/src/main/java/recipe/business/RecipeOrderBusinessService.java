@@ -298,7 +298,6 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             ObjectCopyUtils.copyProperties(downOrderVO, recipeOrder);
             downRecipeOrderVO.setOrder(downOrderVO);
             ObjectCopyUtils.copyProperties(receiverInfo, recipeOrder);
-
             //设置省市区街道相关配送信息
             String province = LocalStringUtil.getAddressDic(recipeOrder.getAddress1());
             String city = LocalStringUtil.getAddressDic(recipeOrder.getAddress2());
@@ -308,6 +307,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             receiverInfo.setCity(city);
             receiverInfo.setDistrict(district);
             receiverInfo.setStreet(street);
+            receiverInfo.setAddress(recipeOrder.getAddress4());
             receiverInfo.setProvinceCode(StringUtils.isNotEmpty(recipeOrder.getAddress1())?recipeOrder.getAddress1()+"0000":"");
             receiverInfo.setCityCode(StringUtils.isNotEmpty(recipeOrder.getAddress2())?recipeOrder.getAddress2()+"00":"");
             downRecipeOrderVO.setReceiverInfo(receiverInfo);
@@ -330,7 +330,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             downRecipeOrderVO.setRecipeList(downRecipeVOList);
             downRecipeOrderVOList.add(downRecipeOrderVO);
         });
-        result.setDownRecipeOrderVOList(downRecipeOrderVOList);
+        result.setRecipeOrderList(downRecipeOrderVOList);
         return result;
     }
 
