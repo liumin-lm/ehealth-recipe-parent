@@ -1,6 +1,10 @@
 package recipe.util;
 
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import recipe.constant.BussTypeConstant;
 
 import java.util.*;
@@ -12,6 +16,7 @@ import java.util.regex.Pattern;
  */
 public class LocalStringUtil {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(LocalStringUtil.class);
     private static final String NUMERIC_REGEX = "^\\d+(\\.\\d+)?$";
     private static Pattern p = Pattern.compile("^((13[0-9])|(17[0-9])|(15[0-9])|(18[0-9]))\\d{8}$");
 
@@ -105,5 +110,22 @@ public class LocalStringUtil {
             return organList.contains(organ);
         }
         return false;
+    }
+
+    /**
+     * 获取区域文本
+     *
+     * @param area 区域
+     * @return 区域文本
+     */
+    public static String getAddressDic(String area) {
+        if (StringUtils.isNotEmpty(area)) {
+            try {
+                return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
+            } catch (ControllerException e) {
+                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area, e);
+            }
+        }
+        return "";
     }
 }

@@ -4,6 +4,8 @@ import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
 import com.ngari.common.dto.SyncOrderVO;
 import ctd.util.annotation.RpcService;
 import recipe.vo.second.RecipeOrderVO;
+import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
+import recipe.vo.second.enterpriseOrder.EnterpriseDownDataVO;
 
 /**
  * @description： 处方订单第三方
@@ -36,4 +38,12 @@ public interface IRecipeOrderAtopService {
      */
     @RpcService(mvcDisabled = true)
     Boolean updateTrackingNumberByOrderCode(String orderCode, String trackingNumber);
+
+    /**
+     * 第三方查询平台处方订单信息
+     * @param downOrderRequestVO 请求入参
+     * @return 处方订单列表
+     */
+    @RpcService
+    EnterpriseDownDataVO findOrderAndRecipes(DownOrderRequestVO downOrderRequestVO);
 }
