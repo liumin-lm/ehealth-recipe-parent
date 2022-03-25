@@ -78,6 +78,7 @@ import recipe.service.DrugsEnterpriseConfigService;
 import recipe.service.OrganDrugListService;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DrugMatchUtil;
+import recipe.util.LocalStringUtil;
 import recipe.util.Md5Utils;
 import recipe.util.RedisClient;
 
@@ -2868,13 +2869,13 @@ public class DrugToolService implements IDrugToolService {
                 // 收件人手机号
                 logisticsOrder.setAddresseePhone(order.getRecMobile());
                 // 收件省份
-                logisticsOrder.setAddresseeProvince(ThirdEnterpriseCallService.getAddressDic(order.getAddress1()));
+                logisticsOrder.setAddresseeProvince(LocalStringUtil.getAddressDic(order.getAddress1()));
                 // 收件城市
-                logisticsOrder.setAddresseeCity(ThirdEnterpriseCallService.getAddressDic(order.getAddress2()));
+                logisticsOrder.setAddresseeCity(LocalStringUtil.getAddressDic(order.getAddress2()));
                 // 收件镇/区
-                logisticsOrder.setAddresseeDistrict(ThirdEnterpriseCallService.getAddressDic(order.getAddress3()));
+                logisticsOrder.setAddresseeDistrict(LocalStringUtil.getAddressDic(order.getAddress3()));
                 // 收件人街道
-                logisticsOrder.setAddresseeStreet(ThirdEnterpriseCallService.getAddressDic(order.getStreetAddress()));
+                logisticsOrder.setAddresseeStreet(LocalStringUtil.getAddressDic(order.getStreetAddress()));
                 // 收件详细地址
                 logisticsOrder.setAddresseeAddress(order.getAddress4());
                 // 寄托物名称

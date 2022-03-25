@@ -3,13 +3,17 @@ package recipe.core.api.patient;
 
 import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
 import com.ngari.common.dto.SyncOrderVO;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.RecipeFeeDTO;
 import com.ngari.recipe.dto.RecipeOrderDto;
 import com.ngari.recipe.dto.SkipThirdDTO;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
+import ctd.util.annotation.RpcService;
 import recipe.vo.ResultBean;
-import recipe.vo.second.RecipeOrderVO;
+import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
+import recipe.vo.second.enterpriseOrder.EnterpriseDownDataVO;
 
 import java.util.List;
 
@@ -76,4 +80,20 @@ public interface IRecipeOrderBusinessService {
      * @return 是否成功
      */
     Boolean updateTrackingNumberByOrderCode(String orderCode, String trackingNumber);
+
+    /**
+     * 第三方查询平台处方订单信息
+     * @param downOrderRequestVO 请求入参
+     * @return 处方订单列表
+     */
+    EnterpriseDownDataVO findOrderAndRecipes(DownOrderRequestVO downOrderRequestVO);
+
+    /**
+     * 根据处方号取消订单
+     * @param recipeId 处方号
+     * @param status 状态
+     * @return 处方
+     */
+    @RpcService(mvcDisabled = true)
+    RecipeResultBean cancelOrderByRecipeId(Integer recipeId, Integer status);
 }

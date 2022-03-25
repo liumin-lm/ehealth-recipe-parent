@@ -1,5 +1,6 @@
 package recipe.mq.kafka;
 
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import ctd.net.broadcast.Observer;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -31,8 +32,11 @@ public class KafkaSubscriberString {
             KafkaSubscriberString.log.info("consumerProcess with topic{} started.", KafkaSubscriberString.this.topic.toString());
             try {
                 while (KafkaSubscriberString.this.running && !Thread.currentThread().isInterrupted()) {
+                    log.info("consumerProcess running ------" );
+
                     try {
                         ConsumerRecords<String, byte[]> records = KafkaSubscriberString.this.consumer.poll(Duration.ofSeconds(1L));
+                        log.info("consumerProcess records:{}" , JSONArray.toJSONString(records));
                         if (records.count() != 0) {
                             final CountDownLatch countDownLatch = new CountDownLatch(records.count());
                             Iterator var3 = records.iterator();
@@ -46,6 +50,7 @@ public class KafkaSubscriberString {
 
                                 try {
                                     String value = record.value();
+                                    log.info("consumerProcess value:{}" ,value);
                                     KafkaSubscriberString.this.taskExec.execute(new Runnable() {
                                         @Override
                                         public void run() {

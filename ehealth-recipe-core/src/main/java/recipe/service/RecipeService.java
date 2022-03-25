@@ -931,6 +931,7 @@ public class RecipeService extends RecipeBaseService {
 
     //重试医生签名
     @RpcService
+    @LogRecord
     public void retryDoctorSignCheck(Integer recipeId) {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeLogDAO recipeLogDAO = getDAO(RecipeLogDAO.class);
@@ -956,8 +957,6 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.info("retryDoctorSignCheck 处方单已经撤销，recipeid：{}", recipe.getRecipeId());
             return;
         }
-
-        //recipeManager.isOpenRecipeNumber(recipe.getClinicId(), recipe.getClinicOrgan(), recipeId);
         try {
             //写入his成功后，生成pdf并签名
             //date 20200827 修改his返回请求CA
@@ -974,6 +973,7 @@ public class RecipeService extends RecipeBaseService {
                 //触发CA前置操作
                 recipeSignResult = AbstractCaProcessType.getCaProcessFactory(recipe.getClinicOrgan()).hisCallBackCARecipeFunction(recipe.getRecipeId());
             }
+            LOGGER.info("retryDoctorSignCheck recipeSignResult ！{}", JSON.toJSONString(recipeSignResult));
             //date 20200617
             //添加逻辑：ca返回异步无结果
             if (RecipeResultBean.NO_ADDRESS.equals(recipeSignResult.getCode())) {
@@ -990,7 +990,7 @@ public class RecipeService extends RecipeBaseService {
                     IRecipeOnLineRevisitService recipeOnLineRevisitService = RevisitAPI.getService(IRecipeOnLineRevisitService.class);
                     recipeOnLineRevisitService.sendRecipeDefeat(recipe.getRecipeId(), recipe.getClinicId());
                 }
-                throw new DAOException(ErrorCode.SERVICE_ERROR, recipeSignResult.getMsg());
+                return;
             } else {
                 //说明处方签名成功，记录日志，走签名成功逻辑
                 LOGGER.info("当前签名处方{}签名成功！", recipeId);
@@ -5006,6 +5006,15 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getUnilateralCompound())) {
             drugListMatch.setUnilateralCompound(drug.getUnilateralCompound());
         }
+        if(Objects.nonNull(drug.getSmallestUnitUseDose())){
+            drugListMatch.setSmallestUnitUseDose(drug.getSmallestUnitUseDose());
+        }
+        if(Objects.nonNull(drug.getDefaultSmallestUnitUseDose())){
+            drugListMatch.setDefaultSmallestUnitUseDose(drug.getDefaultSmallestUnitUseDose());
+        }
+        if(StringUtils.isNotEmpty(drug.getUseDoseSmallestUnit())){
+            drugListMatch.setUseDoseSmallestUnit(drug.getUseDoseSmallestUnit());
+        }
 
         if (!ObjectUtils.isEmpty(drug.getPharmacyCode())) {
             String pharmacyCode = drug.getPharmacyCode();
@@ -5214,6 +5223,15 @@ public class RecipeService extends RecipeBaseService {
         //药品嘱托
         if (!ObjectUtils.isEmpty(drug.getDrugEntrust())) {
             organDrug.setDrugEntrust(drug.getDrugEntrust());
+        }
+        if(Objects.nonNull(drug.getSmallestUnitUseDose())){
+            organDrug.setSmallestUnitUseDose(drug.getSmallestUnitUseDose());
+        }
+        if(Objects.nonNull(drug.getDefaultSmallestUnitUseDose())){
+            organDrug.setDefaultSmallestUnitUseDose(drug.getDefaultSmallestUnitUseDose());
+        }
+        if(StringUtils.isNotEmpty(drug.getUseDoseSmallestUnit())){
+            organDrug.setUseDoseSmallestUnit(drug.getUseDoseSmallestUnit());
         }
         if (!ObjectUtils.isEmpty(drug.getDrugsEnterpriseCode())) {
             String pharmacyCode = drug.getDrugsEnterpriseCode();
@@ -5468,6 +5486,15 @@ public class RecipeService extends RecipeBaseService {
             organDrug.setDrugItemCode(drug.getDrugItemCode());
         }
 
+        if(Objects.nonNull(drug.getSmallestUnitUseDose())){
+            organDrug.setSmallestUnitUseDose(drug.getSmallestUnitUseDose());
+        }
+        if(Objects.nonNull(drug.getDefaultSmallestUnitUseDose())){
+            organDrug.setDefaultSmallestUnitUseDose(drug.getDefaultSmallestUnitUseDose());
+        }
+        if(StringUtils.isNotEmpty(drug.getUseDoseSmallestUnit())){
+            organDrug.setUseDoseSmallestUnit(drug.getUseDoseSmallestUnit());
+        }
         LOGGER.info("updateHisDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(organDrug));
         OrganDrugList update = organDrugListDAO.update(organDrug);
         //同步药品到监管备案
