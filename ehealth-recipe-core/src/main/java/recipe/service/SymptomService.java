@@ -563,7 +563,11 @@ public class SymptomService implements ISymptomService {
                     if (ObjectUtils.isEmpty(byOrganIdAndTreatmentCode)){
                         errMsg.append("机构未查询出此治法编码").append(";");
                     }else {
-                        symptom.setTreatmentCode(getStrFromCell(row.getCell(3)));
+                        if (StringUtils.isEmpty(getStrFromCell(row.getCell(4)))){
+                            errMsg.append("关联治法编码正确,但治法名称未给出").append(";");
+                        }else {
+                            symptom.setTreatmentCode(getStrFromCell(row.getCell(3)));
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -577,7 +581,11 @@ public class SymptomService implements ISymptomService {
                     if (ObjectUtils.isEmpty(byOrganIdAndTreatmentName)){
                         errMsg.append("机构未查询出此治法名称").append(";");
                     }else {
-                        symptom.setTreatmentName(getStrFromCell(row.getCell(4)));
+                        if (StringUtils.isEmpty(getStrFromCell(row.getCell(3)))){
+                            errMsg.append("关联治法名称正确,但治法编码未给出").append(";");
+                        }else {
+                            symptom.setTreatmentName(getStrFromCell(row.getCell(4)));
+                        }
                     }
                 }
             } catch (Exception e) {
