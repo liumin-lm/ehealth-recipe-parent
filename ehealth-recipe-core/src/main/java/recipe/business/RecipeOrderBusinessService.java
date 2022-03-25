@@ -296,6 +296,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             List<Recipedetail> recipeDetailList = downLoadRecipeOrderDTO.getRecipeDetailList();
             Map<Integer, List<Recipedetail>> recipeDetailListMap = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
 
+            List<SaleDrugList> saleDrugLists = downLoadRecipeOrderDTO.getSaleDrugLists();
+            Map<Integer, SaleDrugList> saleDrugListMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId, a -> a, (k1, k2) -> k1));
             ObjectCopyUtils.copyProperties(downOrderVO, recipeOrder);
             downRecipeOrderVO.setOrder(downOrderVO);
             ObjectCopyUtils.copyProperties(receiverInfo, recipeOrder);
@@ -323,6 +325,10 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 recipeDetailListFromMap.forEach(recipeDetail -> {
                     BaseRecipeDetailVO baseRecipeDetailVO = new BaseRecipeDetailVO();
                     ObjectCopyUtils.copyProperties(baseRecipeDetailVO, recipeDetail);
+                    SaleDrugList saleDrugList = saleDrugListMap.get(recipeDetail.getDrugId());
+                    if (null != saleDrugList) {
+                        baseRecipeDetailVO.setSaleDrugCode(saleDrugList.getSaleDrugCode());
+                    }
                     baseRecipeDetailVOList.add(baseRecipeDetailVO);
                 });
                 downRecipeVO.setRecipeDetailList(baseRecipeDetailVOList);

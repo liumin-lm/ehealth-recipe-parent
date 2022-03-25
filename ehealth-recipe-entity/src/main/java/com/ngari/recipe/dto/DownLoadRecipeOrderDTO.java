@@ -1,9 +1,6 @@
 package com.ngari.recipe.dto;
 
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.entity.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -24,5 +21,6 @@ public class DownLoadRecipeOrderDTO implements Serializable {
     private List<Recipe> recipeList;
     private List<RecipeExtend> recipeExtendList;
     private List<Recipedetail> recipeDetailList;
+    private List<SaleDrugList> saleDrugLists;
 
 }
