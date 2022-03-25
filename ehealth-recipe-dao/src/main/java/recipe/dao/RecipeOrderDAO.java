@@ -1578,10 +1578,10 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                     hql.append(" AND a.MpiId in (:mpiIdList) ");
                 }
                 if (null != beginTime) {
-                    hql.append(" AND PayTime >= :startTime ");
+                    hql.append(" AND a.PayTime >= :startTime ");
                 }
                 if (null != endTime) {
-                    hql.append(" AND createTime <= :endTime ");
+                    hql.append(" AND a.PayTime <= :endTime ");
                 }
                 Query q = ss.createQuery(hql.toString());
                 q.setParameterList("enterpriseIds", enterpriseIdList);
