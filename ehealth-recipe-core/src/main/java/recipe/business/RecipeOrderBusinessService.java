@@ -7,8 +7,10 @@ import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.persistence.bean.QueryResult;
@@ -354,6 +356,13 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         });
         result.setRecipeOrderList(downRecipeOrderVOList);
         return result;
+    }
+
+    @Override
+    public RecipeResultBean cancelOrderByRecipeId(Integer recipeId, Integer status) {
+        //TODO 取消订单逻辑太多 后面再移动到manage
+        RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+        return recipeOrderService.cancelOrderByRecipeId(recipeId, status);
     }
 
     /**
