@@ -931,6 +931,7 @@ public class RecipeService extends RecipeBaseService {
 
     //重试医生签名
     @RpcService
+    @LogRecord
     public void retryDoctorSignCheck(Integer recipeId) {
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RecipeLogDAO recipeLogDAO = getDAO(RecipeLogDAO.class);
