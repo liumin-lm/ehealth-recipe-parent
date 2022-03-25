@@ -46,6 +46,7 @@ public class KafkaSubscriberString {
 
                                 try {
                                     String value = record.value();
+                                    log.info("consumerProcess value:{}" ,value);
                                     KafkaSubscriberString.this.taskExec.execute(new Runnable() {
                                         @Override
                                         public void run() {

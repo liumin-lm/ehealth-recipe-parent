@@ -67,6 +67,7 @@ import recipe.third.IFileDownloadService;
 import recipe.third.IWXServiceInterface;
 import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
+import recipe.util.LocalStringUtil;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
@@ -492,13 +493,13 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                         // 收件人手机号
                         logisticsOrder.setAddresseePhone(order.getRecMobile());
                         // 收件省份
-                        logisticsOrder.setAddresseeProvince(getAddressDic(order.getAddress1()));
+                        logisticsOrder.setAddresseeProvince(LocalStringUtil.getAddressDic(order.getAddress1()));
                         // 收件城市
-                        logisticsOrder.setAddresseeCity(getAddressDic(order.getAddress2()));
+                        logisticsOrder.setAddresseeCity(LocalStringUtil.getAddressDic(order.getAddress2()));
                         // 收件镇/区
-                        logisticsOrder.setAddresseeDistrict(getAddressDic(order.getAddress3()));
+                        logisticsOrder.setAddresseeDistrict(LocalStringUtil.getAddressDic(order.getAddress3()));
                         // 收件人街道
-                        logisticsOrder.setAddresseeStreet(getAddressDic(order.getStreetAddress()));
+                        logisticsOrder.setAddresseeStreet(LocalStringUtil.getAddressDic(order.getStreetAddress()));
                         // 收件详细地址
                         logisticsOrder.setAddresseeAddress(order.getAddress4());
                         // 寄托物名称
@@ -1851,10 +1852,10 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 orderDetailBean.setExpressFee(convertParame(recipeOrder.getExpressFee()));
             }
             orderDetailBean.setExpressFee(convertParame(recipeOrder.getExpressFee()));
-            String province = getAddressDic(recipeOrder.getAddress1());
-            String city = getAddressDic(recipeOrder.getAddress2());
-            String district = getAddressDic(recipeOrder.getAddress3());
-            String street = getAddressDic(recipeOrder.getStreetAddress());
+            String province = LocalStringUtil.getAddressDic(recipeOrder.getAddress1());
+            String city = LocalStringUtil.getAddressDic(recipeOrder.getAddress2());
+            String district = LocalStringUtil.getAddressDic(recipeOrder.getAddress3());
+            String street = LocalStringUtil.getAddressDic(recipeOrder.getStreetAddress());
             orderDetailBean.setProvince(convertParame(province));
             orderDetailBean.setCity(convertParame(city));
             orderDetailBean.setDistrict(convertParame(district));
@@ -1971,23 +1972,6 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         } else {
             return o.toString();
         }
-    }
-
-    /**
-     * 获取区域文本
-     *
-     * @param area 区域
-     * @return 区域文本
-     */
-    public static String getAddressDic(String area) {
-        if (StringUtils.isNotEmpty(area)) {
-            try {
-                return DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area);
-            } catch (ControllerException e) {
-                LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area, e);
-            }
-        }
-        return "";
     }
 
     /**
