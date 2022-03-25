@@ -1575,13 +1575,13 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 StringBuilder hql = new StringBuilder("select a from RecipeOrder a,Recipe b where a.orderCode = b.orderCode and b.pushFlag = 0 and a.payFlag = 1 and a.effective = 1 and a.status in (3,12)" +
                         " and a.effective = 1 and a.enterpriseId in (:enterpriseIds) ");
                 if (CollectionUtils.isNotEmpty(mpiIdList)) {
-                    hql.append(" AND a.MpiId in (:mpiIdList) ");
+                    hql.append(" AND a.mpiId in (:mpiIdList) ");
                 }
                 if (null != beginTime) {
-                    hql.append(" AND a.PayTime >= :startTime ");
+                    hql.append(" AND a.payTime >= :startTime ");
                 }
                 if (null != endTime) {
-                    hql.append(" AND a.PayTime <= :endTime ");
+                    hql.append(" AND a.payTime <= :endTime ");
                 }
                 Query q = ss.createQuery(hql.toString());
                 q.setParameterList("enterpriseIds", enterpriseIdList);
