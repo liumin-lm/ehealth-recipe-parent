@@ -9,7 +9,8 @@ import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import recipe.vo.ResultBean;
-import recipe.vo.second.RecipeOrderVO;
+import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
+import recipe.vo.second.enterpriseOrder.EnterpriseDownDataVO;
 
 import java.util.List;
 
@@ -76,4 +77,11 @@ public interface IRecipeOrderBusinessService {
      * @return 是否成功
      */
     Boolean updateTrackingNumberByOrderCode(String orderCode, String trackingNumber);
+
+    /**
+     * 第三方查询平台处方订单信息
+     * @param downOrderRequestVO 请求入参
+     * @return 处方订单列表
+     */
+    EnterpriseDownDataVO findOrderAndRecipes(DownOrderRequestVO downOrderRequestVO);
 }

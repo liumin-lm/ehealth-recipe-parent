@@ -33,7 +33,7 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "商品名")
     private String saleName;
 
-    @ItemProperty(alias = "机构药品编码")
+    @ItemProperty(alias = "机构唯一索引")
     private String organDrugCode;
 
     @ItemProperty(alias = "机构药品编码")
