@@ -1585,6 +1585,12 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 }
                 Query q = ss.createQuery(hql.toString());
                 q.setParameterList("enterpriseIds", enterpriseIdList);
+                if (null != beginTime) {
+                    q.setParameter("startTime", beginTime);
+                }
+                if (null != endTime) {
+                    q.setParameter("endTime", endTime);
+                }
                 setResult(q.list());
             }
         };
