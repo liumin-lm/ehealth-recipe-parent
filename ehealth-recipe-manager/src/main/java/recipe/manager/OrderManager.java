@@ -452,6 +452,9 @@ public class OrderManager extends BaseManager {
         List<DownLoadRecipeOrderDTO> downLoadRecipeOrderDTOList = new ArrayList<>();
         //查询订单信息
         List<RecipeOrder> recipeOrderList = recipeOrderDAO.findOrderForEnterprise(enterpriseIdList, mpiIdList, beginTime, endTime);
+        if (CollectionUtils.isEmpty(recipeOrderList)) {
+            return downLoadRecipeOrderDTOList;
+        }
         List<String> recipeOrderCodeList = recipeOrderList.stream().map(RecipeOrder::getOrderCode).collect(Collectors.toList());
         logger.info("findOrderAndRecipes recipeOrderCodeList:{}", JSON.toJSONString(recipeOrderCodeList));
         //根据订单号查询处方
