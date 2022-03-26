@@ -8,8 +8,6 @@ import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
 import com.ngari.infra.logistics.mode.ControlLogisticsOrderDto;
-import com.ngari.infra.logistics.mode.CreateLogisticsOrderDto;
-import com.ngari.infra.logistics.service.ILogisticsOrderService;
 import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -36,7 +34,9 @@ import recipe.dao.RecipeOrderPayFlowDao;
 import recipe.dao.RecipeParameterDao;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.PayBusTypeEnum;
 import recipe.enumerate.type.PayFlagEnum;
+import recipe.enumerate.type.PayFlowTypeEnum;
 import recipe.enumerate.type.RecipeOrderDetailFeeEnum;
 import recipe.util.*;
 
@@ -491,6 +491,39 @@ public class OrderManager extends BaseManager {
         });
         logger.info("findOrderAndRecipes downLoadRecipeOrderDTOList:{}", JSON.toJSONString(downLoadRecipeOrderDTOList));
         return downLoadRecipeOrderDTOList;
+    }
+
+    public void cancelOrder(RecipeOrder order, List<Recipe> recipeList, Boolean canCancelOrderCode, Integer identity){
+        logger.info("RecipeOrderService cancelOrder  order= {}，status= {}，canCancelOrderCode= {} ,identity={}", JSON.toJSONString(order), canCancelOrderCode, identity);
+        // 邵逸夫手动取消要查看是否有支付审方费
+        Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
+        if (syfPayMode) {
+            //邵逸夫支付
+            RecipeOrderPayFlow recipeOrderPayFlow = recipeOrderPayFlowDao.getByOrderIdAndType(order.getOrderId(), PayFlowTypeEnum.RECIPE_AUDIT.getType());
+            if (null != recipeOrderPayFlow) {
+                if (StringUtils.isEmpty(recipeOrderPayFlow.getOutTradeNo())) {
+                    //表示没有实际支付审方或者快递费,只需要更新状态
+                    recipeOrderPayFlow.setPayFlag(PayFlagEnum.REFUND_SUCCESS.getType());
+                    recipeOrderPayFlowDao.updateNonNullFieldByPrimaryKey(recipeOrderPayFlow);
+                } else {
+                    //说明需要正常退审方费
+                    refundClient.refund(order.getOrderId(), PayBusTypeEnum.OTHER_BUS_TYPE.getName());
+                }
+            }
+        }
+        recipeList.forEach(recipe -> {
+            recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), recipe, identity);
+            String decoctionDeploy = configurationClient.getValueCatchReturnArr(recipe.getClinicOrgan(), "decoctionDeploy", "");
+            if ("2".equals(decoctionDeploy)) {
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                if (recipeExtend != null) {
+                    recipeExtend.setDecoctionText(null);
+                    recipeExtend.setDecoctionPrice(null);
+                    recipeExtend.setDecoctionId(null);
+                    recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
+                }
+            }
+        });
     }
 
     /**

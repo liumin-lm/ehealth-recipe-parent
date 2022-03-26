@@ -10,7 +10,6 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.persistence.bean.QueryResult;
@@ -360,9 +359,17 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
 
     @Override
     public RecipeResultBean cancelOrderByRecipeId(Integer recipeId, Integer status) {
-        //TODO 取消订单逻辑太多 后面再移动到manage
-        RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        return recipeOrderService.cancelOrderByRecipeId(recipeId, status);
+        RecipeResultBean result = RecipeResultBean.getSuccess();
+        if (null == recipeId || null == status) {
+            result.setCode(RecipeResultBean.FAIL);
+            result.setError("缺少参数");
+            return result;
+        }
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        List<Recipe> recipeList = recipeDAO.findRecipeByOrdercode(recipe.getOrderCode());
+        orderManager.cancelOrder(recipeOrder, recipeList, true, 2);
+        return result;
     }
 
     /**
