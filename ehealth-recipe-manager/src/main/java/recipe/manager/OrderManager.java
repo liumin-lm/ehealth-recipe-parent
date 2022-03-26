@@ -494,7 +494,7 @@ public class OrderManager extends BaseManager {
     }
 
     public void cancelOrder(RecipeOrder order, List<Recipe> recipeList, Boolean canCancelOrderCode, Integer identity){
-        logger.info("RecipeOrderService cancelOrder  order= {}，status= {}，canCancelOrderCode= {} ,identity={}", JSON.toJSONString(order), canCancelOrderCode, identity);
+        logger.info("RecipeOrderService cancelOrder  order= {}，recipeList={}, canCancelOrderCode= {} ,identity={}", JSON.toJSONString(order), JSON.toJSONString(recipeList), canCancelOrderCode, identity);
         // 邵逸夫手动取消要查看是否有支付审方费
         Boolean syfPayMode = configurationClient.getValueBooleanCatch(order.getOrganId(), "syfPayMode", false);
         if (syfPayMode) {
