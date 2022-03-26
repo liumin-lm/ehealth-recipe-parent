@@ -282,7 +282,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      *
      * @param orderCode
      */
-    public void updateOrderCodeToNullByOrderCodeAndClearChoose(String orderCode, Recipe recipe) {
+    public void updateOrderCodeToNullByOrderCodeAndClearChoose(String orderCode, Recipe recipe, int flag) {
         HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -291,7 +291,13 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (!new Integer(2).equals(recipe.getRecipeSource())) {
                     hql.append(" giveMode = null, ");
                 }
-                hql.append(" orderCode=null ,chooseFlag=0, status = 2 where orderCode=:orderCode");
+                //药师
+                if (flag == 2) {
+                    hql.append(" status = 8, ");
+                } else {
+                    hql.append(" status = 2, ");
+                }
+                hql.append(" orderCode=null ,chooseFlag=0 where orderCode=:orderCode");
                 Query q = ss.createQuery(hql.toString());
 
                 q.setParameter("orderCode", orderCode);
