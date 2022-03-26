@@ -367,7 +367,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         }
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-        List<Recipe> recipeList = recipeDAO.findRecipeByOrdercode(recipe.getOrderCode());
+        List<Recipe> recipeList = recipeDAO.findRecipeListByOrderCode(recipe.getOrderCode());
         orderManager.cancelOrder(recipeOrder, recipeList, true, 2);
         return result;
     }
