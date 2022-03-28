@@ -16,7 +16,4 @@ import java.io.Serializable;
 @Setter
 public class DownOrderVO extends BaseOrderVO implements Serializable {
     private static final long serialVersionUID = 1698992569210516481L;
-
-    @ItemProperty(alias = "订单支付标志 1已支付，2未支付")
-    private Integer orderPayFlag;
 }
