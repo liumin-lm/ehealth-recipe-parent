@@ -9,6 +9,7 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.DepartmentService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.drug.model.OrganDrugListBean;
+import com.ngari.recipe.dto.ChargeItemDTO;
 import com.ngari.recipe.dto.OffLineRecipeDetailDTO;
 import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
@@ -312,9 +313,11 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
 
 
     @Override
-    public RecipeInfoDTO pushRecipe(Integer recipeId, Integer pushType, Integer sysType) {
+    public RecipeInfoDTO pushRecipe(Integer recipeId, Integer pushType, Integer sysType, Integer expressFeePayType, Double expressFee) {
         logger.info("RecipeBusinessService pushRecipe recipeId={}", recipeId);
         RecipeInfoDTO recipePdfDTO = recipeTherapyManager.getRecipeTherapyDTO(recipeId);
+        ChargeItemDTO chargeItemDTO = new ChargeItemDTO(expressFeePayType, expressFee);
+        recipePdfDTO.setChargeItemDTO(chargeItemDTO);
         Recipe recipe = recipePdfDTO.getRecipe();
         try {
             List<Recipedetail> recipeDetailList = recipePdfDTO.getRecipeDetails();
