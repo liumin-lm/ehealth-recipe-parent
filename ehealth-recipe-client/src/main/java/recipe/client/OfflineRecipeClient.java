@@ -14,12 +14,11 @@ import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.EmploymentService;
 import com.ngari.patient.utils.ObjectCopyUtils;
-import com.ngari.platform.recipe.mode.RecipeBean;
-import com.ngari.platform.recipe.mode.RecipeDetailBean;
-import com.ngari.platform.recipe.mode.RecipeExtendBean;
-import com.ngari.platform.recipe.mode.RemindRecipeDTO;
+import com.ngari.platform.recipe.mode.*;
+import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.*;
+import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -385,6 +384,9 @@ public class OfflineRecipeClient extends BaseClient {
         emrDetailDTO.setSymptomValue(ObjectCopyUtils.convert(emrDetail.getSymptomValue(), EmrDetailValueDTO.class));
         emrDetailDTO.setDiseaseValue(ObjectCopyUtils.convert(emrDetail.getDiseaseValue(), EmrDetailValueDTO.class));
         recipeDTO.setEmrDetailDTO(emrDetailDTO);
+        ChargeItemBean chargeItemBean = new ChargeItemBean();
+        BeanUtils.copyProperties(recipePdfDTO.getChargeItemDTO(), chargeItemBean);
+        recipeDTO.setChargeItemBean(chargeItemBean);
         RecipeBean recipe = ObjectCopyUtils.convert(recipePdfDTO.getRecipe(), RecipeBean.class);
         //医生工号
         recipe.setDoctorCode(employmentService.getJobNumberByDoctorIdAndOrganIdAndDepartment(recipe.getDoctor(), recipe.getClinicOrgan(), recipe.getDepart()));
