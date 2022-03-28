@@ -1853,6 +1853,17 @@ public class RecipeServiceSub {
                     recipeExtend.setDecoctionPrice(decoctionWay.getDecoctionPrice());
                 }
             }
+            // 如果线下处方给了单价，优先取线下处方单价
+            try {
+                if ("2".equals(recipe.getRecipeSourceType())) {
+                    HisRecipe hisRecipe = hisRecipeManager.getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(recipe.getMpiid(), recipe.getClinicOrgan(), recipe.getRecipeCode());
+                    if (null != hisRecipe && null != hisRecipe.getDecoctionUnitFee()) {
+                        recipeExtend.setDecoctionPrice(hisRecipe.getDecoctionUnitFee().doubleValue());
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             //判断是否为儿童处方
             if (Integer.valueOf(1).equals(recipeExtend.getRecipeFlag())) {
                 childRecipeFlag = true;
