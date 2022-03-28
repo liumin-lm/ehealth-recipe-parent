@@ -32,6 +32,7 @@ import recipe.dao.RecipeOrderDAO;
 import recipe.dao.RecipeParameterDao;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.enumerate.status.GiveModeEnum;
+import recipe.enumerate.status.PayModeEnum;
 import recipe.enumerate.type.ExpressFeePayWayEnum;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeMsgService;
@@ -148,7 +149,7 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
         try {
             //将物流支付状态,物流费同步到基础平台
             IWaybillService waybillService = AppContextHolder.getBean("infra.waybillService", IWaybillService.class);
-            if (null == order.getExpressFeePayWay() || ExpressFeePayWayEnum.ONLINE.getType().equals(order.getExpressFeePayWay())) {
+            if ((null == order.getExpressFeePayWay() || ExpressFeePayWayEnum.ONLINE.getType().equals(order.getExpressFeePayWay())) && PayModeEnum.OFFLINE_PAY.getType().equals(order.getPayMode())) {
                 LOGGER.info("基础物流更新快递单号：{}的支付支付方式为线上支付和快递费用：{}", trackingNumber, order.getExpressFee());
                 waybillService.updatePayplatStatus(trackingNumber, LOGISTICS_HAS_PAY, order.getExpressFee());
             } else {
