@@ -18,6 +18,7 @@ import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
+import recipe.vo.patient.PatientSubmitRecipeVO;
 
 import java.util.List;
 import java.util.Map;
@@ -160,10 +161,31 @@ public class RecipeOrderPatientAtop extends BaseAtop {
         }
         //推送his
         recipeIds.forEach(a -> {
-            offlineToOnlineService.pushRecipe(a, CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE);
+            offlineToOnlineService.pushRecipe(a, CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, null, null);
             recipeOrderService.updatePdfForSubmitOrderAfter(a);
         });
 
+    }
+
+    /**
+     * 患者创建订单 根据配送方式上传处方给his
+     *
+     * @param patientSubmitRecipeVO   处方
+     */
+    @RpcService
+    public void submitRecipeHisNew(PatientSubmitRecipeVO patientSubmitRecipeVO) {
+        validateAtop(patientSubmitRecipeVO, patientSubmitRecipeVO.getRecipeIds(), patientSubmitRecipeVO.getOrganId(), patientSubmitRecipeVO.getGiveModeKey());
+        //过滤按钮
+        boolean validate = iOrganBusinessService.giveModeValidate(patientSubmitRecipeVO.getOrganId(), patientSubmitRecipeVO.getGiveModeKey());
+        if (!validate) {
+            logger.info("RecipeOrderPatientAtop submitRecipeHis orderId = {} , giveModeKey = {}", patientSubmitRecipeVO.getOrganId(), patientSubmitRecipeVO.getGiveModeKey());
+            return;
+        }
+        //推送his
+        patientSubmitRecipeVO.getRecipeIds().forEach(a -> {
+            offlineToOnlineService.pushRecipe(a, CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, patientSubmitRecipeVO.getExpressFeePayType(), patientSubmitRecipeVO.getExpressFee());
+            recipeOrderService.updatePdfForSubmitOrderAfter(a);
+        });
     }
 
     /**
@@ -184,7 +206,7 @@ public class RecipeOrderPatientAtop extends BaseAtop {
 
         //推送his
         try {
-            recipeIds.forEach(a -> offlineToOnlineService.pushRecipe(a, CommonConstant.RECIPE_CANCEL_TYPE, CommonConstant.RECIPE_PATIENT_TYPE));
+            recipeIds.forEach(a -> offlineToOnlineService.pushRecipe(a, CommonConstant.RECIPE_CANCEL_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, null, null));
         } catch (Exception e) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前处方撤销失败");
         }
