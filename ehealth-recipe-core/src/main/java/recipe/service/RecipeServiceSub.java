@@ -89,7 +89,9 @@ import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.type.*;
+import recipe.enumerate.type.PayBusTypeEnum;
+import recipe.enumerate.type.RecipeDistributionFlagEnum;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
 import recipe.manager.*;
@@ -169,6 +171,7 @@ public class RecipeServiceSub {
     private static IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
 
     private static RecipeOrderPayFlowManager recipeOrderPayFlowManager = AppContextHolder.getBean("recipeOrderPayFlowManager", RecipeOrderPayFlowManager.class);
+
     /**
      * @param recipeBean
      * @param detailBeanList
@@ -1843,7 +1846,7 @@ public class RecipeServiceSub {
         //医生端/患者端获取处方扩展信息
         if (recipeExtend != null) {
             //医生选择煎法后的每贴待煎费
-            if (recipeExtend.getDecoctionId() != null && recipeExtend.getDecoctionText() != null) {
+            if (recipeExtend.getDecoctionId() != null) {
                 DrugDecoctionWayDao DecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
                 DecoctionWay decoctionWay = DecoctionWayDao.get(Integer.valueOf(recipeExtend.getDecoctionId()));
                 if (decoctionWay != null && decoctionWay.getDecoctionPrice() != null) {
