@@ -16,7 +16,7 @@ import java.util.List;
 public class PatientSubmitRecipeVO implements Serializable {
     private static final long serialVersionUID = 2580107256079305592L;
     private List<Integer> recipeIds;
-    private Integer organId;
+    private Integer orderId;
     private String giveModeKey;
     private Integer expressFeePayType;
     private Double expressFee;
