@@ -371,6 +371,15 @@ public class RecipeOrderService extends RecipeBaseService {
             order.setOrganId(firstRecipe.getClinicOrgan());
             order.setOrderCode(this.getOrderCode(order.getMpiId()));
             order.setStatus(OrderStatusConstant.READY_PAY);
+            //设置中药代建费
+            Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
+            if (decoctionId != null) {
+                DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
+                DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
+                if (decoctionWay != null && decoctionWay.getDecoctionPrice() != null) {
+                    order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
+                }
+            }
             //设置订单各种费用和配送地址
             Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
             LOGGER.info("calculateFee", calculateFee);
@@ -414,16 +423,6 @@ public class RecipeOrderService extends RecipeBaseService {
         }
         if (StringUtils.isNotEmpty(extInfo.get("hisDepCode"))) {
             order.setHisEnterpriseName(extInfo.get("depName"));
-        }
-
-        //设置中药代建费
-        Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
-        if (decoctionId != null) {
-            DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
-            DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
-            if (decoctionWay != null && decoctionWay.getDecoctionPrice() != null) {
-                order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
-            }
         }
         setCreateOrderResult(result, order, payModeSupport, toDbFlag);
         return result;
