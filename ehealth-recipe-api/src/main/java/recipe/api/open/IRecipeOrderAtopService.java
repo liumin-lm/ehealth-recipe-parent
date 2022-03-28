@@ -3,7 +3,6 @@ package recipe.api.open;
 import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
 import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.recipe.common.RecipeResultBean;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.util.annotation.RpcService;
 import recipe.vo.second.RecipeOrderVO;
 import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
