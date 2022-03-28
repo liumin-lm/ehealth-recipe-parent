@@ -32,6 +32,21 @@ public class BaseOrderVO implements Serializable {
     @ItemProperty(alias = "配送费")
     private BigDecimal expressFee;
 
+    @ItemProperty(alias = "代煎费")
+    private BigDecimal decoctionFee;
+
+    @ItemProperty(alias = "审核费")
+    private BigDecimal auditFee;
+
+    @ItemProperty(alias = "其余费用")
+    private BigDecimal otherFee;
+
+    @ItemProperty(alias = "中医辨证论治费")
+    private BigDecimal tcmFee;
+
+    @ItemProperty(alias = "配送费支付方式 1-在线支付 2-线下支付")
+    private Integer expressFeePayWay;
+
     @ItemProperty(alias = "处方总费用")
     private BigDecimal recipeFee;
 

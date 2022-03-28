@@ -32,6 +32,7 @@ import recipe.enumerate.status.PayModeEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.NeedSendTypeEnum;
+import recipe.enumerate.type.PayFlagEnum;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
@@ -302,7 +303,6 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
 
             List<SaleDrugList> saleDrugLists = downLoadRecipeOrderDTO.getSaleDrugLists();
             Map<Integer, SaleDrugList> saleDrugListMap = saleDrugLists.stream().collect(Collectors.toMap(SaleDrugList::getDrugId, a -> a, (k1, k2) -> k1));
-            downOrderVO.setOrderPayFlag(recipeOrder.getPayMode());
             ObjectCopyUtils.copyProperties(downOrderVO, recipeOrder);
             downRecipeOrderVO.setOrder(downOrderVO);
             ObjectCopyUtils.copyProperties(receiverInfo, recipeOrder);
