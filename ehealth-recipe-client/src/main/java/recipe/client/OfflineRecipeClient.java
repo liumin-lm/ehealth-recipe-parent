@@ -385,7 +385,9 @@ public class OfflineRecipeClient extends BaseClient {
         emrDetailDTO.setDiseaseValue(ObjectCopyUtils.convert(emrDetail.getDiseaseValue(), EmrDetailValueDTO.class));
         recipeDTO.setEmrDetailDTO(emrDetailDTO);
         ChargeItemBean chargeItemBean = new ChargeItemBean();
-        BeanUtils.copyProperties(recipePdfDTO.getChargeItemDTO(), chargeItemBean);
+        if (null != recipePdfDTO.getChargeItemDTO() && null != recipePdfDTO.getChargeItemDTO().getExpressFeePayType()) {
+            BeanUtils.copyProperties(recipePdfDTO.getChargeItemDTO(), chargeItemBean);
+        }
         recipeDTO.setChargeItemBean(chargeItemBean);
         RecipeBean recipe = ObjectCopyUtils.convert(recipePdfDTO.getRecipe(), RecipeBean.class);
         //医生工号
