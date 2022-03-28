@@ -291,6 +291,16 @@ public class RecipeServiceSub {
                     }
                 }
             }
+            try {
+                if (null == recipeExtend.getDoctorIsDecoction()) {
+                    recipeExtend.setDoctorIsDecoction("0");
+                    if (StringUtils.isNotEmpty(recipeExtend.getDecoctionId())) {
+                        recipeExtend.setDoctorIsDecoction("1");
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
         }
