@@ -7,7 +7,6 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.RecipeFeeDTO;
 import com.ngari.recipe.dto.RecipeOrderDto;
 import com.ngari.recipe.dto.SkipThirdDTO;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.util.annotation.RpcService;
