@@ -374,6 +374,10 @@ public class RecipeOrderService extends RecipeBaseService {
             order.setStatus(OrderStatusConstant.READY_PAY);
             //设置中药代建费
             Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
+            if(Objects.isNull(decoctionId)){
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeIds.get(0));
+                decoctionId = recipeExtend.getDocIndexId();
+            }
             if (decoctionId != null) {
                 DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
                 DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
