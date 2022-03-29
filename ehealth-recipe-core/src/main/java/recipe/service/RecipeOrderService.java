@@ -723,13 +723,14 @@ public class RecipeOrderService extends RecipeBaseService {
                     i++;
                 } else {
                     totalCopyNum = totalCopyNum + recipe.getCopyNum();
+                    Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
                     if (needCalDecFee) {
                         //代煎费等于剂数乘以代煎单价
                         //如果是合并处方-多张处方下得累加
                         //只有最终选择了代煎才计算收取代煎费，如果是非代煎则隐藏代煎费并且不收代煎费
                         //如果配置了患者选择，以患者选择是否代煎计算价格
 //                        if ("1".equals(order.getPatientIsDecoction())) {
-                        if (getIsCalculateDecoctionFee(order, recipeExtend)) {
+                        if (getIsCalculateDecoctionFee(order, recipeExtend) && Objects.nonNull(decoctionId)) {
                             LOGGER.info("setOrderFee 线上处方 order.getDecoctionUnitPrice:{}", JSONUtils.toString(order.getDecoctionUnitPrice()));
                             decoctionFee = decoctionFee.add(order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
                         }
