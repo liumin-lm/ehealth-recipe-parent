@@ -56,9 +56,6 @@ public class BaseOrderVO implements Serializable {
     @ItemProperty(alias = "实际支付费用")
     private Double actualPrice;
 
-    @ItemProperty(alias = "配送费支付 0 未支付  1 已支付")
-    private Integer expressFeePayFlag;
-
     @ItemProperty(alias = "交易流水号")
     private String tradeNo;
 
