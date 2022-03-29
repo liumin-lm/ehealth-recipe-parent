@@ -60,6 +60,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
@@ -661,23 +662,27 @@ public class RecipeOrderService extends RecipeBaseService {
         //setOrderFee方法 所有入口我看了都是在没有订单的情况下才调用，条件应该用recipeExtend.doctorIsDecoction就行
         for (Recipe recipe : recipeList) {
             RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            LOGGER.info("setOrderFee recipeId:{},recipeExtend :{}", recipe.getRecipeId(), JSONUtils.toString(recipeExtend));
             if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
                 //处理线下转线上的代煎费
                 if (new Integer(2).equals(recipe.getRecipeSourceType())) {
+                    LOGGER.info("setOrderFee 进入线下处方控制逻辑");
                     isOfflineRecipe = true;
                     //表示为线下的处方
+                    LOGGER.info("setOrderFee");
                     HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
+                    LOGGER.info("setOrderFee hisRecipe:{}", JSONUtils.toString(hisRecipe));
                     tcmFlag = false;
                     //设置中医辨证论证费
                     if (hisRecipe != null && hisRecipe.getTcmFee() != null) {
                         tcmFee = hisRecipe.getTcmFee();
                     }
-                    IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
                     //如果为医生选择且recipeExt存在decoctionText，需设置待煎费   患者选择由前端计算
                     if (hisRecipe != null) {
                         //有代煎总额
                         if (hisRecipe.getDecoctionFee() != null) {
                             if (getIsCalculateDecoctionFee(order, recipeExtend)) {
+                                LOGGER.info("setOrderFee decoctionFee:{}", JSONUtils.toString(decoctionFee));
                                 decoctionFee = decoctionFee.add(hisRecipe.getDecoctionFee());
                                 isExistValue = true;
                             }
@@ -688,6 +693,7 @@ public class RecipeOrderService extends RecipeBaseService {
                                 //代煎费等于剂数乘以代煎单价
                                 //如果是合并处方-多张处方下得累加
                                 if (getIsCalculateDecoctionFee(order, recipeExtend)) {
+                                    LOGGER.info("setOrderFee hisRecipe.decoctionUnitFee:{}", JSONUtils.toString(hisRecipe.getDecoctionUnitFee()));
                                     decoctionFee = decoctionFee.add(hisRecipe.getDecoctionUnitFee().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
                                     isExistValue = true;
                                 }
@@ -700,6 +706,7 @@ public class RecipeOrderService extends RecipeBaseService {
                                 //代煎费等于剂数乘以代煎单价
                                 //如果是合并处方-多张处方下得累加
                                 if (getIsCalculateDecoctionFee(order, recipeExtend)) {
+                                    LOGGER.info("setOrderFee order.decoctionUnitFee:{}", JSONUtils.toString(order.getDecoctionUnitPrice()));
                                     decoctionFee = decoctionFee.add(order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
                                     isExistValue = true;
                                 }
@@ -716,6 +723,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         //如果配置了患者选择，以患者选择是否代煎计算价格
 //                        if ("1".equals(order.getPatientIsDecoction())) {
                         if (getIsCalculateDecoctionFee(order, recipeExtend)) {
+                            LOGGER.info("setOrderFee 线上处方 order.getDecoctionUnitPrice:{}", JSONUtils.toString(order.getDecoctionUnitPrice()));
                             decoctionFee = decoctionFee.add(order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum())));
                         }
                     }
@@ -887,7 +895,9 @@ public class RecipeOrderService extends RecipeBaseService {
      *
      * @return
      */
+    @LogRecord
     private Boolean getIsCalculateDecoctionFee(RecipeOrder order, RecipeExtend recipeExtend) {
+        LOGGER.info("getIsCalculateDecoctionFee order:{},recipeExtend:{}", JSONUtils.toString(order), JSONUtils.toString(recipeExtend));
         Boolean result = false;
         //下单的时候会order.setPatientIsDecoction(MapValueUtil.getString(extInfo, "patientIsDecoction"));
         if (order != null) {
@@ -908,6 +918,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 result = true;
             }
         }
+        LOGGER.info("getIsCalculateDecoctionFee result:{}", JSONUtils.toString(result));
         return result;
     }
 
