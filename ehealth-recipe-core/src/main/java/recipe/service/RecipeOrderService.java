@@ -1,6 +1,7 @@
 package recipe.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
@@ -378,9 +379,11 @@ public class RecipeOrderService extends RecipeBaseService {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeIds.get(0));
                 decoctionId = recipeExtend.getDocIndexId();
             }
+            LOGGER.info("decoctionId:{}",decoctionId);
             if (decoctionId != null) {
                 DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
                 DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
+                LOGGER.info("decoctionWay:{}", JSONArray.toJSONString(decoctionWay));
                 if (decoctionWay != null && decoctionWay.getDecoctionPrice() != null) {
                     order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
                 }
@@ -590,7 +593,7 @@ public class RecipeOrderService extends RecipeBaseService {
      * @param toDbFlag
      */
     public void setOrderFee(OrderCreateResult result, RecipeOrder order, List<Integer> recipeIds, List<Recipe> recipeList, RecipePayModeSupportBean payModeSupport, Map<String, String> extInfo, Integer toDbFlag) {
-        LOGGER.info("setOrderFee recipeIds:{},payModeSupport:{},extInfo:{},toDbFlag:{}.", JSONUtils.toString(recipeIds), JSONUtils.toString(payModeSupport), JSONUtils.toString(extInfo), toDbFlag);
+        LOGGER.info("setOrderFee recipeIds:{},payModeSupport:{},extInfo:{},toDbFlag:{},order:{}.", JSONUtils.toString(recipeIds), JSONUtils.toString(payModeSupport), JSONUtils.toString(extInfo), toDbFlag,JSONUtils.toString(order));
         IOrganConfigService iOrganConfigService = ApplicationUtils.getBaseService(IOrganConfigService.class);
         IConfigurationCenterUtilsService configurationCenterUtilsService = (IConfigurationCenterUtilsService) AppContextHolder.getBean("eh.configurationCenterUtils");
         OrganConfigBean organConfig = iOrganConfigService.get(order.getOrganId());
