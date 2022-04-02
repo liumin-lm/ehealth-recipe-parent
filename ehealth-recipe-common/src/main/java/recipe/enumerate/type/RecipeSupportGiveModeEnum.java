@@ -13,7 +13,6 @@ import recipe.util.ValidateUtil;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.reducing;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -121,6 +120,9 @@ public enum RecipeSupportGiveModeEnum {
      * @param giveModeTypes
      */
     public static void checkOrganEnterpriseRelationGiveModeType(List<Integer> giveModeTypes) {
+        if (CollectionUtils.isEmpty(giveModeTypes)) {
+            return;
+        }
         if (giveModeTypes.contains(RecipeSupportGiveModeEnum.SUPPORT_TFDS.type) && giveModeTypes.contains(RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.type)) {
             throw new DAOException("到院自取与到店自取只能2选1");
         }

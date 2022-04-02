@@ -56,8 +56,12 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         if (Objects.isNull(relation)) {
             throw new DAOException("机构药企关联关系不存在");
         }
-        String join = StringUtils.join(organEnterpriseRelationVo.getGiveModeTypes(), ",");
-        relation.setDrugsEnterpriseSupportGiveMode(join);
+        String giveModeTypes = StringUtils.join(organEnterpriseRelationVo.getGiveModeTypes(), ",");
+        relation.setDrugsEnterpriseSupportGiveMode(giveModeTypes);
+        String recipeTypes = StringUtils.join(organEnterpriseRelationVo.getRecipeTypes(), ",");
+        relation.setEnterpriseRecipeTypes(recipeTypes);
+        String decoctionIds = StringUtils.join(organEnterpriseRelationVo.getDecoctionIds(), ",");
+        relation.setEnterpriseDecoctionIds(decoctionIds);
         organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(relation);
     }
 

@@ -37,6 +37,13 @@ public class OrganAndDrugsepRelation implements java.io.Serializable {
     @ItemProperty(alias = "药企支持的购药方式")
     private String drugsEnterpriseSupportGiveMode;
 
+    @ItemProperty(alias = "药企支持的可流转处方类型")
+    private String enterpriseRecipeTypes;
+
+
+    @ItemProperty(alias = "药企支持的可流转中药煎法")
+    private String enterpriseDecoctionIds;
+
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -74,5 +81,23 @@ public class OrganAndDrugsepRelation implements java.io.Serializable {
 
     public void setDrugsEnterpriseSupportGiveMode(String drugsEnterpriseSupportGiveMode) {
         this.drugsEnterpriseSupportGiveMode = drugsEnterpriseSupportGiveMode;
+    }
+
+    @Column(name = "enterprise_recipe_types")
+    public String getEnterpriseRecipeTypes() {
+        return enterpriseRecipeTypes;
+    }
+
+    public void setEnterpriseRecipeTypes(String enterpriseRecipeTypes) {
+        this.enterpriseRecipeTypes = enterpriseRecipeTypes;
+    }
+
+    @Column(name = "enterprise_decoction_Ids")
+    public String getEnterpriseDecoctionIds() {
+        return enterpriseDecoctionIds;
+    }
+
+    public void setEnterpriseDecoctionIds(String enterpriseDecoctionIds) {
+        this.enterpriseDecoctionIds = enterpriseDecoctionIds;
     }
 }

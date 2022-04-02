@@ -41,7 +41,8 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
      */
     @RpcService
     public OrganEnterpriseRelationVo drugsEnterpriseLimit(OrganEnterpriseRelationVo organEnterpriseRelationVo) {
-        validateAtop(organEnterpriseRelationVo.getOrganId(), organEnterpriseRelationVo.getType());
+        validateAtop(organEnterpriseRelationVo.getOrganId(), organEnterpriseRelationVo.getType(), organEnterpriseRelationVo.getStart(), organEnterpriseRelationVo.getLimit());
+        organEnterpriseRelationVo.setStart((organEnterpriseRelationVo.getStart() - 1) * organEnterpriseRelationVo.getLimit());
         QueryResult<DrugsEnterprise> queryResult = enterpriseBusinessService.drugsEnterpriseLimit(organEnterpriseRelationVo);
         if (ValidateUtil.longIsEmpty(queryResult.getTotal())) {
             return null;
@@ -78,7 +79,7 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
      */
     @RpcService
     public void saveOrganEnterpriseRelation(OrganEnterpriseRelationVo organEnterpriseRelationVo) {
-        validateAtop(organEnterpriseRelationVo.getOrganId(), organEnterpriseRelationVo.getDrugsEnterpriseId(), organEnterpriseRelationVo.getGiveModeTypes());
+        validateAtop(organEnterpriseRelationVo.getOrganId(), organEnterpriseRelationVo.getDrugsEnterpriseId());
         // 医院配送与药企配送只能2选1 到院自取与到店自取只能2选1
         RecipeSupportGiveModeEnum.checkOrganEnterpriseRelationGiveModeType(organEnterpriseRelationVo.getGiveModeTypes());
         enterpriseBusinessService.saveOrganEnterpriseRelation(organEnterpriseRelationVo);

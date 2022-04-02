@@ -30,6 +30,11 @@ public class OrganEnterpriseRelationVo extends PageVO implements Serializable {
      * 支持的购药方式 见 RecipeSupportGiveModeEnum
      */
     private List<Integer> giveModeTypes;
+
+    private List<Integer> recipeTypes;
+
+    private List<Integer> decoctionIds;
+
     /**
      * 1 流转药企，2自建药企
      */
