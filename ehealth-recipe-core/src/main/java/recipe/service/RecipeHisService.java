@@ -234,15 +234,12 @@ public class RecipeHisService extends RecipeBaseService {
         List<String> recipeTypes = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "patientRecipeUploadHis", null);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         if (CollectionUtils.isEmpty(recipeTypes)) {
-            if(StringUtils.isNotEmpty(recipe.getPatientID())){
+            if(new Integer(2).equals(recipe.getBussSource())){
                 orderRepTO.setPatientID(recipe.getPatientID());
+                orderRepTO.setRegisterID(recipeExtend.getRegisterID());
             }else{
                 //门诊号处理 年月日+患者身份证后5位 例：2019060407915
                 orderRepTO.setPatientID(DateConversion.getDateFormatter(now, "yyMMdd") + str);
-            }
-            if(StringUtils.isNotEmpty(recipeExtend.getRegisterID())){
-                orderRepTO.setRegisterID(recipeExtend.getRegisterID());
-            }else{
                 orderRepTO.setRegisterID(orderRepTO.getPatientID());
             }
 //            //生成处方编号，不需要通过HIS去产生
