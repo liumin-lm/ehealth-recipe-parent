@@ -447,6 +447,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
      * @author houxr 2016-09-11
      */
     @RpcService
+    @Deprecated
     public QueryResult<DrugsEnterpriseBean> queryDrugsEnterpriseByStartAndLimit(final String name, final Integer createType, final Integer organId, int start, final int limit) {
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         UserRoleToken urt = UserRoleToken.getCurrent();

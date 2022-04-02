@@ -1,8 +1,13 @@
-package recipe.core.api.greenroom;
+package recipe.core.api;
 
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.OrganDrugsSaleConfig;
+import ctd.persistence.bean.QueryResult;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.greenroom.OrganEnterpriseRelationVo;
+import recipe.vo.greenroom.PharmacyVO;
+
+import java.util.List;
 
 /**
  * 药企相关
@@ -38,8 +43,24 @@ public interface IDrugsEnterpriseBusinessService {
 
     /**
      * 查询药企机构销售配置
+     *
      * @param drugsEnterpriseId
      * @return
      */
     OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer drugsEnterpriseId);
+
+    /**
+     * 查询药企列表
+     *
+     * @param organEnterpriseRelationVo
+     * @return
+     */
+    QueryResult<DrugsEnterprise> drugsEnterpriseLimit(OrganEnterpriseRelationVo organEnterpriseRelationVo);
+
+    /**
+     * 查询药店数据
+     *
+     * @return
+     */
+    List<PharmacyVO> pharmacy();
 }

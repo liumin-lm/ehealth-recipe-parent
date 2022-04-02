@@ -66,14 +66,6 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
     public abstract List<DrugsEnterprise> findByOrganId(@DAOParam("organId") Integer organId);
 
     /**
-     * 根据organID获取 机构 关联药企
-     * @param organId
-     * @return
-     */
-    @DAOMethod(sql = "from DrugsEnterprise where status=1 and organId=:organId  ")
-    public abstract List<DrugsEnterprise> findByOrganIdZj(@DAOParam("organId") Integer organId);
-
-    /**
      * 根据name获取自建药企
      * @param name
      * @return
@@ -110,16 +102,6 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
     @DAOMethod(sql = "select count(*) from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 " +
             "and s.organId=:organId and t.payModeSupport in :payModeSupport and t.sendType = :sendType")
     public abstract Long getCountByOrganIdAndPayModeSupportAndSendType(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") List<Integer> payModeSupport, @DAOParam("sendType") Integer sendType);
-
-    /**
-     * 根据机构id，配送模式支持，省直医保支持获取
-     * @param organId
-     * @param payModeSupport
-     * @return
-     */
-    @DAOMethod(sql = "select t from DrugsEnterprise t, OrganAndDrugsepRelation s where t.id=s.drugsEnterpriseId and t.status=1 and t.medicalInsuranceSupport=1 " +
-            "and s.organId=:organId and t.payModeSupport in :payModeSupport order by t.sort, t.id")
-    public abstract List<DrugsEnterprise> findByOrganIdAndOther(@DAOParam("organId") Integer organId, @DAOParam("payModeSupport") List<Integer> payModeSupport);
 
     /**
      * 根据机构ID获取存在补充库存的药企机构
@@ -206,13 +188,6 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
      */
     @DAOMethod(sql = "select t from DrugsEnterprise t where t.name = :name")
     public abstract List<DrugsEnterprise> findAllDrugsEnterpriseByName(@DAOParam("name") String name);
-    /**
-     * 根据机构Id获取药企
-     * @param organId
-     * @return
-     */
-    @DAOMethod(sql = "select t from DrugsEnterprise t where t.organId = :organId")
-    public abstract List<DrugsEnterprise> findAllDrugsEnterpriseByOrhanId(@DAOParam("organId") Integer organId);
 
     /**
      * 根据药企名称分页查询药企
@@ -284,7 +259,7 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
                     params.put("createType", createType);
                 }
                 if (ids != null) {
-                    hql.append(" and d.organId in :ids ");
+                    hql.append(" and d.id in :ids ");
                     params.put("ids", ids);
                 }
                 if (null != organId) {
@@ -379,11 +354,17 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
     public abstract DrugsEnterprise getByAppKey(@DAOParam("appKey") String appKey);
 
     @DAOMethod(sql = "update DrugsEnterprise set manageUnit=:manageUnit where id=:id ")
-    public abstract void updateManageUnitById(@DAOParam("id") Integer id,@DAOParam("manageUnit") String manageUnit);
+    public abstract void updateManageUnitById(@DAOParam("id") Integer id, @DAOParam("manageUnit") String manageUnit);
 
     @DAOMethod(sql = "from DrugsEnterprise where manageUnit=:manageUnit", limit = 1)
     public abstract DrugsEnterprise getByManageUnit(@DAOParam("manageUnit") String manageUnit);
 
     @DAOMethod(sql = "from DrugsEnterprise where status=1 and id in(:ids)")
     public abstract List<DrugsEnterprise> findByIds(@DAOParam("ids") List<Integer> ids);
+
+    @DAOMethod(sql = "from DrugsEnterprise where organId=:organId and id in(:ids)")
+    public abstract List<DrugsEnterprise> findByOrganIdAndIds(@DAOParam("organId") Integer organId, @DAOParam("ids") List<Integer> ids);
+
+    @DAOMethod(sql = "from DrugsEnterprise where organId=:organId")
+    public abstract List<DrugsEnterprise> findByOrgan(@DAOParam("organId") Integer organId);
 }

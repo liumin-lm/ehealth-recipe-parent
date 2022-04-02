@@ -5,25 +5,26 @@ import com.google.common.collect.Lists;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.OrganAndDrugsepRelation;
 import com.ngari.recipe.entity.OrganDrugsSaleConfig;
+import com.ngari.recipe.entity.Pharmacy;
+import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.core.api.greenroom.IDrugsEnterpriseBusinessService;
+import recipe.core.api.IDrugsEnterpriseBusinessService;
 import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.OrganDrugsSaleConfigDAO;
 import recipe.manager.EnterpriseManager;
+import recipe.util.ObjectCopyUtils;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.greenroom.OrganEnterpriseRelationVo;
+import recipe.vo.greenroom.PharmacyVO;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @description： 药企 业务类
@@ -89,8 +90,30 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
 
     @Override
     public OrganDrugsSaleConfig getOrganDrugsSaleConfig(Integer drugsEnterpriseId) {
-        OrganDrugsSaleConfig byOrganIdAndEnterpriseId = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig( drugsEnterpriseId);
+        OrganDrugsSaleConfig byOrganIdAndEnterpriseId = organDrugsSaleConfigDAO.getOrganDrugsSaleConfig(drugsEnterpriseId);
 
         return byOrganIdAndEnterpriseId;
+    }
+
+    @Override
+    public QueryResult<DrugsEnterprise> drugsEnterpriseLimit(OrganEnterpriseRelationVo vo) {
+        List<Integer> drugsEnterpriseIds = null;
+        if (1 == vo.getType()) {
+            List<DrugsEnterprise> drugsEnterpriseList = enterpriseManager.drugsEnterpriseByOrganId(vo.getOrganId());
+            if (CollectionUtils.isEmpty(drugsEnterpriseList)) {
+                return null;
+            }
+            drugsEnterpriseIds = drugsEnterpriseList.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
+        }
+        return enterpriseManager.drugsEnterpriseLimit(vo.getName(), vo.getCreateType(), vo.getOrganId(), vo.getStart(), vo.getLimit(), drugsEnterpriseIds);
+    }
+
+    @Override
+    public List<PharmacyVO> pharmacy() {
+        List<Pharmacy> list = enterpriseManager.pharmacy();
+        if (CollectionUtils.isEmpty(list)) {
+            return null;
+        }
+        return ObjectCopyUtils.convert(list, PharmacyVO.class);
     }
 }

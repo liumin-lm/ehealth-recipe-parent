@@ -5,9 +5,7 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.ngari.base.organ.model.OrganBean;
-import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.TakeMedicineByToHos;
-import com.ngari.his.recipe.mode.TakeMedicineByToHosReqDTO;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -16,6 +14,7 @@ import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.DAOFactory;
+import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -26,7 +25,6 @@ import recipe.client.DepartClient;
 import recipe.client.DrugStockClient;
 import recipe.client.EnterpriseClient;
 import recipe.client.IConfigurationClient;
-import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -84,7 +82,8 @@ public class EnterpriseManager extends BaseManager {
     private IConfigurationClient configurationClient;
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
-
+    @Autowired
+    private PharmacyDAO pharmacyDAO;
 
     /**
      * 到院取药获取取药点
@@ -143,10 +142,17 @@ public class EnterpriseManager extends BaseManager {
             return false;
         }
         //获取机构配置的药企是否存在 如果有则需要校验 没有则不需要
-        List<DrugsEnterprise> enterprise = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
+        List<DrugsEnterprise> enterprise = drugsEnterpriseByOrganId(organId);
         return CollectionUtils.isNotEmpty(enterprise);
     }
 
+    public List<DrugsEnterprise> drugsEnterpriseByOrganId(Integer organId) {
+        return organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
+    }
+
+    public QueryResult<DrugsEnterprise> drugsEnterpriseLimit(String name, Integer createType, Integer organId, Integer start, Integer limit, List<Integer> drugsEnterpriseIds) {
+        return drugsEnterpriseDAO.queryDrugsEnterpriseResultByOrganId(name, createType, organId, drugsEnterpriseIds, start, limit);
+    }
 
     /**
      * 药企库存
@@ -782,6 +788,10 @@ public class EnterpriseManager extends BaseManager {
         }
         logger.info("EnterpriseManager coverConfig organDrugsSaleConfig:{} ", JSONUtils.toString(organDrugsSaleConfig));
         return organDrugsSaleConfig;
+    }
+
+    public List<Pharmacy> pharmacy() {
+        return pharmacyDAO.find1();
     }
 }
 

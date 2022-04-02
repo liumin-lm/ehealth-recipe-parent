@@ -103,6 +103,9 @@ public class ValidateUtil {
         if (args instanceof Integer) {
             return integerIsEmpty((Integer) args);
         }
+        if (args instanceof Long) {
+            return longIsEmpty((Long) args);
+        }
         if (args instanceof Double) {
             return doubleIsEmpty((Double) args);
         }

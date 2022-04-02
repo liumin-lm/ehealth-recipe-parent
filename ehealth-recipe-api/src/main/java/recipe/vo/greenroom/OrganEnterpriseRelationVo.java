@@ -1,7 +1,9 @@
 package recipe.vo.greenroom;
 
+import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import lombok.Getter;
 import lombok.Setter;
+import recipe.vo.PageVO;
 
 import java.io.Serializable;
 import java.util.List;
@@ -13,8 +15,7 @@ import java.util.List;
  */
 @Getter
 @Setter
-public class OrganEnterpriseRelationVo implements Serializable {
-
+public class OrganEnterpriseRelationVo extends PageVO implements Serializable {
     /**
      * 机构id
      */
@@ -29,4 +30,20 @@ public class OrganEnterpriseRelationVo implements Serializable {
      * 支持的购药方式 见 RecipeSupportGiveModeEnum
      */
     private List<Integer> giveModeTypes;
+    /**
+     * 1 流转药企，2自建药企
+     */
+    private Integer type;
+    /**
+     * 药企名称
+     */
+    private String name;
+    /**
+     * 创建类型：1：非自建  0：自建
+     */
+    private Integer createType;
+    /**
+     * 药企列表
+     */
+    private List<DrugsEnterpriseBean> drugsEnterpriseList;
 }

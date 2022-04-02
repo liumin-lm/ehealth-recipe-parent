@@ -2,6 +2,7 @@ package com.ngari.recipe.drugsenterprise.model;
 
 import ctd.schema.annotation.*;
 import ctd.util.JSONUtils;
+import recipe.vo.greenroom.PharmacyVO;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -191,6 +192,16 @@ public class DrugsEnterpriseBean implements Serializable {
 
     @ItemProperty(alias = "包邮金额")
     private BigDecimal freeDeliveryMoney;
+
+    private PharmacyVO pharmacy;
+
+    public PharmacyVO getPharmacy() {
+        return pharmacy;
+    }
+
+    public void setPharmacy(PharmacyVO pharmacy) {
+        this.pharmacy = pharmacy;
+    }
 
     public String getEnterprisePhone() {
         return enterprisePhone;
