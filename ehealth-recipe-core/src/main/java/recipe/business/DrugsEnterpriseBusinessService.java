@@ -1,5 +1,6 @@
 package recipe.business;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import com.ngari.recipe.entity.DrugsEnterprise;
@@ -107,8 +108,10 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
             if (CollectionUtils.isEmpty(drugsEnterpriseList)) {
                 return null;
             }
+            vo.setOrganId(null);
             drugsEnterpriseIds = drugsEnterpriseList.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
         }
+        logger.info("DrugsEnterpriseBusinessService drugsEnterpriseLimit drugsEnterpriseIds:{}", JSON.toJSONString(drugsEnterpriseIds));
         return enterpriseManager.drugsEnterpriseLimit(vo.getName(), vo.getCreateType(), vo.getOrganId(), vo.getStart(), vo.getLimit(), drugsEnterpriseIds);
     }
 
