@@ -33,7 +33,7 @@ public class OrganEnterpriseRelationVo extends PageVO implements Serializable {
 
     private List<Integer> recipeTypes;
 
-    private List<String> decoctionIds;
+    private List<Integer> decoctionIds;
 
     /**
      * 1 流转药企，2自建药企
