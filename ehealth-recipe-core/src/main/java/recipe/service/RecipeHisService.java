@@ -232,13 +232,20 @@ public class RecipeHisService extends RecipeBaseService {
         List<OrderRepTO> repList = Lists.newArrayList();
         OrderRepTO orderRepTO = new OrderRepTO();
         List<String> recipeTypes = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "patientRecipeUploadHis", null);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         if (CollectionUtils.isEmpty(recipeTypes)) {
-            //门诊号处理 年月日+患者身份证后5位 例：2019060407915
-            orderRepTO.setPatientID(DateConversion.getDateFormatter(now, "yyMMdd") + str);
-            orderRepTO.setRegisterID(orderRepTO.getPatientID());
-            //生成处方编号，不需要通过HIS去产生
-            String recipeCodeStr = DigestUtil.md5For16(recipe.getClinicOrgan() + recipe.getMpiid() + Calendar.getInstance().getTimeInMillis());
-            orderRepTO.setRecipeNo(recipeCodeStr);
+            if(new Integer(2).equals(recipe.getBussSource())){
+                orderRepTO.setPatientID(recipe.getPatientID());
+                orderRepTO.setRegisterID(recipeExtend.getRegisterID());
+            }else{
+                //门诊号处理 年月日+患者身份证后5位 例：2019060407915
+                orderRepTO.setPatientID(DateConversion.getDateFormatter(now, "yyMMdd") + str);
+                orderRepTO.setRegisterID(orderRepTO.getPatientID());
+            }
+//            //生成处方编号，不需要通过HIS去产生
+//            String recipeCodeStr = DigestUtil.md5For16(recipe.getClinicOrgan() + recipe.getMpiid() + Calendar.getInstance().getTimeInMillis());
+//            orderRepTO.setRecipeNo(recipeCodeStr);
+            orderRepTO.setRecipeNo(String.valueOf(recipe.getRecipeId()));
         }
         repList.add(orderRepTO);
         response.setData(repList);
