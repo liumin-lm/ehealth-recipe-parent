@@ -362,9 +362,4 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
     @DAOMethod(sql = "from DrugsEnterprise where status=1 and id in(:ids)")
     public abstract List<DrugsEnterprise> findByIds(@DAOParam("ids") List<Integer> ids);
 
-    @DAOMethod(sql = "from DrugsEnterprise where organId=:organId and id in(:ids)")
-    public abstract List<DrugsEnterprise> findByOrganIdAndIds(@DAOParam("organId") Integer organId, @DAOParam("ids") List<Integer> ids);
-
-    @DAOMethod(sql = "from DrugsEnterprise where organId=:organId")
-    public abstract List<DrugsEnterprise> findByOrgan(@DAOParam("organId") Integer organId);
 }
