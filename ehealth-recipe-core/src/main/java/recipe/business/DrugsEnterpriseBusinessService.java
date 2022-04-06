@@ -83,15 +83,15 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
             throw new DAOException("请到机构配置关联药企");
         }
         if (StringUtils.isNotEmpty(relation.getDrugsEnterpriseSupportGiveMode())) {
-            List<Integer> giveModeTypes = Arrays.stream(relation.getDrugsEnterpriseSupportGiveMode().split(ByteUtils.COMMA)).map(s -> Integer.parseInt(s.trim())).collect(Collectors.toList());
+            List<Integer> giveModeTypes = Arrays.stream(relation.getDrugsEnterpriseSupportGiveMode().split(ByteUtils.COMMA)).map(Integer::parseInt).collect(Collectors.toList());
             organEnterpriseRelationVo.setGiveModeTypes(giveModeTypes);
         }
         if (StringUtils.isNotEmpty(relation.getEnterpriseDecoctionIds())) {
-            List<Integer> enterpriseDecoctionIds = Arrays.stream(relation.getEnterpriseDecoctionIds().split(ByteUtils.COMMA)).map(s -> Integer.parseInt(s.trim())).collect(Collectors.toList());
+            List<Integer> enterpriseDecoctionIds = Arrays.stream(relation.getEnterpriseDecoctionIds().split(ByteUtils.COMMA)).map(Integer::parseInt).collect(Collectors.toList());
             organEnterpriseRelationVo.setDecoctionIds(enterpriseDecoctionIds);
         }
         if (StringUtils.isNotEmpty(relation.getEnterpriseRecipeTypes())) {
-            List<Integer> enterpriseRecipeTypes = Arrays.stream(relation.getEnterpriseRecipeTypes().split(ByteUtils.COMMA)).map(s -> Integer.parseInt(s.trim())).collect(Collectors.toList());
+            List<Integer> enterpriseRecipeTypes = Arrays.stream(relation.getEnterpriseRecipeTypes().split(ByteUtils.COMMA)).map(Integer::parseInt).collect(Collectors.toList());
             organEnterpriseRelationVo.setRecipeTypes(enterpriseRecipeTypes);
         }
         logger.info("DrugsEnterpriseBusinessService getOrganEnterpriseRelation res organEnterpriseRelationVo={}", JSONArray.toJSONString(organEnterpriseRelationVo));
