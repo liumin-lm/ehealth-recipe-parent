@@ -22,10 +22,10 @@ import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RankShiftList;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.vo.OutPatientReqVO;
-import com.ngari.recipe.vo.PatientInfoVO;
-import com.ngari.recipe.vo.PatientMedicalTypeVO;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import com.ngari.recipe.vo.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -46,10 +46,7 @@ import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
 import recipe.constant.*;
 import recipe.core.api.patient.IPatientBusinessService;
-import recipe.dao.ChronicDiseaseDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
-import recipe.dao.SaleDrugListDAO;
+import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.type.CheckPatientEnum;
 import recipe.enumerate.type.MedicalTypeEnum;
@@ -86,6 +83,9 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
 
     @Autowired
     private RevisitClient revisitClient;
+
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
 
     /**
      * 根据取药方式过滤药企
@@ -754,6 +754,72 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         } else {
             return patientMedicalTypeVO;
         }
+    }
+
+    @Override
+    public List<FormWorkRecipeVO> findFormWorkRecipe(FormWorkRecipeReqVO formWorkRecipeReqVO) {
+        String formWorkRecipe = recipeParameterDao.getByName(formWorkRecipeReqVO.getOrganId()+"_formWorkRecipe");
+        //解析json数据
+        List<FormWorkRecipeVO> workRecipeVOList = JSON.parseArray(formWorkRecipe, FormWorkRecipeVO.class);
+        LOGGER.info("findFormWorkRecipe workRecipeVOList:{}", JSONUtils.toString(workRecipeVOList));
+        return workRecipeVOList;
+    }
+
+    public static void main(String[] args) {
+        List<FormWorkRecipeVO> workRecipeVOList = new ArrayList<>();
+        FormWorkRecipeVO formWorkRecipeVO = new FormWorkRecipeVO();
+        formWorkRecipeVO.setTitle("新冠中药处方");
+        formWorkRecipeVO.setIntroduce("国家卫生健康委专家组成员、中国工程院院士、天津中医药大学校长张伯礼曾表示，在恢复期的病人，病毒的核酸每次检查都是阴性的，但是病人还有症状，例如乏力、咳嗽、食欲不好，特别是肺片，明显感觉到肺片的变化和症状、体征并不同步，有时候还显示没有吸收的炎症。");
+        RecipeBean recipeBean = new RecipeBean();
+        recipeBean.setMpiid("2c94816d7ac34526017ac72b76f00001");
+        recipeBean.setPatientName("患者一号a");
+        recipeBean.setBussSource(2);
+        recipeBean.setClinicId(815423329);
+        recipeBean.setRecipeType(3);
+        recipeBean.setCopyNum(7);
+        recipeBean.setTotalMoney(new BigDecimal(34));
+        recipeBean.setStatus(0);
+        recipeBean.setClinicOrgan(1);
+        recipeBean.setOrganName("浙大附属邵逸夫医院");
+        recipeBean.setRecipeMode("ngarihealth");
+        recipeBean.setActualPrice(new BigDecimal(34));
+        recipeBean.setGiveMode(2);
+        recipeBean.setCreateDate(new Date());
+        recipeBean.setFromflag(1);
+        recipeBean.setChooseFlag(0);
+        recipeBean.setRemindFlag(0);
+        recipeBean.setPushFlag(0);
+        recipeBean.setReviewType(1);
+        recipeBean.setCheckStatus(0);
+        recipeBean.setCheckMode(1);
+        recipeBean.setRecipeSourceType(1);
+        RecipeExtendBean recipeExtendBean = new RecipeExtendBean();
+        recipeExtendBean.setDocIndexId(1212);
+        recipeBean.setRecipeExtend(recipeExtendBean);
+        List<RecipeDetailBean> detailBeanList = new ArrayList<>();
+        RecipeDetailBean recipeDetailBean = new RecipeDetailBean();
+        recipeDetailBean.setDrugId(5011643);
+        recipeDetailBean.setOrganDrugCode("22");
+        recipeDetailBean.setDrugName("(甲)佛耳草9g");
+        recipeDetailBean.setSaleName("(甲)佛耳草");
+        recipeDetailBean.setDrugSpec("9g");
+        recipeDetailBean.setPack(3);
+        recipeDetailBean.setDrugUnit("袋");
+        recipeDetailBean.setUseDose(1.0);
+        recipeDetailBean.setDefaultUseDose(1.0);
+        recipeDetailBean.setUseDoseUnit("袋");
+        recipeDetailBean.setDosageUnit("袋");
+        recipeDetailBean.setUsingRate("q6h");
+        recipeDetailBean.setOrganUsingRate("q6h");
+        recipeDetailBean.setUseTotalDose(7.0);
+        recipeDetailBean.setSalePrice(new BigDecimal(1));
+        recipeDetailBean.setDrugCost(new BigDecimal(7));
+        recipeDetailBean.setDrugType(3);
+        detailBeanList.add(recipeDetailBean);
+        formWorkRecipeVO.setRecipeBean(recipeBean);
+        formWorkRecipeVO.setDetailBeanList(detailBeanList);
+        workRecipeVOList.add(formWorkRecipeVO);
+        LOGGER.info(JSON.toJSONString(workRecipeVOList));
     }
 
     /**

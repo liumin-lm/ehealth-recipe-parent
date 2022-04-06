@@ -35,7 +35,7 @@ import java.util.stream.Collectors;
  * @author yinsheng
  * @date 2021\7\16 0016 14:04
  */
-@RpcBean(value = "outRecipePatientAtop")
+@RpcBean(value = "outRecipePatientAtop", mvc_authentication = false)
 public class RecipePatientAtop extends BaseAtop {
 
     @Autowired
@@ -184,6 +184,17 @@ public class RecipePatientAtop extends BaseAtop {
             logger.error("OutPatientRecipeAtop queryPatientMedicalType error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
+    }
+
+    /**
+     * 获取中药模板处方
+     * @param formWorkRecipeReqVO
+     * @return
+     */
+    @RpcService
+    public List<FormWorkRecipeVO> findFormWorkRecipe(FormWorkRecipeReqVO formWorkRecipeReqVO) {
+        validateAtop(formWorkRecipeReqVO, formWorkRecipeReqVO.getOrganId());
+        return recipePatientService.findFormWorkRecipe(formWorkRecipeReqVO);
     }
 
 }

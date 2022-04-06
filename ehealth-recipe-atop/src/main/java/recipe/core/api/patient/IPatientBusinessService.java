@@ -1,9 +1,9 @@
 package recipe.core.api.patient;
 
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.recipe.vo.OutPatientReqVO;
-import com.ngari.recipe.vo.PatientInfoVO;
-import com.ngari.recipe.vo.PatientMedicalTypeVO;
+import com.ngari.recipe.vo.*;
+
+import java.util.List;
 
 /**
  * @author yinsheng
@@ -32,4 +32,11 @@ public interface IPatientBusinessService {
      * @return 医保类型相关
      */
     PatientMedicalTypeVO queryPatientMedicalType(PatientInfoVO patientInfoVO);
+
+    /**
+     * 获取中药模板处方
+     * @param formWorkRecipeReqVO
+     * @return
+     */
+    List<FormWorkRecipeVO> findFormWorkRecipe(FormWorkRecipeReqVO formWorkRecipeReqVO);
 }
