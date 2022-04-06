@@ -1876,49 +1876,49 @@ public class HisRecipeService {
             try {
                 hisRecipeDAO.save(objectMapper.readValue(data, HisRecipe.class));
             } catch (IOException e) {
-                LOGGER.info("cdr_his_recipe 保存失败 tableName:{},data:{}", JSONUtils.toString(tableName), JSONUtils.toString(data));
+                LOGGER.info("cdr_his_recipe 保存失败 tableName:{},data:{}", tableName, data);
                 e.printStackTrace();
             }
         } else if ("cdr_his_recipe_ext".equals(tableName)) {
             try {
                 hisRecipeExtDAO.save(objectMapper.readValue(data, HisRecipeExt.class));
             } catch (IOException e) {
-                LOGGER.info("cdr_his_recipe_ext 保存失败 tableName:{},data:{}", JSONUtils.toString(tableName), JSONUtils.toString(data));
+                LOGGER.info("cdr_his_recipe_ext 保存失败 tableName:{},data:{}", tableName, data);
                 e.printStackTrace();
             }
         } else if ("cdr_his_recipedetail".equals(tableName)) {
             try {
                 hisRecipeDetailDAO.save(objectMapper.readValue(data, HisRecipeDetail.class));
             } catch (IOException e) {
-                LOGGER.info("cdr_his_recipedetail 保存失败 tableName:{},data:{}", JSONUtils.toString(tableName), JSONUtils.toString(data));
+                LOGGER.info("cdr_his_recipedetail 保存失败 tableName:{},data:{}", tableName, data);
                 e.printStackTrace();
             }
         } else if ("cdr_recipe".equals(tableName)) {
             try {
                 recipeDAO.save(objectMapper.readValue(data, Recipe.class));
             } catch (IOException e) {
-                LOGGER.info("cdr_recipe 保存失败 tableName:{},data:{}", JSONUtils.toString(tableName), JSONUtils.toString(data));
+                LOGGER.info("cdr_recipe 保存失败 tableName:{},data:{}", tableName, data);
                 e.printStackTrace();
             }
         } else if ("cdr_recipe".equals(tableName)) {
             try {
                 recipeOrderDAO.save(objectMapper.readValue(data, RecipeOrder.class));
             } catch (IOException e) {
-                LOGGER.info("cdr_recipe 保存失败 tableName:{},data:{}", JSONUtils.toString(tableName), JSONUtils.toString(data));
+                LOGGER.info("cdr_recipe 保存失败 tableName:{},data:{}", tableName, data);
                 e.printStackTrace();
             }
         } else if ("cdr_recipe_ext".equals(tableName)) {
             try {
                 recipeExtendDAO.save(objectMapper.readValue(data, RecipeExtend.class));
             } catch (IOException e) {
-                LOGGER.info("cdr_recipe_ext 保存失败 tableName:{},data:{}", JSONUtils.toString(tableName), JSONUtils.toString(data));
+                LOGGER.info("cdr_recipe_ext 保存失败 tableName:{},data:{}", tableName, data);
                 e.printStackTrace();
             }
         } else if ("cdr_recipedetail".equals(tableName)) {
             try {
                 recipeDetailDAO.save(objectMapper.readValue(data, Recipedetail.class));
             } catch (IOException e) {
-                LOGGER.info("cdr_recipedetail 保存失败 tableName:{},data:{}", JSONUtils.toString(tableName), JSONUtils.toString(data));
+                LOGGER.info("cdr_recipedetail 保存失败 tableName:{},data:{}", tableName, data);
                 e.printStackTrace();
             }
         }
