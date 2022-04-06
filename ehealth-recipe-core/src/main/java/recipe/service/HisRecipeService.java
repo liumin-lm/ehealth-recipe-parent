@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
@@ -58,6 +59,7 @@ import recipe.manager.HisRecipeManager;
 import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -102,8 +104,12 @@ public class HisRecipeService {
     DepartClient departClient;
     @Resource
     private StockBusinessService stockBusinessService;
+    @Autowired
+    HisRecipeDataDelDAO hisRecipeDataDelDao;
 
     private static final ThreadLocal<String> recipeCodeThreadLocal = new ThreadLocal<>();
+
+    private ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * organId 机构编码
@@ -1278,16 +1284,6 @@ public class HisRecipeService {
 
     }
 
-    @RpcService
-    public void handleDealRecipeDetail(Integer recipeId) {
-        Recipe recipe = recipeDAO.get(recipeId);
-        if (recipe != null) {
-            HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
-            if (hisRecipe != null) {
-                savaRecipeDetail(recipeId, hisRecipe);
-            }
-        }
-    }
 
     private void savaRecipeDetail(Integer recipeId, HisRecipe hisRecipe) {
         List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipe.getHisRecipeID());
@@ -1830,8 +1826,102 @@ public class HisRecipeService {
     }
 
     @RpcService
-    public void TestDeleteRecipe(String organId, List<String> recipeCodes) {
+    public void handleDeleteRecipe(String organId, List<String> recipeCodes) {
         hisRecipeManager.deleteRecipeByRecipeCodes(organId, recipeCodes);
+    }
+
+    @RpcService
+    public void handleDealRecipeDetail(Integer recipeId) {
+        Recipe recipe = recipeDAO.get(recipeId);
+        if (recipe != null) {
+            HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
+            if (hisRecipe != null) {
+                savaRecipeDetail(recipeId, hisRecipe);
+            }
+        }
+    }
+
+    /**
+     * 手工处理删除数据
+     *
+     * @param recipeId  处方号
+     * @param type      类型
+     * @param tableName 表名
+     * @param data      数据
+     */
+    @RpcService
+    public void handleRecoveryHisRecipeDataDel(Integer recipeId, Integer type, String tableName, String data) {
+        //根据处方号或者处方号+表名恢复
+        if (recipeId != null) {
+            List<HisRecipeDataDel> hisRecipeDataDels = new ArrayList<>();
+            if (StringUtils.isNotEmpty(tableName)) {
+                hisRecipeDataDels = hisRecipeDataDelDao.findByRecipeIdAndTableName(recipeId, tableName);
+            } else {
+                hisRecipeDataDels = hisRecipeDataDelDao.findByRecipeId(recipeId);
+            }
+            hisRecipeDataDels.forEach(hisRecipeDataDel -> {
+                saveByTableNameAndData(hisRecipeDataDel.getTableName(), hisRecipeDataDel.getData());
+            });
+
+        } else {
+            //根据表名+数据恢复
+            if (StringUtils.isNotEmpty(tableName) && StringUtils.isNotEmpty(data)) {
+                saveByTableNameAndData(tableName, data);
+            }
+        }
+    }
+
+    private void saveByTableNameAndData(String tableName, String data) {
+        if ("cdr_his_recipe".equals(tableName)) {
+            try {
+                hisRecipeDAO.save(objectMapper.readValue(data, HisRecipe.class));
+            } catch (IOException e) {
+                LOGGER.info("cdr_his_recipe 保存失败 tableName:{},data:{}", JSONUtils.toString(tableName), JSONUtils.toString(data));
+                e.printStackTrace();
+            }
+        } else if ("cdr_his_recipe_ext".equals(tableName)) {
+            try {
+                hisRecipeExtDAO.save(objectMapper.readValue(data, HisRecipeExt.class));
+            } catch (IOException e) {
+                LOGGER.info("cdr_his_recipe_ext 保存失败 tableName:{},data:{}", JSONUtils.toString(tableName), JSONUtils.toString(data));
+                e.printStackTrace();
+            }
+        } else if ("cdr_his_recipedetail".equals(tableName)) {
+            try {
+                hisRecipeDetailDAO.save(objectMapper.readValue(data, HisRecipeDetail.class));
+            } catch (IOException e) {
+                LOGGER.info("cdr_his_recipedetail 保存失败 tableName:{},data:{}", JSONUtils.toString(tableName), JSONUtils.toString(data));
+                e.printStackTrace();
+            }
+        } else if ("cdr_recipe".equals(tableName)) {
+            try {
+                recipeDAO.save(objectMapper.readValue(data, Recipe.class));
+            } catch (IOException e) {
+                LOGGER.info("cdr_recipe 保存失败 tableName:{},data:{}", JSONUtils.toString(tableName), JSONUtils.toString(data));
+                e.printStackTrace();
+            }
+        } else if ("cdr_recipe".equals(tableName)) {
+            try {
+                recipeOrderDAO.save(objectMapper.readValue(data, RecipeOrder.class));
+            } catch (IOException e) {
+                LOGGER.info("cdr_recipe 保存失败 tableName:{},data:{}", JSONUtils.toString(tableName), JSONUtils.toString(data));
+                e.printStackTrace();
+            }
+        } else if ("cdr_recipe_ext".equals(tableName)) {
+            try {
+                recipeExtendDAO.save(objectMapper.readValue(data, RecipeExtend.class));
+            } catch (IOException e) {
+                LOGGER.info("cdr_recipe_ext 保存失败 tableName:{},data:{}", JSONUtils.toString(tableName), JSONUtils.toString(data));
+                e.printStackTrace();
+            }
+        } else if ("cdr_recipedetail".equals(tableName)) {
+            try {
+                recipeDetailDAO.save(objectMapper.readValue(data, Recipedetail.class));
+            } catch (IOException e) {
+                LOGGER.info("cdr_recipedetail 保存失败 tableName:{},data:{}", JSONUtils.toString(tableName), JSONUtils.toString(data));
+                e.printStackTrace();
+            }
+        }
     }
 
 }
