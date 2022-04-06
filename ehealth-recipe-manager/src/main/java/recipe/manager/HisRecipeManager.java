@@ -1,5 +1,6 @@
 package recipe.manager;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
@@ -63,7 +64,6 @@ public class HisRecipeManager extends BaseManager {
     private RevisitClient revisitClient;
     @Autowired
     private HisRecipeDataDelDAO hisRecipeDataDelDAO;
-//    private ObjectMapper objectMapper = new ObjectMapper();
 
 
     /**
@@ -229,14 +229,14 @@ public class HisRecipeManager extends BaseManager {
                 hisRecipeDataDel.setRecipeId(recipeListMap.get(hisRecipe.getRecipeCode() + hisRecipe.getClinicOrgan()).getRecipeId());
                 hisRecipeDataDel.setHisRecipeId(hisRecipe.getHisRecipeID());
                 hisRecipeDataDel.setRecipeCode(hisRecipe.getRecipeCode());
-                hisRecipeDataDel.setData(JsonUtil.toString(hisRecipe));
+                hisRecipeDataDel.setData(JSON.toJSONString(hisRecipe));
                 hisRecipeDataDel.setTableName("cdr_his_recipe");
                 hisRecipeDataDel.setCreateTime(new Date());
                 hisRecipeDataDelDAO.save(hisRecipeDataDel);
 
                 hisRecipeDataDel.setRecipeId(recipeListMap.get(hisRecipe.getRecipeCode() + hisRecipe.getClinicOrgan()).getRecipeId());
                 hisRecipeDataDel.setHisRecipeId(hisRecipe.getHisRecipeID());
-                hisRecipeDataDel.setData(JsonUtil.toString(hisRecipeExtsMap.get(hisRecipe.getHisRecipeID())));
+                hisRecipeDataDel.setData(JSON.toJSONString(hisRecipeExtsMap.get(hisRecipe.getHisRecipeID())));
                 hisRecipeDataDel.setTableName("cdr_his_recipe_ext");
                 hisRecipeDataDel.setRecipeCode(hisRecipe.getRecipeCode());
                 hisRecipeDataDel.setCreateTime(new Date());
@@ -244,7 +244,7 @@ public class HisRecipeManager extends BaseManager {
 
                 hisRecipeDataDel.setRecipeId(recipeListMap.get(hisRecipe.getRecipeCode() + hisRecipe.getClinicOrgan()).getRecipeId());
                 hisRecipeDataDel.setHisRecipeId(hisRecipe.getHisRecipeID());
-                hisRecipeDataDel.setData(JsonUtil.toString(hisRecipeDetailsMap.get(hisRecipe.getHisRecipeID())));
+                hisRecipeDataDel.setData(JSON.toJSONString(hisRecipeDetailsMap.get(hisRecipe.getHisRecipeID())));
                 hisRecipeDataDel.setTableName("cdr_his_recipedetail");
                 hisRecipeDataDel.setRecipeCode(hisRecipe.getRecipeCode());
                 hisRecipeDataDel.setCreateTime(new Date());
@@ -274,35 +274,35 @@ public class HisRecipeManager extends BaseManager {
 
             for (Recipe recipe : recipes) {
                 hisRecipeDataDel.setRecipeId(recipe.getRecipeId());
-                hisRecipeDataDel.setData(JsonUtil.toString(recipe));
+                hisRecipeDataDel.setData(JSON.toJSONString(recipe));
                 hisRecipeDataDel.setTableName("cdr_recipe");
                 hisRecipeDataDel.setRecipeCode(recipe.getRecipeCode());
                 hisRecipeDataDel.setCreateTime(new Date());
                 hisRecipeDataDelDAO.save(hisRecipeDataDel);
 
                 hisRecipeDataDel.setRecipeId(recipe.getRecipeId());
-                hisRecipeDataDel.setData(JsonUtil.toString(orderCodeMap.get(recipe.getOrderCode())));
+                hisRecipeDataDel.setData(JSON.toJSONString(orderCodeMap.get(recipe.getOrderCode())));
                 hisRecipeDataDel.setTableName("cdr_recipeorder");
                 hisRecipeDataDel.setRecipeCode(recipe.getRecipeCode());
                 hisRecipeDataDel.setCreateTime(new Date());
                 hisRecipeDataDelDAO.save(hisRecipeDataDel);
 
                 hisRecipeDataDel.setRecipeId(recipe.getRecipeId());
-                hisRecipeDataDel.setData(JsonUtil.toString(recipeExtendsMap.get(recipe.getRecipeId())));
+                hisRecipeDataDel.setData(JSON.toJSONString(recipeExtendsMap.get(recipe.getRecipeId())));
                 hisRecipeDataDel.setTableName("cdr_recipe_ext");
                 hisRecipeDataDel.setRecipeCode(recipe.getRecipeCode());
                 hisRecipeDataDel.setCreateTime(new Date());
                 hisRecipeDataDelDAO.save(hisRecipeDataDel);
 
                 hisRecipeDataDel.setRecipeId(recipe.getRecipeId());
-                hisRecipeDataDel.setData(JsonUtil.toString(recipeDetailsMap.get(recipe.getRecipeId())));
+                hisRecipeDataDel.setData(JSON.toJSONString(recipeDetailsMap.get(recipe.getRecipeId())));
                 hisRecipeDataDel.setTableName("cdr_recipedetail");
                 hisRecipeDataDel.setRecipeCode(recipe.getRecipeCode());
                 hisRecipeDataDel.setCreateTime(new Date());
                 hisRecipeDataDelDAO.save(hisRecipeDataDel);
             }
         } catch (Exception e) {
-            LOGGER.error("saveRecipeDataDel e={}", JSONUtils.toString(e));
+            LOGGER.error("saveRecipeDataDel e={}", JSON.toJSONString(e));
         }
     }
 
