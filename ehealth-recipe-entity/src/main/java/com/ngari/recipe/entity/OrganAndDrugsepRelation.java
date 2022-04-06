@@ -40,8 +40,7 @@ public class OrganAndDrugsepRelation implements java.io.Serializable {
     @ItemProperty(alias = "药企支持的可流转处方类型")
     private String enterpriseRecipeTypes;
 
-
-    @ItemProperty(alias = "药企支持的可流转中药煎法")
+    @ItemProperty(alias = "药企支持的可流转中药煎法 全部：-1")
     private String enterpriseDecoctionIds;
 
 

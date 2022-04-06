@@ -6,6 +6,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -39,11 +40,13 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
 
     /**
      * 医生指定药企列表
+     * 迁移代码到drugDoctorAtop类中
      *
      * @param validateDetailVO
      * @return
      */
     @RpcService
+    @Deprecated
     public List<EnterpriseStock> enterpriseStockList(ValidateDetailVO validateDetailVO) {
         validateAtop(validateDetailVO, validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeDetails());
         RecipeBean recipeBean = validateDetailVO.getRecipeBean();
@@ -63,7 +66,11 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
             });
         }
         Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
-        List<EnterpriseStock> result = iDrugEnterpriseBusinessService.stockList(recipe, detailList);
+        RecipeExtendBean recipeExtendBean = validateDetailVO.getRecipeExtendBean();
+        if (null == recipeExtendBean) {
+            recipeExtendBean = new RecipeExtendBean();
+        }
+        List<EnterpriseStock> result = iDrugEnterpriseBusinessService.stockList(recipe, recipeExtendBean.getDecoctionId(), detailList);
         result.forEach(a -> {
             a.setDrugsEnterprise(null);
             a.setDrugInfoList(null);

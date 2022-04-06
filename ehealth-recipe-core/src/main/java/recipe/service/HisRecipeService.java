@@ -1081,9 +1081,6 @@ public class HisRecipeService {
             saveRecipeExt(recipe, hisRecipe);
             //生成处方详情
             savaRecipeDetail(recipe.getRecipeId(), hisRecipe);
-            // 线下转线上处理处方支持的购药按钮
-//            Integer continueFlag = getContinueFlag(recipe);
-
             stockBusinessService.setSupportGiveMode(recipe);
         }
         Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(recipe.getClinicOrgan(), recipe.getRecipeType()));
