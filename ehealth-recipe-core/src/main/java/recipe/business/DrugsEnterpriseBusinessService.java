@@ -2,7 +2,6 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.google.common.collect.Lists;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.OrganAndDrugsepRelation;
 import com.ngari.recipe.entity.OrganDrugsSaleConfig;
@@ -18,11 +17,13 @@ import recipe.core.api.IDrugsEnterpriseBusinessService;
 import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.OrganDrugsSaleConfigDAO;
 import recipe.manager.EnterpriseManager;
+import recipe.util.ByteUtils;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.greenroom.OrganEnterpriseRelationVo;
 import recipe.vo.greenroom.PharmacyVO;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -57,11 +58,11 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         if (Objects.isNull(relation)) {
             throw new DAOException("机构药企关联关系不存在");
         }
-        String giveModeTypes = StringUtils.join(organEnterpriseRelationVo.getGiveModeTypes(), ",");
+        String giveModeTypes = StringUtils.join(organEnterpriseRelationVo.getGiveModeTypes(), ByteUtils.COMMA);
         relation.setDrugsEnterpriseSupportGiveMode(giveModeTypes);
-        String recipeTypes = StringUtils.join(organEnterpriseRelationVo.getRecipeTypes(), ",");
+        String recipeTypes = StringUtils.join(organEnterpriseRelationVo.getRecipeTypes(), ByteUtils.COMMA);
         relation.setEnterpriseRecipeTypes(recipeTypes);
-        String decoctionIds = StringUtils.join(organEnterpriseRelationVo.getDecoctionIds(), ",");
+        String decoctionIds = StringUtils.join(organEnterpriseRelationVo.getDecoctionIds(), ByteUtils.COMMA);
         relation.setEnterpriseDecoctionIds(decoctionIds);
         organAndDrugsepRelationDAO.updateNonNullFieldByPrimaryKey(relation);
     }
@@ -81,14 +82,18 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         if (Objects.isNull(relation)) {
             throw new DAOException("请到机构配置关联药企");
         }
-        List<Integer> list = Lists.newArrayList();
         if (StringUtils.isNotEmpty(relation.getDrugsEnterpriseSupportGiveMode())) {
-            String[] split = relation.getDrugsEnterpriseSupportGiveMode().split(",");
-            for (String s : split) {
-                list.add(Integer.valueOf(s));
-            }
+            List<Integer> giveModeTypes = Arrays.stream(relation.getDrugsEnterpriseSupportGiveMode().split(ByteUtils.COMMA)).map(s -> Integer.parseInt(s.trim())).collect(Collectors.toList());
+            organEnterpriseRelationVo.setGiveModeTypes(giveModeTypes);
         }
-        organEnterpriseRelationVo.setGiveModeTypes(list);
+        if (StringUtils.isNotEmpty(relation.getEnterpriseDecoctionIds())) {
+            List<Integer> enterpriseDecoctionIds = Arrays.stream(relation.getEnterpriseDecoctionIds().split(ByteUtils.COMMA)).map(s -> Integer.parseInt(s.trim())).collect(Collectors.toList());
+            organEnterpriseRelationVo.setDecoctionIds(enterpriseDecoctionIds);
+        }
+        if (StringUtils.isNotEmpty(relation.getEnterpriseRecipeTypes())) {
+            List<Integer> enterpriseRecipeTypes = Arrays.stream(relation.getEnterpriseRecipeTypes().split(ByteUtils.COMMA)).map(s -> Integer.parseInt(s.trim())).collect(Collectors.toList());
+            organEnterpriseRelationVo.setRecipeTypes(enterpriseRecipeTypes);
+        }
         logger.info("DrugsEnterpriseBusinessService getOrganEnterpriseRelation res organEnterpriseRelationVo={}", JSONArray.toJSONString(organEnterpriseRelationVo));
         return organEnterpriseRelationVo;
     }
