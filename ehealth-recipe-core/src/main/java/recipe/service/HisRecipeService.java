@@ -1935,7 +1935,10 @@ public class HisRecipeService {
         List<Recipe> recipes = recipeDAO.findRecipeByRecipeId(recipeId);
         if (CollectionUtils.isNotEmpty(recipes)) {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipes.get(0).getOrderCode());
+            //测试发现fastJson才不会脱😅
+            //没脱
             LOGGER.info("1111" + JSON.toJSONString(recipeOrder));
+            //脱了
             LOGGER.info("2222" + JsonUtil.toString(recipeOrder));
             LOGGER.info("3333" + new ObjectMapper().writeValueAsString((recipeOrder)));
         }
