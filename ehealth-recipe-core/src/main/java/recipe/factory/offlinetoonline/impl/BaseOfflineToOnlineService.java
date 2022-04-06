@@ -676,6 +676,9 @@ public class BaseOfflineToOnlineService {
             LOGGER.info("Arrays.asList(hisRecipeDetail.getDrugCode()):" + hisRecipeDetail.getDrugCode());
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(hisRecipeDetail.getDrugCode()));
             if (CollectionUtils.isEmpty(organDrugLists)) {
+                Set<String> recipeCodes = new HashSet<>();
+                recipeCodes.add(hisRecipe.getRecipeCode());
+                hisRecipeManager.deleteSetRecipeCode(hisRecipe.getClinicOrgan(), recipeCodes);
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "处方中的药品信息未维护到线上平台药品目录");
             }
             Recipedetail recipedetail = new Recipedetail();
