@@ -223,6 +223,10 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias = "药企药品编码")
     private String saleDrugCode;
 
+    @ItemProperty(alias = "处方药品详情类型")
+    @Dictionary(id = "eh.base.dictionary.DrugType")
+    private Integer drugType;
+
     @ItemProperty(alias = "返回药品状态 0:正常，1已失效，2未完善")
     private Integer validateStatus;
 
@@ -839,5 +843,13 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     public void setSuperScalarName(String superScalarName) {
         this.superScalarName = superScalarName;
+    }
+
+    public Integer getDrugType() {
+        return drugType;
+    }
+
+    public void setDrugType(Integer drugType) {
+        this.drugType = drugType;
     }
 }

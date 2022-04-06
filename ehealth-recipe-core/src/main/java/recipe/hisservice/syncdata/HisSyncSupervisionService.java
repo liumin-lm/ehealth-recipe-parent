@@ -19,6 +19,7 @@ import com.ngari.patient.service.zjs.SubCodeService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.base.mode.PatientTO;
 import com.ngari.platform.recipe.mode.RecipeExtendBean;
+import com.ngari.platform.sync.mode.RecipeChHerbalIndicatorsReq;
 import com.ngari.recipe.dto.ApothecaryDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.RevisitAPI;
@@ -609,19 +610,43 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
             DrugMakingMethodDao drugMakingMethodDao = DAOFactory.getDAO(DrugMakingMethodDao.class);
             SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
+            RecipeChHerbalIndicatorsReq recipeChHerbalIndicatorsReq = req.getRecipeChHerbalIndicatorsReq();
             if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
                 DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
                 req.getRecipeExtend().setDecoctionCode(decoctionWay.getDecoctionCode());
+                if(decoctionWay.getGenerationisOfDecoction()){
+                    recipeChHerbalIndicatorsReq.setJyfs(2);
+                }else{
+                    recipeChHerbalIndicatorsReq.setJyfs(1);
+                }
+                recipeChHerbalIndicatorsReq.setJyf(decoctionWay.getDecoctionPrice());
+                recipeChHerbalIndicatorsReq.setDecoctionId(decoctionWay.getDecoctionCode());
+                recipeChHerbalIndicatorsReq.setDecoctionText(decoctionWay.getDecoctionText());
             }
             if (StringUtils.isNotBlank(recipeExtend.getMakeMethodId())) {
                 DrugMakingMethod drugMakingMethod = drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
                 req.getRecipeExtend().setMakeMethod(drugMakingMethod.getMethodCode());
-
+                recipeChHerbalIndicatorsReq.setMakeMethodId(drugMakingMethod.getMethodCode());
+                recipeChHerbalIndicatorsReq.setMakeMethodText(drugMakingMethod.getMethodText());
             }
             if (StringUtils.isNotBlank(recipeExtend.getSymptomId())) {
                 Symptom symptom = symptomDAO.get(Integer.parseInt(recipeExtend.getSymptomId()));
                 req.getRecipeExtend().setSymptomCode(symptom.getSymptomCode());
+                recipeChHerbalIndicatorsReq.setSymptomId(symptom.getSymptomCode());
+                recipeChHerbalIndicatorsReq.setSymptomName(symptom.getSymptomName());
+                recipeChHerbalIndicatorsReq.setTcmTherapyCode(symptom.getTreatmentCode());
+                recipeChHerbalIndicatorsReq.setTcmTherapyName(symptom.getTreatmentName());
             }
+            if(StringUtils.isNotBlank(recipeExtend.getMinor())){
+                recipeChHerbalIndicatorsReq.setMinor(Double.valueOf(recipeExtend.getMinor()));
+                recipeChHerbalIndicatorsReq.setMinorUnit(recipeExtend.getMinorUnit());
+            }
+            if(StringUtils.isNotBlank(recipeExtend.getJuice())){
+                recipeChHerbalIndicatorsReq.setJuice(Double.valueOf(recipeExtend.getJuice()));
+                recipeChHerbalIndicatorsReq.setJuiceUnit(recipeExtend.getJuiceUnit());
+            }
+            req.setRecipeChHerbalIndicatorsReq(recipeChHerbalIndicatorsReq);
+            LOGGER.info("setRecipeExtend recipeChHerbalIndicatorsReq={}",JSONUtils.toString(recipeChHerbalIndicatorsReq));
         } catch (Exception e) {
             LOGGER.error("setRecipeExtend recipeid:{} error", recipeExtend.getRecipeId(), e);
         }
@@ -1091,7 +1116,12 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
             list.add(reqDetail);
         }
-
+        RecipeChHerbalIndicatorsReq recipeChHerbalIndicatorsReq = req.getRecipeChHerbalIndicatorsReq();
+        recipeChHerbalIndicatorsReq.setPacketsNum(recipe.getCopyNum());
+        recipeChHerbalIndicatorsReq.setOrganDiseaseId(recipe.getOrganDiseaseId());
+        recipeChHerbalIndicatorsReq.setOrganDiseaseName(recipe.getOrganDiseaseName());
+        req.setRecipeChHerbalIndicatorsReq(recipeChHerbalIndicatorsReq);
+        LOGGER.info("setDetail recipeChHerbalIndicatorsReq={}",JSONUtils.toString(recipeChHerbalIndicatorsReq));
         req.setOrderList(list);
     }
 

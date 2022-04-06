@@ -1,5 +1,8 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
@@ -55,6 +58,7 @@ import recipe.manager.ButtonManager;
 import recipe.manager.EmrRecipeManager;
 import recipe.manager.GroupRecipeManager;
 import recipe.manager.HisRecipeManager;
+import recipe.util.JsonUtil;
 import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
@@ -102,6 +106,8 @@ public class HisRecipeService {
     DepartClient departClient;
     @Resource
     private StockBusinessService stockBusinessService;
+    @Autowired
+    HisRecipeDataDelDAO hisRecipeDataDelDao;
 
     private static final ThreadLocal<String> recipeCodeThreadLocal = new ThreadLocal<>();
 
@@ -1275,16 +1281,6 @@ public class HisRecipeService {
 
     }
 
-    @RpcService
-    public void handleDealRecipeDetail(Integer recipeId) {
-        Recipe recipe = recipeDAO.get(recipeId);
-        if (recipe != null) {
-            HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
-            if (hisRecipe != null) {
-                savaRecipeDetail(recipeId, hisRecipe);
-            }
-        }
-    }
 
     private void savaRecipeDetail(Integer recipeId, HisRecipe hisRecipe) {
         List<HisRecipeDetail> hisRecipeDetails = hisRecipeDetailDAO.findByHisRecipeId(hisRecipe.getHisRecipeID());
@@ -1827,8 +1823,122 @@ public class HisRecipeService {
     }
 
     @RpcService
-    public void TestDeleteRecipe(String organId, List<String> recipeCodes) {
+    public void handleDeleteRecipe(String organId, List<String> recipeCodes) {
         hisRecipeManager.deleteRecipeByRecipeCodes(organId, recipeCodes);
+    }
+
+    @RpcService
+    public void handleDealRecipeDetail(Integer recipeId) {
+        Recipe recipe = recipeDAO.get(recipeId);
+        if (recipe != null) {
+            HisRecipe hisRecipe = hisRecipeDAO.getHisRecipeByRecipeCodeAndClinicOrgan(recipe.getClinicOrgan(), recipe.getRecipeCode());
+            if (hisRecipe != null) {
+                savaRecipeDetail(recipeId, hisRecipe);
+            }
+        }
+    }
+
+    /**
+     * 手工处理删除数据
+     *
+     * @param recipeId  处方号
+     * @param type      类型
+     * @param tableName 表名
+     * @param data      数据
+     */
+    @RpcService
+    public void handleRecoveryHisRecipeDataDel(Integer recipeId, Integer type, String tableName, String data) {
+        //根据处方号或者处方号+表名恢复
+        if (recipeId != null) {
+            List<HisRecipeDataDel> hisRecipeDataDels = new ArrayList<>();
+            if (StringUtils.isNotEmpty(tableName)) {
+                hisRecipeDataDels = hisRecipeDataDelDao.findByRecipeIdAndTableName(recipeId, tableName);
+            } else {
+                hisRecipeDataDels = hisRecipeDataDelDao.findByRecipeId(recipeId);
+            }
+            hisRecipeDataDels.forEach(hisRecipeDataDel -> {
+                saveByTableNameAndData(hisRecipeDataDel.getTableName(), hisRecipeDataDel.getData());
+            });
+
+        } else {
+            //根据表名+数据恢复
+            if (StringUtils.isNotEmpty(tableName) && StringUtils.isNotEmpty(data)) {
+                saveByTableNameAndData(tableName, data);
+            }
+        }
+    }
+
+    private void saveByTableNameAndData(String tableName, String data) {
+        if ("cdr_his_recipe".equals(tableName)) {
+            try {
+                JSON.parseObject(data, HisRecipe.class);
+                hisRecipeDAO.save(JSON.parseObject(data, HisRecipe.class));
+            } catch (Exception e) {
+                LOGGER.info("cdr_his_recipe 保存失败 tableName:{},data:{}", tableName, data);
+                e.printStackTrace();
+            }
+        } else if ("cdr_his_recipe_ext".equals(tableName)) {
+            try {
+                hisRecipeExtDAO.save(JSON.parseObject(data, HisRecipeExt.class));
+            } catch (Exception e) {
+                LOGGER.info("cdr_his_recipe_ext 保存失败 tableName:{},data:{}", tableName, data);
+                e.printStackTrace();
+            }
+        } else if ("cdr_his_recipedetail".equals(tableName)) {
+            try {
+                hisRecipeDetailDAO.save(JSON.parseObject(data, HisRecipeDetail.class));
+            } catch (Exception e) {
+                LOGGER.info("cdr_his_recipedetail 保存失败 tableName:{},data:{}", tableName, data);
+                e.printStackTrace();
+            }
+        } else if ("cdr_recipe".equals(tableName)) {
+            try {
+                recipeDAO.save(JSON.parseObject(data, Recipe.class));
+            } catch (Exception e) {
+                LOGGER.info("cdr_recipe 保存失败 tableName:{},data:{}", tableName, data);
+                e.printStackTrace();
+            }
+        } else if ("cdr_recipe".equals(tableName)) {
+            try {
+                recipeOrderDAO.save(JSON.parseObject(data, RecipeOrder.class));
+            } catch (Exception e) {
+                LOGGER.info("cdr_recipe 保存失败 tableName:{},data:{}", tableName, data);
+                e.printStackTrace();
+            }
+        } else if ("cdr_recipe_ext".equals(tableName)) {
+            try {
+                recipeExtendDAO.save(JSON.parseObject(data, RecipeExtend.class));
+            } catch (Exception e) {
+                LOGGER.info("cdr_recipe_ext 保存失败 tableName:{},data:{}", tableName, data);
+                e.printStackTrace();
+            }
+        } else if ("cdr_recipedetail".equals(tableName)) {
+            try {
+                recipeDetailDAO.save(JSON.parseObject(data, Recipedetail.class));
+            } catch (Exception e) {
+                LOGGER.info("cdr_recipedetail 保存失败 tableName:{},data:{}", tableName, data);
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * 脱敏测试
+     *
+     * @param recipeId
+     */
+    @RpcService
+    public void testMethod(Integer recipeId) throws JsonProcessingException {
+        List<Recipe> recipes = recipeDAO.findRecipeByRecipeId(recipeId);
+        if (CollectionUtils.isNotEmpty(recipes)) {
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipes.get(0).getOrderCode());
+            //测试发现fastJson才不会脱😅
+            //没脱
+            LOGGER.info("1111" + JSON.toJSONString(recipeOrder));
+            //脱了
+            LOGGER.info("2222" + JsonUtil.toString(recipeOrder));
+            LOGGER.info("3333" + new ObjectMapper().writeValueAsString((recipeOrder)));
+        }
     }
 
 }
