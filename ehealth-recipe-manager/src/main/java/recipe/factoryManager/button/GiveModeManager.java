@@ -1,6 +1,5 @@
 package recipe.factoryManager.button;
 
-import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.entity.DrugsEnterprise;
@@ -39,8 +38,6 @@ public abstract class GiveModeManager implements IGiveModeBase {
     private static final String LIST_TYPE_ORDER = "2";
     private static final Integer No_Show_Button = 3;
 
-    @Autowired
-    private IConfigurationCenterUtilsService configService;
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
