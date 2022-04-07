@@ -5,23 +5,29 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.BeanUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.lang3.StringUtils;
+import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.constant.HisErrorCodeEnum;
+import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.enumerate.status.OutRecipeStatusEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.OutRecipeGiveModeEnum;
 import recipe.enumerate.type.OutRecipeRecipeTypeEnum;
 import recipe.util.DateConversion;
 import recipe.util.ValidateUtil;
+import recipe.vo.doctor.RecipeInfoVO;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -195,6 +201,37 @@ public class RecipePatientAtop extends BaseAtop {
     public List<FormWorkRecipeVO> findFormWorkRecipe(FormWorkRecipeReqVO formWorkRecipeReqVO) {
         validateAtop(formWorkRecipeReqVO, formWorkRecipeReqVO.getOrganId());
         return recipePatientService.findFormWorkRecipe(formWorkRecipeReqVO);
+    }
+
+    /**
+     * 保存处方
+     * @param recipeInfoVO 处方信息
+     * @return
+     */
+    @RpcService
+    public Integer saveRecipe(RecipeInfoVO recipeInfoVO) {
+        validateAtop(recipeInfoVO, recipeInfoVO.getRecipeBean());
+        validateAtop("请添加项目信息", recipeInfoVO.getRecipeDetails());
+        RecipeBean recipeBean = recipeInfoVO.getRecipeBean();
+        validateAtop(recipeBean.getDoctor(), recipeBean.getMpiid(), recipeBean.getClinicOrgan(), recipeBean.getClinicId(), recipeBean.getDepart());
+        recipeBean.setStatus(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType());
+        recipeBean.setRecipeSourceType(0);
+        recipeBean.setSignDate(DateTime.now().toDate());
+        recipeBean.setRecipeMode(RecipeBussConstant.RECIPEMODE_NGARIHEALTH);
+        recipeBean.setChooseFlag(0);
+        recipeBean.setGiveFlag(0);
+        recipeBean.setPayFlag(0);
+        recipeBean.setPushFlag(0);
+        recipeBean.setRemindFlag(0);
+        recipeBean.setTakeMedicine(0);
+        recipeBean.setPatientStatus(1);
+        if (null == recipeInfoVO.getRecipeExtendBean()) {
+            recipeInfoVO.setRecipeExtendBean(new RecipeExtendBean());
+        }
+        if (null == recipeInfoVO.getRecipeExtendBean()) {
+            recipeInfoVO.setRecipeExtendBean(new RecipeExtendBean());
+        }
+        return recipePatientService.saveRecipe(recipeInfoVO);
     }
 
 }

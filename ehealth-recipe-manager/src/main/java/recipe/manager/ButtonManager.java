@@ -93,7 +93,7 @@ public class ButtonManager extends BaseManager {
      */
     public List<EnterpriseStock> enterpriseStockCheck(Integer organId, Integer recipeType, String decoctionId) {
         /**获取需要查询库存的药企对象 ，通过药企流转关系筛选*/
-        List<DrugsEnterprise> enterprises = organAndEnterprise(organId, recipeType, decoctionId);
+        List<DrugsEnterprise> enterprises = this.organAndEnterprise(organId, recipeType, decoctionId);
         if (CollectionUtils.isEmpty(enterprises)) {
             return new LinkedList<>();
         }
@@ -190,7 +190,7 @@ public class ButtonManager extends BaseManager {
      * @param organId     机构id
      * @param recipeType  处方类型
      * @param decoctionId 煎法id
-     * @return
+     * @return 符合流转关系的药企
      */
     private List<DrugsEnterprise> organAndEnterprise(Integer organId, Integer recipeType, String decoctionId) {
         //获取需要查询库存的药企对象
