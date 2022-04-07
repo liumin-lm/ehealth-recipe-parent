@@ -14,6 +14,7 @@ import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.his.recipe.mode.ChronicDiseaseListReqTO;
 import com.ngari.his.recipe.mode.ChronicDiseaseListResTO;
 import com.ngari.his.recipe.mode.PatientChronicDiseaseRes;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -42,18 +43,25 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.client.DoctorClient;
 import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
+import recipe.common.CommonConstant;
 import recipe.constant.*;
+import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.type.CheckPatientEnum;
 import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.hisservice.RecipeToHisService;
+import recipe.manager.OrganDrugListManager;
+import recipe.manager.RecipeDetailManager;
+import recipe.manager.RecipeManager;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.RedisClient;
 import recipe.util.ValidateUtil;
+import recipe.vo.doctor.RecipeInfoVO;
 
 import javax.annotation.Nullable;
 import java.math.BigDecimal;
@@ -71,21 +79,25 @@ import java.util.stream.Collectors;
 @RpcBean("recipePatientService")
 public class RecipePatientService extends RecipeBaseService implements IPatientBusinessService {
 
-    /**
-     * LOGGER
-     */
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipePatientService.class);
     @Autowired
     private ChronicDiseaseDAO chronicDiseaseDAO;
-
     @Autowired
     private PatientClient patientClient;
-
     @Autowired
     private RevisitClient revisitClient;
-
     @Autowired
     private RecipeParameterDao recipeParameterDao;
+    @Autowired
+    private RecipeManager recipeManager;
+    @Autowired
+    private OrganDrugListManager organDrugListManager;
+    @Autowired
+    private RecipeDetailManager recipeDetailManager;
+    @Autowired
+    private DoctorClient doctorClient;
+    @Autowired
+    private IOfflineRecipeBusinessService offlineRecipeBusinessService;
 
     /**
      * 根据取药方式过滤药企
@@ -546,11 +558,11 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         }
         List<ChronicDiseaseListResTO> list = Lists.newArrayList();
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-        // { "id": 1, "text": "无" , "locked": true},
-        //        { "id": 2, "text": "特慢病病种" },
-        //        { "id": 3, "text": "重症病种" },
-        //        { "id": 4, "text": "慢病病种" },
-        //        { "id": 5, "text": "重医大附属二院" }
+        //{ "id": 1, "text": "无" , "locked": true},
+        //{ "id": 2, "text": "特慢病病种" },
+        //{ "id": 3, "text": "重症病种" },
+        //{ "id": 4, "text": "慢病病种" },
+        //{ "id": 5, "text": "重医大附属二院" }
         Integer diseaseType = (Integer) configurationService.getConfiguration(organId, "recipeChooseChronicDisease");
         result.put("recipeChooseChronicDisease",diseaseType);
         if (3 == diseaseType) {
@@ -763,6 +775,33 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         List<FormWorkRecipeVO> workRecipeVOList = JSON.parseArray(formWorkRecipe, FormWorkRecipeVO.class);
         LOGGER.info("findFormWorkRecipe workRecipeVOList:{}", JSONUtils.toString(workRecipeVOList));
         return workRecipeVOList;
+    }
+
+    @Override
+    public Integer saveRecipe(RecipeInfoVO recipeInfoVO) {
+        //保存处方
+        Recipe recipe = ObjectCopyUtils.convert(recipeInfoVO.getRecipeBean(), Recipe.class);
+        recipe = recipeManager.saveRecipe(recipe);
+        //保存处方扩展
+        if (null != recipeInfoVO.getRecipeExtendBean()) {
+            RecipeExtend recipeExtend = ObjectCopyUtils.convert(recipeInfoVO.getRecipeExtendBean(), RecipeExtend.class);
+            String cardNo = recipeManager.getCardNoByRecipe(recipe);
+            if (StringUtils.isNotEmpty(cardNo)) {
+                recipeExtend.setCardNo(cardNo);
+            }
+            recipeManager.setRecipeInfoFromRevisit(recipe, recipeExtend);
+            recipeManager.saveRecipeExtend(recipeExtend, recipe);
+        }
+        //保存处方明细
+        if (!org.springframework.util.CollectionUtils.isEmpty(recipeInfoVO.getRecipeDetails())) {
+            List<Recipedetail> details = ObjectCopyUtils.convert(recipeInfoVO.getRecipeDetails(), Recipedetail.class);
+            List<Integer> drugIds = details.stream().filter(a -> !a.getType().equals(2)).map(Recipedetail::getDrugId).collect(Collectors.toList());
+            Map<String, OrganDrugList> organDrugListMap = organDrugListManager.getOrganDrugByIdAndCode(recipe.getClinicOrgan(), drugIds);
+            recipeDetailManager.saveRecipeDetails(recipe, details, organDrugListMap);
+        }
+        //将处方写入HIS
+        offlineRecipeBusinessService.pushRecipe(recipe.getRecipeId(), CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, null, null);
+        return recipe.getRecipeId();
     }
 
     public static void main(String[] args) {

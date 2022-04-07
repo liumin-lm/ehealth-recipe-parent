@@ -2,6 +2,7 @@ package recipe.core.api.patient;
 
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.vo.*;
+import recipe.vo.doctor.RecipeInfoVO;
 
 import java.util.List;
 
@@ -39,4 +40,11 @@ public interface IPatientBusinessService {
      * @return
      */
     List<FormWorkRecipeVO> findFormWorkRecipe(FormWorkRecipeReqVO formWorkRecipeReqVO);
+
+    /**
+     * 保存处方
+     * @param recipeInfoVO 处方信息
+     * @return
+     */
+    Integer saveRecipe(RecipeInfoVO recipeInfoVO);
 }
