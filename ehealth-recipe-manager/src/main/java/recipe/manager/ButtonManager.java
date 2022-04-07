@@ -22,11 +22,10 @@ import recipe.factoryManager.button.IGiveModeBase;
 import recipe.factoryManager.button.impl.BjGiveModeServiceImpl;
 import recipe.factoryManager.button.impl.CommonGiveModeServiceImpl;
 import recipe.factoryManager.button.impl.FromHisGiveModeServiceImpl;
+import recipe.util.ByteUtils;
+import recipe.util.ValidateUtil;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -90,15 +89,13 @@ public class ButtonManager extends BaseManager {
      * 根据 按钮配置 获取 药企购药配置-库存对象
      *
      * @param organId 机构id
-     * @return 药品信息 一定存在于出参
+     * @return 药企信息
      */
-    public List<EnterpriseStock> enterpriseStockCheck(Integer organId) {
-        //获取需要查询库存的药企对象
-        List<DrugsEnterprise> enterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
-        logger.info("ButtonManager enterpriseStockCheck organId:{},enterprises:{}", organId, JSON.toJSONString(enterprises));
-        List<EnterpriseStock> list = new LinkedList<>();
+    public List<EnterpriseStock> enterpriseStockCheck(Integer organId, Integer recipeType, String decoctionId) {
+        /**获取需要查询库存的药企对象 ，通过药企流转关系筛选*/
+        List<DrugsEnterprise> enterprises = this.organAndEnterprise(organId, recipeType, decoctionId);
         if (CollectionUtils.isEmpty(enterprises)) {
-            return list;
+            return new LinkedList<>();
         }
         //获取机构配置按钮
         List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(organId);
@@ -114,6 +111,7 @@ public class ButtonManager extends BaseManager {
             relation = organAndDrugsepRelationDAO.getRelationByOrganIdAndGiveMode(organId, RecipeSupportGiveModeEnum.SUPPORT_TO_HOS.getType());
         }
         Map<Integer, List<OrganAndDrugsepRelation>> relationMap = relation.stream().collect(Collectors.groupingBy(OrganAndDrugsepRelation::getDrugsEnterpriseId));
+        List<EnterpriseStock> list = new ArrayList<>();
         for (DrugsEnterprise drugsEnterprise : enterprises) {
             EnterpriseStock enterpriseStock = new EnterpriseStock();
             enterpriseStock.setDrugsEnterprise(drugsEnterprise);
@@ -121,7 +119,7 @@ public class ButtonManager extends BaseManager {
             enterpriseStock.setDeliveryName(drugsEnterprise.getName());
             enterpriseStock.setDeliveryCode(drugsEnterprise.getId().toString());
             enterpriseStock.setAppointEnterpriseType(AppointEnterpriseTypeEnum.ENTERPRISE_APPOINT.getType());
-            List<GiveModeButtonDTO> giveModeButton = RecipeSupportGiveModeEnum.giveModeButtonList(drugsEnterprise, configGiveMode, configGiveModeMap,drugToHosByEnterprise,relationMap);
+            List<GiveModeButtonDTO> giveModeButton = RecipeSupportGiveModeEnum.giveModeButtonList(drugsEnterprise, configGiveMode, configGiveModeMap, drugToHosByEnterprise, relationMap);
             enterpriseStock.setGiveModeButton(giveModeButton);
             list.add(enterpriseStock);
         }
@@ -186,6 +184,65 @@ public class ButtonManager extends BaseManager {
         return result.get(giveModeKey);
     }
 
+    /**
+     * 药企流转权限判断
+     *
+     * @param organId     机构id
+     * @param recipeType  处方类型
+     * @param decoctionId 煎法id
+     * @return 符合流转关系的药企
+     */
+    private List<DrugsEnterprise> organAndEnterprise(Integer organId, Integer recipeType, String decoctionId) {
+        //获取需要查询库存的药企对象
+        List<DrugsEnterprise> enterprises = organAndDrugsepRelationDAO.findDrugsEnterpriseByOrganIdAndStatus(organId, 1);
+        logger.info("ButtonManager organAndEnterprise organId:{},enterprises:{}", organId, JSON.toJSONString(enterprises));
+        if (CollectionUtils.isEmpty(enterprises)) {
+            return null;
+        }
+        List<Integer> ids = enterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
+        List<OrganAndDrugsepRelation> organAndEnterpriseList = organAndDrugsepRelationDAO.findByOrganIdEntId(organId, ids);
+        logger.info("ButtonManager organAndEnterprise organAndEnterpriseList:{}", JSON.toJSONString(organAndEnterpriseList));
+        if (CollectionUtils.isEmpty(organAndEnterpriseList)) {
+            return null;
+        }
+        List<Integer> enterprisesIds = new ArrayList<>();
+        organAndEnterpriseList.forEach(a -> {
+            //没配置处方类型流转权限
+            if (StringUtils.isEmpty(a.getEnterpriseRecipeTypes())) {
+                return;
+            }
+            //不查找处方类型对应权限
+            if (ValidateUtil.validateObjects(recipeType)) {
+                enterprisesIds.add(a.getDrugsEnterpriseId());
+                return;
+            }
+            //匹配处方类型权限
+            List<Integer> recipeTypes = Arrays.stream(a.getEnterpriseRecipeTypes().split(ByteUtils.COMMA)).map(Integer::parseInt).collect(Collectors.toList());
+            if (!recipeTypes.contains(recipeType)) {
+                return;
+            }
+            //没配置煎法流转权限
+            if (3 == recipeType && StringUtils.isEmpty(a.getEnterpriseDecoctionIds())) {
+                return;
+            }
+            //不查找煎法对应权限
+            if (StringUtils.isEmpty(decoctionId)) {
+                enterprisesIds.add(a.getDrugsEnterpriseId());
+                return;
+            }
+            //匹配煎法权限
+            List<Integer> decoctionIds = Arrays.stream(a.getEnterpriseDecoctionIds().split(ByteUtils.COMMA)).map(Integer::parseInt).collect(Collectors.toList());
+            if (!decoctionIds.contains(-1) && !decoctionIds.contains(decoctionId)) {
+                return;
+            }
+            enterprisesIds.add(a.getDrugsEnterpriseId());
+        });
+        logger.info("ButtonManager organAndEnterprise enterprisesIds:{}", JSON.toJSONString(enterprisesIds));
+        if (CollectionUtils.isEmpty(enterprisesIds)) {
+            return null;
+        }
+        return enterprises.stream().filter(a -> enterprisesIds.contains(a.getId())).collect(Collectors.toList());
+    }
 
     private IGiveModeBase getGiveModeBaseByRecipe(Recipe recipe) {
         if (new Integer(2).equals(recipe.getRecipeSource())) {

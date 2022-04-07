@@ -523,6 +523,10 @@ public class EnterpriseManager extends BaseManager {
         doSignRecipe.setMsg(msg);
     }
 
+    public DrugsEnterprise drugsEnterprise(Integer enterpriseId) {
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(enterpriseId);
+        return drugsEnterprise;
+    }
 
     /**
      * 获取推送药品数据

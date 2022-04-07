@@ -27,6 +27,8 @@ public class FormWorkRecipeVO implements Serializable {
     private String title;
     //处方介绍
     private String introduce;
+    //背景图片
+    private String backgroundImg;
     //处方详情
     private RecipeBean recipeBean;
     //处方明细详情

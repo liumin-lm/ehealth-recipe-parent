@@ -1586,7 +1586,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 break;
         }
         if (status != null) {
-            hql.append(" and r.status =").append(status);
+            //由于已取消状态较多，使用其中一个值查询所有已取消的状态
+            if(new Integer(11).equals(status)){
+                hql.append(" and r.status in (11,12,13,14,17,19,20,25)");
+            }else{
+                hql.append(" and r.status =").append(status);
+            }
         }
         if (doctor != null) {
             hql.append(" and r.doctor=").append(doctor);
@@ -1718,7 +1723,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 break;
         }
         if (null != recipesQueryVO.getStatus()) {
-            hql.append(" and r.status =").append(recipesQueryVO.getStatus());
+            //由于已取消状态较多，使用其中一个值查询所有已取消的状态
+            if(new Integer(11).equals(recipesQueryVO.getStatus())){
+                hql.append(" and r.status in (11,12,13,14,17,19,20,25)");
+            }else{
+                hql.append(" and r.status =").append(recipesQueryVO.getStatus());
+            }
         }
         if (null != recipesQueryVO.getDoctor()) {
             hql.append(" and r.doctor=").append(recipesQueryVO.getDoctor());
@@ -1858,7 +1868,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 break;
         }
         if (null != recipesQueryVO.getStatus()) {
-            hql.append(" and r.status =").append(recipesQueryVO.getStatus());
+            //由于已取消状态较多，使用其中一个值查询所有已取消的状态
+            if(new Integer(11).equals(recipesQueryVO.getStatus())){
+                hql.append(" and r.status in (11,12,13,14,17,19,20,25)");
+            }else{
+                hql.append(" and r.status =").append(recipesQueryVO.getStatus());
+            }
         }
         if (null != recipesQueryVO.getDoctor()) {
             hql.append(" and r.doctor=").append(recipesQueryVO.getDoctor());

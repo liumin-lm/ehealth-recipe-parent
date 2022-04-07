@@ -8,9 +8,14 @@ import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.EnterpriseStock;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.OrganDrugList;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.vo.SearchDrugReqVO;
+import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -18,14 +23,17 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
+import recipe.constant.ErrorCode;
 import recipe.core.api.IConfigStatusBusinessService;
 import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IStockBusinessService;
 import recipe.util.ByteUtils;
 import recipe.util.ObjectCopyUtils;
+import recipe.util.RecipeUtil;
 import recipe.vo.doctor.*;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -88,7 +96,7 @@ public class DrugDoctorAtop extends BaseAtop {
             recipedetail.setUseTotalDose(1D);
             detailList.add(recipedetail);
         });
-        return iDrugEnterpriseBusinessService.stockList(drugQueryVO.getOrganId(), detailList);
+        return iDrugEnterpriseBusinessService.stockList(drugQueryVO.getOrganId(), drugQueryVO.getRecipeType(), drugQueryVO.getDecoctionId(), detailList);
     }
 
     /**
@@ -123,13 +131,53 @@ public class DrugDoctorAtop extends BaseAtop {
             recipedetail.setPharmacyId(drugQueryVO.getPharmacyId());
             detailList.add(recipedetail);
         });
-        List<EnterpriseStock> result = iDrugEnterpriseBusinessService.drugRecipeStock(drugQueryVO.getOrganId(), detailList);
+        List<EnterpriseStock> result = iDrugEnterpriseBusinessService.drugRecipeStock(drugQueryVO.getOrganId(), drugQueryVO.getRecipeType(), drugQueryVO.getDecoctionId(), detailList);
         logger.info("DrugDoctorAtop drugRecipeStock result={}", JSONArray.toJSONString(result));
         if (CollectionUtils.isEmpty(result)) {
             return false;
         }
         return result.stream().anyMatch(EnterpriseStock::getStock);
     }
+
+
+    /**
+     * 医生指定药企列表
+     *
+     * @param validateDetailVO
+     * @return
+     */
+    @RpcService
+    public List<EnterpriseStock> enterpriseStockList(ValidateDetailVO validateDetailVO) {
+        validateAtop(validateDetailVO, validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeDetails());
+        RecipeBean recipeBean = validateDetailVO.getRecipeBean();
+        validateAtop(recipeBean.getRecipeType(), recipeBean.getClinicOrgan());
+        List<RecipeDetailBean> recipeDetails = validateDetailVO.getRecipeDetails();
+        boolean organDrugCode = recipeDetails.stream().anyMatch(a -> StringUtils.isEmpty(a.getOrganDrugCode()));
+        if (organDrugCode) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "医院配置药品存在编号为空的数据");
+        }
+        List<Recipedetail> detailList = ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), Recipedetail.class);
+        if (RecipeUtil.isTcmType(recipeBean.getRecipeType())) {
+            validateAtop(recipeBean.getCopyNum());
+            detailList.forEach(a -> {
+                if (a.getUseDose() != null) {
+                    a.setUseTotalDose(BigDecimal.valueOf(recipeBean.getCopyNum()).multiply(BigDecimal.valueOf(a.getUseDose())).doubleValue());
+                }
+            });
+        }
+        Recipe recipe = ObjectCopyUtils.convert(recipeBean, Recipe.class);
+        RecipeExtendBean recipeExtendBean = validateDetailVO.getRecipeExtendBean();
+        if (null == recipeExtendBean) {
+            recipeExtendBean = new RecipeExtendBean();
+        }
+        List<EnterpriseStock> result = iDrugEnterpriseBusinessService.stockList(recipe, recipeExtendBean.getDecoctionId(), detailList);
+        result.forEach(a -> {
+            a.setDrugsEnterprise(null);
+            a.setDrugInfoList(null);
+        });
+        return result;
+    }
+
 
     /**
      * 通过es检索药品

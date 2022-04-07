@@ -6,9 +6,11 @@ import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.follow.utils.ObjectCopyUtil;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.platform.recipe.mode.RecipeDetailBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
+import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -58,6 +60,9 @@ public class RecipeManager extends BaseManager {
     private RecipeAuditClient recipeAuditClient;
     @Autowired
     private ConsultClient consultClient;
+    /**
+     * todo 什么情况？
+     */
     @Autowired
     private EnterpriseManager enterpriseManager;
     @Autowired
@@ -129,7 +134,7 @@ public class RecipeManager extends BaseManager {
     public Recipe getRecipeById(Integer recipeId) {
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (StringUtils.isEmpty(recipe.getOrganDiseaseId())) {
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            RecipeExtend recipeExtend = this.recipeExtend(recipeId);
             EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
             recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
             recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
@@ -142,6 +147,12 @@ public class RecipeManager extends BaseManager {
         List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
         logger.info("RecipeManager findByRecipeIds recipeIds:{}, recipes:{}", JSON.toJSONString(recipeIds), JSON.toJSONString(recipes));
         return recipes;
+    }
+
+    public RecipeExtend recipeExtend(Integer recipeId) {
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        logger.info("RecipeManager recipeExtend recipeExtend:{}", JSON.toJSONString(recipeExtend));
+        return recipeExtend;
     }
 
 
@@ -509,6 +520,29 @@ public class RecipeManager extends BaseManager {
             }
         }
         return cardNo;
+    }
+
+    /**
+     * 获取复诊信息设置处方信息
+     * @param recipe
+     * @param recipeExtend
+     */
+    public void setRecipeInfoFromRevisit(Recipe recipe, RecipeExtend recipeExtend) {
+        if (null != recipe.getClinicId()) {
+            if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
+                RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
+                if (null != revisitExDTO) {
+                    recipeExtend.setRegisterID(revisitExDTO.getRegisterNo());
+                }
+                RevisitBean revisitBean = revisitClient.getRevisitByClinicId(recipe.getClinicId());
+                if (null != revisitBean) {
+                    recipe.setDoctor(revisitBean.getConsultDoctor());
+                    recipe.setDepart(revisitBean.getConsultDepart());
+                    DoctorDTO doctorDTO = doctorClient.getDoctor(revisitBean.getConsultDoctor());
+                    recipe.setDoctorName(doctorDTO.getName());
+                }
+            }
+        }
     }
 
     /**

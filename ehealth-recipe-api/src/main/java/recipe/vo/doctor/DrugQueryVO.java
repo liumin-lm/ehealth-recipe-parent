@@ -16,5 +16,10 @@ public class DrugQueryVO implements Serializable {
     private Integer organId;
     private List<Integer> drugIds;
     private Integer pharmacyId;
+    private Integer recipeType;
+    /**
+     * 煎法Id
+     */
+    private String decoctionId;
     private List<RecipeDetailBean> recipeDetails;
 }

@@ -5,7 +5,6 @@ import com.ngari.recipe.entity.OrganDrugsSaleConfig;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import recipe.vo.doctor.DrugEnterpriseStockVO;
-import recipe.vo.doctor.DrugForGiveModeListVO;
 import recipe.vo.doctor.DrugForGiveModeVO;
 import recipe.vo.doctor.DrugQueryVO;
 import recipe.vo.patient.MedicineStationVO;
@@ -26,7 +25,7 @@ public interface IStockBusinessService {
      * @param recipeDetails 处方明细
      * @return
      */
-    List<DrugEnterpriseStockVO> stockList(Integer organId, List<Recipedetail> recipeDetails);
+    List<DrugEnterpriseStockVO> stockList(Integer organId, Integer recipeType, String decoctionId, List<Recipedetail> recipeDetails);
 
     /**
      * 医生指定药企列表-查库存
@@ -35,7 +34,7 @@ public interface IStockBusinessService {
      * @param recipeDetails 处方明细
      * @return
      */
-    List<EnterpriseStock> stockList(Recipe recipe, List<Recipedetail> recipeDetails);
+    List<EnterpriseStock> stockList(Recipe recipe, String decoctionId, List<Recipedetail> recipeDetails);
 
     /**
      * 校验 药品库存 在同一个药企下的库存数量
@@ -62,7 +61,7 @@ public interface IStockBusinessService {
      * @param drugQueryVO
      * @return
      */
-    List<DrugForGiveModeVO>  drugForGiveMode(DrugQueryVO drugQueryVO);
+    List<DrugForGiveModeVO> drugForGiveMode(DrugQueryVO drugQueryVO);
 
     /**
      * 查询药品能否开在一张处方上
@@ -71,7 +70,7 @@ public interface IStockBusinessService {
      * @param detailList
      * @return
      */
-    List<EnterpriseStock> drugRecipeStock(Integer organId, List<Recipedetail> detailList);
+    List<EnterpriseStock> drugRecipeStock(Integer organId, Integer recipeType, String decoctionId, List<Recipedetail> detailList);
 
     /**
      * 获取药品库存
