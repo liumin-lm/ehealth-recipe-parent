@@ -1117,7 +1117,7 @@ public class RecipeService extends RecipeBaseService {
         try {
             String fileId = null;
             result.setMsg(resultVo.getMsg());
-            recipeExtend.setSignFailReason(resultVo.getMsg());
+
             //添加兼容医生CA易签保的回调逻辑
             if (MapUtils.isNotEmpty(esignResponseMap)) {
                 String imgFileId = MapValueUtil.getString(esignResponseMap, "imgFileId");
@@ -1203,6 +1203,7 @@ public class RecipeService extends RecipeBaseService {
             if (RecipeResultBean.FAIL == code) {
                 //说明处方签名失败
                 LOGGER.info("当前签名处方{}签名失败！", recipeId);
+                recipeExtend.setSignFailReason(msg);
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_DOC, null);
                 recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), msg);
                 //CA异步回调的接口 发送环信消息
