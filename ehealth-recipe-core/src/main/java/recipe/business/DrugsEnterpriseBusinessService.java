@@ -2,18 +2,21 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.OrganAndDrugsepRelation;
-import com.ngari.recipe.entity.OrganDrugsSaleConfig;
-import com.ngari.recipe.entity.Pharmacy;
+import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
+import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
+import com.ngari.recipe.entity.*;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.core.api.IDrugsEnterpriseBusinessService;
+import recipe.dao.DrugDecoctionWayDao;
+import recipe.dao.EnterpriseDecoctionAddressDAO;
 import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.OrganDrugsSaleConfigDAO;
 import recipe.manager.EnterpriseManager;
@@ -23,9 +26,7 @@ import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.greenroom.OrganEnterpriseRelationVo;
 import recipe.vo.greenroom.PharmacyVO;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -41,6 +42,10 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     private OrganAndDrugsepRelationDAO organAndDrugsepRelationDAO;
     @Autowired
     private OrganDrugsSaleConfigDAO organDrugsSaleConfigDAO;
+    @Autowired
+    private DrugDecoctionWayDao drugDecoctionWayDao;
+    @Autowired
+    private EnterpriseDecoctionAddressDAO enterpriseDecoctionAddressDAO;
 
     @Override
     public Boolean existEnterpriseByName(String name) {
@@ -127,5 +132,70 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
             return null;
         }
         return ObjectCopyUtils.convert(list, PharmacyVO.class);
+    }
+
+    @Override
+    public void addEnterpriseDecoctionAddressList(EnterpriseDecoctionAddressReq enterpriseDecoctionAddressReq) {
+        // 先删除所有机构药企煎法关联的地址
+        enterpriseManager.deleteEnterpriseDecoctionAddress(enterpriseDecoctionAddressReq.getOrganId(), enterpriseDecoctionAddressReq.getEnterpriseId(), enterpriseDecoctionAddressReq.getDecoctionId());
+
+        //如果没有具体的煎法关联地址传进来,默认不需要更新
+        if (CollectionUtils.isEmpty(enterpriseDecoctionAddressReq.getEnterpriseDecoctionAddressDTOS())) {
+            return;
+        }
+
+        // 更新机构药企煎法关联的地址
+        List<EnterpriseDecoctionAddress> enterpriseDecoctionAddresses = BeanCopyUtils.copyList(enterpriseDecoctionAddressReq.getEnterpriseDecoctionAddressDTOS(), EnterpriseDecoctionAddress::new);
+        enterpriseManager.addEnterpriseDecoctionAddressList(enterpriseDecoctionAddresses);
+    }
+
+    @Override
+    public List<EnterpriseDecoctionAddress> findEnterpriseDecoctionAddressList(EnterpriseDecoctionAddressReq enterpriseDecoctionAddressReq) {
+        return enterpriseManager.findEnterpriseDecoctionAddressList(enterpriseDecoctionAddressReq.getOrganId(), enterpriseDecoctionAddressReq.getEnterpriseId(), enterpriseDecoctionAddressReq.getDecoctionId());
+    }
+
+    @Override
+    public List<OrganAndDrugsepRelation> findOrganAndDrugsepRelationBean(Integer enterpriseId) {
+        return organAndDrugsepRelationDAO.findByEntId(enterpriseId);
+    }
+
+    @Override
+    public List<EnterpriseDecoctionList> findEnterpriseDecoctionList(Integer enterpriseId, Integer organId) {
+        OrganAndDrugsepRelation relation = organAndDrugsepRelationDAO.getOrganAndDrugsepByOrganIdAndEntId(organId, enterpriseId);
+        if (Objects.isNull(relation)) {
+            return null;
+        }
+        String enterpriseDecoctionIds = relation.getEnterpriseDecoctionIds();
+        if (StringUtils.isEmpty(enterpriseDecoctionIds)) {
+            return null;
+        }
+        String[] split = enterpriseDecoctionIds.split(",");
+        List<Integer> list = new ArrayList<>();
+        for (String s : split) {
+            list.add(Integer.valueOf(s));
+        }
+        List<EnterpriseDecoctionAddress> enterpriseDecoctionAddresses = enterpriseDecoctionAddressDAO.findEnterpriseDecoctionAddressListByOrganIdAndEntId(organId, enterpriseId);
+        Map<Integer, List<EnterpriseDecoctionAddress>> collect = null;
+        if(CollectionUtils.isNotEmpty(enterpriseDecoctionAddresses)){
+            collect = enterpriseDecoctionAddresses.stream().collect(Collectors.groupingBy(EnterpriseDecoctionAddress::getDecoctionId));
+        }
+        // 获取机构下的所有煎法
+        List<DecoctionWay> decoctionWayList = drugDecoctionWayDao.findByOrganId(organId);
+        Map<Integer, List<EnterpriseDecoctionAddress>> finalCollect = collect;
+        List<EnterpriseDecoctionList> enterpriseDecoctionLists = decoctionWayList.stream().map(decoctionWay -> {
+            EnterpriseDecoctionList enterpriseDecoctionList = null;
+            if ("-1".equals(enterpriseDecoctionIds) || list.contains(decoctionWay.getDecoctionId())) {
+                enterpriseDecoctionList = new EnterpriseDecoctionList();
+                enterpriseDecoctionList.setDecoctionId(decoctionWay.getDecoctionId());
+                enterpriseDecoctionList.setDecoctionName(decoctionWay.getDecoctionText());
+                int status = 0;
+                if(MapUtils.isNotEmpty(finalCollect) && CollectionUtils.isNotEmpty(finalCollect.get(decoctionWay.getDecoctionId()))){
+                    status = 1;
+                }
+                enterpriseDecoctionList.setStatus(status);
+            }
+            return enterpriseDecoctionList;
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+        return enterpriseDecoctionLists;
     }
 }

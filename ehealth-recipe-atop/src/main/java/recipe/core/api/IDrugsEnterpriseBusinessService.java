@@ -1,6 +1,11 @@
 package recipe.core.api;
 
+import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressDTO;
+import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
+import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
 import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.EnterpriseDecoctionAddress;
+import com.ngari.recipe.entity.OrganAndDrugsepRelation;
 import com.ngari.recipe.entity.OrganDrugsSaleConfig;
 import ctd.persistence.bean.QueryResult;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
@@ -63,4 +68,26 @@ public interface IDrugsEnterpriseBusinessService {
      * @return
      */
     List<PharmacyVO> pharmacy();
+
+    /**
+     * 新增药企煎法地址
+     * @param enterpriseDecoctionAddressReq
+     */
+    void addEnterpriseDecoctionAddressList(EnterpriseDecoctionAddressReq enterpriseDecoctionAddressReq);
+
+    /**
+     * 查询药企煎法地址
+     * @param enterpriseDecoctionAddressReq
+     * @return
+     */
+    List<EnterpriseDecoctionAddress> findEnterpriseDecoctionAddressList(EnterpriseDecoctionAddressReq enterpriseDecoctionAddressReq);
+
+    /**
+     * 根据药企id获取机构列表
+     * @param enterpriseId
+     * @return
+     */
+    List<OrganAndDrugsepRelation> findOrganAndDrugsepRelationBean(Integer enterpriseId);
+
+    List<EnterpriseDecoctionList> findEnterpriseDecoctionList(Integer enterpriseId, Integer organId);
 }
