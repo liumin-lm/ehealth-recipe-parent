@@ -220,6 +220,9 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "医生选择是否代煎（ 0:否 1：是）")
     private String doctorIsDecoction;
 
+    @ItemProperty(alias = "处方签名失败具体原因")
+    private String signFailReason;
+
     @Column(name = "doctor_is_decoction")
     public String getDoctorIsDecoction() {
         return doctorIsDecoction;
@@ -851,5 +854,14 @@ public class RecipeExtend implements Serializable {
 
     public void setForceCashType(Integer forceCashType) {
         this.forceCashType = forceCashType;
+    }
+
+    @Column(name = "sign_fail_reason")
+    public String getSignFailReason() {
+        return signFailReason;
+    }
+
+    public void setSignFailReason(String signFailReason) {
+        this.signFailReason = signFailReason;
     }
 }

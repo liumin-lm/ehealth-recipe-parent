@@ -1096,7 +1096,7 @@ public class RecipeService extends RecipeBaseService {
         RecipeDetailDAO recipeDetailDAO = getDAO(RecipeDetailDAO.class);
         RecipeLogDAO recipeLogDAO = getDAO(RecipeLogDAO.class);
         Integer recipeId = resultVo.getRecipeId();
-
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (recipe.getStatus() == 9) {
             LOGGER.info("retryCaDoctorCallBackToRecipe 处方单已经撤销");
@@ -1117,6 +1117,7 @@ public class RecipeService extends RecipeBaseService {
         try {
             String fileId = null;
             result.setMsg(resultVo.getMsg());
+            recipeExtend.setSignFailReason(resultVo.getMsg());
             //添加兼容医生CA易签保的回调逻辑
             if (MapUtils.isNotEmpty(esignResponseMap)) {
                 String imgFileId = MapValueUtil.getString(esignResponseMap, "imgFileId");
