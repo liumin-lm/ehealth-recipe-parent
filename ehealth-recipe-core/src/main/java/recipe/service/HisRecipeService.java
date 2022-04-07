@@ -1882,14 +1882,22 @@ public class HisRecipeService {
             }
         } else if ("cdr_his_recipe_ext".equals(tableName)) {
             try {
-                hisRecipeExtDAO.save(JSON.parseObject(data, HisRecipeExt.class));
+                List<HisRecipeExt> hisRecipeExts = JSON.parseArray(data, HisRecipeExt.class);
+                if (CollectionUtils.isNotEmpty(hisRecipeExts)) {
+                    hisRecipeExts.forEach(hisRecipeExt -> {
+                        hisRecipeExtDAO.save(hisRecipeExt);
+                    });
+                }
             } catch (Exception e) {
                 LOGGER.info("cdr_his_recipe_ext 保存失败 tableName:{},data:{}", tableName, data);
                 e.printStackTrace();
             }
         } else if ("cdr_his_recipedetail".equals(tableName)) {
             try {
-                hisRecipeDetailDAO.save(JSON.parseObject(data, HisRecipeDetail.class));
+                List<HisRecipeDetail> hisRecipeDetails = JSON.parseArray(data, HisRecipeDetail.class);
+                hisRecipeDetails.forEach(hisRecipeDetail -> {
+                    hisRecipeDetailDAO.save(hisRecipeDetail);
+                });
             } catch (Exception e) {
                 LOGGER.info("cdr_his_recipedetail 保存失败 tableName:{},data:{}", tableName, data);
                 e.printStackTrace();
@@ -1901,23 +1909,35 @@ public class HisRecipeService {
                 LOGGER.info("cdr_recipe 保存失败 tableName:{},data:{}", tableName, data);
                 e.printStackTrace();
             }
-        } else if ("cdr_recipe".equals(tableName)) {
+        } else if ("cdr_recipeorder".equals(tableName)) {
             try {
-                recipeOrderDAO.save(JSON.parseObject(data, RecipeOrder.class));
+                List<RecipeOrder> recipeOrders = JSON.parseArray(data, RecipeOrder.class);
+                if (CollectionUtils.isNotEmpty(recipeOrders)) {
+                    recipeOrders.forEach(recipeOrder -> {
+                        recipeOrderDAO.save(recipeOrder);
+                    });
+                }
+
             } catch (Exception e) {
-                LOGGER.info("cdr_recipe 保存失败 tableName:{},data:{}", tableName, data);
+                LOGGER.info("cdr_recipeorder 保存失败 tableName:{},data:{}", tableName, data);
                 e.printStackTrace();
             }
         } else if ("cdr_recipe_ext".equals(tableName)) {
             try {
-                recipeExtendDAO.save(JSON.parseObject(data, RecipeExtend.class));
+                List<RecipeExtend> recipeExtends = JSON.parseArray(data, RecipeExtend.class);
+                recipeExtends.forEach(recipeExtend -> {
+                    recipeExtendDAO.save(recipeExtend);
+                });
             } catch (Exception e) {
                 LOGGER.info("cdr_recipe_ext 保存失败 tableName:{},data:{}", tableName, data);
                 e.printStackTrace();
             }
         } else if ("cdr_recipedetail".equals(tableName)) {
             try {
-                recipeDetailDAO.save(JSON.parseObject(data, Recipedetail.class));
+                List<Recipedetail> recipeDetails = JSON.parseArray(data, Recipedetail.class);
+                recipeDetails.forEach(recipeDetail -> {
+                    recipeDetailDAO.save(recipeDetail);
+                });
             } catch (Exception e) {
                 LOGGER.info("cdr_recipedetail 保存失败 tableName:{},data:{}", tableName, data);
                 e.printStackTrace();
