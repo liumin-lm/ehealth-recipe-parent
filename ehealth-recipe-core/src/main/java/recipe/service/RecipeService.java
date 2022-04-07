@@ -1204,6 +1204,7 @@ public class RecipeService extends RecipeBaseService {
                 //说明处方签名失败
                 LOGGER.info("当前签名处方{}签名失败！", recipeId);
                 recipeExtend.setSignFailReason(msg);
+                recipeExtendDAO.updateNonNullFieldByPrimaryKey(recipeExtend);
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, RecipeStatusConstant.SIGN_ERROR_CODE_DOC, null);
                 recipeLogDAO.saveRecipeLog(recipeId, recipe.getStatus(), recipe.getStatus(), msg);
                 //CA异步回调的接口 发送环信消息
