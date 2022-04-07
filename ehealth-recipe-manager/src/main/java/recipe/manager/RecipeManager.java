@@ -559,7 +559,7 @@ public class RecipeManager extends BaseManager {
         }
         // 医生指定药企
         RecipeExtend extend = recipeExtendDAO.getByRecipeId(recipeId);
-        if (AppointEnterpriseTypeEnum.ENTERPRISE_APPOINT.getType().equals(extend.getAppointEnterpriseType()) && Objects.isNull(depId)) {
+        if (Objects.nonNull(extend) && AppointEnterpriseTypeEnum.ENTERPRISE_APPOINT.getType().equals(extend.getAppointEnterpriseType()) && Objects.isNull(depId)) {
             String deliveryCode = extend.getDeliveryCode();
             if (StringUtils.isEmpty(deliveryCode)) {
                 return null;
