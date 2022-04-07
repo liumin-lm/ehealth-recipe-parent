@@ -58,6 +58,9 @@ public class RecipeManager extends BaseManager {
     private RecipeAuditClient recipeAuditClient;
     @Autowired
     private ConsultClient consultClient;
+    /**
+     * todo 什么情况？
+     */
     @Autowired
     private EnterpriseManager enterpriseManager;
     @Autowired
@@ -129,7 +132,7 @@ public class RecipeManager extends BaseManager {
     public Recipe getRecipeById(Integer recipeId) {
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (StringUtils.isEmpty(recipe.getOrganDiseaseId())) {
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            RecipeExtend recipeExtend = this.recipeExtend(recipeId);
             EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
             recipe.setOrganDiseaseId(emrDetail.getOrganDiseaseId());
             recipe.setOrganDiseaseName(emrDetail.getOrganDiseaseName());
@@ -142,6 +145,12 @@ public class RecipeManager extends BaseManager {
         List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
         logger.info("RecipeManager findByRecipeIds recipeIds:{}, recipes:{}", JSON.toJSONString(recipeIds), JSON.toJSONString(recipes));
         return recipes;
+    }
+
+    public RecipeExtend recipeExtend(Integer recipeId) {
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        logger.info("RecipeManager recipeExtend recipeExtend:{}", JSON.toJSONString(recipeExtend));
+        return recipeExtend;
     }
 
 

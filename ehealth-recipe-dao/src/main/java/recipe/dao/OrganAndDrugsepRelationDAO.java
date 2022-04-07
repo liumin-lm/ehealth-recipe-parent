@@ -66,6 +66,16 @@ public abstract class OrganAndDrugsepRelationDAO extends HibernateSupportDelegat
     public abstract List<OrganAndDrugsepRelation> findByEntId(@DAOParam("entId") Integer entId);
 
     /**
+     * 获取机构下的药企
+     *
+     * @param organId
+     * @param entIds
+     * @return
+     */
+    @DAOMethod(sql = "from OrganAndDrugsepRelation where organId = :organId and drugsEnterpriseId in (:entIds)")
+    public abstract List<OrganAndDrugsepRelation> findByOrganIdEntId(@DAOParam("organId") Integer organId, @DAOParam("entIds") List<Integer> entIds);
+
+    /**
      * 根据机构id和状态获取
      *
      * @param organId
