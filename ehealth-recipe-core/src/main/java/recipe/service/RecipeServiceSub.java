@@ -1240,7 +1240,12 @@ public class RecipeServiceSub {
                 case RecipeStatusConstant.SIGN_ERROR_CODE_DOC:
                     //    recipeLog = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), status);
                     tips = "处方签名失败";
-                    cancelReason = "处方签名失败！";
+                    RecipeExtend recipeExt = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                    if(StringUtils.isNotEmpty(recipeExt.getSignFailReason())){
+                        cancelReason = recipeExt.getSignFailReason();
+                    }else{
+                        cancelReason = "处方签名失败！";
+                    }
 //                    if (recipeLog != null && recipeLog.size() > 0) {
 //                        cancelReason = "处方签名失败:" + recipeLog.get(0).getMemo();
 //                    } else {
