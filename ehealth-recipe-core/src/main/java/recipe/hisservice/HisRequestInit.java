@@ -359,6 +359,9 @@ public class HisRequestInit {
                     //是否代煎
                     requestTO.setGenerationisOfDecoction(decoctionWay.getGenerationisOfDecoction());
                 }
+                if(StringUtils.isNotBlank(recipeExtend.getDoctorIsDecoction())){
+                    requestTO.setGenerationisOfDecoction(Boolean.valueOf(recipeExtend.getDoctorIsDecoction()));
+                }
                 if (StringUtils.isNotBlank(recipeExtend.getMakeMethodId())) {
                     DrugMakingMethod drugMakingMethod = drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
                     requestTO.getRecipeExtend().setMakeMethod(drugMakingMethod.getMethodCode());

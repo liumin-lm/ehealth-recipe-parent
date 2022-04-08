@@ -292,10 +292,16 @@ public class RecipeServiceSub {
                 }
             }
             try {
+                DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
                 if (null == recipeExtend.getDoctorIsDecoction()) {
                     recipeExtend.setDoctorIsDecoction("0");
                     if (StringUtils.isNotEmpty(recipeExtend.getDecoctionId())) {
-                        recipeExtend.setDoctorIsDecoction("1");
+                        DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+                        if(decoctionWay.getGenerationisOfDecoction()){
+                            recipeExtend.setDoctorIsDecoction("1");
+                        }else {
+                            recipeExtend.setDoctorIsDecoction("0");
+                        }
                     }
                 }
             } catch (Exception e) {
