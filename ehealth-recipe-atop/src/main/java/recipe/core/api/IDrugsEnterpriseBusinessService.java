@@ -11,6 +11,7 @@ import ctd.persistence.bean.QueryResult;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.greenroom.OrganEnterpriseRelationVo;
 import recipe.vo.greenroom.PharmacyVO;
+import recipe.vo.patient.CheckAddressReq;
 
 import java.util.List;
 
@@ -89,5 +90,18 @@ public interface IDrugsEnterpriseBusinessService {
      */
     List<OrganAndDrugsepRelation> findOrganAndDrugsepRelationBean(Integer enterpriseId);
 
+    /**
+     * 获取机构药企煎法 信息
+     * @param enterpriseId
+     * @param organId
+     * @return
+     */
     List<EnterpriseDecoctionList> findEnterpriseDecoctionList(Integer enterpriseId, Integer organId);
+
+    /**
+     * 校验机构药企煎法 地址
+     * @param checkAddressReq
+     * @return
+     */
+    Boolean checkEnterpriseDecoctionAddress(CheckAddressReq checkAddressReq);
 }

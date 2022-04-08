@@ -25,6 +25,7 @@ import recipe.util.ObjectCopyUtils;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.greenroom.OrganEnterpriseRelationVo;
 import recipe.vo.greenroom.PharmacyVO;
+import recipe.vo.patient.CheckAddressReq;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -176,7 +177,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         }
         List<EnterpriseDecoctionAddress> enterpriseDecoctionAddresses = enterpriseDecoctionAddressDAO.findEnterpriseDecoctionAddressListByOrganIdAndEntId(organId, enterpriseId);
         Map<Integer, List<EnterpriseDecoctionAddress>> collect = null;
-        if(CollectionUtils.isNotEmpty(enterpriseDecoctionAddresses)){
+        if (CollectionUtils.isNotEmpty(enterpriseDecoctionAddresses)) {
             collect = enterpriseDecoctionAddresses.stream().collect(Collectors.groupingBy(EnterpriseDecoctionAddress::getDecoctionId));
         }
         // 获取机构下的所有煎法
@@ -189,7 +190,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
                 enterpriseDecoctionList.setDecoctionId(decoctionWay.getDecoctionId());
                 enterpriseDecoctionList.setDecoctionName(decoctionWay.getDecoctionText());
                 int status = 0;
-                if(MapUtils.isNotEmpty(finalCollect) && CollectionUtils.isNotEmpty(finalCollect.get(decoctionWay.getDecoctionId()))){
+                if (MapUtils.isNotEmpty(finalCollect) && CollectionUtils.isNotEmpty(finalCollect.get(decoctionWay.getDecoctionId()))) {
                     status = 1;
                 }
                 enterpriseDecoctionList.setStatus(status);
@@ -197,5 +198,34 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
             return enterpriseDecoctionList;
         }).filter(Objects::nonNull).collect(Collectors.toList());
         return enterpriseDecoctionLists;
+    }
+
+    @Override
+    public Boolean checkEnterpriseDecoctionAddress(CheckAddressReq checkAddressReq) {
+        List<EnterpriseDecoctionAddress> enterpriseDecoctionAddressList = enterpriseDecoctionAddressDAO.findEnterpriseDecoctionAddressList(checkAddressReq.getOrganId(),
+                checkAddressReq.getEnterpriseId(),
+                checkAddressReq.getDecoctionId());
+        if (CollectionUtils.isNotEmpty(enterpriseDecoctionAddressList)) {
+            return false;
+        }
+        // 配送地址精确到区域,区域可以配送就可以配送
+        if (addressCanSend(enterpriseDecoctionAddressList, checkAddressReq.getAddress3())) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean addressCanSend(List<EnterpriseDecoctionAddress> list, String address) {
+        boolean flag = false;
+        if (StringUtils.isEmpty(address)) {
+            return flag;
+        }
+        for (EnterpriseDecoctionAddress e : list) {
+            if (e.getAddress().startsWith(address)) {
+                flag = true;
+                break;
+            }
+        }
+        return flag;
     }
 }
