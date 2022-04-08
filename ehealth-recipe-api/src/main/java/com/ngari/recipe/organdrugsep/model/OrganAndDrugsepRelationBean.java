@@ -1,5 +1,6 @@
 package com.ngari.recipe.organdrugsep.model;
 
+import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
@@ -22,6 +23,7 @@ public class OrganAndDrugsepRelationBean implements java.io.Serializable {
     private Integer id;
 
     @ItemProperty(alias = "组织序号")
+    @Dictionary(id = "eh.base.dictionary.Organ")
     private Integer organId;
 
     @ItemProperty(alias = "药企序号")

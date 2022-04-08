@@ -1,11 +1,17 @@
 package recipe.core.api;
 
+import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressDTO;
+import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
+import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
 import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.EnterpriseDecoctionAddress;
+import com.ngari.recipe.entity.OrganAndDrugsepRelation;
 import com.ngari.recipe.entity.OrganDrugsSaleConfig;
 import ctd.persistence.bean.QueryResult;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.greenroom.OrganEnterpriseRelationVo;
 import recipe.vo.greenroom.PharmacyVO;
+import recipe.vo.patient.CheckAddressReq;
 
 import java.util.List;
 
@@ -63,4 +69,39 @@ public interface IDrugsEnterpriseBusinessService {
      * @return
      */
     List<PharmacyVO> pharmacy();
+
+    /**
+     * 新增药企煎法地址
+     * @param enterpriseDecoctionAddressReq
+     */
+    void addEnterpriseDecoctionAddressList(EnterpriseDecoctionAddressReq enterpriseDecoctionAddressReq);
+
+    /**
+     * 查询药企煎法地址
+     * @param enterpriseDecoctionAddressReq
+     * @return
+     */
+    List<EnterpriseDecoctionAddress> findEnterpriseDecoctionAddressList(EnterpriseDecoctionAddressReq enterpriseDecoctionAddressReq);
+
+    /**
+     * 根据药企id获取机构列表
+     * @param enterpriseId
+     * @return
+     */
+    List<OrganAndDrugsepRelation> findOrganAndDrugsepRelationBean(Integer enterpriseId);
+
+    /**
+     * 获取机构药企煎法 信息
+     * @param enterpriseId
+     * @param organId
+     * @return
+     */
+    List<EnterpriseDecoctionList> findEnterpriseDecoctionList(Integer enterpriseId, Integer organId);
+
+    /**
+     * 校验机构药企煎法 地址
+     * @param checkAddressReq
+     * @return
+     */
+    Boolean checkEnterpriseDecoctionAddress(CheckAddressReq checkAddressReq);
 }

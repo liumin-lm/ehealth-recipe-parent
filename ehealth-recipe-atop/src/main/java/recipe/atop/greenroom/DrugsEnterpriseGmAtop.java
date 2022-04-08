@@ -1,11 +1,15 @@
 package recipe.atop.greenroom;
 
-import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
+import com.ngari.recipe.drugsenterprise.model.*;
 import com.ngari.recipe.entity.DrugsEnterprise;
+import com.ngari.recipe.entity.EnterpriseDecoctionAddress;
+import com.ngari.recipe.entity.OrganAndDrugsepRelation;
 import com.ngari.recipe.entity.OrganDrugsSaleConfig;
+import com.ngari.recipe.organdrugsep.model.OrganAndDrugsepRelationBean;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.utils.BeanCopyUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
@@ -32,6 +36,55 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
 
     @Autowired
     private IDrugsEnterpriseBusinessService enterpriseBusinessService;
+
+
+    /**
+     * 根据药企机构查询煎法
+     *
+     * @param enterpriseId
+     */
+    @RpcService
+    public List<EnterpriseDecoctionList> findEnterpriseDecoctionList(Integer enterpriseId,Integer organId) {
+        validateAtop(enterpriseId,organId);
+        List<EnterpriseDecoctionList> list = enterpriseBusinessService.findEnterpriseDecoctionList(enterpriseId,organId);
+        return list;
+    }
+
+    /**
+     * 根据药企查询机构
+     *
+     * @param enterpriseId
+     */
+    @RpcService
+    public List<OrganAndDrugsepRelationBean> findOrganAndDrugsepRelationBean(Integer enterpriseId) {
+        validateAtop(enterpriseId);
+        List<OrganAndDrugsepRelation> organAndDrugsepRelations = enterpriseBusinessService.findOrganAndDrugsepRelationBean(enterpriseId);
+        return BeanCopyUtils.copyList(organAndDrugsepRelations,OrganAndDrugsepRelationBean::new);
+    }
+
+    /**
+     * 新增药企煎法地址
+     *
+     * @param enterpriseDecoctionAddressReq
+     */
+    @RpcService
+    public List<EnterpriseDecoctionAddressDTO> addEnterpriseDecoctionAddressList(EnterpriseDecoctionAddressReq enterpriseDecoctionAddressReq) {
+        validateAtop(enterpriseDecoctionAddressReq.getOrganId(), enterpriseDecoctionAddressReq.getEnterpriseId(), enterpriseDecoctionAddressReq.getDecoctionId());
+        enterpriseBusinessService.addEnterpriseDecoctionAddressList(enterpriseDecoctionAddressReq);
+        return enterpriseDecoctionAddressReq.getEnterpriseDecoctionAddressDTOS();
+    }
+
+    /**
+     * 查询药企煎法地址
+     *
+     * @param enterpriseDecoctionAddressReq
+     */
+    @RpcService
+    public List<EnterpriseDecoctionAddressDTO> findEnterpriseDecoctionAddressList(EnterpriseDecoctionAddressReq enterpriseDecoctionAddressReq) {
+        validateAtop(enterpriseDecoctionAddressReq.getOrganId(), enterpriseDecoctionAddressReq.getEnterpriseId(), enterpriseDecoctionAddressReq.getDecoctionId());
+        List<EnterpriseDecoctionAddress> list = enterpriseBusinessService.findEnterpriseDecoctionAddressList(enterpriseDecoctionAddressReq);
+        return BeanCopyUtils.copyList(list, EnterpriseDecoctionAddressDTO::new);
+    }
 
     /**
      * 查询药企列表
@@ -121,7 +174,7 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
      */
     @RpcService
     public OrganDrugsSaleConfigVo saveOrganDrugsSaleConfig(OrganDrugsSaleConfigVo organDrugsSaleConfigVo) {
-        validateAtop( organDrugsSaleConfigVo.getDrugsEnterpriseId());
+        validateAtop(organDrugsSaleConfigVo.getDrugsEnterpriseId());
         enterpriseBusinessService.saveOrganDrugsSaleConfig(organDrugsSaleConfigVo);
         return organDrugsSaleConfigVo;
     }

@@ -84,6 +84,8 @@ public class EnterpriseManager extends BaseManager {
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
     private PharmacyDAO pharmacyDAO;
+    @Autowired
+    private EnterpriseDecoctionAddressDAO enterpriseDecoctionAddressDAO;
 
     /**
      * 到院取药获取取药点
@@ -796,6 +798,35 @@ public class EnterpriseManager extends BaseManager {
 
     public List<Pharmacy> pharmacy() {
         return pharmacyDAO.find1();
+    }
+
+    /**
+     * 先删除所有机构药企煎法关联的地址
+     * @param organId
+     * @param enterpriseId
+     * @param decoctionId
+     */
+    public void deleteEnterpriseDecoctionAddress(Integer organId, Integer enterpriseId, Integer decoctionId) {
+        enterpriseDecoctionAddressDAO.deleteEnterpriseDecoctionAddress(organId,enterpriseId,decoctionId);
+    }
+
+    /**
+     * 更新机构药企煎法关联的地址
+     * @param enterpriseDecoctionAddresses
+     */
+    public void addEnterpriseDecoctionAddressList(List<EnterpriseDecoctionAddress> enterpriseDecoctionAddresses) {
+        enterpriseDecoctionAddressDAO.addEnterpriseDecoctionAddressList(enterpriseDecoctionAddresses);
+    }
+
+    /**
+     * 查询药企煎法地址
+     * @param organId
+     * @param enterpriseId
+     * @param decoctionId
+     * @return
+     */
+    public List<EnterpriseDecoctionAddress> findEnterpriseDecoctionAddressList(Integer organId, Integer enterpriseId, Integer decoctionId) {
+        return enterpriseDecoctionAddressDAO.findEnterpriseDecoctionAddressList(organId,enterpriseId,decoctionId);
     }
 }
 
