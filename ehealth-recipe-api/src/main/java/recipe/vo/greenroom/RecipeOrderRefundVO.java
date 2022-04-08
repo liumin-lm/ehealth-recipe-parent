@@ -1,0 +1,59 @@
+package recipe.vo.greenroom;
+
+import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import ctd.schema.annotation.ItemProperty;
+import ctd.schema.annotation.Schema;
+import lombok.Getter;
+import lombok.Setter;
+import recipe.vo.PageVO;
+
+import java.io.Serializable;
+import java.math.BigDecimal;
+import java.util.List;
+
+/**
+ * 运营平台处方订单退费
+ * @author yinsheng
+ * @date 2022/04/07 15:41
+ */
+@Getter
+@Setter
+public class RecipeOrderRefundVO implements Serializable {
+    private static final long serialVersionUID = -6152135464708446009L;
+
+    @ItemProperty(alias = "定单号")
+    private String orderCode;
+
+    @ItemProperty(alias = "取药凭证")
+    private String takeDrugsVoucher;
+
+    @ItemProperty(alias = "支付金额")
+    private Double actualPrice;
+
+    @ItemProperty(alias = "发货状态")
+    private String sendStatusText;
+
+    @ItemProperty(alias = "购药方式")
+    private String giveModeText;
+
+    @ItemProperty(alias = "支付方式")
+    private String payModeText;
+
+    @ItemProperty(alias = "出售药企药店")
+    private String depName;
+
+    @ItemProperty(alias = "下单人")
+    private String patientName;
+
+    @ItemProperty(alias = "下单渠道")
+    private String channel;
+
+    @ItemProperty(alias = "下单时间")
+    private String createTime;
+
+    @ItemProperty(alias = "订单状态")
+    private String orderStatusText;
+
+    @ItemProperty(alias = "退货状态")
+    private String refundStatusText;
+}

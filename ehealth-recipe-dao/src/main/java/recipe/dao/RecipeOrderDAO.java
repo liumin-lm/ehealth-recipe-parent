@@ -2,6 +2,7 @@ package recipe.dao;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
+import com.ngari.recipe.dto.RecipeOrderRefundReqDTO;
 import com.ngari.recipe.dto.RegulationChargeDetailDTO;
 import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.pay.model.BusBillDateAccountDTO;
@@ -1600,6 +1601,122 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
+    }
+
+    public List<RecipeOrder> findRefundRecipeOrder (RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
+        HibernateStatelessResultAction<List<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrder>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = getRefundStringBuilder(recipeOrderRefundReqDTO, 1);
+                Query q = ss.createQuery(hql.toString());
+
+                String orderCode = recipeOrderRefundReqDTO.getOrderCode();
+                String patientName = recipeOrderRefundReqDTO.getPatientName();
+                Integer organId = recipeOrderRefundReqDTO.getOrganId();
+                Integer orderStatus = recipeOrderRefundReqDTO.getOrderStatus();
+                Integer payFlag = recipeOrderRefundReqDTO.getPayFlag();
+
+                if (StringUtils.isNotEmpty(orderCode)) {
+                    q.setParameter("orderCode", orderCode);
+                }
+                if (StringUtils.isNotEmpty(patientName)) {
+                    q.setParameter("patientName", patientName);
+                }
+                if (null != organId) {
+                    q.setParameter("organId", organId);
+                }
+                if (null != orderStatus) {
+                    q.setParameter("orderStatus", orderStatus);
+                }
+                if (null != payFlag) {
+                    q.setParameter("payFlag", payFlag);
+                }
+                if (null != recipeOrderRefundReqDTO.getBeginTime()) {
+                    q.setParameter("startTime", recipeOrderRefundReqDTO.getBeginTime());
+                }
+                if (null != recipeOrderRefundReqDTO.getEndTime()) {
+                    q.setParameter("endTime", recipeOrderRefundReqDTO.getEndTime());
+                }
+                q.setFirstResult(recipeOrderRefundReqDTO.getStart());
+                q.setMaxResults(recipeOrderRefundReqDTO.getLimit());
+                setResult(q.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    public Long findRefundRecipeOrderCount(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
+        AbstractHibernateStatelessResultAction<Long> action = new AbstractHibernateStatelessResultAction<Long>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = getRefundStringBuilder(recipeOrderRefundReqDTO, 2);
+                Query q = ss.createQuery(hql.toString());
+
+                String orderCode = recipeOrderRefundReqDTO.getOrderCode();
+                String patientName = recipeOrderRefundReqDTO.getPatientName();
+                Integer organId = recipeOrderRefundReqDTO.getOrganId();
+                Integer orderStatus = recipeOrderRefundReqDTO.getOrderStatus();
+                Integer payFlag = recipeOrderRefundReqDTO.getPayFlag();
+
+                if (StringUtils.isNotEmpty(orderCode)) {
+                    q.setParameter("orderCode", orderCode);
+                }
+                if (StringUtils.isNotEmpty(patientName)) {
+                    q.setParameter("patientName", patientName);
+                }
+                if (null != organId) {
+                    q.setParameter("organId", organId);
+                }
+                if (null != orderStatus) {
+                    q.setParameter("orderStatus", orderStatus);
+                }
+                if (null != payFlag) {
+                    q.setParameter("payFlag", payFlag);
+                }
+                if (null != recipeOrderRefundReqDTO.getBeginTime()) {
+                    q.setParameter("startTime", recipeOrderRefundReqDTO.getBeginTime());
+                }
+                if (null != recipeOrderRefundReqDTO.getEndTime()) {
+                    q.setParameter("endTime", recipeOrderRefundReqDTO.getEndTime());
+                }
+                Long num = (Long) q.uniqueResult();
+                setResult(num);
+            }
+        };
+        HibernateSessionTemplate.instance().executeReadOnly(action);
+        return action.getResult();
+    }
+
+    private StringBuilder getRefundStringBuilder(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO, Integer type) {
+        StringBuilder hql = new StringBuilder();
+        if (type == 1) {
+            hql.append("select a from RecipeOrder a,Recipe b where a.orderCode = b.orderCode AND a.payFlag != 0 ");
+        } else {
+            hql.append("select count(*) from RecipeOrder a,Recipe b where a.orderCode = b.orderCode AND a.payFlag != 0 ");
+        }
+        if (StringUtils.isNotEmpty(recipeOrderRefundReqDTO.getOrderCode())) {
+            hql.append(" AND a.orderCode =:orderCode ");
+        }
+        if (StringUtils.isNotEmpty(recipeOrderRefundReqDTO.getPatientName())) {
+            hql.append(" AND a.patientName like :patientName ");
+        }
+        if (null != recipeOrderRefundReqDTO.getOrganId()) {
+            hql.append(" AND a.organId =:organId");
+        }
+        if (null != recipeOrderRefundReqDTO.getOrderStatus()) {
+            hql.append(" AND a.status =:orderStatus ");
+        }
+        if (null != recipeOrderRefundReqDTO.getPayFlag()) {
+            hql.append(" AND a.payFlag =:payFlag ");
+        }
+        if (null != recipeOrderRefundReqDTO.getBeginTime()) {
+            hql.append(" AND a.createTime >= :startTime ");
+        }
+        if (null != recipeOrderRefundReqDTO.getEndTime()) {
+            hql.append(" AND a.createTime <= :endTime ");
+        }
+        return hql;
     }
 
     private StringBuilder findSqlForfindByPayTimeAndOrganIdAndPayOrganId(String billDate, Integer organId, String payOrganId) {

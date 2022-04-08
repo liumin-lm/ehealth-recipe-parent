@@ -37,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.client.IConfigurationClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.enumerate.status.OrderStateEnum;
@@ -77,6 +78,8 @@ public class RecipeRefundService extends RecipeBaseService {
     private OrderManager orderManager;
     @Autowired
     private StateManager stateManager;
+    @Autowired
+    private IConfigurationClient configurationClient;
 
     /*
      * @description 向his申请处方退费接口
@@ -286,9 +289,7 @@ public class RecipeRefundService extends RecipeBaseService {
                     //退费应该按取消处方处理通知给药企
                     doCancelRecipeForEnterprise(recipe);
                     busActionLogService.recordBusinessLogRpcNew("电子处方详情页-退费审核", recipe.getRecipeId() + "", "recipe", "电子处方订单【" + recipe.getRecipeCode() + "】第三方退费审核通过", recipe.getOrganName());
-
                 }
-
             } else {
                 //退费申请记录保存
                 RecipeRefund recipeRefund = new RecipeRefund();
@@ -300,8 +301,12 @@ public class RecipeRefundService extends RecipeBaseService {
                 recipeReFundSave(recipe, recipeRefund);
                 //药企审核不通过
                 RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_REFUND_HIS_OR_PHARMACEUTICAL_AUDIT_FAIL);
-                updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_NOPASS_AUDIT_STATUS);
                 busActionLogService.recordBusinessLogRpcNew("电子处方详情页-退费审核", recipe.getRecipeId() + "", "recipe", "电子处方订单【" + recipe.getRecipeCode() + "】第三方退费审核不通过", recipe.getOrganName());
+                //退费审核不通过 需要看是否管理员可强制退费
+                Boolean forceRecipeRefundFlag = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "forceRecipeRefundFlag", false);
+                if (!forceRecipeRefundFlag) {
+                    updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_NOPASS_AUDIT_STATUS);
+                }
             }
         }
     }
