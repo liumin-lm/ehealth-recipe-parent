@@ -15,11 +15,13 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
+import recipe.core.api.IDrugsEnterpriseBusinessService;
 import recipe.core.api.IStockBusinessService;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
 import recipe.vo.doctor.ValidateDetailVO;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
+import recipe.vo.patient.CheckAddressReq;
 import recipe.vo.patient.MedicineStationVO;
 
 import java.math.BigDecimal;
@@ -36,7 +38,20 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
 
     @Autowired
     private IStockBusinessService iDrugEnterpriseBusinessService;
+    @Autowired
+    private IDrugsEnterpriseBusinessService enterpriseBusinessService;
 
+
+    /**
+     * 校验煎法是否可以配送地址
+     * @param checkAddressReq
+     * @return
+     */
+    @RpcService
+    public Boolean checkEnterpriseDecoctionAddress(CheckAddressReq checkAddressReq){
+        validateAtop(checkAddressReq, checkAddressReq.getOrganId(), checkAddressReq.getEnterpriseId(),checkAddressReq.getDecoctionId(),checkAddressReq.getAddress3());
+        return enterpriseBusinessService.checkEnterpriseDecoctionAddress(checkAddressReq);
+    }
 
     /**
      * 医生指定药企列表

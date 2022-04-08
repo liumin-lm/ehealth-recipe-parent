@@ -256,7 +256,7 @@ public class RecipeSingleService {
     public String getStatusText(Recipe dbRecipe, RecipeOrder order) {
         // 根据当前状态返回前端显示状态文案
         String statusTxt = "";
-        if (order.getStatus() == OrderStatusConstant.CANCEL_AUTO) {
+        if (null != order && order.getStatus() == OrderStatusConstant.CANCEL_AUTO) {
             statusTxt = "已取消";
             return statusTxt;
         }
@@ -277,10 +277,10 @@ public class RecipeSingleService {
             //审核通过
             case RecipeStatusConstant.CHECK_PASS_YS:
                 //患者自选未支付或药店取药未支付
-                if (Integer.valueOf(1).equals(order.getPushFlag())) {
+                if (null != order && Integer.valueOf(1).equals(order.getPushFlag())) {
                     statusTxt = "审核通过，第三方已接收";
 
-                } else if (Integer.valueOf(-1).equals(order.getPushFlag())) {
+                } else if (null != order && Integer.valueOf(-1).equals(order.getPushFlag())) {
                     statusTxt = "审核通过，第三方接收失败";
 
                 }
