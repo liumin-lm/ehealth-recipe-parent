@@ -358,6 +358,25 @@ public class SymptomService implements ISymptomService {
         return ObjectCopyUtils.convert(byOrganId, SymptomDTO.class);
     }
 
+    /**
+     * 根据机构Id和证候编码集合查询中医症候
+     *
+     * @param organId
+     * @return
+     */
+    @Override
+    public List<SymptomDTO> querSymptomByOrganIdAndCodes(Integer organId,List<String> codes) {
+        if (null == organId) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "机构Id不能为空");
+        }
+        if (ObjectUtils.isEmpty(codes)) {
+           return Lists.newArrayList();
+        }
+        SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
+        List<Symptom> byOrganId = symptomDAO.findByOrganIdANDCodes(organId,codes);
+        return ObjectCopyUtils.convert(byOrganId, SymptomDTO.class);
+    }
+
 
     /**
      * 根据机构Id查询中医症候未关联监管平台数量
