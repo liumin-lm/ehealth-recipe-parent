@@ -20,6 +20,7 @@ import ctd.util.converter.ConversionUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
+import org.hibernate.SQLQuery;
 import org.hibernate.StatelessSession;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,7 @@ import recipe.dao.comment.ExtendDao;
 import recipe.enumerate.status.PayWayEnum;
 
 import java.math.BigDecimal;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -1603,98 +1605,70 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return action.getResult();
     }
 
-    public List<RecipeOrder> findRefundRecipeOrder (RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
-        HibernateStatelessResultAction<List<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrder>>() {
+    public QueryResult<RecipeOrder> findRefundRecipeOrder(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
+        final StringBuilder sbHql = this.generateRecipeHQL(recipeOrderRefundReqDTO);
+        final StringBuilder sbHqlCount = this.generateRecipeHQLCount(recipeOrderRefundReqDTO);
+        HibernateStatelessResultAction<QueryResult<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeOrder>>(){
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = getRefundStringBuilder(recipeOrderRefundReqDTO, 1);
-                Query q = ss.createQuery(hql.toString());
-
-                String orderCode = recipeOrderRefundReqDTO.getOrderCode();
-                String patientName = recipeOrderRefundReqDTO.getPatientName();
-                Integer organId = recipeOrderRefundReqDTO.getOrganId();
-                Integer orderStatus = recipeOrderRefundReqDTO.getOrderStatus();
-                Integer payFlag = recipeOrderRefundReqDTO.getPayFlag();
-
-                if (StringUtils.isNotEmpty(orderCode)) {
-                    q.setParameter("orderCode", orderCode);
-                }
-                if (StringUtils.isNotEmpty(patientName)) {
-                    q.setParameter("patientName", patientName);
-                }
-                if (null != organId) {
-                    q.setParameter("organId", organId);
-                }
-                if (null != orderStatus) {
-                    q.setParameter("orderStatus", orderStatus);
-                }
-                if (null != payFlag) {
-                    q.setParameter("payFlag", payFlag);
-                }
-                if (null != recipeOrderRefundReqDTO.getBeginTime()) {
-                    q.setParameter("startTime", recipeOrderRefundReqDTO.getBeginTime());
-                }
-                if (null != recipeOrderRefundReqDTO.getEndTime()) {
-                    q.setParameter("endTime", recipeOrderRefundReqDTO.getEndTime());
-                }
-                q.setFirstResult(recipeOrderRefundReqDTO.getStart());
-                q.setMaxResults(recipeOrderRefundReqDTO.getLimit());
-                setResult(q.list());
+                // 查询总记录数
+                SQLQuery sqlQuery = ss.createSQLQuery(sbHqlCount.toString());
+                setRefundParameter(sqlQuery, recipeOrderRefundReqDTO);
+                Long total = Long.valueOf(String.valueOf((sqlQuery.uniqueResult())));
+                // 查询结果
+                Query query = ss.createSQLQuery(sbHql.append(" order by a.CreateTime DESC").toString()).addEntity(RecipeOrder.class);
+                setRefundParameter(query, recipeOrderRefundReqDTO);
+                query.setFirstResult(recipeOrderRefundReqDTO.getStart());
+                query.setMaxResults(recipeOrderRefundReqDTO.getLimit());
+                List<RecipeOrder> recipeOrderList = query.list();
+                setResult(new QueryResult<>(total, query.getFirstResult(), query.getMaxResults(), recipeOrderList));
             }
         };
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
 
-    public Long findRefundRecipeOrderCount(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
-        AbstractHibernateStatelessResultAction<Long> action = new AbstractHibernateStatelessResultAction<Long>() {
-            @Override
-            public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = getRefundStringBuilder(recipeOrderRefundReqDTO, 2);
-                Query q = ss.createQuery(hql.toString());
+    private void setRefundParameter(Query query, RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
+        String orderCode = recipeOrderRefundReqDTO.getOrderCode();
+        String patientName = recipeOrderRefundReqDTO.getPatientName();
+        Integer organId = recipeOrderRefundReqDTO.getOrganId();
+        Integer orderStatus = recipeOrderRefundReqDTO.getOrderStatus();
+        Integer payFlag = recipeOrderRefundReqDTO.getPayFlag();
 
-                String orderCode = recipeOrderRefundReqDTO.getOrderCode();
-                String patientName = recipeOrderRefundReqDTO.getPatientName();
-                Integer organId = recipeOrderRefundReqDTO.getOrganId();
-                Integer orderStatus = recipeOrderRefundReqDTO.getOrderStatus();
-                Integer payFlag = recipeOrderRefundReqDTO.getPayFlag();
-
-                if (StringUtils.isNotEmpty(orderCode)) {
-                    q.setParameter("orderCode", orderCode);
-                }
-                if (StringUtils.isNotEmpty(patientName)) {
-                    q.setParameter("patientName", patientName);
-                }
-                if (null != organId) {
-                    q.setParameter("organId", organId);
-                }
-                if (null != orderStatus) {
-                    q.setParameter("orderStatus", orderStatus);
-                }
-                if (null != payFlag) {
-                    q.setParameter("payFlag", payFlag);
-                }
-                if (null != recipeOrderRefundReqDTO.getBeginTime()) {
-                    q.setParameter("startTime", recipeOrderRefundReqDTO.getBeginTime());
-                }
-                if (null != recipeOrderRefundReqDTO.getEndTime()) {
-                    q.setParameter("endTime", recipeOrderRefundReqDTO.getEndTime());
-                }
-                Long num = (Long) q.uniqueResult();
-                setResult(num);
-            }
-        };
-        HibernateSessionTemplate.instance().executeReadOnly(action);
-        return action.getResult();
+        if (StringUtils.isNotEmpty(orderCode)) {
+            query.setParameter("orderCode", orderCode);
+        }
+        if (StringUtils.isNotEmpty(patientName)) {
+            query.setParameter("patientName", patientName);
+        }
+        if (null != organId) {
+            query.setParameter("organId", organId);
+        }
+        if (null != orderStatus) {
+            query.setParameter("orderStatus", orderStatus);
+        }
+        if (null != payFlag) {
+            query.setParameter("payFlag", payFlag);
+        }
+        if (null != recipeOrderRefundReqDTO.getBeginTime()) {
+            query.setParameter("startTime", recipeOrderRefundReqDTO.getBeginTime());
+        }
+        if (null != recipeOrderRefundReqDTO.getEndTime()) {
+            query.setParameter("endTime", recipeOrderRefundReqDTO.getEndTime());
+        }
     }
 
-    private StringBuilder getRefundStringBuilder(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO, Integer type) {
-        StringBuilder hql = new StringBuilder();
-        if (type == 1) {
-            hql.append("select a from RecipeOrder a,Recipe b where a.orderCode = b.orderCode AND a.payFlag != 0 ");
-        } else {
-            hql.append("select count(*) from RecipeOrder a,Recipe b where a.orderCode = b.orderCode AND a.payFlag != 0 ");
-        }
+    protected StringBuilder generateRecipeHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
+        StringBuilder hql = new StringBuilder("select a.* from cdr_recipeorder a,cdr_recipe b where a.orderCode = b.orderCode AND a.payFlag != 0 ");
+        return getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
+    }
+
+    protected StringBuilder generateRecipeHQLCount(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
+        StringBuilder hql = new StringBuilder("select count(1) from cdr_recipeorder a,cdr_recipe b where a.orderCode = b.orderCode AND a.payFlag != 0 ");
+        return getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
+    }
+
+    private StringBuilder getRefundStringBuilder(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO, StringBuilder hql) {
         if (StringUtils.isNotEmpty(recipeOrderRefundReqDTO.getOrderCode())) {
             hql.append(" AND a.orderCode =:orderCode ");
         }
