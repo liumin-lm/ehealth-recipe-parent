@@ -90,6 +90,7 @@ import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -193,9 +194,13 @@ public class RecipeOrderService extends RecipeBaseService {
         }
         if (null != result && RecipeResultBean.SUCCESS.equals(result.getCode()) && null != result.getObject() && result.getObject() instanceof RecipeOrderBean) {
             order = (RecipeOrderBean) result.getObject();
+            Map<String, Object> ext = result.getExt();
+            order.setDecoctionTotalFee(getBigDecimal(ext.get("decoctionTotalFee")));
+            order.setNotContainDecoctionPrice(getBigDecimal(ext.get("notContainDecoctionPrice")));
         }
         return order;
     }
+
 
     /*
      * @description 获取订单信息跳转地址（互联网）
@@ -2823,5 +2828,22 @@ public class RecipeOrderService extends RecipeBaseService {
             }
         }
         return "";
+    }
+
+
+    private BigDecimal getBigDecimal(Object value) {
+        BigDecimal ret = null;
+        if (value != null) {
+            if (value instanceof BigDecimal) {
+                ret = (BigDecimal) value;
+            } else if (value instanceof String) {
+                ret = new BigDecimal((String) value);
+            } else if (value instanceof BigInteger) {
+                ret = new BigDecimal((BigInteger) value);
+            } else if (value instanceof Number) {
+                ret = new BigDecimal(((Number) value).doubleValue());
+            }
+        }
+        return ret;
     }
 }
