@@ -23,6 +23,8 @@ import java.util.List;
 public class FormWorkRecipeVO implements Serializable {
     private static final long serialVersionUID = 2835067047332365247L;
 
+    //模板ID
+    private Integer mouldId;
     //模板标题
     private String title;
     //处方介绍

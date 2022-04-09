@@ -1,5 +1,6 @@
 package recipe.manager;
 
+import com.alibaba.fastjson.JSONArray;
 import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.his.recipe.mode.RecipeCashPreSettleInfo;
 import com.ngari.his.recipe.mode.RecipeCashPreSettleReqTO;
@@ -95,6 +96,7 @@ public class OrderFeeManager extends BaseManager {
      *
      * @param recipeList
      */
+    @LogRecord
     public void setRecipeChineseMedicineFee(List<Recipe> recipeList, RecipeOrder order, Map<String, Object> ext) {
         // 总贴数
         Integer totalCopyNum = 0;
@@ -117,6 +119,7 @@ public class OrderFeeManager extends BaseManager {
         Map<String, List<HisRecipe>> hisRecipeMap = null;
         List<String> recipeCodes = recipeList.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(recipeCodes)) {
+            logger.info("setRecipeChineseMedicineFee 线下处方 recipeCodes={}", JSONArray.toJSONString(recipeCodes));
             List<HisRecipe> hisRecipes = hisRecipeDAO.findHisRecipeByRecipeCodeAndClinicOrgan(recipeList.get(0).getClinicOrgan(), recipeCodes);
             if (CollectionUtils.isNotEmpty(hisRecipes)) {
                 hisRecipeMap = hisRecipes.stream().collect(Collectors.groupingBy(HisRecipe::getRecipeCode));
@@ -127,6 +130,7 @@ public class OrderFeeManager extends BaseManager {
         Map<Integer, List<RecipeExtend>> recipeExtMap = recipeExtends.stream().collect(Collectors.groupingBy(RecipeExtend::getRecipeId));
         Map<String, List<HisRecipe>> finalHisRecipeMap = hisRecipeMap;
         for (Recipe recipe : recipeList) {
+            logger.info("setRecipeChineseMedicineFee recipeId={}", JSONArray.toJSONString(recipe.getRecipeId()));
             Boolean isCalculateDecoctionFee = false;
             if (MapUtils.isNotEmpty(recipeExtMap) && CollectionUtils.isNotEmpty(recipeExtMap.get(recipe.getRecipeId()))) {
                 RecipeExtend extend = recipeExtMap.get(recipe.getRecipeId()).get(0);
@@ -199,6 +203,7 @@ public class OrderFeeManager extends BaseManager {
         order.setDecoctionUnitPrice(decoctionTotalFee.divide(BigDecimal.valueOf(totalCopyNum)));
         ext.put("notContainDecoctionPrice", notContainDecoctionPrice);
         ext.put("decoctionTotalFee", decoctionTotalFee);
+        logger.info("setRecipeChineseMedicineFee 处方中药相关费用 totalCopyNum={},tcmFee={},decoctionFee={},notContainDecoctionPrice={},decoctionTotalFee={}",totalCopyNum,tcmFee,decoctionFee,notContainDecoctionPrice,decoctionTotalFee);
 
     }
 
