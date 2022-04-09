@@ -17,7 +17,6 @@ import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
-import recipe.constant.HisErrorCodeEnum;
 import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
@@ -41,7 +40,7 @@ import java.util.stream.Collectors;
  * @author yinsheng
  * @date 2021\7\16 0016 14:04
  */
-@RpcBean(value = "outRecipePatientAtop", mvc_authentication = false)
+@RpcBean(value = "outRecipePatientAtop")
 public class RecipePatientAtop extends BaseAtop {
 
     @Autowired
