@@ -1,6 +1,5 @@
 package recipe.atop.patient;
 
-import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.vo.MedicalInsuranceAuthInfoVO;
 import com.ngari.recipe.vo.MedicalInsuranceAuthResVO;
 import com.ngari.recipe.vo.OutPatientReqVO;
