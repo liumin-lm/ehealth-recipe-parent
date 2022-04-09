@@ -12,6 +12,7 @@ import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.RecipeOrderBill;
 import com.ngari.recipe.entity.RecipeRefund;
 import com.ngari.recipe.recipe.model.RecipeRefundBean;
+import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
 import ctd.persistence.DAOFactory;
@@ -458,6 +459,12 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
     public Integer obtainPayMode(Integer payMode, Integer giveMode) {
         return PayModeGiveModeUtil.getPayMode(payMode, giveMode);
 
+    }
+
+    @Override
+    public OrderCreateResult createOrder(List<Integer> recipeIds, Map<String, String> extInfo) {
+        RecipeOrderService service = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+        return service.createOrder(recipeIds, extInfo, 0);
     }
 
 }

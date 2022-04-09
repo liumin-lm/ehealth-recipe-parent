@@ -20,6 +20,7 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussResTO;
+import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.service.IDrugsEnterpriseService;
 import com.ngari.recipe.entity.*;
@@ -30,6 +31,7 @@ import com.ngari.recipe.recipe.constant.RecipePayTipEnum;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.recipeorder.model.ObtainConfirmOrderObjectResNoDS;
+import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -148,6 +150,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         ObtainConfirmOrderObjectResNoDS order = null;
         RecipeExtendBean recipeExtend = null;
         Integer recipeId = null;
+        Map<String, String> map = new HashMap<>();
         //创建订单时的调用
         if (busId == -1) {
             //合并支付改造--创建临时订单时获取处方id列表
@@ -159,12 +162,16 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 order1 = recipeOrderService.getOrderByRecipeId(busId);
                 if (null == order1) {
                     //这里为了组装创建订单时的一些订单数据--此时还未生成处方订单
-                    RecipeBussResTO<RecipeOrderBean> resTO = recipeOrderService.createBlankOrder(recipeIdLists, extInfo);
-                    if (null != resTO) {
-                        order1 = resTO.getData();
-                    } else {
-                        log.info("obtainConfirmOrder createBlankOrder order is null.");
-                        return null;
+                    OrderCreateResult result = recipeOrderService.createOrder(recipeIdLists, extInfo);
+                    if (null != result && RecipeResultBean.FAIL.equals(result.getCode())) {
+                        throw new DAOException(609, result.getMsg() == null ? "创建订单失败" : result.getMsg());
+                    }
+                    if (null != result && RecipeResultBean.SUCCESS.equals(result.getCode()) && null != result.getObject() && result.getObject() instanceof RecipeOrderBean) {
+                        order1 = (RecipeOrderBean) result.getObject();
+                        Map<String, Object> ext = result.getExt();
+                        ext.forEach((key, value) -> {
+                            map.put(key, value.toString());
+                        });
                     }
                 }
             }
@@ -242,14 +249,13 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         confirmOrder.setOrderAmount(orderAmount.stripTrailingZeros().toPlainString());
         confirmOrder.setBusObject(order);
         //设置confirmOrder的扩展信息ext----一些配置信息
-        confirmOrder.setExt(setConfirmOrderExtInfo(order1, recipeId, extInfo, recipeExtend, otherFee));
+        confirmOrder.setExt(setConfirmOrderExtInfo(order1, recipeId, extInfo, recipeExtend, otherFee, map));
         log.info("obtainConfirmOrder recipeId:{} res ={}", recipeId, JSONUtils.toString(confirmOrder));
         return confirmOrder;
     }
 
-    private Map<String, String> setConfirmOrderExtInfo(RecipeOrderBean order, Integer recipeId, Map<String, String> extInfo, RecipeExtendBean recipeExtend, Double orderOtherFee) {
+    private Map<String, String> setConfirmOrderExtInfo(RecipeOrderBean order, Integer recipeId, Map<String, String> extInfo, RecipeExtendBean recipeExtend, Double orderOtherFee, Map<String, String> map) {
         IDrugsEnterpriseService drugsEnterpriseService = RecipeAPI.getService(IDrugsEnterpriseService.class);
-        Map<String, String> map = Maps.newHashMap();
         //返回是否医保处方单
         if (order != null && order.getRegisterNo() != null) {
             map.put("medicalType", "1");
