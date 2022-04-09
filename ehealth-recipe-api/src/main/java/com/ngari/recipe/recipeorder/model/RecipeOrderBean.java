@@ -361,6 +361,27 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "患者选择是否代煎（ 0:否 1：是）")
     private String patientIsDecoction;
 
+    // 总代煎费用
+    private BigDecimal decoctionTotalFee;
+    // 未计入订单的代煎费
+    private BigDecimal notContainDecoctionPrice;
+
+    public BigDecimal getDecoctionTotalFee() {
+        return decoctionTotalFee;
+    }
+
+    public void setDecoctionTotalFee(BigDecimal decoctionTotalFee) {
+        this.decoctionTotalFee = decoctionTotalFee;
+    }
+
+    public BigDecimal getNotContainDecoctionPrice() {
+        return notContainDecoctionPrice;
+    }
+
+    public void setNotContainDecoctionPrice(BigDecimal notContainDecoctionPrice) {
+        this.notContainDecoctionPrice = notContainDecoctionPrice;
+    }
+
     public String getPatientIsDecoction() {
         return patientIsDecoction;
     }

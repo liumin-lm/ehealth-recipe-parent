@@ -461,10 +461,4 @@ public class RemoteRecipeOrderService extends BaseService<RecipeOrderBean> imple
 
     }
 
-    @Override
-    public OrderCreateResult createOrder(List<Integer> recipeIds, Map<String, String> extInfo) {
-        RecipeOrderService service = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-        return service.createOrder(recipeIds, extInfo, 0);
-    }
-
 }

@@ -162,16 +162,14 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 order1 = recipeOrderService.getOrderByRecipeId(busId);
                 if (null == order1) {
                     //这里为了组装创建订单时的一些订单数据--此时还未生成处方订单
-                    OrderCreateResult result = recipeOrderService.createOrder(recipeIdLists, extInfo);
-                    if (null != result && RecipeResultBean.FAIL.equals(result.getCode())) {
-                        throw new DAOException(609, result.getMsg() == null ? "创建订单失败" : result.getMsg());
-                    }
-                    if (null != result && RecipeResultBean.SUCCESS.equals(result.getCode()) && null != result.getObject() && result.getObject() instanceof RecipeOrderBean) {
-                        order1 = (RecipeOrderBean) result.getObject();
-                        Map<String, Object> ext = result.getExt();
-                        ext.forEach((key, value) -> {
-                            map.put(key, value.toString());
-                        });
+                    RecipeBussResTO<RecipeOrderBean> resTO = recipeOrderService.createBlankOrder(recipeIdLists, extInfo);
+                    if (null != resTO) {
+                        order1 = resTO.getData();
+                        map.put("notContainDecoctionPrice", order1.getNotContainDecoctionPrice().toString());
+                        map.put("decoctionTotalFee", order1.getDecoctionTotalFee().toString());
+                    } else {
+                        log.info("obtainConfirmOrder createBlankOrder order is null.");
+                        return null;
                     }
                 }
             }

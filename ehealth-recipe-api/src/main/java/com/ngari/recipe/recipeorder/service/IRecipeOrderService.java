@@ -230,6 +230,4 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
      */
     @RpcService
     Integer obtainPayMode(Integer payMode, Integer giveMode);
-
-    OrderCreateResult createOrder(List<Integer> recipeIds, Map<String, String> extInfo);
 }
