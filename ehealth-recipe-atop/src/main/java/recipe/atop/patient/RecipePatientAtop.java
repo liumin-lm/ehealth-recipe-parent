@@ -17,7 +17,6 @@ import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
-import recipe.constant.HisErrorCodeEnum;
 import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
