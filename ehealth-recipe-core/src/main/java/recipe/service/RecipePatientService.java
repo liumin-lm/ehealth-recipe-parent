@@ -17,15 +17,15 @@ import com.ngari.his.recipe.mode.PatientChronicDiseaseRes;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.MedicalInsuranceAuthResBean;
+import com.ngari.platform.recipe.mode.MedicalInsuranceAuthInfoBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RankShiftList;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.vo.OutPatientReqVO;
-import com.ngari.recipe.vo.PatientInfoVO;
-import com.ngari.recipe.vo.PatientMedicalTypeVO;
+import com.ngari.recipe.vo.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -721,6 +721,26 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             return CheckPatientEnum.CHECK_PATIENT_CARDDEL.getType();
         }
         return CheckPatientEnum.CHECK_PATIENT_NORMAL.getType();
+    }
+
+    @Override
+    public MedicalInsuranceAuthResVO medicalInsuranceAuth(MedicalInsuranceAuthInfoVO medicalInsuranceAuthInfoVO) {
+        String mpiId = medicalInsuranceAuthInfoVO.getMpiId();
+        com.ngari.recipe.dto.PatientDTO patientDTO = patientClient.getPatientDTO(mpiId);
+        MedicalInsuranceAuthInfoBean medicalInsuranceAuthInfoBean = new MedicalInsuranceAuthInfoBean();
+        medicalInsuranceAuthInfoBean.setCallUrl(medicalInsuranceAuthInfoVO.getCallUrl());
+        medicalInsuranceAuthInfoBean.setMpiId(medicalInsuranceAuthInfoVO.getMpiId());
+        medicalInsuranceAuthInfoBean.setUserName(patientDTO.getUserName());
+        medicalInsuranceAuthInfoBean.setOrganId(medicalInsuranceAuthInfoVO.getOrganId());
+        if (null != patientDTO.getCertificateType()) {
+            medicalInsuranceAuthInfoBean.setIdType(patientDTO.getCertificateType()+"");
+            medicalInsuranceAuthInfoBean.setIdNo(patientDTO.getCertificate());
+        } else {
+            medicalInsuranceAuthInfoBean.setIdType("01");
+            medicalInsuranceAuthInfoBean.setIdNo(patientDTO.getCardId());
+        }
+        MedicalInsuranceAuthResBean medicalInsuranceAuthResBean = patientClient.medicalInsuranceAuth(medicalInsuranceAuthInfoBean);
+        return ObjectCopyUtils.convert(medicalInsuranceAuthResBean, MedicalInsuranceAuthResVO.class);
     }
 
     /**

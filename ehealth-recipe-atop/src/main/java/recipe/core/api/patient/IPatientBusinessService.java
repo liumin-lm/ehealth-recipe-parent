@@ -1,9 +1,7 @@
 package recipe.core.api.patient;
 
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.recipe.vo.OutPatientReqVO;
-import com.ngari.recipe.vo.PatientInfoVO;
-import com.ngari.recipe.vo.PatientMedicalTypeVO;
+import com.ngari.recipe.vo.*;
 
 /**
  * @author yinsheng
@@ -18,6 +16,13 @@ public interface IPatientBusinessService {
      * @return 枚举值
      */
     Integer checkCurrentPatient(OutPatientReqVO outPatientReqVO);
+
+    /**
+     * 医保授权操作
+     * @param medicalInsuranceAuthInfoVO
+     * @return
+     */
+    MedicalInsuranceAuthResVO medicalInsuranceAuth(MedicalInsuranceAuthInfoVO medicalInsuranceAuthInfoVO);
 
     /**
      * 根据mpiId获取患者信息
