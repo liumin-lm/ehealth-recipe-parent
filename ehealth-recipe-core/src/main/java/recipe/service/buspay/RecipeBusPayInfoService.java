@@ -165,8 +165,8 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                     RecipeBussResTO<RecipeOrderBean> resTO = recipeOrderService.createBlankOrder(recipeIdLists, extInfo);
                     if (null != resTO) {
                         order1 = resTO.getData();
-                        map.put("notContainDecoctionPrice", order1.getNotContainDecoctionPrice().toString());
-                        map.put("decoctionTotalFee", order1.getDecoctionTotalFee().toString());
+                        map.put("notContainDecoctionPrice", Objects.isNull(order1.getNotContainDecoctionPrice()) ? null : order1.getNotContainDecoctionPrice().toString());
+                        map.put("decoctionTotalFee", Objects.isNull(order1.getDecoctionTotalFee()) ? null : order1.getDecoctionTotalFee().toString());
                     } else {
                         log.info("obtainConfirmOrder createBlankOrder order is null.");
                         return null;
