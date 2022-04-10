@@ -14,6 +14,7 @@ import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.his.recipe.mode.ChronicDiseaseListReqTO;
 import com.ngari.his.recipe.mode.ChronicDiseaseListResTO;
 import com.ngari.his.recipe.mode.PatientChronicDiseaseRes;
+import com.ngari.intface.IJumperAuthorizationService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -86,6 +87,9 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
 
     @Autowired
     private RevisitClient revisitClient;
+
+    @Autowired
+    private IJumperAuthorizationService jumperAuthorizationService;
 
     /**
      * 根据取药方式过滤药企
@@ -732,6 +736,14 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         medicalInsuranceAuthInfoBean.setMpiId(medicalInsuranceAuthInfoVO.getMpiId());
         medicalInsuranceAuthInfoBean.setUserName(patientDTO.getUserName());
         medicalInsuranceAuthInfoBean.setOrganId(medicalInsuranceAuthInfoVO.getOrganId());
+        String openId = patientClient.getOpenId();
+        medicalInsuranceAuthInfoBean.setChnlUserId(openId);
+        Map<String, String> map = new HashMap<>();
+        map.put("cid", medicalInsuranceAuthInfoVO.getRecipeId()+"");
+        map.put("module", "recipeDetail");
+        map.put("organId", medicalInsuranceAuthInfoVO.getOrganId()+"");
+        String callUrl = jumperAuthorizationService.getThirdCallBackUrlCommon(map);
+        medicalInsuranceAuthInfoBean.setCallUrl(callUrl);
         if (null != patientDTO.getCertificateType()) {
             medicalInsuranceAuthInfoBean.setIdType(patientDTO.getCertificateType()+"");
             medicalInsuranceAuthInfoBean.setIdNo(patientDTO.getCertificate());

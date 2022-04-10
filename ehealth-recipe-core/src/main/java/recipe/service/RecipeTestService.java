@@ -82,7 +82,7 @@ public class RecipeTestService {
     public PushRecipeAndOrder getPushRecipeAndOrder(Integer recipeId){
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
-        return enterpriseManager.getPushRecipeAndOrder(recipe, drugsEnterprise);
+        return enterpriseManager.getPushRecipeAndOrder(recipe, drugsEnterprise, "");
     }
 
     /**

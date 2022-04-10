@@ -326,7 +326,7 @@ public class EnterpriseManager extends BaseManager {
      * @param recipeIds 处方id
      * @return
      */
-    public SkipThirdDTO uploadRecipeInfoToThird(Integer organId, String giveMode, List<Integer> recipeIds) {
+    public SkipThirdDTO uploadRecipeInfoToThird(Integer organId, String giveMode, List<Integer> recipeIds, String encData) {
         logger.info("EnterpriseManager uploadRecipeInfoToThird organId:{},giveMode:{},recipeIds:{}", organId, giveMode, JSONUtils.toString(recipeIds));
         //处方选择购药方式时回写his
         Boolean pushToHisAfterChoose = configurationClient.getValueBooleanCatch(organId, "pushToHisAfterChoose", false);
@@ -338,7 +338,7 @@ public class EnterpriseManager extends BaseManager {
         SkipThirdDTO result = null;
         for (Recipe recipe : recipes) {
             recipe.setGiveMode(GiveModeTextEnum.getGiveMode(giveMode));
-            result = pushRecipeForThird(recipe, 1);
+            result = pushRecipeForThird(recipe, 1, encData);
             if (0 == result.getCode()) {
                 break;
             }
@@ -353,7 +353,7 @@ public class EnterpriseManager extends BaseManager {
      * @param node
      * @return
      */
-    public SkipThirdDTO pushRecipeForThird(Recipe recipe, Integer node) {
+    public SkipThirdDTO pushRecipeForThird(Recipe recipe, Integer node, String encData) {
         logger.info("EnterpriseManager pushRecipeForThird recipeId:{}, node:{}.", recipe.getRecipeId(), node);
         SkipThirdDTO result = new SkipThirdDTO();
         result.setCode(1);
@@ -365,7 +365,7 @@ public class EnterpriseManager extends BaseManager {
             try {
                 //todo 只用最后一个返回？
                 if (1 == drugsEnterprise.getOperationType() && ENTERPRISE_BAN_QUE.equals(drugsEnterprise.getAccount())) {
-                    result = pushRecipeInfoForThird(recipe, drugsEnterprise, node);
+                    result = pushRecipeInfoForThird(recipe, drugsEnterprise, node, encData);
                 }
             } catch (Exception e) {
                 logger.error("EnterpriseManager pushRecipeForThird error ", e);
@@ -383,14 +383,14 @@ public class EnterpriseManager extends BaseManager {
      * @param node
      * @return
      */
-    public SkipThirdDTO pushRecipeInfoForThird(Recipe recipe, DrugsEnterprise enterprise, Integer node) {
+    public SkipThirdDTO pushRecipeInfoForThird(Recipe recipe, DrugsEnterprise enterprise, Integer node, String encData) {
         logger.info("RemoteDrugEnterpriseService pushRecipeInfoForThird recipeId:{},enterprise:{},node:{}.", recipe.getRecipeId(), JSONUtils.toString(enterprise), node);
         //传过来的处方不是最新的需要重新从数据库获取
         Recipe recipeNew = recipeDAO.getByRecipeId(recipe.getRecipeId());
         //todo 为什么赋值新的GiveMode 却没有更新到数据库？
         recipeNew.setGiveMode(recipe.getGiveMode());
         //通过前置机进行推送
-        PushRecipeAndOrder pushRecipeAndOrder = getPushRecipeAndOrder(recipeNew, enterprise);
+        PushRecipeAndOrder pushRecipeAndOrder = getPushRecipeAndOrder(recipeNew, enterprise, encData);
         SkipThirdDTO skipThirdDTO = enterpriseClient.pushRecipeInfoForThird(pushRecipeAndOrder, node);
         if (0 == skipThirdDTO.getCode()) {
             saveRecipeLog(recipeNew.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS, "购药按钮药企推送失败:" + skipThirdDTO.getMsg());
@@ -420,7 +420,7 @@ public class EnterpriseManager extends BaseManager {
      * @param enterprise 药企信息
      * @return
      */
-    public PushRecipeAndOrder getPushRecipeAndOrder(Recipe recipe, DrugsEnterprise enterprise) {
+    public PushRecipeAndOrder getPushRecipeAndOrder(Recipe recipe, DrugsEnterprise enterprise, String encData) {
         PushRecipeAndOrder pushRecipeAndOrder = new PushRecipeAndOrder();
         pushRecipeAndOrder.setOrganId(recipe.getClinicOrgan());
         //设置订单信息
@@ -428,6 +428,7 @@ public class EnterpriseManager extends BaseManager {
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             enterpriseClient.addressBean(recipeOrder, pushRecipeAndOrder);
         }
+        pushRecipeAndOrder.setEncData(encData);
         //设置医生信息
         pushRecipeAndOrder.setDoctorDTO(doctorClient.jobNumber(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getDepart()));
         //设置审方药师信息
