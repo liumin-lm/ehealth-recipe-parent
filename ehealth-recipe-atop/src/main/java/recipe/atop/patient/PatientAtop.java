@@ -38,6 +38,7 @@ public class PatientAtop extends BaseAtop {
      * @param medicalInsuranceAuthInfoVO
      * @return
      */
+    @RpcService
     public MedicalInsuranceAuthResVO medicalInsuranceAuth(MedicalInsuranceAuthInfoVO medicalInsuranceAuthInfoVO) {
         validateAtop(medicalInsuranceAuthInfoVO, medicalInsuranceAuthInfoVO.getMpiId());
         return recipePatientService.medicalInsuranceAuth(medicalInsuranceAuthInfoVO);
