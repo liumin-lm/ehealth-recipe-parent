@@ -148,9 +148,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
      */
     @Override
     public SkipThirdDTO uploadRecipeInfoToThird(SkipThirdReqVO skipThirdReqVO) {
-        return enterpriseManager.uploadRecipeInfoToThird(skipThirdReqVO.getOrganId(), skipThirdReqVO.getGiveMode(), skipThirdReqVO.getRecipeIds());
+        return enterpriseManager.uploadRecipeInfoToThird(skipThirdReqVO.getOrganId(), skipThirdReqVO.getGiveMode(), skipThirdReqVO.getRecipeIds(), skipThirdReqVO.getEncData());
     }
-
 
     /**
      * 获取第三方跳转链接

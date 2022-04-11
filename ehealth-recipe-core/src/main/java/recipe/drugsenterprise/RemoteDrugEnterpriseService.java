@@ -107,7 +107,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
 
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(depId);
-        enterpriseManager.pushRecipeInfoForThird(recipe, drugsEnterprise, 0);
+        enterpriseManager.pushRecipeInfoForThird(recipe, drugsEnterprise, 0 ,"");
 
     }
 
@@ -128,7 +128,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         if (enterprise != null && new Integer(1).equals(enterprise.getOperationType())) {
             //药企对应的service为空，则通过前置机进行推送
             IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService", IRecipeEnterpriseService.class);
-            PushRecipeAndOrder pushRecipeAndOrder = enterpriseManager.getPushRecipeAndOrder(recipe, enterprise);
+            PushRecipeAndOrder pushRecipeAndOrder = enterpriseManager.getPushRecipeAndOrder(recipe, enterprise, "");
             LOGGER.info("pushSingleRecipeInfo pushRecipeAndOrder:{}.", JSONUtils.toString(pushRecipeAndOrder));
             if (StringUtils.isNotEmpty(recipe.getOrderCode())) {
                 RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());

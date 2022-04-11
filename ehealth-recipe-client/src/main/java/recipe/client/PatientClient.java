@@ -2,6 +2,7 @@ package recipe.client;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
+import com.ngari.base.currentuserinfo.model.SimpleThirdBean;
 import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.patient.model.HealthCardBean;
@@ -17,6 +18,8 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.HealthCardService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
+import com.ngari.platform.recipe.MedicalInsuranceAuthResBean;
+import com.ngari.platform.recipe.mode.MedicalInsuranceAuthInfoBean;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.Recipedetail;
@@ -27,6 +30,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import recipe.constant.ErrorCode;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
 import recipe.util.DictionaryUtil;
@@ -70,7 +74,6 @@ public class PatientClient extends BaseClient {
         return getPatientEncipher(patient);
     }
 
-
     /**
      * 获取患者信息
      *
@@ -82,6 +85,21 @@ public class PatientClient extends BaseClient {
         PatientDTO p = new PatientDTO();
         BeanUtils.copyProperties(patient, p);
         return p;
+    }
+
+    /**
+     * 医保授权
+     * @param medicalInsuranceAuthInfoBean
+     * @return
+     */
+    public MedicalInsuranceAuthResBean medicalInsuranceAuth(MedicalInsuranceAuthInfoBean medicalInsuranceAuthInfoBean) {
+        try {
+            HisResponseTO<MedicalInsuranceAuthResBean> hisResponse = recipeHisService.medicalInsuranceAuth(medicalInsuranceAuthInfoBean);
+            return getResponse(hisResponse);
+        } catch (Exception e) {
+            logger.error("PatientClient medicalInsuranceAuth hisResponse", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
     }
 
     /**
@@ -280,6 +298,20 @@ public class PatientClient extends BaseClient {
         return null;
     }
 
+    public String getTid(){
+        try {
+            SimpleWxAccountBean simpleWxAccountBean = currentUserInfoService.getSimpleWxAccount();
+            if (simpleWxAccountBean instanceof SimpleThirdBean) {
+                SimpleThirdBean simpleThirdBean = (SimpleThirdBean)simpleWxAccountBean;
+                logger.info("PatientClient simpleThirdBean:{}", JSON.toJSONString(simpleThirdBean));
+                return simpleThirdBean.getTid();
+            }
+        } catch (Exception e) {
+            logger.error("getTid error", e);
+        }
+        return null;
+    }
+
     public List<HealthCardDTO> queryCardsByParam(Integer organId, String mpiId, List<String> cardTypes) throws Exception {
         logger.info("PatientClient queryCardsByParam organId:{},mpiId:{},cardTypes:{}", JSONUtils.toString(organId), mpiId, JSONUtils.toString(cardTypes));
         return healthCardService.queryCardsByParam(organId, mpiId, cardTypes);
@@ -301,6 +333,8 @@ public class PatientClient extends BaseClient {
         }
         return patientList;
     }
+
+
 
     /**
      * 提醒患者用药
