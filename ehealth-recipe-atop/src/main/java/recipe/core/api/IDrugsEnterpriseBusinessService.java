@@ -12,6 +12,7 @@ import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.greenroom.OrganEnterpriseRelationVo;
 import recipe.vo.greenroom.PharmacyVO;
 import recipe.vo.patient.CheckAddressReq;
+import recipe.vo.patient.CheckAddressRes;
 
 import java.util.List;
 
@@ -103,5 +104,5 @@ public interface IDrugsEnterpriseBusinessService {
      * @param checkAddressReq
      * @return
      */
-    Boolean checkEnterpriseDecoctionAddress(CheckAddressReq checkAddressReq);
+    CheckAddressRes checkEnterpriseDecoctionAddress(CheckAddressReq checkAddressReq);
 }

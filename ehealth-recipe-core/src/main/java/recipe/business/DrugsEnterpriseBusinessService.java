@@ -10,6 +10,7 @@ import ctd.persistence.exception.DAOException;
 import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
+import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +26,9 @@ import recipe.util.ObjectCopyUtils;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.greenroom.OrganEnterpriseRelationVo;
 import recipe.vo.greenroom.PharmacyVO;
+import recipe.vo.patient.AddressAreaVo;
 import recipe.vo.patient.CheckAddressReq;
+import recipe.vo.patient.CheckAddressRes;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -201,18 +204,30 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     }
 
     @Override
-    public Boolean checkEnterpriseDecoctionAddress(CheckAddressReq checkAddressReq) {
+    public CheckAddressRes checkEnterpriseDecoctionAddress(CheckAddressReq checkAddressReq) {
+        CheckAddressRes checkAddressRes = new CheckAddressRes();
+        Boolean sendFlag = false;
         List<EnterpriseDecoctionAddress> enterpriseDecoctionAddressList = enterpriseDecoctionAddressDAO.findEnterpriseDecoctionAddressList(checkAddressReq.getOrganId(),
                 checkAddressReq.getEnterpriseId(),
                 checkAddressReq.getDecoctionId());
         if (CollectionUtils.isNotEmpty(enterpriseDecoctionAddressList)) {
-            return false;
+            sendFlag =  false;
         }
+        List<AddressAreaVo> list = enterpriseDecoctionAddressList.stream().map(enterpriseDecoctionAddress -> {
+            AddressAreaVo addressAreaVo = null;
+            if (enterpriseDecoctionAddress.getAddress().length() == 2) {
+                addressAreaVo = new AddressAreaVo();
+                addressAreaVo.setAddress1(enterpriseDecoctionAddress.getAddress());
+            }
+            return addressAreaVo;
+        }).filter(Objects::nonNull).collect(Collectors.toList());
+        checkAddressRes.setAreaList(list);
         // 配送地址精确到区域,区域可以配送就可以配送
         if (addressCanSend(enterpriseDecoctionAddressList, checkAddressReq.getAddress3())) {
-            return true;
+            sendFlag =  true;
         }
-        return false;
+        checkAddressRes.setSendFlag(sendFlag);
+        return checkAddressRes;
     }
 
     private boolean addressCanSend(List<EnterpriseDecoctionAddress> list, String address) {
