@@ -2,6 +2,7 @@ package recipe.client;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
+import com.ngari.base.currentuserinfo.model.SimpleThirdBean;
 import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.patient.model.HealthCardBean;
@@ -293,6 +294,20 @@ public class PatientClient extends BaseClient {
             return openId;
         } catch (Exception e) {
             logger.error("getOpenId error", e);
+        }
+        return null;
+    }
+
+    public String getTid(){
+        try {
+            SimpleWxAccountBean simpleWxAccountBean = currentUserInfoService.getSimpleWxAccount();
+            if (simpleWxAccountBean instanceof SimpleThirdBean) {
+                SimpleThirdBean simpleThirdBean = (SimpleThirdBean)simpleWxAccountBean;
+                logger.info("PatientClient simpleThirdBean:{}", JSON.toJSONString(simpleThirdBean));
+                return simpleThirdBean.getTid();
+            }
+        } catch (Exception e) {
+            logger.error("getTid error", e);
         }
         return null;
     }
