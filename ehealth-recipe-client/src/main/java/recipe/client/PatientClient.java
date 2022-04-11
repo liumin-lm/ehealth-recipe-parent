@@ -306,6 +306,8 @@ public class PatientClient extends BaseClient {
                 SimpleThirdBean simpleThirdBean = (SimpleThirdBean)simpleWxAccountBean;
                 logger.info("PatientClient getTid simpleThirdBean:{}", JSON.toJSONString(simpleThirdBean));
                 return simpleThirdBean.getTid();
+            } else {
+                return simpleWxAccountBean.getOpenId();
             }
         } catch (Exception e) {
             logger.error("getTid error", e);
