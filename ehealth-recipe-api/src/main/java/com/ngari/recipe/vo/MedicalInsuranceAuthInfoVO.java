@@ -13,6 +13,7 @@ import java.io.Serializable;
 public class MedicalInsuranceAuthInfoVO implements Serializable {
     private static final long serialVersionUID = 4697924405135453386L;
 
+    private Integer recipeId;
     private String mpiId;
     private Integer organId;
     private String callUrl;
