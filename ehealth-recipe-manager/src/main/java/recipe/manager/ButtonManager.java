@@ -18,6 +18,7 @@ import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.PayButtonEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
+import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.factoryManager.button.IGiveModeBase;
 import recipe.factoryManager.button.impl.BjGiveModeServiceImpl;
 import recipe.factoryManager.button.impl.CommonGiveModeServiceImpl;
@@ -222,7 +223,7 @@ public class ButtonManager extends BaseManager {
                 return;
             }
             //没配置煎法流转权限
-            if (3 == recipeType && StringUtils.isEmpty(a.getEnterpriseDecoctionIds())) {
+            if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipeType) && StringUtils.isEmpty(a.getEnterpriseDecoctionIds())) {
                 return;
             }
             //不查找煎法对应权限
