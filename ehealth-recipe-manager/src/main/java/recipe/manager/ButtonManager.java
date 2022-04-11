@@ -232,7 +232,7 @@ public class ButtonManager extends BaseManager {
             }
             //匹配煎法权限
             List<Integer> decoctionIds = Arrays.stream(a.getEnterpriseDecoctionIds().split(ByteUtils.COMMA)).map(Integer::parseInt).collect(Collectors.toList());
-            if (!decoctionIds.contains(-1) || !decoctionIds.contains(decoctionId)) {
+            if (!decoctionIds.contains(-1) && !decoctionIds.contains(Integer.valueOf(decoctionId))) {
                 return;
             }
             enterprisesIds.add(a.getDrugsEnterpriseId());
