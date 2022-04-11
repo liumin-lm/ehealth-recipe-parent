@@ -735,7 +735,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         MedicalInsuranceAuthInfoBean medicalInsuranceAuthInfoBean = new MedicalInsuranceAuthInfoBean();
         medicalInsuranceAuthInfoBean.setCallUrl(medicalInsuranceAuthInfoVO.getCallUrl());
         medicalInsuranceAuthInfoBean.setMpiId(medicalInsuranceAuthInfoVO.getMpiId());
-        medicalInsuranceAuthInfoBean.setUserName(patientDTO.getUserName());
+        medicalInsuranceAuthInfoBean.setUserName(patientDTO.getPatientName());
         medicalInsuranceAuthInfoBean.setOrganId(medicalInsuranceAuthInfoVO.getOrganId());
         String openId = patientClient.getTid();
         medicalInsuranceAuthInfoBean.setChnlUserId(openId);
