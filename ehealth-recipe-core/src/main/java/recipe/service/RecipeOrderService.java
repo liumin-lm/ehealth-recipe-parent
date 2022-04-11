@@ -6,7 +6,6 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
-import com.ngari.base.BaseAPI;
 import com.ngari.base.hisconfig.model.HisServiceConfigBean;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.model.OrganConfigBean;
@@ -382,9 +381,10 @@ public class RecipeOrderService extends RecipeBaseService {
             Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");
             if (Objects.isNull(decoctionId)) {
                 RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeIds.get(0));
-                if (Objects.nonNull(recipeExtend.getDecoctionId())) {
+                if (null != recipeExtend && Objects.nonNull(recipeExtend.getDecoctionId())) {
                     decoctionId = Integer.valueOf(recipeExtend.getDecoctionId());
                 }
+
             }
             LOGGER.info("decoctionId:{}", decoctionId);
             if (decoctionId != null) {
