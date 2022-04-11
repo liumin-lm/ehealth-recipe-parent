@@ -167,11 +167,22 @@ public class DoctorClient extends BaseClient {
         return dispensingApothecary;
     }
 
-
-    public String getOfflineCaPictureByDocId(Integer doctorId) {
+    public DoctorExtendDTO getDoctorExtendDTO(Integer doctorId) {
         logger.info("SignRecipeInfoService getOfflineCaPictureByDocId doctorId=[{}]", doctorId);
+        if (null == doctorId) {
+            return null;
+        }
         DoctorExtendDTO doctorExtend = doctorExtendService.getByDoctorId(doctorId);
         if (doctorExtend == null) {
+            return null;
+        }
+        return doctorExtend;
+    }
+
+
+    public String getOfflineCaPictureByDocId(Integer doctorId) {
+        DoctorExtendDTO doctorExtend = getDoctorExtendDTO(doctorId);
+        if (null == doctorExtend) {
             return null;
         }
         String fileId;
