@@ -16,12 +16,10 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SkipThirdReqVO {
-
     /**
      * 机构ID
      */
     private Integer organId;
-
     /**
      * 处方集合
      */
@@ -30,4 +28,8 @@ public class SkipThirdReqVO {
      * 患者选择的购药方式
      */
     private String giveMode;
+    /**
+     * 加密串
+     */
+    private String encData;
 }
