@@ -6,6 +6,8 @@ import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.RecipeOrder;
+import ctd.persistence.bean.QueryResult;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +19,7 @@ import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.status.PayModeEnum;
+import recipe.manager.OrderManager;
 import recipe.util.DateConversion;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.greenroom.RecipeOrderRefundPageVO;
@@ -46,6 +49,8 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
     private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
+    @Autowired
+    private OrderManager orderManager;
 
     @Override
     public RecipeOrderRefundPageVO findRefundRecipeOrder(RecipeOrderRefundReqVO recipeOrderRefundReqVO) {
@@ -55,11 +60,15 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         RecipeOrderRefundReqDTO recipeOrderRefundReqDTO = ObjectCopyUtils.convert(recipeOrderRefundReqVO, RecipeOrderRefundReqDTO.class);
         recipeOrderRefundReqDTO.setBeginTime(beginDate);
         recipeOrderRefundReqDTO.setEndTime(endDate);
-        List<RecipeOrder> recipeOrderList = recipeOrderDAO.findRefundRecipeOrder(recipeOrderRefundReqDTO);
-        logger.info("RecipeOrderRefundService findRefundRecipeOrder recipeOrderList:{}", JSON.toJSONString(recipeOrderList));
-        Long total = recipeOrderDAO.findRefundRecipeOrderCount(recipeOrderRefundReqDTO);
-        if (null != total) {
-            recipeOrderRefundPageVO.setTotal(total.intValue());
+        QueryResult<RecipeOrder> recipeOrderQueryResult = orderManager.findRefundRecipeOrder(recipeOrderRefundReqDTO);
+        logger.info("RecipeOrderRefundService findRefundRecipeOrder recipeOrderQueryResult:{}", JSON.toJSONString(recipeOrderQueryResult));
+        if (CollectionUtils.isEmpty(recipeOrderQueryResult.getItems())) {
+            return recipeOrderRefundPageVO;
+        }
+        List<RecipeOrder> recipeOrderList = recipeOrderQueryResult.getItems();
+        long total = recipeOrderQueryResult.getTotal();
+        if (null != new Long(total)) {
+            recipeOrderRefundPageVO.setTotal(new Long(total).intValue());
         }
         List<String> orderCodeList = recipeOrderList.stream().map(RecipeOrder::getOrderCode).collect(Collectors.toList());
         List<Integer> depIdList = recipeOrderList.stream().map(RecipeOrder::getEnterpriseId).collect(Collectors.toList());
