@@ -201,7 +201,7 @@ public class ButtonManager extends BaseManager {
         }
         List<Integer> ids = enterprises.stream().map(DrugsEnterprise::getId).collect(Collectors.toList());
         List<OrganAndDrugsepRelation> organAndEnterpriseList = organAndDrugsepRelationDAO.findByOrganIdEntId(organId, ids);
-        logger.info("ButtonManager organAndEnterprise organAndEnterpriseList:{}", JSON.toJSONString(organAndEnterpriseList));
+        logger.info("ButtonManager organAndEnterprise organAndEnterpriseList:{},recipeType={},decoctionId={}", JSON.toJSONString(organAndEnterpriseList), recipeType, decoctionId);
         if (CollectionUtils.isEmpty(organAndEnterpriseList)) {
             return null;
         }
@@ -232,7 +232,7 @@ public class ButtonManager extends BaseManager {
             }
             //匹配煎法权限
             List<Integer> decoctionIds = Arrays.stream(a.getEnterpriseDecoctionIds().split(ByteUtils.COMMA)).map(Integer::parseInt).collect(Collectors.toList());
-            if (!decoctionIds.contains(-1) && !decoctionIds.contains(decoctionId)) {
+            if (!decoctionIds.contains(-1) || !decoctionIds.contains(decoctionId)) {
                 return;
             }
             enterprisesIds.add(a.getDrugsEnterpriseId());
