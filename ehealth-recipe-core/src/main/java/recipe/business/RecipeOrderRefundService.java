@@ -1,6 +1,8 @@
 package recipe.business;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
+import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RecipeOrderRefundReqDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -15,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.client.PatientClient;
 import recipe.core.api.greenroom.IRecipeOrderRefundService;
 import recipe.dao.*;
 import recipe.enumerate.status.PayModeEnum;
@@ -53,6 +56,8 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
     private OrderManager orderManager;
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
+    @Autowired
+    private PatientClient patientClient;
 
     @Override
     public RecipeOrderRefundPageVO findRefundRecipeOrder(RecipeOrderRefundReqVO recipeOrderRefundReqVO) {
@@ -115,6 +120,13 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         }
         RecipeOrderBean recipeOrderBean = ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class);
         recipeOrderRefundDetailVO.setRecipeOrderBean(recipeOrderBean);
+        if (null != recipeOrderBean.getEnterpriseId() && StringUtils.isEmpty(recipeOrderBean.getDrugStoreName())) {
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrderBean.getEnterpriseId());
+            DrugsEnterpriseBean drugsEnterpriseBean = ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class);
+            recipeOrderRefundDetailVO.setDrugsEnterpriseBean(drugsEnterpriseBean);
+        }
+        PatientDTO patientDTO = patientClient.getPatientDTO(recipeOrder.getMpiId());
+        recipeOrderRefundDetailVO.setPatientDTO(ObjectCopyUtils.convert(patientDTO, com.ngari.patient.dto.PatientDTO.class));
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
         List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
