@@ -101,7 +101,8 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
         organEnterpriseRelationVo.setStart((organEnterpriseRelationVo.getStart() - 1) * organEnterpriseRelationVo.getLimit());
         QueryResult<DrugsEnterprise> queryResult = enterpriseBusinessService.drugsEnterpriseLimit(organEnterpriseRelationVo);
         if (null == queryResult || ValidateUtil.longIsEmpty(queryResult.getTotal())) {
-            return null;
+            organEnterpriseRelationVo.setTotal(0);
+            return organEnterpriseRelationVo;
         }
         List<DrugsEnterpriseBean> drugsEnterpriseList = ObjectCopyUtils.convert(queryResult.getItems(), DrugsEnterpriseBean.class);
         List<PharmacyVO> pharmacyList = enterpriseBusinessService.pharmacy();
