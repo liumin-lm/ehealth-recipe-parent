@@ -1,5 +1,6 @@
 package recipe.core.api.greenroom;
 
+import recipe.vo.greenroom.RecipeOrderRefundDetailVO;
 import recipe.vo.greenroom.RecipeOrderRefundPageVO;
 import recipe.vo.greenroom.RecipeOrderRefundReqVO;
 
@@ -11,4 +12,6 @@ import recipe.vo.greenroom.RecipeOrderRefundReqVO;
 public interface IRecipeOrderRefundService {
 
     RecipeOrderRefundPageVO findRefundRecipeOrder(RecipeOrderRefundReqVO recipeOrderRefundReqVO);
+
+    RecipeOrderRefundDetailVO getRefundOrderDetail(String orderCode);
 }

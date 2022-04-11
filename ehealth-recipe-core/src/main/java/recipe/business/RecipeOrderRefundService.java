@@ -2,11 +2,13 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.RecipeOrderRefundReqDTO;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.persistence.bean.QueryResult;
+import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -14,14 +16,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.core.api.greenroom.IRecipeOrderRefundService;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeExtendDAO;
-import recipe.dao.RecipeOrderDAO;
+import recipe.dao.*;
 import recipe.enumerate.status.PayModeEnum;
 import recipe.manager.OrderManager;
 import recipe.util.DateConversion;
 import recipe.util.ObjectCopyUtils;
+import recipe.vo.greenroom.RecipeOrderRefundDetailVO;
 import recipe.vo.greenroom.RecipeOrderRefundPageVO;
 import recipe.vo.greenroom.RecipeOrderRefundReqVO;
 import recipe.vo.greenroom.RecipeOrderRefundVO;
@@ -51,6 +51,8 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
     private OrderManager orderManager;
+    @Autowired
+    private RecipeDetailDAO recipeDetailDAO;
 
     @Override
     public RecipeOrderRefundPageVO findRefundRecipeOrder(RecipeOrderRefundReqVO recipeOrderRefundReqVO) {
@@ -102,5 +104,33 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         recipeOrderRefundPageVO.setStart(recipeOrderRefundReqVO.getStart());
         recipeOrderRefundPageVO.setLimit(recipeOrderRefundReqVO.getLimit());
         return recipeOrderRefundPageVO;
+    }
+
+    @Override
+    public RecipeOrderRefundDetailVO getRefundOrderDetail(String orderCode) {
+        RecipeOrderRefundDetailVO recipeOrderRefundDetailVO = new RecipeOrderRefundDetailVO();
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
+        if (null == recipeOrder) {
+            return recipeOrderRefundDetailVO;
+        }
+        RecipeOrderBean recipeOrderBean = ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class);
+        recipeOrderRefundDetailVO.setRecipeOrderBean(recipeOrderBean);
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
+        List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
+        Map<Integer, RecipeExtend> recipeExtendMap = recipeExtendList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId,a->a,(k1,k2)->k1));
+        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIds(recipeIdList);
+        Map<Integer, List<Recipedetail>> detailMap = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
+        List<RecipeBean> recipeBeanList = new ArrayList<>();
+        recipeList.forEach(recipe -> {
+            RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+            RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtendMap.get(recipe.getRecipeId()), RecipeExtendBean.class);
+            List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(detailMap.get(recipe.getRecipeId()), RecipeDetailBean.class);
+            recipeBean.setRecipeExtend(recipeExtendBean);
+            recipeBean.setRecipeDetailBeanList(recipeDetailBeans);
+            recipeBeanList.add(recipeBean);
+        });
+        recipeOrderRefundDetailVO.setRecipeBeanList(recipeBeanList);
+        return recipeOrderRefundDetailVO;
     }
 }
