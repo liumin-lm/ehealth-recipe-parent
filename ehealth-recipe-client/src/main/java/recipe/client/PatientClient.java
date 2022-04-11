@@ -17,6 +17,8 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.HealthCardService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
+import com.ngari.platform.recipe.MedicalInsuranceAuthResBean;
+import com.ngari.platform.recipe.mode.MedicalInsuranceAuthInfoBean;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.Recipedetail;
@@ -27,6 +29,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import recipe.constant.ErrorCode;
 import recipe.util.ChinaIDNumberUtil;
 import recipe.util.DateConversion;
 import recipe.util.DictionaryUtil;
@@ -70,7 +73,6 @@ public class PatientClient extends BaseClient {
         return getPatientEncipher(patient);
     }
 
-
     /**
      * 获取患者信息
      *
@@ -82,6 +84,21 @@ public class PatientClient extends BaseClient {
         PatientDTO p = new PatientDTO();
         BeanUtils.copyProperties(patient, p);
         return p;
+    }
+
+    /**
+     * 医保授权
+     * @param medicalInsuranceAuthInfoBean
+     * @return
+     */
+    public MedicalInsuranceAuthResBean medicalInsuranceAuth(MedicalInsuranceAuthInfoBean medicalInsuranceAuthInfoBean) {
+        try {
+            HisResponseTO<MedicalInsuranceAuthResBean> hisResponse = recipeHisService.medicalInsuranceAuth(medicalInsuranceAuthInfoBean);
+            return getResponse(hisResponse);
+        } catch (Exception e) {
+            logger.error("PatientClient medicalInsuranceAuth hisResponse", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
     }
 
     /**
@@ -301,6 +318,8 @@ public class PatientClient extends BaseClient {
         }
         return patientList;
     }
+
+
 
     /**
      * 提醒患者用药

@@ -35,7 +35,7 @@ public class RemoteDrugsEnterpriseService extends BaseService<DrugsEnterpriseBea
 
     @Override
     public void pushRecipeInfoForThird(RecipeBean recipe, DrugsEnterpriseBean drugsEnterprise) {
-        enterpriseManager.pushRecipeInfoForThird(ObjectCopyUtils.convert(recipe, Recipe.class), ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterprise.class), 0);
+        enterpriseManager.pushRecipeInfoForThird(ObjectCopyUtils.convert(recipe, Recipe.class), ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterprise.class), 0, "");
     }
 
     @Override

@@ -68,7 +68,7 @@ public class AuditPreMode extends AbstractAuditMode {
         String recipeMode = recipe.getRecipeMode();
         EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
         //药师审方后推送给前置机（扁鹊）
-        enterpriseManager.pushRecipeForThird(recipe, 0);
+        enterpriseManager.pushRecipeForThird(recipe, 0, "");
         //正常平台处方
         if (RecipeBussConstant.FROMFLAG_PLATFORM.equals(recipe.getFromflag())) {
             //审核通过只有互联网发
