@@ -1,5 +1,7 @@
 package recipe.vo.greenroom;
 
+import com.ngari.patient.dto.PatientDTO;
+import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import lombok.Getter;
@@ -16,4 +18,8 @@ public class RecipeOrderRefundDetailVO implements Serializable {
     private RecipeOrderBean recipeOrderBean;
 
     private List<RecipeBean> recipeBeanList;
+
+    private DrugsEnterpriseBean drugsEnterpriseBean;
+
+    private PatientDTO patientDTO;
 }
