@@ -569,7 +569,7 @@ public class EnterpriseManager extends BaseManager {
         recipeAuditReq.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
         DoctorExtendDTO doctorExtendDTO = doctorClient.getDoctorExtendDTO(recipe.getChecker());
         if (null != doctorExtendDTO) {
-            recipeAuditReq.setMedicalNo("");
+            recipeAuditReq.setMedicalNo(doctorExtendDTO.getMedicalDoctorCode());
         }
         if (!ValidateUtil.integerIsEmpty(recipe.getDoctor())) {
             DoctorDTO doctor = doctorClient.jobNumber(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getDepart());
@@ -588,6 +588,10 @@ public class EnterpriseManager extends BaseManager {
     private RecipeExtendBean recipeExtend(Recipe recipe) {
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
+        DoctorExtendDTO doctorExtendDTO = doctorClient.getDoctorExtendDTO(recipe.getDoctor());
+        if (null != doctorExtendDTO) {
+            recipeExtendBean.setDoctorMedicalNo(doctorExtendDTO.getMedicalDoctorCode());
+        }
         //制法Code 煎法Code 中医证候Code
         try {
             if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
