@@ -1721,12 +1721,12 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     }
 
     protected StringBuilder generateRecipeHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
-        StringBuilder hql = new StringBuilder("select a.* from cdr_recipeorder a,cdr_recipe b where a.orderCode = b.orderCode ");
+        StringBuilder hql = new StringBuilder("select a.* from cdr_recipeorder a,cdr_recipe b,cdr_recipe_ext c where a.orderCode = b.orderCode AND b.recipeId = c.recipeId ");
         return getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
     }
 
     protected StringBuilder generateRecipeHQLCount(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
-        StringBuilder hql = new StringBuilder("select count(1) from cdr_recipeorder a,cdr_recipe b where a.orderCode = b.orderCode ");
+        StringBuilder hql = new StringBuilder("select count(1) from cdr_recipeorder a,cdr_recipe b,cdr_recipe_ext c where a.orderCode = b.orderCode AND b.recipeId = c.recipeId ");
         return getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
     }
 
@@ -1749,6 +1749,15 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                 hql.append(" AND a.status = 5 ");
             }
 
+        }
+        if (null != recipeOrderRefundReqDTO.getRefundStatus()) {
+            if (new Integer(0).equals(recipeOrderRefundReqDTO.getRefundStatus())) {
+                hql.append(" AND c.refundNodeStatus is null ");
+            } else if (new Integer(1).equals(recipeOrderRefundReqDTO.getRefundStatus())) {
+                hql.append(" AND c.refundNodeStatus = 0 ");
+            } else {
+                hql.append(" AND c.refundNodeStatus in (1,2,3) ");
+            }
         }
         if (null != recipeOrderRefundReqDTO.getPayFlag()) {
             hql.append(" AND a.payFlag =:payFlag ");

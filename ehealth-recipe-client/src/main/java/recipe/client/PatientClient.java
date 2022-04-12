@@ -2,6 +2,8 @@ package recipe.client;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
+import com.ngari.base.clientconfig.service.IClientConfigService;
+import com.ngari.base.clientconfig.to.ClientConfigBean;
 import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.patient.model.HealthCardBean;
@@ -20,6 +22,7 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.Recipedetail;
+import ctd.account.Client;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -58,6 +61,8 @@ public class PatientClient extends BaseClient {
     private IMedicineRemindService medicineRemindService;
     @Autowired
     private IUsePathwaysService usePathwaysService;
+    @Autowired
+    private IClientConfigService clientConfigService;
 
     /**
      * 获取 脱敏后的 患者对象
@@ -276,6 +281,19 @@ public class PatientClient extends BaseClient {
             return openId;
         } catch (Exception e) {
             logger.error("getOpenId error", e);
+        }
+        return null;
+    }
+
+    public String getClientName(){
+        try {
+            Client client = currentUserInfoService.getCurrentClient();
+            Integer configId = client.getClientConfigId();
+            ClientConfigBean clientConfigBean = clientConfigService.getByClientConfigId(configId);
+            logger.info("PatientClient getClientName clientConfigBean:{}", clientConfigBean);
+            return clientConfigBean.getClientName();
+        } catch (Exception e) {
+            logger.error("getClientName error", e);
         }
         return null;
     }
