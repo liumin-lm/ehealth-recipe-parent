@@ -230,7 +230,10 @@ public class RecipePatientAtop extends BaseAtop {
         if (null == recipeInfoVO.getRecipeExtendBean()) {
             recipeInfoVO.setRecipeExtendBean(new RecipeExtendBean());
         }
-        return recipePatientService.saveRecipe(recipeInfoVO);
+        Integer recipeId = recipePatientService.saveRecipe(recipeInfoVO);
+        recipePatientService.esignRecipeCa(recipeId);
+        return recipeId;
+
     }
 
 }
