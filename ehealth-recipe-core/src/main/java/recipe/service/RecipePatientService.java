@@ -20,11 +20,11 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
+import com.ngari.recipe.dto.GiveModeButtonDTO;
+import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RankShiftList;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.vo.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.controller.exception.ControllerException;
@@ -43,6 +43,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.caNew.pdf.CreatePdfFactory;
+import recipe.client.OperationClient;
 import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
 import recipe.common.CommonConstant;
@@ -53,7 +54,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.type.CheckPatientEnum;
 import recipe.enumerate.type.MedicalTypeEnum;
-import recipe.factoryManager.button.GiveModeManager;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.OrganDrugListManager;
 import recipe.manager.RecipeDetailManager;
@@ -99,7 +100,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     @Autowired
     private IOfflineRecipeBusinessService offlineRecipeBusinessService;
     @Autowired
-    private GiveModeManager giveModeManager;
+    private OperationClient operationClient;
 
     /**
      * 根据取药方式过滤药企
@@ -794,7 +795,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             recipeManager.setRecipeInfoFromRevisit(recipe, recipeExtend);
             recipeManager.setRecipeChecker(recipe);
             //设置购药方式
-            giveModeManager.setRecipeSupportGiveMode(recipe);
+            this.setRecipeSupportGiveMode(recipe);
             recipeManager.saveRecipeExtend(recipeExtend, recipe);
         }
         //保存处方明细
@@ -842,5 +843,19 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         }
         LOGGER.info("getRedisChronicDiseaseMap={}",JSON.toJSONString(chronicDiseaseFlagMap));
         return  chronicDiseaseFlagMap;
+    }
+
+    private String setRecipeSupportGiveMode(Recipe recipe){
+        //从运营平台获取配置项
+        GiveModeShowButtonDTO giveModeShowButtonDTO = operationClient.getGiveModeSettingFromYypt(recipe.getClinicOrgan());
+        if (CollectionUtils.isEmpty(giveModeShowButtonDTO.getGiveModeButtons())) {
+            return "";
+        }
+        List<GiveModeButtonDTO> giveModeButtonDTOList = giveModeShowButtonDTO.getGiveModeButtons();
+        StringBuilder recipeSupportGiveMode = new StringBuilder();
+        giveModeButtonDTOList.forEach(giveModeButtonDTO -> {
+            recipeSupportGiveMode.append(RecipeSupportGiveModeEnum.getGiveMode(giveModeButtonDTO.getShowButtonKey())).append(",");
+        });
+        return recipeSupportGiveMode.toString();
     }
 }

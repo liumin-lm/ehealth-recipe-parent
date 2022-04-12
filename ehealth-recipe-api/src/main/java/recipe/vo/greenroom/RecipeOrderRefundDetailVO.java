@@ -23,4 +23,6 @@ public class RecipeOrderRefundDetailVO implements Serializable {
 
     private PatientDTO patientDTO;
 
+    private OrderRefundInfoVO refundInfoBean;
+
 }
