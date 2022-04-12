@@ -301,10 +301,13 @@ public class PatientClient extends BaseClient {
     public String getTid(){
         try {
             SimpleWxAccountBean simpleWxAccountBean = currentUserInfoService.getSimpleWxAccount();
+            logger.info("PatientClient getTid simpleWxAccountBean:{}", JSON.toJSONString(simpleWxAccountBean));
             if (simpleWxAccountBean instanceof SimpleThirdBean) {
                 SimpleThirdBean simpleThirdBean = (SimpleThirdBean)simpleWxAccountBean;
-                logger.info("PatientClient simpleThirdBean:{}", JSON.toJSONString(simpleThirdBean));
+                logger.info("PatientClient getTid simpleThirdBean:{}", JSON.toJSONString(simpleThirdBean));
                 return simpleThirdBean.getTid();
+            } else {
+                return simpleWxAccountBean.getOpenId();
             }
         } catch (Exception e) {
             logger.error("getTid error", e);

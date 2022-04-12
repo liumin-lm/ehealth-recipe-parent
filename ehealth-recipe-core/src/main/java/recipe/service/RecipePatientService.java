@@ -745,11 +745,12 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     @Override
     public MedicalInsuranceAuthResVO medicalInsuranceAuth(MedicalInsuranceAuthInfoVO medicalInsuranceAuthInfoVO) {
         String mpiId = medicalInsuranceAuthInfoVO.getMpiId();
-        com.ngari.recipe.dto.PatientDTO patientDTO = patientClient.getPatientDTO(mpiId);
+        com.ngari.patient.dto.PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(mpiId);
+        LOGGER.info("medicalInsuranceAuth patientDTO:{}", JSON.toJSONString(patientDTO));
         MedicalInsuranceAuthInfoBean medicalInsuranceAuthInfoBean = new MedicalInsuranceAuthInfoBean();
         medicalInsuranceAuthInfoBean.setCallUrl(medicalInsuranceAuthInfoVO.getCallUrl());
         medicalInsuranceAuthInfoBean.setMpiId(medicalInsuranceAuthInfoVO.getMpiId());
-        medicalInsuranceAuthInfoBean.setUserName(patientDTO.getUserName());
+        medicalInsuranceAuthInfoBean.setUserName(patientDTO.getPatientName());
         medicalInsuranceAuthInfoBean.setOrganId(medicalInsuranceAuthInfoVO.getOrganId());
         String openId = patientClient.getTid();
         medicalInsuranceAuthInfoBean.setChnlUserId(openId);

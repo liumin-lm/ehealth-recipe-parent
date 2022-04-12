@@ -8,6 +8,7 @@ import com.ngari.base.organ.model.OrganBean;
 import com.ngari.his.recipe.mode.TakeMedicineByToHos;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.patient.dto.DoctorExtendDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.dto.*;
@@ -578,6 +579,10 @@ public class EnterpriseManager extends BaseManager {
         recipeAuditReq.setDepartCode((null != appointDepart) ? appointDepart.getAppointDepartCode() : "");
         //科室名称
         recipeAuditReq.setDepartName((null != appointDepart) ? appointDepart.getAppointDepartName() : "");
+        DoctorExtendDTO doctorExtendDTO = doctorClient.getDoctorExtendDTO(recipe.getChecker());
+        if (null != doctorExtendDTO) {
+            recipeAuditReq.setMedicalNo(doctorExtendDTO.getMedicalDoctorCode());
+        }
         if (!ValidateUtil.integerIsEmpty(recipe.getDoctor())) {
             DoctorDTO doctor = doctorClient.jobNumber(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getDepart());
             recipeAuditReq.setAuditDoctorNo(doctor.getJobNumber());
@@ -595,6 +600,10 @@ public class EnterpriseManager extends BaseManager {
     private RecipeExtendBean recipeExtend(Recipe recipe) {
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
+        DoctorExtendDTO doctorExtendDTO = doctorClient.getDoctorExtendDTO(recipe.getDoctor());
+        if (null != doctorExtendDTO) {
+            recipeExtendBean.setDoctorMedicalNo(doctorExtendDTO.getMedicalDoctorCode());
+        }
         //制法Code 煎法Code 中医证候Code
         try {
             if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
