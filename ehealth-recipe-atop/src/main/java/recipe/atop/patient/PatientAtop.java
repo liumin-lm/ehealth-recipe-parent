@@ -35,6 +35,7 @@ public class PatientAtop extends BaseAtop {
 
     /**
      * 医保授权
+     *
      * @param medicalInsuranceAuthInfoVO
      * @return
      */
