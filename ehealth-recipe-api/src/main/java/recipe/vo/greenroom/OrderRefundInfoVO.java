@@ -11,7 +11,6 @@ public class OrderRefundInfoVO implements Serializable {
     private static final long serialVersionUID = -4199810987374797264L;
 
     private String channel;
-    private String depName;
     private String refundStatusText;
     private String refundNodeStatusText;
 }
