@@ -16,10 +16,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.core.api.IDrugsEnterpriseBusinessService;
-import recipe.dao.DrugDecoctionWayDao;
-import recipe.dao.EnterpriseDecoctionAddressDAO;
-import recipe.dao.OrganAndDrugsepRelationDAO;
-import recipe.dao.OrganDrugsSaleConfigDAO;
+import recipe.dao.*;
 import recipe.manager.EnterpriseManager;
 import recipe.util.ByteUtils;
 import recipe.util.ObjectCopyUtils;
@@ -50,6 +47,8 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     private DrugDecoctionWayDao drugDecoctionWayDao;
     @Autowired
     private EnterpriseDecoctionAddressDAO enterpriseDecoctionAddressDAO;
+    @Autowired
+    private EnterpriseAddressDAO enterpriseAddressDAO;
 
     @Override
     public Boolean existEnterpriseByName(String name) {
@@ -210,8 +209,16 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         List<EnterpriseDecoctionAddress> enterpriseDecoctionAddressList = enterpriseDecoctionAddressDAO.findEnterpriseDecoctionAddressList(checkAddressReq.getOrganId(),
                 checkAddressReq.getEnterpriseId(),
                 checkAddressReq.getDecoctionId());
-        if (CollectionUtils.isNotEmpty(enterpriseDecoctionAddressList)) {
-            sendFlag =  false;
+        if (CollectionUtils.isEmpty(enterpriseDecoctionAddressList)) {
+            List<EnterpriseAddress> list = enterpriseAddressDAO.findByEnterPriseId(checkAddressReq.getEnterpriseId());
+            if (CollectionUtils.isNotEmpty(list)) {
+                List<EnterpriseDecoctionAddress> enterpriseDecoctionAddresses = BeanCopyUtils.copyList(list, EnterpriseDecoctionAddress::new);
+                if(addressCanSend(enterpriseDecoctionAddresses,checkAddressReq.getAddress3())){
+                    sendFlag = true;
+                    checkAddressRes.setSendFlag(sendFlag);
+                    return checkAddressRes;
+                }
+            }
         }
         List<AddressAreaVo> list = enterpriseDecoctionAddressList.stream().map(enterpriseDecoctionAddress -> {
             AddressAreaVo addressAreaVo = null;
