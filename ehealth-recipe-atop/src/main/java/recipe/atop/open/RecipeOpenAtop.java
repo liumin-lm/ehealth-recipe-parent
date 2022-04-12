@@ -5,6 +5,8 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.vo.FormWorkRecipeReqVO;
+import com.ngari.recipe.vo.FormWorkRecipeVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -15,6 +17,7 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRevisitBusinessService;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
+import recipe.core.api.patient.IPatientBusinessService;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.doctor.RecipeInfoVO;
@@ -41,6 +44,9 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
 
     @Autowired
     IOfflineRecipeBusinessService offlineToOnlineService;
+
+    @Autowired
+    private IPatientBusinessService recipePatientService;
 
     @Override
     public Boolean existUncheckRecipe(Integer bussSource, Integer clinicId) {
@@ -162,6 +168,15 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     public RecipeBean getByRecipeCodeAndRegisterIdAndOrganId(String recipeCode, String registerId, int organId) {
         validateAtop(recipeCode, organId);
         return recipeBusinessService.getByRecipeCodeAndRegisterIdAndOrganId(recipeCode, registerId, organId);
+    }
+
+    @Override
+    public FormWorkRecipeVO getFormWorkRecipeById(Integer mouldId, Integer organId) {
+        FormWorkRecipeReqVO formWorkRecipeReqVO = new FormWorkRecipeReqVO();
+        formWorkRecipeReqVO.setOrganId(organId);
+        List<FormWorkRecipeVO> formWorkRecipeVOList = recipePatientService.findFormWorkRecipe(formWorkRecipeReqVO);
+        formWorkRecipeVOList.stream().filter(a -> a.getMouldId().equals(mouldId));
+        return formWorkRecipeVOList.get(0);
     }
 
 

@@ -3,6 +3,7 @@ package recipe.api.open;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.vo.FormWorkRecipeVO;
 import ctd.util.annotation.RpcService;
 import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
@@ -114,4 +115,13 @@ public interface IRecipeAtopService {
      */
     @RpcService(mvcDisabled = true)
     RecipeBean getByRecipeCodeAndRegisterIdAndOrganId(String recipeCode, String registerId, int organId);
+
+
+    /**
+     * 获取模板
+     * @param mouldId
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    FormWorkRecipeVO getFormWorkRecipeById(Integer mouldId, Integer organId);
 }
