@@ -100,7 +100,10 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
                 if (StringUtils.isNotEmpty(recipeOrder.getDrugStoreName())) {
                     recipeOrderRefundVO.setDepName(recipeOrder.getDrugStoreName());
                 } else {
-                    recipeOrderRefundVO.setDepName(drugsEnterpriseMap.get(recipeOrder.getEnterpriseId()).getName());
+                    DrugsEnterprise drugsEnterprise = drugsEnterpriseMap.get(recipeOrder.getEnterpriseId());
+                    if (null != drugsEnterprise) {
+                        recipeOrderRefundVO.setDepName(drugsEnterprise.getName());
+                    }
                 }
             }
             recipeOrderRefundVO.setSendStatusText(RecipeOrderStatusEnum.getOrderStatus(recipeOrder.getStatus()));
