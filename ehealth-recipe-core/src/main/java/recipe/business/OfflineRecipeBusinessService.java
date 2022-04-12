@@ -329,6 +329,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             }
             Map<Integer, PharmacyTcm> pharmacyIdMap = pharmacyManager.pharmacyIdMap(recipe.getClinicOrgan());
             RecipeInfoDTO result = hisRecipeManager.pushRecipe(recipePdfDTO, pushType, pharmacyIdMap, sysType);
+            logger.info("RecipeBusinessService pushRecipe result={}", JSONUtils.toString(result));
             recipeManager.updatePushHisRecipe(result.getRecipe(), recipeId, pushType);
             recipeManager.updatePushHisRecipeExt(result.getRecipeExtend(), recipeId, pushType);
             logger.info("RecipeBusinessService pushRecipe end recipeId:{}", recipeId);
