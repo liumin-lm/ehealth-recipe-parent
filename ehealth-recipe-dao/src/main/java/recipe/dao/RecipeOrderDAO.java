@@ -30,6 +30,7 @@ import recipe.dao.bean.BillRecipeDetailBean;
 import recipe.dao.bean.RecipeBillBean;
 import recipe.dao.comment.ExtendDao;
 import recipe.enumerate.status.PayWayEnum;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -1695,9 +1696,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         if (null != organId) {
             query.setParameter("organId", organId);
         }
-        if (null != orderStatus) {
-            query.setParameter("orderStatus", orderStatus);
-        }
         if (null != payFlag) {
             query.setParameter("payFlag", payFlag);
         }
@@ -1723,12 +1721,12 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     }
 
     protected StringBuilder generateRecipeHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
-        StringBuilder hql = new StringBuilder("select a.* from cdr_recipeorder a,cdr_recipe b where a.orderCode = b.orderCode AND a.payFlag != 0 ");
+        StringBuilder hql = new StringBuilder("select a.* from cdr_recipeorder a,cdr_recipe b where a.orderCode = b.orderCode ");
         return getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
     }
 
     protected StringBuilder generateRecipeHQLCount(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
-        StringBuilder hql = new StringBuilder("select count(1) from cdr_recipeorder a,cdr_recipe b where a.orderCode = b.orderCode AND a.payFlag != 0 ");
+        StringBuilder hql = new StringBuilder("select count(1) from cdr_recipeorder a,cdr_recipe b where a.orderCode = b.orderCode ");
         return getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
     }
 
@@ -1743,7 +1741,14 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             hql.append(" AND a.organId =:organId");
         }
         if (null != recipeOrderRefundReqDTO.getOrderStatus()) {
-            hql.append(" AND a.status =:orderStatus ");
+            if (RecipeOrderStatusEnum.ORDER_STATUS_READY_PAY.getType().equals(recipeOrderRefundReqDTO.getOrderStatus())) {
+                hql.append(" AND a.status =1 ");
+            } else if (new Integer(2).equals(recipeOrderRefundReqDTO.getOrderStatus())) {
+                hql.append(" AND a.status in (2,3,4,12) ");
+            } else {
+                hql.append(" AND a.status = 5 ");
+            }
+
         }
         if (null != recipeOrderRefundReqDTO.getPayFlag()) {
             hql.append(" AND a.payFlag =:payFlag ");
