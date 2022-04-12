@@ -1605,6 +1605,13 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return action.getResult();
     }
 
+    public QueryResult<RecipeOrder> findPushFailRecipeOrder(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
+        final StringBuilder sbHql = this.generateRecipeHQL(recipeOrderRefundReqDTO);
+        sbHql.append(" AND a.pushFlag = 0 ");
+        final StringBuilder sbHqlCount = this.generateRecipeHQLCount(recipeOrderRefundReqDTO);
+        return null;
+    }
+
     public QueryResult<RecipeOrder> findRefundRecipeOrder(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
         final StringBuilder sbHql = this.generateRecipeHQL(recipeOrderRefundReqDTO);
         final StringBuilder sbHqlCount = this.generateRecipeHQLCount(recipeOrderRefundReqDTO);
