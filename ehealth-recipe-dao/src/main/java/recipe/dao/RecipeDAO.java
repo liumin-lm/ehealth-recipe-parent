@@ -770,7 +770,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 }
 
                 RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-                if (recipedetails != null) {
+                if (CollectionUtils.isNotEmpty(recipedetails)) {
                     for (Recipedetail detail : recipedetails) {
                         //date 20200601
                         //修改
@@ -780,13 +780,10 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         recipeDetailDAO.save(detail);
                     }
                 }
-
-
                 setResult(dbRecipe.getRecipeId());
             }
         };
         HibernateSessionTemplate.instance().executeTrans(action);
-
         return action.getResult();
     }
 

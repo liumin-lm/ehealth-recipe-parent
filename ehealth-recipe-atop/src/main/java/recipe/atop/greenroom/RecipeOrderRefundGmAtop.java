@@ -6,6 +6,7 @@ import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.core.api.greenroom.IRecipeOrderRefundService;
+import recipe.vo.greenroom.RecipeOrderRefundDetailVO;
 import recipe.vo.greenroom.RecipeOrderRefundPageVO;
 import recipe.vo.greenroom.RecipeOrderRefundReqVO;
 
@@ -23,4 +24,11 @@ public class RecipeOrderRefundGmAtop extends BaseAtop {
         validateAtop(recipeOrderRefundReqVO, recipeOrderRefundReqVO.getBeginTime(), recipeOrderRefundReqVO.getEndTime());
         return recipeOrderRefundService.findRefundRecipeOrder(recipeOrderRefundReqVO);
     }
+
+    @RpcService
+    public RecipeOrderRefundDetailVO getRefundOrderDetail(String orderCode) {
+        validateAtop(orderCode);
+        return recipeOrderRefundService.getRefundOrderDetail(orderCode);
+    }
+
 }

@@ -356,6 +356,8 @@ public class RecipeBean implements Serializable {
 
     private List<HisRecipeDetailBean> detailData;
 
+    private List<RecipeDetailBean> recipeDetailBeanList;
+
     /**
      * 患者医保类型（编码）
      */
@@ -1516,4 +1518,11 @@ public class RecipeBean implements Serializable {
         this.supportMode = supportMode;
     }
 
+    public List<RecipeDetailBean> getRecipeDetailBeanList() {
+        return recipeDetailBeanList;
+    }
+
+    public void setRecipeDetailBeanList(List<RecipeDetailBean> recipeDetailBeanList) {
+        this.recipeDetailBeanList = recipeDetailBeanList;
+    }
 }
