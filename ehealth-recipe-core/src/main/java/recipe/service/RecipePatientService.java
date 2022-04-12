@@ -789,12 +789,13 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
                 recipeExtend.setCardNo(cardNo);
             }
             recipeManager.setRecipeInfoFromRevisit(recipe, recipeExtend);
+            recipeManager.setRecipeChecker(recipe);
             recipeManager.saveRecipeExtend(recipeExtend, recipe);
         }
         //保存处方明细
         if (CollectionUtils.isNotEmpty(recipeInfoVO.getRecipeDetails())) {
             List<Recipedetail> details = ObjectCopyUtils.convert(recipeInfoVO.getRecipeDetails(), Recipedetail.class);
-            List<Integer> drugIds = details.stream().filter(a -> !a.getType().equals(2)).map(Recipedetail::getDrugId).collect(Collectors.toList());
+            List<Integer> drugIds = details.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
             Map<String, OrganDrugList> organDrugListMap = organDrugListManager.getOrganDrugByIdAndCode(recipe.getClinicOrgan(), drugIds);
             recipeDetailManager.saveRecipeDetails(recipe, details, organDrugListMap);
         }
@@ -806,9 +807,13 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
 
     @Override
     public Integer esignRecipeCa(Integer recipeId) {
-        Recipe recipe = recipeManager.getRecipeById(recipeId);
-        createPdfFactory.queryPdfOssId(recipe);
-        createPdfFactory.updateCheckNamePdfESign(recipeId);
+        try {
+            Recipe recipe = recipeManager.getRecipeById(recipeId);
+            createPdfFactory.queryPdfOssId(recipe);
+            createPdfFactory.updateCheckNamePdfESign(recipeId);
+        } catch (Exception e) {
+            LOGGER.error("esignRecipeCa error", e);
+        }
         return null;
     }
 

@@ -551,6 +551,14 @@ public class RecipeManager extends BaseManager {
         }
     }
 
+    public void setRecipeChecker(Recipe recipe) {
+        String fastRecipeChecker = configurationClient.getValueCatch(recipe.getClinicOrgan(), "fastRecipeChecker", "");
+        if (StringUtils.isEmpty(fastRecipeChecker)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "没有维护固定药师");
+        }
+        recipe.setChecker(Integer.parseInt(fastRecipeChecker));
+    }
+
     /**
      * 药企销售价格
      *

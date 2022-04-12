@@ -498,7 +498,7 @@ public class OrderManager extends BaseManager {
 
         } else if (OpRefundBusTypeEnum.BUS_TYPE_FAIL_ORDER.getType().equals(recipeOrderRefundReqDTO.getBusType())) {
             //查询推送药企失败的订单
-
+            return recipeOrderDAO.findPushFailRecipeOrder(recipeOrderRefundReqDTO);
         }
         return new QueryResult<>();
     }
