@@ -53,6 +53,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.type.CheckPatientEnum;
 import recipe.enumerate.type.MedicalTypeEnum;
+import recipe.factoryManager.button.GiveModeManager;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.OrganDrugListManager;
 import recipe.manager.RecipeDetailManager;
@@ -97,6 +98,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     private CreatePdfFactory createPdfFactory;
     @Autowired
     private IOfflineRecipeBusinessService offlineRecipeBusinessService;
+    @Autowired
+    private GiveModeManager giveModeManager;
 
     /**
      * 根据取药方式过滤药企
@@ -790,6 +793,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             }
             recipeManager.setRecipeInfoFromRevisit(recipe, recipeExtend);
             recipeManager.setRecipeChecker(recipe);
+            //设置购药方式
+            giveModeManager.setRecipeSupportGiveMode(recipe);
             recipeManager.saveRecipeExtend(recipeExtend, recipe);
         }
         //保存处方明细

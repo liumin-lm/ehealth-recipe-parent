@@ -20,8 +20,10 @@ import recipe.constant.*;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 
@@ -71,6 +73,20 @@ public abstract class GiveModeManager implements IGiveModeBase {
             }
             removeGiveModeData(giveModeShowButtonVO.getGiveModeButtons(), "supportDownload");
         }
+    }
+
+    public String setRecipeSupportGiveMode(Recipe recipe){
+        //从运营平台获取配置项
+        GiveModeShowButtonDTO giveModeShowButtonDTO = operationClient.getGiveModeSettingFromYypt(recipe.getClinicOrgan());
+        if (CollectionUtils.isEmpty(giveModeShowButtonDTO.getGiveModeButtons())) {
+            return "";
+        }
+        List<GiveModeButtonDTO> giveModeButtonDTOList = giveModeShowButtonDTO.getGiveModeButtons();
+        StringBuilder recipeSupportGiveMode = new StringBuilder();
+        giveModeButtonDTOList.forEach(giveModeButtonDTO -> {
+            recipeSupportGiveMode.append(RecipeSupportGiveModeEnum.getGiveMode(giveModeButtonDTO.getShowButtonKey())).append(",");
+        });
+        return recipeSupportGiveMode.toString();
     }
 
     @Override
