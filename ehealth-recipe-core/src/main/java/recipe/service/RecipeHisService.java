@@ -245,8 +245,8 @@ public class RecipeHisService extends RecipeBaseService {
 //            //生成处方编号，不需要通过HIS去产生
 //            String recipeCodeStr = DigestUtil.md5For16(recipe.getClinicOrgan() + recipe.getMpiid() + Calendar.getInstance().getTimeInMillis());
 //            orderRepTO.setRecipeNo(recipeCodeStr);
-            orderRepTO.setRecipeNo(String.valueOf(recipe.getRecipeId()));
         }
+        orderRepTO.setRecipeNo(String.valueOf(recipe.getRecipeId()));
         repList.add(orderRepTO);
         response.setData(repList);
         service.sendSuccess(response);
