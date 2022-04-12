@@ -295,17 +295,21 @@ public class RecipeRefundService extends RecipeBaseService {
                 RecipeRefund recipeRefund = new RecipeRefund();
                 recipeRefund.setTradeNo(recipeOrder.getTradeNo());
                 recipeRefund.setPrice(recipeOrder.getActualPrice());
-                recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_THIRD);
                 recipeRefund.setStatus(2);
+                recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_THIRD);
                 recipeRefund.setReason(refundRequestBean.getRemark());
                 recipeReFundSave(recipe, recipeRefund);
+                updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_NOPASS_AUDIT_STATUS);
                 //药企审核不通过
                 RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_REFUND_HIS_OR_PHARMACEUTICAL_AUDIT_FAIL);
                 busActionLogService.recordBusinessLogRpcNew("电子处方详情页-退费审核", recipe.getRecipeId() + "", "recipe", "电子处方订单【" + recipe.getRecipeCode() + "】第三方退费审核不通过", recipe.getOrganName());
                 //退费审核不通过 需要看是否管理员可强制退费
                 Boolean forceRecipeRefundFlag = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "forceRecipeRefundFlag", false);
-                if (!forceRecipeRefundFlag) {
-                    updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_NOPASS_AUDIT_STATUS);
+                if (forceRecipeRefundFlag) {
+                    //表示配置管理员可强制
+                    recipeRefund.setStatus(0);
+                    recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_ADMIN);
+                    recipeReFundSave(recipe, recipeRefund);
                 }
             }
         }
