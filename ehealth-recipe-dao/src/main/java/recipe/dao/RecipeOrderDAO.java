@@ -1632,9 +1632,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     public QueryResult<RecipeOrder> findPushFailRecipeOrder(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
         final StringBuilder sbHql = this.generateRecipeHQL(recipeOrderRefundReqDTO);
-        sbHql.append(" AND a.pushFlag = 0 and a.payFlag = 1 ");
+        sbHql.append(" AND a.pushFlag = 0 and a.payFlag = 1 AND b.giveModeKey in (1,3) ");
         final StringBuilder sbHqlCount = this.generateRecipeHQLCount(recipeOrderRefundReqDTO);
-        sbHqlCount.append(" AND a.pushFlag = 0 and a.payFlag = 1 ");
+        sbHqlCount.append(" AND a.pushFlag = 0 and a.payFlag = 1 AND b.giveModeKey in (1,3) ");
         HibernateStatelessResultAction<QueryResult<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeOrder>>(){
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -1684,6 +1684,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         Integer organId = recipeOrderRefundReqDTO.getOrganId();
         Integer orderStatus = recipeOrderRefundReqDTO.getOrderStatus();
         Integer payFlag = recipeOrderRefundReqDTO.getPayFlag();
+        Integer depId = recipeOrderRefundReqDTO.getDepId();
 
         if (StringUtils.isNotEmpty(orderCode)) {
             query.setParameter("orderCode", orderCode);
@@ -1705,6 +1706,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         }
         if (null != recipeOrderRefundReqDTO.getEndTime()) {
             query.setParameter("endTime", recipeOrderRefundReqDTO.getEndTime());
+        }
+        if (null != recipeOrderRefundReqDTO.getDepId()) {
+            query.setParameter("depId", depId);
         }
     }
 
@@ -1749,6 +1753,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         }
         if (null != recipeOrderRefundReqDTO.getEndTime()) {
             hql.append(" AND a.createTime <= :endTime ");
+        }
+        if (null != recipeOrderRefundReqDTO.getDepId()) {
+            hql.append(" AND a.enterpriseId =:depId ");
         }
         return hql;
     }
