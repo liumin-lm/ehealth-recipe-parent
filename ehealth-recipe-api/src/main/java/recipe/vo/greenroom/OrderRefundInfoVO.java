@@ -13,4 +13,5 @@ public class OrderRefundInfoVO implements Serializable {
     private String channel;
     private String refundStatusText;
     private String refundNodeStatusText;
+    private boolean forceApplyFlag;
 }
