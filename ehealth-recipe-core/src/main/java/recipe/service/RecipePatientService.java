@@ -734,6 +734,11 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         return CheckPatientEnum.CHECK_PATIENT_NORMAL.getType();
     }
 
+    @Override
+    public MedicalInsuranceAuthResVO medicalInsuranceAuth(MedicalInsuranceAuthInfoVO medicalInsuranceAuthInfoVO) {
+        return null;
+    }
+
     /**
      * 根据mpiId获取患者信息
      * @param mpiId 患者唯一号
