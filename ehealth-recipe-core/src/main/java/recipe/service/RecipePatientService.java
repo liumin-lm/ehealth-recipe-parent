@@ -789,6 +789,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
                 recipeExtend.setCardNo(cardNo);
             }
             recipeManager.setRecipeInfoFromRevisit(recipe, recipeExtend);
+            recipeManager.setRecipeChecker(recipe);
             recipeManager.saveRecipeExtend(recipeExtend, recipe);
         }
         //保存处方明细
@@ -806,9 +807,13 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
 
     @Override
     public Integer esignRecipeCa(Integer recipeId) {
-        Recipe recipe = recipeManager.getRecipeById(recipeId);
-        createPdfFactory.queryPdfOssId(recipe);
-        createPdfFactory.updateCheckNamePdfESign(recipeId);
+        try {
+            Recipe recipe = recipeManager.getRecipeById(recipeId);
+            createPdfFactory.queryPdfOssId(recipe);
+            createPdfFactory.updateCheckNamePdfESign(recipeId);
+        } catch (Exception e) {
+            LOGGER.error("esignRecipeCa error", e);
+        }
         return null;
     }
 
