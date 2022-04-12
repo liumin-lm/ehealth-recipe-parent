@@ -794,7 +794,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         //保存处方明细
         if (CollectionUtils.isNotEmpty(recipeInfoVO.getRecipeDetails())) {
             List<Recipedetail> details = ObjectCopyUtils.convert(recipeInfoVO.getRecipeDetails(), Recipedetail.class);
-            List<Integer> drugIds = details.stream().filter(a -> !a.getType().equals(2)).map(Recipedetail::getDrugId).collect(Collectors.toList());
+            List<Integer> drugIds = details.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
             Map<String, OrganDrugList> organDrugListMap = organDrugListManager.getOrganDrugByIdAndCode(recipe.getClinicOrgan(), drugIds);
             recipeDetailManager.saveRecipeDetails(recipe, details, organDrugListMap);
         }

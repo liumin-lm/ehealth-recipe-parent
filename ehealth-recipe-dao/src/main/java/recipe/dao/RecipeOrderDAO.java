@@ -1609,7 +1609,25 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         final StringBuilder sbHql = this.generateRecipeHQL(recipeOrderRefundReqDTO);
         sbHql.append(" AND a.pushFlag = 0 ");
         final StringBuilder sbHqlCount = this.generateRecipeHQLCount(recipeOrderRefundReqDTO);
-        return null;
+        sbHqlCount.append(" AND a.pushFlag = 0 ");
+        HibernateStatelessResultAction<QueryResult<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeOrder>>(){
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                // 查询总记录数
+                SQLQuery sqlQuery = ss.createSQLQuery(sbHqlCount.toString());
+                setRefundParameter(sqlQuery, recipeOrderRefundReqDTO);
+                Long total = Long.valueOf(String.valueOf((sqlQuery.uniqueResult())));
+                // 查询结果
+                Query query = ss.createSQLQuery(sbHql.append(" order by a.CreateTime DESC").toString()).addEntity(RecipeOrder.class);
+                setRefundParameter(query, recipeOrderRefundReqDTO);
+                query.setFirstResult(recipeOrderRefundReqDTO.getStart());
+                query.setMaxResults(recipeOrderRefundReqDTO.getLimit());
+                List<RecipeOrder> recipeOrderList = query.list();
+                setResult(new QueryResult<>(total, query.getFirstResult(), query.getMaxResults(), recipeOrderList));
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
     }
 
     public QueryResult<RecipeOrder> findRefundRecipeOrder(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
