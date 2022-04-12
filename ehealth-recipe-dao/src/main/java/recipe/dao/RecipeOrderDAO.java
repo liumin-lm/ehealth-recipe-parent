@@ -1632,9 +1632,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     public QueryResult<RecipeOrder> findPushFailRecipeOrder(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
         final StringBuilder sbHql = this.generateRecipeHQL(recipeOrderRefundReqDTO);
-        sbHql.append(" AND a.pushFlag = 0 and a.payFlag = 1 AND b.giveModeKey in (1,3) ");
+        sbHql.append(" AND a.pushFlag = 0 and a.payFlag = 1 AND b.giveMode in (1,3) ");
         final StringBuilder sbHqlCount = this.generateRecipeHQLCount(recipeOrderRefundReqDTO);
-        sbHqlCount.append(" AND a.pushFlag = 0 and a.payFlag = 1 AND b.giveModeKey in (1,3) ");
+        sbHqlCount.append(" AND a.pushFlag = 0 and a.payFlag = 1 AND b.giveMode in (1,3) ");
         HibernateStatelessResultAction<QueryResult<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeOrder>>(){
             @Override
             public void execute(StatelessSession ss) throws Exception {
