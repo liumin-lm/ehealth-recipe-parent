@@ -20,7 +20,10 @@ import org.springframework.stereotype.Service;
 import recipe.client.PatientClient;
 import recipe.core.api.greenroom.IRecipeOrderRefundService;
 import recipe.dao.*;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.PayModeEnum;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
+import recipe.enumerate.status.RefundNodeStatusEnum;
 import recipe.manager.OrderManager;
 import recipe.util.DateConversion;
 import recipe.util.ObjectCopyUtils;
@@ -97,12 +100,21 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
                 if (StringUtils.isNotEmpty(recipeOrder.getDrugStoreName())) {
                     recipeOrderRefundVO.setDepName(recipeOrder.getDrugStoreName());
                 } else {
-                    recipeOrderRefundVO.setDepName(drugsEnterpriseMap.get(recipeOrder.getEnterpriseId()).getName());
+                    DrugsEnterprise drugsEnterprise = drugsEnterpriseMap.get(recipeOrder.getEnterpriseId());
+                    if (null != drugsEnterprise) {
+                        recipeOrderRefundVO.setDepName(drugsEnterprise.getName());
+                    }
                 }
             }
+            recipeOrderRefundVO.setSendStatusText(RecipeOrderStatusEnum.getOrderStatus(recipeOrder.getStatus()));
+            recipeOrderRefundVO.setOrderStatusText(OrderStateEnum.getOrderStateEnum(recipeOrder.getProcessState()).getName());
             recipeOrderRefundVO.setPatientName(recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getPatientName());
             recipeOrderRefundVO.setPayModeText(PayModeEnum.getPayModeEnumName(recipeOrder.getPayMode()));
             recipeOrderRefundVO.setGiveModeText(recipeOrder.getGiveModeText());
+            RecipeExtend recipeExtend = recipeExtendMap.get(recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getRecipeId());
+            if (null != recipeExtend) {
+                recipeOrderRefundVO.setRefundStatusText(RefundNodeStatusEnum.getRefundStatus(recipeExtend.getRefundNodeStatus()));
+            }
             recipeOrderRefundVOList.add(recipeOrderRefundVO);
         });
         recipeOrderRefundPageVO.setRecipeOrderRefundVOList(recipeOrderRefundVOList);

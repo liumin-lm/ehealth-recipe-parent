@@ -51,8 +51,17 @@ public interface IPatientBusinessService {
 
     /**
      * 保存处方
+     *
      * @param recipeInfoVO 处方信息
      * @return
      */
     Integer saveRecipe(RecipeInfoVO recipeInfoVO);
+
+    /**
+     * 写死e签宝签名调用
+     *
+     * @param recipeInfoVO
+     * @return
+     */
+    Integer esignRecipeCa(Integer recipeInfoVO);
 }

@@ -377,7 +377,13 @@ public class RecipeManager extends BaseManager {
         }
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipeId);
-        updateRecipe.setPatientID(recipeResult.getPatientID());
+        //如果处方来源是复诊，则patientID取复诊的
+        if(new Integer(2).equals(recipeResult.getBussSource())){
+            RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipeResult.getClinicId());
+            updateRecipe.setPatientID(revisitExDTO.getPatId());
+        }else{
+            updateRecipe.setPatientID(recipeResult.getPatientID());
+        }
         updateRecipe.setRecipeCode(recipeResult.getRecipeCode());
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
         logger.info("RecipeManager updatePushHisRecipe updateRecipe:{}.", JSON.toJSONString(updateRecipe));
@@ -543,6 +549,14 @@ public class RecipeManager extends BaseManager {
                 }
             }
         }
+    }
+
+    public void setRecipeChecker(Recipe recipe) {
+        String fastRecipeChecker = configurationClient.getValueCatch(recipe.getClinicOrgan(), "fastRecipeChecker", "");
+        if (StringUtils.isEmpty(fastRecipeChecker)) {
+            throw new DAOException(DAOException.VALUE_NEEDED, "没有维护固定药师");
+        }
+        recipe.setChecker(Integer.parseInt(fastRecipeChecker));
     }
 
     /**
