@@ -89,12 +89,15 @@ public class PatientClient extends BaseClient {
 
     /**
      * 医保授权
+     *
      * @param medicalInsuranceAuthInfoBean
      * @return
      */
     public MedicalInsuranceAuthResBean medicalInsuranceAuth(MedicalInsuranceAuthInfoBean medicalInsuranceAuthInfoBean) {
         try {
+            logger.info("medicalInsuranceAuth req:{}", JSONUtils.toString(medicalInsuranceAuthInfoBean));
             HisResponseTO<MedicalInsuranceAuthResBean> hisResponse = recipeHisService.medicalInsuranceAuth(medicalInsuranceAuthInfoBean);
+            logger.info("medicalInsuranceAuth res:{}", JSONUtils.toString(hisResponse));
             return getResponse(hisResponse);
         } catch (Exception e) {
             logger.error("PatientClient medicalInsuranceAuth hisResponse", e);
@@ -298,12 +301,12 @@ public class PatientClient extends BaseClient {
         return null;
     }
 
-    public String getTid(){
+    public String getTid() {
         try {
             SimpleWxAccountBean simpleWxAccountBean = currentUserInfoService.getSimpleWxAccount();
             logger.info("PatientClient getTid simpleWxAccountBean:{}", JSON.toJSONString(simpleWxAccountBean));
             if (simpleWxAccountBean instanceof SimpleThirdBean) {
-                SimpleThirdBean simpleThirdBean = (SimpleThirdBean)simpleWxAccountBean;
+                SimpleThirdBean simpleThirdBean = (SimpleThirdBean) simpleWxAccountBean;
                 logger.info("PatientClient getTid simpleThirdBean:{}", JSON.toJSONString(simpleThirdBean));
                 return simpleThirdBean.getTid();
             } else {
@@ -336,7 +339,6 @@ public class PatientClient extends BaseClient {
         }
         return patientList;
     }
-
 
 
     /**
@@ -395,10 +397,11 @@ public class PatientClient extends BaseClient {
 
     /**
      * 获取每天提醒时间点
+     *
      * @param useRate 用药频率
      * @return 提醒时间点
      */
-    private String getDayTime(String useRate){
+    private String getDayTime(String useRate) {
         String result;
         if (StringUtils.isEmpty(useRate)) {
             return "[8]";

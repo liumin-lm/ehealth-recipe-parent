@@ -6,6 +6,7 @@ import com.ngari.recipe.vo.OutPatientReqVO;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.aop.LogRecord;
 import recipe.atop.BaseAtop;
 import recipe.core.api.patient.IPatientBusinessService;
 
@@ -35,9 +36,12 @@ public class PatientAtop extends BaseAtop {
 
     /**
      * 医保授权
+     *
      * @param medicalInsuranceAuthInfoVO
      * @return
      */
+    @LogRecord
+    @RpcService
     public MedicalInsuranceAuthResVO medicalInsuranceAuth(MedicalInsuranceAuthInfoVO medicalInsuranceAuthInfoVO) {
         validateAtop(medicalInsuranceAuthInfoVO, medicalInsuranceAuthInfoVO.getMpiId());
         return recipePatientService.medicalInsuranceAuth(medicalInsuranceAuthInfoVO);
