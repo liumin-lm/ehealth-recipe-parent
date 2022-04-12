@@ -17,7 +17,6 @@ import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
-import recipe.constant.HisErrorCodeEnum;
 import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
@@ -231,7 +230,10 @@ public class RecipePatientAtop extends BaseAtop {
         if (null == recipeInfoVO.getRecipeExtendBean()) {
             recipeInfoVO.setRecipeExtendBean(new RecipeExtendBean());
         }
-        return recipePatientService.saveRecipe(recipeInfoVO);
+        Integer recipeId = recipePatientService.saveRecipe(recipeInfoVO);
+        recipePatientService.esignRecipeCa(recipeId);
+        return recipeId;
+
     }
 
 }

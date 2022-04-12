@@ -3,6 +3,7 @@ package com.ngari.recipe.recipeorder.service;
 import com.ngari.recipe.IBaseService;
 import com.ngari.recipe.common.*;
 import com.ngari.recipe.recipe.model.RecipeRefundBean;
+import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import ctd.util.annotation.RpcService;
 import eh.billcheck.vo.*;
@@ -229,5 +230,4 @@ public interface IRecipeOrderService extends IBaseService<RecipeOrderBean> {
      */
     @RpcService
     Integer obtainPayMode(Integer payMode, Integer giveMode);
-
 }

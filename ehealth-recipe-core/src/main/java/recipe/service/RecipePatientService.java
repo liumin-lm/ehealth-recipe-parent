@@ -14,7 +14,6 @@ import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.his.recipe.mode.ChronicDiseaseListReqTO;
 import com.ngari.his.recipe.mode.ChronicDiseaseListResTO;
 import com.ngari.his.recipe.mode.PatientChronicDiseaseRes;
-import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -43,7 +42,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
-import recipe.client.DoctorClient;
+import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
 import recipe.common.CommonConstant;
@@ -95,7 +94,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     @Autowired
     private RecipeDetailManager recipeDetailManager;
     @Autowired
-    private DoctorClient doctorClient;
+    private CreatePdfFactory createPdfFactory;
     @Autowired
     private IOfflineRecipeBusinessService offlineRecipeBusinessService;
 
@@ -793,15 +792,24 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             recipeManager.saveRecipeExtend(recipeExtend, recipe);
         }
         //保存处方明细
-        if (!org.springframework.util.CollectionUtils.isEmpty(recipeInfoVO.getRecipeDetails())) {
+        if (CollectionUtils.isNotEmpty(recipeInfoVO.getRecipeDetails())) {
             List<Recipedetail> details = ObjectCopyUtils.convert(recipeInfoVO.getRecipeDetails(), Recipedetail.class);
             List<Integer> drugIds = details.stream().filter(a -> !a.getType().equals(2)).map(Recipedetail::getDrugId).collect(Collectors.toList());
             Map<String, OrganDrugList> organDrugListMap = organDrugListManager.getOrganDrugByIdAndCode(recipe.getClinicOrgan(), drugIds);
             recipeDetailManager.saveRecipeDetails(recipe, details, organDrugListMap);
         }
+        recipe = recipeManager.saveRecipe(recipe);
         //将处方写入HIS
         offlineRecipeBusinessService.pushRecipe(recipe.getRecipeId(), CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, null, null);
         return recipe.getRecipeId();
+    }
+
+    @Override
+    public Integer esignRecipeCa(Integer recipeId) {
+        Recipe recipe = recipeManager.getRecipeById(recipeId);
+        createPdfFactory.queryPdfOssId(recipe);
+        createPdfFactory.updateCheckNamePdfESign(recipeId);
+        return null;
     }
 
     public static void main(String[] args) {

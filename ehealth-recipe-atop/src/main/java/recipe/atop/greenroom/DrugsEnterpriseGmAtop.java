@@ -1,6 +1,9 @@
 package recipe.atop.greenroom;
 
-import com.ngari.recipe.drugsenterprise.model.*;
+import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
+import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressDTO;
+import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
+import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.EnterpriseDecoctionAddress;
 import com.ngari.recipe.entity.OrganAndDrugsepRelation;
@@ -97,8 +100,9 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
         validateAtop(organEnterpriseRelationVo.getType(), organEnterpriseRelationVo.getStart(), organEnterpriseRelationVo.getLimit());
         organEnterpriseRelationVo.setStart((organEnterpriseRelationVo.getStart() - 1) * organEnterpriseRelationVo.getLimit());
         QueryResult<DrugsEnterprise> queryResult = enterpriseBusinessService.drugsEnterpriseLimit(organEnterpriseRelationVo);
-        if (ValidateUtil.longIsEmpty(queryResult.getTotal())) {
-            return null;
+        if (null == queryResult || ValidateUtil.longIsEmpty(queryResult.getTotal())) {
+            organEnterpriseRelationVo.setTotal(0);
+            return organEnterpriseRelationVo;
         }
         List<DrugsEnterpriseBean> drugsEnterpriseList = ObjectCopyUtils.convert(queryResult.getItems(), DrugsEnterpriseBean.class);
         List<PharmacyVO> pharmacyList = enterpriseBusinessService.pharmacy();

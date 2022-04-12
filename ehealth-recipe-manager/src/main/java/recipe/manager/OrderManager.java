@@ -16,6 +16,7 @@ import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import ctd.persistence.bean.QueryResult;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import eh.utils.BeanCopyUtils;
@@ -34,10 +35,7 @@ import recipe.dao.RecipeOrderPayFlowDao;
 import recipe.dao.RecipeParameterDao;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
-import recipe.enumerate.type.PayBusTypeEnum;
-import recipe.enumerate.type.PayFlagEnum;
-import recipe.enumerate.type.PayFlowTypeEnum;
-import recipe.enumerate.type.RecipeOrderDetailFeeEnum;
+import recipe.enumerate.type.*;
 import recipe.util.*;
 
 import javax.annotation.Resource;
@@ -491,6 +489,17 @@ public class OrderManager extends BaseManager {
         });
         logger.info("findOrderAndRecipes downLoadRecipeOrderDTOList:{}", JSON.toJSONString(downLoadRecipeOrderDTOList));
         return downLoadRecipeOrderDTOList;
+    }
+
+    public QueryResult<RecipeOrder> findRefundRecipeOrder(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
+        if (OpRefundBusTypeEnum.BUS_TYPE_ALL_ORDER.getType().equals(recipeOrderRefundReqDTO.getBusType())) {
+            return recipeOrderDAO.findRefundRecipeOrder(recipeOrderRefundReqDTO);
+        } else if (OpRefundBusTypeEnum.BUS_TYPE_REFUND_ORDER.getType().equals(recipeOrderRefundReqDTO.getBusType())) {
+
+        } else if (OpRefundBusTypeEnum.BUS_TYPE_FAIL_ORDER.getType().equals(recipeOrderRefundReqDTO.getBusType())) {
+
+        }
+        return new QueryResult<>();
     }
 
     public void cancelOrder(RecipeOrder order, List<Recipe> recipeList, Boolean canCancelOrderCode, Integer identity){

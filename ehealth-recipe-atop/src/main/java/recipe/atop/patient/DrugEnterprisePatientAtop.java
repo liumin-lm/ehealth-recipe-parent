@@ -22,6 +22,7 @@ import recipe.util.RecipeUtil;
 import recipe.vo.doctor.ValidateDetailVO;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.patient.CheckAddressReq;
+import recipe.vo.patient.CheckAddressRes;
 import recipe.vo.patient.MedicineStationVO;
 
 import java.math.BigDecimal;
@@ -48,7 +49,7 @@ public class DrugEnterprisePatientAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public Boolean checkEnterpriseDecoctionAddress(CheckAddressReq checkAddressReq){
+    public CheckAddressRes checkEnterpriseDecoctionAddress(CheckAddressReq checkAddressReq){
         validateAtop(checkAddressReq, checkAddressReq.getOrganId(), checkAddressReq.getEnterpriseId(),checkAddressReq.getDecoctionId(),checkAddressReq.getAddress3());
         return enterpriseBusinessService.checkEnterpriseDecoctionAddress(checkAddressReq);
     }

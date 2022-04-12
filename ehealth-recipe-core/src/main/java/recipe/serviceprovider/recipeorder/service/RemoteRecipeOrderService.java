@@ -12,6 +12,7 @@ import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.entity.RecipeOrderBill;
 import com.ngari.recipe.entity.RecipeRefund;
 import com.ngari.recipe.recipe.model.RecipeRefundBean;
+import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
 import ctd.persistence.DAOFactory;
