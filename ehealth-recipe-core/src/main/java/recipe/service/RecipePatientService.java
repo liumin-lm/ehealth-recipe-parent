@@ -850,17 +850,17 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         return  chronicDiseaseFlagMap;
     }
 
-    private String setRecipeSupportGiveMode(Recipe recipe){
+    private void setRecipeSupportGiveMode(Recipe recipe){
         //从运营平台获取配置项
         GiveModeShowButtonDTO giveModeShowButtonDTO = operationClient.getGiveModeSettingFromYypt(recipe.getClinicOrgan());
         if (CollectionUtils.isEmpty(giveModeShowButtonDTO.getGiveModeButtons())) {
-            return "";
+            return;
         }
         List<GiveModeButtonDTO> giveModeButtonDTOList = giveModeShowButtonDTO.getGiveModeButtons();
         StringBuilder recipeSupportGiveMode = new StringBuilder();
         giveModeButtonDTOList.forEach(giveModeButtonDTO -> {
             recipeSupportGiveMode.append(RecipeSupportGiveModeEnum.getGiveMode(giveModeButtonDTO.getShowButtonKey())).append(",");
         });
-        return recipeSupportGiveMode.toString();
+        recipe.setRecipeSupportGiveMode(recipeSupportGiveMode.toString());
     }
 }
