@@ -240,6 +240,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         return checkAddressRes;
     }
 
+    @Override
     public boolean retryPushRecipeOrder(Integer recipeId) {
         RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         DrugEnterpriseResult result = remoteDrugEnterpriseService.pushSingleRecipeInfo(recipeId);
