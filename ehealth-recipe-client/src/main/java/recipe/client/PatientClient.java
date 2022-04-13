@@ -16,7 +16,6 @@ import com.ngari.follow.service.IMedicineRemindService;
 import com.ngari.follow.vo.MedicineRemindTO;
 import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.jgpt.zjs.service.IMinkeOrganService;
-import com.ngari.patient.dto.DeviceDTO;
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.HealthCardService;
@@ -305,7 +304,7 @@ public class PatientClient extends BaseClient {
 
     public String getClientNameById(String mpiId){
         try {
-            com.ngari.patient.dto.PatientDTO patientDTO = patientService.getByMpiId(mpiId);
+            PatientDTO patientDTO = this.getPatientDTO(mpiId);
             List<DeviceBean> deviceList = deviceService.findUserDeviceListOrderByLastModifyDesc(patientDTO.getLoginId(), patientDTO.getUrt(), "WX");
             ClientConfigBean clientConfigBean = clientConfigService.getByClientConfigId(deviceList.get(0).getClientConfigId());
             logger.info("PatientClient getClientNameById clientConfigBean:{}", clientConfigBean);
