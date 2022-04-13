@@ -50,6 +50,5 @@
     <!--随访服务-->
     <reference id="pm.remoteMedicineRemindService" interface="com.ngari.follow.service.IMedicineRemindService"/>
     <reference id="wx.jumperAuthorizationService" interface="com.ngari.intface.IJumperAuthorizationService"/>
-    <reference id="eh.device" interface="com.ngari.base.device.service.IDeviceService"/>
     <reference id="eh.remoteDeviceService" interface="com.ngari.base.device.service.IDeviceService"/>
 </s:beans>
