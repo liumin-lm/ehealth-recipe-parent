@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.bussutil.RecipeUtil;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.OperationClient;
 import recipe.client.PatientClient;
@@ -788,6 +789,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         recipeInfoVO.getRecipeBean().setPatientName(patientDTO.getPatientName());
         recipeInfoVO.setPatientVO(ObjectCopyUtils.convert(patientDTO, PatientVO.class));
         Recipe recipe = ObjectCopyUtils.convert(recipeInfoVO.getRecipeBean(), Recipe.class);
+        RecipeUtil.setDefaultData(recipe);
         recipe = recipeManager.saveRecipe(recipe);
         //保存处方扩展
         if (null != recipeInfoVO.getRecipeExtendBean()) {

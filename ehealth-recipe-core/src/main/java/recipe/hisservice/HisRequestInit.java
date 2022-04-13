@@ -352,7 +352,6 @@ public class HisRequestInit {
                 //制法Code 煎法Code 中医证候Code
                 DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
                 DrugMakingMethodDao drugMakingMethodDao = DAOFactory.getDAO(DrugMakingMethodDao.class);
-                SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
                 if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
                     DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
                     requestTO.getRecipeExtend().setDecoctionCode(decoctionWay.getDecoctionCode());
@@ -367,8 +366,7 @@ public class HisRequestInit {
                     requestTO.getRecipeExtend().setMakeMethod(drugMakingMethod.getMethodCode());
                 }
                 if (StringUtils.isNotBlank(recipeExtend.getSymptomId())) {
-                    Symptom symptom = symptomDAO.get(Integer.parseInt(recipeExtend.getSymptomId()));
-                    requestTO.getRecipeExtend().setSymptomCode(symptom.getSymptomCode());
+                    requestTO.getRecipeExtend().setSymptomCode(recipeExtend.getSymptomId());
                 }
             } catch (Exception e) {
                 LOGGER.error("initRecipeSendRequestTO recipeid:{} error ", recipe.getRecipeId(), e);
