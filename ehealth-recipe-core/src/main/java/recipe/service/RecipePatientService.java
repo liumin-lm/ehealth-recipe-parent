@@ -17,6 +17,7 @@ import com.ngari.his.recipe.mode.PatientChronicDiseaseRes;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
@@ -42,6 +43,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
+import recipe.bussutil.RecipeUtil;
 import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.client.OperationClient;
 import recipe.client.PatientClient;
@@ -783,7 +785,11 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     @Override
     public Integer saveRecipe(RecipeInfoVO recipeInfoVO) {
         //保存处方
+        com.ngari.recipe.dto.PatientDTO patientDTO = patientClient.getPatientDTO(recipeInfoVO.getRecipeBean().getMpiid());
+        recipeInfoVO.getRecipeBean().setPatientName(patientDTO.getPatientName());
+        recipeInfoVO.setPatientVO(ObjectCopyUtils.convert(patientDTO, PatientVO.class));
         Recipe recipe = ObjectCopyUtils.convert(recipeInfoVO.getRecipeBean(), Recipe.class);
+        RecipeUtil.setDefaultData(recipe);
         recipe = recipeManager.saveRecipe(recipe);
         //保存处方扩展
         if (null != recipeInfoVO.getRecipeExtendBean()) {
@@ -860,6 +866,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             }
         });
         LOGGER.info("setRecipeSupportGiveMode recipeSupportGiveMode:{}", recipeSupportGiveMode.toString());
+        recipeSupportGiveMode.deleteCharAt(recipeSupportGiveMode.lastIndexOf(","));
         recipe.setRecipeSupportGiveMode(recipeSupportGiveMode.toString());
     }
 }

@@ -225,6 +225,9 @@ public class RecipePatientAtop extends BaseAtop {
         recipeBean.setTakeMedicine(0);
         recipeBean.setPatientStatus(1);
         recipeBean.setStatus(2);
+        recipeBean.setFromflag(1);
+        recipeBean.setRecipeSourceType(1);
+        recipeBean.setReviewType(1);
         if (null == recipeInfoVO.getRecipeExtendBean()) {
             recipeInfoVO.setRecipeExtendBean(new RecipeExtendBean());
         }
