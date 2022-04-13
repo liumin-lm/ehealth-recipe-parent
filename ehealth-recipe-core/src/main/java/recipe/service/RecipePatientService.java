@@ -860,6 +860,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             }
         });
         LOGGER.info("setRecipeSupportGiveMode recipeSupportGiveMode:{}", recipeSupportGiveMode.toString());
+        recipeSupportGiveMode.deleteCharAt(recipeSupportGiveMode.lastIndexOf(","));
         recipe.setRecipeSupportGiveMode(recipeSupportGiveMode.toString());
     }
 }
