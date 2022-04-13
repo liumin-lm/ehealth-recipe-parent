@@ -299,7 +299,6 @@ public class RecipeRefundService extends RecipeBaseService {
                 recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_THIRD);
                 recipeRefund.setReason(refundRequestBean.getRemark());
                 recipeReFundSave(recipe, recipeRefund);
-                updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_NOPASS_AUDIT_STATUS);
                 //药企审核不通过
                 RecipeMsgService.batchSendMsg(recipe.getRecipeId(), RecipeStatusConstant.RECIPE_REFUND_HIS_OR_PHARMACEUTICAL_AUDIT_FAIL);
                 busActionLogService.recordBusinessLogRpcNew("电子处方详情页-退费审核", recipe.getRecipeId() + "", "recipe", "电子处方订单【" + recipe.getRecipeCode() + "】第三方退费审核不通过", recipe.getOrganName());
@@ -310,6 +309,8 @@ public class RecipeRefundService extends RecipeBaseService {
                     recipeRefund.setStatus(0);
                     recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_ADMIN);
                     recipeReFundSave(recipe, recipeRefund);
+                } else {
+                    updateRecipeRefundStatus(recipe, RefundNodeStatusConstant.REFUND_NODE_NOPASS_AUDIT_STATUS);
                 }
             }
         }
