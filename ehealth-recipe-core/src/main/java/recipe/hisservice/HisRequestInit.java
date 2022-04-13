@@ -367,7 +367,7 @@ public class HisRequestInit {
                     requestTO.getRecipeExtend().setMakeMethod(drugMakingMethod.getMethodCode());
                 }
                 if (StringUtils.isNotBlank(recipeExtend.getSymptomId())) {
-                    Symptom symptom = symptomDAO.get(Integer.parseInt(recipeExtend.getSymptomId()));
+                    Symptom symptom = symptomDAO.getByOrganIdAndSymptomCode(recipe.getClinicOrgan(), recipeExtend.getSymptomId());
                     requestTO.getRecipeExtend().setSymptomCode(symptom.getSymptomCode());
                 }
             } catch (Exception e) {
