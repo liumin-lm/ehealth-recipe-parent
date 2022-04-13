@@ -342,7 +342,8 @@ public class PatientClient extends BaseClient {
 
     public String getClientNameById(String mpiId){
         try {
-            PatientDTO patientDTO = this.getPatientDTO(mpiId);
+            com.ngari.patient.dto.PatientDTO patientDTO = patientService.get(mpiId);
+            logger.info("getClientNameById patientDTO:{}", JSON.toJSONString(patientDTO));
             List<DeviceBean> deviceList = deviceService.findUserDeviceListOrderByLastModifyDesc(patientDTO.getLoginId(), patientDTO.getUrt(), "WX");
             ClientConfigBean clientConfigBean = clientConfigService.getByClientConfigId(deviceList.get(0).getClientConfigId());
             logger.info("PatientClient getClientNameById clientConfigBean:{}", clientConfigBean);
