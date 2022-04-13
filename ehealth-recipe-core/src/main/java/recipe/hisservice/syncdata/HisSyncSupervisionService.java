@@ -624,25 +624,29 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 recipeChHerbalIndicatorsReq.setDecoctionId(decoctionWay.getDecoctionCode());
                 recipeChHerbalIndicatorsReq.setDecoctionText(decoctionWay.getDecoctionText());
             }
-            if (StringUtils.isNotBlank(recipeExtend.getMakeMethodId())) {
+            if (StringUtils.isNotEmpty(recipeExtend.getMakeMethodId())) {
                 DrugMakingMethod drugMakingMethod = drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
                 req.getRecipeExtend().setMakeMethod(drugMakingMethod.getMethodCode());
                 recipeChHerbalIndicatorsReq.setMakeMethodId(drugMakingMethod.getMethodCode());
                 recipeChHerbalIndicatorsReq.setMakeMethodText(drugMakingMethod.getMethodText());
             }
-            if (StringUtils.isNotBlank(recipeExtend.getSymptomId())) {
+            if (StringUtils.isNotEmpty(recipeExtend.getSymptomId())) {
+                LOGGER.info("setRecipeExtend {},{}",req.getOrganID(),recipeExtend.getSymptomId());
                 Symptom symptom = symptomDAO.getByOrganIdAndSymptomCode(Integer.valueOf(req.getOrganID()), recipeExtend.getSymptomId());
-                req.getRecipeExtend().setSymptomCode(symptom.getSymptomCode());
-                recipeChHerbalIndicatorsReq.setSymptomId(symptom.getSymptomCode());
-                recipeChHerbalIndicatorsReq.setSymptomName(symptom.getSymptomName());
-                recipeChHerbalIndicatorsReq.setTcmTherapyCode(symptom.getTreatmentCode());
-                recipeChHerbalIndicatorsReq.setTcmTherapyName(symptom.getTreatmentName());
+                LOGGER.info("setRecipeExtend symptom={}",JSONUtils.toString(symptom));
+                if(null != symptom){
+                    req.getRecipeExtend().setSymptomCode(symptom.getSymptomCode());
+                    recipeChHerbalIndicatorsReq.setSymptomId(symptom.getSymptomCode());
+                    recipeChHerbalIndicatorsReq.setSymptomName(symptom.getSymptomName());
+                    recipeChHerbalIndicatorsReq.setTcmTherapyCode(symptom.getTreatmentCode());
+                    recipeChHerbalIndicatorsReq.setTcmTherapyName(symptom.getTreatmentName());
+                }
             }
-            if(StringUtils.isNotBlank(recipeExtend.getMinor())){
+            if(StringUtils.isNotEmpty(recipeExtend.getMinor())){
                 recipeChHerbalIndicatorsReq.setMinor(Double.valueOf(recipeExtend.getMinor()));
                 recipeChHerbalIndicatorsReq.setMinorUnit(recipeExtend.getMinorUnit());
             }
-            if(StringUtils.isNotBlank(recipeExtend.getJuice())){
+            if(StringUtils.isNotEmpty(recipeExtend.getJuice())){
                 recipeChHerbalIndicatorsReq.setJuice(Double.valueOf(recipeExtend.getJuice()));
                 recipeChHerbalIndicatorsReq.setJuiceUnit(recipeExtend.getJuiceUnit());
             }
