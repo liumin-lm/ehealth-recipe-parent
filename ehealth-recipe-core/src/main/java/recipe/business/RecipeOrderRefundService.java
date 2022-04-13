@@ -169,6 +169,7 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
             recipeBean.setRecipeDetailBeanList(recipeDetailBeans);
             recipeBeanList.add(recipeBean);
         });
+        recipeOrderRefundDetailVO.setOrderRefundInfoVO(orderRefundInfoVO);
         recipeOrderRefundDetailVO.setRecipeBeanList(recipeBeanList);
         return recipeOrderRefundDetailVO;
     }
