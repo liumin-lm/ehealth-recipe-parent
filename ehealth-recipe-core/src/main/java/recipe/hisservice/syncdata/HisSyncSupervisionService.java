@@ -614,6 +614,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
                 DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
                 req.getRecipeExtend().setDecoctionCode(decoctionWay.getDecoctionCode());
+                LOGGER.info("setRecipeExtend decoctionWay={}",JSONUtils.toString(decoctionWay));
                 if(decoctionWay.getGenerationisOfDecoction()){
                     recipeChHerbalIndicatorsReq.setJyfs(2);
                 }else{
