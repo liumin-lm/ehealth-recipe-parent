@@ -22,4 +22,7 @@ public class RecipeOrderRefundDetailVO implements Serializable {
     private DrugsEnterpriseBean drugsEnterpriseBean;
 
     private PatientDTO patientDTO;
+
+    private OrderRefundInfoVO orderRefundInfoVO;
+
 }

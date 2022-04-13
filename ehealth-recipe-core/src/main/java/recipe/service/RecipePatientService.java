@@ -17,14 +17,15 @@ import com.ngari.his.recipe.mode.PatientChronicDiseaseRes;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
+import com.ngari.recipe.dto.GiveModeButtonDTO;
+import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RankShiftList;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.vo.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.controller.exception.ControllerException;
@@ -43,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.caNew.pdf.CreatePdfFactory;
+import recipe.client.OperationClient;
 import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
 import recipe.common.CommonConstant;
@@ -53,6 +55,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.type.CheckPatientEnum;
 import recipe.enumerate.type.MedicalTypeEnum;
+import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.OrganDrugListManager;
 import recipe.manager.RecipeDetailManager;
@@ -97,6 +100,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     private CreatePdfFactory createPdfFactory;
     @Autowired
     private IOfflineRecipeBusinessService offlineRecipeBusinessService;
+    @Autowired
+    private OperationClient operationClient;
 
     /**
      * 根据取药方式过滤药企
@@ -779,6 +784,9 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     @Override
     public Integer saveRecipe(RecipeInfoVO recipeInfoVO) {
         //保存处方
+        com.ngari.recipe.dto.PatientDTO patientDTO = patientClient.getPatientDTO(recipeInfoVO.getRecipeBean().getMpiid());
+        recipeInfoVO.getRecipeBean().setPatientName(patientDTO.getPatientName());
+        recipeInfoVO.setPatientVO(ObjectCopyUtils.convert(patientDTO, PatientVO.class));
         Recipe recipe = ObjectCopyUtils.convert(recipeInfoVO.getRecipeBean(), Recipe.class);
         recipe = recipeManager.saveRecipe(recipe);
         //保存处方扩展
@@ -790,6 +798,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             }
             recipeManager.setRecipeInfoFromRevisit(recipe, recipeExtend);
             recipeManager.setRecipeChecker(recipe);
+            //设置购药方式
+            this.setRecipeSupportGiveMode(recipe);
             recipeManager.saveRecipeExtend(recipeExtend, recipe);
         }
         //保存处方明细
@@ -837,5 +847,24 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         }
         LOGGER.info("getRedisChronicDiseaseMap={}",JSON.toJSONString(chronicDiseaseFlagMap));
         return  chronicDiseaseFlagMap;
+    }
+
+    private void setRecipeSupportGiveMode(Recipe recipe){
+        //从运营平台获取配置项
+        GiveModeShowButtonDTO giveModeShowButtonDTO = operationClient.getGiveModeSettingFromYypt(recipe.getClinicOrgan());
+        if (CollectionUtils.isEmpty(giveModeShowButtonDTO.getGiveModeButtons())) {
+            return;
+        }
+        List<GiveModeButtonDTO> giveModeButtonDTOList = giveModeShowButtonDTO.getGiveModeButtons();
+        StringBuilder recipeSupportGiveMode = new StringBuilder();
+        giveModeButtonDTOList.forEach(giveModeButtonDTO -> {
+            Integer giveMode = RecipeSupportGiveModeEnum.getGiveMode(giveModeButtonDTO.getShowButtonKey());
+            if (!new Integer(0).equals(giveMode) && !recipeSupportGiveMode.toString().contains(giveMode.toString())) {
+                recipeSupportGiveMode.append(giveMode).append(",");
+            }
+        });
+        LOGGER.info("setRecipeSupportGiveMode recipeSupportGiveMode:{}", recipeSupportGiveMode.toString());
+        recipeSupportGiveMode.deleteCharAt(recipeSupportGiveMode.lastIndexOf(","));
+        recipe.setRecipeSupportGiveMode(recipeSupportGiveMode.toString());
     }
 }

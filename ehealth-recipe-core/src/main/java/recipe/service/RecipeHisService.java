@@ -144,6 +144,7 @@ public class RecipeHisService extends RecipeBaseService {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
 
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        LOGGER.info("recipeSendHis recipe={}", JSONUtils.toString(recipe));
         if (null == recipe) {
             return false;
         }
