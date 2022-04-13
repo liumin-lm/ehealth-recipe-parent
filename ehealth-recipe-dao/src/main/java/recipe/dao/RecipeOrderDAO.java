@@ -1608,9 +1608,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     public QueryResult<RecipeOrder> findWaitApplyRefundRecipeOrder(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
         final StringBuilder sbHql = this.generateWaitApplyRecipeHQL(recipeOrderRefundReqDTO);
-        sbHql.append(" AND a.pushFlag = 0 and a.payFlag = 1 ");
+        sbHql.append(" AND a.payFlag = 1 ");
         final StringBuilder sbHqlCount = this.generateWaitApplyRecipeHQLCount(recipeOrderRefundReqDTO);
-        sbHqlCount.append(" AND a.pushFlag = 0 and a.payFlag = 1 ");
+        sbHqlCount.append(" AND a.payFlag = 1 ");
         HibernateStatelessResultAction<QueryResult<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeOrder>>(){
             @Override
             public void execute(StatelessSession ss) throws Exception {
