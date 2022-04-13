@@ -182,4 +182,15 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
         enterpriseBusinessService.saveOrganDrugsSaleConfig(organDrugsSaleConfigVo);
         return organDrugsSaleConfigVo;
     }
+
+    /**
+     * 重试处方推送
+     *
+     * @param recipeId
+     */
+    @RpcService
+    public boolean retryPushRecipeOrder(Integer recipeId){
+        validateAtop(recipeId);
+        return enterpriseBusinessService.retryPushRecipeOrder(recipeId);
+    }
 }

@@ -174,11 +174,11 @@ public class RecipeOrderPatientAtop extends BaseAtop {
      */
     @RpcService
     public void submitRecipeHisNew(PatientSubmitRecipeVO patientSubmitRecipeVO) {
-        validateAtop(patientSubmitRecipeVO, patientSubmitRecipeVO.getRecipeIds(), patientSubmitRecipeVO.getOrderId(), patientSubmitRecipeVO.getGiveModeKey());
+        validateAtop(patientSubmitRecipeVO, patientSubmitRecipeVO.getRecipeIds(), patientSubmitRecipeVO.getOrganId(), patientSubmitRecipeVO.getGiveModeKey());
         //过滤按钮
-        boolean validate = iOrganBusinessService.giveModeValidate(patientSubmitRecipeVO.getOrderId(), patientSubmitRecipeVO.getGiveModeKey());
+        boolean validate = iOrganBusinessService.giveModeValidate(patientSubmitRecipeVO.getOrganId(), patientSubmitRecipeVO.getGiveModeKey());
         if (!validate) {
-            logger.info("RecipeOrderPatientAtop submitRecipeHis orderId = {} , giveModeKey = {}", patientSubmitRecipeVO.getOrderId(), patientSubmitRecipeVO.getGiveModeKey());
+            logger.info("RecipeOrderPatientAtop submitRecipeHis orderId = {} , giveModeKey = {}", patientSubmitRecipeVO.getOrganId(), patientSubmitRecipeVO.getGiveModeKey());
             return;
         }
         //推送his

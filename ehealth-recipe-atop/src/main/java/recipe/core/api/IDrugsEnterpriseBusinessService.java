@@ -105,4 +105,11 @@ public interface IDrugsEnterpriseBusinessService {
      * @return
      */
     CheckAddressRes checkEnterpriseDecoctionAddress(CheckAddressReq checkAddressReq);
+
+    /**
+     * 重新推送药企
+     * @param recipeId
+     * @return
+     */
+    boolean retryPushRecipeOrder(Integer recipeId);
 }
