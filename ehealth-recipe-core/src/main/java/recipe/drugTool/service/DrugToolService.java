@@ -832,6 +832,7 @@ public class DrugToolService implements IDrugToolService {
                 }
             }
         }
+        LOGGER.info("机构药品目录导入数据校验errorMsg:{}", JSONUtils.toString(errDrugListMatchList));
         LOGGER.info("机构药品目录导入数据校验结束");
         //导入药品记录
         ImportDrugRecord importDrugRecord = new ImportDrugRecord();
@@ -2015,6 +2016,7 @@ public class DrugToolService implements IDrugToolService {
      * @return
      */
     @RpcService
+    @LogRecord
     public Integer automaticDrugMatch(DrugListMatch drugListMatch, String operator) {
         List<DrugList> drugLists = drugListDAO.findDrugMatchAutomatic(drugListMatch.getDrugName(), drugListMatch.getSaleName(), drugListMatch.getDrugSpec(),
                 drugListMatch.getUnit(), drugListMatch.getDrugForm(), drugListMatch.getProducer());
