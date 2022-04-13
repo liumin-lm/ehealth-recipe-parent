@@ -861,10 +861,12 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         giveModeButtonDTOList.forEach(giveModeButtonDTO -> {
             Integer giveMode = RecipeSupportGiveModeEnum.getGiveMode(giveModeButtonDTO.getShowButtonKey());
             if (!new Integer(0).equals(giveMode) && !recipeSupportGiveMode.toString().contains(giveMode.toString())) {
-                recipeSupportGiveMode.append(giveMode);
+                recipeSupportGiveMode.append(giveMode).append(",");
             }
         });
+        LOGGER.info("setRecipeSupportGiveMode recipeSupportGiveMode:{}", recipeSupportGiveMode.toString());
         recipeSupportGiveMode.deleteCharAt(recipeSupportGiveMode.lastIndexOf(","));
+        LOGGER.info("setRecipeSupportGiveMode recipeSupportGiveMode last:{}", recipeSupportGiveMode.toString());
         recipe.setRecipeSupportGiveMode(recipeSupportGiveMode.toString());
     }
 }
