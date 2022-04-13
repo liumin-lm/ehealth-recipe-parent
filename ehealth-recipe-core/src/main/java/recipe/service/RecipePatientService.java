@@ -859,7 +859,9 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
                 recipeSupportGiveMode.append(giveMode).append(",");
             }
         });
+        LOGGER.info("setRecipeSupportGiveMode recipeSupportGiveMode:{}", recipeSupportGiveMode.toString());
         recipeSupportGiveMode.deleteCharAt(recipeSupportGiveMode.lastIndexOf(","));
+        LOGGER.info("setRecipeSupportGiveMode recipeSupportGiveMode last:{}", recipeSupportGiveMode.toString());
         recipe.setRecipeSupportGiveMode(recipeSupportGiveMode.toString());
     }
 }
