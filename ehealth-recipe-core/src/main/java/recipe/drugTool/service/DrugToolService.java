@@ -73,7 +73,6 @@ import recipe.constant.DrugMatchConstant;
 import recipe.constant.ErrorCode;
 import recipe.constant.RecipeSystemConstant;
 import recipe.dao.*;
-import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.service.DrugsEnterpriseConfigService;
 import recipe.service.OrganDrugListService;
 import recipe.thread.RecipeBusiThreadPool;
@@ -287,6 +286,7 @@ public class DrugToolService implements IDrugToolService {
         Integer addNum = 0;
         Integer updateNum = 0;
         Integer failNum = 0;
+        LOGGER.info("机构药品目录导入数据校验开始");
         for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
             //循环获得每个行
             row = sheet.getRow(rowIndex);
@@ -634,7 +634,6 @@ public class DrugToolService implements IDrugToolService {
 
 
             try {
-                LOGGER.info("机构药品目录导入cell27", row.getCell(27));
                 if (!StringUtils.isEmpty(getStrFromCell(row.getCell(27)))) {
                     if ((new Integer(3).equals(drug.getDrugType()))) {
                         DrugEntrust byOrganIdAndDrugEntrustName = drugEntrustDAO.getByOrganIdAndDrugEntrustName(organId, getStrFromCell(row.getCell(27)));
@@ -833,7 +832,7 @@ public class DrugToolService implements IDrugToolService {
                 }
             }
         }
-
+        LOGGER.info("机构药品目录导入数据校验结束");
         //导入药品记录
         ImportDrugRecord importDrugRecord = new ImportDrugRecord();
         importDrugRecord.setFileName(originalFilename);

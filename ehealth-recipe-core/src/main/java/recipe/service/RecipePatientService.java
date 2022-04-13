@@ -17,6 +17,7 @@ import com.ngari.his.recipe.mode.PatientChronicDiseaseRes;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
 import com.ngari.recipe.drugsenterprise.model.DepListBean;
@@ -783,6 +784,9 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     @Override
     public Integer saveRecipe(RecipeInfoVO recipeInfoVO) {
         //保存处方
+        com.ngari.recipe.dto.PatientDTO patientDTO = patientClient.getPatientDTO(recipeInfoVO.getRecipeBean().getMpiid());
+        recipeInfoVO.getRecipeBean().setPatientName(patientDTO.getPatientName());
+        recipeInfoVO.setPatientVO(ObjectCopyUtils.convert(patientDTO, PatientVO.class));
         Recipe recipe = ObjectCopyUtils.convert(recipeInfoVO.getRecipeBean(), Recipe.class);
         recipe = recipeManager.saveRecipe(recipe);
         //保存处方扩展
