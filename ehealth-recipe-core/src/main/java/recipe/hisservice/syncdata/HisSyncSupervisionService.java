@@ -630,14 +630,17 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 recipeChHerbalIndicatorsReq.setMakeMethodId(drugMakingMethod.getMethodCode());
                 recipeChHerbalIndicatorsReq.setMakeMethodText(drugMakingMethod.getMethodText());
             }
-            if (null != recipeExtend.getSymptomId() && !(recipeExtend.getSymptomId().equals(""))) {
+            if (StringUtils.isNotEmpty(recipeExtend.getSymptomId())) {
+                LOGGER.info("setRecipeExtend {},{}",req.getOrganID(),recipeExtend.getSymptomId());
                 Symptom symptom = symptomDAO.getByOrganIdAndSymptomCode(Integer.valueOf(req.getOrganID()), recipeExtend.getSymptomId());
                 LOGGER.info("setRecipeExtend symptom={}",JSONUtils.toString(symptom));
-                req.getRecipeExtend().setSymptomCode(symptom.getSymptomCode());
-                recipeChHerbalIndicatorsReq.setSymptomId(symptom.getSymptomCode());
-                recipeChHerbalIndicatorsReq.setSymptomName(symptom.getSymptomName());
-                recipeChHerbalIndicatorsReq.setTcmTherapyCode(symptom.getTreatmentCode());
-                recipeChHerbalIndicatorsReq.setTcmTherapyName(symptom.getTreatmentName());
+                if(null != symptom){
+                    req.getRecipeExtend().setSymptomCode(symptom.getSymptomCode());
+                    recipeChHerbalIndicatorsReq.setSymptomId(symptom.getSymptomCode());
+                    recipeChHerbalIndicatorsReq.setSymptomName(symptom.getSymptomName());
+                    recipeChHerbalIndicatorsReq.setTcmTherapyCode(symptom.getTreatmentCode());
+                    recipeChHerbalIndicatorsReq.setTcmTherapyName(symptom.getTreatmentName());
+                }
             }
             if(StringUtils.isNotEmpty(recipeExtend.getMinor())){
                 recipeChHerbalIndicatorsReq.setMinor(Double.valueOf(recipeExtend.getMinor()));
