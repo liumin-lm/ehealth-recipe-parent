@@ -144,7 +144,7 @@ public class HisCallBackService {
         if (!recipeExtUpdateDataMap.isEmpty()) {
             recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), recipeExtUpdateDataMap);
         }
-        //更新复诊挂号序号、卡类型卡号等信息如果有
+        //更新复诊挂号序号、患者ID、卡类型卡号等信息如果有
         updateRecipeRegisterID(recipe, result);
         //updateRecipepatientType(recipe);
 
@@ -190,10 +190,11 @@ public class HisCallBackService {
 
     private static void updateRecipeRegisterID(Recipe recipe, RecipeCheckPassResult result) {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         Map<String, String> map = new HashMap<String, String>();
 
-        //更新复诊挂号序号如果有
+        //更新复诊挂号序号、patientID如果有
         if (null != recipe.getClinicId()) {
             if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
                 IRevisitExService iRevisitExService = RevisitAPI.getService(IRevisitExService.class);
@@ -201,6 +202,8 @@ public class HisCallBackService {
                 LOGGER.info("updateRecipeRegisterID revisitExDTO:{}", JSONUtils.toString(revisitExDTO));
                 iRevisitExService.updateRecipeIdByConsultId(recipe.getClinicId(), recipe.getRecipeId());
                 if (null != revisitExDTO) {
+                    recipe.setPatientID(revisitExDTO.getPatId());
+                    recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
                     if (StringUtils.isNotEmpty(revisitExDTO.getRegisterNo())) {
                         result.setRegisterID(revisitExDTO.getRegisterNo());
                     }
