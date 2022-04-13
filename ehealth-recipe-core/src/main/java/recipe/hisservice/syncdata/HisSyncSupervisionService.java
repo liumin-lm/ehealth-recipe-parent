@@ -610,17 +610,15 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
             DrugMakingMethodDao drugMakingMethodDao = DAOFactory.getDAO(DrugMakingMethodDao.class);
             SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
-            RecipeChHerbalIndicatorsReq recipeChHerbalIndicatorsReq = req.getRecipeChHerbalIndicatorsReq();
+            RecipeChHerbalIndicatorsReq recipeChHerbalIndicatorsReq = new RecipeChHerbalIndicatorsReq();
             if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
                 DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
                 req.getRecipeExtend().setDecoctionCode(decoctionWay.getDecoctionCode());
                 LOGGER.info("setRecipeExtend decoctionWay={}",JSONUtils.toString(decoctionWay));
-                if(null != decoctionWay.getGenerationisOfDecoction()){
-                    if(decoctionWay.getGenerationisOfDecoction()){
-                        recipeChHerbalIndicatorsReq.setJyfs(2);
-                    }else{
-                        recipeChHerbalIndicatorsReq.setJyfs(1);
-                    }
+                if(decoctionWay.getGenerationisOfDecoction()){
+                    recipeChHerbalIndicatorsReq.setJyfs(2);
+                }else{
+                    recipeChHerbalIndicatorsReq.setJyfs(1);
                 }
                 recipeChHerbalIndicatorsReq.setJyf(decoctionWay.getDecoctionPrice());
                 recipeChHerbalIndicatorsReq.setDecoctionId(decoctionWay.getDecoctionCode());
