@@ -630,7 +630,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 recipeChHerbalIndicatorsReq.setMakeMethodId(drugMakingMethod.getMethodCode());
                 recipeChHerbalIndicatorsReq.setMakeMethodText(drugMakingMethod.getMethodText());
             }
-            if (StringUtils.isNotEmpty(recipeExtend.getSymptomId())) {
+            if (null != recipeExtend.getSymptomId()) {
                 Symptom symptom = symptomDAO.getByOrganIdAndSymptomCode(Integer.valueOf(req.getOrganID()), recipeExtend.getSymptomId());
                 req.getRecipeExtend().setSymptomCode(symptom.getSymptomCode());
                 recipeChHerbalIndicatorsReq.setSymptomId(symptom.getSymptomCode());
