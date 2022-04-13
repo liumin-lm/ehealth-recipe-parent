@@ -49,5 +49,5 @@
     <reference id="easypay.payService" interface="recipe.easypay.IEasyPayService"/>
     <!--随访服务-->
     <reference id="pm.remoteMedicineRemindService" interface="com.ngari.follow.service.IMedicineRemindService"/>
-    <reference id="eh.device" interface="com.ngari.base.device.service.IDeviceService"/>
+    <reference id="eh.remoteDeviceService" interface="com.ngari.base.device.service.IDeviceService"/>
 </s:beans>
