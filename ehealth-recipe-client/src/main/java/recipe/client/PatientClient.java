@@ -6,6 +6,7 @@ import com.ngari.base.clientconfig.service.IClientConfigService;
 import com.ngari.base.clientconfig.to.ClientConfigBean;
 import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
+import com.ngari.base.device.service.IDeviceService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.bus.op.service.IUsePathwaysService;
@@ -63,6 +64,8 @@ public class PatientClient extends BaseClient {
     private IUsePathwaysService usePathwaysService;
     @Autowired
     private IClientConfigService clientConfigService;
+    @Autowired
+    private IDeviceService deviceService;
 
     /**
      * 获取 脱敏后的 患者对象
@@ -295,7 +298,19 @@ public class PatientClient extends BaseClient {
         } catch (Exception e) {
             logger.error("getClientName error", e);
         }
-        return null;
+        return "";
+    }
+
+    public String getClientNameById(Integer clientId){
+        try {
+            Client client = deviceService.getDeviceById(clientId);
+            ClientConfigBean clientConfigBean = clientConfigService.getByClientConfigId(client.getClientConfigId());
+            logger.info("PatientClient getClientNameById clientConfigBean:{}", clientConfigBean);
+            return clientConfigBean.getClientName();
+        } catch (Exception e) {
+            logger.error("getClientNameById error", e);
+        }
+        return "";
     }
 
     public List<HealthCardDTO> queryCardsByParam(Integer organId, String mpiId, List<String> cardTypes) throws Exception {
