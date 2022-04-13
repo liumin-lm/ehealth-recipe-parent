@@ -115,7 +115,7 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
             recipeOrderRefundVO.setSendStatusText(RecipeOrderStatusEnum.getOrderStatus(recipeOrder.getStatus()));
             recipeOrderRefundVO.setOrderStatusText(OrderStateEnum.getOrderStateEnum(recipeOrder.getProcessState()).getName());
             recipeOrderRefundVO.setPatientName(recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getPatientName());
-            recipeOrderRefundVO.setChannel(patientClient.getClientNameById(recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getCurrentClient()));
+            recipeOrderRefundVO.setChannel(patientClient.getClientNameById(recipeOrder.getMpiId()));
             recipeOrderRefundVO.setPayModeText(PayModeEnum.getPayModeEnumName(recipeOrder.getPayMode()));
             recipeOrderRefundVO.setGiveModeText(recipeOrder.getGiveModeText());
             RecipeExtend recipeExtend = recipeExtendMap.get(recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getRecipeId());
@@ -163,7 +163,7 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
             RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtendMap.get(recipe.getRecipeId()), RecipeExtendBean.class);
             orderRefundInfoVO.setRefundStatusText(RefundNodeStatusEnum.getRefundStatus(recipeExtendMap.get(recipe.getRecipeId()).getRefundNodeStatus()));
             orderRefundInfoVO.setRefundNodeStatusText(setRefundNodeStatus(recipeExtendMap.get(recipe.getRecipeId()).getRefundNodeStatus()));
-            orderRefundInfoVO.setChannel(patientClient.getClientNameById(recipe.getCurrentClient()));
+            orderRefundInfoVO.setChannel(patientClient.getClientNameById(recipe.getMpiid()));
             List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(detailMap.get(recipe.getRecipeId()), RecipeDetailBean.class);
             recipeBean.setRecipeExtend(recipeExtendBean);
             recipeBean.setRecipeDetailBeanList(recipeDetailBeans);

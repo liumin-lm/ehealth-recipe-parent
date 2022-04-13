@@ -7,6 +7,7 @@ import com.ngari.base.clientconfig.service.IClientConfigService;
 import com.ngari.base.clientconfig.to.ClientConfigBean;
 import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
+import com.ngari.base.device.model.DeviceBean;
 import com.ngari.base.device.service.IDeviceService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.service.IPatientService;
@@ -16,6 +17,7 @@ import com.ngari.follow.service.IMedicineRemindService;
 import com.ngari.follow.vo.MedicineRemindTO;
 import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.jgpt.zjs.service.IMinkeOrganService;
+import com.ngari.patient.dto.DeviceDTO;
 import com.ngari.patient.dto.HealthCardDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.HealthCardService;
@@ -339,10 +341,11 @@ public class PatientClient extends BaseClient {
         return "";
     }
 
-    public String getClientNameById(Integer clientId){
+    public String getClientNameById(String mpiId){
         try {
-            Client client = deviceService.getDeviceById(clientId);
-            ClientConfigBean clientConfigBean = clientConfigService.getByClientConfigId(client.getClientConfigId());
+            com.ngari.patient.dto.PatientDTO patientDTO = patientService.getByMpiId(mpiId);
+            List<DeviceBean> deviceList = deviceService.findUserDeviceListOrderByLastModifyDesc(patientDTO.getLoginId(), patientDTO.getUrt(), "WX");
+            ClientConfigBean clientConfigBean = clientConfigService.getByClientConfigId(deviceList.get(0).getClientConfigId());
             logger.info("PatientClient getClientNameById clientConfigBean:{}", clientConfigBean);
             return clientConfigBean.getClientName();
         } catch (Exception e) {
