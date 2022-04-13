@@ -30,6 +30,7 @@ import recipe.dao.bean.BillRecipeDetailBean;
 import recipe.dao.bean.RecipeBillBean;
 import recipe.dao.comment.ExtendDao;
 import recipe.enumerate.status.PayWayEnum;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -1632,9 +1633,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
     public QueryResult<RecipeOrder> findPushFailRecipeOrder(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
         final StringBuilder sbHql = this.generateRecipeHQL(recipeOrderRefundReqDTO);
-        sbHql.append(" AND a.pushFlag = 0 and a.payFlag = 1 ");
+        sbHql.append(" AND a.pushFlag = 0 and a.payFlag = 1 AND b.giveMode in (1,3) ");
         final StringBuilder sbHqlCount = this.generateRecipeHQLCount(recipeOrderRefundReqDTO);
-        sbHqlCount.append(" AND a.pushFlag = 0 and a.payFlag = 1 ");
+        sbHqlCount.append(" AND a.pushFlag = 0 and a.payFlag = 1 AND b.giveMode in (1,3) ");
         HibernateStatelessResultAction<QueryResult<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeOrder>>(){
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -1684,18 +1685,16 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         Integer organId = recipeOrderRefundReqDTO.getOrganId();
         Integer orderStatus = recipeOrderRefundReqDTO.getOrderStatus();
         Integer payFlag = recipeOrderRefundReqDTO.getPayFlag();
+        Integer depId = recipeOrderRefundReqDTO.getDepId();
 
         if (StringUtils.isNotEmpty(orderCode)) {
             query.setParameter("orderCode", orderCode);
         }
         if (StringUtils.isNotEmpty(patientName)) {
-            query.setParameter("patientName", patientName);
+            query.setParameter("patientName", "%" + patientName + "%");
         }
         if (null != organId) {
             query.setParameter("organId", organId);
-        }
-        if (null != orderStatus) {
-            query.setParameter("orderStatus", orderStatus);
         }
         if (null != payFlag) {
             query.setParameter("payFlag", payFlag);
@@ -1705,6 +1704,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         }
         if (null != recipeOrderRefundReqDTO.getEndTime()) {
             query.setParameter("endTime", recipeOrderRefundReqDTO.getEndTime());
+        }
+        if (null != recipeOrderRefundReqDTO.getDepId()) {
+            query.setParameter("depId", depId);
         }
     }
 
@@ -1719,12 +1721,12 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     }
 
     protected StringBuilder generateRecipeHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
-        StringBuilder hql = new StringBuilder("select a.* from cdr_recipeorder a,cdr_recipe b where a.orderCode = b.orderCode AND a.payFlag != 0 ");
+        StringBuilder hql = new StringBuilder("select a.* from cdr_recipeorder a,cdr_recipe b,cdr_recipe_ext c where a.orderCode = b.orderCode AND b.recipeId = c.recipeId ");
         return getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
     }
 
     protected StringBuilder generateRecipeHQLCount(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
-        StringBuilder hql = new StringBuilder("select count(1) from cdr_recipeorder a,cdr_recipe b where a.orderCode = b.orderCode AND a.payFlag != 0 ");
+        StringBuilder hql = new StringBuilder("select count(1) from cdr_recipeorder a,cdr_recipe b,cdr_recipe_ext c where a.orderCode = b.orderCode AND b.recipeId = c.recipeId ");
         return getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
     }
 
@@ -1733,13 +1735,29 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
             hql.append(" AND a.orderCode =:orderCode ");
         }
         if (StringUtils.isNotEmpty(recipeOrderRefundReqDTO.getPatientName())) {
-            hql.append(" AND a.patientName like :patientName ");
+            hql.append(" AND b.patientName like :patientName ");
         }
         if (null != recipeOrderRefundReqDTO.getOrganId()) {
             hql.append(" AND a.organId =:organId");
         }
         if (null != recipeOrderRefundReqDTO.getOrderStatus()) {
-            hql.append(" AND a.status =:orderStatus ");
+            if (RecipeOrderStatusEnum.ORDER_STATUS_READY_PAY.getType().equals(recipeOrderRefundReqDTO.getOrderStatus())) {
+                hql.append(" AND a.status =1 ");
+            } else if (new Integer(2).equals(recipeOrderRefundReqDTO.getOrderStatus())) {
+                hql.append(" AND a.status in (2,3,4,12) ");
+            } else {
+                hql.append(" AND a.status = 5 ");
+            }
+
+        }
+        if (null != recipeOrderRefundReqDTO.getRefundStatus()) {
+            if (new Integer(0).equals(recipeOrderRefundReqDTO.getRefundStatus())) {
+                hql.append(" AND c.refundNodeStatus is null ");
+            } else if (new Integer(1).equals(recipeOrderRefundReqDTO.getRefundStatus())) {
+                hql.append(" AND c.refundNodeStatus = 0 ");
+            } else {
+                hql.append(" AND c.refundNodeStatus in (1,2,3) ");
+            }
         }
         if (null != recipeOrderRefundReqDTO.getPayFlag()) {
             hql.append(" AND a.payFlag =:payFlag ");
@@ -1749,6 +1767,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         }
         if (null != recipeOrderRefundReqDTO.getEndTime()) {
             hql.append(" AND a.createTime <= :endTime ");
+        }
+        if (null != recipeOrderRefundReqDTO.getDepId()) {
+            hql.append(" AND a.enterpriseId =:depId ");
         }
         return hql;
     }

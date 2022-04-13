@@ -15,8 +15,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.ApplicationUtils;
+import recipe.bean.DrugEnterpriseResult;
 import recipe.core.api.IDrugsEnterpriseBusinessService;
 import recipe.dao.*;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.manager.EnterpriseManager;
 import recipe.util.ByteUtils;
 import recipe.util.ObjectCopyUtils;
@@ -235,6 +238,12 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         }
         checkAddressRes.setSendFlag(sendFlag);
         return checkAddressRes;
+    }
+
+    public boolean retryPushRecipeOrder(Integer recipeId) {
+        RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
+        DrugEnterpriseResult result = remoteDrugEnterpriseService.pushSingleRecipeInfo(recipeId);
+        return result.getCode() != 1 ? false : true;
     }
 
     private boolean addressCanSend(List<EnterpriseDecoctionAddress> list, String address) {
