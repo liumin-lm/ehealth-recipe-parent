@@ -14,4 +14,5 @@ public class OrderRefundInfoVO implements Serializable {
     private String refundStatusText;
     private String refundNodeStatusText;
     private boolean forceApplyFlag;
+    private String auditNodeText;
 }
