@@ -139,7 +139,7 @@ public class OrderFeeManager extends BaseManager {
                 isCalculateDecoctionFee = getIsCalculateDecoctionFee(doctorIsDecoction, patientIsDecoction);
             }
             totalCopyNum = totalCopyNum + recipe.getCopyNum();
-            BigDecimal recipeDecoctionFee = null;
+            BigDecimal recipeDecoctionFee = BigDecimal.ZERO;
             if (new Integer(2).equals(recipe.getRecipeSourceType())) {
                 logger.info("setRecipeChineseMedicineFee 进入线下处方控制逻辑");
                 if (MapUtils.isEmpty(finalHisRecipeMap) || CollectionUtils.isEmpty(finalHisRecipeMap.get(recipe.getRecipeCode()))) {
