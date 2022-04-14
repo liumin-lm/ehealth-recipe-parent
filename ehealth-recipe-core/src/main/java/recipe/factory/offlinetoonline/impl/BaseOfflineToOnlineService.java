@@ -520,7 +520,7 @@ public class BaseOfflineToOnlineService {
 
             LOGGER.info("BaseOfflineToOnlineService saveRecipeInfo res:{}", recipe.getRecipeId());
             revisitManager.saveRevisitTracesList(recipe);
-            revisitManager.updateRecipeIdByConsultId(recipe.getClinicId(), recipe.getRecipeId());
+            revisitManager.updateRecipeIdByConsultId(recipe.getRecipeId(), recipe.getClinicId());
             return recipe.getRecipeId();
         }
         return null;
