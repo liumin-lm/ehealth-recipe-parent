@@ -153,6 +153,6 @@ public class RevisitClient extends BaseClient {
      * @param clinicId
      */
     public void updateRecipeIdByConsultId(Integer recipeId, Integer clinicId) {
-        revisitExService.updateRecipeIdByConsultId(recipeId, clinicId);
+        revisitExService.updateRecipeIdByConsultId(clinicId, recipeId);
     }
 }
