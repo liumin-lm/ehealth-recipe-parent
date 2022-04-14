@@ -2137,7 +2137,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 Query q = ss.createQuery("select a from Symptom a where a.symptomCode in (:organSymptomIdsTemp) ");
-                q.setParameterList("organSymptomIds", organSymptomIdsTemp);
+                q.setParameterList("organSymptomIdsTemp", organSymptomIdsTemp);
                 q.setFirstResult(start);
                 q.setMaxResults(limit);
                 setResult(q.list());
