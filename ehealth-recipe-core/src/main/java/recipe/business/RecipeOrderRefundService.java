@@ -27,6 +27,7 @@ import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.PayModeEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RefundNodeStatusEnum;
+import recipe.enumerate.type.OpRefundBusTypeEnum;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeRefundManage;
 import recipe.service.RecipeService;
@@ -135,7 +136,7 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
     }
 
     @Override
-    public RecipeOrderRefundDetailVO getRefundOrderDetail(String orderCode) {
+    public RecipeOrderRefundDetailVO getRefundOrderDetail(String orderCode, Integer busType) {
         RecipeOrderRefundDetailVO recipeOrderRefundDetailVO = new RecipeOrderRefundDetailVO();
         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
         if (null == recipeOrder) {
@@ -155,14 +156,18 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
         orderRefundInfoVO.setAuditNodeType(recipeRefundManage.getRecipeRefundNode(recipeIdList.get(0), recipeOrder.getOrganId()));
         List<RecipeRefund> recipeRefundList = recipeRefundDAO.findRecipeRefundByRecipeIdAndNodeAndStatus(recipeIdList.get(0), RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_ADMIN);
-        if (CollectionUtils.isNotEmpty(recipeRefundList)) {
+        if (OpRefundBusTypeEnum.BUS_TYPE_REFUND_ORDER.getType().equals(busType) && CollectionUtils.isNotEmpty(recipeRefundList)) {
             orderRefundInfoVO.setForceApplyFlag(true);
             orderRefundInfoVO.setAuditNodeType(3);
         }
-        if (new Integer(1).equals(recipeOrder.getPushFlag())) {
-            orderRefundInfoVO.setRetryFlag(true);
-        } else if (new Integer(-1).equals(recipeOrder.getPushFlag())) {
+        if (OpRefundBusTypeEnum.BUS_TYPE_FAIL_ORDER.getType().equals(busType) && new Integer(-1).equals(recipeOrder.getPushFlag())) {
             orderRefundInfoVO.setAuditNodeType(4);
+            orderRefundInfoVO.setRetryFlag(true);
+        }
+        List<RecipeRefund> patientRefundList = recipeRefundDAO.findRecipeRefundByRecipeIdAndNodeAndStatus(recipeIdList.get(0), RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_PATIENT);
+        if (CollectionUtils.isNotEmpty(patientRefundList)) {
+            orderRefundInfoVO.setApplyReason(patientRefundList.get(0).getReason());
+            orderRefundInfoVO.setApplyTime(DateConversion.getDateFormatter(patientRefundList.get(0).getApplyTime(), DateConversion.DEFAULT_DATE_TIME));
         }
         List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
         Map<Integer, RecipeExtend> recipeExtendMap = recipeExtendList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId,a->a,(k1,k2)->k1));

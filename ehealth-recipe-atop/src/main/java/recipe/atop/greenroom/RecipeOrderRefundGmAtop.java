@@ -27,9 +27,9 @@ public class RecipeOrderRefundGmAtop extends BaseAtop {
     }
 
     @RpcService
-    public RecipeOrderRefundDetailVO getRefundOrderDetail(String orderCode) {
+    public RecipeOrderRefundDetailVO getRefundOrderDetail(String orderCode, Integer busType) {
         validateAtop(orderCode);
-        return recipeOrderRefundService.getRefundOrderDetail(orderCode);
+        return recipeOrderRefundService.getRefundOrderDetail(orderCode, busType);
     }
 
     @RpcService
