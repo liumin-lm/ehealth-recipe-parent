@@ -83,7 +83,10 @@ import recipe.presettle.settle.IRecipeSettleService;
 import recipe.retry.RecipeRetryService;
 import recipe.thread.CardDataUploadRunable;
 import recipe.thread.RecipeBusiThreadPool;
-import recipe.util.*;
+import recipe.util.ByteUtils;
+import recipe.util.DateConversion;
+import recipe.util.MapValueUtil;
+import recipe.util.RedisClient;
 
 import javax.annotation.Resource;
 import java.math.BigDecimal;
@@ -207,14 +210,16 @@ public class RecipeHisService extends RecipeBaseService {
         request.setOrganID(sendOrganId.toString());
         LOGGER.info("recipeHisService recipeId:{} request:{}", recipeId, JSONUtils.toString(request));
         // 处方独立出来后,his根据域名来判断回调模块
-        DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         // 传输煎发
         if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
+            DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
             DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
-            request.setDecoctionCode(decoctionWay.getDecoctionCode());
-            request.setDecoctionText(decoctionWay.getDecoctionText());
+            if (null != decoctionWay) {
+                request.setDecoctionCode(decoctionWay.getDecoctionCode());
+                request.setDecoctionText(decoctionWay.getDecoctionText());
+            }
         }
         service.recipeSend(request);
     }

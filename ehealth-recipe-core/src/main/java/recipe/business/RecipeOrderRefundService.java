@@ -155,6 +155,9 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
             orderRefundInfoVO.setForceApplyFlag(true);
             orderRefundInfoVO.setAuditNodeText("订单管理员审核中");
         }
+        if (new Integer(1).equals(recipeOrder.getPushFlag())) {
+            orderRefundInfoVO.setRetryFlag(true);
+        }
         List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
         Map<Integer, RecipeExtend> recipeExtendMap = recipeExtendList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId,a->a,(k1,k2)->k1));
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIds(recipeIdList);
