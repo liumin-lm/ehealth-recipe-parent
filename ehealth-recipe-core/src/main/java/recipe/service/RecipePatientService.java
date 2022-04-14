@@ -833,7 +833,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             String organDrugCode = recipeDetailBean.getOrganDrugCode();
             OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, organDrugCode, drugId);
             if (null == organDrugList) {
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "");
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "药品"+ recipeDetailBean.getDrugName() +"目录缺失无法开具");
             }
         });
     }
