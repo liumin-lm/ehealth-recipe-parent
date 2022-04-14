@@ -637,7 +637,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 Symptom symptom = symptomDAO.getByOrganIdAndSymptomCode(Integer.valueOf(req.getOrganID()), recipeExtend.getSymptomId());
                 LOGGER.info("setRecipeExtend symptom={}",JSONUtils.toString(symptom));
                 if(null != symptom){
-                    req.getRecipeExtend().setSymptomCode(symptom.getSymptomCode());
+                    req.getRecipeExtend().setSymptomCode(recipeExtend.getSymptomId());
                     recipeChHerbalIndicatorsReq.setSymptomId(symptom.getRegulationSymptomCode());
                     recipeChHerbalIndicatorsReq.setSymptomName(symptom.getRegulationSymptomName());
                     recipeChHerbalIndicatorsReq.setTcmTherapyCode(symptom.getTreatmentCode());
