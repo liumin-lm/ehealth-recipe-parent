@@ -3,6 +3,8 @@ package recipe.hisservice.syncdata;
 import ca.service.ISignRecipeInfoService;
 import ca.vo.model.SignDoctorRecipeInfoDTO;
 import com.alibaba.fastjson.JSON;
+import com.ngari.base.cdr.model.DiseaseDTO;
+import com.ngari.base.cdr.service.IDiseaseService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
@@ -636,8 +638,8 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 LOGGER.info("setRecipeExtend symptom={}",JSONUtils.toString(symptom));
                 if(null != symptom){
                     req.getRecipeExtend().setSymptomCode(symptom.getSymptomCode());
-                    recipeChHerbalIndicatorsReq.setSymptomId(symptom.getSymptomCode());
-                    recipeChHerbalIndicatorsReq.setSymptomName(symptom.getSymptomName());
+                    recipeChHerbalIndicatorsReq.setSymptomId(symptom.getRegulationSymptomCode());
+                    recipeChHerbalIndicatorsReq.setSymptomName(symptom.getRegulationSymptomName());
                     recipeChHerbalIndicatorsReq.setTcmTherapyCode(symptom.getTreatmentCode());
                     recipeChHerbalIndicatorsReq.setTcmTherapyName(symptom.getTreatmentName());
                 }
@@ -1121,10 +1123,14 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
             list.add(reqDetail);
         }
+        IDiseaseService diseaseService = AppContextHolder.getBean("eh.diseasService", IDiseaseService.class);
         RecipeChHerbalIndicatorsReq recipeChHerbalIndicatorsReq = req.getRecipeChHerbalIndicatorsReq();
+        DiseaseDTO diseaseDTO = diseaseService.getDiseasByCodeAndOrganId(recipe.getClinicOrgan(),recipe.getOrganDiseaseId());
         recipeChHerbalIndicatorsReq.setPacketsNum(recipe.getCopyNum());
-        recipeChHerbalIndicatorsReq.setOrganDiseaseId(recipe.getOrganDiseaseId());
-        recipeChHerbalIndicatorsReq.setOrganDiseaseName(recipe.getOrganDiseaseName());
+        if(null != diseaseDTO){
+            recipeChHerbalIndicatorsReq.setOrganDiseaseId(diseaseDTO.getJgDiseasId());
+            recipeChHerbalIndicatorsReq.setOrganDiseaseName(diseaseDTO.getJgDiseasName());
+        }
         req.setRecipeChHerbalIndicatorsReq(recipeChHerbalIndicatorsReq);
         LOGGER.info("setDetail recipeChHerbalIndicatorsReq={}",JSONUtils.toString(recipeChHerbalIndicatorsReq));
         req.setOrderList(list);

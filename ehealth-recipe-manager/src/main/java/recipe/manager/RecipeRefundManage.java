@@ -66,12 +66,12 @@ public class RecipeRefundManage extends BaseManager{
         });
     }
 
-    public String getRecipeRefundNode(Integer recipeId, Integer organId){
+    public Integer getRecipeRefundNode(Integer recipeId, Integer organId){
         Boolean doctorReviewRefund = configurationClient.getValueBooleanCatch(organId, "doctorReviewRefund", false);
         List<RecipeRefund> recipeRefundList = recipeRefundDAO.findRefundListByRecipeId(recipeId);
         if (doctorReviewRefund && CollectionUtils.isNotEmpty(recipeRefundList) && new Integer(-1).equals(recipeRefundList.get(0).getNode())) {
-            return "医生审核中";
+            return 1;
         }
-        return "审核系统审核中";
+        return 2;
     }
 }
