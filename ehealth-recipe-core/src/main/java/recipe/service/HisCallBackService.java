@@ -478,20 +478,20 @@ public class HisCallBackService {
                     String orderCode = recipe.getOrderCode();
                     if (Objects.isNull(orderCode)) {
                         finishForHis(recipe, attrMap, recipeDAO);
-                        return;
+                        continue;
                     }
                     RecipeOrder byOrderCode = recipeOrderDAO.getByOrderCode(orderCode);
                     if (Objects.isNull(byOrderCode)) {
                         finishForHis(recipe, attrMap, recipeDAO);
-                        return;
+                        continue;
                     }
                     if (Integer.valueOf(1).equals(byOrderCode.getPayFlag()) && RecipeBussConstant.GIVEMODE_TO_HOS.equals(recipe.getGiveMode())) {
                         finishForHis(recipe, attrMap, recipeDAO);
-                        return;
+                        continue;
                     }
                     if (Integer.valueOf(0).equals(byOrderCode.getPayFlag())) {
                         finishForHis(recipe, attrMap, recipeDAO);
-                        return;
+                        continue;
                     }
 
                 }
