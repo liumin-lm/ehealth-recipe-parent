@@ -103,6 +103,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     private IOfflineRecipeBusinessService offlineRecipeBusinessService;
     @Autowired
     private OperationClient operationClient;
+    @Autowired
+    private OrganDrugListDAO organDrugListDAO;
 
     /**
      * 根据取药方式过滤药企
@@ -784,6 +786,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
 
     @Override
     public Integer saveRecipe(RecipeInfoVO recipeInfoVO) {
+        //数据校验
+        validateData(recipeInfoVO);
         //保存处方
         com.ngari.recipe.dto.PatientDTO patientDTO = patientClient.getPatientDTO(recipeInfoVO.getRecipeBean().getMpiid());
         recipeInfoVO.getRecipeBean().setPatientName(patientDTO.getPatientName());
@@ -815,6 +819,18 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         //将处方写入HIS
         offlineRecipeBusinessService.pushRecipe(recipe.getRecipeId(), CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, null, null);
         return recipe.getRecipeId();
+    }
+
+    private void validateData(RecipeInfoVO recipeInfoVO) {
+        recipeInfoVO.getRecipeDetails().forEach(recipeDetailBean -> {
+            Integer drugId = recipeDetailBean.getDrugId();
+            Integer organId = recipeInfoVO.getRecipeBean().getClinicOrgan();
+            String organDrugCode = recipeDetailBean.getOrganDrugCode();
+            OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, organDrugCode, drugId);
+            if (null == organDrugList) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "");
+            }
+        });
     }
 
     @Override
