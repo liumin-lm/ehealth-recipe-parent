@@ -115,7 +115,7 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
             recipeOrderRefundVO.setSendStatusText(RecipeOrderStatusEnum.getOrderStatus(recipeOrder.getStatus()));
             recipeOrderRefundVO.setOrderStatusText(OrderStateEnum.getOrderStateEnum(recipeOrder.getProcessState()).getName());
             recipeOrderRefundVO.setPatientName(recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getPatientName());
-            recipeOrderRefundVO.setChannel(patientClient.getClientNameById(recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getCurrentClient()));
+            recipeOrderRefundVO.setChannel(patientClient.getClientNameById(recipeOrder.getMpiId()));
             recipeOrderRefundVO.setPayModeText(PayModeEnum.getPayModeEnumName(recipeOrder.getPayMode()));
             recipeOrderRefundVO.setGiveModeText(recipeOrder.getGiveModeText());
             RecipeExtend recipeExtend = recipeExtendMap.get(recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getRecipeId());
@@ -149,9 +149,16 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         recipeOrderRefundDetailVO.setPatientDTO(ObjectCopyUtils.convert(patientDTO, com.ngari.patient.dto.PatientDTO.class));
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
+        orderRefundInfoVO.setAuditNodeType(recipeRefundManage.getRecipeRefundNode(recipeIdList.get(0), recipeOrder.getOrganId()));
         List<RecipeRefund> recipeRefundList = recipeRefundDAO.findRecipeRefundByRecipeIdAndNodeAndStatus(recipeIdList.get(0), RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_ADMIN);
         if (CollectionUtils.isNotEmpty(recipeRefundList)) {
             orderRefundInfoVO.setForceApplyFlag(true);
+            orderRefundInfoVO.setAuditNodeType(3);
+        }
+        if (new Integer(1).equals(recipeOrder.getPushFlag())) {
+            orderRefundInfoVO.setRetryFlag(true);
+        } else if (new Integer(-1).equals(recipeOrder.getPushFlag())) {
+            orderRefundInfoVO.setAuditNodeType(4);
         }
         List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
         Map<Integer, RecipeExtend> recipeExtendMap = recipeExtendList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId,a->a,(k1,k2)->k1));
@@ -163,12 +170,13 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
             RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtendMap.get(recipe.getRecipeId()), RecipeExtendBean.class);
             orderRefundInfoVO.setRefundStatusText(RefundNodeStatusEnum.getRefundStatus(recipeExtendMap.get(recipe.getRecipeId()).getRefundNodeStatus()));
             orderRefundInfoVO.setRefundNodeStatusText(setRefundNodeStatus(recipeExtendMap.get(recipe.getRecipeId()).getRefundNodeStatus()));
-            orderRefundInfoVO.setChannel(patientClient.getClientNameById(recipe.getCurrentClient()));
+            orderRefundInfoVO.setChannel(patientClient.getClientNameById(recipe.getMpiid()));
             List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(detailMap.get(recipe.getRecipeId()), RecipeDetailBean.class);
             recipeBean.setRecipeExtend(recipeExtendBean);
             recipeBean.setRecipeDetailBeanList(recipeDetailBeans);
             recipeBeanList.add(recipeBean);
         });
+        recipeOrderRefundDetailVO.setOrderRefundInfoVO(orderRefundInfoVO);
         recipeOrderRefundDetailVO.setRecipeBeanList(recipeBeanList);
         return recipeOrderRefundDetailVO;
     }

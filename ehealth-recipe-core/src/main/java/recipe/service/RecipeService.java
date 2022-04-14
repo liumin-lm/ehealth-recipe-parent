@@ -5106,6 +5106,7 @@ public class RecipeService extends RecipeBaseService {
      */
     public void updateHisOrganDrug(OrganDrugInfoTO drug, OrganDrugList organDrug, Integer organId) {
         if (null == organDrug) {
+            LOGGER.info("updateHisOrganDrug 机构药品空");
             return;
         }
         //获取金额

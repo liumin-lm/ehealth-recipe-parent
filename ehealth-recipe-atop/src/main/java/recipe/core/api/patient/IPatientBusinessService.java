@@ -56,4 +56,11 @@ public interface IPatientBusinessService {
      * @return
      */
     Integer esignRecipeCa(Integer recipeInfoVO);
+
+    /**
+     * 更新复诊的处方号
+     * @param clinicId
+     * @param recipeId
+     */
+    void updateRecipeIdByConsultId(Integer recipeId, Integer clinicId);
 }

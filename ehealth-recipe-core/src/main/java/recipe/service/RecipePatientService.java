@@ -103,6 +103,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     private IOfflineRecipeBusinessService offlineRecipeBusinessService;
     @Autowired
     private OperationClient operationClient;
+    @Autowired
+    private OrganDrugListDAO organDrugListDAO;
 
     /**
      * 根据取药方式过滤药企
@@ -784,6 +786,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
 
     @Override
     public Integer saveRecipe(RecipeInfoVO recipeInfoVO) {
+        //数据校验
+        validateData(recipeInfoVO);
         //保存处方
         com.ngari.recipe.dto.PatientDTO patientDTO = patientClient.getPatientDTO(recipeInfoVO.getRecipeBean().getMpiid());
         recipeInfoVO.getRecipeBean().setPatientName(patientDTO.getPatientName());
@@ -817,6 +821,18 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         return recipe.getRecipeId();
     }
 
+    private void validateData(RecipeInfoVO recipeInfoVO) {
+        recipeInfoVO.getRecipeDetails().forEach(recipeDetailBean -> {
+            Integer drugId = recipeDetailBean.getDrugId();
+            Integer organId = recipeInfoVO.getRecipeBean().getClinicOrgan();
+            String organDrugCode = recipeDetailBean.getOrganDrugCode();
+            OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, organDrugCode, drugId);
+            if (null == organDrugList) {
+                throw new DAOException(ErrorCode.SERVICE_ERROR, "药品"+ recipeDetailBean.getDrugName() +"目录缺失无法开具");
+            }
+        });
+    }
+
     @Override
     public Integer esignRecipeCa(Integer recipeId) {
         try {
@@ -827,6 +843,17 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             LOGGER.error("esignRecipeCa error", e);
         }
         return null;
+    }
+
+    /**
+     * 处方开成功回写复诊更改处方id
+     *
+     * @param recipeId
+     * @param clinicId
+     */
+    public void updateRecipeIdByConsultId(Integer recipeId, Integer clinicId) {
+        LOGGER.info("updateRecipeIdByConsultId recipeId:{},clinicId:{}", recipeId, clinicId);
+        revisitClient.updateRecipeIdByConsultId(recipeId, clinicId);
     }
 
     /**

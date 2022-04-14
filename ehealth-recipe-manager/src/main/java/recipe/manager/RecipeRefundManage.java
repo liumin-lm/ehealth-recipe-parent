@@ -8,6 +8,8 @@ import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
+import javafx.beans.binding.IntegerBinding;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.client.IConfigurationClient;
@@ -62,6 +64,14 @@ public class RecipeRefundManage extends BaseManager{
             //保存记录
             recipeRefundDAO.saveRefund(recipeRefund);
         });
+    }
 
+    public Integer getRecipeRefundNode(Integer recipeId, Integer organId){
+        Boolean doctorReviewRefund = configurationClient.getValueBooleanCatch(organId, "doctorReviewRefund", false);
+        List<RecipeRefund> recipeRefundList = recipeRefundDAO.findRefundListByRecipeId(recipeId);
+        if (doctorReviewRefund && CollectionUtils.isNotEmpty(recipeRefundList) && new Integer(-1).equals(recipeRefundList.get(0).getNode())) {
+            return 1;
+        }
+        return 2;
     }
 }
