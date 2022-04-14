@@ -145,7 +145,7 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         RecipeOrderBean recipeOrderBean = ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class);
         recipeOrderRefundDetailVO.setRecipeOrderBean(recipeOrderBean);
         OrderRefundInfoVO orderRefundInfoVO = new OrderRefundInfoVO();
-        if (null != recipeOrderBean.getEnterpriseId() && StringUtils.isEmpty(recipeOrderBean.getDrugStoreName())) {
+        if (null != recipeOrderBean.getEnterpriseId()) {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrderBean.getEnterpriseId());
             DrugsEnterpriseBean drugsEnterpriseBean = ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class);
             recipeOrderRefundDetailVO.setDrugsEnterpriseBean(drugsEnterpriseBean);
