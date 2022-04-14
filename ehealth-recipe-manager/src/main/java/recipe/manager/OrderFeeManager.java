@@ -200,7 +200,8 @@ public class OrderFeeManager extends BaseManager {
         order.setCopyNum(totalCopyNum);
         order.setTcmFee(tcmFee);
         order.setDecoctionFee(decoctionFee);
-        order.setDecoctionUnitPrice(decoctionTotalFee.divide(BigDecimal.valueOf(totalCopyNum)));
+        // 2022 4-v1 版本产品拿掉代煎单价
+//        order.setDecoctionUnitPrice(decoctionTotalFee.divide(BigDecimal.valueOf(totalCopyNum)));
         ext.put("notContainDecoctionPrice", notContainDecoctionPrice);
         ext.put("decoctionTotalFee", decoctionTotalFee);
         logger.info("setRecipeChineseMedicineFee 处方中药相关费用 totalCopyNum={},tcmFee={},decoctionFee={},notContainDecoctionPrice={},decoctionTotalFee={}",totalCopyNum,tcmFee,decoctionFee,notContainDecoctionPrice,decoctionTotalFee);

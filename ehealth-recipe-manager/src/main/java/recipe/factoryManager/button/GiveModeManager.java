@@ -232,6 +232,7 @@ public abstract class GiveModeManager implements IGiveModeBase {
         }
 
         saveGiveModeDatas(giveModeButtonBeans, list);
+        LOGGER.info("afterSetting saveGiveModeDatas recipeId={}  giveModeButtonBeans={}", recipe.getRecipeId(), JSONUtils.toString(giveModeButtonBeans));
 
         //从运营平台获取配置项和现在的按钮集合取交集
         GiveModeShowButtonDTO giveModeShowButton = operationClient.getGiveModeSettingFromYypt(recipe.getClinicOrgan());
