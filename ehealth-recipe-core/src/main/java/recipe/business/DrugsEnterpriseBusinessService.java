@@ -2,9 +2,11 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.ngari.patient.service.OrganService;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionList;
 import com.ngari.recipe.entity.*;
+import ctd.account.UserRoleToken;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
 import eh.utils.BeanCopyUtils;
@@ -52,6 +54,8 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     private EnterpriseDecoctionAddressDAO enterpriseDecoctionAddressDAO;
     @Autowired
     private EnterpriseAddressDAO enterpriseAddressDAO;
+    @Autowired
+    private OrganService organService;
 
     @Override
     public Boolean existEnterpriseByName(String name) {
@@ -162,6 +166,14 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
 
     @Override
     public List<OrganAndDrugsepRelation> findOrganAndDrugsepRelationBean(Integer enterpriseId) {
+        UserRoleToken ur = UserRoleToken.getCurrent();
+        String manageUnit = ur.getManageUnit();
+        // 机构管理员获取机构信息
+        if ("eh".equals(manageUnit)) {
+            List<Integer> organIds = organService.findOrganIdsByManageUnit(manageUnit + "%");
+            logger.info("findOrganAndDrugsepRelationBean manageUnit={},organIds={}",JSONArray.toJSONString(organIds),JSONArray.toJSONString(manageUnit));
+            return organAndDrugsepRelationDAO.findByEntIdAndOrganIds(enterpriseId,organIds);
+        }
         return organAndDrugsepRelationDAO.findByEntId(enterpriseId);
     }
 
