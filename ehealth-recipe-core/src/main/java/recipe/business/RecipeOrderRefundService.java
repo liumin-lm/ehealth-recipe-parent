@@ -157,6 +157,7 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         }
         if (new Integer(1).equals(recipeOrder.getPushFlag())) {
             orderRefundInfoVO.setRetryFlag(true);
+        } else if (new Integer(-1).equals(recipeOrder.getPushFlag())) {
             orderRefundInfoVO.setAuditNodeType(4);
         }
         List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
