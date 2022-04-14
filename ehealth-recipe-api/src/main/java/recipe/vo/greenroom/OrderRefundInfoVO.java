@@ -18,4 +18,5 @@ public class OrderRefundInfoVO implements Serializable {
     private boolean retryFlag;
     private String applyReason;
     private String applyTime;
+    private String orderStatusText;
 }
