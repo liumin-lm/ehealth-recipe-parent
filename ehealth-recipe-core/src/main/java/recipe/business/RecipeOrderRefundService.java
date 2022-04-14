@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.client.PatientClient;
 import recipe.constant.RecipeRefundRoleConstant;
+import recipe.constant.RefundNodeStatusConstant;
 import recipe.core.api.greenroom.IRecipeOrderRefundService;
 import recipe.dao.*;
 import recipe.enumerate.status.OrderStateEnum;
@@ -29,6 +30,7 @@ import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RefundNodeStatusEnum;
 import recipe.enumerate.type.OpRefundBusTypeEnum;
 import recipe.manager.OrderManager;
+import recipe.manager.RecipeManager;
 import recipe.manager.RecipeRefundManage;
 import recipe.service.RecipeService;
 import recipe.util.DateConversion;
@@ -68,6 +70,8 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
     private RecipeRefundDAO recipeRefundDAO;
     @Autowired
     private RecipeRefundManage recipeRefundManage;
+    @Autowired
+    private RecipeManager recipeManager;
 
     @Override
     public RecipeOrderRefundPageVO findRefundRecipeOrder(RecipeOrderRefundReqVO recipeOrderRefundReqVO) {
@@ -201,10 +205,12 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         if (null == recipeOrder) {
             throw new DAOException(DAOException.VALUE_NEEDED, "订单不存在");
         }
+        Integer refundStatus = 0;
         if (auditRefundVO.getResult() && StringUtils.isNotEmpty(recipeOrder.getOutTradeNo())) {
             List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
             recipeService.wxPayRefundForRecipe(4, recipeIdList.get(0), "");
+            refundStatus = RefundNodeStatusConstant.REFUND_NODE_SUCCESS_STATUS;
         } else {
             RecipeRefund recipeRefund = new RecipeRefund();
             recipeRefund.setTradeNo(recipeOrder.getTradeNo());
@@ -213,7 +219,10 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
             recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_THIRD);
             recipeRefund.setReason(auditRefundVO.getReason());
             recipeRefundManage.recipeReFundSave(auditRefundVO.getOrderCode(), recipeRefund);
+            refundStatus = RefundNodeStatusConstant.REFUND_NODE_NOPASS_AUDIT_STATUS;
         }
+        List<Recipe> recipes = orderManager.getRecipesByOrderCode(recipeOrder.getOrderCode());
+        recipeManager.updateRecipeRefundStatus(recipes, refundStatus);
     }
 
     private String setRefundNodeStatus(Integer status){
