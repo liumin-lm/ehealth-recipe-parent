@@ -856,7 +856,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
      * @param recipeId
      * @param clinicId
      */
-    public void updateRecipeIdByConsultId(Integer clinicId, Integer recipeId) {
+    public void updateRecipeIdByConsultId(Integer recipeId, Integer clinicId) {
+        LOGGER.info("updateRecipeIdByConsultId recipeId:{},clinicId:{}", recipeId, clinicId);
         revisitClient.updateRecipeIdByConsultId(recipeId, clinicId);
     }
 
