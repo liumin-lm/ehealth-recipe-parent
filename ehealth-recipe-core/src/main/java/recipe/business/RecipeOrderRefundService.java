@@ -149,11 +149,11 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         recipeOrderRefundDetailVO.setPatientDTO(ObjectCopyUtils.convert(patientDTO, com.ngari.patient.dto.PatientDTO.class));
         List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
-        orderRefundInfoVO.setAuditNodeText(recipeRefundManage.getRecipeRefundNode(recipeIdList.get(0), recipeOrder.getOrganId()));
+        orderRefundInfoVO.setAuditNodeType(recipeRefundManage.getRecipeRefundNode(recipeIdList.get(0), recipeOrder.getOrganId()));
         List<RecipeRefund> recipeRefundList = recipeRefundDAO.findRecipeRefundByRecipeIdAndNodeAndStatus(recipeIdList.get(0), RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_ADMIN);
         if (CollectionUtils.isNotEmpty(recipeRefundList)) {
             orderRefundInfoVO.setForceApplyFlag(true);
-            orderRefundInfoVO.setAuditNodeText("订单管理员审核中");
+            orderRefundInfoVO.setAuditNodeType(3);
         }
         if (new Integer(1).equals(recipeOrder.getPushFlag())) {
             orderRefundInfoVO.setRetryFlag(true);
