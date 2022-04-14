@@ -169,10 +169,10 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         UserRoleToken ur = UserRoleToken.getCurrent();
         String manageUnit = ur.getManageUnit();
         // 机构管理员获取机构信息
-        if ("eh".equals(manageUnit)) {
+        if (!"eh".equals(manageUnit)) {
             List<Integer> organIds = organService.findOrganIdsByManageUnit(manageUnit + "%");
-            logger.info("findOrganAndDrugsepRelationBean manageUnit={},organIds={}",JSONArray.toJSONString(organIds),JSONArray.toJSONString(manageUnit));
-            return organAndDrugsepRelationDAO.findByEntIdAndOrganIds(enterpriseId,organIds);
+            logger.info("findOrganAndDrugsepRelationBean manageUnit={},organIds={}", JSONArray.toJSONString(organIds), JSONArray.toJSONString(manageUnit));
+            return organAndDrugsepRelationDAO.findByEntIdAndOrganIds(enterpriseId, organIds);
         }
         return organAndDrugsepRelationDAO.findByEntId(enterpriseId);
     }
@@ -228,7 +228,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
             List<EnterpriseAddress> list = enterpriseAddressDAO.findByEnterPriseId(checkAddressReq.getEnterpriseId());
             if (CollectionUtils.isNotEmpty(list)) {
                 List<EnterpriseDecoctionAddress> enterpriseDecoctionAddresses = BeanCopyUtils.copyList(list, EnterpriseDecoctionAddress::new);
-                if(addressCanSend(enterpriseDecoctionAddresses,checkAddressReq.getAddress3())){
+                if (addressCanSend(enterpriseDecoctionAddresses, checkAddressReq.getAddress3())) {
                     sendFlag = true;
                     checkAddressRes.setSendFlag(sendFlag);
                     return checkAddressRes;
@@ -246,7 +246,7 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         checkAddressRes.setAreaList(list);
         // 配送地址精确到区域,区域可以配送就可以配送
         if (addressCanSend(enterpriseDecoctionAddressList, checkAddressReq.getAddress3())) {
-            sendFlag =  true;
+            sendFlag = true;
         }
         checkAddressRes.setSendFlag(sendFlag);
         return checkAddressRes;
