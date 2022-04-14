@@ -222,10 +222,9 @@ public class PayModeTFDS implements IPurchaseService {
         //在患者没有选择的情况下：前端会根据医生是否选择字段传入patientIsDecoction  对于线下处方而言，线下转线上的时候医生是否选择已经赋值
         //在患者选择的情况下：前端会根据患者自己选择传入patientIsDecoction
         order.setPatientIsDecoction(MapValueUtil.getString(extInfo, "patientIsDecoction"));
-        // 目前paymode传入还是老版本 除线上支付外全都算线下支付,下个版本与前端配合修改
-        Integer payModeNew = payMode;
-        if (!payMode.equals(1)) {
-            payModeNew = 2;
+        int payModeNew = 2;
+        if (dep.getStorePayFlag() == 1) {
+            payModeNew = RecipeBussConstant.PAYMODE_ONLINE;
         }
         //如果是医保支付前端目前传的orderType都是1,杭州市医保得特殊处理
         if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(dbRecipes.get(0).getRecipeMode())
@@ -233,9 +232,6 @@ public class PayModeTFDS implements IPurchaseService {
             orderType = RecipeBussConstant.ORDERTYPE_HZS;
             LOGGER.info("getOrderCreateResult.orderType ={}", orderType);
             order.setOrderType(orderType);
-            if (dep.getStorePayFlag() == 1) {
-                payModeNew = RecipeBussConstant.PAYMODE_ONLINE;
-            }
         }
         CommonOrder.createDefaultOrder(extInfo, result, order, payModeSupport, dbRecipes, calculateFee);
         //设置为有效订单
