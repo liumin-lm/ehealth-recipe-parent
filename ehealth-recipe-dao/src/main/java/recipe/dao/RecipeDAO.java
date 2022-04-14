@@ -45,7 +45,6 @@ import java.math.BigInteger;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * 处方DAO
@@ -2134,13 +2133,11 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         if (organSymptomIdsTemp == null || organSymptomIdsTemp.size() == 0) {
             return Lists.newArrayList();
         }
-        List<Integer> organSymptomIds = Stream.of(organSymptomIdsTemp.toArray(new String[organSymptomIdsTemp.size()])).map(Integer::parseInt).collect(Collectors.toList());
         HibernateStatelessResultAction<List<Symptom>> action = new AbstractHibernateStatelessResultAction<List<Symptom>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("select a from Symptom a where " + "  a.symptomId in (:organSymptomIds) ");
-                Query q = ss.createQuery(hql.toString());
-                q.setParameterList("organSymptomIds", organSymptomIds);
+                Query q = ss.createQuery("select a from Symptom a where " + "  a.symptomCode in (:organSymptomIdsTemp) ");
+                q.setParameterList("organSymptomIds", organSymptomIdsTemp);
                 q.setFirstResult(start);
                 q.setMaxResults(limit);
                 setResult(q.list());
@@ -2153,9 +2150,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         }
         //排序
         List<Symptom> symptoms = Lists.newArrayList();
-        for (int i = 0; i < organSymptomIds.size(); i++) {
+        for (int i = 0; i < organSymptomIdsTemp.size(); i++) {
             for (int x = 0; x < list.size(); x++) {
-                if (list.get(x).getSymptomId().equals(organSymptomIds.get(i))) {
+                if (list.get(x).getSymptomCode().equals(organSymptomIdsTemp.get(i))) {
                     symptoms.add(list.get(x));
                 }
             }
