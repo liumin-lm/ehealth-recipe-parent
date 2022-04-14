@@ -112,7 +112,11 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
                     }
                 }
             }
-            recipeOrderRefundVO.setSendStatusText(RecipeOrderStatusEnum.getOrderStatus(recipeOrder.getStatus()));
+            if (RecipeOrderStatusEnum.ORDER_STATUS_HAS_DRUG.getType().equals(recipeOrder.getStatus())) {
+                recipeOrderRefundVO.setSendStatusText(RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getName());
+            } else {
+                recipeOrderRefundVO.setSendStatusText(RecipeOrderStatusEnum.getOrderStatus(recipeOrder.getStatus()));
+            }
             recipeOrderRefundVO.setOrderStatusText(OrderStateEnum.getOrderStateEnum(recipeOrder.getProcessState()).getName());
             recipeOrderRefundVO.setPatientName(recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getPatientName());
             recipeOrderRefundVO.setChannel(patientClient.getClientNameById(recipeOrder.getMpiId()));
