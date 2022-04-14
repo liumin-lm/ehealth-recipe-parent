@@ -835,6 +835,16 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     }
 
     /**
+     * 处方开成功回写复诊更改处方id
+     *
+     * @param recipeId
+     * @param clinicId
+     */
+    public void updateRecipeIdByConsultId(Integer clinicId, Integer recipeId) {
+        revisitClient.updateRecipeIdByConsultId(recipeId, clinicId);
+    }
+
+    /**
      * @desc 做一个疾病类型的适配
      * @author 毛泽
      * @param organId 
