@@ -116,4 +116,7 @@ public abstract class OrganAndDrugsepRelationDAO extends HibernateSupportDelegat
         HibernateSessionTemplate.instance().executeReadOnly(action);
         return action.getResult();
     }
+
+    @DAOMethod(sql = "from OrganAndDrugsepRelation where  drugsEnterpriseId=:entId and organId in (:organIds)")
+    public abstract List<OrganAndDrugsepRelation> findByEntIdAndOrganIds(@DAOParam("entId")Integer enterpriseId, @DAOParam("organIds")List<Integer> organIds);
 }
