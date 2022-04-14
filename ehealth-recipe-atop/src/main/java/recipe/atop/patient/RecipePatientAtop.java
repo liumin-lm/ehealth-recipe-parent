@@ -233,7 +233,7 @@ public class RecipePatientAtop extends BaseAtop {
         }
         Integer recipeId = recipePatientService.saveRecipe(recipeInfoVO);
         recipePatientService.esignRecipeCa(recipeId);
-        recipePatientService.updateRecipeIdByConsultId(recipeInfoVO.getRecipeBean().getClinicId(), recipeId);
+        recipePatientService.updateRecipeIdByConsultId(recipeId, recipeInfoVO.getRecipeBean().getClinicId());
         return recipeId;
 
     }
