@@ -553,10 +553,10 @@ public class RecipeManager extends BaseManager {
 
     public void setRecipeChecker(Recipe recipe) {
         String fastRecipeChecker = configurationClient.getValueCatch(recipe.getClinicOrgan(), "fastRecipeChecker", "");
-        if (StringUtils.isEmpty(fastRecipeChecker)) {
-            throw new DAOException(DAOException.VALUE_NEEDED, "没有维护固定药师");
+        logger.info("RecipeManager setRecipeChecker fastRecipeChecker:{}", fastRecipeChecker);
+        if (StringUtils.isNotEmpty(fastRecipeChecker)) {
+            recipe.setChecker(Integer.parseInt(fastRecipeChecker));
         }
-        recipe.setChecker(Integer.parseInt(fastRecipeChecker));
     }
 
     /**
