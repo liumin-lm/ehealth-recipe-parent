@@ -16,4 +16,6 @@ public class OrderRefundInfoVO implements Serializable {
     private boolean forceApplyFlag;
     private Integer auditNodeType;
     private boolean retryFlag;
+    private String applyReason;
+    private String applyTime;
 }
