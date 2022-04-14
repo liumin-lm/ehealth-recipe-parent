@@ -42,6 +42,7 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.manager.OrderManager;
+import recipe.manager.RecipeManager;
 import recipe.manager.StateManager;
 import recipe.service.recipecancel.RecipeCancelService;
 
@@ -80,6 +81,8 @@ public class RecipeRefundService extends RecipeBaseService {
     private StateManager stateManager;
     @Autowired
     private IConfigurationClient configurationClient;
+    @Autowired
+    private RecipeManager recipeManager;
 
     /*
      * @description 向his申请处方退费接口
@@ -202,13 +205,7 @@ public class RecipeRefundService extends RecipeBaseService {
     public void updateRecipeRefundStatus(Recipe recipe, Integer status) {
         //处理合并支付问题
         List<Recipe> recipes = orderManager.getRecipesByOrderCode(recipe.getOrderCode());
-        recipes.forEach(recipe1 -> {
-            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe1.getRecipeId());
-            if (recipeExtend != null) {
-                recipeExtend.setRefundNodeStatus(status);
-                recipeExtendDAO.update(recipeExtend);
-            }
-        });
+        recipeManager.updateRecipeRefundStatus(recipes, status);
     }
 
     /**
