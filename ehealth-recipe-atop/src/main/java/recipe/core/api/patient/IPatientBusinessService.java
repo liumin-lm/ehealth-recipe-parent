@@ -70,5 +70,5 @@ public interface IPatientBusinessService {
      * @param clinicId
      * @param recipeId
      */
-    void updateRecipeIdByConsultId(Integer clinicId, Integer recipeId);
+    void updateRecipeIdByConsultId(Integer recipeId, Integer clinicId);
 }
