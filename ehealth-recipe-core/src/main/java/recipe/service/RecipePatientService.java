@@ -55,6 +55,7 @@ import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.type.CheckPatientEnum;
 import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
@@ -62,6 +63,7 @@ import recipe.hisservice.RecipeToHisService;
 import recipe.manager.OrganDrugListManager;
 import recipe.manager.RecipeDetailManager;
 import recipe.manager.RecipeManager;
+import recipe.manager.StateManager;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.RedisClient;
 import recipe.util.ValidateUtil;
@@ -109,6 +111,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     private OrganDrugListDAO organDrugListDAO;
     @Autowired
     private IConfigurationClient configurationClient;
+    @Autowired
+    private StateManager stateManager;
 
     /**
      * 根据取药方式过滤药企
@@ -806,7 +810,9 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         recipeInfoVO.setPatientVO(ObjectCopyUtils.convert(patientDTO, PatientVO.class));
         Recipe recipe = ObjectCopyUtils.convert(recipeInfoVO.getRecipeBean(), Recipe.class);
         RecipeUtil.setDefaultData(recipe);
-        recipe.setProcessState(3);
+        recipe.setProcessState(0);
+        recipe.setSubState(0);
+        recipe.setSupportMode(0);
         recipe = recipeManager.saveRecipe(recipe);
         //保存处方扩展
         if (null != recipeInfoVO.getRecipeExtendBean()) {
