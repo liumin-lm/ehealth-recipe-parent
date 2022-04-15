@@ -551,14 +551,6 @@ public class RecipeManager extends BaseManager {
         }
     }
 
-    public void setRecipeChecker(Recipe recipe) {
-        String fastRecipeChecker = configurationClient.getValueCatch(recipe.getClinicOrgan(), "fastRecipeChecker", "");
-        logger.info("RecipeManager setRecipeChecker fastRecipeChecker:{}", fastRecipeChecker);
-        if (StringUtils.isNotEmpty(fastRecipeChecker)) {
-            recipe.setChecker(Integer.parseInt(fastRecipeChecker));
-        }
-    }
-
     /**
      * 药企销售价格
      *
