@@ -14,6 +14,7 @@ import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.his.recipe.mode.ChronicDiseaseListReqTO;
 import com.ngari.his.recipe.mode.ChronicDiseaseListResTO;
 import com.ngari.his.recipe.mode.PatientChronicDiseaseRes;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -45,17 +46,13 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.caNew.pdf.CreatePdfFactory;
-import recipe.client.IConfigurationClient;
-import recipe.client.OperationClient;
-import recipe.client.PatientClient;
-import recipe.client.RevisitClient;
+import recipe.client.*;
 import recipe.common.CommonConstant;
 import recipe.constant.*;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.type.*;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.OrganDrugListManager;
@@ -68,7 +65,6 @@ import recipe.util.ValidateUtil;
 import recipe.vo.doctor.RecipeInfoVO;
 
 import javax.annotation.Nullable;
-import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
@@ -111,6 +107,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     private IConfigurationClient configurationClient;
     @Autowired
     private StateManager stateManager;
+    @Autowired
+    private DoctorClient doctorClient;
 
     /**
      * 根据取药方式过滤药企
@@ -853,7 +851,12 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         if (StringUtils.isEmpty(fastRecipeChecker)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "没有指定审方药师");
         } else {
-            recipeInfoVO.getRecipeBean().setChecker(Integer.parseInt(fastRecipeChecker));
+            Integer checker = Integer.parseInt(fastRecipeChecker);
+            DoctorDTO doctorDTO = doctorClient.getDoctor(checker);
+            recipeInfoVO.getRecipeBean().setChecker(checker);
+            recipeInfoVO.getRecipeBean().setCheckerText(doctorDTO.getName());
+            recipeInfoVO.getRecipeBean().setCheckDate(new Date());
+            recipeInfoVO.getRecipeBean().setCheckDateYs(new Date());
         }
     }
 
