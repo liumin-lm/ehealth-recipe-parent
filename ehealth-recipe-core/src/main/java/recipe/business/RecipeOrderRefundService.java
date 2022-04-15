@@ -162,6 +162,8 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         if (CollectionUtils.isNotEmpty(recipeRefundList)) {
             orderRefundInfoVO.setForceApplyFlag(true);
             orderRefundInfoVO.setAuditNodeType(3);
+        } else {
+            orderRefundInfoVO.setAuditNodeType(-1);
         }
         if (new Integer(-1).equals(recipeOrder.getPushFlag())) {
             orderRefundInfoVO.setRetryFlag(true);
