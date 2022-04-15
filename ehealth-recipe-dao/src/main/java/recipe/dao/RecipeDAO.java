@@ -1,5 +1,6 @@
 package recipe.dao;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.common.dto.DepartChargeReportResult;
@@ -2130,6 +2131,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      */
     public List<Symptom> findCommonSymptomByDoctorAndOrganId(final int doctor, final int organId, final int start, final int limit) {
         final List<String> organSymptomIdsTemp = findCommonSymptomIdByDoctorAndOrganId(doctor, organId);
+        logger.info("findCommonSymptomByDoctorAndOrganId-organSymptomIdsTemp={}", JSON.toJSONString(organSymptomIdsTemp));
         if (organSymptomIdsTemp == null || organSymptomIdsTemp.size() == 0) {
             return Lists.newArrayList();
         }
