@@ -67,6 +67,8 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.hisservice.EleInvoiceService;
 import recipe.manager.EmrRecipeManager;
 import recipe.service.RecipeExtendService;
+import recipe.service.RecipeService;
+import recipe.service.SymptomService;
 import recipe.util.ByteUtils;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
@@ -105,6 +107,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     private OrganDrugListDAO organDrugDao;
     @Autowired
     private DoctorService doctorService;
+    @Autowired
+    private SymptomService symptomService;
+    @Autowired
+    private RecipeService recipeService;
     /**
      * logger
      */
@@ -637,20 +643,14 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 LOGGER.info("setRecipeExtend {},{}",req.getOrganID(),recipeExtend.getSymptomId());
                 Symptom symptom = symptomDAO.getByOrganIdAndSymptomCode(Integer.valueOf(req.getOrganID()), recipeExtend.getSymptomId());
                 LOGGER.info("setRecipeExtend symptom={}",JSONUtils.toString(symptom));
-                if(null != symptom){
-                    req.getRecipeExtend().setSymptomCode(recipeExtend.getSymptomId());
-                    recipeChHerbalIndicatorsReq.setSymptomId(symptom.getRegulationSymptomCode());
-                    recipeChHerbalIndicatorsReq.setSymptomName(symptom.getRegulationSymptomName());
-                    if(null != symptom.getTreatmentCode()){
-                        TcmTreatment tcmTreatment = tcmTreatmentDAO.getByOrganIdAndTreatmentCode(Integer.parseInt(req.getOrganID()), symptom.getTreatmentCode());
-                        LOGGER.info("setRecipeExtend tcmTreatment={}",JSONUtils.toString(tcmTreatment));
-                        if(null != tcmTreatment.getRegulationTreatmentCode()){
-                            recipeChHerbalIndicatorsReq.setTcmTherapyCode(tcmTreatment.getRegulationTreatmentCode());
-                        }
-                        if(null != tcmTreatment.getRegulationTreatmentName()){
-                            recipeChHerbalIndicatorsReq.setTcmTherapyName(tcmTreatment.getRegulationTreatmentName());
-                        }
-                    }
+                req.getRecipeExtend().setSymptomCode(recipeExtend.getSymptomId());
+                //组装需要上传到监管平台的数据
+                Symptom regulationSymptom = symptomService.assembleMultipleSymptom(Integer.valueOf(req.getOrganID()), recipeExtend.getSymptomId());
+                if(null != regulationSymptom){
+                    recipeChHerbalIndicatorsReq.setSymptomId(regulationSymptom.getRegulationSymptomCode());
+                    recipeChHerbalIndicatorsReq.setSymptomName(regulationSymptom.getRegulationSymptomName());
+                    recipeChHerbalIndicatorsReq.setTcmTherapyName(regulationSymptom.getTreatmentName());
+                    recipeChHerbalIndicatorsReq.setTcmTherapyCode(regulationSymptom.getTreatmentCode());
                 }
             }
             if(StringUtils.isNotEmpty(recipeExtend.getMinor())){
@@ -1132,10 +1132,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
 
             list.add(reqDetail);
         }
-        IDiseaseService diseaseService = AppContextHolder.getBean("eh.diseasService", IDiseaseService.class);
         RecipeChHerbalIndicatorsReq recipeChHerbalIndicatorsReq = req.getRecipeChHerbalIndicatorsReq();
-        DiseaseDTO diseaseDTO = diseaseService.getDiseasByCodeAndOrganId(recipe.getClinicOrgan(),recipe.getOrganDiseaseId());
+        DiseaseDTO diseaseDTO = recipeService.assembleMultipleDisease(recipe.getClinicOrgan(), recipe.getOrganDiseaseId());
         recipeChHerbalIndicatorsReq.setPacketsNum(recipe.getCopyNum());
+        //组装需要上传到监管平台的数据
         if(null != diseaseDTO){
             recipeChHerbalIndicatorsReq.setOrganDiseaseId(diseaseDTO.getJgDiseasId());
             recipeChHerbalIndicatorsReq.setOrganDiseaseName(diseaseDTO.getJgDiseasName());

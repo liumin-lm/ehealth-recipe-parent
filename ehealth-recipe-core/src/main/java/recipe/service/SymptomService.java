@@ -745,5 +745,50 @@ public class SymptomService implements ISymptomService {
         return symptom;
     }
 
+    /**
+     * 组装上传到监管平台的中医证候、中医治法
+     * */
+    public Symptom assembleMultipleSymptom(Integer organId,String symptomIds){
+        logger.info("assembleMultipleSymptom organId={},symptomIds={}",organId,symptomIds);
+        Symptom symptoms = new Symptom();
+        String[] symptomIdArray = symptomIds.split(";");
+        if(new Integer(1).equals(symptomIdArray.length)){
+            Symptom symptom = symptomDAO.getByOrganIdAndSymptomCode(organId, symptomIds);
+            logger.info("assembleMultipleSymptom symptom1={}",JSONUtils.toString(symptom));
+            return symptom;
+        }
+        String regulationSymptomCodes = null;
+        String regulationSymptomNames = null;
+        String regulationTreatmentCode = null;
+        String regulationTreatmentName = null;
+        for(String symptomId : symptomIdArray){
+            Symptom symptom = symptomDAO.getByOrganIdAndSymptomCode(organId, symptomId);
+            logger.info("assembleMultipleSymptom symptom={}",JSONUtils.toString(symptom));
+            String regulationSymptomCode = symptom.getRegulationSymptomCode();
+            String regulationSymptomName = symptom.getRegulationSymptomName();
+            if(null != regulationSymptomCode){
+                regulationSymptomCodes = regulationSymptomCode + "|";
+            }
+            if(null != regulationSymptomName){
+                regulationSymptomNames = regulationSymptomName + "|";
+            }
+            String treatmentCode = symptom.getTreatmentCode();
+            TcmTreatment tcmTreatment = treatmentDAO.getByOrganIdAndTreatmentCode(organId, treatmentCode);
+            logger.info("assembleMultipleSymptom tcmTreatment={}",JSONUtils.toString(tcmTreatment));
+            if(null != tcmTreatment.getRegulationTreatmentCode()){
+                regulationTreatmentCode = tcmTreatment.getRegulationTreatmentCode() + "|";
+            }
+            if(null != tcmTreatment.getRegulationTreatmentName()){
+                regulationTreatmentName = tcmTreatment.getRegulationTreatmentName() + "|";
+            }
+        }
+        symptoms.setRegulationSymptomCode(regulationSymptomCodes);
+        symptoms.setRegulationSymptomName(regulationSymptomNames);
+        symptoms.setTreatmentCode(regulationTreatmentCode);
+        symptoms.setTreatmentName(regulationTreatmentName);
+        logger.info("assembleMultipleSymptom symptoms={}",JSONUtils.toString(symptoms));
+        return symptoms;
+    }
+
 
 }
