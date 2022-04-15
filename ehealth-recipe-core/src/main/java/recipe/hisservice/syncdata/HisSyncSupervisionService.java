@@ -648,7 +648,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                             recipeChHerbalIndicatorsReq.setTcmTherapyCode(tcmTreatment.getRegulationTreatmentCode());
                         }
                         if(null != tcmTreatment.getRegulationTreatmentName()){
-                            recipeChHerbalIndicatorsReq.setTcmTherapyCode(tcmTreatment.getRegulationTreatmentName());
+                            recipeChHerbalIndicatorsReq.setTcmTherapyName(tcmTreatment.getRegulationTreatmentName());
                         }
                     }
                 }
