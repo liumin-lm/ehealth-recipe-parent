@@ -806,6 +806,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         recipeInfoVO.setPatientVO(ObjectCopyUtils.convert(patientDTO, PatientVO.class));
         Recipe recipe = ObjectCopyUtils.convert(recipeInfoVO.getRecipeBean(), Recipe.class);
         RecipeUtil.setDefaultData(recipe);
+        recipe.setProcessState(3);
         recipe = recipeManager.saveRecipe(recipe);
         //保存处方扩展
         if (null != recipeInfoVO.getRecipeExtendBean()) {
