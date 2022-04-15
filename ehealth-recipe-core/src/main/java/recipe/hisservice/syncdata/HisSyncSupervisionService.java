@@ -608,10 +608,11 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         //处方扩展信息
         req.setRecipeExtend(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
         try {
-            //制法Code 煎法Code 中医证候Code
+            //制法Code 煎法Code 中医证候Code  中医治法Code
             DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
             DrugMakingMethodDao drugMakingMethodDao = DAOFactory.getDAO(DrugMakingMethodDao.class);
             SymptomDAO symptomDAO = DAOFactory.getDAO(SymptomDAO.class);
+            TcmTreatmentDAO tcmTreatmentDAO = DAOFactory.getDAO(TcmTreatmentDAO.class);
             RecipeChHerbalIndicatorsReq recipeChHerbalIndicatorsReq = new RecipeChHerbalIndicatorsReq();
             if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
                 DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
@@ -640,8 +641,16 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                     req.getRecipeExtend().setSymptomCode(recipeExtend.getSymptomId());
                     recipeChHerbalIndicatorsReq.setSymptomId(symptom.getRegulationSymptomCode());
                     recipeChHerbalIndicatorsReq.setSymptomName(symptom.getRegulationSymptomName());
-                    recipeChHerbalIndicatorsReq.setTcmTherapyCode(symptom.getTreatmentCode());
-                    recipeChHerbalIndicatorsReq.setTcmTherapyName(symptom.getTreatmentName());
+                    if(null != symptom.getTreatmentCode()){
+                        TcmTreatment tcmTreatment = tcmTreatmentDAO.getByOrganIdAndTreatmentCode(Integer.parseInt(req.getOrganID()), symptom.getTreatmentCode());
+                        LOGGER.info("setRecipeExtend tcmTreatment={}",JSONUtils.toString(tcmTreatment));
+                        if(null != tcmTreatment.getRegulationTreatmentCode()){
+                            recipeChHerbalIndicatorsReq.setTcmTherapyCode(tcmTreatment.getRegulationTreatmentCode());
+                        }
+                        if(null != tcmTreatment.getRegulationTreatmentName()){
+                            recipeChHerbalIndicatorsReq.setTcmTherapyName(tcmTreatment.getRegulationTreatmentName());
+                        }
+                    }
                 }
             }
             if(StringUtils.isNotEmpty(recipeExtend.getMinor())){

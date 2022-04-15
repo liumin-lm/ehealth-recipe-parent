@@ -777,10 +777,16 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
 
     @Override
     public List<FormWorkRecipeVO> findFormWorkRecipe(FormWorkRecipeReqVO formWorkRecipeReqVO) {
-        String formWorkRecipe = recipeParameterDao.getByName(formWorkRecipeReqVO.getOrganId()+"_formWorkRecipe");
-        //解析json数据
-        List<FormWorkRecipeVO> workRecipeVOList = JSON.parseArray(formWorkRecipe, FormWorkRecipeVO.class);
-        LOGGER.info("findFormWorkRecipe workRecipeVOList:{}", JSONUtils.toString(workRecipeVOList));
+        List<FormWorkRecipeVO> workRecipeVOList = new ArrayList<>();
+        try {
+            String formWorkRecipe = recipeParameterDao.getByName(formWorkRecipeReqVO.getOrganId()+"_formWorkRecipe");
+            //解析json数据
+            workRecipeVOList = JSON.parseArray(formWorkRecipe, FormWorkRecipeVO.class);
+            LOGGER.info("findFormWorkRecipe workRecipeVOList:{}", JSONUtils.toString(workRecipeVOList));
+            return workRecipeVOList;
+        } catch (Exception e) {
+            LOGGER.error("findFormWorkRecipe error", e);
+        }
         return workRecipeVOList;
     }
 
