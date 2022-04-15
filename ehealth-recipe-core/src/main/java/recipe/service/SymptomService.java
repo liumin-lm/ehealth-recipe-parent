@@ -773,6 +773,8 @@ public class SymptomService implements ISymptomService {
         String[] symptomIdArray = symptomIds.split(";");
         if (new Integer(1).equals(symptomIdArray.length)) {
             Symptom symptom = symptomDAO.getByOrganIdAndSymptomCode(organId, symptomIds);
+            symptom.setTreatmentCode(symptom.getRegulationSymptomCode());
+            symptom.setTreatmentName(symptom.getRegulationSymptomName());
             logger.info("assembleMultipleSymptom symptom1={}", JSONUtils.toString(symptom));
             return symptom;
         }
@@ -809,7 +811,7 @@ public class SymptomService implements ISymptomService {
                 symptoms.setRegulationSymptomName(regulationSymptomNames.substring(0, regulationSymptomNames.length() - 1));
             }
             if (null != regulationTreatmentCode) {
-                symptoms.setTreatmentCode(regulationTreatmentCode.substring(0, regulationTreatmentCode.length() - 1));
+                symptoms.setTreatmentName(regulationTreatmentCode.substring(0, regulationTreatmentCode.length() - 1));
             }
             if (null != regulationTreatmentName) {
                 symptoms.setTreatmentName(regulationTreatmentName.substring(0, regulationTreatmentName.length() - 1));
