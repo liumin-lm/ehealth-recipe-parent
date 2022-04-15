@@ -224,10 +224,10 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
     }
 
     private String setRefundNodeStatus(Integer status){
-        if (null == status) {
+        if (null == status || status == 3 || status == 2) {
             return "未退款";
         }
-        if (status == 1) {
+        if (status == 0) {
             return  "退款中";
         }
         return "已退款";
