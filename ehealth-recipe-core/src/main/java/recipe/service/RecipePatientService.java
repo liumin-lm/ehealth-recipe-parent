@@ -45,6 +45,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.caNew.pdf.CreatePdfFactory;
+import recipe.client.IConfigurationClient;
 import recipe.client.OperationClient;
 import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
@@ -67,6 +68,7 @@ import recipe.util.ValidateUtil;
 import recipe.vo.doctor.RecipeInfoVO;
 
 import javax.annotation.Nullable;
+import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
@@ -105,6 +107,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     private OperationClient operationClient;
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
+    @Autowired
+    private IConfigurationClient configurationClient;
 
     /**
      * 根据取药方式过滤药企
@@ -816,7 +820,6 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
                 recipeExtend.setCardNo(cardNo);
             }
             recipeManager.setRecipeInfoFromRevisit(recipe, recipeExtend);
-            recipeManager.setRecipeChecker(recipe);
             //设置购药方式
             this.setRecipeSupportGiveMode(recipe);
             recipeManager.saveRecipeExtend(recipeExtend, recipe);
@@ -844,6 +847,12 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "药品"+ recipeDetailBean.getDrugName() +"目录缺失无法开具");
             }
         });
+        String fastRecipeChecker = configurationClient.getValueCatch(recipeInfoVO.getRecipeBean().getClinicOrgan(), "fastRecipeChecker", "");
+        if (StringUtils.isEmpty(fastRecipeChecker)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "没有指定审方药师");
+        } else {
+            recipeInfoVO.getRecipeBean().setChecker(Integer.parseInt(fastRecipeChecker));
+        }
     }
 
     @Override
