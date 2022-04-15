@@ -159,11 +159,10 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
         orderRefundInfoVO.setAuditNodeType(recipeRefundManage.getRecipeRefundNode(recipeIdList.get(0), recipeOrder.getOrganId()));
         List<RecipeRefund> recipeRefundList = recipeRefundDAO.findRecipeRefundByRecipeIdAndNodeAndStatus(recipeIdList.get(0), RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_ADMIN);
+        List<RecipeRefund> recipeRefunds = recipeRefundDAO.findRefundListByRecipeId(recipeIdList.get(0));
         if (CollectionUtils.isNotEmpty(recipeRefundList)) {
             orderRefundInfoVO.setForceApplyFlag(true);
             orderRefundInfoVO.setAuditNodeType(3);
-        } else {
-            orderRefundInfoVO.setAuditNodeType(-1);
         }
         if (new Integer(-1).equals(recipeOrder.getPushFlag())) {
             orderRefundInfoVO.setRetryFlag(true);
@@ -199,6 +198,9 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
             recipeBean.setRecipeDetailBeanList(recipeDetailBeans);
             recipeBeanList.add(recipeBean);
         });
+        if (CollectionUtils.isEmpty(recipeRefunds)) {
+            orderRefundInfoVO.setAuditNodeType(-1);
+        }
         recipeOrderRefundDetailVO.setOrderRefundInfoVO(orderRefundInfoVO);
         recipeOrderRefundDetailVO.setRecipeBeanList(recipeBeanList);
         return recipeOrderRefundDetailVO;
