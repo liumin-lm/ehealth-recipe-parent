@@ -12,6 +12,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.BaseAPI;
+import com.ngari.base.cdr.model.DiseaseDTO;
+import com.ngari.base.cdr.service.IDiseaseService;
 import com.ngari.base.department.service.IDepartmentService;
 import com.ngari.base.hisconfig.service.IHisConfigService;
 import com.ngari.base.organconfig.service.IOrganConfigService;
@@ -6552,5 +6554,36 @@ public class RecipeService extends RecipeBaseService {
         }
         LOGGER.info("PrescriptionService getIntellectJudicialFlag  organId = {} , intellectJudicialFlag={}", organId, intellectJudicialFlag);
         return Integer.valueOf(1).equals(intellectJudicialFlag);
+    }
+
+    /**
+     * 组装上传到监管平台的中医疾病
+     * */
+    public DiseaseDTO assembleMultipleDisease(Integer organId, String diseaseIds){
+        LOGGER.info("assembleMultipleDisease organId={},diseases={}",organId,diseaseIds);
+        IDiseaseService diseaseService = AppContextHolder.getBean("eh.diseasService", IDiseaseService.class);
+        DiseaseDTO disease = new DiseaseDTO();
+        String[] diseaseIdArray = diseaseIds.split(";");
+        if(new Integer(1).equals(diseaseIdArray.length)){
+            DiseaseDTO diseaseDTO = diseaseService.getDiseasByCodeAndOrganId(organId, diseaseIds);
+            LOGGER.info("assembleMultipleSymptom diseaseDTO1={}",JSONUtils.toString(diseaseDTO));
+            return diseaseDTO;
+        }
+        String regulationOrganDiseaseId = null;
+        String regulationOrganDiseaseName = null;
+        for(String diseaseId : diseaseIdArray) {
+            DiseaseDTO diseaseDTO = diseaseService.getDiseasByCodeAndOrganId(organId, diseaseId);
+            LOGGER.info("assembleMultipleSymptom diseaseDTO={}", JSONUtils.toString(diseaseDTO));
+            if (null != diseaseDTO.getJgDiseasId()) {
+                regulationOrganDiseaseId = diseaseDTO.getJgDiseasId() + "|";
+            }
+            if (null != diseaseDTO.getJgDiseasName()) {
+                regulationOrganDiseaseName = diseaseDTO.getJgDiseasName() + "|";
+            }
+        }
+        disease.setJgDiseasId(regulationOrganDiseaseId);
+        disease.setJgDiseasName(regulationOrganDiseaseName);
+        LOGGER.info("assembleMultipleSymptom symptoms={}",JSONUtils.toString(disease));
+        return disease;
     }
 }
