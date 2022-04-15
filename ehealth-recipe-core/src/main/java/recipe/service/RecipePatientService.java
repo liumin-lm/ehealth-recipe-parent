@@ -825,6 +825,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             if (StringUtils.isNotEmpty(cardNo)) {
                 recipeExtend.setCardNo(cardNo);
             }
+            recipeExtend.setRecipeBusinessType(RecipeBusinessTypeEnum.BUSINESS_RECIPE_REVISIT.getType());
             recipeManager.setRecipeInfoFromRevisit(recipe, recipeExtend);
             //设置购药方式
             this.setRecipeSupportGiveMode(recipe);
