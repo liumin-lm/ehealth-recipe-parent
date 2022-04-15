@@ -792,20 +792,24 @@ public class SymptomService implements ISymptomService {
             for (String symptomId : symptomIdArray) {
                 Symptom symptom = symptomDAO.getByOrganIdAndSymptomCode(organId, symptomId);
                 logger.info("assembleMultipleSymptom symptom={}", JSONUtils.toString(symptom));
-                if (null != symptom.getRegulationSymptomCode()) {
-                    regulationSymptomCodes = symptom.getRegulationSymptomCode() + "|";
-                }
-                if (null != symptom.getRegulationSymptomName()) {
-                    regulationSymptomNames = symptom.getRegulationSymptomName() + "|";
-                }
-                String treatmentCode = symptom.getTreatmentCode();
-                TcmTreatment tcmTreatment = treatmentDAO.getByOrganIdAndTreatmentCode(organId, treatmentCode);
-                logger.info("assembleMultipleSymptom tcmTreatment={}", JSONUtils.toString(tcmTreatment));
-                if (null != tcmTreatment.getRegulationTreatmentCode()) {
-                    regulationTreatmentCode = tcmTreatment.getRegulationTreatmentCode() + "|";
-                }
-                if (null != tcmTreatment.getRegulationTreatmentName()) {
-                    regulationTreatmentName = tcmTreatment.getRegulationTreatmentName() + "|";
+                if(null != symptom){
+                    if (null != symptom.getRegulationSymptomCode()) {
+                        regulationSymptomCodes = symptom.getRegulationSymptomCode() + "|";
+                    }
+                    if (null != symptom.getRegulationSymptomName()) {
+                        regulationSymptomNames = symptom.getRegulationSymptomName() + "|";
+                    }
+                    String treatmentCode = symptom.getTreatmentCode();
+                    TcmTreatment tcmTreatment = treatmentDAO.getByOrganIdAndTreatmentCode(organId, treatmentCode);
+                    logger.info("assembleMultipleSymptom tcmTreatment={}", JSONUtils.toString(tcmTreatment));
+                    if(null != tcmTreatment){
+                        if (null != tcmTreatment.getRegulationTreatmentCode()) {
+                            regulationTreatmentCode = tcmTreatment.getRegulationTreatmentCode() + "|";
+                        }
+                        if (null != tcmTreatment.getRegulationTreatmentName()) {
+                            regulationTreatmentName = tcmTreatment.getRegulationTreatmentName() + "|";
+                        }
+                    }
                 }
             }
             if (null != regulationSymptomCodes) {

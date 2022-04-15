@@ -6575,11 +6575,13 @@ public class RecipeService extends RecipeBaseService {
             for(String diseaseId : diseaseIdArray) {
                 DiseaseDTO diseaseDTO = diseaseService.getDiseasByCodeAndOrganId(organId, diseaseId);
                 LOGGER.info("assembleMultipleSymptom diseaseDTO={}", JSONUtils.toString(diseaseDTO));
-                if (null != diseaseDTO.getJgDiseasId()) {
-                    regulationOrganDiseaseId = diseaseDTO.getJgDiseasId() + "|";
-                }
-                if (null != diseaseDTO.getJgDiseasName()) {
-                    regulationOrganDiseaseName = diseaseDTO.getJgDiseasName() + "|";
+                if(null != diseaseDTO){
+                    if (null != diseaseDTO.getJgDiseasId()) {
+                        regulationOrganDiseaseId = diseaseDTO.getJgDiseasId() + "|";
+                    }
+                    if (null != diseaseDTO.getJgDiseasName()) {
+                        regulationOrganDiseaseName = diseaseDTO.getJgDiseasName() + "|";
+                    }
                 }
             }
             if(null != regulationOrganDiseaseId){
