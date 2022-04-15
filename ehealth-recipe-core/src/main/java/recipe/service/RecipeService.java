@@ -6571,19 +6571,27 @@ public class RecipeService extends RecipeBaseService {
         }
         String regulationOrganDiseaseId = null;
         String regulationOrganDiseaseName = null;
-        for(String diseaseId : diseaseIdArray) {
-            DiseaseDTO diseaseDTO = diseaseService.getDiseasByCodeAndOrganId(organId, diseaseId);
-            LOGGER.info("assembleMultipleSymptom diseaseDTO={}", JSONUtils.toString(diseaseDTO));
-            if (null != diseaseDTO.getJgDiseasId()) {
-                regulationOrganDiseaseId = diseaseDTO.getJgDiseasId() + "|";
+        try {
+            for(String diseaseId : diseaseIdArray) {
+                DiseaseDTO diseaseDTO = diseaseService.getDiseasByCodeAndOrganId(organId, diseaseId);
+                LOGGER.info("assembleMultipleSymptom diseaseDTO={}", JSONUtils.toString(diseaseDTO));
+                if (null != diseaseDTO.getJgDiseasId()) {
+                    regulationOrganDiseaseId = diseaseDTO.getJgDiseasId() + "|";
+                }
+                if (null != diseaseDTO.getJgDiseasName()) {
+                    regulationOrganDiseaseName = diseaseDTO.getJgDiseasName() + "|";
+                }
             }
-            if (null != diseaseDTO.getJgDiseasName()) {
-                regulationOrganDiseaseName = diseaseDTO.getJgDiseasName() + "|";
+            if(null != regulationOrganDiseaseId){
+                disease.setJgDiseasId(regulationOrganDiseaseId.substring(0,regulationOrganDiseaseId.length()-1));
             }
+            if(null != regulationOrganDiseaseName){
+                disease.setJgDiseasName(regulationOrganDiseaseName.substring(0,regulationOrganDiseaseName.length()-1));
+            }
+            LOGGER.info("assembleMultipleSymptom symptoms={}",JSONUtils.toString(disease));
+        }catch (Exception e){
+            LOGGER.error("assembleMultipleSymptom error",e);
         }
-        disease.setJgDiseasId(regulationOrganDiseaseId);
-        disease.setJgDiseasName(regulationOrganDiseaseName);
-        LOGGER.info("assembleMultipleSymptom symptoms={}",JSONUtils.toString(disease));
         return disease;
     }
 }
