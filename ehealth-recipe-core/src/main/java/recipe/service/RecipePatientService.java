@@ -56,9 +56,7 @@ import recipe.core.api.patient.IPatientBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeStateEnum;
-import recipe.enumerate.type.CheckPatientEnum;
-import recipe.enumerate.type.MedicalTypeEnum;
-import recipe.enumerate.type.RecipeSupportGiveModeEnum;
+import recipe.enumerate.type.*;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.OrganDrugListManager;
 import recipe.manager.RecipeDetailManager;
@@ -813,6 +811,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         recipe.setProcessState(0);
         recipe.setSubState(0);
         recipe.setSupportMode(0);
+        recipe.setBussSource(BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType());
         recipe = recipeManager.saveRecipe(recipe);
         //保存处方扩展
         if (null != recipeInfoVO.getRecipeExtendBean()) {
