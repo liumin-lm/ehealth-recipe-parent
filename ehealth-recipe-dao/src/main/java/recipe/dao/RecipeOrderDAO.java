@@ -1752,11 +1752,11 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         }
         if (null != recipeOrderRefundReqDTO.getRefundStatus()) {
             if (new Integer(0).equals(recipeOrderRefundReqDTO.getRefundStatus())) {
-                hql.append(" AND c.refundNodeStatus is null ");
+                hql.append(" AND (c.refundNodeStatus is null || c.refundNodeStatus = 2 || c.refundNodeStatus = 3) ");
             } else if (new Integer(1).equals(recipeOrderRefundReqDTO.getRefundStatus())) {
                 hql.append(" AND c.refundNodeStatus = 0 ");
             } else {
-                hql.append(" AND c.refundNodeStatus in (1,2,3) ");
+                hql.append(" AND c.refundNodeStatus = 1 ");
             }
         }
         if (null != recipeOrderRefundReqDTO.getPayFlag()) {
