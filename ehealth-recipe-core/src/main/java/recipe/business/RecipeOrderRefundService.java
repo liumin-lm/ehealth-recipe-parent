@@ -28,7 +28,6 @@ import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.PayModeEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RefundNodeStatusEnum;
-import recipe.enumerate.type.OpRefundBusTypeEnum;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.manager.RecipeRefundManage;
@@ -160,12 +159,11 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
         orderRefundInfoVO.setAuditNodeType(recipeRefundManage.getRecipeRefundNode(recipeIdList.get(0), recipeOrder.getOrganId()));
         List<RecipeRefund> recipeRefundList = recipeRefundDAO.findRecipeRefundByRecipeIdAndNodeAndStatus(recipeIdList.get(0), RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_ADMIN);
-        if (OpRefundBusTypeEnum.BUS_TYPE_REFUND_ORDER.getType().equals(busType) && CollectionUtils.isNotEmpty(recipeRefundList)) {
+        if (CollectionUtils.isNotEmpty(recipeRefundList)) {
             orderRefundInfoVO.setForceApplyFlag(true);
             orderRefundInfoVO.setAuditNodeType(3);
         }
-        if (OpRefundBusTypeEnum.BUS_TYPE_FAIL_ORDER.getType().equals(busType) && new Integer(-1).equals(recipeOrder.getPushFlag())) {
-            orderRefundInfoVO.setAuditNodeType(4);
+        if (new Integer(-1).equals(recipeOrder.getPushFlag())) {
             orderRefundInfoVO.setRetryFlag(true);
         }
         List<RecipeRefund> patientRefundList = recipeRefundDAO.findRecipeRefundByRecipeIdAndNodeAndStatus(recipeIdList.get(0), RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_PATIENT);
