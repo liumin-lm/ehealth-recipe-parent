@@ -204,7 +204,7 @@ public class OrderFeeManager extends BaseManager {
 //        order.setDecoctionUnitPrice(decoctionTotalFee.divide(BigDecimal.valueOf(totalCopyNum)));
         ext.put("notContainDecoctionPrice", notContainDecoctionPrice);
         ext.put("decoctionTotalFee", decoctionTotalFee);
-        logger.info("setRecipeChineseMedicineFee 处方中药相关费用 totalCopyNum={},tcmFee={},decoctionFee={},notContainDecoctionPrice={},decoctionTotalFee={}",totalCopyNum,tcmFee,decoctionFee,notContainDecoctionPrice,decoctionTotalFee);
+        logger.info("setRecipeChineseMedicineFee 处方中药相关费用 totalCopyNum={},tcmFee={},decoctionFee={},notContainDecoctionPrice={},decoctionTotalFee={}", totalCopyNum, tcmFee, decoctionFee, notContainDecoctionPrice, decoctionTotalFee);
 
     }
 
@@ -221,12 +221,14 @@ public class OrderFeeManager extends BaseManager {
         if (StringUtils.isNotEmpty(patientIsDecoction)) {
             if ("1".equals(patientIsDecoction)) {
                 result = true;
-            }
-            //没有订单 且不是提交订单  首次进入确认订单页 findConfirmOrderInfoExt
-        }
-            else if (StringUtils.isNotEmpty(doctorIsDecoction) && "1".equals(doctorIsDecoction)) {
+                // 患者未选 是否代煎 以医生选的为准
+            } else if ("-1".equals(patientIsDecoction) && StringUtils.isNotEmpty(doctorIsDecoction) && "1".equals(doctorIsDecoction)) {
                 result = true;
             }
+            //没有订单 且不是提交订单  首次进入确认订单页 findConfirmOrderInfoExt
+        } else if (StringUtils.isNotEmpty(doctorIsDecoction) && "1".equals(doctorIsDecoction)) {
+            result = true;
+        }
         logger.info("getIsCalculateDecoctionFee result:{}", JSONUtils.toString(result));
         return result;
     }
