@@ -1711,22 +1711,22 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     }
 
     private StringBuilder generateWaitApplyRecipeHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
-        StringBuilder hql = new StringBuilder("select a.* from cdr_recipeorder a,cdr_recipe b,cdr_recipe_ext c where a.orderCode = b.orderCode AND b.recipeId = c.recipeId AND c.refundNodeStatus = 0 AND a.payFlag != 0 ");
+        StringBuilder hql = new StringBuilder("select DISTINCT(a.OrderCode), a.* from cdr_recipeorder a,cdr_recipe b,cdr_recipe_ext c where a.orderCode = b.orderCode AND b.recipeId = c.recipeId AND c.refundNodeStatus = 0 AND a.payFlag != 0 ");
         return getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
     }
 
     private StringBuilder generateWaitApplyRecipeHQLCount(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
-        StringBuilder hql = new StringBuilder("select count(1) from cdr_recipeorder a,cdr_recipe b,cdr_recipe_ext c where a.orderCode = b.orderCode AND b.recipeId = c.recipeId AND c.refundNodeStatus = 0 AND a.payFlag != 0 ");
+        StringBuilder hql = new StringBuilder("select count(DISTINCT(a.OrderCode)) from cdr_recipeorder a,cdr_recipe b,cdr_recipe_ext c where a.orderCode = b.orderCode AND b.recipeId = c.recipeId AND c.refundNodeStatus = 0 AND a.payFlag != 0 ");
         return getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
     }
 
     protected StringBuilder generateRecipeHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
-        StringBuilder hql = new StringBuilder("select a.* from cdr_recipeorder a,cdr_recipe b,cdr_recipe_ext c where a.orderCode = b.orderCode AND b.recipeId = c.recipeId ");
+        StringBuilder hql = new StringBuilder("select DISTINCT(a.OrderCode), a.* from cdr_recipeorder a,cdr_recipe b,cdr_recipe_ext c where a.orderCode = b.orderCode AND b.recipeId = c.recipeId ");
         return getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
     }
 
     protected StringBuilder generateRecipeHQLCount(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
-        StringBuilder hql = new StringBuilder("select count(1) from cdr_recipeorder a,cdr_recipe b,cdr_recipe_ext c where a.orderCode = b.orderCode AND b.recipeId = c.recipeId ");
+        StringBuilder hql = new StringBuilder("select count(DISTINCT(a.OrderCode)) from cdr_recipeorder a,cdr_recipe b,cdr_recipe_ext c where a.orderCode = b.orderCode AND b.recipeId = c.recipeId ");
         return getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
     }
 
