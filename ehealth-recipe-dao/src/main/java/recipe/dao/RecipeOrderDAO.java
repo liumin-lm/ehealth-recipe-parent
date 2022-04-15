@@ -1709,7 +1709,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     }
 
     private StringBuilder generateWaitApplyRecipeHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
-        StringBuilder hql = new StringBuilder("select DISTINCT(a.OrderCode), a.* from cdr_recipeorder a,cdr_recipe b,cdr_recipe_ext c where a.orderCode = b.orderCode AND b.recipeId = c.recipeId AND c.refundNodeStatus = 0 AND a.payFlag != 0 ");
+        StringBuilder hql = new StringBuilder("select DISTINCT(a.OrderCode), a.* from cdr_recipeorder a,cdr_recipe b,cdr_recipe_ext c where a.orderCode = b.orderCode AND b.recipeId = c.recipeId AND c.refundNodeStatus = 0 AND a.payFlag != 0 and c.refundNodeStatus not in (1,3)");
         return getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
     }
 
