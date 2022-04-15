@@ -2963,6 +2963,7 @@ public class RecipeService extends RecipeBaseService {
      * @param drugForms
      * @return
      */
+    @LogRecord
     public Map<String, Object> drugInfoSynMovementExtT(Integer organId, List<String> drugForms, Map<String, OrganDrugList> drugMap, String operator, Boolean sync, Boolean add, Boolean commit, Boolean delete) throws ParseException {
         SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Map<String, Object> map = Maps.newHashMap();
@@ -2985,9 +2986,9 @@ public class RecipeService extends RecipeBaseService {
                 request.setDrcode(Lists.newArrayList());
                 request.setDrugItemCode(Lists.newArrayList());
                 try {
+                    LOGGER.info("drugInfoSynMovement request={}", JSONUtils.toString(request));
                     responseTO = recipeHisService.queryOrganDrugInfo(request);
                     LOGGER.info("drugInfoSynMovement responseTO={}", JSONUtils.toString(responseTO));
-                    LOGGER.info("drugInfoSynMovement request={}", JSONUtils.toString(request));
                 } catch (Exception e) {
                     LOGGER.info("drugInfoSynMovement error{} ", e);
                 }
