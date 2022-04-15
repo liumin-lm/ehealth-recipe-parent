@@ -2961,6 +2961,7 @@ public class RecipeService extends RecipeBaseService {
      * @param drugForms
      * @return
      */
+    @LogRecord
     public Map<String, Object> drugInfoSynMovementExtT(Integer organId, List<String> drugForms, Map<String, OrganDrugList> drugMap, String operator, Boolean sync, Boolean add, Boolean commit, Boolean delete) throws ParseException {
         SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Map<String, Object> map = Maps.newHashMap();
