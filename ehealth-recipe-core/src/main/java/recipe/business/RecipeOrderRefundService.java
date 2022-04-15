@@ -183,11 +183,16 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         List<RecipeBean> recipeBeanList = new ArrayList<>();
         recipeList.forEach(recipe -> {
             RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
-            RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtendMap.get(recipe.getRecipeId()), RecipeExtendBean.class);
-            orderRefundInfoVO.setRefundStatusText(RefundNodeStatusEnum.getRefundStatus(recipeExtendMap.get(recipe.getRecipeId()).getRefundNodeStatus()));
-            orderRefundInfoVO.setRefundNodeStatusText(setRefundNodeStatus(recipeExtendMap.get(recipe.getRecipeId()).getRefundNodeStatus()));
+            RecipeExtend recipeExtend = recipeExtendMap.get(recipe.getRecipeId());
+            RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
+            orderRefundInfoVO.setRefundStatusText(RefundNodeStatusEnum.getRefundStatus(recipeExtend.getRefundNodeStatus()));
+            orderRefundInfoVO.setRefundNodeStatusText(setRefundNodeStatus(recipeExtend.getRefundNodeStatus()));
             orderRefundInfoVO.setChannel(patientClient.getClientNameById(recipe.getMpiid()));
             List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(detailMap.get(recipe.getRecipeId()), RecipeDetailBean.class);
+            if (recipeExtend.getRefundNodeStatus() == 1 || recipeExtend.getRefundNodeStatus() == 3) {
+                orderRefundInfoVO.setForceApplyFlag(false);
+                orderRefundInfoVO.setAuditNodeType(-1);
+            }
             recipeBean.setRecipeExtend(recipeExtendBean);
             recipeBean.setRecipeDetailBeanList(recipeDetailBeans);
             recipeBeanList.add(recipeBean);
@@ -224,10 +229,10 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
     }
 
     private String setRefundNodeStatus(Integer status){
-        if (null == status) {
+        if (null == status || status == 3 || status == 2) {
             return "未退款";
         }
-        if (status == 1) {
+        if (status == 0) {
             return  "退款中";
         }
         return "已退款";

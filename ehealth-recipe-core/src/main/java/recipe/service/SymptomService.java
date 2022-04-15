@@ -771,37 +771,47 @@ public class SymptomService implements ISymptomService {
         logger.info("assembleMultipleSymptom organId={},symptomIds={}", organId, symptomIds);
         Symptom symptoms = new Symptom();
         String[] symptomIdArray = symptomIds.split(";");
+        logger.info("assembleMultipleSymptom symptomIdArray={}", JSONUtils.toString(symptomIdArray));
         if (new Integer(1).equals(symptomIdArray.length)) {
             Symptom symptom = symptomDAO.getByOrganIdAndSymptomCode(organId, symptomIds);
-            symptom.setTreatmentCode(symptom.getRegulationSymptomCode());
-            symptom.setTreatmentName(symptom.getRegulationSymptomName());
+            TcmTreatment tcmTreatment = treatmentDAO.getByOrganIdAndTreatmentCode(organId, symptom.getTreatmentCode());
+            if(null != tcmTreatment){
+                if(null != tcmTreatment.getRegulationTreatmentCode()){
+                    symptom.setTreatmentCode(tcmTreatment.getRegulationTreatmentCode());
+                }
+                if(null != tcmTreatment.getRegulationTreatmentName()){
+                    symptom.setTreatmentName(tcmTreatment.getRegulationTreatmentName());
+                }
+            }
             logger.info("assembleMultipleSymptom symptom1={}", JSONUtils.toString(symptom));
             return symptom;
         }
-        String regulationSymptomCodes = null;
-        String regulationSymptomNames = null;
-        String regulationTreatmentCode = null;
-        String regulationTreatmentName = null;
+        String regulationSymptomCodes = "";
+        String regulationSymptomNames = "";
+        String regulationTreatmentCode = "";
+        String regulationTreatmentName = "";
         try {
             for (String symptomId : symptomIdArray) {
                 Symptom symptom = symptomDAO.getByOrganIdAndSymptomCode(organId, symptomId);
                 logger.info("assembleMultipleSymptom symptom={}", JSONUtils.toString(symptom));
-                String regulationSymptomCode = symptom.getRegulationSymptomCode();
-                String regulationSymptomName = symptom.getRegulationSymptomName();
-                if (null != regulationSymptomCode) {
-                    regulationSymptomCodes = regulationSymptomCode + "|";
-                }
-                if (null != regulationSymptomName) {
-                    regulationSymptomNames = regulationSymptomName + "|";
-                }
-                String treatmentCode = symptom.getTreatmentCode();
-                TcmTreatment tcmTreatment = treatmentDAO.getByOrganIdAndTreatmentCode(organId, treatmentCode);
-                logger.info("assembleMultipleSymptom tcmTreatment={}", JSONUtils.toString(tcmTreatment));
-                if (null != tcmTreatment.getRegulationTreatmentCode()) {
-                    regulationTreatmentCode = tcmTreatment.getRegulationTreatmentCode() + "|";
-                }
-                if (null != tcmTreatment.getRegulationTreatmentName()) {
-                    regulationTreatmentName = tcmTreatment.getRegulationTreatmentName() + "|";
+                if(null != symptom){
+                    if (null != symptom.getRegulationSymptomCode()) {
+                        regulationSymptomCodes += symptom.getRegulationSymptomCode() + "|";
+                    }
+                    if (null != symptom.getRegulationSymptomName()) {
+                        regulationSymptomNames += symptom.getRegulationSymptomName() + "|";
+                    }
+                    String treatmentCode = symptom.getTreatmentCode();
+                    TcmTreatment tcmTreatment = treatmentDAO.getByOrganIdAndTreatmentCode(organId, treatmentCode);
+                    logger.info("assembleMultipleSymptom tcmTreatment={}", JSONUtils.toString(tcmTreatment));
+                    if(null != tcmTreatment){
+                        if (null != tcmTreatment.getRegulationTreatmentCode()) {
+                            regulationTreatmentCode += tcmTreatment.getRegulationTreatmentCode() + "|";
+                        }
+                        if (null != tcmTreatment.getRegulationTreatmentName()) {
+                            regulationTreatmentName += tcmTreatment.getRegulationTreatmentName() + "|";
+                        }
+                    }
                 }
             }
             if (null != regulationSymptomCodes) {
@@ -811,7 +821,7 @@ public class SymptomService implements ISymptomService {
                 symptoms.setRegulationSymptomName(regulationSymptomNames.substring(0, regulationSymptomNames.length() - 1));
             }
             if (null != regulationTreatmentCode) {
-                symptoms.setTreatmentName(regulationTreatmentCode.substring(0, regulationTreatmentCode.length() - 1));
+                symptoms.setTreatmentCode(regulationTreatmentCode.substring(0, regulationTreatmentCode.length() - 1));
             }
             if (null != regulationTreatmentName) {
                 symptoms.setTreatmentName(regulationTreatmentName.substring(0, regulationTreatmentName.length() - 1));

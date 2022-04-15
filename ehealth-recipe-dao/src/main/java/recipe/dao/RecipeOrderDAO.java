@@ -33,7 +33,6 @@ import recipe.enumerate.status.PayWayEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -75,9 +74,9 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     /**
      * 获取订单
      *
-     * @param orderId 订单ID
+     * @param orderId          订单ID
      * @param logisticsCompany 快递公司
-     * @param trackingNumber 快递单号
+     * @param trackingNumber   快递单号
      * @return
      */
     @DAOMethod(sql = "from RecipeOrder where orderId =:orderId and logisticsCompany=:logisticsCompany and trackingNumber =:trackingNumber")
@@ -967,7 +966,6 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                                                    @DAOParam("dispensingApothecaryIdCard") String dispensingApothecaryIdCard);
 
 
-
     public List<RecivedDispatchedBalanceResponse> findDrugReceivedDispatchedBalanceList(final String manageUnit, final List<Integer> organIdList, final Date startTime, final Date endTime,
                                                                                         final Integer start, final Integer limit) {
         HibernateStatelessResultAction<List<RecivedDispatchedBalanceResponse>> action = new AbstractHibernateStatelessResultAction<List<RecivedDispatchedBalanceResponse>>() {
@@ -1611,7 +1609,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         sbHql.append(" AND a.payFlag = 1 ");
         final StringBuilder sbHqlCount = this.generateWaitApplyRecipeHQLCount(recipeOrderRefundReqDTO);
         sbHqlCount.append(" AND a.payFlag = 1 ");
-        HibernateStatelessResultAction<QueryResult<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeOrder>>(){
+        HibernateStatelessResultAction<QueryResult<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeOrder>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 // 查询总记录数
@@ -1636,7 +1634,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         sbHql.append(" AND a.pushFlag = -1 and a.payFlag = 1 AND b.giveMode in (1,3) ");
         final StringBuilder sbHqlCount = this.generateRecipeHQLCount(recipeOrderRefundReqDTO);
         sbHqlCount.append(" AND a.pushFlag = -1 and a.payFlag = 1 AND b.giveMode in (1,3) ");
-        HibernateStatelessResultAction<QueryResult<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeOrder>>(){
+        HibernateStatelessResultAction<QueryResult<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeOrder>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 // 查询总记录数
@@ -1659,7 +1657,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
     public QueryResult<RecipeOrder> findRefundRecipeOrder(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
         final StringBuilder sbHql = this.generateRecipeHQL(recipeOrderRefundReqDTO);
         final StringBuilder sbHqlCount = this.generateRecipeHQLCount(recipeOrderRefundReqDTO);
-        HibernateStatelessResultAction<QueryResult<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeOrder>>(){
+        HibernateStatelessResultAction<QueryResult<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<QueryResult<RecipeOrder>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 // 查询总记录数
@@ -1679,7 +1677,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return action.getResult();
     }
 
-    private void setRefundParameter(Query query, RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
+    private void setRefundParameter(Query query, RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
         String orderCode = recipeOrderRefundReqDTO.getOrderCode();
         String patientName = recipeOrderRefundReqDTO.getPatientName();
         Integer organId = recipeOrderRefundReqDTO.getOrganId();
@@ -1710,22 +1708,22 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         }
     }
 
-    private StringBuilder generateWaitApplyRecipeHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
-        StringBuilder hql = new StringBuilder("select DISTINCT(a.OrderCode), a.* from cdr_recipeorder a,cdr_recipe b,cdr_recipe_ext c where a.orderCode = b.orderCode AND b.recipeId = c.recipeId AND c.refundNodeStatus = 0 AND a.payFlag != 0 ");
+    private StringBuilder generateWaitApplyRecipeHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
+        StringBuilder hql = new StringBuilder("select DISTINCT(a.OrderCode), a.* from cdr_recipeorder a,cdr_recipe b,cdr_recipe_ext c where a.orderCode = b.orderCode AND b.recipeId = c.recipeId AND c.refundNodeStatus = 0 AND a.payFlag != 0  ");
         return getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
     }
 
-    private StringBuilder generateWaitApplyRecipeHQLCount(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
+    private StringBuilder generateWaitApplyRecipeHQLCount(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
         StringBuilder hql = new StringBuilder("select count(DISTINCT(a.OrderCode)) from cdr_recipeorder a,cdr_recipe b,cdr_recipe_ext c where a.orderCode = b.orderCode AND b.recipeId = c.recipeId AND c.refundNodeStatus = 0 AND a.payFlag != 0 ");
         return getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
     }
 
-    protected StringBuilder generateRecipeHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
+    protected StringBuilder generateRecipeHQL(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
         StringBuilder hql = new StringBuilder("select DISTINCT(a.OrderCode), a.* from cdr_recipeorder a,cdr_recipe b,cdr_recipe_ext c where a.orderCode = b.orderCode AND b.recipeId = c.recipeId ");
         return getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
     }
 
-    protected StringBuilder generateRecipeHQLCount(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO){
+    protected StringBuilder generateRecipeHQLCount(RecipeOrderRefundReqDTO recipeOrderRefundReqDTO) {
         StringBuilder hql = new StringBuilder("select count(DISTINCT(a.OrderCode)) from cdr_recipeorder a,cdr_recipe b,cdr_recipe_ext c where a.orderCode = b.orderCode AND b.recipeId = c.recipeId ");
         return getRefundStringBuilder(recipeOrderRefundReqDTO, hql);
     }
@@ -1752,11 +1750,11 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         }
         if (null != recipeOrderRefundReqDTO.getRefundStatus()) {
             if (new Integer(0).equals(recipeOrderRefundReqDTO.getRefundStatus())) {
-                hql.append(" AND c.refundNodeStatus is null ");
+                hql.append(" AND (c.refundNodeStatus is null || c.refundNodeStatus = 2 || c.refundNodeStatus = 3) ");
             } else if (new Integer(1).equals(recipeOrderRefundReqDTO.getRefundStatus())) {
                 hql.append(" AND c.refundNodeStatus = 0 ");
             } else {
-                hql.append(" AND c.refundNodeStatus in (1,2,3) ");
+                hql.append(" AND c.refundNodeStatus = 1 ");
             }
         }
         if (null != recipeOrderRefundReqDTO.getPayFlag()) {
@@ -1796,6 +1794,20 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         hql.append(" ,o.actualPrice,o.preSettleTotalAmount,o.fundAmount,o.cashAmount");
         hql.append(" from cdr_recipe r INNER JOIN cdr_recipeorder o on r.OrderCode = o.OrderCode ");
         hql.append(" where o.refundFlag is Not Null and o.refundFlag <> 0 and  to_days(o.refundTime) = to_days(:time) and o.actualPrice <> 0 ");
+        if (organId != null) {
+            hql.append(" and  r.clinicOrgan =:organId");
+        }
+        if (StringUtils.isNotEmpty(payOrganId)) {
+            hql.append(" and  o.payOrganId =:payOrganId");
+        }
+        //退费当天的正向交易
+        hql.append(" UNION ALL ");
+        hql.append(" select o.orderId, o.OutTradeNo,o.tradeNo,o.totalfee,o.payTime");
+        hql.append(" ,r.patientID,r.patientName,r.mpiid,r.clinicorgan, o.payOrganId");
+        hql.append(" ,o.wxPayWay , 1 tradeStatus,0 refundAmount,'' refundBatchNo,null refundDate ");
+        hql.append(" ,o.actualPrice,o.preSettleTotalAmount,o.fundAmount,o.cashAmount");
+        hql.append(" from cdr_recipe r INNER JOIN cdr_recipeorder o on r.OrderCode = o.OrderCode ");
+        hql.append(" where  o.refundFlag is Not Null and  to_days(o.payTime) = to_days(:time) and o.Effective = 1 and o.actualPrice <> 0 ");
         if (organId != null) {
             hql.append(" and  r.clinicOrgan =:organId");
         }
