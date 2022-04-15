@@ -206,17 +206,17 @@ public class PayModeTFDS implements IPurchaseService {
         if (decoctionId != null) {
             DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
             DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
-            for (Recipe dbRecipe : dbRecipes) {
+//            for (Recipe dbRecipe : dbRecipes) {
                 if (decoctionWay != null) {
                     if (decoctionWay.getDecoctionPrice() != null) {
                         calculateFee = 1;
                         order.setDecoctionUnitPrice(BigDecimal.valueOf(decoctionWay.getDecoctionPrice()));
                     }
-                    recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("decoctionId", decoctionId + "", "decoctionText", decoctionWay.getDecoctionText()));
+//                    recipeExtendDAO.updateRecipeExInfoByRecipeId(dbRecipe.getRecipeId(), ImmutableMap.of("decoctionId", decoctionId + "", "decoctionText", decoctionWay.getDecoctionText()));
                 } else {
-                    LOGGER.error("未获取到对应的代煎费，recipeId={},decoctionId={}", dbRecipe.getRecipeId(), decoctionId);
+                    LOGGER.error("未获取到对应的代煎费，,decoctionId={}", decoctionId);
                 }
-            }
+//            }
         }
         //线下处方和线上PatientIsDecoction处理成一样
         //在患者没有选择的情况下：前端会根据医生是否选择字段传入patientIsDecoction  对于线下处方而言，线下转线上的时候医生是否选择已经赋值
