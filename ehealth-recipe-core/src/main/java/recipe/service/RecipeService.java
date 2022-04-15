@@ -6569,18 +6569,18 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.info("assembleMultipleSymptom diseaseDTO1={}",JSONUtils.toString(diseaseDTO));
             return diseaseDTO;
         }
-        String regulationOrganDiseaseId = null;
-        String regulationOrganDiseaseName = null;
+        String regulationOrganDiseaseId = "";
+        String regulationOrganDiseaseName = "";
         try {
             for(String diseaseId : diseaseIdArray) {
                 DiseaseDTO diseaseDTO = diseaseService.getDiseasByCodeAndOrganId(organId, diseaseId);
                 LOGGER.info("assembleMultipleSymptom diseaseDTO={}", JSONUtils.toString(diseaseDTO));
                 if(null != diseaseDTO){
                     if (null != diseaseDTO.getJgDiseasId()) {
-                        regulationOrganDiseaseId = diseaseDTO.getJgDiseasId() + "|";
+                        regulationOrganDiseaseId += diseaseDTO.getJgDiseasId() + "|";
                     }
                     if (null != diseaseDTO.getJgDiseasName()) {
-                        regulationOrganDiseaseName = diseaseDTO.getJgDiseasName() + "|";
+                        regulationOrganDiseaseName += diseaseDTO.getJgDiseasName() + "|";
                     }
                 }
             }
