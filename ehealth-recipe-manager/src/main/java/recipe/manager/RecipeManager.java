@@ -643,8 +643,22 @@ public class RecipeManager extends BaseManager {
             recipeDetail.setSalePrice(drugLists.get(0).getPrice());
         }
         logger.info("RecipeManager updateRecipeDetailSalePrice req = recipeDetails:{}", JSON.toJSONString(recipeDetails));
-
         recipeDetailDAO.updateAllRecipeDetail(recipeDetails);
+    }
 
+    /**
+     * 更新处方退费的结点状态
+     *
+     * @param recipeList 处方信息
+     * @param status 结点状态
+     */
+    public void updateRecipeRefundStatus(List<Recipe> recipeList, Integer status) {
+        recipeList.forEach(recipe -> {
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (recipeExtend != null) {
+                recipeExtend.setRefundNodeStatus(status);
+                recipeExtendDAO.update(recipeExtend);
+            }
+        });
     }
 }

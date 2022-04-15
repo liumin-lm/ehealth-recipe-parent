@@ -21,13 +21,16 @@ import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
 import recipe.client.PatientClient;
 import recipe.constant.RecipeRefundRoleConstant;
+import recipe.constant.RefundNodeStatusConstant;
 import recipe.core.api.greenroom.IRecipeOrderRefundService;
 import recipe.dao.*;
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.PayModeEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RefundNodeStatusEnum;
+import recipe.enumerate.type.OpRefundBusTypeEnum;
 import recipe.manager.OrderManager;
+import recipe.manager.RecipeManager;
 import recipe.manager.RecipeRefundManage;
 import recipe.service.RecipeService;
 import recipe.util.DateConversion;
@@ -67,6 +70,8 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
     private RecipeRefundDAO recipeRefundDAO;
     @Autowired
     private RecipeRefundManage recipeRefundManage;
+    @Autowired
+    private RecipeManager recipeManager;
 
     @Override
     public RecipeOrderRefundPageVO findRefundRecipeOrder(RecipeOrderRefundReqVO recipeOrderRefundReqVO) {
@@ -112,7 +117,11 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
                     }
                 }
             }
-            recipeOrderRefundVO.setSendStatusText(RecipeOrderStatusEnum.getOrderStatus(recipeOrder.getStatus()));
+            if (RecipeOrderStatusEnum.ORDER_STATUS_HAS_DRUG.getType().equals(recipeOrder.getStatus())) {
+                recipeOrderRefundVO.setSendStatusText(RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getName());
+            } else {
+                recipeOrderRefundVO.setSendStatusText(RecipeOrderStatusEnum.getOrderStatus(recipeOrder.getStatus()));
+            }
             recipeOrderRefundVO.setOrderStatusText(OrderStateEnum.getOrderStateEnum(recipeOrder.getProcessState()).getName());
             recipeOrderRefundVO.setPatientName(recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getPatientName());
             recipeOrderRefundVO.setChannel(patientClient.getClientNameById(recipeOrder.getMpiId()));
@@ -131,7 +140,7 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
     }
 
     @Override
-    public RecipeOrderRefundDetailVO getRefundOrderDetail(String orderCode) {
+    public RecipeOrderRefundDetailVO getRefundOrderDetail(String orderCode, Integer busType) {
         RecipeOrderRefundDetailVO recipeOrderRefundDetailVO = new RecipeOrderRefundDetailVO();
         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(orderCode);
         if (null == recipeOrder) {
@@ -140,7 +149,7 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         RecipeOrderBean recipeOrderBean = ObjectCopyUtils.convert(recipeOrder, RecipeOrderBean.class);
         recipeOrderRefundDetailVO.setRecipeOrderBean(recipeOrderBean);
         OrderRefundInfoVO orderRefundInfoVO = new OrderRefundInfoVO();
-        if (null != recipeOrderBean.getEnterpriseId() && StringUtils.isEmpty(recipeOrderBean.getDrugStoreName())) {
+        if (null != recipeOrderBean.getEnterpriseId()) {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrderBean.getEnterpriseId());
             DrugsEnterpriseBean drugsEnterpriseBean = ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class);
             recipeOrderRefundDetailVO.setDrugsEnterpriseBean(drugsEnterpriseBean);
@@ -151,14 +160,23 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
         orderRefundInfoVO.setAuditNodeType(recipeRefundManage.getRecipeRefundNode(recipeIdList.get(0), recipeOrder.getOrganId()));
         List<RecipeRefund> recipeRefundList = recipeRefundDAO.findRecipeRefundByRecipeIdAndNodeAndStatus(recipeIdList.get(0), RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_ADMIN);
-        if (CollectionUtils.isNotEmpty(recipeRefundList)) {
+        if (OpRefundBusTypeEnum.BUS_TYPE_REFUND_ORDER.getType().equals(busType) && CollectionUtils.isNotEmpty(recipeRefundList)) {
             orderRefundInfoVO.setForceApplyFlag(true);
             orderRefundInfoVO.setAuditNodeType(3);
         }
-        if (new Integer(1).equals(recipeOrder.getPushFlag())) {
-            orderRefundInfoVO.setRetryFlag(true);
-        } else if (new Integer(-1).equals(recipeOrder.getPushFlag())) {
+        if (OpRefundBusTypeEnum.BUS_TYPE_FAIL_ORDER.getType().equals(busType) && new Integer(-1).equals(recipeOrder.getPushFlag())) {
             orderRefundInfoVO.setAuditNodeType(4);
+            orderRefundInfoVO.setRetryFlag(true);
+        }
+        List<RecipeRefund> patientRefundList = recipeRefundDAO.findRecipeRefundByRecipeIdAndNodeAndStatus(recipeIdList.get(0), RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_PATIENT);
+        if (CollectionUtils.isNotEmpty(patientRefundList)) {
+            orderRefundInfoVO.setApplyReason(patientRefundList.get(0).getReason());
+            orderRefundInfoVO.setApplyTime(DateConversion.getDateFormatter(patientRefundList.get(0).getApplyTime(), DateConversion.DEFAULT_DATE_TIME));
+        }
+        if (RecipeOrderStatusEnum.ORDER_STATUS_HAS_DRUG.getType().equals(recipeOrder.getStatus())) {
+            orderRefundInfoVO.setOrderStatusText(RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getName());
+        } else {
+            orderRefundInfoVO.setOrderStatusText(RecipeOrderStatusEnum.getOrderStatus(recipeOrder.getStatus()));
         }
         List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
         Map<Integer, RecipeExtend> recipeExtendMap = recipeExtendList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId,a->a,(k1,k2)->k1));
@@ -187,10 +205,12 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         if (null == recipeOrder) {
             throw new DAOException(DAOException.VALUE_NEEDED, "订单不存在");
         }
+        Integer refundStatus = 0;
         if (auditRefundVO.getResult() && StringUtils.isNotEmpty(recipeOrder.getOutTradeNo())) {
             List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
             RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
             recipeService.wxPayRefundForRecipe(4, recipeIdList.get(0), "");
+            refundStatus = RefundNodeStatusConstant.REFUND_NODE_SUCCESS_STATUS;
         } else {
             RecipeRefund recipeRefund = new RecipeRefund();
             recipeRefund.setTradeNo(recipeOrder.getTradeNo());
@@ -199,7 +219,10 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
             recipeRefund.setNode(RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_THIRD);
             recipeRefund.setReason(auditRefundVO.getReason());
             recipeRefundManage.recipeReFundSave(auditRefundVO.getOrderCode(), recipeRefund);
+            refundStatus = RefundNodeStatusConstant.REFUND_NODE_NOPASS_AUDIT_STATUS;
         }
+        List<Recipe> recipes = orderManager.getRecipesByOrderCode(recipeOrder.getOrderCode());
+        recipeManager.updateRecipeRefundStatus(recipes, refundStatus);
     }
 
     private String setRefundNodeStatus(Integer status){
