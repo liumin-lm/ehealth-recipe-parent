@@ -752,10 +752,16 @@ public class SymptomService implements ISymptomService {
         logger.info("assembleMultipleSymptom organId={},symptomIds={}", organId, symptomIds);
         Symptom symptoms = new Symptom();
         String[] symptomIdArray = symptomIds.split(";");
+        logger.info("assembleMultipleSymptom symptomIdArray={}", JSONUtils.toString(symptomIdArray));
         if (new Integer(1).equals(symptomIdArray.length)) {
             Symptom symptom = symptomDAO.getByOrganIdAndSymptomCode(organId, symptomIds);
-            symptom.setTreatmentCode(symptom.getRegulationSymptomCode());
-            symptom.setTreatmentName(symptom.getRegulationSymptomName());
+            TcmTreatment tcmTreatment = treatmentDAO.getByOrganIdAndTreatmentCode(organId, symptom.getTreatmentCode());
+            if(null != tcmTreatment.getRegulationTreatmentCode()){
+                symptom.setTreatmentCode(tcmTreatment.getRegulationTreatmentCode());
+            }
+            if(null != tcmTreatment.getRegulationTreatmentName()){
+                symptom.setTreatmentName(tcmTreatment.getRegulationTreatmentName());
+            }
             logger.info("assembleMultipleSymptom symptom1={}", JSONUtils.toString(symptom));
             return symptom;
         }
