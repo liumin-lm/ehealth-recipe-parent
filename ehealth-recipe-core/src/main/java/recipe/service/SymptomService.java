@@ -773,13 +773,11 @@ public class SymptomService implements ISymptomService {
             for (String symptomId : symptomIdArray) {
                 Symptom symptom = symptomDAO.getByOrganIdAndSymptomCode(organId, symptomId);
                 logger.info("assembleMultipleSymptom symptom={}", JSONUtils.toString(symptom));
-                String regulationSymptomCode = symptom.getRegulationSymptomCode();
-                String regulationSymptomName = symptom.getRegulationSymptomName();
-                if (null != regulationSymptomCode) {
-                    regulationSymptomCodes = regulationSymptomCode + "|";
+                if (null != symptom.getRegulationSymptomCode()) {
+                    regulationSymptomCodes = symptom.getRegulationSymptomCode() + "|";
                 }
-                if (null != regulationSymptomName) {
-                    regulationSymptomNames = regulationSymptomName + "|";
+                if (null != symptom.getRegulationSymptomName()) {
+                    regulationSymptomNames = symptom.getRegulationSymptomName() + "|";
                 }
                 String treatmentCode = symptom.getTreatmentCode();
                 TcmTreatment tcmTreatment = treatmentDAO.getByOrganIdAndTreatmentCode(organId, treatmentCode);
