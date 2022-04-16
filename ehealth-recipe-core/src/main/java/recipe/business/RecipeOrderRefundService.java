@@ -28,6 +28,7 @@ import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.PayModeEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RefundNodeStatusEnum;
+import recipe.enumerate.type.PayFlagEnum;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.manager.RecipeRefundManage;
@@ -164,7 +165,7 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
             orderRefundInfoVO.setForceApplyFlag(true);
             orderRefundInfoVO.setAuditNodeType(3);
         }
-        if (new Integer(-1).equals(recipeOrder.getPushFlag())) {
+        if (new Integer(-1).equals(recipeOrder.getPushFlag()) && PayFlagEnum.PAYED.getType().equals(recipeOrder.getPayFlag())) {
             orderRefundInfoVO.setRetryFlag(true);
         }
         List<RecipeRefund> patientRefundList = recipeRefundDAO.findRecipeRefundByRecipeIdAndNodeAndStatus(recipeIdList.get(0), RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_PATIENT);
