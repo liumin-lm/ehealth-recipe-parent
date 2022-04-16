@@ -142,7 +142,7 @@ public class OrderFeeManager extends BaseManager {
                 String patientIsDecoction = order.getPatientIsDecoction();
                 isCalculateDecoctionFee = getIsCalculateDecoctionFee(doctorIsDecoction, patientIsDecoction);
             }
-            if(Objects.nonNull(recipe.getCopyNum())) {
+            if (Objects.nonNull(recipe.getCopyNum())) {
                 totalCopyNum = totalCopyNum + recipe.getCopyNum();
             }
             BigDecimal recipeDecoctionFee = BigDecimal.ZERO;
@@ -168,7 +168,7 @@ public class OrderFeeManager extends BaseManager {
                 else if (order.getDecoctionUnitPrice() != null && recipe.getCopyNum() != null) {
                     //代煎费等于剂数乘以代煎单价
                     //如果是合并处方-多张处方下得累加
-                    recipeDecoctionFee = order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum()));
+                    recipeDecoctionFee = getRecipeDecoctionFee(extend, recipe);
                 }
             } else {
                 logger.info("setRecipeChineseMedicineFee 进入线上处方控制逻辑");
@@ -177,32 +177,13 @@ public class OrderFeeManager extends BaseManager {
                 if (tcmPrice.compareTo(BigDecimal.ZERO) > -1) {
                     tcmFee = tcmPrice;
                 }
-                //膏方代表制作费
-//                boolean needCalDecFee = false;
-//                if (order.getDecoctionUnitPrice() != null) {
-//                    needCalDecFee = (order.getDecoctionUnitPrice().compareTo(BigDecimal.ZERO) == 1) ? true : false;
-//                }
-//                if (needCalDecFee) {
-                    //代煎费等于剂数乘以代煎单价
-                    //如果是合并处方-多张处方下得累加
-                    //只有最终选择了代煎才计算收取代煎费，如果是非代煎则隐藏代煎费并且不收代煎费
-                    //如果配置了患者选择，以患者选择是否代煎计算价格
 
-                    Integer decoctionId = null;
-                    if (null != extend && Objects.nonNull(extend.getDecoctionId())) {
-                        decoctionId = Integer.valueOf(extend.getDecoctionId());
-                    }
-                    logger.info("decoctionId:{}", decoctionId);
-                    if (decoctionId != null) {
-                        DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
-                        DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
-                        logger.info("decoctionWay:{}", JSONArray.toJSONString(decoctionWay));
-                        if (decoctionWay != null && decoctionWay.getDecoctionPrice() != null) {
-                            BigDecimal decoctionPrice = BigDecimal.valueOf(decoctionWay.getDecoctionPrice());
-                            recipeDecoctionFee = decoctionPrice.multiply(BigDecimal.valueOf(recipe.getCopyNum()));
-                        }
-                    }
-//                }
+                //代煎费等于剂数乘以代煎单价
+                //如果是合并处方-多张处方下得累加
+                //只有最终选择了代煎才计算收取代煎费，如果是非代煎则隐藏代煎费并且不收代煎费
+                //如果配置了患者选择，以患者选择是否代煎计算价格
+                recipeDecoctionFee = getRecipeDecoctionFee(extend, recipe);
+
             }
 
             if (recipeDecoctionFee.compareTo(BigDecimal.ZERO) == 1) {
@@ -226,6 +207,30 @@ public class OrderFeeManager extends BaseManager {
         ext.put("decoctionTotalFee", decoctionTotalFee);
         logger.info("setRecipeChineseMedicineFee 处方中药相关费用 totalCopyNum={},tcmFee={},decoctionFee={},notContainDecoctionPrice={},decoctionTotalFee={}", totalCopyNum, tcmFee, decoctionFee, notContainDecoctionPrice, decoctionTotalFee);
 
+    }
+
+    /**
+     * 计算单张处方代煎费
+     * @param extend
+     * @param recipe
+     * @return
+     */
+    private BigDecimal getRecipeDecoctionFee(RecipeExtend extend, Recipe recipe) {
+        Integer decoctionId = null;
+        if (null != extend && Objects.nonNull(extend.getDecoctionId())) {
+            decoctionId = Integer.valueOf(extend.getDecoctionId());
+        }
+        logger.info("decoctionId:{}", decoctionId);
+        if (decoctionId != null) {
+            DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
+            DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
+            logger.info("decoctionWay:{}", JSONArray.toJSONString(decoctionWay));
+            if (decoctionWay != null && decoctionWay.getDecoctionPrice() != null) {
+                BigDecimal decoctionPrice = BigDecimal.valueOf(decoctionWay.getDecoctionPrice());
+                return decoctionPrice.multiply(BigDecimal.valueOf(recipe.getCopyNum()));
+            }
+        }
+        return BigDecimal.ZERO;
     }
 
     /**
