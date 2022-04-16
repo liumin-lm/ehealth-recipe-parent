@@ -860,6 +860,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             recipeInfoVO.getRecipeBean().setCheckDate(new Date());
             recipeInfoVO.getRecipeBean().setCheckDateYs(new Date());
             recipeInfoVO.getRecipeBean().setCheckOrgan(doctorDTO.getOrgan());
+            recipeInfoVO.getRecipeBean().setCheckFlag(1);
         }
     }
 
