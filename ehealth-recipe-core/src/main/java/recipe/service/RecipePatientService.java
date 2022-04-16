@@ -832,6 +832,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             recipeDetailManager.saveRecipeDetails(recipe, details, organDrugListMap);
         }
         recipe = recipeManager.saveRecipe(recipe);
+        //保存审方信息
+        recipeManager.saveRecipeCheck(recipe);
         //将处方写入HIS
         offlineRecipeBusinessService.pushRecipe(recipe.getRecipeId(), CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, null, null);
         return recipe.getRecipeId();
@@ -857,6 +859,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             recipeInfoVO.getRecipeBean().setCheckerText(doctorDTO.getName());
             recipeInfoVO.getRecipeBean().setCheckDate(new Date());
             recipeInfoVO.getRecipeBean().setCheckDateYs(new Date());
+            recipeInfoVO.getRecipeBean().setCheckOrgan(doctorDTO.getOrgan());
         }
     }
 
