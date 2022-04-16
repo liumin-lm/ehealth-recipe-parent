@@ -165,7 +165,7 @@ public class OrderFeeManager extends BaseManager {
                     recipeDecoctionFee = hisRecipe.getDecoctionUnitFee().multiply(BigDecimal.valueOf(recipe.getCopyNum()));
                 }
                 //有煎法就会从order得到DecoctionUnitPrice
-                else if (order.getDecoctionUnitPrice() != null && recipe.getCopyNum() != null) {
+                else if (null != extend && Objects.nonNull(extend.getDecoctionId())) {
                     //代煎费等于剂数乘以代煎单价
                     //如果是合并处方-多张处方下得累加
                     recipeDecoctionFee = getRecipeDecoctionFee(extend, recipe);
