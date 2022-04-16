@@ -667,6 +667,7 @@ public class RecipeManager extends BaseManager {
             return;
         }
         RecipeCheckBean recipeCheckBean = new RecipeCheckBean();
+        recipeCheckBean.setRecipeId(recipe.getRecipeId());
         recipeCheckBean.setCheckDate(new Date());
         recipeCheckBean.setChecker(recipe.getChecker());
         recipeCheckBean.setCheckerName(recipe.getCheckerText());
