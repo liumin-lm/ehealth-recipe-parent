@@ -140,7 +140,7 @@ public class OrderFeeManager extends BaseManager {
                 extend = recipeExtMap.get(recipe.getRecipeId()).get(0);
                 String doctorIsDecoction = extend.getDoctorIsDecoction();
                 String patientIsDecoction = order.getPatientIsDecoction();
-                isCalculateDecoctionFee = getIsCalculateDecoctionFee(doctorIsDecoction, patientIsDecoction);
+                isCalculateDecoctionFee = getIsCalculateDecoctionFee(recipe.getClinicOrgan(), doctorIsDecoction, patientIsDecoction);
             }
             if (Objects.nonNull(recipe.getCopyNum())) {
                 totalCopyNum = totalCopyNum + recipe.getCopyNum();
@@ -211,6 +211,7 @@ public class OrderFeeManager extends BaseManager {
 
     /**
      * 计算单张处方代煎费
+     *
      * @param extend
      * @param recipe
      * @return
@@ -238,16 +239,15 @@ public class OrderFeeManager extends BaseManager {
      *
      * @return
      */
-    private Boolean getIsCalculateDecoctionFee(String doctorIsDecoction, String patientIsDecoction) {
+    private Boolean getIsCalculateDecoctionFee(Integer organId, String doctorIsDecoction, String patientIsDecoction) {
         logger.info("getIsCalculateDecoctionFee doctorIsDecoction:{},patientIsDecoction:{}", JSONUtils.toString(doctorIsDecoction), JSONUtils.toString(patientIsDecoction));
         Boolean result = false;
         //下单的时候会order.setPatientIsDecoction(MapValueUtil.getString(extInfo, "patientIsDecoction"));
         //有订单 eg:提交订单orderForRecipeNew
-        if (StringUtils.isNotEmpty(patientIsDecoction)) {
+        String decoctionDeploy = configurationClient.getValueCatchReturnArr(organId, "decoctionDeploy", "");
+
+        if (("2".equals(decoctionDeploy) || "3".equals(decoctionDeploy)) && StringUtils.isNotEmpty(patientIsDecoction)) {
             if ("1".equals(patientIsDecoction)) {
-                result = true;
-                // 患者未选 是否代煎 以医生选的为准
-            } else if ("-1".equals(patientIsDecoction) && StringUtils.isNotEmpty(doctorIsDecoction) && "1".equals(doctorIsDecoction)) {
                 result = true;
             }
             //没有订单 且不是提交订单  首次进入确认订单页 findConfirmOrderInfoExt
