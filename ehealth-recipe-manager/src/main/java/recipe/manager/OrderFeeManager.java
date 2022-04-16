@@ -176,11 +176,11 @@ public class OrderFeeManager extends BaseManager {
                     tcmFee = tcmPrice;
                 }
                 //膏方代表制作费
-                boolean needCalDecFee = false;
-                if (order.getDecoctionUnitPrice() != null) {
-                    needCalDecFee = (order.getDecoctionUnitPrice().compareTo(BigDecimal.ZERO) == 1) ? true : false;
-                }
-                if (needCalDecFee) {
+//                boolean needCalDecFee = false;
+//                if (order.getDecoctionUnitPrice() != null) {
+//                    needCalDecFee = (order.getDecoctionUnitPrice().compareTo(BigDecimal.ZERO) == 1) ? true : false;
+//                }
+//                if (needCalDecFee) {
                     //代煎费等于剂数乘以代煎单价
                     //如果是合并处方-多张处方下得累加
                     //只有最终选择了代煎才计算收取代煎费，如果是非代煎则隐藏代煎费并且不收代煎费
@@ -200,7 +200,7 @@ public class OrderFeeManager extends BaseManager {
                             recipeDecoctionFee = decoctionPrice.multiply(BigDecimal.valueOf(recipe.getCopyNum()));
                         }
                     }
-                }
+//                }
             }
 
             if (recipeDecoctionFee.compareTo(BigDecimal.ZERO) == 1) {
