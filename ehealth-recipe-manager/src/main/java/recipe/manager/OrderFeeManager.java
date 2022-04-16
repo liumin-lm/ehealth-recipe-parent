@@ -24,6 +24,7 @@ import recipe.constant.ErrorCode;
 import recipe.constant.ParameterConstant;
 import recipe.constant.RecipeBussConstant;
 import recipe.constant.ReviewTypeConstant;
+import recipe.dao.DrugDecoctionWayDao;
 import recipe.dao.DrugDistributionPriceDAO;
 import recipe.dao.HisRecipeDAO;
 import recipe.enumerate.status.RecipeSourceTypeEnum;
@@ -38,6 +39,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
+
+import static ctd.persistence.DAOFactory.getDAO;
 
 /**
  * 订单费用计算
@@ -132,8 +135,9 @@ public class OrderFeeManager extends BaseManager {
         for (Recipe recipe : recipeList) {
             logger.info("setRecipeChineseMedicineFee recipeId={}", JSONArray.toJSONString(recipe.getRecipeId()));
             Boolean isCalculateDecoctionFee = false;
+            RecipeExtend extend = null;
             if (MapUtils.isNotEmpty(recipeExtMap) && CollectionUtils.isNotEmpty(recipeExtMap.get(recipe.getRecipeId()))) {
-                RecipeExtend extend = recipeExtMap.get(recipe.getRecipeId()).get(0);
+                extend = recipeExtMap.get(recipe.getRecipeId()).get(0);
                 String doctorIsDecoction = extend.getDoctorIsDecoction();
                 String patientIsDecoction = order.getPatientIsDecoction();
                 isCalculateDecoctionFee = getIsCalculateDecoctionFee(doctorIsDecoction, patientIsDecoction);
@@ -181,7 +185,21 @@ public class OrderFeeManager extends BaseManager {
                     //如果是合并处方-多张处方下得累加
                     //只有最终选择了代煎才计算收取代煎费，如果是非代煎则隐藏代煎费并且不收代煎费
                     //如果配置了患者选择，以患者选择是否代煎计算价格
-                    recipeDecoctionFee = order.getDecoctionUnitPrice().multiply(BigDecimal.valueOf(recipe.getCopyNum()));
+
+                    Integer decoctionId = null;
+                    if (null != extend && Objects.nonNull(extend.getDecoctionId())) {
+                        decoctionId = Integer.valueOf(extend.getDecoctionId());
+                    }
+                    logger.info("decoctionId:{}", decoctionId);
+                    if (decoctionId != null) {
+                        DrugDecoctionWayDao drugDecoctionWayDao = getDAO(DrugDecoctionWayDao.class);
+                        DecoctionWay decoctionWay = drugDecoctionWayDao.get(decoctionId);
+                        logger.info("decoctionWay:{}", JSONArray.toJSONString(decoctionWay));
+                        if (decoctionWay != null && decoctionWay.getDecoctionPrice() != null) {
+                            BigDecimal decoctionPrice = BigDecimal.valueOf(decoctionWay.getDecoctionPrice());
+                            recipeDecoctionFee = decoctionPrice.multiply(BigDecimal.valueOf(recipe.getCopyNum()));
+                        }
+                    }
                 }
             }
 
@@ -214,7 +232,7 @@ public class OrderFeeManager extends BaseManager {
      * @return
      */
     private Boolean getIsCalculateDecoctionFee(String doctorIsDecoction, String patientIsDecoction) {
-        logger.info("getIsCalculateDecoctionFee order:{},recipeExtend:{}", JSONUtils.toString(doctorIsDecoction), JSONUtils.toString(patientIsDecoction));
+        logger.info("getIsCalculateDecoctionFee doctorIsDecoction:{},patientIsDecoction:{}", JSONUtils.toString(doctorIsDecoction), JSONUtils.toString(patientIsDecoction));
         Boolean result = false;
         //下单的时候会order.setPatientIsDecoction(MapValueUtil.getString(extInfo, "patientIsDecoction"));
         //有订单 eg:提交订单orderForRecipeNew
