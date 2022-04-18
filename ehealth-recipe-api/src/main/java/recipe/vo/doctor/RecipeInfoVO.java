@@ -45,4 +45,8 @@ public class RecipeInfoVO {
      * 复诊时间
      */
     private String revisitTime;
+    /**
+     * 快捷购药模板ID
+     */
+    private Integer mouldId;
 }
