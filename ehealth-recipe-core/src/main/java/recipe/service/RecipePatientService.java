@@ -14,10 +14,13 @@ import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.his.recipe.mode.ChronicDiseaseListReqTO;
 import com.ngari.his.recipe.mode.ChronicDiseaseListResTO;
 import com.ngari.his.recipe.mode.PatientChronicDiseaseRes;
+import com.ngari.intface.IJumperAuthorizationService;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.MedicalInsuranceAuthResBean;
+import com.ngari.platform.recipe.mode.MedicalInsuranceAuthInfoBean;
 import com.ngari.recipe.basic.ds.PatientVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.drugsenterprise.model.DepDetailBean;
@@ -110,6 +113,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     private DoctorClient doctorClient;
     @Autowired
     private RecipeLogManage recipeLogManage;
+    @Autowired
+    private IJumperAuthorizationService jumperAuthorizationService;
 
     /**
      * 根据取药方式过滤药企
@@ -749,7 +754,31 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
 
     @Override
     public MedicalInsuranceAuthResVO medicalInsuranceAuth(MedicalInsuranceAuthInfoVO medicalInsuranceAuthInfoVO) {
-        return null;
+        String mpiId = medicalInsuranceAuthInfoVO.getMpiId();
+        com.ngari.patient.dto.PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(mpiId);
+        LOGGER.info("medicalInsuranceAuth patientDTO:{}", JSON.toJSONString(patientDTO));
+        MedicalInsuranceAuthInfoBean medicalInsuranceAuthInfoBean = new MedicalInsuranceAuthInfoBean();
+        medicalInsuranceAuthInfoBean.setCallUrl(medicalInsuranceAuthInfoVO.getCallUrl());
+        medicalInsuranceAuthInfoBean.setMpiId(medicalInsuranceAuthInfoVO.getMpiId());
+        medicalInsuranceAuthInfoBean.setUserName(patientDTO.getPatientName());
+        medicalInsuranceAuthInfoBean.setOrganId(medicalInsuranceAuthInfoVO.getOrganId());
+        String openId = patientClient.getTid();
+        medicalInsuranceAuthInfoBean.setChnlUserId(openId);
+        Map<String, String> map = new HashMap<>();
+        map.put("cid", medicalInsuranceAuthInfoVO.getRecipeId()+"");
+        map.put("module", "recipeDetail");
+        map.put("organId", medicalInsuranceAuthInfoVO.getOrganId()+"");
+        String callUrl = jumperAuthorizationService.getThirdCallBackUrlCommon(map);
+        medicalInsuranceAuthInfoBean.setCallUrl(callUrl);
+        if (null != patientDTO.getCertificateType()) {
+            medicalInsuranceAuthInfoBean.setIdType(patientDTO.getCertificateType()+"");
+            medicalInsuranceAuthInfoBean.setIdNo(patientDTO.getCertificate());
+        } else {
+            medicalInsuranceAuthInfoBean.setIdType("01");
+            medicalInsuranceAuthInfoBean.setIdNo(patientDTO.getCardId());
+        }
+        MedicalInsuranceAuthResBean medicalInsuranceAuthResBean = patientClient.medicalInsuranceAuth(medicalInsuranceAuthInfoBean);
+        return ObjectCopyUtils.convert(medicalInsuranceAuthResBean, MedicalInsuranceAuthResVO.class);
     }
 
     /**
