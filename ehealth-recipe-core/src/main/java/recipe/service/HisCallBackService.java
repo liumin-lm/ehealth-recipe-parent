@@ -139,7 +139,7 @@ public class HisCallBackService {
         //date 20200526
         //添加医院审方后保存审核日志
         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), memo);
-
+        LOGGER.info("checkPassSuccess recipeId:{} attrMap{}", recipe.getRecipeId(), JSONUtils.toString(attrMap));
         recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), attrMap);
         if (!recipeExtUpdateDataMap.isEmpty()) {
             recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), recipeExtUpdateDataMap);
@@ -205,9 +205,10 @@ public class HisCallBackService {
                 iRevisitExService.updateRecipeIdByConsultId(recipe.getClinicId(), recipe.getRecipeId());
                 if (null != revisitExDTO) {
                     if (StringUtils.isNotEmpty(revisitExDTO.getPatId())) {
-                        LOGGER.info("updateRecipeRegisterID patId:{}", JSONUtils.toString(revisitExDTO.getPatId()));
+                        LOGGER.info("updateRecipeRegisterID patId:{}", revisitExDTO.getPatId());
                         recipe.setPatientID(revisitExDTO.getPatId());
                     }
+                    LOGGER.info("updateRecipeRegisterID recipe:{}", JSONUtils.toString(recipe));
                     recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
                     if (StringUtils.isNotEmpty(revisitExDTO.getRegisterNo())) {
                         result.setRegisterID(revisitExDTO.getRegisterNo());
