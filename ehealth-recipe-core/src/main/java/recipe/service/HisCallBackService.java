@@ -194,6 +194,7 @@ public class HisCallBackService {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        Recipe recipe2 = recipeDAO.get(result.getRecipeId());
         Map<String, String> map = new HashMap<String, String>();
 
         //更新复诊挂号序号、patientID如果有
@@ -206,10 +207,10 @@ public class HisCallBackService {
                 if (null != revisitExDTO) {
                     if (StringUtils.isNotEmpty(revisitExDTO.getPatId())) {
                         LOGGER.info("updateRecipeRegisterID patId:{}", revisitExDTO.getPatId());
-                        recipe.setPatientID(revisitExDTO.getPatId());
+                        recipe2.setPatientID(revisitExDTO.getPatId());
+                        LOGGER.info("updateRecipeRegisterID recipe:{}", JSONUtils.toString(recipe2));
+                        recipeDAO.updateNonNullFieldByPrimaryKey(recipe2);
                     }
-                    LOGGER.info("updateRecipeRegisterID recipe:{}", JSONUtils.toString(recipe));
-                    recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
                     if (StringUtils.isNotEmpty(revisitExDTO.getRegisterNo())) {
                         result.setRegisterID(revisitExDTO.getRegisterNo());
                     }
