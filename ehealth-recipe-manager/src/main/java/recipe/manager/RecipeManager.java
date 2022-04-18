@@ -15,6 +15,8 @@ import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import eh.base.constant.ErrorCode;
+import eh.recipeaudit.api.IRecipeCheckService;
+import eh.recipeaudit.model.RecipeCheckBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -69,6 +71,8 @@ public class RecipeManager extends BaseManager {
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
     private SaleDrugListDAO saleDrugListDAO;
+    @Autowired
+    private IRecipeCheckService iRecipeCheckService;
 
     /**
      * 保存处方信息
@@ -551,14 +555,6 @@ public class RecipeManager extends BaseManager {
         }
     }
 
-    public void setRecipeChecker(Recipe recipe) {
-        String fastRecipeChecker = configurationClient.getValueCatch(recipe.getClinicOrgan(), "fastRecipeChecker", "");
-        logger.info("RecipeManager setRecipeChecker fastRecipeChecker:{}", fastRecipeChecker);
-        if (StringUtils.isNotEmpty(fastRecipeChecker)) {
-            recipe.setChecker(Integer.parseInt(fastRecipeChecker));
-        }
-    }
-
     /**
      * 药企销售价格
      *
@@ -660,5 +656,24 @@ public class RecipeManager extends BaseManager {
                 recipeExtendDAO.update(recipeExtend);
             }
         });
+    }
+
+    /**
+     * 保存审方结果
+     * @param recipe
+     */
+    public void saveRecipeCheck(Recipe recipe) {
+        if (null == recipe.getChecker()) {
+            return;
+        }
+        RecipeCheckBean recipeCheckBean = new RecipeCheckBean();
+        recipeCheckBean.setRecipeId(recipe.getRecipeId());
+        recipeCheckBean.setCheckDate(new Date());
+        recipeCheckBean.setChecker(recipe.getChecker());
+        recipeCheckBean.setCheckerName(recipe.getCheckerText());
+        recipeCheckBean.setCheckOrgan(recipe.getCheckOrgan());
+        recipeCheckBean.setCheckStatus(1);
+        recipeCheckBean.setGrabOrderStatus(0);
+        iRecipeCheckService.saveRecipeCheck(recipeCheckBean);
     }
 }

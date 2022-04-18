@@ -28,7 +28,7 @@ import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.PayModeEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RefundNodeStatusEnum;
-import recipe.enumerate.type.OpRefundBusTypeEnum;
+import recipe.enumerate.type.PayFlagEnum;
 import recipe.manager.OrderManager;
 import recipe.manager.RecipeManager;
 import recipe.manager.RecipeRefundManage;
@@ -160,12 +160,12 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIdList);
         orderRefundInfoVO.setAuditNodeType(recipeRefundManage.getRecipeRefundNode(recipeIdList.get(0), recipeOrder.getOrganId()));
         List<RecipeRefund> recipeRefundList = recipeRefundDAO.findRecipeRefundByRecipeIdAndNodeAndStatus(recipeIdList.get(0), RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_ADMIN);
-        if (OpRefundBusTypeEnum.BUS_TYPE_REFUND_ORDER.getType().equals(busType) && CollectionUtils.isNotEmpty(recipeRefundList)) {
+        List<RecipeRefund> recipeRefunds = recipeRefundDAO.findRefundListByRecipeId(recipeIdList.get(0));
+        if (CollectionUtils.isNotEmpty(recipeRefundList)) {
             orderRefundInfoVO.setForceApplyFlag(true);
             orderRefundInfoVO.setAuditNodeType(3);
         }
-        if (OpRefundBusTypeEnum.BUS_TYPE_FAIL_ORDER.getType().equals(busType) && new Integer(-1).equals(recipeOrder.getPushFlag())) {
-            orderRefundInfoVO.setAuditNodeType(4);
+        if (new Integer(-1).equals(recipeOrder.getPushFlag()) && PayFlagEnum.PAYED.getType().equals(recipeOrder.getPayFlag())) {
             orderRefundInfoVO.setRetryFlag(true);
         }
         List<RecipeRefund> patientRefundList = recipeRefundDAO.findRecipeRefundByRecipeIdAndNodeAndStatus(recipeIdList.get(0), RecipeRefundRoleConstant.RECIPE_REFUND_ROLE_PATIENT);
@@ -185,15 +185,23 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         List<RecipeBean> recipeBeanList = new ArrayList<>();
         recipeList.forEach(recipe -> {
             RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
-            RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtendMap.get(recipe.getRecipeId()), RecipeExtendBean.class);
-            orderRefundInfoVO.setRefundStatusText(RefundNodeStatusEnum.getRefundStatus(recipeExtendMap.get(recipe.getRecipeId()).getRefundNodeStatus()));
-            orderRefundInfoVO.setRefundNodeStatusText(setRefundNodeStatus(recipeExtendMap.get(recipe.getRecipeId()).getRefundNodeStatus()));
+            RecipeExtend recipeExtend = recipeExtendMap.get(recipe.getRecipeId());
+            RecipeExtendBean recipeExtendBean = ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class);
+            orderRefundInfoVO.setRefundStatusText(RefundNodeStatusEnum.getRefundStatus(recipeExtend.getRefundNodeStatus()));
+            orderRefundInfoVO.setRefundNodeStatusText(setRefundNodeStatus(recipeExtend.getRefundNodeStatus()));
             orderRefundInfoVO.setChannel(patientClient.getClientNameById(recipe.getMpiid()));
             List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(detailMap.get(recipe.getRecipeId()), RecipeDetailBean.class);
+            if (new Integer(1).equals(recipeExtend.getRefundNodeStatus()) || new Integer(3).equals(recipeExtend.getRefundNodeStatus())) {
+                orderRefundInfoVO.setForceApplyFlag(false);
+                orderRefundInfoVO.setAuditNodeType(-1);
+            }
             recipeBean.setRecipeExtend(recipeExtendBean);
             recipeBean.setRecipeDetailBeanList(recipeDetailBeans);
             recipeBeanList.add(recipeBean);
         });
+        if (CollectionUtils.isEmpty(recipeRefunds)) {
+            orderRefundInfoVO.setAuditNodeType(-1);
+        }
         recipeOrderRefundDetailVO.setOrderRefundInfoVO(orderRefundInfoVO);
         recipeOrderRefundDetailVO.setRecipeBeanList(recipeBeanList);
         return recipeOrderRefundDetailVO;
@@ -226,10 +234,10 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
     }
 
     private String setRefundNodeStatus(Integer status){
-        if (null == status) {
+        if (null == status || status == 3 || status == 2) {
             return "未退款";
         }
-        if (status == 1) {
+        if (status == 0) {
             return  "退款中";
         }
         return "已退款";
