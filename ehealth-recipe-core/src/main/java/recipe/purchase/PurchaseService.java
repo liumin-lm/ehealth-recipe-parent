@@ -593,22 +593,6 @@ public class PurchaseService {
         }
     }
 
-    public boolean getPayOnlineConfig(Integer clinicOrgan) {
-        Integer payModeOnlinePayConfig;
-        try {
-            IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
-            payModeOnlinePayConfig = (Integer) configurationService.getConfiguration(clinicOrgan, "payModeOnlinePayConfig");
-        } catch (Exception e) {
-            LOG.error("获取运营平台处方支付配置异常", e);
-            return false;
-        }
-        //1平台付 2卫宁付
-        if (new Integer(2).equals(payModeOnlinePayConfig)) {
-            return true;
-        }
-        return false;
-    }
-
     public boolean getToHosPayConfig(Integer clinicOrgan, Integer enterpriseId) {
         Boolean drugToHosByEnterprise = configurationClient.getValueBooleanCatch(clinicOrgan, "drugToHosByEnterprise", false);
         Integer payModeToHosOnlinePayConfig = null;
