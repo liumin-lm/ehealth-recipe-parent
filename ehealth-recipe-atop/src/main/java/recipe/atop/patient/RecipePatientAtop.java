@@ -22,6 +22,7 @@ import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.enumerate.status.OutRecipeStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.enumerate.type.OutRecipeGiveModeEnum;
 import recipe.enumerate.type.OutRecipeRecipeTypeEnum;
 import recipe.util.DateConversion;
@@ -229,9 +230,23 @@ public class RecipePatientAtop extends BaseAtop {
         recipeBean.setRecipeSourceType(1);
         recipeBean.setReviewType(1);
         recipeBean.setAuditState(5);
-        if (null == recipeInfoVO.getRecipeExtendBean()) {
-            recipeInfoVO.setRecipeExtendBean(new RecipeExtendBean());
+        recipeBean.setProcessState(0);
+        recipeBean.setSubState(0);
+        recipeBean.setSupportMode(0);
+        recipeBean.setBussSource(BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType());
+        FormWorkRecipeReqVO formWorkRecipeReqVO = new FormWorkRecipeReqVO();
+        formWorkRecipeReqVO.setOrganId(recipeBean.getClinicOrgan());
+        List<FormWorkRecipeVO> formWorkRecipeVOList = recipePatientService.findFormWorkRecipe(formWorkRecipeReqVO);
+        formWorkRecipeVOList.stream().filter(a -> a.getMouldId().equals(recipeInfoVO.getMouldId()));
+        FormWorkRecipeVO formWorkRecipeVO = formWorkRecipeVOList.get(0);
+        RecipeExtendBean recipeExtendBean = formWorkRecipeVO.getRecipeBean().getRecipeExtend();
+        if (null != recipeInfoVO.getRecipeExtendBean() && null != recipeInfoVO.getRecipeExtendBean().getDocIndexId()) {
+            recipeExtendBean.setDocIndexId(recipeInfoVO.getRecipeExtendBean().getDocIndexId());
         }
+        if (null == recipeExtendBean) {
+            recipeExtendBean = new RecipeExtendBean();
+        }
+        recipeInfoVO.setRecipeExtendBean(recipeExtendBean);
         Integer recipeId = recipePatientService.saveRecipe(recipeInfoVO);
         recipePatientService.esignRecipeCa(recipeId);
         recipePatientService.updateRecipeIdByConsultId(recipeId, recipeInfoVO.getRecipeBean().getClinicId());
