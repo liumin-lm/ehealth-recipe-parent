@@ -53,12 +53,13 @@ import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.*;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.OrganDrugListManager;
 import recipe.manager.RecipeDetailManager;
+import recipe.manager.RecipeLogManage;
 import recipe.manager.RecipeManager;
-import recipe.manager.StateManager;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.RedisClient;
 import recipe.util.ValidateUtil;
@@ -106,9 +107,9 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     @Autowired
     private IConfigurationClient configurationClient;
     @Autowired
-    private StateManager stateManager;
-    @Autowired
     private DoctorClient doctorClient;
+    @Autowired
+    private RecipeLogManage recipeLogManage;
 
     /**
      * 根据取药方式过滤药企
@@ -837,10 +838,13 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             recipeDetailManager.saveRecipeDetails(recipe, details, organDrugListMap);
         }
         recipe = recipeManager.saveRecipe(recipe);
+        recipeLogManage.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType(), RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType(), "处方保存成功，等待药师审核");
         //保存审方信息
         recipeManager.saveRecipeCheck(recipe);
+        recipeLogManage.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), "药师审核通过，等待患者处理");
         //将处方写入HIS
         offlineRecipeBusinessService.pushRecipe(recipe.getRecipeId(), CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, null, null);
+        recipeLogManage.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), "处方写入HIS成功");
         return recipe.getRecipeId();
     }
 

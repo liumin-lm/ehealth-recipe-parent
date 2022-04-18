@@ -8,7 +8,6 @@ import ctd.persistence.DAOFactory;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import recipe.ApplicationUtils;
-import recipe.constant.RecipeStatusConstant;
 import recipe.dao.RecipeLogDAO;
 import recipe.service.RecipeLogService;
 import recipe.serviceprovider.BaseService;
