@@ -145,7 +145,9 @@ public class HisCallBackService {
             recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), recipeExtUpdateDataMap);
         }
         //更新复诊挂号序号、患者ID、卡类型卡号等信息如果有
+        LOGGER.info("checkPassSuccess updateRecipeRegisterID before recipe:{}", JSONUtils.toString(recipe));
         updateRecipeRegisterID(recipe, result);
+        LOGGER.info("checkPassSuccess updateRecipeRegisterID after recipe:{}", JSONUtils.toString(recipe));
         //updateRecipepatientType(recipe);
 
         OrganDrugListService organDrugListService = ApplicationUtils.getRecipeService(OrganDrugListService.class);
@@ -203,6 +205,7 @@ public class HisCallBackService {
                 iRevisitExService.updateRecipeIdByConsultId(recipe.getClinicId(), recipe.getRecipeId());
                 if (null != revisitExDTO) {
                     if (StringUtils.isNotEmpty(revisitExDTO.getPatId())) {
+                        LOGGER.info("updateRecipeRegisterID patId:{}", JSONUtils.toString(revisitExDTO.getPatId()));
                         recipe.setPatientID(revisitExDTO.getPatId());
                     }
                     recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
