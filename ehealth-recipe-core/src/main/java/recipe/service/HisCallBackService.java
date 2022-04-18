@@ -202,7 +202,9 @@ public class HisCallBackService {
                 LOGGER.info("updateRecipeRegisterID revisitExDTO:{}", JSONUtils.toString(revisitExDTO));
                 iRevisitExService.updateRecipeIdByConsultId(recipe.getClinicId(), recipe.getRecipeId());
                 if (null != revisitExDTO) {
-                    recipe.setPatientID(revisitExDTO.getPatId());
+                    if (StringUtils.isNotEmpty(revisitExDTO.getPatId())) {
+                        recipe.setPatientID(revisitExDTO.getPatId());
+                    }
                     recipeDAO.updateNonNullFieldByPrimaryKey(recipe);
                     if (StringUtils.isNotEmpty(revisitExDTO.getRegisterNo())) {
                         result.setRegisterID(revisitExDTO.getRegisterNo());
@@ -359,9 +361,9 @@ public class HisCallBackService {
         RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.CHECK_PASS, "HIS线上支付返回：写入his失败，订单号:" + order.getOutTradeNo() + "，流水号:" + order.getTradeNo());
 
         // 处方 订单 新状态写入
-        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION,RecipeStateEnum.SUB_CANCELLATION_REFUSE_ORDER);
-        if(Objects.nonNull(order)){
-            stateManager.updateOrderState(order.getOrderId(),OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_USER);
+        stateManager.updateRecipeState(recipeId, RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_REFUSE_ORDER);
+        if (Objects.nonNull(order)) {
+            stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_USER);
         }
         //微信退款
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
@@ -428,8 +430,8 @@ public class HisCallBackService {
                             StateManager stateManager = ApplicationUtils.getRecipeService(StateManager.class);
                             orderService.cancelOrderByRecipeId(recipeId, OrderStatusConstant.CANCEL_AUTO);
 
-                            if(Objects.nonNull(recipeOrder)){
-                                stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_USER);
+                            if (Objects.nonNull(recipeOrder)) {
+                                stateManager.updateOrderState(recipeOrder.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_USER);
                             }
                             //日志记录
                             RecipeLogService.saveRecipeLog(recipeId, beforeStatus, RecipeStatusConstant.HAVE_PAY, logMemo);
