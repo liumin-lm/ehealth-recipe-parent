@@ -2109,7 +2109,8 @@ public class DrugToolService implements IDrugToolService {
                 UpdateMatchStatusFormBean bean = new UpdateMatchStatusFormBean();
                 bean.setDrugId(drugListMatch.getDrugId());
                 bean.setMatchDrugId(save.getDrugId());
-                bean.setHaveProvinceDrug(false);
+                bean.setHaveProvinceDrug(true);
+                bean.setMatchDrugInfo(drugListMatch.getRegulationDrugCode());
                 bean.setOperator(operator);
                 bean.setMakeType(0);
                 status = updateMatchStatusCurrent(bean);
