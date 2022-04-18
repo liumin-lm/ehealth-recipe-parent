@@ -378,6 +378,9 @@ public class OfflineRecipeClient extends BaseClient {
         recipeDTO.setPushType(pushType);
         recipeDTO.setOrganId(recipePdfDTO.getRecipe().getClinicOrgan());
         recipeDTO.setRecipeExtendBean(ObjectCopyUtils.convert(recipePdfDTO.getRecipeExtend(), RecipeExtendBean.class));
+        if (null != recipePdfDTO.getRecipeExtend() && StringUtils.isNotEmpty(recipePdfDTO.getRecipeExtend().getCardType())) {
+            recipeDTO.getRecipeExtendBean().setCardTypeStr(recipePdfDTO.getRecipeExtend().getCardType());
+        }
         recipeDTO.setPatientDTO(ObjectCopyUtils.convert(recipePdfDTO.getPatientBean(), PatientDTO.class));
         com.ngari.platform.recipe.mode.EmrDetailDTO emrDetailDTO = new com.ngari.platform.recipe.mode.EmrDetailDTO();
         BeanUtils.copyProperties(emrDetail, emrDetailDTO);
