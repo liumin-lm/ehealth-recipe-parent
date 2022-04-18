@@ -56,10 +56,7 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.*;
 import recipe.hisservice.RecipeToHisService;
-import recipe.manager.OrganDrugListManager;
-import recipe.manager.RecipeDetailManager;
-import recipe.manager.RecipeLogManage;
-import recipe.manager.RecipeManager;
+import recipe.manager.*;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.RedisClient;
 import recipe.util.ValidateUtil;
@@ -110,6 +107,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     private DoctorClient doctorClient;
     @Autowired
     private RecipeLogManage recipeLogManage;
+    @Autowired
+    private EmrRecipeManager emrRecipeManager;
 
     /**
      * 根据取药方式过滤药企
@@ -839,6 +838,8 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         try {
             //设置处方的失效时间
             RecipeService.handleRecipeInvalidTime(recipe.getClinicOrgan(), recipe.getRecipeId(), recipe.getSignDate());
+            //更新诊断信息
+            emrRecipeManager.updateDisease(recipe.getRecipeId());
         } catch (Exception e) {
             LOGGER.error("设置处方的失效时间出错 ", e);
         }
