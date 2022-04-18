@@ -2037,7 +2037,7 @@ public class DrugToolService implements IDrugToolService {
                 status = updateMatchStatusCurrent(bean);
             } else {
                 //如果是已匹配的取消匹配
-                drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(), ImmutableMap.of("status", DrugMatchConstant.UNMATCH, "operator", operator));
+                //drugListMatchDAO.updateDrugListMatchInfoById(drugListMatch.getDrugId(), ImmutableMap.of("status", DrugMatchConstant.UNMATCH, "operator", operator));
                 //updata by maoly on 2020/03/16 自动同步至平台药品库
                 DrugList drugList = new DrugList();
                 //药品名
@@ -2109,8 +2109,7 @@ public class DrugToolService implements IDrugToolService {
                 UpdateMatchStatusFormBean bean = new UpdateMatchStatusFormBean();
                 bean.setDrugId(drugListMatch.getDrugId());
                 bean.setMatchDrugId(save.getDrugId());
-                bean.setHaveProvinceDrug(true);
-                bean.setMatchDrugInfo(drugListMatch.getRegulationDrugCode());
+                bean.setHaveProvinceDrug(false);
                 bean.setOperator(operator);
                 bean.setMakeType(0);
                 status = updateMatchStatusCurrent(bean);
@@ -2177,6 +2176,7 @@ public class DrugToolService implements IDrugToolService {
             return null;
         }
         updateMap.put("operator", operator);
+
         updateMap.put("status", status);
         drugListMatchDAO.updateDrugListMatchInfoById(drugId, updateMap);
         LOGGER.info("updateMatchStatusCurrent 操作人->{}更新已匹配状态,drugId={};status ->before={},after={}", operator, drugId, drugListMatch.getStatus(), status);
