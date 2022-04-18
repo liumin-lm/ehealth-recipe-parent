@@ -5042,7 +5042,7 @@ public class RecipeService extends RecipeBaseService {
             StringBuilder ss = new StringBuilder();
             for (int i = 0; i < split.length; i++) {
                 DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-                DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i]);
+                DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i],organId);
                 if (ObjectUtils.isEmpty(byEnterpriseCode)) {
                     throw new DAOException(DAOException.VALUE_NEEDED, "平台根据药企编码" + split[i] + " 未找到药企");
                 } else {
@@ -5239,7 +5239,7 @@ public class RecipeService extends RecipeBaseService {
             String drugsEnterpriseIds = organDrug.getDrugsEnterpriseIds();
             for (int i = 0; i < split.length; i++) {
                 DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-                DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i]);
+                DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i],organId);
                 if (ObjectUtils.isEmpty(byEnterpriseCode)) {
                     throw new DAOException(DAOException.VALUE_NEEDED, "平台根据药企编码" + split[i] + " 未找到药企");
                 } else {

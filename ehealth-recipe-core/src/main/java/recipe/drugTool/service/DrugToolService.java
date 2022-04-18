@@ -563,7 +563,7 @@ public class DrugToolService implements IDrugToolService {
                     StringBuilder ss = new StringBuilder();
                     String[] split = strFromCell.split(",");
                     for (int i = 0; i < split.length; i++) {
-                        DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i]);
+                        DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i],organId);
                         if (byEnterpriseCode == null) {
                             errMsg.append("平台未找到该配送药企" + split[i] + "").append(";");
                         } else {
