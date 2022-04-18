@@ -1807,7 +1807,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         hql.append(" ,o.wxPayWay , 1 tradeStatus,0 refundAmount,'' refundBatchNo,null refundDate ");
         hql.append(" ,o.actualPrice,o.preSettleTotalAmount,o.fundAmount,o.cashAmount");
         hql.append(" from cdr_recipe r INNER JOIN cdr_recipeorder o on r.OrderCode = o.OrderCode ");
-        hql.append(" where  o.refundFlag is Not Null and   o.refundFlag <> 0 and to_days(o.payTime) = to_days(:time) and o.Effective = 1 and o.actualPrice <> 0 ");
+        hql.append(" where  o.refundFlag is Not Null and   o.refundFlag <> 0 and to_days(o.payTime) = to_days(:time)  and o.actualPrice <> 0 ");
         if (organId != null) {
             hql.append(" and  r.clinicOrgan =:organId");
         }
