@@ -6,6 +6,7 @@ import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.recipe.model.OutPatientRecipeVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
@@ -239,6 +240,7 @@ public class RecipePatientAtop extends BaseAtop {
         List<FormWorkRecipeVO> formWorkRecipeVOList = recipePatientService.findFormWorkRecipe(formWorkRecipeReqVO);
         formWorkRecipeVOList.stream().filter(a -> a.getMouldId().equals(recipeInfoVO.getMouldId()));
         FormWorkRecipeVO formWorkRecipeVO = formWorkRecipeVOList.get(0);
+        logger.info("saveRecipe formWorkRecipeVO:{}", JSON.toJSONString(formWorkRecipeVO));
         RecipeExtendBean recipeExtendBean = formWorkRecipeVO.getRecipeBean().getRecipeExtend();
         if (null != recipeInfoVO.getRecipeExtendBean() && null != recipeInfoVO.getRecipeExtendBean().getDocIndexId()) {
             recipeExtendBean.setDocIndexId(recipeInfoVO.getRecipeExtendBean().getDocIndexId());
@@ -246,6 +248,8 @@ public class RecipePatientAtop extends BaseAtop {
         if (null == recipeExtendBean) {
             recipeExtendBean = new RecipeExtendBean();
         }
+        List<RecipeDetailBean> recipeDetailBeanList = formWorkRecipeVO.getRecipeBean().getRecipeDetailBeanList();
+        recipeInfoVO.setRecipeDetails(recipeDetailBeanList);
         recipeInfoVO.setRecipeExtendBean(recipeExtendBean);
         Integer recipeId = recipePatientService.saveRecipe(recipeInfoVO);
         recipePatientService.esignRecipeCa(recipeId);
