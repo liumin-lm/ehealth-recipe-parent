@@ -194,7 +194,7 @@ public class HisCallBackService {
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-        Recipe recipe2 = recipeDAO.get(result.getRecipeId());
+        Recipe recipe2 = recipeDAO.get(recipe.getRecipeId());
         Map<String, String> map = new HashMap<String, String>();
 
         //更新复诊挂号序号、patientID如果有
