@@ -202,9 +202,9 @@ public class RecipeManager extends BaseManager {
             patientBean.setPatientSex(DictionaryUtil.getDictionary("eh.base.dictionary.Gender", String.valueOf(patientBean.getPatientSex())));
         }
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        if(null != recipeExtend.getWeight()){
+        if (null != recipeExtend.getWeight()) {
             patientBean.setWeight(String.valueOf(recipeExtend.getWeight()));
-        }else {
+        } else {
             patientBean.setWeight("");
         }
         return recipeInfoDTO;
@@ -279,10 +279,10 @@ public class RecipeManager extends BaseManager {
      * @return 取药凭证
      */
     public String getToHosProof(Recipe recipe, RecipeExtend recipeExtend, RecipeOrder order) {
-        logger.info("getToHosProof recipe:{} order:{}" , JSONArray.toJSONString(recipe),JSONArray.toJSONString(order));
+        logger.info("getToHosProof recipe:{} order:{}", JSONArray.toJSONString(recipe), JSONArray.toJSONString(order));
         String qrName = "";
         try {
-            if(Objects.isNull(order)){
+            if (Objects.isNull(order)) {
                 return "";
             }
             OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(recipe.getClinicOrgan(), order.getEnterpriseId(), recipe.getGiveMode());
@@ -382,10 +382,14 @@ public class RecipeManager extends BaseManager {
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipeId);
         //如果处方来源是复诊，则patientID取复诊的
-        if(new Integer(2).equals(recipeResult.getBussSource())){
+        if (new Integer(2).equals(recipeResult.getBussSource())) {
             RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipeResult.getClinicId());
-            updateRecipe.setPatientID(revisitExDTO.getPatId());
-        }else{
+            if (null != revisitExDTO && StringUtils.isNotEmpty(revisitExDTO.getPatId())) {
+                updateRecipe.setPatientID(revisitExDTO.getPatId());
+            } else {
+                updateRecipe.setPatientID(recipeResult.getPatientID());
+            }
+        } else {
             updateRecipe.setPatientID(recipeResult.getPatientID());
         }
         updateRecipe.setRecipeCode(recipeResult.getRecipeCode());
@@ -534,6 +538,7 @@ public class RecipeManager extends BaseManager {
 
     /**
      * 获取复诊信息设置处方信息
+     *
      * @param recipe
      * @param recipeExtend
      */
@@ -647,7 +652,7 @@ public class RecipeManager extends BaseManager {
      * 更新处方退费的结点状态
      *
      * @param recipeList 处方信息
-     * @param status 结点状态
+     * @param status     结点状态
      */
     public void updateRecipeRefundStatus(List<Recipe> recipeList, Integer status) {
         recipeList.forEach(recipe -> {
@@ -661,6 +666,7 @@ public class RecipeManager extends BaseManager {
 
     /**
      * 保存审方结果
+     *
      * @param recipe
      */
     public void saveRecipeCheck(Recipe recipe) {
