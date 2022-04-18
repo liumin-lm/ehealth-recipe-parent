@@ -107,31 +107,7 @@ public class IConfigurationClient extends BaseClient {
      * @param defaultValue 配置项默认值报错时返回
      * @return
      */
-    public Integer getValueCatch(Integer organId, String key, Integer defaultValue) {
-        if (null == organId || StringUtils.isEmpty(key)) {
-            return defaultValue;
-        }
-        try {
-            String value = (String) configService.getConfiguration(organId, key);
-            if (StringUtils.isEmpty(value)) {
-                return defaultValue;
-            }
-            return Integer.parseInt(value);
-        } catch (Exception e) {
-            logger.error("IConfigurationClient getValueCatch organId:{}, key:{}", organId, key, e);
-            return defaultValue;
-        }
-    }
-
-    /**
-     * 根据配置获取 配置项值，捕获异常时返回默认值
-     *
-     * @param organId      机构id
-     * @param key          配置项建
-     * @param defaultValue 配置项默认值报错时返回
-     * @return
-     */
-    public BigDecimal getValueCatchReturnBigDecimal(Integer organId, String key, BigDecimal defaultValue){
+    public BigDecimal getValueCatchReturnBigDecimal(Integer organId, String key, BigDecimal defaultValue) {
         if (null == organId || StringUtils.isEmpty(key)) {
             return defaultValue;
         }

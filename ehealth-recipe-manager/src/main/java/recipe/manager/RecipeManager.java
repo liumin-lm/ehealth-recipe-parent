@@ -429,7 +429,7 @@ public class RecipeManager extends BaseManager {
             return true;
         }
         //运营平台没有处方单数限制，默认可以无限进行开处方
-        Integer openRecipeNumber = configurationClient.getValueCatch(organId, "openRecipeNumber", 99);
+        Integer openRecipeNumber = configurationClient.getValueCatchReturnInteger(organId, "openRecipeNumber", 99);
         logger.info("RecipeManager isOpenRecipeNumber openRecipeNumber={}", openRecipeNumber);
         if (ValidateUtil.integerIsEmpty(openRecipeNumber)) {
             saveRecipeLog(recipeId, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS, "开方张数已超出医院限定范围，不能继续开方。");
