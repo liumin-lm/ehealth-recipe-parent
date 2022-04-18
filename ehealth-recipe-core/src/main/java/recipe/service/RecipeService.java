@@ -2081,6 +2081,22 @@ public class RecipeService extends RecipeBaseService {
             if (StringUtils.isNotEmpty(cardNo)) {
                 recipeExtend.setCardNo(cardNo);
             }
+            try {
+                DrugDecoctionWayDao drugDecoctionWayDao = DAOFactory.getDAO(DrugDecoctionWayDao.class);
+                if (null == recipeExtend.getDoctorIsDecoction()) {
+                    recipeExtend.setDoctorIsDecoction("0");
+                    if (StringUtils.isNotEmpty(recipeExtend.getDecoctionId())) {
+                        DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
+                        if(decoctionWay.getGenerationisOfDecoction()){
+                            recipeExtend.setDoctorIsDecoction("1");
+                        }else {
+                            recipeExtend.setDoctorIsDecoction("0");
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
             RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             recipeExtendDAO.saveOrUpdateRecipeExtend(recipeExtend);
         }
