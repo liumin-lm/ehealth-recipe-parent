@@ -836,6 +836,12 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         //将处方写入HIS
         offlineRecipeBusinessService.pushRecipe(recipe.getRecipeId(), CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, null, null);
         recipeLogManage.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), "处方写入HIS成功");
+        try {
+            //设置处方的失效时间
+            RecipeService.handleRecipeInvalidTime(recipe.getClinicOrgan(), recipe.getRecipeId(), recipe.getSignDate());
+        } catch (Exception e) {
+            LOGGER.error("设置处方的失效时间出错 ", e);
+        }
         return recipe.getRecipeId();
     }
 
