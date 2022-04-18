@@ -315,6 +315,7 @@ public class HisRequestInit {
         //处方附带信息
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        LOGGER.info("initRecipeSendRequestTO recipeExtend={}",JSONUtils.toString(recipeExtend));
         // 简要病史
         if (null != recipeExtend) {
             EmrDetailDTO emrDetail = docIndexClient.getEmrDetails(recipeExtend.getDocIndexId());
@@ -359,7 +360,7 @@ public class HisRequestInit {
                     requestTO.setGenerationisOfDecoction(decoctionWay.getGenerationisOfDecoction());
                 }
                 if(StringUtils.isNotBlank(recipeExtend.getDoctorIsDecoction())){
-                    requestTO.setGenerationisOfDecoction(Boolean.valueOf(recipeExtend.getDoctorIsDecoction()));
+                    requestTO.setGenerationisOfDecoction(recipeExtend.getDoctorIsDecoction().equals("1"));
                 }
                 if (StringUtils.isNotBlank(recipeExtend.getMakeMethodId())) {
                     DrugMakingMethod drugMakingMethod = drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
