@@ -14,6 +14,7 @@ import com.ngari.his.patient.mode.PatientQueryRequestTO;
 import com.ngari.his.recipe.mode.ChronicDiseaseListReqTO;
 import com.ngari.his.recipe.mode.ChronicDiseaseListResTO;
 import com.ngari.his.recipe.mode.PatientChronicDiseaseRes;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
@@ -45,22 +46,19 @@ import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.caNew.pdf.CreatePdfFactory;
-import recipe.client.IConfigurationClient;
-import recipe.client.OperationClient;
-import recipe.client.PatientClient;
-import recipe.client.RevisitClient;
+import recipe.client.*;
 import recipe.common.CommonConstant;
 import recipe.constant.*;
 import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
-import recipe.enumerate.type.CheckPatientEnum;
-import recipe.enumerate.type.MedicalTypeEnum;
-import recipe.enumerate.type.RecipeSupportGiveModeEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.*;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.OrganDrugListManager;
 import recipe.manager.RecipeDetailManager;
+import recipe.manager.RecipeLogManage;
 import recipe.manager.RecipeManager;
 import recipe.service.common.RecipeCacheService;
 import recipe.util.RedisClient;
@@ -68,7 +66,6 @@ import recipe.util.ValidateUtil;
 import recipe.vo.doctor.RecipeInfoVO;
 
 import javax.annotation.Nullable;
-import javax.annotation.Resource;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
@@ -109,6 +106,10 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     private OrganDrugListDAO organDrugListDAO;
     @Autowired
     private IConfigurationClient configurationClient;
+    @Autowired
+    private DoctorClient doctorClient;
+    @Autowired
+    private RecipeLogManage recipeLogManage;
 
     /**
      * 根据取药方式过滤药企
@@ -806,6 +807,10 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         recipeInfoVO.setPatientVO(ObjectCopyUtils.convert(patientDTO, PatientVO.class));
         Recipe recipe = ObjectCopyUtils.convert(recipeInfoVO.getRecipeBean(), Recipe.class);
         RecipeUtil.setDefaultData(recipe);
+        recipe.setProcessState(0);
+        recipe.setSubState(0);
+        recipe.setSupportMode(0);
+        recipe.setBussSource(BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType());
         recipe = recipeManager.saveRecipe(recipe);
         //保存处方扩展
         if (null != recipeInfoVO.getRecipeExtendBean()) {
@@ -814,6 +819,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             if (StringUtils.isNotEmpty(cardNo)) {
                 recipeExtend.setCardNo(cardNo);
             }
+            recipeExtend.setRecipeBusinessType(RecipeBusinessTypeEnum.BUSINESS_RECIPE_REVISIT.getType());
             recipeManager.setRecipeInfoFromRevisit(recipe, recipeExtend);
             //设置购药方式
             this.setRecipeSupportGiveMode(recipe);
@@ -827,8 +833,13 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             recipeDetailManager.saveRecipeDetails(recipe, details, organDrugListMap);
         }
         recipe = recipeManager.saveRecipe(recipe);
+        recipeLogManage.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType(), RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType(), "处方保存成功，等待药师审核");
+        //保存审方信息
+        recipeManager.saveRecipeCheck(recipe);
+        recipeLogManage.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_READY_CHECK_YS.getType(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), "药师审核通过，等待患者处理");
         //将处方写入HIS
         offlineRecipeBusinessService.pushRecipe(recipe.getRecipeId(), CommonConstant.RECIPE_PUSH_TYPE, CommonConstant.RECIPE_PATIENT_TYPE, null, null);
+        recipeLogManage.saveRecipeLog(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType(), "处方写入HIS成功");
         return recipe.getRecipeId();
     }
 
@@ -846,7 +857,14 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         if (StringUtils.isEmpty(fastRecipeChecker)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "没有指定审方药师");
         } else {
-            recipeInfoVO.getRecipeBean().setChecker(Integer.parseInt(fastRecipeChecker));
+            Integer checker = Integer.parseInt(fastRecipeChecker);
+            DoctorDTO doctorDTO = doctorClient.getDoctor(checker);
+            recipeInfoVO.getRecipeBean().setChecker(checker);
+            recipeInfoVO.getRecipeBean().setCheckerText(doctorDTO.getName());
+            recipeInfoVO.getRecipeBean().setCheckDate(new Date());
+            recipeInfoVO.getRecipeBean().setCheckDateYs(new Date());
+            recipeInfoVO.getRecipeBean().setCheckOrgan(doctorDTO.getOrgan());
+            recipeInfoVO.getRecipeBean().setCheckFlag(1);
         }
     }
 

@@ -2254,6 +2254,7 @@ public class RecipeOrderService extends RecipeBaseService {
             Map<String, Object> recipeInfo = Maps.newHashMap();
             recipeInfo.put("payFlag", payFlag);
             recipeInfo.put("payMode", payMode);
+            recipeInfo.put("payDate", Calendar.getInstance().getTime());
             if (order != null && PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
                 logisticsOnlineOrderService.onlineOrder(order, recipes);
             }

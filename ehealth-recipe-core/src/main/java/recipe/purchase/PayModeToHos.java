@@ -462,7 +462,7 @@ public class PayModeToHos implements IPurchaseService {
         PurchaseService purchaseService = ApplicationUtils.getRecipeService(PurchaseService.class);
         //todo---暂时写死上海六院---配送到家判断是否是自费患者
         //到院取药非卫宁付
-        Integer takeOneselfPaymentChannel = configurationClient.getValueCatch(dbRecipe.getClinicOrgan(), "payModeToHosOnlinePayConfig", 1);
+        Integer takeOneselfPaymentChannel = configurationClient.getValueCatchReturnInteger(dbRecipe.getClinicOrgan(), "payModeToHosOnlinePayConfig", 1);
 
         if (!new Integer(2).equals(takeOneselfPaymentChannel)) {
             if (dbRecipe.getClinicOrgan() == 1000899 && !purchaseService.isMedicarePatient(1000899, dbRecipe.getMpiid())) {

@@ -15,6 +15,8 @@ import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import eh.base.constant.ErrorCode;
+import eh.recipeaudit.api.IRecipeCheckService;
+import eh.recipeaudit.model.RecipeCheckBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
@@ -69,6 +71,8 @@ public class RecipeManager extends BaseManager {
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
     private SaleDrugListDAO saleDrugListDAO;
+    @Autowired
+    private IRecipeCheckService iRecipeCheckService;
 
     /**
      * 保存处方信息
@@ -429,7 +433,7 @@ public class RecipeManager extends BaseManager {
             return true;
         }
         //运营平台没有处方单数限制，默认可以无限进行开处方
-        Integer openRecipeNumber = configurationClient.getValueCatch(organId, "openRecipeNumber", 99);
+        Integer openRecipeNumber = configurationClient.getValueCatchReturnInteger(organId, "openRecipeNumber", 99);
         logger.info("RecipeManager isOpenRecipeNumber openRecipeNumber={}", openRecipeNumber);
         if (ValidateUtil.integerIsEmpty(openRecipeNumber)) {
             saveRecipeLog(recipeId, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS, RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS, "开方张数已超出医院限定范围，不能继续开方。");
@@ -652,5 +656,24 @@ public class RecipeManager extends BaseManager {
                 recipeExtendDAO.update(recipeExtend);
             }
         });
+    }
+
+    /**
+     * 保存审方结果
+     * @param recipe
+     */
+    public void saveRecipeCheck(Recipe recipe) {
+        if (null == recipe.getChecker()) {
+            return;
+        }
+        RecipeCheckBean recipeCheckBean = new RecipeCheckBean();
+        recipeCheckBean.setRecipeId(recipe.getRecipeId());
+        recipeCheckBean.setCheckDate(new Date());
+        recipeCheckBean.setChecker(recipe.getChecker());
+        recipeCheckBean.setCheckerName(recipe.getCheckerText());
+        recipeCheckBean.setCheckOrgan(recipe.getCheckOrgan());
+        recipeCheckBean.setCheckStatus(1);
+        recipeCheckBean.setGrabOrderStatus(0);
+        iRecipeCheckService.saveRecipeCheck(recipeCheckBean);
     }
 }
