@@ -131,10 +131,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             LOGGER.info("HisSyncSupervisionService uploadRecipePrepareCheck request={}", JSONUtils.toString(request));
             HisResponseTO response = regulationService.uploadRecipePrepareCheck(recipe.getClinicOrgan(), request);
             LOGGER.info("HisSyncSupervisionService uploadRecipePrepareCheck response={}", JSONUtils.toString(response));
-            if (null == response) {
-                HisResponseTO res = regulationService.uploadRecipeIndicators(recipe.getClinicOrgan(), request);
-                LOGGER.info("HisSyncSupervisionService uploadRecipeIndicators res={}", JSONUtils.toString(res));
-            }
         } catch (Exception e) {
             LOGGER.error("HisSyncSupervisionService uploadRecipePrepareCheck HIS接口调用失败", e);
         }
