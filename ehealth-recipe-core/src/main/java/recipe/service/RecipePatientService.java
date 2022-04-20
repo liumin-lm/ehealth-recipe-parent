@@ -881,6 +881,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     }
 
     private void validateData(RecipeInfoVO recipeInfoVO) {
+        LOGGER.info("validateData recipeInfoVO:{}", JSON.toJSONString(recipeInfoVO));
         recipeInfoVO.getRecipeDetails().forEach(recipeDetailBean -> {
             Integer drugId = recipeDetailBean.getDrugId();
             Integer organId = recipeInfoVO.getRecipeBean().getClinicOrgan();
