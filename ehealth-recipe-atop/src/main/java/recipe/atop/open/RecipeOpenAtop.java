@@ -2,9 +2,11 @@ package recipe.atop.open;
 
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.SymptomDTO;
 import com.ngari.recipe.vo.FormWorkRecipeReqVO;
 import com.ngari.recipe.vo.FormWorkRecipeVO;
 import ctd.persistence.exception.DAOException;
@@ -20,7 +22,6 @@ import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.util.ObjectCopyUtils;
-import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
@@ -177,6 +178,16 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         List<FormWorkRecipeVO> formWorkRecipeVOList = recipePatientService.findFormWorkRecipe(formWorkRecipeReqVO);
         formWorkRecipeVOList.stream().filter(a -> a.getMouldId().equals(mouldId));
         return formWorkRecipeVOList.get(0);
+    }
+
+    @Override
+    public SymptomDTO symptomId(Integer id) {
+        validateAtop(id);
+        Symptom symptom = recipeBusinessService.symptomId(id);
+        if (null == symptom) {
+            return null;
+        }
+        return ObjectCopyUtils.convert(symptom, SymptomDTO.class);
     }
 
 
