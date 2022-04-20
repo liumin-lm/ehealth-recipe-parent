@@ -1137,6 +1137,7 @@ public class RecipeHisService extends RecipeBaseService {
     }
 
     @RpcService
+    @Deprecated
     public RecipeResultBean scanDrugStockByRecipeId(Integer recipeId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeDetailDAO recipedetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);

@@ -1459,7 +1459,6 @@ public class RecipeService extends RecipeBaseService {
         if (null == recipe || null == recipe.getStatus() || (recipe.getStatus() != RecipeStatusConstant.CHECKING_HOS && recipe.getStatus() != RecipeStatusConstant.HIS_FAIL)) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "该处方不能重试");
         }
-        //recipeManager.isOpenRecipeNumber(recipe.getClinicId(), recipe.getClinicOrgan(), recipeId);
         //his写回提示，处方推送成功，否则再次推送
         String recipeCode = recipe.getRecipeCode();
         if (StringUtils.isNotEmpty(recipeCode)) {
@@ -1471,15 +1470,15 @@ public class RecipeService extends RecipeBaseService {
         }
         LOGGER.info("sendNewRecipeToHIS before His! dbRecipe={}", JSONUtils.toString(recipe));
         //HIS消息发送
-        RecipeResultBean scanResult = hisService.scanDrugStockByRecipeId(recipeId);
-        if (RecipeResultBean.FAIL.equals(scanResult.getCode())) {
-            resultBean.setCode(scanResult.getCode());
-            resultBean.setMsg(scanResult.getError());
-            if (EXTEND_VALUE_FLAG.equals(scanResult.getExtendValue())) {
-                resultBean.setError(scanResult.getError());
-            }
-            return resultBean;
-        }
+//        RecipeResultBean scanResult = hisService.scanDrugStockByRecipeId(recipeId);
+//        if (RecipeResultBean.FAIL.equals(scanResult.getCode())) {
+//            resultBean.setCode(scanResult.getCode());
+//            resultBean.setMsg(scanResult.getError());
+//            if (EXTEND_VALUE_FLAG.equals(scanResult.getExtendValue())) {
+//                resultBean.setError(scanResult.getError());
+//            }
+//            return resultBean;
+//        }
 
         hisService.recipeSendHis(recipeId, null);
         return resultBean;
