@@ -556,6 +556,8 @@ public class RecipeManager extends BaseManager {
                     recipe.setDepart(revisitBean.getConsultDepart());
                     DoctorDTO doctorDTO = doctorClient.getDoctor(revisitBean.getConsultDoctor());
                     recipe.setDoctorName(doctorDTO.getName());
+                    recipe.setRequestMpiId(revisitBean.getRequestMpi());
+                    recipe.setRequestUrt(revisitBean.getRequestMpiUrt());
                 }
             }
         }
