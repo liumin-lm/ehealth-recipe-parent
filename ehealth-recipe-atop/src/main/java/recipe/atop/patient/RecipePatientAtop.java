@@ -242,9 +242,8 @@ public class RecipePatientAtop extends BaseAtop {
         //formWorkRecipeVOList.stream().filter(a -> a.getMouldId().equals(recipeInfoVO.getMouldId()));
         FormWorkRecipeVO formWorkRecipeVO = new FormWorkRecipeVO();
         for (FormWorkRecipeVO formWorkRecipe : formWorkRecipeVOList) {
-            if (recipeInfoVO.getMouldId() == formWorkRecipeVO.getMouldId()) {
+            if (recipeInfoVO.getMouldId() == formWorkRecipe.getMouldId()) {
                 formWorkRecipeVO = formWorkRecipe;
-                break;
             }
         }
         logger.info("saveRecipe formWorkRecipeVO:{}", JSON.toJSONString(formWorkRecipeVO));
