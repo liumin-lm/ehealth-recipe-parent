@@ -910,6 +910,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
     public Integer esignRecipeCa(Integer recipeId) {
         try {
             Recipe recipe = recipeManager.getRecipeById(recipeId);
+            LOGGER.info("esignRecipeCa recipe:{}", JSON.toJSONString(recipe));
             createPdfFactory.queryPdfOssId(recipe);
             createPdfFactory.updateCheckNamePdfESign(recipeId);
             //药师审核通过后，重新根据药师的pdf生成签名图片

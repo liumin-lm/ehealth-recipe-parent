@@ -223,8 +223,10 @@ public class CreateRecipePdfUtil {
      * @throws Exception
      */
     public static String updatePdfToImg(Integer recipeId, String pdfId) throws Exception {
+        logger.info("updatePdfToImg recipeId:{},pdfId:{}", recipeId, pdfId);
         //获取pdf
         byte[] doctorSignImageByte = fileDownloadService.downloadAsByte(pdfId);
+        logger.info("updatePdfToImg doctorSignImageByte:{}", JSON.toJSONString(doctorSignImageByte));
         File giveUserImage = new File("recipe_" + recipeId + ".pdf");
         getFileByBytes(doctorSignImageByte, giveUserImage);
         //pdf转图片
