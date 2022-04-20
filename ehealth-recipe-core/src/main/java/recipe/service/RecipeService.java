@@ -6585,25 +6585,25 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.info("assembleMultipleSymptom diseaseDTO1={}",JSONUtils.toString(diseaseDTO));
             return diseaseDTO;
         }
-        String regulationOrganDiseaseId = "";
-        String regulationOrganDiseaseName = "";
+        StringBuilder regulationOrganDiseaseId = new StringBuilder();
+        StringBuilder regulationOrganDiseaseName = new StringBuilder();
         try {
             for(String diseaseId : diseaseIdArray) {
                 DiseaseDTO diseaseDTO = diseaseService.getDiseasByCodeAndOrganId(organId, diseaseId);
                 LOGGER.info("assembleMultipleSymptom diseaseDTO={}", JSONUtils.toString(diseaseDTO));
                 if(null != diseaseDTO){
                     if (null != diseaseDTO.getJgDiseasId()) {
-                        regulationOrganDiseaseId += diseaseDTO.getJgDiseasId() + "|";
+                        regulationOrganDiseaseId.append(diseaseDTO.getJgDiseasId()).append("|");
                     }
                     if (null != diseaseDTO.getJgDiseasName()) {
-                        regulationOrganDiseaseName += diseaseDTO.getJgDiseasName() + "|";
+                        regulationOrganDiseaseName.append(diseaseDTO.getJgDiseasName()).append("|");
                     }
                 }
             }
-            if(null != regulationOrganDiseaseId){
+            if(StringUtils.isNotEmpty(regulationOrganDiseaseId)){
                 disease.setJgDiseasId(regulationOrganDiseaseId.substring(0,regulationOrganDiseaseId.length()-1));
             }
-            if(null != regulationOrganDiseaseName){
+            if(StringUtils.isNotEmpty(regulationOrganDiseaseName)){
                 disease.setJgDiseasName(regulationOrganDiseaseName.substring(0,regulationOrganDiseaseName.length()-1));
             }
             LOGGER.info("assembleMultipleSymptom symptoms={}",JSONUtils.toString(disease));
