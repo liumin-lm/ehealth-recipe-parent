@@ -248,6 +248,10 @@ public class RecipePatientAtop extends BaseAtop {
         if (null == recipeExtendBean) {
             recipeExtendBean = new RecipeExtendBean();
         }
+        Integer copyNum = formWorkRecipeVO.getRecipeBean().getCopyNum();
+        if (null != copyNum) {
+            recipeInfoVO.getRecipeBean().setCopyNum(copyNum);
+        }
         List<RecipeDetailBean> recipeDetailBeanList = formWorkRecipeVO.getRecipeBean().getRecipeDetailBeanList();
         recipeInfoVO.setRecipeDetails(recipeDetailBeanList);
         recipeInfoVO.setRecipeExtendBean(recipeExtendBean);
