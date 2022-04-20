@@ -2207,6 +2207,7 @@ public class RecipeService extends RecipeBaseService {
     @RpcService
     @LogRecord
     public RecipeResultBean afterCheckPassYs(Recipe recipe) {
+        LOGGER.info("RecipeService afterCheckPassYs recipe:{}", JSON.toJSONString(recipe));
         if (null == recipe) {
             return null;
         }
