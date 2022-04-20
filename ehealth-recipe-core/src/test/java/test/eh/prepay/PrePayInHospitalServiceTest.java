@@ -94,7 +94,14 @@ public class PrePayInHospitalServiceTest {
     }
 
     public static void main(String[] args) {
-        System.out.println(ageFormat("2021-09-15", "岁"));
+        System.out.println("1992-09-15" + ":" + ageFormat("1992-09-15", "岁"));
+        System.out.println("2012-09-15" + ":" + ageFormat("2012-09-15", "岁"));
+        System.out.println("2021-09-15" + ":" + ageFormat("2021-09-15", "岁"));
+        System.out.println("2022-03-20" + ":" + ageFormat("2022-03-20", "岁"));
+        System.out.println("2022-04-20" + ":" + ageFormat("2022-04-20", "岁"));
+        System.out.println("2020-04-20" + ":" + ageFormat("2020-04-20", "岁"));
+        System.out.println("2020-06-20" + ":" + ageFormat("2020-06-20", "岁"));
+        System.out.println("2020-04-12" + ":" + ageFormat("2020-04-12", "岁"));
     }
 
     public static String ageFormat(String birthday, String append) {
