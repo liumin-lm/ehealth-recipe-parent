@@ -252,7 +252,7 @@ public class RecipePatientAtop extends BaseAtop {
         if (null != copyNum) {
             recipeInfoVO.getRecipeBean().setCopyNum(copyNum);
         }
-        List<RecipeDetailBean> recipeDetailBeanList = formWorkRecipeVO.getRecipeBean().getRecipeDetailBeanList();
+        List<RecipeDetailBean> recipeDetailBeanList = formWorkRecipeVO.getDetailBeanList();
         recipeInfoVO.setRecipeDetails(recipeDetailBeanList);
         recipeInfoVO.setRecipeExtendBean(recipeExtendBean);
         Integer recipeId = recipePatientService.saveRecipe(recipeInfoVO);
