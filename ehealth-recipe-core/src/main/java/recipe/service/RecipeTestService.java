@@ -320,6 +320,18 @@ public class RecipeTestService {
         hisService.recipeDrugTake(recipes.get(0).getRecipeId(), order.getPayFlag(), result);
     }
 
+    @RpcService
+    public void updateRecipeOrders(String orderCode, Map<String, ?> changeAttr){
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        recipeOrderDAO.updateByOrdeCode(orderCode, changeAttr);
+    }
+
+    @RpcService
+    public void updateRecipes(Integer recipeId, Map<String, ?> changeAttr){
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        recipeDAO.updateRecipeInfoByRecipeId(recipeId, changeAttr);
+    }
+
     /**
      * 迁移ext数据
      */
