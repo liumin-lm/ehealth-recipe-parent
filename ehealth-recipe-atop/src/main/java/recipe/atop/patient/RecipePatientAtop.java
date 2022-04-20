@@ -239,8 +239,14 @@ public class RecipePatientAtop extends BaseAtop {
         FormWorkRecipeReqVO formWorkRecipeReqVO = new FormWorkRecipeReqVO();
         formWorkRecipeReqVO.setOrganId(recipeBean.getClinicOrgan());
         List<FormWorkRecipeVO> formWorkRecipeVOList = recipePatientService.findFormWorkRecipe(formWorkRecipeReqVO);
-        formWorkRecipeVOList.stream().filter(a -> a.getMouldId().equals(recipeInfoVO.getMouldId()));
-        FormWorkRecipeVO formWorkRecipeVO = formWorkRecipeVOList.get(0);
+        //formWorkRecipeVOList.stream().filter(a -> a.getMouldId().equals(recipeInfoVO.getMouldId()));
+        FormWorkRecipeVO formWorkRecipeVO = new FormWorkRecipeVO();
+        for (FormWorkRecipeVO formWorkRecipe : formWorkRecipeVOList) {
+            if (recipeInfoVO.getMouldId() == formWorkRecipeVO.getMouldId()) {
+                formWorkRecipeVO = formWorkRecipe;
+                break;
+            }
+        }
         logger.info("saveRecipe formWorkRecipeVO:{}", JSON.toJSONString(formWorkRecipeVO));
         RecipeExtendBean recipeExtendBean = formWorkRecipeVO.getRecipeBean().getRecipeExtend();
         if (null != recipeInfoVO.getRecipeExtendBean() && null != recipeInfoVO.getRecipeExtendBean().getDocIndexId()) {

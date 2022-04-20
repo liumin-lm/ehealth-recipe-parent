@@ -176,7 +176,12 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         FormWorkRecipeReqVO formWorkRecipeReqVO = new FormWorkRecipeReqVO();
         formWorkRecipeReqVO.setOrganId(organId);
         List<FormWorkRecipeVO> formWorkRecipeVOList = recipePatientService.findFormWorkRecipe(formWorkRecipeReqVO);
-        formWorkRecipeVOList.stream().filter(a -> a.getMouldId().equals(mouldId));
+        //formWorkRecipeVOList.stream().filter(a -> a.getMouldId().equals(mouldId));
+        for (FormWorkRecipeVO formWorkRecipeVO : formWorkRecipeVOList) {
+            if (mouldId == formWorkRecipeVO.getMouldId()) {
+                return formWorkRecipeVO;
+            }
+        }
         return formWorkRecipeVOList.get(0);
     }
 
