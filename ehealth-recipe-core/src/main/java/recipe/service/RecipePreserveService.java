@@ -262,7 +262,7 @@ public class RecipePreserveService {
         request.setStartDate(startDate);
         request.setEndDate(endDate);
         request.setOrgan(organId);
-
+        request.setQueryType(2);
         LOGGER.info("getHosRecipeList request={}", JSONUtils.toString(request));
         QueryRecipeResponseTO response = null;
         try {
