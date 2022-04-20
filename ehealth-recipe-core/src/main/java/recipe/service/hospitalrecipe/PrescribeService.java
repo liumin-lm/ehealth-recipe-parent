@@ -283,6 +283,10 @@ public class PrescribeService {
                     } else {
                         recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("registerID", hospitalRecipeDTO.getRegisterId()));
                     }
+                } else {
+                    RecipeExtend recipeExtend = new RecipeExtend();
+                    recipeExtend.setRecipeId(recipeId);
+                    recipeExtendDAO.saveRecipeExtend(recipeExtend);
                 }
             } catch (Exception e) {
                 LOG.error("createPrescription 写入DB失败. recipe={}, detail={}", JSONUtils.toString(recipe),
