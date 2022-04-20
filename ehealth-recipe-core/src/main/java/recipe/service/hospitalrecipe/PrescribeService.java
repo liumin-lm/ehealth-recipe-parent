@@ -1,5 +1,6 @@
 package recipe.service.hospitalrecipe;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Multimap;
@@ -89,6 +90,7 @@ public class PrescribeService {
      */
     @RpcService
     public HosRecipeResult createPrescription(HospitalRecipeDTO hospitalRecipeDTO) {
+        LOG.info("PrescribeService createPrescription hospitalRecipeDTO:{}", JSON.toJSONString(hospitalRecipeDTO));
         HosRecipeResult<RecipeBean> result = new HosRecipeResult();
         //重置为默认失败
         result.setCode(HosRecipeResult.FAIL);
