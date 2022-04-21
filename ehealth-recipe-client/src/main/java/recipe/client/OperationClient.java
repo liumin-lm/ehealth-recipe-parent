@@ -24,6 +24,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
 import recipe.constant.ErrorCode;
 import recipe.constant.OperationConstant;
+import recipe.constant.birthdayToAgeConstant;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
 
@@ -110,6 +111,9 @@ public class OperationClient extends BaseClient {
      */
     public String invokeFieldName(String objectName, String fieldName, RecipeInfoDTO recipePdfDTO) {
         if (OperationConstant.OP_PATIENT.equals(objectName)) {
+            if ("age".equals(fieldName)) {
+                return birthdayToAgeConstant.ageFormat(recipePdfDTO.getPatientBean().getBirthday());
+            }
             return MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getPatientBean());
         }
         if (OperationConstant.OP_RECIPE_ORDER.equals(objectName)) {

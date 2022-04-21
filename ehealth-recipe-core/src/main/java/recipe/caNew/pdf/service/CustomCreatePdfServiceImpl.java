@@ -29,6 +29,7 @@ import recipe.bussutil.SignImgNode;
 import recipe.bussutil.WordToPdfBean;
 import recipe.constant.ErrorCode;
 import recipe.constant.OperationConstant;
+import recipe.constant.birthdayToAgeConstant;
 import recipe.dao.RecipeExtendDAO;
 import recipe.manager.RedisManager;
 import recipe.util.ByteUtils;
@@ -477,6 +478,9 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
             String value = MapValueUtil.getFieldValueByName(fieldName, recipePdfDTO.getPatientBean());
             if ("patientUserType".equals(fieldName)) {
                 value = StringUtils.isEmpty(value) || "0".equals(value) ? "普通" : "儿科";
+            }
+            if ("age".equals(fieldName)) {
+                value = birthdayToAgeConstant.ageFormat(recipePdfDTO.getPatientBean().getBirthday());
             }
             return new WordToPdfBean(key, value, null);
         }
