@@ -1,6 +1,7 @@
 package recipe.atop.open;
 
 import com.alibaba.fastjson.JSONArray;
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
@@ -11,6 +12,7 @@ import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.aop.LogRecord;
 import recipe.api.open.IRecipeAtopService;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
@@ -20,7 +22,6 @@ import recipe.core.api.patient.IOfflineRecipeBusinessService;
 import recipe.core.api.patient.IPatientBusinessService;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.util.ObjectCopyUtils;
-import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
@@ -177,6 +178,13 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         List<FormWorkRecipeVO> formWorkRecipeVOList = recipePatientService.findFormWorkRecipe(formWorkRecipeReqVO);
         formWorkRecipeVOList.stream().filter(a -> a.getMouldId().equals(mouldId));
         return formWorkRecipeVOList.get(0);
+    }
+
+    @Override
+    @LogRecord
+    public HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode) {
+        HisResponseTO response = offlineToOnlineService.abolishOffLineRecipe(organId, recipeCode);
+        return response;
     }
 
 

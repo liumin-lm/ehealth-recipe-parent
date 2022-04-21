@@ -1,5 +1,6 @@
 package recipe.core.api.patient;
 
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailResVO;
@@ -80,4 +81,13 @@ public interface IOfflineRecipeBusinessService {
     RecipeInfoDTO pushRecipe(Integer recipeId, Integer pushType, Integer sysType, Integer expressFeePayType, Double expressFee);
 
     void offlineToOnlineForRecipe(FindHisRecipeDetailReqVO request);
+
+    /**
+     * 撤销线下处方
+     *
+     * @param organId
+     * @param recipeCode
+     * @return
+     */
+    HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode);
 }

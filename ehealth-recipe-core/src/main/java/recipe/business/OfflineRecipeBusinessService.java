@@ -321,9 +321,9 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         Recipe recipe = recipePdfDTO.getRecipe();
         try {
             List<Recipedetail> recipeDetailList = recipePdfDTO.getRecipeDetails();
-            for(Recipedetail recipedetail : recipeDetailList){
+            for (Recipedetail recipedetail : recipeDetailList) {
                 OrganDrugListBean organDrugList = organDrugListService.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getRecipeId(), recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
-                if(null != organDrugList){
+                if (null != organDrugList) {
                     recipedetail.setDrugItemCode(organDrugList.getDrugItemCode());
                 }
             }
@@ -357,5 +357,10 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
             logger.error("OfflineToOnlineService findHisRecipeDetail error", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
+    }
+
+    @Override
+    public HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode) {
+        return hisRecipeManager.abolishOffLineRecipe(organId, recipeCode);
     }
 }

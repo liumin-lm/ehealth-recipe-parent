@@ -54,6 +54,7 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
 
     /**
      * 查询
+     *
      * @param
      * @return
      */
@@ -68,7 +69,7 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
                 hql.append(" and r.recipeCode in (:recipeCodeList) and r.clinicOrgan=:clinicOrgan and r.mpiid=:mpiid ");
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameterList("recipeCodeList", recipeCodeList);
-                q.setParameter("clinicOrgan",clinicOrgan);
+                q.setParameter("clinicOrgan", clinicOrgan);
                 q.setParameter("mpiid", mpiid);
                 setResult(q.list());
             }
@@ -77,6 +78,7 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
     @DAOMethod(sql = "from Recipe where recipeCode in (:recipeCodeList) and clinicOrgan=:clinicOrgan and mpiid=:mpiid and payFlag!=1")
     public abstract List<Recipe> findByRecipeCodeAndClinicOrganAndMpiid(@DAOParam("recipeCodeList") List<String> recipeCodeList,
                                                                         @DAOParam("clinicOrgan") Integer clinicOrgan, @DAOParam("mpiid") String mpiid);
@@ -86,7 +88,7 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
     public abstract HisRecipe getHisRecipeBMpiIdyRecipeCodeAndClinicOrgan(@DAOParam("mpiId") String mpiId, @DAOParam("clinicOrgan") int clinicOrgan, @DAOParam("recipeCode") String recipeCode);
 
     @DAOMethod(sql = " From HisRecipe where mpiId=:mpiId and clinicOrgan=:clinicOrgan and recipeCode=:recipeCode")
-    public abstract HisRecipe getHisRecipeRecipeCodeAndClinicOrgan( @DAOParam("mpiId") int mpiId,@DAOParam("clinicOrgan") int clinicOrgan, @DAOParam("recipeCode") String recipeCode);
+    public abstract HisRecipe getHisRecipeRecipeCodeAndClinicOrgan(@DAOParam("mpiId") int mpiId, @DAOParam("clinicOrgan") int clinicOrgan, @DAOParam("recipeCode") String recipeCode);
 
     /**
      * 根据处方id批量删除
@@ -101,11 +103,12 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
 
     /**
      * 批量查询已处理his处方
+     *
      * @param mpiId
      * @param start
      * @param
      */
-    public List<HisRecipeListBean> findHisRecipeListByMPIId(Integer organId,String mpiId, Integer start, Integer limit){
+    public List<HisRecipeListBean> findHisRecipeListByMPIId(Integer organId, String mpiId, Integer start, Integer limit) {
         HibernateStatelessResultAction<List<HisRecipeListBean>> action = new AbstractHibernateStatelessResultAction<List<HisRecipeListBean>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -126,11 +129,12 @@ public abstract class HisRecipeDAO extends HibernateSupportDelegateDAO<HisRecipe
 
     /**
      * 批量查询进行中的his处方
+     *
      * @param mpiId
      * @param start
      * @param limit
      */
-    public List<HisRecipeListBean> findOngoingHisRecipeListByMPIId(Integer organId,String mpiId, Integer start, Integer limit){
+    public List<HisRecipeListBean> findOngoingHisRecipeListByMPIId(Integer organId, String mpiId, Integer start, Integer limit) {
         HibernateStatelessResultAction<List<HisRecipeListBean>> action = new AbstractHibernateStatelessResultAction<List<HisRecipeListBean>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {

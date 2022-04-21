@@ -1,11 +1,11 @@
 package recipe.api.open;
 
+import com.ngari.common.mode.HisResponseTO;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.vo.FormWorkRecipeVO;
 import ctd.util.annotation.RpcService;
-import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
@@ -108,9 +108,10 @@ public interface IRecipeAtopService {
 
     /**
      * 根据his处方号和挂号序号机构查询处方
+     *
      * @param recipeCode his处方号
      * @param registerId 挂号序号
-     * @param organId 机构ID
+     * @param organId    机构ID
      * @return 处方
      */
     @RpcService(mvcDisabled = true)
@@ -119,9 +120,20 @@ public interface IRecipeAtopService {
 
     /**
      * 获取模板
+     *
      * @param mouldId
      * @return
      */
     @RpcService(mvcDisabled = true)
     FormWorkRecipeVO getFormWorkRecipeById(Integer mouldId, Integer organId);
+
+    /**
+     * 撤销线下处方
+     *
+     * @param organId
+     * @param recipeCode
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode);
 }

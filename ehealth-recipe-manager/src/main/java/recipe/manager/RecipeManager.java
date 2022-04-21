@@ -2,6 +2,7 @@ package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.google.common.collect.Lists;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.consult.common.model.ConsultExDTO;
@@ -683,4 +684,16 @@ public class RecipeManager extends BaseManager {
         recipeCheckBean.setGrabOrderStatus(0);
         iRecipeCheckService.saveRecipeCheck(recipeCheckBean);
     }
+
+    /**
+     * 查找已支付处方
+     *
+     * @param organId
+     * @param recipeCode
+     * @return
+     */
+    public List<Recipe> findAlreadyPayRecipeByOrganIdAndRecipeCode(Integer organId, String recipeCode) {
+        return recipeDAO.findAlreadyPayRecipeByRecipeCodesAndClinicOrgan(Lists.newArrayList(recipeCode), organId);
+    }
+
 }
