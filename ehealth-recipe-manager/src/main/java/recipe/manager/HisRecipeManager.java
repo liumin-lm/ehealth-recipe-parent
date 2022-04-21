@@ -593,8 +593,8 @@ public class HisRecipeManager extends BaseManager {
     /**
      * 用药提醒的线下处方 存在患者的数据 转换药品为线上数据
      */
-    public List<RecipeInfoDTO> queryRemindRecipe(Integer organId) throws Exception {
-        List<RecipeInfoDTO> recipeInfoList = offlineRecipeClient.queryRemindRecipe(organId);
+    public List<RecipeInfoDTO> queryRemindRecipe(Integer organId, Integer pageNo) throws Exception {
+        List<RecipeInfoDTO> recipeInfoList = offlineRecipeClient.queryRemindRecipe(organId, pageNo);
         if (CollectionUtils.isEmpty(recipeInfoList)) {
             return null;
         }

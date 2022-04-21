@@ -420,13 +420,14 @@ public class OfflineRecipeClient extends BaseClient {
      * 获取用药提醒的线下处方
      *
      * @param organId 机构id
+     * @param pageNo 页码
      * @return
      */
-    public List<RecipeInfoDTO> queryRemindRecipe(Integer organId) throws Exception {
+    public List<RecipeInfoDTO> queryRemindRecipe(Integer organId, Integer pageNo) throws Exception {
         RemindRecipeDTO remindRecipeDTO = new RemindRecipeDTO();
         remindRecipeDTO.setOrganId(organId);
         remindRecipeDTO.setLimit(5000);
-        remindRecipeDTO.setStart(1);
+        remindRecipeDTO.setStart((pageNo-1)*5000+1);
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DATE, -1);
         Date sTime = DateConversion.firstSecondsOfDay(calendar.getTime());
