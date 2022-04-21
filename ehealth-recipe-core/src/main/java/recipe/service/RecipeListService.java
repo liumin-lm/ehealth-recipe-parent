@@ -126,7 +126,7 @@ public class RecipeListService extends RecipeBaseService {
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Resource
     private IConfigurationClient configurationClient;
-    @Resource
+    @Autowired
     private PatientClient patientClient;
     //历史处方显示的状态：未处理、未支付、审核不通过、失败、已完成、his失败、取药失败
     //date 20191016
