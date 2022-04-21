@@ -656,15 +656,35 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
 
     @Override
     @RpcService
+    @LogRecord
     public boolean checkCanPay(Integer busId) {
         RecipeOrderBean order = recipeOrderService.get(busId);
-        if ((new Integer(1).equals(order.getEffective()) && OrderStatusConstant.READY_PAY.equals(order.getStatus()) && PayConstant.PAY_FLAG_NOT_PAY == order.getPayFlag()) || (new Integer(1).equals(order.getRefundFlag()))) {
+        if (null == order) {
+            log.info("checkCanPay busObject not exists, busId[{}]", busId);
+            return false;
+        }
+        // 已支付
+        if (order.getPayFlag() != null && order.getPayFlag() == 1) {
+            log.info("checkCanPay payflag is 1, busId[{}]", busId);
+            return false;
+        }
+        // 已取消不做更新
+        if (order.getStatus() == 8 || order.getStatus() == 7) {
+            log.info("checkCanPay effective is 0, busId[{}]", busId);
+            return false;
+        }
+        // 已退款不能重新支付
+        if ((new Integer(1).equals(order.getRefundFlag()))) {
+            log.info("checkCanPay RefundFlag is 1, busId[{}]", busId);
+            return false;
+        }
+        if ((new Integer(1).equals(order.getEffective()) && OrderStatusConstant.READY_PAY.equals(order.getStatus()) && PayConstant.PAY_FLAG_NOT_PAY == order.getPayFlag())) {
             //允许支付
             log.info("允许支付");
+            return true;
         } else {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "该订单已处理，请刷新后重试");
+            return false;
         }
-        return true;
     }
 
     @Override
