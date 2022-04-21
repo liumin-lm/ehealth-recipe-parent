@@ -923,7 +923,11 @@ public class RecipeOrderService extends RecipeBaseService {
             order.setAddress2(address.getAddress2());
             order.setAddress3(address.getAddress3());
             order.setStreetAddress(address.getStreetAddress());
-            order.setAddress4(address.getAddress4());
+            if (StringUtils.isNotEmpty(address.getAddress5Text())) {
+                order.setAddress4(address.getAddress5Text() + address.getAddress4());
+            } else {
+                order.setAddress4(address.getAddress4());
+            }
 
             try {
                 //校验地址是否可以配送
