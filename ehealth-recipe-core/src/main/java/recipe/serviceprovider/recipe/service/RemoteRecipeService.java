@@ -1112,6 +1112,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             request.setStartDate(DateConversion.getDateTimeDaysAgo(3));
             request.setEndDate(DateTime.now().toDate());
             request.setOrgan(organId);
+            request.setQueryType(1);
             LOGGER.info("canRequestConsultForRecipe-getHosRecipeList req={}", JSONUtils.toString(request));
             QueryRecipeResponseTO response = null;
             try {

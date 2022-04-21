@@ -4,7 +4,6 @@ import ca.service.ISignRecipeInfoService;
 import ca.vo.model.SignDoctorRecipeInfoDTO;
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.cdr.model.DiseaseDTO;
-import com.ngari.base.cdr.service.IDiseaseService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.base.serviceconfig.mode.ServiceConfigResponseTO;
 import com.ngari.base.serviceconfig.service.IHisServiceConfigService;
@@ -641,8 +640,6 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             }
             if (StringUtils.isNotEmpty(recipeExtend.getSymptomId())) {
                 LOGGER.info("setRecipeExtend {},{}",req.getOrganID(),recipeExtend.getSymptomId());
-                Symptom symptom = symptomDAO.getByOrganIdAndSymptomCode(Integer.valueOf(req.getOrganID()), recipeExtend.getSymptomId());
-                LOGGER.info("setRecipeExtend symptom={}",JSONUtils.toString(symptom));
                 req.getRecipeExtend().setSymptomCode(recipeExtend.getSymptomId());
                 //组装需要上传到监管平台的数据
                 Symptom regulationSymptom = symptomService.assembleMultipleSymptom(Integer.valueOf(req.getOrganID()), recipeExtend.getSymptomId());
