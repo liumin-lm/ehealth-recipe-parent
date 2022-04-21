@@ -1818,4 +1818,18 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return hql;
     }
 
+    public  List<RecipeOrder> findUnPushOrder(Date startDate, Date endDate){
+        HibernateStatelessResultAction<List<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrder>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                String sql = "from RecipeOrder where createTime between '" + startDate + "' and '" + endDate + "' and pushFlag=-1 and effective=1";
+
+                Query q = ss.createQuery(sql);
+                setResult(q.list());
+            }
+        };
+
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    };
 }
