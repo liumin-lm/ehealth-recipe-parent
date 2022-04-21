@@ -225,6 +225,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "from Recipe where recipeCode in (:recipeCodeList) and clinicOrgan=:clinicOrgan")
     public abstract List<Recipe> findByRecipeCodeAndClinicOrgan(@DAOParam("recipeCodeList") List<String> recipeCodeList, @DAOParam("clinicOrgan") Integer clinicOrgan);
 
+    @DAOMethod(sql = "from Recipe where recipeCode in (:recipeCodeList) and clinicOrgan=:clinicOrgan and payFlag=1")
+    public abstract List<Recipe> findAlreadyPayRecipeByRecipeCodesAndClinicOrgan(@DAOParam("recipeCodeList") List<String> recipeCodeList, @DAOParam("clinicOrgan") Integer clinicOrgan);
+
     @DAOMethod(sql = "select COUNT(*) from Recipe where  clinicOrgan=:organId and  PayFlag =:payFlag and status in (2,8)")
     public abstract Long getUnfinishedRecipe(@DAOParam("organId") Integer organId, @DAOParam("payFlag") Integer payFlag);
 
@@ -1584,9 +1587,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         }
         if (status != null) {
             //由于已取消状态较多，使用其中一个值查询所有已取消的状态
-            if(new Integer(11).equals(status)){
+            if (new Integer(11).equals(status)) {
                 hql.append(" and r.status in (11,12,13,14,17,19,20,25)");
-            }else{
+            } else {
                 hql.append(" and r.status =").append(status);
             }
         }
@@ -1721,9 +1724,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         }
         if (null != recipesQueryVO.getStatus()) {
             //由于已取消状态较多，使用其中一个值查询所有已取消的状态
-            if(new Integer(11).equals(recipesQueryVO.getStatus())){
+            if (new Integer(11).equals(recipesQueryVO.getStatus())) {
                 hql.append(" and r.status in (11,12,13,14,17,19,20,25)");
-            }else{
+            } else {
                 hql.append(" and r.status =").append(recipesQueryVO.getStatus());
             }
         }
@@ -1866,9 +1869,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         }
         if (null != recipesQueryVO.getStatus()) {
             //由于已取消状态较多，使用其中一个值查询所有已取消的状态
-            if(new Integer(11).equals(recipesQueryVO.getStatus())){
+            if (new Integer(11).equals(recipesQueryVO.getStatus())) {
                 hql.append(" and r.status in (11,12,13,14,17,19,20,25)");
-            }else{
+            } else {
                 hql.append(" and r.status =").append(recipesQueryVO.getStatus());
             }
         }
