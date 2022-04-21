@@ -240,8 +240,8 @@ public class DrugClient extends BaseClient {
             return getResponse(hisResponse);
         } catch (Exception e) {
             logger.error("DrugClient findHospitalDrugList hisResponse", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
+        return new ArrayList<>();
     }
 
 
