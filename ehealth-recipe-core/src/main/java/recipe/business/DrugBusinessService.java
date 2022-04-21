@@ -1,6 +1,8 @@
 package recipe.business;
 
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
+import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
@@ -9,6 +11,8 @@ import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.DrugEntrustDTO;
 import com.ngari.recipe.recipe.service.IDrugEntrustService;
+import com.ngari.recipe.vo.HospitalDrugListReqVO;
+import com.ngari.recipe.vo.HospitalDrugListVO;
 import com.ngari.recipe.vo.SearchDrugReqVO;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
@@ -16,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.client.DrugClient;
 import recipe.client.IConfigurationClient;
 import recipe.core.api.IDrugBusinessService;
 import recipe.enumerate.type.RecipeTypeEnum;
@@ -50,6 +55,8 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     private IDrugEntrustService drugEntrustService;
     @Autowired
     private IConfigurationClient configurationClient;
+    @Autowired
+    private DrugClient drugClient;
 
     @Override
     public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVO searchDrugReqVo) {
@@ -139,6 +146,13 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     @Override
     public List<OrganDrugList> listOrganDrug(com.ngari.platform.recipe.mode.ListOrganDrugReq listOrganDrugReq) {
         return drugManager.listOrganDrug(ObjectCopyUtils.convert(listOrganDrugReq, com.ngari.recipe.dto.ListOrganDrugReq.class));
+    }
+
+    @Override
+    public List<HospitalDrugListVO> findHospitalDrugList(HospitalDrugListReqVO hospitalDrugListReqVO) {
+        HospitalDrugListReqDTO hospitalDrugListReqDTO = recipe.util.ObjectCopyUtils.convert(hospitalDrugListReqVO, HospitalDrugListReqDTO.class);
+        List<HospitalDrugListDTO> hospitalDrugListDTOList = drugClient.findHospitalDrugList(hospitalDrugListReqDTO);
+        return recipe.util.ObjectCopyUtils.convert(hospitalDrugListDTOList, HospitalDrugListVO.class);
     }
 
 }
