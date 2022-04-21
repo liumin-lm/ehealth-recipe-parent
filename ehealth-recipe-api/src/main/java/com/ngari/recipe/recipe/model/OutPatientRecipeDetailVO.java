@@ -96,4 +96,9 @@ public class OutPatientRecipeDetailVO implements Serializable{
      */
     private String memo;
 
+    /**
+     * 保密标识 0 非保密 1 保密
+     */
+    private Integer secrecyFlag;
+
 }

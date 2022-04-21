@@ -4,6 +4,7 @@ import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.vo.*;
@@ -150,4 +151,12 @@ public interface IRecipeBusinessService {
      * @return 门诊记录
      */
     OutPatientRecordResDTO findOutPatientRecordFromHis(String mpiId, Integer organId, Integer doctorId);
+
+    /**
+     * 获取 中医诊断
+     *
+     * @param id
+     * @return
+     */
+    Symptom symptomId(Integer id);
 }

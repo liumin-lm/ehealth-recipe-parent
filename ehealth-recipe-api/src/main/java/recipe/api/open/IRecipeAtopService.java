@@ -4,6 +4,7 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.SymptomDTO;
 import com.ngari.recipe.vo.FormWorkRecipeVO;
 import ctd.util.annotation.RpcService;
 import recipe.vo.patient.PatientOptionalDrugVo;
@@ -126,6 +127,15 @@ public interface IRecipeAtopService {
      */
     @RpcService(mvcDisabled = true)
     FormWorkRecipeVO getFormWorkRecipeById(Integer mouldId, Integer organId);
+
+    /**
+     * 获取 中医诊断
+     *
+     * @param id
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    SymptomDTO symptomId(Integer id);
 
     /**
      * 撤销线下处方

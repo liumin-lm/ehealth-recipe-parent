@@ -92,6 +92,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private RemoteRecipeService remoteRecipeService;
     @Autowired
     private PatientClient patientClient;
+    @Autowired
+    private SymptomDAO symptomDAO;
     @Resource
     private IConfigurationClient configurationClient;
     @Autowired
@@ -116,8 +118,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private StateManager stateManager;
     @Resource
     private AuditModeContext auditModeContext;
-    @Autowired
-    private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private ConsultManager consultManager;
     
@@ -447,7 +447,12 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public OutPatientRecordResDTO findOutPatientRecordFromHis(String mpiId, Integer organId, Integer doctorId) {
-        return consultManager.findOutPatientRecordFromHis(mpiId,organId,doctorId);
+        return consultManager.findOutPatientRecordFromHis(mpiId, organId, doctorId);
+    }
+
+    @Override
+    public Symptom symptomId(Integer id) {
+        return symptomDAO.get(id);
     }
 
 

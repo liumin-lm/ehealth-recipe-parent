@@ -67,4 +67,16 @@ public class BaseOrderVO implements Serializable {
 
     @ItemProperty(alias = "处方费用支付方式 1 线上支付 2 线下支付")
     private Integer payMode;
+
+    @ItemProperty(alias = "药店或者站点名称")
+    private String drugStoreName;
+
+    @ItemProperty(alias = "药店或者站点编码")
+    private String drugStoreCode;
+
+    @ItemProperty(alias = "药店或者站点地址")
+    private String drugStoreAddr;
+
+    @ItemProperty(alias = "订单所属配送方式")
+    private Integer giveMode;
 }

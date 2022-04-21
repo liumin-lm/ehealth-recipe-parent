@@ -1,5 +1,6 @@
 package recipe.service.common;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
@@ -98,7 +99,7 @@ public class RecipeSignService {
     @RpcService
     @LogRecord
     public RecipeStandardResTO<Map> sign(Integer recipeId, RecipeStandardReqTO request) {
-
+        LOG.info("RecipeSignService sign recipeId:{},request:{}", recipeId, JSON.toJSONString(request));
         RecipeStandardResTO<Map> response = RecipeStandardResTO.getRequest(Map.class);
         response.setCode(RecipeCommonBaseTO.FAIL);
         //TODO 先校验处方是否有效

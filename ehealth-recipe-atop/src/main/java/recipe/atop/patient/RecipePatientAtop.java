@@ -62,8 +62,8 @@ public class RecipePatientAtop extends BaseAtop {
         validateAtop(outPatientRecipeReqVO, outPatientRecipeReqVO.getOrganId(), outPatientRecipeReqVO.getMpiId());
         try {
             //设置默认查询时间3个月
-            outPatientRecipeReqVO.setBeginTime(DateConversion.getDateFormatter(DateConversion.getMonthsAgo(3), DateConversion.DEFAULT_DATE_TIME));
-            outPatientRecipeReqVO.setEndTime(DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
+            //outPatientRecipeReqVO.setBeginTime(DateConversion.getDateFormatter(DateConversion.getMonthsAgo(3), DateConversion.DEFAULT_DATE_TIME));
+            //outPatientRecipeReqVO.setEndTime(DateConversion.getDateFormatter(new Date(), DateConversion.DEFAULT_DATE_TIME));
             PatientDTO patientDTO = recipePatientService.getPatientDTOByMpiID(outPatientRecipeReqVO.getMpiId());
             outPatientRecipeReqVO.setIdCard(StringUtils.isNotEmpty(outPatientRecipeReqVO.getIdCard()) ? outPatientRecipeReqVO.getIdCard() : patientDTO.getCertificate());
             outPatientRecipeReqVO.setPatientId(patientDTO.getPatId());
@@ -234,12 +234,18 @@ public class RecipePatientAtop extends BaseAtop {
         recipeBean.setProcessState(0);
         recipeBean.setSubState(0);
         recipeBean.setSupportMode(0);
+        recipeBean.setGiveMode(2);
         recipeBean.setBussSource(BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType());
         FormWorkRecipeReqVO formWorkRecipeReqVO = new FormWorkRecipeReqVO();
         formWorkRecipeReqVO.setOrganId(recipeBean.getClinicOrgan());
         List<FormWorkRecipeVO> formWorkRecipeVOList = recipePatientService.findFormWorkRecipe(formWorkRecipeReqVO);
-        formWorkRecipeVOList.stream().filter(a -> a.getMouldId().equals(recipeInfoVO.getMouldId()));
-        FormWorkRecipeVO formWorkRecipeVO = formWorkRecipeVOList.get(0);
+        //formWorkRecipeVOList.stream().filter(a -> a.getMouldId().equals(recipeInfoVO.getMouldId()));
+        FormWorkRecipeVO formWorkRecipeVO = new FormWorkRecipeVO();
+        for (FormWorkRecipeVO formWorkRecipe : formWorkRecipeVOList) {
+            if (recipeInfoVO.getMouldId() == formWorkRecipe.getMouldId()) {
+                formWorkRecipeVO = formWorkRecipe;
+            }
+        }
         logger.info("saveRecipe formWorkRecipeVO:{}", JSON.toJSONString(formWorkRecipeVO));
         RecipeExtendBean recipeExtendBean = formWorkRecipeVO.getRecipeBean().getRecipeExtend();
         if (null != recipeInfoVO.getRecipeExtendBean() && null != recipeInfoVO.getRecipeExtendBean().getDocIndexId()) {
@@ -248,7 +254,11 @@ public class RecipePatientAtop extends BaseAtop {
         if (null == recipeExtendBean) {
             recipeExtendBean = new RecipeExtendBean();
         }
-        List<RecipeDetailBean> recipeDetailBeanList = formWorkRecipeVO.getRecipeBean().getRecipeDetailBeanList();
+        Integer copyNum = formWorkRecipeVO.getRecipeBean().getCopyNum();
+        if (null != copyNum) {
+            recipeInfoVO.getRecipeBean().setCopyNum(copyNum);
+        }
+        List<RecipeDetailBean> recipeDetailBeanList = formWorkRecipeVO.getDetailBeanList();
         recipeInfoVO.setRecipeDetails(recipeDetailBeanList);
         recipeInfoVO.setRecipeExtendBean(recipeExtendBean);
         Integer recipeId = recipePatientService.saveRecipe(recipeInfoVO);

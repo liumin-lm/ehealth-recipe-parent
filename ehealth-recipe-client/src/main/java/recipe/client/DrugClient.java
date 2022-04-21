@@ -13,11 +13,14 @@ import com.ngari.his.recipe.mode.SyncDrugListToHisReqTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
+import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.entity.DecoctionWay;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugMakingMethod;
+import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -31,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 import recipe.constant.CacheConstant;
+import recipe.constant.ErrorCode;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.RecipeUtil;
 import recipe.util.RedisClient;
@@ -223,6 +227,21 @@ public class DrugClient extends BaseClient {
         logger.info("DrugClient usePathwaysCodeMap organId = {} usePathways:{}", organId, JSON.toJSONString(usePathways));
         return Optional.ofNullable(usePathways).orElseGet(Collections::emptyList)
                 .stream().collect(Collectors.toMap(UsePathways::getPathwaysKey, a -> a, (k1, k2) -> k1));
+    }
+
+    /**
+     * 查询医院药品信息
+     * @param hospitalDrugListReqDTO
+     * @return
+     */
+    public List<HospitalDrugListDTO> findHospitalDrugList(HospitalDrugListReqDTO hospitalDrugListReqDTO) {
+        try {
+            HisResponseTO<List<HospitalDrugListDTO>> hisResponse = recipeHisService.findHospitalDrugList(hospitalDrugListReqDTO);
+            return getResponse(hisResponse);
+        } catch (Exception e) {
+            logger.error("DrugClient findHospitalDrugList hisResponse", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
     }
 
 
