@@ -166,10 +166,10 @@ public class RecipeToHisService {
             listQuery(request);
             return;
         }
-        for (int i = 0; i < Math.ceil(request.size()/100); i++) {
+        for (int i = 0; i < 1000; i++) {
             List<RecipeListQueryReqTO> collect = request.stream().skip(100 * i).limit(100).collect(Collectors.toList());
             listQuery(collect);
-            if(request.size() < 100){
+            if(collect.size() < 100){
                 return;
             }
         }
