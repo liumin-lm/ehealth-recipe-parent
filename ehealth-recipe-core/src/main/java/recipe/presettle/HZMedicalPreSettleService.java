@@ -10,12 +10,10 @@ import com.ngari.his.recipe.mode.MedicalPreSettleReqNTO;
 import com.ngari.his.recipe.mode.RecipeMedicalPreSettleInfo;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
 import com.ngari.patient.dto.DepartmentDTO;
+import com.ngari.patient.dto.EmploymentDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.BasicAPI;
-import com.ngari.patient.service.HealthCardService;
-import com.ngari.patient.service.OrganService;
-import com.ngari.patient.service.PatientService;
+import com.ngari.patient.service.*;
 import com.ngari.pay.api.service.bus.IBusPaySettlementFacade;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
@@ -32,6 +30,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.client.DepartClient;
 import recipe.dao.DrugsEnterpriseDAO;
@@ -55,9 +54,10 @@ import java.util.Objects;
 public class HZMedicalPreSettleService implements IRecipePreSettleService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(HZMedicalPreSettleService.class);
+
     @Override
     public Map<String, Object> recipePreSettle(Integer recipeId, Map<String, Object> extInfo) {
-        LOGGER.info("HZMedicalPreSettleService.recipePreSettle req recipeId={} extInfo={}",recipeId, JSONArray.toJSONString(extInfo));
+        LOGGER.info("HZMedicalPreSettleService.recipePreSettle req recipeId={} extInfo={}", recipeId, JSONArray.toJSONString(extInfo));
         Map<String, Object> result = Maps.newHashMap();
         result.put("code", "-1");
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -78,7 +78,13 @@ public class HZMedicalPreSettleService implements IRecipePreSettleService {
             if (recipeCodeS != null) {
                 request.setHisRecipeNoS(JSONUtils.parse(recipeCodeS, ArrayList.class));
             }
-            request.setDoctorId(recipe.getDoctor() + "");
+            if (!ObjectUtils.isEmpty(recipe.getDoctor())) {
+                EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
+                EmploymentDTO employment = employmentService.getPrimaryEmpByDoctorId(recipe.getDoctor());
+                if (null != employment) {
+                    request.setDoctorId(employment.getJobNumber());
+                }
+            }
             request.setDoctorName(recipe.getDoctorName());
             DepartClient departClient = AppContextHolder.getBean("departClient", DepartClient.class);
             DepartmentDTO departmentByDepart = departClient.getDepartmentByDepart(recipe.getDepart());
@@ -96,7 +102,7 @@ public class HZMedicalPreSettleService implements IRecipePreSettleService {
                 //省医保参保类型 1 长三角 没有赋值就是原来的省直医保
                 request.setInsuredAreaType("1");
                 //结算的时候会用到
-                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("insuredArea",request.getInsuredArea()));
+                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("insuredArea", request.getInsuredArea()));
             }
             RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (ext != null) {
@@ -157,7 +163,7 @@ public class HZMedicalPreSettleService implements IRecipePreSettleService {
                     request.setTcmFee(recipeOrder.getTcmFee());
                     request.setTcmFeeNo(recipeOrder.getTcmFeeNo());
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 LOGGER.error("MedicalPreSettleService 代缴费用有误");
             }
             LOGGER.info("HZMedicalPreSettleService recipeId={} req={}", recipeId, JSONUtils.toString(request));
