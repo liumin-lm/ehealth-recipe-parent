@@ -74,5 +74,24 @@ public class RecipeAndOrderDetailBeanNoDs implements Serializable {
     private String recipeSignImgUrl;
     private String decoctionFlag;
     private List<DrugListForThreeBean> drugList;
+    /**
+     * 出生日期
+     */
+    @Temporal(TemporalType.DATE)
+    private Date birthday;
 
+    /**
+     * 病人性别
+     */
+    private String sexCode;
+    private String sexName;
+
+    @Temporal(TemporalType.DATE)
+    @JsonFormat(
+            pattern = "yyyy-MM-dd",
+            timezone = "Asia/Shanghai"
+    )
+    public Date getBirthday() {
+        return this.birthday;
+    }
 }
