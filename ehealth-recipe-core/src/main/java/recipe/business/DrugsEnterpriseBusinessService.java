@@ -14,6 +14,7 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -56,6 +57,10 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     private EnterpriseAddressDAO enterpriseAddressDAO;
     @Autowired
     private OrganService organService;
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
+    @Autowired
+    private RemoteDrugEnterpriseService remoteDrugEnterpriseService ;
 
     @Override
     public Boolean existEnterpriseByName(String name) {
@@ -257,6 +262,21 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         DrugEnterpriseResult result = remoteDrugEnterpriseService.pushSingleRecipeInfo(recipeId);
         return result.getCode() != 1 ? false : true;
+    }
+
+    @Override
+    public void rePushRecipeToDrugsEnterprise() {
+        // 获取需要重新推送的订单
+        Date endDate = new Date();
+        Date startDate = DateUtils.addDays(endDate, -2);
+        List<RecipeOrder> recipeOrders = recipeOrderDAO.findUnPushOrder(startDate, endDate);
+        recipeOrders.forEach(order -> {
+            String recipeIdList = order.getRecipeIdList();
+            String[] split = recipeIdList.split(",");
+            List<String> recipeIds = Arrays.asList(split);
+            remoteDrugEnterpriseService.pushSingleRecipeInfo(Integer.valueOf(recipeIds.get(0)));
+        });
+
     }
 
     private boolean addressCanSend(List<EnterpriseDecoctionAddress> list, String address) {

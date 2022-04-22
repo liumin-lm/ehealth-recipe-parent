@@ -133,10 +133,15 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         List<Integer> organIdList = configurationClient.organIdList("remindPatientTakeMedicineFlag", "true");
         organIdList.forEach(a -> {
             try {
-                List<RecipeInfoDTO> list = hisRecipeManager.queryRemindRecipe(a);
-                if (CollectionUtils.isNotEmpty(list)) {
-                    drugManager.remindPatient(list);
-                }
+                int pageSize;
+                int pageNo = 0;
+                do {
+                    List<RecipeInfoDTO> list = hisRecipeManager.queryRemindRecipe(a, ++pageNo);
+                    pageSize = list.size();
+                    if (CollectionUtils.isNotEmpty(list)) {
+                        drugManager.remindPatient(list);
+                    }
+                } while (pageSize >= 5000);
             } catch (Exception e) {
                 logger.info("DrugBusinessService queryRemindRecipe organId= {}", a, e);
             }
