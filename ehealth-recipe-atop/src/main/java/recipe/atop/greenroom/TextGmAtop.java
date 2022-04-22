@@ -25,4 +25,9 @@ public class TextGmAtop {
     public void updateAddressPdfExecute(Integer recipeId) {
         textBusinessService.updateAddressPdfExecute(recipeId);
     }
+
+    @RpcService
+    public void getConsult(Integer consultId) {
+        textBusinessService.getConsult(consultId);
+    }
 }
