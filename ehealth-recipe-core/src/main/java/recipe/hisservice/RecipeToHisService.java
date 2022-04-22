@@ -44,6 +44,7 @@ import java.util.stream.Collectors;
 
 /**
  * company: ngarihealth
+ *
  * @author: 0184/yu_yun
  * @date:2017/9/12.
  */
@@ -108,7 +109,7 @@ public class RecipeToHisService {
                 if (null != rep) {
                     Integer organId = Integer.valueOf(response.getOrganID());
                     Integer isPay = StringUtils.isEmpty(rep.getIsPay()) ? Integer.valueOf(0) : Integer.valueOf(rep.getIsPay());
-                    Integer recipeStatus = StringUtils.isEmpty(rep.getRecipeStatus())  ? Integer.valueOf(0) : Integer.valueOf(rep.getRecipeStatus());
+                    Integer recipeStatus = StringUtils.isEmpty(rep.getRecipeStatus()) ? Integer.valueOf(0) : Integer.valueOf(rep.getRecipeStatus());
                     Integer phStatus = StringUtils.isEmpty(rep.getPhStatus()) ? Integer.valueOf(0) : Integer.valueOf(rep.getPhStatus());
 
                     if (recipeStatus == 1) {
@@ -130,14 +131,14 @@ public class RecipeToHisService {
                             if (StringUtils.isNotEmpty(rep.getAmount())) {
                                 BigDecimal recipeFee = new BigDecimal(rep.getAmount());
                                 BigDecimal totalMoney = new BigDecimal(0.00);
-                                if (recipeFee.compareTo(BigDecimal.ZERO) > 0){
+                                if (recipeFee.compareTo(BigDecimal.ZERO) > 0) {
                                     Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(rep.getRecipeNo(), organId);
                                     RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                                     if (null != recipeOrder && !"111".equals(recipeOrder.getWxPayWay())) {
                                         Map<String, Object> map = new HashMap<>();
                                         map.put("recipeFee", recipeFee);
                                         totalMoney = totalMoney
-                                                .add(null==recipeOrder.getAuditFee()?BigDecimal.ZERO:recipeOrder.getAuditFee())
+                                                .add(null == recipeOrder.getAuditFee() ? BigDecimal.ZERO : recipeOrder.getAuditFee())
                                                 .add(recipeFee);
                                         map.put("totalFee", totalMoney);
                                         map.put("actualPrice", totalMoney.doubleValue());
@@ -156,6 +157,24 @@ public class RecipeToHisService {
         return null;
     }
 
+    /**
+     * @param request
+     */
+    public void listQueryV1(List<RecipeListQueryReqTO> request) {
+        LOGGER.info("listQueryV1 request={} size={}", JSONUtils.toString(request),request.size());
+        if (request.size() <= 100) {
+            listQuery(request);
+            return;
+        }
+        for (int i = 0; i < Math.ceil(request.size()/100); i++) {
+            List<RecipeListQueryReqTO> collect = request.stream().skip(100 * i).limit(100).collect(Collectors.toList());
+            listQuery(collect);
+            if(request.size() < 100){
+                return;
+            }
+        }
+
+    }
 
     public void listQuery(List<RecipeListQueryReqTO> request) {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
@@ -163,7 +182,7 @@ public class RecipeToHisService {
         try {
             RecipeListQueryResTO response = hisService.listQuery(request);
             EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
-            IRecipeAuditService recipeAuditService= RecipeAuditAPI.getService(IRecipeAuditService.class,"recipeAuditServiceImpl");
+            IRecipeAuditService recipeAuditService = RecipeAuditAPI.getService(IRecipeAuditService.class, "recipeAuditServiceImpl");
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
             LOGGER.info("listQuery response={}", JSONUtils.toString(response));
             if (null == response || null == response.getMsgCode() || CollectionUtils.isEmpty(response.getData())) {
@@ -176,7 +195,7 @@ public class RecipeToHisService {
             Recipe recipe;
             Map<String, EmploymentDTO> employmentMap = Maps.newHashMap();
             EmploymentDTO employmentDTO;
-            Map<String,Object> checkParam = Maps.newHashMap();
+            Map<String, Object> checkParam = Maps.newHashMap();
             if (list.size() > 0) {
                 for (QueryRepTO rep : list) {
                     Integer isPay = Integer.valueOf(rep.getIsPay());
@@ -192,40 +211,40 @@ public class RecipeToHisService {
                             finishList.add(rep.getRecipeNo());
                         }
                         //连云港二院处理
-                        if (StringUtils.isNotEmpty(rep.getAuditDoctorNo())){
+                        if (StringUtils.isNotEmpty(rep.getAuditDoctorNo())) {
                             recipe = recipeDAO.getByRecipeCodeAndClinicOrgan(rep.getRecipeNo(), organId);
-                            if (recipe != null && recipe.getChecker() == null){
+                            if (recipe != null && recipe.getChecker() == null) {
                                 //审核医生信息处理
-                                employmentDTO = employmentMap.get(rep.getRecipeNo()+organId);
+                                employmentDTO = employmentMap.get(rep.getRecipeNo() + organId);
                                 if (null == employmentDTO) {
                                     employmentDTO = employmentService.getByJobNumberAndOrganId(
                                             rep.getAuditDoctorNo(), organId);
-                                    employmentMap.put(rep.getRecipeNo()+organId, employmentDTO);
+                                    employmentMap.put(rep.getRecipeNo() + organId, employmentDTO);
                                 }
                                 if (null != employmentDTO) {
                                     recipe.setChecker(employmentDTO.getDoctorId());
                                     recipeDAO.update(recipe);
                                     //生成药师电子签名
-                                    checkParam.put("recipeId",recipe.getRecipeId());
+                                    checkParam.put("recipeId", recipe.getRecipeId());
                                     //审核成功
-                                    checkParam.put("result",1);
-                                    checkParam.put("checkOrgan",organId);
-                                    checkParam.put("checker",recipe.getChecker());
+                                    checkParam.put("result", 1);
+                                    checkParam.put("checkOrgan", organId);
+                                    checkParam.put("checker", recipe.getChecker());
                                     //是否是线下药师审核标记
-                                    checkParam.put("hosAuditFlag",1);
+                                    checkParam.put("hosAuditFlag", 1);
                                     recipeAuditService.saveCheckResult(checkParam);
                                     LOGGER.info("线下审方生成线上药师电子签名--end");
                                 } else {
                                     LOGGER.warn("listQuery 审核医生[{}]在平台没有执业点", rep.getAuditDoctorName());
                                 }
-                            }else {
-                                LOGGER.warn("listQuery 查询不到未审核处方单,organId={},recipeCode={}",organId,rep.getRecipeNo());
+                            } else {
+                                LOGGER.warn("listQuery 查询不到未审核处方单,organId={},recipeCode={}", organId, rep.getRecipeNo());
                             }
                         }
                     }
                 }
-            } else{
-                LOGGER.warn("listQuery MsgCode存在查询不到未审核处方单,organId={},recipeCode={}",organId);
+            } else {
+                LOGGER.warn("listQuery MsgCode存在查询不到未审核处方单,organId={},recipeCode={}", organId);
             }
             if (CollectionUtils.isNotEmpty(payList)) {
                 HisCallBackService.havePayRecipesFromHis(payList, organId);
@@ -277,7 +296,6 @@ public class RecipeToHisService {
         }
         return null;
     }
-
 
 
     public Boolean drugTakeChange(DrugTakeChangeReqTO request) {
@@ -342,14 +360,14 @@ public class RecipeToHisService {
                     if (StringUtils.isNotEmpty(drugItemCode)) {
                         drugInfo.setDrugItemCode(drugItemCode);
                     }
-                }catch (Exception e){
+                } catch (Exception e) {
                     LOGGER.error("drugItemCodeMap error ", e);
                 }
             }
             //药房
-            if (a.getPharmacyId() != null){
+            if (a.getPharmacyId() != null) {
                 PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(a.getPharmacyId());
-                if (pharmacyTcm != null){
+                if (pharmacyTcm != null) {
                     drugInfo.setPharmacyCode(pharmacyTcm.getPharmacyCode());
                     drugInfo.setPharmacy(pharmacyTcm.getPharmacyName());
                 }
@@ -372,17 +390,18 @@ public class RecipeToHisService {
         return response;
     }
 
-    public HisResponseTO recipeAudit(RecipeAuditReqTO request){
+    public HisResponseTO recipeAudit(RecipeAuditReqTO request) {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.recipeAudit(request);
     }
 
     /**
      * 武昌模块 推送his电子病历
+     *
      * @param request
      * @return
      */
-    public HisResponseTO<DocIndexToHisResTO> docIndexToHis(DocIndexToHisReqTO request){
+    public HisResponseTO<DocIndexToHisResTO> docIndexToHis(DocIndexToHisReqTO request) {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("docIndexToHis request={}", JSONUtils.toString(request));
         HisResponseTO<DocIndexToHisResTO> response = null;
@@ -400,8 +419,8 @@ public class RecipeToHisService {
      * his处方校验接口
      * （HIS系统对互联网医院待新增处方进行医保校验）
      */
-    public HisResponseTO hisCheckRecipe(HisCheckRecipeReqTO request){
-        LOGGER.info("RecipeToHisService hisCheckRecipe request={}",JSONUtils.toString(request));
+    public HisResponseTO hisCheckRecipe(HisCheckRecipeReqTO request) {
+        LOGGER.info("RecipeToHisService hisCheckRecipe request={}", JSONUtils.toString(request));
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.hisCheckRecipe(request);
 
@@ -428,8 +447,8 @@ public class RecipeToHisService {
         return response;
     }
 
-    public HosPatientRecipeDTO queryHisPatientRecipeInfo(String organId, String qrInfo){
-        LOGGER.info("queryHisPatientRecipeInfo organId={},qrInfo={}", organId,qrInfo);
+    public HosPatientRecipeDTO queryHisPatientRecipeInfo(String organId, String qrInfo) {
+        LOGGER.info("queryHisPatientRecipeInfo organId={},qrInfo={}", organId, qrInfo);
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         HisResponseTO<HosPatientRecipeBean> response;
         HosPatientRecipeBean hosPatientRecipeBean;
@@ -444,7 +463,7 @@ public class RecipeToHisService {
             hosPatientRecipeDTO = ObjectCopyUtils.convert(hosPatientRecipeBean, HosPatientRecipeDTO.class);
             HosPatientDTO patientDTO = ObjectCopyUtils.convert(hosPatientRecipeBean.getPatient(), HosPatientDTO.class);
             HosRecipeDTO recipeDTO = ObjectCopyUtils.convert(hosPatientRecipeBean.getRecipe(), HosRecipeDTO.class);
-            if (recipeDTO != null){
+            if (recipeDTO != null) {
                 List<HosRecipeDetailDTO> recipeDateil = ObjectCopyUtils.convert(hosPatientRecipeBean.getRecipe().getDetailData(), HosRecipeDetailDTO.class);
                 recipeDTO.setDetailData(recipeDateil);
                 hosPatientRecipeDTO.setRecipe(recipeDTO);
@@ -474,17 +493,18 @@ public class RecipeToHisService {
         return hisService.recipeCashPreSettle(request);
     }
 
-    public HisResponseTO<MedicInsurSettleApplyResTO> recipeMedicInsurPreSettle(MedicInsurSettleApplyReqTO reqTO){
-        LOGGER.info("RecipeToHisService recipeMedicInsurPreSettle request={}",JSONUtils.toString(reqTO));
+    public HisResponseTO<MedicInsurSettleApplyResTO> recipeMedicInsurPreSettle(MedicInsurSettleApplyReqTO reqTO) {
+        LOGGER.info("RecipeToHisService recipeMedicInsurPreSettle request={}", JSONUtils.toString(reqTO));
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         return hisService.recipeMedicInsurPreSettle(reqTO);
     }
 
     /**
      * 获取患者特慢病病种列表
+     *
      * @return
      */
-    public HisResponseTO<PatientChronicDiseaseRes> findPatientChronicDiseaseList(ChronicDiseaseListReqTO request){
+    public HisResponseTO<PatientChronicDiseaseRes> findPatientChronicDiseaseList(ChronicDiseaseListReqTO request) {
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         LOGGER.info("findPatientChronicDiseaseList request={}", JSONUtils.toString(request));
         HisResponseTO<PatientChronicDiseaseRes> response = null;
