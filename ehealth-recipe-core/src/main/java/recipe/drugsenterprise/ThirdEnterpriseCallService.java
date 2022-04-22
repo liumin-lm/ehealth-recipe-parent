@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.bean.ThirdResultBean;
 import recipe.common.CommonConstant;
 import recipe.common.response.CommonResponse;
@@ -349,6 +350,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      * @param thirdResultBean
      * @param paramMap
      */
+    @LogRecord
     private void sendImpl(ThirdResultBean thirdResultBean, Map<String, Object> paramMap) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
@@ -387,8 +389,15 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             //此处为物流公司字典
             String logisticsCompany = MapValueUtil.getString(paramMap, "logisticsCompany");
             String trackingNumber = MapValueUtil.getString(paramMap, "trackingNumber");
+            //药店或者站点名称
+            String drugStoreName = MapValueUtil.getString(paramMap, "drugStoreName");
+            String drugStoreCode = MapValueUtil.getString(paramMap, "drugStoreCode");
+
             orderAttr.put("logisticsCompany", StringUtils.isEmpty(logisticsCompany) ? null : Integer.valueOf(logisticsCompany));
             orderAttr.put("trackingNumber", trackingNumber);
+            orderAttr.put("drugStoreName", drugStoreName);
+            orderAttr.put("drugStoreCode", drugStoreCode);
+
             //BUG#50679 【电子处方】配送中的订单详情页展示了完成时间 配送中不需要调用完成订单的接口
             //orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), orderAttr);
             RecipeResultBean resultBean = orderService.updateOrderInfo(recipe.getOrderCode(), orderAttr, null);
