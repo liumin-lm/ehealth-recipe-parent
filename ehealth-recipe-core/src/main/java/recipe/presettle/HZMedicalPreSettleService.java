@@ -9,6 +9,7 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.MedicalPreSettleReqNTO;
 import com.ngari.his.recipe.mode.RecipeMedicalPreSettleInfo;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
+import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
@@ -32,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
+import recipe.client.DepartClient;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
@@ -78,7 +80,9 @@ public class HZMedicalPreSettleService implements IRecipePreSettleService {
             }
             request.setDoctorId(recipe.getDoctor() + "");
             request.setDoctorName(recipe.getDoctorName());
-            request.setDepartId(recipe.getDepart() + "");
+            DepartClient departClient = AppContextHolder.getBean("departClient", DepartClient.class);
+            DepartmentDTO departmentByDepart = departClient.getDepartmentByDepart(recipe.getDepart());
+            request.setDepartId(departmentByDepart.getCode());
             //参保地区行政区划代码
             request.setInsuredArea(MapValueUtil.getString(extInfo, "insuredArea"));
             IConfigurationCenterUtilsService configService = BaseAPI.getService(IConfigurationCenterUtilsService.class);
