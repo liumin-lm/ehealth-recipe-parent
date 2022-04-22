@@ -45,6 +45,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
@@ -1900,6 +1901,7 @@ public class RecipeListService extends RecipeBaseService {
      * @return
      */
     @RpcService
+    @LogRecord
     public List<Map<String, Object>> findRecipesForDoctorByTapstatusNew(Map<String, Integer> params) {
         if (params.get("doctorId") == null) {
             throw new DAOException("findRecipesForDoctor doctorId不允许为空");

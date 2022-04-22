@@ -41,6 +41,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.bean.ThirdResultBean;
 import recipe.common.CommonConstant;
 import recipe.common.response.CommonResponse;
@@ -349,6 +350,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
      * @param thirdResultBean
      * @param paramMap
      */
+    @LogRecord
     private void sendImpl(ThirdResultBean thirdResultBean, Map<String, Object> paramMap) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
@@ -387,8 +389,15 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             //此处为物流公司字典
             String logisticsCompany = MapValueUtil.getString(paramMap, "logisticsCompany");
             String trackingNumber = MapValueUtil.getString(paramMap, "trackingNumber");
+            //药店或者站点名称
+            String drugStoreName = MapValueUtil.getString(paramMap, "drugStoreName");
+            String drugStoreCode = MapValueUtil.getString(paramMap, "drugStoreCode");
+
             orderAttr.put("logisticsCompany", StringUtils.isEmpty(logisticsCompany) ? null : Integer.valueOf(logisticsCompany));
             orderAttr.put("trackingNumber", trackingNumber);
+            orderAttr.put("drugStoreName", drugStoreName);
+            orderAttr.put("drugStoreCode", drugStoreCode);
+
             //BUG#50679 【电子处方】配送中的订单详情页展示了完成时间 配送中不需要调用完成订单的接口
             //orderService.finishOrder(recipe.getOrderCode(), recipe.getPayMode(), orderAttr);
             RecipeResultBean resultBean = orderService.updateOrderInfo(recipe.getOrderCode(), orderAttr, null);
@@ -688,8 +697,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             RecipeResultBean result = orderService.updateOrderInfo(recipe.getOrderCode(), orderAttrMap, null);
             RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
             RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-            if(Objects.nonNull(order)){
-                stateManager.updateOrderState(order.getOrderId(),OrderStateEnum.PROCESS_STATE_CANCELLATION,OrderStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
+            if (Objects.nonNull(order)) {
+                stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_TIMEOUT_NOT_MEDICINE);
             }
             if (RecipeResultBean.FAIL == result.getCode()) {
                 code = ErrorCode.SERVICE_ERROR;
@@ -962,7 +971,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             if (rs) {
                 RecipeOrder order = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                 orderService.cancelOrderByCode(recipe.getOrderCode(), OrderStatusConstant.CANCEL_AUTO);
-                if(Objects.nonNull(order)) {
+                if (Objects.nonNull(order)) {
                     stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_DOCTOR_REPEAL);
                 }
                 RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.NO_DRUG, "到店取药失败，原因:" + MapValueUtil.getString(paramMap, "reason"));
@@ -1720,8 +1729,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 if (recipe.getClinicOrgan() == 1003041
                         && Integer.valueOf(433).equals(recipeOrder.getEnterpriseId())
                         && recipe.getRecipeType() == 3
-                        && decoctionIdList.contains(recipeExtend.getDecoctionId())){
-                        continue;
+                        && decoctionIdList.contains(recipeExtend.getDecoctionId())) {
+                    continue;
                 }
             } catch (Exception e) {
                 LOGGER.error("个性化处理 e", e);
@@ -1768,6 +1777,13 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 orderDetailBean.setPatientName(convertParame(patient.getPatientName()));
                 orderDetailBean.setPatientTel(convertParame(patient.getMobile()));
                 orderDetailBean.setPatientAddress(convertParame(patient.getFullHomeArea()));
+                orderDetailBean.setBirthday(patient.getBirthday());
+                orderDetailBean.setSexCode(patient.getPatientSex());
+                try {
+                    orderDetailBean.setSexName(DictionaryController.instance().get("eh.base.dictionary.Gender").getText(patient.getPatientSex()));
+                } catch (ControllerException e) {
+                    e.printStackTrace();
+                }
             }
             orderDetailBean.setPatientNumber(convertParame(recipe.getPatientID()));
 
@@ -1924,6 +1940,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                     LOGGER.warn("ThirdEnterpriseCallService.downLoadRecipes:处方细节ID为{}.", recipedetail.getRecipeDetailId(), e);
                 }
                 drugList.setMemo(convertParame(recipedetail.getMemo()));
+                drugList.setUseDoseUnit(convertParame(recipedetail.getUseDoseUnit()));
                 drugLists.add(drugList);
             }
             orderDetailBean.setDrugList(drugLists);
