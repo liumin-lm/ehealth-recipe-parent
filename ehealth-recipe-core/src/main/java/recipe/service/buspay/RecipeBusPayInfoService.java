@@ -465,9 +465,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                         simpleBusObject.setDoctorName(recipeBean.getDoctorName());
                     }
                 }
-                DepartClient departClient = AppContextHolder.getBean("departClient", DepartClient.class);
-                DepartmentDTO departmentByDepart = departClient.getDepartmentByDepart(recipeBean.getDepart());
-                simpleBusObject.setDepartId(departmentByDepart.getCode());
+
                 // 默认false
                 simpleBusObject.setIsTeams("false");
             } else {
@@ -528,7 +526,9 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 //添加字段
                 if (null != recipeBean.getDepart()) {
                     Integer departId = recipeBean.getDepart();
-                    simpleBusObject.setDepartId(departId.toString());
+                    DepartClient departClient = AppContextHolder.getBean("departClient", DepartClient.class);
+                    DepartmentDTO departmentByDepart = departClient.getDepartmentByDepart(recipeBean.getDepart());
+                    simpleBusObject.setDepartId(departmentByDepart.getCode());
                     String departName = departmentService.getNameById(departId);
                     simpleBusObject.setDepartName(StringUtils.isNotEmpty(departName) ? departName : "");
                 }
