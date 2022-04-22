@@ -21,6 +21,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
 import org.hibernate.StatelessSession;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
 import recipe.dao.bean.DrugListAndSaleDrugList;
 import recipe.util.LocalStringUtil;
@@ -37,7 +39,7 @@ import java.util.Map;
 @RpcSupportDAO
 public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDrugList>
         implements DBDictionaryItemLoader<SaleDrugList> {
-
+    private static final Logger LOGGER = LoggerFactory.getLogger(SaleDrugListDAO.class);
     private static final Integer ALL_DRUG_FLAG = 9;
 
     public SaleDrugListDAO() {
@@ -305,16 +307,16 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         if (!StringUtils.isEmpty(producer)) {
                             hql.append(" and d.producer like :producer");
                         }
-                        List<Integer> listOrgan = new ArrayList<>();
+//                        List<Integer> listOrgan = new ArrayList<>();
                         DrugsEnterpriseDAO dao = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
                         DrugsEnterprise drugsEnterprise = dao.get(organId);
-                        if (!ObjectUtils.isEmpty(drugsEnterprise.getOrganId())){
-                            listOrgan.add(drugsEnterprise.getOrganId());
-//                        hql.append(" and ( d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
-                            hql.append(" and ( d.sourceOrgan=0 or d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
-                        }else {
-                            hql.append(" and ( d.sourceOrgan=0 or d.sourceOrgan is null  ) ");
-                        }
+//                        if (!ObjectUtils.isEmpty(drugsEnterprise.getOrganId())){
+//                            listOrgan.add(drugsEnterprise.getOrganId());
+////                        hql.append(" and ( d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
+//                            hql.append(" and ( d.sourceOrgan=0 or d.sourceOrgan is null or d.sourceOrgan in:organIds ) ");
+//                        }else {
+//                            hql.append(" and ( d.sourceOrgan=0 or d.sourceOrgan is null  ) ");
+//                        }
 
                         if (!ObjectUtils.isEmpty(type)) {
                             hql.append(" and d.drugType =:drugType");
@@ -350,6 +352,7 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         }else{
                             hql.append(" and d.status=1 order by d.drugId desc");
                         }
+                        LOGGER.info("querySaleDrugListByOrganIdAndKeyword hql={}", hql.toString());
                         Query countQuery = ss.createQuery("select count(*) " + hql.toString());
                         if (!StringUtils.isEmpty(drugClass)) {
                             countQuery.setParameter("drugClass", drugClass + "%");
@@ -357,9 +360,9 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         if (!StringUtils.isEmpty(producer)) {
                             countQuery.setParameter("producer", "%"+producer + "%");
                         }
-                        if (!ObjectUtils.isEmpty(drugsEnterprise.getOrganId())){
-                            countQuery.setParameterList("organIds",listOrgan);
-                        }
+//                        if (!ObjectUtils.isEmpty(drugsEnterprise.getOrganId())){
+//                            countQuery.setParameterList("organIds",listOrgan);
+//                        }
                         if (!ObjectUtils.isEmpty(type)) {
                             countQuery.setParameter("drugType", type);
                         }
@@ -387,9 +390,9 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
                         if (!StringUtils.isEmpty(producer)) {
                             query.setParameter("producer", "%"+producer + "%");
                         }
-                        if (!ObjectUtils.isEmpty(drugsEnterprise.getOrganId())){
-                            query.setParameterList("organIds",listOrgan);
-                        }
+//                        if (!ObjectUtils.isEmpty(drugsEnterprise.getOrganId())){
+//                            query.setParameterList("organIds",listOrgan);
+//                        }
                         if (ObjectUtils.nullSafeEquals(status, 0)
                                 || ObjectUtils.nullSafeEquals(status, 1)
                                 || ObjectUtils.nullSafeEquals(status, 9)) {
