@@ -80,4 +80,9 @@ public class RedisManager extends BaseManager {
         return map.get(namePdf);
     }
 
+    public void getConsult(Integer consultId) {
+        String consult = redisClient.getMapToValue(CacheConstant.KEY_CONSULT_REGISTER_ID, consultId.toString());
+        logger.warn("RedisManager getConsult  consult={}", consult);
+    }
+
 }

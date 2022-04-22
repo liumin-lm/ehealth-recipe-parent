@@ -15,7 +15,6 @@ import org.springframework.data.redis.serializer.SerializationUtils;
 import org.springframework.util.CollectionUtils;
 import redis.clients.jedis.Protocol;
 import redis.clients.util.SafeEncoder;
-import org.springframework.util.CollectionUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.util.*;
@@ -537,6 +536,10 @@ public class RedisClient {
         if (null != timeout) {
             setex(key, timeout);
         }
+    }
+
+    public <T> T getMapToValue(String key, String field) {
+        return (T) redisTemplate.opsForHash().get(key, field);
     }
 
     /**

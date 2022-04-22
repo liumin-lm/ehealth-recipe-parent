@@ -132,8 +132,14 @@ public class CacheConstant {
      * 醫保結算申請key
      */
     public static final String KEY_MEDIC_INSURSETTLE_APPlY = "MEDIC_INSURSETTLE_APPlY_";
-
+    /**
+     * pdf补充数据坐标key
+     */
     public static final String KEY_RECIPE_LABEL = "KEY_RECIPE_LABEL_";
+    /**
+     * 咨询挂号序号数据
+     */
+    public static final String KEY_CONSULT_REGISTER_ID = "CONSULT_REGISTER_ID";
 
     /**
      * 支付退款回调分布式锁
