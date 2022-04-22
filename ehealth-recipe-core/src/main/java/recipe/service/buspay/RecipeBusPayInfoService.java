@@ -462,6 +462,7 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                     EmploymentDTO employment = employmentService.getPrimaryEmpByDoctorId(recipeBean.getDoctor());
                     if (null != employment) {
                         simpleBusObject.setDoctorId(employment.getJobNumber());
+                        simpleBusObject.setDoctorName(recipeBean.getDoctorName());
                     }
                 }
                 DepartClient departClient = AppContextHolder.getBean("departClient", DepartClient.class);
