@@ -23,4 +23,10 @@ public interface ITextService {
      */
     void updateAddressPdfExecute(Integer recipeId);
 
+    /**
+     * 获取咨询数据
+     *
+     * @param consultId
+     */
+    void getConsult(Integer consultId);
 }

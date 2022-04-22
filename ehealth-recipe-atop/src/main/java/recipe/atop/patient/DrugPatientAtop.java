@@ -6,6 +6,8 @@ import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.vo.HospitalDrugListReqVO;
+import com.ngari.recipe.vo.HospitalDrugListVO;
 import com.ngari.recipe.vo.SearchDrugReqVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
@@ -24,7 +26,7 @@ import java.util.List;
  * @author： whf
  * @date： 2021-08-23 18:05
  */
-@RpcBean(value = "drugPatientAtop")
+@RpcBean(value = "drugPatientAtop", mvc_authentication = false)
 public class DrugPatientAtop extends BaseAtop {
 
     @Resource
@@ -79,6 +81,11 @@ public class DrugPatientAtop extends BaseAtop {
     public Boolean getOrderStockFlag(List<Integer> recipeIds,Integer enterpriseId,String giveModeKey) {
         validateAtop(recipeIds,giveModeKey);
         return stockBusinessService.getOrderStockFlag(recipeIds, enterpriseId,giveModeKey);
+    }
+
+    @RpcService
+    public List<HospitalDrugListVO> findHospitalDrugList(HospitalDrugListReqVO hospitalDrugListReqVO){
+        return drugBusinessService.findHospitalDrugList(hospitalDrugListReqVO);
     }
 
 }

@@ -19,4 +19,9 @@ public class EmrDetailValueDTO {
      * 参数代码
      */
     private String code;
+
+    /**
+     * 类型 0：默认老数据无法区分类型， 1：西医诊断，2：中医诊断
+     */
+    private Integer type;
 }

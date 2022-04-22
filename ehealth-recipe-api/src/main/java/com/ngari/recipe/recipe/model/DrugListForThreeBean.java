@@ -2,7 +2,7 @@ package com.ngari.recipe.recipe.model;
 
 import java.io.Serializable;
 
-public class DrugListForThreeBean implements Serializable{
+public class DrugListForThreeBean implements Serializable {
     private static final long serialVersionUID = 7134500240084312838L;
 
     private String drugCode;
@@ -15,6 +15,7 @@ public class DrugListForThreeBean implements Serializable{
     private String drugUnit;
     private String pack;
     private String useDose;
+    private String useDoseUnit;
     private String drugFee;
     private String medicalFee;
     private String uesDays;
@@ -26,6 +27,14 @@ public class DrugListForThreeBean implements Serializable{
     private String drugTotalFee;
     private String memo;
     private String drugForm;
+
+    public String getUseDoseUnit() {
+        return useDoseUnit;
+    }
+
+    public void setUseDoseUnit(String useDoseUnit) {
+        this.useDoseUnit = useDoseUnit;
+    }
 
     public String getDrugCode() {
         return drugCode;

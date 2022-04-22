@@ -10,7 +10,6 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.util.JSONUtils;
-import eh.base.constant.BussTypeConstant;
 import eh.cdr.api.service.IDocIndexService;
 import eh.cdr.api.vo.*;
 import eh.cdr.api.vo.request.RecipeInfoReq;
@@ -273,6 +272,17 @@ public class DocIndexClient extends BaseClient {
         logger.info("DocIndexClient addMedicalInfo end docId={}", docId);
     }
 
+    /**
+     * 显示
+     *
+     * @param bussId
+     * @param docStatus
+     */
+    @LogRecord
+    public void updateStatusByBussIdBussType(Integer bussId, Integer docStatus) {
+        docIndexService.updateStatusByBussIdBussType(bussId, BUSS_TYPE_RECIPE, docStatus);
+    }
+
 
     /**
      * 组织电子病历明细数据 用于调用保存接口 主要为了兼容老版本
@@ -350,6 +360,7 @@ public class DocIndexClient extends BaseClient {
      */
     private EmrDetailDTO getMedicalInfo(List<EmrConfigRes> detailList) {
         EmrDetailDTO emrDetail = new EmrDetailDTO();
+        List<EmrDetailValueDTO> diseaseClassify = new ArrayList<>();
         for (EmrConfigRes detailDTO : detailList) {
             if (null == detailDTO) {
                 continue;
@@ -398,51 +409,64 @@ public class DocIndexClient extends BaseClient {
             if (!RecipeEmrComment.MULTI_SEARCH.equals(type)) {
                 continue;
             }
-            List<EmrDetailValueDTO> values = JSON.parseArray(detailDTO.getValue(), EmrDetailValueDTO.class);
-            if (CollectionUtils.isEmpty(values)) {
-                continue;
-            }
-            StringBuilder names = new StringBuilder();
-            StringBuilder ids = new StringBuilder();
-            if (RecipeEmrComment.DIAGNOSIS.equals(detailDTO.getKey())) {
-                values.forEach(b -> {
-                    names.append(b.getName()).append(ByteUtils.SEMI_COLON_EN);
-                    ids.append(b.getCode()).append(ByteUtils.SEMI_COLON_EN);
-                });
-                if (!ValidateUtil.isEmpty(names)) {
-                    emrDetail.setOrganDiseaseName(ByteUtils.subString(names));
-                }
-                if (!ValidateUtil.isEmpty(ids)) {
-                    emrDetail.setOrganDiseaseId(ByteUtils.subString(ids));
-                }
-                emrDetail.setDiseaseValue(values);
-                continue;
-            }
-            if (RecipeEmrComment.TCM_SYNDROME.equals(detailDTO.getKey())) {
-                values.forEach(b -> {
-                    names.append(b.getName()).append(ByteUtils.SEMI_COLON_EN);
-                    ids.append(b.getCode()).append(ByteUtils.SEMI_COLON_EN);
-                });
-                if (!ValidateUtil.isEmpty(names)) {
-                    emrDetail.setSymptomName(ByteUtils.subString(names));
-                }
-                if (!ValidateUtil.isEmpty(ids)) {
-                    emrDetail.setSymptomId(ByteUtils.subString(ids));
-                }
-                emrDetail.setSymptomValue(values);
-            }
+            multiSearch(detailDTO, emrDetail, diseaseClassify);
+        }
+        //存在类型诊断，则优先返回类型诊断
+        if (!CollectionUtils.isEmpty(diseaseClassify)) {
+            emrDetail.setDiseaseValue(diseaseClassify);
         }
         return emrDetail;
     }
 
     /**
-     * 显示
-     * @param bussId
-     * @param docStatus
+     * 查询电子病例字段返回
+     * 诊断，证候等字段处理
      */
-    @LogRecord
-    public void updateStatusByBussIdBussType(Integer bussId,Integer docStatus){
-        docIndexService.updateStatusByBussIdBussType(bussId, BUSS_TYPE_RECIPE,docStatus);
+    private void multiSearch(EmrConfigRes detailDTO, EmrDetailDTO emrDetail, List<EmrDetailValueDTO> diseaseClassify) {
+        List<EmrDetailValueDTO> values = JSON.parseArray(detailDTO.getValue(), EmrDetailValueDTO.class);
+        if (CollectionUtils.isEmpty(values)) {
+            return;
+        }
+        StringBuilder names = new StringBuilder();
+        StringBuilder ids = new StringBuilder();
+        if (RecipeEmrComment.TCM_SYNDROME.equals(detailDTO.getKey())) {
+            values.forEach(b -> {
+                names.append(b.getName()).append(ByteUtils.SEMI_COLON_EN);
+                ids.append(b.getCode()).append(ByteUtils.SEMI_COLON_EN);
+            });
+            if (!ValidateUtil.isEmpty(names)) {
+                emrDetail.setSymptomName(ByteUtils.subString(names));
+            }
+            if (!ValidateUtil.isEmpty(ids)) {
+                emrDetail.setSymptomId(ByteUtils.subString(ids));
+            }
+            emrDetail.setSymptomValue(values);
+            return;
+        }
+        if (RecipeEmrComment.DIAGNOSIS.equals(detailDTO.getKey())) {
+            values.forEach(b -> {
+                b.setType(0);
+                names.append(b.getName()).append(ByteUtils.SEMI_COLON_EN);
+                ids.append(b.getCode()).append(ByteUtils.SEMI_COLON_EN);
+            });
+            if (!ValidateUtil.isEmpty(names)) {
+                emrDetail.setOrganDiseaseName(ByteUtils.subString(names));
+            }
+            if (!ValidateUtil.isEmpty(ids)) {
+                emrDetail.setOrganDiseaseId(ByteUtils.subString(ids));
+            }
+            emrDetail.setDiseaseValue(values);
+            return;
+        }
+        if (RecipeEmrComment.DIAGNOSIS_WESTERN.equals(detailDTO.getKey())) {
+            Optional.ofNullable(values).orElseGet(Collections::emptyList).forEach(a -> a.setType(1));
+            diseaseClassify.addAll(values);
+            return;
+        }
+        if (RecipeEmrComment.DIAGNOSIS_TCM.equals(detailDTO.getKey())) {
+            Optional.ofNullable(values).orElseGet(Collections::emptyList).forEach(a -> a.setType(2));
+            diseaseClassify.addAll(values);
+        }
     }
 
 }

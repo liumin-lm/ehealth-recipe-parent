@@ -10,6 +10,7 @@ import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
+import eh.cdr.constant.RecipeStatusConstant;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
@@ -18,15 +19,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.aop.LogRecord;
 import recipe.client.DocIndexClient;
 import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
 import recipe.common.CommonConstant;
-import recipe.dao.HisRecipeDAO;
-import recipe.dao.HisRecipeDataDelDAO;
-import recipe.dao.HisRecipeDetailDAO;
-import recipe.dao.HisRecipeExtDAO;
+import recipe.dao.*;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.util.JsonUtil;
@@ -64,7 +63,10 @@ public class HisRecipeManager extends BaseManager {
     private RevisitClient revisitClient;
     @Autowired
     private HisRecipeDataDelDAO hisRecipeDataDelDAO;
-
+    @Autowired
+    private RecipeDAO recipeDAO;
+    @Autowired
+    private RecipeManager recipeManager;
 
     /**
      * 获取患者信息
@@ -591,8 +593,8 @@ public class HisRecipeManager extends BaseManager {
     /**
      * 用药提醒的线下处方 存在患者的数据 转换药品为线上数据
      */
-    public List<RecipeInfoDTO> queryRemindRecipe(Integer organId) throws Exception {
-        List<RecipeInfoDTO> recipeInfoList = offlineRecipeClient.queryRemindRecipe(organId);
+    public List<RecipeInfoDTO> queryRemindRecipe(Integer organId, Integer pageNo) throws Exception {
+        List<RecipeInfoDTO> recipeInfoList = offlineRecipeClient.queryRemindRecipe(organId, pageNo);
         if (CollectionUtils.isEmpty(recipeInfoList)) {
             return null;
         }
@@ -623,5 +625,34 @@ public class HisRecipeManager extends BaseManager {
             recipeList.add(a);
         });
         return recipeList;
+    }
+
+    /**
+     * 撤销线下处方
+     *
+     * @param organId
+     * @param recipeCode
+     * @return
+     */
+    @LogRecord
+    public HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode) {
+        HisResponseTO hisResponseTO = new HisResponseTO();
+        try {
+            List<Recipe> recipes = recipeManager.findAlreadyPayRecipeByOrganIdAndRecipeCode(organId, recipeCode);
+            if (!org.springframework.util.CollectionUtils.isEmpty(recipes)) {
+                hisResponseTO.setMsgCode("-1");
+                hisResponseTO.setMsg("处方已经支付，则不允许取消");
+            }
+            recipes.forEach(recipe -> {
+                recipe.setStatus(RecipeStatusConstant.REVOKE);
+                recipeDAO.update(recipe);
+            });
+        } catch (Exception e) {
+            hisResponseTO.setMsgCode("-1");
+            hisResponseTO.setMsg("处方" + recipeCode + "撤销失败,原因是：" + e.getMessage());
+            e.printStackTrace();
+            logger.error("abolishOffLineRecipe error", e);
+        }
+        return hisResponseTO;
     }
 }
