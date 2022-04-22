@@ -26,7 +26,7 @@ import java.util.List;
  * @author： whf
  * @date： 2021-08-23 18:05
  */
-@RpcBean(value = "drugPatientAtop")
+@RpcBean(value = "drugPatientAtop", mvc_authentication = false)
 public class DrugPatientAtop extends BaseAtop {
 
     @Resource
@@ -83,7 +83,7 @@ public class DrugPatientAtop extends BaseAtop {
         return stockBusinessService.getOrderStockFlag(recipeIds, enterpriseId,giveModeKey);
     }
 
-    @RpcService(mvcDisabled = true)
+    @RpcService
     public List<HospitalDrugListVO> findHospitalDrugList(HospitalDrugListReqVO hospitalDrugListReqVO){
         return drugBusinessService.findHospitalDrugList(hospitalDrugListReqVO);
     }

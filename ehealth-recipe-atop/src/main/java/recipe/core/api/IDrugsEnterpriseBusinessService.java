@@ -112,4 +112,9 @@ public interface IDrugsEnterpriseBusinessService {
      * @return
      */
     boolean retryPushRecipeOrder(Integer recipeId);
+
+    /**
+     * 药企推送失败 的处方重新推送定时任务
+     */
+    void rePushRecipeToDrugsEnterprise();
 }

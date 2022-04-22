@@ -570,7 +570,7 @@ public class RecipeHisService extends RecipeBaseService {
      * @param recipeCodes
      * @param organId
      */
-    @RpcService
+    @RpcService(timeout = 300)
     @LogRecord
     public void recipeListQuery(List<String> recipeCodes, Integer organId) {
         if (isHisEnable(organId)) {

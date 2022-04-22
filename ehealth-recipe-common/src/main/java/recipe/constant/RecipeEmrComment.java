@@ -26,6 +26,15 @@ public class RecipeEmrComment {
      * 诊断
      */
     public static final String DIAGNOSIS = "diagnosis";
+    /**
+     * 中医诊断
+     */
+    public static final String DIAGNOSIS_TCM = "tcmDiagnosis";
+    /**
+     * 西医诊断
+     */
+    public static final String DIAGNOSIS_WESTERN = "westernDiagnosis";
+
 
     /**
      * 主诉
