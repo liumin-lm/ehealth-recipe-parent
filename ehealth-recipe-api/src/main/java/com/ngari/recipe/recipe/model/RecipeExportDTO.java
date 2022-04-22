@@ -61,6 +61,17 @@ public class RecipeExportDTO implements Serializable {
     private String recipeCode;
     @ItemProperty(alias = "处方业务类型  1 门诊处方  2  复诊处方  3 其他处方")
     private Integer recipeBusinessType;
+    @ItemProperty(alias = "煎法")
+    private String decoctionId;
+
+    @Column(name = "decoctionId")
+    public String getDecoctionId() {
+        return decoctionId;
+    }
+
+    public void setDecoctionId(String decoctionId) {
+        this.decoctionId = decoctionId;
+    }
 
     @Column(name = "clinicOrgan")
     public Integer getClinicOrgan() {

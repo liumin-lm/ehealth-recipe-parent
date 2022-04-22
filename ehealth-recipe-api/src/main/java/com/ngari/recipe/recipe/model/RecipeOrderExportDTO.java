@@ -76,6 +76,17 @@ public class RecipeOrderExportDTO implements Serializable {
     @ItemProperty(alias = "发药时间")
     private Date dispensingTime;
 
+    @ItemProperty(alias = "药店或者站点名称")
+    private String drugStoreName;
+
+    @Column(name = "drugStoreName")
+    public String getDrugStoreName() {
+        return drugStoreName;
+    }
+
+    public void setDrugStoreName(String drugStoreName) {
+        this.drugStoreName = drugStoreName;
+    }
 
     @Column(name = "RecipeIdList")
     public String getRecipeIdList() {

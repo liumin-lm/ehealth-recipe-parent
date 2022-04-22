@@ -1682,7 +1682,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     private StringBuilder generateRecipeMsgHQLforStatistics(RecipesQueryVO recipesQueryVO) {
         StringBuilder hql = new StringBuilder("select r.recipeId,r.patientName,r.Mpiid mpiId,r.organName,r.depart,r.doctor,r.organDiseaseName," +
-                "o.recipeFee,r.totalMoney,r.checker,r.checkDateYs,r.fromflag,r.status,o.payTime, r.doctorName, r.giveUser, o.dispensingTime, sum(cr.useTotalDose) sumDose ,o.send_type sendType ,o.outTradeNo ,o.cashAmount,o.fundAmount,o.orderType,r.recipeType,r.bussSource,r.recipeCode,ce.recipe_business_type as recipeBusinessType " +
+                "o.recipeFee,r.totalMoney,r.checker,r.checkDateYs,r.fromflag,r.status,o.payTime, r.doctorName, r.giveUser, o.dispensingTime, sum(cr.useTotalDose) sumDose ,o.send_type sendType ,o.outTradeNo ,o.cashAmount,o.fundAmount,o.orderType,r.recipeType,r.bussSource,r.recipeCode,ce.recipe_business_type as recipeBusinessType, " +
                 "o.drugStoreName,o.enterpriseId " +
                 "from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode left join cdr_recipedetail cr on cr.recipeId = r.recipeId left join cdr_recipe_ext ce on ce.recipeId = r.recipeId and cr.status =1  where 1=1 ");
         //默认查询所有
@@ -1822,10 +1822,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
 
     private StringBuilder generateRecipeOderHQLforStatisticsN(RecipesQueryVO recipesQueryVO) {
         StringBuilder hql = new StringBuilder("select ");
-        hql.append("o.orderId,o.address1,o.address2,o.address3,o.address4,o.streetAddress,o.receiver,o.send_type,o.RecMobile,o.CreateTime,o.ExpressFee,o.OrderCode,o.Status,o.ActualPrice,o.TotalFee,o.EnterpriseId,o.ExpectSendDate,o.ExpectSendTime,o.PayFlag,o.PayTime,o.TradeNo,o.RecipeIdList,o.dispensingTime,");
+        hql.append("o.orderId,o.address1,o.address2,o.address3,o.address4,o.streetAddress,o.receiver,o.send_type,o.RecMobile,o.CreateTime,o.ExpressFee,o.OrderCode,o.Status,o.ActualPrice,o.TotalFee,o.EnterpriseId,o.ExpectSendDate,o.ExpectSendTime,o.PayFlag,o.PayTime,o.TradeNo,o.RecipeIdList,o.dispensingTime,o.drugStoreName, ");
         hql.append("r.recipeId,r.mpiid,r.patientID,r.doctor,r.organName,r.organDiseaseName,r.doctorName,r.patientName,r.status,r.depart,r.fromflag,r.giveMode,r.recipeType,r.giveUser,r.bussSource,r.recipeCode,ce.recipe_business_type as recipeBusinessType,r.clinicOrgan , ");
         hql.append("d.recipeDetailId,d.drugName,d.drugSpec,d.drugUnit,d.salePrice,d.actualSalePrice,d.saleDrugCode,d.producer,d.licenseNumber,d.useDose,d.useDoseUnit,d.usePathways,d.usingRate,d.useTotalDose,d.drugId ,d.organDrugCode ");
-//        hql.append(" ,drug.organDrugCode,drug.medicalDrugCode  ");
+        hql.append(" ,ce.decoctionId,  ");
+        hql.append(" ,drug.organDrugCode,drug.medicalDrugCode  ");
+
         hql.append(" from cdr_recipe r LEFT JOIN cdr_recipeorder o on r.orderCode=o.orderCode ");
         hql.append("LEFT JOIN cdr_recipedetail d ON r.RecipeID = d.RecipeID LEFT JOIN cdr_recipe_ext ce on ce.recipeId = r.recipeId ");
 //        hql.append("LEFT JOIN base_organdruglist drug on drug.OrganDrugCode=d.OrganDrugCode and drug.OrganID=r.clinicorgan  ");
