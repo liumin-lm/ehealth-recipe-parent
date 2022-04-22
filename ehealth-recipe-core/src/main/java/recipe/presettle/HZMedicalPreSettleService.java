@@ -143,7 +143,7 @@ public class HZMedicalPreSettleService implements IRecipePreSettleService {
                     request.setBxh(bxh);
                 }
             }
-            IBusPaySettlementFacade busPaySettlementFacade = AppContextHolder.getBean("pay.iBusPaySettlementFacade", IBusPaySettlementFacade.class);
+            IBusPaySettlementFacade busPaySettlementFacade = AppContextHolder.getBean("easypay.busPaySettlement", IBusPaySettlementFacade.class);
 
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
             try {

@@ -31,5 +31,8 @@ public class TextService implements ITextService {
         createPdfFactory.updateAddressPdfExecute(recipeId);
     }
 
-
+    @Override
+    public void getConsult(Integer consultId) {
+        redisManager.getConsult(consultId);
+    }
 }

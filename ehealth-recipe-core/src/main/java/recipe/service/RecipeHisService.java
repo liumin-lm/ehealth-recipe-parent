@@ -596,7 +596,7 @@ public class RecipeHisService extends RecipeBaseService {
                 recipeListQueryReqTO.setRecipeNo(recipe.getRecipeCode());
                 requestList.add(recipeListQueryReqTO);
             }
-            service.listQuery(requestList);
+            service.listQueryV1(requestList);
         } else {
             LOGGER.error("recipeListQuery 医院HIS未启用[organId:" + organId + ",recipeIds:" + JSONUtils.toString(recipeCodes) + "]");
         }
