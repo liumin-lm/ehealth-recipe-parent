@@ -2086,9 +2086,9 @@ public class RecipeService extends RecipeBaseService {
                     recipeExtend.setDoctorIsDecoction("0");
                     if (StringUtils.isNotEmpty(recipeExtend.getDecoctionId())) {
                         DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
-                        if(decoctionWay.getGenerationisOfDecoction()){
+                        if (decoctionWay.getGenerationisOfDecoction()) {
                             recipeExtend.setDoctorIsDecoction("1");
-                        }else {
+                        } else {
                             recipeExtend.setDoctorIsDecoction("0");
                         }
                     }
@@ -2899,6 +2899,7 @@ public class RecipeService extends RecipeBaseService {
      * @param drugForms
      * @return
      */
+    @LogRecord
     @RpcService(timeout = 600000)
     public Map<String, Object> drugInfoSynMovement(Integer organId, List<String> drugForms) throws ParseException {
         Map<String, Object> hget = (Map<String, Object>) redisClient.get(KEY_THE_DRUG_SYNC + organId.toString());
@@ -5064,7 +5065,7 @@ public class RecipeService extends RecipeBaseService {
             StringBuilder ss = new StringBuilder();
             for (int i = 0; i < split.length; i++) {
                 DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-                DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i],organId);
+                DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i], organId);
                 if (ObjectUtils.isEmpty(byEnterpriseCode)) {
                     throw new DAOException(DAOException.VALUE_NEEDED, "平台根据药企编码" + split[i] + " 未找到药企");
                 } else {
@@ -5262,7 +5263,7 @@ public class RecipeService extends RecipeBaseService {
             String drugsEnterpriseIds = organDrug.getDrugsEnterpriseIds();
             for (int i = 0; i < split.length; i++) {
                 DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
-                DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i],organId);
+                DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i], organId);
                 if (ObjectUtils.isEmpty(byEnterpriseCode)) {
                     throw new DAOException(DAOException.VALUE_NEEDED, "平台根据药企编码" + split[i] + " 未找到药企");
                 } else {
@@ -6574,24 +6575,24 @@ public class RecipeService extends RecipeBaseService {
 
     /**
      * 组装上传到监管平台的中医疾病
-     * */
-    public DiseaseDTO assembleMultipleDisease(Integer organId, String diseaseIds){
-        LOGGER.info("assembleMultipleDisease organId={},diseases={}",organId,diseaseIds);
+     */
+    public DiseaseDTO assembleMultipleDisease(Integer organId, String diseaseIds) {
+        LOGGER.info("assembleMultipleDisease organId={},diseases={}", organId, diseaseIds);
         IDiseaseService diseaseService = AppContextHolder.getBean("eh.diseasService", IDiseaseService.class);
         DiseaseDTO disease = new DiseaseDTO();
         String[] diseaseIdArray = diseaseIds.split(";");
-        if(new Integer(1).equals(diseaseIdArray.length)){
+        if (new Integer(1).equals(diseaseIdArray.length)) {
             DiseaseDTO diseaseDTO = diseaseService.getDiseasByCodeAndOrganId(organId, diseaseIds);
-            LOGGER.info("assembleMultipleSymptom diseaseDTO1={}",JSONUtils.toString(diseaseDTO));
+            LOGGER.info("assembleMultipleSymptom diseaseDTO1={}", JSONUtils.toString(diseaseDTO));
             return diseaseDTO;
         }
         StringBuilder regulationOrganDiseaseId = new StringBuilder();
         StringBuilder regulationOrganDiseaseName = new StringBuilder();
         try {
-            for(String diseaseId : diseaseIdArray) {
+            for (String diseaseId : diseaseIdArray) {
                 DiseaseDTO diseaseDTO = diseaseService.getDiseasByCodeAndOrganId(organId, diseaseId);
                 LOGGER.info("assembleMultipleSymptom diseaseDTO={}", JSONUtils.toString(diseaseDTO));
-                if(null != diseaseDTO){
+                if (null != diseaseDTO) {
                     if (null != diseaseDTO.getJgDiseasId()) {
                         regulationOrganDiseaseId.append(diseaseDTO.getJgDiseasId()).append("|");
                     }
@@ -6600,15 +6601,15 @@ public class RecipeService extends RecipeBaseService {
                     }
                 }
             }
-            if(StringUtils.isNotEmpty(regulationOrganDiseaseId)){
-                disease.setJgDiseasId(regulationOrganDiseaseId.substring(0,regulationOrganDiseaseId.length()-1));
+            if (StringUtils.isNotEmpty(regulationOrganDiseaseId)) {
+                disease.setJgDiseasId(regulationOrganDiseaseId.substring(0, regulationOrganDiseaseId.length() - 1));
             }
-            if(StringUtils.isNotEmpty(regulationOrganDiseaseName)){
-                disease.setJgDiseasName(regulationOrganDiseaseName.substring(0,regulationOrganDiseaseName.length()-1));
+            if (StringUtils.isNotEmpty(regulationOrganDiseaseName)) {
+                disease.setJgDiseasName(regulationOrganDiseaseName.substring(0, regulationOrganDiseaseName.length() - 1));
             }
-            LOGGER.info("assembleMultipleSymptom symptoms={}",JSONUtils.toString(disease));
-        }catch (Exception e){
-            LOGGER.error("assembleMultipleSymptom error",e);
+            LOGGER.info("assembleMultipleSymptom symptoms={}", JSONUtils.toString(disease));
+        } catch (Exception e) {
+            LOGGER.error("assembleMultipleSymptom error", e);
         }
         return disease;
     }
