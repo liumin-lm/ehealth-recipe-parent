@@ -146,6 +146,12 @@ public class RecipeOrderBean implements Serializable {
     @ItemProperty(alias = "详细地址")
     private String address4;
 
+    @ItemProperty(alias = "社区编码")
+    private String address5;
+
+    @ItemProperty(alias = "社区名称")
+    private String address5Text;
+
     @ItemProperty(alias = "邮政编码")
     private String zipCode;
 
@@ -858,6 +864,22 @@ public class RecipeOrderBean implements Serializable {
 
     public void setAddress4(String address4) {
         this.address4 = address4;
+    }
+
+    public String getAddress5() {
+        return address5;
+    }
+
+    public void setAddress5(String address5) {
+        this.address5 = address5;
+    }
+
+    public String getAddress5Text() {
+        return address5Text;
+    }
+
+    public void setAddress5Text(String address5Text) {
+        this.address5Text = address5Text;
     }
 
     public String getZipCode() {
