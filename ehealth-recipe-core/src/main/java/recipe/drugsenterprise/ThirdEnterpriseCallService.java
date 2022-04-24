@@ -1860,6 +1860,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setCity(convertParame(city));
             orderDetailBean.setDistrict(convertParame(district));
             orderDetailBean.setStreet(convertParame(street));
+            orderDetailBean.setCommunityCode(convertParame(recipeOrder.getAddress5()));
+            orderDetailBean.setCommunityName(convertParame(recipeOrder.getAddress5Text()));
             //设置省市区街道编码
             orderDetailBean.setProvinceCode(convertParame(recipeOrder.getAddress1()) + "0000");
             orderDetailBean.setCityCode(convertParame(recipeOrder.getAddress2()) + "00");
