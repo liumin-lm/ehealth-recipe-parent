@@ -6,6 +6,8 @@ import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.vo.HospitalDrugListReqVO;
+import com.ngari.recipe.vo.HospitalDrugListVO;
 import com.ngari.recipe.vo.SearchDrugReqVO;
 
 import java.util.List;
@@ -92,4 +94,12 @@ public interface IDrugBusinessService {
      * @return
      */
     List<OrganDrugList> listOrganDrug(ListOrganDrugReq listOrganDrugReq);
+
+    /**
+     * 查询医院药品信息
+     * @param hospitalDrugListReqVO
+     * @return
+     */
+    List<HospitalDrugListVO> findHospitalDrugList(HospitalDrugListReqVO hospitalDrugListReqVO);
+
 }

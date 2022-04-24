@@ -13,6 +13,8 @@ import com.ngari.his.recipe.mode.SyncDrugListToHisReqTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
+import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.entity.DecoctionWay;
@@ -246,6 +248,21 @@ public class DrugClient extends BaseClient {
             return decoctionWay;
         }
         return code;
+    }
+
+    /**
+     * 查询医院药品信息
+     * @param hospitalDrugListReqDTO
+     * @return
+     */
+    public List<HospitalDrugListDTO> findHospitalDrugList(HospitalDrugListReqDTO hospitalDrugListReqDTO) {
+        try {
+            HisResponseTO<List<HospitalDrugListDTO>> hisResponse = recipeHisService.findHospitalDrugList(hospitalDrugListReqDTO);
+            return getResponse(hisResponse);
+        } catch (Exception e) {
+            logger.error("DrugClient findHospitalDrugList hisResponse", e);
+        }
+        return new ArrayList<>();
     }
 
     /**
