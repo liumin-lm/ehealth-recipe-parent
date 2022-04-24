@@ -673,7 +673,7 @@ public class RecipeOrderService extends RecipeBaseService {
             String operAddressId = MapValueUtil.getString(extInfo, "addressId");
             AddressDTO address = null;
             if (StringUtils.isNotEmpty(operAddressId)) {
-                address = addressService.get(Integer.parseInt(operAddressId));
+                address = addressService.getByAddressId(Integer.parseInt(operAddressId));
             } else {
                 if (!TakeMedicineWayEnum.TAKE_MEDICINE_STATION.getType().equals(takeMedicineWay)) {
                     LOGGER.info("getDefaultAddressByMpiid mpiid:{}", operMpiId);
