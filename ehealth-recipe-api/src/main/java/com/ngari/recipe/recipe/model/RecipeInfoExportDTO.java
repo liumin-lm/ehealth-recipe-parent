@@ -68,18 +68,18 @@ public class RecipeInfoExportDTO implements Serializable {
     @ItemProperty(alias = "处方业务类型  1 门诊处方  2  复诊处方  3 其他处方")
     private Integer recipeBusinessType;
 
-    @ItemProperty(alias = "药企编码")
-    private String enterpriseId;
+    @ItemProperty(alias = "药企名称")
+    private String enterpriseName;
 
     @ItemProperty(alias = "药店或者站点名称")
     private String drugStoreName;
 
-    public String getEnterpriseId() {
-        return enterpriseId;
+    public String getEnterpriseName() {
+        return enterpriseName;
     }
 
-    public void setEnterpriseId(String enterpriseId) {
-        this.enterpriseId = enterpriseId;
+    public void setEnterpriseName(String enterpriseName) {
+        this.enterpriseName = enterpriseName;
     }
 
     public String getDrugStoreName() {
