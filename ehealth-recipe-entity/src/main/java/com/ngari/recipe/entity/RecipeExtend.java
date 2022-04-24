@@ -223,6 +223,18 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "处方签名失败具体原因")
     private String signFailReason;
 
+    @ItemProperty(alias = "就诊次数")
+    private String series;
+
+    @Column(name = "series")
+    public String getSeries() {
+        return series;
+    }
+
+    public void setSeries(String series) {
+        this.series = series;
+    }
+
     @Column(name = "doctor_is_decoction")
     public String getDoctorIsDecoction() {
         return doctorIsDecoction;
