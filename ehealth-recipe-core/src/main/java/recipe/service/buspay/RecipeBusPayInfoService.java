@@ -13,10 +13,7 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.common.model.ConsultExDTO;
 import com.ngari.consult.common.service.IConsultExService;
-import com.ngari.patient.dto.AppointDepartDTO;
-import com.ngari.patient.dto.HealthCardDTO;
-import com.ngari.patient.dto.OrganConfigDTO;
-import com.ngari.patient.dto.OrganDTO;
+import com.ngari.patient.dto.*;
 import com.ngari.patient.service.*;
 import com.ngari.recipe.RecipeAPI;
 import com.ngari.recipe.common.RecipeBussResTO;
@@ -59,6 +56,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.util.ObjectUtils;
 import recipe.aop.LogRecord;
+import recipe.client.DepartClient;
 import recipe.client.IConfigurationClient;
 import recipe.client.RevisitClient;
 import recipe.dao.DrugsEnterpriseDAO;
@@ -459,7 +457,17 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 String accessToken = HztService.findSMKTokenForPay(order.getMpiId(), "hzsmk.ios");
                 simpleBusObject.setFaceToken(order.getSmkFaceToken());
                 simpleBusObject.setAccessToken(accessToken);
+                if (!ObjectUtils.isEmpty(recipeBean.getDoctor())) {
+                    EmploymentService employmentService = BasicAPI.getService(EmploymentService.class);
+                    EmploymentDTO employment = employmentService.getPrimaryEmpByDoctorId(recipeBean.getDoctor());
+                    if (null != employment) {
+                        simpleBusObject.setDoctorId(employment.getJobNumber());
+                        simpleBusObject.setDoctorName(recipeBean.getDoctorName());
+                    }
+                }
 
+                // 默认false
+                simpleBusObject.setIsTeams("false");
             } else {
                 // 杭州互联网走自费也给卡号
                 simpleBusObject.setSettleType("1");
@@ -518,7 +526,9 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
                 //添加字段
                 if (null != recipeBean.getDepart()) {
                     Integer departId = recipeBean.getDepart();
-                    simpleBusObject.setDepartId(departId.toString());
+                    DepartClient departClient = AppContextHolder.getBean("departClient", DepartClient.class);
+                    DepartmentDTO departmentByDepart = departClient.getDepartmentByDepart(recipeBean.getDepart());
+                    simpleBusObject.setDepartId(departmentByDepart.getCode());
                     String departName = departmentService.getNameById(departId);
                     simpleBusObject.setDepartName(StringUtils.isNotEmpty(departName) ? departName : "");
                 }
