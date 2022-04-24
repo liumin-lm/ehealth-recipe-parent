@@ -3,6 +3,7 @@ package recipe.business;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
+import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
@@ -23,6 +24,7 @@ import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.DrugClient;
 import recipe.client.IConfigurationClient;
 import recipe.core.api.IDrugBusinessService;
+import recipe.dao.OrganDrugListDAO;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.DrugManager;
 import recipe.manager.HisRecipeManager;
@@ -57,6 +59,8 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     private IConfigurationClient configurationClient;
     @Autowired
     private DrugClient drugClient;
+    @Autowired
+    private OrganDrugListDAO organDrugListDAO;
 
     @Override
     public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVO searchDrugReqVo) {
@@ -158,6 +162,15 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         HospitalDrugListReqDTO hospitalDrugListReqDTO = recipe.util.ObjectCopyUtils.convert(hospitalDrugListReqVO, HospitalDrugListReqDTO.class);
         List<HospitalDrugListDTO> hospitalDrugListDTOList = drugClient.findHospitalDrugList(hospitalDrugListReqDTO);
         return recipe.util.ObjectCopyUtils.convert(hospitalDrugListDTOList, HospitalDrugListVO.class);
+    }
+
+    @Override
+    public OrganDrugListBean getOrganDrugList(Integer organId, Integer drugId) {
+        List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
+        if (CollectionUtils.isNotEmpty(organDrugLists)) {
+            return ObjectCopyUtils.convert(organDrugLists.get(0), OrganDrugListBean.class);
+        }
+        return new OrganDrugListBean();
     }
 
 }

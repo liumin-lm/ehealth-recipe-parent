@@ -2,6 +2,7 @@ package recipe.atop.doctor;
 
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
+import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.dto.DrugInfoDTO;
@@ -236,6 +237,10 @@ public class DrugDoctorAtop extends BaseAtop {
         return drugWithEsByPatient;
     }
 
+    @RpcService
+    public OrganDrugListBean getOrganDrugList(Integer organId, Integer drugId){
+        return drugBusinessService.getOrganDrugList(organId, drugId);
+    }
 
     /**
      * 默认药品单位计量 机构关联关系

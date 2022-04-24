@@ -98,16 +98,19 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
         DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
         if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_PLATFORM)) {
             String trackingNumber;
+            Recipe trackRecipe = recipeS.get(0);
             try {
                 ILogisticsOrderService logisticsOrderService = AppContextHolder.getBean("infra.logisticsOrderService", ILogisticsOrderService.class);
-                CreateLogisticsOrderDto logisticsOrder = getCreateLogisticsOrderDto(order, recipeS.get(0), enterprise);
+                CreateLogisticsOrderDto logisticsOrder = getCreateLogisticsOrderDto(order, trackRecipe, enterprise);
                 LOGGER.info("基础服务物流下单入参={}", JSONObject.toJSONString(logisticsOrder));
                 trackingNumber = logisticsOrderService.addLogisticsOrder(logisticsOrder);
             } catch (Exception e) {
-                LOGGER.error("基础服务物流下单异常，发起退款流程 orderId={}，异常=", order.getOrderId(), e);
+                //记录日志
+                RecipeLogService.saveRecipeLog(trackRecipe.getRecipeId(), trackRecipe.getStatus(), trackRecipe.getStatus(), "物流下单失败,原因：" + e.getMessage());
+                LOGGER.error("基础服务物流下单异常，发起退款流程 recipeId：{}, orderId：{}，异常：", trackRecipe.getRecipeId(), order.getOrderId(), e);
                 return;
             }
-            LOGGER.info("基础服务物流下单结果={}", trackingNumber);
+            LOGGER.info("基础服务物流下单结果 recipeId：{}, 物流单号：{}", trackRecipe.getRecipeId(), trackingNumber);
             if (StringUtils.isNotBlank(trackingNumber)) {
                 //更新支付方式为线上支付和快递费用
                 updatePayPlatStatus(order, trackingNumber);

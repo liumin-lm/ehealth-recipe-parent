@@ -9,11 +9,13 @@ import com.ngari.recipe.entity.*;
 import ctd.account.UserRoleToken;
 import ctd.persistence.bean.QueryResult;
 import ctd.persistence.exception.DAOException;
+import ctd.util.JSONUtils;
 import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -269,11 +271,9 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         // 获取需要重新推送的订单
         Date endDate = new Date();
         Date startDate = DateUtils.addDays(endDate, -2);
-        List<RecipeOrder> recipeOrders = recipeOrderDAO.findUnPushOrder(startDate, endDate);
+        List<RecipeOrder> recipeOrders = recipeOrderDAO.findUnPushOrder(DateFormatUtils.format(startDate,"yyyy-MM-dd HH:mm:ss"), DateFormatUtils.format(endDate,"yyyy-MM-dd HH:mm:ss"));
         recipeOrders.forEach(order -> {
-            String recipeIdList = order.getRecipeIdList();
-            String[] split = recipeIdList.split(",");
-            List<String> recipeIds = Arrays.asList(split);
+            List<Integer> recipeIds = JSONUtils.parse(order.getRecipeIdList(), List.class);
             remoteDrugEnterpriseService.pushSingleRecipeInfo(Integer.valueOf(recipeIds.get(0)));
         });
 
