@@ -1818,7 +1818,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         return hql;
     }
 
-    public  List<RecipeOrder> findUnPushOrder(Date startDate, Date endDate){
+    public List<RecipeOrder> findUnPushOrder(String startDate, String endDate) {
         HibernateStatelessResultAction<List<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrder>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
@@ -1831,5 +1831,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
 
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
-    };
+    }
+
+    ;
 }

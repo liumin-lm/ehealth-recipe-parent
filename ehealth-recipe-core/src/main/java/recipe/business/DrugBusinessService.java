@@ -3,6 +3,7 @@ package recipe.business;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
+import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
@@ -165,12 +166,18 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     }
 
     @Override
-    public OrganDrugListBean getOrganDrugList(Integer organId, Integer drugId) {
+    public DispensatoryDTO getOrganDrugList(Integer organId, Integer drugId) {
         List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
         if (CollectionUtils.isNotEmpty(organDrugLists)) {
-            return ObjectCopyUtils.convert(organDrugLists.get(0), OrganDrugListBean.class);
+            OrganDrugList organDrugList = organDrugLists.get(0);
+            DispensatoryDTO dispensatoryDTO = new DispensatoryDTO();
+            dispensatoryDTO.setDrugName(organDrugList.getDrugName());
+            dispensatoryDTO.setSaleName(organDrugList.getSaleName());
+            dispensatoryDTO.setSpecs(organDrugList.getDrugSpec());
+            dispensatoryDTO.setManufacturers(organDrugList.getProducer());
+            return dispensatoryDTO;
         }
-        return new OrganDrugListBean();
+        return new DispensatoryDTO();
     }
 
 }
