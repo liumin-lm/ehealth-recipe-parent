@@ -1,6 +1,7 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
@@ -28,6 +29,7 @@ import recipe.common.CommonConstant;
 import recipe.dao.*;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.PayFlagEnum;
 import recipe.util.JsonUtil;
 import recipe.util.MapValueUtil;
 
@@ -638,14 +640,19 @@ public class HisRecipeManager extends BaseManager {
     public HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode) {
         HisResponseTO hisResponseTO = new HisResponseTO();
         try {
-            List<Recipe> recipes = recipeManager.findAlreadyPayRecipeByOrganIdAndRecipeCode(organId, recipeCode);
-            if (!org.springframework.util.CollectionUtils.isEmpty(recipes)) {
-                hisResponseTO.setMsgCode("-1");
-                hisResponseTO.setMsg("处方已经支付，则不允许取消");
+            List<Recipe> recipes = recipeDAO.findByRecipeCodeAndClinicOrgan(Lists.newArrayList(recipeCode), organId);
+            if (CollectionUtils.isEmpty(recipes)) {
+                logger.info("该处方还未转到线上:{}", JSONUtils.toString(recipeCode));
+                return hisResponseTO;
             }
             recipes.forEach(recipe -> {
-                recipe.setStatus(RecipeStatusConstant.REVOKE);
-                recipeDAO.update(recipe);
+                if (PayFlagEnum.PAYED.getType().equals(recipe.getPayFlag())) {
+                    hisResponseTO.setMsgCode("-1");
+                    hisResponseTO.setMsg("处方已经支付，则不允许取消");
+                } else {
+                    recipe.setStatus(RecipeStatusConstant.REVOKE);
+                    recipeDAO.update(recipe);
+                }
             });
         } catch (Exception e) {
             hisResponseTO.setMsgCode("-1");

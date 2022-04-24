@@ -144,6 +144,6 @@ public interface IRecipeAtopService {
      * @param recipeCode
      * @return
      */
-    @RpcService(mvcDisabled = true)
+    @RpcService
     HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode);
 }
