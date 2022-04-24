@@ -863,6 +863,7 @@ public class BaseOfflineToOnlineService {
         RevisitExDTO consultExDTO = new RevisitExDTO();
         try {
             consultExDTO = revisitClient.getByRegisterId(hisRecipe.getRegisteredId());
+            LOGGER.info("recipeId:{},consultExDTO:{}", recipe.getRecipeId(), JSONUtils.toString(consultExDTO));
         } catch (Exception e) {
             LOGGER.error("线下处方转线上通过挂号序号关联复诊 error", e);
         }
@@ -871,6 +872,7 @@ public class BaseOfflineToOnlineService {
         } else {
             if (consultExDTO != null) {
                 recipeExtend.setCardNo(consultExDTO.getCardId());
+                recipeExtend.setMedicalRecordNumber(consultExDTO.getMedicalRecordNo());
             }
         }
         if (StringUtils.isNotEmpty(hisRecipe.getCardTypeName())) {
@@ -903,6 +905,8 @@ public class BaseOfflineToOnlineService {
 //                recipeExtend.setRecipeFlag(0);
 //            }
 //        }
+
+
         emrRecipeManager.saveMedicalInfo(recipe, recipeExtend);
         recipeExtendDAO.save(recipeExtend);
         LOGGER.info("BaseOfflineToOnlineService saveRecipeExt 拓展表数据已保存");

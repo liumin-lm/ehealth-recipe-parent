@@ -13,6 +13,7 @@ import com.ngari.recipe.vo.FormWorkRecipeVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.aop.LogRecord;
 import recipe.api.open.IRecipeAtopService;
@@ -199,6 +200,7 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
 
     @Override
     @LogRecord
+    @RpcService
     public HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode) {
         HisResponseTO response = offlineToOnlineService.abolishOffLineRecipe(organId, recipeCode);
         return response;
