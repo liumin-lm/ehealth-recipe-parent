@@ -1187,7 +1187,7 @@ public class RecipeServiceSub {
                         tips = "已撤销";
                         cancelReason = "由于您已撤销，该处方单已失效";
                         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                        if (StringUtils.isNotEmpty(recipeExtend.getCancellation())) {
+                        if (null != recipeExtend && StringUtils.isNotEmpty(recipeExtend.getCancellation())) {
                             cancelReason = recipeExtend.getCancellation();
                         } else {
                             List<RecipeLog> recipeLogs = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), status);
@@ -1212,7 +1212,7 @@ public class RecipeServiceSub {
                     tips = "已取消";
                     cancelReason = "可能由于医院接口异常，处方单已取消，请稍后重试！";
                     RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                    if (StringUtils.isNotEmpty(recipeExtend.getCancellation())) {
+                    if (null != recipeExtend && StringUtils.isNotEmpty(recipeExtend.getCancellation())) {
                         cancelReason = recipeExtend.getCancellation();
                     } else {
                         List<RecipeLog> recipeFailLogs = recipeLogDAO.findByRecipeIdAndAfterStatusDesc(recipe.getRecipeId(), RecipeStatusConstant.HIS_FAIL);
@@ -1247,9 +1247,9 @@ public class RecipeServiceSub {
                     //    recipeLog = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), status);
                     tips = "处方签名失败";
                     RecipeExtend recipeExt = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-                    if(StringUtils.isNotEmpty(recipeExt.getSignFailReason())){
+                    if (null != recipeExt && StringUtils.isNotEmpty(recipeExt.getSignFailReason())) {
                         cancelReason = recipeExt.getSignFailReason();
-                    }else{
+                    } else {
                         cancelReason = "处方签名失败！";
                     }
 //                    if (recipeLog != null && recipeLog.size() > 0) {
