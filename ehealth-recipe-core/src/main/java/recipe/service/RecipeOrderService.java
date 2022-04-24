@@ -928,6 +928,8 @@ public class RecipeOrderService extends RecipeBaseService {
             } else {
                 order.setAddress4(address.getAddress4());
             }
+            order.setAddress5(address.getAddress5());
+            order.setAddress5Text(address.getAddress5Text());
 
             try {
                 //校验地址是否可以配送
