@@ -40,6 +40,7 @@ import recipe.service.RecipeOrderService;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.ObjectCopyUtils;
+import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
 import recipe.vo.base.BaseRecipeDetailVO;
 import recipe.vo.second.enterpriseOrder.*;
@@ -317,6 +318,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             receiverInfo.setAddress(recipeOrder.getAddress4());
             receiverInfo.setProvinceCode(StringUtils.isNotEmpty(recipeOrder.getAddress1())?recipeOrder.getAddress1()+"0000":"");
             receiverInfo.setCityCode(StringUtils.isNotEmpty(recipeOrder.getAddress2())?recipeOrder.getAddress2()+"00":"");
+            receiverInfo.setCommunityCode(ValidateUtil.isEmpty(recipeOrder.getAddress5()));
+            receiverInfo.setCommunityName(ValidateUtil.isEmpty(recipeOrder.getAddress5Text()));
             downRecipeOrderVO.setReceiverInfo(receiverInfo);
             //设置处方信息
             recipeList.forEach(recipe -> {

@@ -673,7 +673,7 @@ public class RecipeOrderService extends RecipeBaseService {
             String operAddressId = MapValueUtil.getString(extInfo, "addressId");
             AddressDTO address = null;
             if (StringUtils.isNotEmpty(operAddressId)) {
-                address = addressService.get(Integer.parseInt(operAddressId));
+                address = addressService.getByAddressId(Integer.parseInt(operAddressId));
             } else {
                 if (!TakeMedicineWayEnum.TAKE_MEDICINE_STATION.getType().equals(takeMedicineWay)) {
                     LOGGER.info("getDefaultAddressByMpiid mpiid:{}", operMpiId);
@@ -923,7 +923,13 @@ public class RecipeOrderService extends RecipeBaseService {
             order.setAddress2(address.getAddress2());
             order.setAddress3(address.getAddress3());
             order.setStreetAddress(address.getStreetAddress());
-            order.setAddress4(address.getAddress4());
+            if (StringUtils.isNotEmpty(address.getAddress5Text())) {
+                order.setAddress4(address.getAddress5Text() + address.getAddress4());
+            } else {
+                order.setAddress4(address.getAddress4());
+            }
+            order.setAddress5(address.getAddress5());
+            order.setAddress5Text(address.getAddress5Text());
 
             try {
                 //校验地址是否可以配送

@@ -738,6 +738,8 @@ public class HisRequestInit {
                     requestTO.setCityCode(ValidateUtil.isEmpty(order.getAddress2()) + "00");
                     requestTO.setDistrictCode(ValidateUtil.isEmpty(order.getAddress3()));
                     requestTO.setStreetCode(ValidateUtil.isEmpty(order.getStreetAddress()));
+                    requestTO.setCommunityCode(ValidateUtil.isEmpty(order.getAddress5()));
+                    requestTO.setCommunityName(ValidateUtil.isEmpty(order.getAddress5Text()));
                 }
                 //合并支付的处方需要将所有his处方编码传过去
                 RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);

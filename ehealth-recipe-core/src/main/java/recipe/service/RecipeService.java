@@ -255,7 +255,7 @@ public class RecipeService extends RecipeBaseService {
     private RevisitClient revisitClient;
     @Autowired
     private ButtonManager buttonManager;
-    @Resource
+    @Autowired
     private PatientClient patientClient;
     @Autowired
     private DepartManager departManager;

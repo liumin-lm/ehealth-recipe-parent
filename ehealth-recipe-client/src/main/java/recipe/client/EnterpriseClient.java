@@ -237,6 +237,12 @@ public class EnterpriseClient extends BaseClient {
         addressBean.setDistrict(getAddress(recipeOrder.getAddress3()));
         addressBean.setStreetAddress(getAddress(recipeOrder.getStreetAddress()));
         addressBean.setAddress(getAddress(recipeOrder.getAddress4()));
+        addressBean.setProvinceCode(StringUtils.isNotEmpty(recipeOrder.getAddress1())?recipeOrder.getAddress1()+"0000":"");
+        addressBean.setCityCode(StringUtils.isNotEmpty(recipeOrder.getAddress2())?recipeOrder.getAddress2()+"00":"");
+        addressBean.setDistrictCode(StringUtils.isNotEmpty(recipeOrder.getAddress3())?recipeOrder.getAddress3():"");
+        addressBean.setStreetAddressCode(StringUtils.isNotEmpty(recipeOrder.getStreetAddress())?recipeOrder.getStreetAddress():"");
+        addressBean.setCommunityCode(StringUtils.isNotEmpty(recipeOrder.getAddress5())?recipeOrder.getAddress5():"");
+        addressBean.setCommunityName(StringUtils.isNotEmpty(recipeOrder.getAddress5Text())?recipeOrder.getAddress5Text():"");
         pushRecipeAndOrder.setAddressBean(addressBean);
     }
 
