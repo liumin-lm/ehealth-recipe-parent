@@ -231,7 +231,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public Boolean validateOpenRecipeNumber(Integer clinicId, Integer organId, Integer recipeId) {
         logger.info("RecipeBusinessService validateOpenRecipeNumber clinicId: {},organId: {}", clinicId, organId);
         //运营平台没有处方单数限制，默认可以无限进行开处方
-        Integer openRecipeNumber = configurationClient.getValueCatchReturnInteger(organId, "openRecipeNumber", 999);
+        Integer openRecipeNumber = configurationClient.getValueCatch(organId, "openRecipeNumber", 999);
         logger.info("RecipeBusinessService validateOpenRecipeNumber openRecipeNumber={}", openRecipeNumber);
         if (ValidateUtil.integerIsEmpty(openRecipeNumber)) {
             throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "开方张数0已超出医院限定范围，不能继续开方。");
