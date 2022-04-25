@@ -176,6 +176,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
             dispensatoryDTO.setSaleName(organDrugList.getSaleName());
             dispensatoryDTO.setSpecs(organDrugList.getDrugSpec());
             dispensatoryDTO.setManufacturers(organDrugList.getProducer());
+            dispensatoryDTO.setUnit(organDrugList.getUnit());
             return dispensatoryDTO;
         }
         return new DispensatoryDTO();
