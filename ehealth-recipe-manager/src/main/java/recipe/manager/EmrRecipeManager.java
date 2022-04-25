@@ -320,7 +320,7 @@ public class EmrRecipeManager extends BaseManager {
                 recipeExtend.setSymptomId(ByteUtils.subString(ids));
             }
         } else {
-            logger.warn("EmrRecipeManager getMultiSearch detail={}", JSONUtils.toString(detail));
+            logger.info("EmrRecipeManager getMultiSearch detail={}", JSONUtils.toString(detail));
         }
     }
 
