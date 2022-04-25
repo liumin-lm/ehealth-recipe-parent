@@ -12,6 +12,8 @@ import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
+import ctd.controller.exception.ControllerException;
+import ctd.dictionary.DictionaryController;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.JSONUtils;
 import eh.entity.bus.pay.BusTypeEnum;
@@ -28,11 +30,9 @@ import recipe.client.OrganClient;
 import recipe.client.PatientClient;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
 import recipe.dao.*;
-import recipe.enumerate.status.PayModeEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.type.GiveModeTextEnum;
 import recipe.enumerate.type.NeedSendTypeEnum;
-import recipe.enumerate.type.PayFlagEnum;
 import recipe.factory.status.givemodefactory.GiveModeProxy;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
@@ -225,8 +225,9 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     }
 
     /**
-     *  根据订单号更新物流单号
-     * @param orderCode 订单号
+     * 根据订单号更新物流单号
+     *
+     * @param orderCode      订单号
      * @param trackingNumber 物流单号
      * @return 是否成功
      */
@@ -238,6 +239,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
 
     /**
      * 第三方查询平台处方订单信息
+     *
      * @param downOrderRequestVO 请求入参
      * @return 处方订单列表
      */
@@ -259,10 +261,11 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
 
         //获取患者信息
         List<String> mpiIdList = new ArrayList<>();
+        List<PatientDTO> patientList = new ArrayList<>();
         if (StringUtils.isNotEmpty(downOrderRequestVO.getIdCard())) {
             com.ngari.recipe.dto.PatientDTO patientDTO = new com.ngari.recipe.dto.PatientDTO();
             patientDTO.setIdcard(downOrderRequestVO.getIdCard());
-            List<PatientDTO> patientList = patientClient.patientByIdCard(patientDTO);
+            patientList = patientClient.patientByIdCard(patientDTO);
             logger.info("findOrderAndRecipes patientList:{}.", JSON.toJSONString(patientList));
             if (CollectionUtils.isEmpty(patientList)) {
                 result.setCode(-1);
@@ -335,10 +338,21 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 //设置签名图片的url
                 String fileImgUrl = parameterDao.getByName("fileImgUrl");
                 if (StringUtils.isNotEmpty(recipe.getChemistSignFile())) {
-                    downRecipeVO.setSignFileUrl(fileImgUrl+recipe.getChemistSignFile());
+                    downRecipeVO.setSignFileUrl(fileImgUrl + recipe.getChemistSignFile());
                 } else {
-                    downRecipeVO.setSignFileUrl(fileImgUrl+recipe.getSignFile());
+                    downRecipeVO.setSignFileUrl(fileImgUrl + recipe.getSignFile());
                 }
+                //处方患者信息
+                PatientDTO patient = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
+                logger.info("ThirdEnterpriseCallService.downLoadRecipes patient:{} .", JSONUtils.toString(patient));
+                downRecipeVO.setBirthday(patient.getBirthday());
+                downRecipeVO.setSexCode(patient.getPatientSex());
+                try {
+                    downRecipeVO.setSexName(DictionaryController.instance().get("eh.base.dictionary.Gender").getText(patient.getPatientSex()));
+                } catch (ControllerException e) {
+                    e.printStackTrace();
+                }
+
                 RecipeExtend recipeExtend = recipeExtendMap.get(recipe.getRecipeId());
                 ObjectCopyUtils.copyProperties(downRecipeVO, recipeExtend);
                 List<Recipedetail> recipeDetailListFromMap = recipeDetailListMap.get(recipe.getRecipeId());
