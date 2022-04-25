@@ -32,7 +32,7 @@ public class TextGmAtop {
         textBusinessService.getConsult(consultId);
     }
 
-
+    @RpcService
     public String getDictionary(String classId, String key) {
         //"eh.base.dictionary.Gender"
         return DictionaryUtil.getDictionary(classId, key);
