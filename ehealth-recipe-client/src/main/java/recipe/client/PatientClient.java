@@ -2,16 +2,15 @@ package recipe.client;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
-import com.ngari.base.currentuserinfo.model.SimpleThirdBean;
 import com.ngari.base.clientconfig.service.IClientConfigService;
 import com.ngari.base.clientconfig.to.ClientConfigBean;
+import com.ngari.base.currentuserinfo.model.SimpleThirdBean;
 import com.ngari.base.currentuserinfo.model.SimpleWxAccountBean;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.base.device.model.DeviceBean;
 import com.ngari.base.device.service.IDeviceService;
 import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.base.patient.service.IPatientService;
-import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.follow.service.IMedicineRemindService;
 import com.ngari.follow.vo.MedicineRemindTO;
@@ -65,8 +64,6 @@ public class PatientClient extends BaseClient {
     private ICurrentUserInfoService currentUserInfoService;
     @Autowired
     private IMedicineRemindService medicineRemindService;
-    @Autowired
-    private IUsePathwaysService usePathwaysService;
     @Autowired
     private IClientConfigService clientConfigService;
     @Autowired

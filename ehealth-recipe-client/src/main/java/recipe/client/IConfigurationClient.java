@@ -166,7 +166,7 @@ public class IConfigurationClient extends BaseClient {
             }
             return value;
         } catch (Exception e) {
-            logger.error("IConfigurationClient getValueCatch organId:{}, key:{}", organId, key, e);
+            logger.error("IConfigurationClient getValueCatchReturnInteger organId:{}, key:{}", organId, key, e);
             return defaultValue;
         }
     }
@@ -190,7 +190,7 @@ public class IConfigurationClient extends BaseClient {
             }
             return Integer.parseInt(value.trim());
         } catch (Exception e) {
-            logger.error("IConfigurationClient getValueCatch organId:{}, key:{}", organId, key, e);
+            logger.error("IConfigurationClient getValueCatch Integer organId:{}, key:{}", organId, key, e);
             return defaultValue;
         }
     }
