@@ -811,6 +811,7 @@ public class OrganDrugListService implements IOrganDrugListService {
             logger.error("queryOrganDrugAndSaleForOp error", e);
             throw new DAOException(609, e.getMessage());
         }
+        logger.info("queryOrganDrugAndSaleForOp result={}", JSONUtils.toString(result));
         return result;
     }
 
