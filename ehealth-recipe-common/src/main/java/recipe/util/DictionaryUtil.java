@@ -55,6 +55,7 @@ public class DictionaryUtil {
         try {
             String value = DictionaryController.instance().get(classId).getText(key);
             if (StringUtils.isEmpty(value)) {
+                LOGGER.info("DictionaryUtil DictionaryController classId:{},key:{},value:{}", classId, key, value);
                 return "";
             } else {
                 return value;
