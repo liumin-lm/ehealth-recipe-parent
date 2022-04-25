@@ -37,6 +37,12 @@ public class ReceiverInfoVO implements Serializable {
     @ItemProperty(alias = "详细地址")
     private String address;
 
+    @ItemProperty(alias = "社区编码")
+    private String communityCode;
+
+    @ItemProperty(alias = "社区名称")
+    private String communityName;
+
     @ItemProperty(alias = "邮政编码")
     private String zipCode;
 

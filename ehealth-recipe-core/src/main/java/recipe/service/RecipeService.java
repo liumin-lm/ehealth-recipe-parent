@@ -255,7 +255,7 @@ public class RecipeService extends RecipeBaseService {
     private RevisitClient revisitClient;
     @Autowired
     private ButtonManager buttonManager;
-    @Resource
+    @Autowired
     private PatientClient patientClient;
     @Autowired
     private DepartManager departManager;
@@ -3005,7 +3005,7 @@ public class RecipeService extends RecipeBaseService {
                 try {
                     LOGGER.info("drugInfoSynMovement request={}", JSONUtils.toString(request));
                     responseTO = recipeHisService.queryOrganDrugInfo(request);
-                    LOGGER.info("drugInfoSynMovement responseTO={}", JSONUtils.toString(responseTO));
+                    LOGGER.info("drugInfoSynMovement organId:{},responseTO={}", request.getOrganId(), JSONUtils.toString(responseTO));
                 } catch (Exception e) {
                     LOGGER.info("drugInfoSynMovement error{} ", e);
                 }
@@ -3045,6 +3045,7 @@ public class RecipeService extends RecipeBaseService {
                 List<OrganDrugInfoTO> updateList = Lists.newArrayList();
                 boolean finishFlag = true;
                 long total = data.size();
+                LOGGER.info("drugInfoSynMovementExtT 前置机共返回数据条数:{}", total);
                 if (sync || add) {
                     while (finishFlag) {
                         if (!CollectionUtils.isEmpty(data)) {

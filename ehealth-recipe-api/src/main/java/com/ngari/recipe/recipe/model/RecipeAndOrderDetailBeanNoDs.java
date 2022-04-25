@@ -50,6 +50,8 @@ public class RecipeAndOrderDetailBeanNoDs implements Serializable {
     private String cityCode;
     private String districtCode;
     private String streetCode;
+    private String communityCode;
+    private String communityName;
     private String expressFee;
     private String receiver;
     private String recMobile;

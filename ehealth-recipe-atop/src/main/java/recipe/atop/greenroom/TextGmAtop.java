@@ -5,6 +5,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.core.api.greenroom.ITextService;
+import recipe.util.DictionaryUtil;
 
 /**
  * 用于postman 后门接口调用
@@ -29,5 +30,12 @@ public class TextGmAtop {
     @RpcService
     public void getConsult(Integer consultId) {
         textBusinessService.getConsult(consultId);
+    }
+
+    @RpcService
+    public String getDictionary(String classId, String key) {
+        //"eh.base.dictionary.Gender"
+        return DictionaryUtil.getDictionary(classId, key);
+
     }
 }
