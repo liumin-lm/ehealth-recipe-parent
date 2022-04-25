@@ -538,8 +538,21 @@ public class RedisClient {
         }
     }
 
-    public <T> T getMapToValue(String key, String field) {
-        return (T) redisTemplate.opsForHash().get(key, field);
+    /**
+     * @param key
+     * @return
+     */
+    public List<Object> getMapToValue(String key) {
+        return redisTemplate.opsForHash().values(key);
+    }
+
+    /**
+     * @param key
+     * @param field
+     * @return
+     */
+    public Object getMapToValue(String key, String field) {
+        return redisTemplate.opsForHash().get(key, field);
     }
 
     /**
