@@ -28,6 +28,7 @@
         <ngari.es.version>4.1.1.9.master-SNAPSHOT</ngari.es.version>
         <ngari.miscellany.version>4.1.1.9.master-SNAPSHOT</ngari.miscellany.version>
         <ngari.basic.version>4.4.1.1.master-SNAPSHOT</ngari.basic.version>
+        <ngari.basicdto.version>4.4.2.7.master-SNAPSHOT</ngari.basicdto.version>
         <ngari.jgpt.version>4.1.1.9.master-SNAPSHOT</ngari.jgpt.version>
         <ngari.followup.version>4.2.2.4.master-SNAPSHOT</ngari.followup.version>
         <ngari.cdr.version>4.1.1.9.master-SNAPSHOT</ngari.cdr.version>
@@ -46,7 +47,6 @@
         <ngari.message.version>4.1.1.9.master-SNAPSHOT</ngari.message.version>
         <ngari.bill.version>4.1.1.9.master-SNAPSHOT</ngari.bill.version>
         <ngari.account.version>4.1.1.9.master-SNAPSHOT</ngari.account.version>
-        <ngari.basicdto.version>4.4.2.7.master-SNAPSHOT</ngari.basicdto.version>
         <ngari.revisit.version>4.3.1.0.master-SNAPSHOT</ngari.revisit.version>
         <ngari.entity.version>4.1.1.9.master-SNAPSHOT</ngari.entity.version>
     </properties>
