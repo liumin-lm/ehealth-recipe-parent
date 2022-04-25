@@ -124,11 +124,7 @@ public class DrugStockClient extends BaseClient {
             drugInfo.setDrname(a.getDrugName());
             drugInfo.setDrugId(a.getDrugId());
             try{
-                Map<Integer, String> drugItemCodeMap = organDrugList.stream().collect(Collectors.toMap(OrganDrugList::getDrugId, OrganDrugList::getDrugItemCode));
-                String drugItemCode = drugItemCodeMap.get(a.getDrugId());
-                if (StringUtils.isNotEmpty(drugItemCode)) {
-                    drugInfo.setDrugItemCode(drugItemCode);
-                }
+                drugInfo.setDrugItemCode(a.getDrugItemCode());
             }catch (Exception e){
                 logger.error("DrugStockClient scanDrugStock error", e);
             }
