@@ -1,5 +1,6 @@
 package recipe.vo.patient;
 
+import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -20,4 +21,6 @@ public class PatientSubmitRecipeVO implements Serializable {
     private String giveModeKey;
     private Integer expressFeePayType;
     private Double expressFee;
+    @ItemProperty(alias = "机构ID 兼容问题 前期命名错误 后期可逐渐删除")
+    private Integer orderId;
 }
