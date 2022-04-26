@@ -153,6 +153,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
         splicingBackRecipeData(recipeList, request);
 
+        
         try {
             IRegulationService hisService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
             LOGGER.info("uploadRecipeIndicators request={}", JSONUtils.toString(request));
