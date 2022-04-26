@@ -914,7 +914,6 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             createPdfFactory.queryPdfOssId(recipe);
             createPdfFactory.updateCheckNamePdfESign(recipeId);
             //药师审核通过后，重新根据药师的pdf生成签名图片
-            CreatePdfFactory createPdfFactory = AppContextHolder.getBean("createPdfFactory", CreatePdfFactory.class);
             createPdfFactory.updatePdfToImg(recipe.getRecipeId(), SignImageTypeEnum.SIGN_IMAGE_TYPE_CHEMIST.getType());
         } catch (Exception e) {
             LOGGER.error("esignRecipeCa error", e);
