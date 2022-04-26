@@ -15,7 +15,8 @@ public enum  RecipeShowQrConfigEnum {
     RECIPE_CODE(5, "his处方单号"),
     SERIALNUMBER(6, "发药流水号"),
     TAKE_DRUG_CODE(7,"药柜取药码"),
-    MEDICAL_RECORD_NUMBER(8,"病历号");
+    MEDICAL_RECORD_NUMBER(8,"病历号"),
+    CERTIFICATE(9, "身份证号");
 
     private Integer type;
     private String name;
