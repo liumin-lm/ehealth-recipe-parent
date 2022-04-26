@@ -286,7 +286,7 @@ public class DrugToolService implements IDrugToolService {
         Integer addNum = 0;
         Integer updateNum = 0;
         Integer failNum = 0;
-        LOGGER.info("机构药品目录导入数据校验开始");
+        LOGGER.info("机构药品目录导入数据校验开始,文件名={},organId={},operator={}",originalFilename,organId,operator);
         for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
             //循环获得每个行
             row = sheet.getRow(rowIndex);
@@ -833,7 +833,7 @@ public class DrugToolService implements IDrugToolService {
             }
         }
         LOGGER.info("机构药品目录导入数据校验errorMsg:{}", JSONUtils.toString(errDrugListMatchList));
-        LOGGER.info("机构药品目录导入数据校验结束");
+        LOGGER.info("机构药品目录导入数据校验结束,文件名={},organId={},operator={}",originalFilename,organId,operator);
         //导入药品记录
         ImportDrugRecord importDrugRecord = new ImportDrugRecord();
         importDrugRecord.setFileName(originalFilename);
