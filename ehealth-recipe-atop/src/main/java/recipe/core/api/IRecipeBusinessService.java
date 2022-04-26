@@ -159,4 +159,11 @@ public interface IRecipeBusinessService {
      * @return
      */
     Symptom symptomId(Integer id);
+
+    /**
+     * his 更新处方信息
+     * @param organId
+     * @param recipeCodes
+     */
+    void recipeListQuery(Integer organId, List<String> recipeCodes);
 }

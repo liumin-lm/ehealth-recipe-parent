@@ -2,6 +2,7 @@ package recipe.atop.open;
 
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
@@ -204,6 +205,13 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     public HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode) {
         HisResponseTO response = offlineToOnlineService.abolishOffLineRecipe(organId, recipeCode);
         return response;
+    }
+
+    @Override
+    public HisResponseTO recipeListQuery(Integer organId, List<String> recipeCodes) {
+        HisResponseTO hisResponseTO = new HisResponseTO();
+        recipeBusinessService.recipeListQuery(organId,recipeCodes);
+        return hisResponseTO;
     }
 
 
