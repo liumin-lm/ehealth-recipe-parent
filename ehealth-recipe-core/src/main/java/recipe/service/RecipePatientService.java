@@ -965,7 +965,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
         LOGGER.info("setRecipeSupportGiveMode giveModeButtonDTOList:{}", JSON.toJSONString(giveModeButtonDTOList));
         StringBuilder recipeSupportGiveMode = new StringBuilder();
         giveModeButtonDTOList.forEach(giveModeButtonDTO -> {
-            Integer giveMode = RecipeSupportGiveModeEnum.getGiveMode(giveModeButtonDTO.getShowButtonKey());
+            Integer giveMode = RecipeSupportGiveModeEnum.getGiveModeType(giveModeButtonDTO.getShowButtonKey());
             LOGGER.info("setRecipeSupportGiveMode giveMode:{}", giveMode);
             if (!new Integer(0).equals(giveMode) && !recipeSupportGiveMode.toString().contains(giveMode.toString())) {
                 recipeSupportGiveMode.append(giveMode).append(",");
