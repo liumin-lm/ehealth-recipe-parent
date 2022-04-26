@@ -153,6 +153,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         List<RegulationRecipeIndicatorsReq> request = new ArrayList<>(recipeList.size());
         splicingBackRecipeData(recipeList, request);
 
+        
         try {
             IRegulationService hisService = AppDomainContext.getBean("his.regulationService", IRegulationService.class);
             LOGGER.info("uploadRecipeIndicators request={}", JSONUtils.toString(request));
@@ -1071,6 +1072,7 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 reqDetail.setRegulationDrugCode(organDrugList.getRegulationDrugCode());
             }
 
+            reqDetail.setDrugType(detail.getDrugType());
             reqDetail.setDrname(detail.getDrugName());
             reqDetail.setDrmodel(detail.getDrugSpec());
             reqDetail.setPack(detail.getPack());

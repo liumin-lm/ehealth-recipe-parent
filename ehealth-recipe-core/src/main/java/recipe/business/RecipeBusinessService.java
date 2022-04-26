@@ -120,6 +120,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private AuditModeContext auditModeContext;
     @Autowired
     private ConsultManager consultManager;
+    @Autowired
+    private RecipeHisService recipeHisService;
     
     /**
      * 获取线下门诊处方诊断信息
@@ -453,6 +455,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public Symptom symptomId(Integer id) {
         return symptomDAO.get(id);
+    }
+
+    @Override
+    public void recipeListQuery(Integer organId, List<String> recipeCodes) {
+        recipeHisService.recipeListQuery(recipeCodes,organId);
     }
 
 

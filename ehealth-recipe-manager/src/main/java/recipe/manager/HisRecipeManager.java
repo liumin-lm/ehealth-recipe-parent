@@ -26,6 +26,7 @@ import recipe.client.OfflineRecipeClient;
 import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
 import recipe.common.CommonConstant;
+import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
@@ -505,7 +506,7 @@ public class HisRecipeManager extends BaseManager {
                     continue;
                 }
 
-                if ((MapValueUtil.covertInteger(hisRecipeDetail.getUseDays()) != MapValueUtil.covertInteger(recipeDetailTO.getUseDays()))) {
+                if ((!MapValueUtil.covertInteger(hisRecipeDetail.getUseDays()).equals(MapValueUtil.covertInteger(recipeDetailTO.getUseDays())))) {
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause useDays recipeCode:{}", recipeCode);
                     continue;
@@ -639,6 +640,7 @@ public class HisRecipeManager extends BaseManager {
     @LogRecord
     public HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode) {
         HisResponseTO hisResponseTO = new HisResponseTO();
+        hisResponseTO.setMsgCode(ErrorCode.SERVICE_SUCCEED + "");
         try {
             List<Recipe> recipes = recipeDAO.findByRecipeCodeAndClinicOrgan(Lists.newArrayList(recipeCode), organId);
             if (CollectionUtils.isEmpty(recipes)) {
@@ -647,7 +649,7 @@ public class HisRecipeManager extends BaseManager {
             }
             recipes.forEach(recipe -> {
                 if (PayFlagEnum.PAYED.getType().equals(recipe.getPayFlag())) {
-                    hisResponseTO.setMsgCode("-1");
+                    hisResponseTO.setMsgCode(ErrorCode.SERVICE_FAIL + "");
                     hisResponseTO.setMsg("处方已经支付，则不允许取消");
                 } else {
                     recipe.setStatus(RecipeStatusConstant.REVOKE);
@@ -655,7 +657,7 @@ public class HisRecipeManager extends BaseManager {
                 }
             });
         } catch (Exception e) {
-            hisResponseTO.setMsgCode("-1");
+            hisResponseTO.setMsgCode(ErrorCode.SERVICE_FAIL + "");
             hisResponseTO.setMsg("处方" + recipeCode + "撤销失败,原因是：" + e.getMessage());
             e.printStackTrace();
             logger.error("abolishOffLineRecipe error", e);
