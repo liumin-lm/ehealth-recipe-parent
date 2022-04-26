@@ -24,6 +24,7 @@ import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.DrugClient;
 import recipe.client.IConfigurationClient;
 import recipe.core.api.IDrugBusinessService;
+import recipe.dao.OrganDrugListDAO;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.DrugManager;
 import recipe.manager.HisRecipeManager;
@@ -58,6 +59,8 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     private IConfigurationClient configurationClient;
     @Autowired
     private DrugClient drugClient;
+    @Autowired
+    private OrganDrugListDAO organDrugListDAO;
 
     @Override
     public List<PatientDrugWithEsDTO> findDrugWithEsByPatient(SearchDrugReqVO searchDrugReqVo) {
@@ -154,6 +157,11 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         HospitalDrugListReqDTO hospitalDrugListReqDTO = recipe.util.ObjectCopyUtils.convert(hospitalDrugListReqVO, HospitalDrugListReqDTO.class);
         List<HospitalDrugListDTO> hospitalDrugListDTOList = drugClient.findHospitalDrugList(hospitalDrugListReqDTO);
         return recipe.util.ObjectCopyUtils.convert(hospitalDrugListDTOList, HospitalDrugListVO.class);
+    }
+
+    @Override
+    public OrganDrugList getOrganDrugList(Integer organId, String organDrugCode, Integer drugId) {
+        return organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, organDrugCode, drugId);
     }
 
 }

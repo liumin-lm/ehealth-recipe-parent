@@ -102,4 +102,13 @@ public interface IDrugBusinessService {
      */
     List<HospitalDrugListVO> findHospitalDrugList(HospitalDrugListReqVO hospitalDrugListReqVO);
 
+    /**
+     * 获取机构药品信息
+     * @param organId
+     * @param organDrugCode
+     * @param drugId
+     * @return
+     */
+    OrganDrugList getOrganDrugList(Integer organId, String organDrugCode, Integer drugId);
+
 }

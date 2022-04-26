@@ -13,6 +13,7 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.platform.recipe.mode.NoticeNgariRecipeInfoReq;
 import com.ngari.platform.recipe.mode.PushRecipeAndOrder;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.entity.*;
 import ctd.account.session.ClientSession;
@@ -24,13 +25,10 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import eh.msg.constant.MqConstant;
-import eh.recipeaudit.api.IAuditMedicinesService;
-import eh.recipeaudit.api.ICheckScheduleService;
 import eh.recipeaudit.api.IRecipeCheckService;
 import eh.recipeaudit.model.RecipeCheckBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.curator.shaded.com.google.common.collect.Lists;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,22 +36,20 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import recipe.ApplicationUtils;
 import recipe.aop.LogRecord;
 import recipe.common.OnsConfig;
+import recipe.core.api.IDrugBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.manager.EnterpriseManager;
-import recipe.manager.OrderFeeManager;
 import recipe.manager.StateManager;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
 import recipe.service.recipecancel.RecipeCancelService;
 import recipe.util.DateConversion;
 import recipe.util.RecipeMsgUtils;
 
-import javax.annotation.Resource;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ThreadPoolExecutor;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -75,6 +71,8 @@ public class RecipeTestService {
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
     private DrugDistributionPriceDAO drugDistributionPriceDAO;
+    @Autowired
+    private IDrugBusinessService drugBusinessService;
 
 
 
@@ -422,6 +420,12 @@ public class RecipeTestService {
             }
         }while(CollectionUtils.isNotEmpty(list));
         return 0;
+    }
+
+    @RpcService
+    public String getOrganDrugList(Integer organId, String organDrugCode, Integer drugId){
+        OrganDrugList organDrugList = drugBusinessService.getOrganDrugList(organId, organDrugCode, drugId);
+        return JSON.toJSONString(organDrugList);
     }
 
 }
