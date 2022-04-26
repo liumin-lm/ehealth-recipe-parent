@@ -146,4 +146,13 @@ public interface IRecipeAtopService {
      */
     @RpcService
     HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode);
+
+    /**
+     * 从his更新处方信息
+     * @param organId
+     * @param recipeCodes
+     * @return
+     */
+    @RpcService
+    HisResponseTO recipeListQuery(Integer organId, List<String> recipeCodes);
 }
