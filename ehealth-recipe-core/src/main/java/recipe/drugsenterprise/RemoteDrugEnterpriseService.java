@@ -125,6 +125,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         RecipeOrderService orderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        boolean pushMessageFlag = true;
         if (enterprise != null && new Integer(1).equals(enterprise.getOperationType())) {
             //药企对应的service为空，则通过前置机进行推送
             IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService", IRecipeEnterpriseService.class);
@@ -162,6 +163,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                     RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                     List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
                     result = result.getAccessDrugEnterpriseService().pushRecipeInfo(recipeIdList, enterprise);
+                    pushMessageFlag = false;
                     if (DrugEnterpriseResult.SUCCESS.equals(result.getCode())) {
                         result.setDrugsEnterprise(enterprise);
                     }
@@ -170,7 +172,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         }
 
         // 非自建药企 推送短信 支付成功且非自建
-        if (null != recipe && enterprise != null && PayFlagEnum.PAYED.getType().equals(recipe.getPayFlag()) && EnterpriseCreateTypeEnum.OTHER_SELF.getType().equals(enterprise.getCreateType())) {
+        if (null != recipe && enterprise != null && PayFlagEnum.PAYED.getType().equals(recipe.getPayFlag()) && pushMessageFlag) {
             // 2021/11 新需求,非自建药企也要发送短信
                 LOGGER.info("pushMessageToEnterprise 当前处方[{}]需要推送订单消息给药企", recipeId);
                 //设置药企的电话号码
