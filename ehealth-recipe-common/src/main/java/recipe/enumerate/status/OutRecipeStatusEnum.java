@@ -2,7 +2,7 @@ package recipe.enumerate.status;
 
 public enum OutRecipeStatusEnum {
 
-    OUTRECIPEREADYPAY(2, "代缴费"),
+    OUTRECIPEREADYPAY(2, "待缴费"),
     OUTRECIPEREADYSEND(3, "待发药"),
     OUTRECIPEHASSEND(6, "已发药"),
     OUTRECIPEHASREFUND(9, "已退费");
