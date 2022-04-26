@@ -84,7 +84,9 @@ public class RedisManager extends BaseManager {
         List<Object> list = redisClient.getMapToValue(CacheConstant.KEY_CONSULT_REGISTER_ID);
         logger.warn("RedisManager getConsult  list={}", JSON.toJSONString(list));
         Object consult = redisClient.getMapToValue(CacheConstant.KEY_CONSULT_REGISTER_ID, consultId.toString());
-        logger.warn("RedisManager getConsult  consult={}", consult);
+        logger.warn("RedisManager getConsult  consult={}", JSON.toJSONString(consult));
+        Object hget = redisClient.hget(CacheConstant.KEY_CONSULT_REGISTER_ID, consultId.toString());
+        logger.warn("RedisManager getConsult  consult={}", JSON.toJSONString(hget));
     }
 
 }
