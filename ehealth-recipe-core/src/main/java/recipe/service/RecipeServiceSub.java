@@ -172,6 +172,8 @@ public class RecipeServiceSub {
 
     private static RecipeOrderPayFlowManager recipeOrderPayFlowManager = AppContextHolder.getBean("recipeOrderPayFlowManager", RecipeOrderPayFlowManager.class);
 
+    private static EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
+
     /**
      * @param recipeBean
      * @param detailBeanList
@@ -1973,6 +1975,10 @@ public class RecipeServiceSub {
         }
 
         map.put("qrName", recipeManager.getToHosProof(recipe, recipeExtend, recipeOrder));
+        OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(recipe.getClinicOrgan(), recipeOrder.getEnterpriseId(), recipe.getGiveMode());
+        if (null != organDrugsSaleConfig) {
+            map.put("qrType", organDrugsSaleConfig.getTakeDrugsVoucher());
+        }
         if (recipe.getEnterpriseId() != null) {
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
