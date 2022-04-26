@@ -1292,6 +1292,9 @@ public class RecipeHisService extends RecipeBaseService {
         OrganService organService = BasicAPI.getService(OrganService.class);
         DepartmentService departmentService = BasicAPI.getService(DepartmentService.class);
         hisCheckRecipeReqTO.setClinicOrgan(recipeBean.getClinicOrgan());
+        if (null != recipeBean.getBussSource() && 2 == recipeBean.getBussSource()) {
+            hisCheckRecipeReqTO.setRevisitId(recipeBean.getClinicId());
+        }
         hisCheckRecipeReqTO.setOrganID(organService.getOrganizeCodeByOrganId(recipeBean.getClinicOrgan()));
         if (recipeBean.getClinicId() != null) {
             IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
