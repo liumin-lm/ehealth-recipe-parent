@@ -394,7 +394,6 @@ public class PayModeToHos implements IPurchaseService {
             depDetailBean.setDepId(enterprise.getId());
             depDetailBean.setDepName(enterprise.getName());
             depDetailBean.setBelongDepName(enterprise.getName());
-            depDetailBean.setAddress(enterprise.getMemo());
             //重置药企处方价格
             depDetailBean.setRecipeFee(recipeOrderService.reCalculateRecipeFee(enterprise.getId(), Arrays.asList(recipe.getRecipeId()), null));
             if (MapUtils.isNotEmpty(saleMap) && CollectionUtils.isNotEmpty(saleMap.get(enterprise.getId()))) {
@@ -406,6 +405,7 @@ public class PayModeToHos implements IPurchaseService {
             position.setLongitude(Double.valueOf(pharmacy.getPharmacyLongitude()));
             depDetailBean.setPharmacyName(pharmacy.getPharmacyName());
             depDetailBean.setPharmacyCode(pharmacy.getPharmacyCode());
+            depDetailBean.setAddress(pharmacy.getPharmacyAddress());
             depDetailBean.setPosition(position);
             if (StringUtils.isNotEmpty(pharmacy.getPharmacyLatitude()) && StringUtils.isNotEmpty(pharmacy.getPharmacyLongitude())
                     && StringUtils.isNotEmpty(latitude) && StringUtils.isNotEmpty(longitude)) {

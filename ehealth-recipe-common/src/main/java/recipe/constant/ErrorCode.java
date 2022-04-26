@@ -60,4 +60,9 @@ public class ErrorCode {
      * 合理用药建议
      */
     public static final int RATIONAL_DRUG_USE = 618;
+
+    /**
+     * 服务失败
+     */
+    public static final int SERVICE_FAIL = -1;
 }
