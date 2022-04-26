@@ -506,7 +506,7 @@ public class HisRecipeManager extends BaseManager {
                     continue;
                 }
 
-                if ((MapValueUtil.covertInteger(hisRecipeDetail.getUseDays()) != MapValueUtil.covertInteger(recipeDetailTO.getUseDays()))) {
+                if ((!MapValueUtil.covertInteger(hisRecipeDetail.getUseDays()).equals(MapValueUtil.covertInteger(recipeDetailTO.getUseDays())))) {
                     deleteSetRecipeCode.add(recipeCode);
                     LOGGER.info("deleteSetRecipeCode cause useDays recipeCode:{}", recipeCode);
                     continue;
