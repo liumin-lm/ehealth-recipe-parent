@@ -549,6 +549,8 @@ public class RecipeManager extends BaseManager {
                 if (null != revisitExDTO) {
                     recipeExtend.setRegisterID(revisitExDTO.getRegisterNo());
                     recipeExtend.setCardType(revisitExDTO.getCardType());
+                    recipe.setPatientID(revisitExDTO.getPatId());
+                    recipeExtend.setMedicalRecordNumber(revisitExDTO.getMedicalRecordNo());
                 }
                 RevisitBean revisitBean = revisitClient.getRevisitByClinicId(recipe.getClinicId());
                 if (null != revisitBean) {
