@@ -421,13 +421,16 @@ public class RecipeService extends RecipeBaseService {
         boolean zhongRecipeRight = null != consultSetDTO.getZhongRecipeRight() && consultSetDTO.getZhongRecipeRight() && havezhongDrugNum;
         //膏方开方权
         boolean gaoFangRecipeRight = null == consultSetDTO.getGaoFangRecipeRight() ? false : consultSetDTO.getGaoFangRecipeRight();
+        // 靶向药开方权
+        boolean targetedDrugTypeRecipeRight = null == consultSetDTO.getTargetedDrugTypeRecipeRight() ? false : consultSetDTO.getTargetedDrugTypeRecipeRight();
         map.put("xiYaoRecipeRight", xiYaoRecipeRight);
         map.put("zhongChengRecipeRight", zhongChengRecipeRight);
         map.put("zhongRecipeRight", zhongRecipeRight);
         map.put("gaoFangRecipeRight", gaoFangRecipeRight);
+        map.put("targetedDrugTypeRecipeRight", targetedDrugTypeRecipeRight);
         //开方权
         boolean prescription = false;
-        if (xiYaoRecipeRight || zhongChengRecipeRight || zhongRecipeRight || gaoFangRecipeRight) {
+        if (xiYaoRecipeRight || zhongChengRecipeRight || zhongRecipeRight || gaoFangRecipeRight || targetedDrugTypeRecipeRight) {
             prescription = true;
         }
 

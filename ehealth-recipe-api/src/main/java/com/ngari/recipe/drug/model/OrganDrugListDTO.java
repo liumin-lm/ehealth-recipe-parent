@@ -157,6 +157,9 @@ public class OrganDrugListDTO implements java.io.Serializable {
     @Dictionary(id = "eh.cdr.dictionary.UnilateralCompound")
     private Integer unilateralCompound;
 
+    @ItemProperty(alias="是否靶向药  0否  1是 ")
+    private Integer targetedDrugType;
+
     public OrganDrugListDTO() {
     }
 
@@ -518,5 +521,13 @@ public class OrganDrugListDTO implements java.io.Serializable {
 
     public void setUnilateralCompound(Integer unilateralCompound) {
         this.unilateralCompound = unilateralCompound;
+    }
+
+    public Integer getTargetedDrugType() {
+        return targetedDrugType;
+    }
+
+    public void setTargetedDrugType(Integer targetedDrugType) {
+        this.targetedDrugType = targetedDrugType;
     }
 }

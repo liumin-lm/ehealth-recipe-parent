@@ -2,29 +2,22 @@ package recipe.client;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.google.common.collect.Lists;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.mode.DrugListTO;
-import com.ngari.his.recipe.mode.SyncDrugListToHisReqTO;
-import com.ngari.his.recipe.service.IRecipeHisService;
-import com.ngari.patient.service.OrganService;
-import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.his.recipe.mode.DrugInfoRequestTO;
+import com.ngari.his.recipe.mode.DrugInfoTO;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
-import com.ngari.recipe.entity.DecoctionWay;
-import com.ngari.recipe.entity.DrugList;
-import com.ngari.recipe.entity.DrugMakingMethod;
+import com.ngari.recipe.dto.RecipeDetailDTO;
+import com.ngari.recipe.entity.*;
+import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.exception.DAOException;
-import ctd.spring.AppDomainContext;
-import ctd.util.AppContextHolder;
-import ctd.util.JSONUtils;
-import ctd.util.annotation.RpcService;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
 import es.api.DrugSearchService;
@@ -33,13 +26,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import recipe.constant.CacheConstant;
 import recipe.constant.ErrorCode;
 import recipe.enumerate.type.RecipeTypeEnum;
+import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
-import recipe.util.RedisClient;
+import recipe.util.ValidateUtil;
 
-import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -289,4 +281,44 @@ public class DrugClient extends BaseClient {
         return code;
     }
 
+    /**
+     * 校验his 药品规则，大病医保等
+     *
+     * @param recipeDetails 前端入餐
+     * @param organId       机构id
+     * @param organDrugList 机构药品
+     * @param pharmacyTcms  药房
+     * @param revisitExDTO  复诊信息：大病医保等
+     */
+    public void hisDrugRule(List<RecipeDetailDTO> recipeDetails, Integer organId, List<OrganDrugList> organDrugList,
+                            List<PharmacyTcm> pharmacyTcms, RevisitExDTO revisitExDTO, DoctorDTO doctorDTO) {
+        List<Recipedetail> detailList = ObjectCopyUtils.convert(recipeDetails, Recipedetail.class);
+        List<DrugInfoTO> data = super.drugInfoList(detailList, organDrugList, pharmacyTcms);
+        DrugInfoRequestTO request = new DrugInfoRequestTO();
+        request.setOrganId(organId);
+        request.setData(data);
+        request.setDbType(revisitExDTO.getDbType());
+        request.setJobNumber(doctorDTO.getJobNumber());
+        logger.info("DrugClient hisDrugRule request={}", JSON.toJSONString(request));
+        HisResponseTO<List<DrugInfoTO>> hisResponse = recipeHisService.hisDrugRule(request);
+        logger.info("DrugClient hisDrugRule hisResponse={}", JSON.toJSONString(hisResponse));
+        List<DrugInfoTO> response;
+        try {
+            response = this.getResponse(hisResponse);
+        } catch (Exception e) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+        Map<String, DrugInfoTO> detailMap = response.stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getDrcode(), a -> a, (k1, k2) -> k1));
+        recipeDetails.forEach(a -> {
+            DrugInfoTO drugInfo = detailMap.get(a.getDrugId() + a.getOrganDrugCode());
+            if (null == drugInfo) {
+                return;
+            }
+            if (ValidateUtil.integerIsEmpty(drugInfo.getValidateHisStatus())) {
+                return;
+            }
+            a.setValidateHisStatus(drugInfo.getValidateHisStatus());
+            a.setValidateHisStatusText(drugInfo.getValidateHisStatusText());
+        });
+    }
 }

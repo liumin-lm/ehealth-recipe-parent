@@ -48,5 +48,4 @@ public class ValidateDetailVO {
      * 当前版本
      */
     private Integer version;
-
 }

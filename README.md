@@ -26,5 +26,7 @@ base_drug_decoctionway 煎法表
 cancelRecipe 处方撤销
 submitRecipeHis 患者创建订单 根据配送方式上传处方给his  配置项  patientRecipeUploadHis 患者提交订单需要回写his的购药方式
 cancelOrder 订单取消
+updateRecipeOrderStatus 运营平台订单编辑接口
+updateRecipeTrannckingInfo 基础服务更新处方物流状态
 ```
 ### End

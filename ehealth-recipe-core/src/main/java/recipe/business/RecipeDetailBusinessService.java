@@ -1,9 +1,8 @@
 package recipe.business;
 
-import com.ngari.recipe.entity.DrugEntrust;
-import com.ngari.recipe.entity.OrganDrugList;
-import com.ngari.recipe.entity.PharmacyTcm;
-import com.ngari.recipe.entity.Recipedetail;
+import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.dto.RecipeDetailDTO;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.RecipeSkipVO;
 import org.apache.commons.collections.CollectionUtils;
@@ -219,12 +218,32 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
                 //包含机构
                 String recipeSkipUrl = parameterDao.getByName("recipeSkipUrl");
                 recipeSkipVO.setShowFlag(true);
-                recipeSkipVO.setSkipUrl(recipeSkipUrl+recipeCode);
+                recipeSkipVO.setSkipUrl(recipeSkipUrl + recipeCode);
             }
         } catch (Exception e) {
             logger.error("getRecipeSkipUrl error", e);
         }
         return recipeSkipVO;
+    }
+
+    @Override
+    public List<RecipeDetailDTO> validateHisDrugRule(Recipe recipe, List<RecipeDetailDTO> recipeDetails) {
+        //"1": "大病权限", "2": "靶向药权限"
+        List<String> hisDrugRule = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "validateHisDrugRule", null);
+        if (CollectionUtils.isEmpty(hisDrugRule)) {
+            return recipeDetails;
+        }
+        //"1": "大病权限"
+        if (hisDrugRule.contains("1")) {
+            recipeDetailManager.validateHisDrugRule(recipe, recipeDetails);
+            logger.info("RecipeDetailBusinessService validateHisDrugRule 大病权限 recipeDetails={}", JSON.toJSONString(recipeDetails));
+        }
+        //"2": "靶向药权限"
+        if (hisDrugRule.contains("2")) {
+            organDrugListManager.validateHisDrugRule(recipe, recipeDetails);
+            logger.info("RecipeDetailBusinessService validateHisDrugRule 靶向药权限 recipeDetails={}", JSON.toJSONString(recipeDetails));
+        }
+        return recipeDetails;
     }
 
 

@@ -114,36 +114,7 @@ public class DrugStockClient extends BaseClient {
      * @return
      */
     public DrugStockAmountDTO scanDrugStock(List<Recipedetail> detailList, int organId, List<OrganDrugList> organDrugList, List<PharmacyTcm> pharmacyTcms) {
-        Map<Integer, PharmacyTcm> pharmacyTcmMap = pharmacyTcms.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
-        Map<String, Recipedetail> detailMap = detailList.stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getOrganDrugCode(), a -> a, (k1, k2) -> k1));
-        List<DrugInfoTO> data = new LinkedList<>();
-        organDrugList.forEach(a -> {
-            DrugInfoTO drugInfo = new DrugInfoTO(a.getOrganDrugCode());
-            drugInfo.setPack(String.valueOf(a.getPack()));
-            drugInfo.setManfcode(a.getProducerCode());
-            drugInfo.setDrname(a.getDrugName());
-            drugInfo.setDrugId(a.getDrugId());
-            try{
-                drugInfo.setDrugItemCode(a.getDrugItemCode());
-            }catch (Exception e){
-                logger.error("DrugStockClient scanDrugStock error", e);
-            }
-
-            Recipedetail recipedetail = detailMap.get(a.getDrugId() + a.getOrganDrugCode());
-            if (null == recipedetail) {
-                data.add(drugInfo);
-                return;
-            }
-            drugInfo.setPackUnit(recipedetail.getDrugUnit());
-            drugInfo.setUseTotalDose(recipedetail.getUseTotalDose());
-            PharmacyTcm tcm = pharmacyTcmMap.get(recipedetail.getPharmacyId());
-            if (null != tcm) {
-                drugInfo.setPharmacyCode(tcm.getPharmacyCode());
-                drugInfo.setPharmacy(tcm.getPharmacyName());
-            }
-            data.add(drugInfo);
-        });
-
+        List<DrugInfoTO> data = super.drugInfoList(detailList, organDrugList, pharmacyTcms);
         DrugInfoRequestTO request = new DrugInfoRequestTO();
         request.setOrganId(organId);
         request.setData(data);

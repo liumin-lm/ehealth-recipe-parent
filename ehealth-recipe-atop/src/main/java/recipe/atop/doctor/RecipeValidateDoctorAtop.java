@@ -1,6 +1,7 @@
 package recipe.atop.doctor;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.persistence.exception.DAOException;
@@ -13,6 +14,7 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.core.api.IRevisitBusinessService;
+import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
 import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
@@ -211,6 +213,27 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
             logger.error("RecipeValidateDoctorAtop validateOpenRecipeNumber error e", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
+    }
+
+    /**
+     * 校验his 药品规则，靶向药，大病医保等
+     *
+     * @param validateDetailVO 药品信息
+     * @return
+     */
+    @RpcService
+    public List<RecipeDetailBean> validateHisDrugRule(ValidateDetailVO validateDetailVO) {
+        validateAtop(validateDetailVO, validateDetailVO.getRecipeDetails(), validateDetailVO.getVersion(), validateDetailVO.getRecipeBean());
+        List<RecipeDetailDTO> recipeDetailDTO = ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), RecipeDetailDTO.class);
+        recipeDetailDTO.forEach(a -> a.setValidateHisStatus(0));
+        if (validateDetailVO.getVersion().equals(1)) {
+            return ObjectCopyUtils.convert(recipeDetailDTO, RecipeDetailBean.class);
+        }
+        Recipe recipe = ObjectCopyUtils.convert(validateDetailVO.getRecipeBean(), Recipe.class);
+        validateAtop(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getClinicId(), recipe.getDepart());
+        // 校验his 药品规则，靶向药，大病医保等
+        List<RecipeDetailDTO> result = recipeDetailService.validateHisDrugRule(recipe, recipeDetailDTO);
+        return ObjectCopyUtils.convert(result, RecipeDetailBean.class);
     }
 
 }

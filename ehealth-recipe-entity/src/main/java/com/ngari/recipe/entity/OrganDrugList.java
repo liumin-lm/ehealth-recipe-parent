@@ -22,22 +22,22 @@ import static javax.persistence.GenerationType.IDENTITY;
 public class OrganDrugList implements java.io.Serializable {
     private static final long serialVersionUID = -2026791423853766129L;
 
-    @ItemProperty(alias = "机构药品序号")
+    @ItemProperty(alias = "机构药品序号(自增主键)")
     private Integer organDrugId;
 
-    @ItemProperty(alias = "医疗机构代码")
+    @ItemProperty(alias = "医疗机构代码(organ表自增主键)")
     private Integer organId;
 
-    @ItemProperty(alias = "药品序号")
+    @ItemProperty(alias = "平台药品编码(druglist表自增主键)")
     private Integer drugId;
 
-    @ItemProperty(alias = "机构唯一索引")
+    @ItemProperty(alias = "机构药品唯一索引")
     private String organDrugCode;
 
     @ItemProperty(alias = "机构药品编码")
     private String drugItemCode;
 
-    @ItemProperty(alias = "通用名")
+    @ItemProperty(alias = "通用名/药品名")
     private String drugName;
 
     @ItemProperty(alias = "商品名")
@@ -49,25 +49,25 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "药品规格")
     private String drugSpec;
 
-    @ItemProperty(alias = "转换系数")
+    @ItemProperty(alias = "包装数量（转化系数）")
     private Integer pack;
 
-    @ItemProperty(alias = "药品包装单位")
+    @ItemProperty(alias = "最小售卖单位")
     private String unit;
 
-    @ItemProperty(alias = "实际单次剂量（规格单位）")
+    @ItemProperty(alias = "单次剂量（规格单位）")
     private Double useDose;
 
-    @ItemProperty(alias = "推荐单次剂量（规格单位）")
+    @ItemProperty(alias = "默认单次剂量（规格单位）")
     private Double recommendedUseDose;
 
-    @ItemProperty(alias = "单次剂量单位（规格单位）")
+    @ItemProperty(alias = "规格单位")
     private String useDoseUnit;
 
-    @ItemProperty(alias = "实际单位剂量（最小单位）")
+    @ItemProperty(alias = "单次剂量(最小规格包装单位)")
     private Double smallestUnitUseDose;
 
-    @ItemProperty(alias = "默认单位剂量（最小单位）")
+    @ItemProperty(alias = "默认单次剂量（最小规格包装单位）")
     private Double defaultSmallestUnitUseDose;
 
     @ItemProperty(alias = "单位剂量单位（最小单位）")
@@ -81,11 +81,11 @@ public class OrganDrugList implements java.io.Serializable {
     @Dictionary(id = "eh.cdr.dictionary.UsePathways")
     private String usePathways;
 
-    @ItemProperty(alias = "使用频率id")
+    @ItemProperty(alias = "使用频率主键id(basic.recipe_usingrate主键)")
     @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
     private String usingRateId;
 
-    @ItemProperty(alias = "用药途径id")
+    @ItemProperty(alias = "用药途径id(basic.recipe_use_pathways主键)")
     @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
     private String usePathwaysId;
 
@@ -95,41 +95,41 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "搜索关键字，一般包含通用名，商品名及医院自定义值")
     private String searchKey;
 
-    @ItemProperty(alias = "销售价格")
+    @ItemProperty(alias = "价格")
     private BigDecimal salePrice;
 
-    @ItemProperty(alias = "使用状态")
+    @ItemProperty(alias = "状态0禁用 1启用")
     @Dictionary(id = "eh.base.dictionary.OrganDrugStatus")
     private Integer status;
 
     @ItemProperty(alias = "创建时间")
     private Date createDt;
 
-    @ItemProperty(alias = "最后生成时间")
+    @ItemProperty(alias = "最后修改时间")
     private Date lastModify;
 
-    @ItemProperty(alias = "生产厂家代码")
+    @ItemProperty(alias = "药品产地编码")
     private String producerCode;
 
-    @ItemProperty(alias = "外带药标志 1:外带药")
+    @ItemProperty(alias = "外带药标志 1:是，0否")
     private Integer takeMedicine;
 
     @ItemProperty(alias = "院内检索关键字")
     private String retrievalCode;
 
-    @ItemProperty(alias = "医院药房名字")
+    @ItemProperty(alias = "医院药房名称(维护后数据为空)")
     private String pharmacyName;
 
     @ItemProperty(alias = "监管平台药品编码")
     private String regulationDrugCode;
 
-    @ItemProperty(alias = "剂型")
+    @ItemProperty(alias = "剂型(中文)")
     private String drugForm;
 
-    @ItemProperty(alias = "是否基药")
+    @ItemProperty(alias = "是否基药：0非基药，1是基药")
     private Integer baseDrug;
 
-    @ItemProperty(alias = "批准文号")
+    @ItemProperty(alias = "国药准字")
     private String licenseNumber;
 
     @ItemProperty(alias = "包装材料")
@@ -137,7 +137,7 @@ public class OrganDrugList implements java.io.Serializable {
 
     @ItemProperty(alias = "医保药品编码")
     private String medicalDrugCode;
-    @ItemProperty(alias = "HIS剂型编码")
+    @ItemProperty(alias = "his剂型代码")
     private String drugFormCode;
     @ItemProperty(alias = "医保剂型编码")
     private String medicalDrugFormCode;
@@ -145,31 +145,42 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "禁用原因")
     private String disableReason;
 
-    @ItemProperty(alias = "药房")
+    @ItemProperty(alias = "药房主键(一个药品多个药房：325,324)")
     private String pharmacy;
 
-    @ItemProperty(alias = "药品嘱托")
+    @ItemProperty(alias = "药品嘱托(中文，对应机构字典表-药品医嘱)")
     private String drugEntrust;
 
-    @ItemProperty(alias = "医保控制：0   否，1  是   默认0")
+    @ItemProperty(alias = "医保控制：0否，1是")
     private Boolean medicalInsuranceControl;
 
-    @ItemProperty(alias = "适应症 说明")
+    @ItemProperty(alias = "适应症说明")
     private String indicationsDeclare;
 
     @ItemProperty(alias = "是否支持下载处方笺 0   否，1  是   默认1")
     private Boolean supportDownloadPrescriptionPad;
 
-    @ItemProperty(alias = "配送药企ids")
+    @ItemProperty(alias = "配送药企主键ids(drugsenterprise) 多选： 1,2 ")
     private String drugsEnterpriseIds;
 
 
-    @ItemProperty(alias="药品适用业务 历史数据默认处理  1-药品处方  eh.base.dictionary.ApplyBusiness ")
+    @ItemProperty(alias="药品适用业务   历史数据默认 1    1-药品处方 2-诊疗处方 多选： 1,2   eh.base.dictionary.ApplyBusiness ")
     private String applyBusiness;
 
-    @ItemProperty(alias="单复方 ")
+    @ItemProperty(alias="药品单复方  0单复方可报  1单方不可报， 复方可报 2 单复方均不可报 ")
     @Dictionary(id = "eh.cdr.dictionary.UnilateralCompound")
     private Integer unilateralCompound;
+    @ItemProperty(alias="是否靶向药  0否  1是 ")
+    private Integer targetedDrugType;
+
+    @Column(name = "targeted_drug_type")
+    public Integer getTargetedDrugType() {
+        return targetedDrugType;
+    }
+
+    public void setTargetedDrugType(Integer targetedDrugType) {
+        this.targetedDrugType = targetedDrugType;
+    }
 
     public OrganDrugList() {
     }

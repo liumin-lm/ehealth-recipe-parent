@@ -20,13 +20,13 @@ import static javax.persistence.GenerationType.IDENTITY;
 public class DrugListMatch implements java.io.Serializable {
     public static final long serialVersionUID = -3983203173007645688L;
 
-    @ItemProperty(alias = "药品序号")
+    @ItemProperty(alias = "匹配记录自增主键")
     private Integer drugId;
 
-    @ItemProperty(alias = "机构唯一索引")
+    @ItemProperty(alias = "机构药品唯一索引")
     private String organDrugCode;
 
-    @ItemProperty(alias = "his药品编码")
+    @ItemProperty(alias = "机构药品编码")
     private String drugItemCode;
 
     @Column(name = "organDrugCode", length = 100)
@@ -38,7 +38,7 @@ public class DrugListMatch implements java.io.Serializable {
         this.organDrugCode = organDrugCode;
     }
 
-    @ItemProperty(alias = "药品名称")
+    @ItemProperty(alias = "通用名/药品名")
     private String drugName;
 
     @ItemProperty(alias = "商品名")
@@ -50,32 +50,32 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "药品规格")
     private String drugSpec;
 
-    @ItemProperty(alias = "药品包装数量")
+    @ItemProperty(alias = "包装数量（转化系数）")
     private Integer pack;
 
-    @ItemProperty(alias = "药品单位")
+    @ItemProperty(alias = "最小规格包装单位")
     private String unit;
 
     @ItemProperty(alias = "药品类型")
     @Dictionary(id = "eh.base.dictionary.DrugType")
     private Integer drugType;
 
-    @ItemProperty(alias = "一次剂量")
+    @ItemProperty(alias = "单次剂量（规格单位）")
     private Double useDose;
 
-    @ItemProperty(alias = "剂量单位")
+    @ItemProperty(alias = "规格单位")
     private String useDoseUnit;
 
     @ItemProperty(alias = "生产厂家")
     private String producer;
 
-    @ItemProperty(alias = "参考价格")
+    @ItemProperty(alias = "价格")
     private BigDecimal price;
 
-    @ItemProperty(alias = "状态")//0未匹配 1已匹配 2已提交 4匹配中
+    @ItemProperty(alias = "状态 0未匹配 1已匹配 2已提交 3已标记 4匹配中")
     private Integer status;
 
-    @ItemProperty(alias = "适用症状")
+    @ItemProperty(alias = "适应症说明")
     private String indications;
 
     @ItemProperty(alias = "拼音码")
@@ -114,16 +114,16 @@ public class DrugListMatch implements java.io.Serializable {
         this.standardCode = standardCode;
     }
 
-    @ItemProperty(alias = "匹配的药品id")
+    @ItemProperty(alias = "匹配的平台通用药品id(drugList表主键)")
     private Integer matchDrugId;
 
     @ItemProperty(alias = "是否是新增药品")
     private Integer isNew;
 
-    @ItemProperty(alias = "来源机构")
+    @ItemProperty(alias = "来源机构??")
     private Integer sourceOrgan;
 
-    @ItemProperty(alias = "剂型")
+    @ItemProperty(alias = "剂型(中文)")
     private String drugForm;
 
     @ItemProperty(alias = "包装材料")
@@ -132,26 +132,26 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "是否基药")
     private Integer baseDrug;
 
-    @ItemProperty(alias = "对照人")
+    @ItemProperty(alias = "操作人")
     private String operator;
 
-    @ItemProperty(alias = "用药频率 平台")
+    @ItemProperty(alias = "用药频次(basic.recipe_usingrate.relatedPlatformKey)")
     @Dictionary(id = "eh.cdr.dictionary.UsingRate")
     private String usingRate;
 
-    @ItemProperty(alias = "用药途径 平台")
+    @ItemProperty(alias = "用药途径(basic.recipe_use_pathways.relatedPlatformKey)")
     @Dictionary(id = "eh.cdr.dictionary.UsePathways")
     private String usePathways;
 
-    @ItemProperty(alias = "使用频率id")
+    @ItemProperty(alias = "使用频率主键id(basic.recipe_usingrate主键)")
     @Dictionary(id = "eh.cdr.dictionary.NewUsingRate")
     private String usingRateId;
 
-    @ItemProperty(alias = "用药途径id")
+    @ItemProperty(alias = "用药途径id(basic.recipe_use_pathways主键)")
     @Dictionary(id = "eh.cdr.dictionary.NewUsePathways")
     private String usePathwaysId;
 
-    @ItemProperty(alias = "默认一次剂量")
+    @ItemProperty(alias = "默认单次剂量（规格单位）对应recommendedUseDose")
     private Double defaultUseDose;
 
     @ItemProperty(alias = "院内搜索关键字")
@@ -160,7 +160,7 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "监管平台药品编码")
     private String regulationDrugCode;
 
-    @ItemProperty(alias = "药品产地名称编码")
+    @ItemProperty(alias = "药品产地编码 对应ProducerCode")
     private String drugManfCode;
 
     @ItemProperty(alias = "医保药品编码")
@@ -172,35 +172,35 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "HIS剂型代码")
     private String hisFormCode;
 
-    @ItemProperty(alias = "平台药品编码")
+    @ItemProperty(alias = "平台药品id(drugList表主键)")
     private Integer platformDrugId;
 
-    @ItemProperty(alias = "药房")
+    @ItemProperty(alias = "药房(一个药品多个药房：325,324)")
     private String pharmacy;
 
-    @ItemProperty(alias = "药品嘱托")
+    @ItemProperty(alias = "药品嘱托(中文)")
     private String drugEntrust;
 
     @ItemProperty(alias = "医保控制：0   否，1  是   默认0")
     private Boolean medicalInsuranceControl;
 
-    @ItemProperty(alias = "适应症 说明")
+    @ItemProperty(alias = "适应症说明")
     private String IndicationsDeclare;
 
-    @ItemProperty(alias = "实际单位剂量（最小单位）")
+    @ItemProperty(alias = "单次剂量(最小规格包装单位)")
     private Double smallestUnitUseDose;
 
-    @ItemProperty(alias = "推荐单次剂量（规格单位）")
+    @ItemProperty(alias = "默认单次剂量（规格单位）")
     private Double recommendedUseDose;
 
-    @ItemProperty(alias = "配送药企ids")
+    @ItemProperty(alias = "配送药企主键(drugsenterprise)多选： 1,2 ")
     private String drugsEnterpriseIds;
 
 
-    @ItemProperty(alias = "单位剂量单位（最小单位）")
+    @ItemProperty(alias = "最小规格包装单位")
     private String useDoseSmallestUnit;
 
-    @ItemProperty(alias="药品适用业务  eh.base.dictionary.ApplyBusiness ")
+    @ItemProperty(alias="药品适用业务   历史数据默认 1    1-药品处方 2-诊疗处方 选： 1,2 ")
     private String applyBusiness;
 
 
@@ -208,11 +208,11 @@ public class DrugListMatch implements java.io.Serializable {
     @Dictionary(id = "eh.cdr.dictionary.DrugListMatchSource")
     private Integer drugSource;
 
-    @ItemProperty(alias="单复方 ")
+    @ItemProperty(alias="药品单复方  0  单复方可报  1单方不可报， 复方可报 2 单复方均不可报 ")
     @Dictionary(id = "eh.cdr.dictionary.UnilateralCompound")
     private Integer unilateralCompound;
 
-    @ItemProperty(alias = "默认单位剂量（最小单位）")
+    @ItemProperty(alias = "默认单次剂量（最小规格包装单位）")
     private Double defaultSmallestUnitUseDose;
 
     @Column(name = "defaultSmallestUnitUseDose ")
