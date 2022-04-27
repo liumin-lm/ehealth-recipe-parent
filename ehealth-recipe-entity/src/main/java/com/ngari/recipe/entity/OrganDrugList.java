@@ -170,6 +170,17 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias="药品单复方  0单复方可报  1单方不可报， 复方可报 2 单复方均不可报 ")
     @Dictionary(id = "eh.cdr.dictionary.UnilateralCompound")
     private Integer unilateralCompound;
+    @ItemProperty(alias="是否靶向药  0否  1是 ")
+    private Integer targetedDrugType;
+
+    @Column(name = "targeted_drug_type")
+    public Integer getTargetedDrugType() {
+        return targetedDrugType;
+    }
+
+    public void setTargetedDrugType(Integer targetedDrugType) {
+        this.targetedDrugType = targetedDrugType;
+    }
 
     public OrganDrugList() {
     }
