@@ -49,6 +49,7 @@ import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.bean.DrugsEnterpriseDTO;
 import recipe.drugsenterprise.bean.StandardResultDTO;
+import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStateEnum;
@@ -60,6 +61,7 @@ import recipe.manager.EmrRecipeManager;
 import recipe.manager.GroupRecipeManager;
 import recipe.manager.OrderManager;
 import recipe.manager.StateManager;
+import recipe.presettle.RecipeOrderTypeEnum;
 import recipe.purchase.CommonOrder;
 import recipe.service.*;
 import recipe.serviceprovider.BaseService;
@@ -1866,6 +1868,16 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 orderDetailBean.setExpressFee("0");
             } else {
                 orderDetailBean.setExpressFee(convertParame(recipeOrder.getExpressFee()));
+            }
+            if (GiveModeEnum.GIVE_MODE_HOME_DELIVERY.getType().equals(recipe.getGiveMode())) {
+                orderDetailBean.setDistributionFlag("1");
+            } else {
+                orderDetailBean.setDistributionFlag("0");
+            }
+            if (RecipeOrderTypeEnum.PROVINCIAL_MEDICAL.getType().equals(recipeOrder.getOrderType())) {
+                orderDetailBean.setMedicalPayFlag("1");
+            } else {
+                orderDetailBean.setMedicalPayFlag("0");
             }
             orderDetailBean.setExpressFee(convertParame(recipeOrder.getExpressFee()));
             String province = LocalStringUtil.getAddressDic(recipeOrder.getAddress1());
