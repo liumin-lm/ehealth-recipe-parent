@@ -79,5 +79,5 @@ public interface IRecipeDetailBusinessService {
      * @param recipeDetailDTO 药品信息
      * @return
      */
-    List<RecipeDetailDTO> validateHisDrugRule(Recipe recipe, List<RecipeDetailDTO> recipeDetailDTO);
+    List<RecipeDetailDTO> validateHisDrugRule(Recipe recipe, List<RecipeDetailDTO> recipeDetailDTO, String registerId, String dbType);
 }

@@ -48,4 +48,8 @@ public class ValidateDetailVO {
      * 当前版本
      */
     private Integer version;
+    /**
+     * 大病类型
+     */
+    private String dbType;
 }

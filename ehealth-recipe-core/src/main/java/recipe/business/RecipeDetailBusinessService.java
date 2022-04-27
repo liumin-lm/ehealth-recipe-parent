@@ -227,7 +227,7 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
     }
 
     @Override
-    public List<RecipeDetailDTO> validateHisDrugRule(Recipe recipe, List<RecipeDetailDTO> recipeDetails) {
+    public List<RecipeDetailDTO> validateHisDrugRule(Recipe recipe, List<RecipeDetailDTO> recipeDetails, String registerId, String dbType) {
         //"1": "大病权限", "2": "靶向药权限"
         List<String> hisDrugRule = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "validateHisDrugRule", null);
         logger.info("RecipeDetailBusinessService validateHisDrugRule hisDrugRule={}", JSON.toJSONString(hisDrugRule));
@@ -236,7 +236,7 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
         }
         //"1": "大病权限"
         if (hisDrugRule.contains("1")) {
-            recipeDetailManager.validateHisDrugRule(recipe, recipeDetails);
+            recipeDetailManager.validateHisDrugRule(recipe, recipeDetails, registerId, dbType);
             logger.info("RecipeDetailBusinessService validateHisDrugRule 大病权限 recipeDetails={}", JSON.toJSONString(recipeDetails));
         }
         //"2": "靶向药权限"

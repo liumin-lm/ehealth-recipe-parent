@@ -223,7 +223,7 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
      */
     @RpcService
     public List<RecipeDetailBean> validateHisDrugRule(ValidateDetailVO validateDetailVO) {
-        validateAtop(validateDetailVO, validateDetailVO.getRecipeDetails(), validateDetailVO.getVersion(), validateDetailVO.getRecipeBean());
+        validateAtop(validateDetailVO, validateDetailVO.getRecipeDetails(), validateDetailVO.getVersion(), validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeExtendBean());
         List<RecipeDetailDTO> recipeDetailDTO = ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), RecipeDetailDTO.class);
         recipeDetailDTO.forEach(a -> a.setValidateHisStatus(0));
         if (validateDetailVO.getVersion().equals(1)) {
@@ -232,8 +232,7 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
         Recipe recipe = ObjectCopyUtils.convert(validateDetailVO.getRecipeBean(), Recipe.class);
         validateAtop(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getClinicId(), recipe.getDepart());
         // 校验his 药品规则，靶向药，大病医保等
-        List<RecipeDetailDTO> result = recipeDetailService.validateHisDrugRule(recipe, recipeDetailDTO);
+        List<RecipeDetailDTO> result = recipeDetailService.validateHisDrugRule(recipe, recipeDetailDTO, validateDetailVO.getRecipeExtendBean().getRegisterID(), validateDetailVO.getDbType());
         return ObjectCopyUtils.convert(result, RecipeDetailBean.class);
     }
-
 }

@@ -9,14 +9,12 @@ import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
-import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.*;
-import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.exception.DAOException;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
@@ -285,20 +283,13 @@ public class DrugClient extends BaseClient {
      * 校验his 药品规则，大病医保等
      *
      * @param recipeDetails 前端入餐
-     * @param organId       机构id
      * @param organDrugList 机构药品
      * @param pharmacyTcms  药房
-     * @param revisitExDTO  复诊信息：大病医保等
      */
-    public void hisDrugRule(List<RecipeDetailDTO> recipeDetails, Integer organId, List<OrganDrugList> organDrugList,
-                            List<PharmacyTcm> pharmacyTcms, RevisitExDTO revisitExDTO, DoctorDTO doctorDTO) {
+    public void hisDrugRule(List<RecipeDetailDTO> recipeDetails, List<OrganDrugList> organDrugList, List<PharmacyTcm> pharmacyTcms, DrugInfoRequestTO request) {
         List<Recipedetail> detailList = ObjectCopyUtils.convert(recipeDetails, Recipedetail.class);
         List<DrugInfoTO> data = super.drugInfoList(detailList, organDrugList, pharmacyTcms);
-        DrugInfoRequestTO request = new DrugInfoRequestTO();
-        request.setOrganId(organId);
         request.setData(data);
-        request.setDbType(revisitExDTO.getDbType());
-        request.setJobNumber(doctorDTO.getJobNumber());
         logger.info("DrugClient hisDrugRule request={}", JSON.toJSONString(request));
         HisResponseTO<List<DrugInfoTO>> hisResponse = recipeHisService.hisDrugRule(request);
         logger.info("DrugClient hisDrugRule hisResponse={}", JSON.toJSONString(hisResponse));
