@@ -10,6 +10,7 @@ import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.revisit.common.model.RevisitExDTO;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -152,7 +153,11 @@ public class RecipeDetailManager extends BaseManager {
      */
     public void validateHisDrugRule(Recipe recipe, List<RecipeDetailDTO> recipeDetails, String registerId, String dbType) {
         if (StringUtils.isEmpty(dbType)) {
-            return;
+            RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
+            if (StringUtils.isEmpty(revisitExDTO.getDbType())) {
+                return;
+            }
+            dbType = revisitExDTO.getDbType();
         }
         Set<Integer> pharmaIds = new HashSet<>();
         List<Integer> drugIdList = recipeDetails.stream().map(a -> {
