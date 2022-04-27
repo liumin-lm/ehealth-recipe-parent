@@ -21,7 +21,9 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
@@ -244,9 +246,26 @@ public class DrugDoctorAtop extends BaseAtop {
     }
 
     @RpcService
-    public List<OrganDrugList> organDrugList(Integer organId, List<String> organDrugCodes) {
+    public List<DrugsResVo> organDrugList(Integer organId, List<String> organDrugCodes) {
         validateAtop(organId, organDrugCodes);
-        return drugBusinessService.organDrugList(organId, organDrugCodes);
+        List<OrganDrugList> organDrugLists = drugBusinessService.organDrugList(organId, organDrugCodes);
+        List<Integer> drugIds = organDrugLists.stream().map(OrganDrugList::getDrugId).collect(Collectors.toList());
+        List<DrugList> drugLists = drugBusinessService.findByDrugIdsAndStatus(drugIds);
+        Map<Integer, List<DrugList>> drugMap = null;
+        if(CollectionUtils.isNotEmpty(drugLists)) {
+            drugMap = drugLists.stream().collect(Collectors.groupingBy(DrugList::getDrugId));
+        }
+        Map<Integer, List<DrugList>> finalDrugMap = drugMap;
+        List<DrugsResVo> collect = organDrugLists.stream().map(organDrugList -> {
+            DrugsResVo drugsResVo = new DrugsResVo();
+            BeanUtils.copyProperties(organDrugList, drugsResVo);
+            if (MapUtils.isNotEmpty(finalDrugMap) && CollectionUtils.isNotEmpty(finalDrugMap.get(organDrugList.getDrugId()))) {
+                Integer drugType = finalDrugMap.get(organDrugList.getDrugId()).get(0).getDrugType();
+                drugsResVo.setDrugType(drugType);
+            }
+            return drugsResVo;
+        }).collect(Collectors.toList());
+        return collect;
     }
 
 

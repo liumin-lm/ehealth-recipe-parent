@@ -456,6 +456,23 @@ public class DrugManager extends BaseManager {
     }
 
     /**
+     * 根据ID获取平台药品列表
+     *
+     * @param drugIds 平台药品id
+     * @return
+     */
+    public List<DrugList> findByDrugIdsAndStatus(List<Integer> drugIds) {
+        if (CollectionUtils.isEmpty(drugIds)) {
+            return new LinkedList<>();
+        }
+        List<DrugList> drugs = drugListDAO.findByDrugIdsAndStatus(drugIds);
+        if (CollectionUtils.isEmpty(drugs)) {
+            return new LinkedList<>();
+        }
+        return drugs;
+    }
+
+    /**
      * 定时 获取用药提醒的线下处方
      */
     public void remindPatient(List<RecipeInfoDTO> list) {

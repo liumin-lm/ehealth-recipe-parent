@@ -115,4 +115,6 @@ public interface IDrugBusinessService {
     List<OrganDrugList> organDrugList(Integer organId, List<String> organDrugCodes);
 
     OrganDrugList getOrganDrugList(Integer organId, String organDrugCode, Integer drugId);
+
+    List<DrugList> findByDrugIdsAndStatus(List<Integer> drugIds);
 }
