@@ -1,7 +1,10 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.his.recipe.mode.DrugInfoRequestTO;
+import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
+import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
@@ -14,6 +17,7 @@ import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.dao.PharmacyTcmDAO;
+import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 
 import java.math.BigDecimal;
@@ -147,10 +151,16 @@ public class RecipeDetailManager extends BaseManager {
      * @param recipeDetails 药品信息
      * @return
      */
-    public void validateHisDrugRule(Recipe recipe, List<RecipeDetailDTO> recipeDetails) {
-        RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
-        if (StringUtils.isEmpty(revisitExDTO.getDbType())) {
-            return;
+    public void validateHisDrugRule(Recipe recipe, List<RecipeDetailDTO> recipeDetails, String registerId, String dbType) {
+        if (StringUtils.isEmpty(dbType)) {
+            if (ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
+                return;
+            }
+            RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
+            if (StringUtils.isEmpty(revisitExDTO.getDbType())) {
+                return;
+            }
+            dbType = revisitExDTO.getDbType();
         }
         Set<Integer> pharmaIds = new HashSet<>();
         List<Integer> drugIdList = recipeDetails.stream().map(a -> {
@@ -160,7 +170,18 @@ public class RecipeDetailManager extends BaseManager {
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(recipe.getClinicOrgan(), drugIdList);
         List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(pharmaIds);
         DoctorDTO doctorDTO = doctorClient.jobNumber(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getDepart());
+        PatientDTO patientDTO = patientClient.getPatientDTO(recipe.getMpiid());
+        //科室代码
+        AppointDepartDTO appointDepart = departClient.getAppointDepartByOrganIdAndDepart(recipe);
+        String appointDepartCode = null != appointDepart ? appointDepart.getAppointDepartCode() : "";
         // 请求his
-        drugClient.hisDrugRule(recipeDetails, recipe.getClinicOrgan(), organDrugList, pharmacyTcmByIds, revisitExDTO, doctorDTO);
+        DrugInfoRequestTO request = new DrugInfoRequestTO();
+        request.setOrganId(recipe.getClinicOrgan());
+        request.setJobNumber(doctorDTO.getJobNumber());
+        request.setPatientDTO(ObjectCopyUtils.convert(patientDTO, com.ngari.patient.dto.PatientDTO.class));
+        request.setAppointDepartCode(appointDepartCode);
+        request.setDbType(dbType);
+        request.setRegisterID(registerId);
+        drugClient.hisDrugRule(recipeDetails, organDrugList, pharmacyTcmByIds, request);
     }
 }
