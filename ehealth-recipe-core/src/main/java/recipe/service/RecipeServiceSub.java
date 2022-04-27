@@ -1562,7 +1562,7 @@ public class RecipeServiceSub {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
+        //EnterpriseManager enterpriseManager = AppContextHolder.getBean("enterpriseManager", EnterpriseManager.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
 
         Map<String, Object> map = Maps.newHashMap();
@@ -1974,10 +1974,10 @@ public class RecipeServiceSub {
         }
 
         map.put("qrName", recipeManager.getToHosProof(recipe, recipeExtend, recipeOrder));
-        OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(recipe.getClinicOrgan(), recipeOrder.getEnterpriseId(), recipe.getGiveMode());
+        /*OrganDrugsSaleConfig organDrugsSaleConfig = enterpriseManager.getOrganDrugsSaleConfig(recipe.getClinicOrgan(), recipeOrder.getEnterpriseId(), recipe.getGiveMode());
         if (null != organDrugsSaleConfig) {
             map.put("qrType", organDrugsSaleConfig.getTakeDrugsVoucher());
-        }
+        }*/
         if (recipe.getEnterpriseId() != null) {
             DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
