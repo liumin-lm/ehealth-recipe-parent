@@ -4,7 +4,6 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
-import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
@@ -179,6 +178,11 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
             return dispensatoryDTO;
         }
         return new DispensatoryDTO();
+    }
+
+    @Override
+    public List<OrganDrugList> organDrugList(Integer organId, List<Integer> drugIds) {
+        return organDrugListDAO.findByOrganIdAndDrugIds(organId, drugIds);
     }
 
 }
