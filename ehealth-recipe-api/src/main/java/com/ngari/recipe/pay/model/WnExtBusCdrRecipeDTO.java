@@ -25,4 +25,5 @@ public class WnExtBusCdrRecipeDTO implements Serializable {
     private String kzxx;
     private String cflysm;
     private String ksdm;
+    private String dbtype;
 }
