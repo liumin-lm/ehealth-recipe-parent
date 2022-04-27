@@ -888,6 +888,7 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             String organDrugCode = recipeDetailBean.getOrganDrugCode();
             OrganDrugList organDrugList = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, organDrugCode, drugId);
             if (null == organDrugList) {
+                LOGGER.error("validateData organDrugName:{},organDrugCode:{}", recipeDetailBean.getDrugName(), recipeDetailBean.getOrganDrugCode());
                 throw new DAOException(ErrorCode.SERVICE_ERROR, "药品"+ recipeDetailBean.getDrugName() +"目录缺失无法开具");
             }
         });
@@ -961,12 +962,15 @@ public class RecipePatientService extends RecipeBaseService implements IPatientB
             return;
         }
         List<GiveModeButtonDTO> giveModeButtonDTOList = giveModeShowButtonDTO.getGiveModeButtons();
+        LOGGER.info("setRecipeSupportGiveMode giveModeButtonDTOList:{}", JSON.toJSONString(giveModeButtonDTOList));
         StringBuilder recipeSupportGiveMode = new StringBuilder();
         giveModeButtonDTOList.forEach(giveModeButtonDTO -> {
-            Integer giveMode = RecipeSupportGiveModeEnum.getGiveMode(giveModeButtonDTO.getShowButtonKey());
+            Integer giveMode = RecipeSupportGiveModeEnum.getGiveModeType(giveModeButtonDTO.getShowButtonKey());
+            LOGGER.info("setRecipeSupportGiveMode giveMode:{}", giveMode);
             if (!new Integer(0).equals(giveMode) && !recipeSupportGiveMode.toString().contains(giveMode.toString())) {
                 recipeSupportGiveMode.append(giveMode).append(",");
             }
+            LOGGER.info("setRecipeSupportGiveMode recipeSupportGiveMode:{}", recipeSupportGiveMode.toString());
         });
         LOGGER.info("setRecipeSupportGiveMode recipeSupportGiveMode:{}", recipeSupportGiveMode.toString());
         recipeSupportGiveMode.deleteCharAt(recipeSupportGiveMode.lastIndexOf(","));

@@ -2,7 +2,6 @@ package recipe.core.api;
 
 import com.ngari.platform.recipe.mode.ListOrganDrugReq;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
-import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
@@ -106,9 +105,12 @@ public interface IDrugBusinessService {
 
     /**
      * 查询机构药品信息
+     *
      * @param organId
      * @param drugId
      * @return
      */
     DispensatoryDTO getOrganDrugList(Integer organId, Integer drugId);
+
+    OrganDrugList getOrganDrugList(Integer organId, String organDrugCode, Integer drugId);
 }

@@ -165,7 +165,6 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         return recipe.util.ObjectCopyUtils.convert(hospitalDrugListDTOList, HospitalDrugListVO.class);
     }
 
-
     @Override
     public DispensatoryDTO getOrganDrugList(Integer organId, Integer drugId) {
         List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
@@ -180,5 +179,10 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
             return dispensatoryDTO;
         }
         return new DispensatoryDTO();
+    }
+
+    @Override
+    public OrganDrugList getOrganDrugList(Integer organId, String organDrugCode, Integer drugId) {
+        return organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, organDrugCode, drugId);
     }
 }

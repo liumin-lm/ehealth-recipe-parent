@@ -31,6 +31,7 @@ import recipe.vo.second.RevisitRecipeTraceVo;
 
 import java.util.Date;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 处方服务入口类
@@ -180,12 +181,7 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         FormWorkRecipeReqVO formWorkRecipeReqVO = new FormWorkRecipeReqVO();
         formWorkRecipeReqVO.setOrganId(organId);
         List<FormWorkRecipeVO> formWorkRecipeVOList = recipePatientService.findFormWorkRecipe(formWorkRecipeReqVO);
-        //formWorkRecipeVOList.stream().filter(a -> a.getMouldId().equals(mouldId));
-        for (FormWorkRecipeVO formWorkRecipeVO : formWorkRecipeVOList) {
-            if (mouldId == formWorkRecipeVO.getMouldId()) {
-                return formWorkRecipeVO;
-            }
-        }
+        formWorkRecipeVOList = formWorkRecipeVOList.stream().filter(a -> a.getMouldId().equals(mouldId)).collect(Collectors.toList());
         return formWorkRecipeVOList.get(0);
     }
 

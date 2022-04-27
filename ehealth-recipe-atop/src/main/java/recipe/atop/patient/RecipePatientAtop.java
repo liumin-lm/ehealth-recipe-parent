@@ -239,19 +239,13 @@ public class RecipePatientAtop extends BaseAtop {
         FormWorkRecipeReqVO formWorkRecipeReqVO = new FormWorkRecipeReqVO();
         formWorkRecipeReqVO.setOrganId(recipeBean.getClinicOrgan());
         List<FormWorkRecipeVO> formWorkRecipeVOList = recipePatientService.findFormWorkRecipe(formWorkRecipeReqVO);
-        //formWorkRecipeVOList.stream().filter(a -> a.getMouldId().equals(recipeInfoVO.getMouldId()));
-        FormWorkRecipeVO formWorkRecipeVO = new FormWorkRecipeVO();
-        for (FormWorkRecipeVO formWorkRecipe : formWorkRecipeVOList) {
-            if (recipeInfoVO.getMouldId() == formWorkRecipe.getMouldId()) {
-                formWorkRecipeVO = formWorkRecipe;
-            }
-        }
+        formWorkRecipeVOList = formWorkRecipeVOList.stream().filter(a -> a.getMouldId().equals(recipeInfoVO.getMouldId())).collect(Collectors.toList());
+        FormWorkRecipeVO formWorkRecipeVO = formWorkRecipeVOList.get(0);
         logger.info("saveRecipe formWorkRecipeVO:{}", JSON.toJSONString(formWorkRecipeVO));
         RecipeExtendBean recipeExtendBean = formWorkRecipeVO.getRecipeBean().getRecipeExtend();
         if (null != recipeInfoVO.getRecipeExtendBean() && null != recipeInfoVO.getRecipeExtendBean().getDocIndexId()) {
             recipeExtendBean.setDocIndexId(recipeInfoVO.getRecipeExtendBean().getDocIndexId());
-        }
-        if (null == recipeExtendBean) {
+        } else {
             recipeExtendBean = new RecipeExtendBean();
         }
         Integer copyNum = formWorkRecipeVO.getRecipeBean().getCopyNum();
