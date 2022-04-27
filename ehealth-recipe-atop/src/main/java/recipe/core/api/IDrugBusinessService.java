@@ -112,5 +112,7 @@ public interface IDrugBusinessService {
      */
     DispensatoryDTO getOrganDrugList(Integer organId, Integer drugId);
 
+    List<OrganDrugList> organDrugList(Integer organId, List<String> organDrugCodes);
+
     OrganDrugList getOrganDrugList(Integer organId, String organDrugCode, Integer drugId);
 }

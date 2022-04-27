@@ -182,6 +182,12 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     }
 
     @Override
+    public List<OrganDrugList> organDrugList(Integer organId, List<String> organDrugCodes) {
+        return organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodes);
+
+    }
+
+    @Override
     public OrganDrugList getOrganDrugList(Integer organId, String organDrugCode, Integer drugId) {
         return organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, organDrugCode, drugId);
     }

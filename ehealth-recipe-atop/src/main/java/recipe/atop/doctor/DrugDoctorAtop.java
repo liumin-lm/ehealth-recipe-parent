@@ -3,7 +3,6 @@ package recipe.atop.doctor;
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
-import com.ngari.recipe.drug.model.OrganDrugListBean;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.dto.DrugInfoDTO;
@@ -240,9 +239,16 @@ public class DrugDoctorAtop extends BaseAtop {
     }
 
     @RpcService
-    public DispensatoryDTO getOrganDrugList(Integer organId, Integer drugId){
+    public DispensatoryDTO getOrganDrugList(Integer organId, Integer drugId) {
         return drugBusinessService.getOrganDrugList(organId, drugId);
     }
+
+    @RpcService
+    public List<OrganDrugList> organDrugList(Integer organId, List<String> organDrugCodes) {
+        validateAtop(organId, organDrugCodes);
+        return drugBusinessService.organDrugList(organId, organDrugCodes);
+    }
+
 
     /**
      * 默认药品单位计量 机构关联关系

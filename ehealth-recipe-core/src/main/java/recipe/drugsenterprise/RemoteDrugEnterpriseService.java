@@ -163,7 +163,9 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                     RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
                     List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
                     result = result.getAccessDrugEnterpriseService().pushRecipeInfo(recipeIdList, enterprise);
-                    pushMessageFlag = false;
+                    if ("commonSelf".equals(enterprise.getCallSys())) {
+                        pushMessageFlag = false;
+                    }
                     if (DrugEnterpriseResult.SUCCESS.equals(result.getCode())) {
                         result.setDrugsEnterprise(enterprise);
                     }
