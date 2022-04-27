@@ -153,6 +153,9 @@ public class RecipeDetailManager extends BaseManager {
      */
     public void validateHisDrugRule(Recipe recipe, List<RecipeDetailDTO> recipeDetails, String registerId, String dbType) {
         if (StringUtils.isEmpty(dbType)) {
+            if (ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
+                return;
+            }
             RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
             if (StringUtils.isEmpty(revisitExDTO.getDbType())) {
                 return;

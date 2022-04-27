@@ -230,7 +230,7 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
             return ObjectCopyUtils.convert(recipeDetailDTO, RecipeDetailBean.class);
         }
         Recipe recipe = ObjectCopyUtils.convert(validateDetailVO.getRecipeBean(), Recipe.class);
-        validateAtop(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getClinicId(), recipe.getDepart());
+        validateAtop(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getDepart());
         // 校验his 药品规则，靶向药，大病医保等
         List<RecipeDetailDTO> result = recipeDetailService.validateHisDrugRule(recipe, recipeDetailDTO, validateDetailVO.getRecipeExtendBean().getRegisterID(), validateDetailVO.getDbType());
         return ObjectCopyUtils.convert(result, RecipeDetailBean.class);
