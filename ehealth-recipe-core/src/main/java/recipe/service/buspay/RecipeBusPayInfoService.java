@@ -708,6 +708,11 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         RevisitExDTO consultExDTO = revisitExService.getByConsultId(recipeBean.getClinicId());
         log.info("consultExDTO :{}", JSONUtils.toString(consultExDTO));
         WnExtBusCdrRecipeDTO wnExtBusCdrRecipe = new WnExtBusCdrRecipeDTO();
+        // 大病标识
+        RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipeBean.getClinicId());
+        if(Objects.nonNull(revisitExDTO) && StringUtils.isNotEmpty(revisitExDTO.getDbType())){
+            wnExtBusCdrRecipe.setDbtype(revisitExDTO.getDbType());
+        }
         wnExtBusCdrRecipe.setAction("PUTMZSYT");
         wnExtBusCdrRecipe.setHzxm(patient.getPatientName());
         wnExtBusCdrRecipe.setPatid(recipeBean.getPatientID());

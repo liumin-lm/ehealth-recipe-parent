@@ -234,6 +234,7 @@ public class DrugDoctorAtop extends BaseAtop {
                 drugList.setUsePathways("");
             }
             drugList.setUseDoseAndUnitRelation(defaultUseDose(organDrug));
+            drugList.setTargetedDrugType(organDrug.getTargetedDrugType());
         });
         return drugWithEsByPatient;
     }
