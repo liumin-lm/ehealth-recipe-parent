@@ -238,5 +238,13 @@ public class OrganDrugListManager extends BaseManager {
         return null;
     }
 
-
+    /**
+     * 校验his 药品规则，靶向药
+     *
+     * @param recipe        处方信息
+     * @param recipeDetails 药品信息
+     * @return
+     */
+    public void validateHisDrugRule(Recipe recipe, List<RecipeDetailDTO> recipeDetails) {
+    }
 }

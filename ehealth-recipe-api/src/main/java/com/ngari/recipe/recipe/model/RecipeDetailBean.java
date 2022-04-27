@@ -229,6 +229,10 @@ public class RecipeDetailBean implements java.io.Serializable {
 
     @ItemProperty(alias = "返回药品状态 0:正常，1已失效，2未完善")
     private Integer validateStatus;
+    /**
+     * 返回药品状态 原因
+     */
+    private String validateStatusText;
 
     @ItemProperty(alias = "前端展示的药品拼接名")
     private String drugDisplaySplicedName;
@@ -254,6 +258,37 @@ public class RecipeDetailBean implements java.io.Serializable {
     private String drugPic;
     @ItemProperty(alias = "单复方 ")
     private Integer unilateralCompound;
+
+    @ItemProperty(alias = "返回his药品状态 0:正常，1大病无权限，2靶向药无权限")
+    private Integer validateHisStatus;
+    /**
+     * 返回his药品状态 原因
+     */
+    private String validateHisStatusText;
+
+    public String getValidateStatusText() {
+        return validateStatusText;
+    }
+
+    public void setValidateStatusText(String validateStatusText) {
+        this.validateStatusText = validateStatusText;
+    }
+
+    public Integer getValidateHisStatus() {
+        return validateHisStatus;
+    }
+
+    public void setValidateHisStatus(Integer validateHisStatus) {
+        this.validateHisStatus = validateHisStatus;
+    }
+
+    public String getValidateHisStatusText() {
+        return validateHisStatusText;
+    }
+
+    public void setValidateHisStatusText(String validateHisStatusText) {
+        this.validateHisStatusText = validateHisStatusText;
+    }
 
     public Integer getUnilateralCompound() {
         return unilateralCompound;
