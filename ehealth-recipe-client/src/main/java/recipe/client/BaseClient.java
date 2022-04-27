@@ -4,7 +4,11 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.base.currentuserinfo.service.ICurrentUserInfoService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.patient.service.IPatientHisService;
+import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.recipe.entity.OrganDrugList;
+import com.ngari.recipe.entity.PharmacyTcm;
+import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.exception.DAOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +16,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.constant.ErrorCode;
 import recipe.constant.HisErrorCodeEnum;
 import recipe.util.DictionaryUtil;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * his调用基类
@@ -100,5 +109,35 @@ public class BaseClient {
      */
     protected String getAddress(String area) {
         return DictionaryUtil.getDictionary("eh.base.dictionary.AddrArea", area);
+    }
+
+
+    protected List<DrugInfoTO> drugInfoList(List<Recipedetail> detailList, List<OrganDrugList> organDrugList, List<PharmacyTcm> pharmacyTcms) {
+        Map<Integer, PharmacyTcm> pharmacyTcmMap = pharmacyTcms.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
+        Map<String, Recipedetail> detailMap = detailList.stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getOrganDrugCode(), a -> a, (k1, k2) -> k1));
+        List<DrugInfoTO> data = new LinkedList<>();
+        organDrugList.forEach(a -> {
+            DrugInfoTO drugInfo = new DrugInfoTO(a.getOrganDrugCode());
+            drugInfo.setPack(String.valueOf(a.getPack()));
+            drugInfo.setManfcode(a.getProducerCode());
+            drugInfo.setDrname(a.getDrugName());
+            drugInfo.setDrugId(a.getDrugId());
+            drugInfo.setDrugItemCode(a.getDrugItemCode());
+            Recipedetail recipedetail = detailMap.get(a.getDrugId() + a.getOrganDrugCode());
+            if (null == recipedetail) {
+                data.add(drugInfo);
+                return;
+            }
+            drugInfo.setDrugType(recipedetail.getDrugType());
+            drugInfo.setPackUnit(recipedetail.getDrugUnit());
+            drugInfo.setUseTotalDose(recipedetail.getUseTotalDose());
+            PharmacyTcm tcm = pharmacyTcmMap.get(recipedetail.getPharmacyId());
+            if (null != tcm) {
+                drugInfo.setPharmacyCode(tcm.getPharmacyCode());
+                drugInfo.setPharmacy(tcm.getPharmacyName());
+            }
+            data.add(drugInfo);
+        });
+        return data;
     }
 }

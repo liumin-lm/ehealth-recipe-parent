@@ -224,12 +224,14 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
     @RpcService
     public List<RecipeDetailBean> validateHisDrugRule(ValidateDetailVO validateDetailVO) {
         validateAtop(validateDetailVO, validateDetailVO.getRecipeDetails(), validateDetailVO.getVersion(), validateDetailVO.getRecipeBean());
+        List<RecipeDetailDTO> recipeDetailDTO = ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), RecipeDetailDTO.class);
+        recipeDetailDTO.forEach(a -> a.setValidateHisStatus(0));
         if (validateDetailVO.getVersion().equals(1)) {
-            return validateDetailVO.getRecipeDetails();
+            return ObjectCopyUtils.convert(recipeDetailDTO, RecipeDetailBean.class);
         }
         Recipe recipe = ObjectCopyUtils.convert(validateDetailVO.getRecipeBean(), Recipe.class);
         validateAtop(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getClinicId());
-        List<RecipeDetailDTO> recipeDetailDTO = ObjectCopyUtils.convert(validateDetailVO.getRecipeDetails(), RecipeDetailDTO.class);
+
         List<RecipeDetailDTO> result = recipeDetailService.validateHisDrugRule(recipe, recipeDetailDTO);
         return ObjectCopyUtils.convert(result, RecipeDetailBean.class);
     }

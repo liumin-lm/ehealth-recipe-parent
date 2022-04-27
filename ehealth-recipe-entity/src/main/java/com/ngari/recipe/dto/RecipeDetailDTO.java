@@ -13,13 +13,16 @@ import java.math.BigDecimal;
 @NoArgsConstructor
 public class RecipeDetailDTO implements Serializable {
     @ItemProperty(alias = "药品ID")
-    private Integer drguId;
+    private Integer drugId;
 
     @ItemProperty(alias = "机构药品编号")
     private String organDrugCode;
 
     @ItemProperty(alias = "处方药品详情类型")
     private Integer drugType;
+
+    @ItemProperty(alias = "药房id主键")
+    private Integer pharmacyId;
 
     @ItemProperty(alias = "处方详情编码")
     private String recipeDeatilCode;

@@ -3,11 +3,16 @@ package recipe.manager;
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.OrganDrugList;
+import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.revisit.common.model.RevisitExDTO;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import recipe.dao.PharmacyTcmDAO;
 import recipe.util.ValidateUtil;
 
 import java.math.BigDecimal;
@@ -22,6 +27,8 @@ import java.util.stream.Collectors;
  */
 @Service
 public class RecipeDetailManager extends BaseManager {
+    @Autowired
+    private PharmacyTcmDAO pharmacyTcmDAO;
 
     /**
      * 保存处方明细
@@ -140,5 +147,18 @@ public class RecipeDetailManager extends BaseManager {
      * @return
      */
     public void validateHisDrugRule(Recipe recipe, List<RecipeDetailDTO> recipeDetails) {
+        RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
+        if (StringUtils.isEmpty(revisitExDTO.getDbType())) {
+            return;
+        }
+        Set<Integer> pharmaIds = new HashSet<>();
+        List<Integer> drugIdList = recipeDetails.stream().map(a -> {
+            pharmaIds.add(a.getPharmacyId());
+            return a.getDrugId();
+        }).collect(Collectors.toList());
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(recipe.getClinicOrgan(), drugIdList);
+        List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(pharmaIds);
+        // 请求his
+        drugClient.hisDrugRule(recipeDetails, recipe.getClinicOrgan(), organDrugList, pharmacyTcmByIds, revisitExDTO);
     }
 }

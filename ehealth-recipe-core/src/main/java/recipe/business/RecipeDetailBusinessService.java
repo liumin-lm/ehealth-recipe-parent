@@ -1,5 +1,6 @@
 package recipe.business;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -232,11 +233,15 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
         if (CollectionUtils.isEmpty(hisDrugRule)) {
             return null;
         }
+        //"1": "大病权限"
         if (hisDrugRule.contains("1")) {
             recipeDetailManager.validateHisDrugRule(recipe, recipeDetails);
+            logger.info("RecipeDetailBusinessService validateHisDrugRule 大病权限 recipeDetails={}", JSON.toJSONString(recipeDetails));
         }
+        //"2": "靶向药权限"
         if (hisDrugRule.contains("2")) {
             organDrugListManager.validateHisDrugRule(recipe, recipeDetails);
+            logger.info("RecipeDetailBusinessService validateHisDrugRule 靶向药权限 recipeDetails={}", JSON.toJSONString(recipeDetails));
         }
         return recipeDetails;
     }
