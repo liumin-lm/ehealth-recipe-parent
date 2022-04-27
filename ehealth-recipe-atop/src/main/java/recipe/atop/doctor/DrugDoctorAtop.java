@@ -244,9 +244,9 @@ public class DrugDoctorAtop extends BaseAtop {
     }
 
     @RpcService
-    public List<OrganDrugList> organDrugList(DrugQueryVO drugQueryVO) {
-        validateAtop(drugQueryVO, drugQueryVO.getOrganId(), drugQueryVO.getDrugIds());
-        return drugBusinessService.organDrugList(drugQueryVO.getOrganId(), drugQueryVO.getDrugIds());
+    public List<OrganDrugList> organDrugList(Integer organId, List<String> organDrugCodes) {
+        validateAtop(organId, organDrugCodes);
+        return drugBusinessService.organDrugList(organId, organDrugCodes);
     }
 
 
