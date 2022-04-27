@@ -9,6 +9,7 @@ import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.DrugInfoRequestTO;
 import com.ngari.his.recipe.mode.DrugInfoTO;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
@@ -289,13 +290,15 @@ public class DrugClient extends BaseClient {
      * @param pharmacyTcms  药房
      * @param revisitExDTO  复诊信息：大病医保等
      */
-    public void hisDrugRule(List<RecipeDetailDTO> recipeDetails, Integer organId, List<OrganDrugList> organDrugList, List<PharmacyTcm> pharmacyTcms, RevisitExDTO revisitExDTO) {
+    public void hisDrugRule(List<RecipeDetailDTO> recipeDetails, Integer organId, List<OrganDrugList> organDrugList,
+                            List<PharmacyTcm> pharmacyTcms, RevisitExDTO revisitExDTO, DoctorDTO doctorDTO) {
         List<Recipedetail> detailList = ObjectCopyUtils.convert(recipeDetails, Recipedetail.class);
         List<DrugInfoTO> data = super.drugInfoList(detailList, organDrugList, pharmacyTcms);
         DrugInfoRequestTO request = new DrugInfoRequestTO();
         request.setOrganId(organId);
         request.setData(data);
         request.setDbType(revisitExDTO.getDbType());
+        request.setJobNumber(doctorDTO.getJobNumber());
         logger.info("DrugClient hisDrugRule request={}", JSON.toJSONString(request));
         HisResponseTO<List<DrugInfoTO>> hisResponse = recipeHisService.hisDrugRule(request);
         logger.info("DrugClient hisDrugRule hisResponse={}", JSON.toJSONString(hisResponse));

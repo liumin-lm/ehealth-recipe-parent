@@ -1,6 +1,7 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
@@ -158,7 +159,8 @@ public class RecipeDetailManager extends BaseManager {
         }).collect(Collectors.toList());
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(recipe.getClinicOrgan(), drugIdList);
         List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(pharmaIds);
+        DoctorDTO doctorDTO = doctorClient.jobNumber(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getDepart());
         // 请求his
-        drugClient.hisDrugRule(recipeDetails, recipe.getClinicOrgan(), organDrugList, pharmacyTcmByIds, revisitExDTO);
+        drugClient.hisDrugRule(recipeDetails, recipe.getClinicOrgan(), organDrugList, pharmacyTcmByIds, revisitExDTO, doctorDTO);
     }
 }
