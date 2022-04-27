@@ -230,6 +230,7 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
     public List<RecipeDetailDTO> validateHisDrugRule(Recipe recipe, List<RecipeDetailDTO> recipeDetails) {
         //"1": "大病权限", "2": "靶向药权限"
         List<String> hisDrugRule = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "validateHisDrugRule", null);
+        logger.info("RecipeDetailBusinessService validateHisDrugRule hisDrugRule={}", JSON.toJSONString(hisDrugRule));
         if (CollectionUtils.isEmpty(hisDrugRule)) {
             return recipeDetails;
         }
