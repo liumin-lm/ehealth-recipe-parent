@@ -252,6 +252,7 @@ public class OrganDrugListManager extends BaseManager {
         }
         List<Integer> drugIdList = recipeDetails.stream().map(RecipeDetailDTO::getDrugId).collect(Collectors.toList());
         List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(recipe.getClinicOrgan(), drugIdList);
+        logger.info("OrganDrugListManager validateHisDrugRule organDrugList={}", JSON.toJSONString(organDrugList));
         Map<String, OrganDrugList> organDrugMap = organDrugList.stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getOrganDrugCode(), a -> a, (k1, k2) -> k1));
         recipeDetails.forEach(a -> {
             //存在其他权限

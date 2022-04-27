@@ -231,7 +231,7 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
         //"1": "大病权限", "2": "靶向药权限"
         List<String> hisDrugRule = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "validateHisDrugRule", null);
         if (CollectionUtils.isEmpty(hisDrugRule)) {
-            return null;
+            return recipeDetails;
         }
         //"1": "大病权限"
         if (hisDrugRule.contains("1")) {
