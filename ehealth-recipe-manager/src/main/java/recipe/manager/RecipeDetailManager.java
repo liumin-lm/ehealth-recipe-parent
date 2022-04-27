@@ -1,6 +1,7 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
@@ -123,10 +124,21 @@ public class RecipeDetailManager extends BaseManager {
 
     /**
      * 获取处方详情列表
+     *
      * @param recipeId 处方ID
      * @return 处方详情列表
      */
-    public List<Recipedetail> findByRecipeId(Integer recipeId){
+    public List<Recipedetail> findByRecipeId(Integer recipeId) {
         return recipeDetailDAO.findByRecipeId(recipeId);
+    }
+
+    /**
+     * 校验his 药品规则，大病医保等
+     *
+     * @param recipe        处方信息
+     * @param recipeDetails 药品信息
+     * @return
+     */
+    public void validateHisDrugRule(Recipe recipe, List<RecipeDetailDTO> recipeDetails) {
     }
 }

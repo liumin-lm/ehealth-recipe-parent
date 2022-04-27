@@ -1,5 +1,7 @@
 package recipe.core.api;
 
+import com.ngari.recipe.dto.RecipeDetailDTO;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.RecipeSkipVO;
 import recipe.vo.ResultBean;
@@ -63,9 +65,19 @@ public interface IRecipeDetailBusinessService {
 
     /**
      * 跳转到第三方
-     * @param organId 机构ID
+     *
+     * @param organId    机构ID
      * @param recipeCode his处方号
      * @return
      */
     RecipeSkipVO getRecipeSkipUrl(Integer organId, String recipeCode);
+
+    /**
+     * 校验his 药品规则，靶向药，大病医保等
+     *
+     * @param recipe          处方信息
+     * @param recipeDetailDTO 药品信息
+     * @return
+     */
+    List<RecipeDetailDTO> validateHisDrugRule(Recipe recipe, List<RecipeDetailDTO> recipeDetailDTO);
 }
