@@ -165,6 +165,9 @@ public class OrganDrugListBean implements java.io.Serializable {
     @Dictionary(id = "eh.cdr.dictionary.UnilateralCompound")
     private Integer unilateralCompound;
 
+    @ItemProperty(alias="是否靶向药  0否  1是 ")
+    private Integer targetedDrugType;
+
     public OrganDrugListBean() {
     }
 
@@ -563,5 +566,13 @@ public class OrganDrugListBean implements java.io.Serializable {
 
     public void setDrugItemCode(String drugItemCode) {
         this.drugItemCode = drugItemCode;
+    }
+
+    public Integer getTargetedDrugType() {
+        return targetedDrugType;
+    }
+
+    public void setTargetedDrugType(Integer targetedDrugType) {
+        this.targetedDrugType = targetedDrugType;
     }
 }
