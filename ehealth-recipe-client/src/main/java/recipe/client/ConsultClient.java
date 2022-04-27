@@ -9,6 +9,8 @@ import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.his.visit.mode.NeedPaymentRecipeReqTo;
 import com.ngari.his.visit.mode.NeedPaymentRecipeResTo;
 import com.ngari.his.visit.mode.WriteDrugRecipeReqTO;
+import com.ngari.patient.dto.ConsultSetDTO;
+import com.ngari.patient.service.ConsultSetService;
 import ctd.util.JSONUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -30,9 +32,27 @@ public class ConsultClient extends BaseClient {
     @Autowired
     private IRecipeHisService iRecipeHisService;
 
+    @Autowired
+    private ConsultSetService consultSetService;
+
+
+    /**
+     * 根据医生id获取开靶向药的权限
+     *
+     * @param doctorId
+     * @return
+     */
+    public Boolean getTargetedDrugTypeRecipeRight(Integer doctorId) {
+        logger.info("ConsultClient getTargetedDrugTypeRecipeRight doctorId={}", JSON.toJSONString(doctorId));
+        ConsultSetDTO consultSetDTO = consultSetService.getBeanByDoctorId(doctorId);
+        logger.info("ConsultClient getTargetedDrugTypeRecipeRight consultSetDTO={}", JSON.toJSONString(consultSetDTO));
+        boolean targetedDrugTypeRecipeRight = null == consultSetDTO.getTargetedDrugTypeRecipeRight() ? false : consultSetDTO.getTargetedDrugTypeRecipeRight();
+        return targetedDrugTypeRecipeRight;
+    }
 
     /**
      * 向门诊获取代缴费用
+     *
      * @param needPaymentRecipeReqTo
      * @return
      */
