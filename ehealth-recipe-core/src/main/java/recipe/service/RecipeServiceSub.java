@@ -298,9 +298,9 @@ public class RecipeServiceSub {
                     recipeExtend.setDoctorIsDecoction("0");
                     if (StringUtils.isNotEmpty(recipeExtend.getDecoctionId())) {
                         DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
-                        if(decoctionWay.getGenerationisOfDecoction()){
+                        if (decoctionWay.getGenerationisOfDecoction()) {
                             recipeExtend.setDoctorIsDecoction("1");
-                        }else {
+                        } else {
                             recipeExtend.setDoctorIsDecoction("0");
                         }
                     }

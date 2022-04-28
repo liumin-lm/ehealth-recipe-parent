@@ -1961,4 +1961,115 @@ public class HisRecipeService {
         }
     }
 
+    @RpcService
+    public Set<String> obtainDeleteRecipeCodes(List<QueryHisRecipResTO> hisRecipeTO, Map<String, HisRecipe> hisRecipeMap, List<HisRecipeDetail> hisRecipeDetailList, String mpiId) {
+        LOGGER.info("HisRecipeManager deleteSetRecipeCode hisRecipeTO:{},hisRecipeMap:{},hisRecipeDetailList:{},mpiId:{}", JSONUtils.toString(hisRecipeTO), JSONUtils.toString(hisRecipeMap), JSONUtils.toString(hisRecipeDetailList), mpiId);
+        Set<String> deleteSetRecipeCode = new HashSet<>();
+        Map<Integer, List<HisRecipeDetail>> hisRecipeIdDetailMap = hisRecipeDetailList.stream().collect(Collectors.groupingBy(HisRecipeDetail::getHisRecipeId));
+        hisRecipeTO.forEach(a -> {
+            String recipeCode = a.getRecipeCode();
+            HisRecipe hisRecipe = hisRecipeMap.get(recipeCode);
+//            if (null == hisRecipe) {
+//                return;
+//            } else {
+//                if (!hisRecipe.getMpiId().equals(mpiId)) {
+//                    deleteSetRecipeCode.add(recipeCode);
+//                    LOGGER.info("deleteSetRecipeCode cause mpiid recipeCode:{}", recipeCode);
+//                    return;
+//                }
+//            }
+            //场景：没付钱跑到线下去支付了
+            //如果已缴费处方在数据库里已存在，且数据里的状态是未缴费，则处理数据
+//            if (a.getStatus() == 2) {
+//                if (1 == hisRecipe.getStatus()) {
+//                    deleteSetRecipeCode.add(recipeCode);
+//                    LOGGER.info("deleteSetRecipeCode cause Status recipeCode:{}", recipeCode);
+//                }
+//            }
+
+            //已处理处方(现在因为其他用户绑定了该就诊人也要查询到数据，所以mpiid不一致，数据需要删除)
+            if (2 == hisRecipe.getStatus()) {
+                return;
+            }
+            List<HisRecipeDetail> hisDetailList = hisRecipeIdDetailMap.get(hisRecipe.getHisRecipeID());
+            if (CollectionUtils.isEmpty(a.getDrugList()) || CollectionUtils.isEmpty(hisDetailList)) {
+                deleteSetRecipeCode.add(recipeCode);
+                LOGGER.info("deleteSetRecipeCode cause drugList empty recipeCode:{}", recipeCode);
+                return;
+            }
+            if (a.getDrugList().size() != hisDetailList.size()) {
+                deleteSetRecipeCode.add(recipeCode);
+                LOGGER.info("deleteSetRecipeCode cause drugList size no equal recipeCode:{}", recipeCode);
+                return;
+            }
+            Map<String, HisRecipeDetail> recipeDetailMap = hisDetailList.stream().collect(Collectors.toMap(HisRecipeDetail::getDrugCode, b -> b, (k1, k2) -> k1));
+            for (RecipeDetailTO recipeDetailTO : a.getDrugList()) {
+                HisRecipeDetail hisRecipeDetail = recipeDetailMap.get(recipeDetailTO.getDrugCode());
+                LOGGER.info("recipeDetailTO:{},hisRecipeDetail:{}.", JSONUtils.toString(recipeDetailTO), JSONUtils.toString(hisRecipeDetail));
+                if (null == hisRecipeDetail) {
+                    deleteSetRecipeCode.add(recipeCode);
+                    LOGGER.info("deleteSetRecipeCode cause hisRecipeDetail is null recipeCode:{}", recipeCode);
+                    continue;
+                }
+                if (0 != MapValueUtil.covertBigdecimal(hisRecipeDetail.getUseTotalDose()).compareTo(MapValueUtil.covertBigdecimal(recipeDetailTO.getUseTotalDose()))) {
+                    deleteSetRecipeCode.add(recipeCode);
+                    LOGGER.info("deleteSetRecipeCode cause useTotalDose recipeCode:{}", recipeCode);
+                    continue;
+                }
+                if (!MapValueUtil.covertString(hisRecipeDetail.getUseDose()).equals(MapValueUtil.covertString(recipeDetailTO.getUseDose()))) {
+                    deleteSetRecipeCode.add(recipeCode);
+                    LOGGER.info("deleteSetRecipeCode cause useDose recipeCode:{}", recipeCode);
+                    continue;
+                }
+                if ((!MapValueUtil.covertString(hisRecipeDetail.getUseDoseStr()).equals(MapValueUtil.covertString(recipeDetailTO.getUseDoseStr())))) {
+                    deleteSetRecipeCode.add(recipeCode);
+                    LOGGER.info("deleteSetRecipeCode cause useDoseStr recipeCode:{}", recipeCode);
+                    continue;
+                }
+                if ((!MapValueUtil.covertString(hisRecipeDetail.getUseDaysB()).equals(MapValueUtil.covertString(recipeDetailTO.getUseDaysB())))) {
+                    deleteSetRecipeCode.add(recipeCode);
+                    LOGGER.info("deleteSetRecipeCode cause useDaysB recipeCode:{}", recipeCode);
+                    continue;
+                }
+
+                if ((MapValueUtil.covertInteger(hisRecipeDetail.getUseDays()) != MapValueUtil.covertInteger(recipeDetailTO.getUseDays()))) {
+                    LOGGER.info("deleteSetRecipeCode cause useDays recipeCode:{}", recipeCode);
+                    deleteSetRecipeCode.add(recipeCode);
+                    LOGGER.info((MapValueUtil.covertInteger(hisRecipeDetail.getUseDays())) + "");
+                    LOGGER.info((MapValueUtil.covertInteger(recipeDetailTO.getUseDays())) + "");
+                    continue;
+                }
+
+                if (!MapValueUtil.covertString(hisRecipeDetail.getUsingRate()).equals(MapValueUtil.covertString(recipeDetailTO.getUsingRate()))) {
+                    deleteSetRecipeCode.add(recipeCode);
+                    LOGGER.info("deleteSetRecipeCode cause usingRate recipeCode:{}", recipeCode);
+                    continue;
+                }
+
+                if (!MapValueUtil.covertString(hisRecipeDetail.getUsingRateText()).equals(MapValueUtil.covertString(recipeDetailTO.getUsingRateText()))) {
+                    deleteSetRecipeCode.add(recipeCode);
+                    LOGGER.info("deleteSetRecipeCode cause usingRateText recipeCode:{}", recipeCode);
+                    continue;
+                }
+                if (!MapValueUtil.covertString(hisRecipeDetail.getUsePathways()).equals(MapValueUtil.covertString(recipeDetailTO.getUsePathWays()))) {
+                    deleteSetRecipeCode.add(recipeCode);
+                    LOGGER.info("deleteSetRecipeCode cause usePathWays recipeCode:{}", recipeCode);
+                    continue;
+                }
+                if (!MapValueUtil.covertString(hisRecipeDetail.getUsePathwaysText()).equals(MapValueUtil.covertString(recipeDetailTO.getUsePathwaysText()))) {
+                    LOGGER.info("deleteSetRecipeCode cause usePathwaysText recipeCode:{}", recipeCode);
+                    deleteSetRecipeCode.add(recipeCode);
+                }
+            }
+            //中药判断tcmFee发生变化,删除数据
+            BigDecimal tcmFee = a.getTcmFee();
+            if (MapValueUtil.covertBigdecimal(tcmFee).compareTo(MapValueUtil.covertBigdecimal(hisRecipe.getTcmFee())) != 0) {
+                LOGGER.info("deleteSetRecipeCode cause tcmFee recipeCode:{}", recipeCode);
+                deleteSetRecipeCode.add(hisRecipe.getRecipeCode());
+            }
+        });
+        LOGGER.info("HisRecipeManager deleteSetRecipeCode res:{}", JSONUtils.toString(deleteSetRecipeCode));
+        return deleteSetRecipeCode;
+    }
+
 }

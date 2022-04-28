@@ -63,15 +63,17 @@ public class RecipeServiceEsignExt {
         LOGGER.info("signCreateRecipePDF caBean is [{}]", JSONObject.toJSONString(caBean));
         return caBean;
     }
+
     /**
      * 移动端签章完成后、将签章后的pdf文件绑定处方、并上传文件服务器
+     *
      * @param recipeId
      * @return
      * @throws Exception
      */
     @RpcService
-    public static String saveSignRecipePDF(String pdfBase64,Integer recipeId, String loginId,String signCADate,
-                                           String signRecipeCode,Boolean isDoctor, String fileId){
+    public static String saveSignRecipePDF(String pdfBase64, Integer recipeId, String loginId, String signCADate,
+                                           String signRecipeCode, Boolean isDoctor, String fileId) {
         LOGGER.info("saveSignRecipePDF start in pdfBase64={}, recipeId={}, loginId={},signCADate={},signRecipeCode={},isDoctor={}",
                 pdfBase64, recipeId, loginId, signCADate, signRecipeCode, isDoctor);
         try {
@@ -105,7 +107,7 @@ public class RecipeServiceEsignExt {
                     attrMap.put("signFile", fileId);
                 }
                 attrMap.put("signDate", new Date());
-                attrMap.put("Status", RecipeStatusConstant.CHECK_PASS);
+//                attrMap.put("Status", RecipeStatusConstant.READY_CHECK_YS);
             } else {
                 //药师签名时间戳
                 if (!StringUtils.isEmpty(signCADate)) {
@@ -121,7 +123,7 @@ public class RecipeServiceEsignExt {
                 }
                 attrMap.put("CheckDateYs", new Date());
 
-                RecipeBean recipe =recipeService.get(recipeId);
+                RecipeBean recipe = recipeService.get(recipeId);
                 AuditModeContext auditModeContext = new AuditModeContext();
                 int recipeStatus = auditModeContext.getAuditModes(recipe.getReviewType()).afterAuditRecipeChange();
                 if (recipe.canMedicalPay()) {
@@ -133,25 +135,26 @@ public class RecipeServiceEsignExt {
 
             //保存签名值
             boolean upResult = recipeService.updateRecipeInfoByRecipeId(recipeId, attrMap);
-            LOGGER.info("saveSignRecipePDF 保存签名  upResult={}=recipeId={}=attrMap={}=", upResult,recipeId,attrMap.toString());
-            String reuslt = upResult?"success":"fail";
+            LOGGER.info("saveSignRecipePDF 保存签名  upResult={}=recipeId={}=attrMap={}=", upResult, recipeId, attrMap.toString());
+            String reuslt = upResult ? "success" : "fail";
             return reuslt;
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.error("saveSignRecipePDF 保存签名 ",e);
+            LOGGER.error("saveSignRecipePDF 保存签名 ", e);
             return null;
         }
     }
 
     /**
      * CA专用的处方保存CA相关信息
+     *
      * @param recipeId
      * @return
      * @throws Exception
      */
     @RpcService
-    public static String saveSignRecipePDFCA(String pdfBase64,Integer recipeId, String loginId,String signCADate,
-                                           String signRecipeCode,Boolean isDoctor, String fileId){
+    public static String saveSignRecipePDFCA(String pdfBase64, Integer recipeId, String loginId, String signCADate,
+                                             String signRecipeCode, Boolean isDoctor, String fileId) {
         LOGGER.info("saveSignRecipePDFCA start in pdfBase64={}, recipeId={}, loginId={},signCADate={},signRecipeCode={},isDoctor={}",
                 pdfBase64, recipeId, loginId, signCADate, signRecipeCode, isDoctor);
 //        String fileId = null;
@@ -205,12 +208,12 @@ public class RecipeServiceEsignExt {
             }
             //保存签名值
             boolean upResult = recipeService.updateRecipeInfoByRecipeId(recipeId, attrMap);
-            LOGGER.info("saveSignRecipePDFCA 保存签名  upResult={}=recipeId={}=attrMap={}=", upResult,recipeId,attrMap.toString());
-            String reuslt = upResult?"success":"fail";
+            LOGGER.info("saveSignRecipePDFCA 保存签名  upResult={}=recipeId={}=attrMap={}=", upResult, recipeId, attrMap.toString());
+            String reuslt = upResult ? "success" : "fail";
             return reuslt;
-        } catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-            LOGGER.error("saveSignRecipePDFCA 保存签名 ",e);
+            LOGGER.error("saveSignRecipePDFCA 保存签名 ", e);
             return null;
         }
     }
@@ -254,12 +257,12 @@ public class RecipeServiceEsignExt {
             file.delete();
             return meta.getFileId();
         } catch (Exception e) {
-            LOGGER.error("uploadRecipeSignFile exception:" + e.getMessage(),e);
+            LOGGER.error("uploadRecipeSignFile exception:" + e.getMessage(), e);
         } finally {
             try {
                 fileOutputStream.close();
             } catch (Exception e) {
-                LOGGER.error("uploadRecipeSignFile exception:" + e.getMessage(),e);
+                LOGGER.error("uploadRecipeSignFile exception:" + e.getMessage(), e);
             }
         }
         return null;
@@ -284,12 +287,12 @@ public class RecipeServiceEsignExt {
             LOGGER.info("上传文件失败,fileName=" + fileName);
             return;
         }
-        if(isDoctor){
-            if(StringUtils.isEmpty(recipe.getSignFile())){
+        if (isDoctor) {
+            if (StringUtils.isEmpty(recipe.getSignFile())) {
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("signFile", fileId));
             }
-        }else{
-            if(StringUtils.isEmpty(recipe.getChemistSignFile())){
+        } else {
+            if (StringUtils.isEmpty(recipe.getChemistSignFile())) {
                 recipeDAO.updateRecipeInfoByRecipeId(recipeId, ImmutableMap.of("chemistSignFile", fileId));
             }
         }
