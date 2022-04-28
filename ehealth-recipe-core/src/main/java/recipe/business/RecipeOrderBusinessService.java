@@ -346,7 +346,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 PatientDTO patient = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
                 logger.info("ThirdEnterpriseCallService.downLoadRecipes patient:{} .", JSONUtils.toString(patient));
                 downRecipeVO.setBirthday(patient.getBirthday());
-                downRecipeVO.setSexCode(patient.getPatientSex());
+                downRecipeVO.setSexCode("1".equals(patient.getPatientSex())?"M":"F");
                 try {
                     downRecipeVO.setSexName(DictionaryController.instance().get("eh.base.dictionary.Gender").getText(patient.getPatientSex()));
                 } catch (ControllerException e) {
