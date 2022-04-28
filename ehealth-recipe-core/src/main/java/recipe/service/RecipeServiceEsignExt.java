@@ -107,7 +107,7 @@ public class RecipeServiceEsignExt {
                     attrMap.put("signFile", fileId);
                 }
                 attrMap.put("signDate", new Date());
-                attrMap.put("Status", RecipeStatusConstant.READY_CHECK_YS);
+//                attrMap.put("Status", RecipeStatusConstant.READY_CHECK_YS);
             } else {
                 //药师签名时间戳
                 if (!StringUtils.isEmpty(signCADate)) {
