@@ -268,7 +268,7 @@ public class OrganDrugListManager extends BaseManager {
                 return;
             }
             a.setValidateHisStatus(2);
-            a.setValidateHisStatusText("靶向药无权限");
+            a.setValidateHisStatusText("不可开具靶向药品");
         });
     }
 }
