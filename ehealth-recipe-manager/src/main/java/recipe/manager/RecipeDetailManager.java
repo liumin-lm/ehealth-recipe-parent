@@ -182,6 +182,6 @@ public class RecipeDetailManager extends BaseManager {
         request.setAppointDepartCode(appointDepartCode);
         request.setDbType(dbType);
         request.setRegisterID(registerId);
-        drugClient.hisDrugRule(recipeDetails, organDrugList, pharmacyTcmByIds, request);
+        offlineRecipeClient.hisDrugRule(recipeDetails, organDrugList, pharmacyTcmByIds, request);
     }
 }
