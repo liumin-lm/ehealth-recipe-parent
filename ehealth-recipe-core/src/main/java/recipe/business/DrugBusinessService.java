@@ -145,7 +145,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                     if (CollectionUtils.isNotEmpty(list)) {
                         drugManager.remindPatient(list);
                     }
-                } while (pageSize >= 5000);
+                } while (pageSize >= 1000);
             } catch (Exception e) {
                 logger.info("DrugBusinessService queryRemindRecipe organId= {}", a, e);
             }
