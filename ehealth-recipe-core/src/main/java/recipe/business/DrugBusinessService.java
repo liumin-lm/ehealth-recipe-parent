@@ -141,9 +141,11 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                 int pageNo = 0;
                 do {
                     List<RecipeInfoDTO> list = hisRecipeManager.queryRemindRecipe(a, ++pageNo);
-                    pageSize = list.size();
                     if (CollectionUtils.isNotEmpty(list)) {
+                        pageSize = list.size();
                         drugManager.remindPatient(list);
+                    } else {
+                        pageSize = 0;
                     }
                 } while (pageSize >= 1000);
             } catch (Exception e) {
