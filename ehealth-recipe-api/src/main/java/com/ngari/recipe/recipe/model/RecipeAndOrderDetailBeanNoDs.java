@@ -89,7 +89,10 @@ public class RecipeAndOrderDetailBeanNoDs implements Serializable {
     /**
      * 病人性别
      */
+    //后续病人性别如果要对外不使用这个字段
     private String sexCode;
+    //后续病人性别如果要对外使用这个字段
+    private String gender;
     private String sexName;
 
     @Temporal(TemporalType.DATE)

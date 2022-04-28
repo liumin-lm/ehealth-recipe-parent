@@ -1780,7 +1780,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 orderDetailBean.setPatientTel(convertParame(patient.getMobile()));
                 orderDetailBean.setPatientAddress(convertParame(patient.getFullHomeArea()));
                 orderDetailBean.setBirthday(patient.getBirthday());
-                orderDetailBean.setSexCode(patient.getPatientSex());
+                orderDetailBean.setSexCode("1".equals(patient.getPatientSex())?"M":"F");
+                orderDetailBean.setGender(patient.getPatientSex());
                 try {
                     orderDetailBean.setSexName(DictionaryController.instance().get("eh.base.dictionary.Gender").getText(patient.getPatientSex()));
                 } catch (ControllerException e) {
