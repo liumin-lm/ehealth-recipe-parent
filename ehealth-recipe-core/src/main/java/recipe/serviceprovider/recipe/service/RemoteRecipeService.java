@@ -2554,17 +2554,15 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         LOGGER.info("getRecipeFeeDetail voList:{}", JSONUtils.toString(voList));
         List<DepartChargeReportResult> voRefundList = recipeDAO.findRefundRecipeByOrganIdAndCreateTimeAnddepart(organId, depart, createTime, endTime);
         LOGGER.info("getRecipeFeeDetail voRefundList:{}", JSONUtils.toString(voRefundList));
-        Map<Integer, List<DepartChargeReportResult>> refundListMap = voRefundList.stream().collect(Collectors.groupingBy(DepartChargeReportResult::getDepartId));
+        Map<Integer, DepartChargeReportResult> refundListMap = voRefundList.stream().collect(Collectors.toMap(k -> k.getDepartId(), v -> v));
         LOGGER.info("getRecipeFeeDetail refundListMap:{}", JSONUtils.toString(refundListMap));
         voList.forEach(departChargeReportResult -> {
-            List<DepartChargeReportResult> refundResultList = refundListMap.get(departChargeReportResult.getDepartId());
-            DepartChargeReportResult refundDepartCharge = new DepartChargeReportResult();
-            if (CollectionUtils.isNotEmpty(refundResultList)) {
-                refundDepartCharge = refundResultList.get(0);
-                LOGGER.info("getRecipeFeeDetail refundDepartCharge:{}", JSONUtils.toString(refundDepartCharge));
-                departChargeReportResult.setWestMedFee(departChargeReportResult.getWestMedFee().subtract(refundDepartCharge.getWestMedFee()));
-                departChargeReportResult.setChineseMedFee(departChargeReportResult.getChineseMedFee().subtract(refundDepartCharge.getChineseMedFee()));
-                departChargeReportResult.setChinesePatentMedFee(departChargeReportResult.getChinesePatentMedFee().subtract(refundDepartCharge.getChinesePatentMedFee()));
+            DepartChargeReportResult refundResult = refundListMap.get(departChargeReportResult.getDepartId());
+            if (null != refundResult) {
+                LOGGER.info("getRecipeFeeDetail refundResult:{}", JSONUtils.toString(refundResult));
+                departChargeReportResult.setWestMedFee(departChargeReportResult.getWestMedFee().subtract(refundResult.getWestMedFee()));
+                departChargeReportResult.setChineseMedFee(departChargeReportResult.getChineseMedFee().subtract(refundResult.getChineseMedFee()));
+                departChargeReportResult.setChinesePatentMedFee(departChargeReportResult.getChinesePatentMedFee().subtract(refundResult.getChinesePatentMedFee()));
             }
         });
         LOGGER.info("getRecipeFeeDetail RecipeOrderFeeVO.voList is {},voList.size={}", JSONUtils.toString(voList), voList.size());
