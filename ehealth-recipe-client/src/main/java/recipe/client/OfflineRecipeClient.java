@@ -17,8 +17,8 @@ import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
-import com.ngari.recipe.dto.*;
 import com.ngari.recipe.dto.EmrDetailDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
@@ -32,9 +32,11 @@ import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.DateConversion;
+import recipe.util.ValidateUtil;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * his处方 交互处理类
@@ -528,6 +530,40 @@ public class OfflineRecipeClient extends BaseClient {
             logger.error("OfflineRecipeClient queryMedicineCode medicineCodeResponseTO", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
+    }
+
+    /**
+     * 校验his 药品规则，大病医保等
+     *
+     * @param recipeDetails 前端入餐
+     * @param organDrugList 机构药品
+     * @param pharmacyTcms  药房
+     */
+    public void hisDrugRule(List<RecipeDetailDTO> recipeDetails, List<OrganDrugList> organDrugList, List<PharmacyTcm> pharmacyTcms, DrugInfoRequestTO request) {
+        List<Recipedetail> detailList = recipe.util.ObjectCopyUtils.convert(recipeDetails, Recipedetail.class);
+        List<DrugInfoTO> data = super.drugInfoList(detailList, organDrugList, pharmacyTcms);
+        request.setData(data);
+        logger.info("OfflineRecipeClient hisDrugRule request={}", JSON.toJSONString(request));
+        HisResponseTO<List<DrugInfoTO>> hisResponse = recipeHisService.hisDrugRule(request);
+        logger.info("OfflineRecipeClient hisDrugRule hisResponse={}", JSON.toJSONString(hisResponse));
+        List<DrugInfoTO> response;
+        try {
+            response = this.getResponse(hisResponse);
+        } catch (Exception e) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+        Map<String, DrugInfoTO> detailMap = response.stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getDrcode(), a -> a, (k1, k2) -> k1));
+        recipeDetails.forEach(a -> {
+            DrugInfoTO drugInfo = detailMap.get(a.getDrugId() + a.getOrganDrugCode());
+            if (null == drugInfo) {
+                return;
+            }
+            if (ValidateUtil.integerIsEmpty(drugInfo.getValidateHisStatus())) {
+                return;
+            }
+            a.setValidateHisStatus(drugInfo.getValidateHisStatus());
+            a.setValidateHisStatusText(drugInfo.getValidateHisStatusText());
+        });
     }
 
     /**

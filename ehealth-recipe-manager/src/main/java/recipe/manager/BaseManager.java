@@ -16,6 +16,7 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.util.DictionaryUtil;
 import recipe.util.ValidateUtil;
 
+import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -61,6 +62,8 @@ public class BaseManager {
     protected DrugClient drugClient;
     @Autowired
     protected ConsultClient consultClient;
+    @Resource
+    protected OfflineRecipeClient offlineRecipeClient;
 
     /**
      * 获取处方相关信息
