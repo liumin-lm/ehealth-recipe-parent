@@ -12,7 +12,6 @@ import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
-import eh.cdr.constant.RecipeStatusConstant;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
 import org.apache.commons.collections.CollectionUtils;
@@ -677,8 +676,8 @@ public class HisRecipeManager extends BaseManager {
                     recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), orderAttrMap);
                     stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_DOCTOR_REPEAL);
 
-                    recipe.setStatus(RecipeStatusConstant.REVOKE);
-                    recipeDAO.update(recipe);
+                    Map<String, Integer> recipeMap = Maps.newHashMap();
+                    recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), recipeMap);
                 }
             });
 
