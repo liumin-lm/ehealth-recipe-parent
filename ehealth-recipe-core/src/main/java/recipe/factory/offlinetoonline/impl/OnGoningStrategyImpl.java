@@ -50,7 +50,7 @@ public class OnGoningStrategyImpl extends BaseOfflineToOnlineService implements 
         // 2、返回进行中的线下处方
         GiveModeButtonDTO giveModeButtonBean = getGiveModeButtonBean(request.getOrganId());
         List<MergeRecipeVO> res = findOngoingHisRecipeList(hisRecipeInfos.getData(), patientDTO, giveModeButtonBean, request.getStart(), request.getLimit(), request.getOrganId());
-        LOGGER.info("OnGoningStrategyImpl res:{}", JSONUtils.toString(hisRecipeInfos));
+        LOGGER.info("OnGoningStrategyImpl res:{}", JSONUtils.toString(res));
         return res;
     }
 
