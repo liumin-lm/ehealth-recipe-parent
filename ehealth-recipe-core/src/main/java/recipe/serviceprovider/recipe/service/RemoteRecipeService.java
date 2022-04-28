@@ -2561,10 +2561,11 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             DepartChargeReportResult refundDepartCharge = new DepartChargeReportResult();
             if (CollectionUtils.isNotEmpty(refundResultList)) {
                 refundDepartCharge = refundResultList.get(0);
+                LOGGER.info("getRecipeFeeDetail refundDepartCharge:{}", JSONUtils.toString(refundDepartCharge));
+                departChargeReportResult.setWestMedFee(departChargeReportResult.getWestMedFee().subtract(refundDepartCharge.getWestMedFee()));
+                departChargeReportResult.setChineseMedFee(departChargeReportResult.getChineseMedFee().subtract(refundDepartCharge.getChineseMedFee()));
+                departChargeReportResult.setChinesePatentMedFee(departChargeReportResult.getChinesePatentMedFee().subtract(refundDepartCharge.getChinesePatentMedFee()));
             }
-            departChargeReportResult.getWestMedFee().subtract(refundDepartCharge.getWestMedFee());
-            departChargeReportResult.getChineseMedFee().subtract(refundDepartCharge.getChineseMedFee());
-            departChargeReportResult.getChinesePatentMedFee().subtract(refundDepartCharge.getChinesePatentMedFee());
         });
         LOGGER.info("getRecipeFeeDetail RecipeOrderFeeVO.voList is {},voList.size={}", JSONUtils.toString(voList), voList.size());
         return voList;
