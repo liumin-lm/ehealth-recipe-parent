@@ -107,7 +107,7 @@ public class RecipeServiceEsignExt {
                     attrMap.put("signFile", fileId);
                 }
                 attrMap.put("signDate", new Date());
-                attrMap.put("Status", RecipeStatusConstant.READY_CHECK_YS);
+//                attrMap.put("Status", RecipeStatusConstant.READY_CHECK_YS);
             } else {
                 //药师签名时间戳
                 if (!StringUtils.isEmpty(signCADate)) {
@@ -130,7 +130,7 @@ public class RecipeServiceEsignExt {
                     //如果是可医保支付的单子，审核是在用户看到之前，所以审核通过之后变为待处理状态
                     recipeStatus = RecipeStatusConstant.CHECK_PASS;
                 }
-                attrMap.put("Status", recipeStatus);
+                //attrMap.put("Status", recipeStatus);
             }
 
             //保存签名值
