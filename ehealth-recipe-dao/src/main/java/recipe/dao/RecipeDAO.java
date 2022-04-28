@@ -509,11 +509,71 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append("select sum(case when r.recipeType =1 then IFNULL(o.payBackPrice,0) ELSE 0 end) westMedFee,");
                 hql.append("sum(case when r.recipeType =2 then IFNULL(o.payBackPrice,0) ELSE 0 end) chinesePatentMedFee,");
                 hql.append("sum(case when r.recipeType =3 then IFNULL(o.payBackPrice,0) ELSE 0 end) chineseMedFee,");
-                hql.append("r.depart from cdr_recipe r left join cdr_recipeorder o on r.orderCode=o.orderCode where o.status=5 and r.clinicOrgan=:organId");
+                hql.append("r.depart from cdr_recipe r left join cdr_recipeorder o on r.orderCode=o.orderCode where r.clinicOrgan=:organId");
                 if (depart != null) {
                     hql.append(" and r.depart =:depart");
                 }
-                hql.append(" and (r.signDate between :start and :end) GROUP BY r.depart ");
+                hql.append(" and (o.payTime between :start and :end) GROUP BY r.depart ");
+                Query q = ss.createSQLQuery(hql.toString());
+                q.setParameter("organId", organId);
+                if (depart != null) {
+                    q.setParameter("depart", depart);
+                }
+                q.setParameter("start", start);
+                q.setParameter("end", end);
+                List<Object[]> result = q.list();
+                List<DepartChargeReportResult> backList = new ArrayList<>();
+                if (CollectionUtils.isNotEmpty(result)) {
+                    DepartChargeReportResult recipeOrderFeeVO;
+                    for (Object[] objs : result) {
+                        //参数组装
+                        recipeOrderFeeVO = new DepartChargeReportResult();
+                        //西药费
+                        recipeOrderFeeVO.setWestMedFee(objs[0] == null ? new BigDecimal(0) : new BigDecimal(objs[0].toString()));
+                        //中成药费
+                        recipeOrderFeeVO.setChinesePatentMedFee(objs[1] == null ? new BigDecimal(0) : new BigDecimal(objs[1].toString()));
+                        //中草药费
+                        recipeOrderFeeVO.setChineseMedFee(objs[2] == null ? new BigDecimal(0) : new BigDecimal(objs[2].toString()));
+                        //科室id
+                        recipeOrderFeeVO.setDepartId(objs[3] == null ? null : Integer.valueOf(objs[3].toString()));
+                        //科室名称
+                        if (recipeOrderFeeVO.getDepartId() != null) {
+                            recipeOrderFeeVO.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipeOrderFeeVO.getDepartId()));
+                        }
+                        backList.add(recipeOrderFeeVO);
+                    }
+                }
+                setResult(backList);
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
+    /**
+     * 根据开方时间查询处方订单药品表
+     *
+     * @param organId
+     * @param depart
+     * @param createTime
+     * @return
+     */
+    public List<DepartChargeReportResult> findRefundRecipeByOrganIdAndCreateTimeAnddepart(Integer organId, Integer depart, Date createTime, Date endTime) {
+        final String start = DateConversion.getDateFormatter(createTime, DateConversion.DEFAULT_DATE_TIME);
+        final String end = DateConversion.getDateFormatter(endTime, DateConversion.DEFAULT_DATE_TIME);
+        AbstractHibernateStatelessResultAction<List<DepartChargeReportResult>> action = new AbstractHibernateStatelessResultAction<List<DepartChargeReportResult>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                //处方金额
+                hql.append("select sum(case when r.recipeType =1 then IFNULL(o.payBackPrice,0) ELSE 0 end) westMedFee,");
+                hql.append("sum(case when r.recipeType =2 then IFNULL(o.payBackPrice,0) ELSE 0 end) chinesePatentMedFee,");
+                hql.append("sum(case when r.recipeType =3 then IFNULL(o.payBackPrice,0) ELSE 0 end) chineseMedFee,");
+                hql.append("r.depart from cdr_recipe r left join cdr_recipeorder o on r.orderCode=o.orderCode where  r.clinicOrgan=:organId");
+                if (depart != null) {
+                    hql.append(" and r.depart =:depart");
+                }
+                hql.append(" and (o.refundTime between :start and :end) GROUP BY r.depart ");
                 Query q = ss.createSQLQuery(hql.toString());
                 q.setParameter("organId", organId);
                 if (depart != null) {

@@ -2551,6 +2551,21 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     public List<DepartChargeReportResult> getRecipeFeeDetail(Integer organId, Integer depart, Date createTime, Date endTime) {
         LOGGER.info("getRecipeFeeDetail organId={},depart={},createTime={},endTime ={}", organId, depart, createTime, endTime);
         List<DepartChargeReportResult> voList = recipeDAO.findRecipeByOrganIdAndCreateTimeAnddepart(organId, depart, createTime, endTime);
+        LOGGER.info("getRecipeFeeDetail voList:{}", JSONUtils.toString(voList));
+        List<DepartChargeReportResult> voRefundList = recipeDAO.findRefundRecipeByOrganIdAndCreateTimeAnddepart(organId, depart, createTime, endTime);
+        LOGGER.info("getRecipeFeeDetail voRefundList:{}", JSONUtils.toString(voRefundList));
+        Map<Integer, List<DepartChargeReportResult>> refundListMap = voRefundList.stream().collect(Collectors.groupingBy(DepartChargeReportResult::getDepartId));
+        LOGGER.info("getRecipeFeeDetail refundListMap:{}", JSONUtils.toString(refundListMap));
+        voList.forEach(departChargeReportResult -> {
+            List<DepartChargeReportResult> refundResultList = refundListMap.get(departChargeReportResult.getDepartId());
+            DepartChargeReportResult refundDepartCharge = new DepartChargeReportResult();
+            if (CollectionUtils.isNotEmpty(refundResultList)) {
+                refundDepartCharge = refundResultList.get(0);
+            }
+            departChargeReportResult.getWestMedFee().subtract(refundDepartCharge.getWestMedFee());
+            departChargeReportResult.getChineseMedFee().subtract(refundDepartCharge.getChineseMedFee());
+            departChargeReportResult.getChinesePatentMedFee().subtract(refundDepartCharge.getChinesePatentMedFee());
+        });
         LOGGER.info("getRecipeFeeDetail RecipeOrderFeeVO.voList is {},voList.size={}", JSONUtils.toString(voList), voList.size());
         return voList;
     }
