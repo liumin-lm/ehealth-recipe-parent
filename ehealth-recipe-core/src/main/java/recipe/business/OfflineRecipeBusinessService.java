@@ -322,7 +322,7 @@ public class OfflineRecipeBusinessService extends BaseService implements IOfflin
         try {
             List<Recipedetail> recipeDetailList = recipePdfDTO.getRecipeDetails();
             for (Recipedetail recipedetail : recipeDetailList) {
-                OrganDrugListBean organDrugList = organDrugListService.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getRecipeId(), recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
+                OrganDrugListBean organDrugList = organDrugListService.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
                 if (null != organDrugList) {
                     recipedetail.setDrugItemCode(organDrugList.getDrugItemCode());
                 }
