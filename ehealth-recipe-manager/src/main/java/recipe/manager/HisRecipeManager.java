@@ -2,6 +2,7 @@ package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
@@ -27,8 +28,10 @@ import recipe.client.PatientClient;
 import recipe.client.RevisitClient;
 import recipe.common.CommonConstant;
 import recipe.constant.ErrorCode;
+import recipe.constant.OrderStatusConstant;
 import recipe.dao.*;
 import recipe.enumerate.status.OfflineToOnlineEnum;
+import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.util.JsonUtil;
@@ -70,6 +73,11 @@ public class HisRecipeManager extends BaseManager {
     private RecipeDAO recipeDAO;
     @Autowired
     private RecipeManager recipeManager;
+    @Autowired
+    private RecipeOrderDAO recipeOrderDAO;
+    @Autowired
+    private StateManager stateManager;
+    
 
     /**
      * 获取患者信息
@@ -648,6 +656,8 @@ public class HisRecipeManager extends BaseManager {
                 return hisResponseTO;
             }
             recipes.forEach(recipe -> {
+                logger.info("recipe:{}", JSONUtils.toString(recipe));
+                //修改处方状态
                 if (PayFlagEnum.PAYED.getType().equals(recipe.getPayFlag())) {
                     hisResponseTO.setMsgCode(ErrorCode.SERVICE_FAIL + "");
                     hisResponseTO.setMsg("处方已经支付，则不允许取消");
@@ -655,7 +665,22 @@ public class HisRecipeManager extends BaseManager {
                     recipe.setStatus(RecipeStatusConstant.REVOKE);
                     recipeDAO.update(recipe);
                 }
+                RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipe.getRecipeId());
+                List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+                //合并处方订单取消
+                List<Recipe> mergrRecipes = recipeDAO.findByRecipeIds(recipeIdList);
+                mergrRecipes.forEach(mergeRecipe -> {
+                    recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), mergeRecipe, 1);
+                });
+
+                //修改订单状态
+                Map<String, Object> orderAttrMap = Maps.newHashMap();
+                orderAttrMap.put("effective", 0);
+                orderAttrMap.put("status", OrderStatusConstant.CANCEL_MANUAL);
+                recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), orderAttrMap);
+                stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_DOCTOR_REPEAL);
             });
+
         } catch (Exception e) {
             hisResponseTO.setMsgCode(ErrorCode.SERVICE_FAIL + "");
             hisResponseTO.setMsg("处方" + recipeCode + "撤销失败,原因是：" + e.getMessage());
