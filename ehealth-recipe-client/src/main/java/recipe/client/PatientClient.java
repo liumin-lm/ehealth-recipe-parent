@@ -409,8 +409,8 @@ public class PatientClient extends BaseClient {
                     }
                     if (null != recipedetail.getUseDose()) {
                         explain.append(recipedetail.getUseDose());
-                        if (StringUtils.isNotEmpty(recipedetail.getUseDoseUnit())) {
-                            explain.append(recipedetail.getUseDoseUnit());
+                        if (StringUtils.isNotEmpty(recipedetail.getDosageUnit())) {
+                            explain.append(recipedetail.getDosageUnit());
                         }
                     }
                     medicineRemindTO.setExplan(explain.toString());
