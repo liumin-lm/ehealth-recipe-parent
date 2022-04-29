@@ -428,8 +428,8 @@ public class OfflineRecipeClient extends BaseClient {
     public List<RecipeInfoDTO> queryRemindRecipe(Integer organId, Integer pageNo) throws Exception {
         RemindRecipeDTO remindRecipeDTO = new RemindRecipeDTO();
         remindRecipeDTO.setOrganId(organId);
-        remindRecipeDTO.setLimit(1000);
-        remindRecipeDTO.setStart((pageNo-1)*1000+1);
+        remindRecipeDTO.setLimit(90000);
+        remindRecipeDTO.setStart(1);
         Calendar calendar = Calendar.getInstance();
         calendar.add(Calendar.DATE, -1);
         Date sTime = DateConversion.firstSecondsOfDay(calendar.getTime());
