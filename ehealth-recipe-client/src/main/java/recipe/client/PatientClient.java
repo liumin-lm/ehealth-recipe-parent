@@ -414,7 +414,11 @@ public class PatientClient extends BaseClient {
                         }
                     }
                     medicineRemindTO.setExplan(explain.toString());
-                    medicineRemindTO.setNum(recipedetail.getUseDays());
+                    if (null != recipeInfoDTO.getRecipe().getValueDays()) {
+                        medicineRemindTO.setNum(recipeInfoDTO.getRecipe().getValueDays());
+                    } else {
+                        medicineRemindTO.setNum(1);
+                    }
                     medicineRemindTO.setUnit(1);
                     medicineRemindTO.setEvery(0);
                     medicineRemindTO.setDayTime(getDayTime(recipedetail.getUsingRate()));
