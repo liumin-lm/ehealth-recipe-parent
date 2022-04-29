@@ -414,7 +414,7 @@ public class PatientClient extends BaseClient {
                         }
                     }
                     medicineRemindTO.setExplan(explain.toString());
-                    if (null != recipeInfoDTO.getRecipe().getValueDays()) {
+                    if (null != recipeInfoDTO.getRecipe() && null != recipeInfoDTO.getRecipe().getValueDays()) {
                         medicineRemindTO.setNum(recipeInfoDTO.getRecipe().getValueDays());
                     } else {
                         medicineRemindTO.setNum(1);
