@@ -114,24 +114,15 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService {
 
     @Override
     public void getJumpUrl(PurchaseResponse response, Recipe recipe, DrugsEnterprise drugsEnterprise) {
-
         DrugEnterpriseResult result = queryPrescription(recipe.getRecipeCode(), true);
-
-        RemoteDrugEnterpriseService remoteDrugEnterpriseService =
-                ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
         if (null == result.getObject()) {
             //没有处方进行处方推送
             pushRecipeInfo(Collections.singletonList(recipe.getRecipeId()), drugsEnterprise);
-            //说明处方获取失败
-//            LOGGER.warn("purchase queryPrescription retunr null. recipeId={}", recipe.getRecipeId());
-//            LOGGER.info("purchase 重新发起推送. recipeId={}", recipe.getRecipeId());
-//            PurchaseResponse subResponse = purchase(request);
         }
-        while (null == result.getObject()) {
-            result = queryPrescription(recipe.getRecipeCode(), true);
-            if (null != result.getObject()) {
-                break;
-            }
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
         AlibabaAlihealthRxPrescriptionGetResponse aliResponse = (AlibabaAlihealthRxPrescriptionGetResponse) result.getObject();
         AlibabaAlihealthRxPrescriptionGetResponse.RxPrescription rxPrescription = aliResponse.getModel();
@@ -158,17 +149,10 @@ public class AldyfRemoteService extends AccessDrugEnterpriseService {
                     }
                     response.setOrderList(deptOrderDTOList);
                     response.setCode(PurchaseResponse.ORDER_DETAIL);
-                    //                    return response;
                 }
             }
         } else {
-            //没有处方进行处方推送
-//            RemoteDrugEnterpriseService remoteDrugEnterpriseService =
-//                ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
             pushRecipeInfo(Collections.singletonList(recipe.getRecipeId()), drugsEnterprise);
-//            LOGGER.warn("purchase queryPrescription rxPrescription is null. recipeId={}", recipe.getRecipeId());
-//            response.setMsg("该处方无法配送");
-//            return response;
         }
     }
 
