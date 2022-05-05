@@ -200,7 +200,7 @@ public class DrugListMatch implements java.io.Serializable {
     @ItemProperty(alias = "最小规格包装单位")
     private String useDoseSmallestUnit;
 
-    @ItemProperty(alias="药品适用业务   历史数据默认 1    1-药品处方 2-诊疗处方 选： 1,2 ")
+    @ItemProperty(alias = "药品适用业务   历史数据默认 1    1-药品处方 2-诊疗处方 选： 1,2 ")
     private String applyBusiness;
 
 
@@ -208,12 +208,24 @@ public class DrugListMatch implements java.io.Serializable {
     @Dictionary(id = "eh.cdr.dictionary.DrugListMatchSource")
     private Integer drugSource;
 
-    @ItemProperty(alias="药品单复方  0  单复方可报  1单方不可报， 复方可报 2 单复方均不可报 ")
+    @ItemProperty(alias = "药品单复方  0  单复方可报  1单方不可报， 复方可报 2 单复方均不可报 ")
     @Dictionary(id = "eh.cdr.dictionary.UnilateralCompound")
     private Integer unilateralCompound;
 
     @ItemProperty(alias = "默认单次剂量（最小规格包装单位）")
     private Double defaultSmallestUnitUseDose;
+
+    @ItemProperty(alias = "是否靶向药  0否  1是 ")
+    private Integer targetedDrugType;
+
+    @Column(name = "targeted_drug_type")
+    public Integer getTargetedDrugType() {
+        return targetedDrugType;
+    }
+
+    public void setTargetedDrugType(Integer targetedDrugType) {
+        this.targetedDrugType = targetedDrugType;
+    }
 
     @Column(name = "defaultSmallestUnitUseDose ")
     public Double getDefaultSmallestUnitUseDose() {
@@ -535,7 +547,7 @@ public class DrugListMatch implements java.io.Serializable {
         this.hisFormCode = hisFormCode;
     }
 
-    @Column(name = "platformDrugId",length = 11)
+    @Column(name = "platformDrugId", length = 11)
     public Integer getPlatformDrugId() {
         return platformDrugId;
     }
@@ -544,7 +556,7 @@ public class DrugListMatch implements java.io.Serializable {
         this.platformDrugId = platformDrugId;
     }
 
-    @Column(name = "pharmacy",length = 12)
+    @Column(name = "pharmacy", length = 12)
     public String getPharmacy() {
         return pharmacy;
     }
@@ -606,7 +618,6 @@ public class DrugListMatch implements java.io.Serializable {
     public void setDrugsEnterpriseIds(String drugsEnterpriseIds) {
         this.drugsEnterpriseIds = drugsEnterpriseIds;
     }
-
 
 
     @Column(name = "usingRateId")

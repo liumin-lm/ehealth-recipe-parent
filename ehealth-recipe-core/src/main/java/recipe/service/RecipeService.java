@@ -5099,6 +5099,9 @@ public class RecipeService extends RecipeBaseService {
         if (StringUtils.isNotEmpty(drug.getDrugItemCode())) {
             drugListMatch.setDrugItemCode(drug.getDrugItemCode());
         }
+        if (!ObjectUtils.isEmpty(drug.getTargetedDrugType())) {
+            drugListMatch.setTargetedDrugType(drug.getTargetedDrugType());
+        }
         LOGGER.info("drugInfoSynMovementaddHisDrug" + drug.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
         List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drugListMatch.getOrganDrugCode(), drugListMatch.getSourceOrgan());
         if (ObjectUtils.isEmpty(dataByOrganDrugCode)) {
@@ -5292,6 +5295,9 @@ public class RecipeService extends RecipeBaseService {
         organDrug.setLastModify(new Date());
         if (StringUtils.isNotEmpty(drug.getDrugItemCode())) {
             organDrug.setDrugItemCode(drug.getDrugItemCode());
+        }
+        if (!ObjectUtils.isEmpty(drug.getTargetedDrugType())) {
+            organDrug.setTargetedDrugType(drug.getTargetedDrugType());
         }
         OrganDrugList update = organDrugListDAO.update(organDrug);
         //同步药品到监管备案
