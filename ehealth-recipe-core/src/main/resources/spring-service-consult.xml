@@ -11,6 +11,7 @@
 
     <reference interface="com.ngari.consult.common.service.IConsultService" id="consult.consultService"/>
     <reference interface="com.ngari.consult.common.service.IConsultExService" id="consult.consultExService"/>
+    <reference interface="com.ngari.consult.common.service.IConsultRedisService" id="consult.consultRedisService"/>
     <!-- 复诊项目-->
     <reference id="revisit.revisitExService" interface="com.ngari.revisit.common.service.IRevisitExService"/>
     <reference id="revisit.recipeOnLineRevisitService"
