@@ -176,7 +176,7 @@ public interface IRecipeBusinessService {
      * @param detailBeanList 药品信息
      * @return 处方id
      */
-    Integer saveRecipeData(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList);
+    String splitDrugRecipe(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList);
 
     /**
      * 查询同组处方
@@ -186,11 +186,4 @@ public interface IRecipeBusinessService {
      * @return 处方id集合
      */
     List<Integer> recipeByGroupCode(String groupCode, Integer type);
-
-    /**
-     * 删除处方
-     *
-     * @param recipeId
-     */
-    void delete(Integer recipeId);
 }

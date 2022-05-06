@@ -462,9 +462,23 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     @Override
-    public Integer saveRecipeData(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
+    public String splitDrugRecipe(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
+        List<RecipeDetailBean> targetDrugList = detailBeanList.stream().filter(a -> Integer.valueOf(1).equals(a.getTargetedDrugType())).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(targetDrugList)) {
+            return "";
+        }
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
-        return recipeService.saveRecipeData(recipeBean, detailBeanList);
+        //靶向药
+        targetDrugList.forEach(a -> recipeService.saveRecipeData(recipeBean, Collections.singletonList(a)));
+        //非靶向药
+        List<RecipeDetailBean> details = detailBeanList.stream().filter(a -> Integer.valueOf(0).equals(a.getTargetedDrugType())).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(details)) {
+            recipeService.saveRecipeData(recipeBean, details);
+        }
+        if (!ValidateUtil.integerIsEmpty(recipeBean.getRecipeId())) {
+            recipeDAO.deleteByRecipeIds(Collections.singletonList(recipeBean.getRecipeId()));
+        }
+        return recipeBean.getGroupCode();
     }
 
     @Override
@@ -475,12 +489,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         }
         return list.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
     }
-
-    @Override
-    public void delete(Integer recipeId) {
-        recipeDAO.deleteByRecipeIds(Collections.singletonList(recipeId));
-    }
-
 
     /**
      * 根据复诊id 获取线上线下处方详情
