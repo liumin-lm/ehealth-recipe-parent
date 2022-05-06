@@ -29,6 +29,8 @@ import recipe.constant.RecipeBussConstant;
 import recipe.constant.RecipeStatusConstant;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.SaleDrugListDAO;
+import recipe.enumerate.status.RecipeAuditStateEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.RecipeShowQrConfigEnum;
@@ -704,4 +706,40 @@ public class RecipeManager extends BaseManager {
         return recipeDAO.findAlreadyPayRecipeByRecipeCodesAndClinicOrgan(Lists.newArrayList(recipeCode), organId);
     }
 
+    /**
+     * 查询同组处方
+     *
+     * @param groupCode 处方组号
+     * @param type      0： 默认全部 1：查询暂存，2查询可撤销
+     * @return 处方id集合
+     */
+    public List<Recipe> recipeByGroupCode(String groupCode, Integer type) {
+        if (ValidateUtil.integerIsEmpty(type)) {
+            return recipeDAO.findRecipeByGroupCode(groupCode);
+        }
+        //获取暂存同组处方
+        if (type.equals(1)) {
+            return recipeDAO.findRecipeByGroupCode(groupCode, Collections.singletonList(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType()));
+        }
+        //获取可撤销同组处方
+        List<Recipe> recipeList = recipeDAO.findRecipeByGroupCode(groupCode);
+        if (CollectionUtils.isEmpty(recipeList)) {
+            return null;
+        }
+        List<Recipe> recipes = new ArrayList<>();
+        recipeList.forEach(a -> {
+            boolean cancelFlag;
+            if (StringUtils.isEmpty(a.getOrderCode())) {
+                cancelFlag = RecipeStatusEnum.checkRecipeRevokeStatus(a, null);
+            } else {
+                RecipeOrder recipeOrders = recipeOrderDAO.getByOrderCode(a.getOrderCode());
+                cancelFlag = RecipeStatusEnum.checkRecipeRevokeStatus(a, recipeOrders);
+            }
+            if (cancelFlag && !RecipeStateEnum.STATE_DELETED.contains(a.getProcessState())
+                    && !RecipeAuditStateEnum.FAIL_DOC_CONFIRMING.getType().equals(a.getAuditState())) {
+                recipes.add(a);
+            }
+        });
+        return recipes;
+    }
 }

@@ -253,6 +253,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "update Recipe set orderCode=:orderCode where recipeId in :recipeIds")
     public abstract void updateOrderCodeByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds, @DAOParam("orderCode") String orderCode);
 
+    @DAOMethod(sql = "from Recipe where groupCode=:groupCode")
+    public abstract List<Recipe> findRecipeByGroupCode(@DAOParam("groupCode") String groupCode);
+
+    @DAOMethod(sql = "from Recipe where groupCode=:groupCode and status in (:status) ")
+    public abstract List<Recipe> findRecipeByGroupCode(@DAOParam("groupCode") String groupCode, @DAOParam("status") List<Integer> status);
+
     /**
      * 根据 第三方id 与 状态 获取最新处方id
      *
@@ -2571,35 +2577,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
-    /**
-     * 监管平台反查接口
-     *
-     * @param organId
-     * @param startDate
-     * @param endDate
-     * @return
-     */
-    public List<Recipe> findSyncRecipeListByOrganIdForSH(final Integer organId, final String startDate, final String endDate, final Boolean updateFlag) {
-        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
-            @Override
-            public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("from Recipe r where fromflag=1 and clinicOrgan =:organId and syncFlag =0" + " and ( (r.createDate between '" + startDate + "' and '" + endDate + "') ");
-                //是否包含更新时间为指定时间范围内
-                if (updateFlag) {
-                    hql.append(" or (r.lastModify between '" + startDate + "' and '" + endDate + "')  )");
-                } else {
-                    hql.append(")");
-                }
-                Query query = ss.createQuery(hql.toString());
-                query.setParameter("organId", organId);
-                setResult(query.list());
-            }
-        };
-
-        HibernateSessionTemplate.instance().executeReadOnly(action);
-        return action.getResult();
-    }
-
     public List<PatientRecipeBean> findTabStatusRecipesForPatient(final List<String> mpiIdList, final int start, final int limit, final List<Integer> recipeStatusList, final List<Integer> orderStatusList, final List<Integer> specialStatusList, final String tabStatus) {
         HibernateStatelessResultAction<List<PatientRecipeBean>> action = new AbstractHibernateStatelessResultAction<List<PatientRecipeBean>>() {
             @Override
@@ -4310,5 +4287,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
 
 }

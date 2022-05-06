@@ -416,6 +416,17 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "接方模式：0：默认 , 1：接方模式， 2：非接方模式")
     private Integer supportMode;
 
+    @ItemProperty(alias = "处方组号：同一组处方组号相同")
+    private String groupCode;
+
+    public String getGroupCode() {
+        return groupCode;
+    }
+
+    public void setGroupCode(String groupCode) {
+        this.groupCode = groupCode;
+    }
+
     public Integer getProcessState() {
         return processState;
     }

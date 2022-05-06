@@ -7,6 +7,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.*;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.vo.doctor.PatientOptionalDrugVO;
@@ -162,8 +163,27 @@ public interface IRecipeBusinessService {
 
     /**
      * his 更新处方信息
+     *
      * @param organId
      * @param recipeCodes
      */
     void recipeListQuery(Integer organId, List<String> recipeCodes);
+
+    /**
+     * 暂存处方
+     *
+     * @param recipeBean     处方信息
+     * @param detailBeanList 药品信息
+     * @return 处方id
+     */
+    Integer saveRecipeData(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList);
+
+    /**
+     * 查询同组处方
+     *
+     * @param groupCode 处方组号
+     * @param type      0： 默认全部 1：查询暂存，2查询可撤销
+     * @return 处方id集合
+     */
+    List<Integer> recipeByGroupCode(String groupCode, Integer type);
 }

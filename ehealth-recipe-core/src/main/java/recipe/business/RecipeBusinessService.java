@@ -33,7 +33,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
-import recipe.aop.LogRecord;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
@@ -55,6 +54,7 @@ import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeMsgService;
+import recipe.service.RecipeService;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.*;
 import recipe.vo.doctor.PatientOptionalDrugVO;
@@ -251,7 +251,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     @Override
-    @LogRecord
     public List<Recipe> findRecipesByStatusAndInvalidTime(List<Integer> status, Date invalidTime) {
         return recipeDAO.findRecipesByStatusAndInvalidTime(status, invalidTime);
     }
@@ -459,7 +458,22 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public void recipeListQuery(Integer organId, List<String> recipeCodes) {
-        recipeHisService.recipeListQuery(recipeCodes,organId);
+        recipeHisService.recipeListQuery(recipeCodes, organId);
+    }
+
+    @Override
+    public Integer saveRecipeData(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
+        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+        return recipeService.saveRecipeData(recipeBean, detailBeanList);
+    }
+
+    @Override
+    public List<Integer> recipeByGroupCode(String groupCode, Integer type) {
+        List<Recipe> list = recipeManager.recipeByGroupCode(groupCode, type);
+        if (CollectionUtils.isEmpty(list)) {
+            return new ArrayList<>();
+        }
+        return list.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
     }
 
 
