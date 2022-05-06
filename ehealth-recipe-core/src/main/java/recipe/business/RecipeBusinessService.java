@@ -476,6 +476,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return list.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
     }
 
+    @Override
+    public void delete(Integer recipeId) {
+        recipeDAO.deleteByRecipeIds(Collections.singletonList(recipeId));
+    }
+
 
     /**
      * 根据复诊id 获取线上线下处方详情

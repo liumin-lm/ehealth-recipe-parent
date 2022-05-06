@@ -7,10 +7,12 @@ import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRevisitBusinessService;
+import recipe.util.ValidateUtil;
 import recipe.vo.doctor.ValidateDetailVO;
 
 import java.util.Collections;
@@ -82,9 +84,11 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
         if (CollectionUtils.isEmpty(targetDrugList)) {
             return "";
         }
-        String uuid = UUID.randomUUID().toString();
         RecipeBean recipeBean = validateDetailVO.getRecipeBean();
-        recipeBean.setGroupCode(uuid);
+        if (StringUtils.isEmpty(recipeBean.getGroupCode())) {
+            String uuid = UUID.randomUUID().toString();
+            recipeBean.setGroupCode(uuid);
+        }
         recipeBean.setRecipeExtend(validateDetailVO.getRecipeExtendBean());
         //靶向药
         targetDrugList.forEach(a -> recipeBusinessService.saveRecipeData(recipeBean, Collections.singletonList(a)));
@@ -93,7 +97,10 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
         if (CollectionUtils.isNotEmpty(details)) {
             recipeBusinessService.saveRecipeData(recipeBean, details);
         }
-        return uuid;
+        if (!ValidateUtil.integerIsEmpty(recipeBean.getRecipeId())) {
+            recipeBusinessService.delete(recipeBean.getRecipeId());
+        }
+        return recipeBean.getGroupCode();
     }
 
     /**

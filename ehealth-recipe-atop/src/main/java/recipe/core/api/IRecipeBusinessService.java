@@ -186,4 +186,11 @@ public interface IRecipeBusinessService {
      * @return 处方id集合
      */
     List<Integer> recipeByGroupCode(String groupCode, Integer type);
+
+    /**
+     * 删除处方
+     *
+     * @param recipeId
+     */
+    void delete(Integer recipeId);
 }
