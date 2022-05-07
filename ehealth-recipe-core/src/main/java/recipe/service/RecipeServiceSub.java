@@ -341,7 +341,7 @@ public class RecipeServiceSub {
                 RevisitExDTO revisitExDTO = exService.getByConsultId(recipe.getClinicId());
                 if (null != revisitExDTO) {
                     recipe.setPatientID(revisitExDTO.getPatId());
-                    revisitExDTO.getMedicalFlag();
+                    recipe.setMedicalFlag(revisitExDTO.getMedicalFlag());
                 }
                 IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
                 RevisitBean consultBean = iRevisitService.getById(recipe.getClinicId());

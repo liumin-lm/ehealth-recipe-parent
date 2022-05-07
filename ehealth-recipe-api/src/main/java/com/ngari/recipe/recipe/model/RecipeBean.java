@@ -422,6 +422,17 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "是否靶向药  0否  1是 ")
     private Integer targetedDrugType;
 
+    @ItemProperty(alias = "是否医保 0自费 1医保")
+    private Integer medicalFlag;
+
+    public Integer getMedicalFlag() {
+        return medicalFlag;
+    }
+
+    public void setMedicalFlag(Integer medicalFlag) {
+        this.medicalFlag = medicalFlag;
+    }
+
     public Integer getTargetedDrugType() {
         return targetedDrugType;
     }
