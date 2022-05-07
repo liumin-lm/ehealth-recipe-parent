@@ -4,6 +4,7 @@ import com.ngari.base.esign.model.CoOrdinateVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.caNew.pdf.CreatePdfFactory;
+import recipe.client.ConsultClient;
 import recipe.core.api.greenroom.ITextService;
 import recipe.manager.RedisManager;
 
@@ -20,6 +21,8 @@ public class TextService implements ITextService {
     private CreatePdfFactory createPdfFactory;
     @Autowired
     private RedisManager redisManager;
+    @Autowired
+    private ConsultClient consultClient;
 
     @Override
     public void coOrdinate(Integer recipeId, CoOrdinateVO ordinateVO) {
@@ -33,6 +36,6 @@ public class TextService implements ITextService {
 
     @Override
     public void getConsult(Integer consultId) {
-        redisManager.getConsult(consultId);
+        consultClient.getConsult(consultId);
     }
 }

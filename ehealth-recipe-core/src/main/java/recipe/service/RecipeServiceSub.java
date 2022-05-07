@@ -280,6 +280,7 @@ public class RecipeServiceSub {
                         recipeExtend.setRegisterID(revisitExDTO.getRegisterNo());
                         recipeExtend.setWeight(revisitExDTO.getWeight());
                         recipeExtend.setMedicalRecordNumber(revisitExDTO.getMedicalRecordNo());
+                        recipeExtend.setIllnessType(revisitExDTO.getDbType());
                     }
                 } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipeBean.getBussSource())) {
                     ConsultExDTO consultExDTO = iConsultExService.getByConsultId(recipeBean.getClinicId());
@@ -340,6 +341,7 @@ public class RecipeServiceSub {
                 RevisitExDTO revisitExDTO = exService.getByConsultId(recipe.getClinicId());
                 if (null != revisitExDTO) {
                     recipe.setPatientID(revisitExDTO.getPatId());
+                    recipe.setMedicalFlag(revisitExDTO.getMedicalFlag());
                 }
                 IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
                 RevisitBean consultBean = iRevisitService.getById(recipe.getClinicId());
