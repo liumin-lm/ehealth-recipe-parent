@@ -327,6 +327,18 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "处方组号：同一组处方组号相同")
     private String groupCode;
 
+    @ItemProperty(alias = "是否靶向药  0否  1是 ")
+    private Integer targetedDrugType;
+
+    @Column(name = "targeted_drug_type")
+    public Integer getTargetedDrugType() {
+        return targetedDrugType;
+    }
+
+    public void setTargetedDrugType(Integer targetedDrugType) {
+        this.targetedDrugType = targetedDrugType;
+    }
+    
     @Column(name = "group_code")
     public String getGroupCode() {
         return groupCode;
