@@ -5530,6 +5530,9 @@ public class RecipeService extends RecipeBaseService {
         if (StringUtils.isNotEmpty(drug.getUseDoseSmallestUnit())) {
             organDrug.setUseDoseSmallestUnit(drug.getUseDoseSmallestUnit());
         }
+        if (Objects.nonNull(drug.getTargetedDrugType())) {
+            organDrug.setTargetedDrugType(drug.getTargetedDrugType());
+        }
         LOGGER.info("updateHisDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(organDrug));
         OrganDrugList update = organDrugListDAO.update(organDrug);
         //同步药品到监管备案
