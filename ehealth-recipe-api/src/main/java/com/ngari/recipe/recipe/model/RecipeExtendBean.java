@@ -207,14 +207,14 @@ public class RecipeExtendBean implements Serializable {
     private String doctorIsDecoction;
 
     @ItemProperty(alias = "大病类型")
-    private String IllnessType;
+    private String illnessType;
 
     public String getIllnessType() {
-        return IllnessType;
+        return illnessType;
     }
 
     public void setIllnessType(String illnessType) {
-        IllnessType = illnessType;
+        this.illnessType = illnessType;
     }
 
     public String getDoctorIsDecoction() {
