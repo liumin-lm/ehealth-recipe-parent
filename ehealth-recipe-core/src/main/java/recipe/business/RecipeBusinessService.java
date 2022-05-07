@@ -473,6 +473,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         //非靶向药
         List<RecipeDetailBean> details = detailBeanList.stream().filter(a -> Integer.valueOf(0).equals(a.getTargetedDrugType())).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(details)) {
+            recipeBean.setTargetedDrugType(0);
             recipeService.saveRecipeData(recipeBean, details);
         }
         if (!ValidateUtil.integerIsEmpty(recipeBean.getRecipeId())) {

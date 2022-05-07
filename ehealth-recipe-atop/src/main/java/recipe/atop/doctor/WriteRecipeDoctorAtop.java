@@ -80,6 +80,7 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
             recipeBean.setGroupCode(uuid);
         }
         recipeBean.setRecipeExtend(validateDetailVO.getRecipeExtendBean());
+        recipeBean.setTargetedDrugType(1);
         return recipeBusinessService.splitDrugRecipe(recipeBean, validateDetailVO.getRecipeDetails());
     }
 
