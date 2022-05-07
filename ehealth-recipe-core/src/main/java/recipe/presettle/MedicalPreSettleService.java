@@ -95,6 +95,10 @@ public class MedicalPreSettleService implements IRecipePreSettleService {
             }
             RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (ext != null) {
+                // 大病标识
+                if (StringUtils.isNotEmpty(ext.getIllnessType())) {
+                    request.setIllnessType(ext.getIllnessType());
+                }
                 if (StringUtils.isNotEmpty(ext.getRegisterID())) {
                     request.setRegisterID(ext.getRegisterID());
                 }
