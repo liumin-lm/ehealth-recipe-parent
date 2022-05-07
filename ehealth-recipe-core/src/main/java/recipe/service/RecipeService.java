@@ -2979,12 +2979,14 @@ public class RecipeService extends RecipeBaseService {
 
     /**
      * 平台手动同步
+     * RpcService手工处理
      *
      * @param organId
      * @param drugForms
      * @return
      */
     @LogRecord
+    @RpcService
     public Map<String, Object> drugInfoSynMovementExtT(Integer organId, List<String> drugForms, Map<String, OrganDrugList> drugMap, String operator, Boolean sync, Boolean add, Boolean commit, Boolean delete) throws ParseException {
         SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Map<String, Object> map = Maps.newHashMap();
