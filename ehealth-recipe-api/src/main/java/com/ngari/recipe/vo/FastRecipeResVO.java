@@ -38,4 +38,6 @@ public class FastRecipeResVO implements Serializable {
 
     @ItemProperty(alias = "来源标志")
     private Integer fromflag;
+
+    private FastRecipeExtend recipeExtend;
 }
