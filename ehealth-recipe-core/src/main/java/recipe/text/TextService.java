@@ -60,7 +60,7 @@ public class TextService implements ITextService {
         FastRecipeAndDetailResVO fastRecipeAndDetailResVO = new FastRecipeAndDetailResVO();
         FastRecipeResVO fastRecipeResVO = new FastRecipeResVO();
         ObjectCopyUtils.copyProperties(fastRecipeResVO, recipe);
-        fastRecipeAndDetailResVO.setFastRecipeResVO(fastRecipeResVO);
+        fastRecipeAndDetailResVO.setRecipeBean(fastRecipeResVO);
         List<FastRecipeDetailVO> fastRecipeDetailList = new ArrayList<>();
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(fastRecipeReqVO.getRecipeId());
         recipeDetailList.forEach(recipeDetail -> {
@@ -68,7 +68,7 @@ public class TextService implements ITextService {
             ObjectCopyUtils.copyProperties(fastRecipeDetailVO, recipeDetail);
             fastRecipeDetailList.add(fastRecipeDetailVO);
         });
-        fastRecipeAndDetailResVO.setFastRecipeDetailList(fastRecipeDetailList);
+        fastRecipeAndDetailResVO.setDetailBeanList(fastRecipeDetailList);
         fastRecipeAndDetailResVO.setTitle(fastRecipeReqVO.getTitle());
         fastRecipeAndDetailResVO.setBackgroundImg(fastRecipeReqVO.getBackgroundImg());
         fastRecipeAndDetailResVO.setIntroduce(fastRecipeReqVO.getIntroduce());

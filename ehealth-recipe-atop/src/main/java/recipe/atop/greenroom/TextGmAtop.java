@@ -2,6 +2,7 @@ package recipe.atop.greenroom;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.base.esign.model.CoOrdinateVO;
+import com.ngari.recipe.vo.FastRecipeAndDetailResVO;
 import com.ngari.recipe.vo.FastRecipeReqVO;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -40,7 +41,7 @@ public class TextGmAtop {
     }
 
     @RpcService
-    public String getFastRecipeJson(FastRecipeReqVO fastRecipeReqVO){
-        return JSON.toJSONString(textBusinessService.getFastRecipeJson(fastRecipeReqVO));
+    public FastRecipeAndDetailResVO getFastRecipeJson(FastRecipeReqVO fastRecipeReqVO){
+        return textBusinessService.getFastRecipeJson(fastRecipeReqVO);
     }
 }
