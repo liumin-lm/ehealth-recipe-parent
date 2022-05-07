@@ -352,7 +352,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         MedicalDetailBean medicalDetailBean = null;
         //查看
         if (DOC_ACTION_TYPE_INFO.equals(caseHistoryVO.getActionType())) {
-            MedicalDetailBean emrDetails = emrRecipeManager.getEmrDetailsByClinicId(caseHistoryVO.getClinicId());
+            MedicalDetailBean emrDetails = emrRecipeManager.getEmrDetailsByClinicId(caseHistoryVO.getClinicId(), caseHistoryVO.getBussSource());
             if (!org.springframework.util.StringUtils.isEmpty(emrDetails)) {
                 medicalDetailBean = emrDetails;
             } else {
@@ -362,7 +362,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         //copy
         if (DOC_ACTION_TYPE_COPY.equals(caseHistoryVO.getActionType())) {
             if (ValidateUtil.integerIsEmpty(caseHistoryVO.getRecipeId())) {
-                medicalDetailBean = emrRecipeManager.getEmrDetailsByClinicId(caseHistoryVO.getClinicId());
+                medicalDetailBean = emrRecipeManager.getEmrDetailsByClinicId(caseHistoryVO.getClinicId(), caseHistoryVO.getBussSource());
             } else {
                 medicalDetailBean = emrRecipeManager.copyEmrDetails(caseHistoryVO.getRecipeId(), caseHistoryVO.getClinicId());
             }

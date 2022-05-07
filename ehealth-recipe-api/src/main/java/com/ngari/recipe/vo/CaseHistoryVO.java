@@ -30,4 +30,8 @@ public class CaseHistoryVO implements Serializable {
      * 操作类型 1：查看，2：copy
      */
     private Integer actionType;
+    /**
+     * 开处方来源 1问诊 2复诊(在线续方) 3网络门诊 5门诊
+     */
+    private Integer bussSource;
 }

@@ -96,12 +96,12 @@ public class DocIndexClient extends BaseClient {
      * @param clinicId 复诊id
      * @return
      */
-    public MedicalDetailBean getEmrDetailsByClinicId(Integer clinicId) {
+    public MedicalDetailBean getEmrDetailsByClinicId(Integer clinicId, Integer bussSource) {
         if (ValidateUtil.integerIsEmpty(clinicId)) {
             return null;
         }
         //业务类型， 1 处方 2 复诊 3 检查 4 检验
-        MedicalInfoBean medicalInfoBean = docIndexService.getMedicalInfoByBussTypeBussIdV2(2, clinicId);
+        MedicalInfoBean medicalInfoBean = docIndexService.getMedicalInfoByBussTypeBussIdV2(bussSource, clinicId);
         logger.info("DocIndexClient getEmrDetailsByClinicId clinicId={}, medicalInfoBean:{}", clinicId, JSONUtils.toString(medicalInfoBean));
         if (null != medicalInfoBean) {
             return medicalInfoBean.getMedicalDetailBean();
@@ -118,7 +118,7 @@ public class DocIndexClient extends BaseClient {
      * @param clinicId
      * @return
      */
-    public MedicalDetailBean copyEmrDetails(Recipe recipe, RecipeExtend recipeExtend, Integer clinicId) {
+    public MedicalDetailBean copyEmrDetails(Recipe recipe, RecipeExtend recipeExtend, Integer clinicId, Integer bussSource) {
         if (null == recipe) {
             return null;
         }
@@ -126,6 +126,8 @@ public class DocIndexClient extends BaseClient {
             return null;
         }
         CoverMedicalInfoBean coverMedical = new CoverMedicalInfoBean();
+        coverMedical.setBussType(bussSource);
+        coverMedical.setBussId(clinicId);
         if (!ValidateUtil.integerIsEmpty(clinicId)) {
             coverMedical.setRevisitId(clinicId);
         }
@@ -164,15 +166,15 @@ public class DocIndexClient extends BaseClient {
         }
     }
 
-    @LogRecord
-    public void updateEmrStatus(Recipe recipe, Integer docId, Integer clinicId) {
+    public void updateEmrStatus(Recipe recipe, Integer docId, Integer clinicId, RecipeExtend recipeExtend) {
         //更新电子病例 为已经使用状态
         SaveEmrContractReq saveEmrContractReq = new SaveEmrContractReq();
         saveEmrContractReq.setBussId(recipe.getRecipeId());
         saveEmrContractReq.setDocIndexId(docId);
         saveEmrContractReq.setBussType(1);
+        saveEmrContractReq.setRegisterNo(recipeExtend.getRegisterID());
         // 没有审核   1 显示 0 撤销
-        saveEmrContractReq.setDocindexExtStatus(DocIndexShowEnum.NO_AUDIT.getCode().equals(recipe.getReviewType())?DocIndexShowEnum.NORMAL.getCode():DocIndexShowEnum.REVOKE.getCode());
+        saveEmrContractReq.setDocindexExtStatus(DocIndexShowEnum.NO_AUDIT.getCode().equals(recipe.getReviewType()) ? DocIndexShowEnum.NORMAL.getCode() : DocIndexShowEnum.REVOKE.getCode());
         if (ValidateUtil.integerIsEmpty(clinicId)) {
             saveEmrContractReq.setDocStatus(DOC_STATUS_USE);
         }

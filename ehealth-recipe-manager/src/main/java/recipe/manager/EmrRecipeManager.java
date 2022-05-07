@@ -67,8 +67,8 @@ public class EmrRecipeManager extends BaseManager {
      * @param clinicId 复诊id
      * @return
      */
-    public MedicalDetailBean getEmrDetailsByClinicId(Integer clinicId) {
-        return docIndexClient.getEmrDetailsByClinicId(clinicId);
+    public MedicalDetailBean getEmrDetailsByClinicId(Integer clinicId, Integer bussSource) {
+        return docIndexClient.getEmrDetailsByClinicId(clinicId, bussSource);
     }
 
     /**
@@ -87,7 +87,7 @@ public class EmrRecipeManager extends BaseManager {
             return null;
         }
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        return docIndexClient.copyEmrDetails(recipe, recipeExtend, clinicId);
+        return docIndexClient.copyEmrDetails(recipe, recipeExtend, clinicId, recipe.getBussSource());
     }
 
     /**
@@ -134,7 +134,7 @@ public class EmrRecipeManager extends BaseManager {
         recipeDetailList.forEach(a -> a.setDrugName(DrugManager.dealWithRecipeDrugName(a, recipe.getRecipeType(), recipe.getClinicOrgan())));
         docIndexClient.saveRpDetail(recipe, recipeExtend, recipeDetailList, docId);
         //更新电子病例 为已经使用状态
-        docIndexClient.updateEmrStatus(recipe, docId, recipe.getClinicId());
+        docIndexClient.updateEmrStatus(recipe, docId, recipe.getClinicId(), recipeExtend);
         updateDisease(recipeId);
     }
 
