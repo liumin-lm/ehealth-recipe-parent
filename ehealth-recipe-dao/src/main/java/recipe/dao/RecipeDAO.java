@@ -257,7 +257,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     public abstract List<Recipe> findRecipeByGroupCode(@DAOParam("groupCode") String groupCode);
 
     @DAOMethod(sql = "from Recipe where groupCode=:groupCode and status in (:status) ")
-    public abstract List<Recipe> findRecipeByGroupCode(@DAOParam("groupCode") String groupCode, @DAOParam("status") List<Integer> status);
+    public abstract List<Recipe> findRecipeByGroupCodeAndStatus(@DAOParam("groupCode") String groupCode, @DAOParam("status") List<Integer> status);
 
     /**
      * 根据 第三方id 与 状态 获取最新处方id

@@ -720,7 +720,7 @@ public class RecipeManager extends BaseManager {
         }
         //获取暂存同组处方
         if (type.equals(1)) {
-            return recipeDAO.findRecipeByGroupCode(groupCode, Collections.singletonList(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType()));
+            return recipeDAO.findRecipeByGroupCodeAndStatus(groupCode, Collections.singletonList(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType()));
         }
         //获取可撤销同组处方
         List<Recipe> recipeList = recipeDAO.findRecipeByGroupCode(groupCode);
