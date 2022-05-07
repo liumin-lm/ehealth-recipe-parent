@@ -619,6 +619,10 @@ public class HisRequestInit {
                     RecipeExtendDAO extendDAO = getDAO(RecipeExtendDAO.class);
                     RecipeExtend extend = extendDAO.getByRecipeId(recipe.getRecipeId());
                     if (extend != null) {
+                        if (StringUtils.isNotEmpty(extend.getIllnessType())) {
+                            // 大病标识
+                            requestTO.setIllnessType(extend.getIllnessType());
+                        }
                         //参保地行政区划代码
                         requestTO.setInsuredArea(extend.getInsuredArea());
                         //挂号序号
