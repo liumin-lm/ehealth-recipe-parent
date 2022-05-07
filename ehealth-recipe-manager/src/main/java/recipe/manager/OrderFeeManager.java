@@ -267,16 +267,13 @@ public class OrderFeeManager extends BaseManager {
     @LogRecord
     public void setRecipePaymentFee(RecipeOrder order, List<Recipe> recipeList) {
         // 获取机构配置是否需要代缴费用
-        List<String> needRecipePaymentFeeType = configurationClient.getValueListCatch(order.getOrganId(), "NeedRecipePaymentFeeType", null);
-        logger.info("setRecipePaymentFee needRecipePaymentFeeType={}", JSONUtils.toString(needRecipePaymentFeeType));
-        if (CollectionUtils.isEmpty(needRecipePaymentFeeType)) {
+        Boolean isNeedRecipePaymentFee = configurationClient.getValueBooleanCatch(order.getOrganId(), "isNeedRecipePaymentFee", false);
+        logger.info("setRecipePaymentFee isNeedRecipePaymentFee={}", isNeedRecipePaymentFee);
+        if (!isNeedRecipePaymentFee) {
             return;
         }
         // 获取处方 类型
         Recipe recipe = recipeList.get(0);
-        if (!needRecipePaymentFeeType.contains(recipe.getBussSource())) {
-            return;
-        }
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
         PatientDTO patientDTO = patientClient.getPatientDTO(recipe.getMpiid());
         NeedPaymentRecipeReqTo needPayment = new NeedPaymentRecipeReqTo();
