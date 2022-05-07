@@ -226,6 +226,18 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "就诊次数")
     private String series;
 
+    @ItemProperty(alias = "大病类型")
+    private String IllnessType;
+
+    @Column(name = "Illness_type")
+    public String getIllnessType() {
+        return IllnessType;
+    }
+
+    public void setIllnessType(String illnessType) {
+        IllnessType = illnessType;
+    }
+
     @Column(name = "series")
     public String getSeries() {
         return series;
