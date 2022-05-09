@@ -3,7 +3,9 @@ package recipe.client;
 import com.alibaba.fastjson.JSON;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.common.model.ConsultExDTO;
+import com.ngari.consult.common.model.ConsultRegistrationNumberResultVO;
 import com.ngari.consult.common.service.IConsultExService;
+import com.ngari.consult.common.service.IConsultRedisService;
 import com.ngari.his.recipe.mode.OutPatientRecordResTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.his.visit.mode.NeedPaymentRecipeReqTo;
@@ -25,16 +27,20 @@ import recipe.util.ValidateUtil;
  */
 @Service
 public class ConsultClient extends BaseClient {
-
     @Autowired
     private IConsultExService consultExService;
-
     @Autowired
     private IRecipeHisService iRecipeHisService;
-
     @Autowired
     private ConsultSetService consultSetService;
+    @Autowired
+    private IConsultRedisService iConsultRedisService;
 
+    public void getConsult(Integer consultId) {
+        logger.info("ConsultClient getConsult consultId={}", consultId);
+        ConsultRegistrationNumberResultVO consult = iConsultRedisService.getConsultRegistrationNumber(consultId);
+        logger.info("ConsultClient getConsult consult={}", JSON.toJSONString(consult));
+    }
 
     /**
      * 根据医生id获取开靶向药的权限
