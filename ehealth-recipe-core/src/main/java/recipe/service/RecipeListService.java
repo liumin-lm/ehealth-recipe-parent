@@ -56,10 +56,8 @@ import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.dao.bean.RecipeListBean;
 import recipe.dao.bean.RecipeRollingInfo;
-import recipe.enumerate.status.GiveModeEnum;
-import recipe.enumerate.status.RecipeOrderStatusEnum;
-import recipe.enumerate.status.RecipeStateEnum;
-import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.*;
+import recipe.enumerate.type.MedicalTypeEnum;
 import recipe.enumerate.type.RecipeDistributionFlagEnum;
 import recipe.manager.ButtonManager;
 import recipe.manager.EmrRecipeManager;
@@ -1236,16 +1234,23 @@ public class RecipeListService extends RecipeBaseService {
                     patientTabStatusMergeRecipeDTO.setGroupField(key);
                     List<PatientTabStatusRecipeDTO> recipe = Lists.newArrayList();
 
-                    if ("-1".equals(key)) {
-                        patientTabStatusMergeRecipeDTO.setGroupField(null);
+                    // 医保靶向药不能合并支付
+                    Boolean togetherPayFlag = getTogetherPayFlag(recipeListBean);
+                    if ("-1".equals(key) || togetherPayFlag) {
+                        if("-1".equals(key)) {
+                            patientTabStatusMergeRecipeDTO.setGroupField(null);
+                        }
                         PatientTabStatusRecipeDTO patientTabStatusRecipeDTO = PatientTabStatusRecipeConvert(recipeListBean);
                         recipe.add(patientTabStatusRecipeDTO);
                     } else {
                         List<RecipeListBean> recipeListBeans = finalRecipeListMap.get(key);
                         recipeListBeans.forEach(recipeListBean1 -> {
-                            PatientTabStatusRecipeDTO patientTabStatusRecipeDTO = PatientTabStatusRecipeConvert(recipeListBean1);
-                            recipe.add(patientTabStatusRecipeDTO);
-                            recipeIds.add(recipeListBean1.getRecipeId());
+                            Boolean togetherPayFlag1 = getTogetherPayFlag(recipeListBean1);
+                            if (!togetherPayFlag1) {
+                                PatientTabStatusRecipeDTO patientTabStatusRecipeDTO = PatientTabStatusRecipeConvert(recipeListBean1);
+                                recipe.add(patientTabStatusRecipeDTO);
+                                recipeIds.add(recipeListBean1.getRecipeId());
+                            }
                         });
                     }
                     patientTabStatusMergeRecipeDTO.setRecipe(recipe);
@@ -1277,6 +1282,8 @@ public class RecipeListService extends RecipeBaseService {
         }
         return result;
     }
+
+
 
     @RpcService
     public List<PatientTabStatusMergeRecipeDTO> findNoMergeRecipe(List<String> allMpiIds, Integer index, Integer limit, List<Integer> recipeStatusList, List<Integer> orderStatusList, String tabStatus) {
@@ -2126,6 +2133,21 @@ public class RecipeListService extends RecipeBaseService {
         }
 
         return list;
+    }
+
+    /**
+     * 靶向药获取合并支付标识
+     * @param recipeListBean
+     * @return
+     */
+    private Boolean getTogetherPayFlag(RecipeListBean recipeListBean) {
+        boolean togetherPayFlag = false;
+        if (Objects.nonNull(recipeListBean.getMedicalFlag()) && Objects.nonNull(recipeListBean.getTargetedDrugType())) {
+            if (MedicalTypeEnum.MEDICAL_PAY.getType().equals(recipeListBean.getMedicalFlag()) && YesOrNoEnum.YES.getType().equals(recipeListBean.getTargetedDrugType())) {
+                togetherPayFlag = true;
+            }
+        }
+        return togetherPayFlag;
     }
 
 }

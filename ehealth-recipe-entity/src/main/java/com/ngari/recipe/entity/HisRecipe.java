@@ -165,6 +165,18 @@ public class HisRecipe implements Serializable {
     private String cardTypeName;
     @ItemProperty(alias = "处方标识 0:普通处方 1:儿童处方")
     private Integer recipeFlag;
+    @ItemProperty(alias = "大病类型")
+    private String illnessType;
+
+    @Column(name = "illness_type")
+    public String getIllnessType() {
+        return illnessType;
+    }
+
+    public void setIllnessType(String illnessType) {
+        this.illnessType = illnessType;
+    }
+
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
