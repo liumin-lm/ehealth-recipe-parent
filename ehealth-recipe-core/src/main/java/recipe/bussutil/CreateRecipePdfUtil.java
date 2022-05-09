@@ -175,15 +175,22 @@ public class CreateRecipePdfUtil {
     public static byte[] generateTemplatePdf(Integer recipeId, ByteArrayOutputStream bos) throws Exception {
         //拷贝模版生成新pdf
         File file = new File("recipe_" + recipeId + ".pdf");
-        @Cleanup OutputStream output = new FileOutputStream(file);
-        Document doc = new Document();
-        PdfSmartCopy copy = new PdfSmartCopy(doc, output);
-        doc.open();
-        PdfImportedPage importPage = copy.getImportedPage(new PdfReader(bos.toByteArray()), 1);
-        copy.addPage(importPage);
-        doc.close();
-        byte[] bytes = File2byte(file);
-        file.delete();
+        byte[] bytes;
+        try {
+            @Cleanup OutputStream output = new FileOutputStream(file);
+            Document doc = new Document();
+            PdfSmartCopy copy = new PdfSmartCopy(doc, output);
+            doc.open();
+            PdfImportedPage importPage = copy.getImportedPage(new PdfReader(bos.toByteArray()), 1);
+            copy.addPage(importPage);
+            doc.close();
+            bytes = File2byte(file);
+        } catch (Exception e) {
+            logger.error("CreateRecipePdfUtil generateTemplatePdf error recipeId={}", recipeId, e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        } finally {
+            boolean a = file.delete();
+        }
         return bytes;
     }
 

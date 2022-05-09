@@ -155,7 +155,7 @@ public class RecipeServiceSub {
     private static List<String> specitalOrganList = Lists.newArrayList("1005790", "1005217", "1005789");
 
     private static DepartClient departClient = AppContextHolder.getBean("departClient", DepartClient.class);
-    private static ConsultClient cnsultClient = AppContextHolder.getBean("cnsultClient", ConsultClient.class);
+    private static ConsultClient consultClient = AppContextHolder.getBean("consultClient", ConsultClient.class);
 
     private static RecipeAuditClient recipeAuditClient = AppContextHolder.getBean("recipeAuditClient", RecipeAuditClient.class);
 
@@ -282,7 +282,7 @@ public class RecipeServiceSub {
                         recipeExtend.setRegisterID(consultExDTO.getRegisterNo());
                         recipeExtend.setWeight(consultExDTO.getWeight());
                     }
-                    ConsultRegistrationNumberResultVO consult = cnsultClient.getConsult(recipeBean.getClinicId());
+                    ConsultRegistrationNumberResultVO consult = consultClient.getConsult(recipeBean.getClinicId());
                     if (null != consult) {
                         recipeExtend.setRegisterID(consult.getRegistrationNumber());
                         recipeExtend.setSeries(consult.getSeries());
@@ -349,7 +349,7 @@ public class RecipeServiceSub {
                 if ((null != consultBean) && (Integer.valueOf(1).equals(consultBean.getConsultSource()))) {
                     recipe.setRecipeSource(consultBean.getConsultSource());
                 }
-                ConsultRegistrationNumberResultVO consult = cnsultClient.getConsult(recipeBean.getClinicId());
+                ConsultRegistrationNumberResultVO consult = consultClient.getConsult(recipeBean.getClinicId());
                 if (null != consult) {
                     recipe.setPatientID(consult.getPatientId());
                 }
