@@ -236,10 +236,6 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         recipeManager.updateRecipeRefundStatus(recipes, refundStatus);
     }
 
-    @Override
-    public RecipeRefund findApplyRefund(Integer recipeId) {
-        return recipeRefundDAO.findApplyRefund(recipeId);
-    }
 
     private String setRefundNodeStatus(Integer status){
         if (null == status || status == 3 || status == 2) {

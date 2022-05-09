@@ -21,13 +21,6 @@ public class RecipeOrderRefundGmAtop extends BaseAtop {
     private IRecipeOrderRefundService recipeOrderRefundService;
 
     @RpcService
-    public RecipeRefundVO findApplyRefund(Integer recipeId) {
-        validateAtop(recipeId);
-        RecipeRefund applyRefund = recipeOrderRefundService.findApplyRefund(recipeId);
-        return BeanCopyUtils.copyProperties(applyRefund,RecipeRefundVO::new);
-    }
-
-    @RpcService
     public RecipeOrderRefundPageVO findRefundRecipeOrder(RecipeOrderRefundReqVO recipeOrderRefundReqVO) {
         validateAtop(recipeOrderRefundReqVO, recipeOrderRefundReqVO.getBeginTime(), recipeOrderRefundReqVO.getEndTime());
         return recipeOrderRefundService.findRefundRecipeOrder(recipeOrderRefundReqVO);

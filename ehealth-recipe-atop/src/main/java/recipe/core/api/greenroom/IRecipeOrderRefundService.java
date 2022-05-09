@@ -15,6 +15,4 @@ public interface IRecipeOrderRefundService {
     RecipeOrderRefundDetailVO getRefundOrderDetail(String orderCode, Integer busType);
 
     void forceRefund(AuditRefundVO auditRefundVO);
-
-    RecipeRefund findApplyRefund(Integer recipeId);
 }
