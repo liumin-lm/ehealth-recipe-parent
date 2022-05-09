@@ -898,6 +898,7 @@ public class BaseOfflineToOnlineService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+        recipeExtend.setIllnessType(hisRecipe.getIllnessType());
 //        PatientDTO patient = patientService.get(recipe.getMpiid());
 //        if (patient != null) {
 //            if (new Integer(1).equals(patient.getPatientUserType()) || new Integer(2).equals(patient.getPatientUserType())) {
@@ -1115,6 +1116,7 @@ public class BaseOfflineToOnlineService {
         hisRecipe.setCheckerCode(queryHisRecipResTo.getCheckerCode());
         hisRecipe.setCheckerName(queryHisRecipResTo.getCheckerName());
         hisRecipe.setRecipeFlag(queryHisRecipResTo.getRecipeFlag());
+        hisRecipe.setIllnessType(queryHisRecipResTo.getIllnessType());
         LOGGER.info("BaseOfflineToOnlineService covertHisRecipeObject res hisRecipe:{}", JSONUtils.toString(hisRecipe));
         return hisRecipe;
     }
