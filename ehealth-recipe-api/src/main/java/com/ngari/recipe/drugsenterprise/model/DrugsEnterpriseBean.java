@@ -193,6 +193,12 @@ public class DrugsEnterpriseBean implements Serializable {
     @ItemProperty(alias = "包邮金额")
     private BigDecimal freeDeliveryMoney;
 
+    @ItemProperty(alias = "展示物流方式 0 平台获取的物流信息 1 第三方页面链接展示")
+    private Integer showLogisticsType;
+
+    @ItemProperty(alias = "第三方物流页面链接")
+    private String showLogisticsLink;
+
     private PharmacyVO pharmacy;
 
     public PharmacyVO getPharmacy() {
@@ -650,5 +656,21 @@ public class DrugsEnterpriseBean implements Serializable {
 
     public void setFreeDeliveryMoney(BigDecimal freeDeliveryMoney) {
         this.freeDeliveryMoney = freeDeliveryMoney;
+    }
+
+    public Integer getShowLogisticsType() {
+        return showLogisticsType;
+    }
+
+    public void setShowLogisticsType(Integer showLogisticsType) {
+        this.showLogisticsType = showLogisticsType;
+    }
+
+    public String getShowLogisticsLink() {
+        return showLogisticsLink;
+    }
+
+    public void setShowLogisticsLink(String showLogisticsLink) {
+        this.showLogisticsLink = showLogisticsLink;
     }
 }
