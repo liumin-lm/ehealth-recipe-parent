@@ -36,10 +36,11 @@ public class ConsultClient extends BaseClient {
     @Autowired
     private IConsultRedisService iConsultRedisService;
 
-    public void getConsult(Integer consultId) {
+    public ConsultRegistrationNumberResultVO getConsult(Integer consultId) {
         logger.info("ConsultClient getConsult consultId={}", consultId);
         ConsultRegistrationNumberResultVO consult = iConsultRedisService.getConsultRegistrationNumber(consultId);
         logger.info("ConsultClient getConsult consult={}", JSON.toJSONString(consult));
+        return consult;
     }
 
     /**

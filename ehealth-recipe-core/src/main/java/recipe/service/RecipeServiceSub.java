@@ -19,6 +19,7 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.consult.ConsultAPI;
 import com.ngari.consult.ConsultBean;
 import com.ngari.consult.common.model.ConsultExDTO;
+import com.ngari.consult.common.model.ConsultRegistrationNumberResultVO;
 import com.ngari.consult.common.service.IConsultExService;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.follow.service.IRelationLabelService;
@@ -60,7 +61,6 @@ import ctd.util.AppContextHolder;
 import ctd.util.FileAuth;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcService;
-import eh.recipeaudit.api.IAuditMedicinesService;
 import eh.recipeaudit.model.AuditMedicinesBean;
 import eh.recipeaudit.model.Intelligent.PAWebRecipeDangerBean;
 import eh.recipeaudit.model.RecipeCheckBean;
@@ -77,8 +77,8 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.RecipeValidateUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
+import recipe.client.ConsultClient;
 import recipe.client.DepartClient;
-import recipe.client.IConfigurationClient;
 import recipe.client.RecipeAuditClient;
 import recipe.client.RefundClient;
 import recipe.common.CommonConstant;
@@ -139,8 +139,6 @@ public class RecipeServiceSub {
 
     private static RecipeCacheService cacheService = ApplicationUtils.getRecipeService(RecipeCacheService.class);
 
-    private static DepartmentService departmentService = ApplicationUtils.getBasicService(DepartmentService.class);
-
     private static IConfigurationCenterUtilsService configService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
 
     private static Integer[] showRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.IN_SEND, RecipeStatusConstant.WAIT_SEND, RecipeStatusConstant.FINISH};
@@ -148,8 +146,6 @@ public class RecipeServiceSub {
     private static Integer[] showDownloadRecipeStatus = new Integer[]{RecipeStatusConstant.CHECK_PASS_YS, RecipeStatusConstant.RECIPE_DOWNLOADED};
 
     private static RecipeListService recipeListService = ApplicationUtils.getRecipeService(RecipeListService.class);
-
-    private static IAuditMedicinesService iAuditMedicinesService = AppContextHolder.getBean("recipeaudit.remoteAuditMedicinesService", IAuditMedicinesService.class);
 
     private static RecipeManager recipeManager = AppContextHolder.getBean("recipeManager", RecipeManager.class);
 
@@ -159,6 +155,7 @@ public class RecipeServiceSub {
     private static List<String> specitalOrganList = Lists.newArrayList("1005790", "1005217", "1005789");
 
     private static DepartClient departClient = AppContextHolder.getBean("departClient", DepartClient.class);
+    private static ConsultClient cnsultClient = AppContextHolder.getBean("cnsultClient", ConsultClient.class);
 
     private static RecipeAuditClient recipeAuditClient = AppContextHolder.getBean("recipeAuditClient", RecipeAuditClient.class);
 
@@ -167,11 +164,6 @@ public class RecipeServiceSub {
     private static IConsultExService iConsultExService = AppContextHolder.getBean("consult.consultExService", IConsultExService.class);
 
     private static StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
-
-    private static IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
-
-    private static RecipeOrderPayFlowManager recipeOrderPayFlowManager = AppContextHolder.getBean("recipeOrderPayFlowManager", RecipeOrderPayFlowManager.class);
-
 
     /**
      * @param recipeBean
@@ -290,6 +282,11 @@ public class RecipeServiceSub {
                         recipeExtend.setRegisterID(consultExDTO.getRegisterNo());
                         recipeExtend.setWeight(consultExDTO.getWeight());
                     }
+                    ConsultRegistrationNumberResultVO consult = cnsultClient.getConsult(recipeBean.getClinicId());
+                    if (null != consult) {
+                        recipeExtend.setRegisterID(consult.getRegistrationNumber());
+                        recipeExtend.setSeries(consult.getSeries());
+                    }
                 }
             }
             try {
@@ -351,6 +348,10 @@ public class RecipeServiceSub {
                 ConsultBean consultBean = consultService.getById(recipe.getClinicId());
                 if ((null != consultBean) && (Integer.valueOf(1).equals(consultBean.getConsultSource()))) {
                     recipe.setRecipeSource(consultBean.getConsultSource());
+                }
+                ConsultRegistrationNumberResultVO consult = cnsultClient.getConsult(recipeBean.getClinicId());
+                if (null != consult) {
+                    recipe.setPatientID(consult.getPatientId());
                 }
             }
         }
