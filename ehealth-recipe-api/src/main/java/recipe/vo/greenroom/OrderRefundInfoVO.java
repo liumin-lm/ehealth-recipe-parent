@@ -20,4 +20,5 @@ public class OrderRefundInfoVO implements Serializable {
     private String applyTime;
     private String orderStatusText;
     private Integer refundNodeStatus;
+    private String refuseReason;
 }

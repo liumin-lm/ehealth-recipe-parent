@@ -201,6 +201,11 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
             recipeBeanList.add(recipeBean);
         });
         if (CollectionUtils.isEmpty(recipeRefunds)) {
+            Map<Integer, List<RecipeRefund>> collect = recipeRefunds.stream().collect(Collectors.groupingBy(RecipeRefund::getStatus));
+            List<RecipeRefund> recipeRefunds1 = collect.get(2);
+            if(CollectionUtils.isNotEmpty(recipeRefunds1)){
+                orderRefundInfoVO.setRefuseReason(recipeRefunds1.get(0).getReason());
+            }
             orderRefundInfoVO.setAuditNodeType(-1);
         }
         recipeOrderRefundDetailVO.setOrderRefundInfoVO(orderRefundInfoVO);
