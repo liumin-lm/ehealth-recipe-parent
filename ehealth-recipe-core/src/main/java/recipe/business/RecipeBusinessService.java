@@ -463,11 +463,11 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public String splitDrugRecipe(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
-        List<String> splitDrugRecipe = configurationClient.getValueListCatch(recipeBean.getClinicOrgan(), "splitDrugRecipe", null);
-        logger.info("RecipeBusinessService splitDrugRecipe hisDrugRule={}", JSON.toJSONString(splitDrugRecipe));
-        if (CollectionUtils.isEmpty(splitDrugRecipe) || !splitDrugRecipe.contains("1")) {
-            return "";
-        }
+//        List<String> splitDrugRecipe = configurationClient.getValueListCatch(recipeBean.getClinicOrgan(), "splitDrugRecipe", null);
+//        logger.info("RecipeBusinessService splitDrugRecipe hisDrugRule={}", JSON.toJSONString(splitDrugRecipe));
+//        if (CollectionUtils.isEmpty(splitDrugRecipe) || !splitDrugRecipe.contains("1")) {
+//            return "";
+//        }
         List<RecipeDetailBean> targetDrugList = detailBeanList.stream().filter(a -> Integer.valueOf(1).equals(a.getTargetedDrugType())).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(targetDrugList)) {
             return "";
