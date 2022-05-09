@@ -200,6 +200,7 @@ public class DocIndexClient extends BaseClient {
             if (null != recipeExtend) {
                 recipeInfoReq.setRegisterNo(recipeExtend.getRegisterID());
                 recipeInfoReq.setMakeMethodText(recipeExtend.getMakeMethodText());
+                //TODO everyTcmNumFre 是否需要写入电子病历？？？
                 recipeInfoReq.setDecoctionText(recipeExtend.getDecoctionText());
                 recipeInfoReq.setJuice(recipeExtend.getJuice());
                 recipeInfoReq.setJuiceUnit(recipeExtend.getJuiceUnit());

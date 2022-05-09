@@ -614,6 +614,8 @@ public class EnterpriseManager extends BaseManager {
                 DrugMakingMethod drugMakingMethod = drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
                 recipeExtendBean.setMakeMethod(drugMakingMethod.getMethodCode());
             }
+            //TODO everyTcmNumFre 不需要推送药企？？？
+//            recipeExtendBean.setEveryTcmNumFre(recipeExtend.getEveryTcmNumFre());
                 recipeExtendBean.setSymptomCode(recipeExtend.getSymptomId());
         } catch (Exception e) {
             logger.error("getPushRecipeAndOrder recipe:{} error", recipe.getRecipeId(), e);

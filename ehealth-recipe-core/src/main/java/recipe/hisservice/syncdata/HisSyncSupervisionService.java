@@ -639,6 +639,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
                 recipeChHerbalIndicatorsReq.setMakeMethodId(drugMakingMethod.getMethodCode());
                 recipeChHerbalIndicatorsReq.setMakeMethodText(drugMakingMethod.getMethodText());
             }
+            //TODO everyTcmNumFre 写入监管平台？？？
+//            if (StringUtils.isNotEmpty(recipeExtend.getEveryTcmNumFre())) {
+//                recipeChHerbalIndicatorsReq.setEveryTcmNumFre(recipeExtend.getEveryTcmNumFre());
+//            }
             if (StringUtils.isNotEmpty(recipeExtend.getSymptomId())) {
                 LOGGER.info("setRecipeExtend {},{}",req.getOrganID(),recipeExtend.getSymptomId());
                 req.getRecipeExtend().setSymptomCode(recipeExtend.getSymptomId());

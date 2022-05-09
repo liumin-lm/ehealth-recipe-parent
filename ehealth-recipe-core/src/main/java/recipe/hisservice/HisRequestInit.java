@@ -366,6 +366,9 @@ public class HisRequestInit {
                     DrugMakingMethod drugMakingMethod = drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
                     requestTO.getRecipeExtend().setMakeMethod(drugMakingMethod.getMethodCode());
                 }
+                if (StringUtils.isNotBlank(recipeExtend.getEveryTcmNumFre())) {
+                    requestTO.getRecipeExtend().setEveryTcmNumFre(recipeExtend.getEveryTcmNumFre());
+                }
                 if (StringUtils.isNotBlank(recipeExtend.getSymptomId())) {
                     requestTO.getRecipeExtend().setSymptomCode(recipeExtend.getSymptomId());
                 }

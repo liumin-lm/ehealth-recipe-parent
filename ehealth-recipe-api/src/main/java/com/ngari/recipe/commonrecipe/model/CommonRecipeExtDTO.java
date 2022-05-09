@@ -26,6 +26,8 @@ public class CommonRecipeExtDTO implements Serializable {
     private String makeMethodId;
     @ItemProperty(alias = "制法text")
     private String makeMethodText;
+    @ItemProperty(alias = "每贴次数")
+    private String everyTcmNumFre;
     @ItemProperty(alias = "制法")
     private String makeMethod;
     @ItemProperty(alias = "煎法")

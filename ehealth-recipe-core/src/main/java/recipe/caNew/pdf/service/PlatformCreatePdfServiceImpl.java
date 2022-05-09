@@ -471,6 +471,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
             if (tcmRecipeList.get(0).contains("1")) {
                 list.add(new RecipeLabelDTO(recipeJsonObject.getString("makeMethodTextConfig"), "tcmMakeMethod", ByteUtils.objValueOfString(extend.getMakeMethodText())));
             }
+            //TODO everyTcmNumFre 写pdf??
         }
         list.add(new RecipeLabelDTO("帖数", "copyNum", recipe.getCopyNum() + "帖"));
         if (tcmRecipeList.get(0).contains("7")) {

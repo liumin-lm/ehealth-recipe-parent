@@ -297,6 +297,8 @@ public class RecipePreserveService {
                 recipeExtend.setJuiceUnit(recipeInfoTO.getRecipeExtendBean().getJuiceUnit());
                 recipeExtend.setMakeMethod(recipeInfoTO.getRecipeExtendBean().getMakeMethod());
                 recipeExtend.setMakeMethodText(recipeInfoTO.getRecipeExtendBean().getMakeMethodText());
+                //TODO everyTcmNumFre 线下处方
+//                recipeExtend.setEveryTcmNumFre(recipeInfoTO.getRecipeExtendBean().getEveryTcmNumFre());
                 recipeExtend.setMinor(recipeInfoTO.getRecipeExtendBean().getMinor());
                 recipeExtend.setMinorUnit(recipeInfoTO.getRecipeExtendBean().getMinorUnit());
             } else {
@@ -304,6 +306,7 @@ public class RecipePreserveService {
                 recipeExtend.setJuice("");
                 recipeExtend.setJuiceUnit("");
                 recipeExtend.setMakeMethodText("");
+                recipeExtend.setEveryTcmNumFre("");
                 recipeExtend.setMinor("");
                 recipeExtend.setMinorUnit("");
             }

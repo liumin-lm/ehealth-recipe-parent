@@ -845,6 +845,7 @@ public class BaseOfflineToOnlineService {
                 recipeExtend.setMakeMethodText(drugMakingMethod.getMethodText());
             }
         }
+        //TODO everyTcmNumFre 线下处方？？
         recipeExtend.setJuice(hisRecipe.getJuice());
         recipeExtend.setJuiceUnit(hisRecipe.getJuiceUnit());
         recipeExtend.setMinor(hisRecipe.getMinor());

@@ -522,6 +522,7 @@ public class CustomCreatePdfServiceImpl extends BaseCreatePdf implements CreateP
         RecipeExtend recipeExtend = recipeInfoDTO.getRecipeExtend();
         list.add(new RecipeLabelDTO("煎法", "recipeDetail.decoctionText", ByteUtils.objValueOfString(recipeExtend.getDecoctionText())));
         list.add(new RecipeLabelDTO("制法", "recipeDetail.makeMethodText", ByteUtils.objValueOfString(recipeExtend.getMakeMethodText())));
+        //TODO everyTcmNumFre 写pdf??
         list.add(new RecipeLabelDTO("每付取汁", "recipeDetail.juice", ByteUtils.objValueOfString(recipeExtend.getJuice()) + ByteUtils.objValueOfString(recipeExtend.getJuiceUnit())));
         list.add(new RecipeLabelDTO("每次用汁", "recipeDetail.minor", ByteUtils.objValueOfString(recipeExtend.getMinor()) + ByteUtils.objValueOfString(recipeExtend.getMinorUnit())));
         logger.info("CreateRecipePdfUtil createChineMedicinePDF list :{} ", JSON.toJSONString(list));

@@ -1,5 +1,6 @@
 package com.ngari.recipe.dto;
 
+import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -140,6 +141,11 @@ public class OutPatientRecipeDTO implements Serializable{
      * 制法文本
      */
     private String makeMethodText;
+
+    /**
+     * 每贴次数
+     */
+    private String everyTcmNumFre;
 
     /**
      * 每副取汁

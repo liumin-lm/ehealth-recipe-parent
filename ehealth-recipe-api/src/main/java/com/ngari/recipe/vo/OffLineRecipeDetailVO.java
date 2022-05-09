@@ -103,6 +103,9 @@ public class OffLineRecipeDetailVO implements Serializable {
     @ItemProperty(alias = "制法")
     private String makeMethodText;
 
+    @ItemProperty(alias = "每贴次数")
+    private String everyTcmNumFre;
+
     @ItemProperty(alias = "每付取汁")
     private String juice;
 

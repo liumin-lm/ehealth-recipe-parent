@@ -164,6 +164,11 @@ public class OutPatientRecipeVO implements Serializable{
     private String makeMethodText;
 
     /**
+     * 每贴次数
+     */
+    private String everyTcmNumFre;
+
+    /**
      * 每副取汁
      */
     private String juice;

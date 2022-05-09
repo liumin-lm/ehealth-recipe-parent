@@ -25,6 +25,8 @@ public class CommonRecipeExt implements Serializable {
     private String makeMethodId;
     @ItemProperty(alias = "制法text")
     private String makeMethodText;
+    @ItemProperty(alias = "每贴次数")
+    private String everyTcmNumFre;
     @ItemProperty(alias = "每付取汁")
     private String juice;
     @ItemProperty(alias = "每付取汁单位")
@@ -80,6 +82,15 @@ public class CommonRecipeExt implements Serializable {
 
     public void setMakeMethodText(String makeMethodText) {
         this.makeMethodText = makeMethodText;
+    }
+
+    @Column(name = "every_tcm_num_fre")
+    public String getEveryTcmNumFre() {
+        return everyTcmNumFre;
+    }
+
+    public void setEveryTcmNumFre(String everyTcmNumFre) {
+        this.everyTcmNumFre = everyTcmNumFre;
     }
 
     @Column(name = "juice")

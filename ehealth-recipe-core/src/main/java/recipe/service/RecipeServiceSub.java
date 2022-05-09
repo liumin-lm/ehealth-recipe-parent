@@ -937,6 +937,8 @@ public class RecipeServiceSub {
                 paramMap.put("tcmJuice", extend.getJuice() + extend.getJuiceUnit());
                 paramMap.put("tcmMinor", extend.getMinor() + extend.getMinorUnit());
                 paramMap.put("tcmMakeMethod", extend.getMakeMethodText());
+                //TODO everyTcmNumFre pdf？？？
+
             }
 
             paramMap.put("pType", DictionaryController.instance().get("eh.mpi.dictionary.PatientType").getText(p.getPatientType()));
