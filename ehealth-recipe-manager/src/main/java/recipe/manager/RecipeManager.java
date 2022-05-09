@@ -321,6 +321,7 @@ public class RecipeManager extends BaseManager {
                     break;
                 case SERIALNUMBER:
                     qrName = offlineRecipeClient.queryRecipeSerialNumber(recipe.getClinicOrgan(), recipe.getPatientName(), recipe.getPatientID(), recipeExtend.getRegisterID());
+                    break;
                 case CERTIFICATE:
                     PatientDTO patientDTO = patientClient.getPatientDTO(recipe.getMpiid());
                     qrName = patientDTO.getIdcard();
