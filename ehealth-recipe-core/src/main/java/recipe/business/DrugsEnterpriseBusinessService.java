@@ -28,6 +28,7 @@ import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.manager.EnterpriseManager;
 import recipe.util.ByteUtils;
 import recipe.util.ObjectCopyUtils;
+import recipe.vo.greenroom.DrugsEnterpriseVO;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.greenroom.OrganEnterpriseRelationVo;
 import recipe.vo.greenroom.PharmacyVO;
@@ -62,7 +63,9 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
     @Autowired
-    private RemoteDrugEnterpriseService remoteDrugEnterpriseService ;
+    private RemoteDrugEnterpriseService remoteDrugEnterpriseService;
+    @Autowired
+    private DrugsEnterpriseDAO drugsEnterpriseDAO;
 
     @Override
     public Boolean existEnterpriseByName(String name) {
@@ -277,6 +280,16 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
             remoteDrugEnterpriseService.pushSingleRecipeInfo(Integer.valueOf(recipeIds.get(0)));
         });
 
+    }
+
+    @Override
+    public boolean updateDrugEnterprise(DrugsEnterpriseVO drugsEnterpriseVO) {
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(drugsEnterpriseVO.getId());
+        drugsEnterprise.setShowLogisticsLink(drugsEnterpriseVO.getShowLogisticsLink());
+        drugsEnterprise.setShowLogisticsType(drugsEnterpriseVO.getShowLogisticsType());
+        drugsEnterprise.setLogisticsType(drugsEnterpriseVO.getLogisticsType());
+        drugsEnterpriseDAO.update(drugsEnterprise);
+        return true;
     }
 
     private boolean addressCanSend(List<EnterpriseDecoctionAddress> list, String address) {

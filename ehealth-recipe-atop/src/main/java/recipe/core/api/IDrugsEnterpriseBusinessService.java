@@ -8,6 +8,7 @@ import com.ngari.recipe.entity.EnterpriseDecoctionAddress;
 import com.ngari.recipe.entity.OrganAndDrugsepRelation;
 import com.ngari.recipe.entity.OrganDrugsSaleConfig;
 import ctd.persistence.bean.QueryResult;
+import recipe.vo.greenroom.DrugsEnterpriseVO;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.greenroom.OrganEnterpriseRelationVo;
 import recipe.vo.greenroom.PharmacyVO;
@@ -117,4 +118,11 @@ public interface IDrugsEnterpriseBusinessService {
      * 药企推送失败 的处方重新推送定时任务
      */
     void rePushRecipeToDrugsEnterprise();
+
+    /**
+     * 更新药企信息
+     * @param drugsEnterpriseVO
+     * @return
+     */
+    boolean updateDrugEnterprise(DrugsEnterpriseVO drugsEnterpriseVO);
 }

@@ -20,6 +20,7 @@ import recipe.core.api.IDrugsEnterpriseBusinessService;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
+import recipe.vo.greenroom.DrugsEnterpriseVO;
 import recipe.vo.greenroom.OrganDrugsSaleConfigVo;
 import recipe.vo.greenroom.OrganEnterpriseRelationVo;
 import recipe.vo.greenroom.PharmacyVO;
@@ -192,5 +193,16 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
     public boolean retryPushRecipeOrder(Integer recipeId){
         validateAtop(recipeId);
         return enterpriseBusinessService.retryPushRecipeOrder(recipeId);
+    }
+
+    /**
+     * 更新药企信息
+     * @param drugsEnterpriseVO
+     * @return
+     */
+    @RpcService
+    public boolean updateDrugEnterprise(DrugsEnterpriseVO drugsEnterpriseVO){
+        validateAtop(drugsEnterpriseVO, drugsEnterpriseVO.getId());
+        return enterpriseBusinessService.updateDrugEnterprise(drugsEnterpriseVO);
     }
 }

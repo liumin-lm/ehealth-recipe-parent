@@ -196,6 +196,12 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "包邮金额")
     private BigDecimal freeDeliveryMoney;
 
+    @ItemProperty(alias = "展示物流方式 0 平台获取的物流信息 1 第三方页面链接展示")
+    private Integer showLogisticsType;
+
+    @ItemProperty(alias = "第三方物流页面链接")
+    private String showLogisticsLink;
+
     @Column(name = "enterprise_phone")
     public String getEnterprisePhone() {
         return enterprisePhone;
@@ -701,5 +707,23 @@ public class DrugsEnterprise implements java.io.Serializable {
 
     public void setFreeDeliveryMoney(BigDecimal freeDeliveryMoney) {
         this.freeDeliveryMoney = freeDeliveryMoney;
+    }
+
+    @Column(name = "show_logistics_type")
+    public Integer getShowLogisticsType() {
+        return showLogisticsType;
+    }
+
+    public void setShowLogisticsType(Integer showLogisticsType) {
+        this.showLogisticsType = showLogisticsType;
+    }
+
+    @Column(name = "show_logistics_link")
+    public String getShowLogisticsLink() {
+        return showLogisticsLink;
+    }
+
+    public void setShowLogisticsLink(String showLogisticsLink) {
+        this.showLogisticsLink = showLogisticsLink;
     }
 }
