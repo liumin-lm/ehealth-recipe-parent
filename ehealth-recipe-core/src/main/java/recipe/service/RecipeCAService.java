@@ -387,8 +387,9 @@ public class RecipeCAService {
                 LOGGER.warn("getTaskCode2 patient is null. recipe.patient={}", recipeBean.getMpiid());
             } else {
                 request.setMpiId(patientDTO.getMpiId());
-                String organDiseaseName = recipeBean.getOrganDiseaseName().replaceAll(ByteUtils.SEMI_COLON_EN, "|");
-                request.setOriginalDiagnosis(organDiseaseName);
+                if (StringUtils.isNotEmpty(recipeBean.getOrganDiseaseName())) {
+                    request.setOriginalDiagnosis(recipeBean.getOrganDiseaseName().replaceAll(ByteUtils.SEMI_COLON_EN, "|"));
+                }
                 request.setPatientCardType(LocalStringUtil.toString(patientDTO.getCertificateType()));
                 request.setPatientCertID(LocalStringUtil.toString(patientDTO.getCertificate()));
                 request.setPatientName(patientDTO.getPatientName());
