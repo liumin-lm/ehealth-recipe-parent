@@ -2,11 +2,9 @@ package recipe.text;
 
 import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.recipe.entity.RecipeExtend;
 import com.ngari.recipe.entity.Recipedetail;
-import com.ngari.recipe.vo.FastRecipeAndDetailResVO;
-import com.ngari.recipe.vo.FastRecipeDetailVO;
-import com.ngari.recipe.vo.FastRecipeReqVO;
-import com.ngari.recipe.vo.FastRecipeResVO;
+import com.ngari.recipe.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.caNew.pdf.CreatePdfFactory;
@@ -14,6 +12,8 @@ import recipe.client.ConsultClient;
 import recipe.core.api.greenroom.ITextService;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
+import recipe.dao.RecipeExtendDAO;
+import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.RedisManager;
 import recipe.util.ObjectCopyUtils;
 
@@ -38,6 +38,8 @@ public class TextService implements ITextService {
     private RecipeDAO recipeDAO;
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
 
     @Override
     public void coOrdinate(Integer recipeId, CoOrdinateVO ordinateVO) {
@@ -60,7 +62,13 @@ public class TextService implements ITextService {
         FastRecipeAndDetailResVO fastRecipeAndDetailResVO = new FastRecipeAndDetailResVO();
         FastRecipeResVO fastRecipeResVO = new FastRecipeResVO();
         ObjectCopyUtils.copyProperties(fastRecipeResVO, recipe);
-        fastRecipeAndDetailResVO.setFastRecipeResVO(fastRecipeResVO);
+        if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipe.getRecipeType())) {
+            FastRecipeExtend fastRecipeExtend = new FastRecipeExtend();
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            ObjectCopyUtils.copyProperties(fastRecipeExtend, recipeExtend);
+            fastRecipeResVO.setRecipeExtend(fastRecipeExtend);
+        }
+        fastRecipeAndDetailResVO.setRecipeBean(fastRecipeResVO);
         List<FastRecipeDetailVO> fastRecipeDetailList = new ArrayList<>();
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(fastRecipeReqVO.getRecipeId());
         recipeDetailList.forEach(recipeDetail -> {
@@ -68,7 +76,7 @@ public class TextService implements ITextService {
             ObjectCopyUtils.copyProperties(fastRecipeDetailVO, recipeDetail);
             fastRecipeDetailList.add(fastRecipeDetailVO);
         });
-        fastRecipeAndDetailResVO.setFastRecipeDetailList(fastRecipeDetailList);
+        fastRecipeAndDetailResVO.setDetailBeanList(fastRecipeDetailList);
         fastRecipeAndDetailResVO.setTitle(fastRecipeReqVO.getTitle());
         fastRecipeAndDetailResVO.setBackgroundImg(fastRecipeReqVO.getBackgroundImg());
         fastRecipeAndDetailResVO.setIntroduce(fastRecipeReqVO.getIntroduce());

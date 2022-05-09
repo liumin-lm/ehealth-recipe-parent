@@ -14,6 +14,6 @@ public class FastRecipeAndDetailResVO implements Serializable {
     private String introduce;
     private String title;
     private String backgroundImg;
-    private FastRecipeResVO fastRecipeResVO;
-    private List<FastRecipeDetailVO> fastRecipeDetailList;
+    private FastRecipeResVO recipeBean;
+    private List<FastRecipeDetailVO> detailBeanList;
 }
