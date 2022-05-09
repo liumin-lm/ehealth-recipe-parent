@@ -178,6 +178,8 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         } else {
             orderRefundInfoVO.setOrderStatusText(RecipeOrderStatusEnum.getOrderStatus(recipeOrder.getStatus()));
         }
+
+
         List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
         Map<Integer, RecipeExtend> recipeExtendMap = recipeExtendList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId,a->a,(k1,k2)->k1));
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIds(recipeIdList);
@@ -190,6 +192,7 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
             orderRefundInfoVO.setRefundStatusText(RefundNodeStatusEnum.getRefundStatus(recipeExtend.getRefundNodeStatus()));
             orderRefundInfoVO.setRefundNodeStatusText(setRefundNodeStatus(recipeExtend.getRefundNodeStatus()));
             orderRefundInfoVO.setChannel(patientClient.getClientNameById(recipe.getMpiid()));
+            orderRefundInfoVO.setRefundNodeStatus(recipeExtend.getRefundNodeStatus());
             List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(detailMap.get(recipe.getRecipeId()), RecipeDetailBean.class);
             if (new Integer(1).equals(recipeExtend.getRefundNodeStatus()) || new Integer(3).equals(recipeExtend.getRefundNodeStatus())) {
                 orderRefundInfoVO.setForceApplyFlag(false);
@@ -231,6 +234,11 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         }
         List<Recipe> recipes = orderManager.getRecipesByOrderCode(recipeOrder.getOrderCode());
         recipeManager.updateRecipeRefundStatus(recipes, refundStatus);
+    }
+
+    @Override
+    public RecipeRefund findApplyRefund(Integer recipeId) {
+        return recipeRefundDAO.findApplyRefund(recipeId);
     }
 
     private String setRefundNodeStatus(Integer status){

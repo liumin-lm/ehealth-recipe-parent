@@ -1,9 +1,7 @@
 package recipe.core.api.greenroom;
 
-import recipe.vo.greenroom.AuditRefundVO;
-import recipe.vo.greenroom.RecipeOrderRefundDetailVO;
-import recipe.vo.greenroom.RecipeOrderRefundPageVO;
-import recipe.vo.greenroom.RecipeOrderRefundReqVO;
+import com.ngari.recipe.entity.RecipeRefund;
+import recipe.vo.greenroom.*;
 
 /**
  * 退费查询接口调用
@@ -17,4 +15,6 @@ public interface IRecipeOrderRefundService {
     RecipeOrderRefundDetailVO getRefundOrderDetail(String orderCode, Integer busType);
 
     void forceRefund(AuditRefundVO auditRefundVO);
+
+    RecipeRefund findApplyRefund(Integer recipeId);
 }
