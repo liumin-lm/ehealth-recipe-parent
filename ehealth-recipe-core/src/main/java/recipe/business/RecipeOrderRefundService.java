@@ -192,7 +192,6 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
             orderRefundInfoVO.setRefundStatusText(RefundNodeStatusEnum.getRefundStatus(recipeExtend.getRefundNodeStatus()));
             orderRefundInfoVO.setRefundNodeStatusText(setRefundNodeStatus(recipeExtend.getRefundNodeStatus()));
             orderRefundInfoVO.setChannel(patientClient.getClientNameById(recipe.getMpiid()));
-            orderRefundInfoVO.setRefundNodeStatus(recipeExtend.getRefundNodeStatus());
             List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(detailMap.get(recipe.getRecipeId()), RecipeDetailBean.class);
             if (new Integer(1).equals(recipeExtend.getRefundNodeStatus()) || new Integer(3).equals(recipeExtend.getRefundNodeStatus())) {
                 orderRefundInfoVO.setForceApplyFlag(false);

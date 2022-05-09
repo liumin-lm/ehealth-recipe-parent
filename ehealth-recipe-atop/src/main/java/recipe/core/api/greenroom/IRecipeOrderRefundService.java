@@ -1,6 +1,5 @@
 package recipe.core.api.greenroom;
 
-import com.ngari.recipe.entity.RecipeRefund;
 import recipe.vo.greenroom.*;
 
 /**
