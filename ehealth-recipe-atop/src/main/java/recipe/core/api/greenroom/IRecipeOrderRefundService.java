@@ -1,5 +1,6 @@
 package recipe.core.api.greenroom;
 
+import com.ngari.recipe.entity.RecipeRefund;
 import recipe.vo.greenroom.AuditRefundVO;
 import recipe.vo.greenroom.RecipeOrderRefundDetailVO;
 import recipe.vo.greenroom.RecipeOrderRefundPageVO;
@@ -17,4 +18,6 @@ public interface IRecipeOrderRefundService {
     RecipeOrderRefundDetailVO getRefundOrderDetail(String orderCode, Integer busType);
 
     void forceRefund(AuditRefundVO auditRefundVO);
+
+    RecipeRefund findApplyRefund(Integer recipeId);
 }
