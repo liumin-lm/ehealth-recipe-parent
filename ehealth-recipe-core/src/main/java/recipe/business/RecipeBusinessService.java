@@ -467,6 +467,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         if (CollectionUtils.isEmpty(targetDrugList)) {
             return "";
         }
+        Integer recipeId = recipeBean.getRecipeId();
+        recipeBean.setRecipeId(null);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         //靶向药
         targetDrugList.forEach(a -> recipeService.saveRecipeData(recipeBean, Collections.singletonList(a)));
@@ -476,8 +478,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             recipeBean.setTargetedDrugType(0);
             recipeService.saveRecipeData(recipeBean, details);
         }
-        if (!ValidateUtil.integerIsEmpty(recipeBean.getRecipeId())) {
-            recipeDAO.deleteByRecipeIds(Collections.singletonList(recipeBean.getRecipeId()));
+        if (!ValidateUtil.integerIsEmpty(recipeId)) {
+            recipeDAO.deleteByRecipeIds(Collections.singletonList(recipeId));
         }
         return recipeBean.getGroupCode();
     }
