@@ -96,12 +96,12 @@ public class DocIndexClient extends BaseClient {
      * @param clinicId 复诊id
      * @return
      */
-    public MedicalDetailBean getEmrDetailsByClinicId(Integer clinicId) {
+    public MedicalDetailBean getEmrDetailsByClinicId(Integer clinicId, Integer bussSource) {
         if (ValidateUtil.integerIsEmpty(clinicId)) {
             return null;
         }
         //业务类型， 1 处方 2 复诊 3 检查 4 检验
-        MedicalInfoBean medicalInfoBean = docIndexService.getMedicalInfoByBussTypeBussIdV2(2, clinicId);
+        MedicalInfoBean medicalInfoBean = docIndexService.getMedicalInfoByBussTypeBussIdV2(this.bussType(bussSource), clinicId);
         logger.info("DocIndexClient getEmrDetailsByClinicId clinicId={}, medicalInfoBean:{}", clinicId, JSONUtils.toString(medicalInfoBean));
         if (null != medicalInfoBean) {
             return medicalInfoBean.getMedicalDetailBean();
@@ -118,7 +118,7 @@ public class DocIndexClient extends BaseClient {
      * @param clinicId
      * @return
      */
-    public MedicalDetailBean copyEmrDetails(Recipe recipe, RecipeExtend recipeExtend, Integer clinicId) {
+    public MedicalDetailBean copyEmrDetails(Recipe recipe, RecipeExtend recipeExtend, Integer clinicId, Integer bussSource) {
         if (null == recipe) {
             return null;
         }
@@ -126,9 +126,8 @@ public class DocIndexClient extends BaseClient {
             return null;
         }
         CoverMedicalInfoBean coverMedical = new CoverMedicalInfoBean();
-        if (!ValidateUtil.integerIsEmpty(clinicId)) {
-            coverMedical.setRevisitId(clinicId);
-        }
+        coverMedical.setBussType(this.bussType(bussSource));
+        coverMedical.setBussId(this.bussId(bussSource, recipe.getRecipeId(), clinicId));
         coverMedical.setOldDocIndexId(recipeExtend.getDocIndexId());
         coverMedical.setMpiid(recipe.getMpiid());
         coverMedical.setCreateOrgan(recipe.getClinicOrgan());
@@ -164,15 +163,15 @@ public class DocIndexClient extends BaseClient {
         }
     }
 
-    @LogRecord
-    public void updateEmrStatus(Recipe recipe, Integer docId, Integer clinicId) {
+    public void updateEmrStatus(Recipe recipe, Integer docId, Integer clinicId, RecipeExtend recipeExtend) {
         //更新电子病例 为已经使用状态
         SaveEmrContractReq saveEmrContractReq = new SaveEmrContractReq();
-        saveEmrContractReq.setBussId(recipe.getRecipeId());
+        saveEmrContractReq.setBussId(this.bussId(recipe.getBussSource(), recipe.getRecipeId(), clinicId));
+        saveEmrContractReq.setBussType(this.bussType(recipe.getBussSource()));
         saveEmrContractReq.setDocIndexId(docId);
-        saveEmrContractReq.setBussType(1);
+        saveEmrContractReq.setRegisterNo(recipeExtend.getRegisterID());
         // 没有审核   1 显示 0 撤销
-        saveEmrContractReq.setDocindexExtStatus(DocIndexShowEnum.NO_AUDIT.getCode().equals(recipe.getReviewType())?DocIndexShowEnum.NORMAL.getCode():DocIndexShowEnum.REVOKE.getCode());
+        saveEmrContractReq.setDocindexExtStatus(DocIndexShowEnum.NO_AUDIT.getCode().equals(recipe.getReviewType()) ? DocIndexShowEnum.NORMAL.getCode() : DocIndexShowEnum.REVOKE.getCode());
         if (ValidateUtil.integerIsEmpty(clinicId)) {
             saveEmrContractReq.setDocStatus(DOC_STATUS_USE);
         }
@@ -469,4 +468,31 @@ public class DocIndexClient extends BaseClient {
         }
     }
 
+    /**
+     * 枚举转换
+     *
+     * @param bussSource 处方 ：开处方来源 1问诊 2复诊(在线续方) 3网络门诊 5门诊
+     * @return 电子病历：1处方 2 复诊 5云门诊 8咨询
+     */
+    private Integer bussType(Integer bussSource) {
+        if (ValidateUtil.integerIsEmpty(bussSource)) {
+            return 1;
+        }
+        switch (bussSource) {
+            case 1:
+                return 8;
+            case 2:
+                return 2;
+            default:
+                return 1;
+        }
+    }
+
+    private Integer bussId(Integer bussSource, Integer recipeId, Integer clinicId) {
+        if (this.bussType(bussSource).equals(1)) {
+            return recipeId;
+        } else {
+            return clinicId;
+        }
+    }
 }

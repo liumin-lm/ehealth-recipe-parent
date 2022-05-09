@@ -409,12 +409,16 @@ public class PatientClient extends BaseClient {
                     }
                     if (null != recipedetail.getUseDose()) {
                         explain.append(recipedetail.getUseDose());
-                        if (StringUtils.isNotEmpty(recipedetail.getUseDoseUnit())) {
-                            explain.append(recipedetail.getUseDoseUnit());
+                        if (StringUtils.isNotEmpty(recipedetail.getDosageUnit())) {
+                            explain.append(recipedetail.getDosageUnit());
                         }
                     }
                     medicineRemindTO.setExplan(explain.toString());
-                    medicineRemindTO.setNum(recipedetail.getUseDays());
+                    if (null != recipeInfoDTO.getRecipe() && null != recipeInfoDTO.getRecipe().getValueDays()) {
+                        medicineRemindTO.setNum(recipeInfoDTO.getRecipe().getValueDays());
+                    } else {
+                        medicineRemindTO.setNum(1);
+                    }
                     medicineRemindTO.setUnit(1);
                     medicineRemindTO.setEvery(0);
                     medicineRemindTO.setDayTime(getDayTime(recipedetail.getUsingRate()));
