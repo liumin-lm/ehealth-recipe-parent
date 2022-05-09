@@ -422,10 +422,9 @@ public class OfflineRecipeClient extends BaseClient {
      * 获取用药提醒的线下处方
      *
      * @param organId 机构id
-     * @param pageNo 页码
      * @return
      */
-    public List<RecipeInfoDTO> queryRemindRecipe(Integer organId, Integer pageNo) throws Exception {
+    public List<RecipeInfoDTO> queryRemindRecipe(Integer organId, String remindRecipeFlag) throws Exception {
         RemindRecipeDTO remindRecipeDTO = new RemindRecipeDTO();
         remindRecipeDTO.setOrganId(organId);
         remindRecipeDTO.setLimit(90000);
@@ -437,7 +436,12 @@ public class OfflineRecipeClient extends BaseClient {
         Date eTime = DateConversion.lastSecondsOfDay(calendar.getTime());
         remindRecipeDTO.setEndTime(eTime);
         logger.info("OfflineRecipeClient queryRemindRecipe remindRecipeDTO:{}.", JSON.toJSONString(remindRecipeDTO));
-        HisResponseTO<List<com.ngari.platform.recipe.mode.RecipeDTO>> hisResponse = recipeHisService.queryRemindRecipe(remindRecipeDTO);
+        HisResponseTO<List<com.ngari.platform.recipe.mode.RecipeDTO>> hisResponse;
+        if (StringUtils.isNotEmpty(remindRecipeFlag)) {
+            hisResponse = queryRemindRecipeRetry(remindRecipeDTO);
+        } else {
+            hisResponse = recipeHisService.queryRemindRecipe(remindRecipeDTO);
+        }
         List<RecipeInfoDTO> recipeInfoList = new ArrayList<>();
         List<com.ngari.platform.recipe.mode.RecipeDTO> hisResponseData = getResponse(hisResponse);
         logger.info("OfflineRecipeClient queryRemindRecipe hisResponseData  = {}", hisResponseData.size());
@@ -601,5 +605,32 @@ public class OfflineRecipeClient extends BaseClient {
             throw new DAOException(609, "暂未获取到取药凭证，请刷新后重新进入");
         }
         return medicineCodeResponseTO;
+    }
+
+    /**
+     * 用药提醒获取线下处方增加重试机制
+     * @param remindRecipeDTO
+     * @return
+     */
+    private HisResponseTO<List<com.ngari.platform.recipe.mode.RecipeDTO>> queryRemindRecipeRetry(RemindRecipeDTO remindRecipeDTO){
+        Retryer<HisResponseTO<List<com.ngari.platform.recipe.mode.RecipeDTO>>> retry = RetryerBuilder.<HisResponseTO<List<com.ngari.platform.recipe.mode.RecipeDTO>>>newBuilder()
+                //抛出指定异常重试
+                .retryIfExceptionOfType(Exception.class)
+                //停止重试策略
+                .withStopStrategy(StopStrategies.stopAfterAttempt(5))
+                //每次等待重试时间间隔
+                .withWaitStrategy(WaitStrategies.fixedWait(60, TimeUnit.SECONDS))
+                .build();
+        HisResponseTO<List<com.ngari.platform.recipe.mode.RecipeDTO>> responseTO;
+        try {
+            responseTO = retry.call(() -> {
+                logger.info("OfflineRecipeClient queryRemindRecipeRetry retry remindRecipeDTO={}", JSONUtils.toString(remindRecipeDTO));
+                return recipeHisService.queryRemindRecipe(remindRecipeDTO);
+            });
+        } catch (Exception e) {
+            logger.error("未获取到线下处方数据,remindRecipeDTO={}", JSONUtils.toString(remindRecipeDTO), e);
+            throw new DAOException(609, "暂未获取到线下处方数据，请刷新后重新进入");
+        }
+        return responseTO;
     }
 }
