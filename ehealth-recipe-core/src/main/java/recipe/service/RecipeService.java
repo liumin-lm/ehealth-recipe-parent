@@ -2979,12 +2979,14 @@ public class RecipeService extends RecipeBaseService {
 
     /**
      * 平台手动同步
+     * RpcService手工处理
      *
      * @param organId
      * @param drugForms
      * @return
      */
     @LogRecord
+    @RpcService
     public Map<String, Object> drugInfoSynMovementExtT(Integer organId, List<String> drugForms, Map<String, OrganDrugList> drugMap, String operator, Boolean sync, Boolean add, Boolean commit, Boolean delete) throws ParseException {
         SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Map<String, Object> map = Maps.newHashMap();
@@ -5099,6 +5101,9 @@ public class RecipeService extends RecipeBaseService {
         if (StringUtils.isNotEmpty(drug.getDrugItemCode())) {
             drugListMatch.setDrugItemCode(drug.getDrugItemCode());
         }
+        if (!ObjectUtils.isEmpty(drug.getTargetedDrugType())) {
+            drugListMatch.setTargetedDrugType(drug.getTargetedDrugType());
+        }
         LOGGER.info("drugInfoSynMovementaddHisDrug" + drug.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
         List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drugListMatch.getOrganDrugCode(), drugListMatch.getSourceOrgan());
         if (ObjectUtils.isEmpty(dataByOrganDrugCode)) {
@@ -5292,6 +5297,9 @@ public class RecipeService extends RecipeBaseService {
         organDrug.setLastModify(new Date());
         if (StringUtils.isNotEmpty(drug.getDrugItemCode())) {
             organDrug.setDrugItemCode(drug.getDrugItemCode());
+        }
+        if (!ObjectUtils.isEmpty(drug.getTargetedDrugType())) {
+            organDrug.setTargetedDrugType(drug.getTargetedDrugType());
         }
         OrganDrugList update = organDrugListDAO.update(organDrug);
         //同步药品到监管备案
@@ -5521,6 +5529,9 @@ public class RecipeService extends RecipeBaseService {
         }
         if (StringUtils.isNotEmpty(drug.getUseDoseSmallestUnit())) {
             organDrug.setUseDoseSmallestUnit(drug.getUseDoseSmallestUnit());
+        }
+        if (Objects.nonNull(drug.getTargetedDrugType())) {
+            organDrug.setTargetedDrugType(drug.getTargetedDrugType());
         }
         LOGGER.info("updateHisDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(organDrug));
         OrganDrugList update = organDrugListDAO.update(organDrug);
