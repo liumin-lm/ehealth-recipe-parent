@@ -1125,7 +1125,9 @@ public class RecipeListService extends RecipeBaseService {
                     }
                 } else {
                     // 慢病名称
-                    patientTabStatusMergeRecipeDTO.setGroupField(recipeListBean.getChronicDiseaseName());
+                    if (!"-1".equals(recipeListBean.getRegisterID())) {
+                        patientTabStatusMergeRecipeDTO.setGroupField(recipeListBean.getChronicDiseaseName());
+                    }
                 }
                 String orderCode = recipeListBean.getOrderCode();
                 List<PatientTabStatusRecipeDTO> recipe = Lists.newArrayList();
@@ -1237,7 +1239,7 @@ public class RecipeListService extends RecipeBaseService {
                     // 医保靶向药不能合并支付
                     Boolean togetherPayFlag = getTogetherPayFlag(recipeListBean);
                     if ("-1".equals(key) || togetherPayFlag) {
-                        if("-1".equals(key)) {
+                        if ("-1".equals(key)) {
                             patientTabStatusMergeRecipeDTO.setGroupField(null);
                         }
                         PatientTabStatusRecipeDTO patientTabStatusRecipeDTO = PatientTabStatusRecipeConvert(recipeListBean);
@@ -1282,7 +1284,6 @@ public class RecipeListService extends RecipeBaseService {
         }
         return result;
     }
-
 
 
     @RpcService
@@ -2137,6 +2138,7 @@ public class RecipeListService extends RecipeBaseService {
 
     /**
      * 靶向药获取合并支付标识
+     *
      * @param recipeListBean
      * @return
      */
