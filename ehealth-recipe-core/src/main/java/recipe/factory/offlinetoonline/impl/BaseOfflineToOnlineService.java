@@ -894,15 +894,16 @@ public class BaseOfflineToOnlineService {
             LOGGER.error("线下处方转线上通过挂号序号关联复诊 error", e);
         }
         recipeExtend.setIllnessType(hisRecipe.getIllnessType());
+        if (consultExDTO != null && StringUtils.isEmpty(hisRecipe.getIllnessType())) {
+            recipeExtend.setIllnessType(consultExDTO.getDbType());
+        }
+
         if (StringUtils.isNotEmpty(hisRecipe.getCardNo())) {
             recipeExtend.setCardNo(hisRecipe.getCardNo());
         } else {
             if (consultExDTO != null) {
                 recipeExtend.setCardNo(consultExDTO.getCardId());
                 recipeExtend.setMedicalRecordNumber(consultExDTO.getMedicalRecordNo());
-                if(StringUtils.isEmpty(hisRecipe.getIllnessType())){
-                    recipeExtend.setIllnessType(consultExDTO.getDbType());
-                }
             }
         }
         if (StringUtils.isNotEmpty(hisRecipe.getCardTypeName())) {
