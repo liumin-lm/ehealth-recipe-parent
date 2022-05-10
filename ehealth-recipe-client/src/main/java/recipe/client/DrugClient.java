@@ -16,6 +16,7 @@ import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
+import ctd.spring.AppDomainContext;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
 import es.api.DrugSearchService;
@@ -130,6 +131,7 @@ public class DrugClient extends BaseClient {
     }
 
     /**
+     * TODO 频率频次引用的包有的是basic有的是base,后期basic迁移完统一处理
      * 获取机构 药物使用途径
      *
      * @param organId          机构id
@@ -142,7 +144,8 @@ public class DrugClient extends BaseClient {
             return null;
         }
         try {
-            UsePathwaysDTO usePathwaysDTO;
+            com.ngari.patient.service.IUsePathwaysService usePathwaysService = AppDomainContext.getBean("basic.usePathwaysService", com.ngari.patient.service.IUsePathwaysService.class);
+            com.ngari.patient.dto.UsePathwaysDTO usePathwaysDTO;
             if (null != drugType) {
                 usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndKeyAndCategory(organId, organUsePathways, drugType.toString());
             } else {
@@ -151,7 +154,7 @@ public class DrugClient extends BaseClient {
             if (null == usePathwaysDTO) {
                 return null;
             }
-            return usePathwaysDTO;
+            return ObjectCopyUtils.convert(usePathwaysDTO, UsePathwaysDTO.class);
         } catch (Exception e) {
             logger.warn("DrugClient usePathways usePathwaysDTO error", e);
             return null;

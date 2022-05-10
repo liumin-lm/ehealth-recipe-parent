@@ -6,9 +6,9 @@ import com.ngari.base.BaseAPI;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
-import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.IUsePathwaysService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.common.RecipeResultBean;
@@ -145,7 +145,7 @@ public class RecipeValidateUtil {
         Map<Integer, RecipeDetailBean> drugIdAndDetailMap = Maps.uniqueIndex(detailBeans, RecipeDetailBean::getDrugId);
 
         IUsingRateService usingRateService = AppDomainContext.getBean("eh.usingRateService", IUsingRateService.class);
-        IUsePathwaysService usePathwaysService = AppDomainContext.getBean("eh.usePathwaysService", IUsePathwaysService.class);
+        com.ngari.patient.service.IUsePathwaysService usePathwaysService = AppDomainContext.getBean("basic.usePathwaysService", IUsePathwaysService.class);
         //药品名拼接配置
         Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(recipe.getClinicOrgan(), recipe.getRecipeType()));
         // TODO: 2020/6/19 很多需要返回药品信息的地方可以让前端根据药品id反查具体的药品信息统一展示；后端涉及返回药品信息的接口太多。返回对象也不一样
@@ -181,7 +181,7 @@ public class RecipeValidateUtil {
                 if (usingRateDTO != null) {
                     mapDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
                 }
-                UsePathwaysDTO usePathwaysDTO;
+                com.ngari.patient.dto.UsePathwaysDTO usePathwaysDTO;
                 if (null != recipedetail.getDrugType()) {
                     usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndKeyAndCategory(organDrug.getOrganId(), mapDetail.getOrganUsePathways(), recipedetail.getDrugType().toString());
                 } else {
