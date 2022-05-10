@@ -508,7 +508,7 @@ public class RecipeManager extends BaseManager {
                 if (null != usingRateDTO) {
                     recipeDetailBean.setUsingRateId(String.valueOf(usingRateDTO.getId()));
                 }
-                UsePathwaysDTO usePathwaysDTO = drugClient.usePathways(recipe.getClinicOrgan(), recipeDetailBean.getOrganUsePathways());
+                UsePathwaysDTO usePathwaysDTO = drugClient.usePathways(recipe.getClinicOrgan(), recipeDetailBean.getOrganUsePathways(), recipeDetailBean.getDrugType());
                 if (null != usePathwaysDTO) {
                     recipeDetailBean.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
                 }

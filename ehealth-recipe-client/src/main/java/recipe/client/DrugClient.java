@@ -134,14 +134,20 @@ public class DrugClient extends BaseClient {
      *
      * @param organId          机构id
      * @param organUsePathways 机构药物使用途径代码
+     * @param drugType 用药途径处方类型  字典eh.base.dictionary.PrescriptionCategory   1西药方 2成药方 3中药方 4膏方
      * @return
      */
-    public UsePathwaysDTO usePathways(Integer organId, String organUsePathways) {
+    public UsePathwaysDTO usePathways(Integer organId, String organUsePathways, Integer drugType) {
         if (null == organId || StringUtils.isEmpty(organUsePathways)) {
             return null;
         }
         try {
-            UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organId, organUsePathways);
+            UsePathwaysDTO usePathwaysDTO;
+            if (null != drugType) {
+                usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndKeyAndCategory(organId, organUsePathways, drugType.toString());
+            } else {
+                usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organId, organUsePathways);
+            }
             if (null == usePathwaysDTO) {
                 return null;
             }

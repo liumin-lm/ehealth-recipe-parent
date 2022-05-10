@@ -181,7 +181,12 @@ public class RecipeValidateUtil {
                 if (usingRateDTO != null) {
                     mapDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
                 }
-                UsePathwaysDTO usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organDrug.getOrganId(), mapDetail.getOrganUsePathways());
+                UsePathwaysDTO usePathwaysDTO;
+                if (null != recipedetail.getDrugType()) {
+                    usePathwaysDTO = usePathwaysService.getUsePathwaysByOrganAndKeyAndCategory(organDrug.getOrganId(), mapDetail.getOrganUsePathways(), recipedetail.getDrugType().toString());
+                } else {
+                    usePathwaysDTO = usePathwaysService.findUsePathwaysByOrganAndKey(organDrug.getOrganId(), mapDetail.getOrganUsePathways());
+                }
                 if (usePathwaysDTO != null) {
                     mapDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
                 }
@@ -260,7 +265,7 @@ public class RecipeValidateUtil {
             if (null != usingRateDTO) {
                 recipeDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
             }
-            UsePathwaysDTO usePathwaysDTO = drugClient.usePathways(recipe.getClinicOrgan(), recipeDetail.getOrganUsePathways());
+            UsePathwaysDTO usePathwaysDTO = drugClient.usePathways(recipe.getClinicOrgan(), recipeDetail.getOrganUsePathways(), recipeDetail.getDrugType());
             if (null != usePathwaysDTO) {
                 recipeDetail.setUsePathwaysId(String.valueOf(usePathwaysDTO.getId()));
             }

@@ -359,7 +359,7 @@ public class RecipeDetailValidateTool {
             recipeDetail.setUsingRate(usingRateDTO.getUsingRateKey());
             recipeDetail.setUsingRateId(String.valueOf(usingRateDTO.getId()));
         }
-        UsePathwaysDTO usePathwaysDTO = drugManager.usePathways(organId, recipeDetail.getOrganUsePathways());
+        UsePathwaysDTO usePathwaysDTO = drugManager.usePathways(organId, recipeDetail.getOrganUsePathways(), recipeDetail.getDrugType());
         if (null == usePathwaysDTO) {
             recipeDetail.setUsePathways(null);
             recipeDetail.setUsePathwaysTextFromHis(null);

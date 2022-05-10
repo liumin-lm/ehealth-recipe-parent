@@ -287,8 +287,8 @@ public class DrugManager extends BaseManager {
      * @param organUsePathways 机构药物使用途径代码
      * @return
      */
-    public UsePathwaysDTO usePathways(Integer organId, String organUsePathways) {
-        return drugClient.usePathways(organId, organUsePathways);
+    public UsePathwaysDTO usePathways(Integer organId, String organUsePathways, Integer drugType) {
+        return drugClient.usePathways(organId, organUsePathways, drugType);
     }
 
     /**
