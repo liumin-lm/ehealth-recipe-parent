@@ -796,6 +796,7 @@ public class BaseOfflineToOnlineService {
             LOGGER.info("BaseOfflineToOnlineService savaRecipeDetail 已经保存的recipeId:{},recipeDetail:{}", recipeId, JSONUtils.toString(recipedetail));
         }
         //更新targetedDrugType
+        //放这个方法会不会不太合适、应该写个批量的接口放saverecipe更合适 先这样
         Recipe recipeUpdate = new Recipe();
         recipeUpdate.setTargetedDrugType(targetedDrugType);
         recipeUpdate.setRecipeId(recipeId);
@@ -890,12 +891,16 @@ public class BaseOfflineToOnlineService {
         } catch (Exception e) {
             LOGGER.error("线下处方转线上通过挂号序号关联复诊 error", e);
         }
+        recipeExtend.setIllnessType(hisRecipe.getIllnessType());
         if (StringUtils.isNotEmpty(hisRecipe.getCardNo())) {
             recipeExtend.setCardNo(hisRecipe.getCardNo());
         } else {
             if (consultExDTO != null) {
                 recipeExtend.setCardNo(consultExDTO.getCardId());
                 recipeExtend.setMedicalRecordNumber(consultExDTO.getMedicalRecordNo());
+                if(StringUtils.isEmpty(hisRecipe.getIllnessType())){
+                    recipeExtend.setIllnessType(consultExDTO.getDbType());
+                }
             }
         }
         if (StringUtils.isNotEmpty(hisRecipe.getCardTypeName())) {
@@ -920,7 +925,6 @@ public class BaseOfflineToOnlineService {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        recipeExtend.setIllnessType(hisRecipe.getIllnessType());
 //        PatientDTO patient = patientService.get(recipe.getMpiid());
 //        if (patient != null) {
 //            if (new Integer(1).equals(patient.getPatientUserType()) || new Integer(2).equals(patient.getPatientUserType())) {
