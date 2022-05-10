@@ -94,12 +94,12 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         List<String> orderCodeList = recipeOrderList.stream().map(RecipeOrder::getOrderCode).collect(Collectors.toList());
         List<Integer> depIdList = recipeOrderList.stream().map(RecipeOrder::getEnterpriseId).collect(Collectors.toList());
         List<Recipe> recipeList = recipeDAO.findByOrderCode(orderCodeList);
-        Map<String, Recipe> recipeOrderCodeMap = recipeList.stream().collect(Collectors.toMap(Recipe::getOrderCode,a->a,(k1,k2)->k1));
+        Map<String, Recipe> recipeOrderCodeMap = recipeList.stream().collect(Collectors.toMap(Recipe::getOrderCode, a -> a, (k1, k2) -> k1));
         List<Integer> recipeIdList = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
         List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
-        Map<Integer, RecipeExtend> recipeExtendMap = recipeExtendList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, a->a,(k1, k2)->k1));
+        Map<Integer, RecipeExtend> recipeExtendMap = recipeExtendList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, a -> a, (k1, k2) -> k1));
         List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByIdIn(depIdList);
-        Map<Integer, DrugsEnterprise> drugsEnterpriseMap = drugsEnterpriseList.stream().collect(Collectors.toMap(DrugsEnterprise::getId,a->a,(k1,k2)->k1));
+        Map<Integer, DrugsEnterprise> drugsEnterpriseMap = drugsEnterpriseList.stream().collect(Collectors.toMap(DrugsEnterprise::getId, a -> a, (k1, k2) -> k1));
         List<RecipeOrderRefundVO> recipeOrderRefundVOList = new ArrayList<>();
 
         recipeOrderList.forEach(recipeOrder -> {
@@ -179,7 +179,7 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
             orderRefundInfoVO.setOrderStatusText(RecipeOrderStatusEnum.getOrderStatus(recipeOrder.getStatus()));
         }
         List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
-        Map<Integer, RecipeExtend> recipeExtendMap = recipeExtendList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId,a->a,(k1,k2)->k1));
+        Map<Integer, RecipeExtend> recipeExtendMap = recipeExtendList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, a -> a, (k1, k2) -> k1));
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIds(recipeIdList);
         Map<Integer, List<Recipedetail>> detailMap = recipeDetailList.stream().collect(Collectors.groupingBy(Recipedetail::getRecipeId));
         List<RecipeBean> recipeBeanList = new ArrayList<>();
@@ -203,7 +203,7 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         if (CollectionUtils.isEmpty(recipeRefunds)) {
             Map<Integer, List<RecipeRefund>> collect = recipeRefunds.stream().collect(Collectors.groupingBy(RecipeRefund::getStatus));
             List<RecipeRefund> recipeRefunds1 = collect.get(2);
-            if(CollectionUtils.isNotEmpty(recipeRefunds1)){
+            if (CollectionUtils.isNotEmpty(recipeRefunds1)) {
                 orderRefundInfoVO.setRefuseReason(recipeRefunds1.get(0).getReason());
             }
             orderRefundInfoVO.setAuditNodeType(-1);
@@ -241,15 +241,19 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
 
     @Override
     public RecipeRefund findApplyRefund(Integer recipeId) {
-        return recipeRefundDAO.findApplyRefund(recipeId);
+        List<RecipeRefund> recipeRefundByRecipeIdAndNode = recipeRefundDAO.findRecipeRefundByRecipeIdAndNode(recipeId, -1);
+        if (CollectionUtils.isNotEmpty(recipeRefundByRecipeIdAndNode)) {
+            return recipeRefundByRecipeIdAndNode.get(0);
+        }
+        return null;
     }
 
-    private String setRefundNodeStatus(Integer status){
+    private String setRefundNodeStatus(Integer status) {
         if (null == status || status == 3 || status == 2) {
             return "未退款";
         }
         if (status == 0) {
-            return  "退款中";
+            return "退款中";
         }
         return "已退款";
     }
