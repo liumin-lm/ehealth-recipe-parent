@@ -1125,7 +1125,7 @@ public class RecipeListService extends RecipeBaseService {
                     }
                 } else {
                     // 慢病名称
-                    if (!"-1".equals(recipeListBean.getRegisterID())) {
+                    if (!"-1".equals(recipeListBean.getChronicDiseaseName())) {
                         patientTabStatusMergeRecipeDTO.setGroupField(recipeListBean.getChronicDiseaseName());
                     }
                 }
