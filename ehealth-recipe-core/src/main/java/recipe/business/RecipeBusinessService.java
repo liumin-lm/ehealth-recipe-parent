@@ -463,10 +463,17 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public String splitDrugRecipe(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
+//        List<String> splitDrugRecipe = configurationClient.getValueListCatch(recipeBean.getClinicOrgan(), "splitDrugRecipe", null);
+//        logger.info("RecipeBusinessService splitDrugRecipe hisDrugRule={}", JSON.toJSONString(splitDrugRecipe));
+//        if (CollectionUtils.isEmpty(splitDrugRecipe) || !splitDrugRecipe.contains("1")) {
+//            return "";
+//        }
         List<RecipeDetailBean> targetDrugList = detailBeanList.stream().filter(a -> Integer.valueOf(1).equals(a.getTargetedDrugType())).collect(Collectors.toList());
         if (CollectionUtils.isEmpty(targetDrugList)) {
             return "";
         }
+        Integer recipeId = recipeBean.getRecipeId();
+        recipeBean.setRecipeId(null);
         RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
         //靶向药
         targetDrugList.forEach(a -> recipeService.saveRecipeData(recipeBean, Collections.singletonList(a)));
@@ -476,8 +483,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             recipeBean.setTargetedDrugType(0);
             recipeService.saveRecipeData(recipeBean, details);
         }
-        if (!ValidateUtil.integerIsEmpty(recipeBean.getRecipeId())) {
-            recipeDAO.deleteByRecipeIds(Collections.singletonList(recipeBean.getRecipeId()));
+        if (!ValidateUtil.integerIsEmpty(recipeId)) {
+            recipeDAO.deleteByRecipeIds(Collections.singletonList(recipeId));
         }
         return recipeBean.getGroupCode();
     }

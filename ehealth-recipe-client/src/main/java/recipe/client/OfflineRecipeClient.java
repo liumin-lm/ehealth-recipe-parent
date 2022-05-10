@@ -544,7 +544,7 @@ public class OfflineRecipeClient extends BaseClient {
         List<DrugInfoTO> data = super.drugInfoList(detailList, organDrugList, pharmacyTcms);
         request.setData(data);
         logger.info("OfflineRecipeClient hisDrugRule request={}", JSON.toJSONString(request));
-        HisResponseTO<List<DrugInfoTO>> hisResponse = recipeHisService.hisDrugRule(request);
+        HisResponseTO<List<DrugInfoTO>> hisResponse = recipeToTestService.hisDrugRule(request);
         logger.info("OfflineRecipeClient hisDrugRule hisResponse={}", JSON.toJSONString(hisResponse));
         List<DrugInfoTO> response;
         try {

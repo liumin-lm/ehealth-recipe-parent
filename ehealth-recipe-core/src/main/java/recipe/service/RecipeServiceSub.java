@@ -339,6 +339,7 @@ public class RecipeServiceSub {
             if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipe.getBussSource())) {
                 IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
                 RevisitExDTO revisitExDTO = exService.getByConsultId(recipe.getClinicId());
+                LOGGER.info("setRecipeMoreInfo revisitExDTO = {},clinicId = {}", JSON.toJSONString(revisitExDTO), recipe.getClinicId());
                 if (null != revisitExDTO) {
                     recipe.setPatientID(revisitExDTO.getPatId());
                     recipe.setMedicalFlag(revisitExDTO.getMedicalFlag());
