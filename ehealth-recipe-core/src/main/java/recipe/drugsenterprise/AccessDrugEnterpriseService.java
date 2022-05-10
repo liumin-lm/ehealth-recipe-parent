@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
-import recipe.aop.LogRecord;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.PurchaseResponse;
 import recipe.bean.RecipePayModeSupportBean;
@@ -96,26 +95,12 @@ public abstract class AccessDrugEnterpriseService {
             this.getAddressDic(address, order.getAddress2());
             this.getAddressDic(address, order.getAddress3());
             this.getAddressDic(address, order.getStreetAddress());
+            if (StringUtils.isNotEmpty(order.getAddress5Text())) {
+                address.append(order.getAddress5Text()).append(",");
+            } else {
+                address.append(",");
+            }
             address.append(StringUtils.isEmpty(order.getAddress4()) ? "" : order.getAddress4());
-        }
-        return address.toString();
-    }
-
-    /**
-     * 生成地址
-     * 作废（OrderManager getCompleteAddressToSend）
-     *
-     * @param order 订单
-     * @return
-     */
-    @Deprecated
-    public String getCompleteAddressToSend(RecipeOrder order) {
-        StringBuilder address = new StringBuilder();
-        if (null != order) {
-            this.getAddressDic(address, order.getAddress1());
-            this.getAddressDic(address, order.getAddress2());
-            this.getAddressDic(address, order.getAddress3());
-            this.getAddressDic(address, order.getStreetAddress());
         }
         return address.toString();
     }
@@ -130,7 +115,7 @@ public abstract class AccessDrugEnterpriseService {
     public void getAddressDic(StringBuilder address, String area) {
         if (StringUtils.isNotEmpty(area)) {
             try {
-                address.append(DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area));
+                address.append(DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area)).append(",");
             } catch (ControllerException e) {
                 LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area, e);
             }
