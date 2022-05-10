@@ -167,6 +167,16 @@ public class HisRecipe implements Serializable {
     private Integer recipeFlag;
     @ItemProperty(alias = "大病类型")
     private String illnessType;
+    @ItemProperty(alias = "是否医保 0自费 1医保")
+    private Integer medicalFlag;
+
+    public Integer getMedicalFlag() {
+        return medicalFlag;
+    }
+
+    public void setMedicalFlag(Integer medicalFlag) {
+        this.medicalFlag = medicalFlag;
+    }
 
     @Column(name = "illness_type")
     public String getIllnessType() {
