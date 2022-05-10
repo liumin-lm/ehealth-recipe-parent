@@ -558,6 +558,7 @@ public class BaseOfflineToOnlineService {
 //            }
 //        }
         recipe.setBussSource(0);
+        recipe.setMedicalFlag(hisRecipe.getMedicalFlag());
         //通过挂号序号关联复诊
         try {
             IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
@@ -572,8 +573,6 @@ public class BaseOfflineToOnlineService {
                     }else{
                         recipe.setMedicalFlag(consultExDTO.getMedicalFlag());
                     }
-                }else{
-                    recipe.setMedicalFlag(hisRecipe.getMedicalFlag());
                 }
             }
         } catch (Exception e) {
