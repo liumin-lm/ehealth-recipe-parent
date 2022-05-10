@@ -90,7 +90,7 @@ public abstract class AccessDrugEnterpriseService {
      */
     public String getCompleteAddress(RecipeOrder order) {
         StringBuilder address = new StringBuilder();
-        if (null != order) {
+        if (null != order && StringUtils.isNotEmpty(order.getAddress1())) {
             this.getAddressDic(address, order.getAddress1());
             this.getAddressDic(address, order.getAddress2());
             this.getAddressDic(address, order.getAddress3());
