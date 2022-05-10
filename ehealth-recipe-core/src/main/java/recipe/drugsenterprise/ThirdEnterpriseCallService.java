@@ -90,6 +90,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
     public static final Integer REQUEST_OK = 200;
 
+    private static final String LOGISTICS_COMPANY_SF = "1";
+
     /**
      * 重复调用
      */
@@ -514,6 +516,9 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                         logisticsOrder.setAddresseeAddress(order.getAddress4());
                         // 寄托物名称
                         logisticsOrder.setDepositumName(DrugEnterpriseConstant.DEPOSITUM_NAME);
+                        if (LOGISTICS_COMPANY_SF.equals(logisticsCompany)) {
+                            logisticsOrder.setSfType(2);
+                        }
                         IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);
                         PatientBean patientBean = iPatientService.get(recipeInfo.getMpiid());
                         if (patientBean != null) {

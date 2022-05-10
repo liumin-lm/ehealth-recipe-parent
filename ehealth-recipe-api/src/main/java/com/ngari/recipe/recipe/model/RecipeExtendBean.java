@@ -208,6 +208,9 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "医生选择是否代煎（ 0:否 1：是）")
     private String doctorIsDecoction;
 
+    @ItemProperty(alias = "病历号")
+    private String medicalRecordNumber;
+
     public String getDoctorIsDecoction() {
         return doctorIsDecoction;
     }
@@ -754,5 +757,13 @@ public class RecipeExtendBean implements Serializable {
 
     public void setRecipeBusinessType(Integer recipeBusinessType) {
         this.recipeBusinessType = recipeBusinessType;
+    }
+
+    public String getMedicalRecordNumber() {
+        return medicalRecordNumber;
+    }
+
+    public void setMedicalRecordNumber(String medicalRecordNumber) {
+        this.medicalRecordNumber = medicalRecordNumber;
     }
 }
