@@ -574,6 +574,8 @@ public class BaseOfflineToOnlineService {
                         recipe.setMedicalFlag(consultExDTO.getMedicalFlag());
                     }
                 }
+            }else {
+                recipe.setMedicalFlag(0);
             }
         } catch (Exception e) {
             LOGGER.error("线下处方转线上通过挂号序号关联复诊 error", e);
@@ -688,6 +690,7 @@ public class BaseOfflineToOnlineService {
             LOGGER.info("hisRecipe.getClinicOrgan(): " + hisRecipe.getClinicOrgan() + "");
             LOGGER.info("Arrays.asList(hisRecipeDetail.getDrugCode()):" + hisRecipeDetail.getDrugCode());
             List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(hisRecipe.getClinicOrgan(), Arrays.asList(hisRecipeDetail.getDrugCode()));
+            LOGGER.info("hisRecipe.organDrugLists:{}",JSONUtils.toString(organDrugLists));
             if (CollectionUtils.isEmpty(organDrugLists)) {
                 LOGGER.info("处方中的药品信息未维护到线上平台药品目录:{},{},{}", hisRecipe.getRecipeCode(), hisRecipeDetail.getDrugCode(), hisRecipeDetail.getDrugCode());
                 Set<String> recipeCodes = new HashSet<>();
