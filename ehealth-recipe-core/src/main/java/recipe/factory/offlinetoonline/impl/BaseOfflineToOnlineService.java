@@ -574,6 +574,8 @@ public class BaseOfflineToOnlineService {
                         recipe.setMedicalFlag(consultExDTO.getMedicalFlag());
                     }
                 }
+            }else {
+                recipe.setMedicalFlag(0);
             }
         } catch (Exception e) {
             LOGGER.error("线下处方转线上通过挂号序号关联复诊 error", e);
