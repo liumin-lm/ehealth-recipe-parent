@@ -170,6 +170,7 @@ public class HisRecipe implements Serializable {
     @ItemProperty(alias = "是否医保 0自费 1医保")
     private Integer medicalFlag;
 
+    @Column(name = "medical_flag")
     public Integer getMedicalFlag() {
         return medicalFlag;
     }
