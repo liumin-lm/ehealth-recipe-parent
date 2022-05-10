@@ -96,6 +96,9 @@ public abstract class AccessDrugEnterpriseService {
             this.getAddressDic(address, order.getAddress2());
             this.getAddressDic(address, order.getAddress3());
             this.getAddressDic(address, order.getStreetAddress());
+            if (StringUtils.isNotEmpty(order.getAddress5Text())) {
+                address.append(order.getAddress5Text()).append(",");
+            }
             address.append(StringUtils.isEmpty(order.getAddress4()) ? "" : order.getAddress4());
         }
         return address.toString();
@@ -130,7 +133,7 @@ public abstract class AccessDrugEnterpriseService {
     public void getAddressDic(StringBuilder address, String area) {
         if (StringUtils.isNotEmpty(area)) {
             try {
-                address.append(DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area));
+                address.append(DictionaryController.instance().get("eh.base.dictionary.AddrArea").getText(area)).append(",");
             } catch (ControllerException e) {
                 LOGGER.error("getAddressDic 获取地址数据类型失败*****area:" + area, e);
             }
