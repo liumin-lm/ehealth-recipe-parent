@@ -58,6 +58,8 @@ public class RecipeOrderExportDTO implements Serializable {
     @ItemProperty(alias = "详细地址")
     @Desensitizations(type = DesensitizationsType.ADDRESS)
     private String address4;
+    @ItemProperty(alias = "社区名称")
+    private String address5Text;
     @ItemProperty(alias = "创建时间")
     private Date createTime;
     @ItemProperty(alias = "支付时间")
@@ -251,6 +253,15 @@ public class RecipeOrderExportDTO implements Serializable {
 
     public void setAddress4(String address4) {
         this.address4 = address4;
+    }
+
+    @Column(name = "address5Text")
+    public String getAddress5Text() {
+        return address5Text;
+    }
+
+    public void setAddress5Text(String address5Text) {
+        this.address5Text = address5Text;
     }
 
     @Column(name = "CreateTime")

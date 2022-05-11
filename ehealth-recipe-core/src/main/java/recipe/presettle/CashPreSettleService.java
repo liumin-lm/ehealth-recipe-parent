@@ -23,6 +23,7 @@ import recipe.constant.RecipeBussConstant;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
+import recipe.enumerate.type.ForceCashTypeEnum;
 import recipe.hisservice.RecipeToHisService;
 import recipe.purchase.PurchaseEnum;
 import recipe.service.RecipeLogService;
@@ -98,6 +99,13 @@ public class CashPreSettleService implements IRecipePreSettleService {
                 }
             } catch (Exception e) {
                 LOGGER.error("MedicalPreSettleService 代缴费用有误");
+            }
+
+            RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (ext != null) {
+                if (StringUtils.isNotEmpty(ext.getRegisterID())) {
+                    request.setRegisterID(ext.getRegisterID());
+                }
             }
 
             LOGGER.info("CashPreSettleService recipeId={} req={}", recipeId, JSONUtils.toString(request));
