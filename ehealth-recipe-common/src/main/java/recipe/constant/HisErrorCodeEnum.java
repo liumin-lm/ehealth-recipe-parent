@@ -10,7 +10,7 @@ package recipe.constant;
 public enum HisErrorCodeEnum {
 
     HIS_SUCCEED(200, "返回数据成功", "前置返回数据成功"),
-    HIS_NULL_ERROR(700, "返回数据为空", "前置机返回为null"),
+    HIS_NULL_ERROR(700, "前置机未返回对应数据，无法进行下一步", "前置机返回为null"),
     HIS_CODE_ERROR(701, "返回代码出错", "前置机代码返回出错"),
     HIS_PARAMETER_ERROR(702, "返回出参为空", "前置机出参为null"),
     ;

@@ -35,14 +35,16 @@ import java.util.Objects;
 /**
  * created by shiyuping on 2020/11/27
  * 自费预结算
+ *
  * @author shiyuping
  */
 @Service
 public class CashPreSettleService implements IRecipePreSettleService {
     private static final Logger LOGGER = LoggerFactory.getLogger(CashPreSettleService.class);
+
     @Override
     public Map<String, Object> recipePreSettle(Integer recipeId, Map<String, Object> extInfo) {
-        LOGGER.info("CashPreSettleService.recipePreSettle req recipeId={} extInfo={}",recipeId, JSONArray.toJSONString(extInfo));
+        LOGGER.info("CashPreSettleService.recipePreSettle req recipeId={} extInfo={}", recipeId, JSONArray.toJSONString(extInfo));
         Map<String, Object> result = Maps.newHashMap();
         result.put("code", "-1");
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -64,6 +66,12 @@ public class CashPreSettleService implements IRecipePreSettleService {
                 //到院取药
                 request.setDeliveryType("0");
             }
+            RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (ext != null && StringUtils.isNotEmpty(ext.getIllnessType())) {
+                // 大病标识
+                request.setIllnessType(ext.getIllnessType());
+
+            }
             request.setClinicOrgan(recipe.getClinicOrgan());
             request.setRecipeId(String.valueOf(recipeId));
             request.setHisRecipeNo(recipe.getRecipeCode());
@@ -76,7 +84,7 @@ public class CashPreSettleService implements IRecipePreSettleService {
             request.setCertificateType(patientBean.getCertificateType());
             request.setMobile(patientBean.getMobile());
             request.setPatientId(recipe.getPatientID());
-            request.setDepartId(null!=recipe.getDepart()?recipe.getDepart().toString():"");
+            request.setDepartId(null != recipe.getDepart() ? recipe.getDepart().toString() : "");
             RecipeToHisService service = AppContextHolder.getBean("recipeToHisService", RecipeToHisService.class);
 
             RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
@@ -88,7 +96,7 @@ public class CashPreSettleService implements IRecipePreSettleService {
                     request.setTcmFee(recipeOrder.getTcmFee());
                     request.setTcmFeeNo(recipeOrder.getTcmFeeNo());
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 LOGGER.error("MedicalPreSettleService 代缴费用有误");
             }
 
@@ -104,20 +112,20 @@ public class CashPreSettleService implements IRecipePreSettleService {
                     //his收据号
                     String hisSettlementNo = hisResult.getData().getSjh();
                     if (StringUtils.isNotEmpty(cashAmount) && StringUtils.isNotEmpty(totalAmount)) {
-                            Map<String, String> map = Maps.newHashMap();
-                            map.put("preSettleTotalAmount", totalAmount);
-                            map.put("cashAmount", cashAmount);
-                            map.put("hisSettlementNo", hisSettlementNo);
-                            //订单信息更新
+                        Map<String, String> map = Maps.newHashMap();
+                        map.put("preSettleTotalAmount", totalAmount);
+                        map.put("cashAmount", cashAmount);
+                        map.put("hisSettlementNo", hisSettlementNo);
+                        //订单信息更新
 
-                            if (recipeOrder != null) {
-                                RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
-                                if (!recipeOrderService.dealWithOrderInfo(map, recipeOrder, recipe)) {
-                                    result.put("msg", "预结算更新订单信息失败");
-                                    return result;
-                                }
+                        if (recipeOrder != null) {
+                            RecipeOrderService recipeOrderService = ApplicationUtils.getRecipeService(RecipeOrderService.class);
+                            if (!recipeOrderService.dealWithOrderInfo(map, recipeOrder, recipe)) {
+                                result.put("msg", "预结算更新订单信息失败");
+                                return result;
                             }
                         }
+                    }
                     result.put("totalAmount", totalAmount);
                     result.put("cashAmount", cashAmount);
                 }

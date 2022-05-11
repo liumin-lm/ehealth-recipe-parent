@@ -1,5 +1,8 @@
 package recipe.enumerate.status;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * 处方状态枚举
  *
@@ -57,7 +60,7 @@ public enum RecipeStateEnum {
         return name;
     }
 
-
+    public static final List<Integer> STATE_DELETED = Arrays.asList(PROCESS_STATE_DELETED.type, PROCESS_STATE_CANCELLATION.type);
 
     /**
      * 根据类型 获取枚举类型

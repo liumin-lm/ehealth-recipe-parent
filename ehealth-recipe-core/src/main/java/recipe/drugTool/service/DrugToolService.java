@@ -286,7 +286,7 @@ public class DrugToolService implements IDrugToolService {
         Integer addNum = 0;
         Integer updateNum = 0;
         Integer failNum = 0;
-        LOGGER.info("机构药品目录导入数据校验开始,文件名={},organId={},operator={}",originalFilename,organId,operator);
+        LOGGER.info("机构药品目录导入数据校验开始,文件名={},organId={},operator={}", originalFilename, organId, operator);
         for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
             //循环获得每个行
             row = sheet.getRow(rowIndex);
@@ -563,7 +563,7 @@ public class DrugToolService implements IDrugToolService {
                     StringBuilder ss = new StringBuilder();
                     String[] split = strFromCell.split(",");
                     for (int i = 0; i < split.length; i++) {
-                        DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i],organId);
+                        DrugsEnterprise byEnterpriseCode = drugsEnterpriseDAO.getByEnterpriseCode(split[i], organId);
                         if (byEnterpriseCode == null) {
                             errMsg.append("平台未找到该配送药企" + split[i] + "").append(";");
                         } else {
@@ -776,6 +776,21 @@ public class DrugToolService implements IDrugToolService {
                 errMsg.append("适用业务有误").append(";");
             }
 
+            try {
+                if (StringUtils.isNotEmpty(getStrFromCell(row.getCell(38)))) {
+                    if (("是").equals(getStrFromCell(row.getCell(38)))) {
+                        drug.setTargetedDrugType(1);
+                    } else if (("否").equals(getStrFromCell(row.getCell(38)))) {
+                        drug.setTargetedDrugType(0);
+                    } else {
+                        errMsg.append("是否靶向药格式错误").append(";");
+                    }
+                }
+            } catch (Exception e) {
+                LOGGER.error("是否靶向药有误 ," + e.getMessage(), e);
+                errMsg.append("是否靶向药有误").append(";");
+            }
+
             if (!ObjectUtils.isEmpty(organId)) {
                 DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
                 List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(organId);
@@ -833,7 +848,7 @@ public class DrugToolService implements IDrugToolService {
             }
         }
         LOGGER.info("机构药品目录导入数据校验errorMsg:{}", JSONUtils.toString(errDrugListMatchList));
-        LOGGER.info("机构药品目录导入数据校验结束,文件名={},organId={},operator={}",originalFilename,organId,operator);
+        LOGGER.info("机构药品目录导入数据校验结束,文件名={},organId={},operator={}", originalFilename, organId, operator);
         //导入药品记录
         ImportDrugRecord importDrugRecord = new ImportDrugRecord();
         importDrugRecord.setFileName(originalFilename);
@@ -1546,7 +1561,7 @@ public class DrugToolService implements IDrugToolService {
                         } else {
                             organDrugList.setApplyBusiness("1");
                         }
-
+                        organDrugList.setTargetedDrugType(drugListMatch.getTargetedDrugType());
 
                         Boolean isSuccess = organDrugListDAO.updateData(organDrugList);
                         if (!isSuccess) {

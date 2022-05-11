@@ -324,6 +324,42 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "接方模式：0：默认 , 1：接方模式， 2：非接方模式")
     private Integer supportMode;
 
+    @ItemProperty(alias = "处方组号：同一组处方组号相同")
+    private String groupCode;
+
+    @ItemProperty(alias = "是否靶向药  0否  1是 ")
+    private Integer targetedDrugType;
+
+    @ItemProperty(alias = "是否医保 0自费 1医保")
+    private Integer medicalFlag;
+
+    @Column(name = "medical_flag")
+    public Integer getMedicalFlag() {
+        return medicalFlag;
+    }
+
+    public void setMedicalFlag(Integer medicalFlag) {
+        this.medicalFlag = medicalFlag;
+    }
+
+    @Column(name = "targeted_drug_type")
+    public Integer getTargetedDrugType() {
+        return targetedDrugType;
+    }
+
+    public void setTargetedDrugType(Integer targetedDrugType) {
+        this.targetedDrugType = targetedDrugType;
+    }
+
+    @Column(name = "group_code")
+    public String getGroupCode() {
+        return groupCode;
+    }
+
+    public void setGroupCode(String groupCode) {
+        this.groupCode = groupCode;
+    }
+
     @Column(name = "process_state")
     public Integer getProcessState() {
         return processState;

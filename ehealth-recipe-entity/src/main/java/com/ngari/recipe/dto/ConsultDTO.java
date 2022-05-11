@@ -36,4 +36,9 @@ public class ConsultDTO implements Serializable {
     private String leaveMess;
     @ItemProperty(alias = "开始时间")
     private Date startDate;
+
+    @ItemProperty(alias = "是否医保 0自费 1医保")
+    private Integer medicalFlag;
+    @ItemProperty(alias = "大病类型")
+    private String illnessType;
 }

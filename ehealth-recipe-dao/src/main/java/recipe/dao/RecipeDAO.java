@@ -253,6 +253,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = "update Recipe set orderCode=:orderCode where recipeId in :recipeIds")
     public abstract void updateOrderCodeByRecipeIds(@DAOParam("recipeIds") List<Integer> recipeIds, @DAOParam("orderCode") String orderCode);
 
+    @DAOMethod(sql = "from Recipe where groupCode=:groupCode")
+    public abstract List<Recipe> findRecipeByGroupCode(@DAOParam("groupCode") String groupCode);
+
+    @DAOMethod(sql = "from Recipe where groupCode=:groupCode and status in (:status) ")
+    public abstract List<Recipe> findRecipeByGroupCodeAndStatus(@DAOParam("groupCode") String groupCode, @DAOParam("status") List<Integer> status);
+
     /**
      * 根据 第三方id 与 状态 获取最新处方id
      *
@@ -2571,35 +2577,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         return action.getResult();
     }
 
-    /**
-     * 监管平台反查接口
-     *
-     * @param organId
-     * @param startDate
-     * @param endDate
-     * @return
-     */
-    public List<Recipe> findSyncRecipeListByOrganIdForSH(final Integer organId, final String startDate, final String endDate, final Boolean updateFlag) {
-        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
-            @Override
-            public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("from Recipe r where fromflag=1 and clinicOrgan =:organId and syncFlag =0" + " and ( (r.createDate between '" + startDate + "' and '" + endDate + "') ");
-                //是否包含更新时间为指定时间范围内
-                if (updateFlag) {
-                    hql.append(" or (r.lastModify between '" + startDate + "' and '" + endDate + "')  )");
-                } else {
-                    hql.append(")");
-                }
-                Query query = ss.createQuery(hql.toString());
-                query.setParameter("organId", organId);
-                setResult(query.list());
-            }
-        };
-
-        HibernateSessionTemplate.instance().executeReadOnly(action);
-        return action.getResult();
-    }
-
     public List<PatientRecipeBean> findTabStatusRecipesForPatient(final List<String> mpiIdList, final int start, final int limit, final List<Integer> recipeStatusList, final List<Integer> orderStatusList, final List<Integer> specialStatusList, final String tabStatus) {
         HibernateStatelessResultAction<List<PatientRecipeBean>> action = new AbstractHibernateStatelessResultAction<List<PatientRecipeBean>>() {
             @Override
@@ -3868,7 +3845,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         "END ) AS STATUS,r.patientName,r.fromflag,r.recipeCode,r.doctorName,r.recipeType,r.organDiseaseName, " +
                         "r.clinicOrgan,r.organName,r.signFile,r.chemistSignFile,r.signDate,r.recipeMode,r.recipeSource,r.mpiid,r.depart, " +
                         "r.enterpriseId,e.registerID,e.chronicDiseaseName,o.OrderId,IFNULL(o.CreateTime,r.signDate) as time ," +
-                        "o.Status as orderStatus,r.GiveMode,o.PayMode,r.process_state,r.sub_state " +
+                        "o.Status as orderStatus,r.GiveMode,o.PayMode,r.process_state,r.sub_state, r.targeted_drug_type,r.medical_flag " +
                         " FROM cdr_recipe r left join cdr_recipeorder o on r.OrderCode = o.OrderCode left join " +
                         " cdr_recipe_ext e  on r.RecipeID = e.recipeId " +
                         " WHERE " +
@@ -3885,7 +3862,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if ("ongoing".equals(tabStatus)) {
                     hql.append(" UNION ALL SELECT r.RecipeID,r.orderCode,r.STATUS,r.patientName,r.fromflag,r.recipeCode,r.doctorName,r.recipeType,r.organDiseaseName,r.clinicOrgan," +
                             " r.organName,r.signFile,r.chemistSignFile,r.signDate,r.recipeMode,r.recipeSource,r.mpiid,r.depart,r.enterpriseId,e.registerID,e.chronicDiseaseName," +
-                            " o.OrderId,IFNULL( o.CreateTime, r.signDate ) AS time,o.STATUS AS orderStatus,r.GiveMode,o.PayMode ,r.process_state,r.sub_state " +
+                            " o.OrderId,IFNULL( o.CreateTime, r.signDate ) AS time,o.STATUS AS orderStatus,r.GiveMode,o.PayMode ,r.process_state,r.sub_state, r.targeted_drug_type,r.medical_flag " +
                             " FROM " +
                             " cdr_recipe r " +
                             " LEFT JOIN cdr_recipeorder o ON r.OrderCode = o.OrderCode " +
@@ -3977,6 +3954,9 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         if (null != objs[20]) {
                             recipeListBean.setChronicDiseaseName(objs[20].toString());
                         }
+                        if (null == objs[20]) {
+                            recipeListBean.setChronicDiseaseName("-1");
+                        }
                         if (null != objs[21]) {
                             recipeListBean.setOrderId(Integer.valueOf(objs[21].toString()));
                         }
@@ -3994,6 +3974,12 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                         }
                         if (null != objs[27]) {
                             recipeListBean.setSubState(Integer.valueOf(objs[27].toString()));
+                        }
+                        if (null != objs[28]) {
+                            recipeListBean.setTargetedDrugType(Integer.valueOf(objs[28].toString()));
+                        }
+                        if (null != objs[29]) {
+                            recipeListBean.setMedicalFlag(Integer.valueOf(objs[29].toString()));
                         }
 
                         backList.add(recipeListBean);
@@ -4310,5 +4296,6 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
+
 
 }

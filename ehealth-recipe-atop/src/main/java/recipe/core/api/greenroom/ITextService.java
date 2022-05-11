@@ -2,6 +2,8 @@ package recipe.core.api.greenroom;
 
 
 import com.ngari.base.esign.model.CoOrdinateVO;
+import com.ngari.recipe.vo.FastRecipeAndDetailResVO;
+import com.ngari.recipe.vo.FastRecipeReqVO;
 
 /**
  * 用于postman 后门接口调用
@@ -29,4 +31,11 @@ public interface ITextService {
      * @param consultId
      */
     void getConsult(Integer consultId);
+
+    /**
+     * 快捷购药获取模板数据
+     * @param fastRecipeReqVO
+     * @return
+     */
+    FastRecipeAndDetailResVO getFastRecipeJson(FastRecipeReqVO fastRecipeReqVO);
 }

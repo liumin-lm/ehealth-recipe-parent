@@ -266,6 +266,17 @@ public class RecipeDetailBean implements java.io.Serializable {
      */
     private String validateHisStatusText;
 
+    @ItemProperty(alias = "是否靶向药  0否  1是 ")
+    private Integer targetedDrugType;
+
+    public Integer getTargetedDrugType() {
+        return targetedDrugType;
+    }
+
+    public void setTargetedDrugType(Integer targetedDrugType) {
+        this.targetedDrugType = targetedDrugType;
+    }
+
     public String getValidateStatusText() {
         return validateStatusText;
     }

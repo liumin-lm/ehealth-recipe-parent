@@ -798,6 +798,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         }
         // 将String转化成DrugList对象返回给前端
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         //获取药品展示拼接配置
         //药品名拼接配置---这里处理防止每次循环还得处理一遍
         Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, drugType));
@@ -805,6 +806,10 @@ public class DrugListExtService extends BaseService<DrugListBean> {
         Map<String, Integer> configSaleNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getSaleNameConfigByDrugType(organId, drugType));
         for (String s : drugInfo) {
             SearchDrugDetailDTO drugList = JSONUtils.parse(s, SearchDrugDetailDTO.class);
+            List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndOrganDrugCodeAndDrugIdWithoutStatus(organId, drugList.getOrganDrugCode(), drugList.getDrugId());
+            if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                drugList.setTargetedDrugType(organDrugLists.get(0).getTargetedDrugType());
+            }
             drugList.setHospitalPrice(drugList.getSalePrice());
             //该高亮字段给微信端使用:highlightedField
             //该高亮字段给ios前端使用:highlightedFieldForIos
