@@ -156,41 +156,32 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(recipe.getClinicOrgan());
         if (CollectionUtils.isEmpty(giveModeButtonBeans)) {
             enterpriseManager.doSignRecipe(doSignRecipe, "未找到满足库存要求的购药方式");
+            logger.info("DrugEnterpriseBusinessService enterpriseStock recipeId:{},reason:没有配置购药方式", recipeId);
             return MapValueUtil.beanToMap(doSignRecipe);
         }
         //未配置药企 医院无库存
         if (CollectionUtils.isEmpty(enterpriseStock) && null != organStock && !organStock.getStock()) {
+            logger.info("DrugEnterpriseBusinessService enterpriseStock recipeId:{},reason:未配置药企并且医院无库存", recipeId);
             enterpriseManager.doSignRecipe(doSignRecipe, "未找到满足库存要求的购药方式");
         }
         //未配置医院 药企无库存
         if (CollectionUtils.isNotEmpty(enterpriseStock) && null == organStock) {
             boolean stock = enterpriseStock.stream().anyMatch(EnterpriseStock::getStock);
             if (!stock) {
-                List<List<String>> groupList = new LinkedList<>();
-                enterpriseStock.forEach(a -> groupList.add(a.getDrugName()));
-                List<String> enterpriseDrugName = ListValueUtil.minIntersection(groupList);
+                logger.info("DrugEnterpriseBusinessService enterpriseStock recipeId:{},reason:未配置医院并且药企无库存", recipeId);
                 enterpriseManager.doSignRecipe(doSignRecipe, "未找到满足库存要求的购药方式");
             }
         }
         StringBuilder msg = new StringBuilder("本处方支持");
-        //未配置药企 医院有库存
-        if (CollectionUtils.isEmpty(enterpriseStock) && null != organStock && organStock.getStock()) {
+        //医院有库存
+        if (null != organStock && organStock.getStock()) {
             msg.append("【").append(organStock.getGiveModeButton().get(0).getShowButtonName()).append("】");
             enterpriseManager.doSignRecipe(doSignRecipe, msg.toString());
             doSignRecipe.setCanContinueFlag("2");
+            logger.info("DrugEnterpriseBusinessService enterpriseStock recipeId:{},reason:医院有库存,msg:{}", recipeId, msg);
         }
-        //校验医院和药企
         if (CollectionUtils.isNotEmpty(enterpriseStock)) {
             boolean stockEnterprise = enterpriseStock.stream().anyMatch(EnterpriseStock::getStock);
-            //医院有库存
-            if (null != organStock && organStock.getStock()) {
-                List<List<String>> groupList = new LinkedList<>();
-                enterpriseStock.forEach(a -> groupList.add(a.getDrugName()));
-                List<String> enterpriseDrugName = ListValueUtil.minIntersection(groupList);
-                msg.append("【").append(organStock.getGiveModeButton().get(0).getShowButtonName()).append("】");
-                enterpriseManager.doSignRecipe(doSignRecipe, msg.toString());
-                doSignRecipe.setCanContinueFlag("2");
-            }
             //药企有库存
             if (stockEnterprise) {
                 List<EnterpriseStock> haveStockEnterpriseList = enterpriseStock.stream().filter(EnterpriseStock::getStock).collect(Collectors.toList());
@@ -205,10 +196,12 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 });
                 enterpriseManager.doSignRecipe(doSignRecipe, msg.toString());
                 doSignRecipe.setCanContinueFlag("1");
+                logger.info("DrugEnterpriseBusinessService enterpriseStock recipeId:{},reason:药企有库存,msg:{}", recipeId, msg);
             }
             //医院无库存 药企无库存
             if (!stockEnterprise && null != organStock && !organStock.getStock()) {
                 enterpriseManager.doSignRecipe(doSignRecipe, "未找到满足库存要求的购药方式");
+                logger.info("DrugEnterpriseBusinessService enterpriseStock recipeId:{},reason:医院无库存并且药企无库存", recipeId);
             }
         }
         //配置下载处方签 或者 例外支付
