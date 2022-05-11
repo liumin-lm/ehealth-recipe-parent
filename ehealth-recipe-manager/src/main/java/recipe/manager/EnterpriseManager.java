@@ -520,10 +520,6 @@ public class EnterpriseManager extends BaseManager {
         doSignRecipe.setSignResult(false);
         doSignRecipe.setErrorFlag(true);
         doSignRecipe.setCanContinueFlag("-1");
-        if (CollectionUtils.isNotEmpty(nameList)) {
-            String nameStr = "【" + Joiner.on("、").join(nameList) + "】";
-            msg = "由于该处方单上的" + nameStr + msg;
-        }
         doSignRecipe.setMsg(msg);
     }
 
