@@ -173,6 +173,12 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             }
         }
         StringBuilder msg = new StringBuilder("本处方支持");
+        //未配置药企 医院有库存
+        if (CollectionUtils.isEmpty(enterpriseStock) && null != organStock && organStock.getStock()) {
+            msg.append("【").append(organStock.getGiveModeButton().get(0).getShowButtonName()).append("】");
+            enterpriseManager.doSignRecipe(doSignRecipe, null, msg.toString());
+            doSignRecipe.setCanContinueFlag("2");
+        }
         //校验医院和药企
         if (CollectionUtils.isNotEmpty(enterpriseStock)) {
             boolean stockEnterprise = enterpriseStock.stream().anyMatch(EnterpriseStock::getStock);
