@@ -93,10 +93,10 @@ public class CashPreSettleService implements IRecipePreSettleService {
                 LOGGER.error("MedicalPreSettleService 代缴费用有误");
             }
 
-            RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
-            if (ext != null) {
-                if (StringUtils.isNotEmpty(ext.getRegisterID())) {
-                    request.setRegisterID(ext.getRegisterID());
+            RecipeExtend ext2 = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+            if (ext2 != null) {
+                if (StringUtils.isNotEmpty(ext2.getRegisterID())) {
+                    request.setRegisterID(ext2.getRegisterID());
                 }
             }
 
