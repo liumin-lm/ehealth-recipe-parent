@@ -512,11 +512,10 @@ public class EnterpriseManager extends BaseManager {
      * 组织返回结果msg
      *
      * @param doSignRecipe
-     * @param nameList
      * @param msg
      * @return
      */
-    public void doSignRecipe(DoSignRecipeDTO doSignRecipe, List<String> nameList, String msg) {
+    public void doSignRecipe(DoSignRecipeDTO doSignRecipe, String msg) {
         doSignRecipe.setSignResult(false);
         doSignRecipe.setErrorFlag(true);
         doSignRecipe.setCanContinueFlag("-1");
