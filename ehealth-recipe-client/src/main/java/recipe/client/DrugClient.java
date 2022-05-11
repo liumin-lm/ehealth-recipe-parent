@@ -7,17 +7,11 @@ import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.mode.DrugInfoRequestTO;
-import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
-import com.ngari.recipe.entity.DecoctionWay;
-import com.ngari.recipe.entity.DrugMakingMethod;
-import com.ngari.recipe.dto.RecipeDetailDTO;
 import com.ngari.recipe.entity.*;
-import ctd.persistence.exception.DAOException;
 import ctd.spring.AppDomainContext;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
@@ -27,11 +21,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-import recipe.constant.ErrorCode;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
-import recipe.util.ValidateUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -288,39 +280,5 @@ public class DrugClient extends BaseClient {
             return drugMakingMethod;
         }
         return code;
-    }
-
-    /**
-     * 校验his 药品规则，大病医保等
-     *
-     * @param recipeDetails 前端入餐
-     * @param organDrugList 机构药品
-     * @param pharmacyTcms  药房
-     */
-    public void hisDrugRule(List<RecipeDetailDTO> recipeDetails, List<OrganDrugList> organDrugList, List<PharmacyTcm> pharmacyTcms, DrugInfoRequestTO request) {
-        List<Recipedetail> detailList = ObjectCopyUtils.convert(recipeDetails, Recipedetail.class);
-        List<DrugInfoTO> data = super.drugInfoList(detailList, organDrugList, pharmacyTcms);
-        request.setData(data);
-        logger.info("DrugClient hisDrugRule request={}", JSON.toJSONString(request));
-        HisResponseTO<List<DrugInfoTO>> hisResponse = recipeToTestService.hisDrugRule(request);
-        logger.info("DrugClient hisDrugRule hisResponse={}", JSON.toJSONString(hisResponse));
-        List<DrugInfoTO> response;
-        try {
-            response = this.getResponse(hisResponse);
-        } catch (Exception e) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
-        Map<String, DrugInfoTO> detailMap = response.stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getDrcode(), a -> a, (k1, k2) -> k1));
-        recipeDetails.forEach(a -> {
-            DrugInfoTO drugInfo = detailMap.get(a.getDrugId() + a.getOrganDrugCode());
-            if (null == drugInfo) {
-                return;
-            }
-            if (ValidateUtil.integerIsEmpty(drugInfo.getValidateHisStatus())) {
-                return;
-            }
-            a.setValidateHisStatus(drugInfo.getValidateHisStatus());
-            a.setValidateHisStatusText(drugInfo.getValidateHisStatusText());
-        });
     }
 }
