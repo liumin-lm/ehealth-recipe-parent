@@ -150,7 +150,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         logger.info("DrugEnterpriseBusinessService enterpriseStock enterpriseStock={}", JSON.toJSONString(enterpriseStock));
         //医院库存
         EnterpriseStock organStock = organDrugListManager.organStock(recipe, recipeDetails);
-
+        logger.info("DrugEnterpriseBusinessService enterpriseStock organStock:{}", JSON.toJSONString(organStock));
         DoSignRecipeDTO doSignRecipe = new DoSignRecipeDTO(true, false, null, "", recipeId, null);
         //机构配置购药方式
         List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(recipe.getClinicOrgan());
