@@ -173,7 +173,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             }
         }
         //支持的购药的方式
-        Set<String> supportGiveModeNameSet = new HashSet<>();
+        Set<String> supportGiveModeNameSet = new TreeSet<>();
         //医院有库存
         if (null != organStock && organStock.getStock()) {
             supportGiveModeNameSet.add(organStock.getGiveModeButton().get(0).getShowButtonName());
