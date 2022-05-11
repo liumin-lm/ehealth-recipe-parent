@@ -172,13 +172,12 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 enterpriseManager.doSignRecipe(doSignRecipe, "未找到满足库存要求的购药方式");
             }
         }
-        StringBuilder msg = new StringBuilder("本处方支持");
+        //支持的购药的方式
+        Set<String> supportGiveModeNameSet = new HashSet<>();
         //医院有库存
         if (null != organStock && organStock.getStock()) {
-            msg.append("【").append(organStock.getGiveModeButton().get(0).getShowButtonName()).append("】");
-            enterpriseManager.doSignRecipe(doSignRecipe, msg.toString());
-            doSignRecipe.setCanContinueFlag("2");
-            logger.info("DrugEnterpriseBusinessService enterpriseStock recipeId:{},reason:医院有库存,msg:{}", recipeId, msg);
+            supportGiveModeNameSet.add(organStock.getGiveModeButton().get(0).getShowButtonName());
+            logger.info("DrugEnterpriseBusinessService enterpriseStock recipeId:{},reason:医院有库存", recipeId);
         }
         if (CollectionUtils.isNotEmpty(enterpriseStock)) {
             boolean stockEnterprise = enterpriseStock.stream().anyMatch(EnterpriseStock::getStock);
@@ -189,14 +188,10 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 haveStockEnterpriseList.forEach(haveStockEnterprise -> {
                     List<GiveModeButtonDTO> giveModeButtonDTOList = haveStockEnterprise.getGiveModeButton();
                     giveModeButtonDTOList.forEach(giveModeButtonDTO -> {
-                        if (!msg.toString().contains(giveModeButtonDTO.getShowButtonName())) {
-                            msg.append("【").append(giveModeButtonDTO.getShowButtonName()).append("】");
-                        }
+                        supportGiveModeNameSet.add(giveModeButtonDTO.getShowButtonName());
                     });
                 });
-                enterpriseManager.doSignRecipe(doSignRecipe, msg.toString());
-                doSignRecipe.setCanContinueFlag("1");
-                logger.info("DrugEnterpriseBusinessService enterpriseStock recipeId:{},reason:药企有库存,msg:{}", recipeId, msg);
+                logger.info("DrugEnterpriseBusinessService enterpriseStock recipeId:{},reason:药企有库存", recipeId);
             }
             //医院无库存 药企无库存
             if (!stockEnterprise && null != organStock && !organStock.getStock()) {
@@ -208,18 +203,32 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
         String supportDownloadButton = organDrugListManager.organStockDownload(recipe.getClinicOrgan(), recipeDetails);
         if (StringUtils.isNotEmpty(supportDownloadButton)) {
-            msg.append("【").append(supportDownloadButton).append("】");
+            supportGiveModeNameSet.add(supportDownloadButton);
         }
         if (StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
-            msg.append("【").append(supportMedicalPaymentButton).append("】");
+            supportGiveModeNameSet.add(supportMedicalPaymentButton);
         }
-        if (StringUtils.isNotEmpty(supportDownloadButton) || StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
-            enterpriseManager.doSignRecipe(doSignRecipe, msg.toString());
-            doSignRecipe.setCanContinueFlag("1");
-        }
+        //获取弹框文本
+        getSupportGiveModeNameText(doSignRecipe, supportGiveModeNameSet);
         //保存药品购药方式
         saveGiveMode(recipe, organStock, enterpriseStock, recipeDetails);
         return MapValueUtil.beanToMap(doSignRecipe);
+    }
+
+    /**
+     * 获取弹框文本
+     * @param doSignRecipe
+     * @param supportGiveModeNameSet
+     */
+    private void getSupportGiveModeNameText(DoSignRecipeDTO doSignRecipe, Set<String> supportGiveModeNameSet) {
+        if (CollectionUtils.isNotEmpty(supportGiveModeNameSet)) {
+            StringBuilder msg = new StringBuilder("本处方支持");
+            supportGiveModeNameSet.forEach(supportGiveModeName -> {
+                msg.append("【").append(supportGiveModeName).append("】");
+            });
+            enterpriseManager.doSignRecipe(doSignRecipe, msg.toString());
+            doSignRecipe.setCanContinueFlag("1");
+        }
     }
 
     @Override
