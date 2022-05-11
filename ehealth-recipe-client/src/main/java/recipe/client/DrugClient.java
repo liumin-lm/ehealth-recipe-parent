@@ -7,6 +7,8 @@ import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.bus.op.service.IUsePathwaysService;
 import com.ngari.bus.op.service.IUsingRateService;
 import com.ngari.common.mode.HisResponseTO;
+import com.ngari.his.recipe.mode.DrugInfoRequestTO;
+import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
@@ -25,8 +27,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+import recipe.constant.ErrorCode;
 import recipe.enumerate.type.RecipeTypeEnum;
+import recipe.util.ObjectCopyUtils;
 import recipe.util.RecipeUtil;
+import recipe.util.ValidateUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -297,7 +302,7 @@ public class DrugClient extends BaseClient {
         List<DrugInfoTO> data = super.drugInfoList(detailList, organDrugList, pharmacyTcms);
         request.setData(data);
         logger.info("DrugClient hisDrugRule request={}", JSON.toJSONString(request));
-        HisResponseTO<List<DrugInfoTO>> hisResponse = recipeHisService.hisDrugRule(request);
+        HisResponseTO<List<DrugInfoTO>> hisResponse = recipeToTestService.hisDrugRule(request);
         logger.info("DrugClient hisDrugRule hisResponse={}", JSON.toJSONString(hisResponse));
         List<DrugInfoTO> response;
         try {

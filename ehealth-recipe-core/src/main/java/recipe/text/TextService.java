@@ -8,6 +8,7 @@ import com.ngari.recipe.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.caNew.pdf.CreatePdfFactory;
+import recipe.client.ConsultClient;
 import recipe.core.api.greenroom.ITextService;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeDetailDAO;
