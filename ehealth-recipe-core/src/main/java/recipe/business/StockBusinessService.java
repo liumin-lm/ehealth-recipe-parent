@@ -174,10 +174,10 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         }
         StringBuilder msg = new StringBuilder("本处方支持");
         //校验医院和药企
-        if (CollectionUtils.isNotEmpty(enterpriseStock) && null != organStock) {
+        if (CollectionUtils.isNotEmpty(enterpriseStock)) {
             boolean stockEnterprise = enterpriseStock.stream().anyMatch(EnterpriseStock::getStock);
             //医院有库存
-            if (organStock.getStock()) {
+            if (null != organStock && organStock.getStock()) {
                 List<List<String>> groupList = new LinkedList<>();
                 enterpriseStock.forEach(a -> groupList.add(a.getDrugName()));
                 List<String> enterpriseDrugName = ListValueUtil.minIntersection(groupList);
