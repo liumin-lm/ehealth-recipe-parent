@@ -2,7 +2,9 @@ package recipe.service.recipecancel;
 
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
+import com.ngari.platform.recipe.mode.DrugsEnterpriseBean;
 import com.ngari.platform.recipe.mode.HospitalReqTo;
+import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -13,7 +15,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.aop.LogRecord;
 import recipe.client.PatientClient;
+import recipe.dao.DrugsEnterpriseDAO;
 import recipe.service.RecipeServiceSub;
+import recipe.util.ObjectCopyUtils;
 
 import java.util.Map;
 
@@ -28,6 +32,8 @@ public class RecipeCancelService {
     private IRecipeEnterpriseService recipeEnterpriseService;
     @Autowired
     private PatientClient patientClient;
+    @Autowired
+    private DrugsEnterpriseDAO drugsEnterpriseDAO;
 
     /**
      * 处方撤销处方new----------(供医生端使用)
@@ -66,6 +72,10 @@ public class RecipeCancelService {
                 req.setRecipeId(recipe.getRecipeId());
                 req.setRecipeCode(recipe.getRecipeCode());
                 req.setOrgCode(patientClient.getMinkeOrganCodeByOrganId(recipe.getClinicOrgan()));
+                if (null != recipe.getEnterpriseId()) {
+                    DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
+                    req.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
+                }
             }
             LOGGER.info("doCancelRecipeForEnterprise recipeId={} req={}", recipe.getRecipeId(), JSONUtils.toString(req));
             res = recipeEnterpriseService.cancelRecipe(req);
