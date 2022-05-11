@@ -155,12 +155,12 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         //机构配置购药方式
         List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(recipe.getClinicOrgan());
         if (CollectionUtils.isEmpty(giveModeButtonBeans)) {
-            enterpriseManager.doSignRecipe(doSignRecipe, null, "未找到满足库存要求的购药方式");
+            enterpriseManager.doSignRecipe(doSignRecipe, "未找到满足库存要求的购药方式");
             return MapValueUtil.beanToMap(doSignRecipe);
         }
         //未配置药企 医院无库存
         if (CollectionUtils.isEmpty(enterpriseStock) && null != organStock && !organStock.getStock()) {
-            enterpriseManager.doSignRecipe(doSignRecipe, organStock.getDrugName(), "未找到满足库存要求的购药方式");
+            enterpriseManager.doSignRecipe(doSignRecipe, "未找到满足库存要求的购药方式");
         }
         //未配置医院 药企无库存
         if (CollectionUtils.isNotEmpty(enterpriseStock) && null == organStock) {
@@ -169,14 +169,14 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 List<List<String>> groupList = new LinkedList<>();
                 enterpriseStock.forEach(a -> groupList.add(a.getDrugName()));
                 List<String> enterpriseDrugName = ListValueUtil.minIntersection(groupList);
-                enterpriseManager.doSignRecipe(doSignRecipe, enterpriseDrugName, "未找到满足库存要求的购药方式");
+                enterpriseManager.doSignRecipe(doSignRecipe, "未找到满足库存要求的购药方式");
             }
         }
         StringBuilder msg = new StringBuilder("本处方支持");
         //未配置药企 医院有库存
         if (CollectionUtils.isEmpty(enterpriseStock) && null != organStock && organStock.getStock()) {
             msg.append("【").append(organStock.getGiveModeButton().get(0).getShowButtonName()).append("】");
-            enterpriseManager.doSignRecipe(doSignRecipe, null, msg.toString());
+            enterpriseManager.doSignRecipe(doSignRecipe, msg.toString());
             doSignRecipe.setCanContinueFlag("2");
         }
         //校验医院和药企
@@ -188,7 +188,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 enterpriseStock.forEach(a -> groupList.add(a.getDrugName()));
                 List<String> enterpriseDrugName = ListValueUtil.minIntersection(groupList);
                 msg.append("【").append(organStock.getGiveModeButton().get(0).getShowButtonName()).append("】");
-                enterpriseManager.doSignRecipe(doSignRecipe, enterpriseDrugName, msg.toString());
+                enterpriseManager.doSignRecipe(doSignRecipe, msg.toString());
                 doSignRecipe.setCanContinueFlag("2");
             }
             //药企有库存
@@ -203,12 +203,12 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                         }
                     });
                 });
-                enterpriseManager.doSignRecipe(doSignRecipe, organStock.getDrugName(), msg.toString());
+                enterpriseManager.doSignRecipe(doSignRecipe, msg.toString());
                 doSignRecipe.setCanContinueFlag("1");
             }
             //医院无库存 药企无库存
-            if (!stockEnterprise && !organStock.getStock()) {
-                enterpriseManager.doSignRecipe(doSignRecipe, organStock.getDrugName(), "未找到满足库存要求的购药方式");
+            if (!stockEnterprise && null != organStock && !organStock.getStock()) {
+                enterpriseManager.doSignRecipe(doSignRecipe, "未找到满足库存要求的购药方式");
             }
         }
         //配置下载处方签 或者 例外支付
@@ -221,7 +221,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             msg.append("【").append(supportMedicalPaymentButton).append("】");
         }
         if (StringUtils.isNotEmpty(supportDownloadButton) || StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
-            enterpriseManager.doSignRecipe(doSignRecipe, null, msg.toString());
+            enterpriseManager.doSignRecipe(doSignRecipe, msg.toString());
             doSignRecipe.setCanContinueFlag("1");
         }
         //保存药品购药方式
