@@ -188,10 +188,14 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             //药企有库存
             if (stockEnterprise) {
                 List<EnterpriseStock> haveStockEnterpriseList = enterpriseStock.stream().filter(EnterpriseStock::getStock).collect(Collectors.toList());
-                haveStockEnterpriseList.forEach(a->{
-                    if (!msg.toString().contains(a.getGiveModeButton().get(0).getShowButtonName())) {
-                        msg.append("【").append(a.getGiveModeButton().get(0).getShowButtonName()).append("】");
-                    }
+                logger.info("DrugEnterpriseBusinessService enterpriseStock haveStockEnterpriseList:{}", JSON.toJSONString(haveStockEnterpriseList));
+                haveStockEnterpriseList.forEach(haveStockEnterprise -> {
+                    List<GiveModeButtonDTO> giveModeButtonDTOList = haveStockEnterprise.getGiveModeButton();
+                    giveModeButtonDTOList.forEach(giveModeButtonDTO -> {
+                        if (!msg.toString().contains(giveModeButtonDTO.getShowButtonName())) {
+                            msg.append("【").append(giveModeButtonDTO.getShowButtonName()).append("】");
+                        }
+                    });
                 });
                 enterpriseManager.doSignRecipe(doSignRecipe, organStock.getDrugName(), msg.toString());
                 doSignRecipe.setCanContinueFlag("1");
