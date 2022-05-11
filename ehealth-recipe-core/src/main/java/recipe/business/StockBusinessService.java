@@ -205,7 +205,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
         String supportDownloadButton = organDrugListManager.organStockDownload(recipe.getClinicOrgan(), recipeDetails);
         if (StringUtils.isNotEmpty(supportDownloadButton)) {
-            msg.append("【").append(supportMedicalPaymentButton).append("】");
+            msg.append("【").append(supportDownloadButton).append("】");
         }
         if (StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
             msg.append("【").append(supportMedicalPaymentButton).append("】");
