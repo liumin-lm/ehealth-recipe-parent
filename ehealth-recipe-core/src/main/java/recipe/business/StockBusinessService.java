@@ -155,7 +155,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         //机构配置购药方式
         List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(recipe.getClinicOrgan());
         if (CollectionUtils.isEmpty(giveModeButtonBeans)) {
-            enterpriseManager.doSignRecipe(doSignRecipe, null, "抱歉，机构未配置购药方式，无法开处方");
+            enterpriseManager.doSignRecipe(doSignRecipe, null, "未找到满足库存要求的购药方式");
             return MapValueUtil.beanToMap(doSignRecipe);
         }
         //配置下载处方签 或者 例外支付
@@ -168,7 +168,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         }
         //未配置药企 医院无库存
         if (CollectionUtils.isEmpty(enterpriseStock) && null != organStock && !organStock.getStock()) {
-            enterpriseManager.doSignRecipe(doSignRecipe, organStock.getDrugName(), "药品门诊药房库存不足，请更换其他药品后再试");
+            enterpriseManager.doSignRecipe(doSignRecipe, organStock.getDrugName(), "未找到满足库存要求的购药方式");
         }
         //未配置医院 药企无库存
         if (CollectionUtils.isNotEmpty(enterpriseStock) && null == organStock) {
@@ -177,9 +177,10 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 List<List<String>> groupList = new LinkedList<>();
                 enterpriseStock.forEach(a -> groupList.add(a.getDrugName()));
                 List<String> enterpriseDrugName = ListValueUtil.minIntersection(groupList);
-                enterpriseManager.doSignRecipe(doSignRecipe, enterpriseDrugName, "药品库存不足，请更换其他药品后再试");
+                enterpriseManager.doSignRecipe(doSignRecipe, enterpriseDrugName, "未找到满足库存要求的购药方式");
             }
         }
+        StringBuilder msg = new StringBuilder("本处方支持");
         //校验医院和药企
         if (CollectionUtils.isNotEmpty(enterpriseStock) && null != organStock) {
             boolean stockEnterprise = enterpriseStock.stream().anyMatch(EnterpriseStock::getStock);
@@ -188,17 +189,22 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
                 List<List<String>> groupList = new LinkedList<>();
                 enterpriseStock.forEach(a -> groupList.add(a.getDrugName()));
                 List<String> enterpriseDrugName = ListValueUtil.minIntersection(groupList);
-                enterpriseManager.doSignRecipe(doSignRecipe, enterpriseDrugName, "药品配送药企库存不足，该处方仅支持到院取药，无法药企配送，是否继续？");
+                msg.append("【").append(organStock.getGiveModeButton().get(0).getShowButtonName()).append("】");
+                enterpriseManager.doSignRecipe(doSignRecipe, enterpriseDrugName, msg.toString());
                 doSignRecipe.setCanContinueFlag("2");
             }
             //医院无库存 药企有库存
             if (stockEnterprise && !organStock.getStock()) {
+                List<EnterpriseStock> haveStockEnterpriseList = enterpriseStock.stream().filter(EnterpriseStock::getStock).collect(Collectors.toList());
+                haveStockEnterpriseList.forEach(a->{
+
+                });
                 enterpriseManager.doSignRecipe(doSignRecipe, organStock.getDrugName(), "药品医院库存不足，该处方仅支持药企配送，无法到院取药，是否继续？");
                 doSignRecipe.setCanContinueFlag("1");
             }
             //医院无库存 药企无库存
             if (!stockEnterprise && !organStock.getStock()) {
-                enterpriseManager.doSignRecipe(doSignRecipe, organStock.getDrugName(), "药品库存不足，请更换其他药品后再试");
+                enterpriseManager.doSignRecipe(doSignRecipe, organStock.getDrugName(), "未找到满足库存要求的购药方式");
             }
         }
         //保存药品购药方式
