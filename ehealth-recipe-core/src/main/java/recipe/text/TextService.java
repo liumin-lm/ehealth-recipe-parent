@@ -35,8 +35,6 @@ public class TextService implements ITextService {
     @Autowired
     private ConsultClient consultClient;
     @Autowired
-    private ConsultClient consultClient;
-    @Autowired
     private RecipeDAO recipeDAO;
     @Autowired
     private RecipeDetailDAO recipeDetailDAO;

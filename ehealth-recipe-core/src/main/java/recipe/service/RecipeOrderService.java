@@ -731,7 +731,8 @@ public class RecipeOrderService extends RecipeBaseService {
 
         // 更新处方代缴费用
         orderFeeManager.setRecipePaymentFee(order, recipeList);
-
+        // 上海外服第三方支付金额
+        orderFeeManager.setSHWFAccountFee(order);
         order.setTotalFee(countOrderTotalFeeByRecipeInfo(order, firstRecipe, payModeSupport));
         //判断计算扣掉运费的总金额----等于线下支付----总计要先算上运费，实际支付时再不支付运费
         BigDecimal totalFee;
@@ -1062,13 +1063,13 @@ public class RecipeOrderService extends RecipeBaseService {
             }
         }
         //上海外服个性化处理账户支付金额
-        String organName = recipeParameterDao.getByName("shwfAccountFee");
-        if (StringUtils.isNotEmpty(organName) && LocalStringUtil.hasOrgan(order.getOrganId().toString(), organName)) {
-            BigDecimal accountFee = orderFeeManager.getAccountFee(order.getTotalFee(), order.getMpiId(), order.getOrganId());
-            if (null != accountFee) {
-                recipeOrderBean.setAccountFee(accountFee);
-            }
-        }
+//        String organName = recipeParameterDao.getByName("shwfAccountFee");
+//        if (StringUtils.isNotEmpty(organName) && LocalStringUtil.hasOrgan(order.getOrganId().toString(), organName)) {
+//            BigDecimal accountFee = orderFeeManager.getAccountFee(order.getTotalFee(), order.getMpiId(), order.getOrganId());
+//            if (null != accountFee) {
+//                recipeOrderBean.setAccountFee(accountFee);
+//            }
+//        }
         result.setObject(recipeOrderBean);
         if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == toDbFlag && null != order.getOrderId()) {
             result.setOrderCode(order.getOrderCode());
@@ -1195,7 +1196,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setExpectEndTakeTime("1970-01-01 00:00:01");
             }
             order.setThirdPayType(0);
-            order.setThirdPayFee(0.00);
+            order.setThirdPayFee(BigDecimal.ZERO);
             createOrderToDB(order, recipeIds, orderDAO, recipeDAO);
         } catch (DAOException e) {
             //如果小概率造成orderCode重复，则修改并重试
@@ -2552,6 +2553,10 @@ public class RecipeOrderService extends RecipeBaseService {
         //中医辨证论治费
         if (null != order.getTcmFee()) {
             full = full.add(order.getTcmFee());
+        }
+        // 减去第三方支付复用
+        if (null != order.getThirdPayFee()) {
+            full = full.subtract(order.getThirdPayFee());
         }
 
         return full.divide(BigDecimal.ONE, 3, RoundingMode.UP);
