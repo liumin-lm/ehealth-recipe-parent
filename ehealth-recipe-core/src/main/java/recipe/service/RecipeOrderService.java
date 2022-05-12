@@ -1105,8 +1105,7 @@ public class RecipeOrderService extends RecipeBaseService {
 
         //设置送货地址
         if (null != order && (null != order.getAddress1() && null != order.getAddress2() && null != order.getAddress3())) {
-            CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
-            order.setCompleteAddress(commonRemoteService.getCompleteAddress(order));
+            order.setCompleteAddress(orderManager.getCompleteAddress(order));
         } else {
             //对北京互联网处方流转模式处理
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -1521,9 +1520,8 @@ public class RecipeOrderService extends RecipeBaseService {
     @RpcService
     public RecipeResultBean getOrderDetailByIdV1(Integer orderId) {
         RecipeResultBean recipeResultBean = getOrderDetailById(orderId);
-        CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
         RecipeOrder order = recipeOrderDAO.get(orderId);
-        recipeResultBean.getExt().put("completeAddress", commonRemoteService.getCompleteAddress(order));
+        recipeResultBean.getExt().put("completeAddress", orderManager.getCompleteAddress(order));
         LOGGER.info("getOrderDetailByIdV1 recipeResultBean={}", JSON.toJSONString(recipeResultBean));
         return recipeResultBean;
     }
@@ -1589,12 +1587,7 @@ public class RecipeOrderService extends RecipeBaseService {
             boolean tcmFlag = false;
             if (CollectionUtils.isNotEmpty(recipeList)) {
                 //设置地址，先取处方单address4的值，没有则取订单地址
-
-                order.setCompleteAddress(commonRemoteService.getCompleteAddress(order));
-
-
-                RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
-                RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+                order.setCompleteAddress(orderManager.getCompleteAddress(order));
 
                 PatientRecipeDTO prb;
                 List<Recipedetail> recipedetails;
@@ -1634,7 +1627,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         LOGGER.warn("getOrderDetailById 字典转化异常");
                     }
                     //药品详情
-                    recipedetails = detailDAO.findByRecipeId(recipe.getRecipeId());
+                    recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
                     String className = Thread.currentThread().getStackTrace()[2].getClassName();
                     String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
                     List<Integer> drugId = recipedetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
