@@ -183,7 +183,6 @@ public class RecipeService extends RecipeBaseService {
 
     private IDataSyncLogService dataSyncLogService = AppDomainContext.getBean("opbase.dataSyncLogService", IDataSyncLogService.class);
 
-
     private static final int havChooseFlag = 1;
     @Autowired
     private RedisClient redisClient;
@@ -191,13 +190,10 @@ public class RecipeService extends RecipeBaseService {
     private CreatePdfFactory createPdfFactory;
     @Resource
     private AuditModeContext auditModeContext;
-
     @Resource
     private OrganDrugListDAO organDrugListDAO;
-
     @Resource
     private DrugListMatchDAO drugListMatchDAO;
-
     @Autowired
     private IConfigurationCenterUtilsService configService;
     @Autowired
@@ -210,28 +206,20 @@ public class RecipeService extends RecipeBaseService {
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
     private RecipeServiceSub recipeServiceSub;
-
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
-
     @Autowired
     private RecipeDAO recipeDAO;
-
     @Autowired
     private DrugToolService drugToolService;
-
     @Autowired
     private OrganDrugListService organDrugListService;
-
     @Autowired
     private PharmacyTcmService pharmacyTcmService;
-
     @Resource
     private CaAfterProcessType caAfterProcessType;
-
     @Resource
     private RecipeOrderDAO recipeOrderDAO;
-
     @Resource
     private SyncDrugExcDAO syncDrugExcDAO;
     @Autowired
@@ -240,17 +228,14 @@ public class RecipeService extends RecipeBaseService {
     private IStockBusinessService drugEnterpriseBusinessService;
     @Autowired
     private RemoteRecipeService remoteRecipeService;
-
     @Autowired
     private RevisitManager revisitManager;
-
     @Autowired
     private RefundClient refundClient;
     @Autowired
     private RecipeAuditClient recipeAuditClient;
     @Autowired
     private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
-
     @Autowired
     private RevisitClient revisitClient;
     @Autowired
@@ -272,7 +257,7 @@ public class RecipeService extends RecipeBaseService {
     @Autowired
     private EnterpriseManager enterpriseManager;
     @Autowired
-    private ConsultClient consultClient;
+    private OrderManager orderManager;
 
     /**
      * 药师审核不通过
@@ -601,22 +586,17 @@ public class RecipeService extends RecipeBaseService {
     public String getCompleteAddress(Integer recipeId) {
         String address = "";
         if (null != recipeId) {
-            CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
-            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-
             Recipe recipe = recipeDAO.get(recipeId);
             if (null != recipe) {
                 if (StringUtils.isEmpty(address)) {
-                    RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
                     //从订单获取
                     RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipeId);
                     if (null != order && (null != order.getAddressID() || TakeMedicineWayEnum.TAKE_MEDICINE_STATION.getType().equals(order.getTakeMedicineWay()))) {
-                        address = commonRemoteService.getCompleteAddress(order);
+                        address = orderManager.getCompleteAddress(order);
                     }
                 }
             }
         }
-
         return address;
     }
 
