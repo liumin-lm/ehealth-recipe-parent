@@ -27,10 +27,13 @@ import recipe.util.ValidateUtil;
  */
 @Service
 public class ConsultClient extends BaseClient {
+
     @Autowired
     private IConsultExService consultExService;
+
     @Autowired
     private IRecipeHisService iRecipeHisService;
+
     @Autowired
     private ConsultSetService consultSetService;
     @Autowired
@@ -58,6 +61,7 @@ public class ConsultClient extends BaseClient {
     }
 
     /**
+     * todo why？
      * 向门诊获取代缴费用
      *
      * @param needPaymentRecipeReqTo
@@ -95,6 +99,7 @@ public class ConsultClient extends BaseClient {
     }
 
     /**
+     * todo why？
      * 获取有效门诊记录
      *
      * @param writeDrugRecipeReqTO 获取有效门诊记录请求入参

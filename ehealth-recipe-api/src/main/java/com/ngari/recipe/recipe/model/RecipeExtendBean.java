@@ -211,6 +211,17 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "病历号")
     private String medicalRecordNumber;
 
+    @ItemProperty(alias = "大病类型")
+    private String illnessType;
+
+    public String getIllnessType() {
+        return illnessType;
+    }
+
+    public void setIllnessType(String illnessType) {
+        this.illnessType = illnessType;
+    }
+
     public String getDoctorIsDecoction() {
         return doctorIsDecoction;
     }

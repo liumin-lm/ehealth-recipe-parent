@@ -1,6 +1,9 @@
 package recipe.atop.greenroom;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.base.esign.model.CoOrdinateVO;
+import com.ngari.recipe.vo.FastRecipeAndDetailResVO;
+import com.ngari.recipe.vo.FastRecipeReqVO;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,8 +37,11 @@ public class TextGmAtop {
 
     @RpcService
     public String getDictionary(String classId, String key) {
-        //"eh.base.dictionary.Gender"
         return DictionaryUtil.getDictionary(classId, key);
+    }
 
+    @RpcService
+    public FastRecipeAndDetailResVO getFastRecipeJson(FastRecipeReqVO fastRecipeReqVO){
+        return textBusinessService.getFastRecipeJson(fastRecipeReqVO);
     }
 }
