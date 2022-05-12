@@ -460,8 +460,9 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
             logger.error("用药途径 用药频率有误");
         }
         if (null != extend) {
-
-            list.add(new RecipeLabelDTO("煎法", "tcmDecoction", ByteUtils.objValueOfString(extend.getDecoctionText())));
+            if(recipeJsonObject.getBoolean("decoctionRadioConfig")!=null&&recipeJsonObject.getBoolean("decoctionRadioConfig")){
+                list.add(new RecipeLabelDTO(recipeJsonObject.getString("decoctionTextConfig"), "tcmDecoction", ByteUtils.objValueOfString(extend.getDecoctionText())));
+            }
             if (tcmRecipeList.get(0).contains("2")) {
                 list.add(new RecipeLabelDTO(recipeJsonObject.getString("juiceTextConfig"), "tcmJuice", ByteUtils.objValueOfString(extend.getJuice()) + ByteUtils.objValueOfString(extend.getJuiceUnit())));
             }
