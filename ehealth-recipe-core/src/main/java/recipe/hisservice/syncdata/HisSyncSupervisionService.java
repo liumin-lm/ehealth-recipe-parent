@@ -1138,15 +1138,17 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             list.add(reqDetail);
         }
         RecipeChHerbalIndicatorsReq recipeChHerbalIndicatorsReq = req.getRecipeChHerbalIndicatorsReq();
-        DiseaseDTO diseaseDTO = recipeService.assembleMultipleDisease(recipe.getClinicOrgan(), recipe.getOrganDiseaseId());
-        recipeChHerbalIndicatorsReq.setPacketsNum(recipe.getCopyNum());
-        //组装需要上传到监管平台的数据
-        if(null != diseaseDTO){
-            recipeChHerbalIndicatorsReq.setOrganDiseaseId(diseaseDTO.getJgDiseasId());
-            recipeChHerbalIndicatorsReq.setOrganDiseaseName(diseaseDTO.getJgDiseasName());
+        if (null != recipeChHerbalIndicatorsReq) {
+            DiseaseDTO diseaseDTO = recipeService.assembleMultipleDisease(recipe.getClinicOrgan(), recipe.getOrganDiseaseId());
+            recipeChHerbalIndicatorsReq.setPacketsNum(recipe.getCopyNum());
+            //组装需要上传到监管平台的数据
+            if (null != diseaseDTO) {
+                recipeChHerbalIndicatorsReq.setOrganDiseaseId(diseaseDTO.getJgDiseasId());
+                recipeChHerbalIndicatorsReq.setOrganDiseaseName(diseaseDTO.getJgDiseasName());
+            }
+            req.setRecipeChHerbalIndicatorsReq(recipeChHerbalIndicatorsReq);
+            LOGGER.info("setDetail recipeChHerbalIndicatorsReq={}", JSONUtils.toString(recipeChHerbalIndicatorsReq));
         }
-        req.setRecipeChHerbalIndicatorsReq(recipeChHerbalIndicatorsReq);
-        LOGGER.info("setDetail recipeChHerbalIndicatorsReq={}",JSONUtils.toString(recipeChHerbalIndicatorsReq));
         req.setOrderList(list);
     }
 
