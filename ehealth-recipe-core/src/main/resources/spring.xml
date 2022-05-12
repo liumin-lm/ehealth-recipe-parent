@@ -141,6 +141,7 @@
         <property name="revisitStatusNotify" value="${ons_topic_revisitStatusNotify}"/>
         <property name="kafkaSwitch" value="${kafka_switch}"/>
         <property name="kafkaServers" value="${kafka_servers}"/>
+        <property name="kafkaGroup" value="${canal_kafka_group}"/>
         <property name="drugListNursingTopic" value="${kafka_drugList_topic}"/>
     </bean>
 

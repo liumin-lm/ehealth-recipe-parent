@@ -32,7 +32,7 @@ public class KafkaDrugsSubscriber implements MonitorSubscriber {
             if (OnsConfig.kafkaSwitch) {
                 logger.info("初始化 consumer----------");
                 subscriber = KafkaHelperForCommon.createSubscriber(
-                        OnsConfig.kafkaServers, "drugList-consumer");
+                        OnsConfig.kafkaServers, OnsConfig.kafkaGroup);
                 //订阅业务topic
                 subscriber.attach(Sets.newHashSet(
                         OnsConfig.drugListNursingTopic),
@@ -58,7 +58,7 @@ public class KafkaDrugsSubscriber implements MonitorSubscriber {
 
         props.put("bootstrap.servers", "172.21.1.142:9092");
 
-        props.put("group.id", "drugList-consumer");
+        props.put("group.id", "drugList-consumer-uat");
         props.put("enable.auto.commit", "true");
         props.put("auto.commit.interval.ms", "1000");
 
