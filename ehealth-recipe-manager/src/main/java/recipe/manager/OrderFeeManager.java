@@ -281,6 +281,7 @@ public class OrderFeeManager extends BaseManager {
         needPayment.setPatientID(recipe.getPatientID());
         needPayment.setPatientName(recipe.getPatientName());
         needPayment.setRegisterID(recipeExtend.getRegisterID());
+        needPayment.setSeries(recipeExtend.getSeries());
         List<String> code = recipeList.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
         needPayment.setRecipeCode(code);
         if (Objects.nonNull(patientDTO)) {
