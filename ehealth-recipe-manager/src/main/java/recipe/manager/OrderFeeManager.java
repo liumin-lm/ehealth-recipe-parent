@@ -27,8 +27,10 @@ import recipe.constant.ReviewTypeConstant;
 import recipe.dao.DrugDecoctionWayDao;
 import recipe.dao.DrugDistributionPriceDAO;
 import recipe.dao.HisRecipeDAO;
+import recipe.dao.RecipeParameterDao;
 import recipe.enumerate.status.RecipeSourceTypeEnum;
 import recipe.enumerate.type.*;
+import recipe.util.LocalStringUtil;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
@@ -69,31 +71,21 @@ public class OrderFeeManager extends BaseManager {
     private PatientClient patientClient;
     @Autowired
     private HisRecipeDAO hisRecipeDAO;
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
 
 
-    public RecipeOrder setOrderFee(RecipeOrder order, List<Recipe> recipeList, OrderFeeSetCondition condition) {
-        if (null == order || CollectionUtils.isEmpty(recipeList)) {
-            return order;
+    @LogRecord
+    public void setSHWFAccountFee(RecipeOrder order) {
+        //上海外服个性化处理账户支付金额
+        String organName = recipeParameterDao.getByName("shwfAccountFee");
+        if (StringUtils.isNotEmpty(organName) && LocalStringUtil.hasOrgan(order.getOrganId().toString(), organName)) {
+            BigDecimal accountFee = getAccountFee(order.getTotalFee(), order.getMpiId(), order.getOrganId());
+            if (null != accountFee) {
+                order.setThirdPayFee(accountFee);
+            }
         }
-        //设置挂号费
-        setRegisterFee(order);
-        //设置审方费
-        setAuditFee(order, recipeList);
-        //设置其他费用
-        setOtherFee(order);
-        //设置处方费用
-        setRecipeFee(order, recipeList, condition.getPayModeSupportFlag());
-        //设置代煎费
-        setDecoctionFee(order, recipeList);
-        //设置中医辨证论治费
-        setTcmFee(order, recipeList);
-        // 设置处方代缴费用
-        setRecipePaymentFee(order, recipeList);
-        //设置配送费
-        return order;
-
     }
-
     /**
      * 处方中药相关费用
      *
@@ -274,7 +266,7 @@ public class OrderFeeManager extends BaseManager {
         }
         // 获取处方 类型
         Recipe recipe = recipeList.get(0);
-        if (!needRecipePaymentFeeType.contains(recipe.getBussSource())) {
+        if (!needRecipePaymentFeeType.contains(recipe.getBussSource().toString())) {
             return;
         }
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
