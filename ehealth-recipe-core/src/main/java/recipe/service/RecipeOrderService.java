@@ -1194,8 +1194,8 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setExpectStartTakeTime("1970-01-01 00:00:01");
                 order.setExpectEndTakeTime("1970-01-01 00:00:01");
             }
-            order.setThirdPayType(0);
-            if(Objects.isNull(order.getThirdPayFee())) {
+            if (Objects.isNull(order.getThirdPayFee())) {
+                order.setThirdPayType(0);
                 order.setThirdPayFee(BigDecimal.ZERO);
             }
             createOrderToDB(order, recipeIds, orderDAO, recipeDAO);

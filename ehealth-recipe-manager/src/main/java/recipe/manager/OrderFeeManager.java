@@ -82,6 +82,7 @@ public class OrderFeeManager extends BaseManager {
         if (StringUtils.isNotEmpty(organName) && LocalStringUtil.hasOrgan(order.getOrganId().toString(), organName)) {
             BigDecimal accountFee = getAccountFee(order.getTotalFee(), order.getMpiId(), order.getOrganId());
             if (null != accountFee) {
+                order.setThirdPayType(1);
                 order.setThirdPayFee(accountFee);
             }
         }
