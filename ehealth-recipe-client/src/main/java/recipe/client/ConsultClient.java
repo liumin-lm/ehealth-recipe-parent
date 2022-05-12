@@ -27,10 +27,13 @@ import recipe.util.ValidateUtil;
  */
 @Service
 public class ConsultClient extends BaseClient {
+
     @Autowired
     private IConsultExService consultExService;
+
     @Autowired
     private IRecipeHisService iRecipeHisService;
+
     @Autowired
     private ConsultSetService consultSetService;
     @Autowired

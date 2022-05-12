@@ -342,7 +342,7 @@ public class RecipeOrderBean implements Serializable {
     private Integer thirdPayType;
 
     @ItemProperty(alias = "第三方支付金额")
-    private Double thirdPayFee;
+    private BigDecimal thirdPayFee;
     @ItemProperty(alias = "预约取药开始时间")
     private String expectStartTakeTime;
     @ItemProperty(alias = "预约取药结束时间")
@@ -468,11 +468,11 @@ public class RecipeOrderBean implements Serializable {
         this.thirdPayType = thirdPayType;
     }
 
-    public Double getThirdPayFee() {
+    public BigDecimal getThirdPayFee() {
         return thirdPayFee;
     }
 
-    public void setThirdPayFee(Double thirdPayFee) {
+    public void setThirdPayFee(BigDecimal thirdPayFee) {
         this.thirdPayFee = thirdPayFee;
     }
 

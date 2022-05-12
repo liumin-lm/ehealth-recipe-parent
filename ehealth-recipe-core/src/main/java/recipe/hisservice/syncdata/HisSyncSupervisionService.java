@@ -622,16 +622,18 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             RecipeChHerbalIndicatorsReq recipeChHerbalIndicatorsReq = new RecipeChHerbalIndicatorsReq();
             if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
                 DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
-                req.getRecipeExtend().setDecoctionCode(decoctionWay.getDecoctionCode());
-                LOGGER.info("setRecipeExtend decoctionWay={}",JSONUtils.toString(decoctionWay));
-                if(decoctionWay.getGenerationisOfDecoction()){
-                    recipeChHerbalIndicatorsReq.setJyfs(2);
-                }else{
-                    recipeChHerbalIndicatorsReq.setJyfs(1);
+                LOGGER.info("setRecipeExtend decoctionWay={}", JSONUtils.toString(decoctionWay));
+                if (null != decoctionWay) {
+                    req.getRecipeExtend().setDecoctionCode(decoctionWay.getDecoctionCode());
+                    if (decoctionWay.getGenerationisOfDecoction()) {
+                        recipeChHerbalIndicatorsReq.setJyfs(2);
+                    } else {
+                        recipeChHerbalIndicatorsReq.setJyfs(1);
+                    }
+                    recipeChHerbalIndicatorsReq.setJyf(decoctionWay.getDecoctionPrice());
+                    recipeChHerbalIndicatorsReq.setDecoctionId(decoctionWay.getDecoctionCode());
+                    recipeChHerbalIndicatorsReq.setDecoctionText(decoctionWay.getDecoctionText());
                 }
-                recipeChHerbalIndicatorsReq.setJyf(decoctionWay.getDecoctionPrice());
-                recipeChHerbalIndicatorsReq.setDecoctionId(decoctionWay.getDecoctionCode());
-                recipeChHerbalIndicatorsReq.setDecoctionText(decoctionWay.getDecoctionText());
             }
             if (StringUtils.isNotEmpty(recipeExtend.getMakeMethodId())) {
                 DrugMakingMethod drugMakingMethod = drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
@@ -1136,15 +1138,17 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             list.add(reqDetail);
         }
         RecipeChHerbalIndicatorsReq recipeChHerbalIndicatorsReq = req.getRecipeChHerbalIndicatorsReq();
-        DiseaseDTO diseaseDTO = recipeService.assembleMultipleDisease(recipe.getClinicOrgan(), recipe.getOrganDiseaseId());
-        recipeChHerbalIndicatorsReq.setPacketsNum(recipe.getCopyNum());
-        //组装需要上传到监管平台的数据
-        if(null != diseaseDTO){
-            recipeChHerbalIndicatorsReq.setOrganDiseaseId(diseaseDTO.getJgDiseasId());
-            recipeChHerbalIndicatorsReq.setOrganDiseaseName(diseaseDTO.getJgDiseasName());
+        if (null != recipeChHerbalIndicatorsReq) {
+            DiseaseDTO diseaseDTO = recipeService.assembleMultipleDisease(recipe.getClinicOrgan(), recipe.getOrganDiseaseId());
+            recipeChHerbalIndicatorsReq.setPacketsNum(recipe.getCopyNum());
+            //组装需要上传到监管平台的数据
+            if (null != diseaseDTO) {
+                recipeChHerbalIndicatorsReq.setOrganDiseaseId(diseaseDTO.getJgDiseasId());
+                recipeChHerbalIndicatorsReq.setOrganDiseaseName(diseaseDTO.getJgDiseasName());
+            }
+            req.setRecipeChHerbalIndicatorsReq(recipeChHerbalIndicatorsReq);
+            LOGGER.info("setDetail recipeChHerbalIndicatorsReq={}", JSONUtils.toString(recipeChHerbalIndicatorsReq));
         }
-        req.setRecipeChHerbalIndicatorsReq(recipeChHerbalIndicatorsReq);
-        LOGGER.info("setDetail recipeChHerbalIndicatorsReq={}",JSONUtils.toString(recipeChHerbalIndicatorsReq));
         req.setOrderList(list);
     }
 
