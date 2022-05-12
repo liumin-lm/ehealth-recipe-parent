@@ -204,7 +204,21 @@ class NoPayStrategyImpl extends BaseOfflineToOnlineService implements IOfflineTo
             //其它需要
             hisRecipeVO.setStatus(queryHisRecipResTo.getStatus());
             hisRecipeVO.setRecipeMode("ngarihealth");
-            hisRecipeVO.setRegisteredId(queryHisRecipResTo.getRegisteredId());
+            if (StringUtils.isNotEmpty(queryHisRecipResTo.getRegisteredId())) {
+                hisRecipeVO.setRegisteredId(queryHisRecipResTo.getRegisteredId());
+            } else {
+                hisRecipeVO.setRegisteredId("");
+            }
+            if (StringUtils.isNotEmpty(queryHisRecipResTo.getChronicDiseaseCode())) {
+                hisRecipeVO.setChronicDiseaseCode(queryHisRecipResTo.getChronicDiseaseCode());
+            } else {
+                hisRecipeVO.setChronicDiseaseCode("");
+            }
+            if (StringUtils.isNotEmpty(queryHisRecipResTo.getChronicDiseaseName())) {
+                hisRecipeVO.setChronicDiseaseName(queryHisRecipResTo.getChronicDiseaseName());
+            } else {
+                hisRecipeVO.setChronicDiseaseName("");
+            }
             hisRecipeVos.add(hisRecipeVO);
         }
         LOGGER.info("NoPayServiceImpl covertHisRecipeObject response hisRecipeVOs:{}", JSONUtils.toString(hisRecipeVos));

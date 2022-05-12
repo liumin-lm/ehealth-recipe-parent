@@ -68,6 +68,9 @@ public class EmrRecipeManager extends BaseManager {
      * @return
      */
     public MedicalDetailBean getEmrDetailsByClinicId(Integer clinicId, Integer bussSource) {
+        if (!ValidateUtil.integerIsEmpty(clinicId) && ValidateUtil.integerIsEmpty(bussSource)) {
+            bussSource = 2;
+        }
         return docIndexClient.getEmrDetailsByClinicId(clinicId, bussSource);
     }
 
