@@ -157,7 +157,7 @@ public class RecipeDetailManager extends BaseManager {
                 return;
             }
             RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
-            if (StringUtils.isEmpty(revisitExDTO.getDbType())) {
+            if (null == revisitExDTO || StringUtils.isEmpty(revisitExDTO.getDbType())) {
                 return;
             }
             dbType = revisitExDTO.getDbType();
