@@ -230,6 +230,17 @@ public class RecipeExtend implements Serializable {
 
     @ItemProperty(alias = "大病类型")
     private String illnessType;
+    @ItemProperty(alias = "大病类型名称")
+    private String illnessName;
+
+    @Column(name = "illness_name")
+    public String getIllnessName() {
+        return illnessName;
+    }
+
+    public void setIllnessName(String illnessName) {
+        this.illnessName = illnessName;
+    }
 
     @Column(name = "illness_type")
     public String getIllnessType() {

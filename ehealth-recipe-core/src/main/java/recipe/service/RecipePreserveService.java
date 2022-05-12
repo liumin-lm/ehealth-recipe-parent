@@ -297,6 +297,8 @@ public class RecipePreserveService {
                 recipeExtend.setJuiceUnit(recipeInfoTO.getRecipeExtendBean().getJuiceUnit());
                 recipeExtend.setMakeMethod(recipeInfoTO.getRecipeExtendBean().getMakeMethod());
                 recipeExtend.setMakeMethodText(recipeInfoTO.getRecipeExtendBean().getMakeMethodText());
+                recipeExtend.setIllnessType(recipeInfoTO.getRecipeExtendBean().getIllnessType());
+                recipeExtend.setIllnessName(recipeInfoTO.getRecipeExtendBean().getIllnessName());
                 //TODO everyTcmNumFre 线下处方
 //                recipeExtend.setEveryTcmNumFre(recipeInfoTO.getRecipeExtendBean().getEveryTcmNumFre());
                 recipeExtend.setMinor(recipeInfoTO.getRecipeExtendBean().getMinor());

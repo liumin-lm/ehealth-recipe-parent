@@ -155,21 +155,21 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         //机构配置购药方式
         List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(recipe.getClinicOrgan());
         if (CollectionUtils.isEmpty(giveModeButtonBeans)) {
-            enterpriseManager.doSignRecipe(doSignRecipe, "未找到满足库存要求的购药方式");
+            enterpriseManager.doSignRecipe(doSignRecipe, "根据药品库存判断，未找到可供药的药房或药企");
             logger.info("DrugEnterpriseBusinessService enterpriseStock recipeId:{},reason:没有配置购药方式", recipeId);
             return MapValueUtil.beanToMap(doSignRecipe);
         }
         //未配置药企 医院无库存
         if (CollectionUtils.isEmpty(enterpriseStock) && null != organStock && !organStock.getStock()) {
             logger.info("DrugEnterpriseBusinessService enterpriseStock recipeId:{},reason:未配置药企并且医院无库存", recipeId);
-            enterpriseManager.doSignRecipe(doSignRecipe, "未找到满足库存要求的购药方式");
+            enterpriseManager.doSignRecipe(doSignRecipe, "根据药品库存判断，未找到可供药的药房或药企");
         }
         //未配置医院 药企无库存
         if (CollectionUtils.isNotEmpty(enterpriseStock) && null == organStock) {
             boolean stock = enterpriseStock.stream().anyMatch(EnterpriseStock::getStock);
             if (!stock) {
                 logger.info("DrugEnterpriseBusinessService enterpriseStock recipeId:{},reason:未配置医院并且药企无库存", recipeId);
-                enterpriseManager.doSignRecipe(doSignRecipe, "未找到满足库存要求的购药方式");
+                enterpriseManager.doSignRecipe(doSignRecipe, "根据药品库存判断，未找到可供药的药房或药企");
             }
         }
         //支持的购药的方式
@@ -195,7 +195,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             }
             //医院无库存 药企无库存
             if (!stockEnterprise && null != organStock && !organStock.getStock()) {
-                enterpriseManager.doSignRecipe(doSignRecipe, "未找到满足库存要求的购药方式");
+                enterpriseManager.doSignRecipe(doSignRecipe, "根据药品库存判断，未找到可供药的药房或药企");
                 logger.info("DrugEnterpriseBusinessService enterpriseStock recipeId:{},reason:医院无库存并且药企无库存", recipeId);
             }
         }
@@ -222,7 +222,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
      */
     private void getSupportGiveModeNameText(DoSignRecipeDTO doSignRecipe, Set<String> supportGiveModeNameSet) {
         if (CollectionUtils.isNotEmpty(supportGiveModeNameSet)) {
-            StringBuilder msg = new StringBuilder("本处方支持");
+            StringBuilder msg = new StringBuilder("根据药品库存判断，本处方支持");
             supportGiveModeNameSet.forEach(supportGiveModeName -> {
                 msg.append("【").append(supportGiveModeName).append("】");
             });

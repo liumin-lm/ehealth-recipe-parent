@@ -273,6 +273,7 @@ public class RecipeServiceSub {
                         recipeExtend.setWeight(revisitExDTO.getWeight());
                         recipeExtend.setMedicalRecordNumber(revisitExDTO.getMedicalRecordNo());
                         recipeExtend.setIllnessType(revisitExDTO.getDbType());
+                        recipeExtend.setIllnessName(revisitExDTO.getDbTypeName());
                     }
                 } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipeBean.getBussSource())) {
                     ConsultExDTO consultExDTO = iConsultExService.getByConsultId(recipeBean.getClinicId());
@@ -1480,7 +1481,7 @@ public class RecipeServiceSub {
         return r;
     }
 
-    public static RecipeBean convertRecipeForRAPNew(Recipe recipe, List<HisRecipeDetailBean> recipeDetailBeans) {
+    public static RecipeBean convertRecipeForRAPNew(Recipe recipe, List<HisRecipeDetailBean> recipeDetailBeans, RecipeExtend recipeExtend) {
         RecipeBean r = new RecipeBean();
         r.setRecipeId(recipe.getRecipeId());
         r.setCreateDate(recipe.getCreateDate());
@@ -1498,6 +1499,9 @@ public class RecipeServiceSub {
         r.setProcessState(recipe.getProcessState());
         r.setSubState(recipe.getSubState());
         r.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
+        if (null != recipeExtend) {
+            r.setRecipeExtend(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
+        }
         return r;
     }
 
