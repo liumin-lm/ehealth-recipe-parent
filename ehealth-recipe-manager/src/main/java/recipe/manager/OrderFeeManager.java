@@ -266,7 +266,7 @@ public class OrderFeeManager extends BaseManager {
         }
         // 获取处方 类型
         Recipe recipe = recipeList.get(0);
-        if (!needRecipePaymentFeeType.contains(recipe.getBussSource())) {
+        if (!needRecipePaymentFeeType.contains(recipe.getBussSource().toString())) {
             return;
         }
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
