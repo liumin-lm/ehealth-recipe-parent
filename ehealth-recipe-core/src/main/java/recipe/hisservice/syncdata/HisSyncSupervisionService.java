@@ -622,16 +622,18 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             RecipeChHerbalIndicatorsReq recipeChHerbalIndicatorsReq = new RecipeChHerbalIndicatorsReq();
             if (StringUtils.isNotBlank(recipeExtend.getDecoctionId())) {
                 DecoctionWay decoctionWay = drugDecoctionWayDao.get(Integer.parseInt(recipeExtend.getDecoctionId()));
-                req.getRecipeExtend().setDecoctionCode(decoctionWay.getDecoctionCode());
-                LOGGER.info("setRecipeExtend decoctionWay={}",JSONUtils.toString(decoctionWay));
-                if(decoctionWay.getGenerationisOfDecoction()){
-                    recipeChHerbalIndicatorsReq.setJyfs(2);
-                }else{
-                    recipeChHerbalIndicatorsReq.setJyfs(1);
+                LOGGER.info("setRecipeExtend decoctionWay={}", JSONUtils.toString(decoctionWay));
+                if (null != decoctionWay) {
+                    req.getRecipeExtend().setDecoctionCode(decoctionWay.getDecoctionCode());
+                    if (decoctionWay.getGenerationisOfDecoction()) {
+                        recipeChHerbalIndicatorsReq.setJyfs(2);
+                    } else {
+                        recipeChHerbalIndicatorsReq.setJyfs(1);
+                    }
+                    recipeChHerbalIndicatorsReq.setJyf(decoctionWay.getDecoctionPrice());
+                    recipeChHerbalIndicatorsReq.setDecoctionId(decoctionWay.getDecoctionCode());
+                    recipeChHerbalIndicatorsReq.setDecoctionText(decoctionWay.getDecoctionText());
                 }
-                recipeChHerbalIndicatorsReq.setJyf(decoctionWay.getDecoctionPrice());
-                recipeChHerbalIndicatorsReq.setDecoctionId(decoctionWay.getDecoctionCode());
-                recipeChHerbalIndicatorsReq.setDecoctionText(decoctionWay.getDecoctionText());
             }
             if (StringUtils.isNotEmpty(recipeExtend.getMakeMethodId())) {
                 DrugMakingMethod drugMakingMethod = drugMakingMethodDao.get(Integer.parseInt(recipeExtend.getMakeMethodId()));
