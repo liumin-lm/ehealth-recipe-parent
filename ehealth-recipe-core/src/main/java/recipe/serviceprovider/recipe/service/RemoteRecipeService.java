@@ -2504,12 +2504,12 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         Set<String> orderCodeList = writeRecipeList.stream().filter(recipe -> StringUtils.isNotEmpty(recipe.getOrderCode()))
                 .map(Recipe::getOrderCode).collect(Collectors.toSet());
         List<RecipeOrder> recipeOrders = orderManager.getRecipeOrderList(orderCodeList);
+        LOGGER.info("RemoteRecipeService getOnlineEffectiveRecipeFlag recipeOrders:{}", JSON.toJSONString(recipeOrders));
         //没有查到处方单
         if (CollectionUtils.isEmpty(writeRecipeList)) {
             return false;
         }
         if (RecipeRefundConfigEnum.HAVE_BUSS.getType().equals(statusCode)) {
-            LOGGER.info("RemoteRecipeService judgeRecipeStatus writeRecipeList size:{}", writeRecipeList.size());
             return true;
         }
         if (RecipeRefundConfigEnum.HAVE_PAY.getType().equals(statusCode)) {
