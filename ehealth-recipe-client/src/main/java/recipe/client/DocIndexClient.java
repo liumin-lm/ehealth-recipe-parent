@@ -166,8 +166,8 @@ public class DocIndexClient extends BaseClient {
     public void updateEmrStatus(Recipe recipe, Integer docId, Integer clinicId, RecipeExtend recipeExtend) {
         //更新电子病例 为已经使用状态
         SaveEmrContractReq saveEmrContractReq = new SaveEmrContractReq();
-        saveEmrContractReq.setBussId(this.bussId(recipe.getBussSource(), recipe.getRecipeId(), clinicId));
-        saveEmrContractReq.setBussType(this.bussType(recipe.getBussSource()));
+        saveEmrContractReq.setBussId(recipe.getRecipeId());
+        saveEmrContractReq.setBussType(1);
         saveEmrContractReq.setDocIndexId(docId);
         saveEmrContractReq.setRegisterNo(recipeExtend.getRegisterID());
         // 没有审核   1 显示 0 撤销
