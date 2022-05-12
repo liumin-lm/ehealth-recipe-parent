@@ -1195,7 +1195,9 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setExpectEndTakeTime("1970-01-01 00:00:01");
             }
             order.setThirdPayType(0);
-            order.setThirdPayFee(BigDecimal.ZERO);
+            if(Objects.isNull(order.getThirdPayFee())) {
+                order.setThirdPayFee(BigDecimal.ZERO);
+            }
             createOrderToDB(order, recipeIds, orderDAO, recipeDAO);
         } catch (DAOException e) {
             //如果小概率造成orderCode重复，则修改并重试
