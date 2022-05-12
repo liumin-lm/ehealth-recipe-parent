@@ -33,7 +33,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
-import recipe.aop.LogRecord;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
@@ -55,6 +54,7 @@ import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
 import recipe.service.RecipeHisService;
 import recipe.service.RecipeMsgService;
+import recipe.service.RecipeService;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.*;
 import recipe.vo.doctor.PatientOptionalDrugVO;
@@ -251,7 +251,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     @Override
-    @LogRecord
     public List<Recipe> findRecipesByStatusAndInvalidTime(List<Integer> status, Date invalidTime) {
         return recipeDAO.findRecipesByStatusAndInvalidTime(status, invalidTime);
     }
@@ -459,9 +458,45 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public void recipeListQuery(Integer organId, List<String> recipeCodes) {
-        recipeHisService.recipeListQuery(recipeCodes,organId);
+        recipeHisService.recipeListQuery(recipeCodes, organId);
     }
 
+    @Override
+    public String splitDrugRecipe(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
+//        List<String> splitDrugRecipe = configurationClient.getValueListCatch(recipeBean.getClinicOrgan(), "splitDrugRecipe", null);
+//        logger.info("RecipeBusinessService splitDrugRecipe hisDrugRule={}", JSON.toJSONString(splitDrugRecipe));
+//        if (CollectionUtils.isEmpty(splitDrugRecipe) || !splitDrugRecipe.contains("1")) {
+//            return "";
+//        }
+        List<RecipeDetailBean> targetDrugList = detailBeanList.stream().filter(a -> Integer.valueOf(1).equals(a.getTargetedDrugType())).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(targetDrugList)) {
+            return "";
+        }
+        Integer recipeId = recipeBean.getRecipeId();
+        recipeBean.setRecipeId(null);
+        RecipeService recipeService = ApplicationUtils.getRecipeService(RecipeService.class);
+        //靶向药
+        targetDrugList.forEach(a -> recipeService.saveRecipeData(recipeBean, Collections.singletonList(a)));
+        //非靶向药
+        List<RecipeDetailBean> details = detailBeanList.stream().filter(a -> Integer.valueOf(0).equals(a.getTargetedDrugType())).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(details)) {
+            recipeBean.setTargetedDrugType(0);
+            recipeService.saveRecipeData(recipeBean, details);
+        }
+        if (!ValidateUtil.integerIsEmpty(recipeId)) {
+            recipeDAO.deleteByRecipeIds(Collections.singletonList(recipeId));
+        }
+        return recipeBean.getGroupCode();
+    }
+
+    @Override
+    public List<Integer> recipeByGroupCode(String groupCode, Integer type) {
+        List<Recipe> list = recipeManager.recipeByGroupCode(groupCode, type);
+        if (CollectionUtils.isEmpty(list)) {
+            return new ArrayList<>();
+        }
+        return list.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+    }
 
     /**
      * 根据复诊id 获取线上线下处方详情

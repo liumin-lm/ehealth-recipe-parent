@@ -2,14 +2,18 @@ package recipe.atop.doctor;
 
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
 import com.ngari.recipe.dto.WriteDrugRecipeDTO;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRevisitBusinessService;
+import recipe.vo.doctor.ValidateDetailVO;
 
 import java.util.List;
+import java.util.UUID;
 
 /**
  * 开处方服务入口类
@@ -61,5 +65,35 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
         return recipeBusinessService.findOutPatientRecordFromHis(mpiId, organId, doctorId);
     }
 
-    
+    /**
+     * 靶向药拆方，无靶向药 返回空
+     *
+     * @param validateDetailVO 处方信息
+     * @return 处方组号
+     */
+    @RpcService
+    public String splitDrugRecipe(ValidateDetailVO validateDetailVO) {
+        validateAtop(validateDetailVO, validateDetailVO.getRecipeBean(), validateDetailVO.getRecipeDetails());
+        RecipeBean recipeBean = validateDetailVO.getRecipeBean();
+        if (StringUtils.isEmpty(recipeBean.getGroupCode())) {
+            String uuid = UUID.randomUUID().toString();
+            recipeBean.setGroupCode(uuid);
+        }
+        recipeBean.setRecipeExtend(validateDetailVO.getRecipeExtendBean());
+        recipeBean.setTargetedDrugType(1);
+        return recipeBusinessService.splitDrugRecipe(recipeBean, validateDetailVO.getRecipeDetails());
+    }
+
+    /**
+     * 查询同组处方
+     *
+     * @param groupCode 处方组号
+     * @param type      0： 默认全部 1：查询暂存，2查询可撤销处方
+     * @return 处方id集合
+     */
+    @RpcService
+    public List<Integer> recipeByGroupCode(String groupCode, Integer type) {
+        validateAtop(groupCode);
+        return recipeBusinessService.recipeByGroupCode(groupCode, type);
+    }
 }

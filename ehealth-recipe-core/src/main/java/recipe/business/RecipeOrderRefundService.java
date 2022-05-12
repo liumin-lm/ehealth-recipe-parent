@@ -178,6 +178,8 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
         } else {
             orderRefundInfoVO.setOrderStatusText(RecipeOrderStatusEnum.getOrderStatus(recipeOrder.getStatus()));
         }
+
+
         List<RecipeExtend> recipeExtendList = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIdList);
         Map<Integer, RecipeExtend> recipeExtendMap = recipeExtendList.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, a -> a, (k1, k2) -> k1));
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeIds(recipeIdList);
@@ -249,6 +251,7 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
     }
 
     private String setRefundNodeStatus(Integer status) {
+
         if (null == status || status == 3 || status == 2) {
             return "未退款";
         }

@@ -99,6 +99,11 @@ public class RecipeListBean implements Serializable {
     @ItemProperty(alias = "处方子状态")
     private Integer subState;
 
+    @ItemProperty(alias = "是否靶向药  0否  1是 ")
+    private Integer targetedDrugType;
+
+    @ItemProperty(alias = "是否医保 0自费 1医保")
+    private Integer medicalFlag;
 
     /*****************************************  以下来源 ext 表 ******************************************************/
 

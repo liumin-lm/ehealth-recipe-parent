@@ -708,11 +708,6 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         RevisitExDTO consultExDTO = revisitExService.getByConsultId(recipeBean.getClinicId());
         log.info("consultExDTO :{}", JSONUtils.toString(consultExDTO));
         WnExtBusCdrRecipeDTO wnExtBusCdrRecipe = new WnExtBusCdrRecipeDTO();
-        // 大病标识
-        RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipeBean.getClinicId());
-        if(Objects.nonNull(revisitExDTO) && StringUtils.isNotEmpty(revisitExDTO.getDbType())){
-            wnExtBusCdrRecipe.setDbtype(revisitExDTO.getDbType());
-        }
         wnExtBusCdrRecipe.setAction("PUTMZSYT");
         wnExtBusCdrRecipe.setHzxm(patient.getPatientName());
         wnExtBusCdrRecipe.setPatid(recipeBean.getPatientID());
@@ -751,6 +746,10 @@ public class RecipeBusPayInfoService implements IRecipeBusPayService {
         String complication = "";
         RecipeExtendBean extend = recipeService.findRecipeExtendByRecipeId(recipeIdList.get(0));
         if (extend != null) {
+            // 大病标识
+            if (StringUtils.isNotEmpty(extend.getIllnessType())) {
+                wnExtBusCdrRecipe.setDbtype(extend.getIllnessType());
+            }
             if (StringUtils.isEmpty(registerId)) {
                 registerId = extend.getRegisterID();
             }

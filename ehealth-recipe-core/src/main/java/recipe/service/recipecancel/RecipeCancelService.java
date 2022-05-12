@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.aop.LogRecord;
 import recipe.client.PatientClient;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.service.RecipeServiceSub;
@@ -42,6 +43,7 @@ public class RecipeCancelService {
      * @return Map<String, Object>
      */
     @RpcService
+    @LogRecord
     public Map<String, Object> cancelRecipe(Integer recipeId, String message) {
         LOGGER.info("recipeCancelService cancelRecipe recipeId:{}", recipeId);
         return RecipeServiceSub.cancelRecipeImpl(recipeId, 0, "", message);

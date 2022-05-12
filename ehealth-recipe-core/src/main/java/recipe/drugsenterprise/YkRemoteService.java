@@ -273,21 +273,4 @@ public class YkRemoteService extends AccessDrugEnterpriseService {
             result.setCode(DrugEnterpriseResult.FAIL);
         }
     }
-
-    /**
-     * 生成完整地址
-     *
-     * @param order 订单
-     * @return
-     */
-    public String getCompleteAddress(RecipeOrder order) {
-        StringBuilder address = new StringBuilder();
-        if (null != order) {
-            this.getAddressDic(address, order.getAddress1());
-            this.getAddressDic(address, order.getAddress2());
-            this.getAddressDic(address, order.getAddress3());
-            address.append(StringUtils.isEmpty(order.getAddress4()) ? "" : order.getAddress4());
-        }
-        return address.toString();
-    }
 }
