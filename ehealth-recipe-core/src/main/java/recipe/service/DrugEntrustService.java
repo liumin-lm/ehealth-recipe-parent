@@ -204,7 +204,7 @@ public class DrugEntrustService implements IDrugEntrustService {
     @RpcService
     public List<DrugEntrustDTO> querDrugEntrustByOrganId(Integer organId ) {
         if (null == organId) {
-            return new ArrayList<>();
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "机构Id不能为空");
         }
         List<DrugEntrust> drugEntrusts = drugEntrustDAO.findByOrganId(organId);
         logger.info("查询药品嘱托服务[querDrugEntrustByOrganId]:" + JSONUtils.toString(drugEntrusts));
