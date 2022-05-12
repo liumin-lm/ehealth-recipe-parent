@@ -709,7 +709,7 @@ public class RecipeListService extends RecipeBaseService {
             RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
             OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
             RecipeRefundDAO recipeRefundDAO = DAOFactory.getDAO(RecipeRefundDAO.class);
-
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
             //date 20200506
             //获取处方对应的订单信息
             Map<String, Integer> orderStatus = new HashMap<>();
@@ -729,6 +729,8 @@ public class RecipeListService extends RecipeBaseService {
             }
             LOGGER.info("instanceRecipesAndPatient refundIdMap:{} ", JSONUtils.toString(refundIdMap));
 
+            List<RecipeExtend> recipeExtend = recipeExtendDAO.queryRecipeExtendByRecipeIds(recipeIds);
+            Map<Integer, RecipeExtend> recipeExtendMap = recipeExtend.stream().collect(Collectors.toMap(RecipeExtend::getRecipeId, a -> a, (k1, k2) -> k1));
             //获取处方对应的处方详情
             Map<Integer, List<Recipedetail>> recipeDetailMap = new HashMap<>();
             LOGGER.info("instanceRecipesAndPatient recipeIds:{} ", JSONUtils.toString(recipeIds));
@@ -779,7 +781,7 @@ public class RecipeListService extends RecipeBaseService {
                 Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy2(recipe.getStatus(), recipe, null, (orderStatus == null || 0 >= orderStatus.size()) ? null : orderStatus.get(recipe.getOrderCode()), refundIdMap.get(recipe.getRecipeId()));
 
                 recipe.setShowTip(MapValueUtil.getString(tipMap, "listTips"));
-                map.put("recipe", RecipeServiceSub.convertRecipeForRAPNew(recipe, collect1));
+                map.put("recipe", RecipeServiceSub.convertRecipeForRAPNew(recipe, collect1, recipeExtendMap.get(recipe.getRecipeId())));
                 map.put("patient", patient);
                 LOGGER.info("instanceRecipesAndPatient map:{}", JSONUtils.toString(map));
                 list.add(map);
