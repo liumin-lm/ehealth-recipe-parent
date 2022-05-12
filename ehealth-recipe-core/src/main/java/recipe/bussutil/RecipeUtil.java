@@ -206,12 +206,16 @@ public class RecipeUtil {
 
             }
         }
-        if (order.getEnterpriseId() != null) {
+        if (null != order.getEnterpriseId()) {
             DrugsEnterpriseDAO drugsEnterpriseDAO = getDAO(DrugsEnterpriseDAO.class);
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-            if (RecipeBussConstant.GIVEMODE_TFDS.equals(recipeList.get(0).getGiveMode())) {
-                //@ItemProperty(alias = "0:不支付药品费用，1:全部支付 【 1线上支付  非1就是线下支付】")
-                map.put("storePayFlag", drugsEnterprise.getStorePayFlag());
+            if (null != drugsEnterprise) {
+                if (RecipeBussConstant.GIVEMODE_TFDS.equals(recipeList.get(0).getGiveMode())) {
+                    //@ItemProperty(alias = "0:不支付药品费用，1:全部支付 【 1线上支付  非1就是线下支付】")
+                    map.put("storePayFlag", drugsEnterprise.getStorePayFlag());
+                }
+                map.put("showLogisticsType", drugsEnterprise.getShowLogisticsType());
+                map.put("showLogisticsLink", drugsEnterprise.getShowLogisticsLink());
             }
         }
         return map;
