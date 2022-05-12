@@ -68,6 +68,9 @@ public class EmrRecipeManager extends BaseManager {
      * @return
      */
     public MedicalDetailBean getEmrDetailsByClinicId(Integer clinicId, Integer bussSource) {
+        if (!ValidateUtil.integerIsEmpty(clinicId) && ValidateUtil.integerIsEmpty(bussSource)) {
+            bussSource = 2;
+        }
         return docIndexClient.getEmrDetailsByClinicId(clinicId, bussSource);
     }
 
@@ -189,7 +192,7 @@ public class EmrRecipeManager extends BaseManager {
         }
         for (EmrConfigRes detailDTO : detail) {
             if (null == detailDTO) {
-                logger.warn("EmrRecipeManager getMedicalInfo detailDTO is null");
+                logger.info("EmrRecipeManager getMedicalInfo detailDTO is null");
                 continue;
             }
             String value = detailDTO.getValue();
@@ -198,7 +201,7 @@ public class EmrRecipeManager extends BaseManager {
             }
             String type = detailDTO.getType();
             if (!RecipeEmrComment.TEXT_AREA.equals(type) && !RecipeEmrComment.MULTI_SEARCH.equals(type)) {
-                logger.warn("EmrRecipeManager getMedicalInfo detail={}", JSONUtils.toString(detail));
+                logger.info("EmrRecipeManager getMedicalInfo detail={}", JSONUtils.toString(detail));
                 continue;
             }
             String key = detailDTO.getKey();

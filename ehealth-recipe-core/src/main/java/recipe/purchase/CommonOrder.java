@@ -164,7 +164,7 @@ public class CommonOrder {
                 } else {
                     updateTakeDrugWayReqTO.setReceiveAddrCode(order.getAddress3());
                 }
-                updateTakeDrugWayReqTO.setReceiveAddress(commonRemoteService.getCompleteAddressToSend(order));
+                updateTakeDrugWayReqTO.setReceiveAddress(commonRemoteService.getCompleteAddress(order));
 
                 //date 20200314
                 //新添字段更新

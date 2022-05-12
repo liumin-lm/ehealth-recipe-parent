@@ -183,7 +183,6 @@ public class RecipeService extends RecipeBaseService {
 
     private IDataSyncLogService dataSyncLogService = AppDomainContext.getBean("opbase.dataSyncLogService", IDataSyncLogService.class);
 
-
     private static final int havChooseFlag = 1;
     @Autowired
     private RedisClient redisClient;
@@ -191,13 +190,10 @@ public class RecipeService extends RecipeBaseService {
     private CreatePdfFactory createPdfFactory;
     @Resource
     private AuditModeContext auditModeContext;
-
     @Resource
     private OrganDrugListDAO organDrugListDAO;
-
     @Resource
     private DrugListMatchDAO drugListMatchDAO;
-
     @Autowired
     private IConfigurationCenterUtilsService configService;
     @Autowired
@@ -210,28 +206,20 @@ public class RecipeService extends RecipeBaseService {
     private PharmacyTcmDAO pharmacyTcmDAO;
     @Autowired
     private RecipeServiceSub recipeServiceSub;
-
     @Autowired
     private RecipeExtendDAO recipeExtendDAO;
-
     @Autowired
     private RecipeDAO recipeDAO;
-
     @Autowired
     private DrugToolService drugToolService;
-
     @Autowired
     private OrganDrugListService organDrugListService;
-
     @Autowired
     private PharmacyTcmService pharmacyTcmService;
-
     @Resource
     private CaAfterProcessType caAfterProcessType;
-
     @Resource
     private RecipeOrderDAO recipeOrderDAO;
-
     @Resource
     private SyncDrugExcDAO syncDrugExcDAO;
     @Autowired
@@ -240,17 +228,14 @@ public class RecipeService extends RecipeBaseService {
     private IStockBusinessService drugEnterpriseBusinessService;
     @Autowired
     private RemoteRecipeService remoteRecipeService;
-
     @Autowired
     private RevisitManager revisitManager;
-
     @Autowired
     private RefundClient refundClient;
     @Autowired
     private RecipeAuditClient recipeAuditClient;
     @Autowired
     private RecipeOrderPayFlowManager recipeOrderPayFlowManager;
-
     @Autowired
     private RevisitClient revisitClient;
     @Autowired
@@ -272,7 +257,7 @@ public class RecipeService extends RecipeBaseService {
     @Autowired
     private EnterpriseManager enterpriseManager;
     @Autowired
-    private ConsultClient consultClient;
+    private OrderManager orderManager;
 
     /**
      * 药师审核不通过
@@ -536,6 +521,7 @@ public class RecipeService extends RecipeBaseService {
     public Integer saveRecipeData(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
         recipeBean.setSubState(RecipeStateEnum.NONE.getType());
         recipeBean.setProcessState(RecipeStateEnum.NONE.getType());
+        recipeBean.setAuditState(RecipeAuditStateEnum.DEFAULT.getType());
         Integer recipeId = recipeServiceSub.saveRecipeDataImpl(recipeBean, detailBeanList, 1);
         if (RecipeBussConstant.FROMFLAG_HIS_USE.equals(recipeBean.getFromflag())) {
             //生成订单数据，与 HosPrescriptionService 中 createPrescription 方法一致
@@ -600,22 +586,17 @@ public class RecipeService extends RecipeBaseService {
     public String getCompleteAddress(Integer recipeId) {
         String address = "";
         if (null != recipeId) {
-            CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
-            RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-
             Recipe recipe = recipeDAO.get(recipeId);
             if (null != recipe) {
                 if (StringUtils.isEmpty(address)) {
-                    RecipeOrderDAO recipeOrderDAO = getDAO(RecipeOrderDAO.class);
                     //从订单获取
                     RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipeId);
                     if (null != order && (null != order.getAddressID() || TakeMedicineWayEnum.TAKE_MEDICINE_STATION.getType().equals(order.getTakeMedicineWay()))) {
-                        address = commonRemoteService.getCompleteAddress(order);
+                        address = orderManager.getCompleteAddress(order);
                     }
                 }
             }
         }
-
         return address;
     }
 
@@ -2978,12 +2959,14 @@ public class RecipeService extends RecipeBaseService {
 
     /**
      * 平台手动同步
+     * RpcService手工处理
      *
      * @param organId
      * @param drugForms
      * @return
      */
     @LogRecord
+    @RpcService
     public Map<String, Object> drugInfoSynMovementExtT(Integer organId, List<String> drugForms, Map<String, OrganDrugList> drugMap, String operator, Boolean sync, Boolean add, Boolean commit, Boolean delete) throws ParseException {
         SimpleDateFormat myFmt2 = new SimpleDateFormat("yyyy-MM-dd HH:mm");
         Map<String, Object> map = Maps.newHashMap();
@@ -5098,6 +5081,9 @@ public class RecipeService extends RecipeBaseService {
         if (StringUtils.isNotEmpty(drug.getDrugItemCode())) {
             drugListMatch.setDrugItemCode(drug.getDrugItemCode());
         }
+        if (!ObjectUtils.isEmpty(drug.getTargetedDrugType())) {
+            drugListMatch.setTargetedDrugType(drug.getTargetedDrugType());
+        }
         LOGGER.info("drugInfoSynMovementaddHisDrug" + drug.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
         List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drugListMatch.getOrganDrugCode(), drugListMatch.getSourceOrgan());
         if (ObjectUtils.isEmpty(dataByOrganDrugCode)) {
@@ -5291,6 +5277,9 @@ public class RecipeService extends RecipeBaseService {
         organDrug.setLastModify(new Date());
         if (StringUtils.isNotEmpty(drug.getDrugItemCode())) {
             organDrug.setDrugItemCode(drug.getDrugItemCode());
+        }
+        if (!ObjectUtils.isEmpty(drug.getTargetedDrugType())) {
+            organDrug.setTargetedDrugType(drug.getTargetedDrugType());
         }
         OrganDrugList update = organDrugListDAO.update(organDrug);
         //同步药品到监管备案
@@ -5520,6 +5509,9 @@ public class RecipeService extends RecipeBaseService {
         }
         if (StringUtils.isNotEmpty(drug.getUseDoseSmallestUnit())) {
             organDrug.setUseDoseSmallestUnit(drug.getUseDoseSmallestUnit());
+        }
+        if (Objects.nonNull(drug.getTargetedDrugType())) {
+            organDrug.setTargetedDrugType(drug.getTargetedDrugType());
         }
         LOGGER.info("updateHisDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(organDrug));
         OrganDrugList update = organDrugListDAO.update(organDrug);

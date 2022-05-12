@@ -6,6 +6,7 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.patient.service.IPatientHisService;
 import com.ngari.his.recipe.mode.DrugInfoTO;
 import com.ngari.his.recipe.service.IRecipeHisService;
+import com.ngari.his.recipe.service.IRecipeToTestService;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipedetail;
@@ -35,6 +36,8 @@ public class BaseClient {
     protected IPatientHisService patientHisService;
     @Autowired
     protected ICurrentUserInfoService currentUserInfoService;
+    @Autowired
+    protected IRecipeToTestService recipeToTestService;
 
 
     /**

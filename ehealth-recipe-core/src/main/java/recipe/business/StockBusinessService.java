@@ -173,7 +173,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             }
         }
         //支持的购药的方式
-        Set<String> supportGiveModeNameSet = new HashSet<>();
+        Set<String> supportGiveModeNameSet = new TreeSet<>();
         //医院有库存
         if (null != organStock && organStock.getStock()) {
             supportGiveModeNameSet.add(organStock.getGiveModeButton().get(0).getShowButtonName());
@@ -574,7 +574,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         if (CollectionUtils.isEmpty(recipeDetailList)) {
             enterpriseStock.setStock(false);
             enterpriseStock.setDrugInfoList(DrugStockClient.getDrugInfoDTO(recipeDetails, false));
-            logger.warn("DrugEnterpriseBusinessService enterpriseStock recipeDetailList is null");
+            logger.info("DrugEnterpriseBusinessService enterpriseStock recipeDetailList is null");
             return;
         }
         if (0 == drugsEnterprise.getCheckInventoryFlag()) {

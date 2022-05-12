@@ -731,7 +731,8 @@ public class RecipeOrderService extends RecipeBaseService {
 
         // 更新处方代缴费用
         orderFeeManager.setRecipePaymentFee(order, recipeList);
-
+        // 上海外服第三方支付金额
+        orderFeeManager.setSHWFAccountFee(order);
         order.setTotalFee(countOrderTotalFeeByRecipeInfo(order, firstRecipe, payModeSupport));
         //判断计算扣掉运费的总金额----等于线下支付----总计要先算上运费，实际支付时再不支付运费
         BigDecimal totalFee;
@@ -1062,13 +1063,13 @@ public class RecipeOrderService extends RecipeBaseService {
             }
         }
         //上海外服个性化处理账户支付金额
-        String organName = recipeParameterDao.getByName("shwfAccountFee");
-        if (StringUtils.isNotEmpty(organName) && LocalStringUtil.hasOrgan(order.getOrganId().toString(), organName)) {
-            BigDecimal accountFee = orderFeeManager.getAccountFee(order.getTotalFee(), order.getMpiId(), order.getOrganId());
-            if (null != accountFee) {
-                recipeOrderBean.setAccountFee(accountFee);
-            }
-        }
+//        String organName = recipeParameterDao.getByName("shwfAccountFee");
+//        if (StringUtils.isNotEmpty(organName) && LocalStringUtil.hasOrgan(order.getOrganId().toString(), organName)) {
+//            BigDecimal accountFee = orderFeeManager.getAccountFee(order.getTotalFee(), order.getMpiId(), order.getOrganId());
+//            if (null != accountFee) {
+//                recipeOrderBean.setAccountFee(accountFee);
+//            }
+//        }
         result.setObject(recipeOrderBean);
         if (RecipeResultBean.SUCCESS.equals(result.getCode()) && 1 == toDbFlag && null != order.getOrderId()) {
             result.setOrderCode(order.getOrderCode());
@@ -1104,8 +1105,7 @@ public class RecipeOrderService extends RecipeBaseService {
 
         //设置送货地址
         if (null != order && (null != order.getAddress1() && null != order.getAddress2() && null != order.getAddress3())) {
-            CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
-            order.setCompleteAddress(commonRemoteService.getCompleteAddress(order));
+            order.setCompleteAddress(orderManager.getCompleteAddress(order));
         } else {
             //对北京互联网处方流转模式处理
             RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
@@ -1194,8 +1194,10 @@ public class RecipeOrderService extends RecipeBaseService {
                 order.setExpectStartTakeTime("1970-01-01 00:00:01");
                 order.setExpectEndTakeTime("1970-01-01 00:00:01");
             }
-            order.setThirdPayType(0);
-            order.setThirdPayFee(0.00);
+            if (Objects.isNull(order.getThirdPayFee())) {
+                order.setThirdPayType(0);
+                order.setThirdPayFee(BigDecimal.ZERO);
+            }
             createOrderToDB(order, recipeIds, orderDAO, recipeDAO);
         } catch (DAOException e) {
             //如果小概率造成orderCode重复，则修改并重试
@@ -1520,9 +1522,8 @@ public class RecipeOrderService extends RecipeBaseService {
     @RpcService
     public RecipeResultBean getOrderDetailByIdV1(Integer orderId) {
         RecipeResultBean recipeResultBean = getOrderDetailById(orderId);
-        CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
         RecipeOrder order = recipeOrderDAO.get(orderId);
-        recipeResultBean.getExt().put("completeAddress", commonRemoteService.getCompleteAddress(order));
+        recipeResultBean.getExt().put("completeAddress", orderManager.getCompleteAddress(order));
         LOGGER.info("getOrderDetailByIdV1 recipeResultBean={}", JSON.toJSONString(recipeResultBean));
         return recipeResultBean;
     }
@@ -1588,12 +1589,7 @@ public class RecipeOrderService extends RecipeBaseService {
             boolean tcmFlag = false;
             if (CollectionUtils.isNotEmpty(recipeList)) {
                 //设置地址，先取处方单address4的值，没有则取订单地址
-
-                order.setCompleteAddress(commonRemoteService.getCompleteAddress(order));
-
-
-                RecipeDetailDAO detailDAO = getDAO(RecipeDetailDAO.class);
-                RecipeExtendDAO recipeExtendDAO = getDAO(RecipeExtendDAO.class);
+                order.setCompleteAddress(orderManager.getCompleteAddress(order));
 
                 PatientRecipeDTO prb;
                 List<Recipedetail> recipedetails;
@@ -1633,7 +1629,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         LOGGER.warn("getOrderDetailById 字典转化异常");
                     }
                     //药品详情
-                    recipedetails = detailDAO.findByRecipeId(recipe.getRecipeId());
+                    recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
                     String className = Thread.currentThread().getStackTrace()[2].getClassName();
                     String methodName = Thread.currentThread().getStackTrace()[2].getMethodName();
                     List<Integer> drugId = recipedetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
@@ -2552,6 +2548,10 @@ public class RecipeOrderService extends RecipeBaseService {
         //中医辨证论治费
         if (null != order.getTcmFee()) {
             full = full.add(order.getTcmFee());
+        }
+        // 减去第三方支付复用
+        if (null != order.getThirdPayFee()) {
+            full = full.subtract(order.getThirdPayFee());
         }
 
         return full.divide(BigDecimal.ONE, 3, RoundingMode.UP);
