@@ -82,6 +82,7 @@ public class OrderFeeManager extends BaseManager {
         if (StringUtils.isNotEmpty(organName) && LocalStringUtil.hasOrgan(order.getOrganId().toString(), organName)) {
             BigDecimal accountFee = getAccountFee(order.getTotalFee(), order.getMpiId(), order.getOrganId());
             if (null != accountFee) {
+                order.setThirdPayType(1);
                 order.setThirdPayFee(accountFee);
             }
         }
@@ -280,6 +281,7 @@ public class OrderFeeManager extends BaseManager {
         needPayment.setPatientID(recipe.getPatientID());
         needPayment.setPatientName(recipe.getPatientName());
         needPayment.setRegisterID(recipeExtend.getRegisterID());
+        needPayment.setSeries(recipeExtend.getSeries());
         List<String> code = recipeList.stream().map(Recipe::getRecipeCode).collect(Collectors.toList());
         needPayment.setRecipeCode(code);
         if (Objects.nonNull(patientDTO)) {

@@ -31,6 +31,8 @@ public class OnsConfig {
 
     public static String kafkaServers;
 
+    public static String kafkaGroup;
+
 
     /**
      * 药品topic
@@ -49,6 +51,10 @@ public class OnsConfig {
 
     public void setKafkaServers(String kafkaServers) {
         OnsConfig.kafkaServers = kafkaServers;
+    }
+
+    public void setKafkaGroup(String kafkaGroup) {
+        OnsConfig.kafkaGroup = kafkaGroup;
     }
 
 
