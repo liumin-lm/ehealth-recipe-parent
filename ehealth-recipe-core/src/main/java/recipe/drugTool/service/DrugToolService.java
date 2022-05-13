@@ -791,6 +791,15 @@ public class DrugToolService implements IDrugToolService {
                 errMsg.append("是否靶向药有误").append(";");
             }
 
+            try {
+                if(StringUtils.isNotEmpty(getStrFromCell(row.getCell(39)))){
+                    drug.setSmallestSaleMultiple(Integer.parseInt(getStrFromCell(row.getCell(39)).trim()));
+                }
+            } catch (Exception e) {
+                LOGGER.error("SmallestSaleMultiple ," + e.getMessage(), e);
+                errMsg.append("SmallestSaleMultiple").append(";");
+            }
+
             if (!ObjectUtils.isEmpty(organId)) {
                 DrugSourcesDAO dao = DAOFactory.getDAO(DrugSourcesDAO.class);
                 List<DrugSources> byDrugSourcesId = dao.findByDrugSourcesId(organId);
@@ -1562,6 +1571,7 @@ public class DrugToolService implements IDrugToolService {
                             organDrugList.setApplyBusiness("1");
                         }
                         organDrugList.setTargetedDrugType(drugListMatch.getTargetedDrugType());
+                        organDrugList.setSmallestSaleMultiple(drugListMatch.getSmallestSaleMultiple());
 
                         Boolean isSuccess = organDrugListDAO.updateData(organDrugList);
                         if (!isSuccess) {
