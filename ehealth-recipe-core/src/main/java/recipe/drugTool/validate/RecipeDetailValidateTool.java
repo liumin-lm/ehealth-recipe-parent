@@ -244,6 +244,15 @@ public class RecipeDetailValidateTool {
         decoctionWay = mapText.get(recipeExtendBean.getDecoctionText());
         if (null != decoctionWay) {
             decoctionWay(decoctionWay, recipeExtendBean);
+            return;
+        }
+
+        Map<Integer, DecoctionWay> mapId = decoctionWayList.stream().collect(Collectors.toMap(DecoctionWay::getDecoctionId, a -> a, (k1, k2) -> k1));
+        if (StringUtils.isNotEmpty(recipeExtendBean.getDecoctionId())) {
+            decoctionWay = mapId.get(Integer.valueOf(recipeExtendBean.getDecoctionId()));
+            if (null != decoctionWay) {
+                decoctionWay(decoctionWay, recipeExtendBean);
+            }
         }
     }
 
