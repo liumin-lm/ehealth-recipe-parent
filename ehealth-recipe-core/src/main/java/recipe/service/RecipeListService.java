@@ -1699,6 +1699,13 @@ public class RecipeListService extends RecipeBaseService {
         BeanUtils.copyProperties(giveModeShowButtonDTO, giveModeShowButtonVO);
         giveModeShowButtonVO.setListItem(ObjectCopyUtils.convert(giveModeShowButtonDTO.getListItem(), GiveModeButtonBean.class));
         giveModeShowButtonVO.setGiveModeButtons(ObjectCopyUtils.convert(giveModeShowButtonDTO.getGiveModeButtons(), GiveModeButtonBean.class));
+        if (null != recipe.getEnterpriseId()) {
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipe.getEnterpriseId());
+            if (null != drugsEnterprise) {
+                giveModeShowButtonVO.setShowLogisticsType(drugsEnterprise.getShowLogisticsType());
+                giveModeShowButtonVO.setShowLogisticsLink(drugsEnterprise.getShowLogisticsLink());
+            }
+        }
         return giveModeShowButtonVO;
     }
 
