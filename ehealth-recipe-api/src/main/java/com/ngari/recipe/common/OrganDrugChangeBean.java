@@ -92,6 +92,28 @@ public class OrganDrugChangeBean implements Serializable {
     @ItemProperty(alias = "机构名称  organName")
     private String organName;
 
+    @ItemProperty(alias="是否靶向药  0否  1是 ")
+    private Integer targetedDrugType;
+
+    @ItemProperty(alias = "最小销售倍数")
+    private Integer smallestSaleMultiple;
+
+    public Integer getTargetedDrugType() {
+        return targetedDrugType;
+    }
+
+    public void setTargetedDrugType(Integer targetedDrugType) {
+        this.targetedDrugType = targetedDrugType;
+    }
+
+    public Integer getSmallestSaleMultiple() {
+        return smallestSaleMultiple;
+    }
+
+    public void setSmallestSaleMultiple(Integer smallestSaleMultiple) {
+        this.smallestSaleMultiple = smallestSaleMultiple;
+    }
+
     public Integer getMedicalDrugType() {
         return medicalDrugType;
     }
