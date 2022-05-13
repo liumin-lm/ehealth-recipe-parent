@@ -218,6 +218,7 @@ public class DrugDoctorAtop extends BaseAtop {
             OrganDrugList organDrug = organDrugMap.get(drugList.getDrugId() + drugList.getOrganDrugCode());
             if (null != organDrug) {
                 drugList.setUnilateralCompound(organDrug.getUnilateralCompound());
+                drugList.setSmallestSaleMultiple(organDrug.getSmallestSaleMultiple());
             }
             //该高亮字段给微信端使用:highlightedField
             drugList.setHospitalPrice(drugList.getSalePrice());
