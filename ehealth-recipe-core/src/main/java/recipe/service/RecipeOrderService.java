@@ -2549,10 +2549,6 @@ public class RecipeOrderService extends RecipeBaseService {
         if (null != order.getTcmFee()) {
             full = full.add(order.getTcmFee());
         }
-        // 减去第三方支付复用
-        if (null != order.getThirdPayFee()) {
-            full = full.subtract(order.getThirdPayFee());
-        }
 
         return full.divide(BigDecimal.ONE, 3, RoundingMode.UP);
     }
