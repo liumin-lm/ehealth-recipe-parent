@@ -23,5 +23,9 @@ public class GiveModeShowButtonVO implements Serializable{
     private GiveModeButtonBean listItem;
     //购药按钮
     private List<GiveModeButtonBean> giveModeButtons;
+    //物流跳转类型
+    private Integer showLogisticsType;
+    //物流跳转地址
+    private String showLogisticsLink;
 
 }
