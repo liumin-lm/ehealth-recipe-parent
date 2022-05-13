@@ -2105,7 +2105,10 @@ public class RecipeService extends RecipeBaseService {
                     recipedetail.setDrugType(null != nowDrugList ? nowDrugList.getDrugType() : null);
                 }
             }
-
+        } else {
+            recipedetails.forEach(detail -> {
+                detail.setDrugType(dbRecipe.getRecipeType());
+            });
         }
     }
 
