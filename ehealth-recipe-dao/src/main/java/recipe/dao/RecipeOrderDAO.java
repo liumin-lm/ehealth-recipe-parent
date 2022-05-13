@@ -1574,7 +1574,7 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         HibernateStatelessResultAction<List<RecipeOrder>> action = new AbstractHibernateStatelessResultAction<List<RecipeOrder>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
-                StringBuilder hql = new StringBuilder("select a from RecipeOrder a,Recipe b where a.orderCode = b.orderCode and b.pushFlag = 0 and a.payFlag = 1 and a.effective = 1 and a.status in (3,12)" +
+                StringBuilder hql = new StringBuilder("select a from RecipeOrder a,Recipe b where a.orderCode = b.orderCode and b.pushFlag = 0 and a.payFlag = 1 and a.effective = 1 and a.status in (2,3,12)" +
                         " and a.effective = 1 and a.enterpriseId in (:enterpriseIds) ");
                 if (CollectionUtils.isNotEmpty(mpiIdList)) {
                     hql.append(" AND a.mpiId in (:mpiIdList) ");
