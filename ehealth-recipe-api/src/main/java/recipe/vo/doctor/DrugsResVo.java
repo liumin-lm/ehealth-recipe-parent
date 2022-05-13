@@ -40,6 +40,5 @@ public class DrugsResVo implements Serializable {
     @Dictionary(id = "eh.base.dictionary.DrugType")
     private Integer drugType;
 
-    @ItemProperty(alias = "最小销售倍数")
-    private Integer smallestSaleMultiple;
+
 }
