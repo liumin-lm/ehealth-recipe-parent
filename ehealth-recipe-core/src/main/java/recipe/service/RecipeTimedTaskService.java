@@ -1,5 +1,6 @@
 package recipe.service;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
 import com.ngari.base.push.model.SmsInfoBean;
 import com.ngari.base.push.service.ISmsPushService;
@@ -10,6 +11,7 @@ import com.ngari.recipe.hisprescription.model.HosRecipeResult;
 import com.ngari.recipe.hisprescription.model.HospitalStatusUpdateDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.vo.FormWorkRecipeVO;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -35,6 +37,8 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.*;
+
+import static com.alibaba.fastjson.JSON.parseArray;
 
 /**
  * 电子处方定时任务服务
@@ -162,7 +166,12 @@ public class RecipeTimedTaskService {
         //设置查询时间段
         String endDt = DateConversion.getDateFormatter(time, DateConversion.DEFAULT_DATE_TIME);
         String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(1), DateConversion.DEFAULT_DATE_TIME);
-
+        String organListStr = recipeParameterDao.getByName("noNeedNoticeOrgan");
+        List<Integer> organList = new ArrayList<>();
+        if (StringUtils.isNotEmpty(organListStr)) {
+            organList = JSONUtils.parse(organListStr, List.class);
+            LOGGER.info("updateRecipeStatus organList:{}", JSON.toJSONString(organList));
+        }
         List<Recipe> recipeList = recipeDAO.findRecipeListForStatus(RecipeStatusConstant.CHECKING_HOS, startDt, endDt);
         if (CollectionUtils.isNotEmpty(recipeList)) {
             PrescribeService prescribeService = ApplicationUtils.getRecipeService(
@@ -170,6 +179,9 @@ public class RecipeTimedTaskService {
             OrganService organService = BasicAPI.getService(OrganService.class);
             Map<String, String> otherInfo = Maps.newHashMap();
             for (Recipe recipe : recipeList) {
+                if (organList.contains(recipe.getClinicOrgan())) {
+                    continue;
+                }
                 //处方流转模式是否是互联网模式并且不是杭州互联网模式
                 if (RecipeBussConstant.RECIPEMODE_ZJJGPT.equals(recipe.getRecipeMode())&&(RecipeServiceSub.isNotHZInternet(recipe.getClinicOrgan()))){
                     HospitalStatusUpdateDTO hospitalStatusUpdateDTO = new HospitalStatusUpdateDTO();

@@ -41,4 +41,6 @@ public class ConsultDTO implements Serializable {
     private Integer medicalFlag;
     @ItemProperty(alias = "大病类型")
     private String illnessType;
+    @ItemProperty(alias = "大病类型名称")
+    private String illnessName;
 }
