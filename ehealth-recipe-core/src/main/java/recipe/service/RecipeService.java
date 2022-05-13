@@ -111,7 +111,10 @@ import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugTool.service.DrugToolService;
-import recipe.drugsenterprise.*;
+import recipe.drugsenterprise.AccessDrugEnterpriseService;
+import recipe.drugsenterprise.HdRemoteService;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.drugsenterprise.YtRemoteService;
 import recipe.drugsenterprise.bean.YdUrlPatient;
 import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.OrderStateEnum;
@@ -751,7 +754,7 @@ public class RecipeService extends RecipeBaseService {
             createPdfFactory.updateDoctorNamePdf(recipe);
             LOGGER.info("generateRecipePdfAndSign 签名成功. 高州CA模式, recipeId={}", recipe.getRecipeId());
         } else {
-            memo = "签名成功,标准对接CA方式";
+            memo = "签名标准对接CA方式";
             try {
                 //获取签章pdf数据。签名原文
                 CaSealRequestTO requestSealTO = createPdfFactory.updateDoctorNamePdfV1(recipe);
