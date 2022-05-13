@@ -1664,6 +1664,7 @@ public class RecipeHisService extends RecipeBaseService {
      * @return
      */
     @RpcService
+    @LogRecord
     public Map<String, Object> queryHisInsureRecipeList(Integer organId, String mpiId) {
         LOGGER.info("queryHisInsureRecipeList organId={},mpiId={}", organId, mpiId);
         Map<String, Object> response = queryHisInsureRecipeListFromHis(organId, mpiId);
