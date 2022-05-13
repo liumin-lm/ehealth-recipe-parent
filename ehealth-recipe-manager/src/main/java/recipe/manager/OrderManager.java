@@ -296,6 +296,9 @@ public class OrderManager extends BaseManager {
             super.getAddressDic(address, order.getAddress2());
             super.getAddressDic(address, order.getAddress3());
             super.getAddressDic(address, order.getStreetAddress());
+            if (StringUtils.isNotEmpty(order.getAddress5Text())) {
+                address.append(order.getAddress5Text());
+            }
             address.append(StringUtils.isEmpty(order.getAddress4()) ? "" : order.getAddress4());
         }
         return address.toString();
