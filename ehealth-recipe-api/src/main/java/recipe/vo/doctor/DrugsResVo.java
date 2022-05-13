@@ -39,4 +39,6 @@ public class DrugsResVo implements Serializable {
     @ItemProperty(alias = "药品类型")
     @Dictionary(id = "eh.base.dictionary.DrugType")
     private Integer drugType;
+
+
 }

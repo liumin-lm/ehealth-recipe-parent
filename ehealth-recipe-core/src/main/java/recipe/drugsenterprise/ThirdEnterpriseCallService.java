@@ -1897,8 +1897,10 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setCommunityCode(convertParame(recipeOrder.getAddress5()));
             orderDetailBean.setCommunityName(convertParame(recipeOrder.getAddress5Text()));
             //设置省市区街道编码
-            orderDetailBean.setProvinceCode(convertParame(recipeOrder.getAddress1()) + "0000");
-            orderDetailBean.setCityCode(convertParame(recipeOrder.getAddress2()) + "00");
+            if (StringUtils.isNotEmpty(recipeOrder.getAddress1())) {
+                orderDetailBean.setProvinceCode(convertParame(recipeOrder.getAddress1()) + "0000");
+                orderDetailBean.setCityCode(convertParame(recipeOrder.getAddress2()) + "00");
+            }
             orderDetailBean.setDistrictCode(convertParame(recipeOrder.getAddress3()));
             orderDetailBean.setStreetCode(convertParame(recipeOrder.getStreetAddress()));
             orderDetailBean.setReceiver(convertParame(recipeOrder.getReceiver()));
@@ -1912,6 +1914,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderDetailBean.setMedicalPayFlag(convertParame(recipeOrder.getOrderType()));
             orderDetailBean.setMemo(convertParame(recipe.getMemo()));
             orderDetailBean.setStatus(convertParame(recipe.getStatus()));
+            orderDetailBean.setPharmNo(convertParame(recipeExtend.getPharmNo()));
 
             List<DrugListForThreeBean> drugLists = new ArrayList<>();
             //设置药品信息
