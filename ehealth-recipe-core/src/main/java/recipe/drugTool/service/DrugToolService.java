@@ -792,7 +792,9 @@ public class DrugToolService implements IDrugToolService {
             }
 
             try {
-                drug.setSmallestSaleMultiple(Integer.parseInt(getStrFromCell(row.getCell(39)).trim()));
+                if(StringUtils.isNotEmpty(getStrFromCell(row.getCell(39)))){
+                    drug.setSmallestSaleMultiple(Integer.parseInt(getStrFromCell(row.getCell(39)).trim()));
+                }
             } catch (Exception e) {
                 LOGGER.error("SmallestSaleMultiple ," + e.getMessage(), e);
                 errMsg.append("SmallestSaleMultiple").append(";");
