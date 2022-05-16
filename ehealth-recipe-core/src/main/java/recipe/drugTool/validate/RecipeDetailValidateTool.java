@@ -113,9 +113,6 @@ public class RecipeDetailValidateTool {
             if (ValidateUtil.validateObjects(recipeDetail.getUseDose())) {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
-            if (entrustValidate(recipeDetail, drugEntrustNameMap)) {
-                recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
-            }
             //用药频次，用药途径是否在机构字典范围内
             medicationsValidate(organDrug.getOrganId(), recipeDetail);
         } else {
@@ -137,32 +134,6 @@ public class RecipeDetailValidateTool {
                 recipeDetail.setValidateStatus(VALIDATE_STATUS_PERFECT);
             }
         }
-    }
-
-    /**
-     * 校验中药嘱托
-     *
-     * @param recipeDetail       处方明细数据
-     * @param drugEntrustNameMap 机构嘱托
-     * @return
-     */
-    public boolean entrustValidate(RecipeDetailBean recipeDetail, Map<String, DrugEntrust> drugEntrustNameMap) {
-        if (StringUtils.isEmpty(recipeDetail.getMemo())) {
-            return false;
-        }
-        //嘱托
-        DrugEntrust drugEntrust = drugEntrustNameMap.get(recipeDetail.getMemo());
-        if (null == drugEntrust) {
-            drugEntrust = new DrugEntrust();
-            recipeDetail.setDrugEntrustCode(drugEntrust.getDrugEntrustCode());
-            recipeDetail.setEntrustmentId(String.valueOf(drugEntrust.getDrugEntrustId()));
-            recipeDetail.setMemo(drugEntrust.getDrugEntrustName());
-            return true;
-        }
-        recipeDetail.setDrugEntrustCode(drugEntrust.getDrugEntrustCode());
-        recipeDetail.setEntrustmentId(String.valueOf(drugEntrust.getDrugEntrustId()));
-        recipeDetail.setMemo(drugEntrust.getDrugEntrustName());
-        return false;
     }
 
     /**

@@ -131,19 +131,6 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
     }
 
     @Override
-    public List<RecipeDetailBean> entrustValidate(Integer organId, List<RecipeDetailBean> recipeDetails) {
-        //获取嘱托
-        Map<String, DrugEntrust> drugEntrustNameMap = drugManager.drugEntrustNameMap(organId);
-        recipeDetails.forEach(a -> {
-            if (recipeDetailValidateTool.entrustValidate(a, drugEntrustNameMap)) {
-                a.setValidateStatus(VALIDATE_STATUS_PERFECT);
-            }
-        });
-        return recipeDetails;
-    }
-
-
-    @Override
     public String getDrugName(String orderCode, Integer orderId) {
         StringBuilder stringBuilder = new StringBuilder();
         List<Recipedetail> recipeDetails;

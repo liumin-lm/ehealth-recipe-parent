@@ -626,7 +626,7 @@ public class OfflineRecipeClient extends BaseClient {
                 //抛出指定异常重试
                 .retryIfExceptionOfType(Exception.class)
                 //停止重试策略
-                .withStopStrategy(StopStrategies.stopAfterAttempt(5))
+                .withStopStrategy(StopStrategies.stopAfterAttempt(6))
                 //每次等待重试时间间隔
                 .withWaitStrategy(WaitStrategies.fixedWait(60, TimeUnit.SECONDS))
                 .build();
@@ -639,7 +639,7 @@ public class OfflineRecipeClient extends BaseClient {
             });
         } catch (Exception e) {
             logger.error("未获取到线下处方数据,remindRecipeDTO={}", JSONUtils.toString(remindRecipeDTO), e);
-            throw new DAOException(609, "暂未获取到线下处方数据，请刷新后重新进入");
+            return new ArrayList<>();
         }
         return responseTO;
     }

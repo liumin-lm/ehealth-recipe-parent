@@ -116,21 +116,7 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
      */
     @RpcService
     public List<RecipeDetailBean> entrustValidate(Integer organId, List<RecipeDetailBean> recipeDetails) {
-        logger.info("RecipeValidateDoctorAtop entrustValidate recipeDetails = {}，organId= {}", JSON.toJSONString(recipeDetails), organId);
-        if (ValidateUtil.integerIsEmpty(organId) || CollectionUtils.isEmpty(recipeDetails)) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
-        }
-        try {
-            List<RecipeDetailBean> result = recipeDetailService.entrustValidate(organId, recipeDetails);
-            logger.info("RecipeValidateDoctorAtop entrustValidate result = {}", JSON.toJSONString(result));
-            return result;
-        } catch (DAOException e1) {
-            logger.error("RecipeValidateDoctorAtop entrustValidate error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("RecipeValidateDoctorAtop entrustValidate error e", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
+        return recipeDetails;
     }
 
 
