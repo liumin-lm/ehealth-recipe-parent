@@ -422,18 +422,27 @@ public class OfflineRecipeClient extends BaseClient {
      * 获取用药提醒的线下处方
      *
      * @param organId 机构id
+     * @param remindRecipeFlag 暂时的标记
+     * @param dateTime 指定查询时间
      * @return
      */
-    public List<RecipeInfoDTO> queryRemindRecipe(Integer organId, String remindRecipeFlag) throws Exception {
+    public List<RecipeInfoDTO> queryRemindRecipe(Integer organId, String remindRecipeFlag, String dateTime) throws Exception {
         RemindRecipeDTO remindRecipeDTO = new RemindRecipeDTO();
         remindRecipeDTO.setOrganId(organId);
         remindRecipeDTO.setLimit(90000);
         remindRecipeDTO.setStart(1);
-        Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.DATE, -1);
-        Date sTime = DateConversion.firstSecondsOfDay(calendar.getTime());
+        Date sTime,eTime;
+        if (StringUtils.isNotEmpty(dateTime)) {
+            Date date = DateConversion.parseDate(dateTime, DateConversion.DEFAULT_DATE_TIME);
+            sTime = DateConversion.firstSecondsOfDay(date);
+            eTime = DateConversion.lastSecondsOfDay(date);
+        } else {
+            Calendar calendar = Calendar.getInstance();
+            calendar.add(Calendar.DATE, -1);
+            sTime = DateConversion.firstSecondsOfDay(calendar.getTime());
+            eTime = DateConversion.lastSecondsOfDay(calendar.getTime());
+        }
         remindRecipeDTO.setStartTime(sTime);
-        Date eTime = DateConversion.lastSecondsOfDay(calendar.getTime());
         remindRecipeDTO.setEndTime(eTime);
         logger.info("OfflineRecipeClient queryRemindRecipe remindRecipeDTO:{}.", JSON.toJSONString(remindRecipeDTO));
         List<com.ngari.platform.recipe.mode.RecipeDTO> hisResponseData;
