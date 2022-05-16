@@ -12,7 +12,6 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -152,15 +151,20 @@ public class RecipeDetailManager extends BaseManager {
      * @return
      */
     public void validateHisDrugRule(Recipe recipe, List<RecipeDetailDTO> recipeDetails, String registerId, String dbType) {
-        if (StringUtils.isEmpty(dbType)) {
-            if (ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
-                return;
-            }
+        // 请求his
+        DrugInfoRequestTO request = new DrugInfoRequestTO();
+        request.setDbType(dbType);
+        request.setRegisterID(registerId);
+        request.setPatId(recipe.getPatientID());
+        if (!ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
             RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
-            if (null == revisitExDTO || StringUtils.isEmpty(revisitExDTO.getDbType())) {
-                return;
+            if (null != revisitExDTO) {
+                request.setPatId(revisitExDTO.getPatId());
+                request.setCardType(revisitExDTO.getCardType());
+                request.setCardId(revisitExDTO.getCardId());
+                request.setRegisterID(revisitExDTO.getRegisterNo());
+                request.setDbType(revisitExDTO.getDbType());
             }
-            dbType = revisitExDTO.getDbType();
         }
         Set<Integer> pharmaIds = new HashSet<>();
         List<Integer> drugIdList = recipeDetails.stream().map(a -> {
@@ -174,14 +178,10 @@ public class RecipeDetailManager extends BaseManager {
         //科室代码
         AppointDepartDTO appointDepart = departClient.getAppointDepartByOrganIdAndDepart(recipe);
         String appointDepartCode = null != appointDepart ? appointDepart.getAppointDepartCode() : "";
-        // 请求his
-        DrugInfoRequestTO request = new DrugInfoRequestTO();
         request.setOrganId(recipe.getClinicOrgan());
         request.setJobNumber(doctorDTO.getJobNumber());
         request.setPatientDTO(ObjectCopyUtils.convert(patientDTO, com.ngari.patient.dto.PatientDTO.class));
         request.setAppointDepartCode(appointDepartCode);
-        request.setDbType(dbType);
-        request.setRegisterID(registerId);
         offlineRecipeClient.hisDrugRule(recipeDetails, organDrugList, pharmacyTcmByIds, request);
     }
 }

@@ -623,12 +623,14 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
         if (StringUtils.isNotEmpty(supportDownloadButton)) {
             GiveModeButtonDTO supportDownload = new GiveModeButtonDTO();
             supportDownload.setType(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getType());
+            supportDownload.setShowButtonName(supportDownloadButton);
             giveModeButton.add(supportDownload);
         }
         String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
         if (StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
             GiveModeButtonDTO supportMedicalPayment = new GiveModeButtonDTO();
             supportMedicalPayment.setType(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getType());
+            supportMedicalPayment.setShowButtonName(supportMedicalPaymentButton);
             giveModeButton.add(supportMedicalPayment);
         }
         if (CollectionUtils.isEmpty(giveModeButton)) {
@@ -642,7 +644,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             recipeUpdate.setRecipeSupportGiveMode(join);
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         }
-        logger.info("DrugEnterpriseBusinessService saveGiveMode 异步保存处方购药方式 {},{}", recipe.getRecipeId(), JSON.toJSONString(recipeGiveMode));
+        logger.info("DrugEnterpriseBusinessService saveGiveMode 异步保存处方购药方式,购药按钮 {},{},{}", recipe.getRecipeId(), JSON.toJSONString(recipeGiveMode), JSON.toJSONString(giveModeButton));
         Set<String> supportGiveModeNameSet = giveModeButton.stream().filter(Objects::nonNull).map(GiveModeButtonDTO::getShowButtonName).collect(Collectors.toSet());
         return supportGiveModeNameSet;
     }
