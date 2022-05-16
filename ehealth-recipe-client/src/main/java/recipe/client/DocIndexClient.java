@@ -126,8 +126,13 @@ public class DocIndexClient extends BaseClient {
             return null;
         }
         CoverMedicalInfoBean coverMedical = new CoverMedicalInfoBean();
-        coverMedical.setBussType(this.bussType(bussSource));
+        Integer bussType = this.bussType(bussSource);
+        coverMedical.setBussType(bussType);
         coverMedical.setBussId(this.bussId(bussSource, recipe.getRecipeId(), clinicId));
+        if (bussType.equals(1)) {
+            coverMedical.setBussType(null);
+            coverMedical.setBussId(null);
+        }
         coverMedical.setOldDocIndexId(recipeExtend.getDocIndexId());
         coverMedical.setMpiid(recipe.getMpiid());
         coverMedical.setCreateOrgan(recipe.getClinicOrgan());
