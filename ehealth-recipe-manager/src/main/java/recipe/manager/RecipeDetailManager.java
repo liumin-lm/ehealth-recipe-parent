@@ -12,7 +12,6 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -154,18 +153,18 @@ public class RecipeDetailManager extends BaseManager {
     public void validateHisDrugRule(Recipe recipe, List<RecipeDetailDTO> recipeDetails, String registerId, String dbType) {
         // 请求his
         DrugInfoRequestTO request = new DrugInfoRequestTO();
-        if (StringUtils.isEmpty(dbType)) {
-            if (ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
-                return;
-            }
+        request.setDbType(dbType);
+        request.setRegisterID(registerId);
+        request.setPatId(recipe.getPatientID());
+        if (!ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
             RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
-            if (StringUtils.isEmpty(revisitExDTO.getDbType())) {
-                return;
+            if (null != revisitExDTO) {
+                request.setPatId(revisitExDTO.getPatId());
+                request.setCardType(revisitExDTO.getCardType());
+                request.setCardId(revisitExDTO.getCardId());
+                request.setRegisterID(revisitExDTO.getRegisterNo());
+                request.setDbType(revisitExDTO.getDbType());
             }
-            dbType = revisitExDTO.getDbType();
-            request.setPatId(revisitExDTO.getPatId());
-            request.setCardType(revisitExDTO.getCardType());
-            request.setCardId(revisitExDTO.getCardId());
         }
         Set<Integer> pharmaIds = new HashSet<>();
         List<Integer> drugIdList = recipeDetails.stream().map(a -> {
@@ -183,50 +182,6 @@ public class RecipeDetailManager extends BaseManager {
         request.setJobNumber(doctorDTO.getJobNumber());
         request.setPatientDTO(ObjectCopyUtils.convert(patientDTO, com.ngari.patient.dto.PatientDTO.class));
         request.setAppointDepartCode(appointDepartCode);
-        request.setDbType(dbType);
-        request.setRegisterID(registerId);
-        offlineRecipeClient.hisDrugRule(recipeDetails, organDrugList, pharmacyTcmByIds, request);
-    }
-
-    /**
-     * 校验his 机构药品规则
-     *
-     * @param recipe        处方信息
-     * @param recipeDetails 药品信息
-     * @return
-     */
-    public void validateHisDrugRuleOrganDrug(Recipe recipe, List<RecipeDetailDTO> recipeDetails, String registerId, String dbType) {
-        // 请求his
-        DrugInfoRequestTO request = new DrugInfoRequestTO();
-        if (ValidateUtil.integerIsEmpty(recipe.getClinicId())) {
-            return;
-        }
-        RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
-        if (null == revisitExDTO) {
-            return;
-        }
-        dbType = revisitExDTO.getDbType();
-        request.setPatId(revisitExDTO.getPatId());
-        request.setCardType(revisitExDTO.getCardType());
-        request.setCardId(revisitExDTO.getCardId());
-        Set<Integer> pharmaIds = new HashSet<>();
-        List<Integer> drugIdList = recipeDetails.stream().map(a -> {
-            pharmaIds.add(a.getPharmacyId());
-            return a.getDrugId();
-        }).collect(Collectors.toList());
-        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugIds(recipe.getClinicOrgan(), drugIdList);
-        List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(pharmaIds);
-        DoctorDTO doctorDTO = doctorClient.jobNumber(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getDepart());
-        PatientDTO patientDTO = patientClient.getPatientDTO(recipe.getMpiid());
-        //科室代码
-        AppointDepartDTO appointDepart = departClient.getAppointDepartByOrganIdAndDepart(recipe);
-        String appointDepartCode = null != appointDepart ? appointDepart.getAppointDepartCode() : "";
-        request.setOrganId(recipe.getClinicOrgan());
-        request.setJobNumber(doctorDTO.getJobNumber());
-        request.setPatientDTO(ObjectCopyUtils.convert(patientDTO, com.ngari.patient.dto.PatientDTO.class));
-        request.setAppointDepartCode(appointDepartCode);
-        request.setDbType(dbType);
-        request.setRegisterID(registerId);
         offlineRecipeClient.hisDrugRule(recipeDetails, organDrugList, pharmacyTcmByIds, request);
     }
 }

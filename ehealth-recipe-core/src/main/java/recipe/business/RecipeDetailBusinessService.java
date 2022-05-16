@@ -246,7 +246,7 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
         }
         //"3": "机构药品规则"
         if (hisDrugRule.contains("3")) {
-            recipeDetailManager.validateHisDrugRuleOrganDrug(recipe, recipeDetails, registerId, dbType);
+            recipeDetailManager.validateHisDrugRule(recipe, recipeDetails, registerId, dbType);
             logger.info("RecipeDetailBusinessService validateHisDrugRuleNoDbType 机构药品规则判断 recipeDetails={}", JSON.toJSONString(recipeDetails));
         }
         return recipeDetails;
