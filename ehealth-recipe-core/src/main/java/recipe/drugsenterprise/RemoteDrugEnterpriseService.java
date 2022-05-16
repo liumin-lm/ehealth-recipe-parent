@@ -318,6 +318,9 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
     public String getDrugInventory(Integer depId, Integer drugId, Integer organId) {
         LOGGER.info("getDrugInventory depId:{},drugId:{},organId:{}", depId, drugId, organId);
         List<OrganDrugList> organDrugLists = organDrugListDAO.findByDrugIdAndOrganId(drugId, organId);
+        if (CollectionUtils.isEmpty(organDrugLists)) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "机构药品不存在");
+        }
         List<Recipedetail> recipeDetails = new LinkedList<>();
         organDrugLists.forEach(a -> {
             Recipedetail recipedetail = new Recipedetail();

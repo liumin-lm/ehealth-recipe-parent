@@ -26,6 +26,7 @@ import recipe.util.MapValueUtil;
 import recipe.vo.ResultBean;
 import recipe.vo.doctor.ValidateDetailVO;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -228,6 +229,9 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
 
     @Override
     public List<RecipeDetailDTO> validateHisDrugRule(Recipe recipe, List<RecipeDetailDTO> recipeDetails, String registerId, String dbType) {
+        if (CollectionUtils.isEmpty(recipeDetails)) {
+            return new ArrayList<>();
+        }
         //"1": "大病权限", "2": "靶向药权限"
         List<String> hisDrugRule = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "validateHisDrugRule", null);
         logger.info("RecipeDetailBusinessService validateHisDrugRule hisDrugRule={}", JSON.toJSONString(hisDrugRule));
