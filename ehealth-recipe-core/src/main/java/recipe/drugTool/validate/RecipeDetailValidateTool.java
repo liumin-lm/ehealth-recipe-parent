@@ -100,7 +100,6 @@ public class RecipeDetailValidateTool {
     public void validateDrug(RecipeDetailBean recipeDetail, String[] recipeDay, OrganDrugList organDrug, Integer recipeType, Map<String, DrugEntrust> drugEntrustNameMap, Integer organId, Integer version) {
         recipeDetail.setDrugName(organDrug.getDrugName());
         recipeDetail.setSaleName(organDrug.getSaleName());
-        recipeDetail.setDrugId(organDrug.getDrugId());
         //剂量单位是否与机构药品目录单位一致
         if (StringUtils.isEmpty(OrganDrugListManager.getUseDoseUnit(recipeDetail.getUseDoseUnit(), organDrug))) {
             recipeDetail.setUseDoseUnit(null);
