@@ -603,10 +603,10 @@ public class HisRecipeManager extends BaseManager {
     /**
      * 用药提醒的线下处方 存在患者的数据 转换药品为线上数据
      */
-    public List<RecipeInfoDTO> queryRemindRecipe(Integer organId) throws Exception {
+    public List<RecipeInfoDTO> queryRemindRecipe(Integer organId, String dateTime) throws Exception {
         //先加个配置项，防止有问题，后续确认没有问题删除
         String remindRecipeFlag = recipeParameterDao.getByName("jjRemindRecipeFlag");
-        List<RecipeInfoDTO> recipeInfoList = offlineRecipeClient.queryRemindRecipe(organId, remindRecipeFlag);
+        List<RecipeInfoDTO> recipeInfoList = offlineRecipeClient.queryRemindRecipe(organId, remindRecipeFlag, dateTime);
         if (CollectionUtils.isEmpty(recipeInfoList)) {
             return null;
         }
