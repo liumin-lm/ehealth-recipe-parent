@@ -112,26 +112,15 @@ public class BaseManager {
         }
         beforeStatus = null == beforeStatus ? RecipeStatusEnum.NONE : beforeStatus;
         afterStatus = null == afterStatus ? RecipeStatusEnum.NONE : afterStatus;
-        memo = StringUtils.defaultString(memo, "");
-        if (StringUtils.isNotEmpty(memo) && memo.length() > 250) {
-            memo = memo.substring(0, 250);
-        }
-        try {
-            RecipeLog recipeLog = new RecipeLog();
-            recipeLog.setRecipeId(recipeId);
-            recipeLog.setModifyDate(DateTime.now().toDate());
-            recipeLog.setBeforeStatus(beforeStatus.getType());
-            recipeLog.setAfterStatus(afterStatus.getType());
-            recipeLog.setMemo(memo);
-            recipeLog.setExpand("");
-            recipeLogDAO.saveRecipeLog(recipeLog);
-        } catch (Exception e) {
-            logger.error("BaseManager saveRecipeLog 保存日志出错", e);
-        }
+        saveRecipeLog(recipeId, beforeStatus.getType(), afterStatus.getType(), memo);
     }
 
     protected void saveRecipeLog(Integer recipeId, Integer beforeStatus, Integer afterStatus, String memo) {
         try {
+            memo = StringUtils.defaultString(memo, "");
+            if (StringUtils.isNotEmpty(memo) && memo.length() > 250) {
+                memo = memo.substring(0, 250);
+            }
             RecipeLog recipeLog = new RecipeLog();
             recipeLog.setRecipeId(recipeId);
             recipeLog.setModifyDate(DateTime.now().toDate());
