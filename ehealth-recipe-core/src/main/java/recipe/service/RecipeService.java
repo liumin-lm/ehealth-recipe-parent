@@ -5093,6 +5093,9 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getSmallestSaleMultiple())) {
             drugListMatch.setSmallestSaleMultiple(drug.getSmallestSaleMultiple());
         }
+        if (!ObjectUtils.isEmpty(drug.getSmallestSaleMultiple())) {
+            drugListMatch.setRecommendedUseDose(drug.getRecommendedUseDose());
+        }
         LOGGER.info("drugInfoSynMovementaddHisDrug" + drug.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
         List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drugListMatch.getOrganDrugCode(), drugListMatch.getSourceOrgan());
         if (ObjectUtils.isEmpty(dataByOrganDrugCode)) {
@@ -5292,6 +5295,9 @@ public class RecipeService extends RecipeBaseService {
         }
         if (!ObjectUtils.isEmpty(drug.getSmallestSaleMultiple())) {
             organDrug.setSmallestSaleMultiple(drug.getSmallestSaleMultiple());
+        }
+        if (!ObjectUtils.isEmpty(drug.getRecommendedUseDose())) {
+            organDrug.setRecommendedUseDose(drug.getRecommendedUseDose());
         }
         OrganDrugList update = organDrugListDAO.update(organDrug);
         //同步药品到监管备案
