@@ -7,8 +7,11 @@ import com.ngari.recipe.vo.FastRecipeReqVO;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
+import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.greenroom.ITextService;
 import recipe.util.DictionaryUtil;
+
+import javax.annotation.Resource;
 
 /**
  * 用于postman 后门接口调用
@@ -19,6 +22,8 @@ import recipe.util.DictionaryUtil;
 public class TextGmAtop {
     @Autowired
     private ITextService textBusinessService;
+    @Resource
+    private IDrugBusinessService drugBusinessService;
 
     @RpcService
     public void coOrdinate(Integer recipeId, CoOrdinateVO ordinateVO) {
@@ -43,5 +48,10 @@ public class TextGmAtop {
     @RpcService
     public FastRecipeAndDetailResVO getFastRecipeJson(FastRecipeReqVO fastRecipeReqVO){
         return textBusinessService.getFastRecipeJson(fastRecipeReqVO);
+    }
+
+    @RpcService(timeout = 3600)
+    public void queryRemindRecipe(String dateTime){
+        drugBusinessService.queryRemindRecipe(dateTime);
     }
 }
