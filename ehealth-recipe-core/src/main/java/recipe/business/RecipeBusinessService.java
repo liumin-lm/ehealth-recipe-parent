@@ -363,7 +363,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             if (ValidateUtil.integerIsEmpty(caseHistoryVO.getRecipeId())) {
                 medicalDetailBean = emrRecipeManager.getEmrDetailsByClinicId(caseHistoryVO.getClinicId(), caseHistoryVO.getBussSource());
             } else {
-                medicalDetailBean = emrRecipeManager.copyEmrDetails(caseHistoryVO.getRecipeId(), caseHistoryVO.getClinicId());
+                medicalDetailBean = emrRecipeManager.copyEmrDetails(caseHistoryVO.getRecipeId(), caseHistoryVO.getClinicId(), caseHistoryVO.getBussSource());
             }
         }
         if (null == medicalDetailBean) {
