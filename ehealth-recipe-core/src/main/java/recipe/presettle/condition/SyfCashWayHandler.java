@@ -31,6 +31,11 @@ public class SyfCashWayHandler implements IOrderTypeConditionHandler{
         LOGGER.info("SyfCashWayHandler getOrderType request:{}.", JSONUtils.toString(request));
         Integer organId = request.getRecipe().getClinicOrgan();
         Integer bussSource = request.getRecipe().getBussSource();
+        // 咨询默认走医院自费
+        if (BussSourceTypeEnum.BUSSSOURCE_CONSULT.getType().equals(bussSource)) {
+            //自费结算
+            return RecipeOrderTypeEnum.HOSPITAL_SELF.getType();
+        }
         if (null == organId || BussSourceTypeEnum.BUSSSOURCE_CONSULT.getType().equals(bussSource)) {
             return null;
         }
@@ -39,11 +44,6 @@ public class SyfCashWayHandler implements IOrderTypeConditionHandler{
         if (!syfPayMode) {
             //说明不需要走邵逸支付
             return null;
-        }
-        // 咨询默认走医院自费
-        if (BussSourceTypeEnum.BUSSSOURCE_CONSULT.getType().equals(request.getRecipe().getBussSource())) {
-            //自费结算
-            return RecipeOrderTypeEnum.HOSPITAL_SELF.getType();
         }
         //查询复诊获取患者类型（自费or医保）
         RevisitExDTO revisitExDTO = revisitClient.getByClinicId(request.getRecipe().getClinicId());
