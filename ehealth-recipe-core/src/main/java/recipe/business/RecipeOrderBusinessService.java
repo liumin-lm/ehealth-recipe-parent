@@ -345,6 +345,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 } else {
                     downRecipeVO.setSignFileUrl(fileImgUrl + recipe.getSignFile());
                 }
+                //设置订单的购药方式
+                downOrderVO.setGiveMode(recipe.getGiveMode());
                 //处方患者信息
                 PatientDTO patient = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
                 logger.info("ThirdEnterpriseCallService.downLoadRecipes patient:{} .", JSONUtils.toString(patient));

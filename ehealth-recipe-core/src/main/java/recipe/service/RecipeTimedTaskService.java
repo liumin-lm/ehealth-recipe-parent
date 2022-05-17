@@ -170,6 +170,7 @@ public class RecipeTimedTaskService {
         String endDt = DateConversion.getDateFormatter(time, DateConversion.DEFAULT_DATE_TIME);
         String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(1), DateConversion.DEFAULT_DATE_TIME);
         List<Integer> organIdList = configurationClient.organIdList("remindPatientTakeMedicineFlag", "true");
+        LOGGER.info("updateRecipeStatus organIdList:{}", JSON.toJSONString(organIdList));
         List<Recipe> recipeList = recipeDAO.findRecipeListForStatus(RecipeStatusConstant.CHECKING_HOS, startDt, endDt);
         if (CollectionUtils.isNotEmpty(recipeList)) {
             PrescribeService prescribeService = ApplicationUtils.getRecipeService(
