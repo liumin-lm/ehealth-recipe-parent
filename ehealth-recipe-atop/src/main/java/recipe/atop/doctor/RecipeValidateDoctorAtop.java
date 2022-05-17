@@ -21,6 +21,7 @@ import recipe.vo.ResultBean;
 import recipe.vo.doctor.ValidateDetailVO;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 处方校验服务入口类
@@ -115,21 +116,7 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
      */
     @RpcService
     public List<RecipeDetailBean> entrustValidate(Integer organId, List<RecipeDetailBean> recipeDetails) {
-        logger.info("RecipeValidateDoctorAtop entrustValidate recipeDetails = {}，organId= {}", JSON.toJSONString(recipeDetails), organId);
-        if (ValidateUtil.integerIsEmpty(organId) || CollectionUtils.isEmpty(recipeDetails)) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "入参为空");
-        }
-        try {
-            List<RecipeDetailBean> result = recipeDetailService.entrustValidate(organId, recipeDetails);
-            logger.info("RecipeValidateDoctorAtop entrustValidate result = {}", JSON.toJSONString(result));
-            return result;
-        } catch (DAOException e1) {
-            logger.error("RecipeValidateDoctorAtop entrustValidate error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("RecipeValidateDoctorAtop entrustValidate error e", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
+        return recipeDetails;
     }
 
 
@@ -232,7 +219,17 @@ public class RecipeValidateDoctorAtop extends BaseAtop {
         Recipe recipe = ObjectCopyUtils.convert(validateDetailVO.getRecipeBean(), Recipe.class);
         validateAtop(recipe.getClinicOrgan(), recipe.getDoctor(), recipe.getDepart());
         // 校验his 药品规则，靶向药，大病医保等
-        List<RecipeDetailDTO> result = recipeDetailService.validateHisDrugRule(recipe, recipeDetailDTO, validateDetailVO.getRecipeExtendBean().getRegisterID(), validateDetailVO.getDbType());
+        List<RecipeDetailDTO> recipeDetail = recipeDetailDTO.stream().filter(a -> !ValidateUtil.integerIsEmpty(a.getDrugId())).collect(Collectors.toList());
+        List<RecipeDetailDTO> result = recipeDetailService.validateHisDrugRule(recipe, recipeDetail, validateDetailVO.getRecipeExtendBean().getRegisterID(), validateDetailVO.getDbType());
+        //返回数据处理
+        List<RecipeDetailDTO> recipeDetailLose = recipeDetailDTO.stream().filter(a -> ValidateUtil.integerIsEmpty(a.getDrugId())).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(recipeDetailLose)) {
+            recipeDetailLose.forEach(a -> {
+                a.setValidateHisStatus(-1);
+                a.setValidateHisStatusText("不在可开方目录或者对应药房内");
+            });
+            result.addAll(recipeDetailLose);
+        }
         return ObjectCopyUtils.convert(result, RecipeDetailBean.class);
     }
 }

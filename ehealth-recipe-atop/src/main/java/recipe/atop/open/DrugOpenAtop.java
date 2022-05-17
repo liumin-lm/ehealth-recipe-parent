@@ -67,7 +67,7 @@ public class DrugOpenAtop extends BaseAtop implements IDrugAtopService {
      */
     @RpcService(timeout = 3600)
     public void queryRemindRecipe() {
-        drugBusinessService.queryRemindRecipe();
+        drugBusinessService.queryRemindRecipe("");
     }
 
 }

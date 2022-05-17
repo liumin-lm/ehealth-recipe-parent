@@ -39,15 +39,6 @@ public interface IRecipeDetailBusinessService {
     List<RecipeDetailBean> drugSuperScalarValidate(ValidateDetailVO validateDetailVO);
 
     /**
-     * 校验中药嘱托
-     *
-     * @param organId       机构id
-     * @param recipeDetails 处方药品明细
-     * @return 处方药品明细
-     */
-    List<RecipeDetailBean> entrustValidate(Integer organId, List<RecipeDetailBean> recipeDetails);
-
-    /**
      * 患者端处方进行中列表查询药品信息
      *
      * @param orderCode 订单code

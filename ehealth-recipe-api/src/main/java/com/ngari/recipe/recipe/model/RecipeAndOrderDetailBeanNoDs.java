@@ -80,6 +80,7 @@ public class RecipeAndOrderDetailBeanNoDs implements Serializable {
     private String recipeSignImgUrl;
     private String decoctionFlag;
     private List<DrugListForThreeBean> drugList;
+    private String pharmNo;
     /**
      * 出生日期
      */

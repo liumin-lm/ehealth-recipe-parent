@@ -26,6 +26,7 @@ import recipe.util.MapValueUtil;
 import recipe.vo.ResultBean;
 import recipe.vo.doctor.ValidateDetailVO;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -130,19 +131,6 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
     }
 
     @Override
-    public List<RecipeDetailBean> entrustValidate(Integer organId, List<RecipeDetailBean> recipeDetails) {
-        //获取嘱托
-        Map<String, DrugEntrust> drugEntrustNameMap = drugManager.drugEntrustNameMap(organId);
-        recipeDetails.forEach(a -> {
-            if (recipeDetailValidateTool.entrustValidate(a, drugEntrustNameMap)) {
-                a.setValidateStatus(VALIDATE_STATUS_PERFECT);
-            }
-        });
-        return recipeDetails;
-    }
-
-
-    @Override
     public String getDrugName(String orderCode, Integer orderId) {
         StringBuilder stringBuilder = new StringBuilder();
         List<Recipedetail> recipeDetails;
@@ -228,6 +216,9 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
 
     @Override
     public List<RecipeDetailDTO> validateHisDrugRule(Recipe recipe, List<RecipeDetailDTO> recipeDetails, String registerId, String dbType) {
+        if (CollectionUtils.isEmpty(recipeDetails)) {
+            return new ArrayList<>();
+        }
         //"1": "大病权限", "2": "靶向药权限"
         List<String> hisDrugRule = configurationClient.getValueListCatch(recipe.getClinicOrgan(), "validateHisDrugRule", null);
         logger.info("RecipeDetailBusinessService validateHisDrugRule hisDrugRule={}", JSON.toJSONString(hisDrugRule));
@@ -243,6 +234,11 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
         if (hisDrugRule.contains("2")) {
             organDrugListManager.validateHisDrugRule(recipe, recipeDetails);
             logger.info("RecipeDetailBusinessService validateHisDrugRule 靶向药权限 recipeDetails={}", JSON.toJSONString(recipeDetails));
+        }
+        //"3": "机构药品规则"
+        if (hisDrugRule.contains("3")) {
+            recipeDetailManager.validateHisDrugRule(recipe, recipeDetails, registerId, dbType);
+            logger.info("RecipeDetailBusinessService validateHisDrugRuleNoDbType 机构药品规则判断 recipeDetails={}", JSON.toJSONString(recipeDetails));
         }
         return recipeDetails;
     }

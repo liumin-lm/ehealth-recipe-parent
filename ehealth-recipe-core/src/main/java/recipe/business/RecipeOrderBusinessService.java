@@ -317,6 +317,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             receiverInfo.setProvince(province);
             receiverInfo.setCity(city);
             receiverInfo.setDistrict(district);
+            receiverInfo.setStreetCode(recipeOrder.getStreetAddress());
             receiverInfo.setStreet(street);
             receiverInfo.setAddress(recipeOrder.getAddress4());
             receiverInfo.setProvinceCode(StringUtils.isNotEmpty(recipeOrder.getAddress1())?recipeOrder.getAddress1()+"0000":"");

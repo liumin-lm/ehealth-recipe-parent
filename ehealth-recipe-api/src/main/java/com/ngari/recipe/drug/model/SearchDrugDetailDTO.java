@@ -179,6 +179,9 @@ public class SearchDrugDetailDTO implements IDrugInventory, Serializable {
     private Integer unilateralCompound;
     @ItemProperty(alias="是否靶向药  0否  1是 ")
     private Integer targetedDrugType;
+    @ItemProperty(alias = "最小销售倍数")
+    private Integer smallestSaleMultiple;
+
 
     public Integer getTargetedDrugType() {
         return targetedDrugType;
@@ -597,5 +600,13 @@ public class SearchDrugDetailDTO implements IDrugInventory, Serializable {
 
     public void setDrugEntrustCode(String drugEntrustCode) {
         this.drugEntrustCode = drugEntrustCode;
+    }
+
+    public Integer getSmallestSaleMultiple() {
+        return smallestSaleMultiple;
+    }
+
+    public void setSmallestSaleMultiple(Integer smallestSaleMultiple) {
+        this.smallestSaleMultiple = smallestSaleMultiple;
     }
 }

@@ -33,7 +33,12 @@ public class DrugsResVo implements Serializable {
     @ItemProperty(alias="是否靶向药  0否  1是 ")
     private Integer targetedDrugType;
 
+    @ItemProperty(alias = "最小销售倍数")
+    private Integer smallestSaleMultiple;
+
     @ItemProperty(alias = "药品类型")
     @Dictionary(id = "eh.base.dictionary.DrugType")
     private Integer drugType;
+
+
 }

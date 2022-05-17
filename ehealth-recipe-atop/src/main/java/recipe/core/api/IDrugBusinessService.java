@@ -86,7 +86,7 @@ public interface IDrugBusinessService {
     /**
      * 定时 获取用药提醒的线下处方
      */
-    void queryRemindRecipe();
+    void queryRemindRecipe(String dataTime);
 
     /**
      * 获取机构药品目录

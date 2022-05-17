@@ -81,7 +81,7 @@ public class EmrRecipeManager extends BaseManager {
      * @param clinicId 复诊id
      * @return
      */
-    public MedicalDetailBean copyEmrDetails(Integer recipeId, Integer clinicId) {
+    public MedicalDetailBean copyEmrDetails(Integer recipeId, Integer clinicId, Integer bussSource) {
         if (ValidateUtil.integerIsEmpty(recipeId)) {
             return null;
         }
@@ -90,7 +90,7 @@ public class EmrRecipeManager extends BaseManager {
             return null;
         }
         RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
-        return docIndexClient.copyEmrDetails(recipe, recipeExtend, clinicId, recipe.getBussSource());
+        return docIndexClient.copyEmrDetails(recipe, recipeExtend, clinicId, bussSource);
     }
 
     /**

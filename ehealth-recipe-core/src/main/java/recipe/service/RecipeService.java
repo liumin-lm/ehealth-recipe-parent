@@ -111,7 +111,10 @@ import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugTool.service.DrugToolService;
-import recipe.drugsenterprise.*;
+import recipe.drugsenterprise.AccessDrugEnterpriseService;
+import recipe.drugsenterprise.HdRemoteService;
+import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.drugsenterprise.YtRemoteService;
 import recipe.drugsenterprise.bean.YdUrlPatient;
 import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.OrderStateEnum;
@@ -751,7 +754,7 @@ public class RecipeService extends RecipeBaseService {
             createPdfFactory.updateDoctorNamePdf(recipe);
             LOGGER.info("generateRecipePdfAndSign 签名成功. 高州CA模式, recipeId={}", recipe.getRecipeId());
         } else {
-            memo = "签名成功,标准对接CA方式";
+            memo = "签名标准对接CA方式";
             try {
                 //获取签章pdf数据。签名原文
                 CaSealRequestTO requestSealTO = createPdfFactory.updateDoctorNamePdfV1(recipe);
@@ -2105,7 +2108,10 @@ public class RecipeService extends RecipeBaseService {
                     recipedetail.setDrugType(null != nowDrugList ? nowDrugList.getDrugType() : null);
                 }
             }
-
+        } else {
+            recipedetails.forEach(detail -> {
+                detail.setDrugType(dbRecipe.getRecipeType());
+            });
         }
     }
 
@@ -5084,6 +5090,12 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getTargetedDrugType())) {
             drugListMatch.setTargetedDrugType(drug.getTargetedDrugType());
         }
+        if (!ObjectUtils.isEmpty(drug.getSmallestSaleMultiple())) {
+            drugListMatch.setSmallestSaleMultiple(drug.getSmallestSaleMultiple());
+        }
+        if (!ObjectUtils.isEmpty(drug.getSmallestSaleMultiple())) {
+            drugListMatch.setRecommendedUseDose(drug.getRecommendedUseDose());
+        }
         LOGGER.info("drugInfoSynMovementaddHisDrug" + drug.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
         List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drugListMatch.getOrganDrugCode(), drugListMatch.getSourceOrgan());
         if (ObjectUtils.isEmpty(dataByOrganDrugCode)) {
@@ -5280,6 +5292,12 @@ public class RecipeService extends RecipeBaseService {
         }
         if (!ObjectUtils.isEmpty(drug.getTargetedDrugType())) {
             organDrug.setTargetedDrugType(drug.getTargetedDrugType());
+        }
+        if (!ObjectUtils.isEmpty(drug.getSmallestSaleMultiple())) {
+            organDrug.setSmallestSaleMultiple(drug.getSmallestSaleMultiple());
+        }
+        if (!ObjectUtils.isEmpty(drug.getRecommendedUseDose())) {
+            organDrug.setRecommendedUseDose(drug.getRecommendedUseDose());
         }
         OrganDrugList update = organDrugListDAO.update(organDrug);
         //同步药品到监管备案
@@ -5512,6 +5530,9 @@ public class RecipeService extends RecipeBaseService {
         }
         if (Objects.nonNull(drug.getTargetedDrugType())) {
             organDrug.setTargetedDrugType(drug.getTargetedDrugType());
+        }
+        if (Objects.nonNull(drug.getSmallestSaleMultiple())) {
+            organDrug.setSmallestSaleMultiple(drug.getSmallestSaleMultiple());
         }
         LOGGER.info("updateHisDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(organDrug));
         OrganDrugList update = organDrugListDAO.update(organDrug);

@@ -476,8 +476,11 @@ public class DrugManager extends BaseManager {
      * 定时 获取用药提醒的线下处方
      */
     public void remindPatient(List<RecipeInfoDTO> list) {
+        if (CollectionUtils.isEmpty(list)) {
+            return;
+        }
         logger.info("DrugManager remindPatient list size:{}", list.size());
-        List<List<RecipeInfoDTO>> recipeInfoList = Lists.partition(list, 500);
+        List<List<RecipeInfoDTO>> recipeInfoList = Lists.partition(list, 150);
         if (CollectionUtils.isEmpty(recipeInfoList)) {
             return;
         }
