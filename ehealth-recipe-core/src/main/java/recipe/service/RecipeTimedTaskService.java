@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.client.IConfigurationClient;
 import recipe.constant.*;
 import recipe.dao.*;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
@@ -66,6 +67,8 @@ public class RecipeTimedTaskService {
     private ISmsPushService smsPushService;
     @Autowired
     private RecipeParameterDao recipeParameterDao;
+    @Autowired
+    private IConfigurationClient configurationClient;
 
     /**
      * 定时任务 钥匙圈处方 配送中状态 持续一周后系统自动完成该笔业务
@@ -166,12 +169,8 @@ public class RecipeTimedTaskService {
         //设置查询时间段
         String endDt = DateConversion.getDateFormatter(time, DateConversion.DEFAULT_DATE_TIME);
         String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(1), DateConversion.DEFAULT_DATE_TIME);
-        String organListStr = recipeParameterDao.getByName("noNeedNoticeOrgan");
-        List<Integer> organList = new ArrayList<>();
-        if (StringUtils.isNotEmpty(organListStr)) {
-            organList = JSONUtils.parse(organListStr, List.class);
-            LOGGER.info("updateRecipeStatus organList:{}", JSON.toJSONString(organList));
-        }
+        List<Integer> organIdList = configurationClient.organIdList("remindPatientTakeMedicineFlag", "true");
+        LOGGER.info("updateRecipeStatus organIdList:{}", JSON.toJSONString(organIdList));
         List<Recipe> recipeList = recipeDAO.findRecipeListForStatus(RecipeStatusConstant.CHECKING_HOS, startDt, endDt);
         if (CollectionUtils.isNotEmpty(recipeList)) {
             PrescribeService prescribeService = ApplicationUtils.getRecipeService(
@@ -179,7 +178,7 @@ public class RecipeTimedTaskService {
             OrganService organService = BasicAPI.getService(OrganService.class);
             Map<String, String> otherInfo = Maps.newHashMap();
             for (Recipe recipe : recipeList) {
-                if (organList.contains(recipe.getClinicOrgan())) {
+                if (!organIdList.contains(recipe.getClinicOrgan())) {
                     continue;
                 }
                 //处方流转模式是否是互联网模式并且不是杭州互联网模式

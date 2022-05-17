@@ -2530,8 +2530,8 @@ public class RecipeOrderService extends RecipeBaseService {
             full = full.add(order.getRegisterFee());
         }
 
-        //代煎费
-        if (null != order.getDecoctionFee()) {
+        //代煎费 下载处方笺不计算代煎费
+        if (null != order.getDecoctionFee() && !payModeSupport.isSupportDownload()) {
             full = full.add(order.getDecoctionFee());
         }
 

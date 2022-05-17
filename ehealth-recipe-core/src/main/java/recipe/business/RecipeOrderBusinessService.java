@@ -320,8 +320,10 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             receiverInfo.setStreetCode(recipeOrder.getStreetAddress());
             receiverInfo.setStreet(street);
             receiverInfo.setAddress(recipeOrder.getAddress4());
-            receiverInfo.setProvinceCode(StringUtils.isNotEmpty(recipeOrder.getAddress1())?recipeOrder.getAddress1()+"0000":"");
-            receiverInfo.setCityCode(StringUtils.isNotEmpty(recipeOrder.getAddress2())?recipeOrder.getAddress2()+"00":"");
+            if (StringUtils.isNotEmpty(recipeOrder.getAddress1())) {
+                receiverInfo.setProvinceCode(StringUtils.isNotEmpty(recipeOrder.getAddress1())?recipeOrder.getAddress1()+"0000":"");
+                receiverInfo.setCityCode(StringUtils.isNotEmpty(recipeOrder.getAddress2())?recipeOrder.getAddress2()+"00":"");
+            }
             receiverInfo.setCommunityCode(ValidateUtil.isEmpty(recipeOrder.getAddress5()));
             receiverInfo.setCommunityName(ValidateUtil.isEmpty(recipeOrder.getAddress5Text()));
             downRecipeOrderVO.setReceiverInfo(receiverInfo);
@@ -343,6 +345,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 } else {
                     downRecipeVO.setSignFileUrl(fileImgUrl + recipe.getSignFile());
                 }
+                //设置订单的购药方式
+                downOrderVO.setGiveMode(recipe.getGiveMode());
                 //处方患者信息
                 PatientDTO patient = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
                 logger.info("ThirdEnterpriseCallService.downLoadRecipes patient:{} .", JSONUtils.toString(patient));
@@ -360,6 +364,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 List<Recipedetail> recipeDetailListFromMap = recipeDetailListMap.get(recipe.getRecipeId());
                 recipeDetailListFromMap.forEach(recipeDetail -> {
                     BaseRecipeDetailVO baseRecipeDetailVO = new BaseRecipeDetailVO();
+                    baseRecipeDetailVO.setUnit(recipeDetail.getDrugUnit());
                     ObjectCopyUtils.copyProperties(baseRecipeDetailVO, recipeDetail);
                     SaleDrugList saleDrugList = saleDrugListMap.get(recipeDetail.getDrugId());
                     if (null != saleDrugList) {
