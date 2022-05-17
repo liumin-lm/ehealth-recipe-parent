@@ -44,6 +44,9 @@ public class BaseRecipeDetailVO implements Serializable {
     @ItemProperty(alias = "药物单位")
     private String drugUnit;
 
+    @ItemProperty(alias = "药物单位")
+    private String unit;
+
     @ItemProperty(alias = "药物使用次剂量")
     private Double useDose;
 

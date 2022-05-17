@@ -362,6 +362,7 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
                 List<Recipedetail> recipeDetailListFromMap = recipeDetailListMap.get(recipe.getRecipeId());
                 recipeDetailListFromMap.forEach(recipeDetail -> {
                     BaseRecipeDetailVO baseRecipeDetailVO = new BaseRecipeDetailVO();
+                    baseRecipeDetailVO.setUnit(recipeDetail.getDrugUnit());
                     ObjectCopyUtils.copyProperties(baseRecipeDetailVO, recipeDetail);
                     SaleDrugList saleDrugList = saleDrugListMap.get(recipeDetail.getDrugId());
                     if (null != saleDrugList) {
