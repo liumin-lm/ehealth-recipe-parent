@@ -212,6 +212,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             drugNames.add(recipeDetailBean.getDrugName());
             drugIds.add(recipeDetailBean.getDrugId());
             Recipedetail recipedetail = new Recipedetail();
+            recipeDetailBean.setPharmacyId(drugQueryVO.getPharmacyId());
             BeanUtils.copy(recipeDetailBean, recipedetail);
             return recipedetail;
         }).collect(Collectors.toList());

@@ -98,6 +98,10 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
     private IStockBusinessService drugEnterpriseBusinessService;
     @Resource
     private DrugStockClient drugStockClient;
+    @Autowired
+    private RecipeDetailDAO recipeDetailDAO;
+    @Autowired
+    private PharmacyTcmDAO pharmacyTcmDAO;
 
     //手动推送给第三方
     @RpcService
@@ -278,25 +282,31 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
 
     private ScanRequestBean getScanRequestBean(Recipe recipe, DrugsEnterprise drugsEnterprise) {
         ScanRequestBean scanRequestBean = new ScanRequestBean();
-        SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
-        RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
-        List<Recipedetail> recipedetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+        List<Integer> drugIdList = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
+        List<SaleDrugList> saleDrugListList = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getOrganId(), drugIdList);
+        Map<Integer, SaleDrugList> saleDrugListMap = saleDrugListList.stream().collect(Collectors.toMap(SaleDrugList::getDrugId, a -> a, (k1, k2) -> k1));
+        Set<Integer> pharmacyIds = recipeDetails.stream().map(Recipedetail::getPharmacyId).collect(Collectors.toSet());
+        List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(pharmacyIds);
+        Map<Integer, PharmacyTcm> pharmacyTcmMap = pharmacyTcmByIds.stream().collect(Collectors.toMap(PharmacyTcm::getPharmacyId, a -> a, (k1, k2) -> k1));
         List<ScanDrugListBean> scanDrugListBeans = new ArrayList<>();
-        for (Recipedetail recipedetail : recipedetails) {
+        for (Recipedetail recipeDetail : recipeDetails) {
             ScanDrugListBean scanDrugListBean = new ScanDrugListBean();
-            SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(recipedetail.getDrugId(), drugsEnterprise.getId());
-            if (saleDrugList != null) {
-                scanDrugListBean.setDrugCode(saleDrugList.getOrganDrugCode());
-                scanDrugListBean.setTotal(recipedetail.getUseTotalDose().toString());
-                scanDrugListBean.setUnit(recipedetail.getDrugUnit());
-                scanDrugListBeans.add(scanDrugListBean);
+            if (null != saleDrugListMap && null != saleDrugListMap.get(recipeDetail.getDrugId())) {
+                scanDrugListBean.setDrugCode(saleDrugListMap.get(recipeDetail.getDrugId()).getOrganDrugCode());
             }
-            scanDrugListBean.setDrugSpec(recipedetail.getDrugSpec());
-            scanDrugListBean.setProducerCode(recipedetail.getProducerCode());
-            scanDrugListBean.setProducer(recipedetail.getProducer());
-            scanDrugListBean.setPharmacy(recipedetail.getPharmacyName());
-            scanDrugListBean.setName(recipedetail.getSaleName());
-            scanDrugListBean.setGname(recipedetail.getDrugName());
+            scanDrugListBean.setUnit(recipeDetail.getDrugUnit());
+            scanDrugListBean.setTotal(recipeDetail.getUseTotalDose().toString());
+            scanDrugListBean.setDrugId(recipeDetail.getDrugId());
+            scanDrugListBean.setDrugSpec(recipeDetail.getDrugSpec());
+            scanDrugListBean.setProducerCode(recipeDetail.getProducerCode());
+            scanDrugListBean.setProducer(recipeDetail.getProducer());
+            scanDrugListBean.setPharmacy(recipeDetail.getPharmacyName());
+            if (null != pharmacyTcmMap.get(recipeDetail.getPharmacyId())) {
+                scanDrugListBean.setPharmacy(pharmacyTcmMap.get(recipeDetail.getPharmacyId()).getPharmacyCode());
+            }
+            scanDrugListBean.setName(recipeDetail.getSaleName());
+            scanDrugListBean.setGname(recipeDetail.getDrugName());
             try {
                 RevisitExDTO revisitExDTO = revisitClient.getByClinicId(recipe.getClinicId());
                 if (revisitExDTO != null) {
@@ -305,6 +315,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             } catch (Exception e) {
                 LOGGER.error("queryPatientChannelId error:", e);
             }
+            scanDrugListBeans.add(scanDrugListBean);
         }
         scanRequestBean.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
         scanRequestBean.setScanDrugListBeans(scanDrugListBeans);

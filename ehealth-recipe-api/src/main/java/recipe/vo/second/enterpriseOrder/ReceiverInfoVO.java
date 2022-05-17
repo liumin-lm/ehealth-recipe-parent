@@ -29,7 +29,11 @@ public class ReceiverInfoVO implements Serializable {
     @ItemProperty(alias = "地址（区县）")
     private String district;
 
+    @ItemProperty(alias = "区县编码")
     private String districtCode;
+
+    @ItemProperty(alias = "街道编码")
+    private String streetCode;
 
     @ItemProperty(alias = "街道")
     private String street;
