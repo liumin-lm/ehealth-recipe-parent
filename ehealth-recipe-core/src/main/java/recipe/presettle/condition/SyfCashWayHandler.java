@@ -40,6 +40,11 @@ public class SyfCashWayHandler implements IOrderTypeConditionHandler{
             //说明不需要走邵逸支付
             return null;
         }
+        // 咨询默认走医院自费
+        if (BussSourceTypeEnum.BUSSSOURCE_CONSULT.getType().equals(request.getRecipe().getBussSource())) {
+            //自费结算
+            return RecipeOrderTypeEnum.HOSPITAL_SELF.getType();
+        }
         //查询复诊获取患者类型（自费or医保）
         RevisitExDTO revisitExDTO = revisitClient.getByClinicId(request.getRecipe().getClinicId());
         if(Objects.isNull(revisitExDTO)){
