@@ -182,6 +182,8 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
     private StateManager stateManager;
     @Autowired
     private OperationPlatformRecipeService operationPlatformRecipeService;
+    @Autowired
+    private RecipeParameterDao recipeParameterDao;
 
     @RpcService
     @Override
@@ -2435,12 +2437,18 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         if (getOnlineEffectiveRecipeFlag(bussSource, clinicId, statusCode)) {
             return true;
         }
-        try {
-            //线下有效处方的标志
-            FutureTask<Boolean> future = new FutureTask<>(() -> getOfflineEffectiveRecipeFlag(bussSource, clinicId));
-            return future.get(10L, TimeUnit.SECONDS);
-        } catch (Exception e) {
-            LOGGER.error("RemoteRecipeService judgeRecipeStatus error", e);
+        //加个配置项,以后无问题删除
+        String judgeRecipeStatus = recipeParameterDao.getByName("judgeRecipeStatus");
+        if (StringUtils.isEmpty(judgeRecipeStatus)) {
+            try {
+                //线下有效处方的标志
+                FutureTask<Boolean> future = new FutureTask<>(() -> getOfflineEffectiveRecipeFlag(bussSource, clinicId, 24));
+                return future.get(10L, TimeUnit.SECONDS);
+            } catch (Exception e) {
+                LOGGER.error("RemoteRecipeService judgeRecipeStatus error", e);
+            }
+        } else {
+            return getOfflineEffectiveRecipeFlag(bussSource, clinicId, 3);
         }
         return false;
     }
@@ -2452,7 +2460,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
      * @param clinicId   咨询/复诊单号
      * @return 是否可以取消复诊  true 不可以 false 可以
      */
-    private Boolean getOfflineEffectiveRecipeFlag(Integer bussSource, Integer clinicId) {
+    private Boolean getOfflineEffectiveRecipeFlag(Integer bussSource, Integer clinicId, Integer timeQuantum) {
         if (BussSourceTypeEnum.BUSSSOURCE_CONSULT.getType().equals(bussSource)) {
             //咨询获取不到挂号序号
             return false;
@@ -2467,9 +2475,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(revisitBean.getMpiid());
             List<QueryHisRecipResTO> totalHisRecipe = new ArrayList<>();
             //查询待缴费处方
-            HisResponseTO<List<QueryHisRecipResTO>> noPayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, 24, 1, "");
+            HisResponseTO<List<QueryHisRecipResTO>> noPayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, timeQuantum, 1, "");
             //查询已缴费处方
-            HisResponseTO<List<QueryHisRecipResTO>> havePayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, 24, 2, "");
+            HisResponseTO<List<QueryHisRecipResTO>> havePayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, timeQuantum, 2, "");
             if (null != noPayRecipe && null != noPayRecipe.getData()) {
                 totalHisRecipe.addAll(noPayRecipe.getData());
             }
