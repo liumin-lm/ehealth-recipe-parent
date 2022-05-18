@@ -123,7 +123,7 @@ public class StateManager extends BaseManager {
         Recipe updateRecipe = new Recipe();
         //  药师审核未通过 只要不是审核不通过
         if (  RecipeStateEnum.SUB_CANCELLATION_AUDIT_NOT_PASS != subState
-                && recipe.getAuditState().equals(RecipeAuditStateEnum.PENDING_REVIEW.getType())) {
+                && RecipeAuditStateEnum.PENDING_REVIEW.getType().equals(recipe.getAuditState())) {
             updateRecipe.setAuditState(RecipeAuditStateEnum.NO_REVIEW.getType());
         }
 
