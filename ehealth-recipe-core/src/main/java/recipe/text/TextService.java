@@ -74,6 +74,7 @@ public class TextService implements ITextService {
         recipeDetailList.forEach(recipeDetail -> {
             FastRecipeDetailVO fastRecipeDetailVO = new FastRecipeDetailVO();
             ObjectCopyUtils.copyProperties(fastRecipeDetailVO, recipeDetail);
+            fastRecipeDetailVO.setType(1);
             fastRecipeDetailList.add(fastRecipeDetailVO);
         });
         fastRecipeAndDetailResVO.setDetailBeanList(fastRecipeDetailList);

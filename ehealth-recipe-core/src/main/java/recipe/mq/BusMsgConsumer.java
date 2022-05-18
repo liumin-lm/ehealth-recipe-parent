@@ -79,6 +79,10 @@ public class BusMsgConsumer {
          */
         subscriber.attach(OnsConfig.recipeDelayTopic, RecipeSystemConstant.RECIPE_INVALID_TOPIC_TAG, new RecipeInvalidMsgConsumer());
 
+        /**
+         * 同步业务办理类型
+         */
+        subscriber.attach(OnsConfig.easyPayTopic, "recipe_easyPay_tag", new MqEasyPayConsumer());
         /*
         subscriber.attach(OnsConfig.hisCdrinfo, "recipeMedicalInfoFromHis",
                 new RecipeMedicalInfoFromHisObserver());*/
