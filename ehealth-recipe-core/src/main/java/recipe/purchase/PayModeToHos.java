@@ -36,6 +36,8 @@ import recipe.enumerate.type.RecipeSupportGiveModeEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
 import recipe.manager.OrganDrugListManager;
+import recipe.presettle.factory.OrderTypeFactory;
+import recipe.presettle.model.OrderTypeCreateConditionRequest;
 import recipe.service.RecipeOrderService;
 import recipe.util.DistanceUtil;
 import recipe.util.MapValueUtil;
@@ -81,6 +83,8 @@ public class PayModeToHos implements IPurchaseService {
     private PharmacyDAO pharmacyDAO;
     @Autowired
     private RecipeOrderService recipeOrderService;
+    @Autowired
+    private RecipeExtendDAO recipeExtendDAO;
 
     private static final Logger LOG = LoggerFactory.getLogger(PayModeToHos.class);
 
@@ -143,6 +147,15 @@ public class PayModeToHos implements IPurchaseService {
                     remoteService.setEnterpriseMsgToOrder(order, depId, extInfo);
                 }
             }
+            OrderTypeCreateConditionRequest orderTypeCreateConditionRequest = OrderTypeCreateConditionRequest.builder()
+                    .recipe(dbRecipes.get(0))
+                    .drugsEnterprise(dep)
+                    .recipeOrder(order)
+                    .recipeExtend(recipeExtendDAO.getByRecipeId(dbRecipes.get(0).getRecipeId()))
+                    .build();
+            Integer recipeOrderType = OrderTypeFactory.getRecipeOrderType(orderTypeCreateConditionRequest);
+            LOG.info("getOrderCreateResult.order recipeID={} recipeOrderType ={}", dbRecipes.get(0).getRecipeId(), recipeOrderType);
+            order.setOrderType(recipeOrderType);
         } else {
             // 到院取药校验机构库存
             List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIdLists);
