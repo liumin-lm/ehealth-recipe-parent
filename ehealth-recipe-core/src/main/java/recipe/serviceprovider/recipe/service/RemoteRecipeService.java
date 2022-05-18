@@ -69,6 +69,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import ctd.util.event.GlobalEventExecFactory;
 import eh.recipeaudit.api.IRecipeAuditService;
 import eh.recipeaudit.util.RecipeAuditAPI;
 import org.apache.commons.collections.CollectionUtils;
@@ -2442,13 +2443,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         if (StringUtils.isEmpty(judgeRecipeStatus)) {
             try {
                 //线下有效处方的标志
-                FutureTask<Boolean> future = new FutureTask<>(() -> getOfflineEffectiveRecipeFlag(bussSource, clinicId, 24));
+                FutureTask<Boolean> future = new FutureTask<>(() -> getOfflineEffectiveRecipeFlag(bussSource, clinicId, 1));
+                GlobalEventExecFactory.instance().getExecutor().submit(future);
                 return future.get(10L, TimeUnit.SECONDS);
             } catch (Exception e) {
                 LOGGER.error("RemoteRecipeService judgeRecipeStatus error", e);
             }
         } else {
-            return getOfflineEffectiveRecipeFlag(bussSource, clinicId, 3);
+            return getOfflineEffectiveRecipeFlag(bussSource, clinicId, 24);
         }
         return false;
     }
