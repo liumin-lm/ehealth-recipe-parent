@@ -229,10 +229,12 @@ public class OfflineRecipeClient extends BaseClient {
 
         QueryRecipeRequestTO queryRecipeRequestTo = new QueryRecipeRequestTO();
         queryRecipeRequestTo.setPatientInfo(patientBaseInfo);
-        //根据flag转化日期 1 代表一个月  3 代表三个月 6 代表6个月 23:代表3天
+        //根据flag转化日期 1 代表一个月  3 代表三个月 6 代表6个月 23:代表3天 24:代表7天
         if (timeQuantum != null) {
             if (new Integer(23).equals(timeQuantum)) {
                 queryRecipeRequestTo.setStartDate(DateConversion.getDateTimeDaysAgo(3));
+            } else if (new Integer(24).equals(timeQuantum)) {
+                queryRecipeRequestTo.setStartDate(DateConversion.getDateTimeDaysAgo(7));
             } else {
                 queryRecipeRequestTo.setStartDate(DateConversion.getMonthsAgo(timeQuantum));
             }

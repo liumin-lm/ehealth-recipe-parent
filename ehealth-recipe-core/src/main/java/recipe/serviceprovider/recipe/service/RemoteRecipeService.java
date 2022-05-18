@@ -121,6 +121,7 @@ import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 
@@ -2434,9 +2435,14 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
         if (getOnlineEffectiveRecipeFlag(bussSource, clinicId, statusCode)) {
             return true;
         }
-        //线下有效处方的标志
-        return getOfflineEffectiveRecipeFlag(bussSource, clinicId);
-
+        try {
+            //线下有效处方的标志
+            FutureTask<Boolean> future = new FutureTask<>(() -> getOfflineEffectiveRecipeFlag(bussSource, clinicId));
+            return future.get(10L, TimeUnit.SECONDS);
+        } catch (Exception e) {
+            LOGGER.error("RemoteRecipeService judgeRecipeStatus error", e);
+        }
+        return false;
     }
 
     /**
@@ -2461,9 +2467,9 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
             PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(revisitBean.getMpiid());
             List<QueryHisRecipResTO> totalHisRecipe = new ArrayList<>();
             //查询待缴费处方
-            HisResponseTO<List<QueryHisRecipResTO>> noPayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, null, 1, "");
+            HisResponseTO<List<QueryHisRecipResTO>> noPayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, 24, 1, "");
             //查询已缴费处方
-            HisResponseTO<List<QueryHisRecipResTO>> havePayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, null, 2, "");
+            HisResponseTO<List<QueryHisRecipResTO>> havePayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, 24, 2, "");
             if (null != noPayRecipe && null != noPayRecipe.getData()) {
                 totalHisRecipe.addAll(noPayRecipe.getData());
             }
