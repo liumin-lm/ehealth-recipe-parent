@@ -731,9 +731,9 @@ public class RecipeOrderService extends RecipeBaseService {
 
         // 更新处方代缴费用
         orderFeeManager.setRecipePaymentFee(order, recipeList);
+        order.setTotalFee(countOrderTotalFeeByRecipeInfo(order, firstRecipe, payModeSupport));
         // 上海外服第三方支付金额
         orderFeeManager.setSHWFAccountFee(order);
-        order.setTotalFee(countOrderTotalFeeByRecipeInfo(order, firstRecipe, payModeSupport));
         //判断计算扣掉运费的总金额----等于线下支付----总计要先算上运费，实际支付时再不支付运费
         BigDecimal totalFee;
         //配送到家并且线下支付
