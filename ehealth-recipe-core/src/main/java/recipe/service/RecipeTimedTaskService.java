@@ -169,7 +169,7 @@ public class RecipeTimedTaskService {
         //设置查询时间段
         String endDt = DateConversion.getDateFormatter(time, DateConversion.DEFAULT_DATE_TIME);
         String startDt = DateConversion.getDateFormatter(DateConversion.getDateTimeDaysAgo(1), DateConversion.DEFAULT_DATE_TIME);
-        List<Integer> organIdList = configurationClient.organIdList("remindPatientTakeMedicineFlag", "true");
+        List<Integer> organIdList = configurationClient.organIdList("noNeedNoticeOrganFlag", "true");
         LOGGER.info("updateRecipeStatus organIdList:{}", JSON.toJSONString(organIdList));
         List<Recipe> recipeList = recipeDAO.findRecipeListForStatus(RecipeStatusConstant.CHECKING_HOS, startDt, endDt);
         if (CollectionUtils.isNotEmpty(recipeList)) {
