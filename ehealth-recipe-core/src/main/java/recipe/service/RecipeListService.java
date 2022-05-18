@@ -53,6 +53,7 @@ import recipe.client.IConfigurationClient;
 import recipe.client.PatientClient;
 import recipe.constant.*;
 import recipe.dao.*;
+import recipe.dao.bean.FindHistoryRecipeListBean;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.dao.bean.RecipeListBean;
 import recipe.dao.bean.RecipeRollingInfo;
@@ -68,6 +69,7 @@ import recipe.util.DictionaryUtil;
 import recipe.util.MapValueUtil;
 
 import javax.annotation.Resource;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Future;
@@ -533,7 +535,7 @@ public class RecipeListService extends RecipeBaseService {
 
     /**
      * 获取历史处方
-     *
+     * new method:findHistoryRecipeListV2
      * @param consultId
      * @param organId
      * @param doctorId
@@ -541,6 +543,7 @@ public class RecipeListService extends RecipeBaseService {
      * @return
      */
     @RpcService
+    @Deprecated
     public List<Map<String, Object>> findHistoryRecipeList(Integer consultId, Integer organId, Integer doctorId, String mpiId) {
         LOGGER.info("findHistoryRecipeList consultId={}, organId={},doctorId={},mpiId={}", consultId, organId, doctorId, mpiId);
         ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
@@ -587,6 +590,71 @@ public class RecipeListService extends RecipeBaseService {
             LOGGER.error("findHistoryRecipeList dealRepeatDataAndSort", e);
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
+    }
+
+    /**
+     * 获取历史处理记录列表
+     * @param param
+     * @return
+     */
+    @RpcService
+    public List<Map<String, Object>> findHistoryRecipeListV2(FindHistoryRecipeListBean param) {
+        LOGGER.info("findHistoryRecipeList param", JSONUtils.toString(param));
+        obtainFindHistoryRecipeListV2Param(param);
+        Integer organId=param.getOrganId();
+        String mpiId=param.getMpiId();
+        ICurrentUserInfoService currentUserInfoService = AppDomainContext.getBean("eh.remoteCurrentUserInfoService", ICurrentUserInfoService.class);
+        Map<String, Object> upderLineRecipesByHis = new ConcurrentHashMap<>();
+        Future<Map<String, Object>> hisTask = null;
+        RecipePreserveService recipeService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
+        if (!("patient".equals(UserRoleToken.getCurrent().getRoleId()))) {
+            //医生端逻辑照旧
+            hisTask = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
+                return recipeService.getHosRecipeListV2(param);
+            });
+        } else {
+            //患者端如果公众号是区域公众号则需查询该区域公众号下所有机构线下处方
+            List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
+            LOGGER.info("findHistoryRecipeList organId:{},mpiId:{}, organIds:{}", organId, mpiId, JSONUtils.toString(organIds));
+            hisTask = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
+                return recipeService.getHosRecipeListV2(param);
+            });
+        }
+        //从Recipe表获取线上、线下处方
+        List<Map<String, Object>> onLineAndUnderLineRecipesByRecipe = new ArrayList<>();
+        try {
+            onLineAndUnderLineRecipesByRecipe = findRecipeListByDoctorAndPatientV2(param);
+            LOGGER.info("findHistoryRecipeList 从recipe表获取处方信息success:{}", onLineAndUnderLineRecipesByRecipe);
+        } catch (Exception e) {
+            LOGGER.info("findHistoryRecipeList 从recipe表获取处方信息error:{}", e);
+        }
+
+        try {
+            upderLineRecipesByHis = hisTask.get(5000, TimeUnit.MILLISECONDS);
+            LOGGER.info("findHistoryRecipeList 从his获取已缴费处方信息:{}", JSONUtils.toString(upderLineRecipesByHis));
+        } catch (Exception e) {
+            e.printStackTrace();
+            LOGGER.error("findHistoryRecipeList hisTask exception:{}", e.getMessage(), e);
+        }
+
+        //过滤重复数据并重新排序
+        try {
+            List<Map<String, Object>> res = dealRepeatDataAndSort(onLineAndUnderLineRecipesByRecipe, upderLineRecipesByHis);
+            //返回结果集
+            LOGGER.info("findHistoryRecipeList res:{}", JSONUtils.toString(res));
+            return res;
+        } catch (Exception e) {
+            LOGGER.error("findHistoryRecipeList dealRepeatDataAndSort", e);
+            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+        }
+    }
+
+    private void obtainFindHistoryRecipeListV2Param(FindHistoryRecipeListBean param) {
+        if(StringUtils.isEmpty(param.getEndDate())){
+            param.setEndDate(new SimpleDateFormat(DateConversion.DEFAULT_DATETIME_WITHSECOND).format(new Date()));
+        }
+        param.setStart(0);
+        param.setLimit(10000);
     }
 
     /**
@@ -670,7 +738,7 @@ public class RecipeListService extends RecipeBaseService {
 
     /**
      * 查找指定医生和患者间开的处方单列表
-     *
+     * new method:findRecipeListByDoctorAndPatientV2
      * @param doctorId
      * @param mpiId
      * @param start
@@ -678,19 +746,39 @@ public class RecipeListService extends RecipeBaseService {
      * @return
      */
     @RpcService
+    @Deprecated
     public List<Map<String, Object>> findRecipeListByDoctorAndPatient(Integer doctorId, String mpiId, int start, int limit) {
         //checkUserHasPermissionByDoctorId(doctorId);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         //List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId, mpiId, start, limit);
         //修改逻辑历史处方中获取的处方列表：只显示未处理、未支付、审核不通过、失败、已完成状态的
-        List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatientAndStatusList(doctorId, mpiId, start, limit, new ArrayList<>(Arrays.asList(HistoryRecipeListShowStatusList)));
+        List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatientAndStatusList(doctorId, mpiId, start, limit, new ArrayList<>(Arrays.asList(HistoryRecipeListShowStatusList)),null,null);
         LOGGER.info("findRecipeListByDoctorAndPatient mpiId:{} ,recipes:{} ", mpiId, JSONUtils.toString(recipes));
         PatientVO patient = RecipeServiceSub.convertSensitivePatientForRAP(patientService.get(mpiId));
         LOGGER.info("findRecipeListByDoctorAndPatient mpiId:{} ,patient:{} ", mpiId, JSONUtils.toString(patient));
         return instanceRecipesAndPatientNew(recipes, patient);
     }
 
+
+    /**
+     * 查找指定医生和患者间开的处方单列表
+     * @param param
+     * @return
+     */
+    @LogRecord
+    public List<Map<String, Object>> findRecipeListByDoctorAndPatientV2(FindHistoryRecipeListBean param) {
+        //checkUserHasPermissionByDoctorId(doctorId);
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        //List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId, mpiId, start, limit);
+        //修改逻辑历史处方中获取的处方列表：只显示未处理、未支付、审核不通过、失败、已完成状态的
+        List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatientAndStatusList(param.getDoctorId(), param.getMpiId(), param.getStart(), param.getLimit(), new ArrayList<>(Arrays.asList(HistoryRecipeListShowStatusList)),param.getStartDate(),param.getEndDate());
+        LOGGER.info("findRecipeListByDoctorAndPatient mpiId:{} ,recipes:{} ", param.getMpiId(), JSONUtils.toString(recipes));
+        PatientVO patient = RecipeServiceSub.convertSensitivePatientForRAP(patientService.get(param.getMpiId()));
+        LOGGER.info("findRecipeListByDoctorAndPatient mpiId:{} ,patient:{} ", param.getMpiId(), JSONUtils.toString(patient));
+        return instanceRecipesAndPatientNew(recipes, patient);
+    }
 
     /**
      * 获取返回对象

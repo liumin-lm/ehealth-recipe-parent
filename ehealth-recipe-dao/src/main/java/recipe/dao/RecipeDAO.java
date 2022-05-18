@@ -3241,17 +3241,30 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param limit
      * @return
      */
-    public List<Recipe> findRecipeListByDoctorAndPatientAndStatusList(final Integer doctorId, final String mpiId, final Integer start, final Integer limit, final List<Integer> statusList) {
+    public List<Recipe> findRecipeListByDoctorAndPatientAndStatusList(final Integer doctorId, final String mpiId, final Integer start, final Integer limit, final List<Integer> statusList,String startDate,String endDate) {
         Long beginTime = new Date().getTime();
         HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
             @Override
             public void execute(StatelessSession ss) throws Exception {
                 String hql = "from Recipe where mpiid=:mpiid  ";
+                if (org.apache.commons.lang3.StringUtils.isNotEmpty(startDate)) {
+                    hql += " and  createDate>= :startTime";
+                }
+                if (org.apache.commons.lang3.StringUtils.isNotEmpty(endDate)) {
+                    hql += " and createDate <= :endTime";
+                }
                 if (doctorId != null) {
                     hql += " and doctor=:doctor";
                 }
                 hql += " and status IN (:statusList) and recipeSourceType != 3 order by createDate desc ";
                 Query query = ss.createQuery(hql);
+                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                if (!com.alibaba.druid.util.StringUtils.isEmpty(startDate)) {
+                    query.setTimestamp("startTime", sdf.parse(startDate));
+                }
+                if (!com.alibaba.druid.util.StringUtils.isEmpty(endDate)) {
+                    query.setTimestamp("endTime", sdf.parse(endDate));
+                }
                 if (doctorId != null) {
                     query.setParameter("doctor", doctorId);
                 }

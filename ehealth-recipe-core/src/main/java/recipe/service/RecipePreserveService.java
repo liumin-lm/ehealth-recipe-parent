@@ -45,6 +45,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.audit.IAuditMode;
 import recipe.audit.auditmode.AuditModeContext;
 import recipe.bean.DrugEnterpriseResult;
@@ -54,6 +55,7 @@ import recipe.constant.CacheConstant;
 import recipe.dao.DrugListDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.RecipeDAO;
+import recipe.dao.bean.FindHistoryRecipeListBean;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.hisservice.RecipeToHisService;
 import recipe.mq.RecipeStatusFromHisObserver;
@@ -64,6 +66,8 @@ import recipe.util.MapValueUtil;
 import recipe.util.RedisClient;
 
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
@@ -204,6 +208,15 @@ public class RecipePreserveService {
         return upderLineRecipesByHis;
     }
 
+    /**
+     * new method getHosRecipeListV2
+     * @param consultId
+     * @param organId
+     * @param mpiId
+     * @param daysAgo
+     * @return
+     */
+    @Deprecated
     @RpcService
     public Map<String, Object> getHosRecipeList(Integer consultId, Integer organId, String mpiId, Integer daysAgo) {
         LOGGER.info("getHosRecipeList consultId={}, organId={},mpiId={}", consultId, organId, mpiId);
@@ -242,6 +255,161 @@ public class RecipePreserveService {
 
         Date endDate = DateTime.now().toDate();
         Date startDate = DateConversion.getDateTimeDaysAgo(daysAgo);
+
+        IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
+        QueryRecipeRequestTO request = new QueryRecipeRequestTO();
+        PatientBaseInfo patientBaseInfo = new PatientBaseInfo();
+        patientBaseInfo.setPatientName(patientDTO.getPatientName());
+        //福建省立需要传输的就诊卡号
+        patientBaseInfo.setPatientID(cardId);
+        patientBaseInfo.setCertificate(patientDTO.getCertificate());
+        patientBaseInfo.setCertificateType(patientDTO.getCertificateType());
+        patientBaseInfo.setCardID(cardId);
+        patientBaseInfo.setCardType(cardType);
+        patientBaseInfo.setAgeString(patientDTO.getAgeString());
+        String cityCardNumber = healthCardService.getMedicareCardId(mpiId, organId);
+        if (StringUtils.isNotEmpty(cityCardNumber)) {
+            patientBaseInfo.setCityCardNumber(cityCardNumber);
+        }
+        request.setPatientInfo(patientBaseInfo);
+        request.setStartDate(startDate);
+        request.setEndDate(endDate);
+        request.setOrgan(organId);
+        request.setQueryType(2);
+        LOGGER.info("getHosRecipeList request={}", JSONUtils.toString(request));
+        QueryRecipeResponseTO response = null;
+        try {
+            response = hisService.queryRecipeListInfo(request);
+        } catch (Exception e) {
+            LOGGER.warn("getHosRecipeList his error. ", e);
+        }
+        LOGGER.info("getHosRecipeList res={}", JSONUtils.toString(response));
+        if(null == response){
+            return result;
+        }
+        List<RecipeInfoTO> data = response.getData();
+        //转换平台字段
+        if (CollectionUtils.isEmpty(data)){
+            return result;
+        }
+        List<HisRecipeBean> recipes = Lists.newArrayList();
+        //默认西药
+        Integer recipeType = 1;
+        for (RecipeInfoTO recipeInfoTO: data){
+            HisRecipeBean recipeBean = ObjectCopyUtils.convert(recipeInfoTO, HisRecipeBean.class);
+            recipeBean.setSignDate(recipeInfoTO.getSignTime());
+            recipeBean.setOrganDiseaseName(recipeInfoTO.getDiseaseName());
+            recipeBean.setDepartText(recipeInfoTO.getDepartName());
+            recipeBean.setCopyNum(recipeInfoTO.getCopyNum()==null?0:recipeInfoTO.getCopyNum());
+            recipeBean.setRecipeMemo(StringUtils.isEmpty(recipeInfoTO.getRecipeMemo())?"":recipeInfoTO.getRecipeMemo());
+            RecipeExtendBean recipeExtend = new RecipeExtendBean();
+            if (recipeInfoTO.getRecipeExtendBean() != null) {
+                recipeExtend.setDecoctionCode(recipeInfoTO.getRecipeExtendBean().getDecoctionCode());
+                recipeExtend.setDecoctionText(recipeInfoTO.getRecipeExtendBean().getDecoctionText());
+                recipeExtend.setJuice(recipeInfoTO.getRecipeExtendBean().getJuice());
+                recipeExtend.setJuiceUnit(recipeInfoTO.getRecipeExtendBean().getJuiceUnit());
+                recipeExtend.setMakeMethod(recipeInfoTO.getRecipeExtendBean().getMakeMethod());
+                recipeExtend.setMakeMethodText(recipeInfoTO.getRecipeExtendBean().getMakeMethodText());
+                recipeExtend.setIllnessType(recipeInfoTO.getRecipeExtendBean().getIllnessType());
+                recipeExtend.setIllnessName(recipeInfoTO.getRecipeExtendBean().getIllnessName());
+                //TODO everyTcmNumFre 线下处方
+//                recipeExtend.setEveryTcmNumFre(recipeInfoTO.getRecipeExtendBean().getEveryTcmNumFre());
+                recipeExtend.setMinor(recipeInfoTO.getRecipeExtendBean().getMinor());
+                recipeExtend.setMinorUnit(recipeInfoTO.getRecipeExtendBean().getMinorUnit());
+            } else {
+                recipeExtend.setDecoctionText("");
+                recipeExtend.setJuice("");
+                recipeExtend.setJuiceUnit("");
+                recipeExtend.setMakeMethodText("");
+                recipeExtend.setEveryTcmNumFre("");
+                recipeExtend.setMinor("");
+                recipeExtend.setMinorUnit("");
+            }
+            recipeBean.setRecipeExtend(recipeExtend);
+            List<RecipeDetailTO> detailData = recipeInfoTO.getDetailData();
+            List<HisRecipeDetailBean> hisRecipeDetailBeans = Lists.newArrayList();
+            try {
+                recipeType = Integer.valueOf(recipeBean.getRecipeType());
+            } catch (NumberFormatException e) {
+                LOGGER.error("getHosRecipeList recipeType trans error", e);
+            }
+            //药品名拼接配置
+            Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, recipeType));
+            for (RecipeDetailTO recipeDetailTO: detailData){
+                HisRecipeDetailBean detailBean = ObjectCopyUtils.convert(recipeDetailTO, HisRecipeDetailBean.class);
+                detailBean.setDrugUnit(recipeDetailTO.getUnit());
+                detailBean.setUsingRateText(recipeDetailTO.getUsingRate());
+                detailBean.setUsePathwaysText(recipeDetailTO.getUsePathWays());
+                detailBean.setUseDays(recipeDetailTO.getDays());
+                detailBean.setUseTotalDose(recipeDetailTO.getAmount());
+                detailBean.setDrugSpec(recipeDetailTO.getDrugSpec());
+                detailBean.setPharmacyCode(recipeDetailTO.getPharmacyCode());
+                detailBean.setUsingRate(recipeDetailTO.getUsingRateCode());
+                detailBean.setUsePathways(recipeDetailTO.getUsePathwaysCode());
+                detailBean.setUseDose(recipeDetailTO.getUseDose());
+                detailBean.setUseDoseUnit(recipeDetailTO.getUseDoseUnit());
+                detailBean.setDrugForm(recipeDetailTO.getDrugForm());
+                detailBean.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(detailBean, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
+                hisRecipeDetailBeans.add(detailBean);
+            }
+            recipeBean.setDetailData(hisRecipeDetailBeans);
+            recipeBean.setClinicOrgan(organId);
+            recipeBean.setOrganName(organDTO.getShortName());
+            recipes.add(recipeBean);
+        }
+        result.put("hisRecipe",recipes);
+        result.put("patient",convertSensitivePatientForRAP(patientDTO));
+        return result;
+    }
+
+    @LogRecord
+    public Map<String, Object> getHosRecipeListV2(FindHistoryRecipeListBean param) throws ParseException {
+        LOGGER.info("getHosRecipeListV2 param:{}", JSONUtils.toString(param));
+        Integer consultId=param.getConsultId();
+        Integer organId=param.getOrganId();
+        String mpiId=param.getMpiId();
+        String startDateStr=param.getStartDate();
+        String endDateStr=param.getEndDate();
+        PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
+        HealthCardService healthCardService = ApplicationUtils.getBasicService(HealthCardService.class);
+        Map<String, Object> result = Maps.newHashMap();
+        PatientDTO patientDTO = patientService.get(mpiId);
+        if (patientDTO == null) {
+            throw new DAOException(609, "找不到该患者");
+        }
+        OrganService organService = ApplicationUtils.getBasicService(OrganService.class);
+        OrganDTO organDTO = organService.getByOrganId(organId);
+        if (organDTO == null) {
+            throw new DAOException(609, "找不到该机构");
+        }
+        String cardId = null;
+        String cardType = null;
+        IRevisitService iRevisitService = RevisitAPI.getService(IRevisitService.class);
+        if (consultId == null) {
+            List<RevisitBean> revisitBeans = iRevisitService.findConsultByMpiId(Arrays.asList(mpiId));
+            if (CollectionUtils.isNotEmpty(revisitBeans)) {
+                consultId = revisitBeans.get(0).getConsultId();
+            }
+        }
+        if (consultId != null) {
+            RevisitBean revisitBean = iRevisitService.getById(consultId);
+            if (null != revisitBean) {
+                IRevisitExService exService = RevisitAPI.getService(IRevisitExService.class);
+                RevisitExDTO consultExDTO = exService.getByConsultId(consultId);
+                if (null != consultExDTO && StringUtils.isNotEmpty(consultExDTO.getCardId())) {
+                    cardId = consultExDTO.getCardId();
+                    cardType = consultExDTO.getCardType();
+                }
+            }
+        }
+
+        Date endDate = new SimpleDateFormat(DateConversion.DEFAULT_DATETIME_WITHSECOND).parse(endDateStr);
+        Date startDate ;
+        if(StringUtils.isEmpty(startDateStr)){
+             startDate =DateConversion.getDateTimeDaysAgo(180);
+        }else{
+             startDate = new SimpleDateFormat(DateConversion.DEFAULT_DATETIME_WITHSECOND).parse(startDateStr);
+        }
 
         IRecipeHisService hisService = AppDomainContext.getBean("his.iRecipeHisService", IRecipeHisService.class);
         QueryRecipeRequestTO request = new QueryRecipeRequestTO();
