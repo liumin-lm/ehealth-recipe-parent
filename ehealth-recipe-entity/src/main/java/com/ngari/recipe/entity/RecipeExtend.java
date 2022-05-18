@@ -233,6 +233,9 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "大病类型名称")
     private String illnessName;
 
+    @ItemProperty(alias = "业务办理类型 2父母 3子女 4自愿者代办")
+    private String handleType;
+
     @Column(name = "illness_name")
     public String getIllnessName() {
         return illnessName;
@@ -909,5 +912,14 @@ public class RecipeExtend implements Serializable {
 
     public void setSignFailReason(String signFailReason) {
         this.signFailReason = signFailReason;
+    }
+
+    @Column(name = "handle_type")
+    public String getHandleType() {
+        return handleType;
+    }
+
+    public void setHandleType(String handleType) {
+        this.handleType = handleType;
     }
 }

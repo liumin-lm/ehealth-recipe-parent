@@ -33,6 +33,8 @@ public class OnsConfig {
 
     public static String kafkaGroup;
 
+    public static String easyPayTopic;
+
 
     /**
      * 药品topic
@@ -95,5 +97,7 @@ public class OnsConfig {
         OnsConfig.sessionTopic = sessionTopic;
     }
 
-
+    public void setEasyPayTopic(String easyPayTopic) {
+        OnsConfig.easyPayTopic = easyPayTopic;
+    }
 }

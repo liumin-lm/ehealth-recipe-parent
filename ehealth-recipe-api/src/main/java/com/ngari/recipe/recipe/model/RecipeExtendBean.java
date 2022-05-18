@@ -216,6 +216,9 @@ public class RecipeExtendBean implements Serializable {
     @ItemProperty(alias = "大病类型名称")
     private String illnessName;
 
+    @ItemProperty(alias = "业务办理类型 2父母 3子女 4自愿者代办")
+    private String handleType;
+
     public String getIllnessName() {
         return illnessName;
     }
@@ -786,5 +789,13 @@ public class RecipeExtendBean implements Serializable {
 
     public void setMedicalRecordNumber(String medicalRecordNumber) {
         this.medicalRecordNumber = medicalRecordNumber;
+    }
+
+    public String getHandleType() {
+        return handleType;
+    }
+
+    public void setHandleType(String handleType) {
+        this.handleType = handleType;
     }
 }
