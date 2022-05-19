@@ -284,7 +284,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         ScanRequestBean scanRequestBean = new ScanRequestBean();
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
         List<Integer> drugIdList = recipeDetails.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
-        List<SaleDrugList> saleDrugListList = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getOrganId(), drugIdList);
+        List<SaleDrugList> saleDrugListList = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugIdList);
         Map<Integer, SaleDrugList> saleDrugListMap = saleDrugListList.stream().collect(Collectors.toMap(SaleDrugList::getDrugId, a -> a, (k1, k2) -> k1));
         Set<Integer> pharmacyIds = recipeDetails.stream().map(Recipedetail::getPharmacyId).collect(Collectors.toSet());
         List<PharmacyTcm> pharmacyTcmByIds = pharmacyTcmDAO.getPharmacyTcmByIds(pharmacyIds);
