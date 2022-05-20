@@ -21,7 +21,6 @@ import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
-import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -40,7 +39,6 @@ import recipe.dao.*;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
-import recipe.manager.EmrRecipeManager;
 import recipe.manager.RecipeManager;
 import recipe.manager.RevisitManager;
 import recipe.service.*;
@@ -515,12 +513,12 @@ public class RecipeSignService {
     @RpcService
     public boolean hisRecipeCheck(Map<String, Object> rMap, RecipeBean recipeBean) {
         //判断机构是否需要his处方检查 ---运营平台机构配置
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
-        Recipe recipeNew = new Recipe();
-        BeanUtils.copy(recipeBean, recipeNew);
-        EmrRecipeManager.getMedicalInfo(recipeNew, recipeExtend);
-        recipeBean.setOrganDiseaseName(recipeNew.getOrganDiseaseName());
-        recipeBean.setOrganDiseaseId(recipeNew.getOrganDiseaseId());
+//        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
+//        Recipe recipeNew = new Recipe();
+//        BeanUtils.copy(recipeBean, recipeNew);
+//        EmrRecipeManager.getMedicalInfo(recipeNew, recipeExtend);
+//        recipeBean.setOrganDiseaseName(recipeNew.getOrganDiseaseName());
+//        recipeBean.setOrganDiseaseId(recipeNew.getOrganDiseaseId());
 
         try {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
