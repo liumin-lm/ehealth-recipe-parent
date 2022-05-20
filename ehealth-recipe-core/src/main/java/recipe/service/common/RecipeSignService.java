@@ -21,6 +21,7 @@ import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
+import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -39,6 +40,7 @@ import recipe.dao.*;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
+import recipe.manager.EmrRecipeManager;
 import recipe.manager.RecipeManager;
 import recipe.manager.RevisitManager;
 import recipe.service.*;
@@ -477,12 +479,12 @@ public class RecipeSignService {
             }
         }
         //判断机构是否需要his处方检查 ---运营平台机构配置
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
         Recipe recipeNew = new Recipe();
         BeanUtils.copy(recipeBean, recipeNew);
         EmrRecipeManager.getMedicalInfo(recipeNew, recipeExtend);
-        recipe.setOrganDiseaseName(recipeNew.getOrganDiseaseName());
-        recipe.setOrganDiseaseId(recipeNew.getOrganDiseaseId());
+        recipeBean.setOrganDiseaseName(recipeNew.getOrganDiseaseName());
+        recipeBean.setOrganDiseaseId(recipeNew.getOrganDiseaseId());
         recipeBean.setSubState(RecipeStateEnum.NONE.getType());
         recipeBean.setProcessState(RecipeStateEnum.NONE.getType());
         recipeBean.setStatus(RecipeStatusConstant.UNSIGN);
