@@ -4,12 +4,11 @@ import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.opbase.base.mode.OrganDictionaryItemDTO;
 import com.ngari.recipe.dto.ValidateOrganDrugDTO;
-import com.ngari.recipe.entity.DecoctionWay;
-import com.ngari.recipe.entity.DrugEntrust;
-import com.ngari.recipe.entity.DrugMakingMethod;
-import com.ngari.recipe.entity.OrganDrugList;
+import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeExtendBean;
+import ctd.persistence.exception.DAOException;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -19,10 +18,12 @@ import org.springframework.stereotype.Service;
 import recipe.bussutil.RecipeUtil;
 import recipe.client.IConfigurationClient;
 import recipe.client.OperationClient;
+import recipe.constant.ErrorCode;
 import recipe.dao.DrugDecoctionWayDao;
 import recipe.dao.DrugMakingMethodDao;
 import recipe.manager.DrugManager;
 import recipe.manager.OrganDrugListManager;
+import recipe.manager.RevisitManager;
 import recipe.util.ValidateUtil;
 
 import java.util.List;
@@ -47,6 +48,8 @@ public class RecipeDetailValidateTool {
     private IConfigurationClient configurationClient;
     @Autowired
     private OperationClient operationClient;
+    @Autowired
+    private RevisitManager revisitManager;
 
     /**
      * 患者选择煎法
@@ -248,6 +251,30 @@ public class RecipeDetailValidateTool {
         drugMakingMethod = mapText.get(recipeExtendBean.getMakeMethodText());
         if (StringUtils.isNotEmpty(recipeExtendBean.getMakeMethodText())) {
             drugMakingMethod(drugMakingMethod, recipeExtendBean);
+        }
+    }
+
+    /**
+     * 一张医保处方最多开几个中成药
+     *
+     * @param recipeBean
+     * @param detailBeanList
+     */
+    public void validateMedicalChineDrugNumber(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
+        if (ValidateUtil.integerIsEmpty(recipeBean.getMedicalFlag())) {
+            Integer medicalFlag = revisitManager.medicalFlag(recipeBean.getClinicId(), recipeBean.getBussSource());
+            if (ValidateUtil.integerIsEmpty(medicalFlag)) {
+                return;
+            }
+        }
+        Integer medicalChineDrugNumber = configurationClient.getValueCatchReturnInteger(recipeBean.getClinicOrgan(), "medicalChineDrugNumber", 5);
+        List<Integer> drugIds = detailBeanList.stream().map(RecipeDetailBean::getDrugId).collect(Collectors.toList());
+        List<DrugList> drugList = drugManager.drugList(drugIds, 2);
+        if (CollectionUtils.isEmpty(drugList)) {
+            return;
+        }
+        if (drugList.size() > medicalChineDrugNumber) {
+            throw new DAOException(ErrorCode.SERVICE_ERROR, "中成药最多开具" + medicalChineDrugNumber + "个");
         }
     }
 

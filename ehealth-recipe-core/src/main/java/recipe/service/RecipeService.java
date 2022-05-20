@@ -111,6 +111,7 @@ import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
 import recipe.dao.bean.PatientRecipeBean;
 import recipe.drugTool.service.DrugToolService;
+import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.drugsenterprise.AccessDrugEnterpriseService;
 import recipe.drugsenterprise.HdRemoteService;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
@@ -164,9 +165,6 @@ public class RecipeService extends RecipeBaseService {
     private static final Logger LOGGER = LoggerFactory.getLogger(RecipeService.class);
 
     private static List<String> beforeCAList = Arrays.asList("gdsign", "gdsign|2", "jiangsuCA", "beijingCA", "bjYwxCA");
-
-
-    private static final String EXTEND_VALUE_FLAG = "1";
 
     public static final String KEY_THE_DRUG_SYNC = "THE_DRUG_SYNC";
 
@@ -248,7 +246,7 @@ public class RecipeService extends RecipeBaseService {
     @Autowired
     private DepartManager departManager;
     @Autowired
-    private DrugDecoctionWayDao drugDecoctionWayDao;
+    private RecipeDetailValidateTool recipeDetailValidateTool;
     @Autowired
     private DocIndexClient docIndexClient;
     @Autowired
@@ -1456,17 +1454,6 @@ public class RecipeService extends RecipeBaseService {
             resultBean.setMsg("已重新提交医院系统");
         }
         LOGGER.info("sendNewRecipeToHIS before His! dbRecipe={}", JSONUtils.toString(recipe));
-        //HIS消息发送
-//        RecipeResultBean scanResult = hisService.scanDrugStockByRecipeId(recipeId);
-//        if (RecipeResultBean.FAIL.equals(scanResult.getCode())) {
-//            resultBean.setCode(scanResult.getCode());
-//            resultBean.setMsg(scanResult.getError());
-//            if (EXTEND_VALUE_FLAG.equals(scanResult.getExtendValue())) {
-//                resultBean.setError(scanResult.getError());
-//            }
-//            return resultBean;
-//        }
-
         hisService.recipeSendHis(recipeId, null);
         return resultBean;
     }
@@ -1483,6 +1470,7 @@ public class RecipeService extends RecipeBaseService {
     @LogRecord
     public Map<String, Object> doSignRecipeNew(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, int continueFlag) {
         LOGGER.info("RecipeService.doSignRecipeNew param: recipeBean={} detailBean={} continueFlag={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList), continueFlag);
+        recipeDetailValidateTool.validateMedicalChineDrugNumber(recipeBean, detailBeanList);
         //将密码放到redis中
         redisClient.set("caPassword", recipeBean.getCaPassword());
         Map<String, Object> rMap = new HashMap<String, Object>();
@@ -1560,28 +1548,6 @@ public class RecipeService extends RecipeBaseService {
         handleRecipeInvalidTime(recipeBean.getClinicOrgan(), recipeBean.getRecipeId(), recipeBean.getSignDate());
         revisitManager.saveRevisitTracesList(recipeDAO.get(recipeBean.getRecipeId()));
         return rMap;
-    }
-
-
-    /**
-     * 校验处方扩展信息
-     *
-     * @param recipeBean 处方扩展信息
-     */
-    private void validateRecipeExtData(RecipeBean recipeBean) {
-        //校验中草药当配置为医生端选择煎法时，煎法为必填项
-        if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipeBean.getRecipeType())) {
-            List<DecoctionWay> decoctionWays = drugDecoctionWayDao.findByOrganId(recipeBean.getClinicOrgan());
-            if (CollectionUtils.isEmpty(decoctionWays)) {
-                return;
-            }
-            IConfigurationClient configurationClient = AppContextHolder.getBean("IConfigurationClient", IConfigurationClient.class);
-            String decoctionDeploy = configurationClient.getValueEnumCatch(recipeBean.getClinicOrgan(), "decoctionDeploy", null);
-            if (DecoctionDeployTypeEnum.DECOCTION_DEPLOY_DOCTOR.getType().equals(decoctionDeploy) && null == recipeBean.getRecipeExtend().getDecoctionId()) {
-                //表示配置为医生选择，则必须要传煎法
-                throw new DAOException(recipe.constant.ErrorCode.SERVICE_ERROR, "中草药医生选择煎法不能为空");
-            }
-        }
     }
 
     /**

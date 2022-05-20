@@ -8,7 +8,6 @@ import com.ngari.base.dto.UsingRateDTO;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
-import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
@@ -449,6 +448,23 @@ public class DrugManager extends BaseManager {
             return new LinkedList<>();
         }
         List<DrugList> drugs = drugListDAO.findByDrugIds(drugIds);
+        if (CollectionUtils.isEmpty(drugs)) {
+            return new LinkedList<>();
+        }
+        return drugs;
+    }
+
+    /**
+     * 根据ID获取平台药品列表
+     *
+     * @param drugIds 平台药品id
+     * @return
+     */
+    public List<DrugList> drugList(List<Integer> drugIds, Integer drugType) {
+        if (CollectionUtils.isEmpty(drugIds)) {
+            return new LinkedList<>();
+        }
+        List<DrugList> drugs = drugListDAO.findByDrugIdsAndType(drugIds, drugType);
         if (CollectionUtils.isEmpty(drugs)) {
             return new LinkedList<>();
         }

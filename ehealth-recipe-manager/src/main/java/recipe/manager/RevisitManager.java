@@ -12,6 +12,7 @@ import com.ngari.recipe.dto.ConsultDTO;
 import com.ngari.recipe.dto.WriteDrugRecipeBean;
 import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.dictionary.DictionaryController;
 import ctd.net.broadcast.MQHelper;
 import ctd.util.JSONUtils;
@@ -24,6 +25,7 @@ import recipe.client.RevisitClient;
 import recipe.common.OnsConfig;
 import recipe.constant.RecipeSystemConstant;
 import recipe.util.ObjectCopyUtils;
+import recipe.util.ValidateUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -135,14 +137,11 @@ public class RevisitManager extends BaseManager {
         } catch (Exception e) {
             logger.error("queryCardsByParam 获取卡号错误", e);
         }
-        //组装获取院内门诊请求参数
-//        if (CollectionUtils.isEmpty(healthCardDTOList)) {
-//            return null;
-//        }
         writeDrugRecipeReqTo.setHealthCardDTOList(healthCardDTOList);
         writeDrugRecipeReqTo.setOrganId(organId);
         writeDrugRecipeReqTo.setDoctorId(doctorId);
         writeDrugRecipeReqTo.setPatientName(patient.getPatientName());
+        writeDrugRecipeReqTo.setPatientDTO(ObjectCopyUtils.convert(patient, PatientDTO.class));
         logger.info("RevisitManager writeDrugRecipeReqTO={}", JSONUtils.toString(writeDrugRecipeReqTo));
         return writeDrugRecipeReqTo;
     }
@@ -214,4 +213,28 @@ public class RevisitManager extends BaseManager {
     public void updateRecipeIdByConsultId(Integer recipeId, Integer clinicId) {
         revisitClient.updateRecipeIdByConsultId(recipeId, clinicId);
     }
+
+    /**
+     * 增加复诊 医保状态获取
+     * 如新增咨询等可用责任链模式
+     *
+     * @param clinicId
+     * @param bussSource
+     * @return 是否医保 0自费 1医保
+     */
+    public Integer medicalFlag(Integer clinicId, Integer bussSource) {
+        if (ValidateUtil.validateObjects(clinicId, bussSource)) {
+            return null;
+        }
+        if (!bussSource.equals(2)) {
+            return null;
+        }
+        RevisitExDTO revisitExDTO = revisitClient.getByClinicId(clinicId);
+        if (null == revisitExDTO) {
+            return null;
+        }
+        return revisitExDTO.getMedicalFlag();
+    }
+
+
 }
