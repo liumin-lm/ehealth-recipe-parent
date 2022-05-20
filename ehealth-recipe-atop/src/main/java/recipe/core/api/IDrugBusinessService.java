@@ -10,6 +10,8 @@ import com.ngari.recipe.entity.*;
 import com.ngari.recipe.vo.HospitalDrugListReqVO;
 import com.ngari.recipe.vo.HospitalDrugListVO;
 import com.ngari.recipe.vo.SearchDrugReqVO;
+import recipe.vo.patient.PatientContinueRecipeCheckDrugReq;
+import recipe.vo.patient.PatientContinueRecipeCheckDrugRes;
 
 import java.util.List;
 import java.util.Map;
@@ -117,4 +119,11 @@ public interface IDrugBusinessService {
     OrganDrugList getOrganDrugList(Integer organId, String organDrugCode, Integer drugId);
 
     List<DrugList> findByDrugIdsAndStatus(List<Integer> drugIds);
+
+    /**
+     * 患者端续方药品信息校验
+     * @param patientContinueRecipeCheckDrugReq
+     * @return
+     */
+    PatientContinueRecipeCheckDrugRes patientContinueRecipeCheckDrug(PatientContinueRecipeCheckDrugReq patientContinueRecipeCheckDrugReq);
 }

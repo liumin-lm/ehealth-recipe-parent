@@ -28,4 +28,7 @@ public class PatientOptionalDrugVo implements Serializable {
 
     @ItemProperty(alias = "患者指定的药品数量")
     private Integer patientDrugNum;
+
+    @ItemProperty(alias = "药品名称")
+    private String drugName;
 }
