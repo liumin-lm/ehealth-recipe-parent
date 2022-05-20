@@ -204,6 +204,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         List<OrganDrugList> organDrugListList = organDrugListDAO.findByOrganIdAndDrugCodes(patientContinueRecipeCheckDrugReq.getOrganId(), organDrugCodeList);
         Map<String, List<OrganDrugList>> organDrugListMap = organDrugListList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
         List<String> drugName = new ArrayList<>();
+        List<PatientOptionalDrugVo> list = new ArrayList<>();
         patientOptionalDrugVos.forEach(patientOptionalDrugVo -> {
             List<OrganDrugList> organDrugLists = organDrugListMap.get(patientOptionalDrugVo.getOrganDrugCode());
             if (CollectionUtils.isEmpty(organDrugLists)) {
@@ -212,6 +213,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                 patientOptionalDrugVo.setDrugId(organDrugLists.get(0).getDrugId());
                 patientOptionalDrugVo.setOrganId(patientContinueRecipeCheckDrugReq.getOrganId());
                 patientOptionalDrugVo.setDrugName(organDrugLists.get(0).getDrugName());
+                list.add(patientOptionalDrugVo);
             }
         });
         if (CollectionUtils.isEmpty(drugName)) {
@@ -225,7 +227,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
             stringBuilder.append("不支持线上开药,是否继续?");
             patientContinueRecipeCheckDrugRes.setCheckText(stringBuilder.toString());
         }
-        patientContinueRecipeCheckDrugRes.setPatientOptionalDrugVo(patientOptionalDrugVos);
+        patientContinueRecipeCheckDrugRes.setPatientOptionalDrugVo(list);
         return patientContinueRecipeCheckDrugRes;
     }
 }
