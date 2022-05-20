@@ -598,6 +598,7 @@ public class RecipeListService extends RecipeBaseService {
      * @return
      */
     @RpcService
+    @LogRecord
     public List<Map<String, Object>> findHistoryRecipeListV2(FindHistoryRecipeListBean param) {
         LOGGER.info("findHistoryRecipeList param", JSONUtils.toString(param));
         obtainFindHistoryRecipeListV2Param(param);
