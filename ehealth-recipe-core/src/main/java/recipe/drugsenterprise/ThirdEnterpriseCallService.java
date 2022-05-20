@@ -392,6 +392,12 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderAttr.put("status", OrderStatusConstant.SENDING);
             //此处为物流公司字典
             String logisticsCompany = MapValueUtil.getString(paramMap, "logisticsCompany");
+            try {
+                logisticsCompany = StringUtils.isEmpty(logisticsCompany) ? null : Integer.valueOf(logisticsCompany).toString();
+            } catch (Exception e) {
+                LOGGER.info("sendImpl logisticsCompany ={}", logisticsCompany, e);
+                logisticsCompany = null;
+            }
             String trackingNumber = MapValueUtil.getString(paramMap, "trackingNumber");
             //药店或者站点名称
             String drugStoreName = MapValueUtil.getString(paramMap, "drugStoreName");
@@ -1131,6 +1137,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         if (null == recipe) {
             code = REQUEST_ERROR;
             errorMsg = "该处方不存在";
+            return code;
         }
 
         RecipeOrderDAO orderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
