@@ -6,7 +6,6 @@ import com.ngari.his.visit.mode.WriteDrugRecipeReqTO;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
-import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.util.JSONUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +16,7 @@ import recipe.client.PatientClient;
 
 /**
  * 咨询管理类
+ *
  * @author zgy
  * @date 2022/3/2 14:57
  */
@@ -24,6 +24,9 @@ import recipe.client.PatientClient;
 public class ConsultManager extends BaseManager {
     @Autowired
     private PatientClient patientClient;
+    /**
+     * todo revisitManager？代码下移
+     */
     @Autowired
     private RevisitManager revisitManager;
     @Autowired
