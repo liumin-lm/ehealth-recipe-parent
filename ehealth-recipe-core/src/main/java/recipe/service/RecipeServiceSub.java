@@ -1499,6 +1499,8 @@ public class RecipeServiceSub {
         r.setProcessState(recipe.getProcessState());
         r.setSubState(recipe.getSubState());
         r.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
+        r.setDoctorName(recipe.getDoctorName());
+        r.setDepart(recipe.getDepart());
         if (null != recipeExtend) {
             r.setRecipeExtend(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
         }
