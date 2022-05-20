@@ -476,6 +476,13 @@ public class RecipeSignService {
                 recipeBean.setRequestUrt(requestPatient.getUrt());
             }
         }
+        //判断机构是否需要his处方检查 ---运营平台机构配置
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+        Recipe recipeNew = new Recipe();
+        BeanUtils.copy(recipeBean, recipeNew);
+        EmrRecipeManager.getMedicalInfo(recipeNew, recipeExtend);
+        recipe.setOrganDiseaseName(recipeNew.getOrganDiseaseName());
+        recipe.setOrganDiseaseId(recipeNew.getOrganDiseaseId());
         recipeBean.setSubState(RecipeStateEnum.NONE.getType());
         recipeBean.setProcessState(RecipeStateEnum.NONE.getType());
         recipeBean.setStatus(RecipeStatusConstant.UNSIGN);
