@@ -201,10 +201,19 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
             throw new DAOException(609, "续方药品信息不能为空");
         }
         List<String> organDrugCodeList = patientOptionalDrugVos.stream().map(PatientOptionalDrugVo::getOrganDrugCode).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(organDrugCodeList)) {
+            throw new DAOException(609, "机构编码不能为空");
+        }
         List<OrganDrugList> organDrugListList = organDrugListDAO.findByOrganIdAndDrugCodes(patientContinueRecipeCheckDrugReq.getOrganId(), organDrugCodeList);
-        Map<String, List<OrganDrugList>> organDrugListMap = organDrugListList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
         List<String> drugName = new ArrayList<>();
         List<PatientOptionalDrugVo> list = new ArrayList<>();
+        if (CollectionUtils.isEmpty(organDrugListList)) {
+            List<String> collect = patientOptionalDrugVos.stream().map(PatientOptionalDrugVo::getDrugName).collect(Collectors.toList());
+            getCheckText(patientContinueRecipeCheckDrugRes,collect);
+            patientContinueRecipeCheckDrugRes.setPatientOptionalDrugVo(list);
+            return patientContinueRecipeCheckDrugRes;
+        }
+        Map<String, List<OrganDrugList>> organDrugListMap = organDrugListList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
         patientOptionalDrugVos.forEach(patientOptionalDrugVo -> {
             List<OrganDrugList> organDrugLists = organDrugListMap.get(patientOptionalDrugVo.getOrganDrugCode());
             if (CollectionUtils.isEmpty(organDrugLists)) {
@@ -219,15 +228,19 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         if (CollectionUtils.isEmpty(drugName)) {
             patientContinueRecipeCheckDrugRes.setCheckFlag(YesOrNoEnum.NO.getType());
         } else {
-            patientContinueRecipeCheckDrugRes.setCheckFlag(YesOrNoEnum.YES.getType());
-            StringBuilder stringBuilder = new StringBuilder("处方内药品");
-            drugName.forEach(drug -> {
-                stringBuilder.append("【").append(drug).append("】");
-            });
-            stringBuilder.append("不支持线上开药,是否继续?");
-            patientContinueRecipeCheckDrugRes.setCheckText(stringBuilder.toString());
+            getCheckText(patientContinueRecipeCheckDrugRes,drugName);
         }
         patientContinueRecipeCheckDrugRes.setPatientOptionalDrugVo(list);
         return patientContinueRecipeCheckDrugRes;
+    }
+
+    private void getCheckText(PatientContinueRecipeCheckDrugRes patientContinueRecipeCheckDrugRes,List<String> drugName){
+        patientContinueRecipeCheckDrugRes.setCheckFlag(YesOrNoEnum.YES.getType());
+        StringBuilder stringBuilder = new StringBuilder("处方内药品");
+        drugName.forEach(drug -> {
+            stringBuilder.append("【").append(drug).append("】");
+        });
+        stringBuilder.append("不支持线上开药,是否继续?");
+        patientContinueRecipeCheckDrugRes.setCheckText(stringBuilder.toString());
     }
 }
