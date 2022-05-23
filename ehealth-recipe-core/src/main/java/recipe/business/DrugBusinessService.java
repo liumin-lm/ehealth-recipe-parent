@@ -222,6 +222,8 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                 patientOptionalDrugVo.setDrugId(organDrugLists.get(0).getDrugId());
                 patientOptionalDrugVo.setOrganId(patientContinueRecipeCheckDrugReq.getOrganId());
                 patientOptionalDrugVo.setDrugName(organDrugLists.get(0).getDrugName());
+                patientOptionalDrugVo.setDrugSpec(organDrugLists.get(0).getDrugSpec());
+                patientOptionalDrugVo.setUnit(organDrugLists.get(0).getUnit());
                 list.add(patientOptionalDrugVo);
             }
         });

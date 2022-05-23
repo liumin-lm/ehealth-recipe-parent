@@ -31,4 +31,10 @@ public class PatientOptionalDrugVo implements Serializable {
 
     @ItemProperty(alias = "药品名称")
     private String drugName;
+
+    @ItemProperty(alias = "药品规格")
+    private String drugSpec;
+
+    @ItemProperty(alias = "药品包装单位")
+    private String unit;
 }
