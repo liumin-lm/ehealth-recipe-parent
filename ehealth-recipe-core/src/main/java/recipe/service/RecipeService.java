@@ -1675,7 +1675,12 @@ public class RecipeService extends RecipeBaseService {
         }
         //校验开处方单数限制
         //recipeManager.isOpenRecipeNumber(recipe.getClinicId(), recipe.getClinicOrgan(), recipe.getRecipeId());
-
+        //判断机构是否需要his处方检查 ---运营平台机构配置
+        if (null != recipe.getRecipeExtend()) {
+            EmrDetailDTO emrDetailDTO = docIndexClient.getEmrDetails(recipe.getRecipeExtend().getDocIndexId());
+            recipe.setOrganDiseaseName(emrDetailDTO.getOrganDiseaseName());
+            recipe.setOrganDiseaseId(emrDetailDTO.getOrganDiseaseId());
+        }
         recipe.setSubState(RecipeStateEnum.NONE.getType());
         recipe.setProcessState(RecipeStateEnum.NONE.getType());
         recipe.setStatus(RecipeStatusConstant.UNSIGN);
