@@ -5,11 +5,14 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.revisit.common.model.RevisitStatusNotifyDTO;
 import com.ngari.revisit.enums.StatusEnum;
 import ctd.net.broadcast.Observer;
+import ctd.util.AppContextHolder;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import recipe.dao.RecipeDAO;
 import recipe.enumerate.status.RecipeStateEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.manager.StateManager;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -35,16 +38,15 @@ public class MqRevisitRecipeServer implements Observer<RevisitStatusNotifyDTO> {
             return;
         }
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
-        List<Recipe> recipeList = recipeDAO.findRecipeClinicIdAndProcessState(revisitStatusNotifyDTO.getRevisitId(), Collections.singletonList(RecipeStateEnum.PROCESS_STATE_SUBMIT.getType()));
+        List<Recipe> recipeList = recipeDAO.findRecipeClinicIdAndStatusV1(revisitStatusNotifyDTO.getRevisitId(), 2, Collections.singletonList(RecipeStatusEnum.RECIPE_STATUS_UNSIGNED.getType()));
+        logger.info("MqRevisitRecipeServer onMessage recipeList ={} ", JSON.toJSONString(recipeList));
         if (CollectionUtils.isEmpty(recipeList)) {
             return;
         }
-        //todo 暂时注释 等状态全部流转之后在打开注释
-//        StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
-//        recipeList.forEach(a -> {
-//            if (a.getProcessState() <= RecipeStateEnum.PROCESS_STATE_SUBMIT.getType()) {
-//                stateManager.updateRecipeState(a.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DELETED, RecipeStateEnum.SUB_DELETED_REVISIT_END);
-//            }
-//        });
+        StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+        recipeList.forEach(a -> {
+            stateManager.updateStatus(a.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_DELETE);
+            stateManager.updateRecipeState(a.getRecipeId(), RecipeStateEnum.PROCESS_STATE_DELETED, RecipeStateEnum.SUB_DELETED_REVISIT_END);
+        });
     }
 }

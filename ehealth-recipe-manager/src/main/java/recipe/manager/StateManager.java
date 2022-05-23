@@ -11,6 +11,7 @@ import recipe.aop.LogRecord;
 import recipe.enumerate.status.OrderStateEnum;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.enumerate.status.RecipeStateEnum;
+import recipe.enumerate.status.RecipeStatusEnum;
 
 /**
  * 状态处理通用类：处方状态 ，订单状态，审方状态
@@ -81,6 +82,15 @@ public class StateManager extends BaseManager {
         Recipe updateRecipe = new Recipe();
         updateRecipe.setRecipeId(recipeId);
         updateRecipe.setAuditState(state.getType());
+        recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
+        return true;
+    }
+
+    @LogRecord
+    public Boolean updateStatus(Integer recipeId, RecipeStatusEnum status) {
+        Recipe updateRecipe = new Recipe();
+        updateRecipe.setRecipeId(recipeId);
+        updateRecipe.setStatus(status.getType());
         recipeDAO.updateNonNullFieldByPrimaryKey(updateRecipe);
         return true;
     }
