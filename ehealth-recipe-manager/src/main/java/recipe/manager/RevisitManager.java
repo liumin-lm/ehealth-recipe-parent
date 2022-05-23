@@ -107,7 +107,7 @@ public class RevisitManager extends BaseManager {
      * @return 院内门诊
      */
     public List<WriteDrugRecipeDTO> findWriteDrugRecipeByRevisitFromHis(String mpiId, Integer organId, Integer doctorId) {
-        PatientDTO patient = patientClient.getPatientBeanByMpiId(mpiId);
+        com.ngari.recipe.dto.PatientDTO patient = patientClient.getPatientDTO(mpiId);
         if (null != patient) {
             WriteDrugRecipeReqTO writeDrugRecipeReqTo = getWriteDrugRecipeReqTO(patient, organId, doctorId);
             if (null != writeDrugRecipeReqTo) {
@@ -126,7 +126,7 @@ public class RevisitManager extends BaseManager {
      * @param doctorId
      * @return
      */
-    public WriteDrugRecipeReqTO getWriteDrugRecipeReqTO(PatientDTO patient, Integer organId, Integer doctorId) {
+    public WriteDrugRecipeReqTO getWriteDrugRecipeReqTO(com.ngari.recipe.dto.PatientDTO patient, Integer organId, Integer doctorId) {
         logger.info("RevisitManager writeDrugRecipeReqTO patient={},organId={},doctorId={}", JSONUtils.toString(patient), JSONUtils.toString(organId), JSONUtils.toString(doctorId));
         List<HealthCardDTO> healthCardDTOList = new ArrayList<>();
         //出参对象
@@ -154,7 +154,7 @@ public class RevisitManager extends BaseManager {
      * @param organId
      * @return
      */
-    public List<WriteDrugRecipeDTO> convertWriteDrugRecipeDTO(HisResponseTO<List<WriteDrugRecipeTO>> writeDrugRecipeList, PatientDTO patient, Integer organId) {
+    public List<WriteDrugRecipeDTO> convertWriteDrugRecipeDTO(HisResponseTO<List<WriteDrugRecipeTO>> writeDrugRecipeList, com.ngari.recipe.dto.PatientDTO patient, Integer organId) {
         com.ngari.recipe.dto.PatientDTO patientDTO = ObjectCopyUtils.convert(patient, com.ngari.recipe.dto.PatientDTO.class);
         PatientDTO requestPatient = new PatientDTO();
         requestPatient.setPatientName(patient.getPatientName());
