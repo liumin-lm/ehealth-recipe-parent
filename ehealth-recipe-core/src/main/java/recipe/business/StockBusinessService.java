@@ -31,9 +31,7 @@ import recipe.manager.ButtonManager;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrganDrugListManager;
 import recipe.manager.RecipeManager;
-import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DistanceUtil;
-import recipe.util.ListValueUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
 import recipe.vo.doctor.DrugEnterpriseStockVO;
@@ -140,38 +138,63 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
 
     @Override
     public Map<String, Object> enterpriseStock(Integer recipeId) {
-        logger.info("DrugEnterpriseBusinessService enterpriseStock recipeId={}", recipeId);
+        logger.info("StockBusinessService enterpriseStock recipeId={}", recipeId);
         Recipe recipe = recipeDAO.get(recipeId);
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
         RecipeExtend recipeExtend = recipeManager.recipeExtend(recipeId);
         //药企库存
         List<EnterpriseStock> enterpriseStockList = this.enterpriseStockCheckAll(recipe, recipeExtend.getDecoctionId(), recipeDetails, null);
         List<EnterpriseStock> enterpriseStock = enterpriseStockList.stream().filter(a -> CollectionUtils.isNotEmpty(a.getGiveModeButton())).collect(Collectors.toList());
-        logger.info("DrugEnterpriseBusinessService enterpriseStock enterpriseStock={}", JSON.toJSONString(enterpriseStock));
+        logger.info("StockBusinessService enterpriseStock enterpriseStock={}", JSON.toJSONString(enterpriseStock));
         //医院库存
         EnterpriseStock organStock = organDrugListManager.organStock(recipe, recipeDetails);
-        logger.info("DrugEnterpriseBusinessService enterpriseStock organStock:{}", JSON.toJSONString(organStock));
+        logger.info("StockBusinessService enterpriseStock organStock:{}", JSON.toJSONString(organStock));
         DoSignRecipeDTO doSignRecipe = new DoSignRecipeDTO(true, false, null, "", recipeId, null);
         //机构配置购药方式
         List<GiveModeButtonDTO> giveModeButtonBeans = operationClient.getOrganGiveModeMap(recipe.getClinicOrgan());
         if (CollectionUtils.isEmpty(giveModeButtonBeans)) {
             enterpriseManager.doSignRecipe(doSignRecipe, "根据药品库存判断，未找到可供药的药房或药企");
-            logger.info("DrugEnterpriseBusinessService enterpriseStock recipeId:{},reason:没有配置购药方式", recipeId);
+            logger.info("StockBusinessService enterpriseStock recipeId:{},reason:没有配置购药方式", recipeId);
             return MapValueUtil.beanToMap(doSignRecipe);
         }
         //保存药品购药方式
-        Set<String> supportGiveModeNameSet = saveGiveMode(recipe, organStock, enterpriseStock, recipeDetails);
+        List<GiveModeButtonDTO> supportGiveModeList = saveGiveMode(recipe, organStock, enterpriseStock, recipeDetails);
         //获取弹框文本
-        getSupportGiveModeNameText(doSignRecipe, supportGiveModeNameSet);
+        getSupportGiveModeNameText(recipe, doSignRecipe, supportGiveModeList, giveModeButtonBeans);
         return MapValueUtil.beanToMap(doSignRecipe);
     }
 
     /**
      * 获取弹框文本
      * @param doSignRecipe
-     * @param supportGiveModeNameSet
+     * @param supportGiveModeList
      */
-    private void getSupportGiveModeNameText(DoSignRecipeDTO doSignRecipe, Set<String> supportGiveModeNameSet) {
+    private void getSupportGiveModeNameText(Recipe recipe, DoSignRecipeDTO doSignRecipe, List<GiveModeButtonDTO> supportGiveModeList, List<GiveModeButtonDTO> giveModeButtonBeans) {
+        logger.info("StockBusinessService getSupportGiveModeNameText recipe:{}, supportGiveModeList:{}, giveModeButtonBeans:{}", JSON.toJSONString(recipe), JSON.toJSONString(supportGiveModeList), JSON.toJSONString(giveModeButtonBeans));
+        String recipeShowTipOption = configurationClient.getValueCatchReturnArr(recipe.getClinicOrgan(), "recipeShowTipOption", "0");
+        Set<String> supportGiveModeNameSet = supportGiveModeList.stream().filter(Objects::nonNull).map(GiveModeButtonDTO::getShowButtonName).collect(Collectors.toSet());
+        if ("0".equals(recipeShowTipOption)) {
+            //任何情况下都需要弹框提示
+            showSupportGiveMode(doSignRecipe, supportGiveModeNameSet);
+        } else if ("1".equals(recipeShowTipOption)) {
+            //存在不满足库存的购药方式时告知
+            Set<String> giveModeKeys = giveModeButtonBeans.stream().map(GiveModeButtonDTO::getShowButtonKey).collect(Collectors.toSet());
+            Set<String> supportGiveModeKeySet = supportGiveModeList.stream().filter(Objects::nonNull).map(GiveModeButtonDTO::getShowButtonKey).collect(Collectors.toSet());
+            giveModeKeys.removeAll(supportGiveModeKeySet);
+            if (CollectionUtils.isEmpty(giveModeKeys)) {
+                enterpriseManager.doSignRecipe(doSignRecipe, "");
+                doSignRecipe.setCanContinueFlag("0");
+            } else {
+                showSupportGiveMode(doSignRecipe, supportGiveModeNameSet);
+            }
+        } else {
+            //任何情况都不告知
+            enterpriseManager.doSignRecipe(doSignRecipe, "");
+            doSignRecipe.setCanContinueFlag("0");
+        }
+    }
+
+    private void showSupportGiveMode(DoSignRecipeDTO doSignRecipe, Set<String> supportGiveModeNameSet) {
         if (CollectionUtils.isNotEmpty(supportGiveModeNameSet)) {
             StringBuilder msg = new StringBuilder("根据药品库存判断，本处方支持");
             supportGiveModeNameSet.forEach(supportGiveModeName -> {
@@ -612,7 +635,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
      * @param enterpriseStock 药企库存
      * @return 支持的购药方式文案
      */
-    private Set<String> saveGiveMode(Recipe recipe, EnterpriseStock organStock, List<EnterpriseStock> enterpriseStock, List<Recipedetail> recipeDetails) {
+    private List<GiveModeButtonDTO> saveGiveMode(Recipe recipe, EnterpriseStock organStock, List<EnterpriseStock> enterpriseStock, List<Recipedetail> recipeDetails) {
         logger.info("DrugEnterpriseBusinessService saveGiveMode start recipe={}", JSON.toJSONString(recipe));
         List<GiveModeButtonDTO> giveModeButton = new LinkedList<>();
         if (null != organStock && organStock.getStock()) {
@@ -646,7 +669,6 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             recipeDAO.updateNonNullFieldByPrimaryKey(recipeUpdate);
         }
         logger.info("DrugEnterpriseBusinessService saveGiveMode 异步保存处方购药方式,购药按钮 {},{},{}", recipe.getRecipeId(), JSON.toJSONString(recipeGiveMode), JSON.toJSONString(giveModeButton));
-        Set<String> supportGiveModeNameSet = giveModeButton.stream().filter(Objects::nonNull).map(GiveModeButtonDTO::getShowButtonName).collect(Collectors.toSet());
-        return supportGiveModeNameSet;
+        return giveModeButton;
     }
 }
