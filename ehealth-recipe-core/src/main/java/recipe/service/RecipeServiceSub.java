@@ -48,8 +48,10 @@ import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.recipe.service.IRecipeService;
 import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.RevisitBean;
+import com.ngari.revisit.common.model.HosRecordDTO;
 import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
+import com.ngari.revisit.common.service.IRevisitHosRecordService;
 import com.ngari.revisit.common.service.IRevisitService;
 import ctd.dictionary.Dictionary;
 import ctd.dictionary.DictionaryController;
@@ -165,6 +167,7 @@ public class RecipeServiceSub {
 
     private static StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
 
+    private static IRevisitHosRecordService iRevisitHosRecordService = AppContextHolder.getBean("revisit.revisitHosRecordApiService", IRevisitHosRecordService.class);
     /**
      * @param recipeBean
      * @param detailBeanList
@@ -265,6 +268,7 @@ public class RecipeServiceSub {
             if (null != recipeBean.getClinicId()) {
                 if (RecipeBussConstant.BUSS_SOURCE_FZ.equals(recipeBean.getBussSource())) {
                     RevisitExDTO revisitExDTO = iRevisitExService.getByConsultId(recipeBean.getClinicId());
+                    HosRecordDTO hosRecordDTO = iRevisitHosRecordService.getByConsultId(recipeBean.getClinicId());
                     LOGGER.info("iRevisitExService.getByConsultId:{}", JSONUtils.toString(revisitExDTO));
                     if (null != revisitExDTO) {
                         recipeExtend.setCardNo(revisitExDTO.getCardId());
@@ -274,6 +278,9 @@ public class RecipeServiceSub {
                         recipeExtend.setMedicalRecordNumber(revisitExDTO.getMedicalRecordNo());
                         recipeExtend.setIllnessType(revisitExDTO.getDbType());
                         recipeExtend.setIllnessName(revisitExDTO.getDbTypeName());
+                    }
+                    if(null != hosRecordDTO){
+                        recipeExtend.setSideCourtYardType(hosRecordDTO.getType());
                     }
                 } else if (RecipeBussConstant.BUSS_SOURCE_WZ.equals(recipeBean.getBussSource())) {
                     ConsultExDTO consultExDTO = iConsultExService.getByConsultId(recipeBean.getClinicId());

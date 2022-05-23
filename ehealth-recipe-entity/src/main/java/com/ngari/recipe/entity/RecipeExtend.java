@@ -236,6 +236,9 @@ public class RecipeExtend implements Serializable {
     @ItemProperty(alias = "业务办理类型 2父母 3子女 4自愿者代办")
     private String handleType;
 
+    @ItemProperty(alias = "跨院复诊类型 0：院内 1：院外")
+    private String sideCourtYardType;
+
     @Column(name = "illness_name")
     public String getIllnessName() {
         return illnessName;
@@ -921,5 +924,14 @@ public class RecipeExtend implements Serializable {
 
     public void setHandleType(String handleType) {
         this.handleType = handleType;
+    }
+
+    @Column(name = "side_courtyard_type")
+    public String getSideCourtYardType() {
+        return sideCourtYardType;
+    }
+
+    public void setSideCourtYardType(String sideCourtYardType) {
+        this.sideCourtYardType = sideCourtYardType;
     }
 }
