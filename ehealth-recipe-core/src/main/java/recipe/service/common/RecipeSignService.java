@@ -38,10 +38,10 @@ import recipe.client.DocIndexClient;
 import recipe.constant.*;
 import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
+import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
-import recipe.manager.RecipeManager;
 import recipe.manager.RevisitManager;
 import recipe.service.*;
 import recipe.thread.CardDataUploadRunable;
@@ -73,17 +73,13 @@ public class RecipeSignService {
      */
     private static final Logger LOG = LoggerFactory.getLogger(RecipeSignService.class);
     @Autowired
-    private RecipeManager recipeManager;
-    @Autowired
     private RecipeDAO recipeDAO;
-
     @Autowired
     private RedisClient redisClient;
-
+    @Autowired
+    private RecipeDetailValidateTool recipeDetailValidateTool;
     @Autowired
     private DrugsEnterpriseService drugsEnterpriseService;
-    @Autowired
-    private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private IStockBusinessService drugEnterpriseBusinessService;
     @Autowired
@@ -383,6 +379,7 @@ public class RecipeSignService {
     @RpcService
     public Map<String, Object> doSignRecipeNew(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, int continueFlag) {
         LOG.info("RecipeSignService.doSignRecipeNew param: recipeBean={} detailBean={} continueFlag={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList), continueFlag);
+        recipeDetailValidateTool.validateMedicalChineDrugNumber(recipeBean, detailBeanList);
         //将密码放到redis中
         redisClient.set("caPassword", recipeBean.getCaPassword());
         Map<String, Object> rMap = new HashMap<String, Object>();
