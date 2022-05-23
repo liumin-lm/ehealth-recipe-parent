@@ -149,10 +149,21 @@ public interface IRecipeAtopService {
 
     /**
      * 从his更新处方信息
+     *
      * @param organId
      * @param recipeCodes
      * @return
      */
     @RpcService
     HisResponseTO recipeListQuery(Integer organId, List<String> recipeCodes);
+
+    /**
+     * 根据 二方id 查询处方列表
+     *
+     * @param clinicId   二方业务id
+     * @param bussSource 开处方来源 1问诊 2复诊(在线续方) 3网络门诊
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    List<RecipeBean> recipeListByClinicId(Integer clinicId, Integer bussSource);
 }

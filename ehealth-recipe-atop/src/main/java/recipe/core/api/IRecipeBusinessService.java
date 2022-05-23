@@ -186,4 +186,13 @@ public interface IRecipeBusinessService {
      * @return 处方id集合
      */
     List<Integer> recipeByGroupCode(String groupCode, Integer type);
+
+    /**
+     * 根据 二方id 查询处方列表
+     *
+     * @param clinicId   二方业务id
+     * @param bussSource 开处方来源 1问诊 2复诊(在线续方) 3网络门诊
+     * @return
+     */
+    List<RecipeBean> recipeListByClinicId(Integer clinicId, Integer bussSource);
 }
