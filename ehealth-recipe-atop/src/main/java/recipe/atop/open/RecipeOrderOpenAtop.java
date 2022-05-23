@@ -5,6 +5,8 @@ import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
 import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.RecipeOrderDto;
+import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.util.annotation.RpcBean;
 import eh.utils.BeanCopyUtils;
 import org.springframework.beans.BeanUtils;
@@ -79,5 +81,14 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
     @Override
     public RecipeResultBean cancelOrderByRecipeId(Integer recipeId, Integer status) {
         return recipeOrderService.cancelOrderByRecipeId(recipeId, status);
+    }
+
+    @Override
+    public String getTrackingNumber(RecipeBean recipeBean) {
+        RecipeOrder recipeOrder = recipeOrderService.getTrackingNumber(recipeBean.getRecipeCode(), recipeBean.getClinicOrgan());
+        if (null == recipeOrder) {
+            return null;
+        }
+        return recipeOrder.getTrackingNumber();
     }
 }
