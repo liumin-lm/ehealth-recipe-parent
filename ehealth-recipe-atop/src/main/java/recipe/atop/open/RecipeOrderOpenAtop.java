@@ -3,10 +3,10 @@ package recipe.atop.open;
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
 import com.ngari.common.dto.SyncOrderVO;
+import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.RecipeOrderDto;
 import com.ngari.recipe.entity.RecipeOrder;
-import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.util.annotation.RpcBean;
 import eh.utils.BeanCopyUtils;
 import org.springframework.beans.BeanUtils;
@@ -85,6 +85,7 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
 
     @Override
     public String getTrackingNumber(RecipeBean recipeBean) {
+        validateAtop(recipeBean, recipeBean.getClinicOrgan(), recipeBean.getRecipeCode());
         RecipeOrder recipeOrder = recipeOrderService.getTrackingNumber(recipeBean.getRecipeCode(), recipeBean.getClinicOrgan());
         if (null == recipeOrder) {
             return null;
