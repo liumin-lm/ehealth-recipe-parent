@@ -1999,6 +1999,8 @@ public class RecipeListService extends RecipeBaseService {
                 RecipeBean recipeBean = convertRecipeForRAP(recipe);
                 List<HisRecipeDetailBean> detailData = ObjectCopyUtils.convert(recipedetails, HisRecipeDetailBean.class);
                 recipeBean.setDetailData(detailData);
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                recipeBean.setRecipeExtend(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
                 recipeMap.put(recipe.getRecipeId(), recipeBean);
             }
 
