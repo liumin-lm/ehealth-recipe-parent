@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 
 /**
  * @description： 前端药品信息出参
@@ -30,7 +31,7 @@ public class DrugsResVo implements Serializable {
     @ItemProperty(alias = "机构药品编码")
     private String drugItemCode;
 
-    @ItemProperty(alias="是否靶向药  0否  1是 ")
+    @ItemProperty(alias = "是否靶向药  0否  1是 ")
     private Integer targetedDrugType;
 
     @ItemProperty(alias = "最小销售倍数")
@@ -39,6 +40,8 @@ public class DrugsResVo implements Serializable {
     @ItemProperty(alias = "药品类型")
     @Dictionary(id = "eh.base.dictionary.DrugType")
     private Integer drugType;
-
+    
+    @ItemProperty(alias = "价格")
+    private BigDecimal salePrice;
 
 }

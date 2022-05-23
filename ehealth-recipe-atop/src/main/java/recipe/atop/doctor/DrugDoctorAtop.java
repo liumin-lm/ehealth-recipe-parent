@@ -21,7 +21,6 @@ import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -219,6 +218,10 @@ public class DrugDoctorAtop extends BaseAtop {
             if (null != organDrug) {
                 drugList.setUnilateralCompound(organDrug.getUnilateralCompound());
                 drugList.setSmallestSaleMultiple(organDrug.getSmallestSaleMultiple());
+                drugList.setTargetedDrugType(organDrug.getTargetedDrugType());
+                if (null == drugList.getSalePrice()) {
+                    drugList.setSalePrice(organDrug.getSalePrice());
+                }
             }
             //该高亮字段给微信端使用:highlightedField
             drugList.setHospitalPrice(drugList.getSalePrice());
@@ -236,7 +239,6 @@ public class DrugDoctorAtop extends BaseAtop {
                 drugList.setUsePathways("");
             }
             drugList.setUseDoseAndUnitRelation(defaultUseDose(organDrug));
-            drugList.setTargetedDrugType(organDrug.getTargetedDrugType());
         });
         return drugWithEsByPatient;
     }
@@ -252,16 +254,14 @@ public class DrugDoctorAtop extends BaseAtop {
         List<OrganDrugList> organDrugLists = drugBusinessService.organDrugList(organId, organDrugCodes);
         List<Integer> drugIds = organDrugLists.stream().map(OrganDrugList::getDrugId).collect(Collectors.toList());
         List<DrugList> drugLists = drugBusinessService.findByDrugIdsAndStatus(drugIds);
-        Map<Integer, List<DrugList>> drugMap = null;
-        if(CollectionUtils.isNotEmpty(drugLists)) {
-            drugMap = drugLists.stream().collect(Collectors.groupingBy(DrugList::getDrugId));
-        }
-        Map<Integer, List<DrugList>> finalDrugMap = drugMap;
+        Map<Integer, List<DrugList>> drugMap = Optional.ofNullable(drugLists).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.groupingBy(DrugList::getDrugId));
         List<DrugsResVo> collect = organDrugLists.stream().map(organDrugList -> {
             DrugsResVo drugsResVo = new DrugsResVo();
             BeanUtils.copyProperties(organDrugList, drugsResVo);
-            if (MapUtils.isNotEmpty(finalDrugMap) && CollectionUtils.isNotEmpty(finalDrugMap.get(organDrugList.getDrugId()))) {
-                Integer drugType = finalDrugMap.get(organDrugList.getDrugId()).get(0).getDrugType();
+            List<DrugList> drugList = drugMap.get(organDrugList.getDrugId());
+            if (CollectionUtils.isNotEmpty(drugList)) {
+                Integer drugType = drugList.get(0).getDrugType();
                 drugsResVo.setDrugType(drugType);
             }
             return drugsResVo;
