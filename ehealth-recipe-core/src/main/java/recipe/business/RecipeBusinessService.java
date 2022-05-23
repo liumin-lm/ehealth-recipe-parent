@@ -494,9 +494,9 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     }
 
     @Override
-    public List<RecipeDetailVO> findRecipeDetailByRecipeId(Integer recipeId) {
+    public List<RecipeDetailBean> findRecipeDetailByRecipeId(Integer recipeId) {
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
-        return ObjectCopyUtils.convert(recipeDetailList, RecipeDetailVO.class);
+        return ObjectCopyUtils.convert(recipeDetailList, RecipeDetailBean.class);
     }
 
     /**

@@ -192,5 +192,5 @@ public interface IRecipeBusinessService {
      * @param recipeId
      * @return
      */
-    List<RecipeDetailVO> findRecipeDetailByRecipeId(Integer recipeId);
+    List<RecipeDetailBean> findRecipeDetailByRecipeId(Integer recipeId);
 }
