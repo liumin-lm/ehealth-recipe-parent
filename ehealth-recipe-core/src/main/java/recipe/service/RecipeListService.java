@@ -861,6 +861,7 @@ public class RecipeListService extends RecipeBaseService {
                         HisRecipeDetailBean convert = ObjectCopyUtils.convert(recipeDetail, HisRecipeDetailBean.class);
                         if (Objects.nonNull(finalPharmacyTcm)) {
                             convert.setPharmacyCode(finalPharmacyTcm.getPharmacyCode());
+                            convert.setDrugCode(recipeDetail.getOrganDrugCode());
                         }
                         return convert;
                     }).collect(Collectors.toList());
