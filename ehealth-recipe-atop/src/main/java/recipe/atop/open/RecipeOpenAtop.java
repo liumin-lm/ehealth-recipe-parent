@@ -11,6 +11,7 @@ import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.SymptomDTO;
 import com.ngari.recipe.vo.FormWorkRecipeReqVO;
 import com.ngari.recipe.vo.FormWorkRecipeVO;
+import com.ngari.recipe.vo.RecipeDetailVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
@@ -196,8 +197,6 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     }
 
     @Override
-    @LogRecord
-    @RpcService
     public HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode) {
         HisResponseTO response = offlineToOnlineService.abolishOffLineRecipe(organId, recipeCode);
         return response;
@@ -210,5 +209,10 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         return hisResponseTO;
     }
 
+    @Override
+    public List<RecipeDetailVO> findRecipeDetailByRecipeId(Integer recipeId) {
+        validateAtop(recipeId);
+        return recipeBusinessService.findRecipeDetailByRecipeId(recipeId);
+    }
 
 }

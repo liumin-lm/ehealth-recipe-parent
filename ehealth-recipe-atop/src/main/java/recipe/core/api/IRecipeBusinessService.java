@@ -186,4 +186,11 @@ public interface IRecipeBusinessService {
      * @return 处方id集合
      */
     List<Integer> recipeByGroupCode(String groupCode, Integer type);
+
+    /**
+     * 通过处方ID获取处方明细
+     * @param recipeId
+     * @return
+     */
+    List<RecipeDetailVO> findRecipeDetailByRecipeId(Integer recipeId);
 }
