@@ -21,8 +21,8 @@ import java.util.Map;
 public class MqEasyPayConsumer implements Observer<Map<String,String>> {
 
     private static final String RECIPE_TYPE = "recipe";
-
     private static final Logger logger = LoggerFactory.getLogger(MqEasyPayConsumer.class);
+
     @Override
     public void onMessage(Map<String,String> map) {
         String busType = map.get("busType");
