@@ -261,9 +261,6 @@ public class PatientClient extends BaseClient {
     private PatientDTO getPatientEncipher(com.ngari.patient.dto.PatientDTO patient) {
         PatientDTO p = new PatientDTO();
         BeanUtils.copyProperties(patient, p);
-        if (StringUtils.isNotEmpty(p.getMobile())) {
-            //p.setMobile(LocalStringUtil.coverMobile(p.getMobile()));
-        }
         if (StringUtils.isNotEmpty(p.getIdcard())) {
             p.setIdcard(ChinaIDNumberUtil.hideIdCard(p.getIdcard()));
         }
