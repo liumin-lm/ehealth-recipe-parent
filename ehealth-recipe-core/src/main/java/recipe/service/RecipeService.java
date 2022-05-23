@@ -521,6 +521,7 @@ public class RecipeService extends RecipeBaseService {
      * @return int
      */
     @RpcService
+    @LogRecord
     public Integer saveRecipeData(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList) {
         recipeBean.setSubState(RecipeStateEnum.NONE.getType());
         recipeBean.setProcessState(RecipeStateEnum.NONE.getType());
