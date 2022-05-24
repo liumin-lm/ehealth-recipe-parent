@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.client.PatientClient;
@@ -184,7 +185,7 @@ public class PayModeOnline implements IPurchaseService {
         String insuredArea = MapValueUtil.getString(extInfo, "insuredArea");
         Integer logisticsCompany = MapValueUtil.getInteger(extInfo, "logisticsCompany");
         Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
-        Integer invoiceRecordId = MapValueUtil.getInteger(extInfo, "invoiceRecordId");
+        String templateId = MapValueUtil.getString(extInfo, "invoiceRecordId");
 
         if (StringUtils.isNotEmpty(insuredArea)) {
             for (Recipe recipe : recipeList) {
@@ -198,7 +199,11 @@ public class PayModeOnline implements IPurchaseService {
             return result;
         }
         order.setWxPayWay(payway);
-        order.setInvoiceRecordId(invoiceRecordId);
+        //保存开票记录
+        Integer invoiceRecordId = CommonOrder.addInvoiceRecord(templateId, recipeIdLists);
+        if (!ObjectUtils.isEmpty(invoiceRecordId)) {
+            order.setInvoiceRecordId(invoiceRecordId);
+        }
         //保存站点相关信息
         if (null != takeMedicineWay) {
             setStationInfo(recipeList.get(0), extInfo, order, takeMedicineWay);
