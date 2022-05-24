@@ -163,6 +163,7 @@ public class SaleDrugListService implements ISaleDrugListService {
             validateSaleDrugList(target);
             target.setSaleDrugCode(saleDrugList.getOrganDrugCode());
             target.setLastModify(new Date());
+            target.setEnterpriseSalesStrategy(saleDrugListManager.getEnterpriseSalesStrategy(target));
             target = saleDrugListDAO.update(target);
             DrugList drugList = drugListDAO.get(saleDrugList.getDrugId());
             if (drugList == null) {
