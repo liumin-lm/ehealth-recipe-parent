@@ -384,6 +384,9 @@ public class RecipeOrder implements Serializable {
     @ItemProperty(alias = "患者选择是否代煎（ 0:否 1：是）")
     private String patientIsDecoction;
 
+    @ItemProperty(alias = "发票抬头")
+    private String invoiceTitleNo;
+
     @Column(name = "patient_is_decoction")
     public String getPatientIsDecoction() {
         return patientIsDecoction;
@@ -1369,5 +1372,14 @@ public class RecipeOrder implements Serializable {
 
     public void setExpectEndTakeTime(String expectEndTakeTime) {
         this.expectEndTakeTime = expectEndTakeTime;
+    }
+
+    @Column(name = "invoice_title_no")
+    public String getInvoiceTitleNo() {
+        return invoiceTitleNo;
+    }
+
+    public void setInvoiceTitleNo(String invoiceTitleNo) {
+        this.invoiceTitleNo = invoiceTitleNo;
     }
 }
