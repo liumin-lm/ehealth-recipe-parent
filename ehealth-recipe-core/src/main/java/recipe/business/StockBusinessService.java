@@ -181,16 +181,9 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             Set<String> giveModeKeys = giveModeButtonBeans.stream().map(GiveModeButtonDTO::getShowButtonKey).collect(Collectors.toSet());
             Set<String> supportGiveModeKeySet = supportGiveModeList.stream().filter(Objects::nonNull).map(GiveModeButtonDTO::getShowButtonKey).collect(Collectors.toSet());
             giveModeKeys.removeAll(supportGiveModeKeySet);
-            if (CollectionUtils.isEmpty(giveModeKeys)) {
-                enterpriseManager.doSignRecipe(doSignRecipe, "");
-                doSignRecipe.setCanContinueFlag("0");
-            } else {
+            if (CollectionUtils.isNotEmpty(giveModeKeys)) {
                 showSupportGiveMode(doSignRecipe, supportGiveModeNameSet);
             }
-        } else {
-            //任何情况都不告知
-            enterpriseManager.doSignRecipe(doSignRecipe, "");
-            doSignRecipe.setCanContinueFlag("0");
         }
     }
 
