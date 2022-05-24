@@ -25,4 +25,6 @@ public class RecipeOrderRefundDetailVO implements Serializable {
 
     private OrderRefundInfoVO orderRefundInfoVO;
 
+    private InvoiceRecordVO invoiceRecordVO;
+
 }

@@ -1769,6 +1769,15 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         if (null != recipeOrderRefundReqDTO.getDepId()) {
             hql.append(" AND a.enterpriseId =:depId ");
         }
+        if (null != recipeOrderRefundReqDTO.getInvoiceStatus()) {
+            if (new Integer(1).equals(recipeOrderRefundReqDTO.getInvoiceStatus())) {
+                //开具发票
+                hql.append(" AND a.invoice_record_id is not null ");
+            } else {
+                //无需开具
+                hql.append(" AND a.invoice_record_id is null ");
+            }
+        }
         return hql;
     }
 

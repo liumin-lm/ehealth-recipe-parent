@@ -1,6 +1,8 @@
 package recipe.business;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.infra.invoice.mode.InvoiceRecordDto;
+import com.ngari.infra.invoice.service.InvoiceRecordService;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RecipeOrderRefundReqDTO;
@@ -72,6 +74,8 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
     private RecipeRefundManage recipeRefundManage;
     @Autowired
     private RecipeManager recipeManager;
+    @Autowired
+    private InvoiceRecordService invoiceRecordService;
 
     @Override
     public RecipeOrderRefundPageVO findRefundRecipeOrder(RecipeOrderRefundReqVO recipeOrderRefundReqVO) {
@@ -121,6 +125,11 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
                 recipeOrderRefundVO.setSendStatusText(RecipeOrderStatusEnum.ORDER_STATUS_READY_GET_DRUG.getName());
             } else {
                 recipeOrderRefundVO.setSendStatusText(RecipeOrderStatusEnum.getOrderStatus(recipeOrder.getStatus()));
+            }
+            if (null != recipeOrder.getInvoiceRecordId()) {
+                recipeOrderRefundVO.setInvoiceStatus(1);
+            } else {
+                recipeOrderRefundVO.setInvoiceStatus(0);
             }
             recipeOrderRefundVO.setOrderStatusText(OrderStateEnum.getOrderStateEnum(recipeOrder.getProcessState()).getName());
             recipeOrderRefundVO.setPatientName(recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getPatientName());
@@ -207,6 +216,12 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
                 orderRefundInfoVO.setRefuseReason(recipeRefunds1.get(0).getReason());
             }
             orderRefundInfoVO.setAuditNodeType(-1);
+        }
+        if (null != recipeOrder.getInvoiceRecordId()) {
+            InvoiceRecordDto invoiceRecordDto = invoiceRecordService.findInvoiceRecordInfo(recipeOrder.getInvoiceRecordId());
+            InvoiceRecordVO invoiceRecordVO = new InvoiceRecordVO();
+            ObjectCopyUtils.copyProperties(invoiceRecordVO, invoiceRecordDto);
+            recipeOrderRefundDetailVO.setInvoiceRecordVO(invoiceRecordVO);
         }
         recipeOrderRefundDetailVO.setOrderRefundInfoVO(orderRefundInfoVO);
         recipeOrderRefundDetailVO.setRecipeBeanList(recipeBeanList);
