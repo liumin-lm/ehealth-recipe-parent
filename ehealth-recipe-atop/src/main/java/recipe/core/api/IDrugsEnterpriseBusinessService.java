@@ -14,6 +14,7 @@ import recipe.vo.greenroom.OrganEnterpriseRelationVo;
 import recipe.vo.greenroom.PharmacyVO;
 import recipe.vo.patient.CheckAddressReq;
 import recipe.vo.patient.CheckAddressRes;
+import recipe.vo.second.CheckAddressVo;
 
 import java.util.List;
 
@@ -125,4 +126,11 @@ public interface IDrugsEnterpriseBusinessService {
      * @return
      */
     boolean updateDrugEnterprise(DrugsEnterpriseVO drugsEnterpriseVO);
+
+    /**
+     * 获取地址是否可以配送
+     * @param checkAddressVo
+     * @return
+     */
+    Boolean checkSendAddress(CheckAddressVo checkAddressVo);
 }
