@@ -58,4 +58,19 @@ public class InvoiceRecordVO implements Serializable {
 
     @ItemProperty(alias ="发票备注")
     private String invoiceContent;
+
+    @ItemProperty(alias="税号")
+    private String taxNumber;
+
+    @ItemProperty(alias="注册地址")
+    private String registeredAddress;
+
+    @ItemProperty(alias="注册电话")
+    private String registeredPhone;
+
+    @ItemProperty(alias="开户银行")
+    private String bankAccount;
+
+    @ItemProperty(alias="银行账号")
+    private String bankAccountNumber;
 }
