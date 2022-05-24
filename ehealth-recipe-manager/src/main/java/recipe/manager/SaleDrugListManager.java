@@ -11,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import recipe.aop.LogRecord;
 
 import java.util.List;
 
@@ -28,6 +29,7 @@ public class SaleDrugListManager extends BaseManager {
      * @param saleDrugListDb
      * @return
      */
+    @LogRecord
     public String getEnterpriseSalesStrategy(SaleDrugList saleDrugListDb) {
         if (null == saleDrugListDb) {
             return null;

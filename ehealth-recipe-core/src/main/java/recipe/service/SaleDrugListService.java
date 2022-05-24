@@ -25,13 +25,16 @@ import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
+import recipe.aop.LogRecord;
 import recipe.constant.ErrorCode;
 import recipe.dao.DrugListDAO;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.dao.bean.DrugListAndSaleDrugList;
+import recipe.manager.SaleDrugListManager;
 import recipe.serviceprovider.drug.service.RemoteDrugService;
 
 import java.util.Date;
@@ -46,6 +49,10 @@ import java.util.List;
 public class SaleDrugListService implements ISaleDrugListService {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
+
+    @Autowired
+    private SaleDrugListManager saleDrugListManager;
+
 
     private void validateSaleDrugList(SaleDrugList saleDrugList) {
         if (null == saleDrugList) {
@@ -301,10 +308,11 @@ public class SaleDrugListService implements ISaleDrugListService {
     }
 
     @Override
+    @LogRecord
     public SaleDrugListDTO getByDrugId(Integer drugId) {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         SaleDrugList saleDrugList = saleDrugListDAO.get(drugId);
-        
+        saleDrugList.setEnterpriseSalesStrategy(saleDrugListManager.getEnterpriseSalesStrategy(saleDrugList));
         //logger.info("getByOrganIdAndDrugId1111:" + saleDrugList);
         return ObjectCopyUtils.convert(saleDrugList, SaleDrugListDTO.class);
     }
