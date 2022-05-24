@@ -126,6 +126,11 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
             } else {
                 recipeOrderRefundVO.setSendStatusText(RecipeOrderStatusEnum.getOrderStatus(recipeOrder.getStatus()));
             }
+            if (null != recipeOrder.getInvoiceRecordId()) {
+                recipeOrderRefundVO.setInvoiceStatus(1);
+            } else {
+                recipeOrderRefundVO.setInvoiceStatus(0);
+            }
             recipeOrderRefundVO.setOrderStatusText(OrderStateEnum.getOrderStateEnum(recipeOrder.getProcessState()).getName());
             recipeOrderRefundVO.setPatientName(recipeOrderCodeMap.get(recipeOrder.getOrderCode()).getPatientName());
             recipeOrderRefundVO.setChannel(patientClient.getClientNameById(recipeOrder.getMpiId()));
