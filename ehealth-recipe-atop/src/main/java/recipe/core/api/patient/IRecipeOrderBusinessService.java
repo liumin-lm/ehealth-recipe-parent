@@ -7,6 +7,7 @@ import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.RecipeFeeDTO;
 import com.ngari.recipe.dto.RecipeOrderDto;
 import com.ngari.recipe.dto.SkipThirdDTO;
+import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.util.annotation.RpcService;
@@ -89,10 +90,20 @@ public interface IRecipeOrderBusinessService {
 
     /**
      * 根据处方号取消订单
+     *
      * @param recipeId 处方号
-     * @param status 状态
+     * @param status   状态
      * @return 处方
      */
     @RpcService(mvcDisabled = true)
     RecipeResultBean cancelOrderByRecipeId(Integer recipeId, Integer status);
+
+    /**
+     * 根据处方号获取订单信息
+     *
+     * @param recipeCode 处方号
+     * @param organId    机构id
+     * @return 订单信息
+     */
+    RecipeOrder getTrackingNumber(String recipeCode, Integer organId);
 }

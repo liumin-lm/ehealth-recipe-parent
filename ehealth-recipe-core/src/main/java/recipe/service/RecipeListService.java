@@ -1929,15 +1929,17 @@ public class RecipeListService extends RecipeBaseService {
         if (params.get("limit") == null) {
             throw new DAOException("findRecipesForDoctor limit不允许为空");
         }
-
         Integer doctorId = params.get("doctorId");
         Integer start = params.get("start");
         Integer limit = params.get("limit");
         Integer tapStatus = params.get("tapStatus");
         checkUserHasPermissionByDoctorId(doctorId);
-
-        List<Map<String, Object>> list = new ArrayList<>(0);
         List<Recipe> recipeList = recipeDAO.findRecipesByTabstatusForDoctorNew(doctorId, start, limit, tapStatus);
+        return findRecipesForRecipeList(recipeList, doctorId);
+    }
+
+    public List<Map<String, Object>> findRecipesForRecipeList(List<Recipe> recipeList, Integer doctorId) {
+        List<Map<String, Object>> list = new ArrayList<>();
         LOGGER.info("findRecipesForDoctorByTapstatusNew size={}", recipeList.size());
         if (CollectionUtils.isNotEmpty(recipeList)) {
             List<String> patientIds = new ArrayList<>(0);
@@ -1997,11 +1999,13 @@ public class RecipeListService extends RecipeBaseService {
                 RecipeBean recipeBean = convertRecipeForRAP(recipe);
                 List<HisRecipeDetailBean> detailData = ObjectCopyUtils.convert(recipedetails, HisRecipeDetailBean.class);
                 recipeBean.setDetailData(detailData);
+                RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
+                recipeBean.setRecipeExtend(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
                 recipeMap.put(recipe.getRecipeId(), recipeBean);
             }
 
             Map<String, PatientVO> patientMap = Maps.newHashMap();
-            if (CollectionUtils.isNotEmpty(patientIds)) {
+            if (CollectionUtils.isNotEmpty(patientIds) && null != doctorId) {
                 List<PatientDTO> patientList = patientService.findByMpiIdIn(patientIds);
                 if (CollectionUtils.isNotEmpty(patientList)) {
                     for (PatientDTO patient : patientList) {

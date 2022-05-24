@@ -2,6 +2,7 @@ package recipe.api.open;
 
 import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
 import com.ngari.common.dto.SyncOrderVO;
+import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import ctd.util.annotation.RpcService;
 import recipe.vo.second.RecipeOrderVO;
@@ -50,10 +51,20 @@ public interface IRecipeOrderAtopService {
 
     /**
      * 根据处方号取消订单
+     *
      * @param recipeId 处方号
-     * @param status 状态
+     * @param status   状态
      * @return 处方
      */
     @RpcService(mvcDisabled = true)
     RecipeResultBean cancelOrderByRecipeId(Integer recipeId, Integer status);
+
+    /**
+     * 根据处方信息获取物流单号
+     *
+     * @param recipeBean
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    String getTrackingNumber(RecipeBean recipeBean);
 }

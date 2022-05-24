@@ -397,6 +397,15 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         return result;
     }
 
+    @Override
+    public RecipeOrder getTrackingNumber(String recipeCode, Integer organId) {
+        Recipe recipe = recipeDAO.getByRecipeCodeAndClinicOrganWithAll(recipeCode, organId);
+        if (null == recipe || StringUtils.isEmpty(recipe.getOrderCode())) {
+            return null;
+        }
+        return recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+    }
+
     /**
      * todo 需要修改成 新模式
      * 不在新增逻辑内的状态流转 走老方法

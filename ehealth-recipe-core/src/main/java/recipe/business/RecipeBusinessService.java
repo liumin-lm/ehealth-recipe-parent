@@ -53,6 +53,7 @@ import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
 import recipe.service.RecipeHisService;
+import recipe.service.RecipeListService;
 import recipe.service.RecipeMsgService;
 import recipe.service.RecipeService;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
@@ -491,6 +492,14 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             return new ArrayList<>();
         }
         return list.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
+    }
+
+    @Override
+    public List<RecipeBean> recipeListByClinicId(Integer clinicId, Integer bussSource) {
+        List<Recipe> recipeList = recipeDAO.findRecipeByBussSourceAndClinicId(bussSource, clinicId);
+        RecipeListService recipeListService = ApplicationUtils.getRecipeService(RecipeListService.class);
+        List<Map<String, Object>> map = recipeListService.findRecipesForRecipeList(recipeList, null);
+        return map.stream().map(a -> (RecipeBean) a.get("recipe")).collect(Collectors.toList());
     }
 
     /**

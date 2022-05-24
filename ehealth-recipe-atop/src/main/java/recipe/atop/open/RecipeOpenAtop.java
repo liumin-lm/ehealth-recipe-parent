@@ -2,7 +2,6 @@ package recipe.atop.open;
 
 import com.alibaba.fastjson.JSONArray;
 import com.ngari.common.mode.HisResponseTO;
-import com.ngari.his.recipe.service.IRecipeHisService;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
@@ -14,9 +13,7 @@ import com.ngari.recipe.vo.FormWorkRecipeVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
-import ctd.util.annotation.RpcService;
 import org.springframework.beans.factory.annotation.Autowired;
-import recipe.aop.LogRecord;
 import recipe.api.open.IRecipeAtopService;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
@@ -49,7 +46,7 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     private IRevisitBusinessService revisitRecipeTrace;
 
     @Autowired
-    IOfflineRecipeBusinessService offlineToOnlineService;
+    private IOfflineRecipeBusinessService offlineToOnlineService;
 
     @Autowired
     private IPatientBusinessService recipePatientService;
@@ -196,8 +193,6 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     }
 
     @Override
-    @LogRecord
-    @RpcService
     public HisResponseTO abolishOffLineRecipe(Integer organId, String recipeCode) {
         HisResponseTO response = offlineToOnlineService.abolishOffLineRecipe(organId, recipeCode);
         return response;
@@ -206,9 +201,12 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     @Override
     public HisResponseTO recipeListQuery(Integer organId, List<String> recipeCodes) {
         HisResponseTO hisResponseTO = new HisResponseTO();
-        recipeBusinessService.recipeListQuery(organId,recipeCodes);
+        recipeBusinessService.recipeListQuery(organId, recipeCodes);
         return hisResponseTO;
     }
 
-
+    @Override
+    public List<RecipeBean> recipeListByClinicId(Integer clinicId, Integer bussSource) {
+        return recipeBusinessService.recipeListByClinicId(clinicId, bussSource);
+    }
 }
