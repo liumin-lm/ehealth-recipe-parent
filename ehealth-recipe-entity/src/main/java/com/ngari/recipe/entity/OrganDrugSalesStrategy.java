@@ -12,19 +12,19 @@ import lombok.Data;
 public class OrganDrugSalesStrategy implements java.io.Serializable {
     private static final long serialVersionUID = -7090271704460035622L;
 
-    @ItemProperty(alias = "")
+    @ItemProperty(alias = "id")
     private String id;
 
-    @ItemProperty(alias = "")
+    @ItemProperty(alias = "策略标题")
     private String title;
 
-    @ItemProperty(alias = "")
+    @ItemProperty(alias = "单位")
     private String unit;
 
-    @ItemProperty(alias = "")
+    @ItemProperty(alias = "数量")
     private String amount;
 
-    @ItemProperty(alias = "")
+    @ItemProperty(alias = "默认标识")
     private String isDefault;
 
 
