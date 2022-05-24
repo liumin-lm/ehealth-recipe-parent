@@ -16,7 +16,7 @@ import recipe.core.api.IOrganDrugBusinessService;
 public class OrganDrugGmAtop extends BaseAtop {
 
     @Autowired
-    private IOrganDrugBusinessService oragnDrugBusinessService;
+    private IOrganDrugBusinessService organDrugBusinessService;
 
 
     /**
@@ -26,7 +26,7 @@ public class OrganDrugGmAtop extends BaseAtop {
     @RpcService
     public void addOrganDrugSalesStrategy(OrganDrugList organDrugList) {
         validateAtop(organDrugList.getOrganDrugId());
-        oragnDrugBusinessService.addOrganDrugSalesStrategy(organDrugList);
+        organDrugBusinessService.addOrganDrugSalesStrategy(organDrugList);
     }
 
 

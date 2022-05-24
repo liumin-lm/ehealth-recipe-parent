@@ -31,14 +31,17 @@ public class OrganDrugBusinessService extends BaseService implements IOrganDrugB
         String salesStrategy = organDrugList.getSalesStrategy();
         //根据机构药品ID查询之前的销售策略
         OrganDrugList drugList = organDrugListDAO.get(organDrugList.getOrganDrugId());
+        logger.info("OrganDrugBusinessService addOrganDrugSalesStrategy drugList={}",JSONUtils.toString(drugList));
         List<OrganDrugSalesStrategy> organDrugSalesStrategyList = new ArrayList<>();
         if(StringUtils.isNotEmpty(drugList.getSalesStrategy())){
             organDrugSalesStrategyList = JSONObject.parseArray(drugList.getSalesStrategy(),OrganDrugSalesStrategy.class);
         }
         if(null != salesStrategy){
             List<OrganDrugSalesStrategy> organDrugSalesStrategy = JSONObject.parseArray(salesStrategy,OrganDrugSalesStrategy.class);
+            //目前只有一个值
             organDrugSalesStrategy.get(0).setId(id);
             organDrugSalesStrategyList.add(organDrugSalesStrategy.get(0));
+            logger.info("OrganDrugBusinessService addOrganDrugSalesStrategy organDrugSalesStrategyList={}",JSONUtils.toString(organDrugSalesStrategyList));
             organDrugList.setSalesStrategy(JSONUtils.toString(organDrugSalesStrategyList));
         }
         organDrugListDAO.updateData(organDrugList);
