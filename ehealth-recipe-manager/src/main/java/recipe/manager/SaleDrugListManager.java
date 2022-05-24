@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -62,4 +63,20 @@ public class SaleDrugListManager extends BaseManager {
     }
 
 
+    /**
+     * @param saleDrugList
+     * @return
+     */
+    public String getNeedSaveEnterpriseSalesStrategy(SaleDrugList saleDrugList) {
+        if (null == saleDrugList) {
+            return null;
+        }
+        List<SaleDrugSalesStrategy> saleDrugSalesStrategyList = new ArrayList<>();
+        //把前端传的默认的药企药品销售策略去除
+        if (StringUtils.isNotEmpty(saleDrugList.getEnterpriseSalesStrategy())) {
+            saleDrugSalesStrategyList = JSONObject.parseArray(saleDrugList.getEnterpriseSalesStrategy(), SaleDrugSalesStrategy.class);
+            saleDrugSalesStrategyList.removeIf(saleDrugSalesStrategy -> saleDrugSalesStrategy.getIsDefault().equals("true"));
+        }
+        return JSONUtils.toString(saleDrugSalesStrategyList);
+    }
 }
