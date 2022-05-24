@@ -269,6 +269,17 @@ public class RecipeDetailBean implements java.io.Serializable {
     @ItemProperty(alias = "是否靶向药  0否  1是 ")
     private Integer targetedDrugType;
 
+    @ItemProperty(alias = " 中药/系数的价格 ")
+    private BigDecimal saleDrugPrice;
+
+    public BigDecimal getSaleDrugPrice() {
+        return saleDrugPrice;
+    }
+
+    public void setSaleDrugPrice(BigDecimal saleDrugPrice) {
+        this.saleDrugPrice = saleDrugPrice;
+    }
+
     public Integer getTargetedDrugType() {
         return targetedDrugType;
     }

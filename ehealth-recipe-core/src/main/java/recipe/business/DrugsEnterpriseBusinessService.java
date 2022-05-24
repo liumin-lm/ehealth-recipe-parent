@@ -35,6 +35,7 @@ import recipe.vo.greenroom.PharmacyVO;
 import recipe.vo.patient.AddressAreaVo;
 import recipe.vo.patient.CheckAddressReq;
 import recipe.vo.patient.CheckAddressRes;
+import recipe.vo.second.CheckAddressVo;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -290,6 +291,37 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         drugsEnterprise.setLogisticsType(drugsEnterpriseVO.getLogisticsType());
         drugsEnterpriseDAO.update(drugsEnterprise);
         return true;
+    }
+
+    @Override
+    public Boolean checkSendAddress(CheckAddressVo checkAddressVo) {
+        List<OrganAndDrugsepRelation> organAndDrugsepRelations = organAndDrugsepRelationDAO.findByOrganId(checkAddressVo.getOrganId());
+        if (CollectionUtils.isEmpty(organAndDrugsepRelations)){
+            return false;
+        }
+        List<Integer> enterpriseIds = organAndDrugsepRelations.stream().map(OrganAndDrugsepRelation::getDrugsEnterpriseId).collect(Collectors.toList());
+        List<EnterpriseAddress> list = enterpriseAddressDAO.findByEnterPriseIds(enterpriseIds);
+        if (CollectionUtils.isEmpty(list)){
+            return false;
+        }
+        if (addressCan(list, checkAddressVo.getAddress3())) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean addressCan(List<EnterpriseAddress> list, String address) {
+        boolean flag = false;
+        if (StringUtils.isEmpty(address)) {
+            return flag;
+        }
+        for (EnterpriseAddress e : list) {
+            if (e.getAddress().startsWith(address)) {
+                flag = true;
+                break;
+            }
+        }
+        return flag;
     }
 
     private boolean addressCanSend(List<EnterpriseDecoctionAddress> list, String address) {
