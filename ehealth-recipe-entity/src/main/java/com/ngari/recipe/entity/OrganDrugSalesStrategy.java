@@ -4,7 +4,7 @@ import ctd.schema.annotation.ItemProperty;
 import lombok.Data;
 
 /**
- * 销售机构药品目录
+ * 机构药品目录销售策略
  *
  * @author <a href="mailto:luf@ngarihealth.com">luf</a>
  */

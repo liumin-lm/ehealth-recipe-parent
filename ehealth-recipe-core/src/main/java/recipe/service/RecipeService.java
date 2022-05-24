@@ -5097,6 +5097,52 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getSmallestSaleMultiple())) {
             drugListMatch.setRecommendedUseDose(drug.getRecommendedUseDose());
         }
+        if (!ObjectUtils.isEmpty(drug.getUsePathways())) {
+            drugListMatch.setUsePathways(drug.getUsePathways());
+            IUsePathwaysService bean = AppContextHolder.getBean("basic.usePathwaysService", IUsePathwaysService.class);
+            List<UsePathwaysDTO> allUsePathwaysByOrganId = bean.findAllUsePathwaysByOrganId(organId);
+            if (ObjectUtils.isEmpty(allUsePathwaysByOrganId)) {
+                UsePathwaysDTO usePathwaysDTO = bean.findUsePathwaysByOrganAndKey(0, drug.getUsePathways());
+                if (ObjectUtils.isEmpty(usePathwaysDTO)) {
+                    String error = "usePathways:" + drug.getUsePathways() + " 平台未找到该用药途径!";
+                    throw new DAOException(DAOException.VALUE_NEEDED, error);
+                } else {
+                    drugListMatch.setUsePathwaysId(usePathwaysDTO.getId().toString());
+                }
+            } else {
+                UsePathwaysDTO usePathwaysDTO = bean.findUsePathwaysByOrganAndKey(organId, drug.getUsePathways());
+                if (ObjectUtils.isEmpty(usePathwaysDTO)) {
+                    String error = "usePathways:" + drug.getUsePathways() + " 机构未找到该用药途径!";
+                    throw new DAOException(DAOException.VALUE_NEEDED, error);
+                } else {
+                    drugListMatch.setUsePathwaysId(usePathwaysDTO.getId().toString());
+                }
+            }
+        }
+        if (!ObjectUtils.isEmpty(drug.getUsingRate())) {
+            drugListMatch.setUsingRate(drug.getUsingRate());
+            IUsingRateService bean = AppContextHolder.getBean("basic.usingRateService", IUsingRateService.class);
+            List<UsingRateDTO> allusingRateByOrganId = bean.findAllusingRateByOrganId(organId);
+            if (ObjectUtils.isEmpty(allusingRateByOrganId)) {
+                UsingRateDTO usingRateDTO = bean.findUsingRateDTOByOrganAndKey(0, drug.getUsingRate());
+                if (ObjectUtils.isEmpty(usingRateDTO)) {
+                    String error = "usingRate:" + drug.getUsingRate() + " 平台未找到该用药频次!";
+                    throw new DAOException(DAOException.VALUE_NEEDED, error);
+                } else {
+                    drugListMatch.setUsingRateId(usingRateDTO.getId().toString());
+                }
+
+            } else {
+                UsingRateDTO usingRateDTOByOrganAndKey = bean.findUsingRateDTOByOrganAndKey(organId, drug.getUsingRate());
+                if (ObjectUtils.isEmpty(usingRateDTOByOrganAndKey)) {
+                    String error = "usingRate:" + drug.getUsingRate() + " 机构未找到该用药频次!";
+                    throw new DAOException(DAOException.VALUE_NEEDED, error);
+                } else {
+                    drugListMatch.setUsingRateId(usingRateDTOByOrganAndKey.getId().toString());
+                }
+            }
+        }
+
         LOGGER.info("drugInfoSynMovementaddHisDrug" + drug.getDrugName() + "organId=[{}] drug=[{}]", organId, JSONUtils.toString(drug));
         List<DrugListMatch> dataByOrganDrugCode = drugListMatchDAO.findDataByOrganDrugCode(drugListMatch.getOrganDrugCode(), drugListMatch.getSourceOrgan());
         if (ObjectUtils.isEmpty(dataByOrganDrugCode)) {
@@ -5300,6 +5346,52 @@ public class RecipeService extends RecipeBaseService {
         if (!ObjectUtils.isEmpty(drug.getRecommendedUseDose())) {
             organDrug.setRecommendedUseDose(drug.getRecommendedUseDose());
         }
+        if (!ObjectUtils.isEmpty(drug.getUsePathways())) {
+            organDrug.setUsePathways(drug.getUsePathways());
+            IUsePathwaysService bean = AppContextHolder.getBean("basic.usePathwaysService", IUsePathwaysService.class);
+            List<UsePathwaysDTO> allUsePathwaysByOrganId = bean.findAllUsePathwaysByOrganId(organId);
+            if (ObjectUtils.isEmpty(allUsePathwaysByOrganId)) {
+                UsePathwaysDTO usePathwaysDTO = bean.findUsePathwaysByOrganAndKey(0, drug.getUsePathways());
+                if (ObjectUtils.isEmpty(usePathwaysDTO)) {
+                    String error = "usePathways:" + drug.getUsePathways() + " 平台未找到该用药途径!";
+                    throw new DAOException(DAOException.VALUE_NEEDED, error);
+                } else {
+                    organDrug.setUsePathwaysId(usePathwaysDTO.getId().toString());
+                }
+            } else {
+                UsePathwaysDTO usePathwaysDTO = bean.findUsePathwaysByOrganAndKey(organId, drug.getUsePathways());
+                if (ObjectUtils.isEmpty(usePathwaysDTO)) {
+                    String error = "usePathways:" + drug.getUsePathways() + " 机构未找到该用药途径!";
+                    throw new DAOException(DAOException.VALUE_NEEDED, error);
+                } else {
+                    organDrug.setUsePathwaysId(usePathwaysDTO.getId().toString());
+                }
+            }
+        }
+        if (!ObjectUtils.isEmpty(drug.getUsingRate())) {
+            organDrug.setUsingRate(drug.getUsingRate());
+            IUsingRateService bean = AppContextHolder.getBean("basic.usingRateService", IUsingRateService.class);
+            List<UsingRateDTO> allusingRateByOrganId = bean.findAllusingRateByOrganId(organId);
+            if (ObjectUtils.isEmpty(allusingRateByOrganId)) {
+                UsingRateDTO usingRateDTO = bean.findUsingRateDTOByOrganAndKey(0, drug.getUsingRate());
+                if (ObjectUtils.isEmpty(usingRateDTO)) {
+                    String error = "usingRate:" + drug.getUsingRate() + " 平台未找到该用药频次!";
+                    throw new DAOException(DAOException.VALUE_NEEDED, error);
+                } else {
+                    organDrug.setUsingRateId(usingRateDTO.getId().toString());
+                }
+
+            } else {
+                UsingRateDTO usingRateDTOByOrganAndKey = bean.findUsingRateDTOByOrganAndKey(organId, drug.getUsingRate());
+                if (ObjectUtils.isEmpty(usingRateDTOByOrganAndKey)) {
+                    String error = "usingRate:" + drug.getUsingRate() + " 机构未找到该用药频次!";
+                    throw new DAOException(DAOException.VALUE_NEEDED, error);
+                } else {
+                    organDrug.setUsingRateId(usingRateDTOByOrganAndKey.getId().toString());
+                }
+            }
+        }
+
         OrganDrugList update = organDrugListDAO.update(organDrug);
         //同步药品到监管备案
         RecipeBusiThreadPool.submit(() -> {
@@ -5534,6 +5626,51 @@ public class RecipeService extends RecipeBaseService {
         }
         if (Objects.nonNull(drug.getSmallestSaleMultiple())) {
             organDrug.setSmallestSaleMultiple(drug.getSmallestSaleMultiple());
+        }
+        if (!ObjectUtils.isEmpty(drug.getUsePathways())) {
+            organDrug.setUsePathways(drug.getUsePathways());
+            IUsePathwaysService bean = AppContextHolder.getBean("basic.usePathwaysService", IUsePathwaysService.class);
+            List<UsePathwaysDTO> allUsePathwaysByOrganId = bean.findAllUsePathwaysByOrganId(organId);
+            if (ObjectUtils.isEmpty(allUsePathwaysByOrganId)) {
+                UsePathwaysDTO usePathwaysDTO = bean.findUsePathwaysByOrganAndKey(0, drug.getUsePathways());
+                if (ObjectUtils.isEmpty(usePathwaysDTO)) {
+                    String error = "usePathways:" + drug.getUsePathways() + " 平台未找到该用药途径!";
+                    throw new DAOException(DAOException.VALUE_NEEDED, error);
+                } else {
+                    organDrug.setUsePathwaysId(usePathwaysDTO.getId().toString());
+                }
+            } else {
+                UsePathwaysDTO usePathwaysDTO = bean.findUsePathwaysByOrganAndKey(organId, drug.getUsePathways());
+                if (ObjectUtils.isEmpty(usePathwaysDTO)) {
+                    String error = "usePathways:" + drug.getUsePathways() + " 机构未找到该用药途径!";
+                    throw new DAOException(DAOException.VALUE_NEEDED, error);
+                } else {
+                    organDrug.setUsePathwaysId(usePathwaysDTO.getId().toString());
+                }
+            }
+        }
+        if (!ObjectUtils.isEmpty(drug.getUsingRate())) {
+            organDrug.setUsingRate(drug.getUsingRate());
+            IUsingRateService bean = AppContextHolder.getBean("basic.usingRateService", IUsingRateService.class);
+            List<UsingRateDTO> allusingRateByOrganId = bean.findAllusingRateByOrganId(organId);
+            if (ObjectUtils.isEmpty(allusingRateByOrganId)) {
+                UsingRateDTO usingRateDTO = bean.findUsingRateDTOByOrganAndKey(0, drug.getUsingRate());
+                if (ObjectUtils.isEmpty(usingRateDTO)) {
+                    String error = "usingRate:" + drug.getUsingRate() + " 平台未找到该用药频次!";
+                    throw new DAOException(DAOException.VALUE_NEEDED, error);
+                } else {
+                    organDrug.setUsingRateId(usingRateDTO.getId().toString());
+                }
+
+            } else {
+                UsingRateDTO usingRateDTOByOrganAndKey = bean.findUsingRateDTOByOrganAndKey(organId, drug.getUsingRate());
+                if (ObjectUtils.isEmpty(usingRateDTOByOrganAndKey)) {
+                    String error = "usingRate:" + drug.getUsingRate() + " 机构未找到该用药频次!";
+                    throw new DAOException(DAOException.VALUE_NEEDED, error);
+                } else {
+                    organDrug.setUsingRateId(usingRateDTOByOrganAndKey.getId().toString());
+                }
+            }
         }
         LOGGER.info("updateHisDrug 更新后药品信息 organDrug：{}", JSONUtils.toString(organDrug));
         OrganDrugList update = organDrugListDAO.update(organDrug);

@@ -1652,6 +1652,11 @@ public class RecipeOrderService extends RecipeBaseService {
                         if (CollectionUtils.isNotEmpty(drugList)) {
                             recipeDetailBean.setDrugPic(drugList.get(0).getDrugPic());
                         }
+                        try {
+                            recipeDetailBean.setSaleDrugPrice(recipedetail.getSalePrice().divide(new BigDecimal(recipedetail.getPack()), 2, BigDecimal.ROUND_HALF_UP));
+                        } catch (Exception e) {
+                            LOGGER.error("计算包装系数错误, recipeId:{},{}.", recipeBean.getRecipeId(), e.getMessage(), e);
+                        }
                         detailBeans.add(recipeDetailBean);
                     }
                     //获取处方详情

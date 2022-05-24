@@ -279,6 +279,11 @@ public class RecipeValidateUtil {
                     recipeDetail.setSalePrice(saleDrugLists.get(0).getPrice());
                 }
             }
+            try {
+                recipeDetail.setSaleDrugPrice(recipeDetail.getSalePrice().divide(new BigDecimal(recipeDetail.getPack()), 2, BigDecimal.ROUND_HALF_UP));
+            } catch (Exception e) {
+                LOGGER.error("计算包装系数错误, recipeId:{},{}.", recipeId, e.getMessage(), e);
+            }
             backDetailList.add(recipeDetail);
         }
         return backDetailList;

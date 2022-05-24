@@ -372,8 +372,8 @@ public class RecipeOrderBean implements Serializable {
     // 未计入订单的代煎费
     private BigDecimal notContainDecoctionPrice;
 
-    @ItemProperty(alias = "发票抬头")
-    private String invoiceTitleNo;
+    @ItemProperty(alias = "发票记录ID")
+    private Integer invoiceRecordId;
 
     public BigDecimal getDecoctionTotalFee() {
         return decoctionTotalFee;
@@ -1312,11 +1312,11 @@ public class RecipeOrderBean implements Serializable {
         this.stationSendTotalFee = stationSendTotalFee;
     }
 
-    public String getInvoiceTitleNo() {
-        return invoiceTitleNo;
+    public Integer getInvoiceRecordId() {
+        return invoiceRecordId;
     }
 
-    public void setInvoiceTitleNo(String invoiceTitleNo) {
-        this.invoiceTitleNo = invoiceTitleNo;
+    public void setInvoiceRecordId(Integer invoiceRecordId) {
+        this.invoiceRecordId = invoiceRecordId;
     }
 }
