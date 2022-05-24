@@ -661,11 +661,12 @@ public class RecipeServiceSub {
                         BigDecimal drugCost;
                         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
                             //保留3位小数
-                            drugCost = price.multiply(new BigDecimal(detail.getUseTotalDose())).divide(BigDecimal.valueOf(organDrug.getPack()), 3, RoundingMode.UP);
+                            drugCost = price.multiply(new BigDecimal(detail.getUseTotalDose())).divide(BigDecimal.valueOf(organDrug.getPack())).setScale(4,BigDecimal.ROUND_HALF_UP);
                         } else {
                             //保留3位小数
-                            drugCost = price.multiply(new BigDecimal(detail.getUseTotalDose())).divide(BigDecimal.ONE, 3, RoundingMode.UP);
+                            drugCost = price.multiply(new BigDecimal(detail.getUseTotalDose())).setScale(4,BigDecimal.ROUND_HALF_UP);
                         }
+                        LOGGER.info("计算金额 price：{},drugCost:{},detail.getUseTotalDose():{},organDrug.getPack():{}" ,price,drugCost,detail.getUseTotalDose(),organDrug.getPack());
                         detail.setDrugCost(drugCost);
                         totalMoney = totalMoney.add(drugCost);
                         //药房处理
@@ -701,7 +702,7 @@ public class RecipeServiceSub {
         } else {
             LOGGER.warn("setDetailsInfo 详情里没有药品ID. recipeId=[{}]", recipe.getRecipeId());
         }
-
+        totalMoney = totalMoney.setScale(2,BigDecimal.ROUND_HALF_UP);
         recipe.setTotalMoney(totalMoney);
         recipe.setActualPrice(totalMoney);
         return success;
