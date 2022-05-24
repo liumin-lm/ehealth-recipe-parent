@@ -117,6 +117,17 @@ public class DepDetailBean {
     //药店|药柜 区分类型
     private Integer type;
 
+    //药店库存(1:有库存 0：无库存)
+    private Integer stockFlag;
+
+    public Integer getStockFlag() {
+        return stockFlag;
+    }
+
+    public void setStockFlag(Integer stockFlag) {
+        this.stockFlag = stockFlag;
+    }
+
     public String getPharmacyName() {
         return pharmacyName;
     }
