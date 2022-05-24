@@ -56,4 +56,7 @@ public class RecipeOrderRefundVO implements Serializable {
 
     @ItemProperty(alias = "退货状态")
     private String refundStatusText;
+
+    @ItemProperty(alias = "发票状态 1 开具 0 无需开具")
+    private Integer invoiceStatus;
 }
