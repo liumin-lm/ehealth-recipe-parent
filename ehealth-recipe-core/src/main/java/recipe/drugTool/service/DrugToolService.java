@@ -883,6 +883,7 @@ public class DrugToolService implements IDrugToolService {
         result.put("failNum", total - addNum - updateNum);
         LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         result.put("code", 200);
+        LOGGER.info("DrugToolService result={}",JSONUtils.toString(result));
         return result;
     }
 
