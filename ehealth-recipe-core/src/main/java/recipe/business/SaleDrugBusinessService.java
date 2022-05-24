@@ -43,7 +43,7 @@ public class SaleDrugBusinessService extends BaseService implements ISaleDrugBus
         if (null == saleDrugListDb) {
             return res;
         }
-        saleDrugListDb.setEnterpriseSalesStrategy(saleDrugListManager.getEnterpriseSalesStrategy(saleDrugList));
+        saleDrugListDb.setEnterpriseSalesStrategy(saleDrugListManager.getEnterpriseSalesStrategy(saleDrugListDb));
         return saleDrugListDb;
     }
 
