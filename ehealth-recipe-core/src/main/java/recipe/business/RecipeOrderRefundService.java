@@ -1,6 +1,8 @@
 package recipe.business;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.infra.invoice.mode.InvoiceRecordDto;
+import com.ngari.infra.invoice.service.InvoiceRecordService;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RecipeOrderRefundReqDTO;
@@ -72,6 +74,8 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
     private RecipeRefundManage recipeRefundManage;
     @Autowired
     private RecipeManager recipeManager;
+    @Autowired
+    private InvoiceRecordService invoiceRecordService;
 
     @Override
     public RecipeOrderRefundPageVO findRefundRecipeOrder(RecipeOrderRefundReqVO recipeOrderRefundReqVO) {
@@ -207,6 +211,12 @@ public class RecipeOrderRefundService implements IRecipeOrderRefundService {
                 orderRefundInfoVO.setRefuseReason(recipeRefunds1.get(0).getReason());
             }
             orderRefundInfoVO.setAuditNodeType(-1);
+        }
+        if (null != recipeOrder.getInvoiceRecordId()) {
+            InvoiceRecordDto invoiceRecordDto = invoiceRecordService.findInvoiceRecordInfo(recipeOrder.getInvoiceRecordId());
+            InvoiceRecordVO invoiceRecordVO = new InvoiceRecordVO();
+            ObjectCopyUtils.copyProperties(invoiceRecordVO, invoiceRecordDto);
+            recipeOrderRefundDetailVO.setInvoiceRecordVO(invoiceRecordVO);
         }
         recipeOrderRefundDetailVO.setOrderRefundInfoVO(orderRefundInfoVO);
         recipeOrderRefundDetailVO.setRecipeBeanList(recipeBeanList);

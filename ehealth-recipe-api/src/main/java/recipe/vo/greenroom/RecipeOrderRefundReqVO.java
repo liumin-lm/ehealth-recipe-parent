@@ -26,6 +26,7 @@ public class RecipeOrderRefundReqVO implements Serializable {
     private String patientName;
     private String beginTime;
     private String endTime;
+    private Integer invoiceStatus;
     private Integer start;
     private Integer limit;
 }
