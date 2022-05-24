@@ -79,6 +79,7 @@ import recipe.enumerate.status.*;
 import recipe.enumerate.type.*;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
+import recipe.purchase.CommonOrder;
 import recipe.purchase.PurchaseService;
 import recipe.service.afterpay.AfterPayBusService;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
@@ -2267,6 +2268,8 @@ public class RecipeOrderService extends RecipeBaseService {
             recipeInfo.put("payDate", Calendar.getInstance().getTime());
             if (order != null && PayConstant.PAY_FLAG_PAY_SUCCESS == payFlag) {
                 logisticsOnlineOrderService.onlineOrder(order, recipes);
+                //更新发票记录信息
+                CommonOrder.updateInvoiceRecord(order.getOrderId());
             }
             List<Integer> recipeIds = recipes.stream().map(Recipe::getRecipeId).distinct().collect(Collectors.toList());
             updateRecipeInfo(true, result, recipeIds, recipeInfo, order.getRecipeFee());

@@ -6,6 +6,8 @@ import com.ngari.base.employment.service.IEmploymentService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.UpdateTakeDrugWayReqTO;
+import com.ngari.infra.invoice.mode.InvoiceRecordDto;
+import com.ngari.infra.invoice.service.InvoiceRecordService;
 import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -35,6 +37,7 @@ import recipe.constant.UpdateSendMsgStatusEnum;
 import recipe.dao.DrugDecoctionWayDao;
 import recipe.dao.RecipeDAO;
 import recipe.dao.RecipeExtendDAO;
+import recipe.dao.RecipeOrderDAO;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.ButtonManager;
@@ -89,6 +92,55 @@ public class CommonOrder {
             }
         } catch(Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * 新增开票记录
+     * @param templateId
+     * @param recipeIds
+     * @return
+     */
+    public static Integer addInvoiceRecord(String templateId, List<Integer> recipeIds) {
+        LOG.info("CommonOrder addInvoiceRecord templateId:{},recipeIds:{}", templateId, JSONUtils.toString(recipeIds));
+        if (StringUtils.isEmpty(templateId)) {
+            return null;
+        }
+        try {
+            InvoiceRecordService invoiceRecordService = AppContextHolder.getBean("infra.invoiceRecordService", InvoiceRecordService.class);
+            InvoiceRecordDto invoiceRecordDto = new InvoiceRecordDto();
+            invoiceRecordDto.setBusinessType(6);
+            invoiceRecordDto.setTemplateId(templateId);
+            return invoiceRecordService.addInvoiceRecord(invoiceRecordDto);
+        } catch (Exception e) {
+            LOG.error("CommonOrder addInvoiceRecord error recipeId:{}", JSONUtils.toString(recipeIds), e);
+        }
+        return null;
+    }
+
+    /**
+     * 更新开票记录
+     * @param orderId 订单ID
+     */
+    public static void updateInvoiceRecord(Integer orderId) {
+        try {
+            if (null == orderId) {
+                return;
+            }
+            RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderId(orderId);
+            if (null == recipeOrder || null == recipeOrder.getInvoiceRecordId()) {
+                return;
+            }
+            InvoiceRecordService invoiceRecordService = AppContextHolder.getBean("infra.invoiceRecordService", InvoiceRecordService.class);
+            InvoiceRecordDto invoiceRecordDto = invoiceRecordService.findInvoiceRecordInfo(recipeOrder.getInvoiceRecordId());
+            invoiceRecordDto.setBusinessId(orderId.toString());
+            invoiceRecordDto.setPrice(new BigDecimal(recipeOrder.getActualPrice()));
+            invoiceRecordDto.setReceiverName(recipeOrder.getReceiver());
+            invoiceRecordDto.setReceiverPhone(recipeOrder.getRecMobile());
+            invoiceRecordService.updateInvoiceRecord(invoiceRecordDto);
+        } catch (Exception e) {
+            LOG.error("CommonOrder addInvoiceRecord error orderId:{}", orderId, e);
         }
     }
 

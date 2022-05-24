@@ -45,6 +45,7 @@
     <!--物流基础服务-->
     <reference id="infra.logisticsOrderService" interface="com.ngari.infra.logistics.service.ILogisticsOrderService"/>
     <reference id="infra.waybillService" interface="com.ngari.infra.logistics.service.IWaybillService"/>
+    <reference id="infra.invoiceRecordService" interface="com.ngari.infra.invoice.service.InvoiceRecordService"/>
     <!--支付平台记账-->
     <reference id="easypay.payService" interface="recipe.easypay.IEasyPayService"/>
     <!--随访服务-->
