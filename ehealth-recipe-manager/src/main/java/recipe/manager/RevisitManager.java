@@ -1,5 +1,6 @@
 package recipe.manager;
 
+import com.alibaba.fastjson.JSON;
 import com.ngari.common.dto.RevisitTracesMsg;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.Consult;
@@ -144,7 +145,7 @@ public class RevisitManager extends BaseManager {
         writeDrugRecipeReqTo.setCertificate(patient.getCertificate());
         writeDrugRecipeReqTo.setCertificateType(patient.getCertificateType());
         writeDrugRecipeReqTo.setPatientDTO(ObjectCopyUtils.convert(patient, PatientDTO.class));
-        logger.info("RevisitManager writeDrugRecipeReqTO={}", JSONUtils.toString(writeDrugRecipeReqTo));
+        logger.info("RevisitManager writeDrugRecipeReqTO={}", JSON.toJSONString(writeDrugRecipeReqTo));
         return writeDrugRecipeReqTo;
     }
 
