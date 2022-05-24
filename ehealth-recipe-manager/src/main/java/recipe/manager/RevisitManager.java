@@ -141,6 +141,8 @@ public class RevisitManager extends BaseManager {
         writeDrugRecipeReqTo.setOrganId(organId);
         writeDrugRecipeReqTo.setDoctorId(doctorId);
         writeDrugRecipeReqTo.setPatientName(patient.getPatientName());
+        writeDrugRecipeReqTo.setCertificate(patient.getCertificate());
+        writeDrugRecipeReqTo.setCertificateType(patient.getCertificateType());
         writeDrugRecipeReqTo.setPatientDTO(ObjectCopyUtils.convert(patient, PatientDTO.class));
         logger.info("RevisitManager writeDrugRecipeReqTO={}", JSONUtils.toString(writeDrugRecipeReqTo));
         return writeDrugRecipeReqTo;
