@@ -184,7 +184,7 @@ public class PayModeOnline implements IPurchaseService {
         String insuredArea = MapValueUtil.getString(extInfo, "insuredArea");
         Integer logisticsCompany = MapValueUtil.getInteger(extInfo, "logisticsCompany");
         Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
-        String invoiceTitleNo = MapValueUtil.getString(extInfo, "invoiceTitleNo");
+        Integer invoiceRecordId = MapValueUtil.getInteger(extInfo, "invoiceRecordId");
 
         if (StringUtils.isNotEmpty(insuredArea)) {
             for (Recipe recipe : recipeList) {
@@ -198,7 +198,7 @@ public class PayModeOnline implements IPurchaseService {
             return result;
         }
         order.setWxPayWay(payway);
-        order.setInvoiceTitleNo(invoiceTitleNo);
+        order.setInvoiceRecordId(invoiceRecordId);
         //保存站点相关信息
         if (null != takeMedicineWay) {
             setStationInfo(recipeList.get(0), extInfo, order, takeMedicineWay);
