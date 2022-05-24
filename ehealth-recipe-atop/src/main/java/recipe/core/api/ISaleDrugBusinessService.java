@@ -24,4 +24,7 @@ public interface ISaleDrugBusinessService {
      * @return
      */
     SaleDrugList findSaleDrugListByDrugIdAndOrganId(SaleDrugList saleDrugList);
+
+    void saveSaleDrugSalesStrategy(SaleDrugList saleDrugList);
+
 }

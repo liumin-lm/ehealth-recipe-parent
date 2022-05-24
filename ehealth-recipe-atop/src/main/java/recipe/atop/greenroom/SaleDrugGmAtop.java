@@ -51,6 +51,16 @@ public class SaleDrugGmAtop extends BaseAtop {
         SaleDrugList res = enterpriseBusinessService.findSaleDrugListByDrugIdAndOrganId(saleDrugList);
         return res;
     }
+    /**
+     * 保存药企销售策略
+     *
+     * @param saleDrugList
+     */
+    @RpcService
+    public void saveSaleDrugSalesStrategy(SaleDrugList saleDrugList){
+        validateAtop(saleDrugList.getOrganId(),saleDrugList.getDrugId());
+        enterpriseBusinessService.saveSaleDrugSalesStrategy(saleDrugList);
+    }
 
 
 
