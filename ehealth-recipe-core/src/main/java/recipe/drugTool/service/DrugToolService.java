@@ -872,7 +872,7 @@ public class DrugToolService implements IDrugToolService {
             result.put("addNum", addNum);
             result.put("updateNum", updateNum);
             result.put("failNum", failNum);
-            importDrugRecord.setErrMsg(JSONUtils.toString(errDrugListMatchList.stream().limit(5).collect(Collectors.toList())));
+            importDrugRecord.setErrMsg(JSONUtils.toString(errDrugListMatchList.stream().limit(600).collect(Collectors.toList())));
             importDrugRecordDAO.save(importDrugRecord);
             return result;
         }
