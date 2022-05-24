@@ -103,6 +103,9 @@ public class CommonOrder {
      */
     public static Integer addInvoiceRecord(String templateId, List<Integer> recipeIds) {
         LOG.info("CommonOrder addInvoiceRecord templateId:{},recipeIds:{}", templateId, JSONUtils.toString(recipeIds));
+        if (StringUtils.isEmpty(templateId)) {
+            return null;
+        }
         try {
             InvoiceRecordService invoiceRecordService = AppContextHolder.getBean("infra.invoiceRecordService", InvoiceRecordService.class);
             InvoiceRecordDto invoiceRecordDto = new InvoiceRecordDto();
