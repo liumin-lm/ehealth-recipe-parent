@@ -15,5 +15,6 @@
     <reference id="his.iPatientHisService" interface="com.ngari.his.patient.service.IPatientHisService" />
     <reference id="his.iCaHisService" interface="com.ngari.his.ca.service.ICaHisService" />
     <reference id="his.iRecipeEnterpriseService" interface="com.ngari.his.recipe.service.IRecipeEnterpriseService" />
+    <reference id="his.revisitOtherHosRecordService" interface="com.ngari.his.visit.service.IRevisitOtherHosRecordService" />
 
 </s:beans>
