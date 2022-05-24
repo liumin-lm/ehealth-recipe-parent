@@ -1673,9 +1673,6 @@ public class RecipeService extends RecipeBaseService {
             LOGGER.error("ErrorCode.SERVICE_ERROR={}", ErrorCode.SERVICE_ERROR);
             throw new DAOException(ErrorCode.SERVICE_ERROR, "当前患者就诊信息已失效，无法进行开方。");
         }
-        //校验开处方单数限制
-        //recipeManager.isOpenRecipeNumber(recipe.getClinicId(), recipe.getClinicOrgan(), recipe.getRecipeId());
-        //判断机构是否需要his处方检查 ---运营平台机构配置
         if (null != recipe.getRecipeExtend()) {
             EmrDetailDTO emrDetailDTO = docIndexClient.getEmrDetails(recipe.getRecipeExtend().getDocIndexId());
             recipe.setOrganDiseaseName(emrDetailDTO.getOrganDiseaseName());
