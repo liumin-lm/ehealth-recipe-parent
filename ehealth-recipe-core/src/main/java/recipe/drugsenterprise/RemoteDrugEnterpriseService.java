@@ -18,6 +18,7 @@ import com.ngari.patient.service.OrganService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
 import com.ngari.recipe.drugsenterprise.model.DrugsDataBean;
+import com.ngari.recipe.drugsenterprise.model.Position;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.HospitalRecipeDTO;
@@ -30,6 +31,7 @@ import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -879,7 +881,14 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
             LOGGER.info("findSupportDep 发给前置机入参:{}.", JSONUtils.toString(scanRequestBean));
             List<DepDetailBean> depDetailBeans = recipeEnterpriseService.findSupportDep(scanRequestBean);
             LOGGER.info("findSupportDep 前置机出参:{}.", JSONUtils.toString(depDetailBeans));
-            result.setObject(ObjectCopyUtils.convert(depDetailBeans, com.ngari.recipe.drugsenterprise.model.DepDetailBean.class));
+            List<com.ngari.recipe.drugsenterprise.model.DepDetailBean> collect = depDetailBeans.stream().map(depDetailBean -> {
+                com.ngari.recipe.drugsenterprise.model.DepDetailBean depDetailBean1 = BeanCopyUtils.copyProperties(depDetailBean, com.ngari.recipe.drugsenterprise.model.DepDetailBean::new);
+                if(Objects.nonNull(depDetailBean.getPosition())) {
+                    depDetailBean1.setPosition(BeanCopyUtils.copyProperties(depDetailBean.getPosition(), com.ngari.recipe.drugsenterprise.model.Position::new));
+                }
+                return depDetailBean1;
+            }).collect(Collectors.toList());
+            result.setObject(collect);
             return result;
         }
         if (CollectionUtils.isNotEmpty(recipeIds) && null != drugsEnterprise) {
