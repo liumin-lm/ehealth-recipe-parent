@@ -291,10 +291,12 @@ public class DrugToolService implements IDrugToolService {
             //循环获得每个行
             row = sheet.getRow(rowIndex);
             boolean flag = false;
-            for(Cell cell : row){
-                if (cell.getCellType() != Cell.CELL_TYPE_BLANK) {
-                    flag = true;
-                    break;
+            if(null != row){
+                for(Cell cell : row){
+                    if (cell.getCellType() != Cell.CELL_TYPE_BLANK) {
+                        flag = true;
+                        break;
+                    }
                 }
             }
             //如果为空行的数据，则空行数+1
