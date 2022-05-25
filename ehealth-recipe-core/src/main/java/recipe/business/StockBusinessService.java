@@ -655,7 +655,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             giveModeButton.add(supportMedicalPayment);
         }
         if (CollectionUtils.isEmpty(giveModeButton)) {
-            return null;
+            return giveModeButton;
         }
         Set<Integer> recipeGiveMode = giveModeButton.stream().filter(Objects::nonNull).map(GiveModeButtonDTO::getType).collect(Collectors.toSet());
         if (CollectionUtils.isNotEmpty(recipeGiveMode)) {
