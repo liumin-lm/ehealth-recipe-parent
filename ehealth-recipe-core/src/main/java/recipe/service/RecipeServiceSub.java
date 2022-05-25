@@ -470,7 +470,7 @@ public class RecipeServiceSub {
      */
     public static boolean setDetailsInfo(Recipe recipe, List<Recipedetail> recipedetails) {
         getMedicalInfo(recipe);
-        boolean success = false;
+     //   boolean success = false;
         int organId = recipe.getClinicOrgan();
         //药品总金额
         BigDecimal totalMoney = new BigDecimal(0d);
@@ -510,7 +510,7 @@ public class RecipeServiceSub {
                 }
                 if (CollectionUtils.isNotEmpty(delDrugName)) {
                     String errorDrugName = Joiner.on(",").join(delDrugName);
-                    throw new DAOException(ErrorCode.SERVICE_ERROR, errorDrugName + "药品已失效，请重新选择药品");
+                //    throw new DAOException(ErrorCode.SERVICE_ERROR, errorDrugName + "药品已失效，请重新选择药品");
                 }
             }
             //是否为老的药品兼容方式，老的药品传入方式没有organDrugCode
@@ -692,12 +692,12 @@ public class RecipeServiceSub {
                 }
                 if (CollectionUtils.isNotEmpty(delOrganDrugName)) {
                     String errorDrugName = Joiner.on(",").join(delOrganDrugName);
-                    throw new DAOException(ErrorCode.SERVICE_ERROR, errorDrugName + "药品已失效，请重新选择药品");
+                    //  throw new DAOException(ErrorCode.SERVICE_ERROR, errorDrugName + "药品已失效，请重新选择药品");
                 }
-                success = true;
+                //success = true;
             } else {
                 LOGGER.warn("setDetailsInfo organDrugList. recipeId=[{}], drugIds={}", recipe.getRecipeId(), JSONUtils.toString(drugIds));
-                throw new DAOException(ErrorCode.SERVICE_ERROR, "药品已失效，请重新选择药品");
+                //  throw new DAOException(ErrorCode.SERVICE_ERROR, "药品已失效，请重新选择药品");
             }
         } else {
             LOGGER.warn("setDetailsInfo 详情里没有药品ID. recipeId=[{}]", recipe.getRecipeId());
@@ -707,7 +707,7 @@ public class RecipeServiceSub {
         LOGGER.warn("计算金额 Up totalMoney：{}" ,totalMoney);
         recipe.setTotalMoney(totalMoney);
         recipe.setActualPrice(totalMoney);
-        return success;
+        return true;
     }
 
     public static RecipeResultBean validateRecipeSendDrugMsg(RecipeBean recipe) {
