@@ -179,7 +179,7 @@ public class PayModeToHos implements IPurchaseService {
         order.setStatus(OrderStatusConstant.READY_GET_DRUG);
         order.setRecipeIdList(JSONUtils.toString(recipeIdLists));
         //保存开票记录
-        String templateId = MapValueUtil.getString(extInfo, "invoiceRecordId");
+        Integer templateId = MapValueUtil.getInteger(extInfo, "invoiceRecordId");
         Integer invoiceRecordId = CommonOrder.addInvoiceRecord(templateId, recipeIdLists);
         if (!ObjectUtils.isEmpty(invoiceRecordId)) {
             order.setInvoiceRecordId(invoiceRecordId);

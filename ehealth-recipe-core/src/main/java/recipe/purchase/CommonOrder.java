@@ -102,9 +102,9 @@ public class CommonOrder {
      * @param recipeIds
      * @return
      */
-    public static Integer addInvoiceRecord(String templateId, List<Integer> recipeIds) {
+    public static Integer addInvoiceRecord(Integer templateId, List<Integer> recipeIds) {
         LOG.info("CommonOrder addInvoiceRecord templateId:{},recipeIds:{}", templateId, JSONUtils.toString(recipeIds));
-        if (StringUtils.isEmpty(templateId)) {
+        if (null == templateId) {
             return null;
         }
         try {

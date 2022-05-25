@@ -238,7 +238,7 @@ public class PayModeTFDS implements IPurchaseService {
         //设置为有效订单
         order.setEffective(1);
         //保存开票记录
-        String templateId = MapValueUtil.getString(extInfo, "invoiceRecordId");
+        Integer templateId = MapValueUtil.getInteger(extInfo, "invoiceRecordId");
         Integer invoiceRecordId = CommonOrder.addInvoiceRecord(templateId, recipeIdLists);
         if (!ObjectUtils.isEmpty(invoiceRecordId)) {
             order.setInvoiceRecordId(invoiceRecordId);

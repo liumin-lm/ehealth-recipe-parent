@@ -185,7 +185,7 @@ public class PayModeOnline implements IPurchaseService {
         String insuredArea = MapValueUtil.getString(extInfo, "insuredArea");
         Integer logisticsCompany = MapValueUtil.getInteger(extInfo, "logisticsCompany");
         Integer takeMedicineWay = MapValueUtil.getInteger(extInfo, "takeMedicineWay");
-        String templateId = MapValueUtil.getString(extInfo, "invoiceRecordId");
+        Integer templateId = MapValueUtil.getInteger(extInfo, "invoiceRecordId");
 
         if (StringUtils.isNotEmpty(insuredArea)) {
             for (Recipe recipe : recipeList) {
