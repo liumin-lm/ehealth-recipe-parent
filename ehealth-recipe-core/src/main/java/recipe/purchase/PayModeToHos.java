@@ -410,7 +410,7 @@ public class PayModeToHos implements IPurchaseService {
         return noShowStoreEnterprises.stream().map(enterprise -> {
             List<Pharmacy> pharmacyList = pharmacyDAO.findByDepId(enterprise.getId());
             if(CollectionUtils.isEmpty(pharmacyList)){
-                LOG.info("setEnterpriseToStore pharmacyList is null");
+                LOG.info("setEnterpriseToStore pharmacyList is null enterpriseId:{}",enterprise.getId());
                 return null;
             }
             DepDetailBean depDetailBean = new DepDetailBean();
