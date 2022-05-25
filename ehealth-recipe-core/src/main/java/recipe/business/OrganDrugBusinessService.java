@@ -66,8 +66,8 @@ public class OrganDrugBusinessService extends BaseService implements IOrganDrugB
                     List<SaleDrugSalesStrategy> saleDrugSalesStrategyList  = new ArrayList<>();
                     if(StringUtils.isNotEmpty(saleDrugList.getEnterpriseSalesStrategy())){
                         saleDrugSalesStrategyList = JSONObject.parseArray(saleDrugList.getEnterpriseSalesStrategy(),SaleDrugSalesStrategy.class);
-                        saleDrugSalesStrategyList.add(saleDrugSalesStrategy);
                     }
+                    saleDrugSalesStrategyList.add(saleDrugSalesStrategy);
                     saleDrugList.setEnterpriseSalesStrategy(JSONUtils.toString(saleDrugSalesStrategyList));
                     saleDrugListDAO.updateNonNullFieldByPrimaryKey(saleDrugList);
                 }
