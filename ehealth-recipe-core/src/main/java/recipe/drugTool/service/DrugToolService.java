@@ -297,7 +297,10 @@ public class DrugToolService implements IDrugToolService {
                     break;
                 }
             }
-            if(!flag) bankNumber +=1;
+            if(!flag) {
+                bankNumber +=1;
+                continue;
+            }
             if(flag){
                 // 判断是否是模板
                 if (rowIndex == 0) {
