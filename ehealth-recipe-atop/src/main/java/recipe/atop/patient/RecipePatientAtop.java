@@ -155,6 +155,7 @@ public class RecipePatientAtop extends BaseAtop {
     public MedicationGuideResVO getMedicationGuide(MedicationGuidanceReqVO medicationGuidanceReqVO) {
         logger.info("OutPatientRecipeAtop getMedicationGuide medicationGuidanceReqVO:{}.", JSON.toJSONString(medicationGuidanceReqVO));
         try {
+            medicationGuidanceReqVO.setOrganDiseaseId("ZBF070");
             MedicationGuideResVO result = recipeBusinessService.getMedicationGuide(medicationGuidanceReqVO);
             logger.info("OutPatientRecipeAtop getMedicationGuide result = {}", JSON.toJSONString(result));
             return result;
