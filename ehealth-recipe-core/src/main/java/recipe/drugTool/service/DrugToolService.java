@@ -299,7 +299,7 @@ public class DrugToolService implements IDrugToolService {
             }
             if(!flag) {
                 bankNumber +=1;
-                continue;
+                break;
             }
             if(flag){
                 // 判断是否是模板
