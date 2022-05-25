@@ -51,7 +51,7 @@ public class InvoiceRecordVO implements Serializable {
     private Date updatetime;
 
     @ItemProperty(alias = "模板ID")
-    private String templateId;
+    private Integer templateId;
 
     @ItemProperty(alias ="金额")
     private BigDecimal price;

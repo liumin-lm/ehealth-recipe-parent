@@ -13,6 +13,7 @@ import com.ngari.consult.common.model.QuestionnaireBean;
 import com.ngari.consult.common.service.IConsultService;
 import com.ngari.his.regulation.entity.*;
 import com.ngari.his.regulation.service.IRegulationService;
+import com.ngari.his.regulation.service.IRegulationUploadMsgResultService;
 import com.ngari.patient.dto.*;
 import com.ngari.patient.dto.zjs.SubCodeDTO;
 import com.ngari.patient.service.*;
@@ -110,6 +111,10 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
     private SymptomService symptomService;
     @Autowired
     private RecipeService recipeService;
+    @Autowired
+    private DepartmentService departmentService;
+    @Autowired
+    private IRegulationUploadMsgResultService iRegulationUploadMsgResultService;
     /**
      * logger
      */
@@ -171,8 +176,83 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
             commonResponse.setMsg("HIS接口调用异常");
         }
 
+        List<RegulationUploadMsgResultBean> req = new ArrayList<>(recipeList.size());
+        //拼接保存到监管中间表参数
+        splicingSaveRecipeData(recipeList,req);
+        //IRegulationUploadMsgResultService service = AppDomainContext.getBean("his.regulationUploadMsgResultService", IRegulationUploadMsgResultService.class);
+        LOGGER.info("uploadRecipeIndicators saveBussMsgList req={}", JSONUtils.toString(req));
+        try{
+            //保存到监管中间表
+            iRegulationUploadMsgResultService.saveBussMsgList(req);
+        }catch (Exception e){
+            LOGGER.error("saveBussMsgList HIS接口调用失败. req={}", JSONUtils.toString(req), e);
+        }
         LOGGER.info("uploadRecipeIndicators commonResponse={}", JSONUtils.toString(commonResponse));
         return commonResponse;
+    }
+
+    /**
+     * 拼接调用保存至监管中间表接口所需处方数据
+     *
+     * @param recipeList
+     * @param req
+     */
+    private void splicingSaveRecipeData(List<Recipe> recipeList, List<RegulationUploadMsgResultBean> req) {
+        for(Recipe recipe : recipeList){
+            RegulationUploadMsgResultBean regulationUploadMsgResultBean = new RegulationUploadMsgResultBean();
+            regulationUploadMsgResultBean.setOrganId(recipe.getClinicOrgan());
+            regulationUploadMsgResultBean.setOrganName(recipe.getOrganName());
+            regulationUploadMsgResultBean.setBussId(String.valueOf(recipe.getRecipeId()));
+            regulationUploadMsgResultBean.setBussType("处方");
+            regulationUploadMsgResultBean.setApplyId(recipe.getMpiid());
+            regulationUploadMsgResultBean.setApplyName(recipe.getPatientName());
+            regulationUploadMsgResultBean.setDeptId(recipe.getDepart());
+            DepartmentDTO departmentDTO = departmentService.getById(recipe.getDepart());
+            if(StringUtils.isNotEmpty(departmentDTO.getName())){
+                regulationUploadMsgResultBean.setDeptName(departmentDTO.getName());
+            }
+            regulationUploadMsgResultBean.setDoctorId(recipe.getDoctor());
+            regulationUploadMsgResultBean.setDoctorName(recipe.getDoctorName());
+            regulationUploadMsgResultBean.setDoctorId2(recipe.getChecker());
+            regulationUploadMsgResultBean.setDoctorName2(recipe.getCheckerText());
+            DoctorDTO doctorDTO = doctorService.get(recipe.getDoctor());
+            if(StringUtils.isNotEmpty(doctorDTO.getProTitle())){
+                regulationUploadMsgResultBean.setProTitle(doctorDTO.getProTitle());
+            }
+            if(null != doctorDTO.getUserType()){
+                regulationUploadMsgResultBean.setUserType(doctorDTO.getUserType());
+            }
+            regulationUploadMsgResultBean.setPatientId(recipe.getPatientID());
+            regulationUploadMsgResultBean.setPatientName(recipe.getPatientName());
+            regulationUploadMsgResultBean.setStatusId(String.valueOf(recipe.getStatus()));
+            try {
+                regulationUploadMsgResultBean.setStatusName(DictionaryController.instance().get("eh.cdr.dictionary.RecipeStatus").getText(recipe.getStatus()));
+            } catch (ControllerException e) {
+                LOGGER.error("splicingSaveRecipeData dic error.", e);
+            }
+            regulationUploadMsgResultBean.setRecipeType(String.valueOf(recipe.getRecipeType()));
+            if(null != recipe.getGiveMode()){
+                switch (recipe.getGiveMode()){
+                    case 1:
+                        regulationUploadMsgResultBean.setBuyDrugType("配送到家");
+                        break;
+                    case 2:
+                        regulationUploadMsgResultBean.setBuyDrugType("医院取药");
+                        break;
+                    case 3:
+                        regulationUploadMsgResultBean.setBuyDrugType("药店取药");
+                        break;
+                }
+            }
+            if(new Integer(1).equals(recipe.getMedicalFlag())){
+                regulationUploadMsgResultBean.setBillType("医保");
+            }else{
+                regulationUploadMsgResultBean.setBillType("自费");
+            }
+            regulationUploadMsgResultBean.setBillCount(recipe.getActualPrice().doubleValue());
+            regulationUploadMsgResultBean.setBussDate(recipe.getCreateDate());
+            req.add(regulationUploadMsgResultBean);
+        }
     }
 
     /**

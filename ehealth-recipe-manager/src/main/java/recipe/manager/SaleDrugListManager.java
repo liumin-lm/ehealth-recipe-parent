@@ -15,6 +15,7 @@ import recipe.aop.LogRecord;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * 药企药品处理
@@ -46,15 +47,16 @@ public class SaleDrugListManager extends BaseManager {
         OrganDrugList organDrugList = organDrugListList.get(0);
 
         SaleDrugSalesStrategy saleDrugSalesStrategy = new SaleDrugSalesStrategy();
-        //默认销售策略没id
-        saleDrugSalesStrategy.setOrganDrugListSalesStrategyId(null);
+        Random random = new Random();
+        String id = String.valueOf(System.currentTimeMillis() + random.nextInt(10));
+        saleDrugSalesStrategy.setOrganDrugListSalesStrategyId(id);
         if (StringUtils.isEmpty(saleDrugListDb.getEnterpriseSalesStrategy())) {
             saleDrugSalesStrategy.setButtonIsOpen("true");
         } else {
             saleDrugSalesStrategy.setButtonIsOpen("false");
         }
         saleDrugSalesStrategy.setIsDefault("true");
-        saleDrugSalesStrategy.setButtonIsOpen(organDrugList.getUnit());
+        saleDrugSalesStrategy.setUnit(organDrugList.getUnit());
 
         String enterpriseSalesStrategy = saleDrugListDb.getEnterpriseSalesStrategy();
         List<SaleDrugSalesStrategy> saleDrugSalesStrategies = JSONObject.parseArray(enterpriseSalesStrategy, SaleDrugSalesStrategy.class);

@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.client.IConfigurationClient;
@@ -177,7 +178,12 @@ public class PayModeToHos implements IPurchaseService {
         //订单的状态统一到finishOrderPayWithoutPay中设置
         order.setStatus(OrderStatusConstant.READY_GET_DRUG);
         order.setRecipeIdList(JSONUtils.toString(recipeIdLists));
-
+        //保存开票记录
+        Integer templateId = MapValueUtil.getInteger(extInfo, "invoiceRecordId");
+        Integer invoiceRecordId = CommonOrder.addInvoiceRecord(templateId, recipeIdLists);
+        if (!ObjectUtils.isEmpty(invoiceRecordId)) {
+            order.setInvoiceRecordId(invoiceRecordId);
+        }
         Integer calculateFee = MapValueUtil.getInteger(extInfo, "calculateFee");
         //设置中药代建费
         Integer decoctionId = MapValueUtil.getInteger(extInfo, "decoctionId");

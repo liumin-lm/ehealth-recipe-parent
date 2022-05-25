@@ -6,6 +6,8 @@ import com.google.common.collect.Maps;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
+import com.ngari.infra.invoice.mode.InvoiceRecordDto;
+import com.ngari.infra.invoice.service.InvoiceRecordService;
 import com.ngari.infra.logistics.mode.WriteBackLogisticsOrderDto;
 import com.ngari.infra.logistics.service.ILogisticsOrderService;
 import com.ngari.patient.dto.DepartmentDTO;
@@ -71,6 +73,8 @@ import recipe.thread.RecipeBusiThreadPool;
 import recipe.util.DateConversion;
 import recipe.util.LocalStringUtil;
 import recipe.util.MapValueUtil;
+import recipe.util.ObjectCopyUtils;
+import recipe.vo.greenroom.InvoiceRecordVO;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -124,6 +128,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     private DrugEnterpriseLogisticsDAO drugEnterpriseLogisticsDAO;
     @Autowired
     private OrderManager orderManager;
+    @Autowired
+    private InvoiceRecordService invoiceRecordService;
 
     /**
      * 待配送状态
@@ -1884,6 +1890,13 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 orderDetailBean.setMedicalPayFlag("1");
             } else {
                 orderDetailBean.setMedicalPayFlag("0");
+            }
+
+            if (null != recipeOrder.getInvoiceRecordId()) {
+                InvoiceRecordDto invoiceRecordDto = invoiceRecordService.findInvoiceRecordInfo(recipeOrder.getInvoiceRecordId());
+                InvoiceRecordVO invoiceRecordVO = new InvoiceRecordVO();
+                ObjectCopyUtils.copyProperties(invoiceRecordVO, invoiceRecordDto);
+                orderDetailBean.setInvoiceRecord(invoiceRecordVO);
             }
             orderDetailBean.setExpressFee(convertParame(recipeOrder.getExpressFee()));
             String province = LocalStringUtil.getAddressDic(recipeOrder.getAddress1());

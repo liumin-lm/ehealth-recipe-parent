@@ -2,6 +2,7 @@ package recipe.vo.second.enterpriseOrder;
 
 import lombok.Getter;
 import lombok.Setter;
+import recipe.vo.greenroom.InvoiceRecordVO;
 
 import java.io.Serializable;
 import java.util.List;
@@ -28,5 +29,9 @@ public class DownRecipeOrderVO implements Serializable {
      * 处方信息列表
      */
     private List<DownRecipeVO> recipeList;
+    /**
+     * 发票信息
+     */
+    private InvoiceRecordVO invoiceRecord;
 
 }
