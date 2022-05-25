@@ -301,7 +301,7 @@ public class DrugToolService implements IDrugToolService {
                 bankNumber +=1;
                 break;
             }
-            if(flag){
+            else {
                 // 判断是否是模板
                 if (rowIndex == 0) {
                     String drugCode = getStrFromCell(row.getCell(0));
