@@ -297,10 +297,11 @@ public class DrugToolService implements IDrugToolService {
                     break;
                 }
             }
+            //如果为空行的数据，则空行数+1
             if(!flag) {
                 bankNumber +=1;
-                break;
             }
+            //否则正常读取数据
             else {
                 // 判断是否是模板
                 if (rowIndex == 0) {
