@@ -3256,7 +3256,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (doctorId != null) {
                     hql += " and doctor=:doctor";
                 }
-                hql += " and status IN (:statusList) and recipeSourceType != 3 order by createDate desc ";
+                hql += " and status IN (:statusList) and recipeSourceType != 3 and checkStatus!=1 order by createDate desc ";
                 Query query = ss.createQuery(hql);
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 if (!com.alibaba.druid.util.StringUtils.isEmpty(startDate)) {
@@ -3312,7 +3312,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (organId != null) {
                     hql += " and clinicOrgan=:clinicOrgan";
                 }
-                hql += " and status IN (:statusList) and recipeSourceType != 3 order by createDate desc ";
+                hql += " and status IN (:statusList) and recipeSourceType != 3 and checkStatus!=1  order by createDate desc ";
                 Query query = ss.createQuery(hql);
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
                 if (!com.alibaba.druid.util.StringUtils.isEmpty(startDate)) {
