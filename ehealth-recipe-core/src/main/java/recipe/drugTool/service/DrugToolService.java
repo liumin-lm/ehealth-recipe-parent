@@ -856,7 +856,7 @@ public class DrugToolService implements IDrugToolService {
                 }
             }
         }
-        LOGGER.info("机构药品目录导入数据校验errorMsg:{}", JSONUtils.toString(errDrugListMatchList));
+        LOGGER.info("机构药品目录导入数据校验errorMsg:{},文件名={},organId={},operator={}", JSONUtils.toString(errDrugListMatchList),originalFilename, organId, operator);
         LOGGER.info("机构药品目录导入数据校验结束,文件名={},organId={},operator={}", originalFilename, organId, operator);
         //导入药品记录
         ImportDrugRecord importDrugRecord = new ImportDrugRecord();
