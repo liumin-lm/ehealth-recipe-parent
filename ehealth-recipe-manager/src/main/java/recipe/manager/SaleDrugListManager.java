@@ -54,7 +54,7 @@ public class SaleDrugListManager extends BaseManager {
             saleDrugSalesStrategy.setButtonIsOpen("false");
         }
         saleDrugSalesStrategy.setIsDefault("true");
-        saleDrugSalesStrategy.setButtonIsOpen(organDrugList.getUnit());
+        saleDrugSalesStrategy.setUnit(organDrugList.getUnit());
 
         String enterpriseSalesStrategy = saleDrugListDb.getEnterpriseSalesStrategy();
         List<SaleDrugSalesStrategy> saleDrugSalesStrategies = JSONObject.parseArray(enterpriseSalesStrategy, SaleDrugSalesStrategy.class);
