@@ -1,5 +1,6 @@
 package recipe.purchase;
 
+import com.alibaba.fastjson.JSON;
 import com.google.common.collect.ImmutableMap;
 import com.ngari.base.employment.model.EmploymentBean;
 import com.ngari.base.employment.service.IEmploymentService;
@@ -111,6 +112,7 @@ public class CommonOrder {
             InvoiceRecordDto invoiceRecordDto = new InvoiceRecordDto();
             invoiceRecordDto.setBusinessType(6);
             invoiceRecordDto.setTemplateId(templateId);
+            LOG.info("CommonOrder addInvoiceRecord invoiceRecordDto:{}", JSON.toJSONString(invoiceRecordDto));
             return invoiceRecordService.addInvoiceRecord(invoiceRecordDto);
         } catch (Exception e) {
             LOG.error("CommonOrder addInvoiceRecord error recipeId:{}", JSONUtils.toString(recipeIds), e);
