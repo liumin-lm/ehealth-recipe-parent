@@ -702,7 +702,9 @@ public class RecipeServiceSub {
         } else {
             LOGGER.warn("setDetailsInfo 详情里没有药品ID. recipeId=[{}]", recipe.getRecipeId());
         }
+        LOGGER.warn("计算金额 totalMoney：{}" ,totalMoney);
         totalMoney = totalMoney.setScale(2,BigDecimal.ROUND_HALF_UP);
+        LOGGER.warn("计算金额 Up totalMoney：{}" ,totalMoney);
         recipe.setTotalMoney(totalMoney);
         recipe.setActualPrice(totalMoney);
         return success;
