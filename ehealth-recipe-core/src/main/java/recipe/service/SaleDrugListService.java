@@ -163,6 +163,7 @@ public class SaleDrugListService implements ISaleDrugListService {
             validateSaleDrugList(target);
             target.setSaleDrugCode(saleDrugList.getOrganDrugCode());
             target.setLastModify(new Date());
+            target.setEnterpriseSalesStrategy(saleDrugListManager.getEnterpriseSalesStrategy(target));
             target = saleDrugListDAO.update(target);
             DrugList drugList = drugListDAO.get(saleDrugList.getDrugId());
             if (drugList == null) {
@@ -178,6 +179,7 @@ public class SaleDrugListService implements ISaleDrugListService {
                         + "-" + drugList.getDrugName() + "】", drugsEnterprise.getName());
             }
         }
+        //000
         return ObjectCopyUtils.convert(target, SaleDrugListDTO.class);
     }
 

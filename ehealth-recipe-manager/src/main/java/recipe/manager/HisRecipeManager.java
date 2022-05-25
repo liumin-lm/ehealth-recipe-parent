@@ -664,19 +664,21 @@ public class HisRecipeManager extends BaseManager {
                     hisResponseTO.setMsg("处方已经支付，则不允许取消");
                 } else {
                     RecipeOrder order = recipeOrderDAO.getOrderByRecipeId(recipe.getRecipeId());
-                    List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
-                    //合并处方订单取消
-                    List<Recipe> mergrRecipes = recipeDAO.findByRecipeIds(recipeIdList);
-                    mergrRecipes.forEach(mergeRecipe -> {
-                        recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), mergeRecipe, 1);
-                    });
+                    if (order != null) {
+                        List<Integer> recipeIdList = JSONUtils.parse(order.getRecipeIdList(), List.class);
+                        //合并处方订单取消
+                        List<Recipe> mergrRecipes = recipeDAO.findByRecipeIds(recipeIdList);
+                        mergrRecipes.forEach(mergeRecipe -> {
+                            recipeDAO.updateOrderCodeToNullByOrderCodeAndClearChoose(order.getOrderCode(), mergeRecipe, 1);
+                        });
 
-                    //修改订单状态
-                    Map<String, Object> orderAttrMap = Maps.newHashMap();
-                    orderAttrMap.put("effective", 0);
-                    orderAttrMap.put("status", OrderStatusConstant.CANCEL_MANUAL);
-                    recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), orderAttrMap);
-                    stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_DOCTOR_REPEAL);
+                        //修改订单状态
+                        Map<String, Object> orderAttrMap = Maps.newHashMap();
+                        orderAttrMap.put("effective", 0);
+                        orderAttrMap.put("status", OrderStatusConstant.CANCEL_MANUAL);
+                        recipeOrderDAO.updateByOrdeCode(order.getOrderCode(), orderAttrMap);
+                        stateManager.updateOrderState(order.getOrderId(), OrderStateEnum.PROCESS_STATE_CANCELLATION, OrderStateEnum.SUB_CANCELLATION_DOCTOR_REPEAL);
+                    }
 
                     Map<String, Integer> recipeMap = Maps.newHashMap();
                     recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), recipeMap);
