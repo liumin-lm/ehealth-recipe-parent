@@ -608,19 +608,11 @@ public class RecipeListService extends RecipeBaseService {
         Map<String, Object> upderLineRecipesByHis = new ConcurrentHashMap<>();
         Future<Map<String, Object>> hisTask = null;
         RecipePreserveService recipeService = ApplicationUtils.getRecipeService(RecipePreserveService.class);
-        if (!("patient".equals(UserRoleToken.getCurrent().getRoleId()))) {
-            //医生端逻辑照旧
-            hisTask = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
-                return recipeService.getHosRecipeListV2(param);
-            });
-        } else {
-            //患者端如果公众号是区域公众号则需查询该区域公众号下所有机构线下处方
-            List<Integer> organIds = currentUserInfoService.getCurrentOrganIds();
-            LOGGER.info("findHistoryRecipeList organId:{},mpiId:{}, organIds:{}", organId, mpiId, JSONUtils.toString(organIds));
-            hisTask = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
-                return recipeService.getHosRecipeListV2(param);
-            });
-        }
+
+        hisTask = GlobalEventExecFactory.instance().getExecutor().submit(() -> {
+             return recipeService.getHosRecipeListV2(param);
+        });
+
         //从Recipe表获取线上、线下处方
         List<Map<String, Object>> onLineAndUnderLineRecipesByRecipe = new ArrayList<>();
         try {
@@ -774,7 +766,7 @@ public class RecipeListService extends RecipeBaseService {
         PatientService patientService = ApplicationUtils.getBasicService(PatientService.class);
         //List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatient(doctorId, mpiId, start, limit);
         //修改逻辑历史处方中获取的处方列表：只显示未处理、未支付、审核不通过、失败、已完成状态的
-        List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatientAndStatusList(param.getDoctorId(), param.getMpiId(), param.getStart(), param.getLimit(), new ArrayList<>(Arrays.asList(HistoryRecipeListShowStatusList)),param.getStartDate(),param.getEndDate());
+        List<Recipe> recipes = recipeDAO.findRecipeListByDoctorAndPatientAndStatusListAndOrganId(param.getDoctorId(), param.getMpiId(), param.getStart(), param.getLimit(), new ArrayList<>(Arrays.asList(HistoryRecipeListShowStatusList)),param.getStartDate(),param.getEndDate(),param.getOrganId());
         LOGGER.info("findRecipeListByDoctorAndPatient mpiId:{} ,recipes:{} ", param.getMpiId(), JSONUtils.toString(recipes));
         PatientVO patient = RecipeServiceSub.convertSensitivePatientForRAP(patientService.get(param.getMpiId()));
         LOGGER.info("findRecipeListByDoctorAndPatient mpiId:{} ,patient:{} ", param.getMpiId(), JSONUtils.toString(patient));
