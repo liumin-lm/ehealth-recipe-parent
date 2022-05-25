@@ -11,6 +11,7 @@ import recipe.core.api.IOrganDrugBusinessService;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.SaleDrugListDAO;
+import recipe.manager.SaleDrugListManager;
 
 import java.util.*;
 
@@ -27,6 +28,8 @@ public class OrganDrugBusinessService extends BaseService implements IOrganDrugB
     private SaleDrugListDAO saleDrugListDAO;
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
+    @Autowired
+    private SaleDrugListManager saleDrugListManager;
 
     @Override
     public void addOrganDrugSalesStrategy(OrganDrugList organDrugList) {
@@ -52,26 +55,7 @@ public class OrganDrugBusinessService extends BaseService implements IOrganDrugB
             organDrugList.setSalesStrategy(JSONUtils.toString(organDrugSalesStrategyList));
         }
         organDrugListDAO.updateData(organDrugList);
-        SaleDrugSalesStrategy saleDrugSalesStrategy = new SaleDrugSalesStrategy();
-        saleDrugSalesStrategy.setOrganDrugListSalesStrategyId(id);
-        saleDrugSalesStrategy.setUnit(organDrugSalesStrategy.get(0).getUnit());
-        saleDrugSalesStrategy.setButtonIsOpen("false");
-        saleDrugSalesStrategy.setIsDefault("false");
-        List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIds(drugList.getOrganId());
-        if(CollectionUtils.isNotEmpty(drugsEnterpriseList)){
-            for(DrugsEnterprise drugsEnterprise : drugsEnterpriseList){
-                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugList.getDrugId(), drugsEnterprise.getId());
-                logger.info("addOrganDrugSalesStrategy saleDrugList={}",JSONUtils.toString(saleDrugList));
-                if(null != saleDrugList){
-                    List<SaleDrugSalesStrategy> saleDrugSalesStrategyList  = new ArrayList<>();
-                    if(StringUtils.isNotEmpty(saleDrugList.getEnterpriseSalesStrategy())){
-                        saleDrugSalesStrategyList = JSONObject.parseArray(saleDrugList.getEnterpriseSalesStrategy(),SaleDrugSalesStrategy.class);
-                    }
-                    saleDrugSalesStrategyList.add(saleDrugSalesStrategy);
-                    saleDrugList.setEnterpriseSalesStrategy(JSONUtils.toString(saleDrugSalesStrategyList));
-                    saleDrugListDAO.updateNonNullFieldByPrimaryKey(saleDrugList);
-                }
-            }
-        }
+        saleDrugListManager.saveEnterpriseSalesStrategyByOrganDrugList(organDrugList,"add");
+
     }
 }

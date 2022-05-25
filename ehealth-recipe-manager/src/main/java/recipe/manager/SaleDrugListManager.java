@@ -1,10 +1,7 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSONObject;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.OrganDrugList;
-import com.ngari.recipe.entity.SaleDrugList;
-import com.ngari.recipe.entity.SaleDrugSalesStrategy;
+import com.ngari.recipe.entity.*;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -28,6 +25,7 @@ public class SaleDrugListManager extends BaseManager {
 
 
     /**
+     * 根据药企药品获取药企药品需要显示的销售策略
      * @param saleDrugListDb
      * @return
      */
@@ -50,6 +48,7 @@ public class SaleDrugListManager extends BaseManager {
         Random random = new Random();
         String id = String.valueOf(System.currentTimeMillis() + random.nextInt(5));
         saleDrugSalesStrategy.setOrganDrugListSalesStrategyId(id);
+        //如果存在销售策略，
         if (StringUtils.isEmpty(saleDrugListDb.getEnterpriseSalesStrategy())) {
             saleDrugSalesStrategy.setButtonIsOpen("true");
         } else {
@@ -69,6 +68,7 @@ public class SaleDrugListManager extends BaseManager {
 
 
     /**
+     * 根据药企药品获取药企药品需要保存的销售策略
      * @param saleDrugList
      * @return
      */
@@ -83,5 +83,54 @@ public class SaleDrugListManager extends BaseManager {
             saleDrugSalesStrategyList.removeIf(saleDrugSalesStrategy -> "true".equals(saleDrugSalesStrategy.getIsDefault()));
         }
         return JSONUtils.toString(saleDrugSalesStrategyList);
+    }
+
+    /**
+     * 根据机构药品销售策略保存药企药品销售策略
+     * @param organDrugList
+     * @param type
+     */
+    @LogRecord
+    public void saveEnterpriseSalesStrategyByOrganDrugList(OrganDrugList organDrugList,String type) {
+        if(organDrugList==null||StringUtils.isEmpty(organDrugList.getSalesStrategy())){
+            return;
+        }
+        List<OrganDrugSalesStrategy> organDrugSalesStrategys=JSONObject.parseArray(organDrugList.getSalesStrategy(),OrganDrugSalesStrategy.class);
+        if(CollectionUtils.isEmpty(organDrugSalesStrategys)){
+            return;
+        }
+        List<SaleDrugSalesStrategy> saleDrugSalesStrategies=new ArrayList<>();
+        organDrugSalesStrategys.forEach(organDrugSalesStrategy -> {
+            //过滤默认销售策略
+            if("true".equals(organDrugSalesStrategy.getIsDefault())){
+                return;
+            }
+            SaleDrugSalesStrategy saleDrugSalesStrategy = new SaleDrugSalesStrategy();
+            saleDrugSalesStrategy.setOrganDrugListSalesStrategyId(organDrugSalesStrategy.getId());
+            saleDrugSalesStrategy.setUnit(organDrugSalesStrategy.getUnit());
+            saleDrugSalesStrategy.setButtonIsOpen("false");
+            saleDrugSalesStrategy.setIsDefault("false");
+            saleDrugSalesStrategies.add(saleDrugSalesStrategy);
+        });
+        //获取药企药品并保存药企药品销售策略
+        List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIds(organDrugList.getOrganId());
+        if(CollectionUtils.isNotEmpty(drugsEnterpriseList)){
+            for(DrugsEnterprise drugsEnterprise : drugsEnterpriseList){
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(organDrugList.getDrugId(), drugsEnterprise.getId());
+                logger.info("addOrganDrugSalesStrategy saleDrugList={}",JSONUtils.toString(saleDrugList));
+                if(null != saleDrugList){
+                    List<SaleDrugSalesStrategy> saleDrugSalesStrategyList  = new ArrayList<>();
+                    //如果是新增机构销售策略，药企药品销售策略追加到原来的策略基础上  如果是修改，直接替换原来的值
+                    if("add".equals(type)){
+                        if(StringUtils.isNotEmpty(saleDrugList.getEnterpriseSalesStrategy())){
+                            saleDrugSalesStrategyList = JSONObject.parseArray(saleDrugList.getEnterpriseSalesStrategy(),SaleDrugSalesStrategy.class);
+                        }
+                    }
+                    saleDrugSalesStrategyList.addAll(saleDrugSalesStrategies);
+                    saleDrugList.setEnterpriseSalesStrategy(JSONUtils.toString(saleDrugSalesStrategyList));
+                    saleDrugListDAO.updateNonNullFieldByPrimaryKey(saleDrugList);
+                }
+            }
+        }
     }
 }

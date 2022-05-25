@@ -38,6 +38,7 @@ import ctd.util.annotation.RpcService;
 import ctd.util.event.GlobalEventExecFactory;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.checkerframework.checker.units.qual.A;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,7 @@ import recipe.dao.*;
 import recipe.dao.bean.DrugListAndOrganDrugList;
 import recipe.drugTool.service.DrugToolService;
 import recipe.drugsenterprise.ByRemoteService;
+import recipe.manager.SaleDrugListManager;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -64,6 +66,8 @@ public class OrganDrugListService implements IOrganDrugListService {
     private static final Logger logger = LoggerFactory.getLogger(OrganDrugListService.class);
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
+    @Autowired
+    private SaleDrugListManager saleDrugListManager;
 
     /**
      * 把药品添加到对应医院
@@ -497,6 +501,8 @@ public class OrganDrugListService implements IOrganDrugListService {
                 target.setLastModify(new Date());
                 validateOrganDrugList(target);
                 target = organDrugListDAO.update(target);
+                //更新药企药品销售策略
+                saleDrugListManager.saveEnterpriseSalesStrategyByOrganDrugList(target,"update");
                 uploadOrganDrugListToJg(target);
                 organDrugSync(target);
                 busActionLogService.recordBusinessLogRpcNew("机构药品管理", "", "OrganDrugList", "【" + organDTO.getName() + "】更新药品【" + target.getOrganDrugId() + "-" + target.getDrugName() + "】", organDTO.getName());

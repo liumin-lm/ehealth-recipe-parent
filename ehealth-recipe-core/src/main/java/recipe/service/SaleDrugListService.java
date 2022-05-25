@@ -121,7 +121,11 @@ public class SaleDrugListService implements ISaleDrugListService {
         saleDrugList.setCreateDt(new Date());
         saleDrugList.setLastModify(new Date());
         saleDrugList.setStatus(1);
+        //销售策略
+        saleDrugList.setEnterpriseSalesStrategy(saleDrugListManager.getEnterpriseSalesStrategy(saleDrugList));
+        saleDrugList.setEnterpriseSalesStrategy(saleDrugListManager.getNeedSaveEnterpriseSalesStrategy(saleDrugList));
         dao.save(saleDrugList);
+
         busActionLogService.recordBusinessLogRpcNew("药企药品管理", "", "SaleDrugList", "【" + drugsEnterprise.getName() + "】新增药品【" + saleDrugList.getOrganDrugId() + "-" + drugList.getDrugName() + "】", drugsEnterprise.getName());
         return true;
     }
@@ -163,6 +167,7 @@ public class SaleDrugListService implements ISaleDrugListService {
             validateSaleDrugList(target);
             target.setSaleDrugCode(saleDrugList.getOrganDrugCode());
             target.setLastModify(new Date());
+            //销售策略
             target.setEnterpriseSalesStrategy(saleDrugListManager.getEnterpriseSalesStrategy(target));
             target = saleDrugListDAO.update(target);
             DrugList drugList = drugListDAO.get(saleDrugList.getDrugId());
