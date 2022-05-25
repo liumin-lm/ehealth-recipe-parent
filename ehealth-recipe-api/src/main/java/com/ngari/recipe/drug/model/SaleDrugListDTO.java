@@ -66,8 +66,18 @@ public class SaleDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "禁用原因")
     private String disableReason;
 
+    @ItemProperty(alias = "药企销售策略")
+    private String enterpriseSalesStrategy;
 
     public SaleDrugListDTO() {
+    }
+
+    public String getEnterpriseSalesStrategy() {
+        return enterpriseSalesStrategy;
+    }
+
+    public void setEnterpriseSalesStrategy(String enterpriseSalesStrategy) {
+        this.enterpriseSalesStrategy = enterpriseSalesStrategy;
     }
 
     public Integer getOrganDrugId() {
