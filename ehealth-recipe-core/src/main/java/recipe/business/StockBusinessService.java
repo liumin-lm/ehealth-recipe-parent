@@ -643,6 +643,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             GiveModeButtonDTO supportDownload = new GiveModeButtonDTO();
             supportDownload.setType(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getType());
             supportDownload.setShowButtonName(supportDownloadButton);
+            supportDownload.setShowButtonKey(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
             giveModeButton.add(supportDownload);
         }
         String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
@@ -650,6 +651,7 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             GiveModeButtonDTO supportMedicalPayment = new GiveModeButtonDTO();
             supportMedicalPayment.setType(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getType());
             supportMedicalPayment.setShowButtonName(supportMedicalPaymentButton);
+            supportMedicalPayment.setShowButtonKey(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
             giveModeButton.add(supportMedicalPayment);
         }
         if (CollectionUtils.isEmpty(giveModeButton)) {
