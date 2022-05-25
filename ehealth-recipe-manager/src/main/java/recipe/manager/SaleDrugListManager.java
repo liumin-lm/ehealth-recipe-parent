@@ -48,7 +48,7 @@ public class SaleDrugListManager extends BaseManager {
 
         SaleDrugSalesStrategy saleDrugSalesStrategy = new SaleDrugSalesStrategy();
         Random random = new Random();
-        String id = String.valueOf(System.currentTimeMillis() + random.nextInt(10));
+        String id = String.valueOf(System.currentTimeMillis() + random.nextInt(5));
         saleDrugSalesStrategy.setOrganDrugListSalesStrategyId(id);
         if (StringUtils.isEmpty(saleDrugListDb.getEnterpriseSalesStrategy())) {
             saleDrugSalesStrategy.setButtonIsOpen("true");
@@ -80,7 +80,7 @@ public class SaleDrugListManager extends BaseManager {
         //把前端传的默认的药企药品销售策略去除
         if (StringUtils.isNotEmpty(saleDrugList.getEnterpriseSalesStrategy())) {
             saleDrugSalesStrategyList = JSONObject.parseArray(saleDrugList.getEnterpriseSalesStrategy(), SaleDrugSalesStrategy.class);
-            saleDrugSalesStrategyList.removeIf(saleDrugSalesStrategy -> saleDrugSalesStrategy.getIsDefault().equals("true"));
+            saleDrugSalesStrategyList.removeIf(saleDrugSalesStrategy -> "true".equals(saleDrugSalesStrategy.getIsDefault()));
         }
         return JSONUtils.toString(saleDrugSalesStrategyList);
     }

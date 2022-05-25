@@ -32,7 +32,7 @@ public class OrganDrugBusinessService extends BaseService implements IOrganDrugB
     public void addOrganDrugSalesStrategy(OrganDrugList organDrugList) {
         logger.info("OrganDrugBusinessService addOrganDrugSalesStrategy organDrugList={}",JSONUtils.toString(organDrugList));
         Random random = new Random();
-        String id = String.valueOf(System.currentTimeMillis() + random.nextInt(10));
+        String id = String.valueOf(System.currentTimeMillis() + random.nextInt(5));
         //获取前端传的销售策略
         String salesStrategy = organDrugList.getSalesStrategy();
         //根据机构药品ID查询之前的销售策略
