@@ -181,8 +181,12 @@ public class HisSyncSupervisionService implements ICommonSyncSupervisionService 
         splicingSaveRecipeData(recipeList,req);
         //IRegulationUploadMsgResultService service = AppDomainContext.getBean("his.regulationUploadMsgResultService", IRegulationUploadMsgResultService.class);
         LOGGER.info("uploadRecipeIndicators saveBussMsgList req={}", JSONUtils.toString(req));
-        //保存到监管中间表
-        iRegulationUploadMsgResultService.saveBussMsgList(req);
+        try{
+            //保存到监管中间表
+            iRegulationUploadMsgResultService.saveBussMsgList(req);
+        }catch (Exception e){
+            LOGGER.error("saveBussMsgList HIS接口调用失败. req={}", JSONUtils.toString(req), e);
+        }
         LOGGER.info("uploadRecipeIndicators commonResponse={}", JSONUtils.toString(commonResponse));
         return commonResponse;
     }
