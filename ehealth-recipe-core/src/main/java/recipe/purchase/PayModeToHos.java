@@ -403,6 +403,10 @@ public class PayModeToHos implements IPurchaseService {
         String latitude = MapValueUtil.getString(extInfo, searchMapLatitude);
         return noShowStoreEnterprises.stream().map(enterprise -> {
             List<Pharmacy> pharmacyList = pharmacyDAO.findByDepId(enterprise.getId());
+            if(CollectionUtils.isEmpty(pharmacyList)){
+                LOG.info("setEnterpriseToStore pharmacyList is null enterpriseId:{}",enterprise.getId());
+                return null;
+            }
             DepDetailBean depDetailBean = new DepDetailBean();
             depDetailBean.setDepId(enterprise.getId());
             depDetailBean.setDepName(enterprise.getName());
@@ -429,7 +433,7 @@ public class PayModeToHos implements IPurchaseService {
                 depDetailBean.setDistance(0D);
             }
             return depDetailBean;
-        }).collect(Collectors.toList());
+        }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     private List<DepDetailBean> getDepDetailList(List<TakeMedicineByToHos> takeMedicineByToHosList, Map<Integer, List<OrganDrugsSaleConfig>> saleMap) {
