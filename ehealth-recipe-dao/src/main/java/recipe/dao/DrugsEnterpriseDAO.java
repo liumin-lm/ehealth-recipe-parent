@@ -66,6 +66,15 @@ public abstract class DrugsEnterpriseDAO extends HibernateSupportDelegateDAO<Dru
     public abstract List<DrugsEnterprise> findByOrganId(@DAOParam("organId") Integer organId);
 
     /**
+     * 根据organId查找药企
+     *
+     * @param organId
+     * @return
+     */
+    @DAOMethod(sql = "from DrugsEnterprise where organId=:organId",limit = 0)
+    public abstract List<DrugsEnterprise> findByOrganIds(@DAOParam("organId") Integer organId);
+
+    /**
      * 根据name获取自建药企
      * @param name
      * @return

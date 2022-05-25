@@ -57,10 +57,10 @@ public class OrganDrugBusinessService extends BaseService implements IOrganDrugB
         saleDrugSalesStrategy.setUnit(organDrugSalesStrategy.get(0).getUnit());
         saleDrugSalesStrategy.setButtonIsOpen("false");
         saleDrugSalesStrategy.setIsDefault("false");
-        List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByOrganId(drugList.getOrganId());
+        List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIds(drugList.getOrganId());
         if(CollectionUtils.isNotEmpty(drugsEnterpriseList)){
             for(DrugsEnterprise drugsEnterprise : drugsEnterpriseList){
-                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugList.getDrugId(), drugsEnterprise.getOrganId());
+                SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugList.getDrugId(), drugsEnterprise.getId());
                 logger.info("addOrganDrugSalesStrategy saleDrugList={}",JSONUtils.toString(saleDrugList));
                 if(null != saleDrugList){
                     List<SaleDrugSalesStrategy> saleDrugSalesStrategyList  = new ArrayList<>();
