@@ -2,6 +2,7 @@ package com.ngari.recipe.recipe.model;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Data;
+import recipe.vo.greenroom.InvoiceRecordVO;
 
 import javax.persistence.Temporal;
 import javax.persistence.TemporalType;
@@ -81,6 +82,7 @@ public class RecipeAndOrderDetailBeanNoDs implements Serializable {
     private String decoctionFlag;
     private List<DrugListForThreeBean> drugList;
     private String pharmNo;
+    private InvoiceRecordVO invoiceRecord;
     /**
      * 出生日期
      */
