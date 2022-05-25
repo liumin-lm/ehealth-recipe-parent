@@ -286,17 +286,18 @@ public class DrugToolService implements IDrugToolService {
         Integer updateNum = 0;
         Integer failNum = 0;
         LOGGER.info("机构药品目录导入数据校验开始,文件名={},organId={},operator={}", originalFilename, organId, operator);
-        boolean flag = false;
+        int bankNumber = 0;
         for (int rowIndex = 0; rowIndex <= total; rowIndex++) {
             //循环获得每个行
             row = sheet.getRow(rowIndex);
-            flag = false;
+            boolean flag = false;
             for(Cell cell : row){
                 if (cell.getCellType() != Cell.CELL_TYPE_BLANK) {
                     flag = true;
                     break;
                 }
             }
+            if(!flag) bankNumber +=1;
             if(flag){
                 // 判断是否是模板
                 if (rowIndex == 0) {
@@ -889,7 +890,7 @@ public class DrugToolService implements IDrugToolService {
 
         result.put("addNum", addNum);
         result.put("updateNum", updateNum);
-        result.put("failNum", total - addNum - updateNum);
+        result.put("failNum", total - addNum - updateNum - bankNumber);
         LOGGER.info(operator + "结束 readDrugExcel 方法" + System.currentTimeMillis() + "当前进程=" + Thread.currentThread().getName());
         result.put("code", 200);
         LOGGER.info("DrugToolService result={}",JSONUtils.toString(result));
