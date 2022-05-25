@@ -11,8 +11,11 @@ import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
 import com.ngari.his.recipe.mode.TakeMedicineByToHos;
 import com.ngari.his.recipe.mode.TakeMedicineByToHosReqDTO;
 import com.ngari.his.recipe.service.IRecipeEnterpriseService;
+import com.ngari.infra.invoice.mode.InvoiceRecordDto;
+import com.ngari.infra.invoice.service.InvoiceRecordService;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.*;
+import com.ngari.platform.recipe.mode.enterpriseOrder.InvoiceRecordDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.RecipeOrder;
@@ -43,6 +46,8 @@ public class EnterpriseClient extends BaseClient {
     private IFileDownloadService fileDownloadService;
     @Autowired
     private IRecipeEnterpriseService recipeEnterpriseService;
+    @Autowired
+    private InvoiceRecordService invoiceRecordService;
 
     /**
      * 获取跳转第三方地址
@@ -244,6 +249,12 @@ public class EnterpriseClient extends BaseClient {
         addressBean.setCommunityCode(StringUtils.isNotEmpty(recipeOrder.getAddress5())?recipeOrder.getAddress5():"");
         addressBean.setCommunityName(StringUtils.isNotEmpty(recipeOrder.getAddress5Text())?recipeOrder.getAddress5Text():"");
         pushRecipeAndOrder.setAddressBean(addressBean);
+        if (null != recipeOrder.getInvoiceRecordId()) {
+            InvoiceRecordDto invoiceRecordDto = invoiceRecordService.findInvoiceRecordInfo(recipeOrder.getInvoiceRecordId());
+            InvoiceRecordDTO invoiceRecord = new InvoiceRecordDTO();
+            recipe.util.ObjectCopyUtils.copyProperties(invoiceRecord, invoiceRecordDto);
+            pushRecipeAndOrder.setInvoiceRecord(invoiceRecord);
+        }
     }
 
 }

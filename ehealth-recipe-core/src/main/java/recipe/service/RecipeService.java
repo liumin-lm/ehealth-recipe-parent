@@ -2103,7 +2103,7 @@ public class RecipeService extends RecipeBaseService {
         if (isMergeRecipeType) {
             if (CollectionUtils.isNotEmpty(recipedetails)) {
                 nowDrugList = drugListDAO.getById(recipedetails.get(0).getDrugId());
-                dbRecipe.setRecipeType(null != nowDrugList ? nowDrugList.getDrugType() : null);
+                dbRecipe.setRecipeType(null != nowDrugList ? nowDrugList.getDrugType() : dbRecipe.getRecipeType());
                 for (Recipedetail recipedetail : recipedetails) {
                     nowDrugList = drugListDAO.getById(recipedetail.getDrugId());
                     recipedetail.setDrugType(null != nowDrugList ? nowDrugList.getDrugType() : null);

@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.ngari.common.dto.CheckRequestCommonOrderItemDTO;
 import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
 import com.ngari.common.dto.SyncOrderVO;
+import com.ngari.infra.invoice.mode.InvoiceRecordDto;
+import com.ngari.infra.invoice.service.InvoiceRecordService;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.PatientService;
@@ -43,6 +45,7 @@ import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
 import recipe.vo.base.BaseRecipeDetailVO;
+import recipe.vo.greenroom.InvoiceRecordVO;
 import recipe.vo.second.enterpriseOrder.*;
 
 import java.util.*;
@@ -80,6 +83,8 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
     private OrganClient organClient;
     @Autowired
     private RecipeParameterDao parameterDao;
+    @Autowired
+    private InvoiceRecordService invoiceRecordService;
 
     @Override
     public ResultBean updateRecipeGiveUser(Integer recipeId, Integer giveUser) {
@@ -327,6 +332,12 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
             receiverInfo.setCommunityCode(ValidateUtil.isEmpty(recipeOrder.getAddress5()));
             receiverInfo.setCommunityName(ValidateUtil.isEmpty(recipeOrder.getAddress5Text()));
             downRecipeOrderVO.setReceiverInfo(receiverInfo);
+            if (null != recipeOrder.getInvoiceRecordId()) {
+                InvoiceRecordDto invoiceRecordDto = invoiceRecordService.findInvoiceRecordInfo(recipeOrder.getInvoiceRecordId());
+                InvoiceRecordVO invoiceRecordVO = new InvoiceRecordVO();
+                ObjectCopyUtils.copyProperties(invoiceRecordVO, invoiceRecordDto);
+                downRecipeOrderVO.setInvoiceRecord(invoiceRecordVO);
+            }
             //设置处方信息
             recipeList.forEach(recipe -> {
                 DownRecipeVO downRecipeVO = new DownRecipeVO();
