@@ -11,6 +11,7 @@
     <reference interface="com.ngari.his.visit.service.IVisitService" id="his.visitService"/>
     <reference interface="com.ngari.platform.sync.service.IProvinceIndicatorsDateUpdateService" id="his.provinceDataUploadService"/>
     <reference id="his.regulationService" interface="com.ngari.his.regulation.service.IRegulationService" />
+    <reference id="his.regulationUploadMsgResultService" interface="com.ngari.his.regulation.service.IRegulationUploadMsgResultService" />
     <reference id="his.hisServiceConfig" interface="com.ngari.base.serviceconfig.service.IHisServiceConfigService" />
     <reference id="his.iPatientHisService" interface="com.ngari.his.patient.service.IPatientHisService" />
     <reference id="his.iCaHisService" interface="com.ngari.his.ca.service.ICaHisService" />
