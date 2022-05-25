@@ -27,7 +27,7 @@ public class InvoiceRecordVO implements Serializable {
     private Integer riseType;
 
     @ItemProperty(alias="发票抬头")
-    private String invoiceTitle;
+    private Integer invoiceTitle;
 
     @ItemProperty(alias="发票状态")
     private Integer invoiceStatus;
