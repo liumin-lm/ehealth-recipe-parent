@@ -58,8 +58,8 @@ public class SaleDrugListManager extends BaseManager {
 
         String enterpriseSalesStrategy = saleDrugListDb.getEnterpriseSalesStrategy();
         List<SaleDrugSalesStrategy> saleDrugSalesStrategies = JSONObject.parseArray(enterpriseSalesStrategy, SaleDrugSalesStrategy.class);
-        if(CollectionUtils.isEmpty(saleDrugSalesStrategies)){
-            return null;
+        if (CollectionUtils.isEmpty(saleDrugSalesStrategies)) {
+            saleDrugSalesStrategies = new ArrayList<>();
         }
         saleDrugSalesStrategies.add(saleDrugSalesStrategy);
         return JSONUtils.toString(saleDrugSalesStrategies);
