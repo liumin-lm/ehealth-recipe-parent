@@ -3,12 +3,15 @@ package recipe.business;
 import com.alibaba.fastjson.JSONObject;
 import com.ngari.recipe.entity.OrganDrugList;
 import com.ngari.recipe.entity.OrganDrugSalesStrategy;
+import com.ngari.recipe.entity.SaleDrugList;
+import com.ngari.recipe.entity.SaleDrugSalesStrategy;
 import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.core.api.IOrganDrugBusinessService;
 import recipe.dao.OrganDrugListDAO;
+import recipe.dao.SaleDrugListDAO;
 
 import java.util.*;
 
@@ -21,6 +24,8 @@ public class OrganDrugBusinessService extends BaseService implements IOrganDrugB
 
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
+    @Autowired
+    private SaleDrugListDAO saleDrugListDAO;
 
     @Override
     public void addOrganDrugSalesStrategy(OrganDrugList organDrugList) {
@@ -33,11 +38,12 @@ public class OrganDrugBusinessService extends BaseService implements IOrganDrugB
         OrganDrugList drugList = organDrugListDAO.get(organDrugList.getOrganDrugId());
         logger.info("OrganDrugBusinessService addOrganDrugSalesStrategy drugList={}",JSONUtils.toString(drugList));
         List<OrganDrugSalesStrategy> organDrugSalesStrategyList = new ArrayList<>();
+        List<OrganDrugSalesStrategy> organDrugSalesStrategy = new ArrayList<>();
         if(StringUtils.isNotEmpty(drugList.getSalesStrategy())){
             organDrugSalesStrategyList = JSONObject.parseArray(drugList.getSalesStrategy(),OrganDrugSalesStrategy.class);
         }
         if(null != salesStrategy){
-            List<OrganDrugSalesStrategy> organDrugSalesStrategy = JSONObject.parseArray(salesStrategy,OrganDrugSalesStrategy.class);
+            organDrugSalesStrategy = JSONObject.parseArray(salesStrategy,OrganDrugSalesStrategy.class);
             //目前只有一个值
             organDrugSalesStrategy.get(0).setId(id);
             organDrugSalesStrategyList.add(organDrugSalesStrategy.get(0));
@@ -45,5 +51,19 @@ public class OrganDrugBusinessService extends BaseService implements IOrganDrugB
             organDrugList.setSalesStrategy(JSONUtils.toString(organDrugSalesStrategyList));
         }
         organDrugListDAO.updateData(organDrugList);
+        SaleDrugSalesStrategy saleDrugSalesStrategy = new SaleDrugSalesStrategy();
+        saleDrugSalesStrategy.setOrganDrugListSalesStrategyId(id);
+        saleDrugSalesStrategy.setUnit(organDrugSalesStrategy.get(0).getUnit());
+        saleDrugSalesStrategy.setButtonIsOpen("false");
+        saleDrugSalesStrategy.setIsDefault("false");
+        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugList.getDrugId(), drugList.getOrganId());
+        logger.info("addOrganDrugSalesStrategy saleDrugList={}",JSONUtils.toString(saleDrugList));
+        List<SaleDrugSalesStrategy> saleDrugSalesStrategyList  = new ArrayList<>();
+        if(StringUtils.isNotEmpty(saleDrugList.getEnterpriseSalesStrategy())){
+            saleDrugSalesStrategyList = JSONObject.parseArray(saleDrugList.getEnterpriseSalesStrategy(),SaleDrugSalesStrategy.class);
+            saleDrugSalesStrategyList.add(saleDrugSalesStrategy);
+        }
+        saleDrugList.setEnterpriseSalesStrategy(JSONUtils.toString(saleDrugSalesStrategyList));
+        saleDrugListDAO.updateNonNullFieldByPrimaryKey(saleDrugList);
     }
 }
