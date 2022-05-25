@@ -180,7 +180,9 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             //存在不满足库存的购药方式时告知
             Set<String> giveModeKeys = giveModeButtonBeans.stream().map(GiveModeButtonDTO::getShowButtonKey).collect(Collectors.toSet());
             Set<String> supportGiveModeKeySet = supportGiveModeList.stream().filter(Objects::nonNull).map(GiveModeButtonDTO::getShowButtonKey).collect(Collectors.toSet());
+            logger.info("StockBusinessService getSupportGiveModeNameText giveModeKeys:{},supportGiveModeKeySet:{}", JSON.toJSONString(giveModeKeys), JSON.toJSONString(supportGiveModeKeySet));
             giveModeKeys.removeAll(supportGiveModeKeySet);
+            logger.info("StockBusinessService getSupportGiveModeNameText giveModeKeys:{}", JSON.toJSONString(giveModeKeys));
             if (CollectionUtils.isNotEmpty(giveModeKeys)) {
                 showSupportGiveMode(doSignRecipe, supportGiveModeNameSet);
             }
