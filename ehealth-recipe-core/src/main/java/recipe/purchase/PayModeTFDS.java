@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
 import recipe.ApplicationUtils;
 import recipe.bean.DrugEnterpriseResult;
 import recipe.bean.RecipePayModeSupportBean;
@@ -236,7 +237,12 @@ public class PayModeTFDS implements IPurchaseService {
         CommonOrder.createDefaultOrder(extInfo, result, order, payModeSupport, dbRecipes, calculateFee);
         //设置为有效订单
         order.setEffective(1);
-
+        //保存开票记录
+        String templateId = MapValueUtil.getString(extInfo, "invoiceRecordId");
+        Integer invoiceRecordId = CommonOrder.addInvoiceRecord(templateId, recipeIdLists);
+        if (!ObjectUtils.isEmpty(invoiceRecordId)) {
+            order.setInvoiceRecordId(invoiceRecordId);
+        }
         order.setPayMode(payModeNew);
         boolean saveFlag = orderService.saveOrderToDB(order, dbRecipes, payMode, result, recipeDAO, orderDAO);
         if (!saveFlag) {
