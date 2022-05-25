@@ -228,6 +228,37 @@ public class DrugToolService implements IDrugToolService {
         return progress;
     }
 
+    // 获取Excel表的真实行数
+    private int getExcelRealRow(Sheet sheet) {
+        boolean flag = false;
+        for (int i = 1; i <= sheet.getLastRowNum(); ) {
+            Row r = sheet.getRow(i);
+            if (r == null) {
+                // 如果是空行（即没有任何数据、格式），直接把它以下的数据往上移动
+                sheet.shiftRows(i + 1, sheet.getLastRowNum(), -1);
+                continue;
+            }
+            flag = false;
+            for (Cell c : r) {
+                if (c.getCellType() != Cell.CELL_TYPE_BLANK) {
+                    flag = true;
+                    break;
+                }
+            }
+            if (flag) {
+                i++;
+                continue;
+            } else {
+                // 如果是空白行（即可能没有数据，但是有一定格式）
+                if (i == sheet.getLastRowNum())// 如果到了最后一行，直接将那一行remove掉
+                    sheet.removeRow(r);
+                else//如果还没到最后一行，则数据往上移一行
+                    sheet.shiftRows(i + 1, sheet.getLastRowNum(), -1);
+            }
+        }
+        return sheet.getLastRowNum();
+    }
+
 
     @Override
     public Map<String, Object> readDrugExcel(byte[] buf, String originalFilename, int organId, String operator) {
@@ -273,7 +304,7 @@ public class DrugToolService implements IDrugToolService {
             return result;
         }
         Sheet sheet = workbook.getSheetAt(0);
-        Integer total = sheet.getLastRowNum();
+        Integer total = getExcelRealRow(sheet);
         if (total == null || total <= 0) {
             result.put("code", 609);
             result.put("msg", "data is required");
