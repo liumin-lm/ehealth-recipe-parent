@@ -76,9 +76,15 @@ public class OrganDrugBusinessService extends BaseService implements IOrganDrugB
             if(StringUtils.isNotEmpty(organDrugListDb.getSalesStrategy())){
                 List<OrganDrugSalesStrategy> organDrugSalesStrategyListDb = JSONObject.parseArray(organDrugListDb.getSalesStrategy(),OrganDrugSalesStrategy.class);
                 List<OrganDrugSalesStrategy> organDrugSalesStrategyList = JSONObject.parseArray(organDrugList.getSalesStrategy(),OrganDrugSalesStrategy.class);
-                organDrugSalesStrategyList.forEach(organDrugSalesStrategy -> {
-                    //TODO 销售策略
-                    organDrugSalesStrategyListDb.remove(organDrugSalesStrategy);
+                OrganDrugSalesStrategy organDrugSalesStrategy=organDrugSalesStrategyList.get(0);
+                organDrugSalesStrategyListDb.forEach(organDrugSalesStrategyDb -> {
+                    if(organDrugSalesStrategyDb.getId().equals(organDrugSalesStrategy.getId())){
+                        organDrugSalesStrategyDb.setId(organDrugSalesStrategy.getId());
+                        organDrugSalesStrategyDb.setAmount(organDrugSalesStrategy.getAmount());
+                        organDrugSalesStrategyDb.setIsDefault(organDrugSalesStrategy.getIsDefault());
+                        organDrugSalesStrategyDb.setTitle(organDrugSalesStrategy.getTitle());
+                        organDrugSalesStrategyDb.setUnit(organDrugSalesStrategy.getUnit());
+                    }
                 });
                 organDrugListDb.setSalesStrategy(JSONUtils.toString(organDrugSalesStrategyListDb));
                 organDrugListDAO.updateData(organDrugListDb);
