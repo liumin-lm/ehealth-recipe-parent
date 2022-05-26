@@ -244,7 +244,7 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
     public List<CommonRecipeDTO> offlineCommonList(RecipeBean recipeBean) {
         AppointDepartDTO appointDepartDTO = departManager.getAppointDepartDTO(recipeBean.getClinicId(), recipeBean.getClinicOrgan(), recipeBean.getDepart());
         String jobNumber = departManager.jobNumber(recipeBean.getClinicOrgan(), recipeBean.getDoctor(), recipeBean.getDepart());
-        List<com.ngari.his.recipe.mode.CommonRecipeDTO> list = commonRecipeManager.offlineCommonList(recipeBean.getClinicOrgan(), appointDepartDTO.getAppointDepartCode(), jobNumber);
+        List<com.ngari.his.recipe.mode.CommonRecipeDTO> list = commonRecipeManager.offlineCommonList(recipeBean.getClinicOrgan(), recipeBean.getDoctor(), appointDepartDTO.getAppointDepartCode(), jobNumber);
         return ObjectCopyUtils.convert(list, CommonRecipeDTO.class);
     }
 
