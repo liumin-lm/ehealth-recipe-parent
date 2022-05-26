@@ -184,7 +184,7 @@ public class SaleDrugListService implements ISaleDrugListService {
                         + "-" + drugList.getDrugName() + "】", drugsEnterprise.getName());
             }
         }
-        target.setEnterpriseSalesStrategy(saleDrugListManager.getNeedShowEnterpriseSalesStrategy());
+        target.setEnterpriseSalesStrategy(saleDrugListManager.getNeedShowEnterpriseSalesStrategy(target));
         return ObjectCopyUtils.convert(target, SaleDrugListDTO.class);
     }
 
