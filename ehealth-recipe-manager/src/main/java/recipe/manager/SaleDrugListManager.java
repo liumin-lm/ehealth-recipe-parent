@@ -5,6 +5,7 @@ import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,6 +42,10 @@ public class SaleDrugListManager extends BaseManager {
             if (null == drugsEnterprise) {
                 return null;
             }
+            if(drugsEnterprise.getOrganId()==null){
+                logger.error("药企没有关联机构！");
+                return null;
+            }
             List<OrganDrugList> organDrugListList = organDrugListDAO.findByDrugIdAndOrganId(saleDrugListDb.getDrugId(), drugsEnterprise.getOrganId());
             if (CollectionUtils.isEmpty(organDrugListList)) {
                 return null;
@@ -67,7 +72,7 @@ public class SaleDrugListManager extends BaseManager {
             }
             saleDrugSalesStrategies.add(saleDrugSalesStrategy);
         } catch (DAOException e) {
-            logger.error("getNeedShowEnterpriseSalesStrategy",e);
+            logger.error("销售策略 getNeedShowEnterpriseSalesStrategy",e);
             e.printStackTrace();
         }
         return JSONUtils.toString(saleDrugSalesStrategies);
@@ -91,7 +96,7 @@ public class SaleDrugListManager extends BaseManager {
                 saleDrugSalesStrategyList.removeIf(saleDrugSalesStrategy -> "true".equals(saleDrugSalesStrategy.getIsDefault()));
             }
         } catch (Exception e){
-            logger.error("getNeedSaveEnterpriseSalesStrategy",e);
+            logger.error("销售策略 getNeedSaveEnterpriseSalesStrategy",e);
             e.printStackTrace();
         }
         return JSONUtils.toString(saleDrugSalesStrategyList);
@@ -155,7 +160,7 @@ public class SaleDrugListManager extends BaseManager {
                 }
             }
         } catch (Exception e){
-            logger.error("saveEnterpriseSalesStrategyByOrganDrugList",e);
+            logger.error("销售策略 saveEnterpriseSalesStrategyByOrganDrugList",e);
             e.printStackTrace();
         }
     }
