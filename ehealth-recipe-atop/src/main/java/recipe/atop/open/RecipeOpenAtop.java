@@ -7,6 +7,7 @@ import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.SymptomDTO;
 import com.ngari.recipe.vo.FormWorkRecipeReqVO;
 import com.ngari.recipe.vo.FormWorkRecipeVO;
@@ -209,4 +210,10 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     public List<RecipeBean> recipeListByClinicId(Integer clinicId, Integer bussSource) {
         return recipeBusinessService.recipeListByClinicId(clinicId, bussSource);
     }
+    @Override
+    public List<RecipeDetailBean> findRecipeDetailByRecipeId(Integer recipeId) {
+        validateAtop(recipeId);
+        return recipeBusinessService.findRecipeDetailByRecipeId(recipeId);
+    }
+
 }

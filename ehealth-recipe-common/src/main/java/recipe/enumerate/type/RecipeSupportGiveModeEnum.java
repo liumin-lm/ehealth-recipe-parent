@@ -156,6 +156,22 @@ public enum RecipeSupportGiveModeEnum {
         return 0;
     }
 
+    /**
+     *
+     * @param textList
+     * @return
+     */
+    public static List<Integer> getGiveModeTypeList(List<String> textList){
+        if (CollectionUtils.isEmpty(textList)) {
+            return new ArrayList<>();
+        }
+        List<Integer> giveModeTypeList = new ArrayList<>();
+        textList.forEach(text ->{
+            giveModeTypeList.add(getGiveModeType(text));
+        });
+        return giveModeTypeList;
+    }
+
     public static List<String> enterpriseList = Arrays.asList(SHOW_SEND_TO_HOS.text, SHOW_SEND_TO_ENTERPRISES.text, SUPPORT_TFDS.text);
 
     /**

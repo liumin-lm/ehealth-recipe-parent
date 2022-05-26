@@ -4,8 +4,10 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.model.SymptomDTO;
 import com.ngari.recipe.vo.FormWorkRecipeVO;
+import com.ngari.recipe.vo.RecipeDetailVO;
 import ctd.util.annotation.RpcService;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.RevisitRecipeTraceVo;
@@ -166,4 +168,12 @@ public interface IRecipeAtopService {
      */
     @RpcService(mvcDisabled = true)
     List<RecipeBean> recipeListByClinicId(Integer clinicId, Integer bussSource);
+
+    /**
+     * 通过处方ID获取处方明细
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    List<RecipeDetailBean> findRecipeDetailByRecipeId(Integer recipeId);
 }

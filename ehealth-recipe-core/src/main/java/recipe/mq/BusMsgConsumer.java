@@ -82,13 +82,9 @@ public class BusMsgConsumer {
         /**
          * 同步业务办理类型
          */
-        subscriber.attach(OnsConfig.easyPayTopic, "recipe_easyPay_tag", new MqEasyPayConsumer());
-        /*
-        subscriber.attach(OnsConfig.hisCdrinfo, "recipeMedicalInfoFromHis",
-                new RecipeMedicalInfoFromHisObserver());*/
+        subscriber.attach(OnsConfig.easyPayTopic, "", new MqEasyPayConsumer());
 
     }
-
 
     @RpcService
     public void invalidPatient(TempMsgType tMsg) {

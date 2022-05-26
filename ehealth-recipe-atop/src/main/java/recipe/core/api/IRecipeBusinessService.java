@@ -195,4 +195,11 @@ public interface IRecipeBusinessService {
      * @return
      */
     List<RecipeBean> recipeListByClinicId(Integer clinicId, Integer bussSource);
+
+    /**
+     * 通过处方ID获取处方明细
+     * @param recipeId
+     * @return
+     */
+    List<RecipeDetailBean> findRecipeDetailByRecipeId(Integer recipeId);
 }

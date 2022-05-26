@@ -122,7 +122,8 @@ import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 
@@ -489,6 +490,7 @@ public class RemoteRecipeService extends BaseService<RecipeBean> implements IRec
 
     @RpcService
     @Override
+    @LogRecord
     public Map<String, Object> findRecipeAndDetailsAndCheckById(int recipeId) {
         Boolean buttonIsShow = false;
         //平台审方详情和审方详情已隔离  平台处方直接在OperationPlatformRecipeService下面改

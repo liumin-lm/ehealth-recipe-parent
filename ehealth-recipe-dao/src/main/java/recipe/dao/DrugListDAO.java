@@ -2,7 +2,6 @@ package recipe.dao;
 
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
-import com.ngari.recipe.drug.model.DrugListBean;
 import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugSources;
 import com.ngari.recipe.entity.OrganDrugList;
@@ -16,7 +15,6 @@ import ctd.persistence.support.hibernate.template.AbstractHibernateStatelessResu
 import ctd.persistence.support.hibernate.template.HibernateSessionTemplate;
 import ctd.persistence.support.hibernate.template.HibernateStatelessResultAction;
 import ctd.persistence.support.impl.dictionary.DBDictionaryItemLoader;
-import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcSupportDAO;
 import org.apache.commons.lang3.StringUtils;
 import org.hibernate.Query;
@@ -481,8 +479,11 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
      * @param drugIds
      * @return
      */
-    @DAOMethod(sql = "from DrugList where drugId in (:drugIds) and status=1",limit=0)
+    @DAOMethod(sql = "from DrugList where drugId in (:drugIds) and status=1", limit = 0)
     public abstract List<DrugList> findByDrugIds(@DAOParam("drugIds") Collection<Integer> drugIds);
+
+    @DAOMethod(sql = "from DrugList where drugId in (:drugIds) and drugType=:drugType and status=1", limit = 0)
+    public abstract List<DrugList> findByDrugIdsAndType(@DAOParam("drugIds") Collection<Integer> drugIds, @DAOParam("drugType") Integer drugType);
 
     /**
      * ps:调用该方法不会设置用药频次等默认值
@@ -490,7 +491,7 @@ public abstract class DrugListDAO extends HibernateSupportDelegateDAO<DrugList>
      * @param drugIds
      * @return
      */
-    @DAOMethod(sql = "from DrugList where drugId in (:drugIds)",limit=0)
+    @DAOMethod(sql = "from DrugList where drugId in (:drugIds)", limit = 0)
     public abstract List<DrugList> findByDrugIdsAndStatus(@DAOParam("drugIds") Collection<Integer> drugIds);
 
     /**

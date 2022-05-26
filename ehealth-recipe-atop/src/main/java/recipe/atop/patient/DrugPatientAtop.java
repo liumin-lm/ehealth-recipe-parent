@@ -8,6 +8,7 @@ import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.HospitalDrugListReqVO;
 import com.ngari.recipe.vo.HospitalDrugListVO;
+import recipe.vo.patient.PatientContinueRecipeCheckDrugReq;
 import com.ngari.recipe.vo.SearchDrugReqVO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
@@ -17,6 +18,7 @@ import recipe.constant.ErrorCode;
 import recipe.core.api.IDrugBusinessService;
 import recipe.core.api.IStockBusinessService;
 import recipe.util.ObjectCopyUtils;
+import recipe.vo.patient.PatientContinueRecipeCheckDrugRes;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -86,6 +88,17 @@ public class DrugPatientAtop extends BaseAtop {
     @RpcService
     public List<HospitalDrugListVO> findHospitalDrugList(HospitalDrugListReqVO hospitalDrugListReqVO){
         return drugBusinessService.findHospitalDrugList(hospitalDrugListReqVO);
+    }
+
+    /**
+     * 患者端续方药品信息校验
+     * @param patientContinueRecipeCheckDrugReq
+     * @return PatientContinueRecipeCheckDrugRes
+     */
+    @RpcService
+    public PatientContinueRecipeCheckDrugRes patientContinueRecipeCheckDrug(PatientContinueRecipeCheckDrugReq patientContinueRecipeCheckDrugReq){
+        validateAtop(patientContinueRecipeCheckDrugReq,patientContinueRecipeCheckDrugReq.getOrganId());
+        return drugBusinessService.patientContinueRecipeCheckDrug(patientContinueRecipeCheckDrugReq);
     }
 
 }

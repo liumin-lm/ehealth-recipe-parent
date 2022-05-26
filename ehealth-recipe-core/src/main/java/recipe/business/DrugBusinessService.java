@@ -1,5 +1,6 @@
 package recipe.business;
 
+import com.google.common.collect.Lists;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
@@ -15,6 +16,7 @@ import com.ngari.recipe.recipe.service.IDrugEntrustService;
 import com.ngari.recipe.vo.HospitalDrugListReqVO;
 import com.ngari.recipe.vo.HospitalDrugListVO;
 import com.ngari.recipe.vo.SearchDrugReqVO;
+import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +27,7 @@ import recipe.client.DrugClient;
 import recipe.client.IConfigurationClient;
 import recipe.core.api.IDrugBusinessService;
 import recipe.dao.OrganDrugListDAO;
+import recipe.enumerate.status.YesOrNoEnum;
 import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.DrugManager;
 import recipe.manager.HisRecipeManager;
@@ -32,12 +35,12 @@ import recipe.manager.OrganDrugListManager;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
 import recipe.util.ValidateUtil;
+import recipe.vo.patient.PatientContinueRecipeCheckDrugReq;
+import recipe.vo.patient.PatientContinueRecipeCheckDrugRes;
+import recipe.vo.patient.PatientOptionalDrugVo;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -188,5 +191,58 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     @Override
     public List<DrugList> findByDrugIdsAndStatus(List<Integer> drugIds) {
         return drugManager.findByDrugIdsAndStatus(drugIds);
+    }
+
+    @Override
+    public PatientContinueRecipeCheckDrugRes patientContinueRecipeCheckDrug(PatientContinueRecipeCheckDrugReq patientContinueRecipeCheckDrugReq) {
+        PatientContinueRecipeCheckDrugRes patientContinueRecipeCheckDrugRes = new PatientContinueRecipeCheckDrugRes();
+        List<PatientOptionalDrugVo> patientOptionalDrugVos = patientContinueRecipeCheckDrugReq.getPatientOptionalDrugVo();
+        if (CollectionUtils.isEmpty(patientOptionalDrugVos)) {
+            throw new DAOException(609, "续方药品信息不能为空");
+        }
+        List<String> organDrugCodeList = patientOptionalDrugVos.stream().map(PatientOptionalDrugVo::getOrganDrugCode).collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(organDrugCodeList)) {
+            throw new DAOException(609, "机构编码不能为空");
+        }
+        List<OrganDrugList> organDrugListList = organDrugListDAO.findByOrganIdAndDrugCodes(patientContinueRecipeCheckDrugReq.getOrganId(), organDrugCodeList);
+        List<String> drugName = new ArrayList<>();
+        List<PatientOptionalDrugVo> list = new ArrayList<>();
+        if (CollectionUtils.isEmpty(organDrugListList)) {
+            List<String> collect = patientOptionalDrugVos.stream().map(PatientOptionalDrugVo::getDrugName).collect(Collectors.toList());
+            getCheckText(patientContinueRecipeCheckDrugRes,collect);
+            patientContinueRecipeCheckDrugRes.setPatientOptionalDrugVo(list);
+            return patientContinueRecipeCheckDrugRes;
+        }
+        Map<String, List<OrganDrugList>> organDrugListMap = organDrugListList.stream().collect(Collectors.groupingBy(OrganDrugList::getOrganDrugCode));
+        patientOptionalDrugVos.forEach(patientOptionalDrugVo -> {
+            List<OrganDrugList> organDrugLists = organDrugListMap.get(patientOptionalDrugVo.getOrganDrugCode());
+            if (CollectionUtils.isEmpty(organDrugLists)) {
+                drugName.add(patientOptionalDrugVo.getDrugName());
+            } else {
+                patientOptionalDrugVo.setDrugId(organDrugLists.get(0).getDrugId());
+                patientOptionalDrugVo.setOrganId(patientContinueRecipeCheckDrugReq.getOrganId());
+                patientOptionalDrugVo.setDrugName(organDrugLists.get(0).getDrugName());
+                patientOptionalDrugVo.setDrugSpec(organDrugLists.get(0).getDrugSpec());
+                patientOptionalDrugVo.setUnit(organDrugLists.get(0).getUnit());
+                list.add(patientOptionalDrugVo);
+            }
+        });
+        if (CollectionUtils.isEmpty(drugName)) {
+            patientContinueRecipeCheckDrugRes.setCheckFlag(YesOrNoEnum.NO.getType());
+        } else {
+            getCheckText(patientContinueRecipeCheckDrugRes,drugName);
+        }
+        patientContinueRecipeCheckDrugRes.setPatientOptionalDrugVo(list);
+        return patientContinueRecipeCheckDrugRes;
+    }
+
+    private void getCheckText(PatientContinueRecipeCheckDrugRes patientContinueRecipeCheckDrugRes,List<String> drugName){
+        patientContinueRecipeCheckDrugRes.setCheckFlag(YesOrNoEnum.YES.getType());
+        StringBuilder stringBuilder = new StringBuilder("处方内药品");
+        drugName.forEach(drug -> {
+            stringBuilder.append("【").append(drug).append("】");
+        });
+        stringBuilder.append("不支持线上开药,是否继续?");
+        patientContinueRecipeCheckDrugRes.setCheckText(stringBuilder.toString());
     }
 }

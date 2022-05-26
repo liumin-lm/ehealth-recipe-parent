@@ -4,9 +4,8 @@ import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.OutPatientRecordResTO;
 import com.ngari.his.visit.mode.WriteDrugRecipeReqTO;
 import com.ngari.patient.dto.AppointDepartDTO;
-import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
-import ctd.controller.exception.ControllerException;
+import com.ngari.recipe.dto.PatientDTO;
 import ctd.dictionary.DictionaryController;
 import ctd.util.JSONUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +16,7 @@ import recipe.client.PatientClient;
 
 /**
  * 咨询管理类
+ *
  * @author zgy
  * @date 2022/3/2 14:57
  */
@@ -24,6 +24,9 @@ import recipe.client.PatientClient;
 public class ConsultManager extends BaseManager {
     @Autowired
     private PatientClient patientClient;
+    /**
+     * todo revisitManager？代码下移
+     */
     @Autowired
     private RevisitManager revisitManager;
     @Autowired
@@ -42,7 +45,7 @@ public class ConsultManager extends BaseManager {
     public OutPatientRecordResDTO findOutPatientRecordFromHis(String mpiId, Integer organId, Integer doctorId) {
         logger.info("ConsultManager findOutPatientRecordFromHis mpiId={}",mpiId);
         OutPatientRecordResDTO outPatientRecordResDTO = new OutPatientRecordResDTO();
-        PatientDTO patient = patientClient.getPatientBeanByMpiId(mpiId);
+        PatientDTO patient = patientClient.getPatientDTO(mpiId);
         if (null != patient) {
             WriteDrugRecipeReqTO writeDrugRecipeReqTO = revisitManager.getWriteDrugRecipeReqTO(patient, organId, doctorId);
             if (null != writeDrugRecipeReqTO) {

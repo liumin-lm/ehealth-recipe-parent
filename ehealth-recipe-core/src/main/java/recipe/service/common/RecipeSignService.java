@@ -14,6 +14,7 @@ import com.ngari.recipe.common.RecipeCommonBaseTO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.common.RecipeStandardReqTO;
 import com.ngari.recipe.common.RecipeStandardResTO;
+import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
@@ -21,7 +22,6 @@ import com.ngari.revisit.RevisitAPI;
 import com.ngari.revisit.process.service.IRecipeOnLineRevisitService;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
-import ctd.util.BeanUtils;
 import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -34,14 +34,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
 import recipe.aop.LogRecord;
 import recipe.bean.CheckYsInfoBean;
+import recipe.client.DocIndexClient;
 import recipe.constant.*;
 import recipe.core.api.IStockBusinessService;
 import recipe.dao.*;
+import recipe.drugTool.validate.RecipeDetailValidateTool;
 import recipe.enumerate.status.RecipeStateEnum;
 import recipe.hisservice.HisMqRequestInit;
 import recipe.hisservice.RecipeToHisMqService;
-import recipe.manager.EmrRecipeManager;
-import recipe.manager.RecipeManager;
 import recipe.manager.RevisitManager;
 import recipe.service.*;
 import recipe.thread.CardDataUploadRunable;
@@ -73,21 +73,19 @@ public class RecipeSignService {
      */
     private static final Logger LOG = LoggerFactory.getLogger(RecipeSignService.class);
     @Autowired
-    private RecipeManager recipeManager;
-    @Autowired
     private RecipeDAO recipeDAO;
-
     @Autowired
     private RedisClient redisClient;
-
+    @Autowired
+    private RecipeDetailValidateTool recipeDetailValidateTool;
     @Autowired
     private DrugsEnterpriseService drugsEnterpriseService;
-    @Autowired
-    private RecipeExtendDAO recipeExtendDAO;
     @Autowired
     private IStockBusinessService drugEnterpriseBusinessService;
     @Autowired
     private RevisitManager revisitManager;
+    @Autowired
+    private DocIndexClient docIndexClient;
 
     /**
      * 武昌模式签名方法
@@ -381,6 +379,7 @@ public class RecipeSignService {
     @RpcService
     public Map<String, Object> doSignRecipeNew(RecipeBean recipeBean, List<RecipeDetailBean> detailBeanList, int continueFlag) {
         LOG.info("RecipeSignService.doSignRecipeNew param: recipeBean={} detailBean={} continueFlag={}", JSONUtils.toString(recipeBean), JSONUtils.toString(detailBeanList), continueFlag);
+        recipeDetailValidateTool.validateMedicalChineDrugNumber(recipeBean, detailBeanList);
         //将密码放到redis中
         redisClient.set("caPassword", recipeBean.getCaPassword());
         Map<String, Object> rMap = new HashMap<String, Object>();
@@ -478,6 +477,12 @@ public class RecipeSignService {
                 recipeBean.setRequestUrt(requestPatient.getUrt());
             }
         }
+        //判断机构是否需要his处方检查 ---运营平台机构配置
+        if (null != recipeBean.getRecipeExtend()) {
+            EmrDetailDTO emrDetailDTO = docIndexClient.getEmrDetails(recipeBean.getRecipeExtend().getDocIndexId());
+            recipeBean.setOrganDiseaseName(emrDetailDTO.getOrganDiseaseName());
+            recipeBean.setOrganDiseaseId(emrDetailDTO.getOrganDiseaseId());
+        }
         recipeBean.setSubState(RecipeStateEnum.NONE.getType());
         recipeBean.setProcessState(RecipeStateEnum.NONE.getType());
         recipeBean.setStatus(RecipeStatusConstant.UNSIGN);
@@ -515,12 +520,12 @@ public class RecipeSignService {
     @RpcService
     public boolean hisRecipeCheck(Map<String, Object> rMap, RecipeBean recipeBean) {
         //判断机构是否需要his处方检查 ---运营平台机构配置
-        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
-        Recipe recipeNew = new Recipe();
-        BeanUtils.copy(recipeBean, recipeNew);
-        EmrRecipeManager.getMedicalInfo(recipeNew, recipeExtend);
-        recipeBean.setOrganDiseaseName(recipeNew.getOrganDiseaseName());
-        recipeBean.setOrganDiseaseId(recipeNew.getOrganDiseaseId());
+//        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeBean.getRecipeId());
+//        Recipe recipeNew = new Recipe();
+//        BeanUtils.copy(recipeBean, recipeNew);
+//        EmrRecipeManager.getMedicalInfo(recipeNew, recipeExtend);
+//        recipeBean.setOrganDiseaseName(recipeNew.getOrganDiseaseName());
+//        recipeBean.setOrganDiseaseId(recipeNew.getOrganDiseaseId());
 
         try {
             IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
