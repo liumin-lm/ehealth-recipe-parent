@@ -3,6 +3,8 @@ package recipe.atop.doctor;
 import com.alibaba.fastjson.JSON;
 import com.ngari.recipe.commonrecipe.model.CommonDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
+import com.ngari.recipe.dto.HisRecipeDTO;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -123,35 +125,32 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
 
     /**
      * 查询线下常用方
+     * todo 新方法：offlineCommonV1
+     * 产品流程上放弃使用
      *
      * @param organId  机构id
      * @param doctorId 医生id
      * @return 线下常用方数据集合
      */
     @RpcService
+    @Deprecated
     public List<CommonDTO> offlineCommon(Integer organId, Integer doctorId) {
-        logger.info("CommonRecipeAtop offlineCommon doctorId = {}", doctorId);
         validateAtop(doctorId, organId);
-        try {
-            List<CommonDTO> result = commonRecipeService.offlineCommon(organId, doctorId);
-            logger.info("CommonRecipeAtop offlineCommon result = {}", JSON.toJSONString(result));
-            return result;
-        } catch (DAOException e1) {
-            logger.warn("CommonRecipeAtop offlineCommon error", e1);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e1.getMessage());
-        } catch (Exception e) {
-            logger.error("CommonRecipeAtop offlineCommon error", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
-        }
+        List<CommonDTO> result = commonRecipeService.offlineCommon(organId, doctorId);
+        logger.info("CommonRecipeAtop offlineCommon result = {}", JSON.toJSONString(result));
+        return result;
+
     }
 
     /**
      * 添加线下常用方到线上
+     * 产品流程上放弃使用
      *
      * @param commonList 线下常用方数据集合
      * @return boolean
      */
     @RpcService
+    @Deprecated
     public List<String> batchAddOfflineCommon(Integer organId, List<CommonDTO> commonList) {
         logger.info("CommonRecipeAtop addOfflineCommon commonList = {}", JSON.toJSONString(commonList));
         validateAtop(organId, commonList);
@@ -167,4 +166,28 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
             throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
         }
     }
+
+    /**
+     * 获取线下常用方列表
+     *
+     * @param recipeBean 查询入参对象
+     * @return
+     */
+    @RpcService
+    public List<CommonRecipeDTO> offlineCommonList(RecipeBean recipeBean) {
+        return commonRecipeService.offlineCommonList(recipeBean);
+    }
+
+    /**
+     * 获取线下常用方详情
+     *
+     * @param commonRecipe 常用方头
+     * @return
+     */
+    @RpcService
+    public HisRecipeDTO offlineCommonV1(CommonRecipeDTO commonRecipe) {
+        return commonRecipeService.offlineCommonV1(commonRecipe.getOrganId(), commonRecipe.getCommonRecipeCode());
+
+    }
+
 }

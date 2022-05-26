@@ -3,6 +3,7 @@ package recipe.manager;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.recipe.entity.Recipe;
+import com.ngari.revisit.dto.response.RevisitBeanVO;
 import ctd.util.JSONUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,11 +54,14 @@ public class DepartManager extends BaseManager {
      */
     public DepartmentDTO getDepartmentByDepart(Integer depart) {
         DepartmentDTO departmentDTO = new DepartmentDTO();
-        if (depart == null) {
+        if (null == depart) {
             return departmentDTO;
         }
-        departmentDTO = departClient.getDepartmentByDepart(depart);
-        return departmentDTO;
+        DepartmentDTO department = departClient.getDepartmentByDepart(depart);
+        if (null == department) {
+            return departmentDTO;
+        }
+        return department;
     }
 
     /**
@@ -68,18 +72,70 @@ public class DepartManager extends BaseManager {
      */
     public AppointDepartDTO getAppointByOrganIdAndDepart(Integer organId, Integer departId){
         AppointDepartDTO appointDepartDTO = departClient.getAppointDepartByOrganIdAndDepart(organId, departId);
+        logger.info("getAppointDepartById getAppointByOrganIdAndDepart appointDepartDTO:{}", JSONUtils.toString(appointDepartDTO));
         return appointDepartDTO;
     }
 
     /**
      * 获取挂号科室
+     *
      * @param appointId
      * @return
      */
-    public AppointDepartDTO getAppointDepartById(Integer appointId){
+    public AppointDepartDTO getAppointDepartById(Integer appointId) {
         AppointDepartDTO appointDepartDTO = departClient.getAppointDepartById(appointId);
         logger.info("getAppointDepartById AppointDepartDTO:{}", JSONUtils.toString(appointDepartDTO));
         return appointDepartDTO;
     }
+
+    /**
+     * 获取挂号科室,如果获取不到挂号科室 ，则使用行政科室
+     *
+     * @param clinicId 复诊id
+     * @param organId  机构id
+     * @param departId 行政科室id
+     * @return
+     */
+    public AppointDepartDTO getAppointDepartDTO(Integer clinicId, Integer organId, Integer departId) {
+        AppointDepartDTO appointDepart = getAppointDepart(clinicId, organId, departId);
+        if (null == appointDepart) {
+            appointDepart = new AppointDepartDTO();
+        }
+        if (StringUtils.isNotEmpty(appointDepart.getAppointDepartCode())) {
+            return appointDepart;
+        }
+        DepartmentDTO departmentDTO = this.getDepartmentByDepart(departId);
+        appointDepart.setAppointDepartCode(departmentDTO.getCode());
+        appointDepart.setAppointDepartName(departmentDTO.getName());
+        return appointDepart;
+    }
+
+    /**
+     * 医生工号
+     *
+     * @param organId
+     * @param doctorId
+     * @param departId
+     * @return
+     */
+    public String jobNumber(Integer organId, Integer doctorId, Integer departId) {
+        return doctorClient.jobNumber(organId, doctorId, departId).getJobNumber();
+    }
+
+    private AppointDepartDTO getAppointDepart(Integer clinicId, Integer organId, Integer departId) {
+        if (null == clinicId) {
+            return this.getAppointByOrganIdAndDepart(organId, departId);
+        }
+        RevisitBeanVO revisitBeanVO = revisitClient.revisitBean(clinicId);
+        if (null == revisitBeanVO || null == revisitBeanVO.getAppointDepartId()) {
+            return this.getAppointByOrganIdAndDepart(organId, departId);
+        }
+        AppointDepartDTO appointDepartDTO = this.getAppointDepartById(revisitBeanVO.getAppointDepartId());
+        if (null != appointDepartDTO) {
+            return appointDepartDTO;
+        }
+        return this.getAppointByOrganIdAndDepart(organId, departId);
+    }
+
 
 }

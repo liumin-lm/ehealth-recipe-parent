@@ -2,8 +2,10 @@ package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.his.recipe.mode.CommonDTO;
+import com.ngari.his.recipe.mode.CommonRecipeDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.recipe.dto.CommonRecipeDrugDTO;
+import com.ngari.recipe.dto.HisRecipeDTO;
 import com.ngari.recipe.entity.CommonRecipe;
 import com.ngari.recipe.entity.CommonRecipeDrug;
 import com.ngari.recipe.entity.CommonRecipeExt;
@@ -260,4 +262,26 @@ public class CommonRecipeManager extends BaseManager {
     }
 
 
+    /**
+     * 获取线下常用方列表
+     *
+     * @param organId    机构id
+     * @param departCode 科室代码
+     * @param jobNumber  医生工号
+     * @return 下线常用方（协定方头）
+     */
+    public List<CommonRecipeDTO> offlineCommonList(Integer organId, String departCode, String jobNumber) {
+        return offlineRecipeClient.offlineCommonList(organId, departCode, jobNumber);
+    }
+
+    /**
+     * 获取线下常用方详情
+     *
+     * @param organId          机构id
+     * @param commonRecipeCode 常用方code
+     * @return
+     */
+    public HisRecipeDTO offlineCommonV1(Integer organId, String commonRecipeCode) {
+        return offlineRecipeClient.offlineCommonV1(organId, commonRecipeCode);
+    }
 }

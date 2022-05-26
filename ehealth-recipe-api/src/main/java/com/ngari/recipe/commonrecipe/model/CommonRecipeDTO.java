@@ -26,7 +26,7 @@ public class CommonRecipeDTO implements Serializable {
     @ItemProperty(alias = "常用方编码-医院唯一主键字段")
     private String commonRecipeCode;
 
-    @ItemProperty(alias = "常用方类型：1平台，2协定方，3....")
+    @ItemProperty(alias = "常用方类型：1平台，2协定方，2保密方 3。。。")
     private Integer commonRecipeType;
 
     @ItemProperty(alias = "医生身份ID")
@@ -61,20 +61,21 @@ public class CommonRecipeDTO implements Serializable {
     private String pharmacyName;
     @ItemProperty(alias = "药房编码")
     private String pharmacyCode;
-
     @ItemProperty(alias = "失效药品id列表")
     private List<Integer> drugIdList;
+    @ItemProperty(alias = "常用方的状态")
+    private Integer commonRecipeStatus;
+    @ItemProperty(alias = "是否是长处方")
+    private String isLongRecipe;
+    @ItemProperty(alias = "机构的用法代码")
+    private String organUsePathways;
+    @ItemProperty(alias = "机构的用法代码名称")
+    private String organUsePathwaysName;
 
+    
     @ItemProperty(alias = "药品列表")
     @Deprecated
     private List<CommonRecipeDrugDTO> commonDrugList;
-
-    @ItemProperty(alias = "常用方的状态")
-    private Integer commonRecipeStatus;
-
-    @ItemProperty(alias = "是否是长处方")
-    private String isLongRecipe;
-
     @ItemProperty(alias = "常用方扩展信息")
     @Deprecated
     private CommonRecipeExtDTO commonRecipeExt;
