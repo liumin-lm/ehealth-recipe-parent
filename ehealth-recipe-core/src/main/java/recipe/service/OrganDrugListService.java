@@ -50,6 +50,7 @@ import recipe.dao.bean.DrugListAndOrganDrugList;
 import recipe.drugTool.service.DrugToolService;
 import recipe.drugsenterprise.ByRemoteService;
 import recipe.manager.SaleDrugListManager;
+import recipe.thread.RecipeBusiThreadPool;
 
 import java.math.BigDecimal;
 import java.text.ParseException;
@@ -233,7 +234,7 @@ public class OrganDrugListService implements IOrganDrugListService {
         OrganDrugList organDrugList = organDrugListDAO.get(organDrugListId);
         organDrugSyncDelete(organDrugList, 1);
         //销售策略 更新药企药品销售策略
-        saleDrugListManager.saveEnterpriseSalesStrategyByOrganDrugList(organDrugList,"update");
+        saleDrugListManager.saveEnterpriseSalesStrategyByOrganDrugList(organDrugList,"delete");
         organDrugListDAO.remove(organDrugListId);
 
     }
@@ -260,6 +261,19 @@ public class OrganDrugListService implements IOrganDrugListService {
         IBusActionLogService busActionLogService = AppDomainContext.getBean("opbase.busActionLogService", IBusActionLogService.class);
         busActionLogService.recordBusinessLogRpcNew("机构药品管理", "", "OrganDrugList", "【" + urt.getUserName() + "】一键删除【" + byOrganId.getName()
                 + "】药品", byOrganId.getName());
+        RecipeBusiThreadPool.submit(() -> {
+            try {
+                List<OrganDrugList> organDrugLists=organDrugListDAO.findByOrganId(organId);
+                organDrugLists.forEach(organDrugList -> {
+                    //销售策略 更新药企药品销售策略
+                    saleDrugListManager.saveEnterpriseSalesStrategyByOrganDrugList(organDrugList,"delete");
+                });
+            } catch (Exception e) {
+                logger.error("deleteByOrganId error",e);
+                e.printStackTrace();
+            }
+            return null;
+        });
     }
 
     /**
