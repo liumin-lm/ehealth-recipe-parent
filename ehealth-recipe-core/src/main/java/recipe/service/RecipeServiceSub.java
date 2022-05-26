@@ -454,11 +454,11 @@ public class RecipeServiceSub {
 
     private static void validateRecipeAndDetailData(Recipe recipe, List<Recipedetail> details) {
         RecipeValidateUtil.validateSaveRecipeData(recipe);
-        if (null != details) {
-            for (Recipedetail recipeDetail : details) {
-                RecipeValidateUtil.validateRecipeDetailData(recipeDetail, recipe);
-            }
-        }
+//        if (null != details) {
+//            for (Recipedetail recipeDetail : details) {
+//                RecipeValidateUtil.validateRecipeDetailData(recipeDetail, recipe);
+//            }
+//        }
     }
 
 

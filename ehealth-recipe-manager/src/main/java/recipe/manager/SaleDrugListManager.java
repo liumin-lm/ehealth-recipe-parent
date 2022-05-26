@@ -35,6 +35,7 @@ public class SaleDrugListManager extends BaseManager {
     public String getNeedShowEnterpriseSalesStrategy(SaleDrugList saleDrugListDb) {
         List<SaleDrugSalesStrategy> saleDrugSalesStrategies =new ArrayList<SaleDrugSalesStrategy>();
         try {
+            //如果没有药企药品（新增药品药品页面），则返回默认的销售策略
             if (null == saleDrugListDb) {
                 return null;
             }
@@ -98,6 +99,9 @@ public class SaleDrugListManager extends BaseManager {
         } catch (Exception e){
             logger.error("销售策略 getNeedSaveEnterpriseSalesStrategy",e);
             e.printStackTrace();
+        }
+        if(CollectionUtils.isEmpty(saleDrugSalesStrategyList)){
+            return null;
         }
         return JSONUtils.toString(saleDrugSalesStrategyList);
     }

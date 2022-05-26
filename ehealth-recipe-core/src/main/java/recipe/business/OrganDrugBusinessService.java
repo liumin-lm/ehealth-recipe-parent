@@ -54,9 +54,9 @@ public class OrganDrugBusinessService extends BaseService implements IOrganDrugB
                 organDrugSalesStrategy.get(0).setId(id);
                 organDrugSalesStrategyList.add(organDrugSalesStrategy.get(0));
                 logger.info("OrganDrugBusinessService addOrganDrugSalesStrategy organDrugSalesStrategyList={}",JSONUtils.toString(organDrugSalesStrategyList));
-                organDrugList.setSalesStrategy(JSONUtils.toString(organDrugSalesStrategyList));
+                organDrugListDb.setSalesStrategy(JSONUtils.toString(organDrugSalesStrategyList));
             }
-            organDrugListDAO.updateData(organDrugList);
+            organDrugListDAO.updateNonNullFieldByPrimaryKey(organDrugListDb);
             saleDrugListManager.saveEnterpriseSalesStrategyByOrganDrugList(organDrugList,"add");
         }
         if("delete".equals(organDrugList.getType())){
@@ -66,6 +66,25 @@ public class OrganDrugBusinessService extends BaseService implements IOrganDrugB
                 organDrugSalesStrategyList.forEach(organDrugSalesStrategy -> {
                     //TODO 销售策略
                     organDrugSalesStrategyListDb.remove(organDrugSalesStrategy);
+                });
+                organDrugListDb.setSalesStrategy(JSONUtils.toString(organDrugSalesStrategyListDb));
+                organDrugListDAO.updateData(organDrugListDb);
+                saleDrugListManager.saveEnterpriseSalesStrategyByOrganDrugList(organDrugListDb,"update");
+            }
+        }
+        if("update".equals(organDrugList.getType())){
+            if(StringUtils.isNotEmpty(organDrugListDb.getSalesStrategy())){
+                List<OrganDrugSalesStrategy> organDrugSalesStrategyListDb = JSONObject.parseArray(organDrugListDb.getSalesStrategy(),OrganDrugSalesStrategy.class);
+                List<OrganDrugSalesStrategy> organDrugSalesStrategyList = JSONObject.parseArray(organDrugList.getSalesStrategy(),OrganDrugSalesStrategy.class);
+                OrganDrugSalesStrategy organDrugSalesStrategy=organDrugSalesStrategyList.get(0);
+                organDrugSalesStrategyListDb.forEach(organDrugSalesStrategyDb -> {
+                    if(organDrugSalesStrategyDb.getId().equals(organDrugSalesStrategy.getId())){
+                        organDrugSalesStrategyDb.setId(organDrugSalesStrategy.getId());
+                        organDrugSalesStrategyDb.setAmount(organDrugSalesStrategy.getAmount());
+                        organDrugSalesStrategyDb.setIsDefault(organDrugSalesStrategy.getIsDefault());
+                        organDrugSalesStrategyDb.setTitle(organDrugSalesStrategy.getTitle());
+                        organDrugSalesStrategyDb.setUnit(organDrugSalesStrategy.getUnit());
+                    }
                 });
                 organDrugListDb.setSalesStrategy(JSONUtils.toString(organDrugSalesStrategyListDb));
                 organDrugListDAO.updateData(organDrugListDb);
