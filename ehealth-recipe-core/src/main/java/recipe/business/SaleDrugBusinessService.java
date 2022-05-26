@@ -9,6 +9,8 @@ import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.manager.SaleDrugListManager;
+import recipe.util.ObjectCopyUtils;
+import recipe.vo.second.OrganVO;
 
 /**
  * @description： 药企药品
@@ -35,7 +37,7 @@ public class SaleDrugBusinessService extends BaseService implements ISaleDrugBus
         SaleDrugList res = new SaleDrugList();
         SaleDrugList saleDrugListDb = saleDrugListDAO.getByDrugIdAndOrganId(saleDrugList.getDrugId(), saleDrugList.getOrganId());
         if (null == saleDrugListDb) {
-            return res;
+            saleDrugListDb=ObjectCopyUtils.convert(saleDrugList, SaleDrugList.class);
         }
         saleDrugListDb.setEnterpriseSalesStrategy(saleDrugListManager.getNeedShowEnterpriseSalesStrategy(saleDrugListDb));
         return saleDrugListDb;
