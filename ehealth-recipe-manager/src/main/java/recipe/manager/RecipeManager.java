@@ -37,6 +37,7 @@ import recipe.util.DictionaryUtil;
 import recipe.util.ValidateUtil;
 
 import javax.annotation.Resource;
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -654,6 +655,7 @@ public class RecipeManager extends BaseManager {
                 continue;
             }
             recipeDetail.setSalePrice(drugLists.get(0).getPrice());
+            recipeDetail.setDrugCost(drugLists.get(0).getPrice().multiply(new BigDecimal(recipeDetail.getUseTotalDose())).setScale(4,BigDecimal.ROUND_HALF_UP));
         }
         logger.info("RecipeManager updateRecipeDetailSalePrice req = recipeDetails:{}", JSON.toJSONString(recipeDetails));
         recipeDetailDAO.updateAllRecipeDetail(recipeDetails);
