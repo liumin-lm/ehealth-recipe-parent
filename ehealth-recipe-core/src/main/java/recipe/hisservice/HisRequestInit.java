@@ -661,6 +661,16 @@ public class HisRequestInit {
 
                     requestTO.setTradeNo(order.getTradeNo());
                     requestTO.setOutTradeNo(order.getOutTradeNo());
+                    try {
+                        if (Objects.nonNull(order)) {
+                            requestTO.setRegisterFee(order.getRegisterFee());
+                            requestTO.setRegisterFeeNo(order.getRegisterFeeNo());
+                            requestTO.setTcmFee(order.getTcmFee());
+                            requestTO.setTcmFeeNo(order.getTcmFeeNo());
+                        }
+                    }catch (Exception e){
+                        LOGGER.error("MedicalPreSettleService 代缴费用有误");
+                    }
 
                 }
                 //合并支付的处方需要将所有his处方编码传过去

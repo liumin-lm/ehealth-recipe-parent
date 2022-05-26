@@ -10,6 +10,7 @@ import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.request.ValidRevisitRequest;
 import com.ngari.revisit.common.service.IRevisitExService;
 import com.ngari.revisit.common.service.IRevisitService;
+import com.ngari.revisit.dto.response.RevisitBeanVO;
 import com.ngari.revisit.traces.service.IRevisitTracesSortService;
 import ctd.util.JSONUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -155,4 +156,9 @@ public class RevisitClient extends BaseClient {
     public void updateRecipeIdByConsultId(Integer recipeId, Integer clinicId) {
         revisitExService.updateRecipeIdByConsultId(clinicId, recipeId);
     }
+
+    public RevisitBeanVO revisitBean(Integer clinicId) {
+        return revisitService.getRevisitBeanVOByConsultId(clinicId);
+    }
+
 }
