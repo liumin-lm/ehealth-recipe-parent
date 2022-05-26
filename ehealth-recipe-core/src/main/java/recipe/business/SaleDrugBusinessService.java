@@ -51,7 +51,7 @@ public class SaleDrugBusinessService extends BaseService implements ISaleDrugBus
         if (saleDrugList1 == null) {
             return;
         }
-        saleDrugList1.setEnterpriseSalesStrategy(saleDrugListManager.getNeedSaveEnterpriseSalesStrategy(saleDrugList1));
+        saleDrugList1.setEnterpriseSalesStrategy(saleDrugListManager.getNeedSaveEnterpriseSalesStrategy(saleDrugList));
         logger.info("saveSaleDrugSalesStrategy saleDrugList1={}", JSONUtils.toString(saleDrugList1));
         //最后进行更新
         saleDrugListDAO.updateNonNullFieldByPrimaryKey(saleDrugList1);

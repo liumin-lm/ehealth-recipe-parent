@@ -59,13 +59,13 @@ public class SaleDrugListManager extends BaseManager {
             Random random = new Random();
             String id = String.valueOf(System.currentTimeMillis() + random.nextInt(5));
             saleDrugSalesStrategy.setOrganDrugListSalesStrategyId(id);
-            //如果存在销售策略，开关全部关闭，则打开默认销售策略
+            //如果存在销售策略且开关全部关闭，则打开默认销售策略
             if (StringUtils.isEmpty(saleDrugListDb.getEnterpriseSalesStrategy())) {
                 saleDrugSalesStrategy.setButtonIsOpen("true");
             } else {
                 String enterpriseSalesStrategy = saleDrugListDb.getEnterpriseSalesStrategy();
                 saleDrugSalesStrategies = JSONObject.parseArray(enterpriseSalesStrategy, SaleDrugSalesStrategy.class);
-                List<SaleDrugSalesStrategy> collect = saleDrugSalesStrategies.stream().filter(SaleDrugSalesStrategy -> "true".equals(saleDrugSalesStrategy.getButtonIsOpen())).collect(Collectors.toList());
+                List<SaleDrugSalesStrategy> collect = saleDrugSalesStrategies.stream().filter(SaleDrugSalesStrategy -> "true".equals(SaleDrugSalesStrategy.getButtonIsOpen())).collect(Collectors.toList());
                 if(CollectionUtils.isEmpty(collect)){
                     saleDrugSalesStrategy.setButtonIsOpen("true");
                 }else{
