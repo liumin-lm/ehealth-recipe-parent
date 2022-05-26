@@ -30,7 +30,7 @@ public class SaleDrugListManager extends BaseManager {
      * @return
      */
     @LogRecord
-    public String getEnterpriseSalesStrategy(SaleDrugList saleDrugListDb) {
+    public String getNeedShowEnterpriseSalesStrategy(SaleDrugList saleDrugListDb) {
         if (null == saleDrugListDb) {
             return null;
         }

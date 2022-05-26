@@ -122,7 +122,7 @@ public class SaleDrugListService implements ISaleDrugListService {
         saleDrugList.setLastModify(new Date());
         saleDrugList.setStatus(1);
         //销售策略
-        saleDrugList.setEnterpriseSalesStrategy(saleDrugListManager.getEnterpriseSalesStrategy(saleDrugList));
+        saleDrugList.setEnterpriseSalesStrategy(saleDrugListManager.getNeedShowEnterpriseSalesStrategy(saleDrugList));
         saleDrugList.setEnterpriseSalesStrategy(saleDrugListManager.getNeedSaveEnterpriseSalesStrategy(saleDrugList));
         dao.save(saleDrugList);
 
@@ -168,7 +168,7 @@ public class SaleDrugListService implements ISaleDrugListService {
             target.setSaleDrugCode(saleDrugList.getOrganDrugCode());
             target.setLastModify(new Date());
             //销售策略
-            target.setEnterpriseSalesStrategy(saleDrugListManager.getEnterpriseSalesStrategy(target));
+            target.setEnterpriseSalesStrategy(saleDrugListManager.getNeedSaveEnterpriseSalesStrategy(target));
             target = saleDrugListDAO.update(target);
             DrugList drugList = drugListDAO.get(saleDrugList.getDrugId());
             if (drugList == null) {
@@ -184,7 +184,7 @@ public class SaleDrugListService implements ISaleDrugListService {
                         + "-" + drugList.getDrugName() + "】", drugsEnterprise.getName());
             }
         }
-        //000
+        target.setEnterpriseSalesStrategy(saleDrugListManager.getNeedShowEnterpriseSalesStrategy());
         return ObjectCopyUtils.convert(target, SaleDrugListDTO.class);
     }
 
@@ -319,7 +319,7 @@ public class SaleDrugListService implements ISaleDrugListService {
     public SaleDrugListDTO getByDrugId(Integer drugId) {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         SaleDrugList saleDrugList = saleDrugListDAO.get(drugId);
-        saleDrugList.setEnterpriseSalesStrategy(saleDrugListManager.getEnterpriseSalesStrategy(saleDrugList));
+        saleDrugList.setEnterpriseSalesStrategy(saleDrugListManager.getNeedShowEnterpriseSalesStrategy(saleDrugList));
         //logger.info("getByOrganIdAndDrugId1111:" + saleDrugList);
         return ObjectCopyUtils.convert(saleDrugList, SaleDrugListDTO.class);
     }
