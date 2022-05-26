@@ -1,13 +1,20 @@
 package recipe.atop.doctor;
 
 import com.alibaba.fastjson.JSON;
+import com.google.common.collect.Lists;
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.commonrecipe.model.CommonDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
 import com.ngari.recipe.dto.HisRecipeDTO;
+import com.ngari.recipe.dto.HisRecipeInfoDTO;
+import com.ngari.recipe.recipe.model.HisRecipeBean;
+import com.ngari.recipe.recipe.model.HisRecipeDetailBean;
 import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
@@ -175,6 +182,7 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
      */
     @RpcService
     public List<CommonRecipeDTO> offlineCommonList(RecipeBean recipeBean) {
+        validateAtop(recipeBean, recipeBean.getDoctor(), recipeBean.getClinicOrgan());
         return commonRecipeService.offlineCommonList(recipeBean);
     }
 
@@ -185,9 +193,36 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public HisRecipeDTO offlineCommonV1(CommonRecipeDTO commonRecipe) {
-        return commonRecipeService.offlineCommonV1(commonRecipe.getOrganId(), commonRecipe.getCommonRecipeCode());
+    public HisRecipeBean offlineCommonV1(CommonRecipeDTO commonRecipe) {
+        validateAtop(commonRecipe, commonRecipe.getOrganId(), commonRecipe.getCommonRecipeCode());
+        HisRecipeDTO hisRecipeDTO = commonRecipeService.offlineCommonV1(commonRecipe.getOrganId(), commonRecipe.getCommonRecipeCode());
 
+        HisRecipeInfoDTO hisRecipeInfo = hisRecipeDTO.getHisRecipeInfo();
+        HisRecipeBean recipeBean = ObjectCopyUtils.convert(hisRecipeInfo, HisRecipeBean.class);
+        recipeBean.setSignDate(hisRecipeInfo.getSignTime());
+        recipeBean.setOrganDiseaseName(hisRecipeInfo.getDiseaseName());
+        recipeBean.setDepartText(hisRecipeInfo.getDepartName());
+        recipeBean.setClinicOrgan(commonRecipe.getOrganId());
+
+        recipeBean.setRecipeExtend(ObjectCopyUtils.convert(hisRecipeDTO.getHisRecipeExtDTO(), RecipeExtendBean.class));
+
+        List<HisRecipeDetailBean> hisRecipeDetailBeans = Lists.newArrayList();
+        hisRecipeDTO.getHisRecipeDetail().forEach(a -> {
+            HisRecipeDetailBean detailBean = ObjectCopyUtils.convert(a, HisRecipeDetailBean.class);
+            detailBean.setDrugUnit(a.getUnit());
+            detailBean.setUsingRateText(a.getUsingRate());
+            detailBean.setUsePathwaysText(a.getUsePathWays());
+            detailBean.setUseDays(a.getDays());
+            detailBean.setUseTotalDose(a.getAmount());
+            if (StringUtils.isNotEmpty(commonRecipe.getPharmacyCode()) && StringUtils.isEmpty(a.getPharmacyCode())) {
+                detailBean.setPharmacyCode(commonRecipe.getPharmacyCode());
+            }
+            detailBean.setUsingRate(a.getUsingRateCode());
+            detailBean.setUsePathways(a.getUsePathwaysCode());
+            hisRecipeDetailBeans.add(detailBean);
+        });
+        recipeBean.setDetailData(hisRecipeDetailBeans);
+        return recipeBean;
     }
 
 }

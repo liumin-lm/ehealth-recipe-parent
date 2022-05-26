@@ -158,7 +158,7 @@ public class SaleDrugListService implements ISaleDrugListService {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(saleDrugList.getOrganId());
-        String enterpriseSalesStrategy=target.getEnterpriseSalesStrategy();
+        String enterpriseSalesStrategy=saleDrugList.getEnterpriseSalesStrategy();
         if (null == target) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "此药在该医院药品列表中不存在");
         } else {
