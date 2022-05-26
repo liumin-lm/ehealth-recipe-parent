@@ -14,6 +14,7 @@ his库存查询->scanDrugStock
 处方医保预结算-->recipeMedicalPreSettleN
 处方自费预结算-->recipeCashPreSettle
 处方医保结算-->recipeMedicalSettle
+更新购药方式地址-->updateTakeDrugWay
 
 查询his药品信息并价格同步->queryDrugInfo
 ```
