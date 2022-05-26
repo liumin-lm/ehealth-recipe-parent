@@ -269,7 +269,7 @@ public class OrganDrugListService implements IOrganDrugListService {
                     saleDrugListManager.saveEnterpriseSalesStrategyByOrganDrugList(organDrugList,"delete");
                 });
             } catch (Exception e) {
-                logger.error("deleteByOrganId error",e);
+                logger.error("销售策略 deleteByOrganId error",e);
                 e.printStackTrace();
             }
             return null;

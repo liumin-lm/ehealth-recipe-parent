@@ -390,6 +390,9 @@ public class RecipeUtil {
         //设置抢单的默认状态
         recipe.setGrabOrderStatus(0);
 
+        //设置为非快捷购药处方
+        recipe.setFastRecipeFlag(0);
+
         //门诊处方从线下获取挂号科室的编码和名称
         if (!BussSourceTypeEnum.BUSSSOURCE_OUTPATIENT.getType().equals(recipe.getBussSource())) {
             //如果没有传入挂号科室，需要手动获取

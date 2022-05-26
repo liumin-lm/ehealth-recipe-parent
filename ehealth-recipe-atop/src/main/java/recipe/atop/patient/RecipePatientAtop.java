@@ -236,6 +236,7 @@ public class RecipePatientAtop extends BaseAtop {
         recipeBean.setSubState(0);
         recipeBean.setSupportMode(0);
         recipeBean.setGiveMode(2);
+        recipeBean.setFastRecipeFlag(1);
         recipeBean.setBussSource(BussSourceTypeEnum.BUSSSOURCE_REVISIT.getType());
         FormWorkRecipeReqVO formWorkRecipeReqVO = new FormWorkRecipeReqVO();
         formWorkRecipeReqVO.setOrganId(recipeBean.getClinicOrgan());
