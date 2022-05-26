@@ -179,6 +179,9 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "销售策略")
     private String salesStrategy;
 
+    @ItemProperty(alias = "类型")
+    private String type;
+
     @Column(name = "sales_strategy")
     public String getSalesStrategy() {
         return salesStrategy;
@@ -650,6 +653,15 @@ public class OrganDrugList implements java.io.Serializable {
     @Column(name = "drug_item_code")
     public String getDrugItemCode() {
         return drugItemCode;
+    }
+
+    @Transient
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public void setDrugItemCode(String drugItemCode) {

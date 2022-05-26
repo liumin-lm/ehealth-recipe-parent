@@ -811,6 +811,11 @@ public class HisRequestInit {
                     }
                 }
             }
+            if (null != recipe.getFastRecipeFlag()) {
+                requestTO.setFastRecipeFlag(recipe.getFastRecipeFlag());
+            } else {
+                requestTO.setFastRecipeFlag(0);
+            }
             // 医院系统医嘱号（一张处方多条记录用|分隔）
             StringBuilder str = new StringBuilder("");
             if (null != list && list.size() != 0) {

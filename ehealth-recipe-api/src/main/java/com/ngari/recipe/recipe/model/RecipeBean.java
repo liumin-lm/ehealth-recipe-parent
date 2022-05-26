@@ -425,6 +425,9 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "是否医保 0自费 1医保")
     private Integer medicalFlag;
 
+    @ItemProperty(alias = "快捷购药处方标识 0 非快捷处方 1 快捷处方")
+    private Integer fastRecipeFlag;
+
     public Integer getMedicalFlag() {
         return medicalFlag;
     }
@@ -1557,5 +1560,13 @@ public class RecipeBean implements Serializable {
 
     public void setRecipeDetailBeanList(List<RecipeDetailBean> recipeDetailBeanList) {
         this.recipeDetailBeanList = recipeDetailBeanList;
+    }
+
+    public Integer getFastRecipeFlag() {
+        return fastRecipeFlag;
+    }
+
+    public void setFastRecipeFlag(Integer fastRecipeFlag) {
+        this.fastRecipeFlag = fastRecipeFlag;
     }
 }
