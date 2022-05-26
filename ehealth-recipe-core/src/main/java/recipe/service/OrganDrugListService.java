@@ -166,8 +166,6 @@ public class OrganDrugListService implements IOrganDrugListService {
                 }
             }
         }
-        //销售策略 更新药企药品销售策略
-        saleDrugListManager.saveEnterpriseSalesStrategyByOrganDrugList(organDrugList,"update");
     }
 
     private void validateOrganDrugList(OrganDrugList organDrugList) {
@@ -234,6 +232,8 @@ public class OrganDrugListService implements IOrganDrugListService {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         OrganDrugList organDrugList = organDrugListDAO.get(organDrugListId);
         organDrugSyncDelete(organDrugList, 1);
+        //销售策略 更新药企药品销售策略
+        saleDrugListManager.saveEnterpriseSalesStrategyByOrganDrugList(organDrugList,"update");
         organDrugListDAO.remove(organDrugListId);
 
     }
