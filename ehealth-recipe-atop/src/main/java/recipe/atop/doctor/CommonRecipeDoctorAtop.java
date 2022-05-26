@@ -168,7 +168,7 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
     }
 
     /**
-     * 获取线下常用方列表
+     * 获取线下常用方列表(协定方)
      *
      * @param recipeBean 查询入参对象
      * @return
@@ -179,7 +179,7 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
     }
 
     /**
-     * 获取线下常用方详情
+     * 获取线下常用方详情(协定方)
      *
      * @param commonRecipe 常用方头
      * @return
