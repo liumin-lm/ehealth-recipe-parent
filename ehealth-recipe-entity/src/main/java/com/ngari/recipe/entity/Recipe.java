@@ -333,6 +333,9 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "是否医保 0自费 1医保")
     private Integer medicalFlag;
 
+    @ItemProperty(alias = "快捷购药处方标识 0 非快捷处方 1 快捷处方")
+    private Integer fastRecipeFlag;
+
     @Column(name = "medical_flag")
     public Integer getMedicalFlag() {
         return medicalFlag;
@@ -1198,7 +1201,14 @@ public class Recipe implements Serializable {
         this.supportMode = supportMode;
     }
 
+    @Column(name = "fast_recipe_flag")
+    public Integer getFastRecipeFlag() {
+        return fastRecipeFlag;
+    }
 
+    public void setFastRecipeFlag(Integer fastRecipeFlag) {
+        this.fastRecipeFlag = fastRecipeFlag;
+    }
 
     public void setCheckFlag(Integer checkFlag) {
         this.checkFlag = checkFlag;

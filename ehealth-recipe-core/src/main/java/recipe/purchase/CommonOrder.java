@@ -285,6 +285,11 @@ public class CommonOrder {
                     }
                 }
             }
+            if (null != recipe.getFastRecipeFlag()) {
+                updateTakeDrugWayReqTO.setFastRecipeFlag(recipe.getFastRecipeFlag());
+            } else {
+                updateTakeDrugWayReqTO.setFastRecipeFlag(0);
+            }
             LOG.info("收货信息更新通知his. req={}", JSONUtils.toString(updateTakeDrugWayReqTO));
             HisResponseTO hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
             LOG.info("收货信息更新通知his. res={}", JSONUtils.toString(hisResult));
