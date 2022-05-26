@@ -80,11 +80,12 @@ public class OfflineRecipeClient extends BaseClient {
      * @param jobNumber  医生工号
      * @return 下线常用方（协定方头）
      */
-    public List<CommonRecipeDTO> offlineCommonList(Integer organId, String departCode, String jobNumber) {
+    public List<CommonRecipeDTO> offlineCommonList(Integer organId, Integer doctorId, String departCode, String jobNumber) {
         OfflineCommonRecipeRequestTO request = new OfflineCommonRecipeRequestTO();
         request.setOrganId(organId);
         request.setJobNumber(jobNumber);
         request.setDepartCode(departCode);
+        request.setDoctorId(doctorId);
         logger.info("OfflineRecipeClient offlineCommonList request:{}", JSON.toJSONString(request));
         try {
             HisResponseTO<List<CommonRecipeDTO>> hisResponse = recipeHisService.offlineCommonList(request);

@@ -270,8 +270,8 @@ public class CommonRecipeManager extends BaseManager {
      * @param jobNumber  医生工号
      * @return 下线常用方（协定方头）
      */
-    public List<CommonRecipeDTO> offlineCommonList(Integer organId, String departCode, String jobNumber) {
-        return offlineRecipeClient.offlineCommonList(organId, departCode, jobNumber);
+    public List<CommonRecipeDTO> offlineCommonList(Integer organId, Integer doctorId, String departCode, String jobNumber) {
+        return offlineRecipeClient.offlineCommonList(organId, doctorId, departCode, jobNumber);
     }
 
     /**
