@@ -100,6 +100,9 @@ public class SaleDrugListManager extends BaseManager {
             logger.error("销售策略 getNeedSaveEnterpriseSalesStrategy",e);
             e.printStackTrace();
         }
+        if(CollectionUtils.isEmpty(saleDrugSalesStrategyList)){
+            return null;
+        }
         return JSONUtils.toString(saleDrugSalesStrategyList);
     }
 
