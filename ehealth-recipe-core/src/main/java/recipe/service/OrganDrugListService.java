@@ -166,6 +166,8 @@ public class OrganDrugListService implements IOrganDrugListService {
                 }
             }
         }
+        //销售策略 更新药企药品销售策略
+        saleDrugListManager.saveEnterpriseSalesStrategyByOrganDrugList(organDrugList,"update");
     }
 
     private void validateOrganDrugList(OrganDrugList organDrugList) {
@@ -283,6 +285,7 @@ public class OrganDrugListService implements IOrganDrugListService {
             deleteOrganDrugListById(organDrugListId);
         }
         busActionLogService.recordBusinessLogRpcNew("机构药品管理", "", "OrganDrugList", msg.toString(), organDTO.getName());
+
     }
 
     /**
@@ -501,7 +504,7 @@ public class OrganDrugListService implements IOrganDrugListService {
                 target.setLastModify(new Date());
                 validateOrganDrugList(target);
                 target = organDrugListDAO.update(target);
-                //更新药企药品销售策略
+                //销售策略 更新药企药品销售策略
                 saleDrugListManager.saveEnterpriseSalesStrategyByOrganDrugList(target,"update");
                 uploadOrganDrugListToJg(target);
                 organDrugSync(target);

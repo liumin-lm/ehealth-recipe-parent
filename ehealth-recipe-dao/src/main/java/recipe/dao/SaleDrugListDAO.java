@@ -580,6 +580,9 @@ public abstract class SaleDrugListDAO extends HibernateSupportDelegateDAO<SaleDr
     @DAOMethod(sql = "update SaleDrugList set inventory=:inventory where organId=:organId ")
     public abstract void updateIntroduceByDepId(@DAOParam("organId") int organId, @DAOParam("inventory") Integer inventory);
 
+    @DAOMethod(sql = "update SaleDrugList set enterpriseSalesStrategy='' where organDrugId=:organDrugId ")
+    public abstract void updateenterpriseSalesStrategyByOrganDrugId(@DAOParam("organDrugId") Integer organDrugId);
+
     /**
      * 根据drugId查询所有配送药品数量
      *
