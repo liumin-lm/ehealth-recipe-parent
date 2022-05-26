@@ -1,6 +1,9 @@
 package recipe.core.api.doctor;
 
 import com.ngari.recipe.commonrecipe.model.CommonDTO;
+import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
+import com.ngari.recipe.dto.HisRecipeDTO;
+import com.ngari.recipe.recipe.model.RecipeBean;
 
 import java.util.List;
 
@@ -52,4 +55,20 @@ public interface ICommonRecipeBusinessService {
      * @return boolean
      */
     List<String> addOfflineCommon(Integer organId, List<CommonDTO> commonList);
+
+    /**
+     * 获取线下常用方列表
+     *
+     * @param recipeBean 查询入参
+     * @return
+     */
+    List<CommonRecipeDTO> offlineCommonList(RecipeBean recipeBean);
+
+    /**
+     * 获取线下常用方详情
+     *
+     * @param commonRecipeCode 常用方编码-医院唯一主键字段
+     * @return
+     */
+    HisRecipeDTO offlineCommonV1(Integer organId, String commonRecipeCode);
 }
