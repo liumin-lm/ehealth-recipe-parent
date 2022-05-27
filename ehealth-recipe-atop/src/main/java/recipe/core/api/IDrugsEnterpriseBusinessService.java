@@ -15,6 +15,8 @@ import recipe.vo.greenroom.PharmacyVO;
 import recipe.vo.patient.CheckAddressReq;
 import recipe.vo.patient.CheckAddressRes;
 import recipe.vo.second.CheckAddressVo;
+import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
+import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
 
 import java.util.List;
 
@@ -133,4 +135,11 @@ public interface IDrugsEnterpriseBusinessService {
      * @return
      */
     Boolean checkSendAddress(CheckAddressVo checkAddressVo);
+
+    /**
+     * 药企确认订单
+     * @param enterpriseConfirmOrderVO
+     * @return
+     */
+    EnterpriseResultBean confirmOrder (EnterpriseConfirmOrderVO enterpriseConfirmOrderVO);
 }
