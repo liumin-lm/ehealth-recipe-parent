@@ -583,8 +583,6 @@ public class PurchaseService {
                     try {
                         OrganDrugList organDrugList = organDrugListMap.get(recipeDetail.getDrugId());
                         recipeDetail.setActualSalePrice(organDrugList.getSalePrice());
-                        recipeDetail.setSalePrice(organDrugList.getSalePrice());
-                        recipeDetail.setDrugCost(organDrugList.getSalePrice().multiply(new BigDecimal(recipeDetail.getUseTotalDose())).setScale(4,BigDecimal.ROUND_HALF_UP));
 
                         recipeDetailDAO.updateNonNullFieldByPrimaryKey(recipeDetail);
                     } catch (Exception e) {

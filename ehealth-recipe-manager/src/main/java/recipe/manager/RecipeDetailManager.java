@@ -100,7 +100,7 @@ public class RecipeDetailManager extends BaseManager {
         detail.setLastModify(nowDate);
         if (2 == detail.getType()) {
             BigDecimal price = detail.getSalePrice();
-            return price.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).divide(BigDecimal.ONE, 2, RoundingMode.UP);
+            return price.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).setScale(4,BigDecimal.ROUND_HALF_UP);
         }
         OrganDrugList organDrug = organDrugListMap.get(detail.getDrugId() + detail.getOrganDrugCode());
         if (null == organDrug) {
@@ -119,7 +119,7 @@ public class RecipeDetailManager extends BaseManager {
         detail.setPack(organDrug.getPack());
         detail.setSalePrice(organDrug.getSalePrice());
         BigDecimal price = organDrug.getSalePrice();
-        BigDecimal drugCost = price.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).divide(BigDecimal.ONE, 2, RoundingMode.UP);
+        BigDecimal drugCost = price.multiply(BigDecimal.valueOf(detail.getUseTotalDose())).setScale(4,BigDecimal.ROUND_HALF_UP);
         detail.setDrugCost(drugCost);
         return drugCost;
     }
