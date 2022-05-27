@@ -71,15 +71,18 @@ public class DrugSaleStrategyBusinessService extends BaseService implements IDru
         List<DrugSaleStrategy> allDrugSaleStrategyList = drugSaleStrategyManager.findDrugSaleStrategy(drugId);
         //获取该药品默认的销售策略
         DrugSaleStrategy defaultDrugSaleStrategy = drugSaleStrategyManager.getDefaultDrugSaleStrategy(depId, drugId);
+        DrugSaleStrategyVO defaultDrugSaleStrategyVO = null;
+        if (null != defaultDrugSaleStrategy) {
+            defaultDrugSaleStrategyVO = ObjectCopyUtils.convert(defaultDrugSaleStrategy, DrugSaleStrategyVO.class);
+            drugSaleStrategyVOList.add(defaultDrugSaleStrategyVO);
+        }
         if (null != drugSaleStrategy) {
             DrugSaleStrategyVO drugSaleStrategyVO = ObjectCopyUtils.convert(drugSaleStrategy, DrugSaleStrategyVO.class);
             drugSaleStrategyVO.setButtonOpenFlag(true);
             drugSaleStrategyVOList.add(drugSaleStrategyVO);
         } else {
-            if (null != defaultDrugSaleStrategy) {
-                DrugSaleStrategyVO drugSaleStrategyVO = ObjectCopyUtils.convert(defaultDrugSaleStrategy, DrugSaleStrategyVO.class);
-                drugSaleStrategyVO.setButtonOpenFlag(true);
-                drugSaleStrategyVOList.add(drugSaleStrategyVO);
+            if (null != defaultDrugSaleStrategyVO) {
+                defaultDrugSaleStrategyVO.setButtonOpenFlag(true);
             }
         }
         for (DrugSaleStrategy drugStrategy : allDrugSaleStrategyList) {
