@@ -435,6 +435,7 @@ public class RecipeRefundService extends RecipeBaseService {
             LOGGER.error("checkForRecipeRefund-处方退费审核失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
             throw new DAOException("处方退费审核失败！" + hisResult.getMsg());
         }
+        RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_AGREE);
         //增加医生首页待处理任务---完成任务
         ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussFinishEvent(recipeId, BussTypeConstant.RECIPE));
     }

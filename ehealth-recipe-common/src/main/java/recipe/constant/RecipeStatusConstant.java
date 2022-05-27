@@ -313,5 +313,10 @@ public class RecipeStatusConstant {
      */
     public static final int RECIPE_PAY_CALL_SUCCESS = 140;
 
+    /**
+     * 医生退费审核通过给患者发送消息
+     */
+    public static final int RECIPE_REFUND_AGREE = 141;
+
 
 }
