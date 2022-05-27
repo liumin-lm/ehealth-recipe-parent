@@ -91,6 +91,7 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
         recipeDetailValidateTool.validateMakeMethod(organId, validateDetailVO.getRecipeExtendBean());
         /**校验药品数据判断状态*/
         validateDetailVO.getRecipeDetails().forEach(a -> {
+            a.setDrugDisplaySplicedName(a.getDrugName());
             //校验机构药品
             OrganDrugList organDrug = recipeDetailValidateTool.validateOrganDrug(a, organDrugGroup);
             if (null == organDrug || RecipeDetailValidateTool.VALIDATE_STATUS_FAILURE.equals(a.getValidateStatus())) {
