@@ -529,13 +529,14 @@ public class QueryRecipeService implements IQueryRecipeService {
                         orderItem.setPharmacy(pharmacyTcm.getPharmacyName());
                     }
                 }
-                if(null != detail.getDrugMedicalFlag()){
+                if(detail.getDrugMedicalFlag() >= 0){
                     //医保限定药标识 0 否  1 是
                     orderItem.setMedicalInsuranceDrugFlag(1);
                     //自费标识 0 否  1 是
                     orderItem.setSelfPayFlag(detail.getDrugMedicalFlag() == 0 ? 1 : 0);
                 }else {
                     orderItem.setMedicalInsuranceDrugFlag(0);
+                    orderItem.setSelfPayFlag(0);
                 }
                 LOGGER.info("处方明细数据：JSONUtils.toString(orderList)={}", JSONUtils.toString(orderList));
                 orderList.add(orderItem);
