@@ -56,7 +56,7 @@ public class DrugSaleStrategyManager extends BaseManager {
         drugSaleStrategy.setDrugUnit(organDrugList.getUnit());
         drugSaleStrategy.setStrategyTitle("默认出售策略");
         drugSaleStrategy.setStatus(1);
-        drugSaleStrategy.setId(drugId);
+        drugSaleStrategy.setId(0);
         return drugSaleStrategy;
     }
 }

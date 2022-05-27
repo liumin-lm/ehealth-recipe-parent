@@ -16,4 +16,6 @@ public interface IDrugSaleStrategyBusinessService {
     List<DrugSaleStrategyVO> findDrugSaleStrategy(Integer depId, Integer drugId);
 
     List<DrugSaleStrategy> findDrugSaleStrategy(DrugSaleStrategyVO drugSaleStrategy);
+
+    void saveDrugSaleStrategy(Integer depId, Integer drugId, Integer strategyId);
 }

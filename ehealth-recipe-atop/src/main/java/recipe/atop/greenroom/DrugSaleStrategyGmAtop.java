@@ -50,4 +50,15 @@ public class DrugSaleStrategyGmAtop extends BaseAtop {
         return drugSaleStrategyBusinessService.findDrugSaleStrategy(depId, drugId);
     }
 
+    /**
+     * 保存销售策略
+     * @param depId
+     * @param drugId
+     * @param strategyId
+     */
+    @RpcService
+    public void saveDrugSaleStrategy(Integer depId, Integer drugId, Integer strategyId){
+        drugSaleStrategyBusinessService.saveDrugSaleStrategy(depId, drugId, strategyId);
+    }
+
 }

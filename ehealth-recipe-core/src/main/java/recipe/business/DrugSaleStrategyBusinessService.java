@@ -99,4 +99,15 @@ public class DrugSaleStrategyBusinessService extends BaseService implements IDru
     public List<DrugSaleStrategy> findDrugSaleStrategy(DrugSaleStrategyVO drugSaleStrategy) {
         return drugSaleStrategyDAO.findByDrugId(drugSaleStrategy.getDrugId());
     }
+
+    @Override
+    public void saveDrugSaleStrategy(Integer depId, Integer drugId, Integer strategyId) {
+        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, depId);
+        if (new Integer(0).equals(strategyId)) {
+            saleDrugList.setSaleStrategyId(null);
+        } else {
+            saleDrugList.setSaleStrategyId(strategyId);
+        }
+        saleDrugListDAO.updateNonNullFieldByPrimaryKey(saleDrugList);
+    }
 }
