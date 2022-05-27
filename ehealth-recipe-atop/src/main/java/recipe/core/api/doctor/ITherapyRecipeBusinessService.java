@@ -115,11 +115,18 @@ public interface ITherapyRecipeBusinessService {
     List<RecipeTherapy> findTherapyByClinicId(Integer clinicId);
 
     /**
+     * 根据复诊获取 诊疗处方对象集合
+     *
+     * @param clinicId
+     * @return
+     */
+    List<RecipeInfoDTO> therapyListByClinicId(Integer clinicId);
+
+    /**
      * 运营平台展示诊疗处方列表
      *
      * @param recipeTherapyOpQueryVO
      * @return
-     *
      */
     QueryResult<RecipeTherapyOpDTO> findTherapyByInfo(RecipeTherapyOpQueryDTO recipeTherapyOpQueryVO);
 }

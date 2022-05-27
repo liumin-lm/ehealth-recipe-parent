@@ -20,6 +20,7 @@ import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ICommonRecipeBusinessService;
 
+import java.sql.Timestamp;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -200,10 +201,10 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
         HisRecipeInfoDTO hisRecipeInfo = hisRecipeDTO.getHisRecipeInfo();
         HisRecipeBean recipeBean = ObjectCopyUtils.convert(hisRecipeInfo, HisRecipeBean.class);
         recipeBean.setSignDate(hisRecipeInfo.getSignTime());
+        recipeBean.setCreateDate(Timestamp.valueOf(hisRecipeInfo.getSignTime()));
         recipeBean.setOrganDiseaseName(hisRecipeInfo.getDiseaseName());
         recipeBean.setDepartText(hisRecipeInfo.getDepartName());
         recipeBean.setClinicOrgan(commonRecipe.getOrganId());
-
         recipeBean.setRecipeExtend(ObjectCopyUtils.convert(hisRecipeDTO.getHisRecipeExtDTO(), RecipeExtendBean.class));
 
         List<HisRecipeDetailBean> hisRecipeDetailBeans = Lists.newArrayList();
