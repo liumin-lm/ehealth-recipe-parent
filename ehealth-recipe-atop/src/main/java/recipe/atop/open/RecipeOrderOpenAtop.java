@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.api.open.IRecipeOrderAtopService;
 import recipe.atop.BaseAtop;
 import recipe.core.api.patient.IRecipeOrderBusinessService;
+import recipe.util.ObjectCopyUtils;
 import recipe.vo.second.RecipeOrderVO;
 import recipe.vo.second.RecipeVo;
 import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
@@ -84,12 +85,12 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
     }
 
     @Override
-    public String getTrackingNumber(RecipeBean recipeBean) {
+    public com.ngari.platform.recipe.mode.RecipeOrderBean getTrackingNumber(RecipeBean recipeBean) {
         validateAtop(recipeBean, recipeBean.getClinicOrgan(), recipeBean.getRecipeCode());
         RecipeOrder recipeOrder = recipeOrderService.getTrackingNumber(recipeBean.getRecipeCode(), recipeBean.getClinicOrgan());
         if (null == recipeOrder) {
             return null;
         }
-        return recipeOrder.getTrackingNumber();
+        return ObjectCopyUtils.convert(recipeOrder, com.ngari.platform.recipe.mode.RecipeOrderBean.class);
     }
 }
