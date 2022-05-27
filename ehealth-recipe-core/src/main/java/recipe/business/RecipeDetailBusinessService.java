@@ -98,11 +98,13 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
                 return;
             }
             //校验药品药房是否变动
-            if (PharmacyManager.pharmacyVariation(a.getPharmacyId(), a.getPharmacyCode(), organDrug.getPharmacy(), pharmacyCodeMap)) {
+            Integer pharmacyId = PharmacyManager.pharmacyVariation(a.getPharmacyId(), a.getPharmacyCode(), organDrug.getPharmacy(), pharmacyCodeMap);
+            if (null == pharmacyId) {
                 a.setValidateStatus(RecipeDetailValidateTool.VALIDATE_STATUS_FAILURE);
                 logger.info("RecipeDetailService validateDrug pharmacy OrganDrugCode ：= {}", a.getOrganDrugCode());
                 return;
             }
+            a.setPharmacyId(pharmacyId);
             //校验数据是否完善
             recipeDetailValidateTool.validateDrug(a, recipeDay, organDrug, recipeType, drugEntrustNameMap, organId, validateDetailVO.getVersion());
             //返回前端必须字段
