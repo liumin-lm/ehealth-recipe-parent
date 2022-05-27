@@ -39,13 +39,16 @@ public class DrugSaleStrategyBusinessService extends BaseService implements IDru
         DrugSaleStrategy drugSaleStrategy=new DrugSaleStrategy();
         ObjectCopyUtils.copyProperties(drugSaleStrategy,param);
         if("add".equals(param.getType())){
+            drugSaleStrategy.setStatus(1);
             drugSaleStrategyDAO.save(drugSaleStrategy);
         }
         if("update".equals(param.getType())){
+            drugSaleStrategy.setStatus(1);
             drugSaleStrategyDAO.updateNonNullFieldByPrimaryKey(drugSaleStrategy);
         }
         if("delete".equals(param.getType())){
-            drugSaleStrategyDAO.remove(drugSaleStrategy);
+            drugSaleStrategy.setStatus(0);
+            drugSaleStrategyDAO.updateNonNullFieldByPrimaryKey(drugSaleStrategy);
             //关联删除药企药品目录销售策略
             List<SaleDrugList> saleDrugListList=saleDrugListDAO.findByDrugId(param.getDrugId());
             saleDrugListList.forEach(saleDrugList -> {

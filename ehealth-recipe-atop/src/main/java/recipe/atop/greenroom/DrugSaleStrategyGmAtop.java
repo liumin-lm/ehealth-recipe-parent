@@ -22,8 +22,11 @@ public class DrugSaleStrategyGmAtop extends BaseAtop {
      */
     @RpcService
     public void addDrugSaleStrategy(DrugSaleStrategyVO drugSaleStrategy) {
-        //validateAtop(drugSaleStrategy.getStrategyTitle(),drugSaleStrategy.getDrugUnit());
         drugSaleStrategyBusinessService.operationDrugSaleStrategy(drugSaleStrategy);
     }
 
+    @RpcService
+    public void findDrugSaleStrategy(DrugSaleStrategyVO drugSaleStrategy) {
+        drugSaleStrategyBusinessService.operationDrugSaleStrategy(drugSaleStrategy);
+    }
 }
