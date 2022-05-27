@@ -15,6 +15,7 @@ import recipe.aop.LogRecord;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 /**
  * 药企药品处理
@@ -28,6 +29,8 @@ public class SaleDrugListManager extends BaseManager {
 
     /**
      * 根据药企药品获取药企药品需要显示的销售策略
+     * 药企关联机构通过DrugsEnterprise表进行关联
+     * true
      * @param saleDrugListDb
      * @return
      */
@@ -57,17 +60,23 @@ public class SaleDrugListManager extends BaseManager {
             Random random = new Random();
             String id = String.valueOf(System.currentTimeMillis() + random.nextInt(5));
             saleDrugSalesStrategy.setOrganDrugListSalesStrategyId(id);
-            //如果存在销售策略，
+            //如果存在销售策略且开关全部关闭，则打开默认销售策略
             if (StringUtils.isEmpty(saleDrugListDb.getEnterpriseSalesStrategy())) {
                 saleDrugSalesStrategy.setButtonIsOpen("true");
             } else {
-                saleDrugSalesStrategy.setButtonIsOpen("false");
+                String enterpriseSalesStrategy = saleDrugListDb.getEnterpriseSalesStrategy();
+                saleDrugSalesStrategies = JSONObject.parseArray(enterpriseSalesStrategy, SaleDrugSalesStrategy.class);
+                List<SaleDrugSalesStrategy> collect = saleDrugSalesStrategies.stream().filter(SaleDrugSalesStrategy -> "true".equals(SaleDrugSalesStrategy.getButtonIsOpen())).collect(Collectors.toList());
+                if(CollectionUtils.isEmpty(collect)){
+                    saleDrugSalesStrategy.setButtonIsOpen("true");
+                }else{
+                    saleDrugSalesStrategy.setButtonIsOpen("false");
+                }
             }
             saleDrugSalesStrategy.setIsDefault("true");
             saleDrugSalesStrategy.setUnit(organDrugList.getUnit());
 
-            String enterpriseSalesStrategy = saleDrugListDb.getEnterpriseSalesStrategy();
-            saleDrugSalesStrategies = JSONObject.parseArray(enterpriseSalesStrategy, SaleDrugSalesStrategy.class);
+
             if (CollectionUtils.isEmpty(saleDrugSalesStrategies)) {
                 saleDrugSalesStrategies = new ArrayList<>();
             }
@@ -82,6 +91,7 @@ public class SaleDrugListManager extends BaseManager {
 
     /**
      * 根据药企药品获取药企药品需要保存的销售策略
+     * true
      * @param saleDrugList
      * @return
      */
@@ -108,6 +118,7 @@ public class SaleDrugListManager extends BaseManager {
 
     /**
      * 根据机构药品销售策略保存药企药品销售策略
+     * 通过机构药品目录关联药企=》机构关联药企--机构配置 关联关系中间表
      * @param organDrugList
      * @param type
      */
@@ -135,6 +146,7 @@ public class SaleDrugListManager extends BaseManager {
                 saleDrugSalesStrategies.add(saleDrugSalesStrategy);
             });
             //获取药企药品并保存药企药品销售策略
+
             List<DrugsEnterprise> drugsEnterpriseList = drugsEnterpriseDAO.findByOrganIds(organDrugList.getOrganId());
             if(CollectionUtils.isNotEmpty(drugsEnterpriseList)){
                 for(DrugsEnterprise drugsEnterprise : drugsEnterpriseList){

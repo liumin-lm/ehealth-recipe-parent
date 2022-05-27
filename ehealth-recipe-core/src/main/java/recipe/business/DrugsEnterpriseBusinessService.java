@@ -36,6 +36,8 @@ import recipe.vo.patient.AddressAreaVo;
 import recipe.vo.patient.CheckAddressReq;
 import recipe.vo.patient.CheckAddressRes;
 import recipe.vo.second.CheckAddressVo;
+import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
+import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -308,6 +310,15 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
             return true;
         }
         return false;
+    }
+
+    @Override
+    public EnterpriseResultBean confirmOrder (EnterpriseConfirmOrderVO enterpriseConfirmOrderVO) {
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(enterpriseConfirmOrderVO.getAppKey());
+        if (null == drugsEnterprise) {
+            return EnterpriseResultBean.getFail("当前appKey错误");
+        }
+        return null;
     }
 
     private boolean addressCan(List<EnterpriseAddress> list, String address) {
