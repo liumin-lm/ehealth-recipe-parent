@@ -69,6 +69,17 @@ public class SaleDrugListDTO implements java.io.Serializable {
     @ItemProperty(alias = "药企销售策略")
     private String enterpriseSalesStrategy;
 
+    @ItemProperty(alias = "选中销售策略id,关联drugSaleStrategy表主键")
+    private Integer saleStrategyId;
+
+    public Integer getSaleStrategyId() {
+        return saleStrategyId;
+    }
+
+    public void setSaleStrategyId(Integer saleStrategyId) {
+        this.saleStrategyId = saleStrategyId;
+    }
+
     public SaleDrugListDTO() {
     }
 

@@ -46,7 +46,7 @@ public class DrugSaleStrategyGmAtop extends BaseAtop {
      * @return
      */
     @RpcService
-    public List<DrugSaleStrategyVO> findDrugSaleStrategy(Integer depId, Integer drugId) {
+    public List<DrugSaleStrategyVO> findDrugSaleStrategyByDepIdAndDrugId(Integer depId, Integer drugId) {
         return drugSaleStrategyBusinessService.findDrugSaleStrategy(depId, drugId);
     }
 
