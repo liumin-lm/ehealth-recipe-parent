@@ -52,7 +52,7 @@ public class DrugSaleStrategyBusinessService extends BaseService implements IDru
             List<SaleDrugList> saleDrugListList=saleDrugListDAO.findByDrugId(param.getDrugId());
             saleDrugListList.forEach(saleDrugList -> {
                 saleDrugList.setSaleStrategyId(null);
-                saleDrugListDAO.save(saleDrugList);
+                saleDrugListDAO.update(saleDrugList);
             });
         }
     }
