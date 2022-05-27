@@ -5,6 +5,7 @@ import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.RecipeTherapy;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.recipe.model.RecipeTherapyDTO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
@@ -110,6 +111,7 @@ public class TherapyRecipeOpenAtop extends BaseAtop implements ITherapyRecipeOpe
             recipeInfoVO.setRecipeBean(ObjectCopyUtils.convert(a.getRecipe(), RecipeBean.class));
             recipeInfoVO.setRecipeTherapyVO(ObjectCopyUtils.convert(a.getRecipeTherapy(), RecipeTherapyVO.class));
             recipeInfoVO.setRecipeDetails(ObjectCopyUtils.convert(a.getRecipeDetails(), RecipeDetailBean.class));
+            recipeInfoVO.setRecipeExtendBean(new RecipeExtendBean());
         });
         return list;
     }
