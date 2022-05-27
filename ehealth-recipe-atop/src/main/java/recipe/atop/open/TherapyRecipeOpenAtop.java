@@ -1,11 +1,16 @@
 package recipe.atop.open;
 
 import com.alibaba.fastjson.JSON;
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.RecipeTherapy;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.RecipeExtendBean;
 import com.ngari.recipe.recipe.model.RecipeTherapyDTO;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import recipe.api.open.ITherapyRecipeOpenService;
 import recipe.atop.BaseAtop;
 import recipe.constant.ErrorCode;
@@ -13,8 +18,11 @@ import recipe.core.api.doctor.ITherapyRecipeBusinessService;
 import recipe.enumerate.status.TherapyStatusEnum;
 import recipe.enumerate.type.TherapyCancellationTypeEnum;
 import recipe.util.ObjectCopyUtils;
+import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
 
+import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -89,5 +97,22 @@ public class TherapyRecipeOpenAtop extends BaseAtop implements ITherapyRecipeOpe
     public List<RecipeTherapyVO> findTherapyByClinicId(Integer clinicId) {
         List<RecipeTherapy> recipeTherapyList = therapyRecipeBusinessService.findTherapyByClinicId(clinicId);
         return ObjectCopyUtils.convert(recipeTherapyList, RecipeTherapyVO.class);
+    }
+
+    @Override
+    public List<RecipeInfoVO> therapyListByClinicId(Integer clinicId) {
+        List<RecipeInfoDTO> recipeInfoList = therapyRecipeBusinessService.therapyListByClinicId(clinicId);
+        if (CollectionUtils.isEmpty(recipeInfoList)) {
+            return new LinkedList<>();
+        }
+        List<RecipeInfoVO> list = new ArrayList<>();
+        recipeInfoList.forEach(a -> {
+            RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
+            recipeInfoVO.setRecipeBean(ObjectCopyUtils.convert(a.getRecipe(), RecipeBean.class));
+            recipeInfoVO.setRecipeTherapyVO(ObjectCopyUtils.convert(a.getRecipeTherapy(), RecipeTherapyVO.class));
+            recipeInfoVO.setRecipeDetails(ObjectCopyUtils.convert(a.getRecipeDetails(), RecipeDetailBean.class));
+            recipeInfoVO.setRecipeExtendBean(new RecipeExtendBean());
+        });
+        return list;
     }
 }

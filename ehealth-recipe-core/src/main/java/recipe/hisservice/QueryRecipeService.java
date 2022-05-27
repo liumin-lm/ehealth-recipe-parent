@@ -529,9 +529,18 @@ public class QueryRecipeService implements IQueryRecipeService {
                         orderItem.setPharmacy(pharmacyTcm.getPharmacyName());
                     }
                 }
-                LOGGER.info("处方明细数据：JSONUtils.toString(orderList)={}", JSONUtils.toString(orderList));
+                if(detail.getDrugMedicalFlag() != null && detail.getDrugMedicalFlag() >= 0  ){
+                    //医保限定药标识 0 否  1 是
+                    orderItem.setMedicalInsuranceDrugFlag(1);
+                    //自费标识 0 否  1 是
+                    orderItem.setSelfPayFlag(detail.getDrugMedicalFlag() == 0 ? 1 : 0);
+                }else {
+                    orderItem.setMedicalInsuranceDrugFlag(0);
+                    orderItem.setSelfPayFlag(0);
+                }
                 orderList.add(orderItem);
             }
+            LOGGER.info("处方明细数据：orderList={}", JSONUtils.toString(orderList));
             recipeDTO.setOrderList(orderList);
         } else {
             recipeDTO.setOrderList(null);

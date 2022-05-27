@@ -1,11 +1,9 @@
 package recipe.api.open;
 
 import com.ngari.recipe.recipe.model.RecipeTherapyDTO;
-import com.ngari.recipe.recipe.model.RecipeTherapyOpVO;
-import ctd.persistence.bean.QueryResult;
 import ctd.util.annotation.RpcService;
+import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.doctor.RecipeTherapyVO;
-import com.ngari.recipe.recipe.model.RecipeTherapyOpQueryVO;
 
 import java.util.List;
 
@@ -57,5 +55,12 @@ public interface ITherapyRecipeOpenService {
     @RpcService(mvcDisabled = true)
     List<RecipeTherapyVO> findTherapyByClinicId(Integer clinicId);
 
-
+    /**
+     * 根据复诊获取 诊疗处方对象集合
+     *
+     * @param clinicId
+     * @return
+     */
+    @RpcService(mvcDisabled = true)
+    List<RecipeInfoVO> therapyListByClinicId(Integer clinicId);
 }
