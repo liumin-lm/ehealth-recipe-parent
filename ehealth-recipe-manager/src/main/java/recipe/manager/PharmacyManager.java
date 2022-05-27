@@ -31,28 +31,29 @@ public class PharmacyManager extends BaseManager {
      * @param pharmacyCodeMap 药房表信息
      * @return true 不一致
      */
-    public static boolean pharmacyVariation(Integer pharmacyId, String pharmacyCode, String organPharmacy, Map<String, PharmacyTcm> pharmacyCodeMap) {
+    public static Integer pharmacyVariation(Integer pharmacyId, String pharmacyCode, String organPharmacy, Map<String, PharmacyTcm> pharmacyCodeMap) {
         if (ValidateUtil.integerIsEmpty(pharmacyId) && StringUtils.isEmpty(pharmacyCode) && StringUtils.isNotEmpty(organPharmacy)) {
-            return true;
+            return null;
         }
         if (ValidateUtil.integerIsEmpty(pharmacyId) && StringUtils.isNotEmpty(pharmacyCode)) {
             PharmacyTcm pharmacyTcm = pharmacyCodeMap.get(pharmacyCode);
             if (null == pharmacyTcm) {
-                return true;
+                return null;
             }
             pharmacyId = pharmacyTcm.getPharmacyId();
         }
         if (ValidateUtil.integerIsEmpty(pharmacyId) && StringUtils.isNotEmpty(organPharmacy)) {
-            return true;
+            return null;
         }
         if (!ValidateUtil.integerIsEmpty(pharmacyId) && StringUtils.isEmpty(organPharmacy)) {
-            return true;
+            return null;
         }
         if (!ValidateUtil.integerIsEmpty(pharmacyId) && StringUtils.isNotEmpty(organPharmacy) &&
                 !Arrays.asList(organPharmacy.split(ByteUtils.COMMA)).contains(String.valueOf(pharmacyId))) {
-            return true;
+            return null;
         }
-        return false;
+
+        return pharmacyId;
     }
 
     /**

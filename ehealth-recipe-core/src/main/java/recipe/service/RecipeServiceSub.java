@@ -659,9 +659,10 @@ public class RecipeServiceSub {
                         }
                         detail.setSalePrice(price);
                         BigDecimal drugCost;
+                        LOGGER.info("detail.setUseTotalDose detail.getUseDose:{}", JSON.toJSONString(detail));
                         if (RecipeBussConstant.RECIPETYPE_TCM.equals(recipe.getRecipeType())) {
                             //保留3位小数
-                            drugCost = price.multiply(new BigDecimal(detail.getUseTotalDose())).divide(BigDecimal.valueOf(organDrug.getPack())).setScale(4,BigDecimal.ROUND_HALF_UP);
+                            drugCost = price.multiply(new BigDecimal(detail.getUseTotalDose())).divide(BigDecimal.valueOf(organDrug.getPack()),4,BigDecimal.ROUND_HALF_UP).setScale(4,BigDecimal.ROUND_HALF_UP);
                         } else {
                             //保留3位小数
                             drugCost = price.multiply(new BigDecimal(detail.getUseTotalDose())).setScale(4,BigDecimal.ROUND_HALF_UP);

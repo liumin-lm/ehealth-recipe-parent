@@ -367,7 +367,7 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
         }
         drug.setDrugId(organDrug.getDrugId());
         //校验药品药房变动
-        if (PharmacyManager.pharmacyVariation(null, drug.getPharmacyCode(), organDrug.getPharmacy(), pharmacyCodeMap)) {
+        if (null == PharmacyManager.pharmacyVariation(null, drug.getPharmacyCode(), organDrug.getPharmacy(), pharmacyCodeMap)) {
             LOGGER.warn("CommonRecipeService offlineCommonRecipeDrug pharmacy OrganDrugCode ：{}", drug.getOrganDrugCode());
             return null;
         }
