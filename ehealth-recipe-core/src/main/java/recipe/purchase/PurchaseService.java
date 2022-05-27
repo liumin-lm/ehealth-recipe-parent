@@ -581,7 +581,11 @@ public class PurchaseService {
             } else {
                 recipeDetails.forEach(recipeDetail -> {
                     try {
-                        recipeDetail.setActualSalePrice(organDrugListMap.get(recipeDetail.getDrugId()).getSalePrice());
+                        OrganDrugList organDrugList = organDrugListMap.get(recipeDetail.getDrugId());
+                        recipeDetail.setActualSalePrice(organDrugList.getSalePrice());
+                        recipeDetail.setSalePrice(organDrugList.getSalePrice());
+                        recipeDetail.setDrugCost(organDrugList.getSalePrice().multiply(new BigDecimal(recipeDetail.getUseTotalDose())).setScale(4,BigDecimal.ROUND_HALF_UP));
+
                         recipeDetailDAO.updateNonNullFieldByPrimaryKey(recipeDetail);
                     } catch (Exception e) {
                         LOG.error("PayModeOnline updateRecipeDetail error", e);
