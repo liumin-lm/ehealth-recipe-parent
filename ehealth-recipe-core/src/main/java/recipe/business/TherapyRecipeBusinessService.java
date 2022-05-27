@@ -177,11 +177,32 @@ public class TherapyRecipeBusinessService extends BaseService implements ITherap
     }
 
     @Override
+    public List<RecipeInfoDTO> therapyListByClinicId(Integer clinicId) {
+        List<RecipeTherapy> recipeTherapyList = recipeTherapyManager.findTherapyByClinicId(clinicId);
+        if (CollectionUtils.isEmpty(recipeTherapyList)) {
+            return new LinkedList<>();
+        }
+        List<RecipeInfoDTO> list = new LinkedList<>();
+        List<Integer> recipeIds = recipeTherapyList.stream().map(RecipeTherapy::getRecipeId).collect(Collectors.toList());
+        List<Recipe> recipeList = recipeManager.findByRecipeIds(recipeIds);
+        Map<Integer, Recipe> recipeMap = recipeList.stream().collect(Collectors.toMap(Recipe::getRecipeId, a -> a, (k1, k2) -> k1));
+        Map<Integer, List<Recipedetail>> recipeDetailGroup = recipeDetailManager.findRecipeDetailMap(recipeIds);
+        recipeTherapyList.forEach(a -> {
+            RecipeInfoDTO recipeInfoDTO = new RecipeInfoDTO();
+            recipeInfoDTO.setRecipeTherapy(a);
+            recipeInfoDTO.setRecipe(recipeMap.get(a.getRecipeId()));
+            recipeInfoDTO.setRecipeDetails(recipeDetailGroup.get(a.getRecipeId()));
+            list.add(recipeInfoDTO);
+        });
+        return list;
+    }
+
+    @Override
     public QueryResult<RecipeTherapyOpDTO> findTherapyByInfo(RecipeTherapyOpQueryDTO recipeTherapyOpQueryDTO) {
         logger.info("TherapyRecipeBusinessService findTherapyByInfo recipeTherapyOpQueryDTO={}", JSONUtils.toString(recipeTherapyOpQueryDTO));
         QueryResult<RecipeTherapyOpBean> recipeTherapyRes = recipeTherapyManager.findTherapyByInfo(recipeTherapyOpQueryDTO);
         QueryResult<RecipeTherapyOpDTO> recipeTherapyReq = new QueryResult<>();
-        if(null != recipeTherapyRes){
+        if (null != recipeTherapyRes) {
             List<RecipeTherapyOpBean> items = recipeTherapyRes.getItems();
             recipeTherapyReq.setTotal(recipeTherapyRes.getTotal());
             if (null != recipeTherapyRes.getProperties()) {

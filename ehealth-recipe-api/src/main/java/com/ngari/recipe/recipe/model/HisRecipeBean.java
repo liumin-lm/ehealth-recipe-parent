@@ -5,6 +5,7 @@ import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -34,6 +35,16 @@ public class HisRecipeBean implements Serializable {
     private Integer copyNum;
     private String recipeMemo;
     private RecipeExtendBean recipeExtend;
+    @ItemProperty(alias = "开方时间")
+    private Date createDate;
+
+    public Date getCreateDate() {
+        return createDate;
+    }
+
+    public void setCreateDate(Date createDate) {
+        this.createDate = createDate;
+    }
 
     public Integer getQueryStatus() {
         return queryStatus;

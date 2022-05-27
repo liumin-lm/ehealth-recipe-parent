@@ -3447,7 +3447,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
      * @param clinicId
      * @return
      */
-    @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId ")
+    @DAOMethod(sql = "from Recipe where bussSource=:bussSource and clinicId=:clinicId  and recipeSourceType != 3 ")
     public abstract List<Recipe> findRecipeByBussSourceAndClinicId(@DAOParam("bussSource") Integer bussSource, @DAOParam("clinicId") Integer clinicId);
 
 
