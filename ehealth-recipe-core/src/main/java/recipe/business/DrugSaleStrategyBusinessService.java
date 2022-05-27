@@ -13,8 +13,10 @@ import recipe.dao.DrugSaleStrategyDAO;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.SaleDrugListDAO;
+import recipe.manager.DrugSaleStrategyManager;
 import recipe.util.ObjectCopyUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /*import recipe.manager.SaleDrugListManager;*/
@@ -32,6 +34,9 @@ public class DrugSaleStrategyBusinessService extends BaseService implements IDru
 
     @Autowired
     private SaleDrugListDAO saleDrugListDAO;
+
+    @Autowired
+    private DrugSaleStrategyManager drugSaleStrategyManager;
 
     @Override
     @LogRecord
@@ -53,5 +58,37 @@ public class DrugSaleStrategyBusinessService extends BaseService implements IDru
                 saleDrugListDAO.save(saleDrugList);
             });
         }
+    }
+
+    @Override
+    @LogRecord
+    public List<DrugSaleStrategyVO> findDrugSaleStrategy(Integer depId, Integer drugId) {
+        List<DrugSaleStrategyVO> drugSaleStrategyVOList = new ArrayList<>();
+        //获取该配送药品选中的销售策略
+        SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, depId);
+        DrugSaleStrategy drugSaleStrategy = null;
+        if (null != saleDrugList.getSaleStrategyId()) {
+            drugSaleStrategy = drugSaleStrategyManager.getDrugSaleStrategyById(saleDrugList.getSaleStrategyId());
+        }
+        //获取药品所有的销售策略
+        List<DrugSaleStrategy> allDrugSaleStrategyList = drugSaleStrategyManager.findDrugSaleStrategy(drugId);
+        //获取该药品默认的销售策略
+        DrugSaleStrategy defaultDrugSaleStrategy = drugSaleStrategyManager.getDefaultDrugSaleStrategy(depId, drugId);
+        if (null != drugSaleStrategy) {
+            DrugSaleStrategyVO drugSaleStrategyVO = ObjectCopyUtils.convert(drugSaleStrategy, DrugSaleStrategyVO.class);
+            drugSaleStrategyVO.setButtonOpenFlag(true);
+            drugSaleStrategyVOList.add(drugSaleStrategyVO);
+        } else {
+            if (null != defaultDrugSaleStrategy) {
+                DrugSaleStrategyVO drugSaleStrategyVO = ObjectCopyUtils.convert(defaultDrugSaleStrategy, DrugSaleStrategyVO.class);
+                drugSaleStrategyVO.setButtonOpenFlag(true);
+                drugSaleStrategyVOList.add(drugSaleStrategyVO);
+            }
+        }
+        allDrugSaleStrategyList.forEach(saleStrategy -> {
+            DrugSaleStrategyVO drugSaleStrategyVO = ObjectCopyUtils.convert(saleStrategy, DrugSaleStrategyVO.class);
+            drugSaleStrategyVOList.add(drugSaleStrategyVO);
+        });
+        return drugSaleStrategyVOList;
     }
 }

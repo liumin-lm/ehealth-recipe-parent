@@ -28,8 +28,8 @@ public abstract class DrugSaleStrategyDAO extends HibernateSupportDelegateDAO<Dr
         return updateNonNullFieldByPrimaryKey(drugSaleStrategy, "id");
     }
 
-    @DAOMethod(sql = "from DrugSaleStrategy where status=1 and drugId in(:drugIds)")
-    public abstract List<DrugSaleStrategy> findByDrugIds(@DAOParam("drugIds") List<Integer> drugIds);
+    @DAOMethod(sql = "from DrugSaleStrategy where status=1 and drugId =:drugId ")
+    public abstract List<DrugSaleStrategy> findByDrugId(@DAOParam("drugI") Integer drugId);
 
     @DAOMethod(sql = "from DrugSaleStrategy where status=1 and id=:id")
     public abstract DrugSaleStrategy getDrugSaleStrategyById(@DAOParam("id") Integer id);
