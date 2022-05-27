@@ -88,10 +88,13 @@ public class DrugSaleStrategyBusinessService extends BaseService implements IDru
                 drugSaleStrategyVOList.add(drugSaleStrategyVO);
             }
         }
-        allDrugSaleStrategyList.forEach(saleStrategy -> {
-            DrugSaleStrategyVO drugSaleStrategyVO = ObjectCopyUtils.convert(saleStrategy, DrugSaleStrategyVO.class);
+        for (DrugSaleStrategy drugStrategy : allDrugSaleStrategyList) {
+            if (null != drugSaleStrategy && drugStrategy.getId() == drugSaleStrategy.getId()) {
+                continue;
+            }
+            DrugSaleStrategyVO drugSaleStrategyVO = ObjectCopyUtils.convert(drugStrategy, DrugSaleStrategyVO.class);
             drugSaleStrategyVOList.add(drugSaleStrategyVO);
-        });
+        }
         return drugSaleStrategyVOList;
     }
 }
