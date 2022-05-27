@@ -3,23 +3,17 @@ package recipe.business;
 import com.ngari.recipe.entity.DrugSaleStrategy;
 import com.ngari.recipe.entity.SaleDrugList;
 import com.ngari.recipe.vo.DrugSaleStrategyVO;
-import ctd.util.JSONUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
 import recipe.core.api.IDrugSaleStrategyBusinessService;
-import recipe.core.api.ISaleDrugBusinessService;
 import recipe.dao.DrugSaleStrategyDAO;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.OrganDrugListDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.manager.DrugSaleStrategyManager;
 import recipe.util.ObjectCopyUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-
-/*import recipe.manager.SaleDrugListManager;*/
 
 /**
  * @description： 药企药品
@@ -89,7 +83,7 @@ public class DrugSaleStrategyBusinessService extends BaseService implements IDru
             }
         }
         for (DrugSaleStrategy drugStrategy : allDrugSaleStrategyList) {
-            if (null != drugSaleStrategy && drugStrategy.getId() == drugSaleStrategy.getId()) {
+            if (null != drugSaleStrategy && drugStrategy.getId().equals(drugSaleStrategy.getId())) {
                 continue;
             }
             DrugSaleStrategyVO drugSaleStrategyVO = ObjectCopyUtils.convert(drugStrategy, DrugSaleStrategyVO.class);
