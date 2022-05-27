@@ -8,7 +8,7 @@ import recipe.core.api.ISaleDrugBusinessService;
 import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganDrugListDAO;
 import recipe.dao.SaleDrugListDAO;
-import recipe.manager.SaleDrugListManager;
+/*import recipe.manager.SaleDrugListManager;*/
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.second.OrganVO;
 
@@ -29,8 +29,8 @@ public class SaleDrugBusinessService extends BaseService implements ISaleDrugBus
     @Autowired
     private OrganDrugListDAO organDrugListDAO;
 
-    @Autowired
-    private SaleDrugListManager saleDrugListManager;
+    /*@Autowired
+    private SaleDrugListManager saleDrugListManager;*/
 
     @Override
     public SaleDrugList findSaleDrugListByDrugIdAndOrganId(SaleDrugList saleDrugList) {
@@ -39,7 +39,9 @@ public class SaleDrugBusinessService extends BaseService implements ISaleDrugBus
         if (null == saleDrugListDb) {
             saleDrugListDb=ObjectCopyUtils.convert(saleDrugList, SaleDrugList.class);
         }
+/*
         saleDrugListDb.setEnterpriseSalesStrategy(saleDrugListManager.getNeedShowEnterpriseSalesStrategy(saleDrugListDb));
+*/
         return saleDrugListDb;
     }
 
@@ -51,7 +53,7 @@ public class SaleDrugBusinessService extends BaseService implements ISaleDrugBus
         if (saleDrugList1 == null) {
             return;
         }
-        saleDrugList1.setEnterpriseSalesStrategy(saleDrugListManager.getNeedSaveEnterpriseSalesStrategy(saleDrugList));
+        //saleDrugList1.setEnterpriseSalesStrategy(saleDrugListManager.getNeedSaveEnterpriseSalesStrategy(saleDrugList));
         logger.info("saveSaleDrugSalesStrategy saleDrugList1={}", JSONUtils.toString(saleDrugList1));
         //最后进行更新
         saleDrugListDAO.updateNonNullFieldByPrimaryKey(saleDrugList1);

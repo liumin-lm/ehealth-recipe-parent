@@ -34,7 +34,7 @@ import recipe.dao.DrugsEnterpriseDAO;
 import recipe.dao.OrganAndDrugsepRelationDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.dao.bean.DrugListAndSaleDrugList;
-import recipe.manager.SaleDrugListManager;
+//import recipe.manager.SaleDrugListManager;
 import recipe.serviceprovider.drug.service.RemoteDrugService;
 
 import java.util.Date;
@@ -50,8 +50,8 @@ public class SaleDrugListService implements ISaleDrugListService {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    @Autowired
-    private SaleDrugListManager saleDrugListManager;
+//    @Autowired
+//    private SaleDrugListManager saleDrugListManager;
 
 
     private void validateSaleDrugList(SaleDrugList saleDrugList) {
@@ -122,8 +122,8 @@ public class SaleDrugListService implements ISaleDrugListService {
         saleDrugList.setLastModify(new Date());
         saleDrugList.setStatus(1);
         //销售策略
-        saleDrugList.setEnterpriseSalesStrategy(saleDrugListManager.getNeedShowEnterpriseSalesStrategy(saleDrugList));
-        saleDrugList.setEnterpriseSalesStrategy(saleDrugListManager.getNeedSaveEnterpriseSalesStrategy(saleDrugList));
+//        saleDrugList.setEnterpriseSalesStrategy(saleDrugListManager.getNeedShowEnterpriseSalesStrategy(saleDrugList));
+//        saleDrugList.setEnterpriseSalesStrategy(saleDrugListManager.getNeedSaveEnterpriseSalesStrategy(saleDrugList));
         dao.save(saleDrugList);
 
         busActionLogService.recordBusinessLogRpcNew("药企药品管理", "", "SaleDrugList", "【" + drugsEnterprise.getName() + "】新增药品【" + saleDrugList.getOrganDrugId() + "-" + drugList.getDrugName() + "】", drugsEnterprise.getName());
@@ -158,7 +158,7 @@ public class SaleDrugListService implements ISaleDrugListService {
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
         DrugsEnterpriseDAO drugsEnterpriseDAO = DAOFactory.getDAO(DrugsEnterpriseDAO.class);
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(saleDrugList.getOrganId());
-        String enterpriseSalesStrategy=saleDrugList.getEnterpriseSalesStrategy();
+//        String enterpriseSalesStrategy=saleDrugList.getEnterpriseSalesStrategy();
         if (null == target) {
             throw new DAOException(ErrorCode.SERVICE_ERROR, "此药在该医院药品列表中不存在");
         } else {
@@ -169,7 +169,7 @@ public class SaleDrugListService implements ISaleDrugListService {
             target.setSaleDrugCode(saleDrugList.getOrganDrugCode());
             target.setLastModify(new Date());
             //销售策略
-            target.setEnterpriseSalesStrategy(saleDrugListManager.getNeedSaveEnterpriseSalesStrategy(target));
+//            target.setEnterpriseSalesStrategy(saleDrugListManager.getNeedSaveEnterpriseSalesStrategy(target));
             target = saleDrugListDAO.update(target);
             DrugList drugList = drugListDAO.get(saleDrugList.getDrugId());
             if (drugList == null) {
@@ -185,7 +185,7 @@ public class SaleDrugListService implements ISaleDrugListService {
                         + "-" + drugList.getDrugName() + "】", drugsEnterprise.getName());
             }
         }
-        target.setEnterpriseSalesStrategy(enterpriseSalesStrategy);
+//        target.setEnterpriseSalesStrategy(enterpriseSalesStrategy);
         return ObjectCopyUtils.convert(target, SaleDrugListDTO.class);
     }
 
@@ -320,7 +320,7 @@ public class SaleDrugListService implements ISaleDrugListService {
     public SaleDrugListDTO getByDrugId(Integer drugId) {
         SaleDrugListDAO saleDrugListDAO = DAOFactory.getDAO(SaleDrugListDAO.class);
         SaleDrugList saleDrugList = saleDrugListDAO.get(drugId);
-        saleDrugList.setEnterpriseSalesStrategy(saleDrugListManager.getNeedShowEnterpriseSalesStrategy(saleDrugList));
+//        saleDrugList.setEnterpriseSalesStrategy(saleDrugListManager.getNeedShowEnterpriseSalesStrategy(saleDrugList));
         //logger.info("getByOrganIdAndDrugId1111:" + saleDrugList);
         return ObjectCopyUtils.convert(saleDrugList, SaleDrugListDTO.class);
     }

@@ -1203,7 +1203,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
     public abstract List<OrganDrugList> findOrganDrugByOrganIdAndDrugsEnterpriseId(@DAOParam("organId") int organId, @DAOParam("drugsEnterpriseIds") String drugsEnterpriseIds);
 
     public boolean updateData(final OrganDrugList drug) {
-        drug.setType(null);
+        //drug.setType(null);
         final HashMap<String, Object> map = BeanUtils.map(drug, HashMap.class);
         HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
             @Override

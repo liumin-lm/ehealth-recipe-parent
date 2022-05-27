@@ -156,6 +156,11 @@ public enum RecipeMsgEnum {
     RECIPE_PAY_CALL_SUCCESS(140, "RecipePayCallSuccess"),
 
     /**
+     * 医生同意退费
+     */
+    RECIPE_REFUND_AGREE(141, "RecipeDoctorRefundAgree"),
+
+    /**
      * 默认消息
      */
     DEFAULT(999, "");

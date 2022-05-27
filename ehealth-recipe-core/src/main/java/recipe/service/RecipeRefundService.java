@@ -17,6 +17,7 @@ import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.*;
 import com.ngari.patient.utils.ObjectCopyUtils;
+import com.ngari.platform.recipe.mode.DrugsEnterpriseBean;
 import com.ngari.recipe.common.RecipePatientRefundVO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -83,6 +84,8 @@ public class RecipeRefundService extends RecipeBaseService {
     private IConfigurationClient configurationClient;
     @Autowired
     private RecipeManager recipeManager;
+    @Autowired
+    private DrugsEnterpriseDAO drugsEnterpriseDAO;
 
     /*
      * @description 向his申请处方退费接口
@@ -112,7 +115,10 @@ public class RecipeRefundService extends RecipeBaseService {
         request.setPatientId(recipe.getPatientID());
         request.setPatientName(recipe.getPatientName());
         request.setApplyReason(applyReason);
-
+        if (null != recipeOrder.getEnterpriseId()) {
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
+            request.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
+        }
         IVisitService service = AppContextHolder.getBean("his.visitService", IVisitService.class);
 
         IConfigurationCenterUtilsService configurationService = ApplicationUtils.getBaseService(IConfigurationCenterUtilsService.class);
@@ -170,9 +176,10 @@ public class RecipeRefundService extends RecipeBaseService {
             visitRequest.setRecipeCode(recipe.getRecipeCode());
             visitRequest.setRefundType(getRefundType(recipeOrder));
             if (null != recipeOrder.getEnterpriseId()) {
+                DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
+                visitRequest.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
                 visitRequest.setEnterpriseCode(recipeOrder.getEnterpriseId().toString());
             }
-
             // 交易流水号
             visitRequest.setTradeNo(recipeOrder.getTradeNo());
             LOGGER.info("applyForRecipeRefund-checkForRefundVisit req visitRequest={}", JSONUtils.toString(visitRequest));
@@ -392,6 +399,8 @@ public class RecipeRefundService extends RecipeBaseService {
         request.setRefundType(getRefundType(recipeOrder));
         request.setRecipeCode(recipe.getRecipeCode());
         if (null != recipeOrder.getEnterpriseId()) {
+            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
+            request.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
             request.setEnterpriseCode(recipeOrder.getEnterpriseId().toString());
         }
         // 交易流水号
@@ -426,6 +435,7 @@ public class RecipeRefundService extends RecipeBaseService {
             LOGGER.error("checkForRecipeRefund-处方退费审核失败-his. param={},result={}", JSONUtils.toString(request), JSONUtils.toString(hisResult));
             throw new DAOException("处方退费审核失败！" + hisResult.getMsg());
         }
+        RecipeMsgService.batchSendMsg(recipeId, RecipeStatusConstant.RECIPE_REFUND_AGREE);
         //增加医生首页待处理任务---完成任务
         ApplicationUtils.getBaseService(IAsynDoBussService.class).fireEvent(new BussFinishEvent(recipeId, BussTypeConstant.RECIPE));
     }
