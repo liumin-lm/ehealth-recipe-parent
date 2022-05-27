@@ -349,15 +349,6 @@ public class PayModeToHos implements IPurchaseService {
             depDetailBeans = setEnterpriseToStore(dbRecipe, noShowStoreEnterprises, saleMap, extInfo);
         }
         LOG.info("newModeFindSupportDepList depDetailBeans:{}", JSONUtils.toString(depDetailBeans));
-        if (CollectionUtils.isNotEmpty(depDetailBeans) && depDetailBeans.size() == drugsEnterprises.size()) {
-            if (depDetailBeans.size() == 1) {
-                depListBean.setSigle(true);
-            }
-            //说明不展示药店的开关全部打开
-            depListBean.setList(depDetailBeans);
-            resultBean.setObject(depListBean);
-            return resultBean;
-        }
         // 调his获取取药点
         List<TakeMedicineByToHos> takeMedicineByToHosList = enterpriseManager.getTakeMedicineByToHosList(dbRecipe.getClinicOrgan(), dbRecipe);
 

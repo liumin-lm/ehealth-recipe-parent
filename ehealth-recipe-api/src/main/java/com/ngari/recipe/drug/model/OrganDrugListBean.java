@@ -171,6 +171,9 @@ public class OrganDrugListBean implements java.io.Serializable {
     @ItemProperty(alias = "最小销售倍数")
     private Integer smallestSaleMultiple;
 
+    @ItemProperty(alias = "销售策略")
+    private String salesStrategy;
+
     public Integer getSmallestSaleMultiple() {
         return smallestSaleMultiple;
     }
@@ -193,6 +196,14 @@ public class OrganDrugListBean implements java.io.Serializable {
         this.drugId = drugId;
         this.organDrugCode = organDrugCode;
         this.status = status;
+    }
+
+    public String getSalesStrategy() {
+        return salesStrategy;
+    }
+
+    public void setSalesStrategy(String salesStrategy) {
+        this.salesStrategy = salesStrategy;
     }
 
     public Integer getOrganDrugId() {

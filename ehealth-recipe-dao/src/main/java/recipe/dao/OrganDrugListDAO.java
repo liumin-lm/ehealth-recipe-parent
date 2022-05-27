@@ -29,6 +29,7 @@ import org.joda.time.DateTime;
 import org.springframework.util.ObjectUtils;
 import recipe.dao.bean.DrugInfoHisBean;
 import recipe.dao.bean.DrugListAndOrganDrugList;
+import recipe.dao.comment.ExtendDao;
 
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -40,7 +41,7 @@ import java.util.*;
  * @author yuyun
  */
 @RpcSupportDAO
-public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<OrganDrugList> implements DBDictionaryItemLoader<OrganDrugList> {
+public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<OrganDrugList> implements DBDictionaryItemLoader<OrganDrugList> , ExtendDao<OrganDrugList> {
 
     private static final Integer ALL_DRUG_FLAG = 9;
     private static Logger logger = Logger.getLogger(OrganDrugListDAO.class);
@@ -49,6 +50,11 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
         super();
         setEntityName(OrganDrugList.class.getName());
         setKeyField("organDrugId");
+    }
+
+    @Override
+    public boolean updateNonNullFieldByPrimaryKey(OrganDrugList organDrugList) {
+        return updateNonNullFieldByPrimaryKey(organDrugList, "organDrugId");
     }
 
     /**
@@ -1197,6 +1203,7 @@ public abstract class OrganDrugListDAO extends HibernateSupportDelegateDAO<Organ
     public abstract List<OrganDrugList> findOrganDrugByOrganIdAndDrugsEnterpriseId(@DAOParam("organId") int organId, @DAOParam("drugsEnterpriseIds") String drugsEnterpriseIds);
 
     public boolean updateData(final OrganDrugList drug) {
+        //drug.setType(null);
         final HashMap<String, Object> map = BeanUtils.map(drug, HashMap.class);
         HibernateStatelessResultAction<Boolean> action = new AbstractHibernateStatelessResultAction<Boolean>() {
             @Override

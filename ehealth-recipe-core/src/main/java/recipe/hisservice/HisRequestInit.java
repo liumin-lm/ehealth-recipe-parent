@@ -661,6 +661,16 @@ public class HisRequestInit {
 
                     requestTO.setTradeNo(order.getTradeNo());
                     requestTO.setOutTradeNo(order.getOutTradeNo());
+                    try {
+                        if (Objects.nonNull(order)) {
+                            requestTO.setRegisterFee(order.getRegisterFee());
+                            requestTO.setRegisterFeeNo(order.getRegisterFeeNo());
+                            requestTO.setTcmFee(order.getTcmFee());
+                            requestTO.setTcmFeeNo(order.getTcmFeeNo());
+                        }
+                    }catch (Exception e){
+                        LOGGER.error("MedicalPreSettleService 代缴费用有误");
+                    }
 
                 }
                 //合并支付的处方需要将所有his处方编码传过去
@@ -796,6 +806,25 @@ public class HisRequestInit {
                     && (RecipeStatusEnum.RECIPE_STATUS_CHECK_PASS.getType().equals(nowRecipe.getStatus()) ||
                     RecipeStatusEnum.RECIPE_STATUS_WAIT_SEND.getType().equals(nowRecipe.getStatus()))) {
                 requestTO.setRecipeStatus(0);
+            }
+            //设置药房信息
+            requestTO.setPharmacyCode("");
+            requestTO.setPharmacyName("");
+            if (CollectionUtils.isNotEmpty(list)) {
+                Recipedetail recipeDetail = list.get(0);
+                if (null != recipeDetail && null != recipeDetail.getPharmacyId()) {
+                    PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
+                    PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(recipeDetail.getPharmacyId());
+                    if (null != pharmacyTcm) {
+                        requestTO.setPharmacyCode(pharmacyTcm.getPharmacyCode());
+                        requestTO.setPharmacyName(pharmacyTcm.getPharmacyName());
+                    }
+                }
+            }
+            if (null != recipe.getFastRecipeFlag()) {
+                requestTO.setFastRecipeFlag(recipe.getFastRecipeFlag());
+            } else {
+                requestTO.setFastRecipeFlag(0);
             }
             // 医院系统医嘱号（一张处方多条记录用|分隔）
             StringBuilder str = new StringBuilder("");

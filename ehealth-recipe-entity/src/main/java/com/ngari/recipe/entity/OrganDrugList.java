@@ -176,17 +176,20 @@ public class OrganDrugList implements java.io.Serializable {
     @ItemProperty(alias = "最小销售倍数")
     private Integer smallestSaleMultiple;
 
-    @ItemProperty(alias = "销售策略")
-    private String salesStrategy;
+//    @ItemProperty(alias = "销售策略")
+//    private String salesStrategy;
+//
+//    @ItemProperty(alias = "类型")
+//    private String type;
 
-    @Column(name = "sales_strategy")
-    public String getSalesStrategy() {
-        return salesStrategy;
-    }
-
-    public void setSalesStrategy(String salesStrategy) {
-        this.salesStrategy = salesStrategy;
-    }
+//    @Column(name = "sales_strategy")
+//    public String getSalesStrategy() {
+//        return salesStrategy;
+//    }
+//
+//    public void setSalesStrategy(String salesStrategy) {
+//        this.salesStrategy = salesStrategy;
+//    }
 
     @Column(name = "smallest_sale_multiple")
     public Integer getSmallestSaleMultiple() {
@@ -651,6 +654,15 @@ public class OrganDrugList implements java.io.Serializable {
     public String getDrugItemCode() {
         return drugItemCode;
     }
+
+//    @Transient
+//    public String getType() {
+//        return type;
+//    }
+//
+//    public void setType(String type) {
+//        this.type = type;
+//    }
 
     public void setDrugItemCode(String drugItemCode) {
         this.drugItemCode = drugItemCode;

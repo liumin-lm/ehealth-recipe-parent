@@ -1,12 +1,15 @@
 package recipe.business;
 
+import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.commonrecipe.model.CommonDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeDrugDTO;
 import com.ngari.recipe.commonrecipe.model.CommonRecipeExtDTO;
+import com.ngari.recipe.dto.HisRecipeDTO;
 import com.ngari.recipe.dto.ValidateOrganDrugDTO;
 import com.ngari.recipe.entity.*;
+import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.persistence.exception.DAOException;
 import ctd.util.JSONUtils;
 import eh.entity.base.UsePathways;
@@ -23,10 +26,7 @@ import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.DrugClient;
 import recipe.constant.ErrorCode;
 import recipe.core.api.doctor.ICommonRecipeBusinessService;
-import recipe.manager.CommonRecipeManager;
-import recipe.manager.DrugManager;
-import recipe.manager.OrganDrugListManager;
-import recipe.manager.PharmacyManager;
+import recipe.manager.*;
 import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
 
@@ -54,6 +54,8 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
     private PharmacyManager pharmacyManager;
     @Autowired
     private DrugManager drugManager;
+    @Autowired
+    private DepartManager departManager;
 
 
     @Override
@@ -236,6 +238,19 @@ public class CommonRecipeBusinessService extends BaseService implements ICommonR
             commonRecipeManager.saveCommonRecipe(commonRecipe, commonRecipeExt, drugList);
         });
         return failNameList;
+    }
+
+    @Override
+    public List<CommonRecipeDTO> offlineCommonList(RecipeBean recipeBean) {
+        AppointDepartDTO appointDepartDTO = departManager.getAppointDepartDTO(recipeBean.getClinicId(), recipeBean.getClinicOrgan(), recipeBean.getDepart());
+        String jobNumber = departManager.jobNumber(recipeBean.getClinicOrgan(), recipeBean.getDoctor(), recipeBean.getDepart());
+        List<com.ngari.his.recipe.mode.CommonRecipeDTO> list = commonRecipeManager.offlineCommonList(recipeBean.getClinicOrgan(), recipeBean.getDoctor(), appointDepartDTO.getAppointDepartCode(), jobNumber);
+        return ObjectCopyUtils.convert(list, CommonRecipeDTO.class);
+    }
+
+    @Override
+    public HisRecipeDTO offlineCommonV1(Integer organId, String commonRecipeCode) {
+        return commonRecipeManager.offlineCommonV1(organId, commonRecipeCode);
     }
 
     /**

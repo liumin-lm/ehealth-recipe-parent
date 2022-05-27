@@ -18,16 +18,14 @@ import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
-import com.ngari.recipe.entity.DecoctionWay;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.*;
 import com.ngari.recipe.recipeorder.model.OrderCreateResult;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import eh.base.constant.ErrorCode;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,10 +33,7 @@ import recipe.ApplicationUtils;
 import recipe.bean.RecipePayModeSupportBean;
 import recipe.bussutil.CreateRecipePdfUtil;
 import recipe.constant.UpdateSendMsgStatusEnum;
-import recipe.dao.DrugDecoctionWayDao;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeExtendDAO;
-import recipe.dao.RecipeOrderDAO;
+import recipe.dao.*;
 import recipe.drugsenterprise.CommonRemoteService;
 import recipe.hisservice.RecipeToHisService;
 import recipe.manager.ButtonManager;
@@ -274,7 +269,27 @@ public class CommonOrder {
             //设置当前更新
             updateTakeDrugWayReqTO.setGiveMode(
                     UpdateSendMsgStatusEnum.fromGiveType(null == extInfo.get("payMode") ? null : Integer.parseInt(extInfo.get("payMode").toString())).getSendType());
-
+            //设置药房信息
+            updateTakeDrugWayReqTO.setPharmacyCode("");
+            updateTakeDrugWayReqTO.setPharmacyName("");
+            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
+            if (CollectionUtils.isNotEmpty(recipeDetailList)) {
+                Recipedetail recipeDetail = recipeDetailList.get(0);
+                if (null != recipeDetail && null != recipeDetail.getPharmacyId()) {
+                    PharmacyTcmDAO pharmacyTcmDAO = DAOFactory.getDAO(PharmacyTcmDAO.class);
+                    PharmacyTcm pharmacyTcm = pharmacyTcmDAO.get(recipeDetail.getPharmacyId());
+                    if (null != pharmacyTcm) {
+                        updateTakeDrugWayReqTO.setPharmacyCode(pharmacyTcm.getPharmacyCode());
+                        updateTakeDrugWayReqTO.setPharmacyName(pharmacyTcm.getPharmacyName());
+                    }
+                }
+            }
+            if (null != recipe.getFastRecipeFlag()) {
+                updateTakeDrugWayReqTO.setFastRecipeFlag(recipe.getFastRecipeFlag());
+            } else {
+                updateTakeDrugWayReqTO.setFastRecipeFlag(0);
+            }
             LOG.info("收货信息更新通知his. req={}", JSONUtils.toString(updateTakeDrugWayReqTO));
             HisResponseTO hisResult = service.updateTakeDrugWay(updateTakeDrugWayReqTO);
             LOG.info("收货信息更新通知his. res={}", JSONUtils.toString(hisResult));

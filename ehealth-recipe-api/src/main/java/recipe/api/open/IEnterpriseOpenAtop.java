@@ -2,6 +2,8 @@ package recipe.api.open;
 
 import ctd.util.annotation.RpcService;
 import recipe.vo.second.CheckAddressVo;
+import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
+import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
 
 /**
  * @description： 药企open atop
@@ -12,4 +14,7 @@ public interface IEnterpriseOpenAtop {
 
     @RpcService
     Boolean checkSendAddress(CheckAddressVo checkAddressVo);
+
+    @RpcService
+    EnterpriseResultBean confirmOrder (EnterpriseConfirmOrderVO enterpriseConfirmOrderVO);
 }
