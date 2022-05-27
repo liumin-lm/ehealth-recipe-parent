@@ -581,7 +581,9 @@ public class PurchaseService {
             } else {
                 recipeDetails.forEach(recipeDetail -> {
                     try {
-                        recipeDetail.setActualSalePrice(organDrugListMap.get(recipeDetail.getDrugId()).getSalePrice());
+                        OrganDrugList organDrugList = organDrugListMap.get(recipeDetail.getDrugId());
+                        recipeDetail.setActualSalePrice(organDrugList.getSalePrice());
+
                         recipeDetailDAO.updateNonNullFieldByPrimaryKey(recipeDetail);
                     } catch (Exception e) {
                         LOG.error("PayModeOnline updateRecipeDetail error", e);

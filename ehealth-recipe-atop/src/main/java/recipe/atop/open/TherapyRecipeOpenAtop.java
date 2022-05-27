@@ -109,9 +109,11 @@ public class TherapyRecipeOpenAtop extends BaseAtop implements ITherapyRecipeOpe
         recipeInfoList.forEach(a -> {
             RecipeInfoVO recipeInfoVO = new RecipeInfoVO();
             recipeInfoVO.setRecipeBean(ObjectCopyUtils.convert(a.getRecipe(), RecipeBean.class));
+            recipeInfoVO.getRecipeBean().setRecipeType(null);
             recipeInfoVO.setRecipeTherapyVO(ObjectCopyUtils.convert(a.getRecipeTherapy(), RecipeTherapyVO.class));
             recipeInfoVO.setRecipeDetails(ObjectCopyUtils.convert(a.getRecipeDetails(), RecipeDetailBean.class));
             recipeInfoVO.setRecipeExtendBean(new RecipeExtendBean());
+            list.add(recipeInfoVO);
         });
         return list;
     }
