@@ -529,7 +529,7 @@ public class QueryRecipeService implements IQueryRecipeService {
                         orderItem.setPharmacy(pharmacyTcm.getPharmacyName());
                     }
                 }
-                if(detail.getDrugMedicalFlag() >= 0){
+                if(detail.getDrugMedicalFlag() != null && detail.getDrugMedicalFlag() >= 0  ){
                     //医保限定药标识 0 否  1 是
                     orderItem.setMedicalInsuranceDrugFlag(1);
                     //自费标识 0 否  1 是
@@ -538,9 +538,9 @@ public class QueryRecipeService implements IQueryRecipeService {
                     orderItem.setMedicalInsuranceDrugFlag(0);
                     orderItem.setSelfPayFlag(0);
                 }
-                LOGGER.info("处方明细数据：JSONUtils.toString(orderList)={}", JSONUtils.toString(orderList));
                 orderList.add(orderItem);
             }
+            LOGGER.info("处方明细数据：orderList={}", JSONUtils.toString(orderList));
             recipeDTO.setOrderList(orderList);
         } else {
             recipeDTO.setOrderList(null);
