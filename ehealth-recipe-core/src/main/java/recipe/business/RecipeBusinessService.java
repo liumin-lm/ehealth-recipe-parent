@@ -548,19 +548,21 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         }
         List<Recipedetail> finalByRecipeIdList = byRecipeIdList;
         totalHisRecipe.forEach(queryHisRecipResTO -> {
-            List<RecipeDetailTO> drugList = queryHisRecipResTO.getDrugList();
-            drugList.forEach(recipeDetailTO -> {
-                List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(queryHisRecipResTO.getClinicOrgan(), Arrays.asList(recipeDetailTO.getDrugCode()));
-                Recipedetail recipedetail = new Recipedetail();
-                if (CollectionUtils.isNotEmpty(organDrugLists)) {
-                    recipedetail.setDrugId(organDrugLists.get(0).getDrugId());
-                    recipedetail.setOrganDrugCode(recipeDetailTO.getDrugCode());
-                }
-                if (recipeDetailTO.getUseTotalDose() != null) {
-                    recipedetail.setUseTotalDose(recipeDetailTO.getUseTotalDose().doubleValue());
-                }
-                finalByRecipeIdList.add(recipedetail);
-            });
+            if (revisitExDTO.getRegisterNo().equals(queryHisRecipResTO.getRegisteredId())) {
+                List<RecipeDetailTO> drugList = queryHisRecipResTO.getDrugList();
+                drugList.forEach(recipeDetailTO -> {
+                    List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(queryHisRecipResTO.getClinicOrgan(), Arrays.asList(recipeDetailTO.getDrugCode()));
+                    Recipedetail recipedetail = new Recipedetail();
+                    if (CollectionUtils.isNotEmpty(organDrugLists)) {
+                        recipedetail.setDrugId(organDrugLists.get(0).getDrugId());
+                        recipedetail.setOrganDrugCode(recipeDetailTO.getDrugCode());
+                    }
+                    if (recipeDetailTO.getUseTotalDose() != null) {
+                        recipedetail.setUseTotalDose(recipeDetailTO.getUseTotalDose().doubleValue());
+                    }
+                    finalByRecipeIdList.add(recipedetail);
+                });
+            }
         });
 
         return finalByRecipeIdList;
