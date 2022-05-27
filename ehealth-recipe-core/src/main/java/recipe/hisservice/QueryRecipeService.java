@@ -538,9 +538,9 @@ public class QueryRecipeService implements IQueryRecipeService {
                     orderItem.setMedicalInsuranceDrugFlag(0);
                     orderItem.setSelfPayFlag(0);
                 }
-                LOGGER.info("处方明细数据：JSONUtils.toString(orderList)={}", JSONUtils.toString(orderList));
                 orderList.add(orderItem);
             }
+            LOGGER.info("处方明细数据：orderList={}", JSONUtils.toString(orderList));
             recipeDTO.setOrderList(orderList);
         } else {
             recipeDTO.setOrderList(null);
