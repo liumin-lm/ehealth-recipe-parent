@@ -3,6 +3,7 @@ package recipe.api.open;
 import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
 import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.platform.recipe.mode.RecipeBean;
+import com.ngari.platform.recipe.mode.RecipeOrderBean;
 import com.ngari.recipe.common.RecipeResultBean;
 import ctd.util.annotation.RpcService;
 import recipe.vo.second.RecipeOrderVO;
@@ -66,5 +67,5 @@ public interface IRecipeOrderAtopService {
      * @return
      */
     @RpcService(mvcDisabled = true)
-    String getTrackingNumber(RecipeBean recipeBean);
+    RecipeOrderBean getTrackingNumber(RecipeBean recipeBean);
 }
