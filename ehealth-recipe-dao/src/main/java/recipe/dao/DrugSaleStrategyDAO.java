@@ -29,7 +29,7 @@ public abstract class DrugSaleStrategyDAO extends HibernateSupportDelegateDAO<Dr
     }
 
     @DAOMethod(sql = "from DrugSaleStrategy where status=1 and drugId =:drugId ")
-    public abstract List<DrugSaleStrategy> findByDrugId(@DAOParam("drugI") Integer drugId);
+    public abstract List<DrugSaleStrategy> findByDrugId(@DAOParam("drugId") Integer drugId);
 
     @DAOMethod(sql = "from DrugSaleStrategy where status=1 and id=:id")
     public abstract DrugSaleStrategy getDrugSaleStrategyById(@DAOParam("id") Integer id);

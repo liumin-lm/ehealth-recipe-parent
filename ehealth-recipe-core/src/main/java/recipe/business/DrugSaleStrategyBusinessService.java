@@ -94,4 +94,9 @@ public class DrugSaleStrategyBusinessService extends BaseService implements IDru
         });
         return drugSaleStrategyVOList;
     }
+
+    @Override
+    public List<DrugSaleStrategy> findDrugSaleStrategy(DrugSaleStrategyVO drugSaleStrategy) {
+        return drugSaleStrategyDAO.findByDrugId(drugSaleStrategy.getDrugId());
+    }
 }
