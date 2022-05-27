@@ -81,6 +81,12 @@ public class OrderItemDTO implements Serializable {
     @ItemProperty(alias="药品序号")
     private Integer drugId;
 
+    @ItemProperty(alias = "医保限定药标识 0 否 1 是")
+    private Integer medicalInsuranceDrugFlag;
+
+    @ItemProperty(alias = "自费标识 0 否 1 是")
+    private Integer selfPayFlag;
+
     public Integer getDrugId() {
         return drugId;
     }
@@ -313,5 +319,23 @@ public class OrderItemDTO implements Serializable {
 
     public void setPharmacy(String pharmacy) {
         this.pharmacy = pharmacy;
+    }
+
+
+
+    public Integer getMedicalInsuranceDrugFlag() {
+        return medicalInsuranceDrugFlag;
+    }
+
+    public void setMedicalInsuranceDrugFlag(Integer medicalInsuranceDrugFlag) {
+        this.medicalInsuranceDrugFlag = medicalInsuranceDrugFlag;
+    }
+
+    public Integer getSelfPayFlag() {
+        return selfPayFlag;
+    }
+
+    public void setSelfPayFlag(Integer selfPayFlag) {
+        this.selfPayFlag = selfPayFlag;
     }
 }
