@@ -12,6 +12,6 @@ public interface IOrganDrugBusinessService {
      * 添加机构药品列表销售策略
      * @param salesStrategy 销售策略
      */
-    void addOrganDrugSalesStrategy(OrganDrugList organDrugList);
+//    void addOrganDrugSalesStrategy(OrganDrugList organDrugList);
 
 }
