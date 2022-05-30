@@ -39,6 +39,10 @@ public class EnterpriseResultBean implements Serializable {
         return new EnterpriseResultBean(FAIL, msg);
     }
 
+    public static EnterpriseResultBean getSuccess(String msg) {
+        return new EnterpriseResultBean(SUCCESS, msg);
+    }
+
     public Integer getCode() {
         return code;
     }
