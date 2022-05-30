@@ -218,6 +218,9 @@ public class CommonRecipeDoctorAtop extends BaseAtop {
             if (StringUtils.isNotEmpty(commonRecipe.getPharmacyCode()) && StringUtils.isEmpty(a.getPharmacyCode())) {
                 detailBean.setPharmacyCode(commonRecipe.getPharmacyCode());
             }
+            if (StringUtils.isNotEmpty(commonRecipe.getOrganUsePathways()) && StringUtils.isEmpty(a.getUsePathwaysCode())) {
+                a.setUsePathwaysCode(commonRecipe.getOrganUsePathways());
+            }
             detailBean.setUsingRate(a.getUsingRateCode());
             detailBean.setUsePathways(a.getUsePathwaysCode());
             hisRecipeDetailBeans.add(detailBean);
