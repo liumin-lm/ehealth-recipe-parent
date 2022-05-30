@@ -142,6 +142,10 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
 
         ThirdResultBean backMsg = ThirdResultBean.getFail();
         Recipe recipe = getRecipe(paramMap);
+        if (null == recipe) {
+            backMsg.setMsg("入参错误");
+            return backMsg;
+        }
         int code;
         if (recipe.getReviewType() == ReviewTypeConstant.Postposition_Check) {
             //为审方后置
