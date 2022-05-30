@@ -64,7 +64,7 @@ public class DrugSaleStrategyBusinessService extends BaseService implements IDru
         //获取该配送药品选中的销售策略
         SaleDrugList saleDrugList = saleDrugListDAO.getByDrugIdAndOrganId(drugId, depId);
         DrugSaleStrategy drugSaleStrategy = null;
-        if (null != saleDrugList.getSaleStrategyId()) {
+        if (null != saleDrugList && null != saleDrugList.getSaleStrategyId()) {
             drugSaleStrategy = drugSaleStrategyManager.getDrugSaleStrategyById(saleDrugList.getSaleStrategyId());
         }
         //获取药品所有的销售策略
