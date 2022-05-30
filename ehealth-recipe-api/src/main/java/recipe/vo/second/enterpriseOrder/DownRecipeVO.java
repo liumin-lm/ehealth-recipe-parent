@@ -41,19 +41,20 @@ public class DownRecipeVO extends BaseRecipeVO implements Serializable {
     @ItemProperty(alias = "主索引（患者编号）")
     private String mpiid;
 
-    /**
-     * 出生日期
-     */
+    @ItemProperty(alias = "处方签名图片")
+    private String signImg;
+
+    @ItemProperty(alias = "出生日期")
     @Temporal(TemporalType.DATE)
     private Date birthday;
 
-    /**
-     * 病人性别
-     */
+    @ItemProperty(alias = "病人性别")
     //后续病人性别如果要对外不使用这个字段
     private String sexCode;
+
     //后续病人性别如果要对外使用这个字段
     private String gender;
+
     private String sexName;
 
     @Temporal(TemporalType.DATE)
