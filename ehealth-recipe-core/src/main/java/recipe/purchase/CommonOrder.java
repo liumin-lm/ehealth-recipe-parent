@@ -134,7 +134,6 @@ public class CommonOrder {
             invoiceRecordDto.setBusinessId(orderId.toString());
             invoiceRecordDto.setPrice(new BigDecimal(recipeOrder.getActualPrice()));
             invoiceRecordDto.setReceiverName(recipeOrder.getReceiver());
-            invoiceRecordDto.setReceiverPhone(recipeOrder.getRecMobile());
             invoiceRecordService.updateInvoiceRecord(invoiceRecordDto);
         } catch (Exception e) {
             LOG.error("CommonOrder addInvoiceRecord error orderId:{}", orderId, e);
