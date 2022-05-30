@@ -392,7 +392,7 @@ public class PlatformCreatePdfServiceImpl extends BaseCreatePdf implements Creat
             stringBuilder.append("   ").append("X").append(d.getUseTotalDose()).append(d.getDrugUnit());
             Boolean canShowDrugCost = configurationClient.getValueBooleanCatch(recipe.getClinicOrgan(), "canShowDrugCost", false);
             if (canShowDrugCost) {
-                BigDecimal drugCost = d.getDrugCost().divide(BigDecimal.ONE, 2, RoundingMode.UP);
+                BigDecimal drugCost = d.getDrugCost().divide(BigDecimal.ONE, 4, RoundingMode.UP);
                 stringBuilder.append("   ").append(drugCost).append("元");
             }
             stringBuilder.append(" \n ");
