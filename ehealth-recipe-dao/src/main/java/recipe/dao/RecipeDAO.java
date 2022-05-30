@@ -1828,15 +1828,15 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
         if (null != recipesQueryVO.getCheckStatus()) {
             switch (recipesQueryVO.getCheckStatus()) {
                 case 0:
-                    hql.append(" and r.status =").append(8);
+                    hql.append(" and r.checkFlag = 0");
                     break;
                 case 1:
 //                    hql.append(" and c.checkStatus =").append(1);
-                    hql.append(" and r.status=2");
+                    hql.append(" and r.checkFlag = 1");
                     break;
                 case 2:
 //                    hql.append(" and c.checkStatus =").append(0).append(" and r.checker is not null ");
-                    hql.append(" and r.status=15");
+                    hql.append(" and r.checkFlag = 2");
                     break;
                 case 3:
                     hql.append(" and r.supplementaryMemo is not null ");
