@@ -280,7 +280,7 @@ public class RecipeValidateUtil {
                 }
             }
             try {
-                recipeDetail.setSaleDrugPrice(recipeDetail.getSalePrice().divide(new BigDecimal(recipeDetail.getPack()), 2, BigDecimal.ROUND_HALF_UP));
+                recipeDetail.setSaleDrugPrice(recipeDetail.getSalePrice().divide(new BigDecimal(recipeDetail.getPack()), 4, BigDecimal.ROUND_HALF_UP));
             } catch (Exception e) {
                 LOGGER.error("计算包装系数错误, recipeId:{},{}.", recipeId, e.getMessage(), e);
             }
