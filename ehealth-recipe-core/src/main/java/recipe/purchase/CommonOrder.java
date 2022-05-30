@@ -16,6 +16,7 @@ import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
+import com.ngari.platform.recipe.mode.enterpriseOrder.InvoiceRecordDTO;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.entity.*;
@@ -39,6 +40,8 @@ import recipe.hisservice.RecipeToHisService;
 import recipe.manager.ButtonManager;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
+import recipe.util.ObjectCopyUtils;
+import recipe.vo.greenroom.InvoiceRecordVO;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -240,6 +243,17 @@ public class CommonOrder {
                     updateTakeDrugWayReqTO.setDecoctionCode(decoctionWay.getDecoctionCode());
                     updateTakeDrugWayReqTO.setDecoctionFee(order.getDecoctionFee());
                 }
+                try {
+                    if (null != order.getInvoiceRecordId()) {
+                        InvoiceRecordService invoiceRecordService = AppContextHolder.getBean("infra.invoiceRecordService", InvoiceRecordService.class);
+                        InvoiceRecordDto invoiceRecordDto = invoiceRecordService.findInvoiceRecordInfo(order.getInvoiceRecordId());
+                        InvoiceRecordDTO invoiceRecordDTO = new InvoiceRecordDTO();
+                        ObjectCopyUtils.copyProperties(invoiceRecordDTO, invoiceRecordDto);
+                        updateTakeDrugWayReqTO.setInvoiceRecord(invoiceRecordDTO);
+                    }
+                } catch (Exception e) {
+                    LOG.error("获取发票失败 recipeId:{}, error", recipeId, e);
+                }
             }else{
                 LOG.info("同步配送信息，组装配送订单失败！");
                 HisResponseTO hisResponseTO = new HisResponseTO();
@@ -284,6 +298,7 @@ public class CommonOrder {
                     }
                 }
             }
+
             if (null != recipe.getFastRecipeFlag()) {
                 updateTakeDrugWayReqTO.setFastRecipeFlag(recipe.getFastRecipeFlag());
             } else {
