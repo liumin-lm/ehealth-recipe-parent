@@ -332,6 +332,7 @@ public class CommonOrder {
         recipeOrder.setHisEnterpriseName(MapValueUtil.getString(extInfo, "depName"));
         String operMpiId = MapValueUtil.getString(extInfo, "operMpiId");
         String operAddressId = MapValueUtil.getString(extInfo, "addressId");
+        String invoiceRecordId = MapValueUtil.getString(extInfo, "invoiceRecordId");
         AddressDTO address = null;
         AddressService addressService = ApplicationUtils.getBasicService(AddressService.class);
         if (StringUtils.isNotEmpty(operAddressId)) {
@@ -348,6 +349,9 @@ public class CommonOrder {
         }else{
             LOG.warn("当前确认订单推送没有设置配送地址");
             return null;
+        }
+        if (StringUtils.isNotEmpty(invoiceRecordId)) {
+            recipeOrder.setInvoiceRecordId(Integer.parseInt(invoiceRecordId));
         }
         recipeOrder.setReceiver(address.getReceiver());
         recipeOrder.setRecMobile(address.getRecMobile());
