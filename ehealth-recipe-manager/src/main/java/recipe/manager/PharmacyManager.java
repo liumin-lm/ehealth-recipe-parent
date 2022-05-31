@@ -52,7 +52,9 @@ public class PharmacyManager extends BaseManager {
                 !Arrays.asList(organPharmacy.split(ByteUtils.COMMA)).contains(String.valueOf(pharmacyId))) {
             return null;
         }
-
+        if (ValidateUtil.integerIsEmpty(pharmacyId) && StringUtils.isEmpty(organPharmacy)) {
+            pharmacyId = 0;
+        }
         return pharmacyId;
     }
 

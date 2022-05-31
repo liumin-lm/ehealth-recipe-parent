@@ -40,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.Assert;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.bean.HisSearchDrugDTO;
 import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
@@ -405,6 +406,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
      * 新增 根据药房pharmacyId过滤
      */
     @RpcService
+    @LogRecord
     public List<DrugListBean> findCommonDrugListsNew(CommonDrugListDTO commonDrugListDTO) {
         LOGGER.info("findCommonDrugListsNew.commonDrugListDTO={}", JSONUtils.toString(commonDrugListDTO));
         Args.notNull(commonDrugListDTO.getDoctor(), "doctor");
