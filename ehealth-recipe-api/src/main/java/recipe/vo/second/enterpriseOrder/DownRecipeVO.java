@@ -21,8 +21,7 @@ import java.util.List;
 @Getter
 @Setter
 public class DownRecipeVO extends BaseRecipeVO implements Serializable {
-    private static final long serialVersionUID = -1550787664443643742L;
-
+    private static final long serialVersionUID = -551657299563879216L;
     @ItemProperty(alias = "开方机构")
     private Integer organId;
 

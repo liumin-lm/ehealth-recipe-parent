@@ -15,7 +15,7 @@ import java.util.Date;
 @Getter
 @Setter
 public class BaseRecipeVO implements Serializable {
-    private static final long serialVersionUID = -2012794208775103294L;
+    private static final long serialVersionUID = -3089232276968472055L;
     @ItemProperty(alias = "处方序号")
     private Integer recipeId;
 

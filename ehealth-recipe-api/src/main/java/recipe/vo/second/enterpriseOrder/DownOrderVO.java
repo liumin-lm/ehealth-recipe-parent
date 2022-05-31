@@ -15,5 +15,5 @@ import java.io.Serializable;
 @Getter
 @Setter
 public class DownOrderVO extends BaseOrderVO implements Serializable {
-    private static final long serialVersionUID = 1698992569210516481L;
+    private static final long serialVersionUID = 2024121452428641435L;
 }
