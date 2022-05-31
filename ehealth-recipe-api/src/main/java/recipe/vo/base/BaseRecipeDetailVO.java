@@ -1,5 +1,6 @@
 package recipe.vo.base;
 
+import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
@@ -97,4 +98,13 @@ public class BaseRecipeDetailVO implements Serializable {
 
     @ItemProperty(alias = "生产厂家代码")
     private String producerCode;
+
+    @ItemProperty(alias = "平台药物使用频率代码")
+    @Dictionary(id = "eh.cdr.dictionary.UsingRate")
+    private String usingRate;
+
+    @ItemProperty(alias = "平台药物使用途径代码")
+    @Dictionary(id = "eh.cdr.dictionary.UsePathways")
+    private String usePathways;
+
 }

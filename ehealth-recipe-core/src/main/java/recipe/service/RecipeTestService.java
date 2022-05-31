@@ -35,10 +35,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import recipe.ApplicationUtils;
 import recipe.aop.LogRecord;
+import recipe.bussutil.CreateRecipePdfUtil;
+import recipe.caNew.pdf.CreatePdfFactory;
 import recipe.common.OnsConfig;
 import recipe.core.api.IDrugBusinessService;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeAuditStateEnum;
+import recipe.enumerate.type.SignImageTypeEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.StateManager;
 import recipe.service.afterpay.LogisticsOnlineOrderService;
@@ -73,6 +76,8 @@ public class RecipeTestService {
     private DrugDistributionPriceDAO drugDistributionPriceDAO;
     @Autowired
     private IDrugBusinessService drugBusinessService;
+    @Autowired
+    private CreatePdfFactory createPdfFactory;
 
 
 
@@ -426,6 +431,12 @@ public class RecipeTestService {
     public String getOrganDrugList(Integer organId, String organDrugCode, Integer drugId){
         OrganDrugList organDrugList = drugBusinessService.getOrganDrugList(organId, organDrugCode, drugId);
         return JSON.toJSONString(organDrugList);
+    }
+
+    @RpcService
+    public String recipePdfTest(Integer recipeId, Integer type) throws Exception {
+        createPdfFactory.updatePdfToImg(recipeId, type);
+        return null;
     }
 
 }

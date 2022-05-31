@@ -203,6 +203,7 @@ public class PayModeOnline implements IPurchaseService {
         Integer invoiceRecordId = CommonOrder.addInvoiceRecord(templateId, recipeIdLists);
         if (!ObjectUtils.isEmpty(invoiceRecordId)) {
             order.setInvoiceRecordId(invoiceRecordId);
+            extInfo.put("invoiceRecordId", invoiceRecordId.toString());
         }
         //保存站点相关信息
         if (null != takeMedicineWay) {

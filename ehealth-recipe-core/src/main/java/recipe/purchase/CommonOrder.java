@@ -16,6 +16,7 @@ import com.ngari.patient.service.AddressService;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.DoctorService;
 import com.ngari.patient.service.PatientService;
+import com.ngari.platform.recipe.mode.enterpriseOrder.InvoiceRecordDTO;
 import com.ngari.recipe.dto.GiveModeButtonDTO;
 import com.ngari.recipe.dto.GiveModeShowButtonDTO;
 import com.ngari.recipe.entity.*;
@@ -39,6 +40,8 @@ import recipe.hisservice.RecipeToHisService;
 import recipe.manager.ButtonManager;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
+import recipe.util.ObjectCopyUtils;
+import recipe.vo.greenroom.InvoiceRecordVO;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -134,7 +137,6 @@ public class CommonOrder {
             invoiceRecordDto.setBusinessId(orderId.toString());
             invoiceRecordDto.setPrice(new BigDecimal(recipeOrder.getActualPrice()));
             invoiceRecordDto.setReceiverName(recipeOrder.getReceiver());
-            invoiceRecordDto.setReceiverPhone(recipeOrder.getRecMobile());
             invoiceRecordService.updateInvoiceRecord(invoiceRecordDto);
         } catch (Exception e) {
             LOG.error("CommonOrder addInvoiceRecord error orderId:{}", orderId, e);
@@ -241,6 +243,17 @@ public class CommonOrder {
                     updateTakeDrugWayReqTO.setDecoctionCode(decoctionWay.getDecoctionCode());
                     updateTakeDrugWayReqTO.setDecoctionFee(order.getDecoctionFee());
                 }
+                try {
+                    if (null != order.getInvoiceRecordId()) {
+                        InvoiceRecordService invoiceRecordService = AppContextHolder.getBean("infra.invoiceRecordService", InvoiceRecordService.class);
+                        InvoiceRecordDto invoiceRecordDto = invoiceRecordService.findInvoiceRecordInfo(order.getInvoiceRecordId());
+                        InvoiceRecordDTO invoiceRecordDTO = new InvoiceRecordDTO();
+                        ObjectCopyUtils.copyProperties(invoiceRecordDTO, invoiceRecordDto);
+                        updateTakeDrugWayReqTO.setInvoiceRecord(invoiceRecordDTO);
+                    }
+                } catch (Exception e) {
+                    LOG.error("获取发票失败 recipeId:{}, error", recipeId, e);
+                }
             }else{
                 LOG.info("同步配送信息，组装配送订单失败！");
                 HisResponseTO hisResponseTO = new HisResponseTO();
@@ -285,6 +298,7 @@ public class CommonOrder {
                     }
                 }
             }
+
             if (null != recipe.getFastRecipeFlag()) {
                 updateTakeDrugWayReqTO.setFastRecipeFlag(recipe.getFastRecipeFlag());
             } else {
@@ -318,6 +332,7 @@ public class CommonOrder {
         recipeOrder.setHisEnterpriseName(MapValueUtil.getString(extInfo, "depName"));
         String operMpiId = MapValueUtil.getString(extInfo, "operMpiId");
         String operAddressId = MapValueUtil.getString(extInfo, "addressId");
+        String invoiceRecordId = MapValueUtil.getString(extInfo, "invoiceRecordId");
         AddressDTO address = null;
         AddressService addressService = ApplicationUtils.getBasicService(AddressService.class);
         if (StringUtils.isNotEmpty(operAddressId)) {
@@ -334,6 +349,9 @@ public class CommonOrder {
         }else{
             LOG.warn("当前确认订单推送没有设置配送地址");
             return null;
+        }
+        if (StringUtils.isNotEmpty(invoiceRecordId)) {
+            recipeOrder.setInvoiceRecordId(Integer.parseInt(invoiceRecordId));
         }
         recipeOrder.setReceiver(address.getReceiver());
         recipeOrder.setRecMobile(address.getRecMobile());

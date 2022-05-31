@@ -219,9 +219,7 @@ public class DrugDoctorAtop extends BaseAtop {
                 drugList.setUnilateralCompound(organDrug.getUnilateralCompound());
                 drugList.setSmallestSaleMultiple(organDrug.getSmallestSaleMultiple());
                 drugList.setTargetedDrugType(organDrug.getTargetedDrugType());
-                if (null == drugList.getSalePrice()) {
-                    drugList.setSalePrice(organDrug.getSalePrice());
-                }
+                drugList.setSalePrice(organDrug.getSalePrice());
             }
             //该高亮字段给微信端使用:highlightedField
             drugList.setHospitalPrice(drugList.getSalePrice());

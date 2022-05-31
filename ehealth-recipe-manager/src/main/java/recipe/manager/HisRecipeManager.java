@@ -11,6 +11,7 @@ import com.ngari.recipe.dto.EmrDetailDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.exception.DAOException;
+import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
 import eh.entity.base.UsePathways;
 import eh.entity.base.UsingRate;
@@ -31,6 +32,7 @@ import recipe.constant.OrderStatusConstant;
 import recipe.dao.*;
 import recipe.enumerate.status.OfflineToOnlineEnum;
 import recipe.enumerate.status.OrderStateEnum;
+import recipe.enumerate.status.RecipeStateEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.PayFlagEnum;
 import recipe.util.JsonUtil;
@@ -653,6 +655,8 @@ public class HisRecipeManager extends BaseManager {
         try {
             List<Recipe> recipes = recipeDAO.findByRecipeCodeAndClinicOrgan(Lists.newArrayList(recipeCode), organId);
             if (CollectionUtils.isEmpty(recipes)) {
+                hisResponseTO.setMsgCode(ErrorCode.SERVICE_FAIL + "");
+                hisResponseTO.setMsg("处方" + recipeCode + "撤销失败,原因是：该处方还未转到线上不允许撤销" );
                 logger.info("该处方还未转到线上:{}", JSONUtils.toString(recipeCode));
                 return hisResponseTO;
             }
@@ -682,6 +686,8 @@ public class HisRecipeManager extends BaseManager {
 
                     Map<String, Integer> recipeMap = Maps.newHashMap();
                     recipeDAO.updateRecipeInfoByRecipeId(recipe.getRecipeId(), RecipeStatusEnum.RECIPE_STATUS_REVOKE.getType(), recipeMap);
+                    StateManager stateManager = AppContextHolder.getBean("stateManager", StateManager.class);
+                    stateManager.updateRecipeState(recipe.getRecipeId(), RecipeStateEnum.PROCESS_STATE_CANCELLATION, RecipeStateEnum.SUB_CANCELLATION_DOCTOR);
                 }
             });
 

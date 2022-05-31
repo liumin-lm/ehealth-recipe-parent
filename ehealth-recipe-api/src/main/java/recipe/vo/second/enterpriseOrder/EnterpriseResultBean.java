@@ -9,7 +9,7 @@ public class EnterpriseResultBean implements Serializable {
     private static final long serialVersionUID = -6384799813576850026L;
 
     public static final Integer SUCCESS = 200;
-    public static final Integer FAIL = 0;
+    public static final Integer FAIL = -1;
 
     private Integer code;
     private String msg;
