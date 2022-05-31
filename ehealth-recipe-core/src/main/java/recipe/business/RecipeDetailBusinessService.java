@@ -23,6 +23,7 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.manager.*;
 import recipe.util.LocalStringUtil;
 import recipe.util.MapValueUtil;
+import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
 import recipe.vo.doctor.ValidateDetailVO;
 
@@ -104,11 +105,10 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
                 logger.info("RecipeDetailService validateDrug pharmacy OrganDrugCode ：= {}", a.getOrganDrugCode());
                 return;
             }
-            a.setPharmacyId(pharmacyId);
             //校验数据是否完善
             recipeDetailValidateTool.validateDrug(a, recipeDay, organDrug, recipeType, drugEntrustNameMap, organId, validateDetailVO.getVersion());
             //返回前端必须字段
-            setRecipeDetail(a, organDrug, configDrugNameMap, recipeType);
+            setRecipeDetail(a, organDrug, configDrugNameMap, recipeType, pharmacyId);
         });
         return validateDetailVO;
     }
@@ -255,12 +255,16 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
      * @param configDrugNameMap 药品名拼接配置
      * @param recipeType        处方类型
      */
-    private void setRecipeDetail(RecipeDetailBean recipeDetailBean, OrganDrugList organDrug, Map<String, Integer> configDrugNameMap, Integer recipeType) {
+    private void setRecipeDetail(RecipeDetailBean recipeDetailBean, OrganDrugList organDrug, Map<String, Integer> configDrugNameMap,
+                                 Integer recipeType, Integer pharmacyId) {
         recipeDetailBean.setStatus(organDrug.getStatus());
         recipeDetailBean.setDrugId(organDrug.getDrugId());
         recipeDetailBean.setUseDoseAndUnitRelation(RecipeUtil.defaultUseDose(organDrug));
         //续方也会走这里但是 续方要用药品名实时配置
         recipeDetailBean.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(recipeDetailBean, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(recipeType)));
+        if (!ValidateUtil.integerIsEmpty(pharmacyId)) {
+            recipeDetailBean.setPharmacyId(pharmacyId);
+        }
     }
 
 
