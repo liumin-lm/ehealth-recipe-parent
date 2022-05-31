@@ -576,6 +576,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append("sum(case when r.recipeType =2 then IFNULL(o.payBackPrice,0) ELSE 0 end) chinesePatentMedFee,");
                 hql.append("sum(case when r.recipeType =3 then IFNULL(o.payBackPrice,0) ELSE 0 end) chineseMedFee,");
                 hql.append("r.depart from cdr_recipe r left join cdr_recipeorder o on r.orderCode=o.orderCode where  r.clinicOrgan=:organId");
+                hql.append(" and o.PayFlag = 3");
                 if (depart != null) {
                     hql.append(" and r.depart =:depart");
                 }
@@ -680,6 +681,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 hql.append("select IFNULL(sum(o.cashAmount),0),IFNULL(sum(o.fundAmount),0) from cdr_recipe r left join cdr_recipeorder o");
                 hql.append(" on r.orderCode=o.orderCode where r.clinicOrgan=" + organId);
                 hql.append(" and (o.refundTime between '" + start + "' and  '" + end + "')");
+                hql.append(" and o.PayFlag = 3");
                 Query q = ss.createSQLQuery(hql.toString());
                 List<Object[]> result = q.list();
                 List<HosBusFundsReportResult> backList = new ArrayList<>();
