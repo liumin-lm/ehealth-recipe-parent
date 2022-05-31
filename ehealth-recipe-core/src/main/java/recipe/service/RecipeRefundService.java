@@ -178,7 +178,7 @@ public class RecipeRefundService extends RecipeBaseService {
             if (null != recipeOrder.getEnterpriseId()) {
                 DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
                 visitRequest.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
-                visitRequest.setEnterpriseCode(recipeOrder.getEnterpriseId().toString());
+                visitRequest.setEnterpriseCode(drugsEnterprise.getEnterpriseCode());
             }
             // 交易流水号
             visitRequest.setTradeNo(recipeOrder.getTradeNo());
@@ -401,7 +401,7 @@ public class RecipeRefundService extends RecipeBaseService {
         if (null != recipeOrder.getEnterpriseId()) {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(recipeOrder.getEnterpriseId());
             request.setDrugsEnterpriseBean(ObjectCopyUtils.convert(drugsEnterprise, DrugsEnterpriseBean.class));
-            request.setEnterpriseCode(recipeOrder.getEnterpriseId().toString());
+            request.setEnterpriseCode(drugsEnterprise.getEnterpriseCode());
         }
         // 交易流水号
         request.setTradeNo(recipeOrder.getTradeNo());
