@@ -524,48 +524,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             byRecipeIdList = recipeDetailDAO.findByRecipeIdList(recipeIds);
         }
 
-        // 线下有效处方
-        RevisitExDTO revisitExDTO = revisitClient.getByClinicId(clinicId);
-        if (null == revisitExDTO || StringUtils.isEmpty(revisitExDTO.getRegisterNo())) {
-            return byRecipeIdList;
-        }
-        RevisitBean revisitBean = revisitClient.getRevisitByClinicId(clinicId);
-        logger.info("getOfflineEffectiveRecipeFlag revisitBean:{}.", JSONUtils.toString(revisitBean));
-        com.ngari.patient.dto.PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(revisitBean.getMpiid());
-        List<QueryHisRecipResTO> totalHisRecipe = new ArrayList<>();
-        //查询待缴费处方
-        HisResponseTO<List<QueryHisRecipResTO>> noPayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, null, 1, "");
-        //查询已缴费处方
-        HisResponseTO<List<QueryHisRecipResTO>> havePayRecipe = hisRecipeManager.queryData(revisitBean.getConsultOrgan(), patientDTO, null, 2, "");
-        if (null != noPayRecipe && null != noPayRecipe.getData()) {
-            totalHisRecipe.addAll(noPayRecipe.getData());
-        }
-        if (null != havePayRecipe && null != havePayRecipe.getData()) {
-            totalHisRecipe.addAll(havePayRecipe.getData());
-        }
-        if (CollectionUtils.isEmpty(totalHisRecipe)) {
-            return byRecipeIdList;
-        }
-        List<Recipedetail> finalByRecipeIdList = byRecipeIdList;
-        totalHisRecipe.forEach(queryHisRecipResTO -> {
-            if (revisitExDTO.getRegisterNo().equals(queryHisRecipResTO.getRegisteredId())) {
-                List<RecipeDetailTO> drugList = queryHisRecipResTO.getDrugList();
-                drugList.forEach(recipeDetailTO -> {
-                    List<OrganDrugList> organDrugLists = organDrugListDAO.findByOrganIdAndDrugCodes(queryHisRecipResTO.getClinicOrgan(), Arrays.asList(recipeDetailTO.getDrugCode()));
-                    Recipedetail recipedetail = new Recipedetail();
-                    if (CollectionUtils.isNotEmpty(organDrugLists)) {
-                        recipedetail.setDrugId(organDrugLists.get(0).getDrugId());
-                        recipedetail.setOrganDrugCode(recipeDetailTO.getDrugCode());
-                    }
-                    if (recipeDetailTO.getUseTotalDose() != null) {
-                        recipedetail.setUseTotalDose(recipeDetailTO.getUseTotalDose().doubleValue());
-                    }
-                    finalByRecipeIdList.add(recipedetail);
-                });
-            }
-        });
 
-        return finalByRecipeIdList;
+        return byRecipeIdList;
     }
 
 }
