@@ -242,6 +242,7 @@ public class PayModeTFDS implements IPurchaseService {
         Integer invoiceRecordId = CommonOrder.addInvoiceRecord(templateId, recipeIdLists);
         if (!ObjectUtils.isEmpty(invoiceRecordId)) {
             order.setInvoiceRecordId(invoiceRecordId);
+            extInfo.put("invoiceRecordId", invoiceRecordId.toString());
         }
         order.setPayMode(payModeNew);
         boolean saveFlag = orderService.saveOrderToDB(order, dbRecipes, payMode, result, recipeDAO, orderDAO);
