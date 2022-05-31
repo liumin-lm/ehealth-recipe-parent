@@ -16,7 +16,8 @@ import java.util.Date;
 @Getter
 @Setter
 public class BaseOrderVO implements Serializable {
-    private static final long serialVersionUID = -7456227851943144105L;
+    private static final long serialVersionUID = 3486465965203106491L;
+
     @ItemProperty(alias = "订单ID")
     private Integer orderId;
 

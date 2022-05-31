@@ -9,7 +9,8 @@ import java.io.Serializable;
 @Getter
 @Setter
 public class ReceiverInfoVO implements Serializable {
-    private static final long serialVersionUID = -3554919043308312895L;
+    private static final long serialVersionUID = -6005962987323780727L;
+
     @ItemProperty(alias = "收货人")
     private String receiver;
 
