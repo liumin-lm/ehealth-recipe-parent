@@ -178,6 +178,8 @@ public class RecipeOrderService extends RecipeBaseService {
     private OrderFeeManager orderFeeManager;
     @Autowired
     private StateManager stateManager;
+    @Autowired
+    private DrugSaleStrategyDAO drugSaleStrategyDAO;
 
     /**
      * 处方结算时创建临时订单
@@ -977,25 +979,43 @@ public class RecipeOrderService extends RecipeBaseService {
         BigDecimal recipeFee = BigDecimal.ZERO;
         if (null != enterprise && Integer.valueOf(0).equals(enterprise.getSettlementMode())) {
             List<Recipedetail> details = recipeDetailDAO.findByRecipeIds(recipeIds);
-            Map<Integer, Double> drugIdCountRel = Maps.newHashMap();
-            for (Recipedetail recipedetail : details) {
-                Integer drugId = recipedetail.getDrugId();
-                if (drugIdCountRel.containsKey(drugId)) {
-                    drugIdCountRel.put(drugId, drugIdCountRel.get(recipedetail.getDrugId()) + recipedetail.getUseTotalDose());
-                } else {
-                    drugIdCountRel.put(drugId, recipedetail.getUseTotalDose());
-                }
-            }
-            List<Integer> drugIds = Lists.newArrayList(drugIdCountRel.keySet());
+            Map<Integer, List<Recipedetail>> recipeDetailMap = details.stream().collect(Collectors.groupingBy(Recipedetail::getDrugId));
+            List<Integer> drugIds = Lists.newArrayList(recipeDetailMap.keySet());
             List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(enterpriseId, drugIds);
+            Map<Integer, List<DrugSaleStrategy>> drugSaleStrategyMap = null;
             if (CollectionUtils.isNotEmpty(saleDrugLists)) {
+                List<Integer> saleStrategyIds = saleDrugLists.stream().map(SaleDrugList::getSaleStrategyId).collect(Collectors.toList());
+                Map<Integer, List<SaleDrugList>> saleDrugMap = saleDrugLists.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
+                if (CollectionUtils.isNotEmpty(saleStrategyIds)) {
+                    List<DrugSaleStrategy> drugSaleStrategy = drugSaleStrategyDAO.findBysaleStrategyIds(saleStrategyIds);
+                    if(CollectionUtils.isNotEmpty(drugSaleStrategy)){
+                        drugSaleStrategyMap = drugSaleStrategy.stream().collect(Collectors.groupingBy(DrugSaleStrategy::getId));
+                    }
+                }
                 BigDecimal total = BigDecimal.ZERO;
                 try {
-                    for (SaleDrugList saleDrug : saleDrugLists) {
-                        //保留3位小数
-                        BigDecimal multiply = saleDrug.getPrice().multiply(new BigDecimal(drugIdCountRel.get(saleDrug.getDrugId()))).setScale(4,BigDecimal.ROUND_HALF_UP);
-                        LOGGER.error("setOrderFee multiply={}",multiply);
-                        total = total.add(multiply);
+                    for (Recipedetail recipedetail : details) {
+                        List<SaleDrugList> saleDrugLists1 = saleDrugMap.get(recipedetail.getDrugId());
+                        if (CollectionUtils.isNotEmpty(saleDrugLists1)) {
+                            SaleDrugList saleDrug = saleDrugLists1.get(0);
+                            BigDecimal useTotalDose = new BigDecimal(recipedetail.getUseTotalDose());
+                            if(Objects.nonNull(saleDrug.getSaleStrategyId())){
+                                List<DrugSaleStrategy> drugSaleStrategies = drugSaleStrategyMap.get(saleDrug.getSaleStrategyId());
+                                if(CollectionUtils.isNotEmpty(drugSaleStrategies)){
+                                    useTotalDose = useTotalDose.divide(new BigDecimal(drugSaleStrategies.get(0).getDrugAmount()),2,BigDecimal.ROUND_HALF_UP);
+                                    recipedetail.setSaleUnit(drugSaleStrategies.get(0).getDrugUnit());
+                                    recipedetail.setActualSalePrice(saleDrug.getPrice());
+                                    recipedetail.setSaleUseDose(useTotalDose);
+                                }
+                            }
+
+                            BigDecimal multiply = saleDrug.getPrice().multiply(useTotalDose).setScale(4, BigDecimal.ROUND_HALF_UP);
+                            total = total.add(multiply);
+                        }
+                    }
+                    // 如果没有销售策略,就不用更新详情
+                    if(CollectionUtils.isNotEmpty(saleStrategyIds)){
+                        recipeDetailDAO.updateAllRecipeDetail(details);
                     }
                     //重置药企处方价格
                     LOGGER.error("setOrderFee total={}", total);
