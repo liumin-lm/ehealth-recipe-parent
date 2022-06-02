@@ -17,6 +17,7 @@ import recipe.vo.patient.CheckAddressRes;
 import recipe.vo.second.CheckAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
+import recipe.vo.second.enterpriseOrder.EnterpriseSendOrderVO;
 
 import java.util.List;
 
@@ -142,4 +143,11 @@ public interface IDrugsEnterpriseBusinessService {
      * @return
      */
     EnterpriseResultBean confirmOrder (EnterpriseConfirmOrderVO enterpriseConfirmOrderVO);
+
+    /**
+     * 订单发货接口
+     * @param enterpriseSendOrderVO
+     * @return
+     */
+    EnterpriseResultBean sendOrder(EnterpriseSendOrderVO enterpriseSendOrderVO);
 }

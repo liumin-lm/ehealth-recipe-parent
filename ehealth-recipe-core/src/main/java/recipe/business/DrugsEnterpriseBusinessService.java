@@ -38,6 +38,7 @@ import recipe.vo.patient.CheckAddressRes;
 import recipe.vo.second.CheckAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
+import recipe.vo.second.enterpriseOrder.EnterpriseSendOrderVO;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -69,6 +70,8 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     private RemoteDrugEnterpriseService remoteDrugEnterpriseService;
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
+    @Autowired
+    private RecipeDAO recipeDAO;
 
     @Override
     public Boolean existEnterpriseByName(String name) {
@@ -318,7 +321,21 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
         if (null == drugsEnterprise) {
             return EnterpriseResultBean.getFail("当前appKey错误");
         }
-        return null;
+        List<String> orderCodeList = enterpriseConfirmOrderVO.getOrderCodeList();
+        List<RecipeOrder> recipeOrderList = recipeOrderDAO.findByOrderCode(orderCodeList);
+        if (CollectionUtils.isEmpty(recipeOrderList)) {
+            return EnterpriseResultBean.getFail("没有查询到订单信息");
+        }
+        recipeOrderList.forEach(recipeOrder ->{
+            List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+            recipeDAO.updateRecipeByDepIdAndRecipes(drugsEnterprise.getId(), recipeIdList);
+        });
+        return EnterpriseResultBean.getSuccess("订单确认成功");
+    }
+
+    @Override
+    public EnterpriseResultBean sendOrder(EnterpriseSendOrderVO enterpriseSendOrderVO) {
+        return EnterpriseResultBean.getSuccess();
     }
 
     private boolean addressCan(List<EnterpriseAddress> list, String address) {
