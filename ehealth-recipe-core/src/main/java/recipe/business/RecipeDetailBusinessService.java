@@ -23,7 +23,6 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.manager.*;
 import recipe.util.LocalStringUtil;
 import recipe.util.MapValueUtil;
-import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 import recipe.vo.ResultBean;
 import recipe.vo.doctor.ValidateDetailVO;
@@ -267,14 +266,5 @@ public class RecipeDetailBusinessService implements IRecipeDetailBusinessService
             recipeDetailBean.setPharmacyId(pharmacyId);
         }
     }
-
-    @Override
-    public List<RecipeDetailBean> findRecipeDetailsByRecipeId(Integer recipeId) {
-        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
-        return ObjectCopyUtils.convert(recipeDetails, RecipeDetailBean.class);
-    }
-
-
-
 
 }

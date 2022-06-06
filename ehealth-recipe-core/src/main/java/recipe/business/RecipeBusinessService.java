@@ -2,34 +2,26 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
-import com.ngari.common.mode.HisResponseTO;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
-import com.ngari.his.recipe.mode.QueryHisRecipResTO;
-import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.patient.service.PatientService;
-import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
 import com.ngari.recipe.dto.OutRecipeDetailDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
+import com.ngari.recipe.recipe.ChineseMedicineMsgVO;
 import com.ngari.recipe.recipe.constant.RecipecCheckStatusConstant;
 import com.ngari.recipe.recipe.model.PatientInfoDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.vo.*;
-import com.ngari.revisit.RevisitBean;
-import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
-import ctd.util.JSONUtils;
 import eh.cdr.api.vo.MedicalDetailBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -56,9 +48,7 @@ import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
 import recipe.service.*;
-import recipe.serviceprovider.drugsenterprise.service.RemoteDrugsEnterpriseService;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
-import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.util.*;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.doctor.PharmacyTcmVO;
@@ -111,10 +101,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     protected RecipeDetailDAO recipeDetailDAO;
     @Autowired
-    private RevisitClient revisitClient;
-    @Autowired
-    private HisRecipeManager hisRecipeManager;
-    @Autowired
     private HisSyncSupervisionService hisSyncSupervisionService;
     @Autowired
     private EmrRecipeManager emrRecipeManager;
@@ -127,15 +113,9 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     private RecipeHisService recipeHisService;
     @Autowired
-    private RecipeService recipeService;
+    DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
-    private RemoteDrugsEnterpriseService remoteDrugsEnterpriseService;
-    @Autowired
-    private PatientService patientService;
-    @Autowired
-    private RecipeDetailBusinessService recipeDetailBusinessService;
-    @Autowired
-    private RemoteRecipeOrderService remoteRecipeOrderService;
+    RecipeExtendDAO recipeExtendDAO;
 
 
     /**
@@ -551,29 +531,53 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Override
     public DrugUsageLabelResp queryRecipeDrugUsageLabel(Integer recipeId) {
         DrugUsageLabelResp drugUsageLabelResp = new DrugUsageLabelResp();
-        RecipeBean recipeBean = recipeService.getByRecipeId(recipeId);
-        Integer enterpriseId = recipeBean.getEnterpriseId();
+        Recipe recipe = recipeDAO.get(recipeId);
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        Integer enterpriseId = recipe.getEnterpriseId();
         if (Objects.isNull(enterpriseId)) {
             throw new DAOException("未查询到对应药企！");
         }
-        DrugsEnterpriseBean drugsEnterpriseBean = remoteDrugsEnterpriseService.getByEnterpriseCode(enterpriseId);
-        drugUsageLabelResp.setEnterpriseName(drugsEnterpriseBean.getName());
+        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(enterpriseId);
+        drugUsageLabelResp.setEnterpriseName(drugsEnterprise.getName());
 
-        PatientDTO patientDTO = patientService.getPatientDTOByMpiId(recipeBean.getMpiid());
+        //患者信息
+        PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
         if (Objects.nonNull(patientDTO)) {
             drugUsageLabelResp.setPatientName(patientDTO.getPatientName());
             drugUsageLabelResp.setPatientAge(patientDTO.getAgeString());
             drugUsageLabelResp.setPatientSex(patientDTO.getPatientSex());
         }
 
-        List<RecipeDetailBean> recipeDetailBeans = recipeDetailBusinessService.findRecipeDetailsByRecipeId(recipeId);
-        if (CollectionUtils.isNotEmpty(recipeDetailBeans)) {
-            drugUsageLabelResp.setDrugUsageLabelList(recipeDetailBeans);
-        }
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
 
-        drugUsageLabelResp.setRecipeType(recipeBean.getRecipeType());
-        RecipeOrderBean recipeOrderBean = remoteRecipeOrderService.getByOrderCode(recipeBean.getOrderCode());
-        drugUsageLabelResp.setDispensingTime(recipeOrderBean.getDispensingTime());
+
+        drugUsageLabelResp.setRecipeType(recipe.getRecipeType());
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        drugUsageLabelResp.setDispensingTime(recipeOrder.getDispensingTime());
+
+        if (Integer.valueOf(1).equals(recipe.getRecipeType()) || Integer.valueOf(2).equals(recipe.getRecipeType())) {
+            //西药，中成药
+            if (CollectionUtils.isNotEmpty(recipeDetails)) {
+                List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(recipeDetails, RecipeDetailBean.class);
+                drugUsageLabelResp.setDrugUsageLabelList(recipeDetailBeans);
+            }
+        } else {
+            //中药, 膏方
+            ChineseMedicineMsgVO chineseMedicineMsg = new ChineseMedicineMsgVO();
+            chineseMedicineMsg.setCopyNum(recipe.getCopyNum());
+            chineseMedicineMsg.setTotalFee(recipeOrder.getTotalFee());
+            chineseMedicineMsg.setMakeMethodText(recipeExtend.getMakeMethodText());
+            chineseMedicineMsg.setDecoctionText(recipeExtend.getDecoctionText());
+            chineseMedicineMsg.setDecoctionFlag(false);
+            chineseMedicineMsg.setJuice(recipeExtend.getJuice());
+            if (CollectionUtils.isNotEmpty(recipeDetails)) {
+                chineseMedicineMsg.setUsePathways(recipeDetails.get(0).getUsePathways());
+                chineseMedicineMsg.setUsingRate(recipeDetails.get(0).getUsingRate());
+                chineseMedicineMsg.setMemo(recipeDetails.get(0).getMemo());
+            }
+            chineseMedicineMsg.setMinor(recipeExtend.getMinor());
+            chineseMedicineMsg.setUseDays(recipeDetails.get(0).getUseDays());
+        }
         return drugUsageLabelResp;
     }
 

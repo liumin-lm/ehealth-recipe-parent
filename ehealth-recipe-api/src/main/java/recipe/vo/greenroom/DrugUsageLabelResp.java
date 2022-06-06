@@ -1,5 +1,6 @@
 package recipe.vo.greenroom;
 
+import com.ngari.recipe.recipe.ChineseMedicineMsgVO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.schema.annotation.ItemProperty;
 import lombok.Data;
@@ -33,4 +34,6 @@ public class DrugUsageLabelResp implements Serializable {
     private Integer recipeType;
 
     List<RecipeDetailBean> drugUsageLabelList;
+
+    ChineseMedicineMsgVO chineseMedicineMsg;
 }
