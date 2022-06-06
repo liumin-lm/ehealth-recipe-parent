@@ -371,18 +371,19 @@ public class OrderFeeManager extends BaseManager {
         }
 
         // 预结算返回费用包含挂号费
+        BigDecimal recipeFeeNew = new BigDecimal(order.getPreSettletotalAmount());
         if (preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.REGISTER_FEE.getType()) && Objects.nonNull(order.getRegisterFee())) {
-            recipeFee = recipeFee.subtract(order.getRegisterFee());
+            recipeFeeNew = recipeFeeNew.subtract(order.getRegisterFee());
         }
         // 预结算返回费用包含中医辨证论治费
         if (preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.TCM_FEE.getType()) && Objects.nonNull(order.getTcmFee())) {
-            recipeFee = recipeFee.subtract(order.getTcmFee());
+            recipeFeeNew = recipeFeeNew.subtract(order.getTcmFee());
         }
         // 预结算返回费用包含中医辨证论治费
         if (preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.DECOCTION_FEE.getType()) && Objects.nonNull(order.getDecoctionFee())) {
-            recipeFee = recipeFee.subtract(order.getDecoctionFee());
+            recipeFeeNew = recipeFeeNew.subtract(order.getDecoctionFee());
         }
-        return recipeFee;
+        return recipeFeeNew;
 
     }
 
