@@ -12,6 +12,7 @@ import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import recipe.atop.BaseAtop;
 import recipe.core.api.IRecipeDetailBusinessService;
 import recipe.vo.greenroom.DrugUsageLabelResp;
@@ -28,9 +29,11 @@ import java.util.Objects;
 public class RecipeGmAtop extends BaseAtop {
 
     @Autowired
+    @Qualifier("remoteRecipeService")
     IRecipeService recipeService;
 
     @Autowired
+    @Qualifier("remoteDrugsEnterpriseService")
     IDrugsEnterpriseService enterpriseService;
 
     @Autowired

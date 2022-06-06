@@ -216,6 +216,6 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
      */
     @RpcService
     public Boolean pushSingleRecipeInfo(Integer recipeId) {
-        return drugsEnterpriseBusinessService.retryPushRecipeOrder(recipeId);
+        return drugsEnterpriseBusinessService.pushDrugDispenser(recipeId);
     }
 }
