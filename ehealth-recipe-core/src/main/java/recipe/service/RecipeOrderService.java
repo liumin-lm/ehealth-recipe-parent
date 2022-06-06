@@ -1646,7 +1646,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         tcmFlag = true;
                     }
                     prb.setRecipe(recipeBean);
-                    prb.setPatient(patientService.getByMpiId(recipe.getMpiid()));
+//                    prb.setPatient(patientService.getByMpiId(recipe.getMpiid()));
                     try {
                         prb.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
                     } catch (ControllerException e) {
@@ -1839,7 +1839,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 orderBean.setFundAmount(null);
             }
             orderBean.setPatientIsDecoction(order.getPatientIsDecoction());
-            orderFeeManager.setRecipeFee(order);
+            orderBean.setRecipeFee(orderFeeManager.setRecipeFee(order));
             result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
             result.setExt(RecipeUtil.getParamFromOgainConfig(order, recipeList));
@@ -2071,7 +2071,7 @@ public class RecipeOrderService extends RecipeBaseService {
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         RecipeOrder order = orderDAO.getByOrderCode(orderCode);
         if (order != null) {
-            checkUserHasPermission((Integer) JSONUtils.parse(order.getRecipeIdList(), List.class).get(0));
+//            checkUserHasPermission((Integer) JSONUtils.parse(order.getRecipeIdList(), List.class).get(0));
             return this.getOrderDetailByIdV1(order.getOrderId());
         } else {
             throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "该处方单信息已变更，请退出重新获取处方信息。");

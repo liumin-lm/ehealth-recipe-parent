@@ -356,13 +356,13 @@ public class OrderFeeManager extends BaseManager {
      *
      * @param order              订单
      */
-    public void setRecipeFee(RecipeOrder order) {
+    public BigDecimal setRecipeFee(RecipeOrder order) {
         List<String> preSettleContainOrderFee = configurationClient.getValueListCatch(order.getOrganId(), "PreSettleContainOrderFee", null);
         logger.info("setRecipeFee needRecipePaymentFeeType={}", JSONUtils.toString(preSettleContainOrderFee));
-        if (CollectionUtils.isEmpty(preSettleContainOrderFee)) {
-            return;
-        }
         BigDecimal recipeFee = order.getRecipeFee();
+        if (CollectionUtils.isEmpty(preSettleContainOrderFee)) {
+            return recipeFee;
+        }
 
         // 预结算返回费用包含挂号费
         if (preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.REGISTER_FEE.getType()) && Objects.nonNull(order.getRegisterFee())) {
@@ -376,7 +376,7 @@ public class OrderFeeManager extends BaseManager {
         if (preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.DECOCTION_FEE.getType()) && Objects.nonNull(order.getDecoctionFee())) {
             recipeFee = recipeFee.subtract(order.getDecoctionFee());
         }
-        order.setRecipeFee(recipeFee);
+        return recipeFee;
 
     }
 
