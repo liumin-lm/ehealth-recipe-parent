@@ -734,7 +734,7 @@ public class RecipeOrderService extends RecipeBaseService {
 
         // 更新处方代缴费用
         orderFeeManager.setRecipePaymentFee(order, recipeList);
-        order.setTotalFee(countOrderTotalFeeByRecipeInfo(order, firstRecipe, payModeSupport));
+        order.setTotalFee(countOrderTotalFeeByRecipeInfo(order, firstRecipe, payModeSupport,toDbFlag));
         // 上海外服第三方支付金额
         orderFeeManager.setSHWFAccountFee(order);
         //判断计算扣掉运费的总金额----等于线下支付----总计要先算上运费，实际支付时再不支付运费
@@ -860,7 +860,7 @@ public class RecipeOrderService extends RecipeBaseService {
         } else if (StringUtils.isNotEmpty(map.get("preSettleTotalAmount"))) {
             //如果有预结算返回的金额，则处方实际费用预结算返回的金额代替处方药品金额（his总金额(药品费用+挂号费用)+平台费用(除药品费用以外其他费用的总计)）
             //需要重置下订单费用，有可能患者一直预结算不支付导致金额叠加
-            BigDecimal totalFee = countOrderTotalFeeByRecipeInfo(order, recipe, setPayModeSupport(order, PayModeGiveModeUtil.getPayMode(order.getPayMode(), recipe.getGiveMode())));
+            BigDecimal totalFee = countOrderTotalFeeByRecipeInfo(order, recipe, setPayModeSupport(order, PayModeGiveModeUtil.getPayMode(order.getPayMode(), recipe.getGiveMode())),1);
             if (new Integer(2).equals(order.getExpressFeePayWay()) && RecipeBussConstant.PAYMODE_ONLINE.equals(order.getPayMode())) {
                 if (order.getExpressFee() != null && totalFee.compareTo(order.getExpressFee()) > -1) {
                     totalFee = totalFee.subtract(order.getExpressFee());
@@ -2541,7 +2541,7 @@ public class RecipeOrderService extends RecipeBaseService {
         return countOrderTotalFeeWithCoupon(null, order);
     }
 
-    public BigDecimal countOrderTotalFeeByRecipeInfo(RecipeOrder order, Recipe recipe, RecipePayModeSupportBean payModeSupport) {
+    public BigDecimal countOrderTotalFeeByRecipeInfo(RecipeOrder order, Recipe recipe, RecipePayModeSupportBean payModeSupport, Integer toDbFlag) {
         List<String> preSettleContainOrderFee = configurationClient.getValueListCatch(order.getOrganId(), "PreSettleContainOrderFee", null);
         LOGGER.info("setRecipePaymentFee needRecipePaymentFeeType={}", JSONUtils.toString(preSettleContainOrderFee));
         Boolean registerFeeFlag = false;
@@ -2549,15 +2549,15 @@ public class RecipeOrderService extends RecipeBaseService {
         Boolean decoctionFeeFlag = false;
         if (CollectionUtils.isNotEmpty(preSettleContainOrderFee)) {
             // 预结算返回费用包含挂号费
-            if(preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.REGISTER_FEE.getType())){
+            if(preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.REGISTER_FEE.getType()) && 1 == toDbFlag){
                 registerFeeFlag = true;
             }
             // 预结算返回费用包含中医辨证论治费
-            if(preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.TCM_FEE.getType())){
+            if(preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.TCM_FEE.getType()) && 1 == toDbFlag){
                 TCMFeeFlag = true;
             }
             // 预结算返回费用包含中医辨证论治费
-            if(preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.DECOCTION_FEE.getType())){
+            if(preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.DECOCTION_FEE.getType()) && 1 == toDbFlag){
                 decoctionFeeFlag = true;
             }
         }
