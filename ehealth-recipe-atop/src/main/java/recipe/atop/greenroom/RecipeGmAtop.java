@@ -42,10 +42,10 @@ public class RecipeGmAtop extends BaseAtop {
     PatientService patientService;
 
     @Autowired
-    @Qualifier("remoteRecipeOrderService")
     IRecipeDetailBusinessService recipeDetailService;
 
     @Autowired
+    @Qualifier("remoteRecipeOrderService")
     IRecipeOrderService recipeOrderService;
 
 
