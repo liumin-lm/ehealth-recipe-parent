@@ -33,6 +33,7 @@ public class RecipeGmAtop extends BaseAtop {
     IRecipeService recipeService;
 
     @Autowired
+    @Qualifier("remoteDrugsEnterpriseService")
     IDrugsEnterpriseService enterpriseService;
 
     @Autowired
