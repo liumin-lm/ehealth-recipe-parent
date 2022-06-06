@@ -14,6 +14,7 @@ import com.ngari.recipe.dto.OutRecipeDetailDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.recipe.ChineseMedicineMsgVO;
+import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
 import com.ngari.recipe.recipe.constant.RecipecCheckStatusConstant;
 import com.ngari.recipe.recipe.model.PatientInfoDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -555,13 +556,15 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
         drugUsageLabelResp.setDispensingTime(recipeOrder.getDispensingTime());
 
-        if (Integer.valueOf(1).equals(recipe.getRecipeType()) || Integer.valueOf(2).equals(recipe.getRecipeType())) {
+        if (RecipeTypeEnum.RECIPETYPE_WM.getType().equals(recipe.getRecipeType()) ||
+                RecipeTypeEnum.RECIPETYPE_CPM.getType().equals(recipe.getRecipeType())) {
             //西药，中成药
             if (CollectionUtils.isNotEmpty(recipeDetails)) {
                 List<RecipeDetailBean> recipeDetailBeans = ObjectCopyUtils.convert(recipeDetails, RecipeDetailBean.class);
                 drugUsageLabelResp.setDrugUsageLabelList(recipeDetailBeans);
             }
-        } else {
+        } else if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipe.getRecipeType()) ||
+                RecipeTypeEnum.RECIPETYPE_HP.getType().equals(recipe.getRecipeType())) {
             //中药, 膏方
             ChineseMedicineMsgVO chineseMedicineMsg = new ChineseMedicineMsgVO();
             chineseMedicineMsg.setCopyNum(recipe.getCopyNum());
@@ -577,6 +580,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             }
             chineseMedicineMsg.setMinor(recipeExtend.getMinor());
             chineseMedicineMsg.setUseDays(recipeDetails.get(0).getUseDays());
+            drugUsageLabelResp.setChineseMedicineMsg(chineseMedicineMsg);
         }
         return drugUsageLabelResp;
     }
