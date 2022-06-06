@@ -4,7 +4,6 @@ import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.service.IDrugsEnterpriseService;
-import com.ngari.recipe.entity.RecipeOrder;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.service.IRecipeService;
@@ -43,6 +42,7 @@ public class RecipeGmAtop extends BaseAtop {
     PatientService patientService;
 
     @Autowired
+    @Qualifier("remoteRecipeOrderService")
     IRecipeDetailBusinessService recipeDetailService;
 
     @Autowired
