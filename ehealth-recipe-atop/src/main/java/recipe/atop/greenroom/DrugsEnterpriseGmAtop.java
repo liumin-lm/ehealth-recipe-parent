@@ -41,6 +41,9 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
     @Autowired
     private IDrugsEnterpriseBusinessService enterpriseBusinessService;
 
+    @Autowired
+    private IDrugsEnterpriseBusinessService drugsEnterpriseBusinessService;
+
 
     /**
      * 根据药企机构查询煎法
@@ -204,5 +207,15 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
     public boolean updateDrugEnterprise(DrugsEnterpriseVO drugsEnterpriseVO){
         validateAtop(drugsEnterpriseVO, drugsEnterpriseVO.getId());
         return enterpriseBusinessService.updateDrugEnterprise(drugsEnterpriseVO);
+    }
+
+    /**
+     * 运营平台调用发药机发药
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    public Boolean pushSingleRecipeInfo(Integer recipeId) {
+        return drugsEnterpriseBusinessService.retryPushRecipeOrder(recipeId);
     }
 }

@@ -71,4 +71,6 @@ public interface IRecipeDetailBusinessService {
      * @return
      */
     List<RecipeDetailDTO> validateHisDrugRule(Recipe recipe, List<RecipeDetailDTO> recipeDetailDTO, String registerId, String dbType);
+
+    List<RecipeDetailBean> findRecipeDetailsByRecipeId(Integer recipeId);
 }
