@@ -2542,6 +2542,25 @@ public class RecipeOrderService extends RecipeBaseService {
     }
 
     public BigDecimal countOrderTotalFeeByRecipeInfo(RecipeOrder order, Recipe recipe, RecipePayModeSupportBean payModeSupport) {
+        List<String> preSettleContainOrderFee = configurationClient.getValueListCatch(order.getOrganId(), "PreSettleContainOrderFee", null);
+        LOGGER.info("setRecipePaymentFee needRecipePaymentFeeType={}", JSONUtils.toString(preSettleContainOrderFee));
+        Boolean registerFeeFlag = false;
+        Boolean TCMFeeFlag = false;
+        Boolean decoctionFeeFlag = false;
+        if (CollectionUtils.isNotEmpty(preSettleContainOrderFee)) {
+            // 预结算返回费用包含挂号费
+            if(preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.REGISTER_FEE.getType())){
+                registerFeeFlag = true;
+            }
+            // 预结算返回费用包含中医辨证论治费
+            if(preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.TCM_FEE.getType())){
+                TCMFeeFlag = true;
+            }
+            // 预结算返回费用包含中医辨证论治费
+            if(preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.DECOCTION_FEE.getType())){
+                decoctionFeeFlag = true;
+            }
+        }
         BigDecimal full = BigDecimal.ZERO;
         //date 20191015
         //添加判断，当处方选择购药方式是下载处方，不计算药品费用
@@ -2557,12 +2576,12 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         //挂号费
-        if (null != order.getRegisterFee()) {
+        if (null != order.getRegisterFee() && !registerFeeFlag) {
             full = full.add(order.getRegisterFee());
         }
 
         //代煎费 下载处方笺不计算代煎费
-        if (null != order.getDecoctionFee() && !payModeSupport.isSupportDownload()) {
+        if (null != order.getDecoctionFee() && !payModeSupport.isSupportDownload() && !decoctionFeeFlag) {
             full = full.add(order.getDecoctionFee());
         }
 
@@ -2577,7 +2596,7 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         //中医辨证论治费
-        if (null != order.getTcmFee()) {
+        if (null != order.getTcmFee() && !TCMFeeFlag) {
             full = full.add(order.getTcmFee());
         }
 
