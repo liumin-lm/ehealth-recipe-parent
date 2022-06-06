@@ -118,6 +118,8 @@ public interface IDrugsEnterpriseBusinessService {
      */
     boolean retryPushRecipeOrder(Integer recipeId);
 
+    boolean pushDrugDispenser(Integer recipeId);
+
     /**
      * 药企推送失败 的处方重新推送定时任务
      */

@@ -276,6 +276,12 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     }
 
     @Override
+    public boolean pushDrugDispenser(Integer recipeId) {
+        return remoteDrugEnterpriseService.pushDrugDispenser(recipeId);
+    }
+
+
+    @Override
     public void rePushRecipeToDrugsEnterprise() {
         // 获取需要重新推送的订单
         Date endDate = new Date();
