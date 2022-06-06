@@ -1,6 +1,7 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSONArray;
+import com.google.common.collect.Lists;
 import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.his.recipe.mode.RecipeCashPreSettleInfo;
 import com.ngari.his.recipe.mode.RecipeCashPreSettleReqTO;
@@ -357,9 +358,14 @@ public class OrderFeeManager extends BaseManager {
      * @param order              订单
      */
     public BigDecimal setRecipeFee(RecipeOrder order) {
+        BigDecimal recipeFee = order.getRecipeFee();
+        // 订单类型不走预结算不处理
+        List<Integer> orderTypes = Lists.newArrayList(1, 2, 5);
+        if(!orderTypes.contains(order.getOrderType())){
+            return recipeFee;
+        }
         List<String> preSettleContainOrderFee = configurationClient.getValueListCatch(order.getOrganId(), "PreSettleContainOrderFee", null);
         logger.info("setRecipeFee needRecipePaymentFeeType={}", JSONUtils.toString(preSettleContainOrderFee));
-        BigDecimal recipeFee = order.getRecipeFee();
         if (CollectionUtils.isEmpty(preSettleContainOrderFee)) {
             return recipeFee;
         }
