@@ -211,11 +211,12 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
 
     /**
      * 运营平台调用发药机发药
+     *
      * @param recipeId
      * @return
      */
     @RpcService
-    public Boolean pushSingleRecipeInfo(Integer recipeId) {
+    public Boolean pushDrugDispenser(Integer recipeId) {
         return drugsEnterpriseBusinessService.pushDrugDispenser(recipeId);
     }
 }

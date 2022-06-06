@@ -215,12 +215,12 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         return result;
     }
 
-    public Boolean pushDrugDispenser (Integer recipeId) {
+    public Boolean pushDrugDispenser(Integer recipeId) {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         DrugEnterpriseResult result = getServiceByRecipeId(recipeId);
         DrugsEnterprise enterprise = result.getDrugsEnterprise();
-        if(Objects.isNull(enterprise)){
+        if (Objects.isNull(enterprise)) {
             throw new DAOException("未找到对应药企！");
         }
         IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService", IRecipeEnterpriseService.class);
