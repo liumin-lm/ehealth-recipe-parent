@@ -1839,6 +1839,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 orderBean.setFundAmount(null);
             }
             orderBean.setPatientIsDecoction(order.getPatientIsDecoction());
+            orderFeeManager.setRecipeFee(order);
             result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
             result.setExt(RecipeUtil.getParamFromOgainConfig(order, recipeList));
