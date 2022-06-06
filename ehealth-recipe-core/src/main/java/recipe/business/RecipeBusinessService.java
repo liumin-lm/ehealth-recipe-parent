@@ -10,6 +10,8 @@ import com.ngari.his.recipe.mode.QueryHisRecipResTO;
 import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.PatientDTO;
+import com.ngari.patient.service.PatientService;
+import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
@@ -20,6 +22,7 @@ import com.ngari.recipe.recipe.constant.RecipecCheckStatusConstant;
 import com.ngari.recipe.recipe.model.PatientInfoDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
 import com.ngari.recipe.vo.*;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -52,14 +55,14 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
-import recipe.service.RecipeHisService;
-import recipe.service.RecipeListService;
-import recipe.service.RecipeMsgService;
-import recipe.service.RecipeService;
+import recipe.service.*;
+import recipe.serviceprovider.drugsenterprise.service.RemoteDrugsEnterpriseService;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
+import recipe.serviceprovider.recipeorder.service.RemoteRecipeOrderService;
 import recipe.util.*;
 import recipe.vo.doctor.PatientOptionalDrugVO;
 import recipe.vo.doctor.PharmacyTcmVO;
+import recipe.vo.greenroom.DrugUsageLabelResp;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.EmrConfigVO;
 import recipe.vo.second.MedicalDetailVO;
@@ -123,7 +126,18 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private ConsultManager consultManager;
     @Autowired
     private RecipeHisService recipeHisService;
-    
+    @Autowired
+    private RecipeService recipeService;
+    @Autowired
+    private RemoteDrugsEnterpriseService remoteDrugsEnterpriseService;
+    @Autowired
+    private PatientService patientService;
+    @Autowired
+    private RecipeDetailBusinessService recipeDetailBusinessService;
+    @Autowired
+    private RemoteRecipeOrderService remoteRecipeOrderService;
+
+
     /**
      * 获取线下门诊处方诊断信息
      *
@@ -526,6 +540,41 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
 
         return byRecipeIdList;
+    }
+
+    /**
+     * 根据处方单获取药品用法标签列表
+     *
+     * @param recipeId
+     * @return
+     */
+    @Override
+    public DrugUsageLabelResp queryRecipeDrugUsageLabel(Integer recipeId) {
+        DrugUsageLabelResp drugUsageLabelResp = new DrugUsageLabelResp();
+        RecipeBean recipeBean = recipeService.getByRecipeId(recipeId);
+        Integer enterpriseId = recipeBean.getEnterpriseId();
+        if (Objects.isNull(enterpriseId)) {
+            throw new DAOException("未查询到对应药企！");
+        }
+        DrugsEnterpriseBean drugsEnterpriseBean = remoteDrugsEnterpriseService.getByEnterpriseCode(enterpriseId);
+        drugUsageLabelResp.setEnterpriseName(drugsEnterpriseBean.getName());
+
+        PatientDTO patientDTO = patientService.getPatientDTOByMpiId(recipeBean.getMpiid());
+        if (Objects.nonNull(patientDTO)) {
+            drugUsageLabelResp.setPatientName(patientDTO.getPatientName());
+            drugUsageLabelResp.setPatientAge(patientDTO.getAgeString());
+            drugUsageLabelResp.setPatientSex(patientDTO.getPatientSex());
+        }
+
+        List<RecipeDetailBean> recipeDetailBeans = recipeDetailBusinessService.findRecipeDetailsByRecipeId(recipeId);
+        if (CollectionUtils.isNotEmpty(recipeDetailBeans)) {
+            drugUsageLabelResp.setDrugUsageLabelList(recipeDetailBeans);
+        }
+
+        drugUsageLabelResp.setRecipeType(recipeBean.getRecipeType());
+        RecipeOrderBean recipeOrderBean = remoteRecipeOrderService.getByOrderCode(recipeBean.getOrderCode());
+        drugUsageLabelResp.setDispensingTime(recipeOrderBean.getDispensingTime());
+        return drugUsageLabelResp;
     }
 
 }
