@@ -25,6 +25,7 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.core.api.IDrugsEnterpriseBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.util.ByteUtils;
 import recipe.util.ObjectCopyUtils;
@@ -341,6 +342,19 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
 
     @Override
     public EnterpriseResultBean sendOrder(EnterpriseSendOrderVO enterpriseSendOrderVO) {
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(enterpriseSendOrderVO.getOrderCode());
+        if (null == recipeOrder) {
+            return EnterpriseResultBean.getFail("没有查询到订单信息");
+        }
+        List<Integer> supportStatus = Arrays.asList(RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType(), RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType());
+        if (supportStatus.contains(recipeOrder.getStatus())) {
+            return EnterpriseResultBean.getFail("当前订单不允许发货");
+        }
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        //更新处方信息
+        recipeDAO.updateSendInfoByRecipeIds(recipeIdList, enterpriseSendOrderVO.getSendDate(), enterpriseSendOrderVO.getSender());
+        //更新订单信息
+
         return EnterpriseResultBean.getSuccess();
     }
 

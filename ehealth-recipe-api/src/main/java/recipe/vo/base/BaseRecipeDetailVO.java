@@ -107,4 +107,10 @@ public class BaseRecipeDetailVO implements Serializable {
     @Dictionary(id = "eh.cdr.dictionary.UsePathways")
     private String usePathways;
 
+    @ItemProperty(alias = "药品销售单位")
+    private String saleUnit;
+
+    @ItemProperty(alias = "根据销售策略计算的药品用量")
+    private String saleUseDose;
+
 }
