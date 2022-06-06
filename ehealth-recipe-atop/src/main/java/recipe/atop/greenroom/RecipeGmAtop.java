@@ -7,6 +7,8 @@ import com.ngari.recipe.drugsenterprise.service.IDrugsEnterpriseService;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.recipe.service.IRecipeService;
+import com.ngari.recipe.recipeorder.model.RecipeOrderBean;
+import com.ngari.recipe.recipeorder.service.IRecipeOrderService;
 import ctd.persistence.exception.DAOException;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -40,7 +42,11 @@ public class RecipeGmAtop extends BaseAtop {
     PatientService patientService;
 
     @Autowired
+    @Qualifier("remoteRecipeOrderService")
     IRecipeDetailBusinessService recipeDetailService;
+
+    @Autowired
+    IRecipeOrderService recipeOrderService;
 
 
     /**
@@ -60,7 +66,7 @@ public class RecipeGmAtop extends BaseAtop {
         DrugsEnterpriseBean drugsEnterpriseBean = enterpriseService.getByEnterpriseCode(enterpriseId);
         drugUsageLabelResp.setEnterpriseName(drugsEnterpriseBean.getName());
 
-        PatientDTO patientDTO = patientService.getPatientBeanByMpiId(recipeBean.getMpiid());
+        PatientDTO patientDTO = patientService.getPatientDTOByMpiId(recipeBean.getMpiid());
         if (Objects.nonNull(patientDTO)) {
             drugUsageLabelResp.setPatientName(patientDTO.getPatientName());
             drugUsageLabelResp.setPatientAge(patientDTO.getAgeString());
@@ -71,6 +77,10 @@ public class RecipeGmAtop extends BaseAtop {
         if (CollectionUtils.isNotEmpty(recipeDetailBeans)) {
             drugUsageLabelResp.setDrugUsageLabelList(recipeDetailBeans);
         }
+
+        drugUsageLabelResp.setRecipeType(recipeBean.getRecipeType());
+        RecipeOrderBean recipeOrderBean = recipeOrderService.getByOrderCode(recipeBean.getOrderCode());
+        drugUsageLabelResp.setDispensingTime(recipeOrderBean.getDispensingTime());
         return drugUsageLabelResp;
     }
 
