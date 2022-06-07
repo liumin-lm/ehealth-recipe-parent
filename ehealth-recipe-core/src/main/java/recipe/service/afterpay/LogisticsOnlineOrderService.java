@@ -4,8 +4,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.ngari.base.patient.model.PatientBean;
 import com.ngari.base.patient.service.IPatientService;
 import com.ngari.infra.logistics.mode.CreateLogisticsOrderDto;
+import com.ngari.infra.logistics.mode.OrganLogisticsManageDto;
 import com.ngari.infra.logistics.mode.WriteBackLogisticsOrderDto;
 import com.ngari.infra.logistics.service.ILogisticsOrderService;
+import com.ngari.infra.logistics.service.IOrganLogisticsManageService;
 import com.ngari.infra.logistics.service.IWaybillService;
 import com.ngari.recipe.entity.DrugsEnterprise;
 import com.ngari.recipe.entity.Recipe;
@@ -16,6 +18,7 @@ import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -69,6 +72,9 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
 
     @Autowired
     private RecipeParameterDao recipeParameterDao;
+
+    @Autowired
+    private IOrganLogisticsManageService organLogisticsManageService;
 
     /**
      * 根据支付结果进行物流下单
@@ -218,15 +224,23 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
      * @return            包装后的物流信息
      */
     private CreateLogisticsOrderDto getCreateLogisticsOrderDto(RecipeOrder order, Recipe recipe, DrugsEnterprise enterprise) {
-        CreateLogisticsOrderDto logisticsOrder = new CreateLogisticsOrderDto();
-        String organList = recipeParameterDao.getByName("zhHospitalOrganList");
-        if (null != enterprise.getOrganId() && StringUtils.isNotEmpty(organList) && LocalStringUtil.hasOrgan(enterprise.getOrganId().toString(), organList)) {
-            // 取药企对应的机构ID
-            logisticsOrder.setOrganId(enterprise.getOrganId());
-        } else {
-            // 机构id
-            logisticsOrder.setOrganId(recipe.getClinicOrgan());
+        List<OrganLogisticsManageDto>  organLogisticsManageDtos=organLogisticsManageService.getOrganLogisticsManageByOrganIdAndLogisticsCode(enterprise.getId(),order.getLogisticsCompany()+"",DrugEnterpriseConstant.BUSINESS_TYPE);
+        OrganLogisticsManageDto organLogisticsManageDto=new OrganLogisticsManageDto();
+        if(CollectionUtils.isNotEmpty(organLogisticsManageDtos)){
+            organLogisticsManageDto=organLogisticsManageDtos.get(0);
         }
+        CreateLogisticsOrderDto logisticsOrder = new CreateLogisticsOrderDto();
+        //TODO lium物流下单
+//        String organList = recipeParameterDao.getByName("zhHospitalOrganList");
+//        if (null != enterprise.getOrganId() && StringUtils.isNotEmpty(organList) && LocalStringUtil.hasOrgan(enterprise.getOrganId().toString(), organList)) {
+//            // 取药企对应的机构ID
+//            logisticsOrder.setOrganId(enterprise.getEnterpriseCode());
+//        } else {
+//            // 机构id
+//            logisticsOrder.setOrganId(recipe.getClinicOrgan());
+//        }
+        logisticsOrder.setOrganId(enterprise.getId());
+
         // 平台用户id
         logisticsOrder.setUserId(recipe.getMpiid());
         // 业务类型
@@ -236,19 +250,19 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
         // 快递编码
         logisticsOrder.setLogisticsCode(order.getLogisticsCompany() + "");
         // 寄件人姓名
-        logisticsOrder.setConsignorName(enterprise.getConsignorName());
+        logisticsOrder.setConsignorName(organLogisticsManageDto.getConsignorName());
         // 寄件人手机号
-        logisticsOrder.setConsignorPhone(enterprise.getConsignorMobile());
+        logisticsOrder.setConsignorPhone(organLogisticsManageDto.getConsignorPhone());
         // 寄件人省份
-        logisticsOrder.setConsignorProvince(AddressUtils.getAddressDic(enterprise.getConsignorProvince()));
+        logisticsOrder.setConsignorProvince(organLogisticsManageDto.getConsignorProvince());
         // 寄件人城市
-        logisticsOrder.setConsignorCity(AddressUtils.getAddressDic(enterprise.getConsignorCity()));
+        logisticsOrder.setConsignorCity(organLogisticsManageDto.getConsignorCity());
         // 寄件人区域
-        logisticsOrder.setConsignorDistrict(AddressUtils.getAddressDic(enterprise.getConsignorDistrict()));
+        logisticsOrder.setConsignorDistrict(organLogisticsManageDto.getConsignorDistrict());
         // 寄件人街道
-        logisticsOrder.setConsignorStreet(AddressUtils.getAddressDic(enterprise.getConsignorStreet()));
+        logisticsOrder.setConsignorStreet(organLogisticsManageDto.getConsignorStreet());
         // 寄件人详细地址
-        logisticsOrder.setConsignorAddress(enterprise.getConsignorAddress());
+        logisticsOrder.setConsignorAddress(organLogisticsManageDto.getConsignorAddress());
         // 收件人名称
         logisticsOrder.setAddresseeName(order.getReceiver());
         // 收件人手机号
@@ -266,7 +280,7 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
         // 寄托物名称
         logisticsOrder.setDepositumName(DrugEnterpriseConstant.DEPOSITUM_NAME);
         // 集揽模式
-        logisticsOrder.setCollectMode(enterprise.getCollectMode());
+        logisticsOrder.setCollectMode(organLogisticsManageDto.getCollectMode());
         // 就诊人信息
         try {
             IPatientService iPatientService = ApplicationUtils.getBaseService(IPatientService.class);

@@ -1,7 +1,6 @@
 package recipe.dao;
 
 import com.ngari.recipe.drugsenterprise.model.DrugEnterpriseLogisticsBean;
-import com.ngari.recipe.entity.DrugEnterpriseLogistics;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import ctd.persistence.annotation.DAOMethod;

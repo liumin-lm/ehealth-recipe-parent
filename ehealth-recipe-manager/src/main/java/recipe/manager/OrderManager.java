@@ -8,6 +8,8 @@ import com.ngari.base.patient.model.HealthCardBean;
 import com.ngari.his.base.PatientBaseInfo;
 import com.ngari.his.recipe.mode.RecipeThirdUrlReqTO;
 import com.ngari.infra.logistics.mode.ControlLogisticsOrderDto;
+import com.ngari.infra.logistics.mode.OrganLogisticsManageDto;
+import com.ngari.infra.logistics.service.IOrganLogisticsManageService;
 import com.ngari.patient.dto.AddressDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.PatientDTO;
@@ -73,6 +75,8 @@ public class OrderManager extends BaseManager {
     private RecipeParameterDao recipeParameterDao;
     @Autowired
     private InfraClient infraClient;
+    @Autowired
+    private IOrganLogisticsManageService organLogisticsManageService;
 
     /**
      * 订单能否配送 物流管控
@@ -102,29 +106,36 @@ public class OrderManager extends BaseManager {
         }
         DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(depId);
         if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_PLATFORM)) {
+            List<OrganLogisticsManageDto>  organLogisticsManageDtos=organLogisticsManageService.getOrganLogisticsManageByOrganIdAndLogisticsCode(enterprise.getId(),logisticsCompany.toString(),DrugEnterpriseConstant.BUSINESS_TYPE);
+            OrganLogisticsManageDto organLogisticsManageDto=new OrganLogisticsManageDto();
+            if(CollectionUtils.isNotEmpty(organLogisticsManageDtos)){
+                organLogisticsManageDto=organLogisticsManageDtos.get(0);
+            }
             ControlLogisticsOrderDto controlLogisticsOrderDto = new ControlLogisticsOrderDto();
-            String organList = recipeParameterDao.getByName("zhHospitalOrganList");
-            if (null != enterprise.getOrganId() && StringUtils.isNotEmpty(organList) && LocalStringUtil.hasOrgan(enterprise.getOrganId().toString(), organList)) {
+            //TODO lium物流下单
+            //String organList = recipeParameterDao.getByName("zhHospitalOrganList");
+            /*if (null != enterprise.getOrganId() && StringUtils.isNotEmpty(organList) && LocalStringUtil.hasOrgan(enterprise.getOrganId().toString(), organList)) {
                 // 取药企对应的机构ID
                 controlLogisticsOrderDto.setOrganId(enterprise.getOrganId());
             } else {
                 // 机构id
                 controlLogisticsOrderDto.setOrganId(recipe.getClinicOrgan());
-            }
+            }*/
+            controlLogisticsOrderDto.setOrganId(enterprise.getId());
             // 寄件人姓名
-            controlLogisticsOrderDto.setConsignorName(enterprise.getConsignorName());
+            controlLogisticsOrderDto.setConsignorName(organLogisticsManageDto.getConsignorName());
             // 寄件人手机号
-            controlLogisticsOrderDto.setConsignorPhone(enterprise.getConsignorMobile());
+            controlLogisticsOrderDto.setConsignorPhone(organLogisticsManageDto.getConsignorPhone());
             // 寄件人省份
-            controlLogisticsOrderDto.setConsignorProvince(AddressUtils.getAddressDic(enterprise.getConsignorProvince()));
+            controlLogisticsOrderDto.setConsignorProvince(organLogisticsManageDto.getConsignorProvince());
             // 寄件人城市
-            controlLogisticsOrderDto.setConsignorCity(AddressUtils.getAddressDic(enterprise.getConsignorCity()));
+            controlLogisticsOrderDto.setConsignorCity(organLogisticsManageDto.getConsignorCity());
             // 寄件人区域
-            controlLogisticsOrderDto.setConsignorDistrict(AddressUtils.getAddressDic(enterprise.getConsignorDistrict()));
+            controlLogisticsOrderDto.setConsignorDistrict(organLogisticsManageDto.getConsignorDistrict());
             // 寄件人街道
-            controlLogisticsOrderDto.setConsignorStreet(AddressUtils.getAddressDic(enterprise.getConsignorStreet()));
+            controlLogisticsOrderDto.setConsignorStreet(organLogisticsManageDto.getConsignorStreet());
             // 寄件人详细地址
-            controlLogisticsOrderDto.setConsignorAddress(enterprise.getConsignorAddress());
+            controlLogisticsOrderDto.setConsignorAddress(organLogisticsManageDto.getConsignorAddress());
             //省
             String address1 = address.getAddress1();
             //市
