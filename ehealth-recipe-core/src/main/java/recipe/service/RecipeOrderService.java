@@ -2550,7 +2550,7 @@ public class RecipeOrderService extends RecipeBaseService {
         Boolean decoctionFeeFlag = false;
         // 订单类型不走预结算不处理
         List<Integer> orderTypes = Lists.newArrayList(1, 2, 5);
-        if (CollectionUtils.isNotEmpty(preSettleContainOrderFee) && !orderTypes.contains(order.getOrderType())) {
+        if (CollectionUtils.isNotEmpty(preSettleContainOrderFee) && orderTypes.contains(order.getOrderType())) {
             // 预结算返回费用包含挂号费
             if(preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.REGISTER_FEE.getType()) && 1 == toDbFlag){
                 registerFeeFlag = true;
