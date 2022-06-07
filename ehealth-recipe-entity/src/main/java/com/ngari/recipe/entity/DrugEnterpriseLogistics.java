@@ -3,6 +3,7 @@ package com.ngari.recipe.entity;
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
+import lombok.Data;
 
 import javax.persistence.*;
 import java.util.Date;
@@ -14,10 +15,11 @@ import static javax.persistence.GenerationType.IDENTITY;
  * @author： whf
  * @date： 2021-03-30 11:09
  */
-@Entity
-@Schema
-@Table(name = "drug_enterprise_logistics")
-@Access(AccessType.PROPERTY)
+//@Entity
+//@Schema
+//@Table(name = "drug_enterprise_logistics")
+//@Access(AccessType.PROPERTY)
+@Data
 public class DrugEnterpriseLogistics {
 
     @ItemProperty(alias = "自增主键")
@@ -41,72 +43,72 @@ public class DrugEnterpriseLogistics {
     private Date updateTime;
 
 
-    @Id
-    @GeneratedValue(strategy = IDENTITY)
-    @Column(name = "id", unique = true, nullable = false)
-    public Integer getId() {
-        return id;
-    }
-
-    public void setId(Integer id) {
-        this.id = id;
-    }
-
-    @Column(name = "drugs_enterprise_id")
-    public Integer getDrugsEnterpriseId() {
-        return drugsEnterpriseId;
-    }
-
-    public void setDrugsEnterpriseId(Integer drugsEnterpriseId) {
-        this.drugsEnterpriseId = drugsEnterpriseId;
-    }
-
-    @Column(name = "is_default")
-    public Integer getIsDefault() {
-        return isDefault;
-    }
-
-    public void setIsDefault(Integer isDefault) {
-        this.isDefault = isDefault;
-    }
-
-    @Column(name = "logistics_company")
-    public Integer getLogisticsCompany() {
-        return logisticsCompany;
-    }
-
-    public void setLogisticsCompany(Integer logisticsCompany) {
-        this.logisticsCompany = logisticsCompany;
-    }
-
-    @Column(name = "logistics_company_name")
-    public String getLogisticsCompanyName() {
-        return logisticsCompanyName;
-    }
-
-    public void setLogisticsCompanyName(String logisticsCompanyName) {
-        this.logisticsCompanyName = logisticsCompanyName;
-    }
-
-
-    @Column(name = "create_time")
-    public Date getCreateTime() {
-        return createTime;
-    }
-
-    public void setCreateTime(Date createTime) {
-        this.createTime = createTime;
-    }
-
-
-    @Column(name = "update_time")
-    public Date getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(Date updateTime) {
-        this.updateTime = updateTime;
-    }
+//    @Id
+//    @GeneratedValue(strategy = IDENTITY)
+//    @Column(name = "id", unique = true, nullable = false)
+//    public Integer getId() {
+//        return id;
+//    }
+//
+//    public void setId(Integer id) {
+//        this.id = id;
+//    }
+//
+//    @Column(name = "drugs_enterprise_id")
+//    public Integer getDrugsEnterpriseId() {
+//        return drugsEnterpriseId;
+//    }
+//
+//    public void setDrugsEnterpriseId(Integer drugsEnterpriseId) {
+//        this.drugsEnterpriseId = drugsEnterpriseId;
+//    }
+//
+//    @Column(name = "is_default")
+//    public Integer getIsDefault() {
+//        return isDefault;
+//    }
+//
+//    public void setIsDefault(Integer isDefault) {
+//        this.isDefault = isDefault;
+//    }
+//
+//    @Column(name = "logistics_company")
+//    public Integer getLogisticsCompany() {
+//        return logisticsCompany;
+//    }
+//
+//    public void setLogisticsCompany(Integer logisticsCompany) {
+//        this.logisticsCompany = logisticsCompany;
+//    }
+//
+//    @Column(name = "logistics_company_name")
+//    public String getLogisticsCompanyName() {
+//        return logisticsCompanyName;
+//    }
+//
+//    public void setLogisticsCompanyName(String logisticsCompanyName) {
+//        this.logisticsCompanyName = logisticsCompanyName;
+//    }
+//
+//
+//    @Column(name = "create_time")
+//    public Date getCreateTime() {
+//        return createTime;
+//    }
+//
+//    public void setCreateTime(Date createTime) {
+//        this.createTime = createTime;
+//    }
+//
+//
+//    @Column(name = "update_time")
+//    public Date getUpdateTime() {
+//        return updateTime;
+//    }
+//
+//    public void setUpdateTime(Date updateTime) {
+//        this.updateTime = updateTime;
+//    }
 
 
 }
