@@ -124,8 +124,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     private GroupRecipeManager groupRecipeManager = AppContextHolder.getBean("groupRecipeManager", GroupRecipeManager.class);
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
-    @Autowired
-    private DrugEnterpriseLogisticsDAO drugEnterpriseLogisticsDAO;
+//    @Autowired
+//    private DrugEnterpriseLogisticsDAO drugEnterpriseLogisticsDAO;
     @Autowired
     private OrderManager orderManager;
     @Autowired
@@ -1408,9 +1408,10 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         }
         DrugsEnterpriseDTO drugsEnterpriseDTO = new DrugsEnterpriseDTO();
         BeanUtils.copy(drugsEnterprise, drugsEnterpriseDTO);
-        List<DrugEnterpriseLogistics> drugEnterpriseLogistics = drugEnterpriseLogisticsDAO.getByDrugsEnterpriseId(id);
-        drugsEnterpriseDTO.setDrugEnterpriseLogisticsList(drugEnterpriseLogistics);
-        LOGGER.info("findByEnterpriseId drugsEnterpriseDTO:{}", JSONUtils.toString(drugsEnterpriseDTO));
+        //TODO liumin 物流拆分
+//        List<DrugEnterpriseLogistics> drugEnterpriseLogistics = drugEnterpriseLogisticsDAO.getByDrugsEnterpriseId(id);
+//        drugsEnterpriseDTO.setDrugEnterpriseLogisticsList(drugEnterpriseLogistics);
+//        LOGGER.info("findByEnterpriseId drugsEnterpriseDTO:{}", JSONUtils.toString(drugsEnterpriseDTO));
         return drugsEnterpriseDTO;
     }
 
