@@ -1,5 +1,6 @@
 package com.ngari.recipe.dto;
 
+import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,4 +27,7 @@ public class HisRecipeInfoDTO {
      * 就诊序列号
      */
     private String serialNumber;
+
+    @ItemProperty(alias = "线下处方名称")
+    private String offlineRecipeName;
 }

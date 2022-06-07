@@ -428,6 +428,9 @@ public class RecipeBean implements Serializable {
     @ItemProperty(alias = "快捷购药处方标识 0 非快捷处方 1 快捷处方")
     private Integer fastRecipeFlag;
 
+    @ItemProperty(alias = "线下处方名称")
+    private String offlineRecipeName;
+
     public Integer getMedicalFlag() {
         return medicalFlag;
     }
@@ -1568,5 +1571,13 @@ public class RecipeBean implements Serializable {
 
     public void setFastRecipeFlag(Integer fastRecipeFlag) {
         this.fastRecipeFlag = fastRecipeFlag;
+    }
+
+    public String getOfflineRecipeName() {
+        return offlineRecipeName;
+    }
+
+    public void setOfflineRecipeName(String offlineRecipeName) {
+        this.offlineRecipeName = offlineRecipeName;
     }
 }

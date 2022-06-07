@@ -500,9 +500,42 @@ public class DrugManager extends BaseManager {
     }
 
     public List<DrugCommon> commonDrugList(Integer organId, Integer doctorId, List<Integer> drugTypes) {
-        List<DrugCommon> drugCommonList = drugCommonDAO.findByOrganIdAndDoctorIdAndDrugCode(organId, doctorId, drugTypes, 0, 20);
+        List<DrugCommon> drugCommonList = drugCommonDAO.findByOrganIdAndDoctorIdAndTypes(organId, doctorId, drugTypes, 0, 30);
         logger.info("DrugManager commonDrugList organId={},doctorId-{},drugTypes={}, list={}"
                 , organId, doctorId, JSON.toJSONString(drugTypes), JSON.toJSONString(drugCommonList));
         return drugCommonList;
+    }
+
+    public Integer saveCommonDrug(Integer recipeId) {
+        return this.saveCommonDrug(recipeDAO.getByRecipeId(recipeId));
+    }
+
+    public Integer saveCommonDrug(Recipe recipe) {
+        if (null == recipe) {
+            return null;
+        }
+        logger.info("DrugManager saveCommonDrug start recipe={}", recipe.getRecipeId());
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+        if (CollectionUtils.isEmpty(recipeDetails)) {
+            return null;
+        }
+        recipeDetails.forEach(a -> {
+            DrugCommon drugCommon = drugCommonDAO.getByOrganIdAndDoctorIdAndDrugCode(recipe.getClinicOrgan(), recipe.getDoctor(), a.getOrganDrugCode());
+            if (null != drugCommon) {
+                drugCommon.setSort(drugCommon.getSort() + 1);
+                drugCommonDAO.update(drugCommon);
+            } else {
+                drugCommon = new DrugCommon();
+                drugCommon.setDrugId(a.getDrugId());
+                drugCommon.setDrugType(a.getDrugType());
+                drugCommon.setOrganDrugCode(a.getOrganDrugCode());
+                drugCommon.setDoctorId(recipe.getDoctor());
+                drugCommon.setOrganId(recipe.getClinicOrgan());
+                drugCommon.setSort(1);
+                drugCommonDAO.save(drugCommon);
+            }
+        });
+        logger.info("DrugManager saveCommonDrug end recipe={}", recipe.getRecipeId());
+        return recipe.getRecipeId();
     }
 }

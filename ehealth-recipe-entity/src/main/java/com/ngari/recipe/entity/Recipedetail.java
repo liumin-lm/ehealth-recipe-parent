@@ -263,7 +263,7 @@ public class Recipedetail implements java.io.Serializable {
 	private Integer drugMedicalFlag;
 
 	/**
-	 * 类型：1:药品，2:诊疗项目，3....
+	 * 类型：1:药品，2:诊疗项目，3 保密药品....
 	 */
 	private Integer type;
 
