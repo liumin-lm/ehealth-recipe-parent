@@ -410,6 +410,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
         //添加推送处方结果展示
         //String responseStr =  EntityUtils.toString(httpEntity);
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
         Recipe recipe = null;
         if (sendYtRecipe != null && sendYtRecipe.getRecipeId() != null) {
             recipe = recipeDAO.getByRecipeId(sendYtRecipe.getRecipeId());
@@ -418,6 +419,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             if (recipe != null) {
                 LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}][{}]处方推送成功.", recipe.getRecipeId() ,enterprise.getId(), enterprise.getName());
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方成功");
+                recipeOrderDAO.updatePushFlagByOrderCode(recipe.getOrderCode(), 1);
             } else {
                 LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送成功.",enterprise.getId(), enterprise.getName());
             }
@@ -425,6 +427,7 @@ public class YtRemoteService extends AccessDrugEnterpriseService {
             if (recipe != null) {
                 LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}][{}]处方推送失败.", recipe.getRecipeId() ,enterprise.getId(), enterprise.getName());
                 RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方失败");
+                recipeOrderDAO.updatePushFlagByOrderCode(recipe.getOrderCode(), -1);
             } else {
                 LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送失败.",enterprise.getId(), enterprise.getName());
             }
