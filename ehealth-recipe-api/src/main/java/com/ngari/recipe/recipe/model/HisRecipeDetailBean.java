@@ -1,5 +1,6 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.ItemProperty;
 import ctd.schema.annotation.Schema;
 
 import java.io.Serializable;
@@ -17,47 +18,42 @@ public class HisRecipeDetailBean implements Serializable {
     private String drugCode;
     private String drugName;
     private BigDecimal price;
-    //开药总数
+    @ItemProperty(alias = "开药总数")
     private Double useTotalDose;
+    @ItemProperty(alias = "药品总价")
     private BigDecimal totalPrice;
-    //用药频次
+    @ItemProperty(alias = "用药频次")
     private String usingRate;
-    //用药途径
+    @ItemProperty(alias = "用药途径")
     private String usePathways;
-    //频次名称
+    @ItemProperty(alias = "频次名称")
     private String usingRateText;
-    //途径名称
+    @ItemProperty(alias = "途径名称")
     private String usePathwaysText;
-    //剂量单位
+    @ItemProperty(alias = "剂量单位")
     private String useDoseUnit;
-    //每次剂量
+    @ItemProperty(alias = "每次剂量")
     private String useDose;
-    //药品包装单位
+    @ItemProperty(alias = "药品包装单位")
     private String drugUnit;
-    //开药天数
+    @ItemProperty(alias = "开药天数")
     private String useDays;
+    @ItemProperty(alias = "开药天数 带有小数")
     private String useDaysB;
-    //药品规格
+    @ItemProperty(alias = "药品规格")
     private String drugSpec;
-
+    @ItemProperty(alias = "药店编码")
     private String pharmacyCode;
-
-    /**
-     * 药品嘱托编码
-     */
+    @ItemProperty(alias = "药品嘱托编码")
     private String drugEntrustCode;
-
-    /**
-     * 药品嘱托信息
-     */
+    @ItemProperty(alias = "药品嘱托信息")
     private String memo;
-    /**
-     * 前端展示的药品拼接名
-     */
+    @ItemProperty(alias = "前端展示的药品拼接名")
     private String drugDisplaySplicedName;
-
-    //剂型
+    @ItemProperty(alias = "剂型")
     private String drugForm;
+    @ItemProperty(alias = "药品所属类型 3 保密药品")
+    private Integer type;
 
     public String getUseDaysB() {
         return useDaysB;
@@ -233,5 +229,13 @@ public class HisRecipeDetailBean implements Serializable {
 
     public void setDrugForm(String drugForm) {
         this.drugForm = drugForm;
+    }
+
+    public Integer getType() {
+        return type;
+    }
+
+    public void setType(Integer type) {
+        this.type = type;
     }
 }

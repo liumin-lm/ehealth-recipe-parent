@@ -1,5 +1,6 @@
 package com.ngari.recipe.dto;
 
+import ctd.schema.annotation.ItemProperty;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -95,6 +96,9 @@ public class HisRecipeDetailDTO {
      * 剂型
      */
     private String drugForm;
+
+    @ItemProperty(alias = "1:药品，2:诊疗项目，3 保密药品")
+    private Integer type;
 
 
 }
