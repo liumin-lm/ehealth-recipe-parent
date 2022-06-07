@@ -542,7 +542,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         drugUsageLabelResp.setEnterpriseName(drugsEnterprise.getName());
 
         //患者信息
-        PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
+        PatientDTO patientDTO = patientClient.getPatientDTOByMpiId(recipe.getMpiid());
         if (Objects.nonNull(patientDTO)) {
             drugUsageLabelResp.setPatientName(patientDTO.getPatientName());
             drugUsageLabelResp.setPatientAge(patientDTO.getAgeString());
@@ -550,7 +550,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         }
 
         List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipeId);
-
 
         drugUsageLabelResp.setRecipeType(recipe.getRecipeType());
         RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
@@ -571,7 +570,18 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             chineseMedicineMsg.setTotalFee(recipeOrder.getTotalFee());
             chineseMedicineMsg.setMakeMethodText(recipeExtend.getMakeMethodText());
             chineseMedicineMsg.setDecoctionText(recipeExtend.getDecoctionText());
-            chineseMedicineMsg.setDecoctionFlag(false);
+
+            Boolean ecoctionFlag;
+            String decoctionDeploy = configurationClient.getValueEnumCatch(recipe.getClinicOrgan(), "decoctionDeploy", "0");
+            if ("0".equals(decoctionDeploy)) {
+                ecoctionFlag = false;
+            } else if ("1".equals(decoctionDeploy)) {
+                ecoctionFlag = "1".equals(recipeExtend.getDoctorIsDecoction());
+            } else {
+                ecoctionFlag = "1".equals(recipeOrder.getPatientIsDecoction());
+            }
+
+            chineseMedicineMsg.setDecoctionFlag(ecoctionFlag);
             chineseMedicineMsg.setJuice(recipeExtend.getJuice());
             if (CollectionUtils.isNotEmpty(recipeDetails)) {
                 chineseMedicineMsg.setUsePathways(recipeDetails.get(0).getUsePathways());
