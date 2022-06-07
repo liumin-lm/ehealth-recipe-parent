@@ -234,7 +234,7 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
 //        String organList = recipeParameterDao.getByName("zhHospitalOrganList");
 //        if (null != enterprise.getOrganId() && StringUtils.isNotEmpty(organList) && LocalStringUtil.hasOrgan(enterprise.getOrganId().toString(), organList)) {
 //            // 取药企对应的机构ID
-//            logisticsOrder.setOrganId(enterprise.getEnterpriseCode());
+//            logisticsOrder.setOrganId(enterprise.getOrganId());
 //        } else {
 //            // 机构id
 //            logisticsOrder.setOrganId(recipe.getClinicOrgan());
