@@ -372,7 +372,7 @@ public class IConfigurationClient extends BaseClient {
     private String[] useDaysRange(Integer organId) {
         Object isLimitUseDays = configService.getConfiguration(organId, "isLimitUseDays");
         if (null == isLimitUseDays || !(boolean) isLimitUseDays) {
-            return new String[]{"1", "99"};
+            return new String[]{"1", "999"};
         }
         Object useDaysRange = configService.getConfiguration(organId, "useDaysRange");
         if (null == useDaysRange) {
