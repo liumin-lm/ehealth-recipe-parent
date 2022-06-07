@@ -33,7 +33,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.manager.ButtonManager;
 import recipe.manager.EnterpriseManager;
-import recipe.service.drugs.IDrugEnterpriseLogisticsService;
+//import recipe.service.drugs.IDrugEnterpriseLogisticsService;
 import recipe.serviceprovider.BaseService;
 
 import javax.annotation.Resource;
@@ -55,10 +55,10 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
      */
     private static final Logger LOGGER = LoggerFactory.getLogger(DrugsEnterpriseService.class);
 
-    @Autowired
-    private IDrugEnterpriseLogisticsService drugEnterpriseLogisticsService;
-    @Autowired
-    private DrugEnterpriseLogisticsDAO drugEnterpriseLogisticsDAO;
+//    @Autowired
+//    private IDrugEnterpriseLogisticsService drugEnterpriseLogisticsService;
+//    @Autowired
+//    private DrugEnterpriseLogisticsDAO drugEnterpriseLogisticsDAO;
     @Resource
     private OrganDrugListDAO organDrugListDAO;
     @Resource
@@ -171,7 +171,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
             dao.save(config);
         }
         // 写入药企关联物流公司信息
-        drugEnterpriseLogisticsService.saveDrugEnterpriseLogistics(drugsEnterpriseBean.getDrugEnterpriseLogisticsBeans(), newDrugsEnterprise.getId());
+//        drugEnterpriseLogisticsService.saveDrugEnterpriseLogistics(drugsEnterpriseBean.getDrugEnterpriseLogisticsBeans(), newDrugsEnterprise.getId());
         //更新管理单元
         String manageUnit = "yq" + newDrugsEnterprise.getId();
         drugsEnterpriseDAO.updateManageUnitById(newDrugsEnterprise.getId(), manageUnit);
@@ -248,7 +248,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
         }
         target = drugsEnterpriseDAO.update(target);
         // 写入药企关联物流公司信息
-        drugEnterpriseLogisticsService.saveDrugEnterpriseLogistics(drugsEnterpriseBean.getDrugEnterpriseLogisticsBeans(), target.getId());
+//        drugEnterpriseLogisticsService.saveDrugEnterpriseLogistics(drugsEnterpriseBean.getDrugEnterpriseLogisticsBeans(), target.getId());
 
         if (null != drugsEnterpriseBean.getCreateType() && 0 == drugsEnterpriseBean.getCreateType()) {
             //自建药企要存储药店信息
@@ -376,13 +376,14 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
                 }
             }
         }
-        List<DrugEnterpriseLogistics> byDrugsEnterpriseId = drugEnterpriseLogisticsDAO.getByDrugsEnterpriseId(drugsEnterpriseId);
-        List<DrugEnterpriseLogisticsBean> drugEnterpriseLogisticsBeans = byDrugsEnterpriseId.stream().map(drugEnterpriseLogistics -> {
-            DrugEnterpriseLogisticsBean drugEnterpriseLogisticsBean = new DrugEnterpriseLogisticsBean();
-            BeanUtils.copy(drugEnterpriseLogistics, drugEnterpriseLogisticsBean);
-            return drugEnterpriseLogisticsBean;
-        }).collect(Collectors.toList());
-        drugsEnterpriseBean.setDrugEnterpriseLogisticsBeans(drugEnterpriseLogisticsBeans);
+        //TODO liumin 物流拆分
+//        List<DrugEnterpriseLogistics> byDrugsEnterpriseId = drugEnterpriseLogisticsDAO.getByDrugsEnterpriseId(drugsEnterpriseId);
+//        List<DrugEnterpriseLogisticsBean> drugEnterpriseLogisticsBeans = byDrugsEnterpriseId.stream().map(drugEnterpriseLogistics -> {
+//            DrugEnterpriseLogisticsBean drugEnterpriseLogisticsBean = new DrugEnterpriseLogisticsBean();
+//            BeanUtils.copy(drugEnterpriseLogistics, drugEnterpriseLogisticsBean);
+//            return drugEnterpriseLogisticsBean;
+//        }).collect(Collectors.toList());
+//        drugsEnterpriseBean.setDrugEnterpriseLogisticsBeans(drugEnterpriseLogisticsBeans);
         return drugsEnterpriseBean;
     }
 
