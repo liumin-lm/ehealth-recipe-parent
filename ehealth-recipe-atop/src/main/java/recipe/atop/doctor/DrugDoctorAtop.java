@@ -2,6 +2,7 @@ package recipe.atop.doctor;
 
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
+import com.ngari.recipe.drug.model.CommonDrugListDTO;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
@@ -241,11 +242,30 @@ public class DrugDoctorAtop extends BaseAtop {
         return drugWithEsByPatient;
     }
 
+    /**
+     * 查询常用药品
+     *
+     * @param commonDrug
+     * @return
+     */
+    @RpcService
+    public List<SearchDrugDetailDTO> commonDrugList(CommonDrugListDTO commonDrug) {
+        validateAtop(commonDrug, commonDrug.getDrugType(), commonDrug.getDoctor(), commonDrug.getOrganId());
+        return drugBusinessService.commonDrugList(commonDrug);
+    }
+
     @RpcService
     public DispensatoryDTO getOrganDrugList(Integer organId, Integer drugId) {
         return drugBusinessService.getOrganDrugList(organId, drugId);
     }
 
+    /**
+     * 查询药品数据
+     *
+     * @param organId
+     * @param organDrugCodes
+     * @return
+     */
     @RpcService
     public List<DrugsResVo> organDrugList(Integer organId, List<String> organDrugCodes) {
         validateAtop(organId, organDrugCodes);
@@ -266,7 +286,6 @@ public class DrugDoctorAtop extends BaseAtop {
         }).collect(Collectors.toList());
         return collect;
     }
-
 
     /**
      * 默认药品单位计量 机构关联关系

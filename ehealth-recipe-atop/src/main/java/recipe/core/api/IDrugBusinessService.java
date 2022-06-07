@@ -1,6 +1,7 @@
 package recipe.core.api;
 
 import com.ngari.platform.recipe.mode.ListOrganDrugReq;
+import com.ngari.recipe.drug.model.CommonDrugListDTO;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
@@ -114,16 +115,46 @@ public interface IDrugBusinessService {
      */
     DispensatoryDTO getOrganDrugList(Integer organId, Integer drugId);
 
+    /**
+     * 查询机构药品数据
+     *
+     * @param organId
+     * @param organDrugCodes
+     * @return
+     */
     List<OrganDrugList> organDrugList(Integer organId, List<String> organDrugCodes);
 
+    /**
+     * 查询机构药品数据
+     *
+     * @param organId
+     * @param organDrugCode
+     * @param drugId
+     * @return
+     */
     OrganDrugList getOrganDrugList(Integer organId, String organDrugCode, Integer drugId);
 
+    /**
+     * 查询平台药品
+     *
+     * @param drugIds
+     * @return
+     */
     List<DrugList> findByDrugIdsAndStatus(List<Integer> drugIds);
 
     /**
      * 患者端续方药品信息校验
+     *
      * @param patientContinueRecipeCheckDrugReq
      * @return
      */
     PatientContinueRecipeCheckDrugRes patientContinueRecipeCheckDrug(PatientContinueRecipeCheckDrugReq patientContinueRecipeCheckDrugReq);
+
+    /**
+     * 查询常用药品
+     *
+     * @param commonDrug
+     * @return
+     */
+    List<SearchDrugDetailDTO> commonDrugList(CommonDrugListDTO commonDrug);
 }

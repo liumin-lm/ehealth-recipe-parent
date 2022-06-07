@@ -18,6 +18,7 @@ import recipe.client.OperationClient;
 import recipe.dao.PharmacyTcmDAO;
 import recipe.enumerate.type.AppointEnterpriseTypeEnum;
 import recipe.enumerate.type.RecipeSupportGiveModeEnum;
+import recipe.util.ByteUtils;
 import recipe.util.ValidateUtil;
 
 import java.util.*;
@@ -270,5 +271,48 @@ public class OrganDrugListManager extends BaseManager {
             a.setValidateHisStatus(2);
             a.setValidateHisStatusText("不可开具靶向药品");
         });
+    }
+
+
+    /**
+     * 查询his 药品说明书
+     *
+     * @param organId      机构id
+     * @param recipedetail 药品数据
+     * @return
+     */
+    public DrugSpecificationInfoDTO hisDrugBook(Integer organId, Recipedetail recipedetail) {
+        OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
+        if (null == organDrug) {
+            return null;
+        }
+        return offlineRecipeClient.drugSpecification(organId, organDrug);
+    }
+
+    /**
+     * 获取药房相关药品
+     *
+     * @param organId
+     * @param organDrugCodeList
+     * @param pharmacyId
+     * @return
+     */
+    public List<OrganDrugList> pharmacyDrug(Integer organId, List<String> organDrugCodeList, Integer pharmacyId) {
+        List<OrganDrugList> organDrugList = organDrugListDAO.findByOrganIdAndDrugCodes(organId, organDrugCodeList);
+        if (ValidateUtil.integerIsEmpty(pharmacyId)) {
+            return organDrugList;
+        }
+        List<OrganDrugList> lists = new ArrayList<>();
+        organDrugList.forEach(a -> {
+            if (StringUtils.isEmpty(a.getPharmacy())) {
+                return;
+            }
+            List<Integer> pharmacyIds = Arrays.stream(a.getPharmacy().split(ByteUtils.COMMA)).map(s -> Integer.parseInt(s.trim())).collect(Collectors.toList());
+            if (pharmacyIds.contains(pharmacyId)) {
+                lists.add(a);
+            }
+        });
+        logger.info("OrganDrugListManager pharmacyDrug lists={}", JSON.toJSONString(lists));
+        return lists;
     }
 }

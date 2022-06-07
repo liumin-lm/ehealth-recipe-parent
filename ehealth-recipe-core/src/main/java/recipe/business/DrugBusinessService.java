@@ -1,9 +1,9 @@
 package recipe.business;
 
-import com.google.common.collect.Lists;
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.platform.recipe.mode.HospitalDrugListDTO;
 import com.ngari.platform.recipe.mode.HospitalDrugListReqDTO;
+import com.ngari.recipe.drug.model.CommonDrugListDTO;
 import com.ngari.recipe.drug.model.DispensatoryDTO;
 import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.dto.DrugInfoDTO;
@@ -11,8 +11,6 @@ import com.ngari.recipe.dto.DrugSpecificationInfoDTO;
 import com.ngari.recipe.dto.PatientDrugWithEsDTO;
 import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.model.DrugEntrustDTO;
-import com.ngari.recipe.recipe.service.IDrugEntrustService;
 import com.ngari.recipe.vo.HospitalDrugListReqVO;
 import com.ngari.recipe.vo.HospitalDrugListVO;
 import com.ngari.recipe.vo.SearchDrugReqVO;
@@ -21,10 +19,11 @@ import ctd.util.JSONUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
+import recipe.bussutil.RecipeUtil;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.DrugClient;
 import recipe.client.IConfigurationClient;
+import recipe.constant.RecipeBussConstant;
 import recipe.core.api.IDrugBusinessService;
 import recipe.dao.OrganDrugListDAO;
 import recipe.enumerate.status.YesOrNoEnum;
@@ -32,9 +31,7 @@ import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.manager.DrugManager;
 import recipe.manager.HisRecipeManager;
 import recipe.manager.OrganDrugListManager;
-import recipe.util.ByteUtils;
 import recipe.util.MapValueUtil;
-import recipe.util.ValidateUtil;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugReq;
 import recipe.vo.patient.PatientContinueRecipeCheckDrugRes;
 import recipe.vo.patient.PatientOptionalDrugVo;
@@ -57,8 +54,6 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
     @Autowired
     private HisRecipeManager hisRecipeManager;
     @Autowired
-    private IDrugEntrustService drugEntrustService;
-    @Autowired
     private IConfigurationClient configurationClient;
     @Autowired
     private DrugClient drugClient;
@@ -79,31 +74,11 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(organId, drugType));
         //药品商品名拼接配置
         Map<String, Integer> configSaleNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getSaleNameConfigByDrugType(organId, drugType));
-        List<DrugEntrustDTO> drugEntrusts = drugEntrustService.querDrugEntrustByOrganId(organId);
-        boolean drugEntrustName = drugEntrusts.stream().anyMatch(a -> "无特殊煎法".equals(a.getDrugEntrustName()));
-        Map<Integer, DrugEntrustDTO> drugEntrustsMap = drugEntrusts.stream().collect(Collectors.toMap(DrugEntrustDTO::getDrugEntrustId, a -> a, (k1, k2) -> k1));
+        Map<Integer, DrugEntrust> drugEntrustNameMap = drugManager.drugEntrustIdMap(organId);
         List<SearchDrugDetailDTO> list = new LinkedList<>();
         drugInfo.forEach(s -> {
             SearchDrugDetailDTO drugList = JSONUtils.parse(s, SearchDrugDetailDTO.class);
-            //前端展示的药品拼接名处理
-            drugList.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(drugList, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(drugList.getDrugType())));
-            //前端展示的药品商品名拼接名处理
-            drugList.setDrugDisplaySplicedSaleName(DrugDisplayNameProducer.getDrugName(drugList, configSaleNameMap, DrugNameDisplayUtil.getSaleNameConfigKey(drugList.getDrugType())));
-            //替换嘱托
-            if (null != drugType && 3 == drugType) {
-                Integer drugEntrustId = ByteUtils.strValueOf(drugList.getDrugEntrust());
-                DrugEntrustDTO drugEntrustDTO = drugEntrustsMap.get(drugEntrustId);
-                if (null != drugEntrustDTO && !ValidateUtil.integerIsEmpty(drugEntrustId)) {
-                    drugList.setDrugEntrustId(drugEntrustDTO.getDrugEntrustId().toString());
-                    drugList.setDrugEntrustCode(drugEntrustDTO.getDrugEntrustCode());
-                    drugList.setDrugEntrust(drugEntrustDTO.getDrugEntrustValue());
-                } else if (drugEntrustName) {
-                    //运营平台没有配置默认值，没有嘱托Id，中药特殊处理,药品没有维护字典--默认无特殊煎法
-                    drugList.setDrugEntrustId("56");
-                    drugList.setDrugEntrustCode("sos");
-                    drugList.setDrugEntrust("无特殊煎法");
-                }
-            }
+            RecipeUtil.SearchDrugDetailDTO(drugList, configDrugNameMap, configSaleNameMap, drugEntrustNameMap);
             list.add(drugList);
         });
         logger.info("DrugBusinessService searchOrganDrugEs list= {}", JSONUtils.toString(list));
@@ -122,7 +97,7 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
 
     @Override
     public DrugSpecificationInfoDTO hisDrugBook(Integer organId, Recipedetail recipedetail) {
-        return drugManager.hisDrugBook(organId, recipedetail);
+        return organDrugListManager.hisDrugBook(organId, recipedetail);
     }
 
     @Override
@@ -230,18 +205,65 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         if (CollectionUtils.isEmpty(drugName)) {
             patientContinueRecipeCheckDrugRes.setCheckFlag(YesOrNoEnum.NO.getType());
         } else {
-            getCheckText(patientContinueRecipeCheckDrugRes,drugName);
+            getCheckText(patientContinueRecipeCheckDrugRes, drugName);
         }
         patientContinueRecipeCheckDrugRes.setPatientOptionalDrugVo(list);
         return patientContinueRecipeCheckDrugRes;
     }
 
-    private void getCheckText(PatientContinueRecipeCheckDrugRes patientContinueRecipeCheckDrugRes,List<String> drugName){
+    @Override
+    public List<SearchDrugDetailDTO> commonDrugList(CommonDrugListDTO commonDrug) {
+        List<Integer> drugTypes = Collections.singletonList(commonDrug.getDrugType());
+        //西药 中成药 判断混开
+        if (!RecipeUtil.isTcmType(commonDrug.getDrugType())) {
+            boolean isMergeRecipeType = configurationClient.getValueBooleanCatch(commonDrug.getOrganId(), "isMergeRecipeType", false);
+            if (isMergeRecipeType) {
+                drugTypes = Arrays.asList(RecipeBussConstant.RECIPETYPE_WM, RecipeBussConstant.RECIPETYPE_CPM);
+            }
+        }
+        //获取常用药记录
+        List<DrugCommon> drugCommonList = drugManager.commonDrugList(commonDrug.getOrganId(), commonDrug.getDoctor(), drugTypes);
+        if (CollectionUtils.isEmpty(drugCommonList)) {
+            return Collections.emptyList();
+        }
+        //获取药房相关药品
+        List<String> organDrugCodeList = drugCommonList.stream().map(DrugCommon::getOrganDrugCode).collect(Collectors.toList());
+        List<OrganDrugList> organDrugList = organDrugListManager.pharmacyDrug(commonDrug.getOrganId(), organDrugCodeList, commonDrug.getPharmacyId());
+        if (CollectionUtils.isEmpty(organDrugList)) {
+            return Collections.emptyList();
+        }
+        //药品嘱托
+        Map<Integer, DrugEntrust> drugEntrustNameMap = drugManager.drugEntrustIdMap(commonDrug.getOrganId());
+        //药品名拼接配置
+        Map<String, Integer> configDrugNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getDrugNameConfigByDrugType(commonDrug.getOrganId(), commonDrug.getDrugType()));
+        //药品商品名拼接配置
+        Map<String, Integer> configSaleNameMap = MapValueUtil.strArraytoMap(DrugNameDisplayUtil.getSaleNameConfigByDrugType(commonDrug.getOrganId(), commonDrug.getDrugType()));
+        //平台药品
+        List<Integer> drugIds = organDrugList.stream().map(OrganDrugList::getDrugId).distinct().collect(Collectors.toList());
+        List<DrugList> drugs = this.drugList(drugIds);
+        Map<Integer, DrugList> drugMap = drugs.stream().collect(Collectors.toMap(DrugList::getDrugId, a -> a, (k1, k2) -> k1));
+        //返回药品出参
+        List<SearchDrugDetailDTO> drugList = new ArrayList<>();
+        organDrugList.forEach(a -> {
+            SearchDrugDetailDTO searchDrug = ObjectCopyUtils.convert(a, SearchDrugDetailDTO.class);
+            RecipeUtil.SearchDrugDetailDTO(searchDrug, configDrugNameMap, configSaleNameMap, drugEntrustNameMap);
+            searchDrug.setUseDoseAndUnitRelation(RecipeUtil.defaultUseDose(a));
+            //添加es价格空填值逻辑
+            DrugList drugListNow = drugMap.get(a.getDrugId());
+            if (null != drugListNow) {
+                searchDrug.setPrice1(drugListNow.getPrice1());
+                searchDrug.setPrice2(drugListNow.getPrice2());
+                searchDrug.setDrugType(drugListNow.getDrugType());
+            }
+            drugList.add(searchDrug);
+        });
+        return drugList;
+    }
+
+    private void getCheckText(PatientContinueRecipeCheckDrugRes patientContinueRecipeCheckDrugRes, List<String> drugName) {
         patientContinueRecipeCheckDrugRes.setCheckFlag(YesOrNoEnum.YES.getType());
         StringBuilder stringBuilder = new StringBuilder("处方内药品");
-        drugName.forEach(drug -> {
-            stringBuilder.append("【").append(drug).append("】");
-        });
+        drugName.forEach(drug -> stringBuilder.append("【").append(drug).append("】"));
         stringBuilder.append("不支持线上开药,是否继续?");
         patientContinueRecipeCheckDrugRes.setCheckText(stringBuilder.toString());
     }
