@@ -9,57 +9,59 @@ import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.his.recipe.mode.MedicalPreSettleReqNTO;
 import com.ngari.his.recipe.mode.RecipeMedicalPreSettleInfo;
+import com.ngari.his.recipe.mode.RecipePreSettleDrugFeeDTO;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.patient.service.BasicAPI;
 import com.ngari.patient.service.HealthCardService;
 import com.ngari.patient.service.OrganService;
 import com.ngari.patient.service.PatientService;
-import com.ngari.recipe.entity.DrugsEnterprise;
-import com.ngari.recipe.entity.Recipe;
-import com.ngari.recipe.entity.RecipeExtend;
-import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.*;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
 import ctd.persistence.DAOFactory;
 import ctd.persistence.exception.DAOException;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import recipe.ApplicationUtils;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeExtendDAO;
-import recipe.dao.RecipeOrderDAO;
+import recipe.dao.*;
 import recipe.enumerate.type.ForceCashTypeEnum;
 import recipe.hisservice.RecipeToHisService;
+import recipe.manager.RecipeDetailManager;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * created by shiyuping on 2020/11/27
  * 医保预结算
+ *
  * @author shiyuping
  */
 @Service
 public class MedicalPreSettleService implements IRecipePreSettleService {
     private static final Logger LOGGER = LoggerFactory.getLogger(MedicalPreSettleService.class);
+
     @Override
     public Map<String, Object> recipePreSettle(Integer recipeId, Map<String, Object> extInfo) {
-        LOGGER.info("MedicalPreSettleService.recipePreSettle req recipeId={} extInfo={}",recipeId, JSONArray.toJSONString(extInfo));
+        LOGGER.info("MedicalPreSettleService.recipePreSettle req recipeId={} extInfo={}", recipeId, JSONArray.toJSONString(extInfo));
         Map<String, Object> result = Maps.newHashMap();
         result.put("code", "-1");
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeDetailManager recipeDetailManager = DAOFactory.getDAO(RecipeDetailManager.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (recipe == null) {
             result.put("msg", "查不到该处方");
@@ -91,7 +93,7 @@ public class MedicalPreSettleService implements IRecipePreSettleService {
                 //省医保参保类型 1 长三角 没有赋值就是原来的省直医保
                 request.setInsuredAreaType("1");
                 //结算的时候会用到
-                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("insuredArea",request.getInsuredArea()));
+                recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("insuredArea", request.getInsuredArea()));
             }
             RecipeExtend ext = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
             if (ext != null) {
@@ -156,7 +158,7 @@ public class MedicalPreSettleService implements IRecipePreSettleService {
                     request.setTcmFee(recipeOrder.getTcmFee());
                     request.setTcmFeeNo(recipeOrder.getTcmFeeNo());
                 }
-            }catch (Exception e){
+            } catch (Exception e) {
                 LOGGER.error("MedicalPreSettleService 代缴费用有误");
             }
 
@@ -191,6 +193,9 @@ public class MedicalPreSettleService implements IRecipePreSettleService {
                             }
                         }
                     }
+                    List recipeIds = MapValueUtil.getList(extInfo,"recipeIds");
+                    recipeDetailManager.saveRecipePreSettleDrugFeeDTOS(hisResult.getData().getRecipePreSettleDrugFeeDTOS(), recipeIds);
+
                     result.put("totalAmount", totalAmount);
                     result.put("fundAmount", fundAmount);
                     result.put("cashAmount", cashAmount);
