@@ -105,7 +105,7 @@ public class OrderManager extends BaseManager {
             return true;
         }
         DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(depId);
-        if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_PLATFORM)) {
+        if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_PLATFORM)&&logisticsCompany!=null) {
             List<OrganLogisticsManageDto>  organLogisticsManageDtos=organLogisticsManageService.getOrganLogisticsManageByOrganIdAndLogisticsCode(enterprise.getId(),logisticsCompany.toString(),DrugEnterpriseConstant.BUSINESS_TYPE);
             OrganLogisticsManageDto organLogisticsManageDto=new OrganLogisticsManageDto();
             if(CollectionUtils.isNotEmpty(organLogisticsManageDtos)){
