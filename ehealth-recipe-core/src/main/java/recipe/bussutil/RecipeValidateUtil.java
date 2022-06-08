@@ -32,6 +32,7 @@ import recipe.client.DrugClient;
 import recipe.constant.ErrorCode;
 import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
@@ -286,6 +287,10 @@ public class RecipeValidateUtil {
                         BigDecimal useTotalDose = new BigDecimal(recipeDetail.getUseTotalDose());
                         useTotalDose = useTotalDose.divide(new BigDecimal(drugSaleStrategy.getDrugAmount()),2,BigDecimal.ROUND_HALF_UP);
                         recipeDetail.setUseTotalDose(useTotalDose.doubleValue());
+                        if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipeDetail.getDrugType())) {
+                            recipeDetail.setUseDose(useTotalDose.doubleValue());
+                            recipeDetail.setUseDoseUnit(drugSaleStrategy.getDrugUnit());
+                        }
                     }
                     recipeDetail.setSalePrice(saleDrugLists.get(0).getPrice());
                 }

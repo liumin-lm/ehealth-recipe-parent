@@ -1675,6 +1675,10 @@ public class RecipeOrderService extends RecipeBaseService {
                         if (null != recipedetail.getSaleUseDose() && StringUtils.isNotEmpty(recipedetail.getSaleUnit())) {
                             recipeDetailBean.setUseTotalDose(recipedetail.getSaleUseDose().doubleValue());
                             recipeDetailBean.setDrugUnit(recipedetail.getSaleUnit());
+                            if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipedetail.getDrugType())) {
+                                recipeDetailBean.setUseDose(recipedetail.getSaleUseDose().doubleValue());
+                                recipeDetailBean.setUseDoseUnit(recipedetail.getSaleUnit());
+                            }
                         }
                         try {
                             recipeDetailBean.setSaleDrugPrice(recipedetail.getSalePrice().divide(new BigDecimal(recipedetail.getPack()), 2, BigDecimal.ROUND_HALF_UP));
