@@ -281,17 +281,20 @@ public class RecipeValidateUtil {
                 if(CollectionUtils.isNotEmpty(saleDrugLists)){
                     SaleDrugList saleDrugList = saleDrugLists.get(0);
                     if (null != saleDrugList.getSaleStrategyId() && saleDrugList.getSaleStrategyId() > 0 && MapUtils.isNotEmpty(drugSaleStrategyMap)) {
+                        LOGGER.info("validateDrugsImplForDetail saleDrugList:{}", JSONUtils.toString(saleDrugList));
                         DrugSaleStrategy drugSaleStrategy = drugSaleStrategyMap.get(saleDrugList.getSaleStrategyId());
+                        LOGGER.info("validateDrugsImplForDetail drugSaleStrategy:{}", JSONUtils.toString(drugSaleStrategy));
                         recipeDetail.setDrugUnit(drugSaleStrategy.getDrugUnit());
-                        recipeDetail.setPack(drugSaleStrategy.getDrugAmount());
                         BigDecimal useTotalDose = new BigDecimal(recipeDetail.getUseTotalDose());
-                        useTotalDose = useTotalDose.divide(new BigDecimal(drugSaleStrategy.getDrugAmount()),2,BigDecimal.ROUND_HALF_UP);
-                        recipeDetail.setUseTotalDose(useTotalDose.doubleValue());
                         if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipeDetail.getDrugType())) {
                             useTotalDose = useTotalDose.divide(new BigDecimal(recipe.getCopyNum())).divide(new BigDecimal(drugSaleStrategy.getDrugAmount()),2,BigDecimal.ROUND_HALF_UP);
                             recipeDetail.setUseDose(useTotalDose.doubleValue());
                             recipeDetail.setUseDoseUnit(drugSaleStrategy.getDrugUnit());
                             recipeDetail.setPack(1);
+                        } else {
+                            useTotalDose = useTotalDose.divide(new BigDecimal(drugSaleStrategy.getDrugAmount()),2,BigDecimal.ROUND_HALF_UP);
+                            recipeDetail.setUseTotalDose(useTotalDose.doubleValue());
+                            recipeDetail.setPack(drugSaleStrategy.getDrugAmount());
                         }
                     }
                     recipeDetail.setSalePrice(saleDrugLists.get(0).getPrice());
