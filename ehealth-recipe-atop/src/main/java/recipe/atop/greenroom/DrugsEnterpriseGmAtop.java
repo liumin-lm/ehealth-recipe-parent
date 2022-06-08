@@ -1,5 +1,7 @@
 package recipe.atop.greenroom;
 
+import com.ngari.recipe.drugdistributionprice.model.DrugDistributionPriceBean;
+import com.ngari.recipe.drugdistributionprice.service.IDrugDistributionPriceService;
 import com.ngari.recipe.drugsenterprise.model.DrugsEnterpriseBean;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressDTO;
 import com.ngari.recipe.drugsenterprise.model.EnterpriseDecoctionAddressReq;
@@ -40,6 +42,32 @@ public class DrugsEnterpriseGmAtop extends BaseAtop {
 
     @Autowired
     private IDrugsEnterpriseBusinessService enterpriseBusinessService;
+    @Autowired
+    private IDrugDistributionPriceService drugDistributionPriceService;
+
+    /**
+     * 根据药企获取药企配送地址快递费
+     *
+     * @param enterpriseId
+     */
+    @RpcService
+    public List<DrugDistributionPriceBean> findEnterpriseAddressFeeList(Integer enterpriseId) {
+        validateAtop(enterpriseId);
+        List<DrugDistributionPriceBean> list = drugDistributionPriceService.findByEnterpriseId(enterpriseId);
+        return list;
+    }
+
+ /**
+     * 添加药企配送地址快递费
+     *
+     * @param list
+     */
+    @RpcService
+    public List<DrugDistributionPriceBean> addEnterpriseAddressFeeList(List<DrugDistributionPriceBean> list) {
+        validateAtop(list);
+        drugDistributionPriceService.savePriceList(list);
+        return list;
+    }
 
 
     /**
