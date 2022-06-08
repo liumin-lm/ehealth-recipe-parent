@@ -28,6 +28,7 @@ import recipe.aop.LogRecord;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.util.LocalStringUtil;
+import recipe.util.ValidateUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -511,7 +512,7 @@ public class DrugManager extends BaseManager {
     }
 
     public Integer saveCommonDrug(Recipe recipe) {
-        if (null == recipe) {
+        if (ValidateUtil.validateObjects(recipe, recipe.getClinicOrgan(), recipe.getDoctor())) {
             return null;
         }
         logger.info("DrugManager saveCommonDrug start recipe={}", recipe.getRecipeId());
@@ -520,6 +521,9 @@ public class DrugManager extends BaseManager {
             return null;
         }
         recipeDetails.forEach(a -> {
+            if (ValidateUtil.validateObjects(a.getDrugId(), a.getOrganDrugCode())) {
+                return;
+            }
             DrugCommon drugCommon = drugCommonDAO.getByOrganIdAndDoctorIdAndDrugCode(recipe.getClinicOrgan(), recipe.getDoctor(), a.getOrganDrugCode());
             if (null != drugCommon) {
                 drugCommon.setSort(drugCommon.getSort() + 1);
