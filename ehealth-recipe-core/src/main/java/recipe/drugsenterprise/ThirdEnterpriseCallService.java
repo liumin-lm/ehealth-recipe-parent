@@ -8,8 +8,10 @@ import com.ngari.base.patient.service.IPatientService;
 import com.ngari.his.recipe.mode.DrugTakeChangeReqTO;
 import com.ngari.infra.invoice.mode.InvoiceRecordDto;
 import com.ngari.infra.invoice.service.InvoiceRecordService;
+import com.ngari.infra.logistics.mode.OrganLogisticsManageDto;
 import com.ngari.infra.logistics.mode.WriteBackLogisticsOrderDto;
 import com.ngari.infra.logistics.service.ILogisticsOrderService;
+import com.ngari.infra.logistics.service.IOrganLogisticsManageService;
 import com.ngari.patient.dto.DepartmentDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.patient.dto.OrganDTO;
@@ -130,6 +132,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     private OrderManager orderManager;
     @Autowired
     private InvoiceRecordService invoiceRecordService;
+    @Autowired
+    private IOrganLogisticsManageService iOrganLogisticsManageService;
 
     /**
      * 待配送状态
@@ -1411,10 +1415,24 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         }
         DrugsEnterpriseDTO drugsEnterpriseDTO = new DrugsEnterpriseDTO();
         BeanUtils.copy(drugsEnterprise, drugsEnterpriseDTO);
-        //TODO liumin 物流拆分
-//        List<DrugEnterpriseLogistics> drugEnterpriseLogistics = drugEnterpriseLogisticsDAO.getByDrugsEnterpriseId(id);
-//        drugsEnterpriseDTO.setDrugEnterpriseLogisticsList(drugEnterpriseLogistics);
-//        LOGGER.info("findByEnterpriseId drugsEnterpriseDTO:{}", JSONUtils.toString(drugsEnterpriseDTO));
+
+        List<OrganLogisticsManageDto> organLogisticsManageDtos=iOrganLogisticsManageService.getOrganLogisticsManageByOrganId(id);
+        List<DrugEnterpriseLogistics> drugEnterpriseLogistics =new ArrayList<>();
+        if(CollectionUtils.isNotEmpty(organLogisticsManageDtos)){
+            organLogisticsManageDtos.forEach(organLogisticsManageDto -> {
+                DrugEnterpriseLogistics drugEnterpriseLogistics1=new DrugEnterpriseLogistics();
+                drugEnterpriseLogistics1.setCreateTime(organLogisticsManageDto.getCreateTime());
+                drugEnterpriseLogistics1.setDrugsEnterpriseId(organLogisticsManageDto.getDrugsEnterpriseId());
+                drugEnterpriseLogistics1.setId(organLogisticsManageDto.getOrganId());
+                drugEnterpriseLogistics1.setIsDefault(organLogisticsManageDto.getIsDefault());
+                drugEnterpriseLogistics1.setLogisticsCompany(organLogisticsManageDto.getLogisticsCompanyId()==null?null:Integer.parseInt(organLogisticsManageDto.getLogisticsCompanyId()));
+                drugEnterpriseLogistics1.setLogisticsCompanyName(organLogisticsManageDto.getLogisticsCompanyName());
+                drugEnterpriseLogistics1.setUpdateTime(organLogisticsManageDto.getUpdateTime());
+                drugEnterpriseLogistics.add(drugEnterpriseLogistics1);
+            });
+        }
+        drugsEnterpriseDTO.setDrugEnterpriseLogisticsList(drugEnterpriseLogistics);
+        LOGGER.info("findByEnterpriseId drugsEnterpriseDTO:{}", JSONUtils.toString(drugsEnterpriseDTO));
         return drugsEnterpriseDTO;
     }
 
