@@ -1645,7 +1645,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         tcmFlag = true;
                     }
                     prb.setRecipe(recipeBean);
-//                    prb.setPatient(patientService.getByMpiId(recipe.getMpiid()));
+                    prb.setPatient(patientService.getByMpiId(recipe.getMpiid()));
                     try {
                         prb.setDepartName(DictionaryController.instance().get("eh.base.dictionary.Depart").getText(recipe.getDepart()));
                     } catch (ControllerException e) {
