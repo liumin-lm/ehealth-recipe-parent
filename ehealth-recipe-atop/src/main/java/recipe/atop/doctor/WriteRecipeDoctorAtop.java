@@ -108,6 +108,7 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
      * @param recipeId recipe
      * @param type     0： 默认全部 1：查询暂存，2查询可撤销处方
      */
+    @RpcService
     public RecipeBean recipeInfo(Integer recipeId, Integer type) {
         validateAtop(recipeId);
         Recipe recipe = recipeBusinessService.getByRecipeId(recipeId);
