@@ -383,7 +383,7 @@ public class OrderFeeManager extends BaseManager {
         if (preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.DECOCTION_FEE.getType()) && Objects.nonNull(order.getDecoctionFee())) {
             recipeFeeNew = recipeFeeNew.subtract(order.getDecoctionFee());
         }
-        return recipeFeeNew;
+        return recipeFeeNew.setScale(2,BigDecimal.ROUND_HALF_UP);
 
     }
 
