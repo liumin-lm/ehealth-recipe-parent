@@ -1800,7 +1800,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         LOGGER.error("getOrderDetailById needFee计算需支付 error :{}", e);
                     }
                 }
-                orderBean.setNeedFee(needFee.setScale(2,BigDecimal.ROUND_HALF_UP));
+                orderBean.setNeedFee(needFee.compareTo(BigDecimal.ZERO) >= 0 ? needFee : BigDecimal.ZERO);
             }
 
             if (order.getEnterpriseId() != null) {
