@@ -279,7 +279,7 @@ public class RecipeValidateUtil {
                 List<SaleDrugList> saleDrugLists = recipeDetailSalePrice.get(recipeDetail.getDrugId());
                 if(CollectionUtils.isNotEmpty(saleDrugLists)){
                     SaleDrugList saleDrugList = saleDrugLists.get(0);
-                    if (null != saleDrugList.getSaleStrategyId() && MapUtils.isEmpty(drugSaleStrategyMap)) {
+                    if (null != saleDrugList.getSaleStrategyId() && MapUtils.isNotEmpty(drugSaleStrategyMap)) {
                         DrugSaleStrategy drugSaleStrategy = drugSaleStrategyMap.get(saleDrugList.getSaleStrategyId());
                         recipeDetail.setDrugUnit(drugSaleStrategy.getDrugUnit());
                         recipeDetail.setPack(drugSaleStrategy.getDrugAmount());
