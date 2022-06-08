@@ -369,6 +369,9 @@ public class OrderFeeManager extends BaseManager {
         if (CollectionUtils.isEmpty(preSettleContainOrderFee)) {
             return recipeFee;
         }
+        if(Objects.isNull(order.getPreSettletotalAmount())){
+            return recipeFee;
+        }
 
         // 预结算返回费用包含挂号费
         BigDecimal recipeFeeNew = new BigDecimal(order.getPreSettletotalAmount());
