@@ -1564,7 +1564,6 @@ public class RecipeOrderService extends RecipeBaseService {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-        CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
 
         RecipeOrder order = recipeOrderDAO.get(orderId);
         if (null != order) {
@@ -1672,6 +1671,10 @@ public class RecipeOrderService extends RecipeBaseService {
                         List<DrugList> drugList = drugListMap.get(recipedetail.getDrugId());
                         if (CollectionUtils.isNotEmpty(drugList)) {
                             recipeDetailBean.setDrugPic(drugList.get(0).getDrugPic());
+                        }
+                        if (null != recipedetail.getSaleUseDose() && StringUtils.isNotEmpty(recipedetail.getSaleUnit())) {
+                            recipeDetailBean.setUseTotalDose(recipedetail.getSaleUseDose().doubleValue());
+                            recipeDetailBean.setDrugUnit(recipedetail.getSaleUnit());
                         }
                         try {
                             recipeDetailBean.setSaleDrugPrice(recipedetail.getSalePrice().divide(new BigDecimal(recipedetail.getPack()), 2, BigDecimal.ROUND_HALF_UP));
