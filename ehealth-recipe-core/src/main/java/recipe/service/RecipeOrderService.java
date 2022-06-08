@@ -1007,6 +1007,12 @@ public class RecipeOrderService extends RecipeBaseService {
                                     recipedetail.setActualSalePrice(saleDrug.getPrice());
                                     recipedetail.setSaleUseDose(useTotalDose);
                                 }
+                            } else {
+                                if (StringUtils.isNotEmpty(recipedetail.getSaleUnit()) && null != recipedetail.getSaleUseDose()) {
+                                    recipedetail.setSaleUnit(null);
+                                    recipedetail.setSaleUseDose(null);
+                                    recipeDetailDAO.updateAllRecipeDetail(details);
+                                }
                             }
 
                             BigDecimal multiply = saleDrug.getPrice().multiply(useTotalDose).setScale(4, BigDecimal.ROUND_HALF_UP);
