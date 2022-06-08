@@ -32,7 +32,7 @@ public abstract class DrugCommonDAO extends HibernateSupportDelegateDAO<DrugComm
     @DAOMethod(sql = "from DrugCommon where organId=:organId and doctorId=:doctorId and  drugType in (:drugTypes) order by sort desc")
     public abstract List<DrugCommon> findByOrganIdAndDoctorIdAndTypes(@DAOParam("organId") Integer organId,
                                                                       @DAOParam("doctorId") Integer doctorId,
-                                                                      @DAOParam("drugType") List<Integer> drugTypes,
+                                                                      @DAOParam("drugTypes") List<Integer> drugTypes,
                                                                       @DAOParam(pageStart = true) int start,
                                                                       @DAOParam(pageLimit = true) int limit);
 
