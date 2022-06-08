@@ -23,18 +23,23 @@ public abstract class DrugCommonDAO extends HibernateSupportDelegateDAO<DrugComm
 
     /**
      * 获取常用列表
-     * @param organId 机构id
-     * @param doctorId 医生id
+     *
+     * @param organId   机构id
+     * @param doctorId  医生id
      * @param drugTypes 药品类型
      * @return 常用药列表
      */
     @DAOMethod(sql = "from DrugCommon where organId=:organId and doctorId=:doctorId and  drugType in (:drugTypes) order by sort desc")
-    public abstract List<DrugCommon> findByOrganIdAndDoctorIdAndDrugCode(@DAOParam("organId") Integer organId,
-                                                                         @DAOParam("doctorId") Integer doctorId,
-                                                                         @DAOParam("drugType") List<Integer> drugTypes,
-                                                                         @DAOParam(pageStart = true) int start,
-                                                                         @DAOParam(pageLimit = true) int limit);
+    public abstract List<DrugCommon> findByOrganIdAndDoctorIdAndTypes(@DAOParam("organId") Integer organId,
+                                                                      @DAOParam("doctorId") Integer doctorId,
+                                                                      @DAOParam("drugType") List<Integer> drugTypes,
+                                                                      @DAOParam(pageStart = true) int start,
+                                                                      @DAOParam(pageLimit = true) int limit);
 
+    @DAOMethod(sql = "from DrugCommon where organId=:organId and doctorId=:doctorId and organDrugCode=:organDrugCode")
+    public abstract DrugCommon getByOrganIdAndDoctorIdAndDrugCode(@DAOParam("organId") Integer organId,
+                                                                  @DAOParam("doctorId") Integer doctorId,
+                                                                  @DAOParam("organDrugCode") String organDrugCode);
 
 
 }

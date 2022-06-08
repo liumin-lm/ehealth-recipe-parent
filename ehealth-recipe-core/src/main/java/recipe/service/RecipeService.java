@@ -259,6 +259,8 @@ public class RecipeService extends RecipeBaseService {
     private EnterpriseManager enterpriseManager;
     @Autowired
     private OrderManager orderManager;
+    @Resource
+    private DrugManager drugManager;
 
     /**
      * 药师审核不通过
@@ -537,6 +539,7 @@ public class RecipeService extends RecipeBaseService {
             recipeBean.setPayFlag(PayConstant.PAY_FLAG_NOT_PAY);
             service.createBlankOrderForHos(recipeBean, hospitalRecipeDTO);
         }
+        RecipeBusiThreadPool.execute(() -> drugManager.saveCommonDrug(recipeId));
         return recipeId;
     }
 

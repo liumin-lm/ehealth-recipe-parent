@@ -1,6 +1,5 @@
 package recipe.atop.greenroom;
 
-import com.alibaba.fastjson.JSON;
 import com.ngari.base.esign.model.CoOrdinateVO;
 import com.ngari.recipe.vo.FastRecipeAndDetailResVO;
 import com.ngari.recipe.vo.FastRecipeReqVO;
@@ -25,6 +24,7 @@ public class TextGmAtop {
     @Resource
     private IDrugBusinessService drugBusinessService;
 
+
     @RpcService
     public void coOrdinate(Integer recipeId, CoOrdinateVO ordinateVO) {
         textBusinessService.coOrdinate(recipeId, ordinateVO);
@@ -46,12 +46,23 @@ public class TextGmAtop {
     }
 
     @RpcService
-    public FastRecipeAndDetailResVO getFastRecipeJson(FastRecipeReqVO fastRecipeReqVO){
+    public FastRecipeAndDetailResVO getFastRecipeJson(FastRecipeReqVO fastRecipeReqVO) {
         return textBusinessService.getFastRecipeJson(fastRecipeReqVO);
     }
 
     @RpcService(timeout = 3600)
-    public void queryRemindRecipe(String dateTime){
+    public void queryRemindRecipe(String dateTime) {
         drugBusinessService.queryRemindRecipe(dateTime);
+    }
+
+    /**
+     * todo 老数据同步接口 只使用一次
+     *
+     * @param recipeId
+     * @param doctorId
+     */
+    @RpcService
+    public void saveCommonDrug(Integer recipeId, Integer doctorId) {
+        drugBusinessService.saveCommonDrug(recipeId, doctorId);
     }
 }
