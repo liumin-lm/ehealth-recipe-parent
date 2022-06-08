@@ -5,7 +5,10 @@ import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
 import com.ngari.base.dto.UsePathwaysDTO;
 import com.ngari.base.dto.UsingRateDTO;
-import com.ngari.recipe.dto.*;
+import com.ngari.recipe.dto.DrugInfoDTO;
+import com.ngari.recipe.dto.ListOrganDrugReq;
+import com.ngari.recipe.dto.PatientDrugWithEsDTO;
+import com.ngari.recipe.dto.RecipeInfoDTO;
 import com.ngari.recipe.entity.*;
 import ctd.persistence.DAOFactory;
 import ctd.util.JSONUtils;
@@ -22,11 +25,10 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
-import recipe.client.DrugClient;
-import recipe.client.OfflineRecipeClient;
 import recipe.constant.RecipeBussConstant;
 import recipe.dao.*;
 import recipe.util.LocalStringUtil;
+import recipe.util.ValidateUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,8 +42,6 @@ import java.util.stream.Collectors;
 public class DrugManager extends BaseManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(DrugManager.class);
     @Autowired
-    private DrugClient drugClient;
-    @Autowired
     private DrugMakingMethodDao drugMakingMethodDao;
     @Autowired
     private DrugDecoctionWayDao drugDecoctionWayDao;
@@ -54,11 +54,9 @@ public class DrugManager extends BaseManager {
     @Autowired
     private RecipeRulesDrugcorrelationDao recipeRulesDrugcorrelationDao;
     @Autowired
-    private OfflineRecipeClient offlineRecipeClient;
+    private DrugCommonDAO drugCommonDAO;
     @Autowired
-    private OrganDrugListDAO organDrugListDAO;
-    @Autowired
-    private DrugSearchService searchService ;
+    private DrugSearchService searchService;
 
     /**
      * 更新drugList 到Es
@@ -267,6 +265,16 @@ public class DrugManager extends BaseManager {
                 .stream().collect(Collectors.toMap(DrugEntrust::getDrugEntrustName, a -> a, (k1, k2) -> k1));
     }
 
+    public Map<Integer, DrugEntrust> drugEntrustIdMap(Integer organId) {
+        if (null == organId) {
+            return new HashMap<>();
+        }
+        List<DrugEntrust> drugEntrusts = drugEntrustDAO.findByOrganId(organId);
+        logger.info("DrugClient drugEntrustNameMap organId = {} ,drugEntrusts={}", organId, JSON.toJSONString(drugEntrusts));
+        return Optional.ofNullable(drugEntrusts).orElseGet(Collections::emptyList)
+                .stream().collect(Collectors.toMap(DrugEntrust::getDrugEntrustId, a -> a, (k1, k2) -> k1));
+    }
+
 
     /**
      * 获取机构 药物使用频率
@@ -423,21 +431,6 @@ public class DrugManager extends BaseManager {
     }
 
     /**
-     * 查询his 药品说明书
-     *
-     * @param organId      机构id
-     * @param recipedetail 药品数据
-     * @return
-     */
-    public DrugSpecificationInfoDTO hisDrugBook(Integer organId, Recipedetail recipedetail) {
-        OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(organId, recipedetail.getOrganDrugCode(), recipedetail.getDrugId());
-        if (null == organDrug) {
-            return null;
-        }
-        return offlineRecipeClient.drugSpecification(organId, organDrug);
-    }
-
-    /**
      * 根据ID获取平台药品列表
      *
      * @param drugIds 平台药品id
@@ -505,5 +498,48 @@ public class DrugManager extends BaseManager {
 
     public List<OrganDrugList> listOrganDrug(ListOrganDrugReq listOrganDrugReq) {
         return organDrugListDAO.listOrganDrugByTime(listOrganDrugReq);
+    }
+
+    public List<DrugCommon> commonDrugList(Integer organId, Integer doctorId, List<Integer> drugTypes) {
+        List<DrugCommon> drugCommonList = drugCommonDAO.findByOrganIdAndDoctorIdAndTypes(organId, doctorId, drugTypes, 0, 30);
+        logger.info("DrugManager commonDrugList organId={},doctorId-{},drugTypes={}, list={}"
+                , organId, doctorId, JSON.toJSONString(drugTypes), JSON.toJSONString(drugCommonList));
+        return drugCommonList;
+    }
+
+    public Integer saveCommonDrug(Integer recipeId) {
+        return this.saveCommonDrug(recipeDAO.getByRecipeId(recipeId));
+    }
+
+    public Integer saveCommonDrug(Recipe recipe) {
+        if (ValidateUtil.validateObjects(recipe, recipe.getClinicOrgan(), recipe.getDoctor())) {
+            return null;
+        }
+        logger.info("DrugManager saveCommonDrug start recipe={}", recipe.getRecipeId());
+        List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+        if (CollectionUtils.isEmpty(recipeDetails)) {
+            return null;
+        }
+        recipeDetails.forEach(a -> {
+            if (ValidateUtil.validateObjects(a.getDrugId(), a.getOrganDrugCode())) {
+                return;
+            }
+            DrugCommon drugCommon = drugCommonDAO.getByOrganIdAndDoctorIdAndDrugCode(recipe.getClinicOrgan(), recipe.getDoctor(), a.getOrganDrugCode());
+            if (null != drugCommon) {
+                drugCommon.setSort(drugCommon.getSort() + 1);
+                drugCommonDAO.update(drugCommon);
+            } else {
+                drugCommon = new DrugCommon();
+                drugCommon.setDrugId(a.getDrugId());
+                drugCommon.setDrugType(a.getDrugType());
+                drugCommon.setOrganDrugCode(a.getOrganDrugCode());
+                drugCommon.setDoctorId(recipe.getDoctor());
+                drugCommon.setOrganId(recipe.getClinicOrgan());
+                drugCommon.setSort(1);
+                drugCommonDAO.save(drugCommon);
+            }
+        });
+        logger.info("DrugManager saveCommonDrug end recipe={}", recipe.getRecipeId());
+        return recipe.getRecipeId();
     }
 }

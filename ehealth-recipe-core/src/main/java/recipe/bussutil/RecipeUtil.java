@@ -6,8 +6,8 @@ import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.base.organconfig.service.IOrganConfigService;
 import com.ngari.base.property.service.IConfigurationCenterUtilsService;
 import com.ngari.patient.dto.AppointDepartDTO;
-import com.ngari.patient.service.BasicAPI;
 import com.ngari.recipe.drug.model.DrugListBean;
+import com.ngari.recipe.drug.model.SearchDrugDetailDTO;
 import com.ngari.recipe.drug.model.UseDoseAndUnitRelationBean;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.RevisitAPI;
@@ -438,5 +438,34 @@ public class RecipeUtil {
             useDoseAndUnitRelationList.add(new UseDoseAndUnitRelationBean(organDrug.getDefaultSmallestUnitUseDose(), organDrug.getUseDoseSmallestUnit(), organDrug.getSmallestUnitUseDose()));
         }
         return useDoseAndUnitRelationList;
+    }
+
+
+    /**
+     * @param drugList           展示药品数据对象
+     * @param configDrugNameMap  药品名拼接配置
+     * @param configSaleNameMap  药品商品名拼接配置
+     * @param drugEntrustNameMap 药品嘱托
+     */
+    public static void SearchDrugDetailDTO(SearchDrugDetailDTO drugList, Map<String, Integer> configDrugNameMap,
+                                           Map<String, Integer> configSaleNameMap, Map<Integer, DrugEntrust> drugEntrustNameMap) {
+        try {
+            //前端展示的药品拼接名处理
+            drugList.setDrugDisplaySplicedName(DrugDisplayNameProducer.getDrugName(drugList, configDrugNameMap, DrugNameDisplayUtil.getDrugNameConfigKey(drugList.getDrugType())));
+            //前端展示的药品商品名拼接名处理
+            drugList.setDrugDisplaySplicedSaleName(DrugDisplayNameProducer.getDrugName(drugList, configSaleNameMap, DrugNameDisplayUtil.getSaleNameConfigKey(drugList.getDrugType())));
+            //替换嘱托
+            if (StringUtils.isEmpty(drugList.getDrugEntrust())) {
+                return;
+            }
+            DrugEntrust drugEntrust = drugEntrustNameMap.get(Integer.parseInt(drugList.getDrugEntrust()));
+            if (null != drugEntrust) {
+                drugList.setDrugEntrustId(drugEntrust.getDrugEntrustId().toString());
+                drugList.setDrugEntrustCode(drugEntrust.getDrugEntrustCode());
+                drugList.setDrugEntrust(drugEntrust.getDrugEntrustValue());
+            }
+        } catch (Exception e) {
+            LOGGER.info("RecipeUtil SearchDrugDetailDTO error drugEntrust ={} ", drugList.getDrugEntrust(), e);
+        }
     }
 }

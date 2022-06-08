@@ -101,6 +101,7 @@ public class RecipePreSettleService {
         param.put("insuredArea", insuredArea);
         param.put("recipeNoS", JSONUtils.toString(recipeNoS));
         param.put("payMode", recipeOrder.getPayMode());
+        param.put("recipeIds", recipeId);
         //获取对应预结算服务
         IRecipePreSettleService preSettleService = PreSettleFactory.getPreSettleService(recipe.getClinicOrgan(),orderType);
         if (preSettleService != null){

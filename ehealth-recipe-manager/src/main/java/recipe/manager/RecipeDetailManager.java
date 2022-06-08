@@ -2,6 +2,7 @@ package recipe.manager;
 
 import com.alibaba.fastjson.JSON;
 import com.ngari.his.recipe.mode.DrugInfoRequestTO;
+import com.ngari.his.recipe.mode.RecipePreSettleDrugFeeDTO;
 import com.ngari.patient.dto.AppointDepartDTO;
 import com.ngari.patient.dto.DoctorDTO;
 import com.ngari.recipe.dto.PatientDTO;
@@ -16,6 +17,7 @@ import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.dao.PharmacyTcmDAO;
+import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
 
@@ -34,6 +36,34 @@ public class RecipeDetailManager extends BaseManager {
     @Autowired
     private PharmacyTcmDAO pharmacyTcmDAO;
 
+    /**
+     * 保存预结算返回药品详细信息
+     *
+     * @param recipePreSettleDrugFeeDTOS 预结算返回信息
+     * @return
+     */
+    public void saveRecipePreSettleDrugFeeDTOS(List<RecipePreSettleDrugFeeDTO> recipePreSettleDrugFeeDTOS,List<Integer> recipeIds) {
+        logger.info("RecipeDetailManager saveRecipePreSettleDrugFeeDTOS  recipePreSettleDrugFeeDTOS = {}"
+                , JSON.toJSONString(recipePreSettleDrugFeeDTOS));
+
+        // 保存预结算返回药品详细信息
+        if (CollectionUtils.isNotEmpty(recipePreSettleDrugFeeDTOS)) {
+            Map<String, List<RecipePreSettleDrugFeeDTO>> collect = recipePreSettleDrugFeeDTOS.stream().collect(Collectors.groupingBy(a -> a.getRecipeCode() + a.getOrganDrugCode()));
+            List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
+            List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIds);
+            Map<Integer, String> recipeCodeMap = recipes.stream().collect(Collectors.toMap(Recipe::getRecipeId, Recipe::getRecipeCode));
+            for (Recipedetail recipeDetail : recipeDetails) {
+                String recipeCode = recipeCodeMap.get(recipeDetail.getRecipeId());
+                List<RecipePreSettleDrugFeeDTO> recipePreSettleDrugFeeDTO = collect.get(recipeCode + recipeDetail.getOrganDrugCode());
+                if (CollectionUtils.isNotEmpty(recipePreSettleDrugFeeDTO)) {
+                    recipeDetail.setActualSalePrice(recipePreSettleDrugFeeDTO.get(0).getSalePrice());
+                    recipeDetail.setDrugCost(recipePreSettleDrugFeeDTO.get(0).getDrugCost());
+                }
+            }
+            recipeDetailDAO.updateAllRecipeDetail(recipeDetails);
+
+        }
+    }
     /**
      * 保存处方明细
      *

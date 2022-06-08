@@ -25,11 +25,13 @@ import recipe.dao.RecipeExtendDAO;
 import recipe.dao.RecipeOrderDAO;
 import recipe.enumerate.type.ForceCashTypeEnum;
 import recipe.hisservice.RecipeToHisService;
+import recipe.manager.RecipeDetailManager;
 import recipe.purchase.PurchaseEnum;
 import recipe.service.RecipeLogService;
 import recipe.service.RecipeOrderService;
 import recipe.util.MapValueUtil;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -51,6 +53,7 @@ public class CashPreSettleService implements IRecipePreSettleService {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
+        RecipeDetailManager recipeDetailManager = DAOFactory.getDAO(RecipeDetailManager.class);
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (recipe == null) {
             result.put("msg", "查不到该处方");
@@ -134,6 +137,8 @@ public class CashPreSettleService implements IRecipePreSettleService {
                             }
                         }
                     }
+                    List recipeIds = MapValueUtil.getList(extInfo,"recipeIds");
+                    recipeDetailManager.saveRecipePreSettleDrugFeeDTOS(hisResult.getData().getRecipePreSettleDrugFeeDTOS(), recipeIds);
                     result.put("totalAmount", totalAmount);
                     result.put("cashAmount", cashAmount);
                 }

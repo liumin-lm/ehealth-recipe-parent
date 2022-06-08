@@ -336,6 +336,9 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "快捷购药处方标识 0 非快捷处方 1 快捷处方")
     private Integer fastRecipeFlag;
 
+    @ItemProperty(alias = "线下处方名称")
+    private String offlineRecipeName;
+
     @Column(name = "medical_flag")
     public Integer getMedicalFlag() {
         return medicalFlag;
@@ -1212,6 +1215,15 @@ public class Recipe implements Serializable {
 
     public void setCheckFlag(Integer checkFlag) {
         this.checkFlag = checkFlag;
+    }
+
+    @Column(name = "offline_recipe_name")
+    public String getOfflineRecipeName() {
+        return offlineRecipeName;
+    }
+
+    public void setOfflineRecipeName(String offlineRecipeName) {
+        this.offlineRecipeName = offlineRecipeName;
     }
 
     public Recipe(Integer recipeId, String supplementaryMemo) {

@@ -124,8 +124,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
     private GroupRecipeManager groupRecipeManager = AppContextHolder.getBean("groupRecipeManager", GroupRecipeManager.class);
     @Autowired
     private RecipeOrderDAO recipeOrderDAO;
-    @Autowired
-    private DrugEnterpriseLogisticsDAO drugEnterpriseLogisticsDAO;
+//    @Autowired
+//    private DrugEnterpriseLogisticsDAO drugEnterpriseLogisticsDAO;
     @Autowired
     private OrderManager orderManager;
     @Autowired
@@ -402,13 +402,16 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
             orderAttr.put("status", OrderStatusConstant.SENDING);
             //此处为物流公司字典
             String logisticsCompany = MapValueUtil.getString(paramMap, "logisticsCompany");
+            String trackingNumber = MapValueUtil.getString(paramMap, "trackingNumber");
             try {
                 logisticsCompany = StringUtils.isEmpty(logisticsCompany) ? null : Integer.valueOf(logisticsCompany).toString();
             } catch (Exception e) {
+                //记录日志
+                RecipeLogService.saveRecipeLog(recipeId, recipe.getStatus(), RecipeStatusConstant.IN_SEND, "配送中,配送人：" + sender
+                        + ",快递公司：" + logisticsCompany + ",快递单号：" + trackingNumber);
                 LOGGER.info("sendImpl logisticsCompany ={}", logisticsCompany, e);
                 logisticsCompany = null;
             }
-            String trackingNumber = MapValueUtil.getString(paramMap, "trackingNumber");
             //药店或者站点名称
             String drugStoreName = MapValueUtil.getString(paramMap, "drugStoreName");
             String drugStoreCode = MapValueUtil.getString(paramMap, "drugStoreCode");
@@ -1408,9 +1411,10 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         }
         DrugsEnterpriseDTO drugsEnterpriseDTO = new DrugsEnterpriseDTO();
         BeanUtils.copy(drugsEnterprise, drugsEnterpriseDTO);
-        List<DrugEnterpriseLogistics> drugEnterpriseLogistics = drugEnterpriseLogisticsDAO.getByDrugsEnterpriseId(id);
-        drugsEnterpriseDTO.setDrugEnterpriseLogisticsList(drugEnterpriseLogistics);
-        LOGGER.info("findByEnterpriseId drugsEnterpriseDTO:{}", JSONUtils.toString(drugsEnterpriseDTO));
+        //TODO liumin 物流拆分
+//        List<DrugEnterpriseLogistics> drugEnterpriseLogistics = drugEnterpriseLogisticsDAO.getByDrugsEnterpriseId(id);
+//        drugsEnterpriseDTO.setDrugEnterpriseLogisticsList(drugEnterpriseLogistics);
+//        LOGGER.info("findByEnterpriseId drugsEnterpriseDTO:{}", JSONUtils.toString(drugsEnterpriseDTO));
         return drugsEnterpriseDTO;
     }
 

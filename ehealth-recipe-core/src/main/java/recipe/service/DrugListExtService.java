@@ -401,12 +401,14 @@ public class DrugListExtService extends BaseService<DrugListBean> {
 
     /**
      * 常用药品列表服务new
+     * todo 新方法 DrugDoctorAtop。commonDrugList
      *
      * @return List<DrugList>
      * 新增 根据药房pharmacyId过滤
      */
     @RpcService
     @LogRecord
+    @Deprecated
     public List<DrugListBean> findCommonDrugListsNew(CommonDrugListDTO commonDrugListDTO) {
         LOGGER.info("findCommonDrugListsNew.commonDrugListDTO={}", JSONUtils.toString(commonDrugListDTO));
         Args.notNull(commonDrugListDTO.getDoctor(), "doctor");
@@ -620,6 +622,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
 
     /**
      * 常用药品列表服务
+     * todo 新方法 DrugDoctorAtop。commonDrugList
      *
      * @param doctor 开方医生
      * @return List<DrugList>
@@ -627,6 +630,7 @@ public class DrugListExtService extends BaseService<DrugListBean> {
      * @author luf
      */
     @RpcService
+    @Deprecated
     public List<DrugListBean> findCommonDrugLists(int doctor, int organId, int drugType) {
         CommonDrugListDTO dto = new CommonDrugListDTO(doctor, organId, drugType);
         return findCommonDrugListsNew(dto);

@@ -151,28 +151,28 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "物流类型 1-平台 2-药企 3-药企(His)")
     private Integer logisticsType;
 
-    @ItemProperty(alias = "寄件人名称")
-    private String consignorName;
-
-    @ItemProperty(alias = "寄件人手机号")
-    @Desensitizations(type = DesensitizationsType.MOBILE)
-    private String consignorMobile;
-
-    @ItemProperty(alias = "寄件人省份编码")
-    private String consignorProvince;
-
-    @ItemProperty(alias = "寄件人城市编码")
-    private String consignorCity;
-
-    @ItemProperty(alias = "寄件人区域编码")
-    private String consignorDistrict;
-
-    @ItemProperty(alias = "寄件人详细地址")
-    @Desensitizations(type = DesensitizationsType.ADDRESS)
-    private String consignorAddress;
-
-    @ItemProperty(alias = "寄件人街道编码")
-    private String consignorStreet;
+//    @ItemProperty(alias = "寄件人名称")
+//    private String consignorName;
+//
+//    @ItemProperty(alias = "寄件人手机号")
+//    @Desensitizations(type = DesensitizationsType.MOBILE)
+//    private String consignorMobile;
+//
+//    @ItemProperty(alias = "寄件人省份编码")
+//    private String consignorProvince;
+//
+//    @ItemProperty(alias = "寄件人城市编码")
+//    private String consignorCity;
+//
+//    @ItemProperty(alias = "寄件人区域编码")
+//    private String consignorDistrict;
+//
+//    @ItemProperty(alias = "寄件人详细地址")
+//    @Desensitizations(type = DesensitizationsType.ADDRESS)
+//    private String consignorAddress;
+//
+//    @ItemProperty(alias = "寄件人街道编码")
+//    private String consignorStreet;
 
     @ItemProperty(alias = "订单备注")
     private String orderMemo;
@@ -180,8 +180,8 @@ public class DrugsEnterprise implements java.io.Serializable {
     @ItemProperty(alias = "药企更新token的标识")
     private Integer updateTokenFlag;
 
-    @ItemProperty(alias = "集揽模式")
-    private Integer collectMode;
+//    @ItemProperty(alias = "集揽模式")
+//    private Integer collectMode;
 
     @ItemProperty(alias = "到院取药日期是否展示今天 0 否 1 是")
     private Integer isShowToday;
@@ -220,68 +220,68 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.isShowToday = isShowToday;
     }
 
-    @Column(name = "consignorStreet")
-    public String getConsignorStreet() {
-        return consignorStreet;
-    }
-
-    public void setConsignorStreet(String consignorStreet) {
-        this.consignorStreet = consignorStreet;
-    }
-
-    @Column(name = "consignorName")
-    public String getConsignorName() {
-        return consignorName;
-    }
-
-    public void setConsignorName(String consignorName) {
-        this.consignorName = consignorName;
-    }
-
-    @Column(name = "consignorMobile")
-    public String getConsignorMobile() {
-        return consignorMobile;
-    }
-
-    public void setConsignorMobile(String consignorMobile) {
-        this.consignorMobile = consignorMobile;
-    }
-
-    @Column(name = "consignorProvince")
-    public String getConsignorProvince() {
-        return consignorProvince;
-    }
-
-    public void setConsignorProvince(String consignorProvince) {
-        this.consignorProvince = consignorProvince;
-    }
-
-    @Column(name = "consignorCity")
-    public String getConsignorCity() {
-        return consignorCity;
-    }
-
-    public void setConsignorCity(String consignorCity) {
-        this.consignorCity = consignorCity;
-    }
-
-    @Column(name = "consignorDistrict")
-    public String getConsignorDistrict() {
-        return consignorDistrict;
-    }
-
-    public void setConsignorDistrict(String consignorDistrict) {
-        this.consignorDistrict = consignorDistrict;
-    }
-
-    @Column(name = "consignorAddress")
-    public String getConsignorAddress() {
-        return consignorAddress;
-    }
-
-    public void setConsignorAddress(String consignorAddress) {
-        this.consignorAddress = consignorAddress;
-    }
+//    @Column(name = "consignorStreet")
+//    public String getConsignorStreet() {
+//        return consignorStreet;
+//    }
+//
+//    public void setConsignorStreet(String consignorStreet) {
+//        this.consignorStreet = consignorStreet;
+//    }
+//
+//    @Column(name = "consignorName")
+//    public String getConsignorName() {
+//        return consignorName;
+//    }
+//
+//    public void setConsignorName(String consignorName) {
+//        this.consignorName = consignorName;
+//    }
+//
+//    @Column(name = "consignorMobile")
+//    public String getConsignorMobile() {
+//        return consignorMobile;
+//    }
+//
+//    public void setConsignorMobile(String consignorMobile) {
+//        this.consignorMobile = consignorMobile;
+//    }
+//
+//    @Column(name = "consignorProvince")
+//    public String getConsignorProvince() {
+//        return consignorProvince;
+//    }
+//
+//    public void setConsignorProvince(String consignorProvince) {
+//        this.consignorProvince = consignorProvince;
+//    }
+//
+//    @Column(name = "consignorCity")
+//    public String getConsignorCity() {
+//        return consignorCity;
+//    }
+//
+//    public void setConsignorCity(String consignorCity) {
+//        this.consignorCity = consignorCity;
+//    }
+//
+//    @Column(name = "consignorDistrict")
+//    public String getConsignorDistrict() {
+//        return consignorDistrict;
+//    }
+//
+//    public void setConsignorDistrict(String consignorDistrict) {
+//        this.consignorDistrict = consignorDistrict;
+//    }
+//
+//    @Column(name = "consignorAddress")
+//    public String getConsignorAddress() {
+//        return consignorAddress;
+//    }
+//
+//    public void setConsignorAddress(String consignorAddress) {
+//        this.consignorAddress = consignorAddress;
+//    }
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
@@ -673,14 +673,14 @@ public class DrugsEnterprise implements java.io.Serializable {
         this.orderMemo = orderMemo;
     }
 
-    @Column(name = "collect_mode")
-    public Integer getCollectMode() {
-        return collectMode;
-    }
+//    @Column(name = "collect_mode")
+//    public Integer getCollectMode() {
+//        return collectMode;
+//    }
 
-    public void setCollectMode(Integer collectMode) {
-        this.collectMode = collectMode;
-    }
+//    public void setCollectMode(Integer collectMode) {
+//        this.collectMode = collectMode;
+//    }
 
     @Column(name = "update_token_flag")
     public Integer getUpdateTokenFlag() {
