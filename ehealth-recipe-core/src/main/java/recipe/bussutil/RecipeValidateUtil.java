@@ -290,6 +290,7 @@ public class RecipeValidateUtil {
                         if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipeDetail.getDrugType())) {
                             recipeDetail.setUseDose(useTotalDose.doubleValue());
                             recipeDetail.setUseDoseUnit(drugSaleStrategy.getDrugUnit());
+                            recipeDetail.setPack(1);
                         }
                     }
                     recipeDetail.setSalePrice(saleDrugLists.get(0).getPrice());
