@@ -586,7 +586,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             if (CollectionUtils.isNotEmpty(recipeDetails)) {
                 chineseMedicineMsg.setUsePathways(recipeDetails.get(0).getUsePathways());
                 chineseMedicineMsg.setUsingRate(recipeDetails.get(0).getUsingRate());
-                chineseMedicineMsg.setMemo(recipeDetails.get(0).getMemo());
+                chineseMedicineMsg.setMemo(recipe.getRecipeMemo());
             }
             chineseMedicineMsg.setMinor(recipeExtend.getMinor());
             chineseMedicineMsg.setUseDays(recipeDetails.get(0).getUseDays());

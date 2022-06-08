@@ -37,6 +37,7 @@ public class ChineseMedicineMsgVO implements Serializable {
     private String usePathways;
 
     @ItemProperty(alias = "频次")
+    @Dictionary(id = "eh.cdr.dictionary.UsingRate")
     private String usingRate;
 
     @ItemProperty(alias = "每次用量")
