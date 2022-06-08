@@ -1,5 +1,6 @@
 package recipe.business;
 
+import com.ngari.recipe.entity.DrugList;
 import com.ngari.recipe.entity.DrugSaleStrategy;
 import com.ngari.recipe.entity.SaleDrugList;
 import com.ngari.recipe.vo.DrugSaleStrategyVO;
@@ -7,12 +8,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.aop.LogRecord;
 import recipe.core.api.IDrugSaleStrategyBusinessService;
+import recipe.dao.DrugListDAO;
 import recipe.dao.DrugSaleStrategyDAO;
 import recipe.dao.SaleDrugListDAO;
 import recipe.manager.DrugSaleStrategyManager;
 import recipe.util.ObjectCopyUtils;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -25,12 +28,12 @@ public class DrugSaleStrategyBusinessService extends BaseService implements IDru
 
     @Autowired
     private DrugSaleStrategyDAO drugSaleStrategyDAO;
-
     @Autowired
     private SaleDrugListDAO saleDrugListDAO;
-
     @Autowired
     private DrugSaleStrategyManager drugSaleStrategyManager;
+    @Autowired
+    private DrugListDAO drugListDAO;
 
     @Override
     @LogRecord
@@ -97,7 +100,20 @@ public class DrugSaleStrategyBusinessService extends BaseService implements IDru
 
     @Override
     public List<DrugSaleStrategy> findDrugSaleStrategy(DrugSaleStrategyVO drugSaleStrategy) {
-        return drugSaleStrategyDAO.findByDrugId(drugSaleStrategy.getDrugId());
+        List<DrugSaleStrategy> drugSaleStrategyList = drugSaleStrategyDAO.findByDrugId(drugSaleStrategy.getDrugId());
+        DrugList drugList = drugListDAO.getById(drugSaleStrategy.getDrugId());
+        if (null != drugList) {
+            DrugSaleStrategy saleStrategy = new DrugSaleStrategy();
+            saleStrategy.setDrugId(drugSaleStrategy.getDrugId());
+            saleStrategy.setDrugAmount(1);
+            saleStrategy.setDrugUnit(drugList.getUnit());
+            saleStrategy.setStrategyTitle("默认出售策略");
+            saleStrategy.setStatus(1);
+            saleStrategy.setId(0);
+            drugSaleStrategyList.add(saleStrategy);
+            Collections.sort(drugSaleStrategyList);
+        }
+        return drugSaleStrategyList;
     }
 
     @Override

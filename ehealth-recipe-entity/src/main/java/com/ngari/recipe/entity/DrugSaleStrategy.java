@@ -15,7 +15,7 @@ import static javax.persistence.GenerationType.IDENTITY;
 @Schema
 @Table(name = "base_drug_sale_strategy")
 @Access(AccessType.PROPERTY)
-public class DrugSaleStrategy implements Serializable {
+public class DrugSaleStrategy implements Serializable, Comparable<DrugSaleStrategy>{
     private static final long serialVersionUID = -2698550899257755L;
 
     @ItemProperty(alias = "序号")
@@ -90,5 +90,10 @@ public class DrugSaleStrategy implements Serializable {
 
     public void setStatus(Integer status) {
         this.status = status;
+    }
+
+    @Override
+    public int compareTo(DrugSaleStrategy o) {
+        return this.getId() - o.getId();
     }
 }
