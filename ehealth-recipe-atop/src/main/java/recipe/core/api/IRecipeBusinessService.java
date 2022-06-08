@@ -211,7 +211,7 @@ public interface IRecipeBusinessService {
 
     /**
      * 查询报销清单详情
-     * @param reimbursementListRes
+     * @param recipeId
      * @return
      */
     ReimbursementDetailResVO findReimbursementDetail(Integer recipeId);
