@@ -17,9 +17,7 @@ import com.ngari.recipe.dto.OutRecipeDetailDTO;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.recipe.constant.RecipecCheckStatusConstant;
-import com.ngari.recipe.recipe.model.PatientInfoDTO;
-import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.*;
 import com.ngari.revisit.RevisitBean;
 import com.ngari.revisit.common.model.RevisitExDTO;
@@ -52,10 +50,7 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
-import recipe.service.RecipeHisService;
-import recipe.service.RecipeListService;
-import recipe.service.RecipeMsgService;
-import recipe.service.RecipeService;
+import recipe.service.*;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.*;
 import recipe.vo.doctor.PatientOptionalDrugVO;
@@ -123,6 +118,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private ConsultManager consultManager;
     @Autowired
     private RecipeHisService recipeHisService;
+    @Autowired
+    private RecipeExtendService recipeExtendService;
     
     /**
      * 获取线下门诊处方诊断信息
@@ -507,6 +504,85 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public List<RecipeDetailBean> findRecipeDetailByRecipeId(Integer recipeId) {
         List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
         return ObjectCopyUtils.convert(recipeDetailList, RecipeDetailBean.class);
+    }
+
+    @Override
+    public List<ReimbursementListResVO> findReimbursementList(ReimbursementListReqVO reimbursementListReq) {
+        logger.info("findReimbursementList reimbursementListReq={}",JSONUtils.toString(reimbursementListReq));
+        List<ReimbursementListResVO> reimbursementListResList = new ArrayList<>();
+        PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(reimbursementListReq.getMpiId());
+        if(patientDTO == null){
+            return null;
+        }
+        logger.info("findReimbursementList patientDTO={}",JSONUtils.toString(patientDTO));
+        //根据机构ID、患者唯一标识查询规定时间内的处方单（orderCode不为空的）
+        List<Recipe> recipeList = recipeDAO.findRecipesByClinicOrganAndMpiId(reimbursementListReq.getOrganId(), reimbursementListReq.getMpiId(), reimbursementListReq.getStartTime(), reimbursementListReq.getEndTime());
+        logger.info("findReimbursementList recipeList={}",JSONUtils.toString(recipeList));
+        for(Recipe recipe : recipeList){
+            //已经开过发票的处方单
+            String invoiceNumber = recipeExtendService.queryEinvoiceNumberByRecipeId(recipe.getRecipeId());
+            if(StringUtils.isNotEmpty(invoiceNumber)){
+                RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                //支付成功、未退费的处方单
+                if(new Integer(1).equals(recipeOrder.getPayFlag()) && new Integer(0).equals(recipeOrder.getRefundFlag())){
+                    ReimbursementListResVO reimbursementListRes = new ReimbursementListResVO();
+                    Map<String,String> DrugItem = new HashMap<>();
+                    List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+                    if(CollectionUtils.isEmpty(recipeDetailList)){
+                        return  null;
+                    }
+                    for(Recipedetail recipedetail : recipeDetailList){
+                        DrugItem.put(recipedetail.getOrganDrugCode(),recipedetail.getDrugName());
+                    }
+                    reimbursementListRes.setDrugItem(DrugItem);
+                    reimbursementListRes.setRecipeId(recipe.getRecipeId());
+                    reimbursementListRes.setAge(patientDTO.getAge());
+                    reimbursementListRes.setInvoiceNumber(invoiceNumber);
+                    reimbursementListRes.setName(patientDTO.getPatientName());
+                    reimbursementListRes.setSex(patientDTO.getPatientSex().equals("1") ? "男":"女");
+                    reimbursementListRes.setPayTime(recipeOrder.getPayTime());
+                    reimbursementListRes.setMedicalFlag(recipeOrder.getFundAmount() == null ? "自费":"医保");
+                    reimbursementListResList.add(reimbursementListRes);
+                }
+            }
+        }
+        logger.info("findReimbursementList reimbursementListResList={}",JSONUtils.toString(reimbursementListResList));
+        return reimbursementListResList;
+    }
+
+    @Override
+    public ReimbursementDetailResVO findReimbursementDetail(Integer recipeId) {
+        logger.info("findReimbursementDetail recipeId={}",JSONUtils.toString(recipeId));
+        ReimbursementDetailResVO reimbursementDetail = new ReimbursementDetailResVO();
+        Recipe recipe = recipeDAO.get(recipeId);
+        if(recipe == null){
+            return null;
+        }
+        logger.info("findReimbursementDetail recipe={}",JSONUtils.toString(recipe));
+        String invoiceNumber = recipeExtendService.queryEinvoiceNumberByRecipeId(recipeId);
+        reimbursementDetail.setInvoiceNumber(invoiceNumber);
+        PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
+        if(patientDTO == null){
+            return null;
+        }
+        logger.info("findReimbursementDetail patientDTO={}",JSONUtils.toString(patientDTO));
+        if(StringUtils.isNotBlank(recipe.getOrderCode())){
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            if(recipeOrder.getPayTime() != null){
+                reimbursementDetail.setPayTime(recipeOrder.getPayTime());
+            }
+            reimbursementDetail.setMedicalFlag(recipeOrder.getFundAmount() == null ? "自费":"医保");
+        }
+        reimbursementDetail.setName(patientDTO.getPatientName());
+        if(StringUtils.isNotBlank(recipe.getPatientID())){
+            reimbursementDetail.setPatientId(recipe.getPatientID());
+        }
+        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
+        if (CollectionUtils.isNotEmpty(recipeDetailList)){
+            reimbursementDetail.setRecipeDetailList(ObjectCopyUtils.convert(recipeDetailList,RecipeDetailBean.class));
+        }
+        logger.info("findReimbursementDetail reimbursementDetail={}",JSONUtils.toString(reimbursementDetail));
+        return reimbursementDetail;
     }
 
     /**

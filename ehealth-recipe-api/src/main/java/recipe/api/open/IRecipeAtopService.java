@@ -3,11 +3,8 @@ package recipe.api.open;
 import com.ngari.common.mode.HisResponseTO;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
-import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.model.SymptomDTO;
+import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.FormWorkRecipeVO;
-import com.ngari.recipe.vo.RecipeDetailVO;
 import ctd.util.annotation.RpcService;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.RevisitRecipeTraceVo;
@@ -176,4 +173,20 @@ public interface IRecipeAtopService {
      */
     @RpcService
     List<RecipeDetailBean> findRecipeDetailByRecipeId(Integer recipeId);
+
+    /**
+     * 查询报销清单列表
+     * @param reimbursementListReq
+     * @return
+     */
+    @RpcService
+    List<ReimbursementListResVO> findReimbursementList(ReimbursementListReqVO reimbursementListReq);
+
+    /**
+     * 查询报销清单详情
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    ReimbursementDetailResVO findReimbursementDetail(Integer recipeId);
 }

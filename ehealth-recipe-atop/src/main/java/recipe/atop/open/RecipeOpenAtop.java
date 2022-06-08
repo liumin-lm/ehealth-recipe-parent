@@ -6,9 +6,7 @@ import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
-import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
-import com.ngari.recipe.recipe.model.SymptomDTO;
+import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.FormWorkRecipeReqVO;
 import com.ngari.recipe.vo.FormWorkRecipeVO;
 import ctd.persistence.exception.DAOException;
@@ -214,6 +212,18 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
     public List<RecipeDetailBean> findRecipeDetailByRecipeId(Integer recipeId) {
         validateAtop(recipeId);
         return recipeBusinessService.findRecipeDetailByRecipeId(recipeId);
+    }
+
+    @Override
+    public List<ReimbursementListResVO> findReimbursementList(ReimbursementListReqVO reimbursementListReq) {
+        validateAtop(reimbursementListReq.getOrganId(),reimbursementListReq.getMpiId());
+        return recipeBusinessService.findReimbursementList(reimbursementListReq);
+    }
+
+    @Override
+    public ReimbursementDetailResVO findReimbursementDetail(Integer recipeId) {
+        validateAtop(recipeId);
+        return recipeBusinessService.findReimbursementDetail(recipeId);
     }
 
 }

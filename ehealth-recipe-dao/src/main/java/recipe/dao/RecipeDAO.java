@@ -4243,6 +4243,35 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
     @DAOMethod(sql = " FROM Recipe WHERE status in (:status) AND invalidTime >= :invalidTime", limit = 0)
     public abstract List<Recipe> findRecipesByStatusAndInvalidTime(@DAOParam("status") List<Integer> status, @DAOParam("invalidTime") Date invalidTime);
 
+    public List<Recipe> findRecipesByClinicOrganAndMpiId(Integer clinicOrgan, String mpiId, Date startTime, Date endTime){
+        HibernateStatelessResultAction<List<Recipe>> action = new AbstractHibernateStatelessResultAction<List<Recipe>>() {
+            @Override
+            public void execute(StatelessSession ss) throws Exception {
+                StringBuilder hql = new StringBuilder();
+                hql.append("select r from Recipe r where clinicOrgan =:clinicOrgan and mpiId =:mpiId and orderCode is not null");
+                if (startTime != null) {
+                    hql.append(" and r.createDate >= :startTime");
+                }
+                if (endTime != null) {
+                    hql.append(" and r.createDate <= :endTime");
+                }
+                Query query = ss.createQuery(hql.toString());
+//                SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+                if (startTime != null) {
+                    query.setParameter("startTime", startTime);
+                }
+                if (endTime != null) {
+                    query.setParameter("endTime", endTime);
+                }
+                query.setParameter("clinicOrgan", clinicOrgan);
+                query.setParameter("mpiId", mpiId);
+                setResult(query.list());
+            }
+        };
+        HibernateSessionTemplate.instance().execute(action);
+        return action.getResult();
+    }
+
 
     public List<Recipe> findRecipeAuditByFlag(final List<Integer> organ, List<Integer> recipeTypes, Integer checker, final int flag, final int start, final int limit, String startTime, String endTime) {
         final int all = 3;
