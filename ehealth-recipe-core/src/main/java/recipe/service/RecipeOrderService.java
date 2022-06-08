@@ -1220,7 +1220,7 @@ public class RecipeOrderService extends RecipeBaseService {
             }
             if (Objects.isNull(order.getThirdPayFee())) {
                 order.setThirdPayType(0);
-                order.setThirdPayFee(BigDecimal.ZERO);
+                order.setThirdPayFee(0d);
             }
             createOrderToDB(order, recipeIds, orderDAO, recipeDAO);
         } catch (DAOException e) {

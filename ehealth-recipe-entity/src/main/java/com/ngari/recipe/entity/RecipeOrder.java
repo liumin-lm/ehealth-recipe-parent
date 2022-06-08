@@ -259,7 +259,7 @@ public class RecipeOrder implements Serializable {
     private Integer thirdPayType;
 
     @ItemProperty(alias = "第三方支付金额")
-    private BigDecimal thirdPayFee;
+    private Double thirdPayFee;
 
     @ItemProperty(alias = "处方预结算返回门诊挂号序号")
     private String registerNo;
@@ -451,11 +451,11 @@ public class RecipeOrder implements Serializable {
     }
 
     @Column(name = "thirdPayFee")
-    public BigDecimal getThirdPayFee() {
+    public Double getThirdPayFee() {
         return thirdPayFee;
     }
 
-    public void setThirdPayFee(BigDecimal thirdPayFee) {
+    public void setThirdPayFee(Double thirdPayFee) {
         this.thirdPayFee = thirdPayFee;
     }
 
@@ -506,7 +506,7 @@ public class RecipeOrder implements Serializable {
         this.setOtherFee(zero);
         this.setRegisterFee(zero);
         this.setThirdPayType(0);
-        this.setThirdPayFee(BigDecimal.ZERO);
+        this.setThirdPayFee(0.00);
     }
 
     @Column(name = "payeeCode")

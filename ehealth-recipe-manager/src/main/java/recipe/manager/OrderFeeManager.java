@@ -84,7 +84,7 @@ public class OrderFeeManager extends BaseManager {
             BigDecimal accountFee = getAccountFee(order.getTotalFee(), order.getMpiId(), order.getOrganId());
             if (null != accountFee) {
                 order.setThirdPayType(2);
-                order.setThirdPayFee(accountFee);
+                order.setThirdPayFee(accountFee.doubleValue());
             }
         }
     }
