@@ -1,5 +1,6 @@
 package recipe.bussutil;
 
+import com.aliyun.openservices.shade.com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.ngari.base.organconfig.model.OrganConfigBean;
@@ -465,7 +466,7 @@ public class RecipeUtil {
                 drugList.setDrugEntrust(drugEntrust.getDrugEntrustValue());
             }
         } catch (Exception e) {
-            LOGGER.info("RecipeUtil SearchDrugDetailDTO error drugEntrust ={} ", drugList.getDrugEntrust(), e);
+            LOGGER.info("RecipeUtil SearchDrugDetailDTO error drugEntrust ={} ", JSON.toJSONString(drugList), e);
         }
     }
 }
