@@ -979,8 +979,6 @@ public class RecipeOrderService extends RecipeBaseService {
         BigDecimal recipeFee = BigDecimal.ZERO;
         if (null != enterprise && Integer.valueOf(0).equals(enterprise.getSettlementMode())) {
             List<Recipedetail> details = recipeDetailDAO.findByRecipeIds(recipeIds);
-            List<Recipe> recipeList = recipeDAO.findByRecipeIds(recipeIds);
-            Map<Integer, Recipe> recipeMap = recipeList.stream().collect(Collectors.toMap(Recipe::getRecipeId, a->a,(k1,k2)->k1));
             Map<Integer, List<Recipedetail>> recipeDetailMap = details.stream().collect(Collectors.groupingBy(Recipedetail::getDrugId));
             List<Integer> drugIds = Lists.newArrayList(recipeDetailMap.keySet());
             List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(enterpriseId, drugIds);
@@ -1004,12 +1002,7 @@ public class RecipeOrderService extends RecipeBaseService {
                             if(Objects.nonNull(saleDrug.getSaleStrategyId()) && saleDrug.getSaleStrategyId() > 0){
                                 List<DrugSaleStrategy> drugSaleStrategies = drugSaleStrategyMap.get(saleDrug.getSaleStrategyId());
                                 if(CollectionUtils.isNotEmpty(drugSaleStrategies)){
-                                    if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipedetail.getDrugType())) {
-                                        Recipe recipe = recipeMap.get(recipedetail.getRecipeId());
-                                        useTotalDose = useTotalDose.divide(new BigDecimal(recipe.getCopyNum())).divide(new BigDecimal(drugSaleStrategies.get(0).getDrugAmount()),2,BigDecimal.ROUND_HALF_UP);
-                                    } else {
-                                        useTotalDose = useTotalDose.divide(new BigDecimal(drugSaleStrategies.get(0).getDrugAmount()),2,BigDecimal.ROUND_HALF_UP);
-                                    }
+                                    useTotalDose = useTotalDose.divide(new BigDecimal(drugSaleStrategies.get(0).getDrugAmount()),2,BigDecimal.ROUND_HALF_UP);
                                     recipedetail.setSaleUnit(drugSaleStrategies.get(0).getDrugUnit());
                                     recipedetail.setActualSalePrice(saleDrug.getPrice());
                                     recipedetail.setSaleUseDose(useTotalDose);
