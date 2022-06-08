@@ -25,6 +25,7 @@ import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.status.YesOrNoEnum;
 import recipe.enumerate.type.TakeMedicineWayEnum;
 import recipe.manager.EnterpriseManager;
 import recipe.manager.OrderManager;
@@ -420,7 +421,11 @@ public class PayModeTFDS implements IPurchaseService {
                 for (DepDetailBean depDetailBean : ysqList) {
                     depDetailBean.setDepId(dep.getId());
                     depDetailBean.setBelongDepName(dep.getName());
-                    depDetailBean.setPayModeText("药店支付");
+                    if (YesOrNoEnum.YES.getType().equals(dep.getStorePayFlag())) {
+                        depDetailBean.setPayModeText("在线支付");
+                    } else {
+                        depDetailBean.setPayModeText("药店支付");
+                    }
                     depDetailBean.setOrderType(dep.getOrderType());
                 }
                 depDetailList.addAll(ysqList);
