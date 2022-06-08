@@ -999,7 +999,7 @@ public class RecipeOrderService extends RecipeBaseService {
                         if (CollectionUtils.isNotEmpty(saleDrugLists1)) {
                             SaleDrugList saleDrug = saleDrugLists1.get(0);
                             BigDecimal useTotalDose = new BigDecimal(recipedetail.getUseTotalDose());
-                            if(Objects.nonNull(saleDrug.getSaleStrategyId())){
+                            if(Objects.nonNull(saleDrug.getSaleStrategyId()) && saleDrug.getSaleStrategyId() > 0){
                                 List<DrugSaleStrategy> drugSaleStrategies = drugSaleStrategyMap.get(saleDrug.getSaleStrategyId());
                                 if(CollectionUtils.isNotEmpty(drugSaleStrategies)){
                                     useTotalDose = useTotalDose.divide(new BigDecimal(drugSaleStrategies.get(0).getDrugAmount()),2,BigDecimal.ROUND_HALF_UP);
