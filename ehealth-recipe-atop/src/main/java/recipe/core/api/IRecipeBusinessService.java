@@ -6,8 +6,7 @@ import com.ngari.recipe.dto.OutPatientRecordResDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
-import com.ngari.recipe.recipe.model.RecipeBean;
-import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.*;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.vo.doctor.PatientOptionalDrugVO;
@@ -203,4 +202,19 @@ public interface IRecipeBusinessService {
      * @return
      */
     List<RecipeDetailBean> findRecipeDetailByRecipeId(Integer recipeId);
+
+    /**
+     * 查询报销清单列表
+     * @param reimbursementListReq
+     * @return
+     */
+    List<ReimbursementListResVO> findReimbursementList(ReimbursementListReqVO reimbursementListReq);
+
+    /**
+     * 查询报销清单详情
+     * @param recipeId
+     * @return
+     */
+    ReimbursementDetailResVO findReimbursementDetail(Integer recipeId);
+
 }
