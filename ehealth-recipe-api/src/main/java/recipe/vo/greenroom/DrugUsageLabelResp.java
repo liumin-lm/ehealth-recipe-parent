@@ -3,6 +3,7 @@ package recipe.vo.greenroom;
 import com.ngari.recipe.recipe.ChineseMedicineMsgVO;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import ctd.schema.annotation.ItemProperty;
+import ctd.schema.annotation.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -15,6 +16,7 @@ import java.util.List;
  * @Date 2022-06-02
  */
 @Data
+@Schema
 public class DrugUsageLabelResp implements Serializable {
     private static final long serialVersionUID = 3737516056719140481L;
 

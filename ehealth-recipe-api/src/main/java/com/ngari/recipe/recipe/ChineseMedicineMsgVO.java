@@ -2,6 +2,7 @@ package com.ngari.recipe.recipe;
 
 import ctd.schema.annotation.Dictionary;
 import ctd.schema.annotation.ItemProperty;
+import ctd.schema.annotation.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -13,6 +14,7 @@ import java.math.BigDecimal;
  * @Date 2022-06-06
  */
 @Data
+@Schema
 public class ChineseMedicineMsgVO implements Serializable {
 
     private static final long serialVersionUID = 8028608699175646782L;
