@@ -279,10 +279,14 @@ public class RecipeValidateUtil {
                 List<SaleDrugList> saleDrugLists = recipeDetailSalePrice.get(recipeDetail.getDrugId());
                 if(CollectionUtils.isNotEmpty(saleDrugLists)){
                     SaleDrugList saleDrugList = saleDrugLists.get(0);
+                    LOGGER.info("drugSaleStrategyMap :{}", JSONUtils.toString(drugSaleStrategyMap));
                     if (null != saleDrugList.getSaleStrategyId() && MapUtils.isNotEmpty(drugSaleStrategyMap)) {
                         DrugSaleStrategy drugSaleStrategy = drugSaleStrategyMap.get(saleDrugList.getSaleStrategyId());
                         recipeDetail.setDrugUnit(drugSaleStrategy.getDrugUnit());
                         recipeDetail.setPack(drugSaleStrategy.getDrugAmount());
+                        BigDecimal useTotalDose = new BigDecimal(recipeDetail.getUseTotalDose());
+                        useTotalDose = useTotalDose.divide(new BigDecimal(drugSaleStrategy.getDrugAmount()),2,BigDecimal.ROUND_HALF_UP);
+                        recipeDetail.setUseTotalDose(useTotalDose.doubleValue());
                     }
                     recipeDetail.setSalePrice(saleDrugLists.get(0).getPrice());
                 }
