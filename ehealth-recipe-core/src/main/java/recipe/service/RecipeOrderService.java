@@ -1676,9 +1676,9 @@ public class RecipeOrderService extends RecipeBaseService {
                             recipeDetailBean.setUseTotalDose(recipedetail.getSaleUseDose().doubleValue());
                             recipeDetailBean.setDrugUnit(recipedetail.getSaleUnit());
                             if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipedetail.getDrugType())) {
-                                recipeDetailBean.setUseDose(recipedetail.getSaleUseDose().doubleValue());
+                                recipeDetailBean.setUseDose(recipedetail.getSaleUseDose().doubleValue()/recipe.getCopyNum());
                                 recipeDetailBean.setUseDoseUnit(recipedetail.getSaleUnit());
-                                recipeDetailBean.setPack(1);
+                                recipedetail.setPack(1);
                             }
                         }
                         try {
