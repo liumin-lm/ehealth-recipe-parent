@@ -2,12 +2,9 @@ package recipe.business;
 
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Lists;
-import com.ngari.common.mode.HisResponseTO;
 import com.ngari.follow.utils.ObjectCopyUtil;
 import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
-import com.ngari.his.recipe.mode.QueryHisRecipResTO;
-import com.ngari.his.recipe.mode.RecipeDetailTO;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.PatientDTO;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
@@ -21,12 +18,9 @@ import com.ngari.recipe.recipe.model.PatientInfoDTO;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.*;
-import com.ngari.revisit.RevisitBean;
-import com.ngari.revisit.common.model.RevisitExDTO;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
-import ctd.util.JSONUtils;
 import eh.cdr.api.vo.MedicalDetailBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,10 +46,7 @@ import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.BussSourceTypeEnum;
 import recipe.hisservice.syncdata.HisSyncSupervisionService;
 import recipe.manager.*;
-import recipe.service.RecipeHisService;
-import recipe.service.RecipeListService;
-import recipe.service.RecipeMsgService;
-import recipe.service.RecipeService;
+import recipe.service.*;
 import recipe.serviceprovider.recipe.service.RemoteRecipeService;
 import recipe.util.*;
 import recipe.vo.doctor.PatientOptionalDrugVO;
@@ -228,7 +219,10 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public Recipe getByRecipeId(Integer recipeId) {
-        return recipeManager.getRecipeById(recipeId);
+        Recipe recipe = recipeManager.getRecipeById(recipeId);
+        Map<String, String> tipMap = RecipeServiceSub.getTipsByStatusCopy(recipe.getStatus(), recipe, null, null);
+        recipe.setShowTip(tipMap.get("tips"));
+        return recipe;
     }
 
     @Override

@@ -1,7 +1,9 @@
 package recipe.atop.doctor;
 
+import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
 import com.ngari.recipe.dto.WriteDrugRecipeDTO;
+import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
 import ctd.util.annotation.RpcBean;
 import ctd.util.annotation.RpcService;
@@ -10,10 +12,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import recipe.atop.BaseAtop;
 import recipe.core.api.IRecipeBusinessService;
 import recipe.core.api.IRevisitBusinessService;
+import recipe.enumerate.status.RecipeStateEnum;
+import recipe.util.ValidateUtil;
 import recipe.vo.doctor.ValidateDetailVO;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 /**
  * 开处方服务入口类
@@ -95,5 +100,25 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     public List<Integer> recipeByGroupCode(String groupCode, Integer type) {
         validateAtop(groupCode);
         return recipeBusinessService.recipeByGroupCode(groupCode, type);
+    }
+
+    /**
+     * 获取处方状态 与 同组处方id
+     *
+     * @param recipeId recipe
+     * @param type     0： 默认全部 1：查询暂存，2查询可撤销处方
+     */
+    public RecipeBean recipeInfo(Integer recipeId, Integer type) {
+        validateAtop(recipeId);
+        Recipe recipe = recipeBusinessService.getByRecipeId(recipeId);
+        RecipeBean recipeBean = ObjectCopyUtils.convert(recipe, RecipeBean.class);
+        recipeBean.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
+        if (ValidateUtil.validateObjects(recipeBean.getGroupCode())) {
+            return recipeBean;
+        }
+        List<Integer> recipeIdList = recipeBusinessService.recipeByGroupCode(recipeBean.getGroupCode(), type);
+        List<Integer> recipeIds = recipeIdList.stream().filter(a -> !a.equals(recipeBean.getRecipeId())).collect(Collectors.toList());
+        recipeBean.setGroupRecipeIdList(recipeIds);
+        return recipeBean;
     }
 }

@@ -1263,7 +1263,6 @@ public class RecipeServiceSub {
                     cancelReason = "医保上传失败，处方单已取消！";
                     break;
                 case RecipeStatusConstant.SIGN_ERROR_CODE_DOC:
-                    //    recipeLog = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), status);
                     tips = "处方签名失败";
                     RecipeExtend recipeExt = recipeExtendDAO.getByRecipeId(recipe.getRecipeId());
                     if (null != recipeExt && StringUtils.isNotEmpty(recipeExt.getSignFailReason())) {
@@ -1271,21 +1270,10 @@ public class RecipeServiceSub {
                     } else {
                         cancelReason = "处方签名失败！";
                     }
-//                    if (recipeLog != null && recipeLog.size() > 0) {
-//                        cancelReason = "处方签名失败:" + recipeLog.get(0).getMemo();
-//                    } else {
-//                        cancelReason = "处方签名失败！";
-//                    }
                     break;
                 case RecipeStatusConstant.SIGN_ERROR_CODE_PHA:
-                    //      recipeLog = recipeLogDAO.findByRecipeIdAndAfterStatus(recipe.getRecipeId(), status);
                     tips = "审方签名失败";
                     cancelReason = "审方签名失败！";
-//                    if (recipeLog != null && recipeLog.size() > 0) {
-//                        cancelReason = "审方签名失败:" + recipeLog.get(0).getMemo();
-//                    } else {
-//                        cancelReason = "审方签名失败！";
-//                    }
                     break;
                 case RecipeStatusConstant.SIGN_ING_CODE_PHA:
                     tips = "审方签名中";
