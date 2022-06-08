@@ -361,9 +361,28 @@ public abstract class AccessDrugEnterpriseService {
         }
         if ((drugToHosByEnterprise || payModeSupport.isSupportCOD() || payModeSupport.isSupportTFDS() || payModeSupport.isSupportOnlinePay()) && null != order.getEnterpriseId()) {
             nowFee = orderService.reCalculateRecipeFee(order.getEnterpriseId(), recipeIds, null);
+        } else {
+            //不走药企管理模式
+            updateSaleStrategy(recipeIds);
         }
         LOGGER.info("appEnterprise 当前公用药企逻辑-返回订单的处方费用为：{}", nowFee);
         return nowFee;
+    }
+
+    private void updateSaleStrategy(List<Integer> recipeIds){
+        try {
+            RecipeDetailDAO recipeDetailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
+            List<Recipedetail> details = recipeDetailDAO.findByRecipeIds(recipeIds);
+            details.forEach(recipeDetail -> {
+                if (StringUtils.isNotEmpty(recipeDetail.getSaleUnit()) && null != recipeDetail.getSaleUseDose()) {
+                    recipeDetail.setSaleUnit(null);
+                    recipeDetail.setSaleUseDose(null);
+                    recipeDetailDAO.update(recipeDetail);
+                }
+            });
+        } catch (Exception e) {
+            LOGGER.error("updateSaleStrategy error", e);
+        }
     }
 
 
