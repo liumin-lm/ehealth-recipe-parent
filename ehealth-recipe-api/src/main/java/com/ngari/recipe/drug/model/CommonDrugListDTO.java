@@ -27,7 +27,9 @@ public class CommonDrugListDTO implements java.io.Serializable {
      */
     private Integer pharmacyId;
 
-
+    public CommonDrugListDTO() {
+    }
+    
     public CommonDrugListDTO(Integer doctor, Integer organId, Integer drugType) {
         this.doctor = doctor;
         this.organId = organId;
