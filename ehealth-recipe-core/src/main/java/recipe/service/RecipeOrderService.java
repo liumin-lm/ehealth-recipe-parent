@@ -1011,7 +1011,7 @@ public class RecipeOrderService extends RecipeBaseService {
                                 if (StringUtils.isNotEmpty(recipedetail.getSaleUnit()) && null != recipedetail.getSaleUseDose()) {
                                     recipedetail.setSaleUnit(null);
                                     recipedetail.setSaleUseDose(null);
-                                    recipeDetailDAO.updateAllRecipeDetail(details);
+                                    recipeDetailDAO.update(recipedetail);
                                 }
                             }
 
