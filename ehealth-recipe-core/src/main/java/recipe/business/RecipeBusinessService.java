@@ -19,6 +19,7 @@ import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
+import ctd.util.JSONUtils;
 import eh.cdr.api.vo.MedicalDetailBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -505,7 +506,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public List<ReimbursementListResVO> findReimbursementList(ReimbursementListReqVO reimbursementListReq) {
-        logger.info("findReimbursementList reimbursementListReq={}",JSONUtils.toString(reimbursementListReq));
+        logger.info("findReimbursementList reimbursementListReq={}", JSONUtils.toString(reimbursementListReq));
         List<ReimbursementListResVO> reimbursementListResList = new ArrayList<>();
         PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(reimbursementListReq.getMpiId());
         if(patientDTO == null){

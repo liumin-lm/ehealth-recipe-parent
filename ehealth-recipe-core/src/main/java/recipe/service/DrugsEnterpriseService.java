@@ -2,6 +2,8 @@ package recipe.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.google.common.collect.Lists;
+import com.ngari.infra.logistics.mode.OrganLogisticsManageDto;
+import com.ngari.infra.logistics.service.IOrganLogisticsManageService;
 import com.ngari.opbase.util.OpSecurityUtil;
 import com.ngari.patient.dto.OrganDTO;
 import com.ngari.patient.service.OrganService;
@@ -69,7 +71,8 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
     private ButtonManager buttonManager;
     @Autowired
     private DrugsEnterpriseConfigService drugsEnterpriseConfigService;
-
+    @Autowired
+    private IOrganLogisticsManageService iOrganLogisticsManageService;
 
     /**
      * 有效药企查询 status为1
@@ -376,14 +379,22 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
                 }
             }
         }
-        //TODO liumin 物流拆分
-//        List<DrugEnterpriseLogistics> byDrugsEnterpriseId = drugEnterpriseLogisticsDAO.getByDrugsEnterpriseId(drugsEnterpriseId);
-//        List<DrugEnterpriseLogisticsBean> drugEnterpriseLogisticsBeans = byDrugsEnterpriseId.stream().map(drugEnterpriseLogistics -> {
-//            DrugEnterpriseLogisticsBean drugEnterpriseLogisticsBean = new DrugEnterpriseLogisticsBean();
-//            BeanUtils.copy(drugEnterpriseLogistics, drugEnterpriseLogisticsBean);
-//            return drugEnterpriseLogisticsBean;
-//        }).collect(Collectors.toList());
-//        drugsEnterpriseBean.setDrugEnterpriseLogisticsBeans(drugEnterpriseLogisticsBeans);
+        List<OrganLogisticsManageDto> organLogisticsManageDtos=iOrganLogisticsManageService.getOrganLogisticsManageByOrganId(drugsEnterpriseId);
+        List<DrugEnterpriseLogisticsBean> drugEnterpriseLogisticsBeans  =new ArrayList<>();
+        if(CollectionUtils.isNotEmpty(organLogisticsManageDtos)){
+            organLogisticsManageDtos.forEach(organLogisticsManageDto -> {
+                DrugEnterpriseLogisticsBean drugEnterpriseLogistics1=new DrugEnterpriseLogisticsBean();
+                drugEnterpriseLogistics1.setCreateTime(organLogisticsManageDto.getCreateTime());
+                drugEnterpriseLogistics1.setDrugsEnterpriseId(organLogisticsManageDto.getDrugsEnterpriseId());
+                drugEnterpriseLogistics1.setId(organLogisticsManageDto.getOrganId());
+                drugEnterpriseLogistics1.setIsDefault(organLogisticsManageDto.getIsDefault());
+                drugEnterpriseLogistics1.setLogisticsCompany(organLogisticsManageDto.getLogisticsCompanyId()==null?null:Integer.parseInt(organLogisticsManageDto.getLogisticsCompanyId()));
+                drugEnterpriseLogistics1.setLogisticsCompanyName(organLogisticsManageDto.getLogisticsCompanyName());
+                drugEnterpriseLogistics1.setUpdateTime(organLogisticsManageDto.getUpdateTime());
+                drugEnterpriseLogisticsBeans.add(drugEnterpriseLogistics1);
+            });
+        }
+        drugsEnterpriseBean.setDrugEnterpriseLogisticsBeans(drugEnterpriseLogisticsBeans);
         return drugsEnterpriseBean;
     }
 
