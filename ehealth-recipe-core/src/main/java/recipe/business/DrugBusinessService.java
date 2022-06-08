@@ -247,10 +247,15 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
         Map<Integer, DrugList> drugMap = drugs.stream().collect(Collectors.toMap(DrugList::getDrugId, a -> a, (k1, k2) -> k1));
         //返回药品出参
         List<SearchDrugDetailDTO> drugList = new ArrayList<>();
-        organDrugList.forEach(a -> {
-            SearchDrugDetailDTO searchDrug = ObjectCopyUtils.convert(a, SearchDrugDetailDTO.class);
+        Map<String, OrganDrugList> organDrugMap = organDrugList.stream().collect(Collectors.toMap(k -> k.getDrugId() + k.getOrganDrugCode(), a -> a, (k1, k2) -> k1));
+        drugCommonList.forEach(a -> {
+            OrganDrugList organDrug = organDrugMap.get(a.getDrugId() + a.getOrganDrugCode());
+            if (null == organDrug) {
+                return;
+            }
+            SearchDrugDetailDTO searchDrug = ObjectCopyUtils.convert(organDrug, SearchDrugDetailDTO.class);
             RecipeUtil.SearchDrugDetailDTO(searchDrug, configDrugNameMap, configSaleNameMap, drugEntrustNameMap);
-            searchDrug.setUseDoseAndUnitRelation(RecipeUtil.defaultUseDose(a));
+            searchDrug.setUseDoseAndUnitRelation(RecipeUtil.defaultUseDose(organDrug));
             //添加es价格空填值逻辑
             DrugList drugListNow = drugMap.get(a.getDrugId());
             if (null != drugListNow) {
