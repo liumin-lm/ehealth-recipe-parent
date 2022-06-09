@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.ErrorCode;
 import recipe.dao.*;
@@ -345,6 +346,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
     }
 
     @RpcService
+    @LogRecord
     public DrugsEnterpriseBean getDrugsEnterpriseById(Integer drugsEnterpriseId) {
         if (drugsEnterpriseId == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "药企Id为null!");
@@ -380,6 +382,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
             }
         }
         List<OrganLogisticsManageDto> organLogisticsManageDtos=iOrganLogisticsManageService.getRecipeLogisticsManageByOrganId(drugsEnterpriseId);
+        LOGGER.info("getDrugsEnterpriseById organLogisticsManageDtos:{}",JSONUtils.toString(organLogisticsManageDtos));
         List<DrugEnterpriseLogisticsBean> drugEnterpriseLogisticsBeans  =new ArrayList<>();
         if(CollectionUtils.isNotEmpty(organLogisticsManageDtos)){
             organLogisticsManageDtos.forEach(organLogisticsManageDto -> {
