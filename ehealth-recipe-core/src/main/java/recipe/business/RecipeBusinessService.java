@@ -13,12 +13,13 @@ import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.recipe.ChineseMedicineMsgVO;
 import com.ngari.recipe.recipe.constant.RecipeTypeEnum;
 import com.ngari.recipe.recipe.constant.RecipecCheckStatusConstant;
-import com.ngari.recipe.recipe.model.*;
+import com.ngari.recipe.recipe.model.PatientInfoDTO;
+import com.ngari.recipe.recipe.model.RecipeBean;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
 import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
-import ctd.util.JSONUtils;
 import eh.cdr.api.vo.MedicalDetailBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -100,8 +101,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     @Autowired
     protected RecipeDetailDAO recipeDetailDAO;
     @Autowired
-    private HisSyncSupervisionService hisSyncSupervisionService;
-    @Autowired
     private EmrRecipeManager emrRecipeManager;
     @Autowired
     private StateManager stateManager;
@@ -111,8 +110,6 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     private ConsultManager consultManager;
     @Autowired
     private RecipeHisService recipeHisService;
-    @Autowired
-    private RecipeExtendService recipeExtendService;
     @Autowired
     DrugsEnterpriseDAO drugsEnterpriseDAO;
     @Autowired
@@ -342,7 +339,8 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             return null;
         }
         List<RegulationRecipeIndicatorsReq> request = new ArrayList<>();
-        hisSyncSupervisionService.splicingBackRecipeData(Collections.singletonList(recipe), request);
+        HisSyncSupervisionService service = ApplicationUtils.getRecipeService(HisSyncSupervisionService.class);
+        service.splicingBackRecipeData(Collections.singletonList(recipe), request);
         return ObjectCopyUtils.convert(request.get(0), RegulationRecipeIndicatorsDTO.class);
     }
 
