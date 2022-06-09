@@ -602,17 +602,18 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
     public List<RecipeDTO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId) {
         List<RecipeDTO> recipeDTOList = new ArrayList<>();
         Recipe recipe = recipeDAO.get(recipeId);
-        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
-        String registerNo = recipeOrder.getRegisterNo();
-        if (StringUtils.isBlank(registerNo)) {
+        String mpiId = recipe.getMpiid();
+        RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+        String registerId = recipeExtend.getRegisterID();
+        if (StringUtils.isBlank(registerId)) {
             return recipeDTOList;
         }
-        List<RecipeOrder> recipeOrderList = recipeOrderDAO.findByRegisterNoAndMpiId(registerNo, recipeOrder.getMpiId());
-        for (RecipeOrder order : recipeOrderList) {
-            if (registerNo.equals(order.getRegisterNo())) {
+        List<RecipeExtend> recipeExtends = recipeExtendDAO.findByRegisterId(registerId);
+        for (RecipeExtend extend : recipeExtends) {
+            Recipe recipeRelated = recipeDAO.get(extend.getRecipeId());
+            if (registerId.equals(extend.getRegisterID()) || !mpiId.equals(recipeRelated.getMpiid())) {
                 continue;
             }
-            Recipe recipeRelated = recipeDAO.get(order.getOrderCode());
             List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeRelated.getRecipeId());
             RecipeDTO recipeDTO = new RecipeDTO();
             recipeDTO.setRecipe(recipeRelated);
