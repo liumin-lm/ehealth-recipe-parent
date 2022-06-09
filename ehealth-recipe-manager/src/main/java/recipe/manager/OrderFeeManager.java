@@ -463,27 +463,41 @@ public class OrderFeeManager extends BaseManager {
     }
 
     /**
-     * 获取配送费
+     * 设置配送费减免
      *
-     * @param enterpriseResTo
+     * @param order
      * @return
      */
-    public BigDecimal getExpressFee(EnterpriseResTo enterpriseResTo) {
-        logger.info("OrderFeeManager getExpressFee enterpriseResTo:{}.", JSONUtils.toString(enterpriseResTo));
-        if (null == enterpriseResTo || StringUtils.isEmpty(enterpriseResTo.getDepId())) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "参数为空");
-        }
-        DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(Integer.parseInt(enterpriseResTo.getDepId()));
-        if (null == drugsEnterprise) {
-            throw new DAOException(ErrorCode.SERVICE_ERROR, "获取药企失败");
-        }
+    @LogRecord
+    public void setExpressFee(RecipeOrder order) {
+        //快递费线上支付的需要计算是否满足包邮
+        if (null != order.getExpressFee() && null != order.getEnterpriseId()) {
+            List<String> addrs = Lists.newArrayList(order.getAddress1(), order.getAddress2(), order.getAddress3());
+            List<DrugDistributionPrice> idAddrs = drugDistributionPriceDAO.findByEnterpriseIdAddrs(order.getEnterpriseId(), addrs);
+            if(CollectionUtils.isEmpty(idAddrs)){
+                return ;
+            }
+            idAddrs.forEach(drugDistributionPrice -> {
+                if (order.getAddress3().equals(drugDistributionPrice.getAddrArea())) {
+                    if (Objects.nonNull(drugDistributionPrice.getBuyFreeShipping()) && order.getRecipeFee().compareTo(drugDistributionPrice.getBuyFreeShipping()) > -1) {
+                        order.setExpressFee(BigDecimal.ZERO);
+                    }
+                    return;
+                }
+                if (order.getAddress2().equals(drugDistributionPrice.getAddrArea())) {
+                    if (Objects.nonNull(drugDistributionPrice.getBuyFreeShipping()) && order.getRecipeFee().compareTo(drugDistributionPrice.getBuyFreeShipping()) > -1) {
+                        order.setExpressFee(BigDecimal.ZERO);
+                    }
+                    return;
+                }
+                if (order.getAddress1().equals(drugDistributionPrice.getAddrArea())) {
+                    if (Objects.nonNull(drugDistributionPrice.getBuyFreeShipping()) && order.getRecipeFee().compareTo(drugDistributionPrice.getBuyFreeShipping()) > -1) {
+                        order.setExpressFee(BigDecimal.ZERO);
+                    }
+                    return;
+                }
+            });
 
-        if (ExpressFeeTypeEnum.EXPRESS_FEE_OFFLINE.getType().equals(drugsEnterprise.getExpressFeeType())) {
-            //运费从第三方获取
-            return enterpriseClient.getExpressFee(enterpriseResTo);
-        } else {
-            //运费从平台获取
-            return getPlatformExpressFee(Integer.parseInt(enterpriseResTo.getDepId()), enterpriseResTo.getAddress());
         }
     }
 
