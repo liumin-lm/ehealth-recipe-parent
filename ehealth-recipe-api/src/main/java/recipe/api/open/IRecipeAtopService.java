@@ -173,20 +173,4 @@ public interface IRecipeAtopService {
      */
     @RpcService
     List<RecipeDetailBean> findRecipeDetailByRecipeId(Integer recipeId);
-
-    /**
-     * 查询报销清单列表
-     * @param reimbursementListReq
-     * @return
-     */
-    @RpcService
-    List<ReimbursementListResVO> findReimbursementList(ReimbursementListReqVO reimbursementListReq);
-
-    /**
-     * 查询报销清单详情
-     * @param recipeId
-     * @return
-     */
-    @RpcService
-    ReimbursementDetailResVO findReimbursementDetail(Integer recipeId);
 }

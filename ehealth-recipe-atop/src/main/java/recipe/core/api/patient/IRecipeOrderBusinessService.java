@@ -6,8 +6,10 @@ import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.RecipeFeeDTO;
 import com.ngari.recipe.dto.RecipeOrderDto;
+import com.ngari.recipe.dto.ReimbursementDTO;
 import com.ngari.recipe.dto.SkipThirdDTO;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.recipe.model.ReimbursementListReqVO;
 import com.ngari.recipe.recipe.model.SkipThirdReqVO;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.util.annotation.RpcService;
@@ -106,4 +108,18 @@ public interface IRecipeOrderBusinessService {
      * @return 订单信息
      */
     RecipeOrder getTrackingNumber(String recipeCode, Integer organId);
+
+    /**
+     * 查询报销清单列表
+     * @param reimbursementListReq
+     * @return
+     */
+    List<ReimbursementDTO> findReimbursementList(ReimbursementListReqVO reimbursementListReq);
+
+    /**
+     * 查询报销清单详情
+     * @param recipeId
+     * @return
+     */
+    ReimbursementDTO findReimbursementDetail(Integer recipeId);
 }

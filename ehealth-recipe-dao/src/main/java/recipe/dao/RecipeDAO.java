@@ -2920,6 +2920,7 @@ public abstract class RecipeDAO extends HibernateSupportDelegateDAO<Recipe> impl
                 if (order == 4) {
                     sql += "order by sum(rd.useTotalDose) asc";
                 }
+                LOGGER.info("findDrugCountOrderByCountOrMoneyCountGroupByDrugId sql : " + sql);
                 Query q = statelessSession.createSQLQuery(sql);
                 q.setParameter("organId", organId);
                 if (drugType != 0) {

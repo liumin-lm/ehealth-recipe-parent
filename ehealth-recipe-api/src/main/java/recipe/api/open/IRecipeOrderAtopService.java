@@ -5,10 +5,15 @@ import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.platform.recipe.mode.RecipeOrderBean;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.recipe.model.ReimbursementDetailResVO;
+import com.ngari.recipe.recipe.model.ReimbursementListReqVO;
+import com.ngari.recipe.recipe.model.ReimbursementListResVO;
 import ctd.util.annotation.RpcService;
 import recipe.vo.second.RecipeOrderVO;
 import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseDownDataVO;
+
+import java.util.List;
 
 /**
  * @description： 处方订单第三方
@@ -68,4 +73,20 @@ public interface IRecipeOrderAtopService {
      */
     @RpcService(mvcDisabled = true)
     RecipeOrderBean getTrackingNumber(RecipeBean recipeBean);
+
+    /**
+     * 查询报销清单列表
+     * @param reimbursementListReq
+     * @return
+     */
+    @RpcService
+    List<ReimbursementListResVO> findReimbursementList(ReimbursementListReqVO reimbursementListReq);
+
+    /**
+     * 查询报销清单详情
+     * @param recipeId
+     * @return
+     */
+    @RpcService
+    ReimbursementDetailResVO findReimbursementDetail(Integer recipeId);
 }

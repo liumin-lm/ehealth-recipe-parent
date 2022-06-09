@@ -12,7 +12,7 @@ import com.ngari.patient.service.PatientService;
 import com.ngari.recipe.common.RecipeResultBean;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
-import com.ngari.recipe.recipe.model.SkipThirdReqVO;
+import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.UpdateOrderStatusVO;
 import ctd.controller.exception.ControllerException;
 import ctd.dictionary.DictionaryController;
@@ -428,6 +428,18 @@ public class RecipeOrderBusinessService implements IRecipeOrderBusinessService {
         Map<String, Object> attrMap = new HashMap<>();
         attrMap.put("status", orderStatus.getTargetRecipeOrderStatus());
         recipeOrderService.updateOrderStatus(orderStatus.getRecipeId(), attrMap);
+    }
+
+    @Override
+    public List<ReimbursementDTO> findReimbursementList(ReimbursementListReqVO reimbursementListReq) {
+        logger.info("findReimbursementList reimbursementListReq={}", JSONUtils.toString(reimbursementListReq));
+        return orderManager.findReimbursementList(ObjectCopyUtils.convert(reimbursementListReq, ReimbursementListReqDTO.class));
+    }
+
+    @Override
+    public ReimbursementDTO findReimbursementDetail(Integer recipeId) {
+        logger.info("findReimbursementDetail recipeId={}",JSONUtils.toString(recipeId));
+        return orderManager.findReimbursementDetail(recipeId);
     }
 
 }

@@ -18,6 +18,7 @@ import com.ngari.patient.service.DoctorService;
 import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import ctd.persistence.DAOFactory;
 import ctd.persistence.bean.QueryResult;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
@@ -32,9 +33,7 @@ import recipe.aop.LogRecord;
 import recipe.client.*;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.RecipeBussConstant;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.RecipeOrderPayFlowDao;
-import recipe.dao.RecipeParameterDao;
+import recipe.dao.*;
 import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.enumerate.status.RecipeStatusEnum;
 import recipe.enumerate.type.*;
@@ -671,5 +670,95 @@ public class OrderManager extends BaseManager {
                 break;
         }
         return statusText;
+    }
+
+    public String queryEinvoiceNumberByRecipeId(Integer recipeId){
+        String einvoiceNumber = "";
+        if (null != recipeId){
+            RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
+            RecipeExtend recipeExtend = recipeExtendDAO.getByRecipeId(recipeId);
+            if (null != recipeExtend && StringUtils.isNotBlank(recipeExtend.getEinvoiceNumber())) {
+                einvoiceNumber = recipeExtend.getEinvoiceNumber();
+            }else {
+                RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+                Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+                if (recipe != null && StringUtils.isNotBlank(recipe.getOrderCode())){
+                    RecipeOrderBillDAO recipeOrderBillDAO = DAOFactory.getDAO(RecipeOrderBillDAO.class);
+                    RecipeOrderBill recipeOrderBill = recipeOrderBillDAO.getRecipeOrderBillByOrderCode(recipe.getOrderCode());
+                    if (null != recipeOrderBill){
+                        einvoiceNumber = recipeOrderBill.getBillNumber();
+                    }
+                }
+            }
+        }
+        return einvoiceNumber;
+    }
+
+    public List<ReimbursementDTO> findReimbursementList(ReimbursementListReqDTO reimbursementListReq) {
+        List<ReimbursementDTO> reimbursementDTOList = new ArrayList<>();
+        //根据机构ID、患者唯一标识查询规定时间内的处方单（orderCode不为空的）
+        List<Recipe> recipeList = recipeDAO.findRecipesByClinicOrganAndMpiId(reimbursementListReq.getOrganId(), reimbursementListReq.getMpiId(), reimbursementListReq.getStartTime(), reimbursementListReq.getEndTime());
+        logger.info("findReimbursementList recipeList={}",JSONUtils.toString(recipeList));
+        if(CollectionUtils.isEmpty(recipeList)){
+            logger.info("findReimbursementList 处方单不存在");
+            return null;
+        }
+        for(Recipe recipe : recipeList){
+            PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(reimbursementListReq.getMpiId());
+            if(patientDTO == null){
+                logger.info("findReimbursementList 患者不存在");
+                return null;
+            }
+            //已经开过发票的处方单
+            String invoiceNumber = queryEinvoiceNumberByRecipeId(recipe.getRecipeId());
+            if(StringUtils.isNotEmpty(invoiceNumber)){
+                RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+                //支付成功、未退费的处方单
+                if(new Integer(1).equals(recipeOrder.getPayFlag()) && new Integer(0).equals(recipeOrder.getRefundFlag())){
+                    ReimbursementDTO reimbursementListDTO = new ReimbursementDTO();
+                    reimbursementListDTO.setPatientDTO(ObjectCopyUtils.convert(patientDTO,com.ngari.recipe.dto.PatientDTO.class));
+                    reimbursementListDTO.setInvoiceNumber(invoiceNumber);
+                    reimbursementListDTO.setRecipe(recipe);
+                    reimbursementListDTO.setRecipeOrder(recipeOrder);
+                    List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipe.getRecipeId());
+                    if(CollectionUtils.isEmpty(recipeDetailList)){
+                        return null;
+                    }
+                    reimbursementListDTO.setRecipeDetailList(recipeDetailList);
+                    reimbursementDTOList.add(reimbursementListDTO);
+                }
+            }
+        }
+        logger.info("findReimbursementList reimbursementDTOList={}",JSONUtils.toString(reimbursementDTOList));
+        return reimbursementDTOList;
+    }
+
+    public ReimbursementDTO findReimbursementDetail(Integer recipeId) {
+        ReimbursementDTO reimbursementDetailDTO = new ReimbursementDTO();
+        Recipe recipe = recipeDAO.get(recipeId);
+        if(recipe == null){
+            logger.info("findReimbursementDetail 处方单不存在");
+            return null;
+        }
+        logger.info("findReimbursementDetail recipe={}", JSONUtils.toString(recipe));
+        reimbursementDetailDTO.setRecipe(recipe);
+        reimbursementDetailDTO.setInvoiceNumber(queryEinvoiceNumberByRecipeId(recipeId));
+        PatientDTO patientDTO = patientClient.getPatientBeanByMpiId(recipe.getMpiid());
+        if(patientDTO == null){
+            logger.info("findReimbursementDetail 患者不存在");
+            return null;
+        }
+        logger.info("findReimbursementDetail patientDTO={}",JSONUtils.toString(patientDTO));
+        reimbursementDetailDTO.setPatientDTO(ObjectCopyUtils.convert(patientDTO,com.ngari.recipe.dto.PatientDTO.class));
+        if(StringUtils.isNotBlank(recipe.getOrderCode())){
+            RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+            reimbursementDetailDTO.setRecipeOrder(recipeOrder);
+        }
+        List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeId);
+        if (CollectionUtils.isNotEmpty(recipeDetailList)){
+            reimbursementDetailDTO.setRecipeDetailList(recipeDetailList);
+        }
+        logger.info("findReimbursementDetail reimbursementDetailDTO={}",JSONUtils.toString(reimbursementDetailDTO));
+        return reimbursementDetailDTO;
     }
 }

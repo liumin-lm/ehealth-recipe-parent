@@ -214,16 +214,4 @@ public class RecipeOpenAtop extends BaseAtop implements IRecipeAtopService {
         return recipeBusinessService.findRecipeDetailByRecipeId(recipeId);
     }
 
-    @Override
-    public List<ReimbursementListResVO> findReimbursementList(ReimbursementListReqVO reimbursementListReq) {
-        validateAtop(reimbursementListReq.getOrganId(),reimbursementListReq.getMpiId());
-        return recipeBusinessService.findReimbursementList(reimbursementListReq);
-    }
-
-    @Override
-    public ReimbursementDetailResVO findReimbursementDetail(Integer recipeId) {
-        validateAtop(recipeId);
-        return recipeBusinessService.findReimbursementDetail(recipeId);
-    }
-
 }

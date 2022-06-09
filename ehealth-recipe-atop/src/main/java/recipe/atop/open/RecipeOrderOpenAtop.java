@@ -5,10 +5,19 @@ import com.ngari.common.dto.CheckRequestCommonOrderPageDTO;
 import com.ngari.common.dto.SyncOrderVO;
 import com.ngari.platform.recipe.mode.RecipeBean;
 import com.ngari.recipe.common.RecipeResultBean;
+import com.ngari.recipe.dto.PatientDTO;
 import com.ngari.recipe.dto.RecipeOrderDto;
+import com.ngari.recipe.dto.ReimbursementDTO;
 import com.ngari.recipe.entity.RecipeOrder;
+import com.ngari.recipe.entity.Recipedetail;
+import com.ngari.recipe.recipe.model.RecipeDetailBean;
+import com.ngari.recipe.recipe.model.ReimbursementDetailResVO;
+import com.ngari.recipe.recipe.model.ReimbursementListReqVO;
+import com.ngari.recipe.recipe.model.ReimbursementListResVO;
+import ctd.util.JSONUtils;
 import ctd.util.annotation.RpcBean;
 import eh.utils.BeanCopyUtils;
+import org.apache.commons.collections.CollectionUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.api.open.IRecipeOrderAtopService;
@@ -20,8 +29,7 @@ import recipe.vo.second.RecipeVo;
 import recipe.vo.second.enterpriseOrder.DownOrderRequestVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseDownDataVO;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -92,5 +100,60 @@ public class RecipeOrderOpenAtop extends BaseAtop implements IRecipeOrderAtopSer
             return null;
         }
         return ObjectCopyUtils.convert(recipeOrder, com.ngari.platform.recipe.mode.RecipeOrderBean.class);
+    }
+
+    @Override
+    public List<ReimbursementListResVO> findReimbursementList(ReimbursementListReqVO reimbursementListReq) {
+        validateAtop(reimbursementListReq.getOrganId(),reimbursementListReq.getMpiId());
+        List<ReimbursementListResVO> reimbursementListResVOList = new ArrayList<>();
+        List<ReimbursementDTO> reimbursementList = recipeOrderService.findReimbursementList(reimbursementListReq);
+        if(CollectionUtils.isEmpty(reimbursementList)){
+            return null;
+        }
+        for(ReimbursementDTO reimbursementDTO : reimbursementList){
+            ReimbursementListResVO reimbursementListResVO = new ReimbursementListResVO();
+            reimbursementListResVO.setRecipeId(reimbursementDTO.getRecipe().getRecipeId());
+            PatientDTO patientDTO = reimbursementDTO.getPatientDTO();
+            reimbursementListResVO.setName(patientDTO.getPatientName());
+            reimbursementListResVO.setSex(patientDTO.getPatientSex().equals("1") ? "男":"女");
+            reimbursementListResVO.setAge(patientDTO.getAge());
+            reimbursementListResVO.setPayTime(reimbursementDTO.getRecipeOrder().getPayTime());
+            reimbursementListResVO.setInvoiceNumber(reimbursementDTO.getInvoiceNumber());
+            reimbursementListResVO.setMedicalFlag(reimbursementDTO.getRecipeOrder().getFundAmount() == null ? "自费":"医保");
+            Map<String,String> DrugItem = new HashMap<>();
+            for(Recipedetail recipedetail : reimbursementDTO.getRecipeDetailList()){
+                DrugItem.put(recipedetail.getOrganDrugCode(),recipedetail.getDrugName());
+            }
+            reimbursementListResVO.setDrugItem(DrugItem);
+            reimbursementListResVOList.add(reimbursementListResVO);
+        }
+        logger.info("findReimbursementList reimbursementListResVOList={}", JSONUtils.toString(reimbursementListResVOList));
+        return reimbursementListResVOList;
+    }
+
+    @Override
+    public ReimbursementDetailResVO findReimbursementDetail(Integer recipeId) {
+        validateAtop(recipeId);
+        ReimbursementDetailResVO reimbursementDetailVO = new ReimbursementDetailResVO();
+        ReimbursementDTO reimbursementDetailDTO = recipeOrderService.findReimbursementDetail(recipeId);
+        if(reimbursementDetailDTO != null){
+            reimbursementDetailVO.setInvoiceNumber(reimbursementDetailDTO.getInvoiceNumber());
+            reimbursementDetailVO.setPatientId(reimbursementDetailDTO.getRecipe().getPatientID());
+            RecipeOrder recipeOrder = reimbursementDetailDTO.getRecipeOrder();
+            if(recipeOrder != null){
+                reimbursementDetailVO.setPayTime(recipeOrder.getPayTime());
+                reimbursementDetailVO.setMedicalFlag(recipeOrder.getFundAmount() == null ? "自费":"医保");
+            }
+            PatientDTO patientDTO = reimbursementDetailDTO.getPatientDTO();
+            if(patientDTO != null){
+                reimbursementDetailVO.setName(patientDTO.getPatientName());
+            }
+            List<Recipedetail> recipeDetailList = reimbursementDetailDTO.getRecipeDetailList();
+            if(CollectionUtils.isNotEmpty(recipeDetailList)){
+                reimbursementDetailVO.setRecipeDetailList(ObjectCopyUtils.convert(recipeDetailList, RecipeDetailBean.class));
+            }
+        }
+        logger.info("findReimbursementDetail reimbursementDetailVO={}", JSONUtils.toString(reimbursementDetailVO));
+        return reimbursementDetailVO;
     }
 }
