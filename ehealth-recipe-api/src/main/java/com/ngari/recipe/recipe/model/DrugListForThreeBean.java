@@ -1,5 +1,7 @@
 package com.ngari.recipe.recipe.model;
 
+import ctd.schema.annotation.ItemProperty;
+
 import java.io.Serializable;
 
 public class DrugListForThreeBean implements Serializable {
@@ -27,6 +29,10 @@ public class DrugListForThreeBean implements Serializable {
     private String drugTotalFee;
     private String memo;
     private String drugForm;
+    @ItemProperty(alias = "药品销售单位")
+    private String saleUnit;
+    @ItemProperty(alias = "根据销售策略计算的药品用量")
+    private String saleUseDose;
 
     public String getUseDoseUnit() {
         return useDoseUnit;
@@ -202,5 +208,21 @@ public class DrugListForThreeBean implements Serializable {
 
     public void setDrugForm(String drugForm) {
         this.drugForm = drugForm;
+    }
+
+    public String getSaleUnit() {
+        return saleUnit;
+    }
+
+    public void setSaleUnit(String saleUnit) {
+        this.saleUnit = saleUnit;
+    }
+
+    public String getSaleUseDose() {
+        return saleUseDose;
+    }
+
+    public void setSaleUseDose(String saleUseDose) {
+        this.saleUseDose = saleUseDose;
     }
 }

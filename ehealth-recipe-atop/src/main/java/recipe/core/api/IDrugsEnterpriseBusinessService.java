@@ -18,6 +18,7 @@ import recipe.vo.patient.CheckAddressRes;
 import recipe.vo.second.CheckAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
+import recipe.vo.second.enterpriseOrder.EnterpriseSendOrderVO;
 
 import java.util.List;
 
@@ -118,6 +119,8 @@ public interface IDrugsEnterpriseBusinessService {
      */
     boolean retryPushRecipeOrder(Integer recipeId);
 
+    boolean pushDrugDispenser(Integer recipeId);
+
     /**
      * 药企推送失败 的处方重新推送定时任务
      */
@@ -143,4 +146,11 @@ public interface IDrugsEnterpriseBusinessService {
      * @return
      */
     EnterpriseResultBean confirmOrder (EnterpriseConfirmOrderVO enterpriseConfirmOrderVO);
+
+    /**
+     * 订单发货接口
+     * @param enterpriseSendOrderVO
+     * @return
+     */
+    EnterpriseResultBean sendOrder(EnterpriseSendOrderVO enterpriseSendOrderVO);
 }

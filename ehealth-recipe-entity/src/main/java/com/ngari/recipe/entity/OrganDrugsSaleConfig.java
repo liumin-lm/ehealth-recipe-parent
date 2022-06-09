@@ -57,6 +57,12 @@ public class OrganDrugsSaleConfig implements Serializable {
     @ItemProperty(alias = "医保患者特殊提示")
     private String specialTips;
 
+    @ItemProperty(alias = "是否调用药企发药机：0不调用，1调用")
+    private Integer useDrugDispenserFlag;
+
+    @ItemProperty(alias = "是否打印用法标签：0不打印，1打印")
+    private Integer printUsageLabelFlag;
+
     @ItemProperty(alias = "创建时间")
     private Date createTime;
 
@@ -162,6 +168,24 @@ public class OrganDrugsSaleConfig implements Serializable {
 
     public void setSpecialTips(String specialTips) {
         this.specialTips = specialTips;
+    }
+
+    @Column(name = "use_drug_dispenser_flag")
+    public Integer getUseDrugDispenserFlag() {
+        return useDrugDispenserFlag;
+    }
+
+    public void setUseDrugDispenserFlag(Integer useDrugDispenserFlag) {
+        this.useDrugDispenserFlag = useDrugDispenserFlag;
+    }
+
+    @Column(name = "print_usage_label_flag")
+    public Integer getPrintUsageLabelFlag() {
+        return printUsageLabelFlag;
+    }
+
+    public void setPrintUsageLabelFlag(Integer printUsageLabelFlag) {
+        this.printUsageLabelFlag = printUsageLabelFlag;
     }
 
     @Column(name = "create_time")

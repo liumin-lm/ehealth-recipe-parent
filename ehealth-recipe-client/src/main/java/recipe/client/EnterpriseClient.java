@@ -30,6 +30,7 @@ import recipe.third.IFileDownloadService;
 import recipe.util.ByteUtils;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -201,7 +202,7 @@ public class EnterpriseClient extends BaseClient {
             return takeMedicineByToHos;
         } catch (Exception e) {
             logger.error("EnterpriseClient getTakeMedicineByToHosList takeMedicineByToHos", e);
-            throw new DAOException(ErrorCode.SERVICE_ERROR, e.getMessage());
+            return new ArrayList<>();
         }
     }
 

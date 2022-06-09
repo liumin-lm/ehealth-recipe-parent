@@ -314,6 +314,7 @@ public class OperationPlatformRecipeService {
         if (enterpriseId != null) {
             DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.get(enterpriseId);
             if (null != drugsEnterprise) {
+                e.setId(drugsEnterprise.getId());
                 e.setName(drugsEnterprise.getName());
                 e.setPayModeSupport(drugsEnterprise.getPayModeSupport());
                 e.setCreateType(drugsEnterprise.getCreateType());

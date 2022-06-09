@@ -391,6 +391,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                     if (recipe != null) {
                         LOGGER.info("HdRemoteService.pushRecipeInfo:[{}][{}][{}]处方推送成功，请求返回:{}", sendHdRecipe.getRecipeId(),enterprise.getId(), enterprise.getName());
                         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方成功");
+                        recipeOrderDAO.updatePushFlagByOrderCode(recipe.getOrderCode(), 1);
                     } else {
                         LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送成功.",enterprise.getId(), enterprise.getName());
                     }
@@ -400,6 +401,7 @@ public class HdRemoteService extends AccessDrugEnterpriseService {
                     if (recipe != null) {
                         LOGGER.warn("HdRemoteService.pushRecipeInfo:[{}][{}][{}]处方推送失败, 失败原因: {}", sendHdRecipe.getRecipeId(),enterprise.getId(), enterprise.getName(), pushRecipeResponse.getMessage());
                         RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给"+enterprise.getName()+"推送处方失败,失败信息："+pushRecipeResponse.getMessage());
+                        recipeOrderDAO.updatePushFlagByOrderCode(recipe.getOrderCode(), -1);
                     } else {
                         LOGGER.info("YtRemoteService.pushRecipeInfo:[{}][{}]处方推送失败.",enterprise.getId(), enterprise.getName());
                     }

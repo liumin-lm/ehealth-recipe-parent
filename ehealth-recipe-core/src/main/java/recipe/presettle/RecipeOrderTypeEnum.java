@@ -1,8 +1,11 @@
 package recipe.presettle;
 
+import com.google.common.collect.Lists;
 import ctd.util.AppContextHolder;
 import org.apache.commons.lang3.StringUtils;
 import recipe.presettle.settle.IRecipeSettleService;
+
+import java.util.List;
 
 /**
  * created by shiyuping on 2020/12/1
@@ -109,5 +112,9 @@ public enum RecipeOrderTypeEnum {
             }
         }
         return recipeSettleService;
+    }
+
+    public static List<Integer> getSettleServiceType(){
+        return Lists.newArrayList(1, 2, 5);
     }
 }

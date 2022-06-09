@@ -78,6 +78,8 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
 
     private static final String COMMON_SERVICE = "commonRemoteService";
 
+    private static final String NO_PUSH_MSG = "当前机构未配置处方流转平台";
+
     @Autowired
     DrugListDAO drugListDAO;
     DrugListExtService drugListExtService = ApplicationUtils.getRecipeService(DrugListExtService.class, "drugList");
@@ -157,7 +159,7 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
                     recipeExtendDAO.updateRecipeExInfoByRecipeId(recipe.getRecipeId(), ImmutableMap.of("rxid", prescId));
                 }
             } else {
-                if (null != enterprise && StringUtils.isEmpty(enterprise.getAppKey())) {
+                if (null != enterprise && StringUtils.isEmpty(enterprise.getAppKey()) && !NO_PUSH_MSG.equals(responseTO.getMsg())) {
                     orderService.updateOrderInfo(recipe.getOrderCode(), ImmutableMap.of("pushFlag", -1), null);
                     RecipeLogService.saveRecipeLog(recipe.getRecipeId(), recipe.getStatus(), recipe.getStatus(), "纳里给" + enterprise.getName() + "推送处方失败");
                     result.setCode(0);
@@ -215,6 +217,21 @@ public class RemoteDrugEnterpriseService extends AccessDrugEnterpriseService {
         return result;
     }
 
+    public Boolean pushDrugDispenser(Integer recipeId) {
+        RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
+        Recipe recipe = recipeDAO.getByRecipeId(recipeId);
+        DrugEnterpriseResult result = getServiceByRecipeId(recipeId);
+        DrugsEnterprise enterprise = result.getDrugsEnterprise();
+        if (Objects.isNull(enterprise)) {
+            throw new DAOException("未找到对应药企！");
+        }
+        IRecipeEnterpriseService recipeEnterpriseService = AppContextHolder.getBean("his.iRecipeEnterpriseService", IRecipeEnterpriseService.class);
+        PushRecipeAndOrder pushRecipeAndOrder = enterpriseManager.getPushRecipeAndOrder(recipe, enterprise, "");
+        LOGGER.info("pushSingleRecipeInfo pushRecipeAndOrder:{}.", JSONUtils.toString(pushRecipeAndOrder));
+        HisResponseTO responseTO = recipeEnterpriseService.pushSingleRecipeInfo(pushRecipeAndOrder);
+        LOGGER.info("pushSingleRecipeInfo responseTO:{}.", JSONUtils.toString(responseTO));
+        return true;
+    }
 
     @RpcService
     @LogRecord

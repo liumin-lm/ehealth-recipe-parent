@@ -72,6 +72,15 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
                                                          @DAOParam("trackingNumber") String trackingNumber);
 
     /**
+     * 更新药企推送成功标志
+     * @param orderCode
+     * @param pushFlag
+     */
+    @DAOMethod(sql = "update RecipeOrder set pushFlag=:pushFlag where orderCode=:orderCode")
+    public abstract void updatePushFlagByOrderCode(@DAOParam("orderCode") String orderCode,
+                                                         @DAOParam("pushFlag") Integer pushFlag);
+
+    /**
      * 获取订单
      *
      * @param orderId          订单ID

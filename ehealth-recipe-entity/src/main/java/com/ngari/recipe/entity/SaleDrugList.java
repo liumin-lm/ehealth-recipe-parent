@@ -71,7 +71,22 @@ public class SaleDrugList implements java.io.Serializable {
     @ItemProperty(alias = "禁用原因")
     private String disableReason;
 
-//    @ItemProperty(alias = "药企销售策略")
+    @ItemProperty(alias = "选中销售策略id,关联drugSaleStrategy表主键")
+    private Integer saleStrategyId;
+
+    @Column(name = "sale_strategy_id")
+    public Integer getSaleStrategyId() {
+        return saleStrategyId;
+    }
+
+    public void setSaleStrategyId(Integer saleStrategyId) {
+        this.saleStrategyId = saleStrategyId;
+    }
+
+
+
+
+    //    @ItemProperty(alias = "药企销售策略")
 //    private String enterpriseSalesStrategy;
 
 //    @Column(name = "enterprise_sales_strategy")

@@ -10,6 +10,7 @@ import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.*;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.vo.doctor.PatientOptionalDrugVO;
+import recipe.vo.greenroom.DrugUsageLabelResp;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.MedicalDetailVO;
 
@@ -212,9 +213,17 @@ public interface IRecipeBusinessService {
 
     /**
      * 查询报销清单详情
+     *
      * @param recipeId
      * @return
      */
     ReimbursementDetailResVO findReimbursementDetail(Integer recipeId);
 
+    /**
+     * 根据处方单获取药品用法标签列表
+     *
+     * @param recipeId
+     * @return
+     */
+    DrugUsageLabelResp queryRecipeDrugUsageLabel(Integer recipeId);
 }

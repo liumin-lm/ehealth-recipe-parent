@@ -1997,6 +1997,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 drugList.setPack(convertParame(recipedetail.getPack()));
                 drugList.setLicenseNumber(convertParame(recipedetail.getLicenseNumber()));
                 drugList.setStandardCode("");
+                drugList.setSaleUnit(convertParame(recipedetail.getSaleUnit()));
+                drugList.setSaleUseDose(convertParame(recipedetail.getSaleUseDose()));
                 if (saleDrugList.getPrice() != null && recipedetail.getUseTotalDose() != null) {
                     drugList.setDrugTotalFee(convertParame(saleDrugList.getPrice().multiply(new BigDecimal(recipedetail.getUseTotalDose()))));
                 }

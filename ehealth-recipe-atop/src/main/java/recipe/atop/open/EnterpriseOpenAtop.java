@@ -9,6 +9,7 @@ import recipe.core.api.IDrugsEnterpriseBusinessService;
 import recipe.vo.second.CheckAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
+import recipe.vo.second.enterpriseOrder.EnterpriseSendOrderVO;
 
 /**
  * @description： 药企openatop
@@ -32,6 +33,14 @@ public class EnterpriseOpenAtop  extends BaseAtop implements IEnterpriseOpenAtop
             return EnterpriseResultBean.getFail("appKey为空");
         }
         return enterpriseBusinessService.confirmOrder(enterpriseConfirmOrderVO);
+    }
+
+    @Override
+    public EnterpriseResultBean sendOrder(EnterpriseSendOrderVO enterpriseSendOrderVO) {
+        if (StringUtils.isEmpty(enterpriseSendOrderVO.getOrderCode())) {
+            return EnterpriseResultBean.getFail("订单编号为空");
+        }
+        return enterpriseBusinessService.sendOrder(enterpriseSendOrderVO);
     }
 
 }
