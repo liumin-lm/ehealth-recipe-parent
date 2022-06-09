@@ -12,11 +12,13 @@ import com.ngari.recipe.entity.PharmacyTcm;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Recipedetail;
 import com.ngari.revisit.common.model.RevisitExDTO;
+import ctd.persistence.exception.DAOException;
 import org.apache.commons.collections.CollectionUtils;
 import org.joda.time.DateTime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import recipe.dao.PharmacyTcmDAO;
+import recipe.util.JsonUtil;
 import recipe.util.MapValueUtil;
 import recipe.util.ObjectCopyUtils;
 import recipe.util.ValidateUtil;
@@ -46,22 +48,25 @@ public class RecipeDetailManager extends BaseManager {
         logger.info("RecipeDetailManager saveRecipePreSettleDrugFeeDTOS  recipePreSettleDrugFeeDTOS = {}"
                 , JSON.toJSONString(recipePreSettleDrugFeeDTOS));
 
-        // 保存预结算返回药品详细信息
-        if (CollectionUtils.isNotEmpty(recipePreSettleDrugFeeDTOS)) {
-            Map<String, List<RecipePreSettleDrugFeeDTO>> collect = recipePreSettleDrugFeeDTOS.stream().collect(Collectors.groupingBy(a -> a.getRecipeCode() + a.getOrganDrugCode()));
-            List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
-            List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIds);
-            Map<Integer, String> recipeCodeMap = recipes.stream().collect(Collectors.toMap(Recipe::getRecipeId, Recipe::getRecipeCode));
-            for (Recipedetail recipeDetail : recipeDetails) {
-                String recipeCode = recipeCodeMap.get(recipeDetail.getRecipeId());
-                List<RecipePreSettleDrugFeeDTO> recipePreSettleDrugFeeDTO = collect.get(recipeCode + recipeDetail.getOrganDrugCode());
-                if (CollectionUtils.isNotEmpty(recipePreSettleDrugFeeDTO)) {
-                    recipeDetail.setActualSalePrice(recipePreSettleDrugFeeDTO.get(0).getSalePrice());
-                    recipeDetail.setDrugCost(recipePreSettleDrugFeeDTO.get(0).getDrugCost());
+        try {
+            // 保存预结算返回药品详细信息
+            if (CollectionUtils.isNotEmpty(recipePreSettleDrugFeeDTOS)) {
+                Map<String, List<RecipePreSettleDrugFeeDTO>> collect = recipePreSettleDrugFeeDTOS.stream().collect(Collectors.groupingBy(a -> a.getRecipeCode() + a.getOrganDrugCode()));
+                List<Recipe> recipes = recipeDAO.findByRecipeIds(recipeIds);
+                List<Recipedetail> recipeDetails = recipeDetailDAO.findByRecipeIdList(recipeIds);
+                Map<Integer, String> recipeCodeMap = recipes.stream().collect(Collectors.toMap(Recipe::getRecipeId, Recipe::getRecipeCode));
+                for (Recipedetail recipeDetail : recipeDetails) {
+                    String recipeCode = recipeCodeMap.get(recipeDetail.getRecipeId());
+                    List<RecipePreSettleDrugFeeDTO> recipePreSettleDrugFeeDTO = collect.get(recipeCode + recipeDetail.getOrganDrugCode());
+                    if (CollectionUtils.isNotEmpty(recipePreSettleDrugFeeDTO)) {
+                        recipeDetail.setActualSalePrice(recipePreSettleDrugFeeDTO.get(0).getSalePrice());
+                        recipeDetail.setDrugCost(recipePreSettleDrugFeeDTO.get(0).getDrugCost());
+                    }
                 }
+                recipeDetailDAO.updateAllRecipeDetail(recipeDetails);
             }
-            recipeDetailDAO.updateAllRecipeDetail(recipeDetails);
-
+        }catch (Exception e){
+            logger.error("saveRecipePreSettleDrugFeeDTOS recipeIds={} error", JsonUtil.toString(recipeIds), e);
         }
     }
     /**
