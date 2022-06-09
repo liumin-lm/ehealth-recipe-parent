@@ -206,21 +206,6 @@ public interface IRecipeBusinessService {
     List<RecipeDetailBean> findRecipeDetailByRecipeId(Integer recipeId);
 
     /**
-     * 查询报销清单列表
-     * @param reimbursementListReq
-     * @return
-     */
-    List<ReimbursementListResVO> findReimbursementList(ReimbursementListReqVO reimbursementListReq);
-
-    /**
-     * 查询报销清单详情
-     *
-     * @param recipeId
-     * @return
-     */
-    ReimbursementDetailResVO findReimbursementDetail(Integer recipeId);
-
-    /**
      * 根据处方单获取药品用法标签列表
      *
      * @param recipeId
