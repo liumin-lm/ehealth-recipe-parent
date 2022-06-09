@@ -18,7 +18,6 @@ import com.ngari.recipe.vo.*;
 import ctd.persistence.exception.DAOException;
 import ctd.schema.exception.ValidateException;
 import ctd.util.BeanUtils;
-import ctd.util.JSONUtils;
 import eh.cdr.api.vo.MedicalDetailBean;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -600,6 +599,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
 
     @Override
     public List<RecipeDTO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId) {
+        logger.info("findRelatedRecipeRecordByRegisterNo recipeId={}, doctorId={}", recipeId, doctorId);
         List<RecipeDTO> recipeDTOList = new ArrayList<>();
         Recipe recipe = recipeDAO.get(recipeId);
         String mpiId = recipe.getMpiid();
@@ -609,6 +609,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             return recipeDTOList;
         }
         List<RecipeExtend> recipeExtends = recipeExtendDAO.findByRegisterId(registerId);
+        logger.info("findRelatedRecipeRecordByRegisterNo recipeExtends={}", JSON.toJSONString(recipeExtends));
         for (RecipeExtend extend : recipeExtends) {
             Recipe recipeRelated = recipeDAO.get(extend.getRecipeId());
             if (registerId.equals(extend.getRegisterID()) || !mpiId.equals(recipeRelated.getMpiid())) {
@@ -620,6 +621,7 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
             recipeDTO.setRecipeDetails(recipeDetailList);
             recipeDTOList.add(recipeDTO);
         }
+        logger.info("findRelatedRecipeRecordByRegisterNo recipeDTOList={}", JSON.toJSONString(recipeDTOList));
         return recipeDTOList;
     }
 }
