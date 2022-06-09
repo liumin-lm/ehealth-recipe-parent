@@ -646,14 +646,14 @@ public class StockBusinessService extends BaseService implements IStockBusinessS
             supportDownload.setShowButtonKey(RecipeSupportGiveModeEnum.DOWNLOAD_RECIPE.getText());
             giveModeButton.add(supportDownload);
         }
-        String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
-        if (StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
-            GiveModeButtonDTO supportMedicalPayment = new GiveModeButtonDTO();
-            supportMedicalPayment.setType(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getType());
-            supportMedicalPayment.setShowButtonName(supportMedicalPaymentButton);
-            supportMedicalPayment.setShowButtonKey(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
-            giveModeButton.add(supportMedicalPayment);
-        }
+//        String supportMedicalPaymentButton = RecipeSupportGiveModeEnum.getGiveModeName(giveModeButtonBeans, RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
+//        if (StringUtils.isNotEmpty(supportMedicalPaymentButton)) {
+//            GiveModeButtonDTO supportMedicalPayment = new GiveModeButtonDTO();
+//            supportMedicalPayment.setType(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getType());
+//            supportMedicalPayment.setShowButtonName(supportMedicalPaymentButton);
+//            supportMedicalPayment.setShowButtonKey(RecipeSupportGiveModeEnum.SUPPORT_MEDICAL_PAYMENT.getText());
+//            giveModeButton.add(supportMedicalPayment);
+//        }
         if (CollectionUtils.isEmpty(giveModeButton)) {
             return giveModeButton;
         }

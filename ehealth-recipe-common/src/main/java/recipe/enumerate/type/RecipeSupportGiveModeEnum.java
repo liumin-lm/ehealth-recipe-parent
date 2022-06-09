@@ -218,11 +218,12 @@ public enum RecipeSupportGiveModeEnum {
      * 1->(2/3)
      * 2->(2/3)
      * 3->1
+     * 4->5
      * 7->1,(2/3)
      * 8->1,(2/3)
      * 9->1,(2/3)
      *
-     * @param payModeSupport 配送模式支持 0:不支持 1:线上付款 2:货到付款 3:药店取药 8:货到付款和药店取药 9:都支持
+     * @param payModeSupport 配送模式支持 0:不支持 1:线上付款 2:货到付款 3:药店取药 4:例外支付 8:货到付款和药店取药 9:都支持
      * @param sendType       配送主体类型 1医院配送 2 药企配送
      * @return 购药方式枚举
      */
@@ -243,6 +244,9 @@ public enum RecipeSupportGiveModeEnum {
             giveModeButtonList.add(giveModeButtonDTO(SHOW_SEND_TO_ENTERPRISES));
         } else {
             giveModeButtonList.add(giveModeButtonDTO(SHOW_SEND_TO_HOS));
+        }
+        if(RecipeBussConstant.SUPPORT_MEDICAL_PAYMENT.equals(payModeSupport)){
+            giveModeButtonList.add(giveModeButtonDTO(SUPPORT_MEDICAL_PAYMENT));
         }
         return giveModeButtonList;
     }
