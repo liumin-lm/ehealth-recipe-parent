@@ -326,7 +326,7 @@ public class ObtainConfirmOrderObjectResNoDS implements Serializable {
     private Integer thirdPayType;
 
     @ItemProperty(alias = "第三方支付金额")
-    private BigDecimal thirdPayFee;
+    private double thirdPayFee;
     @ItemProperty(alias = "预约取药开始时间")
     private String expectStartTakeTime;
     @ItemProperty(alias = "预约取药结束时间")
@@ -1088,11 +1088,11 @@ public class ObtainConfirmOrderObjectResNoDS implements Serializable {
         this.thirdPayType = thirdPayType;
     }
 
-    public BigDecimal getThirdPayFee() {
+    public double getThirdPayFee() {
         return thirdPayFee;
     }
 
-    public void setThirdPayFee(BigDecimal thirdPayFee) {
+    public void setThirdPayFee(double thirdPayFee) {
         this.thirdPayFee = thirdPayFee;
     }
 

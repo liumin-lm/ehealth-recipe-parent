@@ -36,6 +36,10 @@ public class DrugDistributionPriceBean implements java.io.Serializable {
     @ItemProperty(alias = "配送价格")
     private BigDecimal distributionPrice;
 
+
+    @ItemProperty(alias = "金额满多少包邮")
+    private BigDecimal buyFreeShipping;
+
     public DrugDistributionPriceBean() {
     }
 
@@ -69,6 +73,14 @@ public class DrugDistributionPriceBean implements java.io.Serializable {
 
     public void setDistributionPrice(BigDecimal distributionPrice) {
         this.distributionPrice = distributionPrice;
+    }
+
+    public BigDecimal getBuyFreeShipping() {
+        return buyFreeShipping;
+    }
+
+    public void setBuyFreeShipping(BigDecimal buyFreeShipping) {
+        this.buyFreeShipping = buyFreeShipping;
     }
 
     @Override

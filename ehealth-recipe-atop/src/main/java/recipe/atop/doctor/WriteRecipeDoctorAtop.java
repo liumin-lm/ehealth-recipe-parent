@@ -2,6 +2,7 @@ package recipe.atop.doctor;
 
 import com.ngari.patient.utils.ObjectCopyUtils;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
+import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.dto.WriteDrugRecipeDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.recipe.model.RecipeBean;
@@ -108,6 +109,7 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
      * @param recipeId recipe
      * @param type     0： 默认全部 1：查询暂存，2查询可撤销处方
      */
+    @RpcService
     public RecipeBean recipeInfo(Integer recipeId, Integer type) {
         validateAtop(recipeId);
         Recipe recipe = recipeBusinessService.getByRecipeId(recipeId);
@@ -120,5 +122,18 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
         List<Integer> recipeIds = recipeIdList.stream().filter(a -> !a.equals(recipeBean.getRecipeId())).collect(Collectors.toList());
         recipeBean.setGroupRecipeIdList(recipeIds);
         return recipeBean;
+    }
+
+
+    /**
+     * 获取某处方单关联处方（同一个患者同一次就诊）
+     *
+     * @param recipeId
+     * @param doctorId
+     * @return
+     */
+    @RpcService
+    public List<RecipeDTO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId) {
+        return recipeBusinessService.findRelatedRecipeRecordByRegisterNo(recipeId, doctorId);
     }
 }

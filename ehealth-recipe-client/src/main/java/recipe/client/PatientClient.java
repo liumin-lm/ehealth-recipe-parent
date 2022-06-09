@@ -182,6 +182,19 @@ public class PatientClient extends BaseClient {
     }
 
     /**
+     * 根据mpiid获取患者信息
+     *
+     * @param mpiId
+     * @return
+     */
+    public com.ngari.patient.dto.PatientDTO getPatientDTOByMpiId(String mpiId) {
+        if (StringUtils.isEmpty(mpiId)) {
+            return null;
+        }
+        return patientService.getPatientDTOByMpiId(mpiId);
+    }
+
+    /**
      * 查询线下患者信息
      *
      * @param patientQueryRequestTO

@@ -254,8 +254,6 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                 return;
             }
             SearchDrugDetailDTO searchDrug = ObjectCopyUtils.convert(organDrug, SearchDrugDetailDTO.class);
-            RecipeUtil.SearchDrugDetailDTO(searchDrug, configDrugNameMap, configSaleNameMap, drugEntrustNameMap);
-            searchDrug.setUseDoseAndUnitRelation(RecipeUtil.defaultUseDose(organDrug));
             //添加es价格空填值逻辑
             DrugList drugListNow = drugMap.get(a.getDrugId());
             if (null != drugListNow) {
@@ -263,6 +261,9 @@ public class DrugBusinessService extends BaseService implements IDrugBusinessSer
                 searchDrug.setPrice2(drugListNow.getPrice2());
                 searchDrug.setDrugType(drugListNow.getDrugType());
             }
+            searchDrug.setHospitalPrice(searchDrug.getSalePrice());
+            searchDrug.setUseDoseAndUnitRelation(RecipeUtil.defaultUseDose(organDrug));
+            RecipeUtil.SearchDrugDetailDTO(searchDrug, configDrugNameMap, configSaleNameMap, drugEntrustNameMap);
             drugList.add(searchDrug);
         });
         return drugList;

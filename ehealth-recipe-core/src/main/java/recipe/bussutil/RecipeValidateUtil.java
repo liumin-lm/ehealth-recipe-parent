@@ -30,11 +30,9 @@ import recipe.bussutil.drugdisplay.DrugDisplayNameProducer;
 import recipe.bussutil.drugdisplay.DrugNameDisplayUtil;
 import recipe.client.DrugClient;
 import recipe.constant.ErrorCode;
-import recipe.dao.DrugListDAO;
-import recipe.dao.OrganDrugListDAO;
-import recipe.dao.RecipeDAO;
-import recipe.dao.RecipeDetailDAO;
+import recipe.dao.*;
 import recipe.enumerate.status.RecipeStatusEnum;
+import recipe.enumerate.type.RecipeTypeEnum;
 import recipe.util.MapValueUtil;
 
 import java.math.BigDecimal;
@@ -207,6 +205,7 @@ public class RecipeValidateUtil {
         RecipeDetailDAO detailDAO = DAOFactory.getDAO(RecipeDetailDAO.class);
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         DrugListDAO drugListDAO = DAOFactory.getDAO(DrugListDAO.class);
+        DrugSaleStrategyDAO drugSaleStrategyDAO = DAOFactory.getDAO(DrugSaleStrategyDAO.class);
 
         Integer recipeId = recipe.getRecipeId();
         List<RecipeDetailBean> backDetailList = new ArrayList<>();
@@ -225,7 +224,11 @@ public class RecipeValidateUtil {
         List<Integer> drugId = detailBeans.stream().map(RecipeDetailBean::getDrugId).collect(Collectors.toList());
         List<DrugList> drugLists = drugListDAO.findByDrugIds(drugId);
         Map<Integer, List<DrugList>> drugListMap = drugLists.stream().collect(Collectors.groupingBy(DrugList::getDrugId));
-
+        List<DrugSaleStrategy> drugSaleStrategyList = drugSaleStrategyDAO.findAllDrugSaleStrategy();
+        Map<Integer, DrugSaleStrategy> drugSaleStrategyMap = null;
+        if (CollectionUtils.isNotEmpty(drugSaleStrategyList)) {
+            drugSaleStrategyMap = drugSaleStrategyList.stream().collect(Collectors.toMap(DrugSaleStrategy::getId, a->a, (k1,k2)->k1));
+        }
         // TODO: 2020/6/19 很多需要返回药品信息的地方可以让前端根据药品id反查具体的药品信息统一展示；后端涉及返回药品信息的接口太多。返回对象也不一样
         for (RecipeDetailBean recipeDetail : detailBeans) {
             OrganDrugList organDrug = organDrugListDAO.getByOrganIdAndOrganDrugCodeAndDrugId(recipe.getClinicOrgan(), recipeDetail.getOrganDrugCode(), recipeDetail.getDrugId());
@@ -276,6 +279,24 @@ public class RecipeValidateUtil {
             if(MapUtils.isNotEmpty(recipeDetailSalePrice)){
                 List<SaleDrugList> saleDrugLists = recipeDetailSalePrice.get(recipeDetail.getDrugId());
                 if(CollectionUtils.isNotEmpty(saleDrugLists)){
+                    SaleDrugList saleDrugList = saleDrugLists.get(0);
+                    if (null != saleDrugList.getSaleStrategyId() && saleDrugList.getSaleStrategyId() > 0 && MapUtils.isNotEmpty(drugSaleStrategyMap)) {
+                        LOGGER.info("validateDrugsImplForDetail saleDrugList:{}", JSONUtils.toString(saleDrugList));
+                        DrugSaleStrategy drugSaleStrategy = drugSaleStrategyMap.get(saleDrugList.getSaleStrategyId());
+                        LOGGER.info("validateDrugsImplForDetail drugSaleStrategy:{}", JSONUtils.toString(drugSaleStrategy));
+                        recipeDetail.setDrugUnit(drugSaleStrategy.getDrugUnit());
+                        BigDecimal useTotalDose = new BigDecimal(recipeDetail.getUseTotalDose());
+                        if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipeDetail.getDrugType())) {
+                            useTotalDose = useTotalDose.divide(new BigDecimal(recipe.getCopyNum())).divide(new BigDecimal(drugSaleStrategy.getDrugAmount()),2,BigDecimal.ROUND_HALF_UP);
+                            recipeDetail.setUseDose(useTotalDose.doubleValue());
+                            recipeDetail.setUseDoseUnit(drugSaleStrategy.getDrugUnit());
+                            recipeDetail.setPack(1);
+                        } else {
+                            useTotalDose = useTotalDose.divide(new BigDecimal(drugSaleStrategy.getDrugAmount()),2,BigDecimal.ROUND_HALF_UP);
+                            recipeDetail.setUseTotalDose(useTotalDose.doubleValue());
+                            recipeDetail.setPack(drugSaleStrategy.getDrugAmount());
+                        }
+                    }
                     recipeDetail.setSalePrice(saleDrugLists.get(0).getPrice());
                 }
             }
@@ -367,6 +388,7 @@ public class RecipeValidateUtil {
                         LOGGER.info("covertDrugUnitdoseAndUnit i:{} ,useDose:{} ,计算公式Double.parseDouble(unitDoseForSmallUnit){},*recipeDetailBeans.get(i).getUseDose(){},/Double.parseDouble(unitDoseForSpecificationUnit){} ", i, useDose, Double.parseDouble(unitDoseForSmallUnit), recipeDetailBeans.get(i).getUseDose(), Double.parseDouble(unitDoseForSpecificationUnit));
                         recipeDetailBeans.get(i).setUseDose(useDose);
                         recipeDetailBeans.get(i).setUseDoseUnit(unitForSmallUnit);
+
                     } catch (Exception e) {
                         LOGGER.error("method covertDrugUnitdoseAndUnit 转换 error " + e.getMessage());
                     }

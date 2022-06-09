@@ -40,6 +40,9 @@ public class DrugDistributionPrice implements java.io.Serializable {
     @ItemProperty(alias = "配送价格")
     private BigDecimal distributionPrice;
 
+    @ItemProperty(alias = "金额满多少包邮")
+    private BigDecimal buyFreeShipping;
+
     @ItemProperty(alias = "创建时间")
     private Date createTime;
 
@@ -101,6 +104,15 @@ public class DrugDistributionPrice implements java.io.Serializable {
 
     public void setLastModify(Date lastModify) {
         this.lastModify = lastModify;
+    }
+
+    @Column(name = "buy_free_shipping")
+    public BigDecimal getBuyFreeShipping() {
+        return buyFreeShipping;
+    }
+
+    public void setBuyFreeShipping(BigDecimal buyFreeShipping) {
+        this.buyFreeShipping = buyFreeShipping;
     }
 
     @Override

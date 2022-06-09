@@ -13,7 +13,6 @@ import ctd.util.JSONUtils;
 import eh.utils.BeanCopyUtils;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.MapUtils;
-import org.apache.commons.io.filefilter.FalseFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.time.DateFormatUtils;
 import org.apache.commons.lang3.time.DateUtils;
@@ -25,7 +24,9 @@ import recipe.bean.DrugEnterpriseResult;
 import recipe.core.api.IDrugsEnterpriseBusinessService;
 import recipe.dao.*;
 import recipe.drugsenterprise.RemoteDrugEnterpriseService;
+import recipe.enumerate.status.RecipeOrderStatusEnum;
 import recipe.manager.EnterpriseManager;
+import recipe.service.DrugDistributionPriceService;
 import recipe.util.ByteUtils;
 import recipe.util.ObjectCopyUtils;
 import recipe.vo.greenroom.DrugsEnterpriseVO;
@@ -38,6 +39,7 @@ import recipe.vo.patient.CheckAddressRes;
 import recipe.vo.second.CheckAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
+import recipe.vo.second.enterpriseOrder.EnterpriseSendOrderVO;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -69,6 +71,12 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     private RemoteDrugEnterpriseService remoteDrugEnterpriseService;
     @Autowired
     private DrugsEnterpriseDAO drugsEnterpriseDAO;
+    @Autowired
+    private DrugDistributionPriceDAO drugDistributionPriceDAO;
+    @Autowired
+    private DrugDistributionPriceService drugDistributionPriceService;
+    @Autowired
+    private RecipeDAO recipeDAO;
 
     @Override
     public Boolean existEnterpriseByName(String name) {
@@ -273,11 +281,17 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     }
 
     @Override
+    public boolean pushDrugDispenser(Integer recipeId) {
+        return remoteDrugEnterpriseService.pushDrugDispenser(recipeId);
+    }
+
+
+    @Override
     public void rePushRecipeToDrugsEnterprise() {
         // 获取需要重新推送的订单
         Date endDate = new Date();
         Date startDate = DateUtils.addDays(endDate, -2);
-        List<RecipeOrder> recipeOrders = recipeOrderDAO.findUnPushOrder(DateFormatUtils.format(startDate,"yyyy-MM-dd HH:mm:ss"), DateFormatUtils.format(endDate,"yyyy-MM-dd HH:mm:ss"));
+        List<RecipeOrder> recipeOrders = recipeOrderDAO.findUnPushOrder(DateFormatUtils.format(startDate, "yyyy-MM-dd HH:mm:ss"), DateFormatUtils.format(endDate, "yyyy-MM-dd HH:mm:ss"));
         recipeOrders.forEach(order -> {
             List<Integer> recipeIds = JSONUtils.parse(order.getRecipeIdList(), List.class);
             remoteDrugEnterpriseService.pushSingleRecipeInfo(Integer.valueOf(recipeIds.get(0)));
@@ -313,12 +327,39 @@ public class DrugsEnterpriseBusinessService extends BaseService implements IDrug
     }
 
     @Override
-    public EnterpriseResultBean confirmOrder (EnterpriseConfirmOrderVO enterpriseConfirmOrderVO) {
+    public EnterpriseResultBean confirmOrder(EnterpriseConfirmOrderVO enterpriseConfirmOrderVO) {
         DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getByAppKey(enterpriseConfirmOrderVO.getAppKey());
         if (null == drugsEnterprise) {
             return EnterpriseResultBean.getFail("当前appKey错误");
         }
-        return null;
+        List<String> orderCodeList = enterpriseConfirmOrderVO.getOrderCodeList();
+        List<RecipeOrder> recipeOrderList = recipeOrderDAO.findByOrderCode(orderCodeList);
+        if (CollectionUtils.isEmpty(recipeOrderList)) {
+            return EnterpriseResultBean.getFail("没有查询到订单信息");
+        }
+        recipeOrderList.forEach(recipeOrder -> {
+            List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+            recipeDAO.updateRecipeByDepIdAndRecipes(drugsEnterprise.getId(), recipeIdList);
+        });
+        return EnterpriseResultBean.getSuccess("订单确认成功");
+    }
+
+    @Override
+    public EnterpriseResultBean sendOrder(EnterpriseSendOrderVO enterpriseSendOrderVO) {
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(enterpriseSendOrderVO.getOrderCode());
+        if (null == recipeOrder) {
+            return EnterpriseResultBean.getFail("没有查询到订单信息");
+        }
+        List<Integer> supportStatus = Arrays.asList(RecipeOrderStatusEnum.ORDER_STATUS_PROCEED_SHIPPING.getType(), RecipeOrderStatusEnum.ORDER_STATUS_DONE.getType());
+        if (supportStatus.contains(recipeOrder.getStatus())) {
+            return EnterpriseResultBean.getFail("当前订单不允许发货");
+        }
+        List<Integer> recipeIdList = JSONUtils.parse(recipeOrder.getRecipeIdList(), List.class);
+        //更新处方信息
+        recipeDAO.updateSendInfoByRecipeIds(recipeIdList, enterpriseSendOrderVO.getSendDate(), enterpriseSendOrderVO.getSender());
+        //更新订单信息
+
+        return EnterpriseResultBean.getSuccess();
     }
 
     private boolean addressCan(List<EnterpriseAddress> list, String address) {

@@ -1,6 +1,7 @@
 package recipe.manager;
 
 import com.alibaba.fastjson.JSONArray;
+import com.google.common.collect.Lists;
 import com.ngari.base.organconfig.model.OrganConfigBean;
 import com.ngari.his.recipe.mode.RecipeCashPreSettleInfo;
 import com.ngari.his.recipe.mode.RecipeCashPreSettleReqTO;
@@ -83,7 +84,7 @@ public class OrderFeeManager extends BaseManager {
             BigDecimal accountFee = getAccountFee(order.getTotalFee(), order.getMpiId(), order.getOrganId());
             if (null != accountFee) {
                 order.setThirdPayType(2);
-                order.setThirdPayFee(accountFee);
+                order.setThirdPayFee(accountFee.doubleValue());
             }
         }
     }
@@ -352,40 +353,41 @@ public class OrderFeeManager extends BaseManager {
     }
 
     /**
-     * 订单设置处方费用：默认为医院药品总费用，如果为药企配送，药品单价根据药企药企结算类型决定
+     * 订单设置处方费用
      *
      * @param order              订单
-     * @param recipeList         处方列表
-     * @param payModeSupportFlag 是否为配送类型
      */
-    public void setRecipeFee(RecipeOrder order, List<Recipe> recipeList, Boolean payModeSupportFlag) {
-        BigDecimal recipeFee = BigDecimal.ZERO;
-        List<BigDecimal> totalMoneyList = recipeList.stream().map(Recipe::getTotalMoney).collect(Collectors.toList());
-        List<Integer> recipeIdList = recipeList.stream().map(Recipe::getRecipeId).collect(Collectors.toList());
-        //默认的药品总费用为机构药品价格计算的总费用
-        totalMoneyList.forEach(item -> {
-            if (null != item) {
-                recipeFee.add(item);
-            }
-        });
-        order.setRecipeFee(recipeFee);
-        //购药方式为配送相关并且药企ID不为空
-        if (payModeSupportFlag && null != order.getEnterpriseId()) {
-            DrugsEnterprise drugsEnterprise = drugsEnterpriseDAO.getById(order.getEnterpriseId());
-            if (null != drugsEnterprise && SettlementModeTypeEnum.SETTLEMENT_MODE_ENT.getType().equals(drugsEnterprise.getSettlementMode())) {
-                BigDecimal totalMoney = BigDecimal.ZERO;
-                //药品费用取药企药品价格计算
-                List<Recipedetail> recipeDetailList = recipeDetailManager.findRecipeDetails(recipeIdList);
-                List<Integer> drugList = recipeDetailList.stream().map(Recipedetail::getDrugId).collect(Collectors.toList());
-                List<SaleDrugList> saleDrugList = saleDrugListDAO.findByOrganIdAndDrugIds(drugsEnterprise.getId(), drugList);
-                Map<Integer, SaleDrugList> saleDrugListMap = saleDrugList.stream().collect(Collectors.toMap(SaleDrugList::getDrugId, a -> a, (k1, k2) -> k1));
-                for (Recipedetail recipeDetail : recipeDetailList) {
-                    BigDecimal price = saleDrugListMap.get(recipeDetail.getDrugId()).getPrice();
-                    totalMoney = totalMoney.add(price.multiply(new BigDecimal(recipeDetail.getUseTotalDose())).divide(BigDecimal.ONE, 2, BigDecimal.ROUND_HALF_UP));
-                }
-                order.setRecipeFee(totalMoney);
-            }
+    public BigDecimal setRecipeFee(RecipeOrder order) {
+        BigDecimal recipeFee = order.getRecipeFee();
+        // 订单类型不走预结算不处理
+        List<Integer> orderTypes = Lists.newArrayList(1, 2, 5);
+        if(!orderTypes.contains(order.getOrderType())){
+            return recipeFee;
         }
+        List<String> preSettleContainOrderFee = configurationClient.getValueListCatch(order.getOrganId(), "PreSettleContainOrderFee", null);
+        logger.info("setRecipeFee needRecipePaymentFeeType={}", JSONUtils.toString(preSettleContainOrderFee));
+        if (CollectionUtils.isEmpty(preSettleContainOrderFee)) {
+            return recipeFee;
+        }
+        if(Objects.isNull(order.getPreSettletotalAmount())){
+            return recipeFee;
+        }
+
+        // 预结算返回费用包含挂号费
+        BigDecimal recipeFeeNew = new BigDecimal(order.getPreSettletotalAmount());
+        if (preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.REGISTER_FEE.getType()) && Objects.nonNull(order.getRegisterFee())) {
+            recipeFeeNew = recipeFeeNew.subtract(order.getRegisterFee());
+        }
+        // 预结算返回费用包含中医辨证论治费
+        if (preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.TCM_FEE.getType()) && Objects.nonNull(order.getTcmFee())) {
+            recipeFeeNew = recipeFeeNew.subtract(order.getTcmFee());
+        }
+        // 预结算返回费用包含中医辨证论治费
+        if (preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.DECOCTION_FEE.getType()) && Objects.nonNull(order.getDecoctionFee())) {
+            recipeFeeNew = recipeFeeNew.subtract(order.getDecoctionFee());
+        }
+        return recipeFeeNew.setScale(2,BigDecimal.ROUND_HALF_UP);
+
     }
 
     /**

@@ -65,7 +65,7 @@ public class Recipe implements Serializable {
     @ItemProperty(alias = "处方来源源处方号")
     private String originRecipeCode;
 
-    @ItemProperty(alias = "处方类型 1 西药 2 中成药")
+    @ItemProperty(alias = "处方类型 1 西药 2 中成药 3 中药 4膏方")
     @Dictionary(id = "eh.cdr.dictionary.RecipeType")
     private Integer recipeType;
 

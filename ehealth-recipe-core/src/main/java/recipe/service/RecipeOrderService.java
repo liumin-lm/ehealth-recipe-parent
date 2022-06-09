@@ -178,6 +178,8 @@ public class RecipeOrderService extends RecipeBaseService {
     private OrderFeeManager orderFeeManager;
     @Autowired
     private StateManager stateManager;
+    @Autowired
+    private DrugSaleStrategyDAO drugSaleStrategyDAO;
 
     /**
      * 处方结算时创建临时订单
@@ -732,7 +734,7 @@ public class RecipeOrderService extends RecipeBaseService {
 
         // 更新处方代缴费用
         orderFeeManager.setRecipePaymentFee(order, recipeList);
-        order.setTotalFee(countOrderTotalFeeByRecipeInfo(order, firstRecipe, payModeSupport));
+        order.setTotalFee(countOrderTotalFeeByRecipeInfo(order, firstRecipe, payModeSupport,toDbFlag));
         // 上海外服第三方支付金额
         orderFeeManager.setSHWFAccountFee(order);
         //判断计算扣掉运费的总金额----等于线下支付----总计要先算上运费，实际支付时再不支付运费
@@ -858,7 +860,7 @@ public class RecipeOrderService extends RecipeBaseService {
         } else if (StringUtils.isNotEmpty(map.get("preSettleTotalAmount"))) {
             //如果有预结算返回的金额，则处方实际费用预结算返回的金额代替处方药品金额（his总金额(药品费用+挂号费用)+平台费用(除药品费用以外其他费用的总计)）
             //需要重置下订单费用，有可能患者一直预结算不支付导致金额叠加
-            BigDecimal totalFee = countOrderTotalFeeByRecipeInfo(order, recipe, setPayModeSupport(order, PayModeGiveModeUtil.getPayMode(order.getPayMode(), recipe.getGiveMode())));
+            BigDecimal totalFee = countOrderTotalFeeByRecipeInfo(order, recipe, setPayModeSupport(order, PayModeGiveModeUtil.getPayMode(order.getPayMode(), recipe.getGiveMode())),1);
             if (new Integer(2).equals(order.getExpressFeePayWay()) && RecipeBussConstant.PAYMODE_ONLINE.equals(order.getPayMode())) {
                 if (order.getExpressFee() != null && totalFee.compareTo(order.getExpressFee()) > -1) {
                     totalFee = totalFee.subtract(order.getExpressFee());
@@ -977,25 +979,49 @@ public class RecipeOrderService extends RecipeBaseService {
         BigDecimal recipeFee = BigDecimal.ZERO;
         if (null != enterprise && Integer.valueOf(0).equals(enterprise.getSettlementMode())) {
             List<Recipedetail> details = recipeDetailDAO.findByRecipeIds(recipeIds);
-            Map<Integer, Double> drugIdCountRel = Maps.newHashMap();
-            for (Recipedetail recipedetail : details) {
-                Integer drugId = recipedetail.getDrugId();
-                if (drugIdCountRel.containsKey(drugId)) {
-                    drugIdCountRel.put(drugId, drugIdCountRel.get(recipedetail.getDrugId()) + recipedetail.getUseTotalDose());
-                } else {
-                    drugIdCountRel.put(drugId, recipedetail.getUseTotalDose());
-                }
-            }
-            List<Integer> drugIds = Lists.newArrayList(drugIdCountRel.keySet());
+            Map<Integer, List<Recipedetail>> recipeDetailMap = details.stream().collect(Collectors.groupingBy(Recipedetail::getDrugId));
+            List<Integer> drugIds = Lists.newArrayList(recipeDetailMap.keySet());
             List<SaleDrugList> saleDrugLists = saleDrugListDAO.findByOrganIdAndDrugIds(enterpriseId, drugIds);
+            Map<Integer, List<DrugSaleStrategy>> drugSaleStrategyMap = null;
             if (CollectionUtils.isNotEmpty(saleDrugLists)) {
+                List<Integer> saleStrategyIds = saleDrugLists.stream().map(SaleDrugList::getSaleStrategyId).collect(Collectors.toList());
+                Map<Integer, List<SaleDrugList>> saleDrugMap = saleDrugLists.stream().collect(Collectors.groupingBy(SaleDrugList::getDrugId));
+                if (CollectionUtils.isNotEmpty(saleStrategyIds)) {
+                    List<DrugSaleStrategy> drugSaleStrategy = drugSaleStrategyDAO.findBysaleStrategyIds(saleStrategyIds);
+                    if(CollectionUtils.isNotEmpty(drugSaleStrategy)){
+                        drugSaleStrategyMap = drugSaleStrategy.stream().collect(Collectors.groupingBy(DrugSaleStrategy::getId));
+                    }
+                }
                 BigDecimal total = BigDecimal.ZERO;
                 try {
-                    for (SaleDrugList saleDrug : saleDrugLists) {
-                        //保留3位小数
-                        BigDecimal multiply = saleDrug.getPrice().multiply(new BigDecimal(drugIdCountRel.get(saleDrug.getDrugId()))).setScale(4,BigDecimal.ROUND_HALF_UP);
-                        LOGGER.error("setOrderFee multiply={}",multiply);
-                        total = total.add(multiply);
+                    for (Recipedetail recipedetail : details) {
+                        List<SaleDrugList> saleDrugLists1 = saleDrugMap.get(recipedetail.getDrugId());
+                        if (CollectionUtils.isNotEmpty(saleDrugLists1)) {
+                            SaleDrugList saleDrug = saleDrugLists1.get(0);
+                            BigDecimal useTotalDose = new BigDecimal(recipedetail.getUseTotalDose());
+                            if(Objects.nonNull(saleDrug.getSaleStrategyId()) && saleDrug.getSaleStrategyId() > 0){
+                                List<DrugSaleStrategy> drugSaleStrategies = drugSaleStrategyMap.get(saleDrug.getSaleStrategyId());
+                                if(CollectionUtils.isNotEmpty(drugSaleStrategies)){
+                                    useTotalDose = useTotalDose.divide(new BigDecimal(drugSaleStrategies.get(0).getDrugAmount()),2,BigDecimal.ROUND_HALF_UP);
+                                    recipedetail.setSaleUnit(drugSaleStrategies.get(0).getDrugUnit());
+                                    recipedetail.setActualSalePrice(saleDrug.getPrice());
+                                    recipedetail.setSaleUseDose(useTotalDose);
+                                }
+                            } else {
+                                if (StringUtils.isNotEmpty(recipedetail.getSaleUnit()) && null != recipedetail.getSaleUseDose()) {
+                                    recipedetail.setSaleUnit(null);
+                                    recipedetail.setSaleUseDose(null);
+                                    recipeDetailDAO.update(recipedetail);
+                                }
+                            }
+
+                            BigDecimal multiply = saleDrug.getPrice().multiply(useTotalDose).setScale(4, BigDecimal.ROUND_HALF_UP);
+                            total = total.add(multiply);
+                        }
+                    }
+                    // 如果没有销售策略,就不用更新详情
+                    if(CollectionUtils.isNotEmpty(saleStrategyIds)){
+                        recipeDetailDAO.updateAllRecipeDetail(details);
                     }
                     //重置药企处方价格
                     LOGGER.error("setOrderFee total={}", total);
@@ -1200,7 +1226,7 @@ public class RecipeOrderService extends RecipeBaseService {
             }
             if (Objects.isNull(order.getThirdPayFee())) {
                 order.setThirdPayType(0);
-                order.setThirdPayFee(BigDecimal.ZERO);
+                order.setThirdPayFee(0d);
             }
             createOrderToDB(order, recipeIds, orderDAO, recipeDAO);
         } catch (DAOException e) {
@@ -1544,7 +1570,6 @@ public class RecipeOrderService extends RecipeBaseService {
         OrganDrugListDAO organDrugListDAO = DAOFactory.getDAO(OrganDrugListDAO.class);
         RecipeDAO recipeDAO = getDAO(RecipeDAO.class);
         RemoteDrugEnterpriseService remoteDrugEnterpriseService = ApplicationUtils.getRecipeService(RemoteDrugEnterpriseService.class);
-        CommonRemoteService commonRemoteService = AppContextHolder.getBean("commonRemoteService", CommonRemoteService.class);
 
         RecipeOrder order = recipeOrderDAO.get(orderId);
         if (null != order) {
@@ -1652,6 +1677,15 @@ public class RecipeOrderService extends RecipeBaseService {
                         List<DrugList> drugList = drugListMap.get(recipedetail.getDrugId());
                         if (CollectionUtils.isNotEmpty(drugList)) {
                             recipeDetailBean.setDrugPic(drugList.get(0).getDrugPic());
+                        }
+                        if (null != recipedetail.getSaleUseDose() && StringUtils.isNotEmpty(recipedetail.getSaleUnit())) {
+                            recipeDetailBean.setUseTotalDose(recipedetail.getSaleUseDose().doubleValue());
+                            recipeDetailBean.setDrugUnit(recipedetail.getSaleUnit());
+                            if (RecipeTypeEnum.RECIPETYPE_TCM.getType().equals(recipedetail.getDrugType())) {
+                                recipeDetailBean.setUseDose(recipedetail.getSaleUseDose().doubleValue()/recipe.getCopyNum());
+                                recipeDetailBean.setUseDoseUnit(recipedetail.getSaleUnit());
+                                recipedetail.setPack(1);
+                            }
                         }
                         try {
                             recipeDetailBean.setSaleDrugPrice(recipedetail.getSalePrice().divide(new BigDecimal(recipedetail.getPack()), 2, BigDecimal.ROUND_HALF_UP));
@@ -1819,6 +1853,7 @@ public class RecipeOrderService extends RecipeBaseService {
                 orderBean.setFundAmount(null);
             }
             orderBean.setPatientIsDecoction(order.getPatientIsDecoction());
+            orderBean.setRecipeFee(orderFeeManager.setRecipeFee(order));
             result.setObject(orderBean);
             // 支付完成后跳转到订单详情页需要加挂号费服务费可配置
             result.setExt(RecipeUtil.getParamFromOgainConfig(order, recipeList));
@@ -2050,7 +2085,7 @@ public class RecipeOrderService extends RecipeBaseService {
         RecipeOrderDAO orderDAO = getDAO(RecipeOrderDAO.class);
         RecipeOrder order = orderDAO.getByOrderCode(orderCode);
         if (order != null) {
-            checkUserHasPermission((Integer) JSONUtils.parse(order.getRecipeIdList(), List.class).get(0));
+//            checkUserHasPermission((Integer) JSONUtils.parse(order.getRecipeIdList(), List.class).get(0));
             return this.getOrderDetailByIdV1(order.getOrderId());
         } else {
             throw new DAOException(eh.base.constant.ErrorCode.SERVICE_ERROR, "该处方单信息已变更，请退出重新获取处方信息。");
@@ -2521,7 +2556,28 @@ public class RecipeOrderService extends RecipeBaseService {
         return countOrderTotalFeeWithCoupon(null, order);
     }
 
-    public BigDecimal countOrderTotalFeeByRecipeInfo(RecipeOrder order, Recipe recipe, RecipePayModeSupportBean payModeSupport) {
+    public BigDecimal countOrderTotalFeeByRecipeInfo(RecipeOrder order, Recipe recipe, RecipePayModeSupportBean payModeSupport, Integer toDbFlag) {
+        List<String> preSettleContainOrderFee = configurationClient.getValueListCatch(order.getOrganId(), "PreSettleContainOrderFee", null);
+        LOGGER.info("setRecipePaymentFee needRecipePaymentFeeType={}", JSONUtils.toString(preSettleContainOrderFee));
+        Boolean registerFeeFlag = false;
+        Boolean TCMFeeFlag = false;
+        Boolean decoctionFeeFlag = false;
+        // 订单类型不走预结算不处理
+        List<Integer> orderTypes = Lists.newArrayList(1, 2, 5);
+        if (CollectionUtils.isNotEmpty(preSettleContainOrderFee) && orderTypes.contains(order.getOrderType())) {
+            // 预结算返回费用包含挂号费
+            if(preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.REGISTER_FEE.getType()) && 1 == toDbFlag){
+                registerFeeFlag = true;
+            }
+            // 预结算返回费用包含中医辨证论治费
+            if(preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.TCM_FEE.getType()) && 1 == toDbFlag){
+                TCMFeeFlag = true;
+            }
+            // 预结算返回费用包含中医辨证论治费
+            if(preSettleContainOrderFee.contains(RecipeOrderFeeTypeEnum.DECOCTION_FEE.getType()) && 1 == toDbFlag){
+                decoctionFeeFlag = true;
+            }
+        }
         BigDecimal full = BigDecimal.ZERO;
         //date 20191015
         //添加判断，当处方选择购药方式是下载处方，不计算药品费用
@@ -2537,12 +2593,12 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         //挂号费
-        if (null != order.getRegisterFee()) {
+        if (null != order.getRegisterFee() && !registerFeeFlag) {
             full = full.add(order.getRegisterFee());
         }
 
         //代煎费 下载处方笺不计算代煎费
-        if (null != order.getDecoctionFee() && !payModeSupport.isSupportDownload()) {
+        if (null != order.getDecoctionFee() && !payModeSupport.isSupportDownload() && !decoctionFeeFlag) {
             full = full.add(order.getDecoctionFee());
         }
 
@@ -2557,7 +2613,7 @@ public class RecipeOrderService extends RecipeBaseService {
         }
 
         //中医辨证论治费
-        if (null != order.getTcmFee()) {
+        if (null != order.getTcmFee() && !TCMFeeFlag) {
             full = full.add(order.getTcmFee());
         }
 

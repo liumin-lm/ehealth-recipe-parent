@@ -262,10 +262,34 @@ public class Recipedetail implements java.io.Serializable {
 	@ItemProperty(alias = "单个药品医保类型 医保审批类型 0自费 1医保（默认0） 前端控制传入")
 	private Integer drugMedicalFlag;
 
+	@ItemProperty(alias = "销售药品单位")
+	private String saleUnit;
+
+	@ItemProperty(alias = "销售药品数量")
+	private BigDecimal saleUseDose;
+
 	/**
 	 * 类型：1:药品，2:诊疗项目，3 保密药品....
 	 */
 	private Integer type;
+
+	@Column(name = "sale_unit")
+	public String getSaleUnit() {
+		return saleUnit;
+	}
+
+	public void setSaleUnit(String saleUnit) {
+		this.saleUnit = saleUnit;
+	}
+
+	@Column(name = "sale_use_dose")
+	public BigDecimal getSaleUseDose() {
+		return saleUseDose;
+	}
+
+	public void setSaleUseDose(BigDecimal saleUseDose) {
+		this.saleUseDose = saleUseDose;
+	}
 
 	@Column(name = "drugEntrustCode")
 	public String getDrugEntrustCode() {

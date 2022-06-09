@@ -4,6 +4,7 @@ import ctd.util.annotation.RpcService;
 import recipe.vo.second.CheckAddressVo;
 import recipe.vo.second.enterpriseOrder.EnterpriseConfirmOrderVO;
 import recipe.vo.second.enterpriseOrder.EnterpriseResultBean;
+import recipe.vo.second.enterpriseOrder.EnterpriseSendOrderVO;
 
 /**
  * @description： 药企open atop
@@ -15,6 +16,19 @@ public interface IEnterpriseOpenAtop {
     @RpcService
     Boolean checkSendAddress(CheckAddressVo checkAddressVo);
 
+    /**
+     * 药企确认订单
+     * @param enterpriseConfirmOrderVO
+     * @return
+     */
     @RpcService
     EnterpriseResultBean confirmOrder (EnterpriseConfirmOrderVO enterpriseConfirmOrderVO);
+
+    /**
+     * 订单发货接口
+     * @param enterpriseSendOrderVO
+     * @return
+     */
+    @RpcService
+    EnterpriseResultBean sendOrder(EnterpriseSendOrderVO enterpriseSendOrderVO);
 }

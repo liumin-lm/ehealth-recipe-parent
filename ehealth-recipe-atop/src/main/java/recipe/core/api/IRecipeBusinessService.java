@@ -3,6 +3,7 @@ package recipe.core.api;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
+import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
@@ -10,6 +11,7 @@ import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.*;
 import recipe.enumerate.status.RecipeAuditStateEnum;
 import recipe.vo.doctor.PatientOptionalDrugVO;
+import recipe.vo.greenroom.DrugUsageLabelResp;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.MedicalDetailVO;
 
@@ -203,5 +205,35 @@ public interface IRecipeBusinessService {
      */
     List<RecipeDetailBean> findRecipeDetailByRecipeId(Integer recipeId);
 
+    /**
+     * 查询报销清单列表
+     * @param reimbursementListReq
+     * @return
+     */
+    List<ReimbursementListResVO> findReimbursementList(ReimbursementListReqVO reimbursementListReq);
 
+    /**
+     * 查询报销清单详情
+     *
+     * @param recipeId
+     * @return
+     */
+    ReimbursementDetailResVO findReimbursementDetail(Integer recipeId);
+
+    /**
+     * 根据处方单获取药品用法标签列表
+     *
+     * @param recipeId
+     * @return
+     */
+    DrugUsageLabelResp queryRecipeDrugUsageLabel(Integer recipeId);
+
+    /**
+     * 获取某处方单关联处方（同一个患者同一次就诊）
+     *
+     * @param recipeId
+     * @param doctorId
+     * @return
+     */
+    List<RecipeDTO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId);
 }

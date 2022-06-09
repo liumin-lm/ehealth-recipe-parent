@@ -231,14 +231,15 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
         }
         CreateLogisticsOrderDto logisticsOrder = new CreateLogisticsOrderDto();
         //TODO lium物流下单
-//        String organList = recipeParameterDao.getByName("zhHospitalOrganList");
-//        if (null != enterprise.getOrganId() && StringUtils.isNotEmpty(organList) && LocalStringUtil.hasOrgan(enterprise.getOrganId().toString(), organList)) {
-//            // 取药企对应的机构ID
-//            logisticsOrder.setOrganId(enterprise.getOrganId());
-//        } else {
-//            // 机构id
-//            logisticsOrder.setOrganId(recipe.getClinicOrgan());
-//        }
+        String organList = recipeParameterDao.getByName("zhHospitalOrganList");
+        if (null != enterprise.getOrganId() && StringUtils.isNotEmpty(organList) && LocalStringUtil.hasOrgan(enterprise.getOrganId().toString(), organList)) {
+            // 取药企对应的机构ID
+            logisticsOrder.setOrganNo(enterprise.getOrganId());
+        } else {
+            // 机构id
+            logisticsOrder.setOrganNo(recipe.getClinicOrgan());
+        }
+        logisticsOrder.setType(0);
         logisticsOrder.setOrganId(enterprise.getId());
 
         // 平台用户id

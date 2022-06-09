@@ -68,4 +68,14 @@ public class OrganDrugsSaleConfigVo implements Serializable {
      */
     private String specialTips;
 
+    /**
+     * 是否调用药企发药机：0不调用，1调用
+     */
+    private Integer useDrugDispenserFlag;
+
+    /**
+     * 是否打印用法标签：0不打印，1打印
+     */
+    private Integer printUsageLabelFlag;
+
 }
