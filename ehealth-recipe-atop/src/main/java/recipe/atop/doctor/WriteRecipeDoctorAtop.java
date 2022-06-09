@@ -125,15 +125,4 @@ public class WriteRecipeDoctorAtop extends BaseAtop {
     }
 
 
-    /**
-     * 获取某处方单关联处方（同一个患者同一次就诊）
-     *
-     * @param recipeId
-     * @param doctorId
-     * @return
-     */
-    @RpcService
-    public List<RecipeDTO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId) {
-        return recipeBusinessService.findRelatedRecipeRecordByRegisterNo(recipeId, doctorId);
-    }
 }

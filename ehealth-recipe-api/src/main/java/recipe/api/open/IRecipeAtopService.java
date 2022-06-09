@@ -6,6 +6,7 @@ import com.ngari.recipe.offlinetoonline.model.FindHisRecipeDetailReqVO;
 import com.ngari.recipe.recipe.model.*;
 import com.ngari.recipe.vo.FormWorkRecipeVO;
 import ctd.util.annotation.RpcService;
+import recipe.vo.doctor.RecipeInfoVO;
 import recipe.vo.patient.PatientOptionalDrugVo;
 import recipe.vo.second.RevisitRecipeTraceVo;
 
@@ -173,4 +174,8 @@ public interface IRecipeAtopService {
      */
     @RpcService
     List<RecipeDetailBean> findRecipeDetailByRecipeId(Integer recipeId);
+
+
+    @RpcService
+    List<RecipeInfoVO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId, List<Integer> recipeTypeList);
 }
