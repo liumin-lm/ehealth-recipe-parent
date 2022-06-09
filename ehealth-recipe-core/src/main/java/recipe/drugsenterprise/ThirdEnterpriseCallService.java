@@ -1416,7 +1416,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         DrugsEnterpriseDTO drugsEnterpriseDTO = new DrugsEnterpriseDTO();
         BeanUtils.copy(drugsEnterprise, drugsEnterpriseDTO);
 
-        List<OrganLogisticsManageDto> organLogisticsManageDtos=iOrganLogisticsManageService.getOrganLogisticsManageByOrganId(id);
+        List<OrganLogisticsManageDto> organLogisticsManageDtos=iOrganLogisticsManageService.getRecipeLogisticsManageByOrganId(id);
         List<DrugEnterpriseLogistics> drugEnterpriseLogistics =new ArrayList<>();
         if(CollectionUtils.isNotEmpty(organLogisticsManageDtos)){
             organLogisticsManageDtos.forEach(organLogisticsManageDto -> {

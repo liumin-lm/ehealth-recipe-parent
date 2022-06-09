@@ -379,7 +379,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
                 }
             }
         }
-        List<OrganLogisticsManageDto> organLogisticsManageDtos=iOrganLogisticsManageService.getOrganLogisticsManageByOrganId(drugsEnterpriseId);
+        List<OrganLogisticsManageDto> organLogisticsManageDtos=iOrganLogisticsManageService.getRecipeLogisticsManageByOrganId(drugsEnterpriseId);
         List<DrugEnterpriseLogisticsBean> drugEnterpriseLogisticsBeans  =new ArrayList<>();
         if(CollectionUtils.isNotEmpty(organLogisticsManageDtos)){
             organLogisticsManageDtos.forEach(organLogisticsManageDto -> {
