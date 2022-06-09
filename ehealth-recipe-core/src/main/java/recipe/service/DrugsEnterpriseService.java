@@ -388,7 +388,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
                 drugEnterpriseLogistics1.setDrugsEnterpriseId(organLogisticsManageDto.getDrugsEnterpriseId());
                 drugEnterpriseLogistics1.setId(organLogisticsManageDto.getOrganId());
                 drugEnterpriseLogistics1.setIsDefault(organLogisticsManageDto.getIsDefault());
-                drugEnterpriseLogistics1.setLogisticsCompany(organLogisticsManageDto.getLogisticsCompanyId()==null?null:Integer.parseInt(organLogisticsManageDto.getLogisticsCompanyId()));
+                drugEnterpriseLogistics1.setLogisticsCompany(organLogisticsManageDto.getLogisticsCode()==null?null:Integer.parseInt(organLogisticsManageDto.getLogisticsCode()));
                 drugEnterpriseLogistics1.setLogisticsCompanyName(organLogisticsManageDto.getLogisticsCompanyName());
                 drugEnterpriseLogistics1.setUpdateTime(organLogisticsManageDto.getUpdateTime());
                 drugEnterpriseLogisticsBeans.add(drugEnterpriseLogistics1);
