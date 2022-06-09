@@ -607,16 +607,16 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         if (StringUtils.isBlank(registerId)) {
             return recipeDTOList;
         }
-        List<RecipeExtend> recipeExtends = recipeExtendDAO.findByRegisterId(registerId);
-        logger.info("findRelatedRecipeRecordByRegisterNo recipeExtends={}", JSON.toJSONString(recipeExtends));
-        for (RecipeExtend extend : recipeExtends) {
-            Recipe recipeRelated = recipeDAO.get(extend.getRecipeId());
-            if (registerId.equals(extend.getRegisterID()) || !mpiId.equals(recipeRelated.getMpiid())) {
+        List<Recipe> recipeList = recipeDAO.findByRecipeCodeAndRegisterIdAndOrganId(recipeExtend.getRegisterID(),
+                recipe.getClinicOrgan());
+        logger.info("findRelatedRecipeRecordByRegisterNo recipeList={}", JSON.toJSONString(recipeList));
+        for (Recipe re : recipeList) {
+            if (recipeId.equals(re.getRecipeId()) || !mpiId.equals(re.getMpiid())) {
                 continue;
             }
-            List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeRelated.getRecipeId());
+            List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(re.getRecipeId());
             RecipeDTO recipeDTO = new RecipeDTO();
-            recipeDTO.setRecipe(recipeRelated);
+            recipeDTO.setRecipe(re);
             recipeDTO.setRecipeDetails(recipeDetailList);
             recipeDTOList.add(recipeDTO);
         }
