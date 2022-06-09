@@ -53,7 +53,8 @@ public class CashPreSettleService implements IRecipePreSettleService {
         RecipeDAO recipeDAO = DAOFactory.getDAO(RecipeDAO.class);
         RecipeExtendDAO recipeExtendDAO = DAOFactory.getDAO(RecipeExtendDAO.class);
         RecipeOrderDAO recipeOrderDAO = DAOFactory.getDAO(RecipeOrderDAO.class);
-        RecipeDetailManager recipeDetailManager = DAOFactory.getDAO(RecipeDetailManager.class);
+        RecipeDetailManager recipeDetailManager = AppContextHolder.getBean("recipeDetailManager", RecipeDetailManager.class);
+
         Recipe recipe = recipeDAO.getByRecipeId(recipeId);
         if (recipe == null) {
             result.put("msg", "查不到该处方");
