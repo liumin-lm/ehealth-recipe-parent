@@ -1850,9 +1850,4 @@ public abstract class RecipeOrderDAO extends HibernateSupportDelegateDAO<RecipeO
         HibernateSessionTemplate.instance().execute(action);
         return action.getResult();
     }
-
-    @DAOMethod(sql = "from RecipeOrder where registerNo = :registerNo AND mpiId = :mpiId")
-    public abstract List<RecipeOrder> findByRegisterNoAndMpiId(@DAOParam("registerNo") String registerNo,
-                                                               @DAOParam("mpiId") String mpiId);
-
 }

@@ -63,4 +63,7 @@ public abstract class DrugDistributionPriceDAO extends HibernateSupportDelegateD
      */
     @DAOMethod(sql = " delete from DrugDistributionPrice where enterpriseId =:enterpriseId and addrArea=:addrArea")
     public abstract void deleteByEnterpriseIdAddr(@DAOParam("enterpriseId") Integer enterpriseId, @DAOParam("addrArea") String addrArea);
+
+    @DAOMethod(sql = " from DrugDistributionPrice where enterpriseId =:enterpriseId and addrArea in (:addrs)", limit=0)
+    public abstract List<DrugDistributionPrice> findByEnterpriseIdAddrs(@DAOParam("enterpriseId") Integer enterpriseId, @DAOParam("addrs") List<String> addrs);
 }

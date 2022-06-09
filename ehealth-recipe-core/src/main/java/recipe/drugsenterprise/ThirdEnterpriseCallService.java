@@ -1416,7 +1416,8 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
         DrugsEnterpriseDTO drugsEnterpriseDTO = new DrugsEnterpriseDTO();
         BeanUtils.copy(drugsEnterprise, drugsEnterpriseDTO);
 
-        List<OrganLogisticsManageDto> organLogisticsManageDtos=iOrganLogisticsManageService.getOrganLogisticsManageByOrganId(id);
+        List<OrganLogisticsManageDto> organLogisticsManageDtos=iOrganLogisticsManageService.getRecipeLogisticsManageByOrganId(id);
+        LOGGER.info("findByEnterpriseId organLogisticsManageDtos:{}", JSONUtils.toString(organLogisticsManageDtos));
         List<DrugEnterpriseLogistics> drugEnterpriseLogistics =new ArrayList<>();
         if(CollectionUtils.isNotEmpty(organLogisticsManageDtos)){
             organLogisticsManageDtos.forEach(organLogisticsManageDto -> {
@@ -1425,7 +1426,7 @@ public class ThirdEnterpriseCallService extends BaseService<DrugsEnterpriseBean>
                 drugEnterpriseLogistics1.setDrugsEnterpriseId(organLogisticsManageDto.getDrugsEnterpriseId());
                 drugEnterpriseLogistics1.setId(organLogisticsManageDto.getOrganId());
                 drugEnterpriseLogistics1.setIsDefault(organLogisticsManageDto.getIsDefault());
-                drugEnterpriseLogistics1.setLogisticsCompany(organLogisticsManageDto.getLogisticsCompanyId()==null?null:Integer.parseInt(organLogisticsManageDto.getLogisticsCompanyId()));
+                drugEnterpriseLogistics1.setLogisticsCompany(organLogisticsManageDto.getLogisticsCode()==null?null:Integer.parseInt(organLogisticsManageDto.getLogisticsCode()));
                 drugEnterpriseLogistics1.setLogisticsCompanyName(organLogisticsManageDto.getLogisticsCompanyName());
                 drugEnterpriseLogistics1.setUpdateTime(organLogisticsManageDto.getUpdateTime());
                 drugEnterpriseLogistics.add(drugEnterpriseLogistics1);

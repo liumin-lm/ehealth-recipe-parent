@@ -18,6 +18,8 @@ import com.ngari.revisit.common.model.RevisitExDTO;
 import com.ngari.revisit.common.service.IRevisitExService;
 import ctd.util.AppContextHolder;
 import ctd.util.JSONUtils;
+import ctd.util.annotation.RpcBean;
+import ctd.util.annotation.RpcService;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.map.HashedMap;
 import org.apache.commons.lang3.StringUtils;
@@ -26,13 +28,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.bean.ThirdResultBean;
+import recipe.bean.cqjgptbussdata.Drug;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.RecipeMsgEnum;
-import recipe.dao.DrugsEnterpriseDAO;
-import recipe.dao.RecipeExtendDAO;
-import recipe.dao.RecipeOrderDAO;
-import recipe.dao.RecipeParameterDao;
+import recipe.dao.*;
 import recipe.drugsenterprise.ThirdEnterpriseCallService;
 import recipe.enumerate.status.GiveModeEnum;
 import recipe.enumerate.status.PayModeEnum;
@@ -54,6 +55,7 @@ import static ctd.persistence.DAOFactory.getDAO;
  * @date 2021\4\13 0013 09:15
  */
 @Component("logisticsOnlineOrderService")
+//@RpcBean("logisticsOnlineOrderService")
 public class LogisticsOnlineOrderService implements IAfterPayBussService{
 
     private static final Logger LOGGER = LoggerFactory.getLogger(LogisticsOnlineOrderService.class);
@@ -75,6 +77,9 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
 
     @Autowired
     private IOrganLogisticsManageService organLogisticsManageService;
+
+    @Autowired
+    private RecipeDAO recipeDAO;
 
     /**
      * 根据支付结果进行物流下单
@@ -223,14 +228,15 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
      * @param enterprise  配送药企信息
      * @return            包装后的物流信息
      */
+    @LogRecord
     private CreateLogisticsOrderDto getCreateLogisticsOrderDto(RecipeOrder order, Recipe recipe, DrugsEnterprise enterprise) {
         List<OrganLogisticsManageDto>  organLogisticsManageDtos=organLogisticsManageService.getOrganLogisticsManageByOrganIdAndLogisticsCode(enterprise.getId(),order.getLogisticsCompany()+"",DrugEnterpriseConstant.BUSINESS_TYPE);
+        LOGGER.info("getCreateLogisticsOrderDto organLogisticsManageDtos:{}",JSONUtils.toString(organLogisticsManageDtos));
         OrganLogisticsManageDto organLogisticsManageDto=new OrganLogisticsManageDto();
-        if(CollectionUtils.isNotEmpty(organLogisticsManageDtos)){
+        if(CollectionUtils.isNotEmpty(organLogisticsManageDtos) && organLogisticsManageDtos.get(0)!=null){
             organLogisticsManageDto=organLogisticsManageDtos.get(0);
         }
         CreateLogisticsOrderDto logisticsOrder = new CreateLogisticsOrderDto();
-        //TODO lium物流下单
         String organList = recipeParameterDao.getByName("zhHospitalOrganList");
         if (null != enterprise.getOrganId() && StringUtils.isNotEmpty(organList) && LocalStringUtil.hasOrgan(enterprise.getOrganId().toString(), organList)) {
             // 取药企对应的机构ID
@@ -312,4 +318,13 @@ public class LogisticsOnlineOrderService implements IAfterPayBussService{
         }
         return logisticsOrder;
     }
+
+    @RpcService
+    public void testGetCreateLogisticsOrderDto(Integer recipeId){
+        Recipe recipe=recipeDAO.get(recipeId);
+        RecipeOrder recipeOrder=recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        DrugsEnterprise drugsEnterprise=drugsEnterpriseDAO.getById(305);
+        getCreateLogisticsOrderDto(recipeOrder,recipe,drugsEnterprise);
+    }
+
 }

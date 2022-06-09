@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import recipe.ApplicationUtils;
+import recipe.aop.LogRecord;
 import recipe.constant.DrugEnterpriseConstant;
 import recipe.constant.ErrorCode;
 import recipe.dao.*;
@@ -345,6 +346,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
     }
 
     @RpcService
+    @LogRecord
     public DrugsEnterpriseBean getDrugsEnterpriseById(Integer drugsEnterpriseId) {
         if (drugsEnterpriseId == null) {
             throw new DAOException(DAOException.VALUE_NEEDED, "药企Id为null!");
@@ -379,7 +381,8 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
                 }
             }
         }
-        List<OrganLogisticsManageDto> organLogisticsManageDtos=iOrganLogisticsManageService.getOrganLogisticsManageByOrganId(drugsEnterpriseId);
+        List<OrganLogisticsManageDto> organLogisticsManageDtos=iOrganLogisticsManageService.getRecipeLogisticsManageByOrganId(drugsEnterpriseId);
+        LOGGER.info("getDrugsEnterpriseById organLogisticsManageDtos:{}",JSONUtils.toString(organLogisticsManageDtos));
         List<DrugEnterpriseLogisticsBean> drugEnterpriseLogisticsBeans  =new ArrayList<>();
         if(CollectionUtils.isNotEmpty(organLogisticsManageDtos)){
             organLogisticsManageDtos.forEach(organLogisticsManageDto -> {
@@ -388,7 +391,7 @@ public class DrugsEnterpriseService extends BaseService<DrugsEnterpriseBean> {
                 drugEnterpriseLogistics1.setDrugsEnterpriseId(organLogisticsManageDto.getDrugsEnterpriseId());
                 drugEnterpriseLogistics1.setId(organLogisticsManageDto.getOrganId());
                 drugEnterpriseLogistics1.setIsDefault(organLogisticsManageDto.getIsDefault());
-                drugEnterpriseLogistics1.setLogisticsCompany(organLogisticsManageDto.getLogisticsCompanyId()==null?null:Integer.parseInt(organLogisticsManageDto.getLogisticsCompanyId()));
+                drugEnterpriseLogistics1.setLogisticsCompany(organLogisticsManageDto.getLogisticsCode()==null?null:Integer.parseInt(organLogisticsManageDto.getLogisticsCode()));
                 drugEnterpriseLogistics1.setLogisticsCompanyName(organLogisticsManageDto.getLogisticsCompanyName());
                 drugEnterpriseLogistics1.setUpdateTime(organLogisticsManageDto.getUpdateTime());
                 drugEnterpriseLogisticsBeans.add(drugEnterpriseLogistics1);

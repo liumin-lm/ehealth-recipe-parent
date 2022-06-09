@@ -140,6 +140,7 @@ public class OperationPlatformRecipeService {
         }
         Integer doctorId = recipe.getDoctor();
         RecipeBean r = new RecipeBean();
+        r = ObjectCopyUtils.convert(recipe, RecipeBean.class);
         r.setRecipeId(recipe.getRecipeId());
         //加密recipeId
         try {

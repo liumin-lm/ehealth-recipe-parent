@@ -106,8 +106,9 @@ public class OrderManager extends BaseManager {
         DrugsEnterprise enterprise = drugsEnterpriseDAO.getById(depId);
         if (null != enterprise && enterprise.getLogisticsType() != null && enterprise.getLogisticsType().equals(DrugEnterpriseConstant.LOGISTICS_PLATFORM)&&logisticsCompany!=null) {
             List<OrganLogisticsManageDto>  organLogisticsManageDtos=organLogisticsManageService.getOrganLogisticsManageByOrganIdAndLogisticsCode(enterprise.getId(),logisticsCompany.toString(),DrugEnterpriseConstant.BUSINESS_TYPE);
+            logger.info("getCreateLogisticsOrderDto organLogisticsManageDtos:{}",JSONUtils.toString(organLogisticsManageDtos));
             OrganLogisticsManageDto organLogisticsManageDto=new OrganLogisticsManageDto();
-            if(CollectionUtils.isNotEmpty(organLogisticsManageDtos)){
+            if(CollectionUtils.isNotEmpty(organLogisticsManageDtos) && organLogisticsManageDtos.get(0)!=null){
                 organLogisticsManageDto=organLogisticsManageDtos.get(0);
             }
             ControlLogisticsOrderDto controlLogisticsOrderDto = new ControlLogisticsOrderDto();
