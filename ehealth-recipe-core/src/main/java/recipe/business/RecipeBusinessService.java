@@ -7,10 +7,7 @@ import com.ngari.his.recipe.mode.OutPatientRecipeReq;
 import com.ngari.his.recipe.mode.OutRecipeDetailReq;
 import com.ngari.his.regulation.entity.RegulationRecipeIndicatorsReq;
 import com.ngari.patient.dto.PatientDTO;
-import com.ngari.recipe.dto.DiseaseInfoDTO;
-import com.ngari.recipe.dto.OutPatientRecipeDTO;
-import com.ngari.recipe.dto.OutPatientRecordResDTO;
-import com.ngari.recipe.dto.OutRecipeDetailDTO;
+import com.ngari.recipe.dto.*;
 import com.ngari.recipe.entity.*;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
 import com.ngari.recipe.recipe.ChineseMedicineMsgVO;
@@ -680,5 +677,28 @@ public class RecipeBusinessService extends BaseService implements IRecipeBusines
         return drugUsageLabelResp;
     }
 
+    @Override
+    public List<RecipeDTO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId) {
+        List<RecipeDTO> recipeDTOList = new ArrayList<>();
+        Recipe recipe = recipeDAO.get(recipeId);
+        RecipeOrder recipeOrder = recipeOrderDAO.getByOrderCode(recipe.getOrderCode());
+        String registerNo = recipeOrder.getRegisterNo();
+        if (StringUtils.isBlank(registerNo)) {
+            return recipeDTOList;
+        }
+        List<RecipeOrder> recipeOrderList = recipeOrderDAO.findByRegisterNoAndMpiId(registerNo, recipeOrder.getMpiId());
+        for (RecipeOrder order : recipeOrderList) {
+            if (registerNo.equals(order.getRegisterNo())) {
+                continue;
+            }
+            Recipe recipeRelated = recipeDAO.get(order.getOrderCode());
+            List<Recipedetail> recipeDetailList = recipeDetailDAO.findByRecipeId(recipeRelated.getRecipeId());
+            RecipeDTO recipeDTO = new RecipeDTO();
+            recipeDTO.setRecipe(recipeRelated);
+            recipeDTO.setRecipeDetails(recipeDetailList);
+            recipeDTOList.add(recipeDTO);
+        }
+        return recipeDTOList;
+    }
 }
 

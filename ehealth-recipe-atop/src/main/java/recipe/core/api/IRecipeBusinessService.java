@@ -3,6 +3,7 @@ package recipe.core.api;
 import com.ngari.recipe.dto.DiseaseInfoDTO;
 import com.ngari.recipe.dto.OutPatientRecipeDTO;
 import com.ngari.recipe.dto.OutPatientRecordResDTO;
+import com.ngari.recipe.dto.RecipeDTO;
 import com.ngari.recipe.entity.Recipe;
 import com.ngari.recipe.entity.Symptom;
 import com.ngari.recipe.hisprescription.model.RegulationRecipeIndicatorsDTO;
@@ -226,4 +227,13 @@ public interface IRecipeBusinessService {
      * @return
      */
     DrugUsageLabelResp queryRecipeDrugUsageLabel(Integer recipeId);
+
+    /**
+     * 获取某处方单关联处方（同一个患者同一次就诊）
+     *
+     * @param recipeId
+     * @param doctorId
+     * @return
+     */
+    List<RecipeDTO> findRelatedRecipeRecordByRegisterNo(Integer recipeId, Integer doctorId);
 }
