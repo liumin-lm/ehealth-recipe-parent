@@ -1476,6 +1476,7 @@ public class RecipeServiceSub {
         r.setPayFlag(recipe.getPayFlag());
         r.setProcessState(recipe.getProcessState());
         r.setSubState(recipe.getSubState());
+        r.setOfflineRecipeName(recipe.getOfflineRecipeName());
         r.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
         return r;
     }
@@ -1500,6 +1501,7 @@ public class RecipeServiceSub {
         r.setSubStateText(RecipeStateEnum.getRecipeStateEnum(recipe.getSubState()).getName());
         r.setDoctorName(recipe.getDoctorName());
         r.setDepart(recipe.getDepart());
+        r.setOfflineRecipeName(recipe.getOfflineRecipeName());
         if (null != recipeExtend) {
             r.setRecipeExtend(ObjectCopyUtils.convert(recipeExtend, RecipeExtendBean.class));
         }
